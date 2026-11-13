@@ -21,6 +21,7 @@ class ProfileIdentityPublic(BaseModel):
     username: str
     email: str
     phone: str | None = None
+    #: Same-origin link to the profile photo (256 px), or None when there is none.
     avatar_url: str | None = None
     status: UserStatus
 

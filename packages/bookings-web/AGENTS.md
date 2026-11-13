@@ -1,7 +1,7 @@
 # @barrelsgd/bookings-web — agent context
 
 The public booking flow (new booking form, slot picker, manage-a-booking page,
-Turnstile widget) shared by `apps/web/babydoll` and a future `apps/web/bookings`.
+Turnstile widget) used by `apps/web/bookings`. Babydoll hosted it until 13 Nov 2026, when that site became static and its Book buttons started linking out.
 Backed by Barrels Bookings (`apps/api/fastapi/src/bookings`, ADR-0024).
 
 ## Boundary: the host owns the server

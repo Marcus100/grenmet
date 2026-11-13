@@ -42421,6 +42421,488 @@
         }
       }
     },
+    "/api/v1/profile-images/me": {
+      "get": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Get your profile photo details",
+        "description": "404 when you have no photo. Read the image itself through GET /profile-images/org/{user_id} with your own user id.",
+        "operationId": "profileImagesGetMine",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileImagePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Upload or replace your profile photo",
+        "description": "Send the image itself as the request body with Content-Type image/jpeg, image/png or image/webp, up to 5 MB and 16 megapixels. The photo is turned upright, cropped square, stored as 64, 256 and 512 pixel WebP images, and its metadata (including GPS location) is removed. It is visible at once to people who share an organisation with you.",
+        "operationId": "profileImagesSetMine",
+        "requestBody": {
+          "content": {
+            "image/jpeg": {
+              "schema": {
+                "$ref": "#/components/schemas/BinaryFile"
+              }
+            },
+            "image/png": {
+              "schema": {
+                "$ref": "#/components/schemas/BinaryFile"
+              }
+            },
+            "image/webp": {
+              "schema": {
+                "$ref": "#/components/schemas/BinaryFile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileImagePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Not a usable JPEG, PNG or WebP photo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Larger than 5 MB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Not sent as image/jpeg, image/png or image/webp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Photo storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Remove your profile photo",
+        "description": "Deletes the photo and its stored images; 404 when you have none.",
+        "operationId": "profileImagesRemoveMine",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/profile-images/me/image": {
+      "get": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Show your profile photo",
+        "description": "Redirects to a short-lived link to your own image (for the account app, whose sessions cannot read other people's photos). 404 when you have none.",
+        "operationId": "profileImagesShowMine",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ProfileImageSize",
+              "default": 256
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Redirect to the image",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Photo storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profile-images/org/{user_id}": {
+      "get": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Show a person's profile photo",
+        "description": "Redirects to a short-lived link to the image. Visible to the person, superusers and people who share an organisation with them (active membership of the same organisation, or active employment in the same HR organisation). Otherwise, or when there is no photo, 404: show initials instead.",
+        "operationId": "profileImagesShow",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ProfileImageSize",
+              "default": 256
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Redirect to the image",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Photo storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Remove someone's profile photo",
+        "description": "For an unsuitable photo. Requires hr.employment.manage over the person (or superuser). Recorded in their employee history. Staff cannot upload a photo for someone else.",
+        "operationId": "profileImagesRemove",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/subscriptions": {
       "post": {
         "tags": [
@@ -97097,6 +97579,49 @@
         ],
         "title": "ProfileIdentityPublic"
       },
+      "ProfileImagePublic": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "sizes": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Sizes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "version",
+          "updated_at",
+          "sizes"
+        ],
+        "title": "ProfileImagePublic"
+      },
+      "ProfileImageSize": {
+        "type": "integer",
+        "enum": [
+          64,
+          256,
+          512
+        ],
+        "title": "ProfileImageSize",
+        "description": "Square sizes stored for each photo, in pixels."
+      },
       "ProfilePublic": {
         "properties": {
           "handle": {
@@ -119217,6 +119742,11 @@
           "paid"
         ],
         "type": "string"
+      },
+      "BinaryFile": {
+        "title": "BinaryFile",
+        "type": "string",
+        "format": "binary"
       }
     },
     "securitySchemes": {
@@ -119417,6 +119947,10 @@
     {
       "name": "webhooks-out",
       "description": "Signed outbound webhooks for organisations."
+    },
+    {
+      "name": "profile-images",
+      "description": "Profile photos: your own, and those of people in your organisations."
     },
     {
       "name": "permissions",

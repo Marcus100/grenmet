@@ -7,8 +7,9 @@ Accepted — 2026-10-15 by the project owner. The workflow and script are built
 unit-tested against a local fake backup store. The drill has passed against the
 production backup (run 41789991594, 2026-11-04, 1 minute 57 seconds) and end to
 end on 2026-11-09 (run 42679143332,
-[#926](https://github.com/Marcus100/grenmet/issues/926)). A run with the
-application check and the monthly schedule are still open. Runbook:
+[#926](https://github.com/Marcus100/grenmet/issues/926)). It runs monthly
+from `restore-drill.yml`, and a failed scheduled run opens an issue. A run with the
+application check is still open. Runbook:
 [restore drill](../operations/restore-drill.md).
 
 Differences from the plan below, found while building it:

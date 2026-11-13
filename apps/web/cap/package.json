@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack --port 3010",
-    "build": "next build",
+    "dev": "node scripts/copy-maplibre-worker.mjs && next dev --turbopack --port 3010",
+    "build": "node scripts/copy-maplibre-worker.mjs && next build",
     "start": "next start --port 3010",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",

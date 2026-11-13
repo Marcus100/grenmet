@@ -151,6 +151,7 @@ jobs:
           DOCS_SSO_CLIENT_SECRET: ${{ secrets.DOCS_SSO_CLIENT_SECRET }}
           GMSDASH_SSO_CLIENT_SECRET: ${{ secrets.GMSDASH_SSO_CLIENT_SECRET }}
           BOOKINGS_SSO_CLIENT_SECRET: ${{ secrets.BOOKINGS_SSO_CLIENT_SECRET }}
+          ACCOUNT_SSO_CLIENT_SECRET: ${{ secrets.ACCOUNT_SSO_CLIENT_SECRET }}
           EMAIL: ${{ secrets.EMAIL }}
           USERNAME: ${{ secrets.USERNAME }}
           HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}

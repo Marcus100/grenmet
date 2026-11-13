@@ -185,6 +185,8 @@ the API image and the local source mount contain the same migration assets.
 | `GMSDASH_SSO_CLIENT_SECRET` | Secret the GMS Dashboard web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Set the same value for the API and `apps/web/gmsdash`. |
 | `BOOKINGS_APP_URL` | Public URL of the Barrels Bookings web app (app-scoped sign-in). Default `http://localhost:3015`. |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Secret the Bookings web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Empty (the default) keeps sign-in off. Set the same value for the API and `apps/web/bookings`. |
+| `ACCOUNT_APP_URL` | Public URL of the Barrels account web app (`account.barrels.gd`, ADR-0057; app-scoped sign-in). Default `http://localhost:3018`. |
+| `ACCOUNT_SSO_CLIENT_SECRET` | Secret the account web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Empty (the default) keeps sign-in off. Set the same value for the API and `apps/web/account`. |
 | `MODELS_GUIDANCE_ENABLED` | Worker fetch of ECMWF IFS/AIFS and NOAA GFS point guidance (`src/models_guidance`). Default `false`; a run downloads hundreds of MB, so enable deliberately. |
 | `MODELS_GUIDANCE_MODELS` / `MODELS_GUIDANCE_POINTS` / `MODELS_GUIDANCE_POLL_MINUTE` / `MODELS_GUIDANCE_HORIZON_HOURS` / `MODELS_GUIDANCE_RETENTION_DAYS` / `MODELS_GUIDANCE_CACHE_DIR` | Optional. Models (`ifs,aifs,gfs`), JSON list of points (key, name, latitude, longitude; default MBIA, Lauriston, Petite Martinique), the minute of each hourly check (default 20), forecast length (default 240 h), stored-run retention (default 7 days) and the parent directory for temporary GRIB files. |
 | `EVENTS_GOOGLE_REDIRECT_URI` | Google OAuth redirect for Events sign-in (e.g. `https://events.barrels.gd/auth/google/callback`); Google sign-in for Events is offered only when this and `GOOGLE_CLIENT_ID` are set. |
@@ -214,8 +216,8 @@ the API image and the local source mount contain the same migration assets.
 | `TURNSTILE_SECRET_KEY` | Turnstile widget secret (free Cloudflare account). Secret: environment secret store only, never a committed file |
 | `EMAIL_HASH_PEPPER` | Secret key for the HMAC-SHA256 hash of suppressed and unsubscribed email addresses (`src/utils/email_hash.py`). Generate with `openssl rand -base64 32 | tr -d '\n'` and store it without a trailing newline (`gh secret set EMAIL_HASH_PEPPER --env <env> < pepper-file`); the deploy's render-config step rejects a multi-line value. Never reuse `SECRET_KEY`. Unset is allowed only when `ENVIRONMENT=local` (a fixed dev key is used); elsewhere hashing raises `EmailHashPepperMissingError` and the subscribe, suppression and email-dispatch paths fail, so set it in staging and production before this release. Rotating or losing it makes every stored hash unmatchable, so keep a copy with the other backed-up secrets. |
 | `CAP_DELIVERY_FAILURE_RECIPIENTS` | Worker. Comma-separated GMS addresses emailed (through the notifications outbox) when a warning delivery job (email, push, webhooks, PDF and so on) has failed on every attempt. One email per failed job and address, deduplicated by job id; it names the warning headline, channel, attempts and error class only. Empty (default): no email; the worker still logs an error that Sentry captures. |
-| `TRUSTED_WEB_SECRET` | Shared secret (at least 32 characters, `openssl rand -base64 32`) that Next.js web hosts send with `X-Visitor-IP` and `X-Visitor-Secret` so rate limits (`src/rate_limit.py`) key on the real visitor, not the web server. Empty or shorter than 32 characters (a startup warning is logged, never the value) ignores both headers and keys on the connecting address, as does a wrong or missing secret, a non-ASCII value, and every `/auth` route, so a spoofed header changes nothing. IPv6 visitors key on their /64; IPv4-mapped IPv6 maps to IPv4. Set the same value for the API, `apps/web/bookings`, `apps/web/babydoll`, `apps/web/events`, `apps/web/gms` and `apps/web/mbia` (mbia: the contact form; gms: the weather site's email and browser alert sign-ups; without it every visitor shares one bucket of 5 email and 10 push sign-ups a minute); a web-side value under 32 characters fails the bookings, Babydoll, Events, gms and mbia env validation. The owner sets it on web-gms. Deploys (`render-env.py`, `deploy.yml`, `docker-compose.deploy.yml`) require it for staging and production, at least 32 characters, different from `SECRET_KEY` and every `*_SSO_CLIENT_SECRET`, and pass it to `api`, `web-events`, `web-gms`, `web-mbia` and `web-bookings` only. Events forwards the pair on its server-side API calls (`apps/web/events/src/lib/api.ts`) but never on `/auth/email-code/*`, which the API ignores it on anyway. |
-| `VISITOR_IP_PROXY_HOPS` | The API, `apps/web/bookings`, `apps/web/babydoll`, `apps/web/events`, `apps/web/gms` and `apps/web/mbia` (whole number 1 to 5, anything else fails startup; default 1). Number of reverse proxies in front of the server that append to `x-forwarded-for` (1: the right-most entry, as written by a Traefik that does not trust its peer). Behind Cloudflare and a Traefik that trusts it (`trustedIPs`), 2. The visitor is counted from the right; leading entries are visitor-controlled and ignored, and `x-real-ip` is not used. On the API it sets the address that rate limits fall back to (`src/rate_limit.py` `connecting_address`; at 1 that is uvicorn's address, unchanged). Deploys set it from `CLOUDFLARE_PROXY_ENABLED` (`render-env.py`) for `api`, `web-events`, `web-gms`, `web-mbia` and `web-bookings`; Babydoll's is set on its Vercel project. |
+| `TRUSTED_WEB_SECRET` | Shared secret (at least 32 characters, `openssl rand -base64 32`) that Next.js web hosts send with `X-Visitor-IP` and `X-Visitor-Secret` so rate limits (`src/rate_limit.py`) key on the real visitor, not the web server. Empty or shorter than 32 characters (a startup warning is logged, never the value) ignores both headers and keys on the connecting address, as does a wrong or missing secret, a non-ASCII value, and every `/auth` route, so a spoofed header changes nothing. IPv6 visitors key on their /64; IPv4-mapped IPv6 maps to IPv4. Set the same value for the API, `apps/web/bookings`, `apps/web/events`, `apps/web/gms` and `apps/web/mbia` (mbia: the contact form; gms: the weather site's email and browser alert sign-ups; without it every visitor shares one bucket of 5 email and 10 push sign-ups a minute); a web-side value under 32 characters fails the bookings, Babydoll, Events, gms and mbia env validation. The owner sets it on web-gms. Deploys (`render-env.py`, `deploy.yml`, `docker-compose.deploy.yml`) require it for staging and production, at least 32 characters, different from `SECRET_KEY` and every `*_SSO_CLIENT_SECRET`, and pass it to `api`, `web-events`, `web-gms`, `web-mbia` and `web-bookings` only. Events forwards the pair on its server-side API calls (`apps/web/events/src/lib/api.ts`) but never on `/auth/email-code/*`, which the API ignores it on anyway. |
+| `VISITOR_IP_PROXY_HOPS` | The API, `apps/web/bookings`, `apps/web/events`, `apps/web/gms` and `apps/web/mbia` (whole number 1 to 5, anything else fails startup; default 1). Number of reverse proxies in front of the server that append to `x-forwarded-for` (1: the right-most entry, as written by a Traefik that does not trust its peer). Behind Cloudflare and a Traefik that trusts it (`trustedIPs`), 2. The visitor is counted from the right; leading entries are visitor-controlled and ignored, and `x-real-ip` is not used. On the API it sets the address that rate limits fall back to (`src/rate_limit.py` `connecting_address`; at 1 that is uvicorn's address, unchanged). Deploys set it from `CLOUDFLARE_PROXY_ENABLED` (`render-env.py`) for `api`, `web-events`, `web-gms`, `web-mbia` and `web-bookings`; Babydoll's is set on its Vercel project. |
 | `FLIGHTS_OPENSKY_ENABLED` | Feature flag, default `false`. When `true` the worker polls OpenSky every 30 minutes and `GET /api/v1/flights/board` serves the Redis-cached rows. Research use only: commercial use needs a written OpenSky licence (owner decision pending). Needs `REDIS_URL` |
 | `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | Optional OpenSky OAuth2 client credentials (free account). Unset: anonymous access with a very small daily quota. Set in the environment secret store, never in a committed file |
 | `COPERNICUSMARINE_SERVICE_USERNAME`, `COPERNICUSMARINE_SERVICE_PASSWORD` | Copernicus Marine free account (secrets). Both set enables the worker fetch (every 6 h) and `GET /api/v1/environment/marine`; unset: `available: false`, never sample data |
@@ -310,7 +312,7 @@ For staging/production, replace with the actual subdomain hosts (no port needed)
 **Production** (exact hosts; list every app that sends users back to auth):
 
 ```text
-AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cap.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
+AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,account.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cap.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
 ```
 
 Staging uses the same labels under `staging.barrels.gd`. The shared Compose file
@@ -342,6 +344,7 @@ site's secret is set; the same value must be set for the API. Elections
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
 | bookings | `bookings` | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
+| account | `account` | `ACCOUNT_SSO_CLIENT_SECRET` | `account_session` |
 
 The weather site (gms) has no sign-in (owner, 1 Nov 2026), so it has no entry in
 this table and no `WEATHER_SSO_CLIENT_SECRET` or `WEATHER_SHOW_SIGN_IN`
@@ -434,6 +437,17 @@ GMS Dashboard (model meteograms for entitled organisations). No database; it cal
 | `GMSDASH_SSO_CLIENT_SECRET` | Same value as the API's; without it `/auth/callback` returns 503 and nobody can sign in |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
 
+### account (`apps/web/account/.env.local`)
+
+Barrels account (ADR-0057): a person's profile and profile photo. Every page needs a Barrels sign-in; the photo is uploaded and read through the same-origin `/api/v1/*` proxy, which exchanges the session cookie for a bearer token. No database; the API is called from the server at `AUTH_API_URL`.
+
+| Variable | Purpose |
+|---|---|
+| `AUTH_API_URL` / `AUTH_API_V1_STR` / `AUTH_APP_URL` | FastAPI base URL (`http://api:8000` in deployment), API prefix and the Barrels sign-in app |
+| `ACCOUNT_SESSION_COOKIE_NAME` | Host-only session cookie (default `account_session`) |
+| `ACCOUNT_SSO_CLIENT_SECRET` | Same value as the API's registration for `account`; without it `/auth/callback` returns 503. Optional in deployment (empty keeps sign-in off). A GitHub environment secret passed by `deploy.yml` and rendered by `render-env.py` |
+| `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
+
 ### bookings (`apps/web/bookings/.env.local`)
 
 Barrels Bookings. Only `/studio` needs sign-in; the public booking pages (`/[slug]`) need no sign-in. No database; the Bookings API is called from the server only, at `AUTH_API_URL`.
@@ -478,16 +492,11 @@ Read through `src/env.ts` (hand-written, no schema library). The site is static 
 |---|---|
 | `COMMIT_SITE_URL` | Public origin for metadata, the sitemap and RSS links (default `https://commit.barrels.gd`; only the origin of the value is kept) |
 
-### Babydoll web (`apps/web/babydoll`, Vercel)
+### Babydoll web (`apps/web/babydoll`, static)
 
-Read through `src/env.ts` (hand-written, no schema library). Every value has a default; the site is fully static until the switch is on.
-
-| Variable | Purpose |
-|---|---|
-| `BABYDOLL_ONLINE_BOOKING` | `on` enables `/book` (live services, slots, booking). Anything else: `/book` redirects to the Acuity link. Stands in for the PF7 flag `babydoll-online-booking` until anonymous visitors can evaluate flags |
-| `BABYDOLL_API_URL` | FastAPI origin, server only (default `http://localhost:8000`) |
-| `BABYDOLL_BOOKING_SLUG` | The studio's `bookings.profile.public_slug` (default `babydoll-beauty-bar`; created by `python -m src.bookings.seed`) |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile key for the booking form. Unset: no widget and no token. The API uses the `babydoll` public site's Turnstile policy |
+No environment variables. The site is a static export with no server code
+(owner, 13 Nov 2026); the booking address is `ONLINE_BOOKING_URL` in
+`src/data/site.ts`.
 
 FastAPI: `BOOKINGS_BABYDOLL_SITE_URL` (default `https://babydoll.barrels.gd`) is read only by the on-demand Babydoll seed (`src/bookings/seed.py`) for the booking manage link and the public site row.
 

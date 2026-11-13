@@ -123,7 +123,7 @@ still updates `docs/api/contracts.md`.
 
 | If you change… | Also verify… |
 | --- | --- |
-| A FastAPI route or schema | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md`; every web consumer of the generated hook or type |
+| A FastAPI route or schema | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift` → `pnpm generate:api-routes`; `docs/api/contracts.md` only for a removed, public, webhook or re-secured route, a breaking change, or a route it already describes (the check names the reason); every web consumer of the generated hook or type |
 | A SQLAlchemy model | Alembic revision for the right database (main or `src/<domain>/alembic.ini`); seeds; `openapi.json` if it surfaces in a schema |
 | A permission key | `src/auth/permissions.py` catalogue (enforced by `tests/auth/test_permission_registry.py`); UI gating in gaa-admin |
 | Auth behaviour (`packages/auth`) | every app using it plus delegating apps (docs, gms via `AUTH_API_URL`) |

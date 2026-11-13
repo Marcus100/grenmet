@@ -600,6 +600,12 @@ export { paymentsGetBalance } from "./clients/paymentsGetBalance.js";
 export { paymentsGetIntent } from "./clients/paymentsGetIntent.js";
 export { paymentsListIntents } from "./clients/paymentsListIntents.js";
 export { paymentsRecordManualPayment } from "./clients/paymentsRecordManualPayment.js";
+export { profileImagesGetMine } from "./clients/profileImagesGetMine.js";
+export { profileImagesRemove } from "./clients/profileImagesRemove.js";
+export { profileImagesRemoveMine } from "./clients/profileImagesRemoveMine.js";
+export { profileImagesSetMine } from "./clients/profileImagesSetMine.js";
+export { profileImagesShow } from "./clients/profileImagesShow.js";
+export { profileImagesShowMine } from "./clients/profileImagesShowMine.js";
 export { pushSubscribe } from "./clients/pushSubscribe.js";
 export { pushUnsubscribe } from "./clients/pushUnsubscribe.js";
 export { pushVapidPublicKey } from "./clients/pushVapidPublicKey.js";
@@ -3751,6 +3757,36 @@ export {
   usePaymentsRecordManualPayment,
 } from "./hooks/usePaymentsRecordManualPayment.js";
 export {
+  profileImagesGetMineQueryKey,
+  profileImagesGetMineQueryOptions,
+  useProfileImagesGetMine,
+} from "./hooks/useProfileImagesGetMine.js";
+export {
+  profileImagesRemoveMutationKey,
+  profileImagesRemoveMutationOptions,
+  useProfileImagesRemove,
+} from "./hooks/useProfileImagesRemove.js";
+export {
+  profileImagesRemoveMineMutationKey,
+  profileImagesRemoveMineMutationOptions,
+  useProfileImagesRemoveMine,
+} from "./hooks/useProfileImagesRemoveMine.js";
+export {
+  profileImagesSetMineMutationKey,
+  profileImagesSetMineMutationOptions,
+  useProfileImagesSetMine,
+} from "./hooks/useProfileImagesSetMine.js";
+export {
+  profileImagesShowQueryKey,
+  profileImagesShowQueryOptions,
+  useProfileImagesShow,
+} from "./hooks/useProfileImagesShow.js";
+export {
+  profileImagesShowMineQueryKey,
+  profileImagesShowMineQueryOptions,
+  useProfileImagesShowMine,
+} from "./hooks/useProfileImagesShowMine.js";
+export {
   pushSubscribeMutationKey,
   pushSubscribeMutationOptions,
   usePushSubscribe,
@@ -5652,6 +5688,7 @@ export type {
   BillingVoidInvoiceStatus409,
   BillingVoidInvoiceStatus422,
 } from "./models/BillingVoidInvoice.js";
+export type { BinaryFile } from "./models/BinaryFile.js";
 export type { BodyAuthLoginAccessToken } from "./models/BodyAuthLoginAccessToken.js";
 export type { BodyHrImportTerminalPunches } from "./models/BodyHrImportTerminalPunches.js";
 export type { BodyHrUploadDocument } from "./models/BodyHrUploadDocument.js";
@@ -12177,6 +12214,81 @@ export type { ProfileAuditPublic } from "./models/ProfileAuditPublic.js";
 export type { ProfileDetailsPublic } from "./models/ProfileDetailsPublic.js";
 export type { ProfileDetailsUpdate } from "./models/ProfileDetailsUpdate.js";
 export type { ProfileIdentityPublic } from "./models/ProfileIdentityPublic.js";
+export type { ProfileImagePublic } from "./models/ProfileImagePublic.js";
+export type { ProfileImageSize } from "./models/ProfileImageSize.js";
+export { profileImageSize } from "./models/ProfileImageSize.js";
+export type {
+  ProfileImagesGetMineOptions,
+  ProfileImagesGetMineResponse,
+  ProfileImagesGetMineResponses,
+  ProfileImagesGetMineStatus200,
+  ProfileImagesGetMineStatus401,
+  ProfileImagesGetMineStatus403,
+  ProfileImagesGetMineStatus404,
+  ProfileImagesGetMineStatus422,
+} from "./models/ProfileImagesGetMine.js";
+export type {
+  ProfileImagesRemoveOptions,
+  ProfileImagesRemovePath,
+  ProfileImagesRemoveResponse,
+  ProfileImagesRemoveResponses,
+  ProfileImagesRemoveStatus204,
+  ProfileImagesRemoveStatus401,
+  ProfileImagesRemoveStatus403,
+  ProfileImagesRemoveStatus404,
+  ProfileImagesRemoveStatus422,
+} from "./models/ProfileImagesRemove.js";
+export type {
+  ProfileImagesRemoveMineOptions,
+  ProfileImagesRemoveMineResponse,
+  ProfileImagesRemoveMineResponses,
+  ProfileImagesRemoveMineStatus204,
+  ProfileImagesRemoveMineStatus401,
+  ProfileImagesRemoveMineStatus403,
+  ProfileImagesRemoveMineStatus404,
+  ProfileImagesRemoveMineStatus422,
+} from "./models/ProfileImagesRemoveMine.js";
+export type {
+  ProfileImagesSetMineBody,
+  ProfileImagesSetMineBodyJpeg,
+  ProfileImagesSetMineBodyPng,
+  ProfileImagesSetMineBodyWebp,
+  ProfileImagesSetMineOptions,
+  ProfileImagesSetMineResponse,
+  ProfileImagesSetMineResponses,
+  ProfileImagesSetMineStatus200,
+  ProfileImagesSetMineStatus401,
+  ProfileImagesSetMineStatus403,
+  ProfileImagesSetMineStatus413,
+  ProfileImagesSetMineStatus415,
+  ProfileImagesSetMineStatus422,
+  ProfileImagesSetMineStatus503,
+} from "./models/ProfileImagesSetMine.js";
+export type {
+  ProfileImagesShowOptions,
+  ProfileImagesShowPath,
+  ProfileImagesShowQuery,
+  ProfileImagesShowResponse,
+  ProfileImagesShowResponses,
+  ProfileImagesShowStatus307,
+  ProfileImagesShowStatus401,
+  ProfileImagesShowStatus403,
+  ProfileImagesShowStatus404,
+  ProfileImagesShowStatus422,
+  ProfileImagesShowStatus503,
+} from "./models/ProfileImagesShow.js";
+export type {
+  ProfileImagesShowMineOptions,
+  ProfileImagesShowMineQuery,
+  ProfileImagesShowMineResponse,
+  ProfileImagesShowMineResponses,
+  ProfileImagesShowMineStatus307,
+  ProfileImagesShowMineStatus401,
+  ProfileImagesShowMineStatus403,
+  ProfileImagesShowMineStatus404,
+  ProfileImagesShowMineStatus422,
+  ProfileImagesShowMineStatus503,
+} from "./models/ProfileImagesShowMine.js";
 export type { ProfilePublic } from "./models/ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./models/ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./models/ProfilePublicPropertiesConnectionStateEnum.js";
@@ -15571,6 +15683,7 @@ export {
   billingVoidInvoiceStatus409Schema,
   billingVoidInvoiceStatus422Schema,
 } from "./zod/billingVoidInvoiceSchema.js";
+export { binaryFileSchema } from "./zod/binaryFileSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./zod/bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrImportTerminalPunchesSchema } from "./zod/bodyHrImportTerminalPunchesSchema.js";
 export { bodyHrUploadDocumentSchema } from "./zod/bodyHrUploadDocumentSchema.js";
@@ -22082,6 +22195,78 @@ export { profileAuditPublicSchema } from "./zod/profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./zod/profileDetailsPublicSchema.js";
 export { profileDetailsUpdateSchema } from "./zod/profileDetailsUpdateSchema.js";
 export { profileIdentityPublicSchema } from "./zod/profileIdentityPublicSchema.js";
+export { profileImagePublicSchema } from "./zod/profileImagePublicSchema.js";
+export { profileImageSizeSchema } from "./zod/profileImageSizeSchema.js";
+export {
+  profileImagesGetMineErrorSchema,
+  profileImagesGetMineResponseSchema,
+  profileImagesGetMineStatus200Schema,
+  profileImagesGetMineStatus401Schema,
+  profileImagesGetMineStatus403Schema,
+  profileImagesGetMineStatus404Schema,
+  profileImagesGetMineStatus422Schema,
+} from "./zod/profileImagesGetMineSchema.js";
+export {
+  profileImagesRemoveMineErrorSchema,
+  profileImagesRemoveMineResponseSchema,
+  profileImagesRemoveMineStatus204Schema,
+  profileImagesRemoveMineStatus401Schema,
+  profileImagesRemoveMineStatus403Schema,
+  profileImagesRemoveMineStatus404Schema,
+  profileImagesRemoveMineStatus422Schema,
+} from "./zod/profileImagesRemoveMineSchema.js";
+export {
+  profileImagesRemoveErrorSchema,
+  profileImagesRemovePathSchema,
+  profileImagesRemovePathUserIdSchema,
+  profileImagesRemoveResponseSchema,
+  profileImagesRemoveStatus204Schema,
+  profileImagesRemoveStatus401Schema,
+  profileImagesRemoveStatus403Schema,
+  profileImagesRemoveStatus404Schema,
+  profileImagesRemoveStatus422Schema,
+} from "./zod/profileImagesRemoveSchema.js";
+export {
+  profileImagesSetMineBodySchema,
+  profileImagesSetMineBodySchemaJpeg,
+  profileImagesSetMineBodySchemaPng,
+  profileImagesSetMineBodySchemaWebp,
+  profileImagesSetMineErrorSchema,
+  profileImagesSetMineResponseSchema,
+  profileImagesSetMineStatus200Schema,
+  profileImagesSetMineStatus401Schema,
+  profileImagesSetMineStatus403Schema,
+  profileImagesSetMineStatus413Schema,
+  profileImagesSetMineStatus415Schema,
+  profileImagesSetMineStatus422Schema,
+  profileImagesSetMineStatus503Schema,
+} from "./zod/profileImagesSetMineSchema.js";
+export {
+  profileImagesShowMineErrorSchema,
+  profileImagesShowMineQuerySchema,
+  profileImagesShowMineQuerySizeSchema,
+  profileImagesShowMineResponseSchema,
+  profileImagesShowMineStatus307Schema,
+  profileImagesShowMineStatus401Schema,
+  profileImagesShowMineStatus403Schema,
+  profileImagesShowMineStatus404Schema,
+  profileImagesShowMineStatus422Schema,
+  profileImagesShowMineStatus503Schema,
+} from "./zod/profileImagesShowMineSchema.js";
+export {
+  profileImagesShowErrorSchema,
+  profileImagesShowPathSchema,
+  profileImagesShowPathUserIdSchema,
+  profileImagesShowQuerySchema,
+  profileImagesShowQuerySizeSchema,
+  profileImagesShowResponseSchema,
+  profileImagesShowStatus307Schema,
+  profileImagesShowStatus401Schema,
+  profileImagesShowStatus403Schema,
+  profileImagesShowStatus404Schema,
+  profileImagesShowStatus422Schema,
+  profileImagesShowStatus503Schema,
+} from "./zod/profileImagesShowSchema.js";
 export { profilePublicPropertiesConnectionStateEnumSchema } from "./zod/profilePublicPropertiesConnectionStateEnumSchema.js";
 export { profilePublicSchema } from "./zod/profilePublicSchema.js";
 export { profileUpdateSchema } from "./zod/profileUpdateSchema.js";

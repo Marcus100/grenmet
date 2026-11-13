@@ -1,3 +1,4 @@
+import { GRENADA_PARISH_BOUNDARIES } from "@/data/grenada-boundaries";
 import { type Severity, severityLevel, type WarningLevel } from "@/lib/alerts";
 import type { AlertFeature } from "@/lib/cap-api";
 
@@ -174,4 +175,25 @@ export function toShape(
     d: d || null,
     label: boxCentre(ringPositions(feature), projection),
   };
+}
+
+/**
+ * The parishes as one SVG path, so the map always shows the islands, with or
+ * without an alert in force. Simplified geoBoundaries outlines, not survey
+ * grade.
+ */
+export function landPath(projection: Projection): string {
+  return GRENADA_PARISH_BOUNDARIES.features
+    .flatMap((feature) => {
+      const geometry = feature.geometry;
+      const polygons =
+        geometry.type === "Polygon"
+          ? [geometry.coordinates]
+          : geometry.coordinates;
+      return polygons.flatMap((polygon) =>
+        polygon.map((ring) => ringPath(ring, projection))
+      );
+    })
+    .filter(Boolean)
+    .join("");
 }

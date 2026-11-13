@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
+import { contractDocReasons } from "./contract-doc-reasons.mjs";
 
 const usage =
   "Usage: node scripts/guardrails/check-blast-radius.mjs --staged | --base <sha> --head <sha>";
@@ -662,6 +663,43 @@ const declaredContractUnchanged = (comparison, triggers) => {
   );
 };
 
+const readAtRef = (ref, maxBuffer = OPENAPI_MAX_BYTES) => {
+  const result = spawnSync("git", ["show", ref], {
+    encoding: "utf8",
+    maxBuffer,
+  });
+  if (result.error || result.status !== 0) throw new Error(`Missing ${ref}`);
+  return result.stdout;
+};
+
+const contractDocumentReasons = (comparison) => {
+  const spec = "apps/api/fastapi/openapi.json";
+  const doc = "docs/api/contracts.md";
+  const [beforeRef, afterRef, docRef] =
+    comparison.mode === "staged"
+      ? [`HEAD:${spec}`, `:${spec}`, `HEAD:${doc}`]
+      : [
+          `${comparison.base}:${spec}`,
+          `${comparison.head}:${spec}`,
+          `${comparison.base}:${doc}`,
+        ];
+  try {
+    const before = JSON.parse(readAtRef(beforeRef));
+    const after = JSON.parse(readAtRef(afterRef));
+    let contractsText = "";
+    try {
+      contractsText = readAtRef(docRef);
+    } catch {
+      contractsText = "";
+    }
+    return contractDocReasons(before, after, contractsText);
+  } catch (error) {
+    return [
+      `the OpenAPI document could not be read at both ends of the change (${error instanceof Error ? error.message : "unknown error"})`,
+    ];
+  }
+};
+
 const evaluateChanges = (changes, comparison) => {
   const files = new Set(changes.flatMap((change) => change.paths));
   const triggers = [...files]
@@ -707,14 +745,22 @@ const evaluateChanges = (changes, comparison) => {
   if (triggers.length > 0 && !generatedClientChanged && !headerDocsOnly) {
     missingContractCompanions.push("packages/api-client/src/gen/");
   }
-  if (triggers.length > 0 && !files.has("docs/api/contracts.md")) {
+  // The route list is generated (docs/api/routes.md); the contract document is
+  // required only for removed, public or re-secured routes, breaking changes,
+  // and routes it already describes. Unreadable specs fail closed.
+  const docReasons =
+    triggers.length > 0 && !files.has("docs/api/contracts.md")
+      ? contractDocumentReasons(comparison)
+      : [];
+  if (docReasons.length > 0) {
     missingContractCompanions.push("docs/api/contracts.md");
   }
   if (missingContractCompanions.length > 0) {
     violations.push({
       missing: missingContractCompanions,
-      resolution:
-        "Regenerate the committed OpenAPI document, run pnpm generate:api-client, and update the API contract documentation.",
+      resolution: docReasons.length
+        ? `Regenerate the committed OpenAPI document, run pnpm generate:api-client, and update docs/api/contracts.md because: ${docReasons.slice(0, 5).join("; ")}.`
+        : "Regenerate the committed OpenAPI document and run pnpm generate:api-client.",
       rule: "FastAPI contract companions",
       triggers,
     });

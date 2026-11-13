@@ -1125,6 +1125,7 @@ export type {
   BillingVoidInvoiceStatus409,
   BillingVoidInvoiceStatus422,
 } from "./BillingVoidInvoice.js";
+export type { BinaryFile } from "./BinaryFile.js";
 export type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
 export type { BodyHrImportTerminalPunches } from "./BodyHrImportTerminalPunches.js";
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
@@ -7650,6 +7651,81 @@ export type { ProfileAuditPublic } from "./ProfileAuditPublic.js";
 export type { ProfileDetailsPublic } from "./ProfileDetailsPublic.js";
 export type { ProfileDetailsUpdate } from "./ProfileDetailsUpdate.js";
 export type { ProfileIdentityPublic } from "./ProfileIdentityPublic.js";
+export type { ProfileImagePublic } from "./ProfileImagePublic.js";
+export type { ProfileImageSize } from "./ProfileImageSize.js";
+export { profileImageSize } from "./ProfileImageSize.js";
+export type {
+  ProfileImagesGetMineOptions,
+  ProfileImagesGetMineResponse,
+  ProfileImagesGetMineResponses,
+  ProfileImagesGetMineStatus200,
+  ProfileImagesGetMineStatus401,
+  ProfileImagesGetMineStatus403,
+  ProfileImagesGetMineStatus404,
+  ProfileImagesGetMineStatus422,
+} from "./ProfileImagesGetMine.js";
+export type {
+  ProfileImagesRemoveOptions,
+  ProfileImagesRemovePath,
+  ProfileImagesRemoveResponse,
+  ProfileImagesRemoveResponses,
+  ProfileImagesRemoveStatus204,
+  ProfileImagesRemoveStatus401,
+  ProfileImagesRemoveStatus403,
+  ProfileImagesRemoveStatus404,
+  ProfileImagesRemoveStatus422,
+} from "./ProfileImagesRemove.js";
+export type {
+  ProfileImagesRemoveMineOptions,
+  ProfileImagesRemoveMineResponse,
+  ProfileImagesRemoveMineResponses,
+  ProfileImagesRemoveMineStatus204,
+  ProfileImagesRemoveMineStatus401,
+  ProfileImagesRemoveMineStatus403,
+  ProfileImagesRemoveMineStatus404,
+  ProfileImagesRemoveMineStatus422,
+} from "./ProfileImagesRemoveMine.js";
+export type {
+  ProfileImagesSetMineBody,
+  ProfileImagesSetMineBodyJpeg,
+  ProfileImagesSetMineBodyPng,
+  ProfileImagesSetMineBodyWebp,
+  ProfileImagesSetMineOptions,
+  ProfileImagesSetMineResponse,
+  ProfileImagesSetMineResponses,
+  ProfileImagesSetMineStatus200,
+  ProfileImagesSetMineStatus401,
+  ProfileImagesSetMineStatus403,
+  ProfileImagesSetMineStatus413,
+  ProfileImagesSetMineStatus415,
+  ProfileImagesSetMineStatus422,
+  ProfileImagesSetMineStatus503,
+} from "./ProfileImagesSetMine.js";
+export type {
+  ProfileImagesShowOptions,
+  ProfileImagesShowPath,
+  ProfileImagesShowQuery,
+  ProfileImagesShowResponse,
+  ProfileImagesShowResponses,
+  ProfileImagesShowStatus307,
+  ProfileImagesShowStatus401,
+  ProfileImagesShowStatus403,
+  ProfileImagesShowStatus404,
+  ProfileImagesShowStatus422,
+  ProfileImagesShowStatus503,
+} from "./ProfileImagesShow.js";
+export type {
+  ProfileImagesShowMineOptions,
+  ProfileImagesShowMineQuery,
+  ProfileImagesShowMineResponse,
+  ProfileImagesShowMineResponses,
+  ProfileImagesShowMineStatus307,
+  ProfileImagesShowMineStatus401,
+  ProfileImagesShowMineStatus403,
+  ProfileImagesShowMineStatus404,
+  ProfileImagesShowMineStatus422,
+  ProfileImagesShowMineStatus503,
+} from "./ProfileImagesShowMine.js";
 export type { ProfilePublic } from "./ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";

@@ -38,6 +38,7 @@ const webApps = [
     root: "apps/web/events",
   },
   { name: "bookings", root: "apps/web/bookings" },
+  { name: "account", root: "apps/web/account" },
   { name: "gmsdash", root: "apps/web/gmsdash" },
   { name: "mbia", root: "apps/web/mbia" },
   { name: "signal", root: "apps/web/signal" },

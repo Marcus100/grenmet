@@ -158,7 +158,12 @@ export function Calendar() {
     <div className="flex flex-col overflow-hidden rounded-md border">
       <div className="bg-sidebar text-sidebar-foreground flex flex-col gap-4 border-b p-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 shrink-0 flex-col gap-1">
-          <div className="text-lg leading-none font-medium">{title}</div>
+          {/* The page's only heading: the department calendar, then the
+              period on show. */}
+          <h1 className="text-lg leading-none font-medium">
+            <span className="sr-only">Department calendar: </span>
+            {title}
+          </h1>
           <p className="text-muted-foreground text-sm">
             {days} days - {entryCount} entries
           </p>
