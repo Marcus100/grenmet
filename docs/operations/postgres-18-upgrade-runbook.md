@@ -1,19 +1,15 @@
 # PostgreSQL 18 upgrade and restore-drill runbook
 
-**Status:** Not scheduled. Needs the owner's go. Production and staging run PostgreSQL 17  
+**Status:** Approved by the owner 2026-11-13. Staging first, then production with the owner present  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-02
+**Last updated:** 2026-11-13
 
 The operator steps and stop rules for moving the core database from PostgreSQL 17
-to 18 (issue #926 for the drill, issue #1024 item 4 for this runbook). The
-analysis, the files that pin the major version and the local checks are in the
-upgrade plan, `docs/operations/postgres-18-upgrade.md`, which lands with PR #882
-(do not merge that PR except in the same window as the staging and production move).
-Until PR #882 merges, `origin/dev` still pins PostgreSQL 17 everywhere, including
-the restore drill default image (`postgres:17` in `.github/workflows/restore-drill.yml`),
-and `docs/infrastructure.md`, `docs/operations/storage-delivery.md` and
-`infra/weather/README.md` correctly say 17. Update them in the same pull request as
-the move, not before.
+to 18 (issue #926 for the drill, issue #1024 item 4 for this runbook). The plan, the
+safety rules for the switch, the **PostgreSQL major upgrade** workflow and the
+rollback are in the [upgrade plan](postgres-18-upgrade.md). Development, CI and the
+restore drill default already run 18; staging and production stay on 17 until each
+runs the upgrade.
 
 ## Rules that apply to every step
 
@@ -37,8 +33,7 @@ the move, not before.
 Staging and production run plain `postgres:17`, with `CORE_POSTGRES_IMAGE` checked by
 `scripts/production/render-env.py`. No application database creates the PostGIS
 extension; the only extension migrations create is `btree_gist`. The PostGIS image
-(`postgis/postgis`, 17-3.5 now, 18-3.6 in PR #882) is the local development and test
-image. So the PostGIS part of the move is a development and CI change; nothing in
+(`postgis/postgis:18-3.7`) is the local development and test image. So the PostGIS part of the move is a development and CI change; nothing in
 production needs `ALTER EXTENSION postgis UPDATE` unless PostGIS is installed first.
 
 ## Stage 1: prove restore on PostgreSQL 18 (no production change)
@@ -46,7 +41,8 @@ production needs `ALTER EXTENSION postgis UPDATE` unless PostGIS is installed fi
 1. Confirm the latest **Backup database** run succeeded and is under 24 hours old.
 2. Dispatch **Restore Drill** (`restore-drill.yml`) with `environment=production`,
    `ref` empty (latest release) and `postgres_image` set to the reviewed PostgreSQL 18
-   image, pinned by digest (`postgres:18@sha256:...`). Leave `api_check` off for the
+   image, pinned by digest (the `CORE_POSTGRES_IMAGE` value in the
+   [upgrade plan](postgres-18-upgrade.md#how-the-switch-stays-safe)). Leave `api_check` off for the
    first run. The drill restores into a tmpfs-backed throwaway container and never
    touches a live database. Run it off-peak: it shares the production runner.
 3. Download the `restore-drill-result` artifact. Record the total and per-phase
@@ -59,11 +55,11 @@ production needs `ALTER EXTENSION postgis UPDATE` unless PostGIS is installed fi
 
 ## Stage 2: staging rehearsal
 
-Follow "Steps" in `docs/operations/postgres-18-upgrade.md` (lands with PR #882) on
-staging: new data volume, dump, switch `CORE_POSTGRES_IMAGE` and `PGDATA_VOLUME`,
-restore, check, reopen. Record every step's time. Also check on staging only, because
-it was not checked locally: the Payload CMS (`pg` driver) against 18, and real data
-size and timing.
+Follow "Run it" in the [upgrade plan](postgres-18-upgrade.md#run-it-staging-first-then-production)
+on staging: set both GitHub variables, run the workflow as a dry run, then as an
+upgrade. Record every phase's time from the run summary. Also check on staging only,
+because it was not checked locally: the Payload CMS (`pg` driver) against 18, and real
+data size and timing.
 
 ## Stage 3: production (owner present)
 
@@ -72,15 +68,16 @@ size and timing.
    and the owner has booked and announced the write-freeze window.
 2. Run **Backup database** immediately before, note the backup id in the release
    notes, and confirm the off-host copy.
-3. Follow the same steps as staging. The old 17 volume stays unchanged as the
-   rollback for at least 14 days.
+3. Follow the same steps as staging, with the workflow dispatched from the release tag.
+   The old 17 volume stays unchanged as the rollback for at least 14 days.
 4. After the services reopen, run [launch-day checks](launch-day-run-sheet.md#verification)
    (health, smoke) and **Backup database** again; the backup then runs 18's `pg_dump`.
 
 ## Rollback
 
-- **Before the services reopen:** set `CORE_POSTGRES_IMAGE` and `PGDATA_VOLUME` back
-  to the 17 values and deploy. The old volume was never written by 18.
+- **Before the services reopen:** set `CORE_POSTGRES_IMAGE` back to the 17 value, delete
+  `CORE_PGDATA_VOLUME`, and deploy. The old volume was never written by 18. The workflow
+  prints these steps with the exact values when it stops after the switch.
 - **After reopening:** writes made on 18 exist only there, and a custom-format dump
   from 18 cannot be read by the 17 `pg_restore`. Do not decide this alone: stop and ask
   the owner. The options are a plain-SQL dump from 18 restored into a fresh 17 volume,
@@ -93,5 +90,6 @@ size and timing.
 - The drill has not been run against real backups on any version
   ([launch checklist](launch-checklist.md#restore-drill)); the read-only Spaces key is
   an owner action.
-- `pg_upgrade` and the CMS on 18 are unchecked.
+- `pg_upgrade` and the CMS on 18 are unchecked; the upgrade script was rehearsed locally
+  only, on synthetic data.
 - Nothing opens an issue when the drill fails: watch the run.
