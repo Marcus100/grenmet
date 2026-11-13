@@ -38,9 +38,8 @@ notification preferences) would land in the sign-in app too.
   deployment"; decision 4 makes cookies host-only (`Domain=` never set), so a
   second host signs in through single sign-on (`continue`, ADR-0017) like
   every other app.
-- **Fact (high):** ports 3020 and 3021 in the platform range are reserved for
-  `developers` and `status` (`docs/ports.md`); 3022 is free. Port 3018 is
-  reserved for an unspecified `@barrelsgd/web-app`.
+- **Fact (high):** port 3018 was reserved for an unspecified
+  `@barrelsgd/web-app` with no recorded plan (`docs/ports.md`).
 - **Best practice (medium):** large identity providers keep the sign-in
   surface separate from account management (for example Google's
   `accounts.google.com` and `myaccount.google.com`). The sign-in surface stays
@@ -72,12 +71,14 @@ Adopt option 2.
   flows** listed above, including the emailed invitation link, because it
   works before the person has a session on any other host.
 - **`account.barrels.gd` (`apps/web/account`, `@barrelsgd/web-account`, port
-  3022)** holds a person's account: profile (name, profile photo), security
+  3018,** the unused `@barrelsgd/web-app` reservation, owner decision 13
+  November 2026**)** holds a person's account: profile (name, profile photo), security
   (password, two-step sign-in, recovery codes), sessions, my organisations,
   and my apps. It signs in through `continue` like any other app, and asks for
   the password or a code again before security changes, as `auth` does today.
-- **Events tickets and the rewards passport** move to `account` with the rest,
-  until a consumer app exists for them.
+- **Events tickets and the rewards passport** move to `account` and stay there
+  (owner decision 13 November 2026), like the orders page of a large
+  platform's account: one place where a person manages everything.
 - **The organisation rewards admin** moves to `account` under my organisations,
   next to the organisation it administers.
 - Old `auth` URLs redirect to the new pages for at least one release.
@@ -87,7 +88,7 @@ Adopt option 2.
 One small PR each, in order:
 
 1. Scaffold `apps/web/account` (Next.js, the `@barrelsgd/auth` session package,
-   the UI and theme packages) with port 3022 registered in `docs/ports.md`, a
+   the UI and theme packages) on port 3018 (`docs/ports.md`), a
    Dockerfile and compose service, a Traefik route on staging, the sign-in
    return-host allowlist and CORS origins. The home page shows the profile with
    the photo upload (#1303).
@@ -108,9 +109,9 @@ One small PR each, in order:
 - Links to old `auth` pages in emails and other apps must change; the
   redirects cover the gap.
 
-## Open questions
+## Owner answers (13 November 2026)
 
-- Should tickets and rewards eventually move to a consumer app rather than
-  stay in `account`?
-- What was port 3018 (`@barrelsgd/web-app`) reserved for, and should it be
-  released?
+- Tickets and rewards stay in `account` for good; no separate consumer app is
+  planned.
+- Port 3018, reserved for `@barrelsgd/web-app` with no recorded plan, becomes
+  `@barrelsgd/web-account`.
