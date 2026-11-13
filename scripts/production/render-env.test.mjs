@@ -11,6 +11,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
+const SENTRY_CRONS_FROM_VARS =
+  /^\s+SENTRY_CRONS_ENABLED: \$\{\{ vars\.SENTRY_CRONS_ENABLED \}\}$/mu;
+
 // A well-formed (not real) htpasswd bcrypt line, as `htpasswd -nbB` prints it.
 const HTPASSWD_ENTRY = (user) => `${user}:$2y$05$${"a".repeat(53)}`;
 
@@ -1185,12 +1188,9 @@ test("the Cloudflare switch refuses anything but true or false", () => {
   }
 });
 
-const CRONS_SWITCH_PASS =
-  /^\s+SENTRY_CRONS_ENABLED: \$\{\{ vars\.SENTRY_CRONS_ENABLED \}\}$/mu;
-
 test("deploy.yml passes the Sentry crons switch from the GitHub environment", () => {
   const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
-  assert.match(workflow, CRONS_SWITCH_PASS);
+  assert.match(workflow, SENTRY_CRONS_FROM_VARS);
 });
 
 test("deploy.yml passes the Cloudflare switch from the GitHub environment", () => {

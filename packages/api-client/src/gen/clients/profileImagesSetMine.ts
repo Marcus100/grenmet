@@ -11,7 +11,7 @@ import type {
 } from "../models/ProfileImagesSetMine.js";
 
 /**
- * @description Send the image itself as the request body with Content-Type image/jpeg, image/png or image/webp, up to 5 MB and 16 megapixels. The photo is turned upright, cropped square, stored as 64, 256 and 512 pixel WebP images, and its metadata (including GPS location) is removed. It is visible at once to people who share an organisation with you.
+ * @description Send the image itself as the request body with Content-Type image/jpeg, image/png or image/webp, up to 5 MB and 16 megapixels. The photo is turned upright, cropped square, stored as 64, 256 and 512 pixel WebP images, and its metadata (including GPS location) is removed. It is visible at once to people who share an organisation with you. At most 10 uploads a minute per person (429 after that).
  * @summary Upload or replace your profile photo
  * {@link /api/v1/profile-images/me}
  */

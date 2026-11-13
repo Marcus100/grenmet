@@ -205,7 +205,17 @@ test("GMS source leaves unrelated application builds cached", () => {
 test("coverage runs only the floor-tracked apps and follows the image scope", () => {
   assert.deepEqual(
     selectCoverage([], "full").map((image) => image.app),
-    ["auth", "gms", "signal", "mbia"]
+    [
+      "auth",
+      "admin",
+      "gms",
+      "signal",
+      "mbia",
+      "events",
+      "cap",
+      "gmsdash",
+      "bookings",
+    ]
   );
   assert.deepEqual(
     selectCoverage(["apps/web/gaa-admin/src/app/page.tsx"], "affected"),

@@ -5,6 +5,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+const HEALTHCHECK_PATH_LABEL =
+  /^traefik\.http\.services\.([^.]+)\.loadbalancer\.healthcheck\.path=/u;
+const WHOLE_SECONDS = /^[1-9][0-9]*s$/u;
+
 const read = (path) =>
   readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 
@@ -505,12 +509,7 @@ test("the origin gate outranks every router, refuses with 403 and is inert when 
 test("probed services recover from one slow probe within seconds", () => {
   const probed = [...services(compose).values()].flatMap((service) =>
     (service.lists.labels ?? [])
-      .map(
-        (label) =>
-          label.match(
-            /^traefik\.http\.services\.([^.]+)\.loadbalancer\.healthcheck\.path=/u
-          )?.[1]
-      )
+      .map((label) => label.match(HEALTHCHECK_PATH_LABEL)?.[1])
       .filter(Boolean)
       .map((name) => ({
         service: service.name,
@@ -528,7 +527,7 @@ test("probed services recover from one slow probe within seconds", () => {
       )
       ?.split("=")[1];
     assert.ok(value, `${name} sets healthcheck.${option}`);
-    assert.match(value, /^[1-9][0-9]*s$/u);
+    assert.match(value, WHOLE_SECONDS);
     return Number.parseInt(value, 10);
   };
   for (const { service, labels, name } of probed) {
