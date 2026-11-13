@@ -94,13 +94,13 @@ test("unknown, lockfile and CI inputs conservatively select everything", () => {
     "infra/weather/Dockerfile.collectors",
   ]) {
     const selected = selectImages([path]);
-    assert.equal(selected.web.length, 13);
+    assert.equal(selected.web.length, 14);
     assert.equal(selected.weather.length, 0);
     assert.equal(selected.api, true);
   }
 });
 test("promotion checks are full; deployment builds own their smoke checks", () => {
-  assert.equal(selectImages([], "full").web.length, 13);
+  assert.equal(selectImages([], "full").web.length, 14);
   assert.deepEqual(selectImages(["pnpm-lock.yaml"], "deployment"), {
     web: [],
     weather: [],
@@ -205,7 +205,17 @@ test("GMS source leaves unrelated application builds cached", () => {
 test("coverage runs only the floor-tracked apps and follows the image scope", () => {
   assert.deepEqual(
     selectCoverage([], "full").map((image) => image.app),
-    ["auth", "gms", "signal", "mbia"]
+    [
+      "auth",
+      "admin",
+      "gms",
+      "signal",
+      "mbia",
+      "events",
+      "cap",
+      "gmsdash",
+      "bookings",
+    ]
   );
   assert.deepEqual(
     selectCoverage(["apps/web/gaa-admin/src/app/page.tsx"], "affected"),

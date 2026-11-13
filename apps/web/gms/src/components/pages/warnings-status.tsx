@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AlertGroups } from "@/components/pages/alert-groups";
 import { GreenAlertList } from "@/components/pages/green-alerts";
 import { WarningStatusBand } from "@/components/pages/warning-status-band";
@@ -84,4 +85,74 @@ export async function CapGroups({
 /** Green alerts in effect, and the other GMS alerts not yet warnings. */
 export async function GreenSection({ green }: { green: Promise<GreenAlerts> }) {
   return <GreenAlertList green={await green} />;
+}
+
+/** True only when both lists were read in full and hold nothing. */
+export function nothingInEffect(
+  alerts: AlertsResult,
+  status: GreenStatus | undefined
+): boolean {
+  return (
+    alerts.status === "ok" &&
+    alerts.activeCount === 0 &&
+    status !== undefined &&
+    status.status !== "unavailable" &&
+    status.complete &&
+    status.count === 0 &&
+    status.other === 0
+  );
+}
+
+const CHECKLIST_ROW = "flex flex-wrap gap-x-2";
+
+/**
+ * The page's two lists. When nothing at all is in effect they are one short
+ * checklist (owner, 13 Nov 2026: say it once, keep both lists visible).
+ * Otherwise the warnings show at once and the Green alerts stream in behind
+ * their own boundary, so a slow outlook never holds back a warning.
+ */
+export async function AlertLists({
+  alerts,
+  green,
+}: {
+  alerts: AlertsResult;
+  green: Promise<GreenAlerts>;
+}) {
+  const status = await outlookFor(alerts, green);
+  if (nothingInEffect(alerts, status)) {
+    return (
+      <dl
+        aria-label="Alerts checked"
+        className="rounded-gm-card border-gm-border text-body-base leading-body-base flex flex-col gap-1 border p-4"
+      >
+        <div className={CHECKLIST_ROW}>
+          <dt className="text-gm-heading font-bold">Warnings and watches:</dt>
+          <dd>none in effect</dd>
+        </div>
+        <div className={CHECKLIST_ROW}>
+          <dt className="text-gm-heading font-bold">Green alerts:</dt>
+          <dd>none in effect</dd>
+        </div>
+      </dl>
+    );
+  }
+  return (
+    <>
+      <AlertGroups emptyLabel={noWarningsLabel(status)} result={alerts} />
+      <section
+        aria-labelledby="green-alerts-heading"
+        className="flex flex-col gap-3"
+      >
+        <h2
+          className="text-gm-heading text-heading-sm leading-heading-sm font-bold"
+          id="green-alerts-heading"
+        >
+          Green alerts
+        </h2>
+        <Suspense fallback={<p role="status">Checking the GMS alerts…</p>}>
+          <GreenSection green={green} />
+        </Suspense>
+      </section>
+    </>
+  );
 }

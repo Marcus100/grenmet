@@ -247,6 +247,9 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "download_public_attachment",
         # Public organisation images redirect to short-lived signed storage URLs.
         "public_file",
+        # Profile photos redirect to short-lived signed storage URLs (#1303).
+        "show_profile_image",
+        "show_my_profile_image",
         # Subscription links redirect to the list's site with a result.
         "confirm_subscription",
         # Unsubscribe: the emailed link redirects to the HTML confirmation page; the

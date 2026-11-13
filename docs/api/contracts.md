@@ -8,9 +8,14 @@ This guide documents the current FastAPI contract conventions. It complements th
 
 ## When to update this document
 
-Update this document whenever you:
-- Add or remove a public or CAP endpoint
+The full list of operations is generated in [routes.md](routes.md). Update this
+document for behaviour and policy, and whenever you (the blast-radius check
+enforces these and names the reason):
+- Remove any endpoint (renaming a path parameter counts), or add a public,
+  unauthenticated, webhook or unversioned endpoint
+- Change the security schemes
 - Change authentication requirements on an existing endpoint
+- Make a breaking change, or change an endpoint this document already describes
 - Change the error shape or add a new error category
 - Change pagination defaults or response structure
 - Add a webhook endpoint or change its verification behaviour
@@ -1548,7 +1553,64 @@ nothing. The clock point must belong to the caller's own department. `late_minut
 `early_departure_minutes` and `overtime_minutes` are informational and not stored.
 `ClockResult` gains `punch` (with `status`); `attendance` stays but is a provisional,
 unsaved view (`attendance_id` null) until the punch is approved. Terminal punches
-(import not built yet) will count immediately and do not use this table.
+come from the terminal import below and do not use this table.
+
+### Terminal punch import
+
+ADR-0040, Decision 4: punches from the fingerprint and fob terminal count as
+attendance with no approval step. Every route needs `roster.manage` in the department
+scope. An upload accepts a ZKTeco ATTLOG text export (device user ID, then
+`YYYY-MM-DD HH:MM:SS`, then ignored columns) or a CSV with a `device_user_id,punched_at`
+header. Device times are Grenada local and stored as UTC. Only the device user ID and
+the punch time are stored, never biometric data. The terminal label is trimmed and
+lower-cased; the trimmed, lower-cased label is part of the dedupe key.
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/attendance/terminal-users` | `roster.manage` in the department scope | List a department's device ID mappings |
+| `POST /api/v1/hr/attendance/terminal-users` | `roster.manage` in the department scope and `timesheet.submit.proxy` for the employee | Map a device user ID to an employee of the department with a live employment (one ID per person, one person per ID) |
+| `DELETE /api/v1/hr/attendance/terminal-users/{terminal_user_id}` | `roster.manage` in the department scope | Remove a mapping; a mapping outside the caller's scope answers 404, as a missing one does |
+| `POST /api/v1/hr/attendance/terminal-imports` | `roster.manage` in the department scope | Upload an export (multipart `file`, `department_id`, `terminal` label). Returns counts per outcome for this upload and its attention rows (UNMAPPED, NO_SHIFT, REFUSED) only |
+| `GET /api/v1/hr/attendance/terminal-punches` | `roster.manage` in the department scope | Punches needing HR attention (UNMAPPED, NO_SHIFT, REFUSED by default), filtered and paged in SQL |
+| `POST /api/v1/hr/attendance/terminal-punches/reprocess` | `roster.manage` in the department scope | Decide again a department's UNMAPPED, NO_SHIFT, REFUSED and PENDING punches, oldest first, at most 1000 per call. `remaining` counts candidates beyond the cap |
+
+Proxy authority: every write (an arrival, a departure, a mapping) needs the HR actor to
+hold `timesheet.submit.proxy` and to pass `can_act_on_user` for the employee, including
+for their own punches. Without it nothing is written for anyone, and the punch is
+REFUSED with a plain detail. Once the authority is granted, reprocess decides it again.
+
+Each new punch is decided in time order for its person, each in its own transaction:
+
+- **UNMAPPED**: the device ID has no mapping in the department. Held for HR.
+- **REPEAT**: within 5 minutes (inclusive) of the person's last accepted scan. Ignored.
+- **ALREADY_RECORDED**: the scan is within 15 minutes (inclusive) of an arrival already
+  recorded on the open shift, or of a recorded arrival or departure, and the normal
+  decision would find no shift for it. No second record is written.
+- **RECORDED, departure**: the scan closes the person's open shift (an arrival with no
+  departure, within 24 hours) when it is before the midpoint between that shift's
+  scheduled end and the next rostered shift's start. With no next shift, any scan
+  closes it. The midpoint rule, rather than "nearer the end", is used because a seamless
+  handover has end equal to next start. A scan at or after the midpoint is an arrival,
+  and the open record stays open for HR.
+- **RECORDED, arrival**: a published work shift matched by the phone clock-in window
+  (two hours before to one hour after the start, through the end plus one hour). The
+  scan must not be nearer the shift's end than its start, and no earlier punch of the
+  same device may be undecided (UNMAPPED or PENDING) within 24 hours. A NO_SHIFT punch
+  is a final answer for HR and does not hold later arrivals.
+- **NO_SHIFT**: no published work shift matches, the scan is nearer the end, or an
+  earlier punch is undecided. Held for HR, never invented.
+- **REFUSED**: a write was refused (for example proxy authority or the shift is already
+  submitted or approved). The message is kept in `detail`, and the rest of the upload
+  still imports.
+
+Writes go through `save_attendance` as the employee, so roster, revision and audit are
+the phone-punch approval path. The import marker `Terminal import: <label>` is appended
+to the record's notes (the employee's notes are kept), so an approver sees the source.
+
+A re-upload of the same file with the same terminal label imports nothing twice; the
+unique key is department, terminal label, device ID and punch time. An upload is at most
+1 MiB and 1000 lines; bad lines are returned with their line numbers and do not stop
+the others. Mappings and roster changes are applied by reprocess, not on upload.
 
 ### Roster rule limits and check
 
@@ -3028,6 +3090,35 @@ Events stores the resulting file ids: `ListingUpsert.image_file_id`,
 `PUT /events/manage/organiser/logo` (`{file_id}`, null clears), returned as
 `ListingCard.image_file_id` and `OrganiserPublic.logo_file_id`. A new id must be a
 completed upload of that organiser's organisation and purpose, else 409.
+
+## Profile photos (#1303)
+
+The `/me` routes accept an account token or a session of the account app
+(`account.barrels.gd`, ADR-0057; `OwnAccountUser` in `src/dependencies.py`);
+every other route refuses app sessions.
+
+A Barrels account's own photo, stored in `public.user_image` (one per person)
+as 64, 256 and 512 pixel square WebP images. The person uploads and replaces it,
+with no approval step. Everyone who shares an organisation with them sees it:
+an active membership of the same active platform organisation, or active
+employment in the same HR organisation.
+
+| Call | Behaviour |
+| --- | --- |
+| `GET /profile-images/me` | `{user_id, version, updated_at, sizes}`; 404 without a photo |
+| `PUT /profile-images/me` | The image itself as the request body, `Content-Type` `image/jpeg`, `image/png` or `image/webp` (415 otherwise; the real format is read from the bytes, so the generated client's fixed `image/jpeg` works for all three). Up to 5 MB, refused (413) as soon as the declared or streamed size passes it, never buffered. At least 32 pixels a side and at most 16 megapixels (422 otherwise, with the reason). Turned upright, cropped square, stored as WebP with no metadata (no EXIF or GPS location). Replaces and deletes the previous photo; `version` changes. 503 without storage settings |
+| `DELETE /profile-images/me` | 204; 404 without a photo |
+| `GET /profile-images/me/image?size=64\|256\|512` | Your own photo: 307 to a 5-minute presigned GET (same caching as below); 404 without one. For the account app, whose sessions cannot read other people's photos |
+| `GET /profile-images/org/{user_id}?size=64\|256\|512` | 307 to a 5-minute presigned GET, `Cache-Control: private, max-age=240`, `Vary: Authorization, Cookie` (default size 256; others 422). The person, superusers and people sharing an organisation only; a hidden photo and a missing one are the same 404 (cached privately for 60 s), so show initials |
+| `DELETE /profile-images/org/{user_id}` | Removes an unsuitable photo: `hr.employment.manage` over the person (or superuser), never your own (use `/me`). 403 otherwise. Recorded as `profile_image` in the person's employee history |
+
+Errors 413, 415, 422 and 503 carry the usual `{detail}` body. The upload body is
+the named `BinaryFile` schema (the OpenAPI build names every inline binary
+request body), so the client sends a `Blob` or `File`.
+
+`ProfileIdentityPublic.avatar_url` (HR profile) is the same-origin link
+`/api/v1/profile-images/org/{user_id}?size=256&v=<version>`, or null. Deleting
+an account deletes its photo row (`ON DELETE CASCADE`) and its stored files.
 
 ## Outbound webhooks (PF6, ADR-0029)
 

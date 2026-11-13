@@ -1125,7 +1125,9 @@ export type {
   BillingVoidInvoiceStatus409,
   BillingVoidInvoiceStatus422,
 } from "./BillingVoidInvoice.js";
+export type { BinaryFile } from "./BinaryFile.js";
 export type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
+export type { BodyHrImportTerminalPunches } from "./BodyHrImportTerminalPunches.js";
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
 export type { BookingAgenda } from "./BookingAgenda.js";
 export type { BookingAgendaDay } from "./BookingAgendaDay.js";
@@ -3918,6 +3920,18 @@ export type {
   HrActionShiftSwapStatus422,
 } from "./HrActionShiftSwap.js";
 export type {
+  HrAddTerminalUserBody,
+  HrAddTerminalUserOptions,
+  HrAddTerminalUserResponse,
+  HrAddTerminalUserResponses,
+  HrAddTerminalUserStatus201,
+  HrAddTerminalUserStatus400,
+  HrAddTerminalUserStatus401,
+  HrAddTerminalUserStatus403,
+  HrAddTerminalUserStatus409,
+  HrAddTerminalUserStatus422,
+} from "./HrAddTerminalUser.js";
+export type {
   HrApproveClockPunchBody,
   HrApproveClockPunchOptions,
   HrApproveClockPunchPath,
@@ -5097,6 +5111,18 @@ export type {
   HrImportStaffBalancesStatus422,
 } from "./HrImportStaffBalances.js";
 export type {
+  HrImportTerminalPunchesBody,
+  HrImportTerminalPunchesOptions,
+  HrImportTerminalPunchesResponse,
+  HrImportTerminalPunchesResponses,
+  HrImportTerminalPunchesStatus201,
+  HrImportTerminalPunchesStatus400,
+  HrImportTerminalPunchesStatus401,
+  HrImportTerminalPunchesStatus403,
+  HrImportTerminalPunchesStatus409,
+  HrImportTerminalPunchesStatus422,
+} from "./HrImportTerminalPunches.js";
+export type {
   HrIssueParkingDecalBody,
   HrIssueParkingDecalOptions,
   HrIssueParkingDecalPath,
@@ -5395,6 +5421,27 @@ export type {
   HrListStatutoryTablesStatus422,
 } from "./HrListStatutoryTables.js";
 export type {
+  HrListTerminalPunchesOptions,
+  HrListTerminalPunchesQuery,
+  HrListTerminalPunchesResponse,
+  HrListTerminalPunchesResponses,
+  HrListTerminalPunchesStatus200,
+  HrListTerminalPunchesStatus400,
+  HrListTerminalPunchesStatus401,
+  HrListTerminalPunchesStatus403,
+  HrListTerminalPunchesStatus422,
+} from "./HrListTerminalPunches.js";
+export type {
+  HrListTerminalUsersOptions,
+  HrListTerminalUsersQuery,
+  HrListTerminalUsersResponse,
+  HrListTerminalUsersResponses,
+  HrListTerminalUsersStatus200,
+  HrListTerminalUsersStatus401,
+  HrListTerminalUsersStatus403,
+  HrListTerminalUsersStatus422,
+} from "./HrListTerminalUsers.js";
+export type {
   HrLoadProvisionalHolidaysBody,
   HrLoadProvisionalHolidaysOptions,
   HrLoadProvisionalHolidaysResponse,
@@ -5606,6 +5653,17 @@ export type {
   HrRemoveHolidayStatus422,
 } from "./HrRemoveHoliday.js";
 export type {
+  HrRemoveTerminalUserOptions,
+  HrRemoveTerminalUserPath,
+  HrRemoveTerminalUserResponse,
+  HrRemoveTerminalUserResponses,
+  HrRemoveTerminalUserStatus204,
+  HrRemoveTerminalUserStatus401,
+  HrRemoveTerminalUserStatus403,
+  HrRemoveTerminalUserStatus404,
+  HrRemoveTerminalUserStatus422,
+} from "./HrRemoveTerminalUser.js";
+export type {
   HrRenameOrganisationBody,
   HrRenameOrganisationOptions,
   HrRenameOrganisationPath,
@@ -5616,6 +5674,17 @@ export type {
   HrRenameOrganisationStatus404,
   HrRenameOrganisationStatus422,
 } from "./HrRenameOrganisation.js";
+export type {
+  HrReprocessTerminalPunchesBody,
+  HrReprocessTerminalPunchesOptions,
+  HrReprocessTerminalPunchesResponse,
+  HrReprocessTerminalPunchesResponses,
+  HrReprocessTerminalPunchesStatus200,
+  HrReprocessTerminalPunchesStatus400,
+  HrReprocessTerminalPunchesStatus401,
+  HrReprocessTerminalPunchesStatus403,
+  HrReprocessTerminalPunchesStatus422,
+} from "./HrReprocessTerminalPunches.js";
 export type {
   HrReturnPayPeriodBody,
   HrReturnPayPeriodOptions,
@@ -7582,6 +7651,81 @@ export type { ProfileAuditPublic } from "./ProfileAuditPublic.js";
 export type { ProfileDetailsPublic } from "./ProfileDetailsPublic.js";
 export type { ProfileDetailsUpdate } from "./ProfileDetailsUpdate.js";
 export type { ProfileIdentityPublic } from "./ProfileIdentityPublic.js";
+export type { ProfileImagePublic } from "./ProfileImagePublic.js";
+export type { ProfileImageSize } from "./ProfileImageSize.js";
+export { profileImageSize } from "./ProfileImageSize.js";
+export type {
+  ProfileImagesGetMineOptions,
+  ProfileImagesGetMineResponse,
+  ProfileImagesGetMineResponses,
+  ProfileImagesGetMineStatus200,
+  ProfileImagesGetMineStatus401,
+  ProfileImagesGetMineStatus403,
+  ProfileImagesGetMineStatus404,
+  ProfileImagesGetMineStatus422,
+} from "./ProfileImagesGetMine.js";
+export type {
+  ProfileImagesRemoveOptions,
+  ProfileImagesRemovePath,
+  ProfileImagesRemoveResponse,
+  ProfileImagesRemoveResponses,
+  ProfileImagesRemoveStatus204,
+  ProfileImagesRemoveStatus401,
+  ProfileImagesRemoveStatus403,
+  ProfileImagesRemoveStatus404,
+  ProfileImagesRemoveStatus422,
+} from "./ProfileImagesRemove.js";
+export type {
+  ProfileImagesRemoveMineOptions,
+  ProfileImagesRemoveMineResponse,
+  ProfileImagesRemoveMineResponses,
+  ProfileImagesRemoveMineStatus204,
+  ProfileImagesRemoveMineStatus401,
+  ProfileImagesRemoveMineStatus403,
+  ProfileImagesRemoveMineStatus404,
+  ProfileImagesRemoveMineStatus422,
+} from "./ProfileImagesRemoveMine.js";
+export type {
+  ProfileImagesSetMineBody,
+  ProfileImagesSetMineBodyJpeg,
+  ProfileImagesSetMineBodyPng,
+  ProfileImagesSetMineBodyWebp,
+  ProfileImagesSetMineOptions,
+  ProfileImagesSetMineResponse,
+  ProfileImagesSetMineResponses,
+  ProfileImagesSetMineStatus200,
+  ProfileImagesSetMineStatus401,
+  ProfileImagesSetMineStatus403,
+  ProfileImagesSetMineStatus413,
+  ProfileImagesSetMineStatus415,
+  ProfileImagesSetMineStatus422,
+  ProfileImagesSetMineStatus503,
+} from "./ProfileImagesSetMine.js";
+export type {
+  ProfileImagesShowOptions,
+  ProfileImagesShowPath,
+  ProfileImagesShowQuery,
+  ProfileImagesShowResponse,
+  ProfileImagesShowResponses,
+  ProfileImagesShowStatus307,
+  ProfileImagesShowStatus401,
+  ProfileImagesShowStatus403,
+  ProfileImagesShowStatus404,
+  ProfileImagesShowStatus422,
+  ProfileImagesShowStatus503,
+} from "./ProfileImagesShow.js";
+export type {
+  ProfileImagesShowMineOptions,
+  ProfileImagesShowMineQuery,
+  ProfileImagesShowMineResponse,
+  ProfileImagesShowMineResponses,
+  ProfileImagesShowMineStatus307,
+  ProfileImagesShowMineStatus401,
+  ProfileImagesShowMineStatus403,
+  ProfileImagesShowMineStatus404,
+  ProfileImagesShowMineStatus422,
+  ProfileImagesShowMineStatus503,
+} from "./ProfileImagesShowMine.js";
 export type { ProfilePublic } from "./ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";
@@ -8862,6 +9006,20 @@ export type { TeamCapabilitiesPublic } from "./TeamCapabilitiesPublic.js";
 export type { TeamMemberGrantPublic } from "./TeamMemberGrantPublic.js";
 export type { TeamMemberListPublic } from "./TeamMemberListPublic.js";
 export type { TeamMemberPublic } from "./TeamMemberPublic.js";
+export type { TerminalAttentionOutcome } from "./TerminalAttentionOutcome.js";
+export { terminalAttentionOutcome } from "./TerminalAttentionOutcome.js";
+export type { TerminalImportErrorPublic } from "./TerminalImportErrorPublic.js";
+export type { TerminalImportPublic } from "./TerminalImportPublic.js";
+export type { TerminalOutcomeCounts } from "./TerminalOutcomeCounts.js";
+export type { TerminalPunchesPublic } from "./TerminalPunchesPublic.js";
+export type { TerminalPunchOutcome } from "./TerminalPunchOutcome.js";
+export { terminalPunchOutcome } from "./TerminalPunchOutcome.js";
+export type { TerminalPunchPublic } from "./TerminalPunchPublic.js";
+export type { TerminalReprocessPublic } from "./TerminalReprocessPublic.js";
+export type { TerminalReprocessRequest } from "./TerminalReprocessRequest.js";
+export type { TerminalUserCreate } from "./TerminalUserCreate.js";
+export type { TerminalUserPublic } from "./TerminalUserPublic.js";
+export type { TerminalUsersPublic } from "./TerminalUsersPublic.js";
 export type { ThreadCreate } from "./ThreadCreate.js";
 export type { ThreadDetail } from "./ThreadDetail.js";
 export type { ThreadDetailPropertiesKindEnum } from "./ThreadDetailPropertiesKindEnum.js";

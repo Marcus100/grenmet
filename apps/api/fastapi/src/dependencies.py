@@ -136,6 +136,51 @@ async def get_account_user(session: SessionDep, token: TokenDep) -> User:
     )
 
 
+#: Self-service apps whose own sessions may call the caller's-own-account routes
+#: that use ``OwnAccountUser`` (ADR-0057: the account app at account.barrels.gd).
+OWN_ACCOUNT_APPS = ("account",)
+
+
+async def get_own_account_user(session: SessionDep, token: TokenDep) -> User:
+    """The caller's own account, from an account token or an account-app session.
+
+    For the few routes the account app calls about the caller's own account
+    (profile photo). An app-scoped token is accepted only from an app in
+    ``OWN_ACCOUNT_APPS`` and only while the person may use that app; every other
+    route keeps refusing app tokens (``CurrentUser``, ``AccountUser``).
+    """
+    app = _token_app_claim(token)
+    if app is not None and app not in OWN_ACCOUNT_APPS:
+        raise _unauthorized("This sign-in is limited to another app")
+    # Ordinary sign-ins keep the staff-approval gate the photo routes always had;
+    # an account-app session is checked by that app's eligibility below.
+    user = await get_authenticated_user(
+        session,
+        _token_user_id(token, app=app),
+        allow_unapproved=app is not None,
+        session_app=app,
+    )
+    if app is None:
+        from src.auth.privileged_mfa import require_privileged_mfa
+
+        await require_privileged_mfa(session, user, token=token)
+        return user
+    from src.auth.eligibility import is_eligible_for_app
+
+    if not await is_eligible_for_app(session=session, user=user, app_key=app):
+        raise _unauthorized("Sign in to this app to continue")
+    return user
+
+
+def _token_app_claim(token: str) -> str | None:
+    """The ``app`` claim, or None; invalid tokens fail in ``_token_user_id``."""
+    try:
+        payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
+        return TokenPayload(**payload).app
+    except InvalidTokenError, ValidationError:
+        return None
+
+
 async def get_authenticated_user(
     session: AsyncSession,
     user_id: uuid.UUID,
@@ -185,6 +230,7 @@ async def get_authenticated_user(
 # Use these in route parameters for clean, readable code
 CurrentUser = Annotated[User, Depends(get_current_user)]
 AccountUser = Annotated[User, Depends(get_account_user)]
+OwnAccountUser = Annotated[User, Depends(get_own_account_user)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 

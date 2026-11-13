@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (owner decision, 2026-10-20). Phone clock-in, manual attendance and the phone-punch approval API are built; the supervisor approval-queue UI and terminal import are not started.
+Accepted (owner decision, 2026-10-20). Phone clock-in, manual attendance and the phone-punch approval API are built. The supervisor approval-queue UI is built in gaa-admin (PR #494). The terminal import API (Decision 4) is built: file import, device ID mapping, held-punch review and reprocess. The terminal import screens are built in gaa-admin at /hr/terminal (upload, device ID links, punches needing attention, Decide again). The device model and export route are still to be confirmed.
 
 ## Context
 

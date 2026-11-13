@@ -264,8 +264,14 @@ async def test_default_roles_are_told_when_no_setting_exists(
 
 
 async def test_sentry_gets_one_error_per_source_per_window(
-    db_async: AsyncSession, archive_sessions, caplog: pytest.LogCaptureFixture
+    db_async: AsyncSession,
+    archive_sessions,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # Alembic's fileConfig disables existing loggers when the test session
+    # migrates a fresh database, so this module's logger is switched back on.
+    monkeypatch.setattr(alerts.logger, "disabled", False)
     await _recipient(db_async)
     await _collector_run(
         archive_sessions, "goes19", status="finished", started=timedelta(hours=5)
