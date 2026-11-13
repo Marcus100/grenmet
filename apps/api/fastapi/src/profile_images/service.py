@@ -19,6 +19,7 @@ from datetime import datetime
 from botocore.exceptions import BotoCoreError, ClientError
 from sqlalchemy import and_, exists, select, update
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 from starlette.concurrency import run_in_threadpool
@@ -84,10 +85,41 @@ async def _delete_objects(prefix: str) -> None:
             logger.warning("Profile photo object not deleted", extra={"prefix": prefix})
 
 
-async def _discard_upload(session: AsyncSession, prefix: str) -> None:
-    """Undo a save that did not complete: roll back and delete its new files."""
-    await session.rollback()
-    await _delete_objects(prefix)
+#: Clean-ups started after a save whose outcome is unknown; held so they finish.
+_RECONCILES: set[asyncio.Task[None]] = set()
+
+
+async def _reconcile_upload(user_id: uuid.UUID, prefix: str) -> None:
+    """Keep an upload's files only if the saved row points at them.
+
+    Runs on its own session, outside the request: after a failed or cancelled
+    save the request's session may be unusable, and the commit may even have
+    reached the database before the request was cancelled.
+    """
+    from src.database import async_session_factory
+
+    try:
+        async with async_session_factory() as fresh:
+            current = await fresh.scalar(
+                select(UserImage.object_key).where(UserImage.user_id == user_id)
+            )
+    except SQLAlchemyError, OSError:
+        logger.warning("Profile photo upload not reconciled", extra={"prefix": prefix})
+        return
+    if current != prefix:
+        await delete_stored_files(prefix)
+
+
+def _schedule_reconcile(user_id: uuid.UUID, prefix: str) -> None:
+    task = asyncio.create_task(_reconcile_upload(user_id, prefix))
+    _RECONCILES.add(task)
+    task.add_done_callback(_RECONCILES.discard)
+
+
+async def wait_for_reconciles() -> None:
+    """Tests: let scheduled clean-ups finish."""
+    while _RECONCILES:
+        await asyncio.gather(*_RECONCILES)
 
 
 async def delete_stored_files(prefix: str) -> None:
@@ -96,14 +128,53 @@ async def delete_stored_files(prefix: str) -> None:
         await _delete_objects(prefix)
 
 
+async def _point_row_at(
+    session: AsyncSession, user_id: uuid.UUID, prefix: str
+) -> str | None:
+    """Make the person's row point at ``prefix``; return the prefix it replaced.
+
+    A new row is inserted, or the existing one is locked before it is repointed,
+    so the replaced files are always known. If the row disappears between the
+    two steps (a concurrent removal), the insert is tried again.
+    """
+    for _ in range(2):
+        now = utc_now()
+        inserted = await session.scalar(
+            insert(UserImage)
+            .values(
+                id=uuid.uuid4(),
+                user_id=user_id,
+                object_key=prefix,
+                created_at=now,
+                updated_at=now,
+            )
+            .on_conflict_do_nothing(index_elements=[UserImage.user_id])
+            .returning(UserImage.id)
+        )
+        if inserted is not None:
+            return None
+        previous = await session.scalar(
+            select(UserImage.object_key)
+            .where(UserImage.user_id == user_id)
+            .with_for_update()
+        )
+        if previous is not None:
+            await session.execute(
+                update(UserImage)
+                .where(UserImage.user_id == user_id)
+                .values(object_key=prefix, updated_at=now)
+            )
+            return previous
+    raise ProfileImageNotFoundError()
+
+
 async def set_image(*, session: AsyncSession, user: User, raw: bytes) -> UserImage:
     """Store a new photo for ``user`` and drop the previous one.
 
-    The files go up first under a fresh prefix, then the row points at them. A
-    new row is inserted or, when one exists, locked and updated, so the files it
-    pointed at are always known and deleted, even when two first uploads race.
-    If anything stops the save, including a cancelled request, the new files
-    are deleted again.
+    The files go up first under a fresh prefix, then the row points at them
+    (``_point_row_at``). If the save does not finish, including a cancelled
+    request, a background clean-up deletes the new files unless the row turned
+    out to point at them.
     """
     _require_storage()
     async with _PROCESSING:
@@ -119,37 +190,13 @@ async def set_image(*, session: AsyncSession, user: User, raw: bytes) -> UserIma
                 data,
                 content_type="image/webp",
             )
-        now = utc_now()
-        inserted = await session.scalar(
-            insert(UserImage)
-            .values(
-                id=uuid.uuid4(),
-                user_id=user.id,
-                object_key=prefix,
-                created_at=now,
-                updated_at=now,
-            )
-            .on_conflict_do_nothing(index_elements=[UserImage.user_id])
-            .returning(UserImage.id)
-        )
-        if inserted is None:
-            # A row exists (perhaps committed by a concurrent first upload):
-            # lock it, remember its files, then point it at the new ones.
-            previous = await session.scalar(
-                select(UserImage.object_key)
-                .where(UserImage.user_id == user.id)
-                .with_for_update()
-            )
-            await session.execute(
-                update(UserImage)
-                .where(UserImage.user_id == user.id)
-                .values(object_key=prefix, updated_at=now)
-            )
+        previous = await _point_row_at(session, user.id, prefix)
         await session.commit()
         saved = True
     finally:
         if not saved:
-            await asyncio.shield(_discard_upload(session, prefix))
+            # No await here: a cancelled request cannot interrupt scheduling.
+            _schedule_reconcile(user.id, prefix)
     if previous and previous != prefix:
         await _delete_objects(previous)
     row: UserImage | None = await session.scalar(
@@ -163,7 +210,14 @@ async def set_image(*, session: AsyncSession, user: User, raw: bytes) -> UserIma
 
 
 async def remove_image(*, session: AsyncSession, user_id: uuid.UUID) -> None:
-    row = await get_image(session=session, user_id=user_id)
+    # Locked and re-read, so a concurrent upload's repointing is seen and its
+    # files are the ones deleted.
+    row: UserImage | None = await session.scalar(
+        select(UserImage)
+        .where(UserImage.user_id == user_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
     if row is None:
         raise ProfileImageNotFoundError()
     prefix = row.object_key

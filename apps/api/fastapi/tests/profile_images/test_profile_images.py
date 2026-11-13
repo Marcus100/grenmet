@@ -430,6 +430,7 @@ async def test_a_failed_save_deletes_the_new_files(
     monkeypatch.setattr(db_async, "commit", broken_commit)
     with pytest.raises(RuntimeError):
         await service.set_image(session=db_async, user=user, raw=_jpeg())
+    await service.wait_for_reconciles()
     assert store.objects == {}
     assert len(store.deleted) == 3
 
@@ -516,12 +517,37 @@ async def test_a_cancelled_save_deletes_the_new_files(
     monkeypatch.setattr(db_async, "commit", cancelled_commit)
     with pytest.raises(asyncio.CancelledError):
         await service.set_image(session=db_async, user=user, raw=_jpeg())
+    await service.wait_for_reconciles()
     assert store.objects == {}
     assert len(store.deleted) == 3
 
 
-async def test_the_upload_route_is_rate_limited() -> None:
-    from src.main import app
+async def test_the_eleventh_upload_in_a_minute_is_refused(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src.rate_limit import limiter
 
-    operation = app.openapi()["paths"]["/api/v1/profile-images/me"]["put"]
-    assert "429" in operation["responses"]
+    monkeypatch.setattr(limiter, "enabled", True)
+    limiter.reset()
+    user = await make_user(db_async)
+    other = await make_user(db_async)
+    headers = {**headers_for(user), "content-type": "image/jpeg"}
+    photo = _jpeg((64, 64))
+    statuses = [
+        (
+            await async_client.put(f"{URL}/me", content=photo, headers=headers)
+        ).status_code
+        for _ in range(11)
+    ]
+    assert statuses[:10] == [200] * 10
+    assert statuses[10] == 429
+    # The limit counts per person, not per address.
+    allowed = await async_client.put(
+        f"{URL}/me",
+        content=photo,
+        headers={**headers_for(other), "content-type": "image/jpeg"},
+    )
+    assert allowed.status_code == 200
+    limiter.reset()
