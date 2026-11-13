@@ -55,7 +55,7 @@ This site takes no bookings and has no server code: it is a static export
   `ONLINE_BOOKING_URL` in `src/data/site.ts` when it is set, else the Acuity page
   (`BOOKING_URL`). Both open in a new tab. Set `ONLINE_BOOKING_URL` to the
   studio's page on the Barrels bookings site (for example
-  `https://bookings.barrels.gd/babydoll`) once that page is live; it answered
+  `https://bookings.barrels.gd/babydoll-beauty-bar`) once that page is live; it answered
   "not found" on 13 Nov 2026.
 - **Old addresses:** `/book` redirects to the booking page and `/booking/*` to
   `/contact`, in `public/_redirects` (Cloudflare Pages) and `vercel.json`

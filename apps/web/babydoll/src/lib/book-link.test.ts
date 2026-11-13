@@ -12,8 +12,10 @@ describe("bookingLink", () => {
   });
 
   it("goes to the studio's page on the bookings site once one is set", () => {
-    expect(bookingLink("https://bookings.barrels.gd/babydoll")).toEqual({
-      href: "https://bookings.barrels.gd/babydoll",
+    expect(
+      bookingLink("https://bookings.barrels.gd/babydoll-beauty-bar")
+    ).toEqual({
+      href: "https://bookings.barrels.gd/babydoll-beauty-bar",
       target: "_blank",
       rel: "noopener",
     });
