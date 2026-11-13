@@ -47,6 +47,12 @@ logger = logging.getLogger(__name__)
 #: Photos processed at once per API process; decoding is memory heavy.
 _PROCESSING = asyncio.Semaphore(2)
 
+#: A page showing many avatars asks again for a missing photo at most this often.
+NOT_FOUND_CACHE = {
+    "Cache-Control": "private, max-age=60",
+    "Vary": "Authorization, Cookie",
+}
+
 #: Presigned read links live this long; pages cache the redirect for less.
 READ_LINK_SECONDS = 300
 
@@ -212,7 +218,7 @@ async def read_link(
         session=session, viewer_id=viewer.id, owner_id=owner_id
     )
     if row is None or not visible:
-        raise ProfileImageNotFoundError()
+        raise ProfileImageNotFoundError(headers=NOT_FOUND_CACHE)
     link = storage.storage_service.presigned_download_url(
         object_key(row.object_key, size), expires_in=READ_LINK_SECONDS
     )

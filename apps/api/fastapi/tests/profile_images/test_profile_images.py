@@ -262,6 +262,8 @@ async def test_outsiders_get_the_same_404_as_no_photo(
     )
     assert hidden.status_code == absent.status_code == 404
     assert hidden.json() == absent.json()
+    assert hidden.headers["cache-control"] == absent.headers["cache-control"]
+    assert absent.headers["cache-control"] == "private, max-age=60"
 
 
 async def test_you_and_superusers_always_see_it(

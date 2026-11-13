@@ -21,8 +21,8 @@ class ProfileImageTypeError(AppException):
 
 
 class ProfileImageNotFoundError(AppException):
-    def __init__(self) -> None:
-        super().__init__("No profile photo.", status_code=404)
+    def __init__(self, headers: dict[str, str] | None = None) -> None:
+        super().__init__("No profile photo.", status_code=404, headers=headers)
 
 
 class ProfileImageForbiddenError(AppException):
