@@ -116,7 +116,7 @@ function DeskPostCard({
         <header className="flex items-center gap-3">
           <span
             aria-hidden="true"
-            className="bg-gm-sky-ink text-body-sm text-gm-text-inverse leading-body-sm flex size-10 shrink-0 items-center justify-center rounded-full font-bold"
+            className="bg-gm-sky-ink text-body-sm text-gm-text-inverse leading-body-sm dark:text-gm-navy flex size-10 shrink-0 items-center justify-center rounded-full font-bold"
           >
             {avatarInitials(item.authorName)}
           </span>
