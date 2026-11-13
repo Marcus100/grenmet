@@ -1,4 +1,5 @@
 import type {
+  BookingExceptionPublic,
   BookingProviderSettings,
   BookingServicePublic,
   BookingSettings,
@@ -15,6 +16,7 @@ import { HoursForm } from "@/components/studio/settings/hours-form";
 import { ProfileForm } from "@/components/studio/settings/profile-form";
 import { ProviderForm } from "@/components/studio/settings/provider-form";
 import { ServiceForm } from "@/components/studio/settings/service-form";
+import { TimeOffSection } from "@/components/studio/settings/time-off";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { requireSession } from "@/lib/session";
 import {
@@ -23,7 +25,7 @@ import {
   periodsByDay,
   WEEKDAYS,
 } from "@/lib/settings-view";
-import { getSettings } from "@/lib/studio-api";
+import { getSettings, listExceptions } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import { canManageBookings, DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
@@ -70,6 +72,34 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
   const editable = canManageBookings(org.value.role);
   const zone = data.profile?.timezone ?? DEFAULT_TIMEZONE;
   const currency = data.profile?.currency ?? "XCD";
+  // Time off that is still running or still to come, per provider.
+  const startsFrom = new Date().toISOString();
+  const timeOff = await guarded(
+    () =>
+      Promise.all(
+        data.providers.map((item) =>
+          listExceptions(
+            session.accessToken,
+            organisationId,
+            item.id,
+            startsFrom
+          )
+        )
+      ),
+    here
+  );
+  if (!timeOff.ok) {
+    return (
+      <StudioAlert
+        backHref={`/studio/${orgSlug}/agenda`}
+        backLabel="Back to the agenda"
+        failure={timeOff.failure}
+      />
+    );
+  }
+  const timeOffByProvider = new Map(
+    data.providers.map((item, index) => [item.id, timeOff.value[index] ?? []])
+  );
 
   return (
     <div className="space-y-8">
@@ -183,6 +213,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
                   orgSlug={orgSlug}
                   provider={item}
                   services={data.services}
+                  timeOff={timeOffByProvider.get(item.id) ?? []}
                   zone={zone}
                 />
               </li>
@@ -203,11 +234,12 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         </h2>
         <Empty className="border-border border">
           <EmptyHeader>
-            <EmptyTitle>Time off, extra hours and menu order</EmptyTitle>
+            <EmptyTitle>Extra hours and menu order</EmptyTitle>
             <EmptyDescription>
-              The API supports them but this screen does not edit them yet.
-              Until then, time off cannot be set here and services and providers
-              are listed in their saved order.
+              Extra hours (open time outside the weekly hours) can be seen and
+              removed under each provider&apos;s time off, but not added here
+              yet. Services and providers are listed in their saved order until
+              reordering is built.
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
@@ -280,12 +312,14 @@ function ProviderCard({
   orgSlug,
   provider,
   services,
+  timeOff,
   zone,
 }: {
   editable: boolean;
   orgSlug: string;
   provider: BookingProviderSettings;
   services: BookingServicePublic[];
+  timeOff: BookingExceptionPublic[];
   zone: string;
 }) {
   const offered = services.filter((item) =>
@@ -327,6 +361,13 @@ function ProviderCard({
             <HoursList hours={provider.working_hours} zone={zone} />
           </>
         )}
+        <TimeOffSection
+          editable={editable}
+          exceptions={timeOff}
+          orgSlug={orgSlug}
+          providerId={provider.id}
+          zone={zone}
+        />
       </div>
     </details>
   );
