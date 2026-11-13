@@ -1,0 +1,35 @@
+name: Elections daily rebuild
+
+# elections.barrels.gd is a static export on Cloudflare Pages. Its masthead and
+# homepage lead follow today's date in Grenada, so the site is rebuilt every
+# morning (owner, 13 Nov 2026). The job only calls the Pages project's deploy
+# hook; Cloudflare builds from the production branch. It does nothing until
+# the hook URL is stored as the ELECTIONS_PAGES_DEPLOY_HOOK secret.
+on:
+  schedule:
+    # 04:05 UTC is 00:05 in Grenada (UTC-4, no daylight saving).
+    - cron: "5 4 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: elections-daily-rebuild
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger the Cloudflare Pages build
+        env:
+          HOOK: ${{ secrets.ELECTIONS_PAGES_DEPLOY_HOOK }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$HOOK" ]]; then
+            echo 'ELECTIONS_PAGES_DEPLOY_HOOK is not set; nothing to rebuild yet.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          curl --fail --silent --show-error --max-time 30 --request POST "$HOOK" > /dev/null
+          echo 'Elections rebuild requested.' >> "$GITHUB_STEP_SUMMARY"

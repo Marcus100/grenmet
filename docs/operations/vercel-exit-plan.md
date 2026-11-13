@@ -44,9 +44,10 @@ until its new home is verified; only then does DNS change.
      `scripts/pages-headers.mjs`, which writes `out/_headers` (nosniff, referrer
      policy and the shared report-only CSP).
    - **Daily rebuild (owner, 13 Nov 2026):** the masthead follows today's date,
-     so the site is rebuilt every morning. Needs the Pages project's deploy hook
-     URL as a repository secret and a scheduled workflow that calls it (a
-     workflow file, so the owner merges it).
+     so `.github/workflows/elections-daily-rebuild.yml` calls the Pages
+     project's deploy hook at 00:05 Grenada time. It does nothing until the hook
+     URL is stored as the repository secret `ELECTIONS_PAGES_DEPLOY_HOOK`. A
+     workflow file, so the owner merges this PR.
    - **[agent with the API token]** Pages project: build command
      `pnpm --filter '@barrelsgd/web-elections^...' run build && pnpm --filter @barrelsgd/web-elections build`,
      output `apps/web/elections/out`, `NODE_VERSION=24`, plus the
