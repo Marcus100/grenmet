@@ -11,7 +11,9 @@ the studio has edited since. Run it from ``apps/api/fastapi``::
     uv run --frozen --package fast-back python -m src.bookings.seed
 
 ``--dry-run`` reports what would be created and rolls back. The site address
-comes from ``BOOKINGS_BABYDOLL_SITE_URL`` (default ``https://babydoll.barrels.gd``).
+comes from ``BOOKINGS_BABYDOLL_SITE_URL`` (default ``https://babydoll.barrels.gd``);
+the manage link in emails points at the bookings app (``BOOKINGS_APP_URL``),
+where the manage-booking page lives.
 """
 
 import argparse
@@ -48,6 +50,7 @@ from .schemas import (
 ORGANISATION_ID = "babydoll"
 ORGANISATION_NAME = "Babydoll Beauty Bar"
 PUBLIC_SLUG = "babydoll-beauty-bar"
+PRODUCTION_APP_URL = "https://bookings.barrels.gd"
 SITE_KEY = "babydoll"
 PROVIDER_NAME = "Jeriann"
 ENTITLEMENTS = ("bookings", "contacts")
@@ -94,6 +97,15 @@ def _site_url() -> str:
     return bookings_settings.BABYDOLL_SITE_URL.rstrip("/")
 
 
+def _manage_url_template() -> str:
+    """Manage link for emails: the bookings app's page for this studio."""
+    app_url = bookings_settings.APP_URL.rstrip("/")
+    if not app_url.startswith("https://"):
+        # Local development sets an http address; a manage link must be https.
+        app_url = PRODUCTION_APP_URL
+    return f"{app_url}/{PUBLIC_SLUG}/booking/{{token}}"
+
+
 async def seed_babydoll(session: AsyncSession) -> SeedResult:
     """Create what is missing for Babydoll. Flushes; the caller commits."""
     await session.execute(text("SELECT pg_advisory_xact_lock(:id)"), {"id": _LOCK_ID})
@@ -136,7 +148,7 @@ async def seed_babydoll(session: AsyncSession) -> SeedResult:
                 horizon_days=60,
                 cancel_cutoff_hours=24,
                 requires_confirmation=True,
-                manage_url_template=f"{site_url}/booking/{{token}}",
+                manage_url_template=_manage_url_template(),
             ),
         )
         result.created.append("profile")
