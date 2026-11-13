@@ -11,8 +11,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
+const WARNING_ANNOTATION = /::warning::/u;
+
 const EREGISTER_UPLOAD = /aws s3 cp .*eregister_/u;
-const HEARTBEAT = "https://uptime.betterstack.com/api/v1/heartbeat/DoNotEcho123";
+const HEARTBEAT =
+  "https://uptime.betterstack.com/api/v1/heartbeat/DoNotEcho123";
 
 const workflow = readFileSync(
   new URL("../../.github/workflows/backup-database.yml", import.meta.url),
@@ -127,7 +130,9 @@ if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
       const heartbeats = (calls.match(/curl heartbeat/gu) || []).length;
       assert.equal(heartbeats, scenario === "with CMS" ? 1 : 0);
       if (heartbeats) {
-        assert.ok(calls.lastIndexOf("aws s3") < calls.indexOf("curl heartbeat"));
+        assert.ok(
+          calls.lastIndexOf("aws s3") < calls.indexOf("curl heartbeat")
+        );
       }
       // The address goes to curl on stdin, never in its arguments.
       assert.ok(!calls.includes("address in arguments"));
@@ -206,6 +211,6 @@ test("backup heartbeat: a failed delivery warns but does not fail the finished b
   });
   assert.equal(result.status, 0);
   assert.equal(result.sent, true);
-  assert.match(result.output, /::warning::/u);
+  assert.match(result.output, WARNING_ANNOTATION);
   assert.ok(!result.output.includes("DoNotEcho123"));
 });

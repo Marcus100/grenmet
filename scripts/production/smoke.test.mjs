@@ -6,13 +6,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   check,
-  excerpt,
   checkCmsSignIn,
   checkDeployment,
+  excerpt,
   validPage,
   warmUp,
   withEdgeCredentials,
 } from "./smoke.mjs";
+
+const NOT_READY_503 =
+  /HTTP 503; expected "ready"; got "no available server"\)/u;
 
 process.env.SMOKE_RETRY_DELAY_MS = "0";
 
@@ -321,7 +324,7 @@ test("a failed check says what came back, so a proxy 503 reads differently from 
     check("https://api.example.test/api/v1/utils/ready/", '"ready"', () =>
       Promise.resolve(new Response("no available server", { status: 503 }))
     ),
-    /HTTP 503; expected "ready"; got "no available server"\)/u
+    NOT_READY_503
   );
   assert.equal(excerpt("  \n "), "an empty body");
   assert.equal(excerpt(`a\n${"b".repeat(200)}`).length, 123);
