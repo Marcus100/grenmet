@@ -85,6 +85,10 @@ async def _delete_objects(prefix: str) -> None:
             logger.warning("Profile photo object not deleted", extra={"prefix": prefix})
 
 
+#: Seconds a clean-up waits before checking, so a commit already sent by a
+#: cancelled request lands first (the row lock below then waits for it too).
+RECONCILE_DELAY_SECONDS = 5.0
+
 #: Clean-ups started after a save whose outcome is unknown; held so they finish.
 _RECONCILES: set[asyncio.Task[None]] = set()
 
@@ -98,11 +102,15 @@ async def _reconcile_upload(user_id: uuid.UUID, prefix: str) -> None:
     """
     from src.database import async_session_factory
 
+    await asyncio.sleep(RECONCILE_DELAY_SECONDS)
     try:
         async with async_session_factory() as fresh:
             current = await fresh.scalar(
-                select(UserImage.object_key).where(UserImage.user_id == user_id)
+                select(UserImage.object_key)
+                .where(UserImage.user_id == user_id)
+                .with_for_update()
             )
+            await fresh.rollback()
     except SQLAlchemyError, OSError:
         logger.warning("Profile photo upload not reconciled", extra={"prefix": prefix})
         return

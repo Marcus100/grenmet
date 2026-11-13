@@ -60,6 +60,9 @@ class FakeStore(StorageService):
 
 @pytest.fixture(autouse=True)
 def store(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeStore]:
+    from src.profile_images import service as photo_service
+
+    monkeypatch.setattr(photo_service, "RECONCILE_DELAY_SECONDS", 0)
     fake = FakeStore()
     monkeypatch.setattr(storage, "storage_service", fake)
     yield fake
