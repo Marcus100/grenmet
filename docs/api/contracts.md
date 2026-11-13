@@ -8,9 +8,12 @@ This guide documents the current FastAPI contract conventions. It complements th
 
 ## When to update this document
 
-Update this document whenever you:
-- Add or remove a public or CAP endpoint
+The full list of operations is generated in [routes.md](routes.md). Update this
+document for behaviour and policy, and whenever you (the blast-radius check
+enforces these and names the reason):
+- Remove any endpoint, or add a public, webhook or unversioned endpoint
 - Change authentication requirements on an existing endpoint
+- Make a breaking change, or change an endpoint this document already describes
 - Change the error shape or add a new error category
 - Change pagination defaults or response structure
 - Add a webhook endpoint or change its verification behaviour

@@ -174,7 +174,111 @@ test("a FastAPI contract change requires API contract documentation", (t) => {
   assert.match(result.stderr, /FastAPI contract companions/u);
   assert.match(result.stderr, /apps\/api\/fastapi\/src\/main\.py/u);
   assert.match(result.stderr, /docs\/api\/contracts\.md/u);
-  assert.match(result.stderr, /update the API contract documentation/u);
+  // No readable OpenAPI document at the base: fail closed.
+  assert.match(result.stderr, /could not be read/u);
+});
+
+const spec = (paths) => JSON.stringify({ openapi: "3.1.0", paths });
+const op = (operationId, extra = {}) => ({
+  operationId,
+  summary: operationId,
+  responses: { 200: { description: "OK" } },
+  security: [{ bearer: [] }],
+  ...extra,
+});
+const ROUTE_FILE = "apps/api/fastapi/src/weather/router.py";
+const routeChange = (t, before, after, contracts = "# API contracts\n") => {
+  const { base, repository } = createRepository(t, {
+    [ROUTE_FILE]: "old\n",
+    "apps/api/fastapi/openapi.json": spec(before),
+    "docs/api/contracts.md": contracts,
+  });
+  write(repository, ROUTE_FILE, "new\n");
+  write(repository, "apps/api/fastapi/openapi.json", spec(after));
+  write(repository, "packages/api-client/src/gen/index.ts");
+  const head = commit(repository);
+  return check(repository, ["--base", base, "--head", head]);
+};
+
+test("an additive private route passes without editing the contract document", (t) => {
+  const result = routeChange(
+    t,
+    { "/api/v1/weather/org/stations": { get: op("listStations") } },
+    {
+      "/api/v1/weather/org/stations": { get: op("listStations") },
+      "/api/v1/weather/org/stations/{station_id}": { get: op("getStation") },
+    }
+  );
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test("a removed route requires the contract document and says why", (t) => {
+  const result = routeChange(
+    t,
+    {
+      "/api/v1/weather/org/stations": { get: op("listStations") },
+      "/api/v1/weather/org/old": { get: op("oldThing") },
+    },
+    { "/api/v1/weather/org/stations": { get: op("listStations") } }
+  );
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /docs\/api\/contracts\.md/u);
+  assert.match(
+    result.stderr,
+    /removed operation GET \/api\/v1\/weather\/org\/old/u
+  );
+});
+
+test("a new public route requires the contract document", (t) => {
+  const result = routeChange(
+    t,
+    {},
+    { "/api/v1/weather/public/latest": { get: op("latest", { security: [] }) } }
+  );
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /added public or webhook operation/u);
+});
+
+test("changed authentication requires the contract document", (t) => {
+  const result = routeChange(
+    t,
+    { "/api/v1/weather/org/stations": { get: op("listStations") } },
+    {
+      "/api/v1/weather/org/stations": {
+        get: op("listStations", { security: [] }),
+      },
+    }
+  );
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /changed authentication/u);
+});
+
+test("a change to a route the contract document describes requires an edit", (t) => {
+  const result = routeChange(
+    t,
+    { "/api/v1/weather/org/stations/{station_id}": { get: op("getStation") } },
+    {
+      "/api/v1/weather/org/stations/{station_id}": {
+        get: op("getStation", { summary: "Get one station" }),
+      },
+    },
+    "Stations: `GET /api/v1/weather/org/stations/{id}` returns one station.\n"
+  );
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /already describes/u);
+});
+
+test("an undescribed route's summary change passes", (t) => {
+  const result = routeChange(
+    t,
+    { "/api/v1/weather/org/stations": { get: op("listStations") } },
+    {
+      "/api/v1/weather/org/stations": {
+        get: op("listStations", { summary: "List stations" }),
+      },
+    }
+  );
+  assert.equal(result.status, 0, result.stderr);
 });
 
 test("a complete FastAPI contract change passes", (t) => {
@@ -803,7 +907,10 @@ for (const [name, message, files, expected] of [
   [
     "the trailer is ignored when openapi.json itself changes",
     "refactor\n\nAPI-Contract: unchanged\n",
-    { "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0","paths":{}}\n' },
+    {
+      "apps/api/fastapi/openapi.json":
+        '{"openapi":"3.1.0","paths":{"/api/cap/alerts":{"get":{"operationId":"readAlerts","responses":{"200":{"description":"OK"}}}}}}\n',
+    },
     1,
   ],
   [

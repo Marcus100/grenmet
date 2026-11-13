@@ -155,5 +155,5 @@ docker compose exec api uv run --frozen --package fast-back pytest tests/hr/test
 ## 11. Contract sync (Ask-First)
 
 New public routes change the OpenAPI contract. Regenerate `openapi.json` and the
-TypeScript client (`pnpm generate:api-client`) and update `docs/api/contracts.md` —
+TypeScript client (`pnpm generate:api-client`), run `pnpm generate:api-routes`, and update `docs/api/contracts.md` for public routes —
 CI fails on drift. Confirm with the user before committing contract changes.

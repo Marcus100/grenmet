@@ -14,4 +14,4 @@ Checked by hand in fresh Claude Code and Codex sessions; see docs/agents/skill-s
 
 ## Expected behaviour
 
-Regenerates openapi.json, runs pnpm generate:api-client and pnpm check:drift, updates docs/api/contracts.md and every web consumer of the changed hook or type.
+Regenerates openapi.json, runs pnpm generate:api-client and pnpm check:drift, regenerates docs/api/routes.md, updates docs/api/contracts.md when the guardrail asks, and updates every web consumer of the changed hook or type.
