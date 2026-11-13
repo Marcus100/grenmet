@@ -77,7 +77,9 @@ COPY apps/web/gaa-admin/ apps/web/gaa-admin/
 
 FROM source AS builder
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN RESEND_API_KEY=build-only-placeholder pnpm exec turbo run build --filter=@barrelsgd/web-gaa-admin
-RUN mkdir -p apps/web/gaa-admin/public
+# MapLibre's worker must be served from public/ (src/lib/maplibre-worker.ts). Run it
+# here too: a Turbo cache hit restores .next/ but skips the build script's copy.
+RUN node apps/web/gaa-admin/scripts/copy-maplibre-worker.mjs
 
 FROM runtime-base AS runner
 WORKDIR /app

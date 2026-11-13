@@ -16,6 +16,7 @@ import {
 } from "react-map-gl/maplibre";
 import { GRENADA_PARISH_BOUNDARIES } from "@/data/cap/grenada-boundaries";
 import { buildParishFillPaint } from "@/lib/cap-parish-fill-paint";
+import { MAPLIBRE_WORKER_URL } from "@/lib/maplibre-worker";
 
 /** Grenada + Carriacou/Petite Martinique, with a little sea margin. */
 export const GRENADA_BOUNDS: [[number, number], [number, number]] = [
@@ -124,6 +125,7 @@ export function CapMap({
       onMouseMove={onMouseMove}
       ref={mapRef}
       style={{ height, width: "100%" }}
+      workerUrl={MAPLIBRE_WORKER_URL}
     >
       <NavigationControl
         position="top-right"

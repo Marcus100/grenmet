@@ -4,6 +4,15 @@
 
 export const SITE_URL = "https://babydoll.barrels.gd";
 export const BOOKING_URL = "https://babydollgnd.as.me";
+/**
+ * The studio's page on the Barrels bookings site. While it is null every Book
+ * button opens the Acuity page above. Set it (for example
+ * "https://bookings.barrels.gd/babydoll-beauty-bar") once that page is live and every
+ * Book button follows. This site itself takes no bookings: it is static.
+ * When you set it, also change the /book redirect in public/_redirects and
+ * vercel.json, which still point at the Acuity page.
+ */
+export const ONLINE_BOOKING_URL: string | null = null;
 export const INSTAGRAM_DM_URL = "https://ig.me/m/babydoll.gnd";
 /** The manual channel the booking flow points people to (Instagram DM). */
 export const BOOKING_CONTACT = { href: INSTAGRAM_DM_URL, label: "Instagram" };

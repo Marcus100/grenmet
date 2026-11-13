@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   // Do not advertise the framework in every response.
   poweredByHeader: false,
+  // A plain static site: no server, hosted on Cloudflare Pages (out/).
+  output: "export",
+  images: { unoptimized: true },
   outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
   reactCompiler: true,
 };

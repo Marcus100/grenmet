@@ -156,7 +156,10 @@ pnpm test:guardrails
 The checker blocks these incomplete changes:
 
 - FastAPI routers, schemas, or `src/main.py` without a changed
-  `openapi.json`, generated API client, and `docs/api/contracts.md`
+  `openapi.json` and generated API client, or without `docs/api/contracts.md`
+  when the change removes a route, adds a public, webhook or unversioned route,
+  changes a route's authentication, breaks the contract, or touches a route the
+  document already describes (the check prints the reason)
 - A changed `openapi.json` without generated files under
   `packages/api-client/src/gen/`
 - A legacy weather schema reference without the corresponding FastAPI contract or migration review
@@ -234,8 +237,10 @@ These are enforced by Biome and TypeScript — you'll get errors if you break th
 
 1. Update `apps/api/fastapi/openapi.json`
 2. Run `pnpm generate:api-client` from the repo root
-3. Update `docs/api/contracts.md`
-4. Commit `openapi.json`, `src/gen/`, and the contract documentation
+3. Run `pnpm generate:api-routes` to refresh `docs/api/routes.md`, and update
+   `docs/api/contracts.md` when the blast-radius check asks for it
+4. Commit `openapi.json`, `src/gen/`, `docs/api/routes.md` and any contract
+   documentation together
 
 CI checks that these stay in sync. If the check fails, regenerate and commit.
 

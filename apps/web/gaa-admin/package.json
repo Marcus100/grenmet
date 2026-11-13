@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 3001",
-    "build": "next build",
+    "dev": "node scripts/copy-maplibre-worker.mjs && next dev --turbopack --port 3001",
+    "build": "node scripts/copy-maplibre-worker.mjs && next build",
     "start": "next start --port 3001",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",

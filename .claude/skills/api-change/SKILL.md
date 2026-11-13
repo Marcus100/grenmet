@@ -44,8 +44,11 @@ in `AGENTS.md`; do not request existing session authorization again.
    A failure here means step 2 or 3 was skipped or produced something
    inconsistent — fix forward, don't hand-edit `packages/api-client/src/gen/`
    to make drift-check pass.
-5. **Update `docs/api/contracts.md`** if the change is a new endpoint, a
-   breaking field change, or anything else that document already describes.
+5. **Regenerate the route list** with `pnpm generate:api-routes`, and **update
+   `docs/api/contracts.md`** when the change removes a route, adds a public,
+   webhook or unversioned route, changes a route's authentication, breaks the
+   contract, or touches a route the document already describes.
+   `pnpm guardrails:staged` names the reason when the document is needed.
 6. **Update every consumer** of the changed types/endpoints across the web
    apps — grep for the generated hook/client function name
    (`@barrelsgd/api-client`'s generated names follow the FastAPI

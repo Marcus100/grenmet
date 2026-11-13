@@ -671,12 +671,6 @@ importers:
 
   apps/web/babydoll:
     dependencies:
-      '@barrelsgd/api-client':
-        specifier: workspace:*
-        version: link:../../../packages/api-client
-      '@barrelsgd/bookings-web':
-        specifier: workspace:*
-        version: link:../../../packages/bookings-web
       '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui

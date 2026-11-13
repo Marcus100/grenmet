@@ -1,32 +1,26 @@
-import { BOOKING_URL } from "@/data/site";
-import { env } from "@/env";
-
-/** The on-site booking route (`app/book`). */
-export const ON_SITE_BOOKING_HREF = "/book";
+import { BOOKING_URL, ONLINE_BOOKING_URL } from "@/data/site";
 
 /**
- * Where a Book call-to-action goes. Client components only ever receive a
- * `CtaLink` as a prop and import this type; they never call the functions
- * below, because the switch is a server-only variable.
+ * Where a Book call-to-action goes. Booking never happens on this site: it is
+ * static (owner, 13 Nov 2026). Every Book link opens the studio's booking
+ * page elsewhere, in a new tab.
  */
 export interface CtaLink {
   href: string;
-  rel?: "noopener";
-  /** Acuity opens in a new tab; the on-site flow stays in this one. */
-  target?: "_blank";
-}
-
-/** The link for one switch state. Pure, so both states are testable. */
-export function bookingLink(online: boolean): CtaLink {
-  return online
-    ? { href: ON_SITE_BOOKING_HREF }
-    : { href: BOOKING_URL, target: "_blank", rel: "noopener" };
+  rel: "noopener";
+  target: "_blank";
 }
 
 /**
- * The link for the switch as the server reads it. Call it in a Server
- * Component (or layout) and pass the result down to client components.
+ * The link for a given online booking address. With none it is the Acuity
+ * page; with one (the studio's page on the Barrels bookings site) it is that
+ * page. Pure, so both states are testable.
  */
+export function bookingLink(online: string | null): CtaLink {
+  return { href: online ?? BOOKING_URL, target: "_blank", rel: "noopener" };
+}
+
+/** The link every Book call-to-action on the site uses. */
 export function siteBookingLink(): CtaLink {
-  return bookingLink(env.BABYDOLL_ONLINE_BOOKING === "on");
+  return bookingLink(ONLINE_BOOKING_URL);
 }
