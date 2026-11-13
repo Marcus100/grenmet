@@ -80,8 +80,11 @@ async def test_seed_creates_everything(db_async: AsyncSession) -> None:
     assert profile.timezone == "America/Grenada"
     assert profile.requires_confirmation is True
     assert profile.enabled is True
-    assert profile.manage_url_template
-    assert profile.manage_url_template.endswith("/booking/{token}")
+    # The manage page lives in the bookings app under the studio's slug; the
+    # Babydoll site redirects /booking/* away, so a link there would be dead.
+    assert profile.manage_url_template == seed._manage_url_template()
+    assert profile.manage_url_template.startswith("https://")
+    assert profile.manage_url_template.endswith("/babydoll-beauty-bar/booking/{token}")
 
     rows = (await db_async.execute(select(Service.name, Service.price_minor))).all()
     prices = {row.name: row.price_minor for row in rows}
@@ -152,3 +155,17 @@ async def test_seeded_service_has_public_slots(
     assert slots
     # 09:30 local (UTC-4, no daylight saving) is 13:30Z.
     assert slots[0]["starts_at"].startswith(f"{day}T13:30")
+
+
+def test_manage_link_points_at_the_bookings_app(monkeypatch) -> None:
+    monkeypatch.setattr(
+        seed.bookings_settings, "APP_URL", "https://bookings.staging.barrels.gd/"
+    )
+    assert seed._manage_url_template() == (
+        "https://bookings.staging.barrels.gd/babydoll-beauty-bar/booking/{token}"
+    )
+    # A local http address cannot be used in an emailed link.
+    monkeypatch.setattr(seed.bookings_settings, "APP_URL", "http://localhost:3015")
+    assert seed._manage_url_template() == (
+        "https://bookings.barrels.gd/babydoll-beauty-bar/booking/{token}"
+    )
