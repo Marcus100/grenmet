@@ -221,10 +221,6 @@
   --muted-foreground: #9aa4b8;
   --accent: #16324a;
   --accent-foreground: #e6eaf2;
-  /* Without these the soft panel stayed light under light dark-mode text
-     (1.07:1 on the HR home page). Same pair as --accent. */
-  --primary-soft: #16324a;
-  --primary-soft-foreground: #e6eaf2;
   --destructive: #ff5a5f;
   --destructive-foreground: #ffffff;
   --border: oklch(1 0 0 / 10%);
@@ -334,6 +330,19 @@
   --height-header: var(--header-height);
 }
 /* END BARRELS DESIGN SYSTEM V1 */
+
+/*
+  Staff portal fix: the shared dark palette has no --primary-soft, so the soft
+  panel stayed light under light dark-mode text (1.07:1 on the HR home page).
+  Same pair as the dark --accent. Kept here, after the generated block, so
+  `pnpm design-system:check` stays in sync with @barrelsgd/ui.
+*/
+@layer base {
+  .dark {
+    --primary-soft: #16324a;
+    --primary-soft-foreground: #e6eaf2;
+  }
+}
 
 /*
   GMS brand layer — Mini Brand Presentation 2026.
