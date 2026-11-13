@@ -31,13 +31,7 @@ export function InfoTable({
 }: InfoTableProps) {
   const keys = rowKeys(rows);
   return (
-    <section
-      aria-label={caption ? `Table: ${caption}` : "Table"}
-      className="rounded-gm-card border-gm-border focus-visible:shadow-gm-focus overflow-x-auto border focus-visible:outline-none"
-      // A region that scrolls sideways must be reachable by keyboard.
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable region
-      tabIndex={0}
-    >
+    <div className="rounded-gm-card border-gm-border overflow-x-auto border">
       <table className="w-full border-collapse text-left">
         {caption && (
           <caption className="border-gm-border bg-gm-surface text-gm-text-secondary text-label leading-label border-b px-4 py-2.5 lg:px-5">
@@ -76,6 +70,6 @@ export function InfoTable({
           ))}
         </tbody>
       </table>
-    </section>
+    </div>
   );
 }
