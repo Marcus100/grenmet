@@ -38,12 +38,22 @@ until its new home is verified; only then does DNS change.
      `https://barrels.gd` and `https://www.barrels.gd`), the CSP still allows
      Turnstile.
 2. **Elections.**
-   - **[agent]** Try `output: "export"` in a branch: the four `*.json` handlers
-     need `export const dynamic = "force-static"`; `api/health` goes (Pages has no
-     health route). If the build passes and the pages render the same, ship it as
-     static; if not, package it like the other droplet apps (compose service,
-     Traefik host rule, `docs/ports.md`).
-   - **[owner]** Same Pages steps as step 1, or the droplet deploy.
+   - **Done in the repo (2026-11-13, PR #1321):** `output: "export"` builds every
+     page into `apps/web/elections/out`; `api/health` and the hourly revalidate
+     are gone; `public/_redirects` keeps `/since-2022`; `pnpm build` runs
+     `scripts/pages-headers.mjs`, which writes `out/_headers` (nosniff, referrer
+     policy and the shared report-only CSP).
+   - **Daily rebuild (owner, 13 Nov 2026):** the masthead follows today's date,
+     so `.github/workflows/elections-daily-rebuild.yml` calls the Pages
+     project's deploy hook at 00:05 Grenada time. It does nothing until the hook
+     URL is stored as the repository secret `ELECTIONS_PAGES_DEPLOY_HOOK`. A
+     workflow file, so the owner merges this PR.
+   - **[agent with the API token]** Pages project: build command
+     `pnpm --filter '@barrelsgd/web-elections^...' run build && pnpm --filter @barrelsgd/web-elections build`,
+     output `apps/web/elections/out`, `NODE_VERSION=24`, plus the
+     `NEXT_PUBLIC_*` build variables from the Vercel project. Ask the owner
+     before the DNS change.
+
 3. **Babydoll** (client site, last, with a short agreed window).
    - **[agent]** Add `babydoll` to the deploy compose file as a droplet service
      with the host rule for `babydoll.${BASE_DOMAIN}`, its Dockerfile, health check
