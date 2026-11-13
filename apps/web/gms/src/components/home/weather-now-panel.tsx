@@ -3,6 +3,7 @@ import {
   ArrowRightIcon,
   HeadphonesIcon,
   type LucideIcon,
+  PlayIcon,
   SatelliteDishIcon,
   VideoIcon,
   WavesIcon,
@@ -93,8 +94,17 @@ export function WeatherNowPanel({
   notes?: TabNotes;
   video: MediaItem[];
 }) {
-  const [tab, setTab] = useState<TabKey>("satellite");
+  // Open on the first tab that has something to show (owner, 13 Nov 2026):
+  // the imagery tabs wait for their feeds, so audio or video leads when posted.
+  const [tab, setTab] = useState<TabKey>(() => {
+    if (audio.length > 0) return "audio";
+    if (video.length > 0) return "video";
+    return "satellite";
+  });
   const [selected, setSelected] = useState<string | null>(null);
+  // The provider's frame loads only after the reader asks for it: choosing a
+  // tab, an item or the play button. Opening on a media tab never loads it.
+  const [requested, setRequested] = useState(false);
   const baseId = useId();
   const active = TABS.find((item) => item.key === tab) ?? TABS[0];
   const items = { audio, video }[tab as "audio" | "video"] ?? [];
@@ -126,6 +136,7 @@ export function WeatherNowPanel({
             onClick={() => {
               setTab(key);
               setSelected(null);
+              setRequested(true);
             }}
             role="tab"
             type="button"
@@ -152,15 +163,29 @@ export function WeatherNowPanel({
 
         {!active.pending && current && (
           <>
-            <iframe
-              allow="encrypted-media; picture-in-picture; fullscreen"
-              className={STAGE}
-              key={current.id}
-              referrerPolicy="strict-origin-when-cross-origin"
-              sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
-              src={current.embed.src}
-              title={current.title}
-            />
+            {requested ? (
+              <iframe
+                allow="encrypted-media; picture-in-picture; fullscreen"
+                className={STAGE}
+                key={current.id}
+                referrerPolicy="strict-origin-when-cross-origin"
+                sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
+                src={current.embed.src}
+                title={current.title}
+              />
+            ) : (
+              <button
+                className={cn(
+                  STAGE,
+                  "border-gm-border text-body-base leading-body-base hover:bg-gm-navy-panel focus-visible:ring-gm-lime flex flex-col items-center justify-center gap-2 border px-6 text-center font-semibold outline-none focus-visible:ring-2"
+                )}
+                onClick={() => setRequested(true)}
+                type="button"
+              >
+                <PlayIcon aria-hidden="true" className="size-10" />
+                Play: {current.title}
+              </button>
+            )}
             <div className="flex flex-col gap-1 px-1">
               <p className="text-body-base leading-body-base font-bold">
                 {current.title}
@@ -190,7 +215,10 @@ export function WeatherNowPanel({
                         "text-body leading-body hover:bg-gm-text-inverse/10 flex w-full items-baseline justify-between gap-3 px-1 py-2 text-left",
                         item.id === current.id && "font-bold"
                       )}
-                      onClick={() => setSelected(item.id)}
+                      onClick={() => {
+                        setSelected(item.id);
+                        setRequested(true);
+                      }}
                       type="button"
                     >
                       {item.title}
