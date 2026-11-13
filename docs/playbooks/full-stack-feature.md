@@ -41,6 +41,9 @@ Separate-database domains don't autogenerate. Write the next
 `revision = "<domain>_NNNN"` (recipe in `docs/api/development.md` →
 Databases and migrations).
 
+- A new model module goes in `LEGACY_MODEL_MODULES` in `src/model_registry.py`
+  (or in the domain's manifest) so autogenerate sees its tables;
+  `tests/test_alembic_drift.py` fails until the models and migrations agree.
 - Review the generated file by hand: static, reversible (`downgrade()` works),
   no data loss. Names are `lower_snake`, singular; `_at` for datetimes, `_date` for dates.
 - Register personal or approval data for change history (`src/<domain>/audit.py`

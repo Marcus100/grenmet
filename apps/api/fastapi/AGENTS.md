@@ -331,6 +331,7 @@ Where this file is more specific, this file wins. Checklist for new code:
 | Migrations additive for a rolling release: no drop, rename, type change, NOT NULL on an existing column or non-concurrent index on an existing table in `upgrade()` | `tests/test_migration_safety.py` checks every migration not in `tests/migration_safety_baseline.json`; a reviewed exception carries `# migration-safety: <reason>` |
 | SQL-first; nested JSON via `func.json_build_object` when it saves Python reshaping | See "SQL first, Pydantic second" |
 | Async test client from day one; `dependency_overrides` for external services | Real DB + real JWT for auth |
+| Models and main migrations agree | `tests/test_alembic_drift.py` runs `alembic check` on the migrated test database; a new model module goes in `src/model_registry.py` (or its domain manifest), which `alembic/env.py` loads |
 | Ruff for lint and format | `./scripts/lint.sh`, `./scripts/format.sh` |
 
 **Intentional deviation:** the separate-database domains (`wxproducts`,

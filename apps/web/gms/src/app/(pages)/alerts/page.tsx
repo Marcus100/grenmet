@@ -7,11 +7,7 @@ import { ExerciseBanner } from "@/components/pages/exercise-banner";
 import { PageSection } from "@/components/pages/page-section";
 import { Prose } from "@/components/pages/prose";
 import { WarningLegend } from "@/components/pages/warning-legend";
-import {
-  CapGroups,
-  GreenSection,
-  WarningsBand,
-} from "@/components/pages/warnings-status";
+import { AlertLists, WarningsBand } from "@/components/pages/warnings-status";
 import { alertsLevel, fetchActiveAlerts, fetchPastAlerts } from "@/lib/cap";
 import { fetchGreenAlerts } from "@/lib/green-status";
 import { recentlyEnded } from "@/lib/warning-detail";
@@ -59,22 +55,8 @@ export default async function WarningsPage() {
       <div className="mb-8 grid gap-5 lg:mb-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex flex-col gap-4">
           <Suspense fallback={<p role="status">{CHECKING}</p>}>
-            <CapGroups alerts={alerts} green={green} />
+            <AlertLists alerts={alerts} green={green} />
           </Suspense>
-          <section
-            aria-labelledby="green-alerts-heading"
-            className="flex flex-col gap-3"
-          >
-            <h2
-              className="text-gm-heading text-heading-sm leading-heading-sm font-bold"
-              id="green-alerts-heading"
-            >
-              Green alerts
-            </h2>
-            <Suspense fallback={<p role="status">{CHECKING}</p>}>
-              <GreenSection green={green} />
-            </Suspense>
-          </section>
           {alertsLevel(alerts) === "none" && (
             <div className="rounded-gm-card border-gm-border text-body leading-body flex flex-col gap-1 border p-4">
               <b className="text-gm-heading">What we are watching</b>
