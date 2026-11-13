@@ -74,7 +74,12 @@ const { headers } = JSON.parse(
   readFileSync(new URL("vercel.json", directory), "utf8")
 );
 const headerRules = headers.map((rule) => {
-  const path = rule.source === "/(.*)" ? "/*" : rule.source;
+  // Only the catch-all is translated; any other Vercel pattern would mean
+  // something different on Pages, so refuse it rather than guess.
+  if (rule.source !== "/(.*)") {
+    throw new Error(`No Pages equivalent written for source ${rule.source}`);
+  }
+  const path = "/*";
   const lines = rule.headers.map(
     (header) => `  ${header.key}: ${header.value}`
   );

@@ -31,10 +31,6 @@ until its new home is verified; only then does DNS change.
      `vercel.json`'s headers, so Pages serves the same CSP; `site.test.mjs` checks
      it. `vercel.json` has no redirects; the `www` to apex redirect is a Cloudflare
      redirect rule the owner adds with the custom domain.
-   - **[agent]** Confirm `node apps/web/barrels/build.mjs <turnstile site key>`
-     writes everything to `dist/` with no Vercel-only features (`vercel.json`
-     redirects and headers need a Pages `_redirects` and `_headers` equivalent;
-     `www` redirects to the apex).
    - **[owner]** Create a Pages project (same pattern as `commit`: build command,
      output `apps/web/barrels/dist`, `NODE_VERSION=24`, and the Turnstile site key
      as a build variable), add the custom domain and the `www` redirect.
