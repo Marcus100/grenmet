@@ -1548,7 +1548,47 @@ nothing. The clock point must belong to the caller's own department. `late_minut
 `early_departure_minutes` and `overtime_minutes` are informational and not stored.
 `ClockResult` gains `punch` (with `status`); `attendance` stays but is a provisional,
 unsaved view (`attendance_id` null) until the punch is approved. Terminal punches
-(import not built yet) will count immediately and do not use this table.
+come from the terminal import below and do not use this table.
+
+### Terminal punch import
+
+ADR-0040, Decision 4: punches from the fingerprint and fob terminal count as
+attendance with no approval step. Every route needs `roster.manage` in the department
+scope. An upload accepts a ZKTeco ATTLOG text export (device user ID, then
+`YYYY-MM-DD HH:MM:SS`, then ignored columns) or a CSV with a `device_user_id,punched_at`
+header. Device times are Grenada local and stored as UTC. Only the device user ID and
+the punch time are stored, never biometric data.
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/attendance/terminal-users` | `roster.manage` in the department scope | List a department's device ID mappings |
+| `POST /api/v1/hr/attendance/terminal-users` | `roster.manage` in the department scope | Map a device user ID to an employee of the department (one ID per person, one person per ID) |
+| `DELETE /api/v1/hr/attendance/terminal-users/{terminal_user_id}` | `roster.manage` in the department scope | Remove a mapping; punches already decided keep their outcome |
+| `POST /api/v1/hr/attendance/terminal-imports` | `roster.manage` in the department scope | Upload an export (multipart `file`, `department_id`, `terminal` label); returns counts per outcome and this upload's punches |
+| `GET /api/v1/hr/attendance/terminal-punches` | `roster.manage` in the department scope | Punches needing HR attention (UNMAPPED, NO_SHIFT, REFUSED by default), filtered and paged in SQL |
+| `POST /api/v1/hr/attendance/terminal-punches/reprocess` | `roster.manage` in the department scope | Decide a department's UNMAPPED, NO_SHIFT and PENDING punches again, after a mapping or roster change |
+
+Each new punch is decided in time order for its person, and each one is its own
+transaction:
+
+- **UNMAPPED**: the device ID has no mapping in the department. Held for HR.
+- **REPEAT**: within 5 minutes of the person's last accepted punch. Ignored.
+- **ALREADY_RECORDED**: the shift already has this arrival or departure, within 15
+  minutes of a recorded time (for example from an approved phone punch). No second
+  record is written.
+- **RECORDED**: a departure closes the person's open shift (an arrival with no
+  departure, within 24 hours), or an arrival matches a published work shift with the
+  phone clock-in window (two hours before to one hour after the shift). The write goes
+  through `save_attendance` as the employee, so roster, revision and audit are the
+  phone-punch approval path.
+- **NO_SHIFT**: no published work shift matches. Flagged for HR, never invented.
+- **REFUSED**: `save_attendance` refused it. The message is kept in `detail`, and the
+  rest of the upload still imports.
+
+A re-upload of the same file with the same terminal label imports nothing twice: the
+unique key is department, terminal, device ID and punch time. An upload is at most
+1 MiB and 5000 lines; bad lines are returned with their line numbers and do not stop
+the others. Mappings and roster changes are applied by reprocess, not on upload.
 
 ### Roster rule limits and check
 

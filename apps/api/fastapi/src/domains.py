@@ -39,6 +39,7 @@ MOUNT_ORDER: tuple[str, ...] = (
     "hr.timesheet",
     "hr.clock",
     "hr.attendance",
+    "hr.terminal",
     "hr.payroll",
     "hr.training",
     "hr.signatures",
