@@ -50,6 +50,8 @@ from src.config import settings
 from src.contact.router import router as contact_router
 from src.contacts.router import router as contacts_router
 from src.content_distribution.router import router as content_distribution_router
+from src.domain_manifest import Mount
+from src.domains import ordered_mounts
 from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
 from src.eregister.iwxxm import preload_schema_in_background
@@ -103,8 +105,6 @@ from src.request_context import (
     resolve_request_id,
 )
 from src.rewards.router import router as rewards_router
-
-# from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
 from src.storage.uploads_router import router as uploads_router
 from src.stores.router import router as stores_router
@@ -114,7 +114,6 @@ from src.transport import database as transport_database
 from src.transport.router import router as transport_router
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
-from src.webhooks_out.router import router as webhooks_out_router
 from src.wxproducts import database as wxproducts_database
 from src.wxproducts.router import router as wxproducts_router
 from src.wxwatch import database as wxwatch_database
@@ -494,74 +493,98 @@ if settings.all_cors_origins:
         expose_headers=[REQUEST_ID_HEADER],
     )
 app.add_middleware(RequestLoggingMiddleware)
-# Include routers
-# app.include_router(shipments_router, prefix=settings.API_V1_STR)
-# Auth-related routers (split for better organization)
-app.include_router(login_router, prefix=settings.API_V1_STR)
-app.include_router(users_router, prefix=settings.API_V1_STR)
-app.include_router(twofa_router, prefix=settings.API_V1_STR)
-app.include_router(roles_router, prefix=settings.API_V1_STR)
-app.include_router(permissions_router, prefix=settings.API_V1_STR)
-app.include_router(role_assignments_router, prefix=settings.API_V1_STR)
-app.include_router(billing_router, prefix=settings.API_V1_STR)
-app.include_router(billing_invoice_router, prefix=settings.API_V1_STR)
-app.include_router(rewards_router, prefix=settings.API_V1_STR)
-app.include_router(payments_router, prefix=settings.API_V1_STR)
-app.include_router(bookings_router, prefix=settings.API_V1_STR)
-app.include_router(bookings_settings_router, prefix=settings.API_V1_STR)
-app.include_router(hr_profile_router, prefix=settings.API_V1_STR)
-app.include_router(hr_workflow_router, prefix=settings.API_V1_STR)
-app.include_router(hr_roster_router, prefix=settings.API_V1_STR)
-app.include_router(hr_calendar_router, prefix=settings.API_V1_STR)
-app.include_router(hr_timesheet_router, prefix=settings.API_V1_STR)
-app.include_router(hr_clock_router, prefix=settings.API_V1_STR)
-app.include_router(hr_attendance_router, prefix=settings.API_V1_STR)
-app.include_router(hr_payroll_router, prefix=settings.API_V1_STR)
-app.include_router(hr_training_router, prefix=settings.API_V1_STR)
-app.include_router(hr_signatures_router, prefix=settings.API_V1_STR)
-app.include_router(hr_leave_router, prefix=settings.API_V1_STR)
-app.include_router(hr_absentee_router, prefix=settings.API_V1_STR)
-app.include_router(hr_exchange_router, prefix=settings.API_V1_STR)
-app.include_router(hr_dailystatus_router, prefix=settings.API_V1_STR)
-app.include_router(hr_parking_router, prefix=settings.API_V1_STR)
-app.include_router(hr_documents_router, prefix=settings.API_V1_STR)
-app.include_router(audit_router, prefix=settings.API_V1_STR)
-app.include_router(stores_router, prefix=settings.API_V1_STR)
-app.include_router(notifications_router, prefix=settings.API_V1_STR)
-app.include_router(organisations_router, prefix=settings.API_V1_STR)
-app.include_router(feature_flags_router, prefix=settings.API_V1_STR)
-app.include_router(contacts_router, prefix=settings.API_V1_STR)
-app.include_router(cap_router, prefix=settings.API_V1_STR)
-app.include_router(cap_public_router)
+# Routers not yet moved to a domain manifest (ADR-0031), by MOUNT_ORDER key.
+_LEGACY_MOUNTS: dict[str, Mount] = {
+    "auth.login": Mount("auth.login", login_router),
+    "auth.users": Mount("auth.users", users_router),
+    "auth.twofa": Mount("auth.twofa", twofa_router),
+    "auth.roles": Mount("auth.roles", roles_router),
+    "auth.permissions": Mount("auth.permissions", permissions_router),
+    "auth.role_assignments": Mount("auth.role_assignments", role_assignments_router),
+    "billing.billing": Mount("billing.billing", billing_router),
+    "billing.invoices": Mount("billing.invoices", billing_invoice_router),
+    "rewards.rewards": Mount("rewards.rewards", rewards_router),
+    "payments.payments": Mount("payments.payments", payments_router),
+    "bookings.bookings": Mount("bookings.bookings", bookings_router),
+    "bookings.settings": Mount("bookings.settings", bookings_settings_router),
+    "hr.profile": Mount("hr.profile", hr_profile_router),
+    "hr.workflow": Mount("hr.workflow", hr_workflow_router),
+    "hr.roster": Mount("hr.roster", hr_roster_router),
+    "hr.calendar": Mount("hr.calendar", hr_calendar_router),
+    "hr.timesheet": Mount("hr.timesheet", hr_timesheet_router),
+    "hr.clock": Mount("hr.clock", hr_clock_router),
+    "hr.attendance": Mount("hr.attendance", hr_attendance_router),
+    "hr.payroll": Mount("hr.payroll", hr_payroll_router),
+    "hr.training": Mount("hr.training", hr_training_router),
+    "hr.signatures": Mount("hr.signatures", hr_signatures_router),
+    "hr.leave": Mount("hr.leave", hr_leave_router),
+    "hr.absentee": Mount("hr.absentee", hr_absentee_router),
+    "hr.exchange": Mount("hr.exchange", hr_exchange_router),
+    "hr.dailystatus": Mount("hr.dailystatus", hr_dailystatus_router),
+    "hr.parking": Mount("hr.parking", hr_parking_router),
+    "hr.documents": Mount("hr.documents", hr_documents_router),
+    "audit.audit": Mount("audit.audit", audit_router),
+    "stores.stores": Mount("stores.stores", stores_router),
+    "notifications.notifications": Mount(
+        "notifications.notifications", notifications_router
+    ),
+    "organisations.organisations": Mount(
+        "organisations.organisations", organisations_router
+    ),
+    "feature_flags.feature_flags": Mount(
+        "feature_flags.feature_flags", feature_flags_router
+    ),
+    "contacts.contacts": Mount("contacts.contacts", contacts_router),
+    "cap.cap": Mount("cap.cap", cap_router),
+    "cap.public": Mount("cap.public", cap_public_router, versioned=False),
+    "utils.utils": Mount("utils.utils", utils_router),
+    "storage.weather_images": Mount("storage.weather_images", weather_images_router),
+    "storage.uploads": Mount("storage.uploads", uploads_router),
+    "webhooks.webhooks": Mount("webhooks.webhooks", webhooks_router),
+    "subscriptions.subscriptions": Mount(
+        "subscriptions.subscriptions", subscriptions_router
+    ),
+    "push.push": Mount("push.push", push_router),
+    "contact.contact": Mount("contact.contact", contact_router),
+    "feedback.feedback": Mount("feedback.feedback", feedback_router),
+    "content_distribution.content_distribution": Mount(
+        "content_distribution.content_distribution", content_distribution_router
+    ),
+    "flights.flights": Mount("flights.flights", flights_router),
+    "environmental.environmental": Mount(
+        "environmental.environmental", environmental_router
+    ),
+    "almanac.almanac": Mount("almanac.almanac", almanac_router),
+    "models_guidance.models_guidance": Mount(
+        "models_guidance.models_guidance", models_guidance_router
+    ),
+    "wxproducts.wxproducts": Mount("wxproducts.wxproducts", wxproducts_router),
+    "eregister.eregister": Mount("eregister.eregister", eregister_router),
+    "wxwatch.wxwatch": Mount("wxwatch.wxwatch", wxwatch_router),
+    "wxwatch.public": Mount("wxwatch.public", wxwatch_public_router),
+    "wxwatch.nhc": Mount("wxwatch.nhc", nhc_router),
+    "wxwatch.ingestion": Mount("wxwatch.ingestion", wxwatch_ingestion_router),
+    "auth.browser": Mount("auth.browser", browser_auth_router),
+    "janitorial.janitorial": Mount("janitorial.janitorial", janitorial_router),
+    "transport.transport": Mount("transport.transport", transport_router),
+    "events.events": Mount("events.events", events_router),
+    "events.moderation": Mount("events.moderation", events_moderation_router),
+    "events.org": Mount("events.org", events_org_router),
+    "events.staff": Mount("events.staff", events_staff_router),
+    "auth.onboarding": Mount("auth.onboarding", onboarding_router),
+    "auth.modern": Mount("auth.modern", modern_auth_router),
+    "auth.app": Mount("auth.app", app_auth_router),
+    "auth.account_apps": Mount("auth.account_apps", account_apps_router),
+    "baseline.staff_setup": Mount("baseline.staff_setup", staff_setup_router),
+    "hr.dashboard": Mount("hr.dashboard", hr_dashboard_router),
+    "baseline.governance": Mount("baseline.governance", governance_router),
+}
+for mount in ordered_mounts(_LEGACY_MOUNTS):
+    if mount.versioned:
+        app.include_router(mount.router, prefix=settings.API_V1_STR)
+    else:
+        app.include_router(mount.router)
 
-# Other routers
-app.include_router(utils_router, prefix=settings.API_V1_STR)
-app.include_router(weather_images_router, prefix=settings.API_V1_STR)
-app.include_router(uploads_router, prefix=settings.API_V1_STR)
-app.include_router(webhooks_router, prefix=settings.API_V1_STR)
-app.include_router(webhooks_out_router, prefix=settings.API_V1_STR)
-app.include_router(subscriptions_router, prefix=settings.API_V1_STR)
-app.include_router(push_router, prefix=settings.API_V1_STR)
-app.include_router(contact_router, prefix=settings.API_V1_STR)
-app.include_router(feedback_router, prefix=settings.API_V1_STR)
-app.include_router(content_distribution_router, prefix=settings.API_V1_STR)
-app.include_router(flights_router, prefix=settings.API_V1_STR)
-app.include_router(environmental_router, prefix=settings.API_V1_STR)
-app.include_router(almanac_router, prefix=settings.API_V1_STR)
-app.include_router(models_guidance_router, prefix=settings.API_V1_STR)
-app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
-app.include_router(eregister_router, prefix=settings.API_V1_STR)
-app.include_router(wxwatch_router, prefix=settings.API_V1_STR)
-app.include_router(wxwatch_public_router, prefix=settings.API_V1_STR)
-app.include_router(nhc_router, prefix=settings.API_V1_STR)
-app.include_router(wxwatch_ingestion_router, prefix=settings.API_V1_STR)
-app.include_router(browser_auth_router, prefix=settings.API_V1_STR)
-app.include_router(janitorial_router, prefix=settings.API_V1_STR)
-app.include_router(transport_router, prefix=settings.API_V1_STR)
-app.include_router(events_router, prefix=settings.API_V1_STR)
-app.include_router(events_moderation_router, prefix=settings.API_V1_STR)
-app.include_router(events_org_router, prefix=settings.API_V1_STR)
-app.include_router(events_staff_router, prefix=settings.API_V1_STR)
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
@@ -588,20 +611,6 @@ def get_scalar_docs() -> Any:
         openapi_url=openapi_url,
         title=settings.PROJECT_NAME,
     )
-
-
-app.include_router(onboarding_router, prefix=settings.API_V1_STR)
-app.include_router(modern_auth_router, prefix=settings.API_V1_STR)
-app.include_router(app_auth_router, prefix=settings.API_V1_STR)
-app.include_router(account_apps_router, prefix=settings.API_V1_STR)
-
-app.include_router(staff_setup_router, prefix=settings.API_V1_STR)
-
-
-app.include_router(hr_dashboard_router, prefix=settings.API_V1_STR)
-
-
-app.include_router(governance_router, prefix=settings.API_V1_STR)
 
 
 def _lift_inline_enums(schema: dict[str, Any]) -> None:

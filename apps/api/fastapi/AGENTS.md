@@ -25,7 +25,9 @@ src/
 ├── exceptions.py       — Global exception hierarchy + handlers
 ├── dependencies.py     — SessionDep, CurrentUser, TokenDep type aliases
 ├── database.py         — async_engine, async_session_factory
-└── main.py             — FastAPI app, lifespan, middleware, router registration
+├── domain_manifest.py  — Domain and Mount types for <domain>/register.py (ADR-0031)
+├── domains.py          — registered domains and MOUNT_ORDER, the one ordered router list
+└── main.py             — FastAPI app, lifespan, middleware; mounts routers in MOUNT_ORDER
 ```
 
 Imports use the module name, not individual symbols, for both cross-domain and intra-domain service imports. This avoids name collisions between route functions and service functions:
