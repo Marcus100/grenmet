@@ -336,6 +336,9 @@ For a fresh droplet only, create the external volumes named by `PGDATA_VOLUME`,
 `REDIS_VOLUME`, and `CERTS_VOLUME` in `staging.env` before the first deployment.
 Existing droplets must retain their existing volumes. Compose deliberately fails
 if a required external volume is missing instead of silently creating an empty database.
+The GitHub variable `CORE_PGDATA_VOLUME`, when set, replaces `PGDATA_VOLUME` for the
+PostgreSQL 18 move; `render-env.py` refuses a database image and volume of different
+majors ([PostgreSQL 18 upgrade](operations/postgres-18-upgrade.md)).
 
 The deployment starts Postgres, ensures the configured databases exist, then
 starts the remaining services with migrations enforced through dependencies.

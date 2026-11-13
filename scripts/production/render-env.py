@@ -162,6 +162,51 @@ def cloudflare_edge(environment, values):
     }
 
 
+# The core database image, its data mount and its volume move together
+# (docs/operations/postgres-18-upgrade.md). PostgreSQL 17 images keep their data at
+# /var/lib/postgresql/data. 18 keeps it in /var/lib/postgresql/18/docker and refuses to
+# start with anything mounted at .../data, so the mount follows the image's major.
+# Mounting a 17 volume at the 18 path would make a 17 image start an empty database
+# inside it, which is why the mount is never set by hand.
+POSTGRES_IMAGE = re.compile(
+    r"(?:postgres:(?P<plain>17|18)|postgis/postgis:(?P<postgis>17-3\.5|18-3\.7))@sha256:[0-9a-f]{64}"
+)
+POSTGRES_DATA_MOUNT = {17: "/var/lib/postgresql/data", 18: "/var/lib/postgresql"}
+# A volume created for a newer major carries it in its name (grenmet_pgdata18); the
+# volumes that predate the upgrade hold 17 and keep their names. So an image cannot be
+# paired with a volume of another major, which would stop the database at start-up.
+VOLUME_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
+VOLUME_MAJOR = re.compile(r"pgdata(1[0-9])$")
+
+
+def core_postgres(config, environment):
+    """Image, data mount and volume of the core database, checked as one set."""
+    image = environment.get("CORE_POSTGRES_IMAGE", "")
+    match = POSTGRES_IMAGE.fullmatch(image)
+    if not match:
+        raise ValueError("CORE_POSTGRES_IMAGE must pin an approved PostgreSQL 17 or 18 image digest")
+    if image.startswith("postgis/") and environment.get("POSTGIS_RESTORE_VERIFIED") != "true":
+        raise ValueError("PostGIS rollout requires an operator-recorded isolated restore verification")
+    major = int((match.group("plain") or match.group("postgis")).split("-")[0])
+    # CORE_PGDATA_VOLUME (a GitHub environment variable) switches the volume during the
+    # upgrade; unset keeps the committed PGDATA_VOLUME of the environment file.
+    volume = environment.get("CORE_PGDATA_VOLUME", "") or config.get("PGDATA_VOLUME", "")
+    if not VOLUME_NAME.fullmatch(volume):
+        raise ValueError("PGDATA_VOLUME (or CORE_PGDATA_VOLUME) must be a Docker volume name")
+    tagged = VOLUME_MAJOR.search(volume)
+    volume_major = int(tagged.group(1)) if tagged else 17
+    if volume_major != major:
+        raise ValueError(
+            f"CORE_POSTGRES_IMAGE is PostgreSQL {major} but the data volume holds PostgreSQL "
+            f"{volume_major}: change CORE_POSTGRES_IMAGE and CORE_PGDATA_VOLUME together"
+        )
+    return {
+        "CORE_POSTGRES_IMAGE": image,
+        "CORE_POSTGRES_DATA_MOUNT": POSTGRES_DATA_MOUNT[major],
+        "PGDATA_VOLUME": volume,
+    }
+
+
 def render(config, environment):
     required = REQUIRED_SECRETS
     values = {}
@@ -287,11 +332,7 @@ def render(config, environment):
     runtime_user = config.get("FASTAPI_DB_USER", "")
     if not re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]*", runtime_user) or runtime_user in {values["POSTGRES_USER"], "postgres", "app", "gms_cms", "wxwatch", "wxproducts", "transport", "janitorial"}:
         raise ValueError("FASTAPI_DB_USER must be a dedicated non-administrator role")
-    image = environment.get("CORE_POSTGRES_IMAGE", "")
-    if not re.fullmatch(r"(?:postgres:17|postgis/postgis:17-3\.5)@sha256:[0-9a-f]{64}", image):
-        raise ValueError("CORE_POSTGRES_IMAGE must pin an approved PostgreSQL 17 image digest")
-    if image.startswith("postgis/") and environment.get("POSTGIS_RESTORE_VERIFIED") != "true":
-        raise ValueError("PostGIS rollout requires an operator-recorded isolated restore verification")
+    values.update(core_postgres(config, environment))
     redis_image = environment.get("CORE_REDIS_IMAGE", "")
     if not re.fullmatch(r"redis:7-alpine@sha256:[0-9a-f]{64}", redis_image):
         raise ValueError("CORE_REDIS_IMAGE must pin an approved Redis 7 image digest")
@@ -299,7 +340,7 @@ def render(config, environment):
     address = ipaddress.ip_address(environment.get("CORE_PRIVATE_IP", ""))
     if not any(address in ipaddress.ip_network(network) for network in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]):
         raise ValueError("CORE_PRIVATE_IP must be an RFC1918 private address")
-    values.update(CORE_POSTGRES_IMAGE=image, CORE_PRIVATE_IP=str(address))
+    values["CORE_PRIVATE_IP"] = str(address)
     tag = environment.get("DEPLOY_IMAGE_TAG", "")
     if not re.fullmatch(r"sha-[0-9a-f]{40}", tag):
         raise ValueError("DEPLOY_IMAGE_TAG must be sha- followed by a full commit SHA")

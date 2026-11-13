@@ -81,6 +81,7 @@
         "WORKER_HEARTBEAT_URL": "Monitoring heartbeat on staging only; decide whether production needs it here or in production-monitoring."
       },
       "variables": {
+        "CORE_PGDATA_VOLUME": "PostgreSQL 18 data volume (docs/operations/postgres-18-upgrade.md): set on each environment at its upgrade, absent before. Move to shared once both run 18.",
         "BOOTSTRAP_CMS": "CMS bootstrap switch on staging only (issue #1146).",
         "CLOUDFLARE_PROXY_ENABLED": "Cloudflare proxy is on staging only (docs/operations/cloudflare-proxy.md); production gets it at cut-over.",
         "NEXT_PUBLIC_GA_MEASUREMENT_ID": "No workflow or deploy script reads it; confirm and remove, or wire it (issue #1146).",
@@ -105,6 +106,7 @@
         "WEBPUSH_VAPID_PUBLIC_KEY": "Web push keys on production only, and also set as a variable there (issue #1146)."
       },
       "variables": {
+        "CORE_PGDATA_VOLUME": "PostgreSQL 18 data volume (docs/operations/postgres-18-upgrade.md): set on each environment at its upgrade, absent before. Move to shared once both run 18.",
         "SENTRY_CRONS_ENABLED": "Optional worker Sentry Cron check-ins (issue #1144); off when absent. Move to shared once both environments set it.",
         "WEBPUSH_VAPID_PUBLIC_KEY": "Web push public key on production only, and also set as a secret there (issue #1146)."
       }
