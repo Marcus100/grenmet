@@ -258,7 +258,10 @@ def _coordinate_range_errors(area: CapAreaPublic) -> list[str]:
             "polygon has a coordinate outside latitude ±90 or longitude ±180"
         )
     for circle in area.circles:
-        if not _in_range(circle.get("lon", 0.0), circle.get("lat", 0.0)):
+        if "lat" not in circle or "lon" not in circle:
+            problems.append("circle needs a centre latitude and longitude")
+            break
+        if not _in_range(circle["lon"], circle["lat"]):
             problems.append("circle centre is outside latitude ±90 or longitude ±180")
             break
         if circle.get("radius", 0.0) < 0:

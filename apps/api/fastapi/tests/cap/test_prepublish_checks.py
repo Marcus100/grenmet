@@ -8,14 +8,16 @@ Update.
 
 from datetime import UTC, datetime, timedelta
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import httpx
 import pytest
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.baseline.models import ApprovalPolicy
 from src.cap.models import (
+    CapAlert,
     CapAreaKind,
     CapCategory,
     CapCertainty,
@@ -28,6 +30,7 @@ from src.cap.models import (
 )
 from src.cap.schemas import CapAlertPublic, CapAreaPublic, CapInfoPublic
 from src.cap.validation import validate_cap_alert
+from src.utils.datetime import utc_now
 
 _GRENADA = [[-61.8, 12.0], [-61.7, 12.2], [-61.6, 12.1], [-61.8, 12.0]]
 
@@ -171,6 +174,14 @@ def test_negative_circle_radius_is_refused() -> None:
     assert "info[1].area[1] circle radius must not be negative" in result.errors
 
 
+def test_circle_without_a_centre_is_refused() -> None:
+    area = _area(kind=CapAreaKind.CIRCLE, polygons=[], circles=[{"radius": 5.0}])
+    result = validate_cap_alert(_alert(areas=[area]))
+    assert "info[1].area[1] circle needs a centre latitude and longitude" in (
+        result.errors
+    )
+
+
 def test_cancellation_without_expiry_or_area_is_not_blocked() -> None:
     result = validate_cap_alert(
         _alert(msg_type=CapMessageType.CANCEL, expires=False, areas=[])
@@ -270,3 +281,48 @@ async def test_repeat_of_a_recent_warning_warns_but_stays_valid(
         await _create(async_client, author, headline="Flood watch"),
     )
     assert not any("Issue an Update" in w for w in different["warnings"])
+
+
+@pytest.mark.asyncio
+async def test_a_warning_published_over_an_hour_ago_is_not_a_repeat(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+    second_superuser_headers_async: dict[str, str],
+) -> None:
+    db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
+    await db_async.commit()
+    author, approver = superuser_token_headers_async, second_superuser_headers_async
+    first = await _create(async_client, author)
+    await _publish(async_client, author, approver, first)
+    await db_async.execute(
+        update(CapAlert)
+        .where(CapAlert.id == UUID(first))
+        .values(sent=utc_now() - timedelta(minutes=61))
+    )
+    await db_async.commit()
+
+    result = await _validate(async_client, author, await _create(async_client, author))
+    assert not any("Issue an Update" in w for w in result["warnings"])
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("db_async")
+async def test_emergency_publish_is_refused_without_an_expiry(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    payload = _payload()
+    del payload["info"][0]["expires"]
+    created = await async_client.post(
+        "/api/v1/cap/alerts", headers=superuser_token_headers_async, json=payload
+    )
+    assert created.status_code == 201, created.text
+
+    response = await async_client.post(
+        f"/api/v1/cap/alerts/{created.json()['id']}/emergency-publish",
+        headers=superuser_token_headers_async,
+        json={"reason": "Real hazard"},
+    )
+    assert response.status_code == 422, response.text
+    assert "expires is required for an Actual warning" in response.text

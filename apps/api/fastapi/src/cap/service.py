@@ -718,6 +718,8 @@ async def _recent_repeat_warnings(
                     CapAlert.sent >= utc_now() - REPEAT_WINDOW,
                 )
                 .order_by(CapAlert.sent.desc())
+                # Bounded even during a storm of publishing; the newest matter most.
+                .limit(20)
             )
         )
         .scalars()
