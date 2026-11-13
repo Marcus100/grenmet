@@ -478,9 +478,13 @@ export async function GrenadaInData() {
                       <dt className="text-gm-text-secondary text-label leading-label font-bold tracking-wider uppercase">
                         {stat.label}
                       </dt>
-                      <dd className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold tabular-nums">
-                        <StatFigure stat={stat} />
-                      </dd>
+                      {/* A figure not reported yet is words only, no dash
+                          (owner, 13 Nov 2026). */}
+                      {stat.value !== null && (
+                        <dd className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold tabular-nums">
+                          <StatFigure stat={stat} />
+                        </dd>
+                      )}
                       <dd className="text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
                         {stat.value === null ? "Not reported yet" : stat.detail}
                       </dd>
