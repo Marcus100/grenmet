@@ -71,7 +71,9 @@ COPY packages/theme/ packages/theme/
 COPY packages/ui/ packages/ui/
 COPY apps/web/cap/ apps/web/cap/
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN pnpm exec turbo run build --filter=@barrelsgd/web-cap
-RUN mkdir -p apps/web/cap/public
+# MapLibre's worker must be served from public/ (src/lib/maplibre-worker.ts). Run it
+# here too: a Turbo cache hit restores .next/ but skips the build script's copy.
+RUN node apps/web/cap/scripts/copy-maplibre-worker.mjs
 
 FROM runtime-base AS runner
 WORKDIR /app
