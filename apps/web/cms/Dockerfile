@@ -19,6 +19,7 @@ FROM build-base AS source
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
+COPY apps/web/account/package.json apps/web/account/
 COPY apps/web/admin/package.json apps/web/admin/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/babydoll/package.json apps/web/babydoll/
