@@ -84,8 +84,9 @@ TRACKED_SCHEMAS: set[str | None] = {
     "platform",
 } | tracked_schemas()
 
-# Tables kept in the database with no model yet. ``userimage`` dates from the
-# first migration and is unused; profile image upload will decide its fate.
+# Tables kept in the database with no model. ``userimage`` is the baseline
+# migration's first user-image table, superseded by ``user_image`` (2026-09-20,
+# ``src.auth.models.UserImage``); the owner asked to keep it untouched.
 UNMODELLED_TABLES: frozenset[str] = frozenset({"userimage"})
 
 # PostGIS installs its own tables (spatial_ref_sys, topology, the tiger

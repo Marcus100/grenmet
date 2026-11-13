@@ -1088,6 +1088,7 @@ export {
   billingVoidInvoiceStatus409Schema,
   billingVoidInvoiceStatus422Schema,
 } from "./billingVoidInvoiceSchema.js";
+export { binaryFileSchema } from "./binaryFileSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrImportTerminalPunchesSchema } from "./bodyHrImportTerminalPunchesSchema.js";
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
@@ -7599,6 +7600,66 @@ export { profileAuditPublicSchema } from "./profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./profileDetailsPublicSchema.js";
 export { profileDetailsUpdateSchema } from "./profileDetailsUpdateSchema.js";
 export { profileIdentityPublicSchema } from "./profileIdentityPublicSchema.js";
+export { profileImagePublicSchema } from "./profileImagePublicSchema.js";
+export { profileImageSizeSchema } from "./profileImageSizeSchema.js";
+export {
+  profileImagesGetMineErrorSchema,
+  profileImagesGetMineResponseSchema,
+  profileImagesGetMineStatus200Schema,
+  profileImagesGetMineStatus401Schema,
+  profileImagesGetMineStatus403Schema,
+  profileImagesGetMineStatus404Schema,
+  profileImagesGetMineStatus422Schema,
+} from "./profileImagesGetMineSchema.js";
+export {
+  profileImagesRemoveMineErrorSchema,
+  profileImagesRemoveMineResponseSchema,
+  profileImagesRemoveMineStatus204Schema,
+  profileImagesRemoveMineStatus401Schema,
+  profileImagesRemoveMineStatus403Schema,
+  profileImagesRemoveMineStatus404Schema,
+  profileImagesRemoveMineStatus422Schema,
+} from "./profileImagesRemoveMineSchema.js";
+export {
+  profileImagesRemoveErrorSchema,
+  profileImagesRemovePathSchema,
+  profileImagesRemovePathUserIdSchema,
+  profileImagesRemoveResponseSchema,
+  profileImagesRemoveStatus204Schema,
+  profileImagesRemoveStatus401Schema,
+  profileImagesRemoveStatus403Schema,
+  profileImagesRemoveStatus404Schema,
+  profileImagesRemoveStatus422Schema,
+} from "./profileImagesRemoveSchema.js";
+export {
+  profileImagesSetMineBodySchema,
+  profileImagesSetMineBodySchemaJpeg,
+  profileImagesSetMineBodySchemaPng,
+  profileImagesSetMineBodySchemaWebp,
+  profileImagesSetMineErrorSchema,
+  profileImagesSetMineResponseSchema,
+  profileImagesSetMineStatus200Schema,
+  profileImagesSetMineStatus401Schema,
+  profileImagesSetMineStatus403Schema,
+  profileImagesSetMineStatus413Schema,
+  profileImagesSetMineStatus415Schema,
+  profileImagesSetMineStatus422Schema,
+  profileImagesSetMineStatus503Schema,
+} from "./profileImagesSetMineSchema.js";
+export {
+  profileImagesShowErrorSchema,
+  profileImagesShowPathSchema,
+  profileImagesShowPathUserIdSchema,
+  profileImagesShowQuerySchema,
+  profileImagesShowQuerySizeSchema,
+  profileImagesShowResponseSchema,
+  profileImagesShowStatus307Schema,
+  profileImagesShowStatus401Schema,
+  profileImagesShowStatus403Schema,
+  profileImagesShowStatus404Schema,
+  profileImagesShowStatus422Schema,
+  profileImagesShowStatus503Schema,
+} from "./profileImagesShowSchema.js";
 export { profilePublicPropertiesConnectionStateEnumSchema } from "./profilePublicPropertiesConnectionStateEnumSchema.js";
 export { profilePublicSchema } from "./profilePublicSchema.js";
 export { profileUpdateSchema } from "./profileUpdateSchema.js";

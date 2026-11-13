@@ -21,6 +21,7 @@ from src.auth.models import (
     UserImage,
 )
 from src.auth.policy import can_act_on_user, require_permission
+from src.config import settings
 from src.hr.employment_status import set_employment_status
 from src.hr.leave import ledger
 from src.hr.organisations import (
@@ -455,8 +456,15 @@ async def _build_profile_response(
         for role in user.roles
     ]
 
-    avatar_url = await session.scalar(
+    photo_key = await session.scalar(
         select(UserImage.object_key).where(UserImage.user_id == user.id)
+    )
+    # A same-origin link the web app proxies; the version refreshes caches.
+    avatar_url = (
+        f"{settings.API_V1_STR}/profile-images/org/{user.id}"
+        f"?size=256&v={photo_key.rsplit('/', 1)[-1]}"
+        if photo_key
+        else None
     )
 
     from src.baseline.service import employment_complete
