@@ -9,8 +9,6 @@ additions need no edit, a deliberate removal does.
 
 import ast
 import json
-import subprocess
-import sys
 from importlib import import_module
 from pathlib import Path
 from types import ModuleType
@@ -103,23 +101,35 @@ def test_no_outbox_topic_is_lost() -> None:
     assert missing == [], "outbox topics no longer registered by the worker"
 
 
+def _imported_modules(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text())
+    found: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            found.add(node.module)
+        elif isinstance(node, ast.Import):
+            found.update(alias.name for alias in node.names)
+    return found
+
+
 def test_the_shared_list_imports_no_domain_code() -> None:
-    """``src.database`` reads ``src.domains``; importing a router there would loop."""
-    code = (
-        "import sys, src.domains as d\n"
-        "loaded = [m for d_ in d.DOMAINS for m in (*d_.model_modules, "
-        "*d_.registrations, *(str(x.router).partition(':')[0] for x in d_.mounts)) "
-        "if m in sys.modules]\n"
-        "print(loaded)"
-    )
-    result = subprocess.run(
-        [sys.executable, "-c", code],
-        capture_output=True,
-        text=True,
-        check=True,
-        cwd=Path(__file__).parents[1],
-    )
-    assert result.stdout.strip() == "[]"
+    """``src.database`` reads ``src.domains``; importing a router there would loop.
+
+    ``src/domains.py`` may import only the manifests, and a manifest only the
+    manifest types.
+    """
+    src = Path(__file__).parents[1] / "src"
+    manifests = {f"src.{domain.name}.register" for domain in DOMAINS}
+    shared = _imported_modules(src / "domains.py")
+    assert {m for m in shared if m.startswith("src.")} == {
+        "src.domain_manifest",
+        *manifests,
+    }
+    for domain in DOMAINS:
+        imported = _imported_modules(src / domain.name / "register.py")
+        assert {m for m in imported if m.startswith("src.")} == {
+            "src.domain_manifest"
+        }, domain.name
 
 
 def test_manifest_routers_are_import_paths() -> None:
@@ -227,7 +237,8 @@ def test_a_job_outside_its_domain_fails() -> None:
 
 def test_a_job_name_used_twice_fails() -> None:
     with pytest.raises(ValueError, match="registered twice"):
-        worker_jobs((*DOMAINS, Domain("flights", jobs=DOMAINS[-1].jobs)))
+        flights = next(domain for domain in DOMAINS if domain.name == "flights")
+        worker_jobs((*DOMAINS, Domain("flights", jobs=flights.jobs)))
 
 
 def test_a_manifest_job_may_not_reuse_a_built_in_job_name() -> None:

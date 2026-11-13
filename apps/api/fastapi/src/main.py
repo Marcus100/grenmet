@@ -294,6 +294,10 @@ OPENAPI_TAGS = [
         "name": "webhooks-out",
         "description": "Signed outbound webhooks for organisations.",
     },
+    {
+        "name": "profile-images",
+        "description": "Profile photos: your own, and those of people in your organisations.",
+    },
     {"name": "permissions", "description": "Permission administration operations."},
     {
         "name": "role-assignments",

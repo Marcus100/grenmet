@@ -3086,6 +3086,26 @@ Events stores the resulting file ids: `ListingUpsert.image_file_id`,
 `ListingCard.image_file_id` and `OrganiserPublic.logo_file_id`. A new id must be a
 completed upload of that organiser's organisation and purpose, else 409.
 
+## Profile photos (#1303)
+
+A Barrels account's own photo, stored in `public.user_image` (one per person)
+as 64, 256 and 512 pixel square WebP images. The person uploads and replaces it,
+with no approval step. Everyone who shares an organisation with them sees it:
+an active membership of the same platform organisation, or active employment
+in the same HR organisation.
+
+| Call | Behaviour |
+| --- | --- |
+| `GET /profile-images/me` | `{user_id, version, updated_at, sizes}`; 404 without a photo |
+| `PUT /profile-images/me` | Multipart `file`: JPEG, PNG or WebP up to 5 MB, at least 32 pixels a side, at most 40 megapixels (422 otherwise, with the reason). Turned upright, cropped square, stored as WebP with no metadata (no EXIF or GPS location). Replaces and deletes the previous photo; `version` changes. 503 without storage settings |
+| `DELETE /profile-images/me` | 204; 404 without a photo |
+| `GET /profile-images/org/{user_id}?size=64\|256\|512` | 307 to a 5-minute presigned GET, `Cache-Control: private, max-age=240` (default size 256; others 422). The person, superusers and people sharing an organisation only; a hidden photo and a missing one are the same 404, so show initials |
+| `DELETE /profile-images/org/{user_id}` | Removes an unsuitable photo: `hr.employment.manage` over the person (or superuser), never your own (use `/me`). 403 otherwise. Recorded as `profile_image` in the person's employee history |
+
+`ProfileIdentityPublic.avatar_url` (HR profile) is the same-origin link
+`/api/v1/profile-images/org/{user_id}?size=256&v=<version>`, or null. Deleting
+an account deletes its photo row (`ON DELETE CASCADE`) and its stored files.
+
 ## Outbound webhooks (PF6, ADR-0029)
 
 `/webhooks-out/org/*` (owner or admin of an organisation entitled to `webhooks`):

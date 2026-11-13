@@ -23,10 +23,11 @@ from typing import Any
 from src.contacts.register import DOMAIN as CONTACTS
 from src.domain_manifest import Domain, Mount, WorkerJob, resolve_function
 from src.flights.register import DOMAIN as FLIGHTS
+from src.profile_images.register import DOMAIN as PROFILE_IMAGES
 from src.webhooks_out.register import DOMAIN as WEBHOOKS_OUT
 
 # Registered manifests, one line per migrated domain.
-DOMAINS: tuple[Domain, ...] = (WEBHOOKS_OUT, CONTACTS, FLIGHTS)
+DOMAINS: tuple[Domain, ...] = (WEBHOOKS_OUT, CONTACTS, FLIGHTS, PROFILE_IMAGES)
 
 # Every router of the app, in mount order (legacy and registered alike).
 MOUNT_ORDER: tuple[str, ...] = (
@@ -72,6 +73,7 @@ MOUNT_ORDER: tuple[str, ...] = (
     "storage.uploads",
     "webhooks.webhooks",
     "webhooks_out.webhooks_out",
+    "profile_images.profile_images",
     "subscriptions.subscriptions",
     "push.push",
     "contact.contact",
