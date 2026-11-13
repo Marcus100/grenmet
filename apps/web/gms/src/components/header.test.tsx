@@ -74,6 +74,21 @@ describe("Header", () => {
     expect(screen.getByLabelText("Site menu")).toBeInTheDocument();
   });
 
+  it("returns focus to the menu button when Escape closes the menu", () => {
+    render(
+      <Header
+        alerts={{ activeCount: 0, groups: [], status: "ok" }}
+        green={NO_GREEN}
+      />
+    );
+    const button = screen.getByRole("button", { name: "Open navigation" });
+    fireEvent.click(button);
+    (document.activeElement as HTMLElement | null)?.blur();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(button).toHaveAccessibleName("Open navigation");
+    expect(button).toHaveFocus();
+  });
+
   it("shows the alert status in the bar on every width", () => {
     render(
       <Header

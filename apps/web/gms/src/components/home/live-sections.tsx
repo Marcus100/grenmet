@@ -285,13 +285,13 @@ function OfficialProductCard({ card }: { card: OfficialCard }) {
   );
 }
 
-/** Cards across: three on portrait tablets (md), four from lg up. */
-const ACROSS = { md: 3, lg: 4 } as const;
+/** Cards across: two on portrait tablets (md), four from lg up. */
+const ACROSS = { md: 2, lg: 4 } as const;
 
 /**
  * Hides a desk post where the row has no place left for it. The official cards
  * and the warnings card come first and always show (`pinned`); posts fill what
- * remains of the three (md) or four (lg) places. Phones swipe through them all.
+ * remains of the two (md) or four (lg) places. Phones swipe through them all.
  */
 export function deskPostVisibility(index: number, pinned: number): string {
   const position = pinned + index;
@@ -301,13 +301,14 @@ export function deskPostVisibility(index: number, pinned: number): string {
 }
 
 // Phones and small tablets: one row that swipes sideways (no scrollbar shown).
-// Portrait tablets (md) show three cards across and laptops and landscape tablets
-// (lg and up) four, in a grid with no scrollbar (owner, 9 Nov 2026, after the Yr
+// Portrait tablets (md) show two cards across (owner, 13 Nov 2026: three left too
+// little room for a headline) and laptops and landscape tablets (lg and up) four,
+// in a grid with no scrollbar (owner, 9 Nov 2026, after the Yr
 // "Latest from the meteorologists" look). Official cards and the week's warnings
 // card always show; desk posts fill the remaining places and "All desk posts"
 // leads to the rest (deskPostVisibility). Cards keep their own height.
 const ROW =
-  "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-3 md:items-start md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 lg:gap-5";
+  "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:items-start md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 lg:gap-5";
 
 /**
  * From the Desk (homepage v2, owner 1 Nov 2026): one row of cards that
