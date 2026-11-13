@@ -103,7 +103,9 @@ REFUSED = TerminalPunchOutcome.REFUSED
 #: Outcomes that do not count as an accepted scan when judging a repeat.
 _NOT_ACCEPTED = (PENDING.value, UNMAPPED.value, REPEAT.value)
 #: Outcomes that hold a later arrival of the same device until they are decided.
-_HOLDING = (PENDING.value, UNMAPPED.value, NO_SHIFT.value)
+#: NO_SHIFT is a final answer for HR, not undecided: holding on it would chain a
+#: stray day-off scan into every later arrival with no way to release it.
+_HOLDING = (PENDING.value, UNMAPPED.value)
 #: Outcomes a run may decide. A REFUSED punch is fixable (for example by granting proxy
 #: rights), so it is decided again.
 _DECIDABLE = (PENDING.value, UNMAPPED.value, NO_SHIFT.value, REFUSED.value)

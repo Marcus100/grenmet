@@ -40,6 +40,7 @@ from tests.hr.test_terminal_import import (
     RECORDED,
     REFUSED,
     REPEAT,
+    UNMAPPED,
     _import,
     _manager,
     _map,
@@ -585,9 +586,11 @@ async def test_handover_scan_after_a_recorded_departure_is_not_swallowed(
     assert len(await _records(db_async)) == 2
 
 
-async def test_earlier_undecided_punch_holds_a_later_arrival(
+async def test_a_stray_no_shift_scan_does_not_hold_the_next_arrival(
     db_async: AsyncSession,
 ) -> None:
+    """A scan with no shift is a final answer for HR, not an undecided punch:
+    an evening scan on a day off must not hold the next morning's arrival."""
     manager = await _manager(db_async)
     employee = await _staff(db_async)
     await _publish(db_async, manager, [(employee, "TDM", DAY)])
@@ -595,14 +598,39 @@ async def test_earlier_undecided_punch_holds_a_later_arrival(
 
     await _import(db_async, manager, "7 2026-07-05 18:00:00\n7 2026-07-06 05:31:00\n")
 
-    arrival = next(
-        p
-        for p in await _punches(db_async)
-        if p.punched_at == datetime(2026, 7, 6, 9, 31, 0)
-    )
-    assert arrival.outcome == NO_SHIFT.value
-    assert arrival.detail == "an earlier punch is not decided yet"
+    by_time = {p.punched_at: p for p in await _punches(db_async)}
+    assert by_time[datetime(2026, 7, 5, 22, 0, 0)].outcome == NO_SHIFT.value
+    assert by_time[datetime(2026, 7, 6, 9, 31, 0)].outcome == RECORDED.value
+    assert len(await _records(db_async)) == 1
+
+
+async def test_an_unmapped_earlier_punch_holds_a_later_arrival_until_reprocess(
+    db_async: AsyncSession,
+) -> None:
+    """An unmapped scan is undecided: a later arrival waits, and reprocess after
+    the mapping decides both in time order."""
+    manager = await _manager(db_async)
+    employee = await _staff(db_async)
+    await _publish(db_async, manager, [(employee, "TDM", DAY)])
+
+    await _import(db_async, manager, "7 2026-07-06 05:31:00\n")
+    await _map(db_async, manager, "7", employee)
+    await _import(db_async, manager, "7 2026-07-06 13:40:00\n")
+
+    by_time = {p.punched_at: p for p in await _punches(db_async)}
+    assert by_time[datetime(2026, 7, 6, 9, 31, 0)].outcome == UNMAPPED.value
+    held = by_time[datetime(2026, 7, 6, 17, 40, 0)]
+    assert held.outcome == NO_SHIFT.value
+    assert held.detail == "an earlier punch is not decided yet"
     assert await _records(db_async) == []
+
+    await terminal_service.reprocess(
+        session=db_async, current_user=manager, department_id=DEPT
+    )
+
+    outcomes = sorted(p.outcome for p in await _punches(db_async))
+    assert outcomes == [RECORDED.value, RECORDED.value]
+    assert len(await _records(db_async)) == 1
 
 
 # --- mapping and removal -----------------------------------------------------

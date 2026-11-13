@@ -1590,7 +1590,8 @@ Each new punch is decided in time order for its person, each in its own transact
 - **RECORDED, arrival**: a published work shift matched by the phone clock-in window
   (two hours before to one hour after the start, through the end plus one hour). The
   scan must not be nearer the shift's end than its start, and no earlier punch of the
-  same device may be undecided (UNMAPPED, NO_SHIFT or PENDING) within 24 hours.
+  same device may be undecided (UNMAPPED or PENDING) within 24 hours. A NO_SHIFT punch
+  is a final answer for HR and does not hold later arrivals.
 - **NO_SHIFT**: no published work shift matches, the scan is nearer the end, or an
   earlier punch is undecided. Held for HR, never invented.
 - **REFUSED**: a write was refused (for example proxy authority or the shift is already
