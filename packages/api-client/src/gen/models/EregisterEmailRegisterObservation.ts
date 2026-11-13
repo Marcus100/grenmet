@@ -59,7 +59,7 @@ export type EregisterEmailRegisterObservationBody =
   | undefined;
 
 export type EregisterEmailRegisterObservationOptions = {
-  body: EregisterEmailRegisterObservationBody;
+  body?: EregisterEmailRegisterObservationBody;
   path: EregisterEmailRegisterObservationPath;
   query?: never;
   headers?: never;

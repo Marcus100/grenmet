@@ -175,6 +175,64 @@ for (const environment of ["staging", "production"]) {
   });
 }
 
+// The PostgreSQL 17 to 18 switch as Compose really renders it
+// (docs/operations/postgres-18-upgrade.md): the committed volume stays on 17 at the
+// old mount until both GitHub variables move, then the new volume mounts where 18
+// keeps its data.
+const POSTGRES_18 = `postgres:18@sha256:${"f".repeat(64)}`;
+const COMMITTED_VOLUME = {
+  staging: "grenmet-staging_pgdata-staging",
+  production: "grenmet_pgdata",
+};
+
+function databaseMount(model) {
+  const mounts = model.services.db.volumes.filter(
+    (mount) => mount.source === "pgdata"
+  );
+  assert.equal(mounts.length, 1);
+  return { target: mounts[0].target, volume: model.volumes.pgdata.name };
+}
+
+for (const environment of ["staging", "production"]) {
+  test(`${environment} keeps the 17 volume and mount until the image and volume switch together`, {
+    skip,
+  }, () => {
+    withDirectory((directory) => {
+      const before = render(environment, directory);
+      assert.equal(before.result.status, 0, before.result.stderr);
+      assert.deepEqual(
+        databaseMount(composeModel(environment, before.destination)),
+        {
+          target: "/var/lib/postgresql/data",
+          volume: COMMITTED_VOLUME[environment],
+        }
+      );
+    });
+    withDirectory((directory) => {
+      const volume = `${environment === "production" ? "grenmet" : "grenmet-staging"}_pgdata18`;
+      const after = render(environment, directory, null, {
+        CORE_POSTGRES_IMAGE: POSTGRES_18,
+        CORE_PGDATA_VOLUME: volume,
+      });
+      assert.equal(after.result.status, 0, after.result.stderr);
+      const model = composeModel(environment, after.destination);
+      assert.deepEqual(databaseMount(model), {
+        target: "/var/lib/postgresql",
+        volume,
+      });
+      assert.equal(model.services.db.image, POSTGRES_18);
+    });
+    withDirectory((directory) => {
+      // Only the image moved: refused before Compose runs.
+      const half = render(environment, directory, null, {
+        CORE_POSTGRES_IMAGE: POSTGRES_18,
+      });
+      assert.notEqual(half.result.status, 0);
+      assert.ok(half.result.stderr.includes("CORE_PGDATA_VOLUME"));
+    });
+  });
+}
+
 // The Cloudflare switch as Compose really renders it (docs/operations/cloudflare-proxy.md).
 const VENDORED_RANGES = readFileSync(
   join(root, "infra/cloudflare/ip-ranges.txt"),

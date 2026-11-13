@@ -20,14 +20,16 @@ Claude Code fills these in; in Codex, run the commands.
    - Add a body if the change is non-obvious (what changed and why, not how)
    - If multiple logical changes exist, note that and suggest splitting
 
-2. Run `pnpm verify:changed` (`--dry-run` lists the checks it picks for this
-   diff), plus any check from `AGENTS.md` it does not cover. Review the final
-   diff and resolve failures before committing. Then run
+2. Format and lint the files you touched and run the targeted tests of what
+   changed (root `AGENTS.md` → Always); GitHub CI on the PR is the full gate.
+   Run `pnpm verify:changed` only for work you are not pushing, or with `--full`
+   before a risky merge. Review the final diff and resolve failures before
+   committing. Then run
    `node scripts/guardrails/risk-tier.mjs --base origin/dev`: for `standard` or
    `high` risk, run `/code-review` first (Codex: `/review`; a fresh-context reviewer) unless it
    already ran on this diff, and fix or answer each finding. If a gate fails twice
    on the same error, stop and report it (failure budget in `AGENTS.md`).
-   For web UI changes in `gms` or `gaa-admin` it also runs `pnpm e2e` (a SKIP
+   For web UI changes in `gms` or `gaa-admin`, also run `pnpm e2e` (a SKIP
    means no dev server is running; say so in the recap).
 
 3. Stage only authorized changes, preserving unrelated staged and unstaged work.

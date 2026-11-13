@@ -38,6 +38,21 @@ export default async function IssuedProductPage({
         Grenada Meteorological Service · Published{" "}
         {stampLabel(product.publishedAt)} · Revision {product.revision}
       </p>
+      <p className="text-body-sm leading-body-sm flex flex-wrap gap-x-4 gap-y-1">
+        {/* Plain anchors: route handlers, not pages (typed routes). */}
+        <a
+          className="text-gm-blue-ink font-semibold hover:underline"
+          href={`/weather/issued/${product.id}/pdf`}
+        >
+          Download PDF
+        </a>
+        <a
+          className="text-gm-blue-ink hover:underline"
+          href="/weather/issued/feed.xml"
+        >
+          RSS feed of issued products
+        </a>
+      </p>
       {product.current &&
         ["morning", "midday", "evening"].includes(product.kind) && (
           <Provenance

@@ -74,7 +74,7 @@ Rules:
 
 ## Backups
 
-Production backup automation covers all six core production databases:
+Production backup automation covers the six core production databases, plus `gms_cms` when `CMS_BACKUP_ENABLED=true`:
 
 - `app_prod`
 - `wxwatch`
@@ -99,7 +99,7 @@ The workflow uses custom-format `pg_dump`, verifies each dump by restoring into 
 
 - No repo-level ER diagram.
 - No retention rule encoded for official records (the table below). A daily personal-data purge exists (`purge_expired_data`, `src/worker/retention.py`): contact, subscriptions, feedback comments, idempotency and outbox rows, booking manage tokens.
-- No automated restore drill workflow.
+- The restore drill workflow (`restore-drill.yml`, ADR-0021) runs monthly (the 1st, 05:30 UTC) and on demand; it has passed against the production backup.
 - No cross-domain data lineage catalogue.
 - Field-level audit (`audit_entry`, `src/audit`) covers only domains that opt in (HR, billing, organisations, contacts, rewards, stores and others); aviation, forecasts and system configuration are not registered.
 

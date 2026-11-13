@@ -143,7 +143,8 @@ and AGENTS.md files and are not worth renumbering (ports are an internal detail)
    cannot be claimed as an organisation slug or a host label. A name is claimed
    in the same change as its port and host.
 10. **Ports.** 3000-3019 stay frozen (3008 shop, 3011 never used and never
-   assigned, 3016 hr, 3017 business, 3018 app, 3019 spare). Ranges by
+   assigned, 3016 hr, 3017 business, 3018 app, 3019 spare). ADR-0057 assigns
+   3018 and the reserved name `account` to the account app (`account.barrels.gd`). Ranges by
    category: 3020-3029 platform surfaces; 3030-3059 Barrels products;
    3060-3089 client-dedicated apps; 3090-3099 dev tools; 4000-4099 retired
    Hono, never reuse; 8000-8019 Barrels Python services; 8020-8079 free;

@@ -24,6 +24,7 @@ import {
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useCallback, useEffect, useState } from "react";
 import { BufrCheck } from "./eregister-bufr-override";
+import { iwxxmStatus } from "./eregister-iwxxm";
 import { isSynopRefusal } from "./eregister-refusal";
 import { SectionCard } from "./eregister-ui";
 
@@ -37,6 +38,7 @@ const STATE_LABEL: Record<QcState, string> = {
   qc_pending: "Awaiting acceptance",
   rejected: "Rejected",
   superseded: "Superseded",
+  historical: "Historical",
 };
 
 const STATE_VARIANT: Record<
@@ -48,6 +50,7 @@ const STATE_VARIANT: Record<
   qc_pending: "light-warning",
   rejected: "light-error",
   superseded: "light-light",
+  historical: "light-light",
 };
 
 const REASON_REQUIRED: Record<QcAction, boolean> = {
@@ -235,6 +238,21 @@ function DecisionDialog({
   );
 }
 
+/** The IWXXM METAR check in words; the colour only repeats what the text says. */
+function IwxxmLine({ observation }: { observation: RegisterObservationRead }) {
+  const status = iwxxmStatus(observation);
+  if (!status) return null;
+  return (
+    <p
+      className={
+        status.ok ? "text-muted-foreground text-xs" : "text-warning text-xs"
+      }
+    >
+      {status.text}
+    </p>
+  );
+}
+
 function ObservationLine({
   observation,
 }: {
@@ -266,6 +284,7 @@ function ObservationLine({
           ))}
         </ul>
       ) : null}
+      <IwxxmLine observation={observation} />
       {observation.review_outcome ? (
         <p className="text-muted-foreground text-xs">
           {observation.review_outcome === "query" ? "Query" : "Reviewed"}
@@ -379,6 +398,50 @@ interface RowAction {
   label: string;
 }
 
+/** The actions the API's lifecycle table decides per row (`allowed_actions`, #1181). */
+const SERVER_DECIDED: ReadonlySet<QcAction> = new Set<QcAction>([
+  "accept",
+  "reject",
+  "reopen",
+]);
+/** Shown in the row when its state or kind rules out a button. */
+export function blockedLine(labels: string[]): string {
+  return `${labels.join(" and ")}: not available for this observation's state or kind.`;
+}
+
+/**
+ * Whether the row's state and kind allow this action. The API computes
+ * `allowed_actions` from those alone; a WIS2 file or email already queued or
+ * sent can still refuse with a 409 whose detail the dialog shows, and
+ * permissions and the four-eyes rule stay with the server. The API always
+ * sends the field; a row without it (an older API) is not second-guessed.
+ */
+export function serverAllows(
+  observation: RegisterObservationRead,
+  action: QcAction
+): boolean {
+  if (!SERVER_DECIDED.has(action)) return true;
+  const allowed = observation.allowed_actions;
+  return allowed === undefined || allowed.includes(action);
+}
+
+function blockedLabels(
+  entries: RowAction[],
+  item: RegisterObservationRead
+): string[] {
+  return entries
+    .filter((entry) => !serverAllows(item, entry.action))
+    .map((entry) => entry.label);
+}
+
+/** A visible reason, since a disabled button cannot be focused for a tooltip. */
+function BlockedNote({ labels }: { labels: string[] }) {
+  if (labels.length === 0) return null;
+  return (
+    <span className="text-muted-foreground text-xs">{blockedLine(labels)}</span>
+  );
+}
+
 function QueueSection({
   actions,
   empty,
@@ -440,7 +503,9 @@ function QueueSection({
                 <div className="flex gap-2">
                   {actions(item, own).map((entry) => (
                     <Button
-                      disabled={entry.disabled}
+                      disabled={
+                        entry.disabled || !serverAllows(item, entry.action)
+                      }
                       key={entry.action}
                       onClick={() => onAct(entry.action, item)}
                       size="sm"
@@ -452,6 +517,7 @@ function QueueSection({
                     </Button>
                   ))}
                 </div>
+                <BlockedNote labels={blockedLabels(actions(item, own), item)} />
               </div>
             </li>
           );

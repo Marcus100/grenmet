@@ -40,4 +40,4 @@ API work goes before web work, because web types come from the generated client.
 - A reviewer is never the session that wrote the change. If the author was Codex, reviewing in Claude Code (or the reverse) is better still.
 - Read-only roles (`planner`, `architect`, both reviewers) edit nothing, whichever tool runs them.
 - The PR gets a second, automatic review: the `AI review` comment from `.github/workflows/ai-review.yml`. Treat its findings as claims to check.
-- Finish with `pnpm verify:changed`; roles do not replace the gates in `AGENTS.md`.
+- Finish with the gates in root `AGENTS.md` (targeted tests, then push; GitHub CI is the full gate); roles do not replace them.

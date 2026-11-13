@@ -19,6 +19,8 @@ const PAGES = [
   "services/index.html",
   "contact/index.html",
   "subscribe/status/index.html",
+  // Served with status 404 by Cloudflare Pages (and Vercel) for unknown paths.
+  "404.html",
 ];
 const partials = Object.fromEntries(
   ["site-header", "site-footer", "privacy"].map((name) => [
@@ -66,3 +68,23 @@ for (const module of ["analytics-policy", "google-analytics"]) {
 }
 writeFileSync(new URL("tokens.css", output), `:root {${tokens}\n}\n`);
 writeFileSync(new URL("robots.txt", output), "User-agent: *\nAllow: /\n");
+
+// Cloudflare Pages reads response headers from `_headers` in the output. They
+// are generated from vercel.json so both hosts serve the same policy while the
+// site moves (docs/operations/vercel-exit-plan.md); Vercel ignores this file.
+const { headers } = JSON.parse(
+  readFileSync(new URL("vercel.json", directory), "utf8")
+);
+const headerRules = headers.map((rule) => {
+  // Only the catch-all is translated; any other Vercel pattern would mean
+  // something different on Pages, so refuse it rather than guess.
+  if (rule.source !== "/(.*)") {
+    throw new Error(`No Pages equivalent written for source ${rule.source}`);
+  }
+  const path = "/*";
+  const lines = rule.headers.map(
+    (header) => `  ${header.key}: ${header.value}`
+  );
+  return [path, ...lines, ""].join("\n");
+});
+writeFileSync(new URL("_headers", output), headerRules.join("\n"));

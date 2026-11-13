@@ -10,11 +10,17 @@ on:
   # path-skipped deadlocks the PR. Instead every job starts, and on dev PRs and
   # dev pushes the image-selection job skips the suites for docs-only diffs
   # and collectors for non-collector diffs; the gate jobs accept only those intended skips.
-  # Promotion PRs and main pushes always run everything.
+  # A promotion PR whose tree already passed every required check on dev reuses
+  # those results and skips the suites (#1239, scripts/ci/promotion-verified.mjs);
+  # any other promotion PR runs everything. Main pushes run only for the
+  # default branch's security scans (see the push trigger).
   # No staging push trigger: pipeline-staging calls this workflow on staging
   # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
     branches:
+      # main stays: its Trivy and dependency scans upload SARIF for the default
+      # branch (GitHub's security view and scripts/agents/audit-checks.mjs read
+      # refs/heads/main). Nothing waits on this run.
       - main
       - dev
   workflow_call:
@@ -49,7 +55,11 @@ jobs:
     name: Select image checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: read
     outputs:
+      verified: ${{ steps.select.outputs.verified }}
       web: ${{ steps.select.outputs.web }}
       weather: ${{ steps.select.outputs.weather }}
       api: ${{ steps.select.outputs.api }}
@@ -65,7 +75,9 @@ jobs:
       - name: Select affected images (full set when comparison is unavailable)
         id: select
         env:
-          IMAGE_BUILD_MODE: ${{ inputs.deployment-builds && 'deployment' || ((github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' && github.base_ref == 'dev') && 'affected' || 'full') }}
+          IMAGE_BUILD_MODE: ${{ inputs.deployment-builds && 'deployment' || ((github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' && github.base_ref == 'dev') && 'affected' || (github.event_name == 'pull_request' && 'promotion' || 'full')) }}
+          # Promotion mode reads the dev commit's check-runs (#1239).
+          GH_TOKEN: ${{ github.token }}
         run: node scripts/ci/select-images.mjs
 
   # Job 1: Code Quality Checks
@@ -139,7 +151,7 @@ jobs:
           severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
 
         if: always()
         with:
@@ -187,7 +199,7 @@ jobs:
     services:
       postgres:
         # Pinned so the mirror (docs/operations/ci-base-images.md) can copy this exact digest.
-        image: ghcr.io/marcus100/base/postgres:17@sha256:ff87138949ad9a46f32ff23bd6852b52ce024a13dffe9b4087be98292cdd3b4f
+        image: ghcr.io/marcus100/base/postgres:18@sha256:b9f6b8ff03b62f3cfd9d9ba3fe56226a9991c79d3fb46fd46536263bf02be553
         env:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: changethis
@@ -217,10 +229,18 @@ jobs:
 
       - name: Install PDF system libraries
         # WeasyPrint (forecast PDFs) needs Pango/HarfBuzz/fontconfig; mirrors the API images.
+        # Most are preinstalled; apt runs only for missing ones, with retries (#1262).
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1
+          missing=()
+          for pkg in libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1; do
+            dpkg -s "$pkg" >/dev/null 2>&1 || missing+=("$pkg")
+          done
+          if [ ${#missing[@]} -eq 0 ]; then echo "PDF libraries already installed"; exit 0; fi
+          for attempt in 1 2 3; do
+            sudo apt-get update && sudo apt-get install -y --no-install-recommends "${missing[@]}" && exit 0
+            sleep $((attempt * 20))
+          done
+          exit 1
 
       - name: Install dependencies
         # Lockfile freshness is enforced by the quality job; --frozen keeps this
@@ -411,7 +431,7 @@ jobs:
       - name: Log in to Docker Hub for base images
         # Fork and Dependabot PRs cannot access repository Actions secrets.
         if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -427,7 +447,7 @@ jobs:
         # Best-effort: without credentials the build simply runs cache-cold
         # rather than failing the check.
         continue-on-error: true
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -461,7 +481,7 @@ jobs:
           name: api
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
 
         if: always()
         with:

@@ -52,6 +52,15 @@ PRECIP_NOT_REPORTED = (
     "4"  # iR 4: precipitation group omitted (the sheet has no rainfall)
 )
 MIN_COLUMNS = 37
+# Main-hour advice about groups the sheet has no column for, and what each is.
+SHEET_GAPS = {
+    "missing_station_pressure": "station pressure",
+    "missing_pressure_change": "pressure tendency",
+    "missing_txtn": "maximum and minimum temperatures",
+    "missing_rainfall": "rainfall",
+    "rainfall_omitted_at_main_hour": "rainfall",
+    "missing_24h_rainfall": "24-hour rainfall",
+}
 HEADER_START = ("YEAR", "MONTH", "DAY", "HOUR")
 # Largest gap between the sheet's calculated column and the register formula that is
 # still the same observation: the sheet rounds differently, so a few tenths is normal.
@@ -496,14 +505,21 @@ def check_sheet(
     return reports
 
 
-def may_update(state: str, body_notes: str | None, review_outcome: str | None) -> bool:
+def may_update(
+    state: str,
+    body_notes: str | None,
+    review_outcome: str | None,
+    *,
+    historical: bool = False,
+) -> bool:
     """Whether an hour already in the register may be refreshed from the sheet.
 
-    Only a draft the importer itself made and nobody has reviewed. Anything typed by
-    an observer, reviewed, accepted or sent is left alone and listed instead.
+    Only a draft (or, for a ``--historical`` run, a historical row) the importer
+    itself made and nobody has reviewed. Anything typed by an observer, reviewed,
+    accepted or sent is left alone and listed instead.
     """
     return (
-        state == "draft"
+        (state == "draft" or (historical and state == "historical"))
         and review_outcome is None
         and (body_notes or "").startswith(IMPORT_NOTE_PREFIX)
     )
@@ -555,3 +571,34 @@ def local_register_problem(
     if parts.path.lstrip("/") != expected_db:
         return f"The database is {parts.path.lstrip('/')!r}, expected {expected_db!r}."
     return None
+
+
+def is_imported(notes: object) -> bool:
+    """Whether a record's notes say this importer made it."""
+    return isinstance(notes, str) and notes.startswith(IMPORT_NOTE_PREFIX)
+
+
+def merge_sheet_gaps(
+    issues: Sequence[SynopValidationIssue],
+) -> list[SynopValidationIssue]:
+    """One note for every group the hourly sheet never had, in place of a warning each.
+
+    The groups are still blank and still listed; the note says why, so a reviewer of
+    an imported month is not shown the same absent columns as problems on every hour.
+    """
+    gaps = [issue for issue in issues if issue.code in SHEET_GAPS]
+    if not gaps:
+        return list(issues)
+    names = list(dict.fromkeys(SHEET_GAPS[issue.code] for issue in gaps))
+    listed = names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}"
+    note = SynopValidationIssue(
+        field=gaps[0].field,
+        code="not_in_source",
+        message=(
+            f"Not in the hourly sheet this hour was imported from, so left blank: "
+            f"{listed}."
+        ),
+        severity="warning",
+    )
+    kept = [issue for issue in issues if issue.code not in SHEET_GAPS]
+    return [*kept, note]

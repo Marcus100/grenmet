@@ -165,7 +165,7 @@ export async function SectorDeskCard({
           <header className="flex items-center gap-3">
             <span
               aria-hidden="true"
-              className="bg-gm-sky-ink text-body-sm text-gm-text-inverse leading-body-sm flex size-10 shrink-0 items-center justify-center rounded-full font-bold"
+              className="bg-gm-sky-ink text-body-sm text-gm-text-inverse leading-body-sm dark:text-gm-navy flex size-10 shrink-0 items-center justify-center rounded-full font-bold"
             >
               GMS
             </span>
@@ -351,7 +351,7 @@ function ImpactBar({ peak }: { peak: Level | null }) {
         {BLOCK_KEYS.map((key, i) => (
           <span
             className={cn(
-              "h-3 flex-1 rounded-[3px]",
+              "h-3 flex-1 rounded",
               i < filled ? "" : "bg-gm-border"
             )}
             key={key}
@@ -478,9 +478,13 @@ export async function GrenadaInData() {
                       <dt className="text-gm-text-secondary text-label leading-label font-bold tracking-wider uppercase">
                         {stat.label}
                       </dt>
-                      <dd className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold tabular-nums">
-                        <StatFigure stat={stat} />
-                      </dd>
+                      {/* A figure not reported yet is words only, no dash
+                          (owner, 13 Nov 2026). */}
+                      {stat.value !== null && (
+                        <dd className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold tabular-nums">
+                          <StatFigure stat={stat} />
+                        </dd>
+                      )}
                       <dd className="text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
                         {stat.value === null ? "Not reported yet" : stat.detail}
                       </dd>

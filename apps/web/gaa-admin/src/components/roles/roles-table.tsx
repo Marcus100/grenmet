@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { flexRender } from "@tanstack/react-table";
 import type { LegacyReactTable, LegacyRow } from "@tanstack/react-table/legacy";
 import { Fragment, type MouseEvent } from "react";
@@ -207,11 +208,12 @@ export function RolesTable({ table }: { table: LegacyReactTable<RoleRow> }) {
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                className={
-                  table.getCanPreviousPage()
-                    ? undefined
-                    : "pointer-events-none opacity-50"
-                }
+                className={cn(
+                  // Icon-only (text=""): keep a 32px target, not 18px.
+                  "min-w-8 justify-center",
+                  !table.getCanPreviousPage() &&
+                    "pointer-events-none opacity-50"
+                )}
                 href="#"
                 onClick={(event) => {
                   preventPaginationNavigation(event);
@@ -248,11 +250,11 @@ export function RolesTable({ table }: { table: LegacyReactTable<RoleRow> }) {
             ) : null}
             <PaginationItem>
               <PaginationNext
-                className={
-                  table.getCanNextPage()
-                    ? undefined
-                    : "pointer-events-none opacity-50"
-                }
+                className={cn(
+                  // Icon-only (text=""): keep a 32px target, not 18px.
+                  "min-w-8 justify-center",
+                  !table.getCanNextPage() && "pointer-events-none opacity-50"
+                )}
                 href="#"
                 onClick={(event) => {
                   preventPaginationNavigation(event);

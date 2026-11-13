@@ -633,7 +633,7 @@ it("Escape closes the approval confirmation and approves nothing", async () => {
   await screen.findByRole("alertdialog");
   fireEvent.keyDown(document, { key: "Escape" });
 
-  expect(screen.queryByRole("alertdialog")).toBeNull();
+  await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
   expect(mocks.create).not.toHaveBeenCalled();
   expect(mocks.accept).not.toHaveBeenCalled();
 });

@@ -55,7 +55,7 @@ export type BillingIssueInvoiceStatus422 = ValidationErrorResponse;
 export type BillingIssueInvoiceBody = InvoiceIssueBody | undefined;
 
 export type BillingIssueInvoiceOptions = {
-  body: BillingIssueInvoiceBody;
+  body?: BillingIssueInvoiceBody;
   path: BillingIssueInvoicePath;
   query?: never;
   headers?: never;
