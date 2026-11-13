@@ -36,12 +36,15 @@ test.describe("Barrels Events", () => {
     page,
     stagingDomain,
   }) => {
-    // The status is 200, not 404, while the page streams behind loading.tsx;
-    // what the visitor and a search engine see is checked instead.
+    // Known bug #1291: the status is 200, not 404, because the page streams
+    // behind loading.tsx. Until it is fixed, check what the visitor and a
+    // search engine see; then add `expect(response?.status()).toBe(404)`.
     await page.goto(
       host(stagingDomain, "events", "/events/staging-journey-no-such-event")
     );
-    await expect(page.getByText(NOT_FOUND).first()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: NOT_FOUND })
+    ).toBeVisible();
     await expect(page.locator('head meta[name="robots"]')).toHaveAttribute(
       "content",
       NOINDEX
