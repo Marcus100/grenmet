@@ -18,6 +18,7 @@ from arq import cron
 from arq.connections import RedisSettings
 
 from src import operational_metrics
+from src.domains import worker_jobs, worker_modules
 from src.logging_config import configure_logging
 from src.models_guidance.config import guidance_settings
 from src.telemetry import sentry_options
@@ -49,8 +50,8 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.events.outbox",
         "src.events.payment_handlers",
         "src.rewards.outbox_handlers",
-        "src.webhooks_out.delivery",
         "src.content_distribution.outbox_handlers",
+        *worker_modules(),
     ):
         import_module(module)
     from src.config import settings
@@ -167,16 +168,16 @@ async def drain_outbox(ctx: dict[str, Any]) -> int:
 
     # Importing these modules registers their outbox handlers (email.send,
     # rewards.qualifying_action, bookings.deposit_paid, events.notify,
-    # events.order_paid, events.order_refunded, webhook.deliver,
-    # social.post.<platform>).
+    # events.order_paid, events.order_refunded, social.post.<platform>), and
+    # each domain manifest's worker modules (webhook.deliver; ADR-0031).
     for module in (
         "src.notifications.outbox_handlers",
         "src.bookings.outbox_handlers",
         "src.events.outbox",
         "src.events.payment_handlers",
         "src.rewards.outbox_handlers",
-        "src.webhooks_out.delivery",
         "src.content_distribution.outbox_handlers",
+        *worker_modules(),
     ):
         import_module(module)
 
@@ -609,22 +610,6 @@ async def check_outbox_backlog(ctx: dict[str, Any]) -> int:
     return unhealthy
 
 
-async def poll_flights(ctx: dict[str, Any]) -> int:
-    """Refresh cached OpenSky movements. Does nothing unless the flag is on."""
-    from src.flights import service as flights_service
-    from src.flights.config import flights_settings
-
-    if not flights_settings.FLIGHTS_OPENSKY_ENABLED:
-        return 0
-    result = await flights_service.poll_flights()
-    # A fully failed poll (nothing cached) is a failure for job metrics.
-    healthy = bool(result)
-    await operational_metrics.record_job(
-        ctx.get("redis"), "poll_flights", str(ctx.get("job_id", "")), healthy
-    )
-    return sum(result.values())
-
-
 @monitored(schedule="30 3 * * *", checkin_margin=30, max_runtime=60)
 async def purge_expired_data(ctx: dict[str, Any]) -> int:
     """Daily retention purge (contact, data requests, pending subscriptions, comments)."""
@@ -692,6 +677,18 @@ async def fetch_model_guidance(ctx: dict[str, Any]) -> dict[str, str]:
     return outcomes
 
 
+# Jobs that domain manifests contribute (ADR-0031 step 5), with their schedules.
+_DOMAIN_JOBS = worker_jobs()
+
+
+def __getattr__(name: str) -> Any:
+    """Keep manifest jobs reachable as ``src.worker.main.<job>`` (tests, arq)."""
+    for function, _ in _DOMAIN_JOBS:
+        if function.__name__ == name:
+            return function
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 class WorkerSettings:
     # Bound heartbeat staleness and prevent another worker masking this one.
     health_check_interval = 30
@@ -721,10 +718,11 @@ class WorkerSettings:
         check_alert_outbox,
         check_cap_job_failures,
         check_outbox_backlog,
-        poll_flights,
         fetch_marine_environment,
         fetch_air_environment,
         fetch_model_guidance,
+        # Jobs listed in domain manifests (ADR-0031).
+        *(function for function, _ in _DOMAIN_JOBS),
     ]
     # A poll/ingest run must not hang a worker slot; retries of the cron function
     # itself are pointless because the durable outbox already tracks per-job
@@ -804,8 +802,6 @@ class WorkerSettings:
         cron(check_cap_job_failures, minute={7, 22, 37, 52}, run_at_startup=False),
         # Dead and overdue rows in the platform outbox, every 15 minutes.
         cron(check_outbox_backlog, minute={2, 17, 32, 47}, run_at_startup=False),
-        # OpenSky flight movements every 30 minutes; no-op unless the flag is on.
-        cron(poll_flights, minute={5, 35}, run_at_startup=False),
         # Copernicus Marine analysis/forecast, every 6 hours; no-op without credentials.
         cron(
             fetch_marine_environment,
@@ -830,5 +826,11 @@ class WorkerSettings:
             minute={guidance_settings.POLL_MINUTE},
             run_at_startup=False,
             timeout=3600,
+        ),
+        # Schedules listed in domain manifests (ADR-0031).
+        *(
+            cron(function, **job.cron)
+            for function, job in _DOMAIN_JOBS
+            if job.cron is not None
         ),
     ]

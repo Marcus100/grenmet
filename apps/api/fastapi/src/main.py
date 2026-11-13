@@ -68,7 +68,6 @@ from src.exceptions import (
 )
 from src.feature_flags.router import router as feature_flags_router
 from src.feedback.router import router as feedback_router
-from src.flights.router import router as flights_router
 from src.hr.absentee.router import router as hr_absentee_router
 from src.hr.attendance.clock_router import router as hr_clock_router
 from src.hr.attendance.router import router as hr_attendance_router
@@ -550,7 +549,6 @@ _LEGACY_MOUNTS: dict[str, Mount] = {
         _legacy(
             "content_distribution.content_distribution", content_distribution_router
         ),
-        _legacy("flights.flights", flights_router),
         _legacy("environmental.environmental", environmental_router),
         _legacy("almanac.almanac", almanac_router),
         _legacy("models_guidance.models_guidance", models_guidance_router),
