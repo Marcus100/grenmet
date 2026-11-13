@@ -85,6 +85,12 @@
       "expectStatus": [200]
     },
     {
+      "id": "app-account",
+      "name": "account app responds",
+      "url": "https://account.staging.barrels.gd/api/health",
+      "expectStatus": [200]
+    },
+    {
       "id": "notfound-weather",
       "name": "weather missing page renders Page not found",
       "url": "https://weather.staging.barrels.gd/smoke-missing-page-does-not-exist",

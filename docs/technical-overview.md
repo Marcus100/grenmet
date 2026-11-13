@@ -70,6 +70,7 @@ Next.js apps follow `@barrelsgd/web-<app>`.
 | `gmsdash` | 3013 | GMS Dashboard: raw-model point meteograms for entitled organisations | FastAPI models-guidance API; app-scoped sign-in through the auth.barrels.gd handoff |
 | `babydoll` | 3014 | Babydoll Beauty Bar client website (Vercel) | Local content; online booking through the Bookings API behind a switch |
 | `bookings` | 3015 | Barrels Bookings: public booking pages and the `/studio` staff area (skeleton) | Bookings API (public and org routes); app-scoped Barrels sign-in pending API registration |
+| `account` | 3018 | Barrels account: a person's name, email and profile photo (ADR-0057) | Profile photo API through the same-origin proxy; app-scoped Barrels sign-in |
 | `commit` | 3019 | Commit, the Barrels engineering blog: one post per release (Cloudflare Pages, static export) | Local MDX content; no API calls |
 | `barrels` | — | Barrels Grenada company homepage | Static HTML/CSS; separate build, no Next.js dev port |
 

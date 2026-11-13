@@ -47,6 +47,8 @@
 
 `bookings` (Barrels Bookings, `apps/web/bookings`) is a self-service `app`-scope site (instant Join, role `bookings-member`, permission `app.bookings.access`).
 
+`account` (Barrels account, `apps/web/account`, ADR-0057) is a self-service `app`-scope site like `bookings` (instant Join, role `account-member`, permission `app.account.access`). Its URL and secret are `ACCOUNT_APP_URL` and `ACCOUNT_SSO_CLIENT_SECRET`; sign-in stays off while the secret is empty. Tests: `tests/auth/test_account_app.py`.
+
 `gmsdash` (GMS Dashboard, `apps/web/gmsdash`) is a self-service `app`-scope site like the others (instant Join, role `gmsdash-member`). The gate to its data is the organisation entitlement and a staff-approved access request, not the Join; see `src/models_guidance/AGENTS.md`.
 
 ## Profile photos (`src/profile_images`, #1303)

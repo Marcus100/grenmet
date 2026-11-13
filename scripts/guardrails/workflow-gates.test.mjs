@@ -5,6 +5,9 @@ import test from "node:test";
 
 const GHCR_BASE_IMAGE = /image: ghcr\.io\/marcus100\/base\//u;
 const DEPLOY_WORKFLOW_NAME = /deploy|promot|release|pipeline|smoke/iu;
+const MONTHLY_DRILL_SCHEDULE = /schedule:\n\s+- cron: "30 5 1 \* \*"/u;
+const RAW_ENVIRONMENT_INPUT = /\$\{\{ inputs\.environment \}\}/u;
+const UNTRUSTED_TRIGGERS = /pull_request|workflow_run|workflow_call/u;
 // A literal GitHub expression, not a JavaScript template.
 const PR_ONLY_CANCEL = `cancel-in-progress: \${{ github.event_name == 'pull_request' }}`;
 
@@ -368,16 +371,16 @@ test("the restore drill runs its script from the dispatched ref, not the release
 
 test("the restore drill runs monthly with production defaults and reports a failed scheduled run", () => {
   const drill = readWorkflow("restore-drill.yml");
-  assert.match(drill, /schedule:\n\s+- cron: "30 5 1 \* \*"/u);
+  assert.match(drill, MONTHLY_DRILL_SCHEDULE);
   // A scheduled run has no inputs, so each one needs a default.
   assert.ok(drill.includes("inputs.environment || 'production'"));
   assert.ok(drill.includes("inputs.postgres_image || 'postgres:17'"));
   assert.ok(drill.includes("inputs.api_check || false"));
-  assert.ok(!/\$\{\{ inputs\.environment \}\}/u.test(drill));
+  assert.ok(!RAW_ENVIRONMENT_INPUT.test(drill));
   // The self-hosted production runner is reachable only from a schedule or a manual
   // dispatch, never from a pull request or another workflow.
   const triggers = drill.split("\npermissions:")[0];
-  assert.ok(!/pull_request|workflow_run|workflow_call/u.test(triggers));
+  assert.ok(!UNTRUSTED_TRIGGERS.test(triggers));
   // The issue is opened from a hosted runner, never the production runner.
   const report = drill.split("  report-failure:")[1] ?? "";
   assert.ok(report.includes("runs-on: ubuntu-latest"));

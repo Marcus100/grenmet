@@ -432,3 +432,68 @@ async def test_a_failed_save_deletes_the_new_files(
         await service.set_image(session=db_async, user=user, raw=_jpeg())
     assert store.objects == {}
     assert len(store.deleted) == 3
+
+
+async def _account_app_token(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> tuple[str, Any]:
+    """Sign in to the account app through the single sign-on hand-off."""
+    from src.auth.config import auth_settings
+    from src.auth.permissions import seed_permissions_and_roles_async
+    from tests.auth.test_app_handoff import _account_session, _redeem, _start, _state
+
+    await seed_permissions_and_roles_async(db_async)
+    secret = "account-test-client-secret"
+    monkeypatch.setattr(auth_settings, "ACCOUNT_SSO_CLIENT_SECRET", secret)
+    base = "/api/v1/auth/apps/account"
+    session_secret = await _account_session(db_async, email="photo-owner@example.com")
+    state = _state()
+    started = await _start(async_client, session_secret, state, join=True, base=base)
+    assert started.status_code == 200, started.text
+    redeemed = await _redeem(
+        async_client, started.json()["code"], state, base=base, secret=secret
+    )
+    assert redeemed.status_code == 200, redeemed.text
+    body = redeemed.json()
+    return body["access_token"], body
+
+
+async def test_the_account_app_manages_only_your_own_photo(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    token, _ = await _account_app_token(async_client, db_async, monkeypatch)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    assert (await async_client.get(f"{URL}/me", headers=headers)).status_code == 404
+    uploaded = await async_client.put(
+        f"{URL}/me", content=_jpeg(), headers={**headers, "content-type": "image/jpeg"}
+    )
+    assert uploaded.status_code == 200, uploaded.text
+    own = await async_client.get(f"{URL}/me/image", headers=headers)
+    assert own.status_code == 307
+    assert "/256.webp" in own.headers["location"]
+
+    other = await _with_photo(async_client, db_async)
+    refused = await async_client.get(f"{URL}/org/{other.id}", headers=headers)
+    assert refused.status_code == 401
+    staff = await async_client.get("/api/v1/hr/profile/me", headers=headers)
+    assert staff.status_code == 401
+
+
+async def test_other_app_sessions_cannot_use_the_photo_routes(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    from datetime import timedelta
+
+    from src.auth.utils import create_access_token
+
+    user = await make_user(db_async)
+    token = create_access_token(user.id, timedelta(minutes=5), app="events")
+    response = await async_client.get(
+        f"{URL}/me", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert response.status_code == 401

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Query, Request, status
 from fastapi.responses import RedirectResponse
 
 from src.auth.models import UserImage
-from src.dependencies import CurrentUser, SessionDep
+from src.dependencies import CurrentUser, OwnAccountUser, SessionDep
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND, ResponseMap
 
@@ -84,7 +84,7 @@ def _public(row: UserImage) -> ProfileImagePublic:
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def get_my_profile_image(
-    *, session: SessionDep, current_user: CurrentUser
+    *, session: SessionDep, current_user: OwnAccountUser
 ) -> Any:
     row = await service.get_image(session=session, user_id=current_user.id)
     if row is None:
@@ -108,7 +108,7 @@ async def get_my_profile_image(
     openapi_extra=IMAGE_BODY,
 )
 async def set_my_profile_image(
-    *, request: Request, session: SessionDep, current_user: CurrentUser
+    *, request: Request, session: SessionDep, current_user: OwnAccountUser
 ) -> Any:
     raw = await _read_image_body(request)
     row = await service.set_image(session=session, user=current_user, raw=raw)
@@ -124,9 +124,39 @@ async def set_my_profile_image(
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def remove_my_profile_image(
-    *, session: SessionDep, current_user: CurrentUser
+    *, session: SessionDep, current_user: OwnAccountUser
 ) -> None:
     await service.remove_image(session=session, user_id=current_user.id)
+
+
+@router.get(
+    "/me/image",
+    status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+    summary="Show your profile photo",
+    description=(
+        "Redirects to a short-lived link to your own image (for the account app, "
+        "whose sessions cannot read other people's photos). 404 when you have none."
+    ),
+    operation_id="profileImagesShowMine",
+    responses={**REDIRECT, **AUTHENTICATED, **NOT_FOUND, **UNAVAILABLE},
+)
+async def show_my_profile_image(
+    *,
+    session: SessionDep,
+    current_user: OwnAccountUser,
+    size: Annotated[ProfileImageSize, Query()] = ProfileImageSize.MEDIUM,
+) -> RedirectResponse:
+    link, _ = await service.read_link(
+        session=session, viewer=current_user, owner_id=current_user.id, size=int(size)
+    )
+    return RedirectResponse(
+        link,
+        status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+        headers={
+            "Cache-Control": "private, max-age=240",
+            "Vary": "Authorization, Cookie",
+        },
+    )
 
 
 @router.get(

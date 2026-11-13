@@ -6,6 +6,7 @@ import test from "node:test";
 // (issue #1019). Elections (Vercel) is intentionally not wired: it is not built
 // into a shared image and keeps build-time settings.
 const APPS = [
+  "account",
   "admin",
   "auth",
   "bookings",
@@ -21,7 +22,13 @@ const APPS = [
 ];
 const EXCEPTIONS = ["elections"];
 // Apps whose proxy guards (almost) every path must let the script through.
-const GUARDING_PROXIES = ["admin", "bookings", "gaa-admin", "gmsdash"];
+const GUARDING_PROXIES = [
+  "account",
+  "admin",
+  "bookings",
+  "gaa-admin",
+  "gmsdash",
+];
 
 const read = (path) =>
   readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
