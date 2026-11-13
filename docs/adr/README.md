@@ -62,6 +62,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0055](0055-department-grades-suggest-roles.md) | A department grade suggests a role bundle from an approved template and a person confirms it; a job title or grade never grants access by itself; partly supersedes ADR-0018 lines 17 and 40 | Proposed |
 | [0056](0056-reuse-from-wmo-raf-open-source.md) | Reuse ideas and formats from the WMO Regional Office for Africa open-source tools by porting into our own domains; never deploy their applications. Lists seven items for the Met office and six general patterns | Accepted, not built |
 | [0057](0057-account-app-separate-from-sign-in.md) | `auth.barrels.gd` keeps only the sign-in flows; a new `account.barrels.gd` app (port 3018) holds profile and photo, security, sessions, organisations, apps, tickets and rewards | Accepted, not built |
+| [0058](0058-shared-profile-fundamentals-and-loyalty.md) | One account per person plus each business's own customer record; a per-business member number and short-lived QR code; points and loyalty run per business on the add-only rewards ledger; account deletion becomes anonymisation | Proposed |
 
 ## Template
 
