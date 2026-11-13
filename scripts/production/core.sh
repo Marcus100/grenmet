@@ -26,6 +26,20 @@ if [[ "$operation" == cleanup ]]; then
   docker logout ghcr.io >/dev/null 2>&1 || true
   exit
 fi
+# An unfinished PostgreSQL major upgrade (scripts/production/postgres-major-upgrade.sh)
+# keeps this marker until its data checks, restart and smoke checks pass. A deploy now
+# would start the services on, and a backup would copy, a database nobody has checked.
+upgrade_marker="${PG_UPGRADE_DIR:-/var/backups/grenmet/pg-major-upgrade}/$DEPLOY_ENV.in-progress"
+if [[ -e "$upgrade_marker" ]]; then
+  {
+    echo "A PostgreSQL major upgrade of $DEPLOY_ENV is unfinished ($upgrade_marker): refusing to $operation. Nothing was changed."
+    echo "If the upgrade's data checks passed, run the PostgreSQL major upgrade workflow again in upgrade mode to finish it."
+    echo "Otherwise roll back: set CORE_POSTGRES_IMAGE back to the previous image, delete CORE_PGDATA_VOLUME,"
+    echo "run the PostgreSQL major upgrade workflow in clear-marker mode, then $operation again."
+    echo "See docs/operations/postgres-18-upgrade.md (Rollback)."
+  } >&2
+  exit 1
+fi
 if [[ "$operation" == backup ]]; then
   python3 ../../scripts/production/backup-core.py "$DEPLOY_ENV" "$COMPOSE_PROJECT" "$DEPLOY_ENV.env"
   python3 ../../scripts/production/backup-files.py /etc/grenmet/objects.json

@@ -27,6 +27,17 @@ jobs:
       BACKUP_DIR: /var/backups/grenmet
 
     steps:
+      # scripts/production/postgres-major-upgrade.sh keeps this marker until its data
+      # checks, restart and smoke checks pass: never back up an unchecked database.
+      - name: Refuse during an unfinished PostgreSQL major upgrade
+        run: |
+          set -euo pipefail
+          marker="${PG_UPGRADE_DIR:-/var/backups/grenmet/pg-major-upgrade}/production.in-progress"
+          if [[ -e "$marker" ]]; then
+            echo "A PostgreSQL major upgrade of production is unfinished ($marker): not backing up an unchecked database. Finish or roll back the upgrade first (docs/operations/postgres-18-upgrade.md)." >&2
+            exit 1
+          fi
+
       - name: Verify database connectivity
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
