@@ -18,7 +18,6 @@ export type WxproductsPublicProductPdfPath = {
 /**
  * @description
  * Format: `binary`
- * @type string
  */
 export type WxproductsPublicProductPdfStatus200 = Blob;
 

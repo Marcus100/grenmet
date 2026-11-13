@@ -6,7 +6,7 @@
 export type BodyHrImportTerminalPunches = {
   /**
    * @description ZKTeco ATTLOG text export or CSV (device_user_id,punched_at)
-   * @type string
+   * @remarks Pass a `File` to send its filename. A plain `Blob` is sent with the filename `blob`.
    */
   file: Blob;
   /**

@@ -51,21 +51,18 @@ export type ProfileImagesSetMineStatus503 = ApiError;
 /**
  * @description
  * Format: `binary`
- * @type string
  */
 export type ProfileImagesSetMineBodyJpeg = BinaryFile;
 
 /**
  * @description
  * Format: `binary`
- * @type string
  */
 export type ProfileImagesSetMineBodyPng = BinaryFile;
 
 /**
  * @description
  * Format: `binary`
- * @type string
  */
 export type ProfileImagesSetMineBodyWebp = BinaryFile;
 

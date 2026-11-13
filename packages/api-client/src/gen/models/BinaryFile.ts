@@ -6,6 +6,5 @@
 /**
  * @description
  * Format: `binary`
- * @type string
  */
 export type BinaryFile = Blob;

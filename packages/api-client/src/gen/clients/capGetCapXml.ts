@@ -24,6 +24,7 @@ export function capGetCapXml<ThrowOnError extends boolean = true>(
     request({
       method: "GET",
       url: "/api/cap/{identifier}.xml",
+      responseType: "blob",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapGetCapXmlResponses, ThrowOnError>>

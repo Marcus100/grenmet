@@ -81,7 +81,7 @@ async function readBoundedBody(request: NextRequest): Promise<BoundedBody> {
   const reader = request.body.getReader();
   const chunks: Uint8Array[] = [];
   let total = 0;
-  for (;;) {
+  while (true) {
     const { done, value } = await reader.read();
     if (done) break;
     total += value.byteLength;

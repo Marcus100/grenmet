@@ -5,4 +5,4 @@
 
 import * as z from "zod";
 
-export const binaryFileSchema = z.instanceof(File);
+export const binaryFileSchema = z.instanceof(Blob);

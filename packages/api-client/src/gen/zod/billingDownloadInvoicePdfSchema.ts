@@ -9,7 +9,7 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const billingDownloadInvoicePdfPathInvoiceIdSchema = z.uuid();
 
-export const billingDownloadInvoicePdfStatus200Schema = z.instanceof(File);
+export const billingDownloadInvoicePdfStatus200Schema = z.instanceof(Blob);
 
 export const billingDownloadInvoicePdfStatus401Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
