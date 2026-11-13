@@ -113,7 +113,7 @@ describe("portfolio", () => {
 
 describe("chrome", () => {
   it("marks the current page and toggles the mobile menu", async () => {
-    render(<SiteHeader booking={bookingLink(false)} />);
+    render(<SiteHeader booking={bookingLink(null)} />);
     expect(screen.getByRole("link", { name: "Services" })).toHaveAttribute(
       "aria-current",
       "page"
@@ -124,7 +124,7 @@ describe("chrome", () => {
   });
 
   it("the phone book bar links to booking", () => {
-    render(<BookBar booking={bookingLink(false)} />);
+    render(<BookBar booking={bookingLink(null)} />);
     expect(screen.getByRole("link", { name: "Book me" })).toHaveAttribute(
       "href",
       BOOKING_URL
