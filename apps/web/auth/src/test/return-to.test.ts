@@ -252,7 +252,7 @@ describe("getSafeReturnTo: the staging compose configuration", () => {
       ...Object.values(STAGING.apps),
       ...STAGING.hosts.split(","),
     ];
-    expect(origins).toHaveLength(12);
+    expect(origins).toHaveLength(13);
     for (const origin of origins) {
       expect(getSafeReturnTo(`${origin}/start?x=1`)).toBe(
         `${origin}/start?x=1`
