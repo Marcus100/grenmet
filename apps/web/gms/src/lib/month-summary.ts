@@ -7,7 +7,7 @@ export interface MonthStat {
   /** The number behind `value` (WMO unit), so the card follows the unit switch. */
   measure?: { quantity: Quantity; value: number | null };
   unit: string;
-  /** null when the register has not reported it; shown as a dash, never 0. */
+  /** null when the register has not reported it; shown as "Not reported yet", never 0. */
   value: string | null;
 }
 

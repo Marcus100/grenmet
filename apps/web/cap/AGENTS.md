@@ -82,7 +82,10 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
 - **Severity by text.** Cards and the map list always state severity, urgency
   and certainty in words; colour is additional. The map is an inline SVG drawn
   on the server from the GeoJSON, with no map library and no client JS. It
-  shows alert areas and approximate place markers, not coastlines.
+  always draws the islands (simplified parish outlines from
+  `src/data/grenada-boundaries.ts`, server-rendered so no client weight) with
+  approximate place markers, and alert areas on top; with no alert in force it
+  still shows the islands, so an empty map never looks like a failed one.
 - **Weight.** About 106 KB gzip of first-load JavaScript for modern browsers.
   Keep public pages under 120 KB: no client Sentry SDK or analytics, no client
   components beyond those named above. Desk code (maps, editor) must stay

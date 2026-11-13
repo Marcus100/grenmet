@@ -127,6 +127,7 @@ esac
 case "$*" in
   *"login"*"--password-stdin"*) cat > /dev/null ;;
   "info --format"*) echo /var/lib/docker ;;
+  "version --format"*) echo "\${TEST_ENGINE_VERSION-29.4.2}" ;;
   *"image prune"*) echo "Total reclaimed space: 1.2GB" ;;
   *"config --images"*)
     [[ "$TEST_FAILURE" != images ]] || exit 1
@@ -417,6 +418,20 @@ test("a failure after the project was stopped says nothing is serving", () => {
 
 // The backup gate reads the backup store, not the database, so it runs first: an
 // enforced stale-backup block must leave the previous release serving.
+test("an engine too old for healthcheck start_interval stops the deploy before anything changes", () => {
+  for (const version of ["24.0.7", "", "unknown"]) {
+    const { result, calls } = runDeploy({
+      environment: "production",
+      extraEnv: { TEST_ENGINE_VERSION: version },
+    });
+    assert.notEqual(result.status, 0, version);
+    assert.match(result.stderr, /Docker Engine 25 or later is required/u);
+    assert.equal(calls.includes("docker pull"), false, version);
+    assert.equal(calls.includes(" up -d"), false, version);
+    assert.equal(calls.includes(" down "), false, version);
+  }
+});
+
 test("an enforced stale backup blocks before the project is stopped", () => {
   const { result, calls } = runDeploy({
     environment: "production",
@@ -756,6 +771,7 @@ test("backup gate: calls the gate for production and never prints secrets", () =
 });
 
 const ROLLING_DEPLOY_INVALID = /ROLLING_DEPLOY must be/u;
+const UNCHANGED_PRESTART = /Unchanged prestart: .*skipped/u;
 const ROLLOUT_FAILED =
   /New web-auth container did not become healthy; the previous one is still serving/u;
 
@@ -780,12 +796,20 @@ test("rolling start replaces each routed service before retiring the old contain
   const rest = appServices.filter(
     (service) => !routedServices.includes(service)
   );
-  assert.ok(
-    calls.includes(
-      `up -d --no-deps --remove-orphans --wait --wait-timeout 300 ${rest.join(" ")}\n`
-    ),
-    calls
-  );
+  // The rest (the workers) start one at a time, each healthy before the next:
+  // two starting together starved the API on staging's single CPU.
+  assert.ok(rest.length > 1, "expected more than one unrouted service");
+  let previous = -1;
+  for (const service of rest) {
+    const started = calls.indexOf(
+      `up -d --no-deps --remove-orphans --wait --wait-timeout 300 ${service}\n`
+    );
+    assert.ok(
+      started > previous,
+      `expected ${service} to start alone, in order\n${calls}`
+    );
+    previous = started;
+  }
   assert.ok(calls.includes("smoke"));
 });
 
@@ -1041,7 +1065,7 @@ test("unchanged migrations are skipped; a new image, a new database or FORCE_MIG
     const again = deploy({});
     assert.equal(again.result.status, 0, again.result.stderr);
     assert.equal(prestartRuns(again.calls), 0);
-    assert.match(again.result.stdout, /Unchanged prestart: .*skipped/u);
+    assert.match(again.result.stdout, UNCHANGED_PRESTART);
 
     for (const changed of [
       { TEST_MIGRATION_HASH: "hash-2" },

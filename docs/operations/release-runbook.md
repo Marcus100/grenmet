@@ -284,6 +284,8 @@ that tree: what staging proved is exactly what production runs.
 **Server side (PR #1020).** `core.sh` pulls only images missing on the host
 (`PULL_PARALLEL`, default 4). With `ROLLING_DEPLOY=1` routed services (`api`,
 `web-*`) roll in batches of `ROLLOUT_PARALLEL` (default 4; `1` is one at a time).
+A new container is probed every 2 seconds while it starts (`start_interval`,
+Docker Engine 25 or later; an older engine stops the deploy in the `disk` phase).
 A healthy routed container whose Compose config hash is unchanged is kept. After
 a failed service no later batch starts. The backup gate, serial migrations,
 grants and smoke tests are unchanged.

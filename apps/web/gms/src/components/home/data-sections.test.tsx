@@ -287,6 +287,17 @@ it("shows the live month summary with its provisional label", async () => {
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
 });
 
+it("shows a figure not reported yet as words only, without a dash", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  // The fixture has no heavy rain days, wind or gusts.
+  vi.mocked(fetchMonthSummary).mockResolvedValue({ ...SUMMARY });
+  const { container } = render(await GrenadaInData());
+  expect(screen.getAllByText("Not reported yet").length).toBeGreaterThan(0);
+  expect(container.textContent).not.toContain("\u2014");
+  // Every label stays, so readers see which figures are still to come.
+  expect(screen.getByText("Strongest gust")).toBeInTheDocument();
+});
+
 it("never calls a month summary an old reading", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchMonthSummary).mockResolvedValue({ ...SUMMARY });

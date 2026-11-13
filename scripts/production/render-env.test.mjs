@@ -126,6 +126,7 @@ test("rejects missing secrets, multiline values and mutable references without e
     { DEPLOY_IMAGE_TAG: "latest" },
     { CORE_REDIS_IMAGE: "redis:latest" },
     { TELEMETRY_ENABLED: "TRUE" },
+    { SENTRY_CRONS_ENABLED: "yes" },
     { TELEMETRY_WORKER_HEARTBEAT_URL: "https://example.test/DO-NOT-ECHO" },
     {
       TELEMETRY_WORKER_HEARTBEAT_URL:
@@ -186,6 +187,7 @@ test("staging and production pass integrations to the intended services", () => 
         EMAIL_RENDER_SECRET: "fixture-only",
         RESEND_WEBHOOK_SECRET: "whsec_fixture",
         TELEMETRY_ENABLED: "true",
+        SENTRY_CRONS_ENABLED: "true",
         AUTH_PRIVILEGED_MFA_MODE: "enforce",
         AUTH_TOTP_ENCRYPTION_KEYS: JSON.stringify([
           `${Buffer.alloc(32, 3).toString("base64url")}=`,
@@ -358,6 +360,10 @@ test("staging and production pass integrations to the intended services", () => 
         api.SENTRY_DSN
       );
       assert.equal(model.services.worker.environment.TELEMETRY_ENABLED, "true");
+      assert.equal(
+        model.services.worker.environment.SENTRY_CRONS_ENABLED,
+        "true"
+      );
       assert.equal(
         model.services.worker.environment.TELEMETRY_WORKER_HEARTBEAT_URL,
         env.TELEMETRY_WORKER_HEARTBEAT_URL
@@ -1171,6 +1177,14 @@ test("the Cloudflare switch refuses anything but true or false", () => {
     assert.notEqual(result.status, 0, value);
     assert.ok(result.stderr.includes("CLOUDFLARE_PROXY_ENABLED"));
   }
+});
+
+test("deploy.yml passes the Sentry crons switch from the GitHub environment", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  assert.match(
+    workflow,
+    /^\s+SENTRY_CRONS_ENABLED: \$\{\{ vars\.SENTRY_CRONS_ENABLED \}\}$/mu
+  );
 });
 
 test("deploy.yml passes the Cloudflare switch from the GitHub environment", () => {

@@ -170,7 +170,16 @@ it("keeps quick updates under the note and plays video in the panel on request",
   expect(
     screen.getByRole("region", { name: "Live from GMS" })
   ).toHaveTextContent("Showers easing in the south");
+  // The panel opens on Video (the first tab with content) with a play
+  // button; the provider's frame loads only on request.
+  expect(screen.getByRole("tab", { name: "Video" })).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
   expect(container.querySelector("iframe")).toBeNull();
+  expect(
+    screen.getByRole("button", { name: "Play: Midday briefing" })
+  ).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("tab", { name: "Video" }));
   expect(screen.getByRole("tab", { name: "Video" })).toHaveAttribute(

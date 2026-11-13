@@ -94,10 +94,10 @@ Ticketing, door admission, outlet cash, settlement and paid tiers
 (test-mode Stripe or the manual rail) also run on FastAPI; no page renders demo fixtures.
 
 The [FastAPI Events domain](../apps/api/fastapi/src/events/AGENTS.md) already
-contains listings, groups, connections, messaging, and access rules, with its
-own database and Alembic history. The web UI uses app-scoped email-code sign-in
-and a host-only session cookie. Events data lives in the `events` schema of the main
-database (ADR-0003). This inventory describes
+contains listings, groups, connections, messaging, and access rules. Its data lives
+in the `events` schema of the main database (ADR-0003), migrated by the main
+Alembic chain. The web UI uses app-scoped email-code sign-in and a host-only
+session cookie. This inventory describes
 source implementation, not deployment or operational acceptance.
 
 ## Auth architecture

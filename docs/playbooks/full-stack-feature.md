@@ -41,6 +41,9 @@ Separate-database domains don't autogenerate. Write the next
 `revision = "<domain>_NNNN"` (recipe in `docs/api/development.md` →
 Databases and migrations).
 
+- A new model module goes in `LEGACY_MODEL_MODULES` in `src/model_registry.py`
+  (or in the domain's manifest) so autogenerate sees its tables;
+  `tests/test_alembic_drift.py` fails until the models and migrations agree.
 - Review the generated file by hand: static, reversible (`downgrade()` works),
   no data loss. Names are `lower_snake`, singular; `_at` for datetimes, `_date` for dates.
 - Register personal or approval data for change history (`src/<domain>/audit.py`
@@ -56,8 +59,16 @@ Pattern: `src/hr/leave/` (router → service → models, `schemas.py` on
 - `dependencies.py`: `valid_<thing>_id` style dependencies, exposed as `Annotated` aliases.
 - `router.py`: thin routes with `response_model`, `status_code`, `summary`,
   `description`, `tags`, `responses`, and a stable domain-prefixed operation ID.
-  Register the router in `src/main.py` if it's new.
-- Slow or retryable side effects → an ARQ job (`src/worker/`), not `BackgroundTasks`.
+  A new router gets a key in `MOUNT_ORDER` (`src/domains.py`; its position is
+  its place in `openapi.json`) and is registered by the domain's
+  `src/<domain>/register.py` manifest, or in `_LEGACY_MOUNTS` in `src/main.py`
+  while the domain has no manifest yet (ADR-0031). A manifest names its router
+  by import path (`"src.<domain>.router:router"`) and also lists its Postgres
+  schemas, model modules and `register()` modules, so `src/database.py` and
+  `alembic/env.py` need no edit; it must not import domain code.
+- Slow or retryable side effects → an ARQ job, not `BackgroundTasks`. A domain
+  with a manifest lists its jobs (`WorkerJob`) and outbox handler modules
+  (`worker_modules`) there; see `src/worker/AGENTS.md`.
 
 ## 3. Backend tests
 

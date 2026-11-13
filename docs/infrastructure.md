@@ -15,9 +15,12 @@ Staging and production run as Docker Compose stacks on dedicated DigitalOcean dr
 | Staging | `grenmet-staging` | `infra/docker/docker-compose.deploy.yml` + `staging.env` | `*.staging.barrels.gd` |
 | Production | `grenmet` | `infra/docker/docker-compose.deploy.yml` + `production.env` | `*.barrels.gd` |
 
+Both core droplets are DigitalOcean `s-2vcpu-4gb` (4 GB, 2 vCPU, region `nyc1`)
+since 2026-11-12, each running Ubuntu 24.04 and Docker Engine 29.
+
 Each stack includes:
 
-- `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI, `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister`, and `events`.
+- `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI (which also holds the `events` schema, ADR-0003), `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister` and the CMS (`gms_cms`).
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP publish jobs, notification and email outboxes, retention purge; see `src/worker/AGENTS.md`).
@@ -29,8 +32,8 @@ Each stack includes:
 
 A push to `staging` runs `pipeline-staging.yml`: CI, applicable image builds, and
 deployment with the `staging` tag. Publishing a release runs `pipeline-prod.yml`,
-which builds all images and deploys the release tag for API, web, and
-migration images. Merging to `main` does not build deployment images or deploy.
+which promotes the image digests that staging deployed and verified for the same
+git tree and deploys them under the release tag; nothing is rebuilt. Merging to `main` does not build deployment images or deploy.
 
 The shared `deploy.yml` layers the committed environment file with temporary
 `.env.secrets`, validates Compose, starts Postgres, ensures databases exist, and
@@ -62,7 +65,7 @@ Environment URLs:
 | Staging | `https://api.staging.barrels.gd/api/v1/utils/health-check/` | `https://api.staging.barrels.gd/api/v1/utils/ready/` |
 | Production | `https://api.barrels.gd/api/v1/utils/health-check/` | `https://api.barrels.gd/api/v1/utils/ready/` |
 
-Deployment requires FastAPI liveness and the health checks for all seven web containers (`/api/health`). External web-root checks are logged but non-fatal. FastAPI readiness is a separate diagnostic check; the workflow does not currently gate deployment on it.
+Deployment requires FastAPI liveness and the health checks for every routed web container (`/api/health`). External web-root checks are logged but non-fatal. FastAPI readiness is a separate diagnostic check; the workflow does not currently gate deployment on it.
 
 ## Incident Triage
 
@@ -91,11 +94,12 @@ arguments shown in the [manual procedure](deployment.md#manual-deploy-fallback--
 
 ## Backups and Restore
 
-`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment. The existing Spaces bucket and `production/YYYY/MM/DD/` layout are retained. Set environment variable `CMS_BACKUP_ENABLED=true` there when production CMS is provisioned to include `gms_cms`; until then the seven other databases (including eRegister and Events) are required. The staging monitoring pilot adds opt-in daily backups and weekly restore drills; see [activation gates](operations/analytics-monitoring.md#cicd-ownership-and-activation).
+`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment. The existing Spaces bucket and `production/YYYY/MM/DD/` layout are retained. Set environment variable `CMS_BACKUP_ENABLED=true` there when production CMS is provisioned to include `gms_cms`; until then the six other databases are required (Events lives in the main database). The staging monitoring pilot adds opt-in daily backups and weekly restore drills; see [activation gates](operations/analytics-monitoring.md#cicd-ownership-and-activation).
 
 Implemented backup behavior:
 
-- Dumps `app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister`, and `events` with `pg_dump --format=custom --compress=9`.
+- Dumps `app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport` and `eregister`, plus `gms_cms` when `CMS_BACKUP_ENABLED=true`, with `pg_dump --format=custom --compress=9`.
+- Does not encrypt the dumps itself: they rely on the Spaces bucket's access control. Off-provider encrypted backups are an open owner item (`docs/exec-plans/product-and-hardening-handoff.md`).
 - Restores each dump into a temporary database to verify integrity.
 - Uploads each dump to DigitalOcean Spaces under `production/YYYY/MM/DD/`.
 - Keeps local dump files for `BACKUP_RETENTION_DAYS=30`.
@@ -140,7 +144,7 @@ Owner hardening runbooks (step-by-step, with verify and undo for each step):
 These are not implemented as repo-level controls yet:
 
 - Centralized log storage and retention. API and worker warnings and errors go to Sentry Logs, scrubbed (`apps/api/fastapi/AGENTS.md`, Sentry Logs); the full container output (including Traefik access logs) still stays on each host for its Docker log rotation (3 × 10 MB per container) and is lost when a container is replaced.
-- External uptime monitoring and alert rules.
+- External uptime monitoring and alert rules in production. Better Stack is the provider (ADR-0037): monitors and heartbeats are defined in `scripts/monitoring/betterstack.json`; only the staging probe-runner heartbeat is live, and the production ones stay paused until their secrets are set ([#1143](https://github.com/Marcus100/grenmet/issues/1143)).
 - OpenTelemetry for the FastAPI app. The vendored CAP Composer has OTEL support, but the main FastAPI app currently uses Sentry plus request logs.
 - Verified Redis-backed rate limiting in each environment. `src/rate_limit.py` uses `REDIS_URL` (set in `docker-compose.deploy.yml`); only a deployed check is missing.
-- Timed, end-to-end recovery drills proving application recovery and RTO. The backup workflow already restores each database dump into a temporary database and checks for tables. The [restore drill](operations/restore-drill.md) (ADR-0021) now restores every database into a throwaway container and checks migrations and row floors; it has not yet been run. Starting the application is an opt-in `api_check` that is built but also unrun.
+- Timed, end-to-end recovery drills proving application recovery and RTO. The backup workflow already restores each database dump into a temporary database and checks for tables. The [restore drill](operations/restore-drill.md) (ADR-0021) now restores every database into a throwaway container and checks migrations and row floors; it passed against the production backup on 2026-11-04 and end to end on 2026-11-09 ([#926](https://github.com/Marcus100/grenmet/issues/926)). Still open: the monthly schedule, and the opt-in `api_check` that starts the application, which is built but unrun.

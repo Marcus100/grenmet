@@ -25,7 +25,9 @@ src/
 ├── exceptions.py       — Global exception hierarchy + handlers
 ├── dependencies.py     — SessionDep, CurrentUser, TokenDep type aliases
 ├── database.py         — async_engine, async_session_factory
-└── main.py             — FastAPI app, lifespan, middleware, router registration
+├── domain_manifest.py  — Domain and Mount types for <domain>/register.py (ADR-0031)
+├── domains.py          — registered domains and MOUNT_ORDER, the one ordered router list
+└── main.py             — FastAPI app, lifespan, middleware; mounts routers in MOUNT_ORDER
 ```
 
 Imports use the module name, not individual symbols, for both cross-domain and intra-domain service imports. This avoids name collisions between route functions and service functions:
@@ -217,7 +219,7 @@ my_domain_settings = MyDomainConfig()
 
 **Logging** — `src/logging_config.py` configures structured JSON output via `python-json-logger`. Call `configure_logging()` once at startup (already wired in `main.py`). Set `LOG_FORMAT=text` locally for human-readable output, `LOG_LEVEL` to control verbosity.
 
-**No APM agent** — ddtrace was removed (2026-10-20): no agent was ever provisioned and it slowed cold starts. Uptime is Better Stack, errors and cron check-ins are Sentry, counters are `src/operational_metrics.py` (`docs/operations/analytics-monitoring.md`).
+**No APM agent** — don't add ddtrace or another APM agent: none is provisioned and it slows cold starts. Uptime is Better Stack, errors and cron check-ins are Sentry, counters are `src/operational_metrics.py` (`docs/operations/analytics-monitoring.md`).
 
 **Sentry** — Captures exceptions automatically via `sentry_sdk.init` in `main.py` (API) and `src/worker/main.py` (worker), with the content-minimising policy in `src/telemetry.py`. `logger.error`/`logger.exception` calls are reported too, so never swallow an unexpected exception silently: log it or re-raise. Only `area`, `digest` and `request_id` tags survive scrubbing. Controlled by `SENTRY_DSN`.
 
@@ -326,9 +328,10 @@ Where this file is more specific, this file wins. Checklist for new code:
 | API docs hidden in production | `main.py` sets `docs_url`/`openapi_url` to `None` outside allowed environments — keep it that way |
 | DB names: `lower_snake`, singular, grouped prefixes, `_at` for datetimes and `_date` for dates | Explicit index/constraint naming via `src.orm.Base.metadata` |
 | Migrations static, reversible, date-slug file names | Main `alembic.ini` uses `%%(year)d-%%(month).2d-%%(day).2d_%%(slug)s` |
-| Migrations additive for a rolling release: no drop, rename, type change, NOT NULL on an existing column or non-concurrent index on an existing table in `upgrade()` | `tests/test_migration_safety.py` checks every migration not in `tests/migration_safety_baseline.json`; a reviewed exception carries `# migration-safety: <reason>` (#1249) |
+| Migrations additive for a rolling release: no drop, rename, type change, NOT NULL on an existing column or non-concurrent index on an existing table in `upgrade()` | `tests/test_migration_safety.py` checks every migration not in `tests/migration_safety_baseline.json`; a reviewed exception carries `# migration-safety: <reason>` |
 | SQL-first; nested JSON via `func.json_build_object` when it saves Python reshaping | See "SQL first, Pydantic second" |
 | Async test client from day one; `dependency_overrides` for external services | Real DB + real JWT for auth |
+| Models and main migrations agree | `tests/test_alembic_drift.py` runs `alembic check` on the migrated test database; a new model module goes in `src/model_registry.py` (or its domain manifest), which `alembic/env.py` loads |
 | Ruff for lint and format | `./scripts/lint.sh`, `./scripts/format.sh` |
 
 **Intentional deviation:** the separate-database domains (`wxproducts`,

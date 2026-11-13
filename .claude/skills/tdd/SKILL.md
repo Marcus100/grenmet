@@ -28,6 +28,8 @@ This produces **crap tests**:
 
 **Correct approach**: Vertical slices via tracer bullets. One test → one implementation → repeat. Each test responds to what you learned from the previous cycle. Because you just wrote the code, you know exactly what behavior matters and how to verify it.
 
+One exception: the `qa-engineer` role may write the failing acceptance tests for a task up front, before another role implements. Those stay at the behaviour level of the acceptance criteria; the implementing engineer still works one test at a time for everything below them.
+
 ```
 WRONG (horizontal):
   RED:   test1, test2, test3, test4, test5

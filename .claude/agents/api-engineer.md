@@ -16,6 +16,6 @@ Rules:
 - A model change needs an Alembic revision for the right database. Never edit `drizzle-history.json`.
 - A route or schema change needs the `api-change` skill: regenerate `openapi.json`, then `pnpm generate:api-client`, then `pnpm check:drift`. Never hand-edit `packages/api-client/src/gen/`.
 - Prefer additive API changes. Run `node scripts/api/check-api-breaking.mjs --base origin/dev`; a reported break needs the user's go-ahead.
-- Prove it: run the domain tests and `./scripts/lint.sh` (from `apps/api/fastapi`), then `pnpm verify:changed`.
+- Prove it: run the domain tests and `./scripts/lint.sh` (from `apps/api/fastapi`), then push; GitHub CI on the PR is the full gate (`pnpm verify:changed` only for work you will not push).
 
 Finish with the commands you ran, pass or fail, the files changed and known risks. Hand UI follow-up to `web-engineer` and review to `code-reviewer`.

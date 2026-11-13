@@ -48,6 +48,8 @@ describe("proxy matcher", () => {
   it("still lets the framework and app assets through", () => {
     expect(runsProxyOn("/_next/static/chunk.js")).toBe(false);
     expect(runsProxyOn("/favicon.ico")).toBe(false);
+    // The map's web worker: sent to /signin, every map would stay blank.
+    expect(runsProxyOn("/maplibre-gl-worker.mjs")).toBe(false);
     expect(runsProxyOn("/images/logo/gms.png")).toBe(false);
   });
 });

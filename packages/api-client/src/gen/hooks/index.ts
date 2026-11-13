@@ -1519,6 +1519,11 @@ export {
   useHrActionShiftSwap,
 } from "./useHrActionShiftSwap.js";
 export {
+  hrAddTerminalUserMutationKey,
+  hrAddTerminalUserMutationOptions,
+  useHrAddTerminalUser,
+} from "./useHrAddTerminalUser.js";
+export {
   hrApproveClockPunchMutationKey,
   hrApproveClockPunchMutationOptions,
   useHrApproveClockPunch,
@@ -2059,6 +2064,11 @@ export {
   useHrImportStaffBalances,
 } from "./useHrImportStaffBalances.js";
 export {
+  hrImportTerminalPunchesMutationKey,
+  hrImportTerminalPunchesMutationOptions,
+  useHrImportTerminalPunches,
+} from "./useHrImportTerminalPunches.js";
+export {
   hrIssueParkingDecalMutationKey,
   hrIssueParkingDecalMutationOptions,
   useHrIssueParkingDecal,
@@ -2189,6 +2199,16 @@ export {
   useHrListStatutoryTables,
 } from "./useHrListStatutoryTables.js";
 export {
+  hrListTerminalPunchesQueryKey,
+  hrListTerminalPunchesQueryOptions,
+  useHrListTerminalPunches,
+} from "./useHrListTerminalPunches.js";
+export {
+  hrListTerminalUsersQueryKey,
+  hrListTerminalUsersQueryOptions,
+  useHrListTerminalUsers,
+} from "./useHrListTerminalUsers.js";
+export {
   hrLoadProvisionalHolidaysMutationKey,
   hrLoadProvisionalHolidaysMutationOptions,
   useHrLoadProvisionalHolidays,
@@ -2284,10 +2304,20 @@ export {
   useHrRemoveHoliday,
 } from "./useHrRemoveHoliday.js";
 export {
+  hrRemoveTerminalUserMutationKey,
+  hrRemoveTerminalUserMutationOptions,
+  useHrRemoveTerminalUser,
+} from "./useHrRemoveTerminalUser.js";
+export {
   hrRenameOrganisationMutationKey,
   hrRenameOrganisationMutationOptions,
   useHrRenameOrganisation,
 } from "./useHrRenameOrganisation.js";
+export {
+  hrReprocessTerminalPunchesMutationKey,
+  hrReprocessTerminalPunchesMutationOptions,
+  useHrReprocessTerminalPunches,
+} from "./useHrReprocessTerminalPunches.js";
 export {
   hrReturnPayPeriodMutationKey,
   hrReturnPayPeriodMutationOptions,
@@ -2963,6 +2993,31 @@ export {
   paymentsRecordManualPaymentMutationOptions,
   usePaymentsRecordManualPayment,
 } from "./usePaymentsRecordManualPayment.js";
+export {
+  profileImagesGetMineQueryKey,
+  profileImagesGetMineQueryOptions,
+  useProfileImagesGetMine,
+} from "./useProfileImagesGetMine.js";
+export {
+  profileImagesRemoveMutationKey,
+  profileImagesRemoveMutationOptions,
+  useProfileImagesRemove,
+} from "./useProfileImagesRemove.js";
+export {
+  profileImagesRemoveMineMutationKey,
+  profileImagesRemoveMineMutationOptions,
+  useProfileImagesRemoveMine,
+} from "./useProfileImagesRemoveMine.js";
+export {
+  profileImagesSetMineMutationKey,
+  profileImagesSetMineMutationOptions,
+  useProfileImagesSetMine,
+} from "./useProfileImagesSetMine.js";
+export {
+  profileImagesShowQueryKey,
+  profileImagesShowQueryOptions,
+  useProfileImagesShow,
+} from "./useProfileImagesShow.js";
 export {
   pushSubscribeMutationKey,
   pushSubscribeMutationOptions,

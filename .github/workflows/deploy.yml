@@ -103,6 +103,8 @@ jobs:
           SENTRY_DSN_STAGING: ${{ secrets.SENTRY_DSN_STAGING }}
           SENTRY_DSN_PRODUCTION: ${{ secrets.SENTRY_DSN_PRODUCTION }}
           TELEMETRY_ENABLED: ${{ vars.TELEMETRY_ENABLED }}
+          # Sentry Cron check-ins from the worker (issue #1144). Unset is off.
+          SENTRY_CRONS_ENABLED: ${{ vars.SENTRY_CRONS_ENABLED }}
           TELEMETRY_WORKER_HEARTBEAT_URL: ${{ secrets.WORKER_HEARTBEAT_URL }}
           # Cloudflare proxy edge (docs/operations/cloudflare-proxy.md). Unset is off.
           CLOUDFLARE_PROXY_ENABLED: ${{ vars.CLOUDFLARE_PROXY_ENABLED }}

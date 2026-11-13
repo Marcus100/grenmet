@@ -17,6 +17,7 @@ Separate PostgreSQL database with its own Alembic history (`alembic.ini`, `migra
 - NHC reads and durable operator requests live in `nhc_router.py`/`nhc_service.py`; only the dedicated NHC worker collects/imports. Meteorological times remain separate from retrieval/check times. Source editions and assets are immutable; failed pulls retain previous successful data.
 
 - `alerts.py` only reads NHC job state to notify; it never writes the archive. Set `WXWATCH_ALERT_ORGANISATION_ID` (default `gaa`) and `nhc.pull_failed` goes to `cap-admin` and `management` by default; an admin can change the roles in notification settings (and with none chosen nobody is told).
+- `alerts.py` also watches the collectors (`notify_stale_feeds`, worker job `check_feed_freshness`): a source in `collection_runs` whose last `finished` run is older than `WXWATCH_FEED_STALE_MINUTES` (default 180) raises `wxwatch.feed_stale` to the same default roles, once a day per source. Failed, expired and running runs do not count as good. A source with no run at all for 14 days is treated as retired; list a source in `WXWATCH_FEED_IGNORED_SOURCES` to silence it sooner.
 
 ## Tests
 `tests/wxwatch/` (public satellite, archive, assets, catalogue, gallery, ingestion, migration, NHC import).

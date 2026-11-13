@@ -143,7 +143,9 @@ class UserImage(Base):
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), unique=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), unique=True
+    )
     user: Mapped[User] = relationship(back_populates="user_image")
 
 

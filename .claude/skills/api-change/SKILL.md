@@ -8,8 +8,8 @@ description: "Propagates a FastAPI route or schema change to the generated TypeS
 This is the procedure the repo's own Blast-Radius Gate table names in one
 cell ("A FastAPI route or schema → regen `openapi.json` → `pnpm
 generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md`") — this
-skill is that cell, spelled out. `packages/api-client/src/gen/` is Never-tier
-(mechanically blocked by `.claude/hooks/protect-files.mjs`) — you cannot hand-edit
+skill is that cell, spelled out. `packages/api-client/src/gen/` is on the root `AGENTS.md` Never
+list (mechanically blocked by `.claude/hooks/protect-files.mjs`) — you cannot hand-edit
 around this procedure even if it would be faster.
 
 ## When this applies
@@ -63,12 +63,12 @@ in `AGENTS.md`; do not request existing session authorization again.
 - `pnpm guardrails:staged` passes (checks the contract-file/client-regen
   pairing mechanically).
 - Every consumer found in step 6 is updated, or explicitly reported to the
-  user per the Scope Gate if it's outside what was asked.
+  user under the root `AGENTS.md` Ask first rules if it's outside what was asked.
 
 ## What NOT to do
 
 - Don't hand-edit anything under `packages/api-client/src/gen/` — it's
-  Never-tier and mechanically blocked.
+  on the Never list and mechanically blocked.
 - Don't regenerate the client without first regenerating `openapi.json` — the
   client would just re-encode the stale contract.
 - Don't skip `docs/api/contracts.md` for a breaking change because "the code

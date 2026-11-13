@@ -287,7 +287,19 @@ printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-s
 phase disk
 # Versions and memory before the release starts, for comparison with a failure
 # snapshot (diagnose) and to confirm healthcheck start_interval support (Engine 25+, #1140).
-echo "Docker Engine $(docker version --format '{{.Server.Version}}' 2>/dev/null || echo unknown), $(docker compose version --short 2>/dev/null | sed 's/^/Compose /')"
+engine_version=$(docker version --format '{{.Server.Version}}' 2>/dev/null || echo unknown)
+echo "Docker Engine $engine_version, $(docker compose version --short 2>/dev/null | sed 's/^/Compose /')"
+# The api and web-* healthchecks set start_interval. An older engine refuses to
+# create those containers, so stop here, before anything has changed.
+engine_major=${engine_version%%.*}
+if ! [[ "$engine_major" =~ ^[0-9]+$ ]]; then
+  echo "Docker Engine 25 or later is required (healthcheck start_interval), but the engine version could not be read. Check that the Docker daemon is running and reachable, then deploy again." >&2
+  exit 1
+fi
+if ((engine_major < 25)); then
+  echo "Docker Engine 25 or later is required (healthcheck start_interval); found $engine_version. Upgrade Docker on this host, then deploy again." >&2
+  exit 1
+fi
 free -m | awk 'NR <= 3'
 # The runner writes logs and step summaries under its temp directory; a full disk
 # there fails the job without a useful error (staging, 2026-10-07).
@@ -476,15 +488,20 @@ phase start
 if [[ "$rolling" == true ]]; then
   # Recreating a routed service stops its only container first, so Traefik has no
   # backend and every route 404s until the new one is healthy (staging run
-  # 37131928180). Roll those services instead; start the rest as before.
+  # 37131928180). Roll those services instead; start the rest one at a time.
   routed_services=$(node ../../scripts/ci/check-release-scope.mjs --print routed)
   # shellcheck disable=SC2086
   rollout_batches $routed_services
   remaining_services=$(for service in $app_services; do
     [[ " $routed_services " == *" $service "* ]] || printf '%s ' "$service"
   done)
-  # shellcheck disable=SC2086
-  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $remaining_services
+  # One at a time, each healthy before the next. Each worker loads the whole app
+  # when it starts; two together on staging's single CPU and 2 GB starved the API,
+  # so Traefik dropped it and the smoke saw 80 s of 503s on every deploy
+  # (9 to 12 November 2026).
+  for service in $remaining_services; do
+    docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 "$service"
+  done
 else
   # shellcheck disable=SC2086
   docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $app_services
