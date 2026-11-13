@@ -498,7 +498,7 @@ No environment variables. The site is a static export with no server code
 (owner, 13 Nov 2026); the booking address is `ONLINE_BOOKING_URL` in
 `src/data/site.ts`.
 
-FastAPI: `BOOKINGS_BABYDOLL_SITE_URL` (default `https://babydoll.barrels.gd`) is read only by the on-demand Babydoll seed (`src/bookings/seed.py`) for the booking manage link and the public site row.
+FastAPI: `BOOKINGS_BABYDOLL_SITE_URL` (default `https://babydoll.barrels.gd`) is read only by the on-demand Babydoll seed (`src/bookings/seed.py`) for the public site row. The seed builds the booking manage link from `BOOKINGS_APP_URL` (`<app>/<public slug>/booking/{token}`), because the manage page lives in the bookings app.
 
 ### Staging demo seed (`apps/api/fastapi/scripts/seed_staging_demo.py`)
 
