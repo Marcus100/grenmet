@@ -157,7 +157,9 @@ export function UsersManager() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Users</CardTitle>
+          <CardTitle>
+            <h1>Users</h1>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <p role={loadFailed ? "alert" : "status"}>{message}</p>
@@ -179,7 +181,9 @@ export function UsersManager() {
   return (
     <Card>
       <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-        <CardTitle className="text-xl leading-none">Users</CardTitle>
+        <CardTitle className="text-xl leading-none">
+          <h1>Users</h1>
+        </CardTitle>
         <CardDescription className="max-w-sm leading-snug">
           {actor?.is_superuser
             ? "Onboard staff, appoint roles, and manage account access."
