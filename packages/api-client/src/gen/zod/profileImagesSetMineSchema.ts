@@ -6,6 +6,7 @@
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { binaryFileSchema } from "./binaryFileSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { profileImagePublicSchema } from "./profileImagePublicSchema.js";
 
 export const profileImagesSetMineStatus200Schema = profileImagePublicSchema;
@@ -30,6 +31,11 @@ export const profileImagesSetMineStatus422Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const profileImagesSetMineStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
+
 export const profileImagesSetMineStatus503Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
@@ -43,6 +49,7 @@ export const profileImagesSetMineErrorSchema = z.union([
   profileImagesSetMineStatus413Schema,
   profileImagesSetMineStatus415Schema,
   profileImagesSetMineStatus422Schema,
+  profileImagesSetMineStatus429Schema,
   profileImagesSetMineStatus503Schema,
 ]);
 

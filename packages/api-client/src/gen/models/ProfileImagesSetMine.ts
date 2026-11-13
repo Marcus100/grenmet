@@ -5,6 +5,7 @@
 
 import type { ApiError } from "./ApiError.js";
 import type { BinaryFile } from "./BinaryFile.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ProfileImagePublic } from "./ProfileImagePublic.js";
 
 export type ProfileImagesSetMineStatus200 = ProfileImagePublic;
@@ -38,6 +39,8 @@ export type ProfileImagesSetMineStatus415 = ApiError;
  * @type object
  */
 export type ProfileImagesSetMineStatus422 = ApiError;
+
+export type ProfileImagesSetMineStatus429 = ApiError | ErrorMessage;
 
 /**
  * @description Stable error envelope for documented API failures.
@@ -107,6 +110,7 @@ export type ProfileImagesSetMineResponses = {
   "413": ProfileImagesSetMineStatus413;
   "415": ProfileImagesSetMineStatus415;
   "422": ProfileImagesSetMineStatus422;
+  "429": ProfileImagesSetMineStatus429;
   "503": ProfileImagesSetMineStatus503;
 };
 
