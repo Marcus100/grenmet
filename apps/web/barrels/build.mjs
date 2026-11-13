@@ -19,6 +19,8 @@ const PAGES = [
   "services/index.html",
   "contact/index.html",
   "subscribe/status/index.html",
+  // Served with status 404 by Cloudflare Pages (and Vercel) for unknown paths.
+  "404.html",
 ];
 const partials = Object.fromEntries(
   ["site-header", "site-footer", "privacy"].map((name) => [
