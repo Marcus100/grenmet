@@ -146,7 +146,7 @@ async def _open_record(
     return result.scalars().first()
 
 
-async def _current_assignment(
+async def current_assignment(
     session: AsyncSession,
     user_id: uuid.UUID,
     now: datetime,
@@ -192,6 +192,10 @@ async def _current_assignment(
             if best is None or distance < best[0]:
                 best = (distance, assignment, shift)
     return None if best is None else (best[1], best[2])
+
+
+#: Kept so that tests can patch the name clock() calls; new code uses current_assignment.
+_current_assignment = current_assignment
 
 
 def _minutes(delta: timedelta) -> int:

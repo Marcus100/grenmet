@@ -73,6 +73,7 @@ from src.flights.router import router as flights_router
 from src.hr.absentee.router import router as hr_absentee_router
 from src.hr.attendance.clock_router import router as hr_clock_router
 from src.hr.attendance.router import router as hr_attendance_router
+from src.hr.attendance.terminal_router import router as hr_terminal_router
 from src.hr.calendar.router import router as hr_calendar_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
 from src.hr.dashboard.router import router as hr_dashboard_router
@@ -522,6 +523,7 @@ _LEGACY_MOUNTS: dict[str, Mount] = {
         _legacy("hr.timesheet", hr_timesheet_router),
         _legacy("hr.clock", hr_clock_router),
         _legacy("hr.attendance", hr_attendance_router),
+        _legacy("hr.terminal", hr_terminal_router),
         _legacy("hr.payroll", hr_payroll_router),
         _legacy("hr.training", hr_training_router),
         _legacy("hr.signatures", hr_signatures_router),

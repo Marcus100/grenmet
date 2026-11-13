@@ -126,3 +126,93 @@ class ClockPunch(Base):
     reviewed_at: Mapped[datetime | None]
     review_note: Mapped[str | None] = mapped_column(String(500))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class TerminalPunchOutcome(str, Enum):
+    """What the import decided for one terminal punch (ADR-0040).
+
+    PENDING is transient: a row is written first and decided straight after, so it
+    survives only if an import stopped part way. ``ALREADY_RECORDED`` means the shift
+    already has this arrival or departure (for example from an approved phone punch
+    close in time), so no second record is written.
+    """
+
+    PENDING = "PENDING"
+    UNMAPPED = "UNMAPPED"
+    REPEAT = "REPEAT"
+    RECORDED = "RECORDED"
+    ALREADY_RECORDED = "ALREADY_RECORDED"
+    NO_SHIFT = "NO_SHIFT"
+    REFUSED = "REFUSED"
+
+
+class TerminalAttentionOutcome(str, Enum):
+    """Outcomes HR must look at: held or refused, never silently dropped."""
+
+    UNMAPPED = "UNMAPPED"
+    NO_SHIFT = "NO_SHIFT"
+    REFUSED = "REFUSED"
+
+
+class TerminalUser(Base):
+    """Maps a fingerprint or fob terminal's user ID to one employee (ADR-0040).
+
+    Only the device's user ID is stored, never biometric data. One device ID per
+    person and one person per device ID within a department.
+    """
+
+    __tablename__ = "terminal_user"
+    __table_args__ = (
+        UniqueConstraint(
+            "department_id", "device_user_id", name="uq_hr_terminal_user_device"
+        ),
+        UniqueConstraint("department_id", "user_id", name="uq_hr_terminal_user_person"),
+        Index("ix_hr_terminal_user_user_id", "user_id"),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    department_id: Mapped[str] = mapped_column(ForeignKey("hr.department.id"))
+    device_user_id: Mapped[str] = mapped_column(String(32))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class TerminalPunch(Base):
+    """One punch from a terminal export, kept whatever happens to it (ADR-0040).
+
+    The unique key makes a re-run of the same export import nothing twice. Rows
+    that count point at the attendance they wrote through ``roster_assignment_id``;
+    held rows (UNMAPPED, NO_SHIFT, REFUSED) wait for HR.
+    """
+
+    __tablename__ = "terminal_punch"
+    __table_args__ = (
+        UniqueConstraint(
+            "department_id",
+            "terminal",
+            "device_user_id",
+            "punched_at",
+            name="uq_hr_terminal_punch_scan",
+        ),
+        Index("ix_hr_terminal_punch_department_outcome", "department_id", "outcome"),
+        Index("ix_hr_terminal_punch_import_id", "import_id"),
+        Index("ix_hr_terminal_punch_user_id", "user_id"),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    department_id: Mapped[str] = mapped_column(ForeignKey("hr.department.id"))
+    terminal: Mapped[str] = mapped_column(String(60))
+    device_user_id: Mapped[str] = mapped_column(String(32))
+    punched_at: Mapped[datetime]
+    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    roster_assignment_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("hr.roster_assignment.id")
+    )
+    kind: Mapped[str | None] = mapped_column(String(16))
+    outcome: Mapped[str] = mapped_column(String(24))
+    detail: Mapped[str | None] = mapped_column(String(255))
+    import_id: Mapped[uuid.UUID]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
