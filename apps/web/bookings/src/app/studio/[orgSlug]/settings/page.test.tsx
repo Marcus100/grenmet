@@ -1,7 +1,7 @@
 import type { BookingSettings } from "@barrelsgd/api-client";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ORG_ID, PROVIDER_ID, session } from "@/test/studio";
+import { apiError, ORG_ID, PROVIDER_ID, session } from "@/test/studio";
 
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 vi.mock("@/lib/session", () => ({
@@ -10,12 +10,15 @@ vi.mock("@/lib/session", () => ({
 vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
   getSettings: vi.fn(),
+  listExceptions: vi.fn(),
 }));
 vi.mock("./actions", () => ({
+  removeTimeOffAction: vi.fn(),
   saveHoursAction: vi.fn(),
   saveProfileAction: vi.fn(),
   saveProviderAction: vi.fn(),
   saveServiceAction: vi.fn(),
+  saveTimeOffAction: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
@@ -26,13 +29,22 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-import { findOrganisation, getSettings } from "@/lib/studio-api";
+import { reportError } from "@/lib/report-error";
+import {
+  findOrganisation,
+  getSettings,
+  listExceptions,
+} from "@/lib/studio-api";
 import SettingsPage from "./page";
 
 const params = Promise.resolve({ orgSlug: "sea-salt" });
 const NO_SERVICES = /No services yet/u;
 const NO_PROVIDERS = /No providers yet/u;
-const NOT_YET = /Time off, extra hours and menu order/u;
+const NOT_YET = /Extra hours and menu order/u;
+const NO_TIME_OFF = /No time off planned/u;
+const TIME_OFF_ROW = /Time off: .*9:00/u;
+const TIME_OFF_REASON = /annual leave/u;
+const TIME_OFF_ID = "55555555-5555-4555-8555-555555555555";
 const SAVE_PROFILE = "Save profile";
 const READ_ONLY = /Ask an owner or admin to change them/u;
 const NO_PROFILE = /No booking profile yet/u;
@@ -107,7 +119,9 @@ function role(value: "member" | "admin" | "owner") {
 }
 
 beforeEach(() => {
+  vi.clearAllMocks();
   role("admin");
+  vi.mocked(listExceptions).mockResolvedValue([]);
 });
 
 describe("settings page", () => {
@@ -144,6 +158,31 @@ describe("settings page", () => {
     expect(screen.getByText(HOURS)).toBeInTheDocument();
   });
 
+  it("lists each provider's time off, with the empty state when there is none", async () => {
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    vi.mocked(listExceptions).mockResolvedValue([
+      {
+        id: TIME_OFF_ID,
+        provider_id: PROVIDER_ID,
+        kind: "time_off",
+        // 13:00 UTC is 09:00 in America/Barbados (UTC-4, no daylight saving).
+        starts_at: "2026-11-20T13:00:00Z",
+        ends_at: "2026-11-20T21:00:00Z",
+        reason: "annual leave",
+      },
+    ]);
+    render(await SettingsPage({ params }));
+    expect(screen.getByText(TIME_OFF_ROW)).toBeInTheDocument();
+    expect(screen.getByText(TIME_OFF_REASON)).toBeInTheDocument();
+    expect(screen.queryByText(NO_TIME_OFF)).not.toBeInTheDocument();
+    expect(listExceptions).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      PROVIDER_ID,
+      expect.any(String)
+    );
+  });
+
   it("keeps the empty profile state visible for a member", async () => {
     role("member");
     vi.mocked(getSettings).mockResolvedValue(EMPTY);
@@ -161,5 +200,67 @@ describe("service summary currency", () => {
     });
     render(await SettingsPage({ params }));
     expect(screen.getByText(TTD_LINE)).toBeInTheDocument();
+  });
+});
+
+describe("time off fails soft per provider", () => {
+  const SECOND_PROVIDER = "66666666-6666-4666-8666-666666666666";
+  const TWO = {
+    ...FULL,
+    providers: [
+      ...FULL.providers,
+      {
+        id: SECOND_PROVIDER,
+        name: "Jo",
+        user_id: null,
+        active: true,
+        sort_order: 1,
+        service_ids: [],
+        working_hours: [],
+      },
+    ],
+  } as BookingSettings;
+
+  it("blanks only the failing provider's time off and keeps the rest of Settings usable", async () => {
+    role("owner");
+    vi.mocked(getSettings).mockResolvedValue(TWO);
+    const fault = apiError(500);
+    vi.mocked(listExceptions).mockImplementation((_token, _org, providerId) => {
+      if (providerId === PROVIDER_ID) {
+        return Promise.reject(fault);
+      }
+      return Promise.resolve([
+        {
+          id: TIME_OFF_ID,
+          provider_id: SECOND_PROVIDER,
+          kind: "time_off",
+          starts_at: "2026-11-20T13:00:00Z",
+          ends_at: "2026-11-20T21:00:00Z",
+          reason: "annual leave",
+        },
+      ]);
+    });
+
+    render(await SettingsPage({ params }));
+
+    // The failing provider's section says so; the other provider's row loads.
+    expect(
+      screen.getByText("Time off could not be loaded. Try again later.")
+    ).toBeInTheDocument();
+    expect(screen.getByText(TIME_OFF_REASON)).toBeInTheDocument();
+    // Only the failing provider is blanked, and the server fault is reported once.
+    expect(
+      screen.getAllByText("Time off could not be loaded. Try again later.")
+    ).toHaveLength(1);
+    expect(reportError).toHaveBeenCalledTimes(1);
+    expect(reportError).toHaveBeenCalledWith(fault, "studio");
+    // The rest of Settings still renders and can be saved.
+    expect(screen.queryByText(NO_PROVIDERS)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: SAVE_PROFILE })
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: "Save weekly hours" })
+    ).toHaveLength(2);
   });
 });
