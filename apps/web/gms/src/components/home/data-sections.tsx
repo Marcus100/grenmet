@@ -351,7 +351,7 @@ function ImpactBar({ peak }: { peak: Level | null }) {
         {BLOCK_KEYS.map((key, i) => (
           <span
             className={cn(
-              "h-3 flex-1 rounded-[3px]",
+              "h-3 flex-1 rounded",
               i < filled ? "" : "bg-gm-border"
             )}
             key={key}
