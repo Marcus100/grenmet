@@ -313,6 +313,7 @@ export function DutyRoster() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Button
+            aria-label="Previous month"
             onClick={() => shiftMonth(-1)}
             size="icon-sm"
             variant="outline"
@@ -323,6 +324,7 @@ export function DutyRoster() {
             {monthLabel}
           </span>
           <Button
+            aria-label="Next month"
             onClick={() => shiftMonth(1)}
             size="icon-sm"
             variant="outline"
@@ -567,11 +569,16 @@ export function DutyRoster() {
                             ) : null}
                             <td className="border-border border-l p-0">
                               <button
-                                aria-label={
-                                  exception
-                                    ? `${member.full_name || rosterLabel(member)}, ${d.iso}, scheduled ${code}, ${exception}`
-                                    : undefined
-                                }
+                                // Every cell names its person, day and duty, so an
+                                // empty cell is never just "button".
+                                aria-label={[
+                                  member.full_name || rosterLabel(member),
+                                  d.iso,
+                                  code ? `scheduled ${code}` : "not scheduled",
+                                  exception,
+                                ]
+                                  .filter(Boolean)
+                                  .join(", ")}
                                 className={cn(
                                   "hover:bg-muted focus-visible:ring-ring h-6 w-full text-[11px] leading-none font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset",
                                   code && CODE_STYLE[code],

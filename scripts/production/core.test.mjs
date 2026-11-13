@@ -19,12 +19,17 @@ import {
   routedServices,
 } from "../ci/release-scope.mjs";
 
+const DOCKER_25_REQUIRED = /Docker Engine 25 or later is required/u;
+
 const ENOUGH_FREE_KB = 40 * 1024 * 1024;
 const RECLAIMED_LINE = /Total reclaimed space: 1\.2GB/u;
 const FREE_DISK_LINE =
   /Free disk space on \/var\/lib\/docker: 40 GB \(need 6 GB\)/u;
 const LOW_DISK_ERROR = /Not enough free disk space to pull images: 2 GB free/u;
 const STACK_UNTOUCHED = /the running stack was not touched/u;
+const UNFINISHED_UPGRADE =
+  /A PostgreSQL major upgrade of production is unfinished \(.*production\.in-progress\): refusing to (deploy|backup)\. Nothing was changed\./u;
+const CLEAR_MARKER_STEP = /clear-marker mode/u;
 const OVERRIDE_ERROR = /10 GB free.*12 GB required/u;
 const SECRET_MARKER = "ci-secret-marker-must-not-leak";
 const RUNNER_DISK_ERROR =
@@ -36,6 +41,7 @@ function runDeploy({
   failure = "none",
   freeKb = ENOUGH_FREE_KB,
   extraEnv = {},
+  operation = "deploy",
 }) {
   const root = mkdtempSync(join(tmpdir(), "core-delivery-"));
   try {
@@ -102,6 +108,13 @@ case "$*" in
   *" config --hash "*)
     service=\${args##* }
     [[ "$service" != "$TEST_UNCHANGED_SERVICE" ]] || echo "$service hash-same"
+    [[ -z "$TEST_MIGRATION_HASH" || "$service" == "$TEST_UNCHANGED_SERVICE" ]] || echo "$service $TEST_MIGRATION_HASH"
+    exit 0 ;;
+  "volume inspect --format {{.CreatedAt}} "*)
+    [[ -z "$TEST_DB_VOLUME_CREATED" ]] || echo "$TEST_DB_VOLUME_CREATED"
+    exit 0 ;;
+  *"exec -T db sh -c psql"*)
+    [[ -z "$TEST_DB_MARKER" ]] || echo "$TEST_DB_MARKER"
     exit 0 ;;
   "inspect --format {{index .Config.Labels"*config-hash*)
     if [[ "\${args##*old-}" == "$TEST_UNCHANGED_SERVICE" ]]; then echo "hash-same \${TEST_UNCHANGED_STATE:-healthy}"; else echo "hash-old healthy"; fi
@@ -120,6 +133,7 @@ esac
 case "$*" in
   *"login"*"--password-stdin"*) cat > /dev/null ;;
   "info --format"*) echo /var/lib/docker ;;
+  "version --format"*) echo "\${TEST_ENGINE_VERSION-29.4.2}" ;;
   *"image prune"*) echo "Total reclaimed space: 1.2GB" ;;
   *"config --images"*)
     [[ "$TEST_FAILURE" != images ]] || exit 1
@@ -200,7 +214,7 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
     writeFileSync(join(root, "summary"), "");
     const result = spawnSync(
       "bash",
-      [join(root, "scripts/production/core.sh"), "deploy"],
+      [join(root, "scripts/production/core.sh"), operation],
       {
         env: {
           ...process.env,
@@ -226,6 +240,11 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           TEST_STALE_SERVICE: "",
           TEST_UNHEALTHY_SERVICE: "",
           TEST_UNCHANGED_SERVICE: "",
+          TEST_MIGRATION_HASH: "",
+          TEST_DB_VOLUME_CREATED: "",
+          TEST_DB_MARKER: "",
+          DEPLOY_STATE_DIR: join(root, "deploy-state"),
+          FORCE_MIGRATIONS: "",
           TEST_IMAGES_PRESENT: "",
           TEST_BUILD_ONCE: "",
           DEPLOY_IMAGE_DIGESTS: "",
@@ -239,6 +258,8 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           TEST_LIVE_SUBNET: "",
           ROLLOUT_SETTLE_SECONDS: "0",
           ROLLOUT_POLL_SECONDS: "0",
+          // No unfinished PostgreSQL major upgrade unless a test records one.
+          PG_UPGRADE_DIR: join(root, "pg-upgrade"),
           ...extraEnv,
         },
         encoding: "utf8",
@@ -403,8 +424,51 @@ test("a failure after the project was stopped says nothing is serving", () => {
   assert.equal(result.stdout.includes("are still running"), false);
 });
 
+test("an unfinished PostgreSQL major upgrade blocks deploys and backups before anything changes", () => {
+  const markers = mkdtempSync(join(tmpdir(), "pg-upgrade-marker-"));
+  try {
+    writeFileSync(
+      join(markers, "production.in-progress"),
+      "volume=grenmet_pgdata18\n"
+    );
+    for (const operation of ["deploy", "backup"]) {
+      const { result, calls } = runDeploy({
+        environment: "production",
+        operation,
+        extraEnv: { PG_UPGRADE_DIR: markers },
+      });
+      assert.equal(result.status, 1, operation);
+      assert.match(result.stderr, UNFINISHED_UPGRADE);
+      assert.match(result.stderr, CLEAR_MARKER_STEP);
+      assert.equal(calls, "", `${operation} must not call any tool`);
+    }
+    // Another environment's marker does not block this one.
+    const { result } = runDeploy({
+      environment: "staging",
+      extraEnv: { PG_UPGRADE_DIR: markers },
+    });
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(markers, { recursive: true, force: true });
+  }
+});
+
 // The backup gate reads the backup store, not the database, so it runs first: an
 // enforced stale-backup block must leave the previous release serving.
+test("an engine too old for healthcheck start_interval stops the deploy before anything changes", () => {
+  for (const version of ["24.0.7", "", "unknown"]) {
+    const { result, calls } = runDeploy({
+      environment: "production",
+      extraEnv: { TEST_ENGINE_VERSION: version },
+    });
+    assert.notEqual(result.status, 0, version);
+    assert.match(result.stderr, DOCKER_25_REQUIRED);
+    assert.equal(calls.includes("docker pull"), false, version);
+    assert.equal(calls.includes(" up -d"), false, version);
+    assert.equal(calls.includes(" down "), false, version);
+  }
+});
+
 test("an enforced stale backup blocks before the project is stopped", () => {
   const { result, calls } = runDeploy({
     environment: "production",
@@ -744,6 +808,7 @@ test("backup gate: calls the gate for production and never prints secrets", () =
 });
 
 const ROLLING_DEPLOY_INVALID = /ROLLING_DEPLOY must be/u;
+const UNCHANGED_PRESTART = /Unchanged prestart: .*skipped/u;
 const ROLLOUT_FAILED =
   /New web-auth container did not become healthy; the previous one is still serving/u;
 
@@ -768,12 +833,20 @@ test("rolling start replaces each routed service before retiring the old contain
   const rest = appServices.filter(
     (service) => !routedServices.includes(service)
   );
-  assert.ok(
-    calls.includes(
-      `up -d --no-deps --remove-orphans --wait --wait-timeout 300 ${rest.join(" ")}\n`
-    ),
-    calls
-  );
+  // The rest (the workers) start one at a time, each healthy before the next:
+  // two starting together starved the API on staging's single CPU.
+  assert.ok(rest.length > 1, "expected more than one unrouted service");
+  let previous = -1;
+  for (const service of rest) {
+    const started = calls.indexOf(
+      `up -d --no-deps --remove-orphans --wait --wait-timeout 300 ${service}\n`
+    );
+    assert.ok(
+      started > previous,
+      `expected ${service} to start alone, in order\n${calls}`
+    );
+    previous = started;
+  }
   assert.ok(calls.includes("smoke"));
 });
 
@@ -1004,4 +1077,89 @@ test("a promoted deploy with an empty digest list stops before any change", () =
   assert.match(result.stderr, EMPTY_DIGESTS);
   assert.equal(calls.includes("run --rm"), false, "no migration ran");
   assert.equal(calls.includes(" up -d"), false);
+});
+
+// #1239: a migration image and configuration that already completed against this
+// database volume has nothing new to apply.
+test("unchanged migrations are skipped; a new image, a new database or FORCE_MIGRATIONS runs them", () => {
+  const state = mkdtempSync(join(tmpdir(), "core-migration-state-"));
+  try {
+    const deploy = (env) =>
+      runDeploy({
+        environment: "staging",
+        extraEnv: {
+          DEPLOY_STATE_DIR: state,
+          TEST_MIGRATION_HASH: "hash-1",
+          TEST_DB_VOLUME_CREATED: "2026-10-01T00:00:00Z",
+          TEST_DB_MARKER: "16384:app|rev-1",
+          ...env,
+        },
+      });
+    const first = deploy({});
+    assert.equal(first.result.status, 0, first.result.stderr);
+    assert.equal(prestartRuns(first.calls), 1);
+
+    const again = deploy({});
+    assert.equal(again.result.status, 0, again.result.stderr);
+    assert.equal(prestartRuns(again.calls), 0);
+    assert.match(again.result.stdout, UNCHANGED_PRESTART);
+
+    for (const changed of [
+      { TEST_MIGRATION_HASH: "hash-2" },
+      { TEST_DB_VOLUME_CREATED: "2026-11-11T00:00:00Z" },
+      // A backup restored in place, or a database dropped and re-created.
+      { TEST_DB_MARKER: "16384:app|rev-0" },
+      { TEST_DB_MARKER: "24576:app|rev-1" },
+      { FORCE_MIGRATIONS: "1" },
+    ]) {
+      const run = deploy(changed);
+      assert.equal(run.result.status, 0, run.result.stderr);
+      assert.equal(prestartRuns(run.calls), 1, JSON.stringify(changed));
+    }
+  } finally {
+    rmSync(state, { recursive: true, force: true });
+  }
+});
+
+test("a failed migration is never recorded as applied", () => {
+  const state = mkdtempSync(join(tmpdir(), "core-migration-state-"));
+  try {
+    const env = {
+      DEPLOY_STATE_DIR: state,
+      TEST_MIGRATION_HASH: "hash-1",
+      TEST_DB_VOLUME_CREATED: "2026-10-01T00:00:00Z",
+      TEST_DB_MARKER: "16384:app|rev-1",
+    };
+    const failed = runDeploy({
+      environment: "staging",
+      failure: "migration",
+      extraEnv: env,
+    });
+    assert.notEqual(failed.result.status, 0);
+    const retried = runDeploy({ environment: "staging", extraEnv: env });
+    assert.equal(retried.result.status, 0, retried.result.stderr);
+    assert.equal(prestartRuns(retried.calls), 1);
+  } finally {
+    rmSync(state, { recursive: true, force: true });
+  }
+});
+
+test("without a readable database volume or schema marker, migrations always run", () => {
+  const state = mkdtempSync(join(tmpdir(), "core-migration-state-"));
+  try {
+    for (let run = 0; run < 2; run += 1) {
+      const { result, calls } = runDeploy({
+        environment: "staging",
+        extraEnv: {
+          DEPLOY_STATE_DIR: state,
+          TEST_MIGRATION_HASH: "hash-1",
+          TEST_DB_VOLUME_CREATED: "2026-10-01T00:00:00Z",
+        },
+      });
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(prestartRuns(calls), 1);
+    }
+  } finally {
+    rmSync(state, { recursive: true, force: true });
+  }
 });

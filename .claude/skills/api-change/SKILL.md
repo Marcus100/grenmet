@@ -8,8 +8,8 @@ description: "Propagates a FastAPI route or schema change to the generated TypeS
 This is the procedure the repo's own Blast-Radius Gate table names in one
 cell ("A FastAPI route or schema → regen `openapi.json` → `pnpm
 generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md`") — this
-skill is that cell, spelled out. `packages/api-client/src/gen/` is Never-tier
-(mechanically blocked by `.claude/hooks/protect-files.mjs`) — you cannot hand-edit
+skill is that cell, spelled out. `packages/api-client/src/gen/` is on the root `AGENTS.md` Never
+list (mechanically blocked by `.claude/hooks/protect-files.mjs`) — you cannot hand-edit
 around this procedure even if it would be faster.
 
 ## When this applies
@@ -44,8 +44,11 @@ in `AGENTS.md`; do not request existing session authorization again.
    A failure here means step 2 or 3 was skipped or produced something
    inconsistent — fix forward, don't hand-edit `packages/api-client/src/gen/`
    to make drift-check pass.
-5. **Update `docs/api/contracts.md`** if the change is a new endpoint, a
-   breaking field change, or anything else that document already describes.
+5. **Regenerate the route list** with `pnpm generate:api-routes`, and **update
+   `docs/api/contracts.md`** when the change removes a route, adds a public,
+   webhook or unversioned route, changes a route's authentication, breaks the
+   contract, or touches a route the document already describes.
+   `pnpm guardrails:staged` names the reason when the document is needed.
 6. **Update every consumer** of the changed types/endpoints across the web
    apps — grep for the generated hook/client function name
    (`@barrelsgd/api-client`'s generated names follow the FastAPI
@@ -63,12 +66,12 @@ in `AGENTS.md`; do not request existing session authorization again.
 - `pnpm guardrails:staged` passes (checks the contract-file/client-regen
   pairing mechanically).
 - Every consumer found in step 6 is updated, or explicitly reported to the
-  user per the Scope Gate if it's outside what was asked.
+  user under the root `AGENTS.md` Ask first rules if it's outside what was asked.
 
 ## What NOT to do
 
 - Don't hand-edit anything under `packages/api-client/src/gen/` — it's
-  Never-tier and mechanically blocked.
+  on the Never list and mechanically blocked.
 - Don't regenerate the client without first regenerating `openapi.json` — the
   client would just re-encode the stale contract.
 - Don't skip `docs/api/contracts.md` for a breaking change because "the code

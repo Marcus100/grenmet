@@ -14,6 +14,7 @@ const sources = {
   "barrels.md": ["packages/ui/src/styles/globals.css"],
   "commit.md": ["apps/web/commit/src/styles/tailwind.css"],
   "bookings.md": ["packages/ui/src/styles/globals.css"],
+  "account.md": ["packages/ui/src/styles/globals.css"],
   "gaa-admin.md": [
     "packages/gms/src/styles/foundation.css",
     "apps/web/gaa-admin/src/app/globals.css",

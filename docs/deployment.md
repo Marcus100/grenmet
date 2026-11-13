@@ -11,6 +11,7 @@
 This monorepo uses GitHub Actions with self-hosted runners to deploy to staging and production.
 Each environment runs on its own dedicated Digital Ocean droplet. Elections Grenada
 is the exception: it deploys independently to Vercel; see [its deployment guide](web/elections-deployment.md).
+Static sites are moving to Cloudflare Pages ([ADR-0036](adr/0036-hosting-split.md) amendment); `commit.barrels.gd` is already there.
 
 For operational SSH access, use the `deploy` account on production and `root` on
 staging. Authenticate with the existing SSH key; DigitalOcean API authentication
@@ -144,6 +145,7 @@ Go into each environment and add the following secrets. Staging and production u
 | `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment and per app)   |
 | `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment and per app) |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Bookings single sign-on secret (optional; empty keeps sign-in off; the API must register `bookings` first) | `openssl rand -base64 32` (different per environment and per app) |
+| `ACCOUNT_SSO_CLIENT_SECRET` | Account single sign-on secret (optional; empty keeps sign-in off; the API must register `account` first). Compose passes it to `api` and `web-account`; `render-env.py` and `deploy.yml` do not carry it yet (follow-up, ADR-0057) | `openssl rand -base64 32` (different per environment and per app) |
 | `EVENTS_SSO_CLIENT_SECRET` | Events single sign-on secret (optional) | `openssl rand -base64 32` (different per environment)        |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
@@ -200,7 +202,10 @@ runner labels (`staging` vs `production`).
 **Recommended spec:**
 
 - OS: Ubuntu 24.04 LTS
-- Size: 4 GB RAM / 2 vCPU minimum (size for the enabled services and measured workload)
+- Size: 4 GB RAM / 2 vCPU minimum (size for the enabled services and measured workload).
+  Both core droplets run `s-2vcpu-4gb` since 2026-11-12. At 2 GB, production had
+  used 1.9 of its 2 GB swap, with no room for the second container a rolling
+  deploy starts briefly.
 - Region: closest to your users
 - Add your SSH key at creation time
 
@@ -265,6 +270,12 @@ ufw enable
 ufw status
 ```
 
+`ufw` does not filter ports that Docker publishes. The control that matters is a
+DigitalOcean Cloud Firewall attached to the droplet: see
+[host hardening](operations/host-hardening.md) step 4, and the
+[Cloudflare proxy runbook](operations/cloudflare-proxy.md) for limiting 80 and 443
+to Cloudflare.
+
 ### 2.6 Install the GitHub Actions self-hosted runner
 
 On GitHub, go to **Settings → Actions → Runners → New self-hosted runner**.
@@ -325,6 +336,9 @@ For a fresh droplet only, create the external volumes named by `PGDATA_VOLUME`,
 `REDIS_VOLUME`, and `CERTS_VOLUME` in `staging.env` before the first deployment.
 Existing droplets must retain their existing volumes. Compose deliberately fails
 if a required external volume is missing instead of silently creating an empty database.
+The GitHub variable `CORE_PGDATA_VOLUME`, when set, replaces `PGDATA_VOLUME` for the
+PostgreSQL 18 move; `render-env.py` refuses a database image and volume of different
+majors ([PostgreSQL 18 upgrade](operations/postgres-18-upgrade.md)).
 
 The deployment starts Postgres, ensures the configured databases exist, then
 starts the remaining services with migrations enforced through dependencies.
@@ -344,7 +358,7 @@ Verify login, return URLs, and any data-backed pages you changed.
 
 1. Open a PR from `staging` to `main`; wait for checks and merge on GitHub.
 2. Go to **Releases → Draft a new release**.
-3. Choose a new, increasing `vN.M` tag targeting `main` and publish the release.
+3. Choose a new, increasing `vX.Y.Z` tag (e.g. `v1.0.8`) targeting `main` and publish the release.
 4. Watch **Production Pipeline** build all images at that tag and deploy them.
 5. Verify the production domains and API readiness as above.
 
@@ -399,9 +413,17 @@ default 4; `1` restores one at a time):
 2. Wait until it is healthy. Traefik only routes to healthy containers.
 3. Stop and remove the old container.
 
+The `api` and `web-*` healthchecks set `start_interval: 2s`, so a new container is
+probed every 2 seconds during its start period, so a rolling start no longer waits
+up to 30 seconds for the first probe. This needs Docker Engine 25 or later:
+the deploy checks the engine in its `disk` phase and stops there, before anything
+changes, on an older one.
+
 If the new container never becomes healthy, it is removed, the old one keeps
-serving, and the deploy fails in the `start` phase. Workers and the proxy are
-not rolled: they still start the ordinary way after the routed services.
+serving, and the deploy fails in the `start` phase. Workers are not rolled:
+after the routed services they start one at a time, each healthy before the
+next, so two workers loading the app together do not starve the API on a
+small host.
 
 A routed service whose running container is healthy and whose Compose config
 hash (digest-pinned image, environment, labels) is unchanged is kept as it is.
@@ -612,6 +634,7 @@ hurricane/spice hosts; no legacy redirects are installed.
 | CAP alert hub | 3010 | https://cap.barrels.gd | https://cap.staging.barrels.gd |
 | GMS Dashboard | 3013 | https://gmsdash.barrels.gd | https://gmsdash.staging.barrels.gd |
 | Bookings | 3015 | https://bookings.barrels.gd | https://bookings.staging.barrels.gd |
+| Account | 3018 | https://account.barrels.gd | https://account.staging.barrels.gd |
 | Elections | 3007 | https://elections.barrels.gd (Vercel) | Vercel preview deployments |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 

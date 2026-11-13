@@ -26,6 +26,20 @@ if [[ "$operation" == cleanup ]]; then
   docker logout ghcr.io >/dev/null 2>&1 || true
   exit
 fi
+# An unfinished PostgreSQL major upgrade (scripts/production/postgres-major-upgrade.sh)
+# keeps this marker until its data checks, restart and smoke checks pass. A deploy now
+# would start the services on, and a backup would copy, a database nobody has checked.
+upgrade_marker="${PG_UPGRADE_DIR:-/var/backups/grenmet/pg-major-upgrade}/$DEPLOY_ENV.in-progress"
+if [[ -e "$upgrade_marker" ]]; then
+  {
+    echo "A PostgreSQL major upgrade of $DEPLOY_ENV is unfinished ($upgrade_marker): refusing to $operation. Nothing was changed."
+    echo "If the upgrade's data checks passed, run the PostgreSQL major upgrade workflow again in upgrade mode to finish it."
+    echo "Otherwise roll back: set CORE_POSTGRES_IMAGE back to the previous image, delete CORE_PGDATA_VOLUME,"
+    echo "run the PostgreSQL major upgrade workflow in clear-marker mode, then $operation again."
+    echo "See docs/operations/postgres-18-upgrade.md (Rollback)."
+  } >&2
+  exit 1
+fi
 if [[ "$operation" == backup ]]; then
   python3 ../../scripts/production/backup-core.py "$DEPLOY_ENV" "$COMPOSE_PROJECT" "$DEPLOY_ENV.env"
   python3 ../../scripts/production/backup-files.py /etc/grenmet/objects.json
@@ -97,6 +111,13 @@ diagnose() {
       echo "::endgroup::"
     fi
   done
+  # Host pressure at the moment of failure: slow probes after a deploy are the
+  # usual cause of a proxy 503 while every container still reports healthy.
+  # Last and time-boxed, so a slow `docker stats` never hides the report above.
+  echo "Host load and memory:"
+  uptime
+  free -m
+  timeout 8 docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}' 2>/dev/null || echo "(docker stats did not answer within 8 s)"
 }
 
 finish() {
@@ -278,6 +299,22 @@ phase auth
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
 phase disk
+# Versions and memory before the release starts, for comparison with a failure
+# snapshot (diagnose) and to confirm healthcheck start_interval support (Engine 25+, #1140).
+engine_version=$(docker version --format '{{.Server.Version}}' 2>/dev/null || echo unknown)
+echo "Docker Engine $engine_version, $(docker compose version --short 2>/dev/null | sed 's/^/Compose /')"
+# The api and web-* healthchecks set start_interval. An older engine refuses to
+# create those containers, so stop here, before anything has changed.
+engine_major=${engine_version%%.*}
+if ! [[ "$engine_major" =~ ^[0-9]+$ ]]; then
+  echo "Docker Engine 25 or later is required (healthcheck start_interval), but the engine version could not be read. Check that the Docker daemon is running and reachable, then deploy again." >&2
+  exit 1
+fi
+if ((engine_major < 25)); then
+  echo "Docker Engine 25 or later is required (healthcheck start_interval); found $engine_version. Upgrade Docker on this host, then deploy again." >&2
+  exit 1
+fi
+free -m | awk 'NR <= 3'
 # The runner writes logs and step summaries under its temp directory; a full disk
 # there fails the job without a useful error (staging, 2026-10-07).
 require_free_space "${RUNNER_TEMP:-${TMPDIR:-/tmp}}" "${RUNNER_MIN_FREE_GB:-2}" "for the runner"
@@ -406,7 +443,29 @@ docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --wait $da
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash /docker-entrypoint-initdb.d/init-databases.sh
 
 phase migrations
+# A migration service whose exact image and configuration (Compose's config hash)
+# already completed against this database has nothing new to apply, so it is
+# skipped (#1239). The database side of the key is the volume's creation time,
+# every database's OID (a dropped and re-created database gets a new one) and the
+# main database's Alembic revision (a backup restored in place brings back an
+# older one). Anything unreadable leaves the key empty and the service runs.
+# FORCE_MIGRATIONS=1 runs every service.
+migration_state="${DEPLOY_STATE_DIR:-$HOME/.local/state/grenmet-deploy}/$COMPOSE_PROJECT/migrated"
+mkdir -p "$migration_state" 2>/dev/null || migration_state=""
+database_volume=$(docker volume inspect --format '{{.CreatedAt}}' "${COMPOSE_PROJECT}_pgdata" 2>/dev/null) || database_volume=""
+database_marker_sql="SELECT (SELECT string_agg(oid::text || ':' || datname, ',' ORDER BY datname) FROM pg_database WHERE NOT datistemplate) || '|' || (SELECT string_agg(version_num, ',' ORDER BY version_num) FROM alembic_version)"
 for service in $migration_services; do
+  migration_key=""
+  service_hash=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --hash "$service" 2>/dev/null | awk -v s="$service" '$1 == s {print $2}') || service_hash=""
+  # Read per service: the previous one may just have changed the revision.
+  # shellcheck disable=SC2016
+  database_state=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "$1"' sh "$database_marker_sql" 2>/dev/null) || database_state=""
+  [[ -z "$migration_state" || -z "$service_hash" || -z "$database_volume" || -z "$database_state" ]] || migration_key="$service_hash $database_volume $database_state"
+  if [[ "${FORCE_MIGRATIONS:-}" != 1 && -n "$migration_key" && "$(cat "$migration_state/$service" 2>/dev/null)" == "$migration_key" ]]; then
+    echo "Unchanged $service: this image and configuration already migrated this database; skipped (FORCE_MIGRATIONS=1 runs it)"
+    continue
+  fi
+  [[ -z "$migration_state" ]] || rm -f "$migration_state/$service"
   for attempt in $(seq 1 "$migration_lock_attempts"); do
     migration_log=$(mktemp)
     if docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" run --rm --no-deps "$service" 2>&1 | tee "$migration_log"; then
@@ -425,6 +484,12 @@ for service in $migration_services; do
     echo "::warning::Migration $service hit the lock timeout (attempt $attempt of $migration_lock_attempts); retrying in ${migration_lock_pause}s. The previous release keeps serving."
     sleep "$migration_lock_pause"
   done
+  # Reached only after a successful run: every failure above exits the deploy.
+  # Record the database as this run left it, so the next deploy compares like with like.
+  # shellcheck disable=SC2016
+  database_state=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "$1"' sh "$database_marker_sql" 2>/dev/null) || database_state=""
+  [[ -z "$migration_state" || -z "$service_hash" || -z "$database_volume" || -z "$database_state" ]] ||
+    printf '%s' "$service_hash $database_volume $database_state" > "$migration_state/$service"
 done
 
 phase grants
@@ -437,15 +502,20 @@ phase start
 if [[ "$rolling" == true ]]; then
   # Recreating a routed service stops its only container first, so Traefik has no
   # backend and every route 404s until the new one is healthy (staging run
-  # 37131928180). Roll those services instead; start the rest as before.
+  # 37131928180). Roll those services instead; start the rest one at a time.
   routed_services=$(node ../../scripts/ci/check-release-scope.mjs --print routed)
   # shellcheck disable=SC2086
   rollout_batches $routed_services
   remaining_services=$(for service in $app_services; do
     [[ " $routed_services " == *" $service "* ]] || printf '%s ' "$service"
   done)
-  # shellcheck disable=SC2086
-  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $remaining_services
+  # One at a time, each healthy before the next. Each worker loads the whole app
+  # when it starts; two together on staging's single CPU and 2 GB starved the API,
+  # so Traefik dropped it and the smoke saw 80 s of 503s on every deploy
+  # (9 to 12 November 2026).
+  for service in $remaining_services; do
+    docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 "$service"
+  done
 else
   # shellcheck disable=SC2086
   docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $app_services

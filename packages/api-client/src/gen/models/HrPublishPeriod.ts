@@ -59,7 +59,7 @@ export type HrPublishPeriodStatus422 = ValidationErrorResponse;
 export type HrPublishPeriodBody = RosterPublishRequest | undefined;
 
 export type HrPublishPeriodOptions = {
-  body: HrPublishPeriodBody;
+  body?: HrPublishPeriodBody;
   path: HrPublishPeriodPath;
   query?: never;
   headers?: never;

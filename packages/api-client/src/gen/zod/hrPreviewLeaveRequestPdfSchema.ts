@@ -9,7 +9,7 @@ import { leaveRequestCreateSchema } from "./leaveRequestCreateSchema.js";
 
 export const hrPreviewLeaveRequestPdfStatus200SchemaJson = z.unknown();
 
-export const hrPreviewLeaveRequestPdfStatus200SchemaPdf = z.instanceof(File);
+export const hrPreviewLeaveRequestPdfStatus200SchemaPdf = z.instanceof(Blob);
 
 export const hrPreviewLeaveRequestPdfStatus200Schema = z.union([
   hrPreviewLeaveRequestPdfStatus200SchemaJson,

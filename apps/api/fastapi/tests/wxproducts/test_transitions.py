@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.wxproducts import tropical_systems, transitions
+from src.wxproducts import transitions, tropical_systems
 from src.wxproducts.exceptions import RevisionConflict, TropicalSystemConflict
 from src.wxproducts.models import AuthoredProduct, TropicalSystem
 from src.wxproducts.schemas import TropicalSystemUpdate

@@ -8,7 +8,7 @@ import type { DocumentCategory } from "./DocumentCategory.js";
 export type BodyHrUploadDocument = {
   /**
    * @description The document to store
-   * @type string
+   * @remarks Pass a `File` to send its filename. A plain `Blob` is sent with the filename `blob`.
    */
   file: Blob;
   /**

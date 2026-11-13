@@ -22,5 +22,5 @@ every finding before committing. Follow the failure budget in `AGENTS.md`.
 After required checks pass and the final diff is reviewed, agents may stage,
 commit, push and open a PR for the authorized work without further confirmation.
 Preserve unrelated changes, follow the repository branch/promotion workflow and
-never bypass hooks or force-push. Merges and deployments still require explicit
-user authorization under `AGENTS.md`.
+never bypass hooks or force-push. Merge the PR into `dev` per `/commit` step 4;
+merges into `staging` and `main`, releases and deployments still need the owner.

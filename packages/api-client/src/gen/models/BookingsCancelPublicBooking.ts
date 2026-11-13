@@ -50,7 +50,7 @@ export type BookingsCancelPublicBookingBody =
   | undefined;
 
 export type BookingsCancelPublicBookingOptions = {
-  body: BookingsCancelPublicBookingBody;
+  body?: BookingsCancelPublicBookingBody;
   path: BookingsCancelPublicBookingPath;
   query?: never;
   headers?: never;

@@ -149,6 +149,7 @@ def test_grenada_zone_comes_from_the_shared_helper() -> None:
 #: The two files that catch that refusal name HTTPException as well.
 RAW_HTTP_EXCEPTION_ALLOWED = {
     "src/eregister/entries.py": 1,  # the SYNOP refusal raise
+    "src/eregister/historical.py": 1,  # catches it while importing hours
     "src/eregister/qc.py": 1,  # catches that refusal in transition()
     "src/eregister/sends.py": 1,  # catches it on the send hand-off
 }

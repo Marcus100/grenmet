@@ -45,7 +45,9 @@ export default async function BusPage() {
           <EmptyMedia variant="icon">
             <Lock />
           </EmptyMedia>
-          <EmptyTitle>Bus portal access needed</EmptyTitle>
+          <EmptyTitle>
+            <h1>Bus portal access needed</h1>
+          </EmptyTitle>
           <EmptyDescription>
             Ask a Transport officer for a transport role. The timetable in force
             is still available to all staff.

@@ -8,7 +8,7 @@ import { apiErrorSchema } from "./apiErrorSchema.js";
 import { statusReportCreateSchema } from "./statusReportCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const hrPreviewStatusReportPdfStatus200Schema = z.instanceof(File);
+export const hrPreviewStatusReportPdfStatus200Schema = z.instanceof(Blob);
 
 export const hrPreviewStatusReportPdfStatus400Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."

@@ -61,7 +61,7 @@ strength: check all five modules, not just the one you started in.
 # From apps/web/gaa-admin
 pnpm vitest run                    # unit tests
 pnpm test:coverage                 # if the change touches business logic
-# There is no gaa-admin test:e2e script. Use its Vitest suite and browser smoke checks.
+pnpm test:e2e                      # Playwright smoke tests; needs the gaa-admin dev server
 
 # From repo root
 turbo run test --filter=@barrelsgd/web-gaa-admin

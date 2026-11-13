@@ -80,11 +80,11 @@ export async function News({
   const posts = result.articles.map(contentToArticle);
 
   return (
-    <section className="lg:bg-gm-surface mb-4 flex flex-col gap-4 lg:-mx-6 lg:mb-8 lg:gap-7 lg:px-6 lg:py-12 xl:-mx-8 xl:px-8">
-      <div className="flex h-7 items-center justify-between">
-        <p className="text-gm-heading text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md font-bold">
+    <section className="lg:bg-gm-surface mb-4 flex flex-col gap-4 pt-3 lg:-mx-6 lg:mb-8 lg:gap-7 lg:px-6 lg:py-12 xl:-mx-8 xl:px-8">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+        <h1 className="font-gm-display text-gm-display text-gm-heading font-bold tracking-wide text-balance uppercase">
           {title}
-        </p>
+        </h1>
         <Link
           className="text-gm-blue-ink underline"
           href="/climate/publications"

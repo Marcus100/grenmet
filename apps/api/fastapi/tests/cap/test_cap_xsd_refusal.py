@@ -228,6 +228,11 @@ def test_schema_does_not_replace_the_rules_in_validation_py() -> None:
 _BAD_XML = _ENTRY_XML.replace(
     b"<severity>Moderate</severity>", b"<severity>Critical</severity>"
 )
+# The same flagged document, complete enough to publish as an Actual public
+# warning: an expiry and an area (ADR-0056, #1312).
+_BAD_XML_PUBLISHABLE = _BAD_XML.replace(
+    b"<headline>", b"<expires>2099-12-31T00:00:00+00:00</expires><headline>"
+).replace(b"</info>", b"<area><areaDesc>Grenada</areaDesc></area></info>")
 _DTD_XML = (
     b'<?xml version="1.0"?><!DOCTYPE alert [<!ENTITY x "y">]>'
     + _ENTRY_XML.split(b"?>", 1)[1]
@@ -285,7 +290,7 @@ async def test_a_confirmed_import_publishes_what_we_now_hold(
         session=db_async,
         current_user=user,
         source="xml",
-        value=_BAD_XML.decode("utf-8"),
+        value=_BAD_XML_PUBLISHABLE.decode("utf-8"),
     )
 
     published, _snapshot = await _publish_approved(

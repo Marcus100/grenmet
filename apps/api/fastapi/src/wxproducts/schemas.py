@@ -285,6 +285,16 @@ class PublicProductDetail(PublicPublishedProduct):
     current: bool
 
 
+class IssuedProducts(BaseModel):
+    """Recently published products, newest first, current or expired (#1197).
+
+    The public archive and RSS feed read this; each item has a permanent page and
+    PDF. Withdrawn products are not listed.
+    """
+
+    products: list[PublicProductDetail]
+
+
 class ProductFeedError(BaseModel):
     error: str
 

@@ -68,8 +68,8 @@ shows an empty state when live. Licence: OpenSky is research-only (see
 
 `contact-form.tsx` → `POST /api/contact` (Next route handler, a thin proxy).
 The route validates and proxies to FastAPI `POST /api/v1/contact/public/mbia/messages`
-through the typed `contactSendSiteContactMessage` client. The deprecated
-`/contact/messages` route is no longer used by mbia. The API stores the message
+through the typed `contactSendSiteContactMessage` client. mbia does not use the deprecated
+`/contact/messages` route. The API stores the message
 and emails the `mbia` public site's `contact_recipient` (set in the organisation
 admin, not an env var; the old `MBIA_CONTACT_RECIPIENT` is only a fallback).
 Field limits come from the generated `contactMessageBodySchema`; the form adds
