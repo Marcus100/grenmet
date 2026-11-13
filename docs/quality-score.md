@@ -69,5 +69,5 @@ Whole API (all domains, `src/`): 89.6% lines and 74.5% branches from the CI `Run
 ## Priority gaps
 
 1. Shared UI has no tests. `@barrelsgd/ui` feeds every app, so a regression there spreads furthest. `gms`, `theme` and `email-templates` have none either.
-2. Coverage floors are enforced in CI for the whole API and for web apps auth, gms, mbia and signal (`web-coverage` job in `ci-web.yml`). gaa-admin's floor is checked only locally: a full run takes about 41 minutes, so it is not in CI yet. Events, cms, elections, docs and the shared packages have no floor.
+2. Coverage floors are enforced in CI for the whole API and for web apps admin, auth, bookings, cap, events, gms, gmsdash, mbia and signal (`web-coverage` job in `ci-web.yml`). gaa-admin's floor is checked only locally: a full run takes about 41 minutes, so it is not in CI yet. Events, cms, elections, docs and the shared packages have no floor.
 3. Design system: brand-neutral UI and GMS package separation is in progress.
