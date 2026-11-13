@@ -144,7 +144,8 @@ release. A wrong ref fails that job, visibly, and nothing runs on the droplet.
    final dumps (mode 700, on the droplet only: the upgrade job has no write key for the
    backup bucket, and production's nightly backup already copies 18's data off the host).
    The roles dump with password hashes (`globals.sql`, `missing-roles.sql`) is deleted as
-   soon as the upgrade completes.
+   soon as a run ends, whether it succeeded or failed. Tracked in
+   [issue #1371](https://github.com/Marcus100/grenmet/issues/1371).
 10. Repeat steps 2 to 9 for production, from the release tag that contains this change,
     with the owner present.
 
@@ -153,16 +154,17 @@ UPDATE;` in each database that has it after the restore.
 
 ## What the script does
 
-`postgres-major-upgrade.sh --environment <env> --confirm <env> [--dry-run | --clear-marker]`
+`postgres-major-upgrade.sh --environment <env> --confirm <env> [--dry-run | --clear-marker [--accept-data-loss]]`
 reads the source from the running `db` container and the target from `render-env.py`,
 using the same secrets and environment file as `core.sh deploy`. It holds the core
 maintenance lock, so no deploy or backup through `core.sh` runs at the same time.
 
-Three markers in `/var/backups/grenmet/pg-major-upgrade/` carry the state between runs:
+Three markers in `/var/backups/grenmet/pg-major-upgrade/` (mode 755, so any user can see
+them; run directories stay 700) carry the state between runs:
 
 | Marker | Written | Removed | Effect |
 | --- | --- | --- | --- |
-| `<env>.in-progress` | Before the 17 server stops and the new volume is created | When the restart and smoke checks pass, or by `clear-marker` after a rollback | `core.sh` refuses to deploy or back up; **Database Backup** and **Monitoring maintenance** refuse to run |
+| `<env>.in-progress` | Before the services stop (`phase=writers-stopped`), rewritten before the 17 server stops (`phase=switched`), and marked `reopened=1` once the services restart | When the restart and smoke checks pass; when a failure before the switch has restarted the services; or by `clear-marker` | `core.sh` refuses to deploy or back up; **Database Backup** and **Monitoring maintenance** refuse to run |
 | `<env>.verified` | When the restored data matches the old server | At the next upgrade's switch | A rerun only restarts the services and runs the smoke checks |
 | `<env>.completed` | When the restart and smoke checks pass | Never | A rerun does nothing |
 
@@ -179,9 +181,9 @@ run the upgrade away from 04:50 UTC.
 | Phase | What happens | If it fails |
 | --- | --- | --- |
 | preflight (every mode) | Target paired by `render-env.py`; no unfinished upgrade recorded; one running `db` on the old major; new volume absent, or empty and unused; free disk for the new cluster and the dumps (three times the data plus 2 GB on one disk, or split by disk); production backup under 6 hours; target image present or pulled | Nothing changed |
-| stop-writers | Sets the restart policy of every service of the project except `db`, `redis` and the proxy to `no` and stops them; waits for client connections to close | Policies restored and services started again; database unchanged |
+| stop-writers | Writes `<env>.in-progress`; sets the restart policy of every service of the project except `db`, `redis` and the proxy to `no` and stops them; waits for client connections to close | Policies restored, services started again, marker removed; database unchanged |
 | record, dump | Row count of every table, Alembic revisions, extensions, roles and memberships; `pg_dump --format=custom --compress=9` of every database, checked with `pg_restore --list`; `pg_dumpall --globals-only`; the counts again, which must not have moved | Services started again; database unchanged |
-| switch | Writes `<env>.in-progress`, stops the 17 server, creates the new volume, starts 18 through the deployment compose file, waits for TCP connections | Services stay stopped, deploys refused; rollback below |
+| switch | Rewrites `<env>.in-progress`, stops the 17 server, creates the new volume, starts 18 through the deployment compose file, waits for TCP connections | Services stay stopped, deploys refused; rollback below |
 | roles | `init-databases.sh` as a deploy runs it; the runtime role and any other role only the old server had, from `globals.sql` with its password hash; databases a deploy does not create, with their old owner | Same |
 | restore, analyze | `pg_restore --exit-on-error` into each empty database; `grant-api-runtime.sh`; `vacuumdb --all --analyze-in-stages` | Same |
 | verify | Version, row counts, Alembic revisions, extensions and databases equal the recorded ones; writes `<env>.verified` | Same |
@@ -201,7 +203,7 @@ failed run is removed on exit.
      GitHub environment.
   2. Run **PostgreSQL major upgrade** with `mode` = `clear-marker`. It refuses while the
      variables still name the unverified volume, then restores the services' restart
-     policies and removes `<env>.in-progress`. Without the workflow, on the droplet:
+     policies, removes the run's roles dump and removes `<env>.in-progress`. Without the workflow, on the droplet:
      `rm /var/backups/grenmet/pg-major-upgrade/<env>.in-progress` (the next deploy
      recreates the services with their policies).
   3. Run **Deploy** for that environment. It starts 17 on the old volume, which 18 never
@@ -213,6 +215,8 @@ failed run is removed on exit.
   dump cannot be read by the 17 `pg_restore`, so moving back means a plain-SQL `pg_dump`
   from 18 restored into a fresh 17 volume, or accepting the loss of post-upgrade writes
   by switching back to the old volume. Do not decide this alone: stop and ask the owner.
+  `clear-marker` refuses this rollback once the services have restarted on 18; only
+  `clear-marker-accept-data-loss` (`--accept-data-loss`), on the owner's decision, does it.
   Once the services reopen, prefer fixing forward.
 - Application rollback ([release runbook](release-runbook.md)) does not touch the
   database and is independent of this.

@@ -94,3 +94,7 @@ data size and timing.
 - `pg_upgrade` and the CMS on 18 are unchecked; the upgrade script was rehearsed locally
   only, on synthetic data.
 - Nothing opens an issue when the drill fails: watch the run.
+- The final dumps of each upgrade stay on the droplet until removed by hand with the old
+  volume, after at least 14 days and with the owner's go
+  ([issue #1371](https://github.com/Marcus100/grenmet/issues/1371)):
+  `rm -rf /var/backups/grenmet/pg-major-upgrade/<env>-<time>`.
