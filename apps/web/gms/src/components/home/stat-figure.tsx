@@ -19,7 +19,9 @@ function Figure({ figure, unit }: { figure: string; unit: string }) {
  * are plain text.
  */
 export function StatFigure({ stat }: { stat: MonthStat }) {
-  if (stat.value === null) return <>—</>;
+  // Grenada in data shows "Not reported yet" instead of a figure (owner,
+  // 13 Nov 2026), so a missing value renders nothing here.
+  if (stat.value === null) return null;
   const { measure } = stat;
   if (!measure) return <Figure figure={stat.value} unit={stat.unit} />;
   return (
