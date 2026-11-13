@@ -1,6 +1,6 @@
 /**
  * Content-Security-Policy builder for the Next.js apps (Report-Only on `docs`,
- * `signal`, `bookings`, `mbia`, `elections` and `babydoll`).
+ * `signal`, `bookings`, `account`, `mbia`, `elections` and `babydoll`).
  *
  * Traefik already sends HSTS, nosniff, X-Frame-Options and Referrer-Policy on
  * every host, so this module only produces the CSP header (and the
@@ -18,6 +18,7 @@ export type CspApp =
   | "docs"
   | "signal"
   | "bookings"
+  | "account"
   | "mbia"
   | "elections"
   | "babydoll";
@@ -68,6 +69,15 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
     connect: [TURNSTILE],
     img: [],
     frame: [TURNSTILE],
+  },
+  // No analytics. Profile photos are served through the same-origin proxy and
+  // redirect to presigned object storage; that storage origin must be added to
+  // img-src before this policy is enforced (follow-up, see apps/web/account).
+  account: {
+    script: [],
+    connect: [],
+    img: [],
+    frame: [],
   },
   // GA4 in production (service-catalogue `mbia`); no PostHog project. The
   // contact form's Turnstile widget is the only third party besides GA.

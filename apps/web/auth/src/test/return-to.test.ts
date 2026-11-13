@@ -242,7 +242,7 @@ const STAGING = {
     events: "https://events.staging.barrels.gd",
   },
   hosts:
-    "https://admin.staging.barrels.gd,https://bookings.staging.barrels.gd,https://cap.staging.barrels.gd,https://cms.staging.barrels.gd,https://gmsdash.staging.barrels.gd",
+    "https://account.staging.barrels.gd,https://admin.staging.barrels.gd,https://bookings.staging.barrels.gd,https://cap.staging.barrels.gd,https://cms.staging.barrels.gd,https://gmsdash.staging.barrels.gd",
 };
 
 describe("getSafeReturnTo: the staging compose configuration", () => {
