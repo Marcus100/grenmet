@@ -32,16 +32,14 @@ test.describe("Barrels Events", () => {
     expect(errors).toEqual([]);
   });
 
-  test("a missing event says so and is not indexed", async ({
+  test("a missing event is a real 404 that says so and is not indexed", async ({
     page,
     stagingDomain,
   }) => {
-    // Known bug #1291: the status is 200, not 404, because the page streams
-    // behind loading.tsx. Until it is fixed, check what the visitor and a
-    // search engine see; then add `expect(response?.status()).toBe(404)`.
-    await page.goto(
+    const response = await page.goto(
       host(stagingDomain, "events", "/events/staging-journey-no-such-event")
     );
+    expect(response?.status()).toBe(404);
     await expect(
       page.getByRole("heading", { level: 1, name: NOT_FOUND })
     ).toBeVisible();
