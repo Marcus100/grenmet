@@ -7,6 +7,17 @@ import { compareSpecs } from "../api/check-api-breaking.mjs";
 import { collectOperations } from "../api/route-index.mjs";
 
 const METHODS = ["get", "post", "put", "patch", "delete", "head", "options"];
+const REF_PREFIX = /^#\//u;
+const ESCAPED_SLASH = /~1/gu;
+const ESCAPED_TILDE = /~0/gu;
+const PATH_PARAMETER = /\{[^}]*\}/u;
+const REGEX_SPECIAL = /[.*+?^${}()|[\]\\]/gu;
+
+function compareKeys(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
 
 const keyOf = (operation) => `${operation.method} ${operation.path}`;
 
@@ -23,9 +34,7 @@ function makeFingerprinter(spec) {
   const resolve = (node) => {
     if (Array.isArray(node)) return node.map(resolve);
     if (node === null || typeof node !== "object") return node;
-    const entries = Object.entries(node).sort(([a], [b]) =>
-      a < b ? -1 : a > b ? 1 : 0
-    );
+    const entries = Object.entries(node).sort(([a], [b]) => compareKeys(a, b));
     // Entries as an array, never an object: a "__proto__" key cannot vanish.
     return entries.map(([key, value]) => [
       key,
@@ -44,8 +53,9 @@ function makeFingerprinter(spec) {
     const cutsBefore = cuts;
     walking.add(ref);
     let target = spec;
-    for (const part of ref.replace(/^#\//u, "").split("/")) {
-      target = target?.[part.replace(/~1/gu, "/").replace(/~0/gu, "~")];
+    for (const part of ref.replace(REF_PREFIX, "").split("/")) {
+      target =
+        target?.[part.replace(ESCAPED_SLASH, "/").replace(ESCAPED_TILDE, "~")];
     }
     const value = hash(JSON.stringify(resolve(target ?? null)));
     walking.delete(ref);
@@ -77,8 +87,8 @@ function operationsOf(spec) {
 // and the whole path must match (so /a/x does not match /a/x-y or /a/x/{id}).
 function pathPattern(path) {
   const escaped = path
-    .split(/\{[^}]*\}/u)
-    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"))
+    .split(PATH_PARAMETER)
+    .map((part) => part.replace(REGEX_SPECIAL, "\\$&"))
     .join("\\{[^}]*\\}");
   return new RegExp(`(?<![\\w/-])${escaped}(?![\\w/{-])`, "u");
 }
