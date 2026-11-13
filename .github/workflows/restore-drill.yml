@@ -26,7 +26,7 @@ on:
       postgres_image:
         description: "PostgreSQL image for the throwaway container (use the reviewed core image)"
         required: false
-        default: "postgres:17"
+        default: "postgres:18"
       api_check:
         description: "Also start the release's API image against the restored databases and require health plus authenticated reads (production only; leave off for the first human-timed run)"
         required: false
@@ -171,7 +171,7 @@ jobs:
           # A scheduled run has no inputs: production backups, the reviewed core image,
           # no API check.
           DRILL_ENVIRONMENT: ${{ inputs.environment || 'production' }}
-          DRILL_IMAGE: ${{ inputs.postgres_image || 'postgres:17' }}
+          DRILL_IMAGE: ${{ inputs.postgres_image || 'postgres:18' }}
           DRILL_API_CHECK: ${{ inputs.api_check || false }}
           TMPDIR: ${{ runner.temp }}
         run: |

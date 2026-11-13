@@ -374,7 +374,7 @@ test("the restore drill runs monthly with production defaults and reports a fail
   assert.match(drill, MONTHLY_DRILL_SCHEDULE);
   // A scheduled run has no inputs, so each one needs a default.
   assert.ok(drill.includes("inputs.environment || 'production'"));
-  assert.ok(drill.includes("inputs.postgres_image || 'postgres:17'"));
+  assert.ok(drill.includes("inputs.postgres_image || 'postgres:18'"));
   assert.ok(drill.includes("inputs.api_check || false"));
   assert.ok(!RAW_ENVIRONMENT_INPUT.test(drill));
   // The self-hosted production runner is reachable only from a schedule or a manual

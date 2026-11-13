@@ -29,12 +29,15 @@ services:
   # ── Database ────────────────────────────────────────────────────────────────
   db:
     logging: *bounded-logging
-    image: ${CORE_POSTGRES_IMAGE:?Set the reviewed immutable PostgreSQL 17 image}
+    image: ${CORE_POSTGRES_IMAGE:?Set the reviewed immutable PostgreSQL 18 image (17 until the volume switch)}
     ports:
       - "${CORE_PRIVATE_IP:?Set the core host private IP}:5432:5432"
     restart: always
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # render-env.py derives the mount from the image's major (17: .../data,
+      # 18: /var/lib/postgresql) and refuses an image and a volume of different
+      # majors (docs/operations/postgres-18-upgrade.md).
+      - pgdata:${CORE_POSTGRES_DATA_MOUNT:?Rendered by render-env.py from CORE_POSTGRES_IMAGE}
       - ../postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
       - ../postgres/grant-api-runtime.sh:/opt/grenmet/grant-api-runtime.sh:ro
     environment:
@@ -1245,6 +1248,8 @@ volumes:
   # missing (fresh droplet), the deploy FAILS instead of silently starting an
   # empty database. Bootstrap for a new droplet:
   #   docker volume create <value of PGDATA_VOLUME/CERTS_VOLUME/REDIS_VOLUME>
+  # PGDATA_VOLUME comes from the environment file, or during the PostgreSQL 18
+  # switch from the CORE_PGDATA_VOLUME GitHub variable through render-env.py.
   pgdata:
     external: true
     name: ${PGDATA_VOLUME}

@@ -114,6 +114,10 @@ jobs:
           CLOUDFLARE_ORIGIN_SECRET_PREVIOUS: ${{ secrets.CLOUDFLARE_ORIGIN_SECRET_PREVIOUS }}
           CORE_REDIS_IMAGE: ${{ vars.CORE_REDIS_IMAGE }}
           CORE_POSTGRES_IMAGE: ${{ vars.CORE_POSTGRES_IMAGE }}
+          # Unset keeps PGDATA_VOLUME from the environment file. Set it only together
+          # with an 18 CORE_POSTGRES_IMAGE (docs/operations/postgres-18-upgrade.md).
+          # Never export PGDATA_VOLUME itself: Compose prefers the shell, even empty.
+          CORE_PGDATA_VOLUME: ${{ vars.CORE_PGDATA_VOLUME }}
           CORE_PRIVATE_IP: ${{ vars.CORE_PRIVATE_IP }}
           POSTGIS_RESTORE_VERIFIED: ${{ vars.POSTGIS_RESTORE_VERIFIED }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}

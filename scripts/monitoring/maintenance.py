@@ -19,6 +19,40 @@ def run(args, **kwargs):
     return subprocess.run(args, check=True, **kwargs)
 
 
+LEGACY_DATA = "/var/lib/postgresql/data"
+
+
+def data_mounts(image):
+    """Memory-only data storage for the restore container, whatever the major.
+
+    Docker puts a disk-backed anonymous volume at every path the image declares
+    unless something is mounted exactly there. PostgreSQL 17 declares
+    /var/lib/postgresql/data; 18 declares /var/lib/postgresql, keeps its data in
+    18/docker below it, and refuses to start with a mount at .../data. So every
+    declared path gets a tmpfs, and PGDATA is moved into a subdirectory only for the
+    17 layout (the tmpfs mount point itself is not an empty directory initdb accepts).
+    """
+    declared = (
+        json.loads(
+            run(
+                ["docker", "image", "inspect", "--format", "{{json .Config.Volumes}}", image],
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            or "null"
+        )
+        or {}
+    )
+    if not declared:
+        raise ValueError("The database image declares no data volume")
+    mounts = []
+    for path in sorted(declared):
+        mounts += ["--tmpfs", f"{path}:rw,size=1073741824"]
+    if LEGACY_DATA in declared:
+        mounts += ["--env", f"PGDATA={LEGACY_DATA}/pgdata"]
+    return mounts
+
+
 def inventory(environment):
     config = dict(
         line.split("=", 1)
@@ -164,10 +198,7 @@ def restore(environment, project):
                     "1",
                     "--env-file",
                     str(password_file),
-                    "--env",
-                    "PGDATA=/var/lib/postgresql/data/pgdata",
-                    "--tmpfs",
-                    "/var/lib/postgresql/data:rw,size=1073741824",
+                    *data_mounts(image),
                     "--health-cmd",
                     "pg_isready -U postgres",
                     "--health-interval",
