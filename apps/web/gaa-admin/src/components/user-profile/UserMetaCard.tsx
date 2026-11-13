@@ -33,6 +33,9 @@ export default function UserMetaCard({ profile }: UserMetaCardProps) {
                 className="h-full w-full object-cover"
                 height={80}
                 src={avatarSrc}
+                // The photo route needs the viewer's session and redirects to a
+                // short-lived storage link, so the browser must load it itself.
+                unoptimized
                 width={80}
               />
             ) : (

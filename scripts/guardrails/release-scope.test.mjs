@@ -25,8 +25,8 @@ const CHECK_SCRIPT = fileURLToPath(
 
 const MORE_THAN_ONE_SERVICE = /more than one service/u;
 
-test("release includes thirteen core images and rejects contradictory weather configuration", () => {
-  assert.equal(releaseScope.web.length, 13);
+test("release includes fourteen core images and rejects contradictory weather configuration", () => {
+  assert.equal(releaseScope.web.length, 14);
   assert.equal(releaseScope.api, true);
   assert.deepEqual(releaseScope.weather, []);
   validateReleaseConfiguration({});

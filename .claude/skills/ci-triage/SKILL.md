@@ -9,11 +9,11 @@ allowed-tools: Bash(gh pr *), Bash(gh run *), Bash(git branch *), Bash(git log *
 **Step 1 — List failures**
 Run `gh pr checks` on the current PR and list every failing check by name. For a push-triggered run with no PR, use `gh run list --branch <branch> --limit 5` instead.
 
-**Step 2 — Hypotheses first, before any investigation**
-For each failing check, enumerate your top 3 hypotheses with the single fastest command to falsify each (usually starting with `gh run view <id> --log-failed`). Present this list to the user. Do not start running commands or reading files yet.
+**Step 2 — Hypotheses first**
+For each failing check, enumerate your top 3 hypotheses with the single fastest command to falsify each (usually starting with `gh run view <id> --log-failed`). Show this list to the user, then start testing; wait for an answer only when a hypothesis needs a decision only they can make.
 
 **Step 3 — Investigate**
-Test each hypothesis from cheapest to most expensive; read-only investigation needs no additional confirmation. Stop and report findings after each hypothesis before moving to the next.
+Test each hypothesis from cheapest to most expensive; read-only investigation needs no additional confirmation. Note the result of each hypothesis as you go.
 
 **Step 4 — Confirm root cause**
 State the confirmed root cause clearly. Do not guess or propose a fix until you have evidence.

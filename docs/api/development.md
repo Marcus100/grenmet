@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-23
+**Last updated:** 2026-11-13
 
 > Scope: FastAPI backend in `apps/api/fastapi`
 
@@ -28,6 +28,10 @@ Useful root commands:
 - `pnpm stop` - stop FastAPI and shared infra
 - `pnpm status` - show container status
 - `pnpm reset` - reset shared infra volume and start Postgres only
+
+The local database is PostgreSQL 18 (`postgis/postgis:18-3.7`). A volume from the
+earlier PostgreSQL 17 image does not start on it: dump it first if you need the data,
+then `pnpm reset` ([PostgreSQL 18 upgrade](../operations/postgres-18-upgrade.md#local-development)).
 
 ### Mode B: API directory workflow
 

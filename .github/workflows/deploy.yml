@@ -103,6 +103,8 @@ jobs:
           SENTRY_DSN_STAGING: ${{ secrets.SENTRY_DSN_STAGING }}
           SENTRY_DSN_PRODUCTION: ${{ secrets.SENTRY_DSN_PRODUCTION }}
           TELEMETRY_ENABLED: ${{ vars.TELEMETRY_ENABLED }}
+          # Sentry Cron check-ins from the worker (issue #1144). Unset is off.
+          SENTRY_CRONS_ENABLED: ${{ vars.SENTRY_CRONS_ENABLED }}
           TELEMETRY_WORKER_HEARTBEAT_URL: ${{ secrets.WORKER_HEARTBEAT_URL }}
           # Cloudflare proxy edge (docs/operations/cloudflare-proxy.md). Unset is off.
           CLOUDFLARE_PROXY_ENABLED: ${{ vars.CLOUDFLARE_PROXY_ENABLED }}
@@ -112,6 +114,10 @@ jobs:
           CLOUDFLARE_ORIGIN_SECRET_PREVIOUS: ${{ secrets.CLOUDFLARE_ORIGIN_SECRET_PREVIOUS }}
           CORE_REDIS_IMAGE: ${{ vars.CORE_REDIS_IMAGE }}
           CORE_POSTGRES_IMAGE: ${{ vars.CORE_POSTGRES_IMAGE }}
+          # Unset keeps PGDATA_VOLUME from the environment file. Set it only together
+          # with an 18 CORE_POSTGRES_IMAGE (docs/operations/postgres-18-upgrade.md).
+          # Never export PGDATA_VOLUME itself: Compose prefers the shell, even empty.
+          CORE_PGDATA_VOLUME: ${{ vars.CORE_PGDATA_VOLUME }}
           CORE_PRIVATE_IP: ${{ vars.CORE_PRIVATE_IP }}
           POSTGIS_RESTORE_VERIFIED: ${{ vars.POSTGIS_RESTORE_VERIFIED }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
@@ -149,6 +155,7 @@ jobs:
           DOCS_SSO_CLIENT_SECRET: ${{ secrets.DOCS_SSO_CLIENT_SECRET }}
           GMSDASH_SSO_CLIENT_SECRET: ${{ secrets.GMSDASH_SSO_CLIENT_SECRET }}
           BOOKINGS_SSO_CLIENT_SECRET: ${{ secrets.BOOKINGS_SSO_CLIENT_SECRET }}
+          ACCOUNT_SSO_CLIENT_SECRET: ${{ secrets.ACCOUNT_SSO_CLIENT_SECRET }}
           EMAIL: ${{ secrets.EMAIL }}
           USERNAME: ${{ secrets.USERNAME }}
           HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}

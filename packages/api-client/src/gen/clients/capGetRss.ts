@@ -24,6 +24,7 @@ export function capGetRss<ThrowOnError extends boolean = true>(
     request({
       method: "GET",
       url: "/api/cap/rss.xml",
+      responseType: "blob",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapGetRssResponses, ThrowOnError>>

@@ -15,7 +15,7 @@
 - **Receivables:** `GET /billing/receivables` buckets open invoices (current, 1-30, 31-60, 61-90, 90+ days past due) in SQL with date comparisons; `bucket_for` in `invoices.py` must stay consistent with the SQL CASE.
 - **Reminders:** worker job `send_invoice_reminders` (11:00 UTC = 07:00 Grenada) calls `reminders.send_due_reminders`. Stages: 7 days before due, due date, 7 days overdue. A unique `(invoice_id, stage)` row is inserted (ON CONFLICT DO NOTHING) before the email is queued, so a repeat run sends nothing; a stage is still sendable for `INVOICE_REMINDER_GRACE_DAYS` after its trigger day.
 - **Audit:** `audit.py` registers invoices, lines and payments under `billing_invoice` and customers under `billing_customer`; history is readable with `billing.manage`.
-- **Settings** (`BILLING_INVOICE_*` in `config.py`, `docs/env.md`): legal entity name, default VAT 15%, number prefix and padding are **provisional** until the registration and tax advice are confirmed. Currency XCD and net 30 are owner decisions (2026-10-18).
+- **Settings** (`BILLING_INVOICE_*` in `config.py`, `docs/env.md`): legal entity name, default VAT 15%, number prefix and padding are **provisional** until the registration and tax advice are confirmed. Currency XCD and net 30 are owner decisions.
 - Service functions `flush` and never `commit`; routers commit (reminders commit themselves, as the worker owns that transaction).
 
 ## Tests

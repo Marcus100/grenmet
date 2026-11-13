@@ -27,6 +27,7 @@ current behavior as correct. Track unknown requirements explicitly.
 | Shared TypeScript logic | Vitest through exported behavior; consumer tests may cover shared modules |
 | React interactions | Testing Library with user actions, accessible queries and observable results; MSW for controlled HTTP responses |
 | Next.js workflows | Playwright against a running application for authentication, server rendering and complete browser-to-API flows |
+| Codes and calculations (SYNOP, BUFR, IWXXM, METAR, humidity, pressure) | Hypothesis property tests (`apps/api/fastapi/tests/test_eregister_properties.py`): round-trips, physical bounds and an independent decoder over generated readings, derandomised in CI; keep example tests for known cases and pin every shrunk failure as one |
 | Generated API client | OpenAPI drift and serialization/error/credential-isolation tests; do not edit generated code |
 | Payload CMS | Access rules, real database editorial workflows, migrations, public content and media behavior |
 | Configuration-only packages | Consumer type checks, configuration validation and runtime image checks; no artificial unit suite required |
@@ -49,6 +50,7 @@ upstream UI libraries unless our composition or custom behavior introduces risk.
 | Dev and pull-request CI | Unit/component/API/integration checks, contract drift, lint/types, required aggregate gates |
 | Docker build | Check actual runtime imports, entrypoints, assets, migration dependencies and image vulnerabilities |
 | Staging | Deployed readiness and representative authenticated workflows using owned synthetic data; verify PDF generation, storage and cross-app authentication |
+| Staging journeys | `tests/staging/` (Playwright, `pnpm e2e:staging`), run after each staging deploy by the Staging Smoke workflow: public pages on desktop and phone with no page errors or broken images, the issued-products RSS, sign-in and the staff-portal redirect, a read-only signed-in journey (needs the `STAGING_E2E_EMAIL`/`STAGING_E2E_PASSWORD` secrets, #933), and axe-core WCAG 2.1 A/AA checks on the homepage, alerts, issued forecasts and sign-in. Automation finds roughly a third of WCAG issues; keep a manual keyboard and screen-reader pass before releases |
 | Production | Safe readiness/public checks, release-linked error monitoring and operational alerts; no general mutation/fuzzing suite against live business records |
 | Scheduled operations | Restore drills, broader security checks and performance testing against designated test targets |
 
@@ -119,12 +121,12 @@ Where each floor is enforced:
   `coverage/coverage-summary.json` reports with the baseline. Apps without a report
   are skipped.
 - **Web, in CI.** `ci-web.yml` runs the `web-coverage` job: one matrix entry per
-  app in `coverageApps` (`scripts/ci/select-images.mjs`: `auth`, `gms`, `mbia`,
+  app in `coverageApps` (`scripts/ci/select-images.mjs`: `admin`, `auth`, `bookings`, `cap`, `events`, `gms`, `gmsdash`, `mbia`,
   `signal`), each running `pnpm -C <app> run test:coverage` and then
   `node scripts/guardrails/check-coverage.mjs --only web`. It runs beside the
   TypeScript Tests job and is part of the `build` aggregate gate. Dev PRs and dev
   pushes run only the apps whose files changed (shared packages and root files
-  select all, as in image selection); promotion PRs and pushes run all four. A
+  select all, as in image selection); promotion PRs and pushes run all of them. A
   skipped matrix leaves the gate green only when selection succeeded.
 - **gaa-admin is not in CI coverage.** Its full run takes about 40 minutes locally
   and hit a 30 s test timeout under instrumentation, so its floor is enforced only

@@ -18,6 +18,7 @@ const SHARED_SENTRY_APPS = new Set([
   "mbia",
   "events",
   "bookings",
+  "account",
   "cms",
   "api",
   "worker",

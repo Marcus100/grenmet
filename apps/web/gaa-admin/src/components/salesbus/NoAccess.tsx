@@ -14,7 +14,9 @@ export function NoAccess() {
         <EmptyMedia variant="icon">
           <Lock />
         </EmptyMedia>
-        <EmptyTitle>Stores access needed</EmptyTitle>
+        <EmptyTitle>
+          <h1>Stores access needed</h1>
+        </EmptyTitle>
         <EmptyDescription>
           Ask your department head to give you a stores role. You also need an
           active staff record.

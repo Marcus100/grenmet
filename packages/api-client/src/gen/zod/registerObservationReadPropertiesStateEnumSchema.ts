@@ -11,4 +11,5 @@ export const registerObservationReadPropertiesStateEnumSchema = z.enum([
   "accepted",
   "rejected",
   "superseded",
+  "historical",
 ]);

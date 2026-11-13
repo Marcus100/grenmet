@@ -1,25 +1,25 @@
 services:
   backend-db:
-    image: postgres:17
+    image: postgres:18
     environment:
       POSTGRES_USER: verification
       POSTGRES_PASSWORD: test-only-password
       POSTGRES_DB: postgres
     ports: ["127.0.0.1::5432"]
-    tmpfs: [/var/lib/postgresql/data]
+    tmpfs: [/var/lib/postgresql]
     healthcheck:
       test: [CMD-SHELL, pg_isready -U verification -d postgres]
       interval: 2s
       timeout: 5s
       retries: 30
   storage-db:
-    image: postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
+    image: postgis/postgis:18-3.7@sha256:c5d1ba4292ff7b4471ff41cd515c677633797b72cdd2a7bb691cadaab91f1a1f
     environment:
       POSTGRES_USER: verification
       POSTGRES_PASSWORD: test-only-password
       POSTGRES_DB: postgres
     ports: ["127.0.0.1::5432"]
-    tmpfs: [/var/lib/postgresql/data]
+    tmpfs: [/var/lib/postgresql]
     healthcheck:
       test: [CMD-SHELL, pg_isready -U verification -d postgres]
       interval: 2s

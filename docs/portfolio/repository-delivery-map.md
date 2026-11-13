@@ -54,6 +54,7 @@ retain their own purpose; the Barrels admin control plane remains distinct.
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
 | `apps/web/bookings` | Barrels Bookings: appointment booking for Grenada businesses (ADR-0024) | Skeleton | Public booking pages at `bookings.barrels.gd/{business}` and `/studio` on Barrels sign-in; booking widgets come from the shared package when extracted |
+| `apps/web/account` | Barrels account: a person's name, email and profile photo (ADR-0057) | Scaffold | `account.barrels.gd`; signs in through `auth.barrels.gd` (single sign-on); photo API from the FastAPI profile-images routes |
 | `apps/web/elections` | Barrels Elections Grenada product (Grenada election coverage and history) | Prototype; 2026 coverage first | Election coverage and results history from static checked data; a FastAPI domain for results night later |
 | `apps/web/signal` | Barrels Signal media product | Active | Editorial reader redesign and discovery preview; dedicated Signal CMS deferred until frontend review |
 | `apps/web/mbia` | GAA/MBIA passenger public service | Active | Keep distinct from GAA corporate and staff applications |
@@ -119,6 +120,7 @@ GMS or GAA.
 | `scripts/scrapy-wxwatch` | GMS forecast-support operations delivered by Barrels | Active | Deploy bounded schedules with freshness, storage, database, and alert ownership |
 | `scripts/wis2-setup` | GMS/WIS2 integration artifacts | Active pilot | Complete local soak and separately approved global publication gates |
 | `scripts/wxregister` | GMS data migration/extraction utility | Reference utility | Retain until migration need is resolved; promote or retire explicitly |
+| `tests` | Barrels engineering cross-app checks against deployed environments (`tests/staging`: browser journeys and WCAG 2.1 AA checks after each staging deploy) | Active | Read-only against staging; never mutates records; credentials come from CI secrets and never appear in output |
 | `scripts/docs` | Barrels engineering documentation guardrails | Active | Enforce links, portfolio coverage, and document-system integrity |
 | `scripts/design-system` | Barrels engineering design-system automation | Active | Separate brand-neutral enforcement from GMS-specific contracts |
 | `scripts/ops` | Barrels engineering staging promotion automation and post-deploy staging smoke test | Active | Owner enables the promotion workflow and token; failures stay loud and the dev to staging PR is never merged by the script itself |

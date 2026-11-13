@@ -23,6 +23,14 @@ export type EregisterListRegisterObservationsQuery = {
    */
   observed_at?: string | null;
   /**
+   * @description Only observations at or after this UTC time (inclusive start of a range).
+   */
+  observed_from?: string | null;
+  /**
+   * @description Only observations before this UTC time (exclusive end of a range).
+   */
+  observed_to?: string | null;
+  /**
    * @minimum 1
    * @maximum 500
    * @default 100

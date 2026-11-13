@@ -21,7 +21,7 @@ export const eregisterListRegisterObservationsQueryStateSchema = z
     z
       .string()
       .regex(
-        /^(draft|qc_pending|accepted|rejected|superseded)(,(draft|qc_pending|accepted|rejected|superseded))*$/
+        /^(draft|qc_pending|accepted|rejected|superseded|historical)(,(draft|qc_pending|accepted|rejected|superseded|historical))*$/
       ),
     z.null(),
   ])
@@ -42,6 +42,20 @@ export const eregisterListRegisterObservationsQueryObservedAtSchema = z
   .optional()
   .describe(
     "Only observations for exactly this UTC time (to find the record occupying an hour)."
+  );
+
+export const eregisterListRegisterObservationsQueryObservedFromSchema = z
+  .union([z.iso.datetime(), z.null()])
+  .optional()
+  .describe(
+    "Only observations at or after this UTC time (inclusive start of a range)."
+  );
+
+export const eregisterListRegisterObservationsQueryObservedToSchema = z
+  .union([z.iso.datetime(), z.null()])
+  .optional()
+  .describe(
+    "Only observations before this UTC time (exclusive end of a range)."
   );
 
 export const eregisterListRegisterObservationsQueryLimitSchema = z
@@ -91,7 +105,7 @@ export const eregisterListRegisterObservationsQuerySchema = z.object({
       z
         .string()
         .regex(
-          /^(draft|qc_pending|accepted|rejected|superseded)(,(draft|qc_pending|accepted|rejected|superseded))*$/
+          /^(draft|qc_pending|accepted|rejected|superseded|historical)(,(draft|qc_pending|accepted|rejected|superseded|historical))*$/
         ),
       z.null(),
     ])
@@ -110,6 +124,18 @@ export const eregisterListRegisterObservationsQuerySchema = z.object({
     .optional()
     .describe(
       "Only observations for exactly this UTC time (to find the record occupying an hour)."
+    ),
+  observed_from: z
+    .union([z.iso.datetime(), z.null()])
+    .optional()
+    .describe(
+      "Only observations at or after this UTC time (inclusive start of a range)."
+    ),
+  observed_to: z
+    .union([z.iso.datetime(), z.null()])
+    .optional()
+    .describe(
+      "Only observations before this UTC time (exclusive end of a range)."
     ),
   limit: z.int().min(1).max(500).optional().default(100),
   offset: z.int().min(0).max(10000000).optional().default(0),

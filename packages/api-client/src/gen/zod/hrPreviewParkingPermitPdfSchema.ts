@@ -7,7 +7,7 @@ import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { parkingPermitCreateSchema } from "./parkingPermitCreateSchema.js";
 
-export const hrPreviewParkingPermitPdfStatus200Schema = z.instanceof(File);
+export const hrPreviewParkingPermitPdfStatus200Schema = z.instanceof(Blob);
 
 export const hrPreviewParkingPermitPdfStatus400Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."

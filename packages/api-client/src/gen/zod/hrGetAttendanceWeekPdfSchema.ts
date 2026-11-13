@@ -13,7 +13,7 @@ export const hrGetAttendanceWeekPdfQueryDepartmentIdSchema = z
   .union([z.string(), z.null()])
   .optional();
 
-export const hrGetAttendanceWeekPdfStatus200Schema = z.instanceof(File);
+export const hrGetAttendanceWeekPdfStatus200Schema = z.instanceof(Blob);
 
 export const hrGetAttendanceWeekPdfStatus400Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."

@@ -49,6 +49,7 @@ The token and key are the owner's; never commit them or put them in an env file.
 | cms | `pnpm dev:web:cms` | 3006 | Yes (identity) | Payload; run `pnpm cms:setup-db` first (see its README) |
 | events | `pnpm dev:web:events` | 3009 | No | Prototype |
 | bookings | `pnpm dev:web:bookings` | 3015 | Sign-in only (`/studio`) | Skeleton; no booking UI yet |
+| account | `pnpm dev:web:account` | 3018 | Yes (every page) | Profile and profile photo (ADR-0057) |
 
 Each app's rules are in `apps/web/<app>/AGENTS.md`. Port policy is in
 [`docs/ports.md`](../ports.md).

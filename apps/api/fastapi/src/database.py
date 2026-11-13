@@ -38,7 +38,7 @@ from src.cap.models import (
     CapWebhook,
 )
 from src.config import settings
-from src.contacts import audit as _contacts_audit
+from src.domains import import_models, run_registrations
 from src.eregister import audit as _eregister_audit
 from src.events import notifications as _events_notifications
 from src.feature_flags import audit as _feature_flags_audit
@@ -105,7 +105,6 @@ from src.stores.models import (
     StoreItem,
     StoreLocation,
 )
-from src.webhooks_out import audit as _webhooks_out_audit
 from src.wxwatch import alerts as _wxwatch_alerts
 
 # Modules register what they audit and notify about before any session exists.
@@ -117,12 +116,13 @@ _events_notifications.register()
 _stores_audit.register()
 _stores_notifications.register()
 _organisations_audit.register()
-_webhooks_out_audit.register()
 _billing_audit.register()
 _rewards_audit.register()
 _eregister_audit.register()
 _feature_flags_audit.register()
-_contacts_audit.register()
+# Domains with an ADR-0031 manifest (src/domains.py) register themselves.
+import_models()
+run_registrations()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 

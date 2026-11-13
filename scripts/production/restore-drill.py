@@ -938,7 +938,7 @@ def main(argv=None):
         "--result-file", help="Write counts and timings as JSON (no row contents)"
     )
     parser.add_argument(
-        "--image", default=os.environ.get("CORE_POSTGRES_IMAGE", "postgres:17")
+        "--image", default=os.environ.get("CORE_POSTGRES_IMAGE", "postgres:18")
     )
     parser.add_argument("--tmpfs-size", default="4g")
     parser.add_argument("--max-seconds", type=int, default=DEFAULT_MAX_SECONDS)

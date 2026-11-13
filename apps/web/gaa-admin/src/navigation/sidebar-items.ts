@@ -9,6 +9,7 @@ import {
   CloudSun,
   Contact,
   FileText,
+  Fingerprint,
   Gauge,
   House,
   type LucideIcon,
@@ -104,6 +105,12 @@ export const sidebarItems: NavGroup[] = [
             title: "Team approvals",
             url: "/hr/approvals",
             icon: ClipboardCheck,
+          },
+          {
+            id: "hr-terminal",
+            title: "Terminal punches",
+            url: "/hr/terminal",
+            icon: Fingerprint,
           },
           {
             id: "hr-payroll",

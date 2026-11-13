@@ -1,5 +1,7 @@
 import "server-only";
 import {
+  type IssuedProducts,
+  issuedProductsSchema,
   type PublicCurrentConditions,
   type PublicForecast,
   type PublicMonthSummary,
@@ -182,3 +184,57 @@ export const fetchMonthSummary = cache(async function fetchMonthSummary(
     return null;
   }
 });
+
+export type IssuedResult =
+  | { status: "ok"; products: IssuedProducts["products"] }
+  | { status: "unavailable" };
+
+/** The most recently issued products, current or expired, for the RSS feed. */
+export async function fetchIssuedProducts(limit = 20): Promise<IssuedResult> {
+  try {
+    const url = endpoint("issued-products");
+    url.searchParams.set("limit", String(limit));
+    const response = await fetch(url, requestOptions());
+    if (!response.ok) return { status: "unavailable" };
+    const parsed = issuedProductsSchema.safeParse(await response.json());
+    if (!parsed.success) {
+      reportError(parsed.error, "gms-issued-contract");
+      return { status: "unavailable" };
+    }
+    return { status: "ok", products: parsed.data.products };
+  } catch (error) {
+    reportError(error, "gms-issued");
+    return { status: "unavailable" };
+  }
+}
+
+/**
+ * The published PDF of one product, passed through from FastAPI so it is
+ * served from this site's own domain. No logic: status, type and file name
+ * pass through; an unreachable API is a 503.
+ */
+export async function proxyProductPdf(id: string): Promise<Response> {
+  if (!UUID.test(id)) return new Response("Not found", { status: 404 });
+  try {
+    const upstream = await fetch(
+      endpoint(`products/${encodeURIComponent(id)}/pdf`),
+      { ...requestOptions(), signal: AbortSignal.timeout(30_000) }
+    );
+    const headers = new Headers({ "Cache-Control": "no-store" });
+    for (const name of [
+      "content-type",
+      "content-disposition",
+      "x-content-type-options",
+    ]) {
+      const value = upstream.headers.get(name);
+      if (value) headers.set(name, value);
+    }
+    return new Response(upstream.body, { status: upstream.status, headers });
+  } catch (error) {
+    reportError(error, "gms-product-pdf");
+    return new Response("Product PDF unavailable", {
+      status: 503,
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
+}

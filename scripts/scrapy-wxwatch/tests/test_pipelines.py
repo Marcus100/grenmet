@@ -13,6 +13,7 @@ from app.pipelines import (
 from PIL import Image
 from scrapy.http import Request, Response
 from scrapy.settings import Settings
+from scrapy.utils.test import get_crawler
 from twisted.internet.defer import Deferred
 
 
@@ -202,7 +203,7 @@ def test_crawl_outcome_is_nonzero_after_an_error():
     assert outcome.exit_code == 1
 
 
-def test_images_pipeline_applies_configured_object_acl(monkeypatch):
+def test_images_pipeline_applies_configured_object_acl():
     from app.config import ImageStorageConfig
 
     config = ImageStorageConfig.from_env(
@@ -214,12 +215,11 @@ def test_images_pipeline_applies_configured_object_acl(monkeypatch):
             "STORAGE_OBJECT_ACL": "public-read",
         }
     )
-    s3_store = MinutePathImagesPipeline.STORE_SCHEMES["s3"]
-    monkeypatch.setattr(s3_store, "POLICY", "private")
+    crawler = get_crawler(settings_dict=config.as_scrapy_settings())
 
-    MinutePathImagesPipeline._update_stores(Settings(config.as_scrapy_settings()))
+    pipeline = MinutePathImagesPipeline.from_crawler(crawler)
 
-    assert s3_store.POLICY == "public-read"
+    assert pipeline.store.POLICY == "public-read"
 
 
 def test_crawl_outcome_watches_bootstrap_failures():
