@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed — 2026-11-13. Owner direction of 13 November 2026: keep
+Accepted — 2026-11-13 (owner direction and answers of 13 November 2026): keep
 `auth.barrels.gd` for signing in, and move the pages for managing a Barrels
 account to a new app at `account.barrels.gd`. Nothing here is built yet. The
 first feature that needs it is the profile photo upload screen (#1303); the
