@@ -19,8 +19,10 @@ manage their account and some consumer features:
   confirmation, single sign-on hand-off (`continue`, ADR-0017), the access
   request page, signed-out, and the emailed organisation invitation link
   (`organisations/accept`).
-- **Account management:** security (password and two-step sign-in, recovery
-  codes), sessions, my organisations, my apps (`apps`).
+- **Account management:** the signed-in profile view on the home page
+  (`page.tsx` with `lib/profile.ts`), change password (`password`), security
+  (two-step sign-in, recovery codes), sessions, my organisations, my apps
+  (`apps`).
 - **Consumer features:** Events tickets (`tickets`) and the rewards passport
   (`rewards`).
 - **Organisation administration:** the organisation rewards admin
@@ -45,6 +47,10 @@ notification preferences) would land in the sign-in app too.
   `accounts.google.com` and `myaccount.google.com`). The sign-in surface stays
   small, strict and rarely changed, while account pages change often and
   carry richer UI.
+- **Fact (high):** `account` is on the reserved identity-and-access names list
+  (`docs/ports.md`, ADR-0043 decision 9). A reserved name is claimed "in the
+  same change as its port and host"; this record claims it for this app,
+  together with port 3018.
 - **Interpretation (medium):** the sign-in pages handle passwords, codes and
   return-to targets; every unrelated page in the same app widens what a
   mistake there can reach and makes a strict Content Security Policy harder
@@ -65,16 +71,20 @@ notification preferences) would land in the sign-in app too.
 
 ## Decision
 
-Adopt option 2.
+Adopt option 2. It meets ADR-0043 decision 6 on **deployment**: the audience
+(every Barrels account) and the session model (single sign-on) are the same as
+`auth`'s, but the two now need separate deployments, so the sign-in surface can
+keep a small, strict, rarely changed release while account features ship
+often without touching it.
 
 - **`auth.barrels.gd` (`apps/web/auth`, port 3000) keeps only the sign-in
   flows** listed above, including the emailed invitation link, because it
   works before the person has a session on any other host.
 - **`account.barrels.gd` (`apps/web/account`, `@barrelsgd/web-account`, port
   3018,** the unused `@barrelsgd/web-app` reservation, owner decision 13
-  November 2026**)** holds a person's account: profile (name, profile photo), security
-  (password, two-step sign-in, recovery codes), sessions, my organisations,
-  and my apps. It signs in through `continue` like any other app, and asks for
+  November 2026**)** holds a person's account: profile (the existing profile view moves from
+  `auth`'s home page; the profile photo is new), change password, security
+  (two-step sign-in, recovery codes), sessions, my organisations, and my apps. It signs in through `continue` like any other app, and asks for
   the password or a code again before security changes, as `auth` does today.
 - **Events tickets and the rewards passport** move to `account` and stay there
   (owner decision 13 November 2026), like the orders page of a large
@@ -92,7 +102,8 @@ One small PR each, in order:
    Dockerfile and compose service, a Traefik route on staging, the sign-in
    return-host allowlist and CORS origins. The home page shows the profile with
    the photo upload (#1303).
-2. Move security and sessions, with redirects from `auth`.
+2. Move the profile view, change password, security and sessions (with
+   `lib/profile.ts` and the shared `AccountLayout`), with redirects from `auth`.
 3. Move my organisations and my apps, then the organisation rewards admin.
 4. Move tickets and rewards.
 5. Production: DNS, certificate and a Better Stack monitor, then trim
