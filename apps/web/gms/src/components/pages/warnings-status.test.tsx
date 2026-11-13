@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
+  AlertLists,
   CapGroups,
   GreenSection,
   noWarningsLabel,
@@ -249,5 +250,17 @@ describe("noWarningsLabel", () => {
     ["a read in full and empty", ok({}), undefined],
   ])("for %s", (_name, status, expected) => {
     expect(noWarningsLabel(status)).toBe(expected);
+  });
+});
+
+describe("the page's lists when nothing is in effect", () => {
+  it("says it once, as a two-line checklist of both lists", async () => {
+    render(await AlertLists({ alerts: NO_WARNINGS, green: outlookOf({}) }));
+    const list = screen.getByLabelText("Alerts checked");
+    expect(list).toHaveTextContent("Warnings and watches:none in effect");
+    expect(list).toHaveTextContent("Green alerts:none in effect");
+    expect(
+      screen.queryByRole("heading", { name: "Green alerts" })
+    ).not.toBeInTheDocument();
   });
 });
