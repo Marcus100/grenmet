@@ -26,7 +26,6 @@ const sourceSerif = Source_Serif_4({
 });
 
 /** The masthead status and the homepage lead follow today's date in Grenada. */
-export const revalidate = 3600;
 
 export const metadata: Metadata = {
   // Absolute base for share-preview links; set per environment at build time.
