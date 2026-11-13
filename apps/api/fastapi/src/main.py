@@ -48,9 +48,8 @@ from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
 from src.contact.router import router as contact_router
-from src.contacts.router import router as contacts_router
 from src.content_distribution.router import router as content_distribution_router
-from src.domain_manifest import Mount
+from src.domain_manifest import Mount, resolve_router
 from src.domains import ordered_mounts
 from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
@@ -538,7 +537,6 @@ _LEGACY_MOUNTS: dict[str, Mount] = {
         _legacy("notifications.notifications", notifications_router),
         _legacy("organisations.organisations", organisations_router),
         _legacy("feature_flags.feature_flags", feature_flags_router),
-        _legacy("contacts.contacts", contacts_router),
         _legacy("cap.cap", cap_router),
         _legacy("cap.public", cap_public_router, versioned=False),
         _legacy("utils.utils", utils_router),
@@ -582,10 +580,11 @@ _LEGACY_MOUNTS: dict[str, Mount] = {
 
 def _mount_routers() -> None:
     for mount in ordered_mounts(_LEGACY_MOUNTS):
+        router = resolve_router(mount.router)
         if mount.versioned:
-            app.include_router(mount.router, prefix=settings.API_V1_STR)
+            app.include_router(router, prefix=settings.API_V1_STR)
         else:
-            app.include_router(mount.router)
+            app.include_router(router)
 
 
 _mount_routers()

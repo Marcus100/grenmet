@@ -59,7 +59,10 @@ Pattern: `src/hr/leave/` (router → service → models, `schemas.py` on
   A new router gets a key in `MOUNT_ORDER` (`src/domains.py`; its position is
   its place in `openapi.json`) and is registered by the domain's
   `src/<domain>/register.py` manifest, or in `_LEGACY_MOUNTS` in `src/main.py`
-  while the domain has no manifest yet (ADR-0031).
+  while the domain has no manifest yet (ADR-0031). A manifest names its router
+  by import path (`"src.<domain>.router:router"`) and also lists its Postgres
+  schemas, model modules and `register()` modules, so `src/database.py` and
+  `alembic/env.py` need no edit; it must not import domain code.
 - Slow or retryable side effects → an ARQ job (`src/worker/`), not `BackgroundTasks`.
 
 ## 3. Backend tests
