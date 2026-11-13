@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-13
 
 This guide documents the operational infrastructure implemented in this repo today. For first-time server setup see [deployment.md](deployment.md). For local development failures see [troubleshooting.md](troubleshooting.md).
 
@@ -20,7 +20,7 @@ since 2026-11-12, each running Ubuntu 24.04 and Docker Engine 29.
 
 Each stack includes:
 
-- `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI (which also holds the `events` schema, ADR-0003), `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister` and the CMS (`gms_cms`).
+- `db`: PostgreSQL 18 (staging and production stay on 17 until each runs the upgrade in [the PostgreSQL 18 upgrade plan](operations/postgres-18-upgrade.md); the image, data mount and volume move together). The same server hosts separate databases for FastAPI (which also holds the `events` schema, ADR-0003), `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister` and the CMS (`gms_cms`).
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP publish jobs, notification and email outboxes, retention purge; see `src/worker/AGENTS.md`).
