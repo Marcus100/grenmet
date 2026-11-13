@@ -13,6 +13,7 @@ import subprocess
 import sys
 from importlib import import_module
 from pathlib import Path
+from types import ModuleType
 
 import pytest
 from fastapi import APIRouter
@@ -20,13 +21,15 @@ from fastapi import APIRouter
 from src import database, outbox
 from src.audit import registry
 from src.contacts.models import Contact, ContactConsent
-from src.domain_manifest import Domain, Mount, resolve_router
+from src.domain_manifest import Domain, Mount, WorkerJob, resolve_router
 from src.domains import (
     DOMAINS,
     MOUNT_ORDER,
     ordered_mounts,
     run_registrations,
     tracked_schemas,
+    worker_jobs,
+    worker_modules,
 )
 from src.main import _LEGACY_MOUNTS
 from src.orm import Base
@@ -136,6 +139,8 @@ def test_every_manifest_table_lives_in_a_tracked_schema() -> None:
     declared = tracked_schemas()
     for domain in DOMAINS:
         modules = set(domain.model_modules)
+        if not modules:
+            continue
         tables = [
             table
             for table in Base.metadata.tables.values()
@@ -179,9 +184,63 @@ def test_alembic_tracks_the_manifest_schemas() -> None:
         for node in tree.body
         if isinstance(node, ast.Assign)
         and any(
-            isinstance(t, ast.Name) and t.id == "_TRACKED_SCHEMAS"
-            for t in node.targets
+            isinstance(t, ast.Name) and t.id == "_TRACKED_SCHEMAS" for t in node.targets
         )
     )
     assert isinstance(tracked, ast.BinOp)
     assert isinstance(tracked.op, ast.BitOr)
+
+
+def _worker() -> ModuleType:
+    return import_module("src.worker.main")
+
+
+def test_manifest_jobs_are_worker_functions_with_one_schedule() -> None:
+    settings = _worker().WorkerSettings
+    jobs = worker_jobs()
+    assert jobs, "no domain contributes a worker job yet"
+    for function, job in jobs:
+        assert function in settings.functions
+        scheduled = [c for c in settings.cron_jobs if c.coroutine is function]
+        assert len(scheduled) == (1 if job.cron is not None else 0)
+
+
+def test_poll_flights_keeps_its_schedule_and_its_worker_name() -> None:
+    worker = _worker()
+    from src.flights.jobs import poll_flights
+
+    assert worker.poll_flights is poll_flights
+    (schedule,) = [
+        c for c in worker.WorkerSettings.cron_jobs if c.coroutine is poll_flights
+    ]
+    assert schedule.minute == {5, 35}
+    assert schedule.name == "cron:poll_flights"
+    assert not schedule.run_at_startup
+
+
+def test_an_unknown_worker_attribute_still_fails() -> None:
+    assert not hasattr(_worker(), "no_such_job")
+
+
+def test_worker_modules_load_the_webhook_handler() -> None:
+    assert "src.webhooks_out.delivery" in worker_modules()
+    assert "webhook.deliver" in outbox._HANDLERS
+
+
+def test_a_job_outside_its_domain_fails() -> None:
+    stray = Domain("extra", jobs=(WorkerJob("src.flights.jobs:poll_flights"),))
+    with pytest.raises(ValueError, match="must live in src.extra"):
+        worker_jobs((stray,))
+
+
+def test_a_job_name_used_twice_fails() -> None:
+    with pytest.raises(ValueError, match="registered twice"):
+        worker_jobs((*DOMAINS, Domain("flights", jobs=DOMAINS[-1].jobs)))
+
+
+def test_a_manifest_job_may_not_reuse_a_built_in_job_name() -> None:
+    worker = _worker()
+    functions = [*worker.WorkerSettings.functions, worker.purge_expired_data]
+    with pytest.raises(ValueError, match="purge_expired_data"):
+        worker._check_unique_job_names(functions)
+    worker._check_unique_job_names(worker.WorkerSettings.functions)

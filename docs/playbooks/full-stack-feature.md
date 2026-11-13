@@ -63,7 +63,9 @@ Pattern: `src/hr/leave/` (router → service → models, `schemas.py` on
   by import path (`"src.<domain>.router:router"`) and also lists its Postgres
   schemas, model modules and `register()` modules, so `src/database.py` and
   `alembic/env.py` need no edit; it must not import domain code.
-- Slow or retryable side effects → an ARQ job (`src/worker/`), not `BackgroundTasks`.
+- Slow or retryable side effects → an ARQ job, not `BackgroundTasks`. A domain
+  with a manifest lists its jobs (`WorkerJob`) and outbox handler modules
+  (`worker_modules`) there; see `src/worker/AGENTS.md`.
 
 ## 3. Backend tests
 

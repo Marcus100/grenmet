@@ -11,19 +11,22 @@ under the same keys, their models and ``register()`` calls in
 ``src/database.py`` and ``alembic/env.py``. Migration steps and what stays out
 of scope: ADR-0031.
 
-This module imports no domain code (manifests hold import paths), so
+This module imports no domain code at import time (manifests hold import
+paths; ``worker_jobs()`` imports job modules when called), so
 ``src.database`` and ``alembic/env.py`` can read it without a circular import.
 """
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from importlib import import_module
+from typing import Any
 
 from src.contacts.register import DOMAIN as CONTACTS
-from src.domain_manifest import Domain, Mount
+from src.domain_manifest import Domain, Mount, WorkerJob, resolve_function
+from src.flights.register import DOMAIN as FLIGHTS
 from src.webhooks_out.register import DOMAIN as WEBHOOKS_OUT
 
 # Registered manifests, one line per migrated domain.
-DOMAINS: tuple[Domain, ...] = (WEBHOOKS_OUT, CONTACTS)
+DOMAINS: tuple[Domain, ...] = (WEBHOOKS_OUT, CONTACTS, FLIGHTS)
 
 # Every router of the app, in mount order (legacy and registered alike).
 MOUNT_ORDER: tuple[str, ...] = (
@@ -166,3 +169,29 @@ def run_registrations(domains: Iterable[Domain] = DOMAINS) -> None:
                 continue
             import_module(module).register()
             _registered.add(module)
+
+
+def worker_modules(domains: Iterable[Domain] = DOMAINS) -> tuple[str, ...]:
+    """Modules the main worker imports at startup and before each outbox drain."""
+    return tuple(module for domain in domains for module in domain.worker_modules)
+
+
+def worker_jobs(
+    domains: Iterable[Domain] = DOMAINS,
+) -> list[tuple[Callable[..., Any], WorkerJob]]:
+    """Each registered job's function with its manifest entry; fails on a name
+    used twice, because arq looks jobs up by function name."""
+    jobs: list[tuple[Callable[..., Any], WorkerJob]] = []
+    names: set[str] = set()
+    for domain in domains:
+        for job in domain.jobs:
+            if not job.function.startswith(f"src.{domain.name}."):
+                raise ValueError(f"job {job.function!r} must live in src.{domain.name}")
+            function = resolve_function(job.function)
+            if function.__name__ in names:
+                raise ValueError(
+                    f"worker job {function.__name__!r} is registered twice"
+                )
+            names.add(function.__name__)
+            jobs.append((function, job))
+    return jobs

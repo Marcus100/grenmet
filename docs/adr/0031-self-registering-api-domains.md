@@ -24,7 +24,13 @@ schemas, model modules and `register()` modules; `database.py` calls
 `import_models()` and `run_registrations()`, and `env.py` adds
 `tracked_schemas()` to `_TRACKED_SCHEMAS`. Manifest registrations now run after
 the legacy ones; their order is not a contract (they fill lookup tables). `openapi.json` and the `alembic check` output are unchanged.
-Steps 5 and 6 are not started.
+Step 5 built 2026-11-13 with `flights` as the third pilot. A `Domain`
+lists `worker_modules` (imported by `startup` and `drain_outbox`; outbox
+handlers register on import) and `jobs` (`WorkerJob`: a `"module:attribute"`
+path and the `arq.cron` keywords). `WorkerSettings` appends them to `functions`
+and `cron_jobs`; a module `__getattr__` keeps them reachable as
+`src.worker.main.<job>`. The worker's job names and schedules are identical
+before and after. Step 6 is not started.
 
 ## Context
 

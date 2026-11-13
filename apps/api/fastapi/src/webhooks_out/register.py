@@ -11,4 +11,6 @@ DOMAIN = Domain(
     schemas=("webhooks",),
     model_modules=("src.webhooks_out.models",),
     registrations=("src.webhooks_out.audit",),
+    # Registers the webhook.deliver outbox handler.
+    worker_modules=("src.webhooks_out.delivery",),
 )
