@@ -17,6 +17,7 @@ def column(
     default_factory: Any = None,
     primary_key: bool = False,
     foreign_key: str | None = None,
+    ondelete: str | None = None,
     index: bool = False,
     unique: bool = False,
     sa_column: Any = None,
@@ -40,7 +41,7 @@ def column(
     if sa_type is not None:
         args.append(sa_type)
     if foreign_key is not None:
-        args.append(ForeignKey(foreign_key))
+        args.append(ForeignKey(foreign_key, ondelete=ondelete))
     kwargs: dict[str, Any] = {
         "primary_key": primary_key,
         "index": index,

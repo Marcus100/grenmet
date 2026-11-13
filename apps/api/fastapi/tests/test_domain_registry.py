@@ -32,6 +32,7 @@ from src.domains import (
     worker_modules,
 )
 from src.main import _LEGACY_MOUNTS
+from src.model_registry import TRACKED_SCHEMAS
 from src.orm import Base
 
 # The worker imports the outbox handler modules, which register their topics.
@@ -178,17 +179,8 @@ def test_alembic_tracks_the_manifest_schemas() -> None:
         for node in ast.walk(tree)
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
     }
-    assert {"import_models", "tracked_schemas"} <= called
-    tracked = next(
-        node.value
-        for node in tree.body
-        if isinstance(node, ast.Assign)
-        and any(
-            isinstance(t, ast.Name) and t.id == "_TRACKED_SCHEMAS" for t in node.targets
-        )
-    )
-    assert isinstance(tracked, ast.BinOp)
-    assert isinstance(tracked.op, ast.BitOr)
+    assert {"import_all_models", "object_filter"} <= called
+    assert tracked_schemas() <= TRACKED_SCHEMAS
 
 
 def _worker() -> ModuleType:
