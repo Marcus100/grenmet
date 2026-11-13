@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM ghcr.io/marcus100/base/node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS base
+FROM ghcr.io/marcus100/base/node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS base
 # Bump this date when Alpine publishes a fix: BuildKit would otherwise reuse the cached
 # `apk upgrade` layer and keep shipping the old packages (musl 1.2.6-r2, 2026-11-07).
 ARG ALPINE_PATCH_DATE=2026-11-13
