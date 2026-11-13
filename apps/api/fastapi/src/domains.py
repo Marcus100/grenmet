@@ -7,16 +7,23 @@ public OpenAPI contract (path order in ``openapi.json``), so it is written out
 here rather than discovered from the filesystem.
 
 Domains not yet migrated keep their routers in ``main.py`` (``_LEGACY_MOUNTS``)
-under the same keys. Migration steps and what stays out of scope: ADR-0031.
+under the same keys, their models and ``register()`` calls in
+``src/database.py`` and ``alembic/env.py``. Migration steps and what stays out
+of scope: ADR-0031.
+
+This module imports no domain code (manifests hold import paths), so
+``src.database`` and ``alembic/env.py`` can read it without a circular import.
 """
 
 from collections.abc import Iterable, Mapping
+from importlib import import_module
 
+from src.contacts.register import DOMAIN as CONTACTS
 from src.domain_manifest import Domain, Mount
 from src.webhooks_out.register import DOMAIN as WEBHOOKS_OUT
 
 # Registered manifests, one line per migrated domain.
-DOMAINS: tuple[Domain, ...] = (WEBHOOKS_OUT,)
+DOMAINS: tuple[Domain, ...] = (WEBHOOKS_OUT, CONTACTS)
 
 # Every router of the app, in mount order (legacy and registered alike).
 MOUNT_ORDER: tuple[str, ...] = (
@@ -128,3 +135,34 @@ def ordered_mounts(
             f"no router for {unknown}"
         )
     return [by_key[key] for key in MOUNT_ORDER]
+
+
+def tracked_schemas(domains: Iterable[Domain] = DOMAINS) -> set[str]:
+    """Postgres schemas the registered domains keep tables in."""
+    return {schema for domain in domains for schema in domain.schemas}
+
+
+def import_models(domains: Iterable[Domain] = DOMAINS) -> None:
+    """Put every registered domain's tables on ``Base.metadata``."""
+    for domain in domains:
+        for module in domain.model_modules:
+            import_module(module)
+
+
+_registered: set[str] = set()
+
+
+def run_registrations(domains: Iterable[Domain] = DOMAINS) -> None:
+    """Call each registered domain's ``register()`` hooks once, in list order.
+
+    ``src.database`` calls this at import time, before any session exists. A
+    module already registered in this process is skipped, so a retry after a
+    failure does not run the earlier hooks twice. Order is not a contract:
+    registrations fill lookup tables.
+    """
+    for domain in domains:
+        for module in domain.registrations:
+            if module in _registered:
+                continue
+            import_module(module).register()
+            _registered.add(module)

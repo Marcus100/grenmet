@@ -14,8 +14,17 @@ snapshotted, because the CI `openapi.json` regeneration diff already proves
 them; the only snapshot is a floor (`tests/snapshots/domain_registry_floor.json`:
 tables and outbox topics must not disappear), so adding a table needs no edit.
 A new domain adds one line to `DOMAINS` and one `MOUNT_ORDER` entry per router,
-not one line in total. Tags stay in `OPENAPI_TAGS` for now. Steps 4 to 6 are
-not started.
+not one line in total. Tags stay in `OPENAPI_TAGS` for now.
+
+Step 4 and the `contacts` pilot built 2026-11-13. Manifests name code by
+import path (`"src.x.router:router"`) instead of importing it, so
+`src/domains.py` imports no domain code and `src/database.py` and
+`alembic/env.py` read it without a circular import. A `Domain` also lists its
+schemas, model modules and `register()` modules; `database.py` calls
+`import_models()` and `run_registrations()`, and `env.py` adds
+`tracked_schemas()` to `_TRACKED_SCHEMAS`. Manifest registrations now run after
+the legacy ones; their order is not a contract (they fill lookup tables). `openapi.json` and the `alembic check` output are unchanged.
+Steps 5 and 6 are not started.
 
 ## Context
 
