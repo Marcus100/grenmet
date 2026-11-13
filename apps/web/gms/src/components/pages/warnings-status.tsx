@@ -88,7 +88,7 @@ export async function GreenSection({ green }: { green: Promise<GreenAlerts> }) {
 }
 
 /** True only when both lists were read in full and hold nothing. */
-function nothingInEffect(
+export function nothingInEffect(
   alerts: AlertsResult,
   status: GreenStatus | undefined
 ): boolean {

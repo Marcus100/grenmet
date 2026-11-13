@@ -4,11 +4,13 @@ import {
   AlertLists,
   CapGroups,
   GreenSection,
+  nothingInEffect,
   noWarningsLabel,
   WarningsBand,
 } from "@/components/pages/warnings-status";
 import type { AlertsResult, GreenStatus } from "@/lib/cap-alerts";
 import type { GreenAlerts } from "@/lib/green-alerts";
+import { greenStatus } from "@/lib/green-alerts";
 
 /** An outlook that never answers: the warnings must still show. */
 const OTHER_TWO = /2 other GMS alerts are in effect/u;
@@ -262,5 +264,54 @@ describe("the page's lists when nothing is in effect", () => {
     expect(
       screen.queryByRole("heading", { name: "Green alerts" })
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("the short checklist is never shown unless everything was read and is empty", () => {
+  const statusOf = async (green: Promise<GreenAlerts>) =>
+    greenStatus(await green);
+
+  it("is shown when both lists were read in full and hold nothing", async () => {
+    expect(nothingInEffect(NO_WARNINGS, await statusOf(outlookOf({})))).toBe(
+      true
+    );
+  });
+
+  it("is not shown while a warning is in effect", async () => {
+    expect(nothingInEffect(WARNING, await statusOf(outlookOf({})))).toBe(false);
+  });
+
+  it("is not shown when the warning feed did not answer", async () => {
+    expect(
+      nothingInEffect({ status: "unavailable" }, await statusOf(outlookOf({})))
+    ).toBe(false);
+  });
+
+  it("is not shown when the Green alerts could not be read", async () => {
+    expect(
+      nothingInEffect(
+        NO_WARNINGS,
+        await statusOf(Promise.resolve({ status: "unavailable" }))
+      )
+    ).toBe(false);
+    expect(nothingInEffect(NO_WARNINGS, undefined)).toBe(false);
+  });
+
+  it("is not shown when the outlook is incomplete, lists a Green alert or has other GMS alerts", async () => {
+    expect(
+      nothingInEffect(
+        NO_WARNINGS,
+        await statusOf(outlookOf({ complete: false }))
+      )
+    ).toBe(false);
+    expect(
+      nothingInEffect(
+        NO_WARNINGS,
+        await statusOf(outlookOf({ items: [{ ...ALL_CLEAR, summary: "" }] }))
+      )
+    ).toBe(false);
+    expect(
+      nothingInEffect(NO_WARNINGS, await statusOf(outlookOf({ other: 2 })))
+    ).toBe(false);
   });
 });

@@ -82,7 +82,8 @@ const TABS: [TabDef, ...TabDef[]] = [
  * The big Weather now panel: five tabs that swap the panel in place, each
  * with a link to its full page. Imagery is FastAPI data; Audio and Video
  * play CMS live posts. Nothing loads from YouTube, Facebook or SoundCloud
- * until the reader opens that tab.
+ * until the reader asks: choosing a tab or an item, or pressing Play when the
+ * panel opened on a media tab by itself.
  * Radar has no tab until a radar feed exists (owner, 1 Nov 2026).
  */
 export function WeatherNowPanel({
@@ -105,6 +106,8 @@ export function WeatherNowPanel({
   // The provider's frame loads only after the reader asks for it: choosing a
   // tab, an item or the play button. Opening on a media tab never loads it.
   const [requested, setRequested] = useState(false);
+  // Pressing Play moves the keyboard to the player that replaces the button.
+  const [focusPlayer, setFocusPlayer] = useState(false);
   const baseId = useId();
   const active = TABS.find((item) => item.key === tab) ?? TABS[0];
   const items = { audio, video }[tab as "audio" | "video"] ?? [];
@@ -168,6 +171,12 @@ export function WeatherNowPanel({
                 allow="encrypted-media; picture-in-picture; fullscreen"
                 className={STAGE}
                 key={current.id}
+                ref={(frame) => {
+                  if (frame && focusPlayer) {
+                    frame.focus();
+                    setFocusPlayer(false);
+                  }
+                }}
                 referrerPolicy="strict-origin-when-cross-origin"
                 sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
                 src={current.embed.src}
@@ -179,7 +188,10 @@ export function WeatherNowPanel({
                   STAGE,
                   "border-gm-border text-body-base leading-body-base hover:bg-gm-navy-panel focus-visible:ring-gm-lime flex flex-col items-center justify-center gap-2 border px-6 text-center font-semibold outline-none focus-visible:ring-2"
                 )}
-                onClick={() => setRequested(true)}
+                onClick={() => {
+                  setRequested(true);
+                  setFocusPlayer(true);
+                }}
                 type="button"
               >
                 <PlayIcon aria-hidden="true" className="size-10" />
