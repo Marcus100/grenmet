@@ -56,6 +56,8 @@ _VALID_PAYLOAD_DICT = {
             "certainty": "Observed",
             "headline": "Heavy rain warning",
             "description": "Significant rainfall expected.",
+            # An Actual warning needs an expiry to publish (ADR-0056, #1312).
+            "expires": "2099-12-31T00:00:00+00:00",
             "areas": [{"area_desc": "Grenada", "kind": "AREA"}],
         }
     ],

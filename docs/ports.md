@@ -26,7 +26,7 @@ is allocated by category.
 
 | Range | Category | Notes |
 | --- | --- | --- |
-| `3000–3019` | Legacy, frozen | Arrival-ordered. 3008 shop, 3016 hr, 3017 business, 3018 app, 3019 spare; **3011 was never used and is never assigned** |
+| `3000–3019` | Legacy, frozen | Arrival-ordered. 3008 shop, 3016 hr, 3017 business, 3018 account, 3019 spare; **3011 was never used and is never assigned** |
 | `3020–3029` | Platform surfaces | 3020 developers, 3021 status |
 | `3030–3059` | Barrels products | 3030 salesbus POS, 3031 tickets, 3032 passport, 3033 pay, 3034 media, 3035-3041 sector products (education, automotive, delivery, bus, park, taxi, homegrown) |
 | `3060–3089` | Client-dedicated apps | 3060 gaa corporate, 3061 janitor PWA, 3062 bus PWA, 3063 gms PWA |
@@ -66,7 +66,7 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | 3008 | `@barrelsgd/web-shop` (`shop.barrels.gd`) | Reserved; see `docs/exec-plans/barrelsgd-migration-plan.md` |
 | 3016 | `@barrelsgd/web-hr` (`hr.barrels.gd`) | Planned: separate multi-organisation HR app, organisation in the path (decision 2026-10-21) |
 | 3017 | `@barrelsgd/web-business` | Reserved |
-| 3018 | `@barrelsgd/web-app` | Reserved |
+| 3018 | `@barrelsgd/web-account` (`account.barrels.gd`) | Planned: a person's Barrels account, separate from sign-in (ADR-0057; was the unused `@barrelsgd/web-app` reservation) |
 | 3020 | `@barrelsgd/web-developers` (`developers.barrels.gd`) | Reserved (platform) |
 | 3021 | `@barrelsgd/web-status` (`status.barrels.gd`) | Reserved (platform) |
 | 3030 | `@barrelsgd/web-salesbus` (point of sale; no host yet: `salesbus` and `sales` are retired hosts) | Reserved (product) |
