@@ -60,7 +60,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0053](0053-shared-turbo-remote-cache.md) | Shared, signed Turborepo remote cache for local runs and CI, with short-lived OIDC tokens on trusted branches and none for pull requests; amends the CI cache bullet of ADR-0019 | Accepted |
 | [0054](0054-cap-warning-desk-on-the-cap-host.md) | CAP warning desk at cap.barrels.gd/desk behind staff single sign-on, never cached, with an allow-listed proxy; Issue Update and emergency format-problem notice; parallel run with GAA Admin | Proposed |
 | [0055](0055-department-grades-suggest-roles.md) | A department grade suggests a role bundle from an approved template and a person confirms it; a job title or grade never grants access by itself; partly supersedes ADR-0018 lines 17 and 40 | Proposed |
-| [0056](0056-reuse-from-wmo-raf-open-source.md) | Reuse ideas and formats from the WMO Regional Office for Africa open-source tools by porting into our own domains; never deploy their applications. Lists seven items for the Met office and six general patterns | Proposed |
+| [0056](0056-reuse-from-wmo-raf-open-source.md) | Reuse ideas and formats from the WMO Regional Office for Africa open-source tools by porting into our own domains; never deploy their applications. Lists seven items for the Met office and six general patterns | Accepted, not built |
 
 ## Template
 

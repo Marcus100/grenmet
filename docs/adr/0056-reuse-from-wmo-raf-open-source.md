@@ -2,11 +2,11 @@
 
 ## Status
 
-Proposed — 2026-11-13. Records what the review recommends building. Nothing
-here is built or scheduled until the owner accepts it; each accepted item
-becomes its own GitHub issue. Builds on ADR-0010 and ADR-0032 (publishing
-observations to the WMO exchange), ADR-0054 (warning desk), ADR-0029
-(organisation API keys) and ADR-0015 (backend logic is Python in FastAPI).
+Accepted — 2026-11-13 (owner). Nothing here is built yet; each item is its own
+GitHub issue and is scheduled separately. Builds on ADR-0010 and ADR-0032
+(publishing observations to the WMO exchange), ADR-0054 (warning desk),
+ADR-0029 (organisation API keys) and ADR-0015 (backend logic is Python in
+FastAPI).
 
 ## Context
 
