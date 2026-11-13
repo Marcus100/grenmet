@@ -5,7 +5,7 @@ import { basename, join, resolve } from "node:path";
 import { render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CapMap } from "@/components/desk/cap-map";
-import { MAPLIBRE_WORKER_URL } from "./maplibre-worker";
+import { MAPLIBRE_WORKER_FILE, MAPLIBRE_WORKER_URL } from "./maplibre-worker";
 
 // Regression: MapLibre 6 derived an empty worker address inside the Next.js
 // bundle, so the worker never started and no parish was drawn.
@@ -28,7 +28,7 @@ interface CopyScript {
   copyMapLibreWorker: (appDir: string, publicDir?: string) => string;
 }
 
-const SAME_ORIGIN_MODULE = /^\/[\w.-]+\.mjs$/u;
+const SAME_ORIGIN_VERSIONED = /^\/maplibre-gl-worker\.mjs\?v=\d+\.\d+\.\d+/u;
 
 const appDir = resolve(import.meta.dirname, "../..");
 let scratch: string | undefined;
@@ -41,8 +41,12 @@ afterEach(() => {
 });
 
 describe("MapLibre worker", () => {
-  it("is served from the site's own origin, never an empty address", () => {
-    expect(MAPLIBRE_WORKER_URL).toMatch(SAME_ORIGIN_MODULE);
+  it("is a same-origin address carrying the installed MapLibre version", () => {
+    const { version } = createRequire(join(appDir, "package.json"))(
+      "maplibre-gl/package.json"
+    ) as { version: string };
+    expect(MAPLIBRE_WORKER_URL).toMatch(SAME_ORIGIN_VERSIONED);
+    expect(MAPLIBRE_WORKER_URL).toBe(`/${MAPLIBRE_WORKER_FILE}?v=${version}`);
   });
 
   it("is passed to the map before it is created", () => {
@@ -59,7 +63,7 @@ describe("MapLibre worker", () => {
 
     const copied = copyMapLibreWorker(appDir, scratch);
 
-    expect(basename(copied)).toBe(MAPLIBRE_WORKER_URL.slice(1));
+    expect(basename(copied)).toBe(MAPLIBRE_WORKER_FILE);
     const original = createRequire(join(appDir, "package.json")).resolve(
       "maplibre-gl/dist/maplibre-gl-worker.mjs"
     );
