@@ -138,7 +138,8 @@ async def test_map_import_review_reprocess_over_the_api(
     assert body["duplicates"] == 0
     assert body["outcomes"]["recorded"] == 1
     assert body["outcomes"]["unmapped"] == 1
-    assert {row["outcome"] for row in body["rows"]} == {"RECORDED", "UNMAPPED"}
+    # Only attention rows come back; the recorded punch is in the counts.
+    assert {row["outcome"] for row in body["rows"]} == {"UNMAPPED"}
 
     again = await _upload(
         async_client,

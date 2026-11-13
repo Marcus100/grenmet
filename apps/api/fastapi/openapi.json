@@ -111562,12 +111562,17 @@
           },
           "outcomes": {
             "$ref": "#/components/schemas/TerminalOutcomeCounts"
+          },
+          "remaining": {
+            "type": "integer",
+            "title": "Remaining"
           }
         },
         "type": "object",
         "required": [
           "processed",
-          "outcomes"
+          "outcomes",
+          "remaining"
         ],
         "title": "TerminalReprocessPublic"
       },

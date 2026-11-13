@@ -12,4 +12,5 @@ export type TerminalReprocessPublic = {
    * @type object
    */
   outcomes: TerminalOutcomeCounts;
+  remaining: number;
 };

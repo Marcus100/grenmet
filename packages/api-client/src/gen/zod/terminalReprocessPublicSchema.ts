@@ -11,4 +11,5 @@ export const terminalReprocessPublicSchema = z.object({
   outcomes: terminalOutcomeCountsSchema.describe(
     "How many punches ended in each outcome. Zero when none did."
   ),
+  remaining: z.int(),
 });

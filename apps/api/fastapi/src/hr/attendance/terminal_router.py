@@ -245,5 +245,7 @@ async def reprocess_terminal_punches(
         department_id=payload.department_id,
     )
     return TerminalReprocessPublic(
-        processed=summary.processed, outcomes=outcome_counts(summary.outcomes)
+        processed=summary.processed,
+        outcomes=outcome_counts(summary.outcomes),
+        remaining=summary.remaining,
     )

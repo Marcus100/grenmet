@@ -523,7 +523,7 @@ _LEGACY_MOUNTS: dict[str, Mount] = {
         _legacy("hr.timesheet", hr_timesheet_router),
         _legacy("hr.clock", hr_clock_router),
         _legacy("hr.attendance", hr_attendance_router),
-    _legacy("hr.terminal", hr_terminal_router),
+        _legacy("hr.terminal", hr_terminal_router),
         _legacy("hr.payroll", hr_payroll_router),
         _legacy("hr.training", hr_training_router),
         _legacy("hr.signatures", hr_signatures_router),

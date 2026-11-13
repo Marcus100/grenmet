@@ -1557,37 +1557,53 @@ attendance with no approval step. Every route needs `roster.manage` in the depar
 scope. An upload accepts a ZKTeco ATTLOG text export (device user ID, then
 `YYYY-MM-DD HH:MM:SS`, then ignored columns) or a CSV with a `device_user_id,punched_at`
 header. Device times are Grenada local and stored as UTC. Only the device user ID and
-the punch time are stored, never biometric data.
+the punch time are stored, never biometric data. The terminal label is trimmed and
+lower-cased; the trimmed, lower-cased label is part of the dedupe key.
 
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
 | `GET /api/v1/hr/attendance/terminal-users` | `roster.manage` in the department scope | List a department's device ID mappings |
-| `POST /api/v1/hr/attendance/terminal-users` | `roster.manage` in the department scope | Map a device user ID to an employee of the department (one ID per person, one person per ID) |
-| `DELETE /api/v1/hr/attendance/terminal-users/{terminal_user_id}` | `roster.manage` in the department scope | Remove a mapping; punches already decided keep their outcome |
-| `POST /api/v1/hr/attendance/terminal-imports` | `roster.manage` in the department scope | Upload an export (multipart `file`, `department_id`, `terminal` label); returns counts per outcome and this upload's punches |
+| `POST /api/v1/hr/attendance/terminal-users` | `roster.manage` in the department scope and `timesheet.submit.proxy` for the employee | Map a device user ID to an employee of the department with a live employment (one ID per person, one person per ID) |
+| `DELETE /api/v1/hr/attendance/terminal-users/{terminal_user_id}` | `roster.manage` in the department scope | Remove a mapping; a mapping outside the caller's scope answers 404, as a missing one does |
+| `POST /api/v1/hr/attendance/terminal-imports` | `roster.manage` in the department scope | Upload an export (multipart `file`, `department_id`, `terminal` label). Returns counts per outcome for this upload and its attention rows (UNMAPPED, NO_SHIFT, REFUSED) only |
 | `GET /api/v1/hr/attendance/terminal-punches` | `roster.manage` in the department scope | Punches needing HR attention (UNMAPPED, NO_SHIFT, REFUSED by default), filtered and paged in SQL |
-| `POST /api/v1/hr/attendance/terminal-punches/reprocess` | `roster.manage` in the department scope | Decide a department's UNMAPPED, NO_SHIFT and PENDING punches again, after a mapping or roster change |
+| `POST /api/v1/hr/attendance/terminal-punches/reprocess` | `roster.manage` in the department scope | Decide again a department's UNMAPPED, NO_SHIFT, REFUSED and PENDING punches, oldest first, at most 1000 per call. `remaining` counts candidates beyond the cap |
 
-Each new punch is decided in time order for its person, and each one is its own
-transaction:
+Proxy authority: every write (an arrival, a departure, a mapping) needs the HR actor to
+hold `timesheet.submit.proxy` and to pass `can_act_on_user` for the employee, including
+for their own punches. Without it nothing is written for anyone, and the punch is
+REFUSED with a plain detail. Once the authority is granted, reprocess decides it again.
+
+Each new punch is decided in time order for its person, each in its own transaction:
 
 - **UNMAPPED**: the device ID has no mapping in the department. Held for HR.
-- **REPEAT**: within 5 minutes of the person's last accepted punch. Ignored.
-- **ALREADY_RECORDED**: the shift already has this arrival or departure, within 15
-  minutes of a recorded time (for example from an approved phone punch). No second
-  record is written.
-- **RECORDED**: a departure closes the person's open shift (an arrival with no
-  departure, within 24 hours), or an arrival matches a published work shift with the
-  phone clock-in window (two hours before to one hour after the shift). The write goes
-  through `save_attendance` as the employee, so roster, revision and audit are the
-  phone-punch approval path.
-- **NO_SHIFT**: no published work shift matches. Flagged for HR, never invented.
-- **REFUSED**: `save_attendance` refused it. The message is kept in `detail`, and the
-  rest of the upload still imports.
+- **REPEAT**: within 5 minutes (inclusive) of the person's last accepted scan. Ignored.
+- **ALREADY_RECORDED**: the scan is within 15 minutes (inclusive) of an arrival already
+  recorded on the open shift, or of a recorded arrival or departure, and the normal
+  decision would find no shift for it. No second record is written.
+- **RECORDED, departure**: the scan closes the person's open shift (an arrival with no
+  departure, within 24 hours) when it is before the midpoint between that shift's
+  scheduled end and the next rostered shift's start. With no next shift, any scan
+  closes it. The midpoint rule, rather than "nearer the end", is used because a seamless
+  handover has end equal to next start. A scan at or after the midpoint is an arrival,
+  and the open record stays open for HR.
+- **RECORDED, arrival**: a published work shift matched by the phone clock-in window
+  (two hours before to one hour after the start, through the end plus one hour). The
+  scan must not be nearer the shift's end than its start, and no earlier punch of the
+  same device may be undecided (UNMAPPED, NO_SHIFT or PENDING) within 24 hours.
+- **NO_SHIFT**: no published work shift matches, the scan is nearer the end, or an
+  earlier punch is undecided. Held for HR, never invented.
+- **REFUSED**: a write was refused (for example proxy authority or the shift is already
+  submitted or approved). The message is kept in `detail`, and the rest of the upload
+  still imports.
 
-A re-upload of the same file with the same terminal label imports nothing twice: the
-unique key is department, terminal, device ID and punch time. An upload is at most
-1 MiB and 5000 lines; bad lines are returned with their line numbers and do not stop
+Writes go through `save_attendance` as the employee, so roster, revision and audit are
+the phone-punch approval path. The import marker `Terminal import: <label>` is appended
+to the record's notes (the employee's notes are kept), so an approver sees the source.
+
+A re-upload of the same file with the same terminal label imports nothing twice; the
+unique key is department, terminal label, device ID and punch time. An upload is at most
+1 MiB and 1000 lines; bad lines are returned with their line numbers and do not stop
 the others. Mappings and roster changes are applied by reprocess, not on upload.
 
 ### Roster rule limits and check

@@ -79,6 +79,7 @@ class TerminalImportPublic(BaseModel):
     errors: list[TerminalImportErrorPublic]
     #: Outcomes of this upload's new punches only.
     outcomes: TerminalOutcomeCounts
+    #: Attention rows (UNMAPPED, NO_SHIFT, REFUSED) of this upload only.
     rows: list[TerminalPunchPublic]
 
 
@@ -87,8 +88,11 @@ class TerminalReprocessRequest(BaseModel):
 
 
 class TerminalReprocessPublic(BaseModel):
+    #: Punches decided by this call.
     processed: int
     outcomes: TerminalOutcomeCounts
+    #: Candidates beyond this call's cap (at most 1000 per call); call again while > 0.
+    remaining: int
 
 
 def outcome_counts(counts: Counter[TerminalPunchOutcome]) -> TerminalOutcomeCounts:
