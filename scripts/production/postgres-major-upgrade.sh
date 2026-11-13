@@ -277,7 +277,7 @@ docker_root=$(docker info --format '{{.DockerRootDir}}')
 writable=$work_root
 while [[ ! -e "$writable" && "$writable" != / ]]; do writable=$(dirname "$writable"); done
 [[ -d "$writable" && -w "$writable" ]] ||
-  fail "This runner cannot write $work_root (nearest existing directory: $writable). Create it for the runner user, or set the PG_UPGRADE_DIR variable."
+  fail "This runner cannot write $work_root (nearest existing directory: $writable). Make it writable for the runner user, or run with PG_UPGRADE_DIR set to a writable directory with room for the dumps."
 for path in "$docker_root" "$work_root"; do
   have_kb=$(free_kb "$path")
   [[ "$have_kb" =~ ^[0-9]+$ ]] || fail "Could not read the free space on $path"

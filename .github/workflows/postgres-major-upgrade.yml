@@ -1,0 +1,117 @@
+name: PostgreSQL major upgrade
+
+# Moves one environment's core database to the PostgreSQL major its GitHub variables
+# name (CORE_POSTGRES_IMAGE and CORE_PGDATA_VOLUME, set by the owner first), by dump
+# and restore into a new volume: scripts/production/postgres-major-upgrade.sh and
+# docs/operations/postgres-18-upgrade.md. Manual only, staging first. The old volume
+# is never written; until the services reopen, rollback is setting both variables
+# back and running Deploy.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment whose core database moves (staging first)"
+        required: true
+        type: choice
+        options: [staging, production]
+      mode:
+        description: "dry-run only checks and prints the plan; upgrade stops the services and moves the data"
+        required: true
+        default: dry-run
+        type: choice
+        options: [dry-run, upgrade]
+      confirm:
+        description: "Type the environment name again to confirm"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  upgrade:
+    # The same refs Deploy accepts: staging from the staging branch, production from a
+    # release tag, so the script and render-env.py are the reviewed, promoted ones.
+    if: >-
+      ${{ inputs.environment == 'staging' && github.ref == 'refs/heads/staging' ||
+          inputs.environment == 'production' && startsWith(github.ref, 'refs/tags/v') }}
+    name: PostgreSQL upgrade ${{ inputs.mode }} on ${{ inputs.environment }}
+    runs-on: [self-hosted, "${{ inputs.environment }}", core]
+    timeout-minutes: 120
+    # Never alongside a deploy, a backup or the restore drill on the same droplet.
+    concurrency:
+      group: ${{ inputs.environment == 'production' && 'prod-droplet' || 'core-staging' }}
+      cancel-in-progress: false
+    # The environment's protection rules (production reviewers) apply to every run.
+    environment:
+      name: ${{ inputs.environment }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: ${{ github.sha }}
+          clean: false
+          persist-credentials: false
+      - name: Run the upgrade script
+        env:
+          # Inputs reach the script as data, never as workflow expressions in the shell.
+          UPGRADE_ENVIRONMENT: ${{ inputs.environment }}
+          UPGRADE_MODE: ${{ inputs.mode }}
+          UPGRADE_CONFIRM: ${{ inputs.confirm }}
+          # What render-env.py needs to render the db service exactly as Deploy does.
+          DEPLOY_IMAGE_TAG: sha-${{ github.sha }}
+          CORE_POSTGRES_IMAGE: ${{ vars.CORE_POSTGRES_IMAGE }}
+          # Never export PGDATA_VOLUME itself: Compose prefers the shell, even empty.
+          CORE_PGDATA_VOLUME: ${{ vars.CORE_PGDATA_VOLUME }}
+          CORE_REDIS_IMAGE: ${{ vars.CORE_REDIS_IMAGE }}
+          CORE_PRIVATE_IP: ${{ vars.CORE_PRIVATE_IP }}
+          POSTGIS_RESTORE_VERIFIED: ${{ vars.POSTGIS_RESTORE_VERIFIED }}
+          NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: ${{ vars.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS }}
+          CLOUDFLARE_PROXY_ENABLED: ${{ vars.CLOUDFLARE_PROXY_ENABLED }}
+          CLOUDFLARE_ORIGIN_SECRET: ${{ secrets.CLOUDFLARE_ORIGIN_SECRET }}
+          CLOUDFLARE_ORIGIN_SECRET_PREVIOUS: ${{ secrets.CLOUDFLARE_ORIGIN_SECRET_PREVIOUS }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          FASTAPI_DB_PASSWORD: ${{ secrets.FASTAPI_DB_PASSWORD }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
+          FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL: ${{ secrets.EMAIL }}
+          USERNAME: ${{ secrets.USERNAME }}
+          HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}
+          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+          GAA_ADMIN_SSO_CLIENT_SECRET: ${{ secrets.GAA_ADMIN_SSO_CLIENT_SECRET }}
+          CMS_SSO_CLIENT_SECRET: ${{ secrets.CMS_SSO_CLIENT_SECRET }}
+          TRUSTED_WEB_SECRET: ${{ secrets.TRUSTED_WEB_SECRET }}
+          WXWATCH_DB_PASSWORD: ${{ secrets.WXWATCH_DB_PASSWORD }}
+          WXPRODUCTS_DB_PASSWORD: ${{ secrets.WXPRODUCTS_DB_PASSWORD }}
+          EREGISTER_DB_PASSWORD: ${{ secrets.EREGISTER_DB_PASSWORD }}
+          TRANSPORT_DB_PASSWORD: ${{ secrets.TRANSPORT_DB_PASSWORD }}
+          JANITORIAL_DB_PASSWORD: ${{ secrets.JANITORIAL_DB_PASSWORD }}
+          CMS_DB_PASSWORD: ${{ secrets.CMS_DB_PASSWORD }}
+          STAGING_BASIC_AUTH_USERS: ${{ inputs.environment == 'staging' && secrets.STAGING_BASIC_AUTH_USERS || '' }}
+          ADMINER_BASIC_AUTH_USERS: ${{ inputs.environment == 'staging' && secrets.ADMINER_BASIC_AUTH_USERS || '' }}
+          # The smoke checks after the services reopen pass the staging gate with it.
+          STAGING_PROBE_CREDENTIALS: ${{ inputs.environment == 'staging' && secrets.STAGING_PROBE_CREDENTIALS || '' }}
+          # Production backup recency, list-only (the read key, never the write key).
+          BACKUP_GATE_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+          BACKUP_GATE_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+          BACKUP_GATE_REGION: ${{ secrets.DO_SPACES_REGION }}
+          BACKUP_GATE_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_READ_ACCESS_KEY_ID }}
+          BACKUP_GATE_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_READ_SECRET_ACCESS_KEY }}
+        run: |
+          set -euo pipefail
+          case "$UPGRADE_MODE" in
+            dry-run) mode=(--dry-run) ;;
+            upgrade) mode=() ;;
+            *) echo "mode must be dry-run or upgrade" >&2; exit 2 ;;
+          esac
+          bash scripts/production/postgres-major-upgrade.sh \
+            --environment "$UPGRADE_ENVIRONMENT" --confirm "$UPGRADE_CONFIRM" "${mode[@]}"
+      - name: Service state on failure
+        if: failure()
+        env:
+          COMPOSE_PROJECT: ${{ inputs.environment == 'production' && 'grenmet' || 'grenmet-staging' }}
+        run: docker ps -a --filter "label=com.docker.compose.project=$COMPOSE_PROJECT" --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'

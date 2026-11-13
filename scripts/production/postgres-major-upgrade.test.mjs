@@ -358,3 +358,86 @@ test("a failure after the switch keeps the services stopped and prints the rollb
   assert.doesNotMatch(log, WRITERS_STARTED);
   assert.equal(output.includes(SECRET), false);
 });
+
+const WORKFLOW = readFileSync(
+  new URL(
+    "../../.github/workflows/postgres-major-upgrade.yml",
+    import.meta.url
+  ),
+  "utf8"
+);
+const TRIGGERS = WORKFLOW.split("\npermissions:")[0];
+const OTHER_TRIGGERS =
+  /^\s+(push|pull_request|pull_request_target|workflow_call|workflow_run|schedule):/mu;
+const USES = /^\s+(?:- )?uses: (\S+)/gmu;
+const PINNED_ACTION = /^[\w.-]+\/[\w.-]+@[0-9a-f]{40}$/u;
+const INPUT_IN_RUN = /run: [|>]?[^\n]*\$\{\{ inputs\./u;
+const DOLLAR = "$";
+const SHELL_PGDATA_VOLUME = /^\s+PGDATA_VOLUME:/mu;
+
+function requiredSecrets() {
+  const result = spawnSync(
+    "python3",
+    [
+      "-c",
+      "import importlib.util, json, sys; s = importlib.util.spec_from_file_location('r', sys.argv[1]); m = importlib.util.module_from_spec(s); s.loader.exec_module(m); print(json.dumps(m.REQUIRED_SECRETS + m.STAGING_ONLY_SECRETS))",
+      new URL("./render-env.py", import.meta.url).pathname,
+    ],
+    { encoding: "utf8" }
+  );
+  assert.equal(result.status, 0, result.stderr);
+  return JSON.parse(result.stdout);
+}
+
+test("the upgrade workflow is manual, protected and serialised with deploys on the droplet runner", () => {
+  assert.ok(TRIGGERS.includes("workflow_dispatch:"));
+  assert.doesNotMatch(TRIGGERS, OTHER_TRIGGERS);
+  for (const input of [
+    "options: [staging, production]",
+    "options: [dry-run, upgrade]",
+    "default: dry-run",
+    "confirm:",
+  ])
+    assert.ok(TRIGGERS.includes(input), input);
+  // Same runner labels, refs and concurrency groups as deploy.yml.
+  assert.ok(
+    WORKFLOW.includes(
+      `runs-on: [self-hosted, "\${{ inputs.environment }}", core]`
+    )
+  );
+  assert.ok(
+    WORKFLOW.includes(
+      `group: \${{ inputs.environment == 'production' && 'prod-droplet' || 'core-staging' }}`
+    )
+  );
+  assert.ok(WORKFLOW.includes("cancel-in-progress: false"));
+  assert.ok(WORKFLOW.includes(`name: ${DOLLAR}{{ inputs.environment }}`));
+  assert.ok(WORKFLOW.includes("github.ref == 'refs/heads/staging'"));
+  assert.ok(WORKFLOW.includes("startsWith(github.ref, 'refs/tags/v')"));
+  // Read-only token; no registry, issue or deployment writes.
+  assert.equal(WORKFLOW.includes(": write"), false);
+  for (const [, action] of WORKFLOW.matchAll(USES))
+    assert.match(action, PINNED_ACTION, action);
+  assert.doesNotMatch(WORKFLOW, INPUT_IN_RUN);
+});
+
+test("the upgrade workflow passes every secret render-env.py requires, and the volume switch safely", () => {
+  for (const name of requiredSecrets())
+    assert.ok(
+      WORKFLOW.includes(`          ${name}: \${{`),
+      `${name} is not passed`
+    );
+  for (const name of [
+    "CORE_POSTGRES_IMAGE",
+    "CORE_PGDATA_VOLUME",
+    "CORE_REDIS_IMAGE",
+    "CORE_PRIVATE_IP",
+  ])
+    assert.ok(WORKFLOW.includes(`${name}: \${{ vars.${name} }}`), name);
+  assert.doesNotMatch(WORKFLOW, SHELL_PGDATA_VOLUME);
+  assert.ok(
+    WORKFLOW.includes(
+      'bash scripts/production/postgres-major-upgrade.sh \\\n            --environment "$UPGRADE_ENVIRONMENT" --confirm "$UPGRADE_CONFIRM"'
+    )
+  );
+});
