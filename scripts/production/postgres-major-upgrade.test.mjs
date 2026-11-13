@@ -11,6 +11,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -61,6 +62,9 @@ case "$args" in
   "inspect --format {{if .State.Health}}"*) echo healthy; exit 0 ;;
   "volume inspect --format {{.Name}} "*) [[ -n "$TEST_TARGET_EXISTS" ]] || exit 1; exit 0 ;;
   "volume inspect "*) [[ -n "$TEST_TARGET_EXISTS" ]] || exit 1; exit 0 ;;
+  "update --restart=no "*)
+    [[ ! -e "$PG_UPGRADE_DIR/staging.in-progress" ]] || echo "marker written before the writers stop" >> "$TEST_LOG"
+    exit 0 ;;
   "volume create "*)
     [[ ! -e "$PG_UPGRADE_DIR/staging.in-progress" ]] || echo "marker written before the volume" >> "$TEST_LOG"
     exit 0 ;;
@@ -101,6 +105,8 @@ const PYTHON_STUB = `#!/bin/bash
 printf 'python %s\\n' "$*" >> "$TEST_LOG"
 case "$1" in
   *render-env.py)
+    # Like the real one, never overwrites an existing file (O_EXCL).
+    [[ ! -e "$3" ]] || { echo "Deployment configuration rejected: [Errno 17] File exists" >&2; exit 1; }
     if [[ -n "$TEST_RENDER_FAIL" ]]; then
       echo "Deployment configuration rejected: CORE_POSTGRES_IMAGE is PostgreSQL 18 but the data volume holds PostgreSQL 17" >&2
       exit 1
@@ -128,6 +134,7 @@ printf 'Filesystem 1024-blocks Used Available Capacity Mounted\\n%s 100 0 %s 1%%
 
 const UPGRADE_ORDER = [
   WRITERS_HELD,
+  /^marker written before the writers stop$/mu,
   WRITERS_STOPPED,
   /^docker exec olddb .*pg_dump -U/mu,
   /^docker exec olddb .*pg_dumpall/mu,
@@ -234,6 +241,8 @@ const ROLLED_BACK = {
   CORE_PGDATA_VOLUME: "",
 };
 const has = (work, name) => work.includes(name);
+// Octal permission digits of a path, for example "755".
+const permissions = (path) => statSync(path).mode.toString(8).slice(-3);
 
 test("refuses to run without a valid environment and a matching confirmation", () => {
   for (const [args, message] of [
@@ -248,6 +257,7 @@ test("refuses to run without a valid environment and a matching confirmation", (
     [["--environment"], "--environment needs a value"],
     [[...UPGRADE, "--force"], "unknown argument '--force'"],
     [[...DRY_RUN, "--clear-marker"], "cannot be combined"],
+    [[...UPGRADE, "--accept-data-loss"], "only applies to --clear-marker"],
   ]) {
     const { status, output, log } = run(args);
     assert.equal(status, 2, `${args.join(" ")}: ${output}`);
@@ -276,8 +286,8 @@ test("a dry run checks the preconditions, prints the plan and changes nothing", 
     output.includes("Services to stop while the data moves: api worker")
   );
   assert.ok(output.includes("Databases: app_staging wxwatch_staging"));
-  assert.ok(output.includes('restart policy of 2 service containers to "no"'));
-  assert.ok(output.includes("run this workflow with mode clear-marker"));
+  assert.ok(output.includes('2 service containers to "no"'));
+  assert.ok(output.includes("run this workflow with mode\nclear-marker"));
   assert.doesNotMatch(log, MUTATING);
   assert.deepEqual(work, []);
   assert.equal(output.includes(SECRET), false, "a secret was printed");
@@ -402,8 +412,14 @@ test("a failure before the switch restores the services and leaves no marker", (
   assert.match(log, POLICY_RESTORED);
   assert.match(log, WRITERS_STARTED);
   assert.match(log, CONTAINER_DUMPS_REMOVED);
+  assert.ok(log.includes("marker written before the writers stop"));
   assert.equal(log.includes("stop --time 120 olddb"), false);
+  // Services back, so deploys may run again; no role hashes left behind.
   assert.equal(has(work, "staging.in-progress"), false);
+  assert.equal(
+    work.some((name) => name.endsWith("globals.sql")),
+    false
+  );
 });
 
 test("a failure after the switch keeps the services stopped, the marker set and prints the rollback", () => {
@@ -422,6 +438,12 @@ test("a failure after the switch keeps the services stopped, the marker set and 
   assert.ok(has(work, "staging.in-progress"));
   assert.equal(has(work, "staging.verified"), false);
   assert.equal(has(work, "staging.completed"), false);
+  // Role definitions with password hashes do not outlive a failed run; dumps stay.
+  assert.equal(
+    work.some((name) => name.endsWith("globals.sql")),
+    false
+  );
+  assert.ok(work.some((name) => name.endsWith("dumps/app_staging.dump")));
   assert.equal(output.includes(SECRET), false);
 });
 
@@ -523,7 +545,7 @@ test("the upgrade workflow is manual, ref-checked, protected and serialised with
   assert.doesNotMatch(TRIGGERS, OTHER_TRIGGERS);
   for (const input of [
     "options: [staging, production]",
-    "options: [dry-run, upgrade, clear-marker]",
+    "options: [dry-run, upgrade, clear-marker, clear-marker-accept-data-loss]",
     "default: dry-run",
     "confirm:",
   ])
@@ -572,6 +594,11 @@ test("the upgrade workflow passes every secret render-env.py requires, and the v
   assert.ok(WORKFLOW.includes("clear-marker) mode=(--clear-marker) ;;"));
   assert.ok(
     WORKFLOW.includes(
+      "clear-marker-accept-data-loss) mode=(--clear-marker --accept-data-loss) ;;"
+    )
+  );
+  assert.ok(
+    WORKFLOW.includes(
       'bash scripts/production/postgres-major-upgrade.sh \\\n            --environment "$UPGRADE_ENVIRONMENT" --confirm "$UPGRADE_CONFIRM"'
     )
   );
@@ -595,4 +622,110 @@ test("backups and monitoring maintenance refuse to run during an unfinished upgr
       `group: \${{ inputs.environment == 'production' && 'prod-droplet' || 'core-staging' }}`
     )
   );
+});
+
+test("after the services ran on the new database, a rollback needs --accept-data-loss", () => {
+  const root = sandbox();
+  try {
+    const failed = run(UPGRADE, { TEST_FAIL_AT: "smoke" }, root);
+    assert.equal(failed.status, 1);
+    const marker = readFileSync(join(root, "work/staging.in-progress"), "utf8");
+    assert.ok(marker.includes("reopened=1"));
+
+    const refused = run(CLEAR, ROLLED_BACK, root);
+    assert.equal(refused.status, 1);
+    assert.ok(refused.output.includes("--accept-data-loss"));
+    assert.ok(refused.output.includes("drops them"));
+    assert.ok(existsSync(join(root, "work/staging.in-progress")));
+
+    const accepted = run([...CLEAR, "--accept-data-loss"], ROLLED_BACK, root);
+    assert.equal(accepted.status, 0, accepted.output);
+    assert.ok(accepted.output.includes("not carried back"));
+    assert.equal(existsSync(join(root, "work/staging.in-progress")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("verified data on the new volume can be accepted without a rollback", () => {
+  const root = sandbox();
+  try {
+    run(UPGRADE, { TEST_FAIL_AT: "smoke" }, root);
+    const kept = run(CLEAR, ON_NEW_VOLUME, root);
+    assert.equal(kept.status, 0, kept.output);
+    assert.ok(kept.output.includes("passed every check"));
+    assert.equal(existsSync(join(root, "work/staging.in-progress")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("a marker left with the services stopped can be cleared, and blocks a new run until then", () => {
+  const root = sandbox();
+  try {
+    mkdirSync(join(root, "work/staging-x"), { recursive: true });
+    writeFileSync(
+      join(root, "work/staging-x/stopped-containers"),
+      "w-api api always\nw-worker worker on-failure:3\n"
+    );
+    writeFileSync(
+      join(root, "work/staging.in-progress"),
+      `phase=writers-stopped\nvolume=${NEW_VOLUME}\nrun=${join(root, "work/staging-x")}\nsource_volume=grenmet-staging_pgdata-staging\n`
+    );
+    const blocked = run(UPGRADE, {}, root);
+    assert.equal(blocked.status, 1);
+    assert.ok(blocked.output.includes("phase writers-stopped"));
+    assert.doesNotMatch(blocked.log, MUTATING);
+    const cleared = run(CLEAR, {}, root);
+    assert.equal(cleared.status, 0, cleared.output);
+    assert.ok(cleared.output.includes("never left"));
+    assert.match(cleared.log, POLICY_RESTORED);
+    assert.equal(existsSync(join(root, "work/staging.in-progress")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("with an unfinished upgrade and no database running, the message points to the rollback", () => {
+  const root = sandbox();
+  try {
+    writeFileSync(
+      join(root, "work/staging.in-progress"),
+      `phase=switched\nvolume=${NEW_VOLUME}\nsource_image=${SOURCE_IMAGE}\n`
+    );
+    const { status, output } = run(UPGRADE, { TEST_NO_DB: "1" }, root);
+    assert.equal(status, 1);
+    assert.ok(output.includes("the new database may not have started"));
+    assert.ok(output.includes("run clear-marker, then Deploy"));
+    assert.equal(output.includes("Deploy staging first"), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("a secrets file left by a killed run does not block the next one, and markers stay visible", () => {
+  const root = sandbox();
+  try {
+    mkdirSync(join(root, "infra/docker/runtime"), { recursive: true });
+    writeFileSync(
+      join(root, "infra/docker/runtime/.env.pg-upgrade"),
+      "stale\n"
+    );
+    const dry = run(DRY_RUN, {}, root);
+    assert.equal(dry.status, 0, dry.output);
+    assert.equal(
+      existsSync(join(root, "infra/docker/runtime/.env.pg-upgrade")),
+      false
+    );
+    rmSync(join(root, "work"), { recursive: true });
+    const upgraded = run(UPGRADE, {}, root);
+    assert.equal(upgraded.status, 0, upgraded.output);
+    assert.equal(permissions(join(root, "work")), "755");
+    const runDirectory = readdirSync(join(root, "work")).find((name) =>
+      name.startsWith("staging-2")
+    );
+    assert.equal(permissions(join(root, "work", runDirectory)), "700");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

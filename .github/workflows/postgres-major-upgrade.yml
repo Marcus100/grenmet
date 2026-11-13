@@ -15,11 +15,11 @@ on:
         type: choice
         options: [staging, production]
       mode:
-        description: "dry-run only checks and prints the plan; upgrade stops the services and moves the data (or finishes a run whose data checks passed); clear-marker removes an unfinished run's marker after a rollback"
+        description: "dry-run only checks and prints the plan; upgrade stops the services and moves the data (or finishes a run whose data checks passed); clear-marker removes an unfinished run's marker after a rollback; clear-marker-accept-data-loss also rolls back after the services already ran on the new database (owner decision: their writes are dropped)"
         required: true
         default: dry-run
         type: choice
-        options: [dry-run, upgrade, clear-marker]
+        options: [dry-run, upgrade, clear-marker, clear-marker-accept-data-loss]
       confirm:
         description: "Type the environment name again to confirm"
         required: true
@@ -123,6 +123,7 @@ jobs:
             dry-run) mode=(--dry-run) ;;
             upgrade) mode=() ;;
             clear-marker) mode=(--clear-marker) ;;
+            clear-marker-accept-data-loss) mode=(--clear-marker --accept-data-loss) ;;
             *) echo "mode must be dry-run, upgrade or clear-marker" >&2; exit 2 ;;
           esac
           bash scripts/production/postgres-major-upgrade.sh \

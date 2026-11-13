@@ -3,7 +3,7 @@
 # into a new volume (docs/operations/postgres-18-upgrade.md, steps 7 to 13).
 #
 #   scripts/production/postgres-major-upgrade.sh --environment staging|production \
-#     --confirm <environment> [--dry-run | --clear-marker]
+#     --confirm <environment> [--dry-run | --clear-marker [--accept-data-loss]]
 #
 # Source: the running db container (its image and volume). Target: what the next deploy
 # will run, CORE_POSTGRES_IMAGE and CORE_PGDATA_VOLUME, checked as one set by
@@ -12,9 +12,10 @@
 # external volume before it touches the running database.
 #
 # Markers in PG_UPGRADE_DIR (default /var/backups/grenmet/pg-major-upgrade):
-#   <env>.in-progress  written before the database switch; core.sh refuses to deploy or
+#   <env>.in-progress  written before the services stop; core.sh refuses to deploy or
 #                      back up while it exists. Removed after the restart and smoke
-#                      checks pass, or by --clear-marker after a rollback.
+#                      checks pass, when a failure before the switch has restarted the
+#                      services, or by --clear-marker after a rollback.
 #   <env>.verified     the restored data matched the old server; a rerun then only
 #                      restarts the services and runs the smoke checks.
 #   <env>.completed    everything passed; a rerun does nothing.
@@ -26,7 +27,7 @@ set -euo pipefail
 umask 077
 
 usage() {
-  echo "usage: scripts/production/postgres-major-upgrade.sh --environment staging|production --confirm <environment> [--dry-run | --clear-marker]"
+  echo "usage: scripts/production/postgres-major-upgrade.sh --environment staging|production --confirm <environment> [--dry-run | --clear-marker [--accept-data-loss]]"
 }
 refuse() {
   echo "postgres-major-upgrade: $*" >&2
@@ -34,7 +35,7 @@ refuse() {
   exit 2
 }
 
-environment="" confirm="" mode=upgrade
+environment="" confirm="" mode=upgrade accept_data_loss=false
 while (($# > 0)); do
   case "$1" in
     --environment | --confirm)
@@ -45,6 +46,7 @@ while (($# > 0)); do
       [[ "$mode" == upgrade ]] || refuse "--dry-run and --clear-marker cannot be combined"
       mode=${1#--}
       shift ;;
+    --accept-data-loss) accept_data_loss=true; shift ;;
     -h | --help) usage; exit 0 ;;
     *) refuse "unknown argument '$1'" ;;
   esac
@@ -53,6 +55,8 @@ done
   refuse "--environment must be staging or production"
 [[ "$confirm" == "$environment" ]] ||
   refuse "--confirm must repeat the environment name ('$environment') before anything runs"
+! $accept_data_loss || [[ "$mode" == clear-marker ]] ||
+  refuse "--accept-data-loss only applies to --clear-marker"
 dry_run=false
 [[ "$mode" != dry-run ]] || dry_run=true
 expected_project=grenmet-staging
@@ -143,6 +147,17 @@ rollback_steps() {
   echo "The new volume $target_volume is kept for diagnosis; remove it by hand once the cause is known."
 }
 
+# Role definitions with password hashes; they can be dumped again from the old volume.
+remove_role_dumps() {
+  [[ -n "$1" && -d "$1" ]] || return 0
+  rm -f "$1/globals.sql" "$1/missing-roles.sql" "$1/memberships.sql"
+}
+# The marker core.sh, Database Backup and Monitoring maintenance refuse to run under.
+write_marker() {
+  printf 'phase=%s\nvolume=%s\nrun=%s\nsource_image=%s\nsource_volume=%s\nstarted=%s\n' \
+    "$1" "$target_volume" "$run_dir" "$source_image" "$source_volume" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$in_progress"
+}
+
 # Dumps are staged in the database containers' /tmp (never in a data volume); remove any
 # a failed or cancelled run left there.
 remove_container_dumps() {
@@ -160,6 +175,9 @@ finish() {
   if ((status == 0)); then end_phase ok; else end_phase failed; fi
   rm -f "$rendered"
   remove_container_dumps
+  if ((status != 0)) && [[ "$stage" != preflight ]]; then
+    remove_role_dumps "$run_dir"
+  fi
   if ((status != 0)); then
     echo "::error::PostgreSQL major upgrade of $environment stopped in phase '${current_phase:-arguments}'."
     case "$stage" in
@@ -171,7 +189,8 @@ finish() {
           echo "The stopped services were started again."
         else
           echo "Starting the stopped services failed: run Deploy for $environment to start them."
-        fi ;;
+        fi
+        rm -f "$in_progress" ;;
       switched)
         echo "The services stay stopped so nothing writes to the unchecked PostgreSQL $target_major database."
         rollback_steps ;;
@@ -280,6 +299,9 @@ wait_healthy() {
 reopen_and_smoke() {
   phase reopen
   stage=reopened
+  # From here on the services may write to the new volume, so going back to the old
+  # one would drop those writes; --clear-marker then needs --accept-data-loss.
+  [[ ! -f "$in_progress" ]] || echo "reopened=1" >> "$in_progress"
   restart_writers || fail "Restoring the restart policies or starting the stopped services failed"
   local id service _
   while read -r id service _; do
@@ -296,10 +318,9 @@ reopen_and_smoke() {
   fi
   printf 'volume=%s\nimage=%s\nrun=%s\ncompleted=%s\n' "$target_volume" "$target_image" "$run_dir" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$completed_marker"
   rm -f "$in_progress"
-  # Role definitions with password hashes are not needed once the upgrade is complete.
   # The dumps stay as a second copy for the rollback window (no off-host write key on
   # this runner; the nightly backup covers production).
-  rm -f "$run_dir/globals.sql" "$run_dir/missing-roles.sql" "$run_dir/memberships.sql"
+  remove_role_dumps "$run_dir"
   echo "PostgreSQL $target_major serves $environment. Run Database Backup now."
   echo "Keep ${source_volume:-the old volume} and the dumps in $run_dir/dumps for at least 14 days, then remove both with the owner's go:"
   echo "  rm -rf '$run_dir'"
@@ -309,6 +330,8 @@ reopen_and_smoke() {
 phase preflight
 echo "Environment $environment, Compose project $COMPOSE_PROJECT, mode $mode"
 [[ -f "$config_file" ]] || fail "infra/docker/$config_file is missing"
+# render-env.py refuses to overwrite (O_EXCL); a run killed before its trap left one.
+rm -f "$rendered"
 python3 ../../scripts/production/render-env.py "$config_file" "$rendered" ||
   fail "render-env.py rejected the target configuration (message above). Fix the GitHub environment and run again."
 target_image=$(rendered_value CORE_POSTGRES_IMAGE)
@@ -317,10 +340,12 @@ target_mount=$(rendered_value CORE_POSTGRES_DATA_MOUNT)
 target_major=$(major_of_image "$target_image") || fail "Cannot read the PostgreSQL major of the target image"
 compose config --quiet || fail "docker compose rejected the deployment model (message above)"
 
-marked_volume="" marked_run="" verified_volume=""
+marked_volume="" marked_run="" marked_phase="" marked_reopened="" verified_volume=""
 if [[ -f "$in_progress" ]]; then
   marked_volume=$(marker_value "$in_progress" volume)
   marked_run=$(marker_value "$in_progress" run)
+  marked_phase=$(marker_value "$in_progress" phase)
+  marked_reopened=$(marker_value "$in_progress" reopened)
 fi
 [[ ! -f "$verified_marker" ]] || verified_volume=$(marker_value "$verified_marker" volume)
 
@@ -330,23 +355,32 @@ if [[ "$mode" == clear-marker ]]; then
     echo "No unfinished upgrade is recorded for $environment ($in_progress): nothing to clear."
     exit 0
   fi
-  if [[ "$verified_volume" == "$marked_volume" ]]; then
-    echo "The data on $marked_volume passed every check ($verified_marker); deploys may use it again."
+  if [[ "$marked_phase" == writers-stopped ]]; then
+    echo "The run stopped before the database switch: $(marker_value "$in_progress" source_volume) was never left."
   elif [[ "$target_volume" == "$marked_volume" ]]; then
-    fail "CORE_PGDATA_VOLUME still names $marked_volume, whose data was never verified. Roll back first: set CORE_POSTGRES_IMAGE back to $(marker_value "$in_progress" source_image) and delete CORE_PGDATA_VOLUME, then clear the marker."
+    [[ "$verified_volume" == "$marked_volume" ]] ||
+      fail "CORE_PGDATA_VOLUME still names $marked_volume, whose data was never verified. Roll back first: set CORE_POSTGRES_IMAGE back to $(marker_value "$in_progress" source_image) and delete CORE_PGDATA_VOLUME, then clear the marker."
+    echo "The data on $marked_volume passed every check ($verified_marker); deploys may use it again."
+  elif [[ "$marked_reopened" == 1 ]] && ! $accept_data_loss; then
+    fail "The services already ran on $marked_volume, so it may hold writes the old volume does not have. Going back to $target_volume drops them. Fix forward (set the variables back to $marked_volume and run upgrade again), or ask the owner and run clear-marker with --accept-data-loss (workflow mode clear-marker-accept-data-loss)."
   else
     echo "The variables name $target_volume (PostgreSQL $target_major) again, not $marked_volume: rolling back."
+    ! $accept_data_loss || echo "Writes made on $marked_volume after the services reopened are not carried back (--accept-data-loss)."
   fi
   writers_file="$marked_run/stopped-containers"
   restore_policies || fail "Restoring the restart policies of the stopped services failed; the marker was kept"
+  remove_role_dumps "$marked_run"
   rm -f "$in_progress"
   echo "Cleared $in_progress. Next: run Deploy for $environment; it starts the services on $target_volume (PostgreSQL $target_major)."
   exit 0
 fi
 
 source_db=$(db_container)
-[[ -n "$source_db" && "$source_db" != *$'\n'* ]] ||
+if [[ -z "$source_db" || "$source_db" == *$'\n'* ]]; then
+  [[ -z "$marked_volume" ]] ||
+    fail "No single running db container, and an unfinished upgrade is recorded ($in_progress): the new database may not have started. Roll back: set CORE_POSTGRES_IMAGE back to $(marker_value "$in_progress" source_image), delete CORE_PGDATA_VOLUME, run clear-marker, then Deploy (docs/operations/postgres-18-upgrade.md, Rollback)."
   fail "Expected exactly one running db container in project $COMPOSE_PROJECT; found ${source_db:-none}. Deploy $environment first."
+fi
 source_image=$(docker inspect --format '{{.Config.Image}}' "$source_db")
 source_volume=$(docker inspect --format '{{range .Mounts}}{{if eq .Type "volume"}}{{.Name}} {{.Destination}}{{println}}{{end}}{{end}}' "$source_db" |
   awk '$2 == "/var/lib/postgresql/data" || $2 == "/var/lib/postgresql" {print $1}' | head -n 1)
@@ -386,7 +420,7 @@ fi
 ((target_major > source_major)) ||
   fail "The target PostgreSQL $target_major is not newer than the running $source_major; this script only upgrades."
 [[ -z "$marked_volume" ]] ||
-  fail "An unfinished upgrade is recorded ($in_progress, volume $marked_volume). Roll back and clear it (mode clear-marker) before starting again."
+  fail "An unfinished upgrade is recorded ($in_progress, phase ${marked_phase:-switched}, volume $marked_volume). Roll back if needed and clear it (mode clear-marker) before starting again."
 
 # The new volume: absent (created during the switch), or present, empty and unused.
 if docker volume inspect --format '{{.Name}}' "$target_volume" >/dev/null 2>&1; then
@@ -455,27 +489,31 @@ if $dry_run; then
   cat <<PLAN
 
 Dry run: an upgrade of $environment would
-  1. set the restart policy of $(grep -c . <<<"$writers" || true) service containers to "no" and stop them (db, redis and the proxy
-     stay up), then wait for client connections to close;
+  1. write $in_progress (deploys and backups refuse to run while it exists), set the restart policy of
+     $(grep -c . <<<"$writers" || true) service containers to "no" and stop them (db, redis and the proxy stay up), then wait for
+     client connections to close;
   2. record row counts of every table, Alembic revisions, extensions and roles of: $(tr '\n' ' ' <<<"$databases");
   3. dump each database (pg_dump --format=custom --compress=9) and the roles (pg_dumpall --globals-only) to $work_root/$environment-<time>/;
-  4. write $in_progress (deploys and backups refuse to run while it exists), stop db (PostgreSQL $source_major,
-     volume $source_volume, which is never written again), create $target_volume and start db on $target_image
-     with the volume at $target_mount;
+  4. stop db (PostgreSQL $source_major, volume $source_volume, which is never written again), create $target_volume
+     and start db on $target_image with the volume at $target_mount;
   5. create the databases and roles as a deploy does (init-databases.sh), and the runtime role and any other role
      only the old server had from globals.sql, with their old password hashes;
   6. pg_restore --exit-on-error each database, run vacuumdb --all --analyze-in-stages and the runtime grants again;
   7. check the server version, row counts, Alembic revisions, extensions and roles against step 2 ($verified_marker);
   8. restore the restart policies, start the stopped services, wait until they are healthy and run the smoke checks,
      then remove the marker and the roles dump ($completed_marker).
-Until step 8 the rollback is: set CORE_POSTGRES_IMAGE back to $source_image, delete CORE_PGDATA_VOLUME,
-run this workflow with mode clear-marker, then run Deploy.
+A failure before step 4 restarts the services and removes the marker. From step 4 until step 8 the rollback is:
+set CORE_POSTGRES_IMAGE back to $source_image, delete CORE_PGDATA_VOLUME, run this workflow with mode
+clear-marker, then run Deploy. Once step 8 has started the services, rolling back needs clear-marker-accept-data-loss.
 Dry run: nothing was changed.
 PLAN
   exit 0
 fi
 
 # ── Upgrade ─────────────────────────────────────────────────────────────────────────
+# Readable by every user, so the marker checks never fail open; run directories stay 700.
+mkdir -p "$work_root"
+chmod 755 "$work_root"
 run_dir="$work_root/$environment-$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$run_dir/dumps" "$run_dir/before" "$run_dir/after"
 writers_file="$run_dir/stopped-containers"
@@ -489,6 +527,7 @@ printf 'environment=%s\nsource_image=%s\nsource_volume=%s\ntarget_image=%s\ntarg
 
 phase stop-writers
 stage="writers-stopped"
+write_marker writers-stopped
 ids=$(writer_ids)
 if [[ -n "$ids" ]]; then
   # shellcheck disable=SC2086
@@ -535,8 +574,7 @@ phase switch
 stage=switched
 # Before anything changes on the database side: from here on core.sh refuses to deploy
 # or back up, until the upgrade completes or the marker is cleared after a rollback.
-printf 'volume=%s\nrun=%s\nsource_image=%s\nsource_volume=%s\nstarted=%s\n' \
-  "$target_volume" "$run_dir" "$source_image" "$source_volume" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$in_progress"
+write_marker switched
 rm -f "$verified_marker"
 docker stop --time 120 "$source_db" >/dev/null
 docker volume inspect "$target_volume" >/dev/null 2>&1 ||
