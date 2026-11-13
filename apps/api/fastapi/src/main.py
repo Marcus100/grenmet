@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from typing import Any, cast
 
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, Response
@@ -493,97 +493,100 @@ if settings.all_cors_origins:
         expose_headers=[REQUEST_ID_HEADER],
     )
 app.add_middleware(RequestLoggingMiddleware)
+
+
+def _legacy(key: str, router: APIRouter, *, versioned: bool = True) -> Mount:
+    return Mount(key, router, versioned)
+
+
 # Routers not yet moved to a domain manifest (ADR-0031), by MOUNT_ORDER key.
 _LEGACY_MOUNTS: dict[str, Mount] = {
-    "auth.login": Mount("auth.login", login_router),
-    "auth.users": Mount("auth.users", users_router),
-    "auth.twofa": Mount("auth.twofa", twofa_router),
-    "auth.roles": Mount("auth.roles", roles_router),
-    "auth.permissions": Mount("auth.permissions", permissions_router),
-    "auth.role_assignments": Mount("auth.role_assignments", role_assignments_router),
-    "billing.billing": Mount("billing.billing", billing_router),
-    "billing.invoices": Mount("billing.invoices", billing_invoice_router),
-    "rewards.rewards": Mount("rewards.rewards", rewards_router),
-    "payments.payments": Mount("payments.payments", payments_router),
-    "bookings.bookings": Mount("bookings.bookings", bookings_router),
-    "bookings.settings": Mount("bookings.settings", bookings_settings_router),
-    "hr.profile": Mount("hr.profile", hr_profile_router),
-    "hr.workflow": Mount("hr.workflow", hr_workflow_router),
-    "hr.roster": Mount("hr.roster", hr_roster_router),
-    "hr.calendar": Mount("hr.calendar", hr_calendar_router),
-    "hr.timesheet": Mount("hr.timesheet", hr_timesheet_router),
-    "hr.clock": Mount("hr.clock", hr_clock_router),
-    "hr.attendance": Mount("hr.attendance", hr_attendance_router),
-    "hr.payroll": Mount("hr.payroll", hr_payroll_router),
-    "hr.training": Mount("hr.training", hr_training_router),
-    "hr.signatures": Mount("hr.signatures", hr_signatures_router),
-    "hr.leave": Mount("hr.leave", hr_leave_router),
-    "hr.absentee": Mount("hr.absentee", hr_absentee_router),
-    "hr.exchange": Mount("hr.exchange", hr_exchange_router),
-    "hr.dailystatus": Mount("hr.dailystatus", hr_dailystatus_router),
-    "hr.parking": Mount("hr.parking", hr_parking_router),
-    "hr.documents": Mount("hr.documents", hr_documents_router),
-    "audit.audit": Mount("audit.audit", audit_router),
-    "stores.stores": Mount("stores.stores", stores_router),
-    "notifications.notifications": Mount(
-        "notifications.notifications", notifications_router
-    ),
-    "organisations.organisations": Mount(
-        "organisations.organisations", organisations_router
-    ),
-    "feature_flags.feature_flags": Mount(
-        "feature_flags.feature_flags", feature_flags_router
-    ),
-    "contacts.contacts": Mount("contacts.contacts", contacts_router),
-    "cap.cap": Mount("cap.cap", cap_router),
-    "cap.public": Mount("cap.public", cap_public_router, versioned=False),
-    "utils.utils": Mount("utils.utils", utils_router),
-    "storage.weather_images": Mount("storage.weather_images", weather_images_router),
-    "storage.uploads": Mount("storage.uploads", uploads_router),
-    "webhooks.webhooks": Mount("webhooks.webhooks", webhooks_router),
-    "subscriptions.subscriptions": Mount(
-        "subscriptions.subscriptions", subscriptions_router
-    ),
-    "push.push": Mount("push.push", push_router),
-    "contact.contact": Mount("contact.contact", contact_router),
-    "feedback.feedback": Mount("feedback.feedback", feedback_router),
-    "content_distribution.content_distribution": Mount(
-        "content_distribution.content_distribution", content_distribution_router
-    ),
-    "flights.flights": Mount("flights.flights", flights_router),
-    "environmental.environmental": Mount(
-        "environmental.environmental", environmental_router
-    ),
-    "almanac.almanac": Mount("almanac.almanac", almanac_router),
-    "models_guidance.models_guidance": Mount(
-        "models_guidance.models_guidance", models_guidance_router
-    ),
-    "wxproducts.wxproducts": Mount("wxproducts.wxproducts", wxproducts_router),
-    "eregister.eregister": Mount("eregister.eregister", eregister_router),
-    "wxwatch.wxwatch": Mount("wxwatch.wxwatch", wxwatch_router),
-    "wxwatch.public": Mount("wxwatch.public", wxwatch_public_router),
-    "wxwatch.nhc": Mount("wxwatch.nhc", nhc_router),
-    "wxwatch.ingestion": Mount("wxwatch.ingestion", wxwatch_ingestion_router),
-    "auth.browser": Mount("auth.browser", browser_auth_router),
-    "janitorial.janitorial": Mount("janitorial.janitorial", janitorial_router),
-    "transport.transport": Mount("transport.transport", transport_router),
-    "events.events": Mount("events.events", events_router),
-    "events.moderation": Mount("events.moderation", events_moderation_router),
-    "events.org": Mount("events.org", events_org_router),
-    "events.staff": Mount("events.staff", events_staff_router),
-    "auth.onboarding": Mount("auth.onboarding", onboarding_router),
-    "auth.modern": Mount("auth.modern", modern_auth_router),
-    "auth.app": Mount("auth.app", app_auth_router),
-    "auth.account_apps": Mount("auth.account_apps", account_apps_router),
-    "baseline.staff_setup": Mount("baseline.staff_setup", staff_setup_router),
-    "hr.dashboard": Mount("hr.dashboard", hr_dashboard_router),
-    "baseline.governance": Mount("baseline.governance", governance_router),
+    mount.key: mount
+    for mount in (
+        _legacy("auth.login", login_router),
+        _legacy("auth.users", users_router),
+        _legacy("auth.twofa", twofa_router),
+        _legacy("auth.roles", roles_router),
+        _legacy("auth.permissions", permissions_router),
+        _legacy("auth.role_assignments", role_assignments_router),
+        _legacy("billing.billing", billing_router),
+        _legacy("billing.invoices", billing_invoice_router),
+        _legacy("rewards.rewards", rewards_router),
+        _legacy("payments.payments", payments_router),
+        _legacy("bookings.bookings", bookings_router),
+        _legacy("bookings.settings", bookings_settings_router),
+        _legacy("hr.profile", hr_profile_router),
+        _legacy("hr.workflow", hr_workflow_router),
+        _legacy("hr.roster", hr_roster_router),
+        _legacy("hr.calendar", hr_calendar_router),
+        _legacy("hr.timesheet", hr_timesheet_router),
+        _legacy("hr.clock", hr_clock_router),
+        _legacy("hr.attendance", hr_attendance_router),
+        _legacy("hr.payroll", hr_payroll_router),
+        _legacy("hr.training", hr_training_router),
+        _legacy("hr.signatures", hr_signatures_router),
+        _legacy("hr.leave", hr_leave_router),
+        _legacy("hr.absentee", hr_absentee_router),
+        _legacy("hr.exchange", hr_exchange_router),
+        _legacy("hr.dailystatus", hr_dailystatus_router),
+        _legacy("hr.parking", hr_parking_router),
+        _legacy("hr.documents", hr_documents_router),
+        _legacy("audit.audit", audit_router),
+        _legacy("stores.stores", stores_router),
+        _legacy("notifications.notifications", notifications_router),
+        _legacy("organisations.organisations", organisations_router),
+        _legacy("feature_flags.feature_flags", feature_flags_router),
+        _legacy("contacts.contacts", contacts_router),
+        _legacy("cap.cap", cap_router),
+        _legacy("cap.public", cap_public_router, versioned=False),
+        _legacy("utils.utils", utils_router),
+        _legacy("storage.weather_images", weather_images_router),
+        _legacy("storage.uploads", uploads_router),
+        _legacy("webhooks.webhooks", webhooks_router),
+        _legacy("subscriptions.subscriptions", subscriptions_router),
+        _legacy("push.push", push_router),
+        _legacy("contact.contact", contact_router),
+        _legacy("feedback.feedback", feedback_router),
+        _legacy(
+            "content_distribution.content_distribution", content_distribution_router
+        ),
+        _legacy("flights.flights", flights_router),
+        _legacy("environmental.environmental", environmental_router),
+        _legacy("almanac.almanac", almanac_router),
+        _legacy("models_guidance.models_guidance", models_guidance_router),
+        _legacy("wxproducts.wxproducts", wxproducts_router),
+        _legacy("eregister.eregister", eregister_router),
+        _legacy("wxwatch.wxwatch", wxwatch_router),
+        _legacy("wxwatch.public", wxwatch_public_router),
+        _legacy("wxwatch.nhc", nhc_router),
+        _legacy("wxwatch.ingestion", wxwatch_ingestion_router),
+        _legacy("auth.browser", browser_auth_router),
+        _legacy("janitorial.janitorial", janitorial_router),
+        _legacy("transport.transport", transport_router),
+        _legacy("events.events", events_router),
+        _legacy("events.moderation", events_moderation_router),
+        _legacy("events.org", events_org_router),
+        _legacy("events.staff", events_staff_router),
+        _legacy("auth.onboarding", onboarding_router),
+        _legacy("auth.modern", modern_auth_router),
+        _legacy("auth.app", app_auth_router),
+        _legacy("auth.account_apps", account_apps_router),
+        _legacy("baseline.staff_setup", staff_setup_router),
+        _legacy("hr.dashboard", hr_dashboard_router),
+        _legacy("baseline.governance", governance_router),
+    )
 }
-for mount in ordered_mounts(_LEGACY_MOUNTS):
-    if mount.versioned:
-        app.include_router(mount.router, prefix=settings.API_V1_STR)
-    else:
-        app.include_router(mount.router)
+
+
+def _mount_routers() -> None:
+    for mount in ordered_mounts(_LEGACY_MOUNTS):
+        if mount.versioned:
+            app.include_router(mount.router, prefix=settings.API_V1_STR)
+        else:
+            app.include_router(mount.router)
+
+
+_mount_routers()
 
 
 # Register exception handlers
@@ -592,7 +595,8 @@ app.add_exception_handler(ValidationError, validation_exception_handler)  # type
 app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
 app.add_exception_handler(IntegrityError, integrity_error_handler)  # type: ignore[arg-type]
 
-# Include private router for local development
+# Include private router for local development. It mounts after every
+# MOUNT_ORDER router, so a path it shares with one of them loses (ADR-0031).
 if settings.ENVIRONMENT == "local":
     try:
         from src.private.router import (  # type: ignore[import-untyped]

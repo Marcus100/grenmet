@@ -35,6 +35,11 @@ def test_every_router_has_one_slot_in_mount_order() -> None:
     assert len({id(mount.router) for mount in mounts}) == len(mounts)
 
 
+def test_only_cap_public_feeds_mount_outside_the_versioned_prefix() -> None:
+    unversioned = [m.key for m in ordered_mounts(_LEGACY_MOUNTS) if not m.versioned]
+    assert unversioned == ["cap.public"]
+
+
 def test_registered_domains_are_not_also_legacy() -> None:
     registered = {mount.key for domain in DOMAINS for mount in domain.mounts}
     assert registered
