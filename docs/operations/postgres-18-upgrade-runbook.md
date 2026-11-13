@@ -76,8 +76,9 @@ data size and timing.
 ## Rollback
 
 - **Before the services reopen:** set `CORE_POSTGRES_IMAGE` back to the 17 value, delete
-  `CORE_PGDATA_VOLUME`, and deploy. The old volume was never written by 18. The workflow
-  prints these steps with the exact values when it stops after the switch.
+  `CORE_PGDATA_VOLUME`, run the upgrade workflow with `mode` = `clear-marker` (deploys
+  and backups are refused until then), and deploy. The old volume was never written by
+  18. The workflow prints these steps with the exact values when it stops after the switch.
 - **After reopening:** writes made on 18 exist only there, and a custom-format dump
   from 18 cannot be read by the 17 `pg_restore`. Do not decide this alone: stop and ask
   the owner. The options are a plain-SQL dump from 18 restored into a fresh 17 volume,

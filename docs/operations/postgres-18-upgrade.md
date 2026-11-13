@@ -99,8 +99,9 @@ deploy where they disagree, before anything on the server changes:
 
 The workflow runs `scripts/production/postgres-major-upgrade.sh` on the environment's
 self-hosted core runner, in the same concurrency group as Deploy, the backup and the
-restore drill. Staging runs from the `staging` branch, production from a release tag,
-so the merged and promoted script is the one that runs.
+restore drill. It first runs Deploy's own ref check (`validate-ref.sh`): staging only
+from the `staging` branch, production only from a `v*` tag on `main` with a published
+release. A wrong ref fails that job, visibly, and nothing runs on the droplet.
 
 **Prepare (no downtime)**
 
@@ -127,7 +128,9 @@ so the merged and promoted script is the one that runs.
 5. Announce the window. Run the workflow again with `mode` = `upgrade`. Production asks
    for the environment's reviewers first.
 6. The run summary shows each phase and its time. On success the services are back and the
-   smoke checks passed. Downtime ends.
+   smoke checks passed. Downtime ends. If only the restart or the smoke checks failed (the
+   run says the data passed every check), fix the cause and run `upgrade` again: it only
+   restarts the services and repeats the smoke checks.
 
 **After**
 
@@ -136,8 +139,12 @@ so the merged and promoted script is the one that runs.
 8. Record the phase timings and anything unexpected. Staging's timings set the
    production window.
 9. Keep the old 17 volume, unchanged, for at least 14 days, then remove it with the
-   owner's go. The script's run directory (dumps, `globals.sql` with password hashes) is
-   under `/var/backups/grenmet/pg-major-upgrade/`; remove it with the old volume.
+   owner's go, together with the run directory the script names at the end
+   (`rm -rf /var/backups/grenmet/pg-major-upgrade/<env>-<time>`). That directory holds the
+   final dumps (mode 700, on the droplet only: the upgrade job has no write key for the
+   backup bucket, and production's nightly backup already copies 18's data off the host).
+   The roles dump with password hashes (`globals.sql`, `missing-roles.sql`) is deleted as
+   soon as the upgrade completes.
 10. Repeat steps 2 to 9 for production, from the release tag that contains this change,
     with the owner present.
 
@@ -146,33 +153,62 @@ UPDATE;` in each database that has it after the restore.
 
 ## What the script does
 
-`postgres-major-upgrade.sh --environment <env> --confirm <env> [--dry-run]` reads the
-source from the running `db` container and the target from `render-env.py`, using the
-same secrets and environment file as `core.sh deploy`. It holds the core maintenance
-lock, so no deploy or backup through `core.sh` runs at the same time.
+`postgres-major-upgrade.sh --environment <env> --confirm <env> [--dry-run | --clear-marker]`
+reads the source from the running `db` container and the target from `render-env.py`,
+using the same secrets and environment file as `core.sh deploy`. It holds the core
+maintenance lock, so no deploy or backup through `core.sh` runs at the same time.
+
+Three markers in `/var/backups/grenmet/pg-major-upgrade/` carry the state between runs:
+
+| Marker | Written | Removed | Effect |
+| --- | --- | --- | --- |
+| `<env>.in-progress` | Before the 17 server stops and the new volume is created | When the restart and smoke checks pass, or by `clear-marker` after a rollback | `core.sh` refuses to deploy or back up; **Database Backup** and **Monitoring maintenance** refuse to run |
+| `<env>.verified` | When the restored data matches the old server | At the next upgrade's switch | A rerun only restarts the services and runs the smoke checks |
+| `<env>.completed` | When the restart and smoke checks pass | Never | A rerun does nothing |
+
+While the data moves, the stopped services' restart policy is `no`, so a host reboot
+cannot start them on an unchecked database. Their policies come back before they start
+again, and `clear-marker` restores them too.
+
+Other jobs on the droplet: **Inspect Databases** and **Monitoring maintenance** share the
+droplet's concurrency group with the upgrade, and maintenance also takes the core lock.
+**Monitoring daily receipts** only reads aggregates and is not blocked; if its connection
+is open when the services stop, the upgrade stops before the dump and restarts them, so
+run the upgrade away from 04:50 UTC.
 
 | Phase | What happens | If it fails |
 | --- | --- | --- |
-| preflight (both modes) | Target paired by `render-env.py`; one running `db` on the old major; new volume absent, or empty and unused; free disk on the Docker root and the run directory for twice the data plus 2 GB; production backup under 6 hours; target image present or pulled | Nothing changed |
-| stop-writers | Stops every service of the project except `db`, `redis` and the proxy; waits for client connections to close | Services started again; database unchanged |
+| preflight (every mode) | Target paired by `render-env.py`; no unfinished upgrade recorded; one running `db` on the old major; new volume absent, or empty and unused; free disk for the new cluster and the dumps (three times the data plus 2 GB on one disk, or split by disk); production backup under 6 hours; target image present or pulled | Nothing changed |
+| stop-writers | Sets the restart policy of every service of the project except `db`, `redis` and the proxy to `no` and stops them; waits for client connections to close | Policies restored and services started again; database unchanged |
 | record, dump | Row count of every table, Alembic revisions, extensions, roles and memberships; `pg_dump --format=custom --compress=9` of every database, checked with `pg_restore --list`; `pg_dumpall --globals-only`; the counts again, which must not have moved | Services started again; database unchanged |
-| switch | Stops the 17 server, creates the new volume, starts 18 through the deployment compose file, waits for TCP connections | Services stay stopped; rollback below |
+| switch | Writes `<env>.in-progress`, stops the 17 server, creates the new volume, starts 18 through the deployment compose file, waits for TCP connections | Services stay stopped, deploys refused; rollback below |
 | roles | `init-databases.sh` as a deploy runs it; the runtime role and any other role only the old server had, from `globals.sql` with its password hash; databases a deploy does not create, with their old owner | Same |
 | restore, analyze | `pg_restore --exit-on-error` into each empty database; `grant-api-runtime.sh`; `vacuumdb --all --analyze-in-stages` | Same |
-| verify | Version, row counts, Alembic revisions, extensions and databases equal the recorded ones; the run is recorded as complete | Same |
-| reopen, smoke | Starts the stopped containers, waits until healthy, runs `smoke.mjs` | Data is already checked; fix forward or ask the owner |
+| verify | Version, row counts, Alembic revisions, extensions and databases equal the recorded ones; writes `<env>.verified` | Same |
+| reopen, smoke | Restores the restart policies, starts the stopped containers, waits until healthy, runs `smoke.mjs`; writes `<env>.completed`, removes the marker and the roles dump | Data is already checked: run `upgrade` again to retry, fix forward, or ask the owner |
 
 A second run after success changes nothing. A run against a volume that already holds
-data, or with `db` on 18 without a recorded completion, is refused. Output never shows
-secrets or restored rows; `pg_restore` logs stay in the run directory (mode 700).
+data, with `db` on 18 whose data was never verified, or while an unfinished upgrade is
+recorded, is refused. Output never shows secrets or restored rows; `pg_restore` logs stay
+in the run directory (mode 700). Any dump left in a database container's `/tmp` by a
+failed run is removed on exit.
 
 ## Rollback
 
 - **Before the services reopen** (any failure after the switch; the workflow prints these
-  steps): set `CORE_POSTGRES_IMAGE` back to the 17 value and delete `CORE_PGDATA_VOLUME`
-  in the GitHub environment, then run **Deploy** for that environment. The deploy starts 17
-  on the old volume, which 18 never wrote, and starts the services. Keep the new volume
-  until the cause is known, then remove it by hand before trying again.
+  steps with the exact values):
+  1. Set `CORE_POSTGRES_IMAGE` back to the 17 value and delete `CORE_PGDATA_VOLUME` in the
+     GitHub environment.
+  2. Run **PostgreSQL major upgrade** with `mode` = `clear-marker`. It refuses while the
+     variables still name the unverified volume, then restores the services' restart
+     policies and removes `<env>.in-progress`. Without the workflow, on the droplet:
+     `rm /var/backups/grenmet/pg-major-upgrade/<env>.in-progress` (the next deploy
+     recreates the services with their policies).
+  3. Run **Deploy** for that environment. It starts 17 on the old volume, which 18 never
+     wrote, and starts the services.
+
+  Keep the new volume until the cause is known, then remove it by hand before trying
+  again.
 - **After reopening:** writes made on 18 exist only on 18. A PostgreSQL 18 custom-format
   dump cannot be read by the 17 `pg_restore`, so moving back means a plain-SQL `pg_dump`
   from 18 restored into a fresh 17 volume, or accepting the loss of post-upgrade writes
@@ -193,6 +229,8 @@ Moved together in the pull request that added the script and the workflow:
 - `scripts/production/render-env.py` (17 and 18 images, mount and volume as one set) with `render-env.test.mjs` and `deploy-preflight.test.mjs`
 - `scripts/production/restore-drill.py` and `.github/workflows/restore-drill.yml` (default `postgres:18`, which reads 17 and 18 dumps)
 - `docs/infrastructure.md`
+- `scripts/monitoring/maintenance.py` (the weekly restore check mounts a tmpfs at every
+  path the database image declares, so it starts on 17 and 18)
 
 Still per environment, at its upgrade: the GitHub variables `CORE_POSTGRES_IMAGE` and
 `CORE_PGDATA_VOLUME`. After both environments run 18, a follow-up can set
@@ -205,7 +243,8 @@ move it out of `pending` in `scripts/ci/environment-settings.json`, and drop 17 
 An existing `grenmet-postgres` volume holds PostgreSQL 17 data and does not start on 18.
 Either reset it (`pnpm reset`, which deletes local data) or dump first:
 `docker exec grenmet-postgres pg_dumpall -U app > ~/pg17-dev.sql`, then `pnpm reset`,
-then `psql -h localhost -U app -d postgres -f ~/pg17-dev.sql`. The agent test database
+then `psql -h localhost -U app -d postgres -f ~/pg17-dev.sql`. The 18 image refuses to
+start on the old volume rather than initialising an empty database in it. The agent test database
 (`scripts/agents/test-db.sh`) is a tmpfs container: `down`, then `up` recreates it on 18.
 
 ## Other PostgreSQL 18 changes that matter here
