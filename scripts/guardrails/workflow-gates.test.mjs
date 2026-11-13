@@ -366,6 +366,27 @@ test("the restore drill runs its script from the dispatched ref, not the release
   assert.ok(!drill.includes("python3 scripts/production/restore-drill.py"));
 });
 
+test("the restore drill runs monthly with production defaults and reports a failed scheduled run", () => {
+  const drill = readWorkflow("restore-drill.yml");
+  assert.match(drill, /schedule:\n\s+- cron: "30 5 1 \* \*"/u);
+  // A scheduled run has no inputs, so each one needs a default.
+  assert.ok(drill.includes("inputs.environment || 'production'"));
+  assert.ok(drill.includes("inputs.postgres_image || 'postgres:17'"));
+  assert.ok(drill.includes("inputs.api_check || false"));
+  assert.ok(!/\$\{\{ inputs\.environment \}\}/u.test(drill));
+  // The self-hosted production runner is reachable only from a schedule or a manual
+  // dispatch, never from a pull request or another workflow.
+  const triggers = drill.split("\npermissions:")[0];
+  assert.ok(!/pull_request|workflow_run|workflow_call/u.test(triggers));
+  // The issue is opened from a hosted runner, never the production runner.
+  const report = drill.split("  report-failure:")[1] ?? "";
+  assert.ok(report.includes("runs-on: ubuntu-latest"));
+  assert.ok(report.includes("github.event_name == 'schedule'"));
+  assert.ok(report.includes("issues: write"));
+  const hosted = drill.split("  report-failure:")[0];
+  assert.ok(!hosted.includes("issues: write"));
+});
+
 test("auto re-run covers CI and image builds only, with no code from the failed run", () => {
   const source = readWorkflow("auto-rerun.yml");
   const watched =
