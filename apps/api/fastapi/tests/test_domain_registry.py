@@ -8,17 +8,20 @@ additions need no edit, a deliberate removal does.
 """
 
 import json
+from importlib import import_module
 from pathlib import Path
 
 import pytest
 from fastapi import APIRouter
 
-import src.worker.main  # noqa: F401  (imports the outbox handler modules)
 from src import outbox
 from src.domain_manifest import Domain, Mount
 from src.domains import DOMAINS, MOUNT_ORDER, ordered_mounts
 from src.main import _LEGACY_MOUNTS
 from src.orm import Base
+
+# The worker imports the outbox handler modules, which register their topics.
+import_module("src.worker.main")
 
 FLOOR = json.loads(
     (Path(__file__).parent / "snapshots" / "domain_registry_floor.json").read_text()
