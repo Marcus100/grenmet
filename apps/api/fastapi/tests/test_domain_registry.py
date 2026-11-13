@@ -7,6 +7,7 @@ manifests. The floor file lists what existed when the migration started;
 additions need no edit, a deliberate removal does.
 """
 
+import ast
 import json
 import subprocess
 import sys
@@ -150,16 +151,37 @@ def test_every_manifest_table_lives_in_a_tracked_schema() -> None:
             assert table.schema in domain.schemas, (domain.name, table.fullname)
 
 
-def test_manifest_registrations_ran_once_on_database_import() -> None:
+def test_manifest_registrations_ran_once_on_database_import(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     assert database.engine is not None
     for model in (Contact, ContactConsent):
         assert registry.tracked(model) is not None
     webhook_models = import_module("src.webhooks_out.models")
     assert registry.tracked(webhook_models.WebhookEndpoint) is not None
-    run_registrations()  # a second call must not track anything twice
+    calls: list[type] = []
+    monkeypatch.setattr(registry, "track", lambda model, **_: calls.append(model))
+    run_registrations()
+    assert calls == [], "a second call must not track anything again"
 
 
 def test_alembic_tracks_the_manifest_schemas() -> None:
-    env = (Path(__file__).parents[1] / "alembic" / "env.py").read_text()
-    assert "} | tracked_schemas()" in env
-    assert "import_models()" in env
+    """env.py runs migrations on import, so check its code instead of loading it."""
+    tree = ast.parse((Path(__file__).parents[1] / "alembic" / "env.py").read_text())
+    called = {
+        node.func.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+    }
+    assert {"import_models", "tracked_schemas"} <= called
+    tracked = next(
+        node.value
+        for node in tree.body
+        if isinstance(node, ast.Assign)
+        and any(
+            isinstance(t, ast.Name) and t.id == "_TRACKED_SCHEMAS"
+            for t in node.targets
+        )
+    )
+    assert isinstance(tracked, ast.BinOp)
+    assert isinstance(tracked.op, ast.BitOr)

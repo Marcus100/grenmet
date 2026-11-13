@@ -23,7 +23,7 @@ import path (`"src.x.router:router"`) instead of importing it, so
 schemas, model modules and `register()` modules; `database.py` calls
 `import_models()` and `run_registrations()`, and `env.py` adds
 `tracked_schemas()` to `_TRACKED_SCHEMAS`. Manifest registrations now run after
-the legacy ones. `openapi.json` and the `alembic check` output are unchanged.
+the legacy ones; their order is not a contract (they fill lookup tables). `openapi.json` and the `alembic check` output are unchanged.
 Steps 5 and 6 are not started.
 
 ## Context

@@ -155,12 +155,14 @@ _registered: set[str] = set()
 def run_registrations(domains: Iterable[Domain] = DOMAINS) -> None:
     """Call each registered domain's ``register()`` hooks once, in list order.
 
-    ``src.database`` calls this at import time, before any session exists.
-    A domain already registered in this process is skipped.
+    ``src.database`` calls this at import time, before any session exists. A
+    module already registered in this process is skipped, so a retry after a
+    failure does not run the earlier hooks twice. Order is not a contract:
+    registrations fill lookup tables.
     """
     for domain in domains:
-        if domain.name in _registered:
-            continue
         for module in domain.registrations:
+            if module in _registered:
+                continue
             import_module(module).register()
-        _registered.add(domain.name)
+            _registered.add(module)
