@@ -23,7 +23,7 @@ case "$NAME" in
   *) echo "test-db: refusing container name '$NAME': it must end in -test" >&2; exit 2 ;;
 esac
 # Same pinned image as infra/docker/docker-compose.yml.
-IMAGE="postgis/postgis:18-3.6@sha256:4a43e3c3e5d55b9208240fc71db543b79c638766280c625a425bd0a2390989c4"
+IMAGE="postgis/postgis:18-3.7@sha256:c5d1ba4292ff7b4471ff41cd515c677633797b72cdd2a7bb691cadaab91f1a1f"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 PASSWORD="changethis"
 
