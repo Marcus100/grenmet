@@ -19,6 +19,7 @@ from ..models import (
     GroupMember,
     MemberProfile,
 )
+from ..transitions import ConnectionStatus, GroupMemberStatus
 
 # --- Profiles and people ----------------------------------------------------------
 
@@ -107,21 +108,21 @@ async def connection_state(
     link = await _connection_between(db, viewer_id, other_id)
     if link is None:
         return "none"
-    if link.status == "accepted":
+    if link.status == ConnectionStatus.ACCEPTED.value:
         return "connected"
     return "sent" if link.requester_id == viewer_id else "received"
 
 
 async def _shares_group(db: AsyncSession, a: uuid.UUID, b: uuid.UUID) -> bool:
     mine = select(GroupMember.group_id).where(
-        GroupMember.user_id == a, GroupMember.status == "active"
+        GroupMember.user_id == a, GroupMember.status == GroupMemberStatus.ACTIVE.value
     )
     shared = await db.scalar(
         select(func.count())
         .select_from(GroupMember)
         .where(
             GroupMember.user_id == b,
-            GroupMember.status == "active",
+            GroupMember.status == GroupMemberStatus.ACTIVE.value,
             GroupMember.group_id.in_(mine),
         )
     )

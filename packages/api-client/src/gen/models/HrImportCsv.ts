@@ -6,6 +6,7 @@
 import type { ApiError } from "./ApiError.js";
 import type { RosterCsvImportResponse } from "./RosterCsvImportResponse.js";
 import type { RosterCsvValidationRequest } from "./RosterCsvValidationRequest.js";
+import type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrImportCsvStatus200 = RosterCsvImportResponse;
@@ -21,6 +22,14 @@ export type HrImportCsvStatus400 = ApiError;
  * @type object
  */
 export type HrImportCsvStatus403 = ApiError;
+
+/**
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
+ * @type object
+ */
+export type HrImportCsvStatus409 = RosterRuleWarningsErrorPublic;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -41,6 +50,7 @@ export type HrImportCsvResponses = {
   "200": HrImportCsvStatus200;
   "400": HrImportCsvStatus400;
   "403": HrImportCsvStatus403;
+  "409": HrImportCsvStatus409;
   "422": HrImportCsvStatus422;
 };
 

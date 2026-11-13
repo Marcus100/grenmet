@@ -20,6 +20,7 @@ from src.organisations.models import (
     OrganisationApp,
     OrganisationKind,
     PlatformOrganisation,
+    VerificationStatus,
 )
 from src.storage import uploads as org_uploads
 from src.utils.datetime import utc_now
@@ -36,6 +37,7 @@ from ..models import (
     Ticket,
     TicketTier,
 )
+from ..transitions import ListingAction, ListingStatus, TicketStatus, move_listing
 from . import event_cancel, holds, organiser_verification, taxonomy
 from .common import _naive_utc, _pairs
 from .discover import (
@@ -112,7 +114,10 @@ async def _my_organiser(
         if slug is not None:
             linked.append(Organiser.slug == slug)
         if org_ids and await db.scalar(select(exists().where(*linked))):
-            raise EventsForbidden("Barrels Events isn't enabled for this organisation")
+            raise EventsForbidden(
+                "Barrels Events isn't enabled for this organisation",
+                code="EVENTS_NOT_ENABLED",
+            )
         raise EventsForbidden("You're not a member of an organiser yet")
     return organiser
 
@@ -204,6 +209,14 @@ def _validate_listing(body: schemas.ListingUpsert) -> None:
             raise EventsConflict("Tier allocations exceed capacity")
 
 
+#: An organiser's save sets the status it carries (src/events/transitions.py).
+_SAVE_ACTION: dict[str, ListingAction] = {
+    "draft": "save_draft",
+    "published": "save_published",
+    "cancelled": "save_cancelled",
+}
+
+
 async def _apply_listing(
     db: AsyncSession,
     listing: Listing,
@@ -226,9 +239,9 @@ async def _apply_listing(
         "capacity",
         "recurrence",
         "visibility",
-        "status",
     ):
         setattr(listing, key, getattr(body, key))
+    move_listing(listing, _SAVE_ACTION[body.status])
     listing.starts_at = _naive_utc(body.starts_at)
     listing.ends_at = _naive_utc(body.ends_at)
     listing.tags = [tag.strip().lower()[:30] for tag in body.tags if tag.strip()]
@@ -270,7 +283,10 @@ async def _sync_tiers(
     valid = _pairs(
         await db.execute(
             select(Ticket.tier_id, func.count())
-            .where(Ticket.listing_id == listing.id, Ticket.status == "valid")
+            .where(
+                Ticket.listing_id == listing.id,
+                Ticket.status == TicketStatus.VALID.value,
+            )
             .group_by(Ticket.tier_id)
         )
     )
@@ -366,21 +382,27 @@ async def _record_listing_change(
     payload = {"actor_id": str(actor.id), "starts_at": listing.starts_at.isoformat()}
     kind: str | None = None
     dedupe = ""
-    if listing.status == "published" and before_status != "published":
+    if (
+        listing.status == ListingStatus.PUBLISHED.value
+        and before_status != ListingStatus.PUBLISHED.value
+    ):
         kind, action, dedupe = (
             outbox.PUBLISHED,
             "listing.published",
             f"listing.published:{key}",
         )
-    elif listing.status == "cancelled" and before_status != "cancelled":
+    elif (
+        listing.status == ListingStatus.CANCELLED.value
+        and before_status != ListingStatus.CANCELLED.value
+    ):
         kind, action, dedupe = (
             outbox.CANCELLED,
             "listing.cancelled",
             f"listing.cancelled:{key}",
         )
     elif (
-        listing.status == "published"
-        and before_status == "published"
+        listing.status == ListingStatus.PUBLISHED.value
+        and before_status == ListingStatus.PUBLISHED.value
         and before_starts != after["starts_at"]
     ):
         kind, action = outbox.POSTPONED, "listing.rescheduled"
@@ -421,7 +443,10 @@ async def _require_verified_to_publish(
     organiser: Organiser, status: str, before_status: str | None
 ) -> None:
     """Publishing is for verified organisers; drafts are open to everyone."""
-    if status == "published" and before_status != "published":
+    if (
+        status == ListingStatus.PUBLISHED.value
+        and before_status != ListingStatus.PUBLISHED.value
+    ):
         if not await _organiser_verified(organiser):
             raise EventsForbidden(UNVERIFIED_PUBLISH)
 
@@ -435,7 +460,9 @@ async def create_listing(
 ) -> schemas.ManagedListing:
     organiser = await _my_organiser(db, user, org_ids, slug)
     await _require_verified_to_publish(organiser, body.status, None)
-    listing = Listing(slug=await _unique_slug(db, body.title))
+    listing = Listing(
+        slug=await _unique_slug(db, body.title), status=ListingStatus.DRAFT.value
+    )
     await _apply_listing(db, listing, body, organiser)
     await _record_listing_change(db, listing, user, before=None)
     await db.commit()
@@ -454,14 +481,17 @@ async def update_listing(
     listing = await db.get(Listing, listing_id)
     if listing is None or listing.organiser_id != organiser.id:
         raise EventsNotFound("Event not found")
-    if body.status == "cancelled":
+    if body.status == ListingStatus.CANCELLED.value:
         # Saving as cancelled cancels like the cancel action: the exclusive
         # listing lock first, then orders, then tickets. No money moves here.
         await db.refresh(listing, with_for_update=True)
     before = await _snapshot(db, listing)
     await _require_verified_to_publish(organiser, body.status, before["status"])
     await _apply_listing(db, listing, body, organiser)
-    if before["status"] != "cancelled" and listing.status == "cancelled":
+    if (
+        before["status"] != ListingStatus.CANCELLED.value
+        and listing.status == ListingStatus.CANCELLED.value
+    ):
         await event_cancel.cancel_event_orders(db, user, listing, "none", utc_now())
     await _record_listing_change(db, listing, user, before=before)
     await db.commit()
@@ -604,7 +634,8 @@ async def request_organiser(
             .where(
                 Organiser.organisation_id.in_(owned),
                 PlatformOrganisation.verified_at.is_(None),
-                PlatformOrganisation.verification_status == "rejected",
+                PlatformOrganisation.verification_status
+                == VerificationStatus.REJECTED.value,
             )
         )
         raise EventsConflict(
@@ -647,7 +678,10 @@ async def pending_organisers(db: AsyncSession) -> list[Organiser]:
                     PlatformOrganisation,
                     PlatformOrganisation.id == Organiser.organisation_id,
                 )
-                .where(PlatformOrganisation.verification_status == "pending")
+                .where(
+                    PlatformOrganisation.verification_status
+                    == VerificationStatus.PENDING.value
+                )
                 .order_by(Organiser.created_at, Organiser.id)
             )
         ).all()
@@ -670,7 +704,7 @@ async def review_organiser(
         if organisation is None:
             raise EventsNotFound("Organiser not found")
         if (organisation.verified_at is not None) != verified or (
-            organisation.verification_status == "rejected"
+            organisation.verification_status == VerificationStatus.REJECTED.value
         ):
             await organiser_verification.apply_decision(
                 db,

@@ -181,6 +181,12 @@ async def test_bulletin_carries_its_notice_type_and_cap_items_do_not(monkeypatch
     assert cap.notice_type is None
 
 
+async def test_notice_type_is_read_without_surrounding_spaces(monkeypatch):
+    _sources(monkeypatch, [], [_bulletin("marine", notice=" All clear ")])
+    outlook = await _outlook()
+    assert [item.notice_type for item in outlook.items] == ["All clear"]
+
+
 async def test_notice_type_is_null_when_missing_or_not_a_form_value(monkeypatch):
     # Saved older revisions may carry notice values the form no longer offers
     # (for example Watch or Warning); they are never read as an All clear.

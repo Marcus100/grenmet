@@ -16,7 +16,12 @@ import {
 import { StatusBadge } from "@/components/invoice-table";
 import { StaffOnly } from "@/components/staff-only";
 import { getInvoice, listCustomers } from "@/lib/billing-api";
-import { noticeFor, parseId, todayInGrenada } from "@/lib/invoice-form";
+import {
+  isOpenInvoice,
+  noticeFor,
+  parseId,
+  todayInGrenada,
+} from "@/lib/invoice-form";
 import { requireGate } from "@/lib/staff-gate";
 import { saveDraftAction } from "../actions";
 
@@ -45,8 +50,7 @@ export default async function InvoicePage({
     throw error;
   }
   const isDraft = invoice.status === "draft";
-  const isOpen =
-    invoice.status === "issued" || invoice.status === "partially_paid";
+  const isOpen = isOpenInvoice(invoice.status);
   const customers = isDraft ? await listCustomers(gate.accessToken) : null;
 
   return (
@@ -55,7 +59,7 @@ export default async function InvoicePage({
         All invoices
       </Link>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="font-semibold text-2xl">
+        <h1 className="text-2xl font-semibold">
           {invoice.number ?? "Draft invoice"}
         </h1>
         <StatusBadge status={invoice.status} />
@@ -84,7 +88,7 @@ export default async function InvoicePage({
 
       {customers ? (
         <section className="space-y-3">
-          <h2 className="font-semibold text-lg">Edit draft</h2>
+          <h2 className="text-lg font-semibold">Edit draft</h2>
           <InvoiceEditor
             action={saveDraftAction}
             customers={customers.data.map((customer) => ({

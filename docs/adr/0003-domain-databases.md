@@ -12,7 +12,7 @@ Some data must change together. A ticket, its payment and the points it earns mu
 
 ## Decision
 
-**One main database (APP)** holds everything that must transact together or that belongs to the Barrels product platform. One Postgres schema per module is the target layout. Schemas that exist today: `billing`, `bookings`, `cap`, `environment`, `flags`, `hr`, `org`, `payments`, `rewards`, `stores` and `webhooks`. The `org` schema currently holds organisations and contacts (`src/organisations/models.py`, `src/contacts/models.py`); bookings has its own `bookings` schema (`src/bookings/models.py`). Events has no schema in the main database yet. A module never queries another module's tables directly. It goes through that module's service or an explicit job.
+**One main database (APP)** holds everything that must transact together or that belongs to the Barrels product platform. One Postgres schema per module is the target layout. Schemas that exist today: `billing`, `bookings`, `cap`, `environment`, `events`, `flags`, `hr`, `org`, `payments`, `rewards`, `stores` and `webhooks`. The `org` schema currently holds organisations and contacts (`src/organisations/models.py`, `src/contacts/models.py`); bookings has its own `bookings` schema (`src/bookings/models.py`). A module never queries another module's tables directly. It goes through that module's service or an explicit job.
 
 **A domain gets its own database only when** its data has a different owner or legal duty, a different retention period, a different risk profile, or runs its own engine.
 
@@ -25,9 +25,8 @@ Some data must change together. A ticket, its payment and the points it earns mu
 | JANITORIAL | The `/janitor` cleaning-spec catalogue | `src/janitorial/alembic.ini` |
 | TRANSPORT | The staff bus service | `src/transport/alembic.ini` |
 | CMS | Payload CMS | Payload's own migrations |
-| EVENTS | Barrels Events | `src/events/alembic.ini` |
 
-EVENTS is moving into APP as the `events` schema (decided 2026-10-20). Nothing is live, so there is no data migration. The move removes Events' separate outbox and the `sync_event_rewards` job. Tickets, payments and points then save in one transaction. Until it lands, EVENTS stays in the table above.
+EVENTS moved into APP as the `events` schema (decided 2026-10-20; `alembic/versions/2026-10-21_events_schema.py`). Nothing was live, so there was no data migration. The move removed Events' separate outbox and the `sync_event_rewards` job. Tickets, payments and points save in one transaction.
 
 **Why the weather and operations databases stay separate**, even though Barrels owns the data:
 - Retention differs. Weather and observation records follow WMO and long-term archive needs, not product retention rules.

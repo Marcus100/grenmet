@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1
-FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS base
-RUN apk upgrade --no-cache
+FROM ghcr.io/marcus100/base/node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS base
+# Bump this date when Alpine publishes a fix: BuildKit would otherwise reuse the cached
+# `apk upgrade` layer and keep shipping the old packages (musl 1.2.6-r2, 2026-11-07).
+ARG ALPINE_PATCH_DATE=2026-11-13
+RUN echo "Alpine patch date ${ALPINE_PATCH_DATE}" && apk upgrade --no-cache
 
 # Applications and migrations run directly with Node; keep package managers in builders.
 FROM base AS runtime-base
@@ -18,6 +21,7 @@ WORKDIR /app
 
 # Copy all workspace manifests so pnpm resolves the full workspace
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
+COPY apps/web/account/package.json apps/web/account/
 COPY apps/web/admin/package.json apps/web/admin/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/babydoll/package.json apps/web/babydoll/
@@ -45,8 +49,6 @@ COPY packages/ui/package.json packages/ui/
 RUN HUSKY=0 pnpm install --frozen-lockfile
 
 # Optional build-time env vars (unused by this app but harmless)
-ARG NEXT_PUBLIC_API_URL=""
-ARG NEXT_PUBLIC_ENVIRONMENT=""
 ARG SENTRY_PROJECT=""
 ARG NEXT_PUBLIC_POSTHOG_KEY=""
 ARG NEXT_PUBLIC_POSTHOG_HOST="https://us.i.posthog.com"
@@ -54,8 +56,6 @@ ARG NEXT_PUBLIC_RELEASE=""
 ENV NEXT_PUBLIC_RELEASE=$NEXT_PUBLIC_RELEASE
 ARG NEXT_PUBLIC_SENTRY_DSN=""
 ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT="production"
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT
 ENV SENTRY_PROJECT=$SENTRY_PROJECT
 ENV NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY
 ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST

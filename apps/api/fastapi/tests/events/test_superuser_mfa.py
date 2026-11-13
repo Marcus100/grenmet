@@ -8,7 +8,7 @@ import pytest
 from cryptography.fernet import Fernet
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth import service
+from src.auth import app_service, service
 from src.auth.config import auth_settings
 from src.auth.utils import create_access_token
 from src.main import app
@@ -16,6 +16,12 @@ from src.utils.datetime import utc_now
 from tests.events.roles import user_with_role
 from tests.events.support import BASE, SessionFactory
 from tests.factories import make_user
+
+
+@pytest.fixture(autouse=True)
+def fixed_enrolment_code(monkeypatch):
+    """The one-time enrolment code emailed to privileged accounts (issue #625)."""
+    monkeypatch.setattr(app_service, "new_code", lambda: "424242")
 
 
 @pytest.fixture(autouse=True)
@@ -64,7 +70,10 @@ async def test_enrolled_superuser_and_ordinary_moderator_still_work(
     superuser = await make_user(db_async, superuser=True)
     secret = await service.begin_totp_setup(session=db_async, user=superuser)
     assert await service.activate_totp(
-        session=db_async, user=superuser, code=pyotp.TOTP(secret).now()
+        session=db_async,
+        user=superuser,
+        code=pyotp.TOTP(secret).now(),
+        email_code="424242",
     )
     assert (await _events_get(db_async, superuser, verified=True)).status_code == 200
     moderator = await user_with_role(db_async, "events-moderator")

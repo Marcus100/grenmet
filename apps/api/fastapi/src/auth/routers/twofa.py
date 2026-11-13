@@ -1,6 +1,6 @@
 """Two-factor authentication (TOTP) enrollment endpoints."""
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
 from src.auth import service, totp
 from src.auth.account_security import verify_factor
@@ -12,6 +12,7 @@ from src.auth.schemas import (
     TwoFactorStatusPublic,
 )
 from src.dependencies import AccountUser, SessionDep, TokenDep
+from src.exceptions import AppException
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 
@@ -34,7 +35,9 @@ async def twofa_status(*, current_user: AccountUser) -> TwoFactorStatusPublic:
     response_model=TwoFactorSetupResponse,
     summary="Begin 2FA enrollment",
     description="Generate a new TOTP secret and provisioning URI. 2FA is not active "
-    "until a code is confirmed via /auth/users/me/security/2fa/activate.",
+    "until a code is confirmed via /auth/users/me/security/2fa/activate. For a "
+    "privileged account a one-time code is emailed to the account, and activation "
+    "needs it as email_code (email_code_required is true).",
     responses={**AUTHENTICATED},
 )
 async def twofa_setup(
@@ -45,6 +48,9 @@ async def twofa_setup(
         secret=secret,
         provisioning_uri=totp.provisioning_uri(
             secret=secret, account_name=current_user.email
+        ),
+        email_code_required=await service.enrolment_needs_email_code(
+            session=session, user=current_user
         ),
     )
 
@@ -59,7 +65,8 @@ async def twofa_setup(
             "description": "Invalid or expired code",
         }
     },
-    description="Confirms a TOTP code and enables two-factor authentication for the current account.",
+    description="Confirms a TOTP code and enables two-factor authentication for the current account. "
+    "The first authenticator of a privileged account also needs email_code, the code emailed when setup began.",
 )
 async def twofa_activate(
     *,
@@ -73,12 +80,10 @@ async def twofa_activate(
         user=current_user,
         code=payload.code,
         keep_session_id=session_id_from_token(token),
+        email_code=payload.email_code,
     )
     if not ok:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired 2FA code",
-        )
+        raise AppException("Invalid or expired 2FA code", status.HTTP_400_BAD_REQUEST)
     return TwoFactorStatusPublic(enabled=True)
 
 
@@ -101,13 +106,9 @@ async def twofa_disable(
         session=session, email=current_user.email, password=payload.password
     )
     if not verified:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password"
-        )
+        raise AppException("Incorrect password", status.HTTP_400_BAD_REQUEST)
     if not await verify_factor(session, current_user, payload.code):
-        raise HTTPException(
-            status_code=400, detail="Authenticator or recovery code was not accepted"
-        )
+        raise AppException("Authenticator or recovery code was not accepted", 400)
     current_user.mfa_recovery_hashes = []
     await service.disable_totp(session=session, user=current_user)
     return TwoFactorStatusPublic(enabled=False)

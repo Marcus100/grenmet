@@ -17,6 +17,7 @@ import type {
   HrSubmitTimesheetStatus400,
   HrSubmitTimesheetStatus403,
   HrSubmitTimesheetStatus404,
+  HrSubmitTimesheetStatus409,
   HrSubmitTimesheetStatus422,
 } from "../models/HrSubmitTimesheet.js";
 
@@ -35,6 +36,7 @@ export function hrSubmitTimesheetMutationOptions<TContext = unknown>(
       | HrSubmitTimesheetStatus400
       | HrSubmitTimesheetStatus403
       | HrSubmitTimesheetStatus404
+      | HrSubmitTimesheetStatus409
       | HrSubmitTimesheetStatus422
     >,
     HrSubmitTimesheetOptions,
@@ -65,6 +67,7 @@ export function useHrSubmitTimesheet<TContext>(
         | HrSubmitTimesheetStatus400
         | HrSubmitTimesheetStatus403
         | HrSubmitTimesheetStatus404
+        | HrSubmitTimesheetStatus409
         | HrSubmitTimesheetStatus422
       >,
       HrSubmitTimesheetOptions,
@@ -88,6 +91,7 @@ export function useHrSubmitTimesheet<TContext>(
       | HrSubmitTimesheetStatus400
       | HrSubmitTimesheetStatus403
       | HrSubmitTimesheetStatus404
+      | HrSubmitTimesheetStatus409
       | HrSubmitTimesheetStatus422
     >,
     HrSubmitTimesheetOptions,
@@ -100,6 +104,7 @@ export function useHrSubmitTimesheet<TContext>(
       | HrSubmitTimesheetStatus400
       | HrSubmitTimesheetStatus403
       | HrSubmitTimesheetStatus404
+      | HrSubmitTimesheetStatus409
       | HrSubmitTimesheetStatus422
     >,
     HrSubmitTimesheetOptions,
@@ -117,6 +122,7 @@ export function useHrSubmitTimesheet<TContext>(
       | HrSubmitTimesheetStatus400
       | HrSubmitTimesheetStatus403
       | HrSubmitTimesheetStatus404
+      | HrSubmitTimesheetStatus409
       | HrSubmitTimesheetStatus422
     >,
     HrSubmitTimesheetOptions,

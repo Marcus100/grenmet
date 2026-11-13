@@ -14,6 +14,7 @@ const sources = {
   "barrels.md": ["packages/ui/src/styles/globals.css"],
   "commit.md": ["apps/web/commit/src/styles/tailwind.css"],
   "bookings.md": ["packages/ui/src/styles/globals.css"],
+  "account.md": ["packages/ui/src/styles/globals.css"],
   "gaa-admin.md": [
     "packages/gms/src/styles/foundation.css",
     "apps/web/gaa-admin/src/app/globals.css",
@@ -25,9 +26,9 @@ const sources = {
   "signal.md": ["apps/web/signal/src/app/globals.css"],
 };
 
-const frontMatterPattern = /^---\n([\s\S]*?)\n---\n/;
-const colorBlockPattern = /^colors:\n((?: {2}.+\n)+)/m;
-const colorEntryPattern = /^ {2}([a-z0-9-]+): "(#[0-9a-f]{6})"$/gm;
+const frontMatterPattern = /^---\n([\s\S]*?)\n---\n/u;
+const colorBlockPattern = /^colors:\n((?: {2}.+\n)+)/mu;
+const colorEntryPattern = /^ {2}([a-z0-9-]+): "(#[0-9a-f]{6})"$/gmu;
 
 const specs = readdirSync(`${root}docs/design`).filter((file) =>
   file.endsWith(".md")

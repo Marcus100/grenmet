@@ -5,6 +5,8 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
+import { rosterRuleWarningsErrorPublicSchema } from "./rosterRuleWarningsErrorPublicSchema.js";
+import { timesheetApproveRequestSchema } from "./timesheetApproveRequestSchema.js";
 import { timesheetPublicSchema } from "./timesheetPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -24,6 +26,11 @@ export const hrApproveTimesheetStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const hrApproveTimesheetStatus409Schema =
+  rosterRuleWarningsErrorPublicSchema.describe(
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
+  );
+
 export const hrApproveTimesheetStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -36,8 +43,13 @@ export const hrApproveTimesheetErrorSchema = z.union([
   hrApproveTimesheetStatus400Schema,
   hrApproveTimesheetStatus403Schema,
   hrApproveTimesheetStatus404Schema,
+  hrApproveTimesheetStatus409Schema,
   hrApproveTimesheetStatus422Schema,
 ]);
+
+export const hrApproveTimesheetBodySchema = timesheetApproveRequestSchema
+  .optional()
+  .default({});
 
 export const hrApproveTimesheetPathSchema = z.object({
   timesheet_id: z.uuid(),

@@ -71,7 +71,7 @@ export default async function PersonPage({ params }: Props) {
         title={person.name}
       >
         {person.names.length > 1 && (
-          <p className="mt-3 text-base text-el-muted leading-relaxed">
+          <p className="text-el-muted mt-3 text-base leading-relaxed">
             Also recorded as:{" "}
             {person.names.filter((n) => n !== person.name).join("; ")}.
           </p>
@@ -178,7 +178,7 @@ export default async function PersonPage({ params }: Props) {
               ))}
             </svg>
           </ChartViewport>
-          <p className="text-base text-el-muted leading-relaxed">
+          <p className="text-el-muted text-base leading-relaxed">
             Filled dots are wins.
           </p>
         </Section>
@@ -234,12 +234,12 @@ export default async function PersonPage({ params }: Props) {
                       ) : (
                         r.constituency
                       )}
-                      <span className="block text-base text-el-muted">
+                      <span className="text-el-muted block text-base">
                         {src.text}
                         {src.official ? "" : " (secondary)"}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap py-2 pr-3">
+                    <td className="py-2 pr-3 whitespace-nowrap">
                       <PartyDot party={r.party} />
                       {r.party}
                     </td>
@@ -259,7 +259,7 @@ export default async function PersonPage({ params }: Props) {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 max-w-[70ch] text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-3 max-w-[70ch] text-base leading-relaxed">
           This record joins races by surname and first initial
           <Flag
             note="Not an official identifier: two people can share a name, and one person can be recorded differently."

@@ -64,6 +64,8 @@ from src.auth.totp_enrolment import (
     activate_totp,
     begin_totp_setup,
     disable_totp,
+    enrolment_needs_email_code,
+    ensure_email_change_allowed,
 )
 from src.auth.user_queries import (
     get_user_by_email,
@@ -86,6 +88,7 @@ __all__ = [
     "activate_totp",
     "audit_assignment",
     "begin_totp_setup",
+    "enrolment_needs_email_code",
     "count_role_assignments_for_role",
     "create_permission",
     "create_role",
@@ -171,6 +174,7 @@ async def update_user(
         hashed_password = await get_password_hash_async(password)
         extra_data["hashed_password"] = hashed_password
     if user_in.email and user_in.email != db_user.email:
+        await ensure_email_change_allowed(session=session, user=db_user)
         db_user.email_verified_at = None
         db_user.email_verification_required = True
     for key, value in {**user_data, **extra_data}.items():
@@ -205,6 +209,7 @@ async def update_user_me(
             raise AppException("User with this email already exists", 409)
     user_data = user_in.model_dump(exclude_unset=True)
     if user_in.email and user_in.email != current_user.email:
+        await ensure_email_change_allowed(session=session, user=current_user)
         current_user.email_verified_at = None
         current_user.email_verification_required = True
         await session.execute(
@@ -243,11 +248,17 @@ async def update_password(
 async def delete_user(*, session: AsyncSession, user: User) -> None:
     user_id = str(user.id)
     from src.auth.modern_models import AuthChallenge
+    from src.profile_images import service as profile_images
 
     # Outstanding activation/sign-in challenges must not block account deletion.
     await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user.id))
+    # The photo row cascades with the user; its stored files are removed after.
+    photo = await profile_images.get_image(session=session, user_id=user.id)
+    photo_prefix = photo.object_key if photo else None
     await session.delete(user)
     await session.commit()
+    if photo_prefix:
+        await profile_images.delete_stored_files(photo_prefix)
     logger.info("User deleted", extra={"user_id": user_id})
 
 

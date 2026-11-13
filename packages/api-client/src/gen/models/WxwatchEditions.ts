@@ -20,15 +20,15 @@ export type WxwatchEditionsQuery = {
    */
   latest?: boolean;
   /**
-   * @minLength 0
-   * @maxLength 100000
+   * @minimum 0
+   * @maximum 100000
    * @default 0
    * @type integer | undefined
    */
   offset?: number;
   /**
-   * @minLength 1
-   * @maxLength 100
+   * @minimum 1
+   * @maximum 100
    * @default 30
    * @type integer | undefined
    */

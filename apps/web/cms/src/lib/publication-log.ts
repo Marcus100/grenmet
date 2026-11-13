@@ -1,4 +1,5 @@
 import type { CollectionAfterChangeHook } from "payload";
+import { isLive } from "./publication-status";
 
 export const PUBLICATION_ACTIONS = [
   "published",
@@ -36,8 +37,8 @@ export function publicationEvents(
   after: Snapshot,
   now: Date = new Date()
 ): PublicationEvent[] {
-  const wasPublished = before?.status === "published";
-  const isPublished = after.status === "published";
+  const wasPublished = isLive(before);
+  const isPublished = isLive(after);
   const events: PublicationEvent[] = [];
   if (!wasPublished && isPublished) {
     events.push(

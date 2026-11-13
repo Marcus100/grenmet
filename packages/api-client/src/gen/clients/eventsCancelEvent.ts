@@ -25,6 +25,7 @@ export function eventsCancelEvent<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/events/manage/{listing_id}/cancel",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsCancelEventResponses, ThrowOnError>>

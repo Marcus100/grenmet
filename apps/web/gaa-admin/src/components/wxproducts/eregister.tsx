@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  eregisterAcceptRegisterObservation,
   eregisterCorrectRegisterObservation,
   eregisterCreateRegisterObservation,
   eregisterGetStationSettings,
@@ -9,23 +10,31 @@ import {
   eregisterValidateSynopObservation,
   type RegisterObservationRead,
   type StationSettings as StationSettingsRead,
+  type SynopValidationIssue,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { type StationSettings, withDerived } from "./eregister-derived";
+import { holdsValues } from "./eregister-held";
 import { REGISTER_KEYS, REGISTER_SECTIONS } from "./eregister-layout";
 import { metarFromCoded } from "./eregister-metar";
 import { observerInitials } from "./eregister-observer";
 import { QcQueue } from "./eregister-qc";
+import { isSynopRefusal } from "./eregister-refusal";
 import {
   LatestReports,
   type LiveState,
   type ReportKind,
   type ReportRow,
 } from "./eregister-reports";
-import { useObservationSends } from "./eregister-send";
+import {
+  describeSends,
+  failedReason,
+  useObservationSends,
+} from "./eregister-send";
 import { observationTime } from "./eregister-time";
 import {
   PendingSettingsNote,
@@ -33,7 +42,10 @@ import {
   SectionCard,
   TimeMarks,
 } from "./eregister-ui";
-import { ERegisterWorkbook } from "./eregister-workbook";
+import {
+  type ApprovalController,
+  ERegisterWorkbook,
+} from "./eregister-workbook";
 
 // Modernised Meteorological Observations eRegister (station 78958, MBIA).
 // The register is backed by the dedicated FastAPI eRegister database. Until a
@@ -60,6 +72,36 @@ interface SaveResult {
   data?: RegisterObservationRead;
   error?: unknown;
   response?: Response;
+}
+
+/** An accept call that did not answer clearly: the observation and the values it was made for. */
+interface PendingApproval {
+  id: string;
+  iso: string;
+  key: string;
+}
+
+/** What the register says about a pending approval after asking it. */
+type Settled =
+  | { kind: "approved"; id: string }
+  | { kind: "held"; state: string }
+  | { kind: "unknown" };
+
+const EMAIL_NEEDS_APPROVAL =
+  "Email needs an accepted observation. Save and approve it first.";
+const EARLIER_APPROVED_MESSAGE =
+  "The earlier values were approved. Your changes are not saved: save and approve again to approve them.";
+
+function heldMessage(state: string): string {
+  return state === "draft" || state === "qc_pending"
+    ? "Not approved. It is saved as a draft; try again."
+    : `Not approved. The register shows it as ${state}.`;
+}
+
+function unconfirmedMessage(sameValues: boolean): string {
+  return sameValues
+    ? "Could not confirm whether it was approved. Try again to check, and do not save it again until it is confirmed."
+    : "Could not confirm whether the earlier values were approved. Your changes are not saved. Try again to check.";
 }
 
 function toReportRows(
@@ -126,7 +168,7 @@ export function ERegister() {
   );
   const observedAt = observationDate.toISOString().slice(0, 16);
   const [validationIssues, setValidationIssues] = useState<
-    { field: string; message: string; severity?: "error" | "warning" }[]
+    SynopValidationIssue[]
   >([]);
   const [expectedMetar, setExpectedMetar] = useState<string | null>(null);
   const [validationState, setValidationState] = useState<
@@ -135,10 +177,25 @@ export function ERegister() {
   const [saveState, setSaveState] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
+  const [approvalStatus, setApprovalStatus] =
+    useState<ApprovalController["status"]>("idle");
+  const [approvalMessage, setApprovalMessage] = useState<string | null>(null);
+  const [approvalNotes, setApprovalNotes] = useState(0);
+  // True for the whole of an approval run (the lock), whatever message it shows.
+  const [approvalBusy, setApprovalBusy] = useState(false);
   const [liveState, setLiveState] = useState<LiveState>("loading");
   // The station's fixed pressure amounts (78958: owner confirmed, seeded).
   const [stationSettings, setStationSettings] =
     useState<StationSettings | null>(null);
+  // New amounts change what the checks say: an open confirmation is stale.
+  const settingsSeen = useRef(stationSettings);
+  useEffect(() => {
+    if (settingsSeen.current === stationSettings) return;
+    settingsSeen.current = stationSettings;
+    setApprovalStatus((current) =>
+      current === "confirming" ? "idle" : current
+    );
+  }, [stationSettings]);
   const [liveAviation, setLiveAviation] = useState<
     Record<"METAR" | "SPECI", RegisterObservationRead[]>
   >({ METAR: [], SPECI: [] });
@@ -209,7 +266,10 @@ export function ERegister() {
     return result.response?.status === 403 ? "forbidden" : "error";
   }
 
-  async function runValidation(): Promise<boolean> {
+  async function requestValidation(): Promise<{
+    issues: SynopValidationIssue[];
+    valid: boolean;
+  } | null> {
     setValidationState("checking");
     const result = await eregisterValidateSynopObservation({
       body: {
@@ -220,12 +280,27 @@ export function ERegister() {
     });
     if (result.error || !result.data) {
       setValidationState("error");
-      return false;
+      return null;
     }
-    setValidationIssues(result.data.issues ?? []);
+    const issues = result.data.issues ?? [];
+    setValidationIssues(issues);
     setExpectedMetar(result.data.expected_metar ?? null);
     setValidationState(result.data.valid ? "valid" : "invalid");
-    return result.data.valid;
+    return { issues, valid: result.data.valid };
+  }
+
+  // A call that throws (offline) must not leave the form on "checking".
+  async function checkObservation() {
+    try {
+      return await requestValidation();
+    } catch {
+      setValidationState("error");
+      return null;
+    }
+  }
+
+  async function runValidation(): Promise<boolean> {
+    return (await checkObservation())?.valid ?? false;
   }
 
   async function validateDraft() {
@@ -236,7 +311,73 @@ export function ERegister() {
   // reuses its record instead of saving a duplicate.
   const savedRef = useRef<{ id: string; key: string } | null>(null);
 
-  async function persistDraft(): Promise<string | null> {
+  // Approved observations by the values they hold, an approval still waiting
+  // to be confirmed, and a guard against two approvals running at once.
+  const approvedRef = useRef<Map<string, string>>(new Map());
+  const unconfirmedRef = useRef<{
+    id: string;
+    iso: string;
+    key: string;
+  } | null>(null);
+  const approvingRef = useRef(false);
+
+  // The id of the accepted observation for this hour holding exactly these
+  // values, if the register still has it accepted. Saving them again would only
+  // make a correction of what was already approved. The record approved in this
+  // visit is checked first; after a reload the accepted list is checked by value.
+  function approvedAsKeyed(): string | null {
+    const key = JSON.stringify(structuredValues);
+    const known = approvedRef.current.get(key);
+    if (
+      known &&
+      liveObservations.some(
+        (item) => item.id === known && item.state === "accepted"
+      )
+    ) {
+      return known;
+    }
+    const hour = observationDate.getTime();
+    const match = liveObservations.find(
+      (item) =>
+        item.state === "accepted" &&
+        new Date(item.observed_at).getTime() === hour &&
+        holdsValues(item.body, structuredValues)
+    );
+    return match?.id ?? null;
+  }
+
+  function isApprovedId(id: string): boolean {
+    return [...approvedRef.current.values()].includes(id);
+  }
+
+  async function saveObservation(): Promise<string | null> {
+    // An unclear accept is settled before anything is saved: the register may
+    // already hold this hour approved, and a save would correct it.
+    const pending = unconfirmedRef.current;
+    if (pending) {
+      const settled = await settleApproval(pending);
+      const sameValues = pending.key === JSON.stringify(structuredValues);
+      if (settled.kind === "unknown") {
+        setApprovalStatus("error");
+        setApprovalMessage(unconfirmedMessage(sameValues));
+        return null;
+      }
+      if (settled.kind === "approved") {
+        if (sameValues) {
+          await announceApproved(settled.id);
+          setSaveState("saved");
+          return settled.id;
+        }
+        setApprovalStatus("approved");
+        setApprovalMessage(EARLIER_APPROVED_MESSAGE);
+        return null;
+      }
+    }
+    const approvedId = approvedAsKeyed();
+    if (approvedId) {
+      setSaveState("saved");
+      return approvedId;
+    }
     setSaveState("saving");
     // Errors block saving; warnings only advise.
     if (!(await runValidation())) {
@@ -301,20 +442,8 @@ export function ERegister() {
       result = corrected;
     }
     if (result.error || !result.data) {
-      const failure = result.error as
-        | { detail?: { issues?: unknown } }
-        | undefined;
-      if (
-        result.response?.status === 422 &&
-        Array.isArray(failure?.detail?.issues)
-      ) {
-        setValidationIssues(
-          failure.detail.issues as {
-            field: string;
-            message: string;
-            severity?: "error" | "warning";
-          }[]
-        );
+      if (result.response?.status === 422 && isSynopRefusal(result.error)) {
+        setValidationIssues(result.error.detail.issues);
         setValidationState("invalid");
         setSaveState("idle");
         return null;
@@ -336,9 +465,22 @@ export function ERegister() {
     return saved.id;
   }
 
+  // A call that throws (offline) must not leave the form on "saving".
+  async function persistDraft(): Promise<string | null> {
+    try {
+      return await saveObservation();
+    } catch {
+      setSaveState("error");
+      return null;
+    }
+  }
+
   async function saveDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await persistDraft();
+    if (approvingRef.current) return;
+    const id = await persistDraft();
+    // A saved correction is a new, unapproved draft.
+    if (id && !isApprovedId(id)) setApprovalStatus("idle");
   }
 
   const sends = useObservationSends(async () => {
@@ -348,6 +490,205 @@ export function ERegister() {
     }
     return await persistDraft();
   });
+
+  // Save and approve on the entry screen: the observer decides their own
+  // observation (another person may still review it afterwards).
+  function markApproved(approved: RegisterObservationRead, key: string) {
+    approvedRef.current.set(key, approved.id);
+    unconfirmedRef.current = null;
+    setLiveObservations((current) =>
+      current.map((item) => (item.id === approved.id ? approved : item))
+    );
+  }
+
+  // What the register now says about the approved observation's sends. The
+  // accept call succeeds even when a send could not be queued.
+  async function announceApproved(id: string) {
+    let history: Awaited<ReturnType<typeof sends.track>> = null;
+    try {
+      history = await sends.track(id);
+    } catch {
+      history = null;
+    }
+    setApprovalStatus("approved");
+    const failure = history ? failedReason(history) : null;
+    if (failure) {
+      setApprovalMessage(`Approved, but a send was not queued: ${failure}`);
+    } else if (history && history.length > 0) {
+      setApprovalMessage(`Approved. ${describeSends(history)}.`);
+    } else {
+      setApprovalMessage(
+        "Approved. Check the send history for WIS2 and email."
+      );
+    }
+  }
+
+  // After an accept call that did not answer clearly, ask the register what it
+  // holds before saying anything: it may already be approved. An approval found
+  // is recorded for the values it was made for; the caller says what that means.
+  async function settleApproval(pending: PendingApproval): Promise<Settled> {
+    let held: RegisterObservationRead | undefined;
+    try {
+      const holders = await eregisterListRegisterObservations({
+        query: {
+          kind: "SYNOP",
+          station_id: STATION.number,
+          observed_at: pending.iso,
+          limit: 10,
+        },
+        throwOnError: false,
+      });
+      held = holders.data?.observations.find((item) => item.id === pending.id);
+    } catch {
+      held = undefined;
+    }
+    if (held?.state === "accepted") {
+      markApproved(held, pending.key);
+      return { kind: "approved", id: pending.id };
+    }
+    if (held) {
+      unconfirmedRef.current = null;
+      return { kind: "held", state: held.state };
+    }
+    // Unknown: stays pending, so the next save or approval asks again first.
+    return { kind: "unknown" };
+  }
+
+  async function runApproval() {
+    const observedIso = observationDate.toISOString();
+    const key = JSON.stringify(structuredValues);
+    const pending = unconfirmedRef.current;
+    if (pending) {
+      const settled = await settleApproval(pending);
+      if (settled.kind === "approved") {
+        if (pending.key === key) {
+          await announceApproved(settled.id);
+        } else {
+          setApprovalStatus("approved");
+          setApprovalMessage(EARLIER_APPROVED_MESSAGE);
+        }
+        return;
+      }
+      if (settled.kind === "unknown") {
+        setApprovalStatus("error");
+        setApprovalMessage(unconfirmedMessage(pending.key === key));
+        return;
+      }
+      // Held and not approved: the approval below goes on with the values shown.
+    }
+    const known = approvedAsKeyed();
+    if (known) {
+      await announceApproved(known);
+      return;
+    }
+    const id = await persistDraft();
+    if (!id) {
+      setApprovalStatus("error");
+      setApprovalMessage(
+        "Not approved: the observation was not saved. Fix any errors above, or try again."
+      );
+      return;
+    }
+    // Until the register answers clearly, the outcome is not known.
+    unconfirmedRef.current = { id, iso: observedIso, key };
+    let decided: Awaited<
+      ReturnType<typeof eregisterAcceptRegisterObservation>
+    > | null = null;
+    try {
+      decided = await eregisterAcceptRegisterObservation({
+        body: { reason: null },
+        path: { observation_id: id },
+        throwOnError: false,
+      });
+    } catch {
+      decided = null;
+    }
+    if (decided?.data) {
+      markApproved(decided.data, key);
+      await announceApproved(id);
+      return;
+    }
+    if (decided?.response?.status === 403) {
+      unconfirmedRef.current = null;
+      setApprovalStatus("error");
+      setApprovalMessage(
+        "Saved as a draft, but you do not have access to approve it."
+      );
+      return;
+    }
+    if (decided && isSynopRefusal(decided.error)) {
+      unconfirmedRef.current = null;
+      setApprovalStatus("error");
+      setApprovalMessage(decided.error.detail.message);
+      return;
+    }
+    const settled = await settleApproval({ id, iso: observedIso, key });
+    if (settled.kind === "approved") {
+      await announceApproved(settled.id);
+      return;
+    }
+    setApprovalStatus("error");
+    setApprovalMessage(
+      settled.kind === "held"
+        ? heldMessage(settled.state)
+        : unconfirmedMessage(true)
+    );
+  }
+
+  // One approval at a time; anything that throws ends in a message, never a
+  // form stuck on "Approving…". The lock is the ref and the busy flag, not the
+  // visible status, which moves while a run is still going.
+  async function guardedApproval(work: () => Promise<void>) {
+    if (approvingRef.current) return;
+    approvingRef.current = true;
+    setApprovalBusy(true);
+    setApprovalStatus("working");
+    setApprovalMessage(null);
+    try {
+      await work();
+    } catch {
+      setApprovalStatus("error");
+      setApprovalMessage(
+        "Something went wrong and it is not certain whether it was approved. Check the observation list before trying again."
+      );
+    } finally {
+      approvingRef.current = false;
+      setApprovalBusy(false);
+    }
+  }
+
+  const startApproval = () =>
+    guardedApproval(async () => {
+      const checked = await checkObservation();
+      if (!checked?.valid) {
+        setApprovalStatus("error");
+        setApprovalMessage(
+          checked
+            ? "Not approved: fix the errors listed above."
+            : "Not approved: the checks could not run. Try again."
+        );
+        return;
+      }
+      const notes = checked.issues.filter(
+        (issue) => issue.severity === "warning"
+      ).length;
+      if (notes > 0) {
+        setApprovalNotes(notes);
+        setApprovalStatus("confirming");
+        return;
+      }
+      await runApproval();
+    });
+
+  const approval: ApprovalController = {
+    busy: approvalBusy,
+    cancel: () => setApprovalStatus("idle"),
+    confirm: () => guardedApproval(runApproval),
+    message: approvalMessage,
+    start: startApproval,
+    status: approvalStatus,
+    warningCount: approvalNotes,
+  };
 
   const live = liveState === "ready";
   const reports: Record<ReportKind, readonly ReportRow[]> = {
@@ -372,9 +713,13 @@ export function ERegister() {
       iso,
       withDerived(structuredValues, stationSettings)
     );
+    // The register sends only accepted observations by email (the default).
+    const emailBlocked = approvedAsKeyed() ? null : EMAIL_NEEDS_APPROVAL;
 
     return (
       <ERegisterWorkbook
+        approval={approval}
+        emailBlocked={emailBlocked}
         expectedMetar={expectedMetar}
         issues={validationIssues}
         metarPreview={metarPreview}
@@ -386,9 +731,12 @@ export function ERegister() {
         onValidationIssuesChange={setValidationIssues}
         onValidationStateChange={setValidationState}
         onValueChange={(key, value) => {
+          if (approvingRef.current) return;
           // The checked METAR belongs to the values it was built from: editing
           // them falls back to the local preview until the next check.
           if (key !== "metar_text") setExpectedMetar(null);
+          // Editing after a decision or a question starts the approval over.
+          setApprovalStatus("idle");
           setStructuredValues((current) => ({ ...current, [key]: value }));
         }}
         saveStatus={saveState}
@@ -416,6 +764,13 @@ export function ERegister() {
           </Button>
           <Button onClick={() => setView("new")} variant="outline">
             New observation
+          </Button>
+          <Button
+            nativeButton={false}
+            render={<Link href="/wxproducts/hourly/month" />}
+            variant="outline"
+          >
+            Month workbook
           </Button>
         </div>
       </div>
@@ -487,7 +842,7 @@ export function ERegister() {
       <div className="flex flex-wrap items-start gap-6">
         <SectionCard className="w-fit max-w-full" title="Daily Summaries">
           <p
-            className="max-w-xs px-4 py-3 text-muted-foreground text-sm"
+            className="text-muted-foreground max-w-xs px-4 py-3 text-sm"
             role="status"
           >
             Daily summaries are not connected to the register yet. No figures

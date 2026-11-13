@@ -11,9 +11,10 @@ import type {
 } from "../models/HrPutDepartmentRules.js";
 
 /**
- * @description Replace the roster rule limits for a department; null disables a rule. Rules only produce warnings and never block publishing. Requires roster.manage within the department scope.
- * @summary Set department roster rule limits
+ * @description Deprecated: use PUT /departments/{department_id}/rule-set. Sets the department's consecutive-shift and weekly-hour limits on its rule set; min_rest_hours is ignored. Requires roster.rules.manage within the department scope.
+ * @summary Set department roster rule limits (deprecated)
  * {@link /api/v1/hr/rosters/departments/:department_id/rules}
+ * @deprecated
  */
 export function hrPutDepartmentRules<ThrowOnError extends boolean = true>(
   options: Options<HrPutDepartmentRulesOptions, ThrowOnError>
@@ -25,6 +26,7 @@ export function hrPutDepartmentRules<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/hr/rosters/departments/{department_id}/rules",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrPutDepartmentRulesResponses, ThrowOnError>>

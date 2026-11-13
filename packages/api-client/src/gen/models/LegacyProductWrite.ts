@@ -15,7 +15,7 @@ export type LegacyProductWrite = {
    */
   id: string;
   /**
-   * @minLength 0
+   * @minimum 0
    * @type integer
    */
   expectedRevision: number;
@@ -30,6 +30,7 @@ export type LegacyProductWrite = {
   changeSummary: string;
   reviewed: boolean;
   kind:
+    | "climate-bulletin"
     | "coastal"
     | "cyclone"
     | "dust"
@@ -37,6 +38,7 @@ export type LegacyProductWrite = {
     | "flood"
     | "heat"
     | "marine"
+    | "marine-forecast"
     | "midday"
     | "morning"
     | "thunderstorm"

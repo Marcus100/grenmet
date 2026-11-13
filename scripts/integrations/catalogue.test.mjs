@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-const INVALID_SHARED_ROUTING = /Invalid shared Sentry routing/;
+const INVALID_SHARED_ROUTING = /Invalid shared Sentry routing/u;
 
 test("staging stays disabled even when provider settings were previously verified", () => {
   const data = readCatalogue();
@@ -26,12 +26,12 @@ import { readCatalogue, validateCatalogue } from "./catalogue.mjs";
 test("all services have isolated dev/staging/production coverage", () => {
   const data = readCatalogue();
   assert.deepEqual(validateCatalogue(data), []);
-  assert.equal(data.services.length, 19);
+  assert.equal(data.services.length, 20);
   assert.equal(
     data.services.filter(
       (s) => s.environments.production.availability.kind === "direct"
     ).length,
-    13
+    14
   );
 });
 test("rejects cross-owner and cross-environment analytics destinations", () => {

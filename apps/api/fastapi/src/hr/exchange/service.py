@@ -18,6 +18,7 @@ from src.hr.exceptions import (
 )
 from src.hr.models import EDITABLE_STATUSES, RequestStatus
 from src.hr.signatures import service as signature_service
+from src.hr.workflow import transitions as workflow_transitions
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
@@ -218,7 +219,7 @@ async def submit_shift_swap_request(
         if workflow_id:
             request.workflow_instance_id = workflow_id
 
-    request.status = RequestStatus.SUBMITTED
+    workflow_transitions.submit_request(request)
     request.updated_at = utc_now()
     session.add(request)
     await signature_service.capture(
@@ -354,7 +355,11 @@ async def action_shift_swap_request(
             session=session,
             current_user=current_user,
             workflow_instance_id=request.workflow_instance_id,
-            action_in=WorkflowActionRequest(action=action, comments=payload.comments),
+            action_in=WorkflowActionRequest(
+                action=action,
+                comments=payload.comments,
+                rule_override_reason=payload.rule_override_reason,
+            ),
         )
         await session.refresh(request)
         return request

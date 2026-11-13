@@ -17,6 +17,7 @@ import type {
   HrActionShiftSwapStatus400,
   HrActionShiftSwapStatus403,
   HrActionShiftSwapStatus404,
+  HrActionShiftSwapStatus409,
   HrActionShiftSwapStatus422,
 } from "../models/HrActionShiftSwap.js";
 
@@ -35,6 +36,7 @@ export function hrActionShiftSwapMutationOptions<TContext = unknown>(
       | HrActionShiftSwapStatus400
       | HrActionShiftSwapStatus403
       | HrActionShiftSwapStatus404
+      | HrActionShiftSwapStatus409
       | HrActionShiftSwapStatus422
     >,
     HrActionShiftSwapOptions,
@@ -65,6 +67,7 @@ export function useHrActionShiftSwap<TContext>(
         | HrActionShiftSwapStatus400
         | HrActionShiftSwapStatus403
         | HrActionShiftSwapStatus404
+        | HrActionShiftSwapStatus409
         | HrActionShiftSwapStatus422
       >,
       HrActionShiftSwapOptions,
@@ -88,6 +91,7 @@ export function useHrActionShiftSwap<TContext>(
       | HrActionShiftSwapStatus400
       | HrActionShiftSwapStatus403
       | HrActionShiftSwapStatus404
+      | HrActionShiftSwapStatus409
       | HrActionShiftSwapStatus422
     >,
     HrActionShiftSwapOptions,
@@ -100,6 +104,7 @@ export function useHrActionShiftSwap<TContext>(
       | HrActionShiftSwapStatus400
       | HrActionShiftSwapStatus403
       | HrActionShiftSwapStatus404
+      | HrActionShiftSwapStatus409
       | HrActionShiftSwapStatus422
     >,
     HrActionShiftSwapOptions,
@@ -117,6 +122,7 @@ export function useHrActionShiftSwap<TContext>(
       | HrActionShiftSwapStatus400
       | HrActionShiftSwapStatus403
       | HrActionShiftSwapStatus404
+      | HrActionShiftSwapStatus409
       | HrActionShiftSwapStatus422
     >,
     HrActionShiftSwapOptions,

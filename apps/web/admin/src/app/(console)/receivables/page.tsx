@@ -47,7 +47,7 @@ export default async function ReceivablesPage({
   return (
     <>
       <div className="space-y-1">
-        <h1 className="font-semibold text-2xl">Receivables</h1>
+        <h1 className="text-2xl font-semibold">Receivables</h1>
         <p className="text-muted-foreground">
           Open invoices as of {report.as_of}, aged by days past the due date.
           Outstanding in total: {money(report.total_outstanding_minor)}.

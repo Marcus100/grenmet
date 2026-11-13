@@ -6,4 +6,9 @@
 export type TwoFactorSetupResponse = {
   secret: string;
   provisioning_uri: string;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  email_code_required?: boolean;
 };

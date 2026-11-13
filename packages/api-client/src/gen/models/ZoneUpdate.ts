@@ -13,7 +13,7 @@ export type ZoneUpdate = {
   areaIds: number[];
   active: boolean;
   /**
-   * @minLength 1
+   * @minimum 1
    * @type integer
    */
   expectedRevision: number;

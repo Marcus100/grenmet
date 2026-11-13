@@ -4,7 +4,6 @@ import {
   sessionAccessTokenResponseSchema,
   sessionLoginResponseSchema,
   tokenSchema,
-  userPublicSchema,
 } from "@barrelsgd/api-client";
 import type {
   AuthConfig,
@@ -13,7 +12,6 @@ import type {
   SessionAccessTokenResponse,
   SessionLoginResponse,
   Token,
-  UserPublic,
 } from "../types";
 import { authApiFetch, authApiFormFetch } from "./auth-api-fetch";
 
@@ -113,36 +111,6 @@ export function resetPassword(
 ): Promise<MessageResponse> {
   return authApiFetch(config, "/auth/password/reset", messageSchema, {
     body: { token: input.token, new_password: input.newPassword },
-    method: "POST",
-  });
-}
-
-/**
- * Self-registration — creates a new user account.
- * Maps to POST /auth/users/signup.
- */
-export function signUp(
-  config: AuthConfig,
-  input: {
-    email: string;
-    username: string;
-    password: string;
-    totpCode?: string;
-    firstName: string;
-    lastName: string;
-    middleName?: string | null;
-  }
-): Promise<UserPublic> {
-  return authApiFetch(config, "/auth/users/signup", userPublicSchema, {
-    body: {
-      email: input.email,
-      username: input.username,
-      password: input.password,
-      totp_code: input.totpCode ?? null,
-      first_name: input.firstName,
-      last_name: input.lastName,
-      middle_name: input.middleName ?? null,
-    },
     method: "POST",
   });
 }

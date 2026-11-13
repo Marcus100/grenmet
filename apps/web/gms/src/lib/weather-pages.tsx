@@ -4,24 +4,32 @@ import type {
 } from "@barrelsgd/api-client";
 import type { ReactNode } from "react";
 import { Measure } from "@/components/measure";
-import {
-  currentConditions,
-  isStale,
-  localTime,
-} from "@/lib/current-conditions";
+import { currentConditions, localTime } from "@/lib/current-conditions";
 import type { Condition, ForecastDayData } from "@/lib/forecast-data";
 import { UNAVAILABLE_SOURCE } from "@/lib/forecast-selection";
+import { isStale } from "@/lib/freshness";
 import { reportError } from "@/lib/report-error";
+import { isAllClear } from "@/lib/sector-outlook";
 import { bothUnits } from "@/lib/units";
+
+/** "2026-11-10 07:00" in Grenada time, the shape products store issuedAt in. */
+const GRENADA_WALL_CLOCK = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "America/Grenada",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 /** Placeholder for a value the source did not supply. */
 export const NOT_SUPPLIED = "Not supplied";
 
 const DAY_NAMES = ["Today", "Tomorrow"];
 
-const WIND_SPEED_TILE = /^wind speed|^wind$/i;
-const WIND_DIRECTION_TILE = /^wind direction/i;
-const CHANCE_OF_RAIN_TILE = /^chance of rain/i;
+const WIND_SPEED_TILE = /^wind speed|^wind$/iu;
+const WIND_DIRECTION_TILE = /^wind direction/iu;
+const CHANCE_OF_RAIN_TILE = /^chance of rain/iu;
 
 /** A whole-degree forecast temperature in the visitor's unit system. */
 function degrees(value: number | null): ReactNode {
@@ -79,12 +87,18 @@ function isIssued(day: ForecastDayData) {
   );
 }
 
+/** How many days the forecast table shows: tonight plus four, as the evening forecast. */
+export const FORECAST_TABLE_DAYS = 5;
+
 /**
- * Rows for the 3-day table from the first three backend-selected periods.
+ * Rows for the forecast table from the first `count` backend-selected periods.
  * Days with no published forecast say so rather than showing blanks.
  */
-export function threeDayRows(days: readonly ForecastDayData[]): ReactNode[][] {
-  return days.slice(0, 3).map((day, index) => {
+export function forecastRows(
+  days: readonly ForecastDayData[],
+  count: number = FORECAST_TABLE_DAYS
+): ReactNode[][] {
+  return days.slice(0, count).map((day, index) => {
     const label = dayLabel(day.date, index);
     if (!isIssued(day))
       return [label, "No published forecast yet", "—", "—", "—", "—"];
@@ -99,9 +113,12 @@ export function threeDayRows(days: readonly ForecastDayData[]): ReactNode[][] {
   });
 }
 
-/** Whether any of the first three periods carries an issued forecast. */
-export function hasIssuedForecast(days: readonly ForecastDayData[]) {
-  return days.slice(0, 3).some(isIssued);
+/** Whether any of the first `count` periods carries an issued forecast. */
+export function hasIssuedForecast(
+  days: readonly ForecastDayData[],
+  count: number = FORECAST_TABLE_DAYS
+) {
+  return days.slice(0, count).some(isIssued);
 }
 
 export interface StationTile {
@@ -243,7 +260,7 @@ const LEGACY_WATCH_KEYS = [
 const ALERTS_UNCONFIRMED =
   "Weather alerts could not be fully confirmed when this forecast was issued.";
 
-const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/;
+const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/u;
 
 /**
  * GMS alerts and CAP warnings in force when the forecast was issued (the
@@ -251,7 +268,7 @@ const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/;
  * longer type impacts; alerts and CAP are the source. `null` when the
  * forecast predates the snapshot or it cannot be read.
  */
-function importedWatch(raw: string | undefined): string[] | null {
+export function importedWatch(raw: string | undefined): string[] | null {
   if (!raw?.trim()) return null;
   let parsed: unknown;
   try {
@@ -269,16 +286,37 @@ function importedWatch(raw: string | undefined): string[] | null {
     !!parsed &&
     typeof parsed === "object" &&
     (parsed as { complete?: unknown }).complete !== false;
-  const listed = items.flatMap((item) => {
-    if (!item || typeof item !== "object") return [];
-    const { title, impacts } = item as { title?: unknown; impacts?: unknown };
-    const name = typeof title === "string" ? title.trim() : "";
-    const detail = typeof impacts === "string" ? impacts.trim() : "";
-    if (!name) return detail ? [detail] : [];
-    return [detail ? `${name}: ${detail}` : name];
-  });
+  const entries = items.flatMap(watchEntry);
+  // An All clear is information, not an alert in force (owner decision, 30 Oct
+  // 2026): it follows the alerts as "All clear: <title>", as on the alerts page.
+  const listed = [
+    ...entries.filter((entry) => !entry.allClear),
+    ...entries.filter((entry) => entry.allClear),
+  ].map((entry) => entry.line);
   // A source that could not be read is not "nothing in force": say so.
   return complete ? listed : [...listed, ALERTS_UNCONFIRMED];
+}
+
+const text = (value: unknown) =>
+  typeof value === "string" ? value.trim() : "";
+
+/** One snapshot item as a "What to watch" line, or nothing when it has no words. */
+function watchEntry(item: unknown): { allClear: boolean; line: string }[] {
+  if (!item || typeof item !== "object") return [];
+  const { colour, impacts, noticeType, title } = item as Record<
+    string,
+    unknown
+  >;
+  const name = text(title);
+  const detail = text(impacts);
+  if (
+    name &&
+    isAllClear({ colour: text(colour), notice_type: text(noticeType) })
+  ) {
+    return [{ allClear: true, line: `All clear: ${name}` }];
+  }
+  if (!name) return detail ? [{ allClear: false, line: detail }] : [];
+  return [{ allClear: false, line: detail ? `${name}: ${detail}` : name }];
 }
 
 function paragraphsOf(text: string | undefined) {
@@ -308,7 +346,10 @@ export function latestSynopsis(
     );
   return {
     id: latest.id,
-    issuedAt: v.issuedAt ?? latest.publishedAt,
+    // Products store issuedAt as Grenada wall-clock; publishedAt is UTC, so
+    // convert it before it is shown as AST (legacy issues only).
+    issuedAt:
+      v.issuedAt ?? GRENADA_WALL_CLOCK.format(new Date(latest.publishedAt)),
     kindLabel: KIND_LABELS[latest.kind] ?? "Forecast",
     paragraphs: paragraphsOf(v.summary),
     publishedAt: latest.publishedAt,

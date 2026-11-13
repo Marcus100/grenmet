@@ -2,22 +2,17 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { NavDrawer } from "@/components/nav-drawer";
-import { NAV_SECTIONS } from "@/lib/nav-sections";
+import { isComing, NAV_SECTIONS, sectionLinks } from "@/lib/nav-sections";
 
 // The theme toggle needs the preferences provider; it has its own test.
 vi.mock("@/components/theme-toggle", () => ({ ThemeToggle: () => null }));
-// The account button fetches /auth/me; its own package tests cover that.
-vi.mock("@barrelsgd/ui/components/account-button", () => ({
-  AccountButton: ({ appLabel }: { appLabel: string }) => (
-    <button type="button">Sign in to {appLabel}</button>
-  ),
-}));
 
 const [FIRST_SECTION, SECOND_SECTION] = NAV_SECTIONS;
 if (!(FIRST_SECTION && SECOND_SECTION)) {
   throw new Error("NAV_SECTIONS needs at least two sections");
 }
-const ALERTS_WITH_STATUS = /^Alerts\s*No active alerts/;
+const ALERTS_WITH_STATUS = /^Alerts\s*No active alerts/u;
+const SIGN_IN = /^Sign in/u;
 
 describe("NavDrawer", () => {
   it("renders nothing while closed", () => {
@@ -27,18 +22,10 @@ describe("NavDrawer", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("offers sign-in when an account is configured, and no appearance switch", () => {
-    render(<NavDrawer accountLabel="Weather" onClose={() => undefined} open />);
-    expect(
-      screen.getByRole("button", { name: "Sign in to Weather" })
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Appearance")).not.toBeInTheDocument();
-  });
-
-  it("shows a static sign-in when no account is configured", () => {
+  it("has no account block and no sign-in button", () => {
     render(<NavDrawer onClose={() => undefined} open />);
-    expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
-    expect(screen.queryByText("Coming soon")).not.toBeInTheDocument();
+    expect(screen.queryByText("Your account")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: SIGN_IN })).toBeNull();
   });
 
   it("lists every top-level section", () => {
@@ -46,6 +33,23 @@ describe("NavDrawer", () => {
     for (const section of NAV_SECTIONS) {
       expect(screen.getByText(section.label)).toBeInTheDocument();
     }
+  });
+
+  it("announces a Coming link as coming soon to screen readers", async () => {
+    const user = userEvent.setup();
+    render(<NavDrawer onClose={() => undefined} open />);
+    const section = NAV_SECTIONS.find((candidate) =>
+      sectionLinks(candidate).some(isComing)
+    );
+    const link = section ? sectionLinks(section).find(isComing) : undefined;
+    if (!(section && link)) throw new Error("no Coming link in the menu");
+
+    await user.click(screen.getByText(section.label));
+
+    const anchor = screen
+      .getAllByRole("link", { name: `${link.name}, coming soon` })
+      .find((element) => element.getAttribute("href") === link.href);
+    expect(anchor).toBeDefined();
   });
 
   it("lists a section's links under their group headings, without descriptions", async () => {
@@ -57,8 +61,14 @@ describe("NavDrawer", () => {
     for (const group of FIRST_SECTION.groups) {
       expect(screen.getByText(group.heading)).toBeInTheDocument();
       for (const link of group.links) {
+        // A "Coming" label is part of the accessible name, so match the start.
         const hrefs = screen
-          .getAllByRole("link", { name: link.name })
+          .getAllByRole("link", {
+            name: new RegExp(
+              `^${link.name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}`,
+              "u"
+            ),
+          })
           .map((element) => element.getAttribute("href"));
         expect(hrefs).toContain(link.href);
       }
@@ -101,7 +111,7 @@ describe("NavDrawer", () => {
 
     await user.click(screen.getByText(FIRST_SECTION.label));
     const link = screen.getByRole("link", {
-      name: new RegExp(`^${FIRST_SECTION.groups[0]?.links[0]?.name}`, "i"),
+      name: new RegExp(`^${FIRST_SECTION.groups[0]?.links[0]?.name}`, "iu"),
     });
     expect(link).toHaveAttribute(
       "href",

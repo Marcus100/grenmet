@@ -1,17 +1,22 @@
 import { DayPanel } from "@/components/home/day-panel";
-import { DayCard, NowCard } from "@/components/home/hero-card";
+import { DayCard, NowCard, type TodayLink } from "@/components/home/hero-card";
 import { ByTab, HeroSelectionProvider } from "@/components/home/hero-selection";
 import { NowPanel } from "@/components/home/now-card";
-import { SkyDayStrip, type StripDay } from "@/components/home/sky-day-strip";
+import {
+  isTonight,
+  SkyDayStrip,
+  type StripDay,
+} from "@/components/home/sky-day-strip";
+import { UnitsToggle } from "@/components/units-toggle";
 import {
   isOtherGrenadaDay,
-  isStale,
   localTime,
   localWeekday,
 } from "@/lib/current-conditions";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { getForecastDays } from "@/lib/forecast-days";
-import { rainChance, skyFromWords } from "@/lib/hero-readings";
+import { isStale } from "@/lib/freshness";
+import { skyFromWords } from "@/lib/hero-readings";
 import {
   defaultLocation,
   locationHref,
@@ -19,7 +24,7 @@ import {
 } from "@/lib/locations";
 
 /** "Maurice Bishop International (MBIA)" → "MBIA". */
-const STATION_CODE = /^.*\((.+)\)$/;
+const STATION_CODE = /^.*\((.+)\)$/u;
 
 /**
  * Bold sky hero. One card on top for the selected tab (Now: what is measured
@@ -32,7 +37,7 @@ const STATION_CODE = /^.*\((.+)\)$/;
  * AA for small type).
  */
 /**
- * The first tab's label and time. A reading older than 90 minutes says
+ * The first tab's label and time. A reading older than two hours says
  * "Last" over its time (or its weekday from an earlier day), never "Now"
  * (owner, 29 Oct 2026).
  */
@@ -50,6 +55,23 @@ function stripTime(
       ? localWeekday(observedAt)
       : localTime(observedAt),
   };
+}
+
+/**
+ * The link under the Now card: today's forecast with its high, or after the
+ * evening forecast, tonight with its low (owner, 10 Nov 2026). None without an
+ * issued first day.
+ */
+export function todayLink(
+  today: StripDay | undefined,
+  issued: boolean
+): TodayLink | undefined {
+  if (!(today && issued)) return undefined;
+  const base = { href: today.href, sky: today.condition, slug: today.slug };
+  if (today.tonight && today.low !== null) {
+    return { ...base, low: today.low, tonight: true };
+  }
+  return today.high === null ? undefined : { ...base, high: today.high };
 }
 
 export function SkyHero({
@@ -72,19 +94,12 @@ export function SkyHero({
   weather: WeatherSnapshot;
 }) {
   const days: StripDay[] = getForecastDays(weather.baseDate, weather.days).map(
-    (day, index) => {
-      const issued = weather.days[index];
-      return {
-        ...day,
-        href: day.path,
-        rainWord: issued ? rainChance(issued) : null,
-      };
-    }
+    (day) => ({ ...day, href: day.path, tonight: isTonight(day) })
   );
   const wanted = selected === "today" ? days[0]?.slug : selected;
   const index = days.findIndex((day) => day.slug === wanted);
   const tab = days[index]?.slug ?? "now";
-  const station = location.station.replace(STATION_CODE, "$1");
+  const station = location.station?.replace(STATION_CODE, "$1") ?? null;
   const nowHref = locationHref(location, "/");
   const current = weather.current;
   const today = days[0];
@@ -97,16 +112,7 @@ export function SkyHero({
         fallbackTemperature={weather.observation?.temperature ?? null}
         now={now}
         station={station}
-        today={
-          today && weather.days[0] && today.high !== null
-            ? {
-                high: today.high,
-                href: today.href,
-                sky: today.condition,
-                slug: today.slug,
-              }
-            : undefined
-        }
+        today={todayLink(today, Boolean(weather.days[0]))}
       />
     ),
   };
@@ -116,7 +122,9 @@ export function SkyHero({
   days.forEach((day, dayIndex) => {
     const issued = weather.days[dayIndex];
     if (!issued) return;
-    cards[day.slug] = <DayCard condition={day.condition} day={issued} />;
+    cards[day.slug] = (
+      <DayCard condition={day.condition} day={issued} tonight={day.tonight} />
+    );
     panels[day.slug] = (
       <DayPanel
         day={issued}
@@ -134,11 +142,13 @@ export function SkyHero({
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-2 px-4 pt-2 pb-4 sm:px-6 lg:gap-2.5 lg:pt-3 lg:pb-6 xl:px-8">
           {/* The place is shown in the card; the heading is for screen readers. */}
           <h1 className="sr-only" id="sky-hero-title">
-            {location.name} weather, {station}
+            {station
+              ? `${location.name} weather, ${station}`
+              : `${location.name} weather`}
           </h1>
           <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1">
             {/* Brand line: large bold type, readable on the gradient. */}
-            <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
+            <p className="font-gm-display text-heading-md leading-heading-md font-bold tracking-wide uppercase">
               Your spice weather
             </p>
             {switcher}
@@ -146,6 +156,11 @@ export function SkyHero({
 
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-cols-[25rem_minmax(0,1fr)] lg:gap-2.5">
             <div className="rounded-gm-card bg-gm-scrim px-4 py-3">
+              {/* Units switch sits in the card's top corner on every tab: it
+                  is the card header's control, not part of the day's words. */}
+              <div className="-mt-2 -mr-2 flex justify-end">
+                <UnitsToggle />
+              </div>
               <ByTab fit panels={cards} />
             </div>
             <div className="grid min-w-0 content-start gap-2 lg:gap-2.5">

@@ -14,15 +14,19 @@ import {
   isBulletin,
   isComposedForecastField,
   isForecastKind,
+  isMarineKind,
+  MARINE_FORECAST_AREA,
   PRODUCT_KINDS,
   type ProductField,
   type ProductKind,
   type ProductValues,
   parameterKey,
   productFields,
+  proposeBulletinNumber,
   type StoredProduct,
   TIDE_SLOTS,
 } from "@barrelsgd/gms/products";
+import { weatherSentence } from "@barrelsgd/gms/weather-types";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Card } from "@barrelsgd/ui/components/ui/card";
@@ -41,7 +45,13 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { format, isValid, parseISO } from "date-fns";
 import { Plus, X } from "lucide-react";
-import { type ReactNode, useEffect, useState, useTransition } from "react";
+import {
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import {
   loadProductHistoryAction,
   loadProductsAction,
@@ -50,6 +60,10 @@ import {
 } from "@/app/(admin)/wxproducts/product-actions";
 import { DeskLayout } from "@/components/document/desk-layout";
 import { PageHeader } from "@/components/layout/page-header";
+import {
+  type AlmanacFillApply,
+  AlmanacFillButton,
+} from "@/components/wxproducts/almanac-fill-button";
 import type { PdfPreviewRequest } from "@/components/wxproducts/forecast-pdf-frame";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
 import { reportError } from "@/lib/report-error";
@@ -57,12 +71,17 @@ import {
   ABOVE_GREEN_MESSAGE,
   isAboveGreen,
 } from "@/lib/wxproducts/alert-level";
+import { emptyKeys, fillDate } from "@/lib/wxproducts/almanac-fill";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
+import { ClimateFigures } from "./climate-figures";
 import { ImpactMatrixPanel } from "./impact-matrix-panel";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
+import { NhcMarineGuidancePanel } from "./nhc-marine-guidance";
+import { ProductActionBar } from "./product-action-bar";
 import { ProductDiscardDialog } from "./product-discard-dialog";
+import { ProductErrorSummary } from "./product-error-summary";
 import {
   ProductFieldControl,
   sectionParts,
@@ -70,23 +89,27 @@ import {
 } from "./product-field-control";
 import { type HistoryItem, ProductHistoryPanel } from "./product-history-panel";
 import { ProductList } from "./product-list";
+import { type ProductProblem, productProblems } from "./product-problems";
+import { ProductRangeControl } from "./product-range-control";
 import { ProductWithdrawDialog } from "./product-withdraw-dialog";
 import {
   RaiseToWarningDialog,
   type WarningLevel,
 } from "./raise-to-warning-dialog";
-import { SectionHints } from "./section-hints";
+import { RegisterFillButton } from "./register-fill-button";
+import { isSeaGroup, SectionHints } from "./section-hints";
 import { WarningRaisedNote } from "./warning-raised-note";
 
-const DAY_KEY_PREFIX = /^(day[1-4])/;
+const DAY_KEY_PREFIX = /^(day[1-4])/u;
 
 function productTabLabel(kind: ProductKind) {
+  if (kind === "marine-forecast") return "Marine forecast";
   if (isForecastKind(kind)) return kind.charAt(0).toUpperCase() + kind.slice(1);
   if (kind === "tsunami") return "Tsunami / Earthquake";
   return PRODUCT_KINDS[kind];
 }
 
-const EVENING_DAY_DATE = /^day[1-4]Date$/;
+const EVENING_DAY_DATE = /^day[1-4]Date$/u;
 const COMPUTED_FORECAST_FIELDS = [
   "issuedAt",
   "validFrom",
@@ -97,6 +120,16 @@ const COMPUTED_FORECAST_FIELDS = [
   "advisories",
 ];
 const FORECAST_AREA = "Grenada, Carriacou and Petite Martinique";
+/** FastAPI derives a climate bulletin's validity from its issue date (until the next 15th). */
+const CLIMATE_COMPUTED_FIELDS = ["validFrom", "validTo", "validity"];
+/**
+ * Alerts: the validity sentence is rendered from valid from/to (owner decision
+ * 4, #1197) and the yearly archive reference is set by FastAPI on first save.
+ */
+const BULLETIN_COMPUTED_FIELDS = ["validity", "reference"];
+const WAVE_MIN = /^(day\d)?[Ww]aveHeightMin$/u;
+const WAVE_MAX = /^(day\d)?[Ww]aveHeightMax$/u;
+const WEATHER_TYPE = /^(day\d)?[Ww]eatherType$/u;
 /** Forecasts always cover the whole state and are issued by the signed-in forecaster; FastAPI enforces the same on save. */
 function withIssuer(
   kind: ProductKind,
@@ -104,26 +137,40 @@ function withIssuer(
   forecaster: string
 ): ProductValues {
   if (!isForecastKind(kind)) return { ...values, forecaster };
-  return { ...values, area: FORECAST_AREA, forecaster };
+  const area =
+    kind === "marine-forecast" ? MARINE_FORECAST_AREA : FORECAST_AREA;
+  return { ...values, area, forecaster };
 }
-const DAY_SECTION = /^Day (\d)$/;
+const DAY_SECTION = /^Day (\d)$/u;
 const LEGACY_BY_GROUP: Record<string, string[]> = {
   Wind: ["wind"],
   Marine: ["seaState"],
+  "Seas and swell": ["seaState"],
   Tides: ["highTides", "lowTides"],
   Visibility: ["visibility"],
 };
 const STRUCTURED_BY_GROUP: Record<string, string[]> = {
   Wind: ["windDirFrom", "windSpeedMin"],
   Marine: ["seaStateFrom", "waveHeightMin"],
+  "Seas and swell": ["seaStateFrom", "waveHeightMin"],
   Tides: TIDE_SLOTS.map((n) => `tide${n}Time`),
   Visibility: ["visibilityMin"],
 };
+/** Morning sun times were free text "Sunrise"/"Sunset" before 9 Nov 2026. */
+const MORNING_ASTRONOMY_LEGACY = {
+  legacy: ["sunrise", "sunset"],
+  structured: ["sunsetToday", "sunriseTomorrow"],
+};
 /** Older products stored these as free text; show it until re-entered. */
-function legacyNote(section: string, values: ProductValues) {
+function legacyNote(kind: ProductKind, section: string, values: ProductValues) {
   const { group, prefix } = sectionParts(section);
-  const legacy = LEGACY_BY_GROUP[group];
-  const structured = STRUCTURED_BY_GROUP[group];
+  const morningSun = kind === "morning" && group === "Astronomy";
+  const legacy = morningSun
+    ? MORNING_ASTRONOMY_LEGACY.legacy
+    : LEGACY_BY_GROUP[group];
+  const structured = morningSun
+    ? MORNING_ASTRONOMY_LEGACY.structured
+    : STRUCTURED_BY_GROUP[group];
   if (!(legacy && structured)) return null;
   if (structured.some((name) => values[parameterKey(prefix, name)]))
     return null;
@@ -140,6 +187,8 @@ const PERIOD_PREFIXES = ["", "day1", "day2", "day3", "day4"];
 function isComputedField(kind: ProductKind, key: string) {
   if (key === "forecaster") return true;
   if (isComposedForecastField(key) && composedFrom(kind, key)) return true;
+  if (kind === "climate-bulletin") return CLIMATE_COMPUTED_FIELDS.includes(key);
+  if (isBulletin(kind)) return BULLETIN_COMPUTED_FIELDS.includes(key);
   return (
     isForecastKind(kind) &&
     (COMPUTED_FORECAST_FIELDS.includes(key) || EVENING_DAY_DATE.test(key))
@@ -207,8 +256,11 @@ function ProductEditor({
   archive,
   sourceEditionIds,
   existingSystems,
+  issuedProducts,
   lastIssued,
 }: {
+  /** Loaded products, for proposing the next bulletin number. */
+  issuedProducts: readonly StoredProduct[];
   lastIssued: StoredProduct | null;
   sourceEditionIds: string[];
   existingSystems: GuidanceSystem[];
@@ -253,6 +305,9 @@ function ProductEditor({
   const [changeSummary, setChangeSummary] = useState("");
   const [period, setPeriod] = useState("");
   const [message, setMessage] = useState("");
+  const [problems, setProblems] = useState<ProductProblem[]>([]);
+  const [summaryFocus, setSummaryFocus] = useState(0);
+  const [focusTarget, setFocusTarget] = useState<{ id: string } | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [pending, startTransition] = useTransition();
   const [defaultValues, setDefaultValues] = useState(start);
@@ -272,6 +327,30 @@ function ProductEditor({
     )
   );
   const form = useForm({ defaultValues });
+  // Alerts are numbered per event; propose the next number on a new alert
+  // once the archive has loaded (the forecaster can change it).
+  const proposedNumber =
+    isBulletin(kind) && !initial
+      ? proposeBulletinNumber(kind, start.issuedAt ?? "", issuedProducts, id)
+      : "";
+  // Only an empty or previously proposed number is replaced, so a typed one
+  // survives the archive loading.
+  const lastProposal = useRef("");
+  useEffect(() => {
+    const current = form.getFieldValue("bulletinNumber") ?? "";
+    if (!proposedNumber || (current && current !== lastProposal.current))
+      return;
+    lastProposal.current = proposedNumber;
+    const next = { ...form.state.values, bulletinNumber: proposedNumber };
+    setDefaultValues(next);
+    form.reset(next);
+    setBaseline(JSON.stringify(next));
+  }, [proposedNumber, form]);
+  // A level other than green only appears on an older alert; show it there so
+  // it can be changed, otherwise it stays fixed at Green and hidden.
+  const [showLevel] = useState(
+    () => isBulletin(kind) && Boolean(start.level) && start.level !== "Green"
+  );
   function refreshPdf(
     values: ProductValues,
     expectedRevision: number,
@@ -292,6 +371,23 @@ function ProductEditor({
   function replaceValues(values: ProductValues) {
     setDefaultValues(values);
     form.reset(values);
+    // Problems belonged to the old values.
+    setProblems([]);
+  }
+  /**
+   * Writes an almanac or tide fill into fields that are still empty at the
+   * moment it lands (a value typed while the table was read is kept). Tide
+   * rows are shown as far as the fill reached.
+   */
+  function applyFill({ patch, prefix, rows }: AlmanacFillApply): string[] {
+    if (rows > 0)
+      setTideRows((current) => ({
+        ...current,
+        [prefix]: Math.max(current[prefix] ?? 1, rows),
+      }));
+    const keys = emptyKeys(patch, (key) => form.getFieldValue(key));
+    for (const key of keys) form.setFieldValue(key, patch[key] ?? "");
+    return keys;
   }
   /**
    * Forecast wording usually changes little between issues, so a new forecast
@@ -322,6 +418,7 @@ function ProductEditor({
     (f) =>
       !(
         isComputedField(kind, f.key) ||
+        (f.key === "level" && isBulletin(kind) && !showLevel) ||
         (kind === "outlook" &&
           guidance?.systems?.length &&
           [
@@ -333,6 +430,32 @@ function ProductEditor({
       )
   );
   const sections = [...new Set(fields.map((f) => f.section))];
+  /** Replace the blocking problems and move focus to the summary. */
+  function fail(next: ProductProblem[]) {
+    // An earlier "Draft saved" or "Preview ready" must not sit beside the problems.
+    setMessage("");
+    setProblems(next);
+    setSummaryFocus((count) => count + 1);
+  }
+  function failWithMessages(messages: string[]) {
+    fail(productProblems(kind, fields, messages));
+  }
+  function followProblem(problem: ProductProblem) {
+    if (kind === "evening" && problem.period !== undefined)
+      setPeriod(problem.period);
+    if (problem.fieldId) setFocusTarget({ id: problem.fieldId });
+  }
+  // Focus the linked control once it is rendered and the form is enabled
+  // (an evening day may need its tab selected first; a disabled fieldset cannot take focus).
+  useEffect(() => {
+    if (!focusTarget || pending || disabled) return;
+    const element = document.getElementById(focusTarget.id);
+    if (!element) return;
+    element.focus();
+    // Keep the field clear of the sticky action bar at the bottom.
+    element.scrollIntoView?.({ block: "center" });
+    setFocusTarget(null);
+  }, [focusTarget, pending, disabled]);
   async function save(
     values: ProductValues,
     action: "draft" | "publish" | "withdraw"
@@ -348,9 +471,10 @@ function ProductEditor({
       reviewed,
     });
     if (!result.ok) {
-      setMessage(result.error);
+      failWithMessages([result.error]);
       return null;
     }
+    setProblems([]);
     setRevision(result.product.revision);
     setPublishedRevision(result.product.publishedRevision);
     setGuidance(result.product.guidance ?? null);
@@ -446,13 +570,14 @@ function ProductEditor({
         });
         if (JSON.stringify(form.state.values) !== submitted) return;
         if (!result.ok) {
-          setMessage(result.error);
+          failWithMessages([result.error]);
           return;
         }
         if (result.preview.errors.length) {
-          setMessage(result.preview.errors.join("\n"));
+          failWithMessages(result.preview.errors);
           return;
         }
+        setProblems([]);
         replaceValues(result.preview.values);
         setMessage("");
         setPreview(result.preview.values);
@@ -475,18 +600,64 @@ function ProductEditor({
           preview !== null &&
           previewGuidance === JSON.stringify(guidance) &&
           JSON.stringify(preview) === JSON.stringify(values);
-        const renderField = (f: ProductField) => (
-          <form.Field key={f.key} name={f.key}>
-            {(input) => (
-              <ProductFieldControl
-                field={f}
-                kind={kind}
-                onChange={input.handleChange}
-                value={input.state.value}
-              />
-            )}
-          </form.Field>
+        const fieldErrors = new Map(
+          problems.flatMap((problem) =>
+            problem.fieldId ? [[problem.fieldId, problem.message] as const] : []
+          )
         );
+        /**
+         * Picking weather types regenerates their public sentence unless the
+         * forecaster has reworded it (then it is left alone).
+         */
+        function changeWeather(key: string, next: string) {
+          const textKey = `${key}Text`;
+          const current = values[textKey] ?? "";
+          if (
+            fields.some((g) => g.key === textKey) &&
+            (!current.trim() || current === weatherSentence(values[key]))
+          )
+            form.setFieldValue(textKey, weatherSentence(next));
+        }
+        const renderField = (f: ProductField) => {
+          // Minimum and maximum wave height share one line.
+          if (WAVE_MAX.test(f.key)) return null;
+          const maxKey = f.key.replace("Min", "Max");
+          const max = WAVE_MIN.test(f.key)
+            ? fields.find((g) => g.key === maxKey)
+            : undefined;
+          if (max)
+            return (
+              <ProductRangeControl
+                errors={{
+                  min: fieldErrors.get(`${kind}-${f.key}`),
+                  max: fieldErrors.get(`${kind}-${maxKey}`),
+                }}
+                key={f.key}
+                kind={kind}
+                label="Significant wave height"
+                max={max}
+                min={f}
+                onChange={(key, next) => form.setFieldValue(key, next)}
+                values={values}
+              />
+            );
+          return (
+            <form.Field key={f.key} name={f.key}>
+              {(input) => (
+                <ProductFieldControl
+                  error={fieldErrors.get(`${kind}-${f.key}`)}
+                  field={f}
+                  kind={kind}
+                  onChange={(next) => {
+                    if (WEATHER_TYPE.test(f.key)) changeWeather(f.key, next);
+                    input.handleChange(next);
+                  }}
+                  value={input.state.value}
+                />
+              )}
+            </form.Field>
+          );
+        };
         function removeTide(prefix: string, n: number) {
           const key = (slot: number, part: string) =>
             parameterKey(prefix, `tide${slot}${part}`);
@@ -542,22 +713,7 @@ function ProductEditor({
                     open={withdrawOpen}
                     pending={pending}
                   />
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Badge variant="outline">
-                        {revision ? `Revision ${revision}` : "New draft"}
-                      </Badge>
-                      {publishedRevision ? (
-                        <Badge variant="light-success">
-                          Published r{publishedRevision}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">Not published</Badge>
-                      )}
-                      {dirty ? (
-                        <Badge variant="light-warning">Unsaved changes</Badge>
-                      ) : null}
-                    </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-3 empty:hidden">
                     <div className="flex flex-wrap gap-2">
                       {isForecastKind(kind) && revision === 0 && lastIssued ? (
                         <Button
@@ -608,7 +764,7 @@ function ProductEditor({
                   ) : null}
                   {isAboveGreen(kind, values.level) ? (
                     <p
-                      className="rounded-lg border border-destructive p-3 text-sm"
+                      className="border-destructive rounded-lg border p-3 text-sm"
                       role="alert"
                     >
                       {ABOVE_GREEN_MESSAGE}
@@ -621,6 +777,12 @@ function ProductEditor({
                       submit(values, "draft");
                     }}
                   >
+                    <ProductErrorSummary
+                      focusRequest={summaryFocus}
+                      onFollow={followProblem}
+                      problems={problems}
+                      warnings={[]}
+                    />
                     <fieldset
                       className="space-y-4"
                       disabled={pending || disabled}
@@ -643,6 +805,26 @@ function ProductEditor({
                           values={values}
                         />
                       )}
+                      {(kind === "marine" || kind === "marine-forecast") && (
+                        <NhcMarineGuidancePanel
+                          disabled={pending || disabled}
+                          guidance={guidance}
+                          kind={kind}
+                          onChange={(next, proposedValues) => {
+                            setGuidance(next);
+                            if (proposedValues) replaceValues(proposedValues);
+                            setReviewed(false);
+                            setPreview(null);
+                          }}
+                          values={values}
+                        />
+                      )}
+                      {kind === "climate-bulletin" ? (
+                        <ClimateFigures
+                          issuedAt={values.issuedAt ?? ""}
+                          month={values.month ?? ""}
+                        />
+                      ) : null}
                       <ForecastPeriodFields
                         evening={kind === "evening"}
                         period={period}
@@ -676,17 +858,23 @@ function ProductEditor({
                                 className="@container space-y-3 border-t pt-4 first:border-t-0 first:pt-0"
                                 key={section}
                               >
-                                <h2 className="font-semibold text-sm leading-5">
+                                <h2 className="text-sm leading-5 font-semibold">
                                   {heading}
                                   {group === "Wind" ? (
-                                    <span className="font-normal text-muted-foreground text-xs">
+                                    <span className="text-muted-foreground text-xs font-normal">
                                       {" "}
-                                      · mph
+                                      · {isMarineKind(kind) ? "knots" : "mph"}
+                                    </span>
+                                  ) : null}
+                                  {isSeaGroup(group) && isMarineKind(kind) ? (
+                                    <span className="text-muted-foreground text-xs font-normal">
+                                      {" "}
+                                      · metres
                                     </span>
                                   ) : null}
                                   {DAY_SECTION.test(section) &&
                                   values[`day${section.slice(4)}Date`] ? (
-                                    <span className="font-normal text-muted-foreground">
+                                    <span className="text-muted-foreground font-normal">
                                       {" · "}
                                       {formatComputedValue(
                                         values[`day${section.slice(4)}Date`] ??
@@ -762,17 +950,59 @@ function ProductEditor({
                                     )
                                   )}
                                 </div>
+                                {sectionFields.some(
+                                  (f) => f.fillFrom === "almanac"
+                                ) ? (
+                                  <AlmanacFillButton
+                                    date={fillDate(values, issueDate, prefix)}
+                                    fields={sectionFields.filter(
+                                      (f) => f.fillFrom === "almanac"
+                                    )}
+                                    marine={isMarineKind(kind)}
+                                    onFill={applyFill}
+                                    prefix={prefix}
+                                    source="almanac"
+                                    values={values}
+                                  />
+                                ) : null}
+                                {sectionFields.some(
+                                  (f) => f.fillFrom === "register"
+                                ) ? (
+                                  <RegisterFillButton
+                                    date={fillDate(values, issueDate, prefix)}
+                                    fields={sectionFields.filter(
+                                      (f) => f.fillFrom === "register"
+                                    )}
+                                    onFill={applyFill}
+                                  />
+                                ) : null}
+                                {sectionFields.some(
+                                  (f) => f.fillFrom === "tides"
+                                ) ? (
+                                  <AlmanacFillButton
+                                    date={fillDate(values, issueDate, prefix)}
+                                    fields={sectionFields.filter(
+                                      (f) => f.fillFrom === "tides"
+                                    )}
+                                    marine={isMarineKind(kind)}
+                                    onFill={applyFill}
+                                    prefix={prefix}
+                                    source="tides"
+                                    values={values}
+                                  />
+                                ) : null}
                                 <SectionHints
                                   group={group}
+                                  marine={isMarineKind(kind)}
                                   prefix={prefix}
                                   values={values}
                                 />
-                                {legacyNote(section, values)}
+                                {legacyNote(kind, section, values)}
                               </section>
                             );
                           })}
                       </ForecastPeriodFields>
-                      <div className="space-y-2 text-muted-foreground text-xs">
+                      <div className="text-muted-foreground space-y-2 text-xs">
                         <p>
                           * Required to publish. Times: Grenada (UTC−04:00).
                         </p>
@@ -807,14 +1037,24 @@ function ProductEditor({
                               <InputGroupAddon
                                 align="inline-start"
                                 aria-hidden="true"
-                                className="pointer-events-none self-start text-destructive text-xs"
+                                className="text-destructive pointer-events-none self-start text-xs"
                               >
                                 *
                               </InputGroupAddon>
                             ) : null}
                             <InputGroupTextarea
                               aria-describedby={
-                                revision ? "change-summary-hint" : undefined
+                                [
+                                  revision ? "change-summary-hint" : null,
+                                  fieldErrors.has("change-summary")
+                                    ? "change-summary-error"
+                                    : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" ") || undefined
+                              }
+                              aria-invalid={
+                                fieldErrors.has("change-summary") || undefined
                               }
                               aria-label="Issue / revision note"
                               id="change-summary"
@@ -833,6 +1073,14 @@ function ProductEditor({
                               including its first publication.
                             </p>
                           ) : null}
+                          {fieldErrors.has("change-summary") ? (
+                            <p
+                              className="text-destructive text-xs"
+                              id="change-summary-error"
+                            >
+                              {fieldErrors.get("change-summary")}
+                            </p>
+                          ) : null}
                         </FieldContent>
                       </Field>
                       {isBulletin(kind) ? (
@@ -844,21 +1092,13 @@ function ProductEditor({
                       ) : null}
                       {message ? (
                         <p
-                          className="whitespace-pre-wrap rounded-lg border p-3 text-sm"
+                          className="rounded-lg border p-3 text-sm whitespace-pre-wrap"
                           role="status"
                         >
                           {message}
                         </p>
                       ) : null}
                       <div className="flex flex-wrap gap-2">
-                        <Button type="submit">Save draft</Button>
-                        <Button
-                          onClick={() => review(values)}
-                          type="button"
-                          variant="outline"
-                        >
-                          Validate and preview
-                        </Button>
                         {isBulletin(kind) ? (
                           <>
                             <Button
@@ -886,9 +1126,13 @@ function ProductEditor({
                           <Button
                             onClick={() => {
                               if (!changeSummary.trim()) {
-                                setMessage(
-                                  "Explain the withdrawal in the revision note."
-                                );
+                                fail([
+                                  {
+                                    fieldId: "change-summary",
+                                    message:
+                                      "Explain the withdrawal in the revision note.",
+                                  },
+                                ]);
                                 return;
                               }
                               setWithdrawOpen(true);
@@ -907,7 +1151,7 @@ function ProductEditor({
                       aria-label="Publication preview"
                       className="space-y-4 rounded-lg border p-4"
                     >
-                      <p className="font-semibold text-sm">
+                      <p className="text-sm font-semibold">
                         Review before publication
                       </p>
                       <ProductContentView content={{ kind, values: preview }} />
@@ -921,13 +1165,6 @@ function ProductEditor({
                         I have checked the content, affected areas and validity
                         times and authorize publication.
                       </label>
-                      <Button
-                        disabled={!reviewed || pending}
-                        onClick={() => submit(preview, "publish")}
-                        type="button"
-                      >
-                        Publish to GMS
-                      </Button>
                     </section>
                   ) : null}
                   {revision ? (
@@ -943,6 +1180,56 @@ function ProductEditor({
                       pending={pending}
                     />
                   ) : null}
+                  <ProductActionBar
+                    onShowProblems={() => setSummaryFocus((count) => count + 1)}
+                    problemCount={problems.length}
+                    status={
+                      <>
+                        <Badge variant="outline">
+                          {revision ? `Revision ${revision}` : "New draft"}
+                        </Badge>
+                        {publishedRevision ? (
+                          <Badge variant="light-success">
+                            Published r{publishedRevision}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Not published</Badge>
+                        )}
+                        {dirty ? (
+                          <Badge variant="light-warning">Unsaved changes</Badge>
+                        ) : null}
+                      </>
+                    }
+                  >
+                    <Button
+                      disabled={pending || disabled}
+                      onClick={() => submit(values, "draft")}
+                      type="button"
+                    >
+                      Save draft
+                    </Button>
+                    <Button
+                      disabled={pending || disabled}
+                      onClick={() => review(values)}
+                      type="button"
+                      variant="outline"
+                    >
+                      Validate and preview
+                    </Button>
+                    <Button
+                      // A current, reviewed preview already passed validation;
+                      // a later failed save (say, a network error) must not lock Publish.
+                      disabled={
+                        !(previewCurrent && reviewed) || pending || disabled
+                      }
+                      onClick={() => {
+                        if (preview) submit(preview, "publish");
+                      }}
+                      type="button"
+                    >
+                      Publish to GMS
+                    </Button>
+                  </ProductActionBar>
                 </Card>
               }
               preview={
@@ -994,11 +1281,14 @@ function matrixRefusal(error: unknown): string | null {
 }
 
 export function ProductDesk({
+  description,
   kinds,
   title,
   initialKind,
   sourceEditionIds = [],
 }: {
+  /** Help text for this desk, under the page title. */
+  description: string;
   kinds: [ProductKind, ...ProductKind[]];
   title: string;
   initialKind?: ProductKind;
@@ -1049,10 +1339,7 @@ export function ProductDesk({
   }
   return (
     <div className="space-y-4">
-      <PageHeader
-        description="Save a draft, check the preview, then publish. Revisions preserve the currently published product until you issue the update."
-        title={title}
-      />
+      <PageHeader description={description} title={title} />
       <ProductDiscardDialog
         onConfirm={() => {
           discard?.();
@@ -1109,16 +1396,16 @@ export function ProductDesk({
               <TabsList
                 aria-label="Product type"
                 className={cn(
-                  "h-8 w-full justify-start overflow-x-auto rounded-lg bg-muted p-1 sm:justify-center",
+                  "bg-muted h-8 w-full justify-start overflow-x-auto rounded-lg p-1 sm:justify-center",
                   hasAlertTabs &&
-                    "grid h-auto @2xl:grid-cols-5 @sm:grid-cols-3 grid-cols-2 gap-1 overflow-visible group-data-[orientation=horizontal]/tabs:h-auto"
+                    "grid h-auto grid-cols-2 gap-1 overflow-visible group-data-[orientation=horizontal]/tabs:h-auto @sm:grid-cols-3 @2xl:grid-cols-5"
                 )}
               >
                 {deskKinds.map((value) => (
                   <TabsTrigger
                     className={cn(
                       hasAlertTabs &&
-                        "h-auto min-h-10 whitespace-normal text-balance px-2 py-1 text-center leading-4"
+                        "h-auto min-h-10 px-2 py-1 text-center leading-4 text-balance whitespace-normal"
                     )}
                     key={value}
                     value={value}
@@ -1140,6 +1427,7 @@ export function ProductDesk({
         ]}
         initial={selected}
         issueDate={grenadaDate()}
+        issuedProducts={products}
         key={`${kind}-${editorKey}`}
         kind={kind}
         lastIssued={

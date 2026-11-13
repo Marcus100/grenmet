@@ -4,6 +4,8 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
+import type { TimesheetApproveRequest } from "./TimesheetApproveRequest.js";
 import type { TimesheetPublic } from "./TimesheetPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -37,13 +39,27 @@ export type HrApproveTimesheetStatus403 = ApiError;
 export type HrApproveTimesheetStatus404 = ApiError;
 
 /**
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
+ * @type object
+ */
+export type HrApproveTimesheetStatus409 = RosterRuleWarningsErrorPublic;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
 export type HrApproveTimesheetStatus422 = ValidationErrorResponse;
 
+/**
+ * @default {}
+ * @type object | undefined
+ */
+export type HrApproveTimesheetBody = TimesheetApproveRequest | undefined;
+
 export type HrApproveTimesheetOptions = {
-  body?: never;
+  body: HrApproveTimesheetBody;
   path: HrApproveTimesheetPath;
   query?: never;
   headers?: never;
@@ -54,6 +70,7 @@ export type HrApproveTimesheetResponses = {
   "400": HrApproveTimesheetStatus400;
   "403": HrApproveTimesheetStatus403;
   "404": HrApproveTimesheetStatus404;
+  "409": HrApproveTimesheetStatus409;
   "422": HrApproveTimesheetStatus422;
 };
 

@@ -1,5 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 
 const mocks = vi.hoisted(() => ({
   settings: vi.fn(),
@@ -72,6 +73,7 @@ const feed = {
   created_at: "2026-09-23T00:00:00Z",
   updated_at: "2026-09-23T00:00:00Z",
 };
+const PLAIN_HTTP_SWITCH = /Plain http: switch to https/u;
 beforeEach(() => vi.resetAllMocks());
 
 it("saves sender settings and reports success only after the API succeeds", async () => {
@@ -112,6 +114,26 @@ it("requires explicit confirmation before deleting a feed", async () => {
   await waitFor(() =>
     expect(mocks.deleteFeed).toHaveBeenCalledWith({ path: { feed_id: "feed" } })
   );
+});
+
+it("flags a plain-http feed in the list and not an https feed", () => {
+  render(
+    <CapFeedManager
+      feeds={[
+        {
+          ...feed,
+          id: "old",
+          name: "Legacy",
+          url: "http://example.org/cap",
+          insecure_since: "2026-11-03T08:00:00Z",
+          grace_ends_at: "2026-11-17T08:00:00Z",
+          grace_expired: false,
+        },
+        feed,
+      ]}
+    />
+  );
+  expect(screen.getAllByText(PLAIN_HTTP_SWITCH)).toHaveLength(1);
 });
 
 it("creates a feed from the form without issuing an update", async () => {

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Query, Response, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import LeaveRequestDep
 from src.hr.filenames import preview_filename
+from src.hr.roster.schemas import with_rule_warnings
 from src.hr.submission import submission_list, submission_public
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
@@ -196,17 +197,19 @@ async def delete_leave_request(
     response_model=LeaveRequestPublic,
     summary="Action leave request",
     description="Approve or update a leave request. Requires leave.request.action and scope over the user.",
-    responses={
-        status.HTTP_200_OK: {"description": "Leave request updated"},
-        status.HTTP_403_FORBIDDEN: {
-            "model": ApiError,
-            "description": "Not allowed to action this leave request",
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "model": ApiError,
-            "description": "Leave request not found",
-        },
-    },
+    responses=with_rule_warnings(
+        {
+            status.HTTP_200_OK: {"description": "Leave request updated"},
+            status.HTTP_403_FORBIDDEN: {
+                "model": ApiError,
+                "description": "Not allowed to action this leave request",
+            },
+            status.HTTP_404_NOT_FOUND: {
+                "model": ApiError,
+                "description": "Leave request not found",
+            },
+        }
+    ),
 )
 async def action_leave_request(
     *,

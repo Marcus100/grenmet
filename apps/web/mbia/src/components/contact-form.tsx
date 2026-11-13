@@ -9,16 +9,15 @@ import {
 } from "@barrelsgd/ui/components/ui/native-select";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
+import type { FormState } from "@barrelsgd/ui/lib/form-state";
 import { useState } from "react";
-import { CONTACT_SUBJECTS, contactSchema } from "@/lib/contact";
+import {
+  CONTACT_SUBJECTS,
+  firstContactError,
+  parseContact,
+} from "@/lib/contact";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
-
-type FormState =
-  | { status: "idle" }
-  | { status: "submitting" }
-  | { status: "success" }
-  | { status: "error"; message: string };
 
 export function ContactForm() {
   const [state, setState] = useState<FormState>({ status: "idle" });
@@ -29,11 +28,11 @@ export function ContactForm() {
     event.preventDefault();
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form));
-    const parsed = contactSchema.safeParse(data);
+    const parsed = parseContact(data);
     if (!parsed.success) {
       setState({
         status: "error",
-        message: parsed.error.issues[0]?.message ?? "Please check the form",
+        message: firstContactError(parsed.error),
       });
       return;
     }
@@ -100,7 +99,7 @@ export function ContactForm() {
         siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
       />
       <Button
-        className="bg-gaa-navy text-white hover:bg-gaa-navy-deep"
+        className="bg-gaa-navy hover:bg-gaa-navy-deep text-white"
         disabled={state.status === "submitting"}
         type="submit"
       >

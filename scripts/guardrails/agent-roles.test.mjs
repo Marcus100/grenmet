@@ -19,10 +19,10 @@ const READ_ONLY_ROLES = new Set([
 ]);
 const EDITING_TOOLS = ["Edit", "Write", "MultiEdit", "NotebookEdit"];
 const MAX_BODY_LINES = 40;
-const NAME_PATTERN = /^[a-z]+(-[a-z]+)*$/;
-const DELEGATE_PATTERN = /Use proactively|Use when/;
-const FRONTMATTER = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
-const PATH_IN_BACKTICKS = /`((?:[\w.-]+\/)+[\w.<>-]*(?:\.\w+)?)`/g;
+const NAME_PATTERN = /^[a-z]+(-[a-z]+)*$/u;
+const DELEGATE_PATTERN = /Use proactively|Use when/u;
+const FRONTMATTER = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/u;
+const PATH_IN_BACKTICKS = /`((?:[\w.-]+\/)+[\w.<>-]*(?:\.\w+)?)`/gu;
 
 function load(file) {
   const source = readFileSync(join(agentsDir, file), "utf8");

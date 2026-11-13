@@ -12,8 +12,9 @@ import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
 /**
  * The masthead's live warning status: colour, icon and the shared wording.
- * Icon and colour only (owner decision, 30 Sep 2026): the warning ribbon at
- * the top of the page names active alerts. The words stay for screen readers.
+ * Phones show icon and colour only (owner decision, 30 Sep 2026); where the
+ * bar has room the words show too, so the status never relies on colour and
+ * an icon alone (owner, 10 Nov 2026). Screen readers always hear the words.
  */
 const PILL =
   "h-10 items-center gap-2 whitespace-nowrap rounded-md px-3 font-bold text-body leading-body";
@@ -39,14 +40,23 @@ export function CheckingStatusPill({ className }: { className?: string }) {
   );
 }
 
+/** Breakpoint from which the words are shown; below it they are for screen readers only. */
+const WORDS_FROM = {
+  lg: "sr-only lg:not-sr-only",
+  xl: "sr-only xl:not-sr-only",
+} as const;
+
 export function WarningStatusPill({
   alerts,
   green,
   className,
+  wordsFrom,
 }: {
   alerts: AlertsResult;
   green?: GreenStatus;
   className?: string;
+  /** Show the words from this width up; screen readers only when omitted. */
+  wordsFrom?: keyof typeof WORDS_FROM;
 }) {
   return (
     <Link
@@ -58,7 +68,11 @@ export function WarningStatusPill({
       href="/alerts"
     >
       <AlertsIcon alerts={alerts} className="size-4" green={green} />
-      <AlertsSummary alerts={alerts} green={green} />
+      <AlertsSummary
+        alerts={alerts}
+        className={wordsFrom ? WORDS_FROM[wordsFrom] : undefined}
+        green={green}
+      />
     </Link>
   );
 }

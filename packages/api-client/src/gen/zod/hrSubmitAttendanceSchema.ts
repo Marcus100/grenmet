@@ -7,6 +7,7 @@ import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { attendanceShiftPublicSchema } from "./attendanceShiftPublicSchema.js";
 import { attendanceSubmitSchema } from "./attendanceSubmitSchema.js";
+import { rosterRuleWarningsErrorPublicSchema } from "./rosterRuleWarningsErrorPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrSubmitAttendancePathAttendanceIdSchema = z.uuid();
@@ -25,9 +26,10 @@ export const hrSubmitAttendanceStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
-export const hrSubmitAttendanceStatus409Schema = apiErrorSchema.describe(
-  "Stable error envelope for documented API failures."
-);
+export const hrSubmitAttendanceStatus409Schema =
+  rosterRuleWarningsErrorPublicSchema.describe(
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
+  );
 
 export const hrSubmitAttendanceStatus422Schema =
   validationErrorResponseSchema.describe(

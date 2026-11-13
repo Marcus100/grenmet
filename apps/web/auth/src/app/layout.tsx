@@ -1,3 +1,4 @@
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
 import { env } from "@/lib/env";
@@ -33,6 +34,7 @@ export default function RootLayout({
     // next-themes sets the theme class before hydration.
     <html className={notoSans.variable} lang="en" suppressHydrationWarning>
       <body>
+        <PublicEnvScript />
         <Providers
           apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
           apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}

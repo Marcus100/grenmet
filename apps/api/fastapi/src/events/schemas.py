@@ -40,6 +40,8 @@ Intent = Literal[
 ]
 ConnectionState = Literal["self", "none", "connected", "sent", "received", "blocked"]
 When = Literal["tonight", "weekend", "week", "month"]
+#: Listing lifecycle (src/events/transitions.py ListingStatus).
+ListingStatusName = Literal["draft", "published", "cancelled"]
 
 HANDLE_PATTERN = r"^[a-z0-9][a-z0-9-]{1,29}$"
 SLUG_PATTERN = r"^[a-z0-9][a-z0-9-]{1,79}$"
@@ -810,6 +812,9 @@ class CancelResult(BaseModel):
     refunds_failed: int = 0
     #: Unpaid orders released because the event is off.
     orders_released: int = 0
+    #: Paid orders whose earlier organiser refund is still waiting for the payment
+    #: provider. Not failed and not queued again; follow each order's refund status.
+    orders_pending: int = 0
 
 
 class PostponeEvent(BaseModel):
@@ -1004,7 +1009,7 @@ class StaffEventRow(BaseModel):
 
     listing_id: uuid.UUID
     title: str
-    status: str
+    status: ListingStatusName
     starts_at: UtcDateTime
     organiser_id: uuid.UUID
     organiser_name: str

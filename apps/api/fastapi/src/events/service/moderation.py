@@ -14,6 +14,7 @@ from ..models import (
     Report,
     Suggestion,
 )
+from ..transitions import ReportStatus, SuggestionStatus
 
 # --- Suggestions and moderation ---------------------------------------------------------------
 
@@ -31,7 +32,7 @@ async def list_suggestions(db: AsyncSession) -> Sequence[Suggestion]:
     return (
         await db.scalars(
             select(Suggestion)
-            .where(Suggestion.status == "pending")
+            .where(Suggestion.status == SuggestionStatus.PENDING.value)
             .order_by(Suggestion.created_at)
         )
     ).all()
@@ -63,7 +64,9 @@ async def update_suggestion(
 async def list_reports(db: AsyncSession) -> Sequence[Report]:
     return (
         await db.scalars(
-            select(Report).where(Report.status == "open").order_by(Report.created_at)
+            select(Report)
+            .where(Report.status == ReportStatus.OPEN.value)
+            .order_by(Report.created_at)
         )
     ).all()
 

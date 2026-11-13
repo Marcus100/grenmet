@@ -44,6 +44,65 @@ describe("public home feed", () => {
     expect(body.deskUpdates.items[0].category).toBe("Announcement");
     expect(body).not.toHaveProperty("publications");
   });
+
+  it("sends seven stories: the lead plus six rows on the weather homepage", async () => {
+    const find = vi.fn(
+      ({ collection, limit }: { collection: string; limit?: number }) =>
+        Promise.resolve({
+          docs:
+            collection === "stories"
+              ? Array.from({ length: limit ?? 10 }, (_, i) => ({
+                  id: i + 1,
+                  title: `Story ${i + 1}`,
+                  slug: `stories/2026/09/s${i + 1}`,
+                  kind: "local-story",
+                  status: "published",
+                  updatedAt: "2026-09-01T00:00:00.000Z",
+                }))
+              : [],
+        })
+    );
+    const findGlobal = vi.fn().mockResolvedValue({});
+    vi.mocked(getPayload).mockResolvedValue({ find, findGlobal } as never);
+    const body = await (await GET()).json();
+    expect(body.stories.items).toHaveLength(7);
+  });
+
+  it("keeps an older pinned desk post behind eight newer unpinned ones", async () => {
+    const desk = (id: number, pinned: boolean, day: number) => ({
+      id,
+      title: `Desk ${id}`,
+      slug: `updates/2026/11/d${id}`,
+      kind: "announcement",
+      status: "published",
+      pinned,
+      publishedAt: `2026-11-${String(day).padStart(2, "0")}T08:00:00.000Z`,
+      updatedAt: `2026-11-${String(day).padStart(2, "0")}T08:00:00.000Z`,
+    });
+    const find = vi.fn(
+      ({ collection, where }: { collection: string; where?: unknown }) => {
+        if (collection !== "desk-updates") {
+          return Promise.resolve({ docs: [] });
+        }
+        const pinnedOnly = JSON.stringify(where).includes('"pinned"');
+        return Promise.resolve({
+          docs: pinnedOnly
+            ? [desk(99, true, 1)]
+            : Array.from({ length: 8 }, (_, i) => desk(i + 1, false, 20 - i)),
+        });
+      }
+    );
+    const findGlobal = vi.fn().mockResolvedValue({});
+    vi.mocked(getPayload).mockResolvedValue({ find, findGlobal } as never);
+    const body = await (await GET()).json();
+    const ids = body.deskUpdates.items.map((item: { id: string }) => item.id);
+    expect(ids).toContain("99");
+    expect(ids).toHaveLength(9);
+    expect(
+      body.deskUpdates.items.find((item: { id: string }) => item.id === "99")
+        .pinned
+    ).toBe(true);
+  });
 });
 
 describe("homepage leads and Weather now", () => {
@@ -93,6 +152,10 @@ describe("homepage leads and Weather now", () => {
       "2",
       "1",
     ]);
+    // The lead plus six rows on the weather homepage: seven stories asked for.
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({ collection: "stories", limit: 7 })
+    );
     expect(body.questions.items.map((item: { id: string }) => item.id)).toEqual(
       ["7"]
     );

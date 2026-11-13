@@ -29,6 +29,7 @@ export function notificationsUpdateNotificationSetting<
       method: "PUT",
       url: "/api/v1/notifications/settings/{event_key}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

@@ -2,12 +2,13 @@ import uuid
 from datetime import date
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, File, Form, Query, UploadFile, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.dependencies import CurrentUser, SessionDep
+from src.exceptions import AppException
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
@@ -108,9 +109,8 @@ async def upload_document(
         )
         return await _document_public(session, current_user, document)
     except StorageNotConfiguredError:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=_STORAGE_UNAVAILABLE,
+        raise AppException(
+            _STORAGE_UNAVAILABLE, status.HTTP_503_SERVICE_UNAVAILABLE
         ) from None
 
 
@@ -267,9 +267,8 @@ async def download_document(
             session=session, current_user=current_user, document_id=document_id
         )
     except StorageNotConfiguredError:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=_STORAGE_UNAVAILABLE,
+        raise AppException(
+            _STORAGE_UNAVAILABLE, status.HTTP_503_SERVICE_UNAVAILABLE
         ) from None
     return RedirectResponse(
         url,

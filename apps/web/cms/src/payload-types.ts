@@ -249,7 +249,7 @@ export interface User {
   collection: 'users';
 }
 /**
- * From the Desk: the forecast office writing about what it issues, plus service notices. Paste the product under Related links and tick Main link to show its live details; never type forecast figures or warnings here.
+ * From the Desk: the forecast office writing about what it issues, plus service notices. Paste the product under Related links and tick Main link to show its live details; never type forecast figures or warnings here. A pasted issued product also shows a "Based on" line on the card. Pin keeps a post right after the official cards.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "desk-updates".
@@ -271,6 +271,22 @@ export interface DeskUpdate {
     | 'service-notice'
     | 'community'
     | 'announcement';
+  /**
+   * Standard: words and a picture. Audio or Video: also paste a share link, played only when a reader presses play. Chart: the picture is a chart (owner, 1 Nov 2026).
+   */
+  format: 'standard' | 'audio' | 'video' | 'chart';
+  /**
+   * YouTube or Facebook for video, SoundCloud for audio. Paste the share link.
+   */
+  mediaUrl?: string | null;
+  /**
+   * Shown after your name on the card, e.g. "Duty forecaster" or "Climate officer".
+   */
+  authorRole?: string | null;
+  /**
+   * Shows this post right after the official forecast cards, ahead of newer posts. Several pinned posts show newest first. Only homepage editors can pin.
+   */
+  pinned?: boolean | null;
   /**
    * Shown on cards and in search. 200 characters at most.
    */
@@ -332,9 +348,21 @@ export interface DeskUpdate {
      */
     approveForSocial?: boolean | null;
     /**
-     * Optional. Replaces the warning's social image when the post is shared.
+     * Optional. Used for any platform without its own picture below, then the cover.
      */
     image?: (number | null) | Media;
+    /**
+     * Optional. 1200 x 630 pixels (landscape). Leave empty to use the social image above, then the cover.
+     */
+    facebookImage?: (number | null) | Media;
+    /**
+     * Optional. 1080 x 1080 or 1080 x 1350 pixels (square or portrait). Leave empty to use the social image above, then the cover.
+     */
+    instagramImage?: (number | null) | Media;
+    /**
+     * Optional. 1200 x 630 pixels (landscape). Leave empty to use the social image above, then the cover.
+     */
+    whatsappImage?: (number | null) | Media;
     caption?: string | null;
     enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
     /**
@@ -1040,6 +1068,10 @@ export interface LivePostsSelect<T extends boolean = true> {
 export interface DeskUpdatesSelect<T extends boolean = true> {
   title?: T;
   kind?: T;
+  format?: T;
+  mediaUrl?: T;
+  authorRole?: T;
+  pinned?: T;
   summary?: T;
   image?: T;
   imageCaption?: T;
@@ -1059,6 +1091,9 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
     | {
         approveForSocial?: T;
         image?: T;
+        facebookImage?: T;
+        instagramImage?: T;
+        whatsappImage?: T;
         caption?: T;
         enabledPlatforms?: T;
         publishAt?: T;

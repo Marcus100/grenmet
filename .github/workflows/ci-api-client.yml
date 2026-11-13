@@ -7,19 +7,47 @@ on:
   # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
     branches:
-      - main
       - dev
   workflow_call:
 
 # Hardcoded per-file prefix: inside a workflow_call child, github.workflow is the
 # CALLER's name, so a ${{ github.workflow }} group makes sibling children cancel
-# each other. PR runs dedupe per PR, dev pushes per branch; deployment children stay unique.
+# each other. PR runs dedupe per PR; dev pushes and deployment children stay unique.
 concurrency:
-  group: ci-api-client-${{ github.event.pull_request.number || (github.ref == 'refs/heads/dev' && github.ref) || github.run_id }}
-  cancel-in-progress: true
+  # Pull requests cancel their superseded runs. A dev push never cancels an earlier
+  # dev run: api-client is a required check that promotion reads on earlier dev
+  # commits (#1227), so each dev push gets its own group.
+  group: ci-api-client-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # A promotion PR (into staging or main) whose tree passed every required check
+  # on dev reuses that result (#1239). Anything else, including a failure here,
+  # runs the full job below.
+  promotion:
+    name: Reuse dev checks
+    if: github.event_name == 'pull_request' && github.base_ref != 'dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+    outputs:
+      verified: ${{ steps.verify.outputs.verified }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - id: verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/ci/promotion-verified.mjs
+
   api-client:
+    needs: [promotion]
+    # Skipped (reported as passed) only on a verified promotion PR.
+    if: ${{ !cancelled() && needs.promotion.outputs.verified != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -29,17 +57,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - name: Setup Node.js with pnpm
+        uses: ./.github/actions/setup-node
         with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          turbo-cache: "false"
 
       - name: Test API drift and breaking-change checkers
         run: node --test scripts/api/check-api-drift.test.mjs scripts/api/check-api-breaking.test.mjs

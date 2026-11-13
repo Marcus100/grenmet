@@ -54,7 +54,7 @@ export default async function EditEventPage({
             >
               ← My events
             </Link>
-            <h1 className="mt-1 font-display font-semibold text-heading-base">
+            <h1 className="font-display text-heading-base mt-1 font-semibold">
               Customise event
             </h1>
           </div>

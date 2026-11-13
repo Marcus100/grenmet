@@ -17,10 +17,10 @@ const NO_GREEN: GreenStatus = {
   other: 0,
   complete: true,
 };
-const FLEX_CLASS = /(^|\s)flex(\s|$)/;
-const HIDDEN_CLASS = /(^|\s)hidden(\s|$)/;
-const ONE_ACTIVE = /Take action now · 1 active/;
-const OUTAGE = /We cannot load alerts right now/;
+const FLEX_CLASS = /(^|\s)flex(\s|$)/u;
+const HIDDEN_CLASS = /(^|\s)hidden(\s|$)/u;
+const ONE_ACTIVE = /Take action now · 1 active/u;
+const OUTAGE = /We cannot load alerts right now/u;
 
 const ACTIVE: AlertsResult = {
   activeCount: 1,
@@ -74,6 +74,21 @@ describe("Header", () => {
     expect(screen.getByLabelText("Site menu")).toBeInTheDocument();
   });
 
+  it("returns focus to the menu button when Escape closes the menu", () => {
+    render(
+      <Header
+        alerts={{ activeCount: 0, groups: [], status: "ok" }}
+        green={NO_GREEN}
+      />
+    );
+    const button = screen.getByRole("button", { name: "Open navigation" });
+    fireEvent.click(button);
+    (document.activeElement as HTMLElement | null)?.blur();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(button).toHaveAccessibleName("Open navigation");
+    expect(button).toHaveFocus();
+  });
+
   it("shows the alert status in the bar on every width", () => {
     render(
       <Header
@@ -86,6 +101,35 @@ describe("Header", () => {
       .find((link) => link.getAttribute("href") === "/alerts");
     expect(status?.className).toMatch(FLEX_CLASS);
     expect(status?.className).not.toMatch(HIDDEN_CLASS);
+  });
+});
+
+const SIGN_IN = /^Sign in/u;
+const UNITS = /^Units:/u;
+
+describe("Header has no account controls", () => {
+  it("never shows a sign-in button, on any width", () => {
+    render(
+      <Header
+        alerts={{ activeCount: 0, groups: [], status: "ok" }}
+        green={NO_GREEN}
+      />
+    );
+    expect(
+      screen.queryByRole("button", { name: SIGN_IN })
+    ).not.toBeInTheDocument();
+  });
+
+  it("never shows the units switch in the header; it lives in the home card", () => {
+    render(
+      <Header
+        alerts={{ activeCount: 0, groups: [], status: "ok" }}
+        green={NO_GREEN}
+      />
+    );
+    expect(
+      screen.queryByRole("button", { name: UNITS })
+    ).not.toBeInTheDocument();
   });
 });
 

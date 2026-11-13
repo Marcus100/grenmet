@@ -3,6 +3,7 @@ import Link from "next/link";
 import { OrganisationTable } from "@/components/organisation-table";
 import { StaffOnly } from "@/components/staff-only";
 import { listOrganisations, ORGANISATIONS_PAGE_SIZE } from "@/lib/api";
+import { STATUSES } from "@/lib/organisation-form";
 import { requireGate } from "@/lib/staff-gate";
 
 export const metadata: Metadata = { title: "Organisations" };
@@ -10,7 +11,6 @@ export const dynamic = "force-dynamic";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-const STATUSES = ["active", "suspended"] as const;
 const KINDS = ["barrels", "client", "business"] as const;
 
 function one(value: string | string[] | undefined): string | undefined {
@@ -67,13 +67,13 @@ export default async function OrganisationsPage({
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="font-semibold text-2xl">Organisations</h1>
+          <h1 className="text-2xl font-semibold">Organisations</h1>
           <p className="text-muted-foreground">
             Every organisation on the platform.
           </p>
         </div>
         <Link
-          className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+          className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
           href="/organisations/new"
         >
           New organisation
@@ -84,7 +84,7 @@ export default async function OrganisationsPage({
         <label className="grid gap-1 text-sm">
           Search
           <input
-            className="rounded-md border bg-background px-2.5 py-1.5"
+            className="bg-background rounded-md border px-2.5 py-1.5"
             defaultValue={q}
             maxLength={100}
             name="q"
@@ -94,7 +94,7 @@ export default async function OrganisationsPage({
         <label className="grid gap-1 text-sm">
           Status
           <select
-            className="rounded-md border bg-background px-2.5 py-1.5"
+            className="bg-background rounded-md border px-2.5 py-1.5"
             defaultValue={status ?? ""}
             name="status"
           >
@@ -109,7 +109,7 @@ export default async function OrganisationsPage({
         <label className="grid gap-1 text-sm">
           Kind
           <select
-            className="rounded-md border bg-background px-2.5 py-1.5"
+            className="bg-background rounded-md border px-2.5 py-1.5"
             defaultValue={kind ?? ""}
             name="kind"
           >
@@ -122,7 +122,7 @@ export default async function OrganisationsPage({
           </select>
         </label>
         <button
-          className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+          className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
           type="submit"
         >
           Filter

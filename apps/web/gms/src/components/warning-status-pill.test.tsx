@@ -4,7 +4,7 @@ import { WarningStatusPill } from "@/components/warning-status-pill";
 import type { AlertsResult, GreenStatus } from "@/lib/cap-alerts";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
-const ONE_ACTIVE = /· 1 active$/;
+const ONE_ACTIVE = /· 1 active$/u;
 
 const ACTIVE: AlertsResult = {
   activeCount: 1,
@@ -101,4 +101,10 @@ it("is grey, not green, when Green alerts cannot be read", () => {
 it("shows the warning at once, whatever the outlook says", () => {
   render(<WarningStatusPill alerts={ACTIVE} green={UNREADABLE} />);
   expect(screen.getByRole("link", { name: ONE_ACTIVE })).toBeInTheDocument();
+});
+
+it("shows the words from a breakpoint up and keeps phones to icon and colour", () => {
+  render(<WarningStatusPill alerts={NO_WARNINGS} wordsFrom="xl" />);
+  const words = screen.getByText("No active alerts");
+  expect(words).toHaveClass("sr-only", "xl:not-sr-only");
 });

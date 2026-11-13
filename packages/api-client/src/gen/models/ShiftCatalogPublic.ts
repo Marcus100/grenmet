@@ -12,6 +12,12 @@ export type ShiftCatalogPublic = {
   start_time?: string | null;
   end_time?: string | null;
   ends_next_day: boolean;
+  /**
+   * @description Unpaid break inside the shift, in minutes.
+   * @default 0
+   * @type integer | undefined
+   */
+  break_minutes?: number;
   counts_as_work_hours: boolean;
   needs_reason: boolean;
   needs_approval: boolean;

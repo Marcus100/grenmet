@@ -22,8 +22,8 @@ gnc-collector = "gnc_collector.cli:main"
 [dependency-groups]
 dev = [
     "mypy>=2.4.0",
-    "pytest>=8.4.0",
-    "ruff>=0.17.3",
+    "pytest>=9.2.0",
+    "ruff>=0.17.4",
 ]
 
 [build-system]

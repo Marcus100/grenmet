@@ -22,7 +22,7 @@ class SocialWarningNotAllowed(AppException):
             "Official warnings are never sent through social media. Remove the "
             "warning collection or warning link; warnings stay on the site and "
             "in CAP.",
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
         )
 
 
@@ -31,7 +31,7 @@ class SocialAddressNotPlain(AppException):
         super().__init__(
             f"The {what} address {problem}. Use a plain https address with no user "
             "information, no backslash and no port other than 443.",
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
         )
 
 
@@ -42,7 +42,7 @@ class SocialHostNotAllowed(AppException):
             f"The {what} is on {shown}, which is not an approved host for social "
             "posts. The owner adds approved hosts to SOCIAL_LINK_HOSTS (links) or "
             "SOCIAL_IMAGE_HOSTS (images) on the server.",
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
         )
 
 
@@ -50,7 +50,7 @@ class SocialImageRequired(AppException):
     def __init__(self, platform: str) -> None:
         super().__init__(
             f"{platform} posts need an image URL (imageUrl)",
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
         )
 
 
@@ -58,5 +58,5 @@ class SocialCaptionMissing(AppException):
     def __init__(self, platform: str) -> None:
         super().__init__(
             f"Add a caption for {platform}",
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
         )

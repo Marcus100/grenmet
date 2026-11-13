@@ -6,6 +6,21 @@ import { parseArgs } from "node:util";
 import { command } from "./audit-process.mjs";
 import { publishObservations } from "./audit-report.mjs";
 
+// Keep the cause visible in publication.log without leaking credentials.
+export function cleanError(error) {
+  const text = String(error instanceof Error ? error.message : error)
+    .replace(
+      /(?<![A-Za-z0-9])(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]+/gu,
+      "[redacted]"
+    )
+    .replace(/(?<![A-Za-z0-9])(?:Bearer|token)\s+\S+/giu, "[redacted]")
+    .replace(/(?:TOKEN|SECRET|PASSWORD|KEY)[=:]\S+/giu, "[redacted]")
+    .replace(/\/\/[^/@\s]+@/gu, "//[redacted]@")
+    .replace(/[^\x20-\x7e]+/gu, " ")
+    .trim();
+  return text.slice(0, 300) || "unknown error";
+}
+
 export async function publishReport(path, publish) {
   const stat = statSync(path);
   if (!stat.isFile() || stat.size > 4_000_000 || stat.mode % 64)
@@ -23,7 +38,10 @@ export async function publishReport(path, publish) {
         timeout: 120_000,
         captureLimit: 16_000_000,
       });
-      if (result.code !== 0) throw new Error("Issue publication unavailable");
+      if (result.code !== 0)
+        throw new Error(
+          `Issue publication unavailable: ${cleanError(result.stderr)}`
+        );
       return result.stdout.trim();
     },
   });
@@ -37,7 +55,8 @@ if (
   });
   publishReport(values.input, values.publish)
     .then((result) => console.log(JSON.stringify(result)))
-    .catch(() => {
+    .catch((error) => {
+      console.error(`Cause: ${cleanError(error)}`);
       console.error(
         "Audit issue publication unavailable; private evidence retained."
       );

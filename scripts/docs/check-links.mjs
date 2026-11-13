@@ -22,14 +22,14 @@ const ignoredDirectories = new Set([
 ]);
 // Downloaded upstream snapshots are git-ignored and contain their own site links.
 const ignoredPaths = new Set(["notebooks/metpy/sources"]);
-const externalSchemePattern = /^[a-z][a-z0-9+.-]*:/i;
-const fencedCodePattern = /^\s{0,3}(`{3,}|~{3,})(.*)$/;
-const headingPattern = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/;
-const setextHeadingPattern = /^\s{0,3}(?:=+|-+)\s*$/;
-const inlineLinkPattern = /!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))/g;
+const externalSchemePattern = /^[a-z][a-z0-9+.-]*:/iu;
+const fencedCodePattern = /^\s{0,3}(`{3,}|~{3,})(.*)$/u;
+const headingPattern = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/u;
+const setextHeadingPattern = /^\s{0,3}(?:=+|-+)\s*$/u;
+const inlineLinkPattern = /!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))/gu;
 // Footnote definitions ([^1]: text) are not reference links: the text after
 // the colon is prose, not a destination. Excluding "^" labels keeps it that way.
-const referenceLinkPattern = /^\s*\[(?!\^)[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gm;
+const referenceLinkPattern = /^\s*\[(?!\^)[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gmu;
 
 const parseArguments = (args) => {
   if (args.length === 0) {
@@ -94,7 +94,7 @@ const stripTags = (text) => {
   let current = text;
   do {
     previous = current;
-    current = current.replace(/<[^>]*>/g, "");
+    current = current.replace(/<[^>]*>/gu, "");
   } while (current !== previous);
   return current;
 };
@@ -102,17 +102,17 @@ const stripTags = (text) => {
 const renderedHeading = (heading) =>
   stripTags(
     heading
-      .replace(/!?\[([^\]]+)\]\([^)]*\)/g, "$1")
-      .replace(/!?\[([^\]]+)\]\[[^\]]*\]/g, "$1")
+      .replace(/!?\[([^\]]+)\]\([^)]*\)/gu, "$1")
+      .replace(/!?\[([^\]]+)\]\[[^\]]*\]/gu, "$1")
   );
 
 const slugHeading = (heading) =>
   renderedHeading(heading)
-    .replace(/[`*_~]/g, "")
+    .replace(/[`*_~]/gu, "")
     .toLocaleLowerCase("en")
     .trim()
     .replace(/[^\p{L}\p{N}\s_-]/gu, "")
-    .replace(/\s/g, "-");
+    .replace(/\s/gu, "-");
 
 const collectAnchors = (source) => {
   const anchors = new Set();
@@ -133,7 +133,7 @@ const collectAnchors = (source) => {
       counts.set(base, count + 1);
     }
 
-    for (const match of line.matchAll(/\bid=["']([^"']+)["']/g)) {
+    for (const match of line.matchAll(/\bid=["']([^"']+)["']/gu)) {
       if (match[1]) {
         anchors.add(match[1]);
       }

@@ -4,6 +4,7 @@ from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import WorkflowInstanceDep, WorkflowTemplateDep
+from src.hr.roster.schemas import with_rule_warnings
 from src.models import ApiError
 
 from . import service
@@ -220,21 +221,23 @@ async def read_instance(
     response_model=WorkflowInstancePublic,
     summary="Perform workflow action",
     description="Submit, approve, reject, return, or cancel a workflow instance. Return requires comments (the reason shown to the author). Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
-    responses={
-        status.HTTP_200_OK: {"description": "Action applied"},
-        status.HTTP_400_BAD_REQUEST: {
-            "model": ApiError,
-            "description": "Workflow cannot be submitted or is not pending",
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "model": ApiError,
-            "description": "Workflow instance or step not found",
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "model": ApiError,
-            "description": "Not allowed to perform this workflow action",
-        },
-    },
+    responses=with_rule_warnings(
+        {
+            status.HTTP_200_OK: {"description": "Action applied"},
+            status.HTTP_400_BAD_REQUEST: {
+                "model": ApiError,
+                "description": "Workflow cannot be submitted or is not pending",
+            },
+            status.HTTP_404_NOT_FOUND: {
+                "model": ApiError,
+                "description": "Workflow instance or step not found",
+            },
+            status.HTTP_403_FORBIDDEN: {
+                "model": ApiError,
+                "description": "Not allowed to perform this workflow action",
+            },
+        }
+    ),
 )
 async def take_action(
     *,

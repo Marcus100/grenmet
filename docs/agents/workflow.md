@@ -24,7 +24,8 @@ agent instructions. Nothing here relaxes a root rule.
 - **Local API test selection:** `pnpm verify:changed` runs only the pytest folders
   of the API domains the diff touches (`src/<domain>` maps to `tests/<domain>`).
   `src/auth` and `src/main.py` (shared by every request) run the full suite, and a
-  domain with no tests of its own does too. CI runs the full suite on every push.
+  domain with no tests of its own does too. CI runs the full API suite for any code
+  change and skips it only for docs-only diffs (see Job scope in `docs/testing.md`).
   Use `pnpm verify:changed --full` before a risky merge. The rules are in
   `scripts/verification/README.md`.
 - If a worktree shows ` T .agents/skills`, that worktree was created by a tool that
@@ -66,7 +67,10 @@ agent instructions. Nothing here relaxes a root rule.
 - Standing authorization: once PRs are merged into `dev`,
   create or update the `dev → staging` PR with a recap, review the promotion diff
   and verify `dev` has not advanced. The owner reviews and merges into `staging`;
-  agents do not arm auto-merge. GitHub merges only after the staging ruleset's
+  agents do not arm auto-merge. While `PROMOTE_STAGING_ENABLED` is `true`,
+  `promote-staging.yml` does this daily (see
+  `docs/operations/staging-promotion-automation.md`) and agents leave the
+  staging PR alone. GitHub merges only after the staging ruleset's
   required checks pass; `CI Success` and `Build Web Apps` aggregate every API and
   web job. If `dev` advances, update the recap and tell the owner.
 - Monitor the staging deployment and report actionable failures or readiness for
@@ -107,9 +111,19 @@ the symbols you touched and verify each affected layer. The script covers one
 case, not the general one. The gate finds impact; it does not override explicit
 file limits or authorize unrelated work.
 
+Two FastAPI changes need no companions. Startup plumbing in `src/main.py`
+(imports, `lifespan`, middleware and exception-handler definitions,
+`app.add_middleware` lines) is exempt automatically. A route refactor whose
+regenerated `openapi.json` has no diff is declared with the commit trailer
+`API-Contract: unchanged` on every commit that touches a route or schema file.
+That works in the CI range check only, and CI's OpenAPI regeneration check
+still fails the PR if the declaration is wrong. The trailer covers the OpenAPI
+contract only: a change in documented behaviour (permissions, status meanings)
+still updates `docs/api/contracts.md`.
+
 | If you change… | Also verify… |
 | --- | --- |
-| A FastAPI route or schema | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md`; every web consumer of the generated hook or type |
+| A FastAPI route or schema | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift` → `pnpm generate:api-routes`; `docs/api/contracts.md` only for a removed, public, webhook or re-secured route, a breaking change, or a route it already describes (the check names the reason); every web consumer of the generated hook or type |
 | A SQLAlchemy model | Alembic revision for the right database (main or `src/<domain>/alembic.ini`); seeds; `openapi.json` if it surfaces in a schema |
 | A permission key | `src/auth/permissions.py` catalogue (enforced by `tests/auth/test_permission_registry.py`); UI gating in gaa-admin |
 | Auth behaviour (`packages/auth`) | every app using it plus delegating apps (docs, gms via `AUTH_API_URL`) |
@@ -194,9 +208,10 @@ under both clients' preview limits. `audit-log.mjs` logs every Bash command to
 the main checkout's `.agents-bash-audit.log`, redacting credentials and rotating
 at 5 MB.
 `verify-before-stop.mjs` (Stop, both clients) sends an agent back once when its
-changes since `origin/dev` don't match the receipt a passing `pnpm verify:changed`
-writes to the worktree's git dir; the agent runs the checks or says in one line
-why it is stopping first. It reads only and never runs a check itself.
+changes since `origin/dev` are neither committed and pushed (GitHub CI then checks
+them) nor match the receipt a passing `pnpm verify:changed` writes to the
+worktree's git dir; the agent pushes, runs the checks, or says in one line why it
+is stopping first. It reads only and never runs a check itself.
 
 For UI work, `pnpm ui:screenshots --app <app> --path <route>` renders a running
 dev server at 375 and 1280 px in light and dark mode into `.ui-review/` and flags

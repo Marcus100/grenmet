@@ -49,6 +49,7 @@ The token and key are the owner's; never commit them or put them in an env file.
 | cms | `pnpm dev:web:cms` | 3006 | Yes (identity) | Payload; run `pnpm cms:setup-db` first (see its README) |
 | events | `pnpm dev:web:events` | 3009 | No | Prototype |
 | bookings | `pnpm dev:web:bookings` | 3015 | Sign-in only (`/studio`) | Skeleton; no booking UI yet |
+| account | `pnpm dev:web:account` | 3018 | Yes (every page) | Profile and profile photo (ADR-0057) |
 
 Each app's rules are in `apps/web/<app>/AGENTS.md`. Port policy is in
 [`docs/ports.md`](../ports.md).
@@ -109,6 +110,40 @@ browser is missing, run `pnpm exec playwright install chromium` once from an app
 directory; it downloads into `~/.cache/ms-playwright`, outside the repository. The
 `auth` app's older suite needs real sign-in credentials and is not part of
 `pnpm e2e`.
+
+## Pinned lint and client-generator versions
+
+The versions live in the `catalog:` block of `pnpm-workspace.yaml`; read them there
+rather than from this page. At the time of writing:
+
+| Tool | Catalog entry | Why it is pinned this way |
+| --- | --- | --- |
+| Biome | `"@biomejs/biome": "~2.6.4"` | `~` allows patch updates only; a minor release can add rules. |
+| Ultracite | `ultracite: "8.1.0"` | Exact. `biome.jsonc` extends `ultracite/biome/core`, `/react` and `/next`, so a new Ultracite version changes the rule set. Ultracite 8.1 needs Biome 2.6.2 or newer. |
+| Kubb (API client generator) | `kubb`, `@kubb/adapter-oas`, `@kubb/parser-ts` at 5.14.3; `@kubb/plugin-fetch` 5.9.2, `@kubb/plugin-react-query` 5.6.2, `@kubb/plugin-ts` 5.2.0, `@kubb/plugin-zod` 5.7.2 | Exact, so `packages/api-client/src/gen/` only changes when a version is bumped on purpose. The plugins version independently of Kubb core, so each keeps its own number. |
+
+Biome must stay at 2.6 or newer: `biome.jsonc` has a top-level `yaml` key (YAML
+formatting is switched off), which older Biome versions reject.
+
+To upgrade Biome or Ultracite:
+
+1. Change the catalog entry (catalog mode is strict, so no version goes in a package's
+   own `package.json`) and run `pnpm install`. If the new version is younger than the
+   release-age policy, `minimumReleaseAgeExclude` in `pnpm-workspace.yaml` needs an
+   entry for that exact version.
+2. Run `pnpm exec ultracite fix` and read the diff. Apply only the safe fixes it
+   makes; turn a new rule off in `biome.jsonc` (with a note) only when it needs a
+   per-site judgement that does not belong in the upgrade commit.
+3. Run `pnpm check:ci` and `pnpm type-check`.
+4. Commit the lockfile, the catalog change and the fixes together, as `chore(lint): ...`.
+
+To upgrade Kubb or one of its plugins:
+
+1. Change the catalog entries together in `pnpm-workspace.yaml` and run `pnpm install`.
+2. Run `pnpm generate:api-client`, then `pnpm check:drift`. A pure pin with no
+   output change should leave `packages/api-client/src/gen/` unchanged; if the output
+   does change, review the diff as a contract change (`pnpm check:api-breaking`).
+3. Never hand-edit `packages/api-client/src/gen/`.
 
 ## Special app notes
 

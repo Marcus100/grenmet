@@ -64,7 +64,7 @@ export default function WeatherByMonthPage() {
               description: "Average rainfall and temperature for each month",
             },
             {
-              name: "Monthly climate summary",
+              name: "Climate Bulletin",
               href: "/climate/monthly",
               description: "How last month compared with normal",
             },

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SeverityBadge } from "@/components/cap/severity-badge";
-import { type CapAlert, primaryInfo } from "@/lib/cap-api";
+import { type CapPublicAlert, primaryInfo } from "@/lib/cap-api";
 import { relativeTime } from "./home-data";
 import { loadAlerts } from "./home-loaders";
 import { Panel, PanelEmpty, PanelUnavailable } from "./panel";
@@ -26,7 +26,7 @@ export async function AlertsPanel({ className }: { className?: string }) {
   );
 }
 
-function AlertRows({ alerts }: { alerts: CapAlert[] }) {
+function AlertRows({ alerts }: { alerts: CapPublicAlert[] }) {
   if (alerts.length === 0) {
     return <PanelEmpty>No alerts in effect. All clear.</PanelEmpty>;
   }
@@ -38,14 +38,14 @@ function AlertRows({ alerts }: { alerts: CapAlert[] }) {
         return (
           <li key={alert.id}>
             <Link
-              className="-mx-2 flex items-start gap-3 rounded-lg px-2 py-2.5 outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+              className="hover:bg-muted focus-visible:ring-ring -mx-2 flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors outline-none focus-visible:ring-2"
               href={`/cap/alerts/${encodeURIComponent(alert.identifier)}`}
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-sm">
+                <p className="truncate text-sm font-medium">
                   {info?.headline ?? alert.identifier}
                 </p>
-                <p className="mt-0.5 line-clamp-1 text-muted-foreground text-xs">
+                <p className="text-muted-foreground mt-0.5 line-clamp-1 text-xs">
                   {info?.description ?? alert.note ?? "CAP alert"}
                 </p>
               </div>

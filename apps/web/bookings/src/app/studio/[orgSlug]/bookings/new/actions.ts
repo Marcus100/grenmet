@@ -31,7 +31,7 @@ import {
   zonedToUtcIso,
 } from "@/lib/studio-view";
 
-const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/;
+const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/u;
 
 const text = (max: number, message: string) =>
   z.string().trim().max(max, message);
@@ -67,7 +67,7 @@ function invalid(message: string): ActionState {
   });
 }
 
-const IDEMPOTENCY_409 = /idempotency|still being processed/i;
+const IDEMPOTENCY_409 = /idempotency|still being processed/iu;
 
 /** The API's error body as text, matched defensively (no error codes yet). */
 function detailText(data: unknown): string {

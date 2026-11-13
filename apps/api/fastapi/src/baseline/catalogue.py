@@ -13,15 +13,30 @@ from src.baseline.models import ApprovalPolicy, BaselineAudit
 from src.baseline.schemas import CataloguePreview
 from src.exceptions import AppException
 from src.hr.models import Department, Grade
-from src.hr.workflow.models import WorkflowStepTemplate, WorkflowTemplate, WorkflowType
+from src.hr.workflow.models import (
+    DEPARTMENT_WORKFLOW_TYPES,
+    WorkflowStepTemplate,
+    WorkflowTemplate,
+    WorkflowType,
+)
 
 GRADE_SPECS = json.loads(Path(__file__).with_name("gms-grades.json").read_text())
+
+
+async def _require_department_scope(
+    session: AsyncSession, actor: User, department_id: str
+) -> None:
+    """The caller may set up this department's organisation (issue #1080)."""
+    department = await session.get(Department, department_id)
+    await service.require_setup_organisation(
+        session, actor, department.organisation_id if department else None
+    )
 
 
 async def preview(
     session: AsyncSession, actor: User, department_id: str
 ) -> CataloguePreview:
-    service.require_admin(actor)
+    await _require_department_scope(session, actor, department_id)
     if not is_gms_department(department_id) or not await session.get(
         Department, department_id
     ):
@@ -66,7 +81,7 @@ async def preview(
             result.conflicts.append(
                 f"{grade_id} is inactive; review activation separately"
             )
-    for kind in WorkflowType:
+    for kind in DEPARTMENT_WORKFLOW_TYPES:
         key = f"hr:{department_id}:{kind.value}"
         if not await session.get(ApprovalPolicy, key):
             result.missing_policy_keys.append(key)
@@ -125,7 +140,7 @@ async def preview(
 async def apply(
     session: AsyncSession, actor: User, department_id: str
 ) -> CataloguePreview:
-    service.require_admin(actor)
+    await _require_department_scope(session, actor, department_id)
     await session.execute(text("SELECT pg_advisory_xact_lock(73190506)"))
     before = await preview(session, actor, department_id)
     if before.conflicts:

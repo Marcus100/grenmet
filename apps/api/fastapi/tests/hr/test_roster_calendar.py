@@ -33,6 +33,9 @@ from tests.factories import (
     make_user,
 )
 
+# Fixture rosters are not under test for the roster rules (#380).
+FIXTURE_REASON = "Fixture roster; roster rules are not under test"
+
 
 async def _catalog(session: AsyncSession) -> None:
     for code, label, category, start, end, next_day in (
@@ -104,7 +107,10 @@ async def _rostered_department(session: AsyncSession, dept_id: str, *, publish: 
     )
     if publish:
         await publish_roster_period(
-            session=session, current_user=manager, period_id=period.id
+            session=session,
+            current_user=manager,
+            period_id=period.id,
+            rule_override_reason=FIXTURE_REASON,
         )
     return department, manager, colleague
 

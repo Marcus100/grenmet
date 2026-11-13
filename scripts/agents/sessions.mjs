@@ -16,9 +16,10 @@ import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mainCheckoutRoot } from "../../.claude/hooks/main-checkout.mjs";
 
-const SKILL_FILE_PATH_RE = /(?:\.agents|\.claude)\/skills\/([\w-]+)\/SKILL\.md/;
-const WSL_UNC_PATH_RE = /^\\\\wsl(?:\.localhost|\$)\\[^\\]+(\\.*)?$/;
-const FILE_URL_PREFIX_RE = /^file:\/\//;
+const SKILL_FILE_PATH_RE =
+  /(?:\.agents|\.claude)\/skills\/([\w-]+)\/SKILL\.md/u;
+const WSL_UNC_PATH_RE = /^\\\\wsl(?:\.localhost|\$)\\[^\\]+(\\.*)?$/u;
+const FILE_URL_PREFIX_RE = /^file:\/\//u;
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const DAY_MS = 86_400_000;
@@ -245,7 +246,7 @@ export function parseCodex(text, { file } = {}) {
 
 // Claude Code names a project folder after its path with every non-alphanumeric
 // character replaced by "-".
-export const claudeSlug = (path) => path.replace(/[^a-zA-Z0-9]/g, "-");
+export const claudeSlug = (path) => path.replace(/[^a-zA-Z0-9]/gu, "-");
 
 // The Codex desktop app on Windows records WSL paths as UNC paths
 // (\\wsl.localhost\<distro>\home\…); turn them back into Linux paths.

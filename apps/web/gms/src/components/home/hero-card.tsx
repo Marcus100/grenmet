@@ -1,16 +1,17 @@
 import type { ReactNode } from "react";
+import { FreshnessNotice } from "@/components/freshness-notice";
 import { TabLink } from "@/components/home/hero-selection";
 import { Measure, Temperature } from "@/components/measure";
 import { clock12 } from "@/lib/clock";
 import {
   type CurrentConditions,
   isOtherGrenadaDay,
-  isStale,
   localDay,
   localTime,
 } from "@/lib/current-conditions";
 import { feelsLike } from "@/lib/feels-like";
 import type { Condition, ForecastDayData } from "@/lib/forecast-data";
+import { isStale, validityNote } from "@/lib/freshness";
 import { isIssued, rainChance } from "@/lib/hero-readings";
 import type { Measure as MeasureValue } from "@/lib/units";
 import {
@@ -21,14 +22,14 @@ import {
 const byLabel = (tiles: Condition[], label: RegExp) =>
   tiles.find((tile) => label.test(tile.label));
 
-const WIND = /^wind$/i;
-const GUSTS = /^gusts/i;
-const CLOUD = /^cloud$/i;
-const HIGHEST = /^highest today/i;
-const LOWEST = /^lowest today/i;
-const WIND_SPEED = /^wind speed|^wind$/i;
-const WIND_DIRECTION = /^wind direction/i;
-const WEATHER_TYPE = /^weather type/i;
+const WIND = /^wind$/iu;
+const GUSTS = /^gusts/iu;
+const CLOUD = /^cloud$/iu;
+const HIGHEST = /^highest today/iu;
+const LOWEST = /^lowest today/iu;
+const WIND_SPEED = /^wind speed|^wind$/iu;
+const WIND_DIRECTION = /^wind direction/iu;
+const WEATHER_TYPE = /^weather type/iu;
 
 /** A figure in both unit systems, or its plain text when it has no numbers. */
 function Figure({ tile }: { tile: Condition }) {
@@ -96,17 +97,17 @@ function HeroCard({
       aria-label="Weather summary"
       className="flex h-full flex-col items-center justify-center gap-0.5 text-center"
     >
-      <p className="font-bold text-body-sm text-gm-text-inverse/80 leading-body-sm">
+      <p className="text-body-sm text-gm-text-inverse/80 leading-body-sm font-bold">
         {label}
       </p>
       <div className="flex items-center gap-3.5 lg:gap-5">
-        <span className="min-w-12 text-right font-bold text-body-lg tabular-nums leading-body-lg">
+        <span className="text-body-lg leading-body-lg min-w-12 text-right font-bold tabular-nums">
           {left}
         </span>
-        <p className="font-gm-display font-semibold text-gm-numeral-hero tabular-nums">
+        <p className="font-gm-display text-gm-numeral-hero font-semibold tabular-nums">
           {temperature}
         </p>
-        <span className="min-w-12 text-left font-bold text-body-lg tabular-nums leading-body-lg">
+        <span className="text-body-lg leading-body-lg min-w-12 text-left font-bold tabular-nums">
           {right}
         </span>
       </div>
@@ -143,10 +144,43 @@ function Extreme({
 
 /** The day the Now card's link points to: today's forecast tab. */
 export interface TodayLink {
-  high: number | null;
+  high?: number | null;
   href: string;
+  /** Tonight's minimum, shown instead of the high after the evening forecast. */
+  low?: number | null;
   sky: WeatherCondition;
   slug: string;
+  tonight?: boolean;
+}
+
+/**
+ * The link under the Now card: "Today's forecast: …, high …", or after the
+ * evening forecast "Tonight: …, low …" (owner, 10 Nov 2026).
+ */
+function ForecastLink({ today }: { today: TodayLink }) {
+  const figure = today.tonight
+    ? { word: "low", value: today.low }
+    : { word: "high", value: today.high };
+  return (
+    <TabLink
+      className="bg-gm-text-inverse/12 text-body-sm leading-body-sm hover:bg-gm-text-inverse/20 focus-visible:ring-gm-lime mt-2 rounded-full px-3.5 py-2 font-bold outline-none focus-visible:ring-2"
+      currentClassName=""
+      data-analytics-day="today"
+      data-analytics-event="forecast_tab_selected"
+      href={today.href}
+      idleClassName=""
+      slug={today.slug}
+    >
+      {today.tonight ? "Tonight" : "Today's forecast"}:{" "}
+      {WEATHER_CONDITION_LABEL[today.sky]}
+      {figure.value != null && (
+        <>
+          , {figure.word} <Temperature value={figure.value} />
+        </>
+      )}{" "}
+      <span aria-hidden="true">→</span>
+    </TabLink>
+  );
 }
 
 /**
@@ -166,7 +200,8 @@ export function NowCard({
   now?: Date;
   /** The midday product's temperature when there is no register reading. */
   fallbackTemperature: number | null;
-  station: string;
+  /** Observing station name; null when the place has none (no reading then). */
+  station: string | null;
   today?: TodayLink;
 }) {
   const tiles = current ? [...current.primary, ...current.extra] : [];
@@ -177,10 +212,14 @@ export function NowCard({
     current?.temperature == null
       ? null
       : feelsLike(current.temperature, current.humidity);
-  // A fresh reading just says Now; an old one says when it was taken, never
-  // passing for current (90-minute rule, `isStale`).
+  // A fresh reading just says Now; an old one (over two hours, `isStale`)
+  // says when it was taken, never passing for current.
   let label = `Now · ${station}`;
-  if (current && isStale(current.observedAt, now)) {
+  if (station === null) {
+    // A place without a station never shows a reading; the national forecast
+    // in the day tabs is its only weather.
+    label = "No observing station here";
+  } else if (current && isStale(current.observedAt, now)) {
     const time = clock12(localTime(current.observedAt));
     const when = isOtherGrenadaDay(current.observedAt, now)
       ? `${localDay(current.observedAt)}, ${time}`
@@ -194,27 +233,7 @@ export function NowCard({
   }
   return (
     <HeroCard
-      footer={
-        today && (
-          <TabLink
-            className="mt-2 rounded-full bg-gm-text-inverse/12 px-3.5 py-2 font-bold text-body-sm leading-body-sm outline-none hover:bg-gm-text-inverse/20 focus-visible:ring-2 focus-visible:ring-gm-lime"
-            currentClassName=""
-            data-analytics-day="today"
-            data-analytics-event="forecast_tab_selected"
-            href={today.href}
-            idleClassName=""
-            slug={today.slug}
-          >
-            Today's forecast: {WEATHER_CONDITION_LABEL[today.sky]}
-            {today.high !== null && (
-              <>
-                , high <Temperature value={today.high} />
-              </>
-            )}{" "}
-            <span aria-hidden="true">→</span>
-          </TabLink>
-        )
-      }
+      footer={today && <ForecastLink today={today} />}
       label={label}
       left={
         <Extreme
@@ -228,7 +247,7 @@ export function NowCard({
           <>
             {feels !== null && (
               <>
-                Feels like <Temperature value={feels} />
+                Feels like <Temperature showUnit value={feels} />
               </>
             )}
             {feels !== null && wind && " · "}
@@ -244,7 +263,7 @@ export function NowCard({
         />
       }
       sky={sky}
-      temperature={<Temperature value={temperature} />}
+      temperature={<Temperature showUnit value={temperature} />}
     />
   );
 }
@@ -261,16 +280,24 @@ function shortDate(isoDate: string): string {
 
 /**
  * A forecast day: the date, the low, the high and the chance of rain, the sky
- * as forecast, wind with gusts, then the forecaster's sentence for the day.
+ * as forecast, wind with gusts, then the forecaster's sentence for the day. A
+ * forecast past its valid-to time keeps its words and says it has expired, with
+ * the next issue's time (`validityNote`).
  */
 export function DayCard({
   condition,
   day,
+  now,
+  tonight = false,
 }: {
   condition: WeatherCondition;
   day: ForecastDayData;
+  /** Clock for the validity check; defaults to the render time. */
+  now?: Date;
+  /** Today after the evening forecast: "Tonight" with the low as the number. */
+  tonight?: boolean;
 }) {
-  const label = shortDate(day.date);
+  const label = tonight ? "Tonight" : shortDate(day.date);
   if (!isIssued(day)) {
     return (
       <HeroCard
@@ -283,17 +310,24 @@ export function DayCard({
   const c = day.conditions;
   const direction = byLabel(c, WIND_DIRECTION)?.value;
   const rain = rainChance(day);
+  const expiry = validityNote(day.validTo, now ?? new Date(), {
+    forecast: true,
+  });
   return (
     <HeroCard
       footer={
-        day.summary && (
-          <p className="mt-1.5 max-w-sm text-balance font-bold text-body-base leading-body-base">
-            {day.summary}
-          </p>
-        )
+        <>
+          {day.summary && (
+            <p className="text-body-base leading-body-base mt-1.5 max-w-sm font-bold text-balance">
+              {day.summary}
+            </p>
+          )}
+          {expiry && <FreshnessNotice message={expiry} tone="sky" />}
+        </>
       }
       label={label}
       left={
+        !tonight &&
         day.low !== null && (
           <>
             <span aria-hidden="true">▼ </span>
@@ -314,10 +348,17 @@ export function DayCard({
         byLabel(c, WEATHER_TYPE)?.value ?? WEATHER_CONDITION_LABEL[condition]
       }
       temperature={
-        <>
-          <Temperature value={day.high} />
-          {day.high !== null && <span className="sr-only"> highest</span>}
-        </>
+        tonight ? (
+          <>
+            <Temperature value={day.low} />
+            <span className="sr-only"> lowest tonight</span>
+          </>
+        ) : (
+          <>
+            <Temperature value={day.high} />
+            {day.high !== null && <span className="sr-only"> highest</span>}
+          </>
+        )
       }
     />
   );

@@ -1,25 +1,27 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { ArrowRight, FileText } from "lucide-react";
 import Link from "next/link";
+import type { SchemaFlagFields } from "@/components/cap/schema-flag";
 import {
-  type CapAlert,
+  type CapPublicAlert,
   capPublicUrl,
   formatDateTime,
   primaryInfo,
 } from "@/lib/cap-api";
 import { SEVERITY_RISK_VAR } from "@/lib/cap-severity";
+import { SchemaFlag } from "./schema-flag";
 import { SeverityBadge } from "./severity-badge";
 
 export function AlertList({
   alerts,
   emptyLabel,
 }: {
-  alerts: CapAlert[];
+  alerts: Array<CapPublicAlert & SchemaFlagFields>;
   emptyLabel: string;
 }) {
   if (alerts.length === 0) {
     return (
-      <div className="border border-gm-border bg-gm-surface px-4 py-8 text-center text-gm-text-muted">
+      <div className="border-gm-border bg-gm-surface text-gm-text-muted border px-4 py-8 text-center">
         {emptyLabel}
       </div>
     );
@@ -31,7 +33,7 @@ export function AlertList({
         const info = primaryInfo(alert);
         return (
           <article
-            className="flex border border-gm-border bg-card shadow-card"
+            className="border-gm-border bg-card shadow-card flex border"
             key={alert.id}
           >
             <span
@@ -44,6 +46,7 @@ export function AlertList({
               <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   {info ? <SeverityBadge severity={info.severity} /> : null}
+                  <SchemaFlag alert={alert} />
                   <span className="text-body-sm text-gm-text-muted leading-body-sm">
                     {alert.lifecycle_state}
                   </span>
@@ -54,7 +57,7 @@ export function AlertList({
                 <h2 className="text-gm-text-primary text-heading-sm leading-heading-sm">
                   {info?.headline ?? alert.identifier}
                 </h2>
-                <p className="line-clamp-2 text-body text-gm-text-secondary leading-body">
+                <p className="text-body text-gm-text-secondary leading-body line-clamp-2">
                   {info?.description ?? alert.note ?? "CAP alert"}
                 </p>
               </div>

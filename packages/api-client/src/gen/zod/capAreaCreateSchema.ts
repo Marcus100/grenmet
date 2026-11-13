@@ -7,15 +7,19 @@ import * as z from "zod";
 import { capAreaKindSchema } from "./capAreaKindSchema.js";
 import { capNameValueSchema } from "./capNameValueSchema.js";
 
-export const capAreaCreateSchema = z.object({
-  kind: capAreaKindSchema.optional().default("AREA"),
-  area_desc: z.string().min(1).max(1000),
-  predefined_area_id: z.union([z.uuid(), z.null()]).optional(),
-  polygons: z.array(z.array(z.array(z.number()))).optional(),
-  multipolygons: z.array(z.array(z.array(z.array(z.number())))).optional(),
-  circles: z.array(z.record(z.string(), z.number())).optional(),
-  geocodes: z.array(capNameValueSchema).optional(),
-  geometry: z.union([z.looseObject({}), z.null()]).optional(),
-  altitude: z.union([z.number(), z.null()]).optional(),
-  ceiling: z.union([z.number(), z.null()]).optional(),
-});
+export const capAreaCreateSchema = z
+  .object({
+    kind: capAreaKindSchema.optional().default("AREA"),
+    area_desc: z.string().min(1).max(1000),
+    predefined_area_id: z.union([z.uuid(), z.null()]).optional(),
+    polygons: z.array(z.array(z.array(z.number()))).optional(),
+    multipolygons: z.array(z.array(z.array(z.array(z.number())))).optional(),
+    circles: z.array(z.record(z.string(), z.number())).optional(),
+    geocodes: z.array(capNameValueSchema).optional(),
+    geometry: z.union([z.looseObject({}), z.null()]).optional(),
+    altitude: z.union([z.number(), z.null()]).optional(),
+    ceiling: z.union([z.number(), z.null()]).optional(),
+  })
+  .describe(
+    "Save-time checks: a height and every coordinate must be a finite number."
+  );

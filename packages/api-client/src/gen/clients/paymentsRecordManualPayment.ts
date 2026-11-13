@@ -29,6 +29,7 @@ export function paymentsRecordManualPayment<
       method: "POST",
       url: "/api/v1/payments/org/intents/{intent_id}/manual-payments",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

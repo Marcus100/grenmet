@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import NullPool
 
+from src import db_timeouts
+
 # Import all models so their SQLAlchemy tables are registered before startup.
 from src.audit import listener as _audit_listener  # flush hook
 from src.audit.models import AuditEntry
@@ -36,7 +38,7 @@ from src.cap.models import (
     CapWebhook,
 )
 from src.config import settings
-from src.contacts import audit as _contacts_audit
+from src.domains import import_models, run_registrations
 from src.eregister import audit as _eregister_audit
 from src.events import notifications as _events_notifications
 from src.feature_flags import audit as _feature_flags_audit
@@ -103,7 +105,6 @@ from src.stores.models import (
     StoreItem,
     StoreLocation,
 )
-from src.webhooks_out import audit as _webhooks_out_audit
 from src.wxwatch import alerts as _wxwatch_alerts
 
 # Modules register what they audit and notify about before any session exists.
@@ -115,12 +116,13 @@ _events_notifications.register()
 _stores_audit.register()
 _stores_notifications.register()
 _organisations_audit.register()
-_webhooks_out_audit.register()
 _billing_audit.register()
 _rewards_audit.register()
 _eregister_audit.register()
 _feature_flags_audit.register()
-_contacts_audit.register()
+# Domains with an ADR-0031 manifest (src/domains.py) register themselves.
+import_models()
+run_registrations()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -128,12 +130,32 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 _async_url = str(settings.SQLALCHEMY_DATABASE_URI).replace(
     "postgresql+psycopg", "postgresql+asyncpg", 1
 )
-_async_engine_kwargs: dict[str, Any] = {"echo": False}
+_async_engine_kwargs: dict[str, Any] = {
+    "echo": False,
+    # Ends a leaked connection that sits idle inside a transaction (release runbook).
+    "connect_args": db_timeouts.idle_in_transaction_connect_args(
+        settings.DB_IDLE_IN_TRANSACTION_TIMEOUT
+    ),
+}
+
+
+def async_pool_options() -> dict[str, Any]:
+    """Pool settings for the main async engine outside tests (see Settings.DB_POOL_*)."""
+    return {
+        "pool_pre_ping": True,
+        "pool_size": settings.DB_POOL_SIZE,
+        "max_overflow": settings.DB_MAX_OVERFLOW,
+        "pool_timeout": settings.DB_POOL_TIMEOUT,
+        "pool_recycle": settings.DB_POOL_RECYCLE,
+    }
+
 
 # pytest creates fresh event loops across tests; disabling async pooling there avoids
 # cross-loop asyncpg connection reuse while preserving pooled behavior in the app.
 if "pytest" in sys.modules:
     _async_engine_kwargs["poolclass"] = NullPool
+else:
+    _async_engine_kwargs.update(async_pool_options())
 
 async_engine = create_async_engine(
     _async_url,

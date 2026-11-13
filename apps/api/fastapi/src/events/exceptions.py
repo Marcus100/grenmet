@@ -7,13 +7,19 @@ class EventsNotFound(AppException):
 
 
 class EventsForbidden(AppException):
-    def __init__(self, detail: str = "You can't do that here") -> None:
+    def __init__(
+        self, detail: str = "You can't do that here", *, code: str | None = None
+    ) -> None:
         super().__init__(detail, 403)
+        if code is not None:
+            self.extra["code"] = code
 
 
 class EventsConflict(AppException):
-    def __init__(self, detail: str) -> None:
+    def __init__(self, detail: str, *, code: str | None = None) -> None:
         super().__init__(detail, 409)
+        if code is not None:
+            self.extra["code"] = code
 
 
 class EventsPaymentUnavailable(AppException):
@@ -26,3 +32,4 @@ class EventsPaymentUnavailable(AppException):
             "Online payment is temporarily unavailable. Please try again shortly.",
             503,
         )
+        self.extra["code"] = "CARD_PAYMENT_UNAVAILABLE"

@@ -11,7 +11,7 @@ export type AttendanceCorrectionCreate = {
    */
   roster_assignment_id: string;
   /**
-   * @minLength 0
+   * @minimum 0
    * @default 0
    * @type integer | undefined
    */
@@ -29,8 +29,8 @@ export type AttendanceCorrectionCreate = {
    */
   departed_at: string;
   /**
-   * @minLength 0
-   * @maxLength 1440
+   * @minimum 0
+   * @maximum 1440
    * @default 0
    * @type integer | undefined
    */
@@ -42,4 +42,8 @@ export type AttendanceCorrectionCreate = {
    * @type string
    */
   reason: string;
+  /**
+   * @description Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed.
+   */
+  rule_override_reason?: string | null;
 };

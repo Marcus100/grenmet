@@ -139,7 +139,7 @@ describe("profile", () => {
   it("saves the whole profile for the resolved organisation", async () => {
     vi.mocked(saveProfile).mockResolvedValue({} as never);
     const result = await saveProfileAction(SLUG, IDLE, form(PROFILE));
-    expect(result).toMatchObject({ status: "done" });
+    expect(result).toMatchObject({ status: "success" });
     expect(saveProfile).toHaveBeenCalledWith("tok", ORG_ID, {
       public_slug: "sea-salt",
       display_name: "Sea Salt Spa",
@@ -199,7 +199,7 @@ describe("services", () => {
   it("creates with money in minor units", async () => {
     vi.mocked(createService).mockResolvedValue({} as never);
     expect(await saveServiceAction(SLUG, IDLE, form(SERVICE))).toMatchObject({
-      status: "done",
+      status: "success",
       message: "Service added.",
     });
     expect(createService).toHaveBeenCalledWith("tok", ORG_ID, {
@@ -263,7 +263,7 @@ describe("services", () => {
         IDLE,
         form({ ...SERVICE, price: "1000000", deposit: "0" })
       )
-    ).toMatchObject({ status: "done" });
+    ).toMatchObject({ status: "success" });
   });
 });
 

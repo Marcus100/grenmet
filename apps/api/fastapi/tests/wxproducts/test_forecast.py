@@ -179,6 +179,33 @@ def test_periods_carry_display_ready_conditions():
     }
 
 
+def test_outlook_days_carry_conditions_and_rain_chance():
+    evening = publication("evening")
+    values = {
+        **evening.values,
+        "condition": "Fair",
+        "rainChance": "Low",
+        **{f"day{n}Condition": "Partly cloudy" for n in range(1, 5)},
+        **{f"day{n}RainChance": "Medium" for n in range(1, 5)},
+    }
+    evening = PublishedProductAdapter.validate_python(
+        {**evening.model_dump(mode="json"), "values": values}
+    )
+    tonight, *outlook = at("2026-09-14T19:00", [evening]).periods
+    assert tonight.details["condition"] == "Fair"
+    assert ("umbrella", "Low", "Chance of rain") in {
+        (c.icon, c.value, c.label) for c in tonight.conditions
+    }
+    for day in outlook:
+        assert day.details["condition"] == "Partly cloudy"
+        assert ("umbrella", "Medium", "Chance of rain") in {
+            (c.icon, c.value, c.label) for c in day.conditions
+        }
+    # Issues saved before the fields existed send no condition at all.
+    older = at("2026-09-14T19:00", [publication("evening")]).periods
+    assert all("condition" not in p.details for p in older)
+
+
 def test_today_issues_keep_earlier_issues_beside_the_newest():
     newer = publication("morning", revision=2)
     newer.values["summary"] = "Morning update"

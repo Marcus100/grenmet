@@ -130,6 +130,26 @@ describe("failure classification", () => {
     ).toBe("A required stop needs a venue");
     expect(errorDetail(fail(500, "html"))).toBeUndefined();
   });
+
+  it("shows the messages of the documented validation 422, not its fixed detail", () => {
+    expect(
+      errorDetail(
+        fail(422, {
+          detail: "Validation error",
+          errors: [
+            {
+              loc: ["body", "stops"],
+              msg: "Value error, A required stop needs a venue",
+              type: "value_error",
+            },
+          ],
+        })
+      )
+    ).toBe("A required stop needs a venue");
+    expect(
+      errorDetail(fail(422, { detail: "Validation error", errors: [] }))
+    ).toBeUndefined();
+  });
 });
 
 describe("options", () => {

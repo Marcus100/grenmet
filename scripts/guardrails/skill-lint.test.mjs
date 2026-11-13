@@ -12,8 +12,8 @@ import { fileURLToPath } from "node:url";
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const skillsRoot = join(repoRoot, ".claude", "skills");
 
-const NAME_FORMAT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const RESERVED_NAME_WORDS = /anthropic|claude/;
+const NAME_FORMAT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const RESERVED_NAME_WORDS = /anthropic|claude/u;
 const MAX_NAME_CHARS = 64;
 const MAX_DESCRIPTION_CHARS = 1024;
 // Anthropic: keep SKILL.md under 500 lines; reference files past 100 lines
@@ -23,17 +23,17 @@ const TOC_THRESHOLD_LINES = 100;
 const TOC_SEARCH_LINES = 40;
 const MIN_SHOULD_TRIGGER = 3;
 const MIN_SHOULD_NOT_TRIGGER = 1;
-const XML_TAG = /<\/?[a-zA-Z][\w-]*[^>]*>/;
-const UNQUOTED_MAPPING = /:\s/;
-const FRONTMATTER = /^---\n([\s\S]*?)\n---\n/;
-const FRONTMATTER_PAIR = /^([a-z][\w-]*):\s*(.*)$/;
-const QUOTED_VALUE = /^(["'])(.*)\1$/;
-const EXTERNAL_OR_ANCHOR = /^(?:[a-z]+:|#)/;
-const IMPLICIT_INVOCATION_OFF = /allow_implicit_invocation:\s*false/;
-const USE_WHEN = /\bUse when\b/i;
-const BULLET = /^\s*- \S/;
-const CONTENTS_HEADING = /^#+ .*(?:Contents|Table of contents)/im;
-const MARKDOWN_LINK = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+const XML_TAG = /<\/?[a-zA-Z][\w-]*[^>]*>/u;
+const UNQUOTED_MAPPING = /:\s/u;
+const FRONTMATTER = /^---\n([\s\S]*?)\n---\n/u;
+const FRONTMATTER_PAIR = /^([a-z][\w-]*):\s*(.*)$/u;
+const QUOTED_VALUE = /^(["'])(.*)\1$/u;
+const EXTERNAL_OR_ANCHOR = /^(?:[a-z]+:|#)/u;
+const IMPLICIT_INVOCATION_OFF = /allow_implicit_invocation:\s*false/u;
+const USE_WHEN = /\bUse when\b/iu;
+const BULLET = /^\s*- \S/u;
+const CONTENTS_HEADING = /^#+ .*(?:Contents|Table of contents)/imu;
+const MARKDOWN_LINK = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/gu;
 
 const vendored = new Set(
   Object.keys(
@@ -61,7 +61,7 @@ export function parseFrontmatter(text) {
     if (!quoted && UNQUOTED_MAPPING.test(raw)) {
       errors.push(`${key} contains ': ' and must be quoted`);
     }
-    fields[key] = quoted ? quoted[2].replace(/\\"/g, '"') : raw;
+    fields[key] = quoted ? quoted[2].replace(/\\"/gu, '"') : raw;
   }
   return { fields, errors };
 }
@@ -152,7 +152,7 @@ function lintTriggers(name) {
   const section = (heading) => {
     const match = new RegExp(
       `^## ${heading}\\n([\\s\\S]*?)(?=^## |$(?![\\s\\S]))`,
-      "m"
+      "mu"
     ).exec(text);
     return match
       ? match[1].split("\n").filter((line) => BULLET.test(line)).length

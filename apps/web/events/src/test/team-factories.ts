@@ -40,6 +40,7 @@ export function makeTeamMember(
   return {
     membershipId: "mem_1",
     fullName: "Ana Door",
+    isSelf: false,
     role: "member",
     grants: [],
     ...overrides,

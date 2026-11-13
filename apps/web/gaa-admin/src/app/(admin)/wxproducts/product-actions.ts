@@ -15,6 +15,10 @@ import {
   productPreviewSchema,
   storedProductSchema,
 } from "@/lib/wxproducts/api-schemas";
+import {
+  PDF_PREVIEW_FALLBACK,
+  pdfPreviewRefusal,
+} from "@/lib/wxproducts/pdf-preview-error";
 import { productInputSchema } from "@/lib/wxproducts/product-input";
 
 class ProductApiError extends Error {
@@ -174,9 +178,21 @@ export async function loadProductHistoryAction(id: string) {
   }
 }
 
+/**
+ * A form problem found before anything is sent, in staff words: it is never
+ * a connection problem (pre-demo review, 10 Nov 2026).
+ */
+export const FIELDS_PROBLEM =
+  "Check the product fields: one or more values are not in the expected format.";
+
 export async function previewProductAction(raw: unknown) {
+  const parsed = productPreviewInputSchema.safeParse(raw);
+  if (!parsed.success) {
+    reportError(parsed.error, "wxproducts");
+    return { ok: false as const, error: FIELDS_PROBLEM };
+  }
   try {
-    const input = productPreviewInputSchema.parse(raw);
+    const input = parsed.data;
     const session = browserSessionSchema.parse(
       await request("/_backend/browser-session")
     );
@@ -211,8 +227,13 @@ export async function previewProductPdfAction(
   raw: unknown,
   signal?: AbortSignal
 ) {
+  const parsed = productPreviewInputSchema.safeParse(raw);
+  if (!parsed.success) {
+    reportError(parsed.error, "wxproducts");
+    return { ok: false as const, error: FIELDS_PROBLEM };
+  }
   try {
-    const input = productPreviewInputSchema.parse(raw);
+    const input = parsed.data;
     const session = browserSessionSchema.parse(
       await request("/_backend/browser-session")
     );
@@ -234,16 +255,24 @@ export async function previewProductPdfAction(
         response.ok &&
         response.headers.get("content-type")?.startsWith("application/pdf")
       )
-    )
+    ) {
+      // A 4xx carries the API's own reason (for example a validation message); show it.
+      const refusal = pdfPreviewRefusal(
+        response.status,
+        await response.json().catch(() => null)
+      );
+      if (refusal) return { ok: false as const, error: refusal };
       throw new ProductApiError("Preview unavailable", response.status);
-    return { ok: true as const, blob: await response.blob() };
+    }
+    return {
+      ok: true as const,
+      blob: await response.blob(),
+      // Set when a sheet runs past its designed page count (Climate Bulletin).
+      warning: response.headers.get("x-sheet-warning") ?? "",
+    };
   } catch (error) {
     if (signal?.aborted) return { ok: false as const, aborted: true as const };
     reportError(error, "wxproducts");
-    return {
-      ok: false as const,
-      error:
-        "Could not render the preview. Check your connection and retry the PDF preview.",
-    };
+    return { ok: false as const, error: PDF_PREVIEW_FALLBACK };
   }
 }

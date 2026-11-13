@@ -53,6 +53,7 @@ from .schemas import (
     AppEntitlementUpdate,
     AppOptionPublic,
     CurrentOrganisationPublic,
+    GrantRevokePublic,
     InvitationAccept,
     InvitationCreate,
     InvitationPublic,
@@ -194,7 +195,7 @@ async def list_admin_sites(
     *,
     session: SessionDep,
     _admin: AdminUser,
-    organisation_id: str | None = Query(default=None, max_length=100),
+    organisation_id: Annotated[str | None, Query(max_length=100)] = None,
 ) -> Any:
     rows = await sites.list_sites(session, organisation_id=organisation_id)
     return PublicSiteListPublic(data=[sites.to_admin(r) for r in rows], count=len(rows))
@@ -363,13 +364,26 @@ async def grant_member_role(
 
 @router.post(
     "/org/grants/{grant_id}/revoke",
-    response_model=MembershipGrantPublic,
+    response_model=GrantRevokePublic,
     summary="Revoke a role grant",
     description=(
         "Needs the bundle's permissions and its product's team-manage permission. "
-        "Revoking an already revoked grant returns it unchanged."
+        "Nobody can revoke their own grant (403). Revoking an already revoked grant "
+        "returns it unchanged. Grants that depended on it, through the members it was "
+        "granted to, are revoked too; ``cascaded_revocations`` counts them. Revoking a "
+        "team grant can end the grants its holder issued. 409 when the cascade would end "
+        "more than 200 roles."
     ),
-    responses={**GRANT_ERRORS},
+    responses={
+        **GRANT_ERRORS,
+        403: {
+            "model": ApiError,
+            "description": (
+                "Lacks the bundle's permissions or the product's team-manage "
+                "permission, or the grant is the caller's own"
+            ),
+        },
+    },
 )
 async def revoke_member_grant(
     *, session: SessionDep, context: EventsOrgTeamManager, grant_id: str
@@ -514,7 +528,7 @@ async def list_admin_api_keys(
     session: SessionDep,
     _admin: AdminUser,
     pagination: PaginationDep,
-    organisation_id: str | None = Query(default=None, max_length=100),
+    organisation_id: Annotated[str | None, Query(max_length=100)] = None,
 ) -> Any:
     rows, total = await api_keys.list_keys(
         session,
@@ -602,7 +616,7 @@ async def list_all(
     session: SessionDep,
     _admin: AdminUser,
     pagination: PaginationDep,
-    q: str | None = Query(default=None, max_length=100),
+    q: Annotated[str | None, Query(max_length=100)] = None,
     status: OrganisationStatus | None = None,
     kind: OrganisationKind | None = None,
 ) -> Any:

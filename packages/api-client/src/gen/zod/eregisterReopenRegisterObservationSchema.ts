@@ -7,6 +7,7 @@ import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { qcDecisionBodySchema } from "./qcDecisionBodySchema.js";
 import { registerObservationReadSchema } from "./registerObservationReadSchema.js";
+import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eregisterReopenRegisterObservationPathObservationIdSchema =
   z.uuid();
@@ -26,7 +27,10 @@ export const eregisterReopenRegisterObservationStatus404Schema =
 export const eregisterReopenRegisterObservationStatus409Schema =
   apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterReopenRegisterObservationStatus422Schema = z.unknown();
+export const eregisterReopenRegisterObservationStatus422Schema = z.union([
+  apiErrorSchema,
+  validationErrorResponseSchema,
+]);
 
 export const eregisterReopenRegisterObservationResponseSchema =
   eregisterReopenRegisterObservationStatus200Schema;

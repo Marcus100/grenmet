@@ -25,6 +25,7 @@ export function capCreateAlert<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/cap/alerts",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapCreateAlertResponses, ThrowOnError>>

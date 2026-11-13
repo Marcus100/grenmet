@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1
-FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS base
-RUN apk upgrade --no-cache
+FROM ghcr.io/marcus100/base/node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS base
+# Bump this date when Alpine publishes a fix: BuildKit would otherwise reuse the cached
+# `apk upgrade` layer and keep shipping the old packages (musl 1.2.6-r2, 2026-11-07).
+ARG ALPINE_PATCH_DATE=2026-11-07
+RUN echo "Alpine patch date ${ALPINE_PATCH_DATE}" && apk upgrade --no-cache
 
 # Applications and migrations run directly with Node; keep package managers in builders.
 FROM base AS runtime-base
@@ -17,6 +20,7 @@ FROM build-base AS builder
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
+COPY apps/web/account/package.json apps/web/account/
 COPY apps/web/admin/package.json apps/web/admin/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/babydoll/package.json apps/web/babydoll/
@@ -43,8 +47,6 @@ COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
 RUN HUSKY=0 pnpm install --frozen-lockfile
 
-ARG NEXT_PUBLIC_API_URL=""
-ARG NEXT_PUBLIC_ENVIRONMENT=""
 ARG SENTRY_PROJECT=""
 ARG NEXT_PUBLIC_POSTHOG_KEY=""
 ARG NEXT_PUBLIC_POSTHOG_HOST="https://us.i.posthog.com"
@@ -52,8 +54,6 @@ ARG NEXT_PUBLIC_RELEASE=""
 ENV NEXT_PUBLIC_RELEASE=$NEXT_PUBLIC_RELEASE
 ARG NEXT_PUBLIC_SENTRY_DSN=""
 ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT="production"
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT
 ENV SENTRY_PROJECT=$SENTRY_PROJECT
 ENV NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY
 ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
@@ -63,7 +63,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Explicit application sources and workspace dependency closure.
 COPY packages/api-client/ packages/api-client/
-COPY packages/auth/ packages/auth/
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/theme/ packages/theme/
 COPY packages/ui/ packages/ui/

@@ -29,6 +29,7 @@ export function eventsOrgRecordManualPayment<
       method: "POST",
       url: "/api/v1/events/org/orders/{order_id}/manual-payments",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

@@ -4,6 +4,7 @@ Existing exceptions are listed here and may only shrink. Never add to an
 allowlist to make a new route pass; change the route instead.
 """
 
+import ast
 import re
 from pathlib import Path
 
@@ -138,4 +139,35 @@ def test_grenada_zone_comes_from_the_shared_helper() -> None:
     ]
     assert offenders == [], (
         f"Import GRENADA or zone() from src.utils.timezones: {offenders}"
+    )
+
+
+#: Raw HTTPException is FastAPI's own type. Application code raises a typed
+#: AppException subclass so the body and headers come from one handler. The one
+#: exception is a 422 whose ``detail`` is an object, which an AppException
+#: message (always a string) cannot carry: it keeps HTTPException on purpose.
+#: The two files that catch that refusal name HTTPException as well.
+RAW_HTTP_EXCEPTION_ALLOWED = {
+    "src/eregister/entries.py": 1,  # the SYNOP refusal raise
+    "src/eregister/historical.py": 1,  # catches it while importing hours
+    "src/eregister/qc.py": 1,  # catches that refusal in transition()
+    "src/eregister/sends.py": 1,  # catches it on the send hand-off
+}
+
+
+def test_application_code_raises_typed_app_exceptions() -> None:
+    src = Path(__file__).resolve().parents[1] / "src"
+    found: dict[str, int] = {}
+    for path in sorted(src.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        uses = sum(
+            1
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Name) and node.id == "HTTPException"
+        )
+        if uses:
+            found[path.relative_to(src.parent).as_posix()] = uses
+    assert found == RAW_HTTP_EXCEPTION_ALLOWED, (
+        "Raise a typed AppException (src/exceptions.py) instead of HTTPException: "
+        f"{found}"
     )

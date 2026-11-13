@@ -47,6 +47,9 @@ from tests.factories import (
 )
 from tests.hr.test_clock_in import DEPT, OTHER, SHIFT_DAY, utc
 
+# Fixture rosters are not under test for the roster rules (#380).
+FIXTURE_REASON = "Fixture roster; roster rules are not under test"
+
 API = "/api/v1/hr/attendance"
 
 
@@ -62,6 +65,7 @@ async def _staff(db: AsyncSession, department: str = DEPT) -> User:
 async def _supervisor(
     db: AsyncSession, *, department: str | None, permission: bool = True
 ) -> User:
+
     user = await make_user(db)
     await make_employee(db, user=user, department_id=department or DEPT)
     if permission:
@@ -118,7 +122,12 @@ async def _world(db: AsyncSession) -> tuple[User, User, str]:
             ],
         ),
     )
-    await publish_roster_period(session=db, current_user=manager, period_id=period.id)
+    await publish_roster_period(
+        session=db,
+        current_user=manager,
+        period_id=period.id,
+        rule_override_reason=FIXTURE_REASON,
+    )
     _, token = await clock_service.create_site(
         session=db, current_user=manager, department_id=DEPT, name="Main gate"
     )
@@ -283,6 +292,7 @@ async def _punch_for_manager(db: AsyncSession, manager: User, token: str) -> Clo
                     user_id=manager.id, assignment_date=SHIFT_DAY, shift_code="CKM"
                 )
             ],
+            rule_override_reason=FIXTURE_REASON,
         ),
     )
     assert (await db.scalars(select(RosterAssignment))).first() is not None

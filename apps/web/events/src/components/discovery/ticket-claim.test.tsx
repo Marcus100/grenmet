@@ -6,14 +6,14 @@ import { goToCheckout } from "@/lib/navigation";
 import { claimableCount, TicketClaim } from "./ticket-claim";
 
 const refresh = vi.fn();
-const CLAIMED_TEXT = /You have 2 new tickets\./;
-const SOLD_OUT_TEXT = /Sold out/;
-const MORE_NAME = /More/;
-const PRICE_TEXT = /EC\$50\.00/;
-const OLD_NOTE = /Online payment arrives/;
-const RESERVED_TEXT = /Reserved, awaiting payment/;
-const PAY_ORGANISER_TEXT = /Pay the organiser/;
-const EXPIRY_TEXT = /holding your tickets until/;
+const CLAIMED_TEXT = /You have 2 new tickets\./u;
+const SOLD_OUT_TEXT = /Sold out/u;
+const MORE_NAME = /More/u;
+const PRICE_TEXT = /EC\$50\.00/u;
+const OLD_NOTE = /Online payment arrives/u;
+const RESERVED_TEXT = /Reserved, awaiting payment/u;
+const PAY_ORGANISER_TEXT = /Pay the organiser/u;
+const EXPIRY_TEXT = /holding your tickets until/u;
 
 vi.mock("@/data/actions", () => ({ claimTickets: vi.fn() }));
 vi.mock("@/lib/navigation", () => ({ goToCheckout: vi.fn() }));
@@ -157,7 +157,27 @@ describe("TicketClaim", () => {
     expect(third?.[2]).not.toBe(first?.[2]);
   });
 
-  it("drops the Idempotency-Key after a server failure so a retry starts a new order", async () => {
+  it("keeps the Idempotency-Key after a bare server error so a retry replays the order", async () => {
+    vi.mocked(claimTickets).mockResolvedValue({
+      ok: false,
+      error: "Something went wrong. Try again shortly.",
+    });
+    render(<TicketClaim slug="mixed" tiers={[paidTier]} />);
+    fireEvent.click(screen.getByRole("button", { name: "More VIP tickets" }));
+    const pay = screen.getByRole("button", { name: "Pay for 1 ticket" });
+    fireEvent.click(pay);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Something went wrong"
+    );
+    await vi.waitFor(() => expect(pay).toBeEnabled());
+    fireEvent.click(pay);
+    await vi.waitFor(() => expect(claimTickets).toHaveBeenCalledTimes(2));
+    const [first, second] = vi.mocked(claimTickets).mock.calls;
+    expect(first?.[2]).toBeTruthy();
+    expect(second?.[2]).toBe(first?.[2]);
+  });
+
+  it("drops the Idempotency-Key when card payment is unavailable so a retry starts a new order", async () => {
     vi.mocked(claimTickets).mockResolvedValue({
       ok: false,
       error:

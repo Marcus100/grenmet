@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7
-FROM python:3.14-slim-bookworm@sha256:82bc3c539b8813ada9d68c63b40158fa002f7f33de9bf3312a3dfdc0620dff56
+FROM ghcr.io/marcus100/base/python:3.14-slim-bookworm@sha256:3fe1a0b6c2d6b2ebb572906cdabeca75aeb558c0c17db5ffefbcf8094871c32b
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.12.17@sha256:10787c682e4184e4f290de1171fd4703dc63de99221f10fe1c99002ce7fa9acc /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.12.24@sha256:3af4716e991d6956a41e573eab705d0ee08500cd829ed30293eb8472f372c65a /uv /bin/uv
 
 # uv runs again at container start (prestart.sh syncs, api/worker use `uv run`),
 # so point HOME and the uv cache at a directory appuser owns. UV_LINK_MODE=copy
@@ -61,6 +61,10 @@ COPY --chown=appuser:appuser apps/api/fastapi/seed ./seed
 # Install the FastAPI workspace member now that its source is present.
 RUN --mount=type=cache,target=/home/appuser/.cache/uv,uid=1000,gid=1000 \
     uv sync --frozen --package fast-back --package gms-ingest
+
+# Fetch the pinned WMO IWXXM schemas (not committed; no licence upstream) for offline
+# validation. The build fails if a pinned file does not match its SHA-256.
+RUN uv run --frozen --package fast-back python -m scripts.fetch_iwxxm_schemas
 
 # Expose port (8000 is standard)
 EXPOSE 8000

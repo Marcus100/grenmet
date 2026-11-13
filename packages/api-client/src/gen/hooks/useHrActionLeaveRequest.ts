@@ -16,6 +16,7 @@ import type {
   HrActionLeaveRequestStatus200,
   HrActionLeaveRequestStatus403,
   HrActionLeaveRequestStatus404,
+  HrActionLeaveRequestStatus409,
   HrActionLeaveRequestStatus422,
 } from "../models/HrActionLeaveRequest.js";
 
@@ -33,6 +34,7 @@ export function hrActionLeaveRequestMutationOptions<TContext = unknown>(
     ResponseErrorConfig<
       | HrActionLeaveRequestStatus403
       | HrActionLeaveRequestStatus404
+      | HrActionLeaveRequestStatus409
       | HrActionLeaveRequestStatus422
     >,
     HrActionLeaveRequestOptions,
@@ -62,6 +64,7 @@ export function useHrActionLeaveRequest<TContext>(
       ResponseErrorConfig<
         | HrActionLeaveRequestStatus403
         | HrActionLeaveRequestStatus404
+        | HrActionLeaveRequestStatus409
         | HrActionLeaveRequestStatus422
       >,
       HrActionLeaveRequestOptions,
@@ -84,6 +87,7 @@ export function useHrActionLeaveRequest<TContext>(
     ResponseErrorConfig<
       | HrActionLeaveRequestStatus403
       | HrActionLeaveRequestStatus404
+      | HrActionLeaveRequestStatus409
       | HrActionLeaveRequestStatus422
     >,
     HrActionLeaveRequestOptions,
@@ -95,6 +99,7 @@ export function useHrActionLeaveRequest<TContext>(
     ResponseErrorConfig<
       | HrActionLeaveRequestStatus403
       | HrActionLeaveRequestStatus404
+      | HrActionLeaveRequestStatus409
       | HrActionLeaveRequestStatus422
     >,
     HrActionLeaveRequestOptions,
@@ -111,6 +116,7 @@ export function useHrActionLeaveRequest<TContext>(
     ResponseErrorConfig<
       | HrActionLeaveRequestStatus403
       | HrActionLeaveRequestStatus404
+      | HrActionLeaveRequestStatus409
       | HrActionLeaveRequestStatus422
     >,
     HrActionLeaveRequestOptions,

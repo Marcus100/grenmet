@@ -108,30 +108,31 @@ placeholder is not an implemented service.
 | gaa-admin | `/wxwatch/[year]/[month]/[day]` | Pending |
 | gaa-admin | `/wxwatch` | Pending |
 | gaa-admin | `/signin` | Pending |
-| gms | `/[...planned]` | Pending |
+| gms | Planned placeholders (`/planned/[...planned]`, reached from each planned link) | Pending |
 | gms | `/about` | Pending |
 | gms | `/about/careers` | Pending |
+| gms | `/about/construction` | Pending |
 | gms | `/about/contact` | Pending |
+| gms | `/about/disaster-management` | Pending |
+| gms | `/about/education` | Pending |
 | gms | `/about/history` | Pending |
+| gms | `/about/media` | Pending |
 | gms | `/about/network` | Pending |
 | gms | `/about/performance` | Pending |
 | gms | `/about/regional` | Pending |
-| gms | `/about/services` | Pending |
 | gms | `/about/standards` | Pending |
 | gms | `/accessibility` | Pending |
 | gms | `/alerts` | Pending |
 | gms | `/alerts/[identifier]` | Pending |
-| gms | `/alerts/advisories` | Pending |
 | gms | `/alerts/bulletins` | Pending |
 | gms | `/alerts/bulletins/[hazard]` | Pending |
 | gms | `/alerts/cyclone` | Pending |
-| gms | `/alerts/cyclone/archive` | Pending |
 | gms | `/alerts/exercise` | Pending |
 | gms | `/alerts/get-alerts` | Pending |
 | gms | `/alerts/get-alerts/cap` | Pending |
 | gms | `/alerts/impact` | Pending |
 | gms | `/alerts/levels` | Pending |
-| gms | `/alerts/marine` | Pending |
+| gms | `/alerts/past` | Pending |
 | gms | `/alerts/prepare/flood` | Pending |
 | gms | `/alerts/prepare/heat` | Pending |
 | gms | `/alerts/prepare/hurricane` | Pending |
@@ -141,7 +142,6 @@ placeholder is not an implemented service.
 | gms | `/alerts/understanding` | Pending |
 | gms | `/app-guide` | Pending |
 | gms | `/climate` | Pending |
-| gms | `/climate/archive` | Pending |
 | gms | `/climate/by-month` | Pending |
 | gms | `/climate/change` | Pending |
 | gms | `/climate/change/sea-level` | Pending |
@@ -198,19 +198,15 @@ placeholder is not an implemented service.
 | gms | `/services/aviation/flight-winds` | Pending |
 | gms | `/services/aviation/metar-taf` | Pending |
 | gms | `/services/aviation/sigwx` | Pending |
-| gms | `/services/construction` | Pending |
 | gms | `/services/data` | Pending |
-| gms | `/services/disaster-management` | Pending |
-| gms | `/services/education` | Pending |
 | gms | `/services/health` | Pending |
-| gms | `/services/media` | Pending |
 | gms | `/services/tourism` | Pending |
 | gms | `/services/tourism/events` | Pending |
 | gms | `/services/tourism/events/[slug]` | Pending |
 | gms | `/sitemap` | Pending |
-| gms | `/weather/3-day` | Pending |
-| gms | `/weather/7-day` | Pending |
+| gms | `/weather/5-day` | Pending |
 | gms | `/weather/analyses` | Pending |
+| gms | `/weather/archive` | Pending |
 | gms | `/weather/conditions` | Pending |
 | gms | `/weather/dust` | Pending |
 | gms | `/weather/heat` | Pending |
@@ -244,6 +240,8 @@ placeholder is not an implemented service.
 GMS routes follow the seven-section Bold sky IA (28 Sep 2026). Old URLs
 308-redirect via `apps/web/gms/src/lib/route-moves.ts`; accept a sample of
 them. `/[location]` routes are empty until a second place is enabled
-(`apps/web/gms/src/lib/locations.ts`). `/[...planned]` serves every nav link
-marked `planned` as a sample-content placeholder (list: `plannedPaths()` in
-`apps/web/gms/src/lib/nav-sections.ts`).
+(`apps/web/gms/src/lib/locations.ts`). Every nav link marked `planned` is
+rewritten to the internal `/planned/[...planned]` route, which shows a
+sample-content placeholder at the link's own address (list: `plannedPaths()`
+in `apps/web/gms/src/lib/nav-sections.ts`; rewrites in
+`apps/web/gms/src/lib/planned-routes.ts`).

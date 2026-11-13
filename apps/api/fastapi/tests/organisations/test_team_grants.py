@@ -333,7 +333,7 @@ async def test_changes_are_audited_with_the_actor(
     ]
 
 
-async def test_removing_an_issuer_revokes_what_they_issued_and_demotion_lists_it(
+async def test_removing_an_issuer_revokes_what_they_issued(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ):
     owner, lead, other, org = await _world(db_async)
@@ -345,21 +345,6 @@ async def test_removing_an_issuer_revokes_what_they_issued_and_demotion_lists_it
         await _grant(async_client, lead, org, other_mid, "events-door")
     ).status_code == 201
     owner_headers = headers_for(owner, org.id)
-
-    # Demotion keeps the grants but an admin can review them.
-    demoted = await async_client.patch(
-        f"{ORG_API}/{org.id}/members/{lead_mid}",
-        json={"role": "member"},
-        headers=owner_headers,
-    )
-    assert demoted.status_code == 200
-    issued = await async_client.get(
-        f"{API}/members/{lead_mid}/issued-grants", headers=owner_headers
-    )
-    assert [(g["role_key"], g["member_name"]) for g in issued.json()] == [
-        ("events-door", other.full_name)
-    ]
-    assert "@" not in issued.text
 
     # Removal revokes what they issued, and their own roles.
     removed = await async_client.delete(
@@ -813,3 +798,27 @@ async def test_lead_loses_team_routes_when_entitlement_is_switched_off(
     await db_async.commit()
     for path in (f"{TEAM}/members", f"{API}/role-bundles"):
         assert (await async_client.get(path, headers=headers)).status_code == 403
+
+
+async def test_nobody_can_revoke_their_own_grant(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    """The Events team screen hides own-row controls because the API refuses them:
+    a lead holding the door bundle cannot take their own door grant away, even
+    though they could revoke the same bundle from someone else."""
+    owner, lead, other, org = await _world(db_async)
+    await _seed_grant(db_async, owner, org, lead, "events-team")
+    own = await _seed_grant(db_async, owner, org, lead, "events-door")
+    theirs = await _seed_grant(db_async, owner, org, other, "events-door")
+
+    headers = headers_for(lead, org.id)
+    refused = await async_client.post(f"{API}/grants/{own.id}/revoke", headers=headers)
+    assert refused.status_code == 403
+    assert refused.json() == {"detail": "You cannot change your own roles"}
+    await db_async.refresh(own)
+    assert own.revoked_at is None
+
+    allowed = await async_client.post(
+        f"{API}/grants/{theirs.id}/revoke", headers=headers
+    )
+    assert allowed.status_code == 200

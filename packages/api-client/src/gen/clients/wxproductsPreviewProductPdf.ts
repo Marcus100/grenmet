@@ -11,7 +11,7 @@ import type {
 } from "../models/WxproductsPreviewProductPdf.js";
 
 /**
- * @description Renders unsaved forecast, bulletin or outlook content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published.
+ * @description Renders unsaved forecast (including the Marine Forecast), bulletin, outlook or Climate Bulletin content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published. A sheet designed for a fixed page count (the two-page Climate Bulletin) that runs longer is still rendered; `X-Sheet-Warning` says so in plain words.
  * @summary Render a draft product PDF preview
  * {@link /api/v1/wxproducts/products/preview/pdf}
  */
@@ -32,6 +32,7 @@ export function wxproductsPreviewProductPdf<
         { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
+      contentType: { request: "application/json" },
       responseType: "blob",
       ...config,
       throwOnError: config.throwOnError ?? true,

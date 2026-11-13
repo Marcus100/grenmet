@@ -9,7 +9,7 @@ vi.mock("@/app/studio/[orgSlug]/bookings/[id]/actions", () => ({
 
 import { RecordDeposit } from "./record-deposit";
 
-const UUID = /^[0-9a-f-]{36}$/;
+const UUID = /^[0-9a-f-]{36}$/u;
 const TRIGGER = { name: "Record deposit received" };
 
 function ui(due = true, takesDeposit = true) {
@@ -58,7 +58,7 @@ describe("record deposit", () => {
 
   it("announces success, closes the dialog and keeps the notice", async () => {
     recordDepositAction.mockResolvedValue({
-      status: "done",
+      status: "success",
       message: "Deposit recorded.",
     });
     const { rerender } = show();

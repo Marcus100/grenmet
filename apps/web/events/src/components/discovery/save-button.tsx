@@ -55,7 +55,7 @@ export function SaveButton({
       aria-label={saved ? `Remove ${title} from saved` : `Save ${title}`}
       aria-pressed={saved}
       className={cn(
-        "flex size-10 items-center justify-center rounded-full bg-white/95 text-events-ink shadow-sm transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-ring",
+        "text-events-ink focus-visible:outline-ring flex size-10 items-center justify-center rounded-full bg-white/95 shadow-sm transition-transform hover:scale-105 focus-visible:outline-2",
         className
       )}
       disabled={pending}

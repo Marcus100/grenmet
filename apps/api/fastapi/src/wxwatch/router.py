@@ -2,11 +2,13 @@ from datetime import date
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi import APIRouter, Query, Response
 from sqlalchemy import text
 
 from src.auth.browser import BrowserUser
+from src.exceptions import AppValidationError, NotFoundError
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND
+from src.wxwatch.exceptions import EditionNotFoundError
 
 from . import service
 from .dependencies import ImageSession
@@ -59,11 +61,11 @@ async def archive(
     limit: Annotated[int, Query(ge=1, le=100)] = 30,
 ) -> ArchivePage:
     if start and end and start > end:
-        raise HTTPException(422, "Start date must precede end date")
+        raise AppValidationError("Start date must precede end date")
     if end == date.max:
-        raise HTTPException(422, "End date is out of range")
+        raise AppValidationError("End date is out of range")
     if unknown_time and (start or end):
-        raise HTTPException(422, "Unknown-time search cannot include date bounds")
+        raise AppValidationError("Unknown-time search cannot include date bounds")
     response.headers["Cache-Control"] = "private, no-store"
     return await service.browse_archive(
         session,
@@ -95,7 +97,7 @@ async def retrievals(
     if not await session.scalar(
         text("SELECT id FROM archive_editions WHERE id=:id"), {"id": edition_id}
     ):
-        raise HTTPException(404, "Edition not found")
+        raise EditionNotFoundError()
     response.headers["Cache-Control"] = "private, no-store"
     return await service.archive_history(session, edition_id, offset, limit)
 
@@ -112,7 +114,7 @@ async def bulletin(
 ) -> ArchiveBulletin:
     result = await service.load_bulletin(session, edition_id)
     if result is None:
-        raise HTTPException(404, "Bulletin not found")
+        raise NotFoundError("Bulletin not found")
     response.headers["Cache-Control"] = "private, no-store"
     return result
 
@@ -130,7 +132,7 @@ async def edition_assets(
     if not await session.scalar(
         text("SELECT id FROM archive_editions WHERE id=:id"), {"id": edition_id}
     ):
-        raise HTTPException(404, "Edition not found")
+        raise EditionNotFoundError()
     response.headers["Cache-Control"] = "private, no-store"
     rows = (
         (

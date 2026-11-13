@@ -8,13 +8,13 @@ import { fileURLToPath } from "node:url";
 
 const script = fileURLToPath(new URL("./collectors.sh", import.meta.url));
 const WXWATCH =
-  /\/scripts\/scrapy-wxwatch\|run --isolated --frozen --package wxwatch python -m pytest tests$/;
+  /\/scripts\/scrapy-wxwatch\|run --isolated --frozen --package wxwatch python -m pytest tests$/u;
 const SUTRON =
-  /\/scripts\/sutron-collector\|run --isolated --frozen --package sutron-collector python -m pytest tests$/;
+  /\/scripts\/sutron-collector\|run --isolated --frozen --package sutron-collector python -m pytest tests$/u;
 const GNC =
-  /\/scripts\/gnc-collector\|run --isolated --frozen --package gnc-collector python -m pytest tests$/;
+  /\/scripts\/gnc-collector\|run --isolated --frozen --package gnc-collector python -m pytest tests$/u;
 const INGEST =
-  /\/scripts\/gms-ingest\|run --isolated --frozen --package gms-ingest python -m unittest discover -s tests -v$/;
+  /\/scripts\/gms-ingest\|run --isolated --frozen --package gms-ingest python -m unittest discover -s tests -v$/u;
 test("collector verification runs each suite from its own project in isolation", () => {
   const dir = mkdtempSync(join(tmpdir(), "collector-test-"));
   try {

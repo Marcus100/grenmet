@@ -12,11 +12,11 @@ class ERegisterConfig(BaseSettings):
     # Comma-separated addresses that receive "Email observation". Unset means
     # the action answers 409 "No recipients configured".
     OBS_RECIPIENTS: str = ""
-    # Email needs a validated reading; by default it also goes out before QC
-    # (internal use, marked provisional). Set true to require state "accepted"
-    # for email too. WIS2 publication always requires "accepted", whatever this
-    # says.
-    SEND_REQUIRE_ACCEPTED: bool = False
+    # Email and WIS2 both need state "accepted" (owner decision, 9 Nov 2026).
+    # Set false only to let validated, not-yet-accepted observations be emailed
+    # for internal use (marked provisional). WIS2 publication always requires
+    # "accepted", whatever this says.
+    SEND_REQUIRE_ACCEPTED: bool = True
 
     @property
     def recipients(self) -> list[str]:

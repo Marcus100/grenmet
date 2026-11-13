@@ -26,10 +26,10 @@ const VIEWPORT_HEIGHT = 812;
 // Next.js dev builds a route on first request; 60 s covers a cold compile.
 const NAVIGATION_TIMEOUT_MS = 60_000;
 const THEMES = new Set(DEFAULT_THEMES);
-const SLUG_UNSAFE = /[^a-z0-9]+/gi;
+const SLUG_UNSAFE = /[^a-z0-9]+/giu;
 // Dev-server noise that says nothing about the page: favicons and source maps.
-const IGNORED_REQUEST = /\/favicon\.ico(?:\?|$)|\.map(?:\?|$)/;
-const EDGE_DASHES = /^-|-$/g;
+const IGNORED_REQUEST = /\/favicon\.ico(?:\?|$)|\.map(?:\?|$)/u;
+const EDGE_DASHES = /^-|-$/gu;
 
 export function parseArgs(argv) {
   const options = {
@@ -178,7 +178,7 @@ async function main() {
     join(
       repoRoot,
       ".ui-review",
-      new Date().toISOString().replace(/[:.]/g, "-")
+      new Date().toISOString().replace(/[:.]/gu, "-")
     );
   mkdirSync(outDir, { recursive: true });
 

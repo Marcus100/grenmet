@@ -32,6 +32,10 @@ export type HrPutDepartmentRulesStatus422 = ValidationErrorResponse;
  */
 export type HrPutDepartmentRulesBody = RosterRulesUpdate;
 
+/**
+ * @deprecated
+ * @type object
+ */
 export type HrPutDepartmentRulesOptions = {
   body: HrPutDepartmentRulesBody;
   path: HrPutDepartmentRulesPath;

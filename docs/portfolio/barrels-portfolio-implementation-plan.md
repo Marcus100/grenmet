@@ -4,7 +4,7 @@
 **Effective:** 2026-08-16  
 **Horizon:** Five-year strategy expressed through dependency horizons  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-10-31
 
 ## Purpose
 
@@ -35,6 +35,29 @@ selector is not evidence of complete tenancy isolation or permission to roll out
 all sectors. Current parallel engineering work is unpublished until combined
 checks and authenticated staging acceptance pass.
 
+## Ecosystem planning amendment — 31 October 2026
+
+The [product strategy](../strategy/barrels-product-strategy.md#connected-ecosystem-direction--31-october-2026)
+records the owner's direction for a personal daily home, independently useful
+apps, shared personal identity, separate work accounts, community and business
+software. These are planning choices; no delivery reprioritisation or launch
+commitment was made. Events and accepted client commitments retain their
+current priority.
+
+| Initiative | Horizon and status | Dependencies and acceptance |
+| --- | --- | --- |
+| Personal daily home | Explore; candidate `dash.barrels.gd`, not implemented | Barrels product owner; settle identity separation, authorised customer activity aggregation, account-page migration and initial journey before scheduling |
+| Personal/work identity separation | Explore; target policy recorded, migration not designed | Barrels engineering and product owner; inventory existing mixed accounts and memberships, approve architecture and recovery/transition design, prove app and organisation isolation |
+| Community app | Explore; eventual X-like direction | Barrels product owner; define moderation, public-profile privacy, operating capacity and first community before investment |
+| Ecosystem AI | Explore; first use case undecided | Barrels product owner; choose a real user problem, evaluation, data permissions and cost envelope using the AI strategy |
+
+Daily-home acceptance should demonstrate a customer viewing their own ticket
+and client-business appointment without exposing either to another business;
+an Events-only customer can still complete their task in Events. Work-account
+acceptance must cover an owner with separate personal/work accounts and an
+employee with distinct accounts at two businesses. These are future acceptance
+scenarios, not claims about current behaviour.
+
 ## Portfolio policy
 
 1. Events and Tickets is the first transactional Barrels product and receives
@@ -58,7 +81,7 @@ checks and authenticated staging acceptance pass.
 | Barrels platform transition | Company/platform programme | In progress; transition boundaries 1–8 complete; legacy `GrenMet` infrastructure names remain | Now | Company, product, and client identities are separated without disrupting working services | Barrels |
 | Events and Tickets | Barrels product | E1–E5 built on `dev`: free and registration tickets, door admission, outlet cash, settlement CSV, cancel and manual refunds; paid tiers (N4b, `events_0010`) run on the PF4 payments core in Stripe test mode or the manual rail only, with checkout UI in `apps/web/events` | Now → Next | Prove discovery → sale → admission → settlement with trusted organisers | Barrels product owner |
 | Signal | Barrels media product | Working content-led application with component tests | Later | Maintain a distinct trusted media product and validate its role in the Barrels portfolio | Barrels product owner |
-| Barrels corporate hub and control plane | Company surfaces | Planned, not present as applications | Next | Establish the company entry point and a Barrels-only operational control plane | Barrels |
+| Barrels corporate hub and control plane | Company surfaces | Company homepage and admin application exist; distinct from the proposed personal daily home | Next | Maintain the company entry point and Barrels-only operational control plane; assess further work from current evidence | Barrels |
 | GAA/GMS engagement | Client portfolio | Multiple active workstreams at different maturity levels | Now → Later | Deliver accepted institutional outcomes without classifying the client as a product | Joint Barrels and GAA/GMS owners |
 | MBIA passenger experience | GAA public-service delivery | Working application; deployment and institutional boundary need reconciliation | Later | Deliver a distinct airport passenger service, separate from GAA staff tooling | GAA/airport owner |
 | GAA corporate surface | GAA public-service delivery | Reserved, not built | Later | Provide a GAA institutional site distinct from MBIA and staff administration | GAA |

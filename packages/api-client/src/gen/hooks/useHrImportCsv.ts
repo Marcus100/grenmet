@@ -16,6 +16,7 @@ import type {
   HrImportCsvStatus200,
   HrImportCsvStatus400,
   HrImportCsvStatus403,
+  HrImportCsvStatus409,
   HrImportCsvStatus422,
 } from "../models/HrImportCsv.js";
 
@@ -31,7 +32,10 @@ export function hrImportCsvMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrImportCsvStatus200,
     ResponseErrorConfig<
-      HrImportCsvStatus400 | HrImportCsvStatus403 | HrImportCsvStatus422
+      | HrImportCsvStatus400
+      | HrImportCsvStatus403
+      | HrImportCsvStatus409
+      | HrImportCsvStatus422
     >,
     HrImportCsvOptions,
     TContext
@@ -53,7 +57,10 @@ export function useHrImportCsv<TContext>(
     mutation?: UseMutationOptions<
       HrImportCsvStatus200,
       ResponseErrorConfig<
-        HrImportCsvStatus400 | HrImportCsvStatus403 | HrImportCsvStatus422
+        | HrImportCsvStatus400
+        | HrImportCsvStatus403
+        | HrImportCsvStatus409
+        | HrImportCsvStatus422
       >,
       HrImportCsvOptions,
       TContext
@@ -70,7 +77,10 @@ export function useHrImportCsv<TContext>(
   const baseOptions = hrImportCsvMutationOptions(config) as UseMutationOptions<
     HrImportCsvStatus200,
     ResponseErrorConfig<
-      HrImportCsvStatus400 | HrImportCsvStatus403 | HrImportCsvStatus422
+      | HrImportCsvStatus400
+      | HrImportCsvStatus403
+      | HrImportCsvStatus409
+      | HrImportCsvStatus422
     >,
     HrImportCsvOptions,
     TContext
@@ -79,7 +89,10 @@ export function useHrImportCsv<TContext>(
   return useMutation<
     HrImportCsvStatus200,
     ResponseErrorConfig<
-      HrImportCsvStatus400 | HrImportCsvStatus403 | HrImportCsvStatus422
+      | HrImportCsvStatus400
+      | HrImportCsvStatus403
+      | HrImportCsvStatus409
+      | HrImportCsvStatus422
     >,
     HrImportCsvOptions,
     TContext
@@ -93,7 +106,10 @@ export function useHrImportCsv<TContext>(
   ) as UseMutationResult<
     HrImportCsvStatus200,
     ResponseErrorConfig<
-      HrImportCsvStatus400 | HrImportCsvStatus403 | HrImportCsvStatus422
+      | HrImportCsvStatus400
+      | HrImportCsvStatus403
+      | HrImportCsvStatus409
+      | HrImportCsvStatus422
     >,
     HrImportCsvOptions,
     TContext

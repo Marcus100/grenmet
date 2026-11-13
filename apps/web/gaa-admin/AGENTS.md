@@ -25,6 +25,8 @@ Uses `@barrelsgd/auth/server` directly — not a redirect-delegating app.
 - Session management: `src/lib/server-session.ts`
 - Auth helpers: `src/lib/auth.ts`, `src/lib/auth-config.ts`, `src/lib/auth-redirect.ts`
 - API proxy: `src/app/api/[...path]/route.ts` + `src/proxy.ts`
+  - The proxy (`src/lib/api-proxy-target.ts`) accepts only plain path segments. The one exception is `:` in the baseline policy key segment of `/api/v1/hr/setup/policies/{key}` (keys like `hr:gms:LEAVE`); a colon anywhere else is refused.
+  - The proxy forwards only an allow-list of request headers (accept, accept-language, content-type, conditional and range headers, x-request-id) plus the bearer token; add a header to `FORWARDED_REQUEST_HEADERS` if a module needs one. Writes (not GET, HEAD, OPTIONS) must carry an `Origin` equal to this host (`src/lib/request-guards.ts`), else 403.
 - Logout routes: `src/app/auth/logout/route.ts`, `src/app/auth/logout-all/route.ts`
 - Auth-related env vars: `AUTH_APP_URL`, `AUTH_API_URL`, `AUTH_API_V1_STR`, `ADMIN_SESSION_COOKIE_NAME`, `GAA_ADMIN_SSO_CLIENT_SECRET`, `NEXT_PUBLIC_API_URL`, `RESEND_API_KEY`. Sign-in is single sign-on through auth.barrels.gd (`/signin` → `/auth/start` → `/auth/callback`, ADR-0017)
 
@@ -52,7 +54,7 @@ The UI font is user-selectable via `@barrelsgd/theme`'s font switcher (registry 
 `src/lib/fonts/registry.ts`, `data-font` CSS in `globals.css`); default Inter,
 print documents always Noto Sans.
 
-## Consolidated apps (folded in 2026-06)
+## Consolidated apps
 
 The former `cap`, `hr`, `wxwatch`, `wxproducts`, and `salesbus` apps now live here as
 path-prefixed, auth-gated routes under `(admin)/`. All are gated by
@@ -61,7 +63,7 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 | Prefix | Source app | Data | Notes |
 |---|---|---|---|
 | `/hr` | hr | FastAPI `/api/v1/hr/*` via `@barrelsgd/api-client` | Editors, submissions tables, approvals inbox, duty roster and HR Setup are all wired. The `/hr` dashboard reads `/api/v1/hr/dashboard` on the server; figures come from the leave ledger, personal requests, published roster and scoped approvals. `*-document.tsx` print components stay pure presentation. Components in `components/hr/` |
-| `/cap` | cap | FastAPI `/api/cap/*` (server-side direct) | `CAP_API_URL` env + `getCapApiBaseUrl()`; components in `components/cap/` |
+| `/cap` | cap | FastAPI `/api/cap/*` (server-side direct) | `CAP_API_URL` env + `getCapApiBaseUrl()`; components in `components/cap/`. Parallel run with the new desk in `apps/web/cap` (`/desk`, ADR-0054): the page header links "Try the new desk" (`CAP_DESK_URL`); keep this desk fully working until cutover |
 | `/salesbus` | salesbus | FastAPI `/api/v1/stores/*` — the Stores module (internal requisition, inventory, deliveries); server reads in `src/db/stores/queries.ts`, mutations in `components/salesbus/api.ts` | `CartProvider` scoped via `(admin)/salesbus/layout.tsx`; keeps own `AppShell`; PWA dropped |
 | `/wxwatch` | wxwatch | FastAPI `/api/v1/wxwatch/*` | generated metadata contracts; authenticated image downloads through `/_backend/wxwatch/` |
 | `/wxproducts` | wxproducts | FastAPI `/api/v1/wxproducts/*`, separate wxproducts Postgres | Kubb-generated contracts; saved-revision PDFs via FastAPI `/products/{id}/revisions/{revision}/pdf` |
@@ -69,7 +71,7 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 - **Notifications + change history (shared across modules):** the header bell (`components/notifications/notification-bell.tsx`, polls unread count every 60s) lives in the shared `AppShell`; inbox at `/notifications`, email opt-outs under Profile → Notifications, organisation settings in HR Setup → Notifications. `components/audit/record-history.tsx` (`RecordHistory` / `RecordHistoryButton`) shows `/api/v1/audit/{entity_type}/{entity_id}`; the API applies record access and masks sensitive values — never re-derive either client-side.
 - **wxRegister layout (`/wxproducts/hourly`):** the tables copy the top of the paper register, columns 1 to 65 (`eregister-layout.ts`: names, WMO codes, paper column numbers; Section 0, 1 and 3 as separate tables). Every column has two cells: the upper is a plain reading calculated from the code (`eregister-readings.ts`, display only, no units) or an entry (Gust above Wind Speed, Wet Bulb above Dew Point); the lower is the coded entry. Indicator digits are grey fixed cells in the lower layer; `1Sn`/`2Sn`/`5j1` are separate cells beside their values (`cellValue`/`cellUpdates`). Rules and decoding live in FastAPI (`src/eregister/rules.py`). Paper column 17 (barometer as read / total corrections) is not built.
 - **Weather ownership:** authored products and wxproducts migrations belong to FastAPI; do not introduce weather Drizzle writers or migrations.
-- **DB conventions:** keep separate domain databases (never merged). FastAPI owns every module's schema and migrations (e.g. `src/wxproducts/alembic.ini`, `src/wxwatch/alembic.ini`). gaa-admin has no ORM and no database access: Drizzle was removed on 2026-09-23. Types come from `@barrelsgd/api-client`.
+- **DB conventions:** keep separate domain databases (never merged). FastAPI owns every module's schema and migrations (e.g. `src/wxproducts/alembic.ini`, `src/wxwatch/alembic.ini`). gaa-admin has no ORM and no database access (no Drizzle). Types come from `@barrelsgd/api-client`.
 - **Fonts:** `Noto_Sans` is loaded in the root layout to back the `--brand-font-document`
   token (`font-document` Tailwind alias) used by HR print documents. Forecast,
   bulletin and outlook PDFs are rendered by FastAPI; the editor previews them in an iframe.

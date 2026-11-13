@@ -20,9 +20,9 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const MORNING = /Morning briefing/;
-const POSTED_AT_1005 = /at 10:05 a\.m\./;
-const SYNOPSIS = /synopsis/i;
+const MORNING = /Morning briefing/u;
+const POSTED_AT_1005 = /at 10:05 a\.m\./u;
+const SYNOPSIS = /synopsis/iu;
 
 function home(overrides: Partial<HomeContent> = {}): HomeContent {
   const none = { status: "ok" as const, articles: [] };
@@ -93,10 +93,22 @@ it("switches the panel between tabs, each linking to its full page", async () =>
   expect(
     screen.getByRole("link", { name: "Open the full satellite page" })
   ).toHaveAttribute("href", "/weather/satellite");
-  fireEvent.click(screen.getByRole("tab", { name: "Radar" }));
+  // No Radar tab until a radar feed exists (owner, 1 Nov 2026).
+  expect(screen.queryByRole("tab", { name: "Radar" })).not.toBeInTheDocument();
+  // One equal column per tab, so five tabs fill the row with no empty slot,
+  // centred from `sm` up (owner, 8 Nov 2026).
+  const tablist = screen.getByRole("tablist", { name: "Weather now" });
+  expect(screen.getAllByRole("tab")).toHaveLength(5);
+  expect(tablist).toHaveClass(
+    "grid-flow-col",
+    "auto-cols-fr",
+    "sm:justify-center"
+  );
+  expect(tablist).not.toHaveClass("grid-cols-6");
+  fireEvent.click(screen.getByRole("tab", { name: "Wind" }));
   expect(
-    screen.getByRole("link", { name: "Open the full radar page" })
-  ).toHaveAttribute("href", "/weather/radar");
+    screen.getByRole("link", { name: "Open the full wind page" })
+  ).toHaveAttribute("href", "/weather/conditions");
   fireEvent.click(screen.getByRole("tab", { name: "Video" }));
   expect(screen.getByRole("tabpanel")).toHaveTextContent(
     "No videos posted yet."
@@ -158,7 +170,16 @@ it("keeps quick updates under the note and plays video in the panel on request",
   expect(
     screen.getByRole("region", { name: "Live from GMS" })
   ).toHaveTextContent("Showers easing in the south");
+  // The panel opens on Video (the first tab with content) with a play
+  // button; the provider's frame loads only on request.
+  expect(screen.getByRole("tab", { name: "Video" })).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
   expect(container.querySelector("iframe")).toBeNull();
+  expect(
+    screen.getByRole("button", { name: "Play: Midday briefing" })
+  ).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("tab", { name: "Video" }));
   expect(screen.getByRole("tab", { name: "Video" })).toHaveAttribute(
@@ -169,6 +190,10 @@ it("keeps quick updates under the note and plays video in the panel on request",
     "src",
     "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"
   );
+  // The player opens the item on YouTube itself; no separate provider link.
+  expect(
+    screen.queryByRole("link", { name: "Open on YouTube" })
+  ).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: MORNING }));
   expect(screen.getByTitle("Morning briefing")).toBeInTheDocument();
   expect(screen.queryByText("Bad link")).not.toBeInTheDocument();

@@ -9,6 +9,7 @@ import {
 } from "@barrelsgd/ui/components/ui/native-select";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
+import type { FormState } from "@barrelsgd/ui/lib/form-state";
 import { useRef, useState } from "react";
 import {
   DATA_FORMATS,
@@ -18,12 +19,6 @@ import {
 } from "@/lib/data-request";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
-
-type FormState =
-  | { status: "idle" }
-  | { status: "submitting" }
-  | { status: "success" }
-  | { status: "error"; message: string };
 
 function readForm(form: HTMLFormElement) {
   const data = new FormData(form);
@@ -93,7 +88,7 @@ export function DataRequestForm() {
   if (state.status === "success") {
     return (
       <p
-        className="rounded border-gm-border border-l-4 bg-gm-surface px-4 py-3 text-body-base text-gm-heading"
+        className="border-gm-border bg-gm-surface text-body-base text-gm-heading rounded border-l-4 px-4 py-3"
         role="status"
       >
         Thank you. We have received your request and sent a confirmation to your
@@ -174,15 +169,15 @@ export function DataRequestForm() {
         </p>
       </div>
       <fieldset className="space-y-2">
-        <legend className="font-medium text-sm">Elements needed</legend>
+        <legend className="text-sm font-medium">Elements needed</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           {DATA_PARAMETERS.map((item) => (
             <label
-              className="flex min-h-11 items-center gap-3 text-body-base"
+              className="text-body-base flex min-h-11 items-center gap-3"
               key={item.value}
             >
               <input
-                className="size-5 accent-primary"
+                className="accent-primary size-5"
                 name="parameters"
                 type="checkbox"
                 value={item.value}
@@ -244,9 +239,9 @@ export function DataRequestForm() {
           type="text"
         />
       </div>
-      <label className="flex items-start gap-3 text-body-base">
+      <label className="text-body-base flex items-start gap-3">
         <input
-          className="mt-1 size-5 shrink-0 accent-primary"
+          className="accent-primary mt-1 size-5 shrink-0"
           name="consent"
           required
           type="checkbox"
@@ -267,7 +262,7 @@ export function DataRequestForm() {
       </Button>
       {state.status === "error" && (
         <p
-          className="font-medium text-body-base text-destructive"
+          className="text-body-base text-destructive font-medium"
           id="data-request-error"
           ref={errorRef}
           role="alert"

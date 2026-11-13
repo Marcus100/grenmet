@@ -156,9 +156,7 @@ async def request_refund(
     waiting = await db.scalar(
         select(outbox.Outbox.id)
         .where(
-            outbox.Outbox.topic == REQUESTED_TOPIC,
-            outbox.Outbox.status == outbox.OutboxStatus.PENDING.value,
-            outbox.Outbox.payload["order_id"].as_string() == str(order.id),
+            outbox.pending_for_order(REQUESTED_TOPIC, str(order.id)),
             outbox.Outbox.dedupe_key != str(refund_id),
         )
         .limit(1)

@@ -38,7 +38,7 @@ SOCIAL_MANAGE_PERMISSION = "cms.article.social.manage"
     ),
     responses={
         **UNAUTHENTICATED,
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
             "description": (
                 "Refused: warning post, a link or image on an unapproved host, or a "
                 "platform needs a caption or image"

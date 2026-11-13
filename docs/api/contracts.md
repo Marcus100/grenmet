@@ -8,9 +8,14 @@ This guide documents the current FastAPI contract conventions. It complements th
 
 ## When to update this document
 
-Update this document whenever you:
-- Add or remove a public or CAP endpoint
+The full list of operations is generated in [routes.md](routes.md). Update this
+document for behaviour and policy, and whenever you (the blast-radius check
+enforces these and names the reason):
+- Remove any endpoint (renaming a path parameter counts), or add a public,
+  unauthenticated, webhook or unversioned endpoint
+- Change the security schemes
 - Change authentication requirements on an existing endpoint
+- Make a breaking change, or change an endpoint this document already describes
 - Change the error shape or add a new error category
 - Change pagination defaults or response structure
 - Add a webhook endpoint or change its verification behaviour
@@ -37,6 +42,141 @@ department-manager appointments require live scoped grants and cannot enter it.
 Shared HR shift and public-holiday definitions require this global
 `roster.manage` authority or a superuser for writes; organisation `ALL`,
 department and SELF grants cannot mutate definitions shared by other employers.
+
+## HR payroll inputs (slice 1, added 31 Oct 2026)
+
+`/api/v1/hr/payroll/*` produces pay-input **quantities** (hours and counts) per
+pay period and employee for GAA's payroll of record, HrPlus. No rate, amount,
+tax, NIS or bank field exists in any request, response or export.
+
+- Catalogue and setup: `GET items`, `GET|POST calendars`, `GET profiles`,
+  `PUT profiles/{user_id}`, `GET department-settings`,
+  `PUT department-settings/{department_id}`. A new organisation's `items` list is
+  empty; GAA's items are seeded `PROVISIONAL` with a `source_reference`.
+  Each pay profile returns `calendar_override_reason` only to organisation-wide
+  `hr.payroll.read.amounts` holders (free text stays with them, as pay-line
+  reasons do); for anyone else it is `null`. The list response's
+  `calendar_override_reason_visible` says which case the caller is in.
+  Gate (N3): organisation-wide `hr.payroll.read.amounts` only, stricter than the
+  gate for pay-line reasons, which is organisation-wide prepare, approve or
+  export. Holding it in one department, or in another organisation, is not
+  enough (tests: `tests/hr/test_payroll_override_reason.py`).
+  Saving (`PUT profiles/{user_id}`): a caller without that key who omits the
+  reason keeps the stored one (they cannot clear it). A caller without that key
+  who sends a new reason replaces the stored one (N2). That change is audited and
+  its value masked in `/audit/payroll_settings/{organisation_id}` unless the
+  reader holds `audit.view_sensitive`. The Employment Act rule for an hourly-paid
+  person on a calendar longer than fortnightly counts only a reason sent in that
+  request: a stored reason never satisfies it, so such a caller gets 409 without
+  one of their own (tests cover both stored and absent).
+- Calendars are `MONTHLY` or `FORTNIGHTLY` (`anchor_date` required; periods
+  start a whole number of fortnights from it and run 14 days). Without a
+  `frequency`, GAA calendars are fortnightly and others monthly.
+- Periods: `GET|POST periods`, `GET periods/{period_id}` (quantity totals and
+  `allowed_actions`; never money), `GET|POST periods/{period_id}/lines`,
+  `DELETE periods/{period_id}/lines/{line_id}` (manual lines, open periods only).
+- Lifecycle: `POST computation` (idempotent), `POST submission` (starts the
+  `PAYROLL_RUN` workflow), `POST approval` and `POST return` (second person only),
+  `POST export.csv` (`text/csv`), `POST closure`.
+- Access: keys `hr.payroll.read.department`, `.prepare`, `.approve`, `.export`,
+  granted to no default role. Prepare, approve and export need organisation-wide
+  scope; approve and export also need an MFA-verified session (403 otherwise). A
+  period outside the caller's payroll access is 404. Generic workflow action and
+  instance-create routes refuse `pay_period` entities.
+- Separation of duty: whoever submitted a period, added any line to it, has
+  their own pay in it, or changed a pay profile or shift-worker default it relies
+  on cannot approve or return it (403); nobody adds pay lines for themselves or
+  edits their own pay profile. Hand-entered overtime band lines that duplicate
+  bands the roster now computes stop a recompute (409) until removed. Payroll responses send `Cache-Control: no-store`.
+  Payroll change history (`/audit/pay_period/...`, `/audit/payroll_settings/...`)
+  needs organisation-wide prepare or approve; department scope never reads it.
+- `WorkflowType` gains `PAYROLL_RUN` (additive; clients should render unknown
+  types generically).
+- Overtime band items (`method: OVERTIME_BAND`) take band hours from the roster
+  rules engine (#890); `overtime_bands_available` is true. Manual band lines are
+  refused (400) where the employee's department computes bands.
+
+### Payroll gross pay (slice 2)
+
+- `GET periods/{period_id}/amounts` returns per-line `amount_minor` (XCD cents,
+  rounded half-up per line), the hourly rate and multiplier used, and per-employee
+  gross. It needs organisation-wide `hr.payroll.read.amounts`. `PayLinePublic` and
+  every quantity route never carry money fields.
+- `GET|POST rates` (dated multipliers or fixed amounts per pay item) and
+  `GET|POST basic-pay` (dated monthly salary or hourly rate). Reads need
+  `hr.payroll.read.amounts` or `hr.payroll.rates.manage`. Writes need
+  organisation-wide `hr.payroll.rates.manage` and an MFA-verified session, and
+  nobody sets their own basic pay. An hourly-paid person on a calendar longer than
+  fortnightly needs `calendar_override_reason` (409 otherwise).
+- Unpriced lines (no rate, or no basic pay on file) have `amount_minor: null`,
+  never 0.
+- No quantity route carries money; only `periods/{period_id}/amounts` does.
+- New rates are always `PROVISIONAL` (`rule_state` is not accepted on create).
+  Basic-pay and rate history (`/audit/payroll_money/{organisation_id}`) needs
+  organisation-wide `hr.payroll.read.amounts` and records no money values.
+
+### Payroll deductions (slice 3)
+
+- `GET statutory-tables` lists dated income tax tables (allowance and bands),
+  social insurance schemes (rates, monthly and weekly ceilings; a fortnight is the
+  weekly ceiling x 2 unless set) and deduction types. `POST tax-tables`,
+  `social-insurance-schemes`, `deduction-types` and `employee-deductions`, and
+  `PUT statutory-tables/{kind}/{table_id}/state`, need organisation-wide
+  `hr.payroll.rates.manage` and an MFA-verified session. Tables cannot be edited,
+  only confirmed (`PROVISIONAL`, `OWNER_CONFIRMED`, `CONFIRMED`).
+- Tables are always created `PROVISIONAL` (`rule_state` is not accepted on create);
+  overlapping dates for the same organisation and code are refused (409).
+  Confirming needs organisation-wide `hr.payroll.tables.confirm` (granted to no
+  role) and MFA, never by the table's creator; `confirmed_by_user_id`,
+  `confirmed_at` and `confirmation_note` record it and the source note is kept.
+  Every table response also carries `created_by_name` and `confirmed_by_name`:
+  the first and last name of that user, or null when no user is linked. They are
+  additive display fields for the same readers; no other personal detail is sent.
+  The rule state is snapshotted onto deduction lines when a period computes.
+- Deduction types follow the same gate as tax tables and schemes: created
+  `PROVISIONAL`, confirmed by someone else with `hr.payroll.tables.confirm`, and
+  an unconfirmed type blocks issue. `requires_authorisation` is not settable on
+  create (always true). Anyone who may confirm tables may read them. Creators
+  and confirmers of any table or type a period uses cannot approve it for issue.
+- `POST periods/{period_id}/table-state-refresh` (organisation-wide
+  `hr.payroll.approve` and `hr.payroll.read.amounts`, MFA, not the preparer or quantities approver) copies the
+  current state of each table onto an approved period's deduction lines (no figure
+  changes; audited) so a period approved while a table was provisional can be
+  issued after the table is confirmed. Refused once issued.
+- A deduction that needs authorisation is taken only after HR records the signed
+  document reference and the employee confirms it at
+  `POST me/deductions/{deduction_id}/confirmation` (`hr.payroll.read.self`);
+  `GET me/deductions` lists them.
+- `GET periods/{period_id}/pay-summary` (organisation-wide `hr.payroll.read.amounts`)
+  previews gross, deductions, employer contributions and net per employee, with
+  `provisional_figures`, `label: "Provisional figures"` and `blocking_tables`.
+- `POST periods/{period_id}/issue-approval` needs organisation-wide
+  `hr.payroll.approve` and `hr.payroll.read.amounts` and MFA. It is refused (403)
+  to the period's preparer or approver, a creator or confirmer of a table it used,
+  and anyone who set a rate, basic pay or deduction in force in the period; and
+  (409) while a table used was PROVISIONAL when computed, a line is unpriced, or
+  net pay would go below zero (`shortfall_minor`).
+
+### Payroll payslips and files (slice 4)
+
+- Approving a period for issue creates one payslip per paid employee: a frozen
+  JSON snapshot (earnings, gross, each deduction, net, employer contributions)
+  with its SHA-256. Payslips are append-only.
+- `GET me/payslips` (needs `hr.payroll.read.self`, granted to no role),
+  `GET periods/{period_id}/payslips` (organisation-wide `hr.payroll.read.amounts`),
+  `GET payslips/{payslip_id}/pdf` (own with `read.self`, or `read.amounts`;
+  WeasyPrint from the snapshot after the hash check; `X-Payslip-SHA256` header).
+- Every payslip route needs a session verified with two-step verification; the
+  PDF route is rate limited per signed-in user (20 a minute; 429). It uses the shared `pdf_response` helper (private, no-store, nosniff). A payslip's
+  hash is an HMAC under a dedicated key from `PAYSLIP_HMAC_KEYS` (the key id is
+  stored on the payslip, so rotation keeps old payslips valid), checked before a
+  PDF, bank file or GL journal is produced (409 on a mismatch or a key id that is
+  no longer configured). With no key configured, issue approval is refused (409). Payslip change history records the id,
+  period and hash only, never the snapshot or net pay.
+- `POST periods/{period_id}/bank-transfer.csv` and `gl-journal.csv` need
+  organisation-wide `hr.payroll.export`, MFA and an issue-approved period; both are
+  audited. Bank account numbers are not stored: that column reads `NOT STORED`.
+  `GET|PUT export-settings` configures bank columns and GL account codes.
 
 ## Base URLs
 
@@ -166,6 +306,18 @@ nothing has been fetched; clients must show an unavailable state, never sample
 data. Responses carry `Cache-Control` with `s-maxage` for Cloudflare. See
 `apps/api/fastapi/src/environmental/AGENTS.md`.
 
+`GET /api/v1/almanac/public/astronomy?location=&from=&to=` (`location` is `mbia`
+or `lauriston`; `from`/`to` are Grenada local dates, inclusive, at most 366 days)
+and `GET /api/v1/almanac/public/tides?station=&from=&to=` (`station` is `pric`)
+are anonymous and rate-limited (60/min per IP). They read the stored almanac
+tables: sunrise, sunset, civil dawn and dusk, moonrise and moonset in UTC with
+Grenada local times, the moon phase name per day, and the principal phases in
+range plus the nearest either side (astronomy); predicted high and low tides in
+metres relative to provisional MLLW (tides). The tides response always carries a
+"predicted, not for navigation" `note`. Responses carry `Cache-Control` for a day.
+See `apps/api/fastapi/src/almanac/AGENTS.md` and
+`docs/operations/almanac-and-tides.md`.
+
 ## Model guidance (gmsdash)
 
 `GET /api/v1/models/meteogram?point=&model=` returns a stored point series
@@ -186,7 +338,7 @@ gmsdash app. Ingestion is off unless `MODELS_GUIDANCE_ENABLED`. See
 ## Public weather products
 
 `GET /api/v1/wxproducts/public/products` is anonymous. Optional `kind` filters
-morning, midday, evening, outlook, cyclone, marine, flood, thunderstorm, wind,
+morning, midday, evening, outlook, marine-forecast (daily 05:00 Marine Forecast), climate-bulletin (monthly, issued on the 15th; figures come from `eregister/public/month-summary`), cyclone, marine, flood, thunderstorm, wind,
 heat, dust, coastal, or tsunami products. An omitted or empty filter lists all kinds.
 
 Success is `{ "products": [...] }`, including an empty list when nothing is current.
@@ -211,6 +363,23 @@ product returns its newest revision. Withdrawn, unpublished, future-dated or
 unknown IDs return 404, a malformed ID returns 422, and unavailable storage
 returns 503. Errors use `{ "error": "..." }`, with `Cache-Control: no-store`.
 
+`GET /api/v1/wxproducts/public/products/{id}/pdf` (added 11 Nov 2026, #1197) is
+the anonymous PDF of that product's published revision: the same archival sheet
+staff download, served `inline` with a human, dated file name and `Cache-Control:
+private, no-store`. It stays available after the product expires, and the rendered sheet is reused
+(in memory, the 32 most recent) for repeat requests of the same revision. Withdrawn,
+unpublished or unknown IDs return 404 and unavailable storage 503
+(`{ "error": "..." }`). The GMS website serves it at
+`/weather/issued/{id}/pdf` (a pass-through route).
+
+`GET /api/v1/wxproducts/public/issued-products?limit=20` (added 11 Nov 2026, 1 to
+50) lists the most recently published products, newest publication first,
+current or expired, as `IssuedProducts` (`products`: the detail shape with
+`current`). Future-dated and withdrawn snapshots are excluded in SQL, so they
+never take a place in the limit. The GMS website renders it as RSS at
+`/weather/issued/feed.xml`, one item per product, linking its permanent page and
+PDF.
+
 GAA Admin's existing `/api/public/products` forwards anonymously to this FastAPI
 route using its configured `AUTH_API_URL` and `AUTH_API_V1_STR`. The GMS website's
 URL and response shape are unchanged. FastAPI needs `WXPRODUCTS_DATABASE_URL`
@@ -220,6 +389,94 @@ Weather models use isolated metadata and never enter the main database migration
 history. Weather editor requests now use browser HTTP calls through runtime same-origin rewrites (`/_backend/weather/*`). FastAPI accepts either the existing bearer token or the opaque session cookie on private weather endpoints. An explicitly supplied invalid Authorization header never falls back to cookies.
 
 `GET /api/v1/auth/browser/session` validates the session cookie and returns `{userId, csrfToken}` with `Cache-Control: no-store`. It never returns the session secret or a bearer token. Cookie-authenticated weather mutations require `X-CSRF-Token`, bound to that session; a supplied Origin must match FastAPI's configured CORS origins. Session expiry/revocation and live account restrictions are checked on every request. Other domains remain bearer-only. Login, session rotation, logout and cross-domain SSO are unchanged in this slice. Hono is deferred.
+
+### Marine Forecast and Climate Bulletin
+
+Two product kinds were added in PR #1029 (merged). Both use the existing public
+list above, the authoring routes of `src/wxproducts` and the same
+`kind` filter, so no new route exists: `kind=marine-forecast` and
+`kind=climate-bulletin` select them. Values are strings like every other product.
+`src/baseline/product_access.py` lists both kinds for the organisation product
+access check, and the generated client enums and Zod schemas include them.
+
+**Marine Forecast** (`marine-forecast`, title "Marine Forecast"). Daily, issued at
+05:00 Grenada time. On save, FastAPI sets `area` to "Waters of Grenada, Carriacou
+and Petite Martinique", forces `issuedAt` and `validFrom` to 05:00 on the issue
+date, `validTo` to 05:00 the next day and `validity` to "05:00 today to 05:00
+tomorrow". Fields: `issuedAt`, `validFrom`, `validTo`, `validity`, `area`,
+`forecaster`, `synopsis`, wind (`windDirFrom`, `windDirTo`, `windSpeedMin`,
+`windSpeedMax`, `windGust`, `wind`), sea (`seaStateFrom`, `seaStateTo`,
+`waveHeightMin`, `waveHeightMax`, `seaState`), swell (`swellDir`, `swellPeriod`,
+`swellHeight`), `advisories` and `outlook`. Like the land forecasts it may be
+published ahead of its issue time ("Issue time cannot be in the future" does not
+apply), and it imports the CAP alerts and GMS bulletins in force: on save and
+preview FastAPI stores them as a JSON snapshot in `advisories` (the same path as
+the morning, midday and evening forecasts), so forecasters do not type impact,
+alert or small craft text. The earlier `smallCraft` and `smallCraftNotes` fields
+were removed. A write that still carries them (the desk posts stored values back)
+has them ignored, not rejected: the new revision never stores them, while
+revisions already saved keep them and print them read-only as "Small craft (as
+recorded)". Any other unknown key is still refused ("Unknown product field"). A
+saved revision that never captured advisories prints "Alerts were not captured
+for this revision" instead of "No CAP alerts or GMS bulletins were in force".
+Entry and display use mph for wind and feet for waves and swell; storage stays
+in knots and metres. The PDF (`GET /wxproducts/products/{id}/revisions/{revision}/pdf`,
+and the draft preview) has a marine sheet: synopsis, winds, seas, alerts and
+advisories in force, and outlook. A kind with no sheet layout answers 422 with
+the detail "No PDF layout exists for product kind ..."; the route's documented
+422 stays the generic validation-error shape (no separate schema is declared).
+
+**Climate Bulletin** (`climate-bulletin`, title "Grenada National Climate Bulletin" on the
+PDF). Monthly, issued on the 15th, reviewing the month before. `month` is
+`YYYY-MM`; when empty it defaults to the month before the issue date, and a month
+later than that is rejected ("Month reviewed: cannot be later than the month before
+the issue date"; a malformed value gets "enter the month as YYYY-MM"). On save
+`validFrom` is the issue time, `validTo` is 23:59 on the day before the next 15th
+after issue, and `validity` is "Until the next monthly bulletin".
+
+Fields follow the owner's example bulletins (issues 08 to 10, 2026). Header:
+`volume`, `issue`, `month` (month reviewed), `contacts` (one per line). Text:
+`enso`, `sst`, `precipOutlook`, `tempMeanOutlook`, `droughtOutlook`. SPI rows
+`spi1`, `spi3`, `spi6`, `spi12` take one of the eleven categories from
+"Exceptionally Dry" to "Exceptionally Wet". Numbers: `pet` (mm/day) and
+`petRatio`; ranges as `<name>Min` and `<name>Max` for `precipRange`, `wetDays`,
+`wetSpells`, `extremeSpells` (an empty or zero minimum prints "Up to"),
+`tempMaxRange` and `tempMinRange`; each of `wetDays`, `wetSpells` and
+`extremeSpells` also has `<name>Outlook` and `<name>Implication` text, and
+`tempMaxOutlook` and `tempMinOutlook` carry the daytime and night-time outlook.
+Looking back at Point Salines: for each of `verifyRainfall`, `verifyWetDays`,
+`verifyWetSpell`, `verifyTmax` and `verifyTmin`, `<row>Outlook`, `<row>RangeMin`,
+`<row>RangeMax` and `<row>Observed` (typed for now; observations will come from the
+eRegister, issue #991). Optional parts: `heatStress` and `extremeHeat` turn the
+temperature block into a table (the earlier issues printed two paragraphs
+instead); the eight `impact*` sector rows and `generalImplications` give the
+sector table or free text (publishing needs at least one); `triviaAnswer` and
+`triviaQuestion`. A range whose "from" exceeds its "to" is refused. The SPI
+period labels, the three-month outlook season (issued October: OND) and the
+looking-back period are derived from `month` and the issue date and are not
+stored. The intro, disclaimer and closing statement are fixed template text.
+Typed numbers are bounds-checked (evapotranspiration 0 to 20 mm/day, demand/supply
+ratio 0 to 100, counts and rainfall 0 to 10000, temperatures 10 to 45 degC; a
+non-number gets "enter a number"). The first version of the kind (`summary`,
+`rainfallComment`, `temperatureComment`, `notableEvents`, `outlook`) is gone: a
+write that still carries those keys has them ignored (as for the Marine
+Forecast), and revisions already saved with them still render, under "Earlier
+format" on the PDF and the public pages. `contacts` is an ordinary public field
+like the others: whatever is typed there (the printed bulletin lists staff
+emails) appears on the public issued page and in the public products API. The
+placeholder-wording check ("example") skips the long free-text fields and the
+advisories snapshot. The PDF is two pages; the draft preview
+(`POST /wxproducts/products/preview/pdf`) answers with `X-Sheet-Pages` and, when
+the sheet runs past two pages, `X-Sheet-Warning`, which the editor shows beside
+the preview. The precipitation and mean temperature
+maps are not stored (no image attachment exists for these products yet), so the
+sheet shows a labelled placeholder where each belongs.
+
+The **figures** for the month reviewed (rainfall, rain days, heavy-rain days,
+longest dry spell and maximum and minimum temperature) are not stored in the product: the GMS monthly climate page and
+the GAA Admin climate desk read them from `GET /api/v1/eregister/public/month-summary?month=YYYY-MM`,
+documented under "Public month summary" in the eRegister section, which also
+returns mean wind, prevailing direction and maximum gust (not shown on the climate pages yet).
 
 ## Weather authoring
 
@@ -424,10 +681,28 @@ route. Only these self-service routes accept unapproved accounts (`AccountUser`)
 `POST /auth/users/me/staff-access-request`. The last one sets
 `UserPublic.staff_access_requested_at` (idempotent); staff setup
 (`GET /setup/staff`) lists approved staff plus accounts that asked.
+HR setup under `/hr/setup/*` (staff, grades, policies, balances, catalogue,
+registration approval) is open to holders of `hr.setup.manage` for the organisation
+they administer only: the request names that organisation (`organisation_id`, or the
+department or employee it acts on), and anything else gets 404, while a missing
+organisation gets 403 (the OpenAPI 403 and 404 descriptions on these operations say the same).
+Superusers keep every organisation. Role bundles
+(`/hr/setup/roles`) and product-access policies stay superuser-only because they are
+shared across organisations (issue #1080).
 `POST /auth/token` (machine clients) still requires staff approval.
 `POST /auth/email-code/start` and `/verify` sign in to the account with a
 6-digit emailed code (the first verified code creates the account when sign-up is
-open); they open the same account session as password and Google sign-in.
+open); they open the same account session as password and Google sign-in. This is
+the sign-up path too (#958): `/signup` in the auth app asks for an email only.
+Start replies the same for known and unknown addresses and never waits on mail.
+Limits: one code per mailbox per 60 seconds, five per mailbox per hour, twenty
+per client address per hour (mailboxes fold `+tags`, and Gmail dots, before keying).
+A code sign-in confirms the email, writes an audit entry (`code_sign_in`), and on
+an unverified account clears any earlier password and revokes its sessions
+(`pw_retired`). `POST /auth/users/signup` is retired: it never creates an account; it
+answers like `email-code/start` (the same generic reply for every address) and
+sends a sign-in code. Its success response changed from 201 UserPublic to 200
+Message (breaking change, #958).
 
 Public sites registered for single sign-on (`weather`, `mbia`, `signal`, `docs`,
 `elections`) have no sign-in routes of their own and `join_prompt=False`: the
@@ -457,6 +732,19 @@ Implemented examples:
 | Account lockout after failed sign-ins | `{"detail": ...}` (429) |
 | Public weather product feed (`/wxproducts/public/*`) | `{"error": "..."}` (400, 404, 503) |
 
+An `AppException` body may also carry an optional `code` next to `detail`: a stable
+machine-readable reason that clients match on instead of the wording of `detail`
+(the roster rule warnings use `ROSTER_RULE_WARNINGS` the same way). It is additive;
+`detail` is unchanged, and the code is not part of the OpenAPI schema. Codes today:
+
+| Code | Status | Route |
+| --- | --- | --- |
+| `ATTEMPT_EXPIRED` | 409 | `POST /events/listings/{slug}/orders` (a replayed `Idempotency-Key` found an expired order) |
+| `CARD_PAYMENT_UNAVAILABLE` | 503 | `POST /events/listings/{slug}/orders` (card checkout could not start) |
+| `EVENTS_NOT_ENABLED` | 403 | the Events organiser gate, for example `GET /events/manage` (the organiser's organisation has Events switched off) |
+| `ORGANISATION_NOT_REJECTED` | 409 | `POST /events/manage/organiser/resubmit` |
+| `UPLOADS_NOT_CONFIGURED` | 503 | `POST /storage/uploads` and `POST /storage/uploads/{upload_id}/complete` |
+
 The generated FastAPI `ValidationError` schema includes optional `input` and
 `ctx` fields alongside required `loc`, `msg` and `type`. Clients must tolerate
 those optional fields; they do not change application route definitions.
@@ -464,7 +752,8 @@ those optional fields; they do not change application route definitions.
 Documented error bodies: every documented 4xx except 422 names a body schema in
 the OpenAPI document. `ApiError` (`detail: string`) covers 400, 401, 403, 404 and
 409. A 429 documents `ApiError | ErrorMessage` (`error: string`) because the
-rate limiter and the account lockout answer with different keys. Shared
+rate limiter and the account lockout answer with different keys. eRegister
+observation routes name their 422 bodies too (see eRegister below). Shared
 constants live in `src/openapi_responses.py`; `tests/test_error_response_bodies.py`
 pins the runtime bodies. The `AuthoringError` model on wxproducts authoring
 routes allows `detail` to be a list, which the runtime never sends; it is kept
@@ -611,7 +900,7 @@ address or a second pending request); moderators verify it through
 listing and approving an organiser also write `outbox` rows (same Events transaction)
 that the worker turns into notifications; no endpoint is involved.
 Admin moderation (zone `admin`, staff session): `GET /admin/moderation/organisers`
-(`?status=pending|approved|rejected`, paginated) and `GET /admin/moderation/organisers/{organisation_id}`
+(`?status=pending|approved|rejected`, paginated; `page` is 1 to 1000000 like the shared pagination, otherwise 422) and `GET /admin/moderation/organisers/{organisation_id}`
 (case with owners, listing counts and verification history) are open to superusers and
 `events.moderate` holders; `POST .../approve` and `POST .../reject` (reason required)
 need an MFA superuser and go through `organisations.service.admin_set_verified`
@@ -624,6 +913,8 @@ The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{
 `GET /events/manage/{listing_id}/activity` returns that listing's append-only history
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
+
+Status values are typed, not free text (`src/events/transitions.py` holds the lifecycles). `StaffEventRow.status` in the Barrels staff picker is the listing literal `draft | published | cancelled` (`ListingStatusName`, the same values as `ManagedListing.status`); it was an untyped string. The org-zone order and ticket statuses (`OrgOrderStatus`, `OrgTicketStatus`) and the member's order status are literals too. No value was added or removed, so this is a schema tightening, not a break.
 
 ### Events catalogue taxonomy (ADR-0046, L3)
 
@@ -753,8 +1044,9 @@ order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUT
 orders are refunded in full, unpaid holds released) cancels an event. The legacy
 `POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and
 saving a listing as cancelled never moves money. Event cancel reports `orders_refunded`
-(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`
-and `refunds_failed`.
+(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`,
+`refunds_failed` and `orders_pending` (an earlier refund of the order is still waiting for the
+payment provider: not failed, not queued again).
 
 Provider-rail (card) refunds are never sent inside a request (one may wait per order; a second is 409, and the buyer email is shown to org admins/owners only): they are queued on the outbox topic
 `events.order_refund_requested` and sent with retries; the refund id is derived from the order and
@@ -805,10 +1097,13 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   optional UTC `expires_at`), `POST /grants/{grant_id}/revoke`, and admin-only
   `GET /members/{membership_id}/issued-grants`. Entry needs some entitled product's
   `team.manage` key (owner and admin implicitly); the grant rules (hold the bundle,
-  no self-grant 403, expiry cap 422, duplicate or lost race 409) live in
+  no self-grant and no revoking one's own grant, both 403; expiry cap 422; duplicate
+  or lost race 409) live in
   `grants.py`. Responses carry display names, never emails. Removing a member also
-  revokes live grants they issued (audited with a count); a demotion only lists them.
-  `issued-grants` lists direct grants only: revocation is not transitive. Member grant
+  revokes live grants they issued, transitively, and so does a demotion (#527). Revoking
+  a grant ends the downstream grants that lose support from an owner or admin, and the
+  response's `cascaded_revocations` counts them (409 above 200 roles, nothing ended).
+  Revoking a team grant can end the grants its holder issued. Member grant
   lists show only products whose `team.manage` the caller holds. Each bundle carries a
   human `label` and `description` (`role_bundles.BUNDLE_COPY`). `GET /team/members`
   (team managers) is the paginated roster of active members: membership id, display
@@ -1026,7 +1321,7 @@ worker jobs) and to how they signed in: `actor_session` (`account` or `app`) and
 
 | Endpoint | Access and purpose |
 | --- | --- |
-| `GET /api/v1/audit/{entity_type}/{entity_id}` | Paginated history, newest first. Readable by anyone who may read the record (module read check). Sensitive field values return `masked: true` with `old`/`new` null unless the reader holds `audit.view_sensitive`. Unknown `entity_type` → 404 |
+| `GET /api/v1/audit/{entity_type}/{entity_id}` | Paginated history, newest first. Readable by anyone who may read the record (module read check). Sensitive field values return `masked: true` with `old`/`new` null unless the reader holds `audit.view_sensitive`. Masking is decided at read time: a change is masked if the row stored it as sensitive or the module marks that field sensitive today, so rows written before a field was marked (stored `sensitive: false`) are still masked. Stored rows are never rewritten. Unknown `entity_type` → 404 |
 
 HR `entity_type` values: `employee` (user id; profile, address, employment, approval
 authority), `leave_request`, `absentee_report`, `shift_swap`, `status_report`,
@@ -1071,6 +1366,30 @@ by permission keys from `src/auth/permissions.py` (`tests/auth/test_permission_r
 fails if a key used in code is missing from the catalog). Routers:
 `profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
+
+### Roster rules (#380)
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET/PUT /api/v1/hr/rosters/organisations/{organisation_id}/rule-set` | organisation-wide `roster.rules.manage` | The organisation's default roster rules (`source` is `DEFAULT` until saved). A null limit disables a rule |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rule-set` | `roster.view` in scope | The rules that apply: `source` `DEPARTMENT`, `ORGANISATION` or `DEFAULT` |
+| `PUT/DELETE /api/v1/hr/rosters/departments/{department_id}/rule-set` | `roster.rules.manage` in scope | Give a department its own rules, or return it to the organisation's |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rule-profiles`, `PUT /api/v1/hr/rosters/employees/{user_id}/rule-profile` | `roster.rules.manage` in scope | Union coverage and worker type per employee; not for your own record |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rule-overrides` | `roster.rules.manage` or `roster.manage` in scope | Saves made despite warnings: who, when, rules, reason |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rules` (deprecated) | read `roster.view`; write `roster.rules.manage` | Old shape mapped onto the rule set: consecutive days and weekly hours; `min_rest_hours` is always null |
+
+`rule_override_reason` is accepted by publish (`PATCH .../periods/{id}/publish`; the
+body is optional and an omitted body means no reason), published-roster edits
+(`POST .../assignments/bulk`), CSV and grid import, shift-exchange actions, workflow
+actions (`POST /hr/workflows/instances/{id}/actions`), leave actions, timesheet submit
+and approve (`PATCH /hr/timesheets/{id}/approve`, optional body), attendance submit and
+attendance corrections. Without it, a change that breaks a rule fails with 409 and
+`RosterRuleWarningsErrorPublic`; that model is a superset of `ApiError` (`detail`,
+plus `code: ROSTER_RULE_WARNINGS`, `context` and `violations` for rule warnings), so
+ordinary 409s on those routes keep their shape. A reason containing NUL is a 422; other control characters, Unicode bidi controls, zero-width characters and invisible padding (such as soft hyphens and filler characters) are removed. A text or emoji presentation selector (U+FE0E or U+FE0F) is kept once directly after a character, so "❤️" and keycaps such as "1️⃣" keep their glyph; a run of them, or one at the start, is removed. Zero-width joiners (U+200D) are removed, so multi-person emoji such as family sequences are stored as separate emoji.
+Shift definitions carry `break_minutes` (unpaid break, 0 to 240). `DELETE /api/v1/hr/timesheets/{id}` removes the caller's own unsubmitted draft (no approval history), so the editor can replace a draft whose submission was held for rule warnings. It needs `timesheet.submit.self` and live employment in the filing department (403 otherwise); a missing id and another user's timesheet are both 404; a submitted timesheet is 400. Entries are deleted through the ORM, so the change history records the timesheet and each entry; only a superuser can read that trail afterwards, because the record's own access check needs the deleted timesheet. Attendance week
+rows, timesheet entries and the timesheet summary carry `overtime_bands` (rate and
+hours, no pay). Details: `docs/hr/roster-rules.md`.
 
 ### Form prefill endpoints
 
@@ -1234,7 +1553,64 @@ nothing. The clock point must belong to the caller's own department. `late_minut
 `early_departure_minutes` and `overtime_minutes` are informational and not stored.
 `ClockResult` gains `punch` (with `status`); `attendance` stays but is a provisional,
 unsaved view (`attendance_id` null) until the punch is approved. Terminal punches
-(import not built yet) will count immediately and do not use this table.
+come from the terminal import below and do not use this table.
+
+### Terminal punch import
+
+ADR-0040, Decision 4: punches from the fingerprint and fob terminal count as
+attendance with no approval step. Every route needs `roster.manage` in the department
+scope. An upload accepts a ZKTeco ATTLOG text export (device user ID, then
+`YYYY-MM-DD HH:MM:SS`, then ignored columns) or a CSV with a `device_user_id,punched_at`
+header. Device times are Grenada local and stored as UTC. Only the device user ID and
+the punch time are stored, never biometric data. The terminal label is trimmed and
+lower-cased; the trimmed, lower-cased label is part of the dedupe key.
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/attendance/terminal-users` | `roster.manage` in the department scope | List a department's device ID mappings |
+| `POST /api/v1/hr/attendance/terminal-users` | `roster.manage` in the department scope and `timesheet.submit.proxy` for the employee | Map a device user ID to an employee of the department with a live employment (one ID per person, one person per ID) |
+| `DELETE /api/v1/hr/attendance/terminal-users/{terminal_user_id}` | `roster.manage` in the department scope | Remove a mapping; a mapping outside the caller's scope answers 404, as a missing one does |
+| `POST /api/v1/hr/attendance/terminal-imports` | `roster.manage` in the department scope | Upload an export (multipart `file`, `department_id`, `terminal` label). Returns counts per outcome for this upload and its attention rows (UNMAPPED, NO_SHIFT, REFUSED) only |
+| `GET /api/v1/hr/attendance/terminal-punches` | `roster.manage` in the department scope | Punches needing HR attention (UNMAPPED, NO_SHIFT, REFUSED by default), filtered and paged in SQL |
+| `POST /api/v1/hr/attendance/terminal-punches/reprocess` | `roster.manage` in the department scope | Decide again a department's UNMAPPED, NO_SHIFT, REFUSED and PENDING punches, oldest first, at most 1000 per call. `remaining` counts candidates beyond the cap |
+
+Proxy authority: every write (an arrival, a departure, a mapping) needs the HR actor to
+hold `timesheet.submit.proxy` and to pass `can_act_on_user` for the employee, including
+for their own punches. Without it nothing is written for anyone, and the punch is
+REFUSED with a plain detail. Once the authority is granted, reprocess decides it again.
+
+Each new punch is decided in time order for its person, each in its own transaction:
+
+- **UNMAPPED**: the device ID has no mapping in the department. Held for HR.
+- **REPEAT**: within 5 minutes (inclusive) of the person's last accepted scan. Ignored.
+- **ALREADY_RECORDED**: the scan is within 15 minutes (inclusive) of an arrival already
+  recorded on the open shift, or of a recorded arrival or departure, and the normal
+  decision would find no shift for it. No second record is written.
+- **RECORDED, departure**: the scan closes the person's open shift (an arrival with no
+  departure, within 24 hours) when it is before the midpoint between that shift's
+  scheduled end and the next rostered shift's start. With no next shift, any scan
+  closes it. The midpoint rule, rather than "nearer the end", is used because a seamless
+  handover has end equal to next start. A scan at or after the midpoint is an arrival,
+  and the open record stays open for HR.
+- **RECORDED, arrival**: a published work shift matched by the phone clock-in window
+  (two hours before to one hour after the start, through the end plus one hour). The
+  scan must not be nearer the shift's end than its start, and no earlier punch of the
+  same device may be undecided (UNMAPPED or PENDING) within 24 hours. A NO_SHIFT punch
+  is a final answer for HR and does not hold later arrivals.
+- **NO_SHIFT**: no published work shift matches, the scan is nearer the end, or an
+  earlier punch is undecided. Held for HR, never invented.
+- **REFUSED**: a write was refused (for example proxy authority or the shift is already
+  submitted or approved). The message is kept in `detail`, and the rest of the upload
+  still imports.
+
+Writes go through `save_attendance` as the employee, so roster, revision and audit are
+the phone-punch approval path. The import marker `Terminal import: <label>` is appended
+to the record's notes (the employee's notes are kept), so an approver sees the source.
+
+A re-upload of the same file with the same terminal label imports nothing twice; the
+unique key is department, terminal label, device ID and punch time. An upload is at most
+1 MiB and 1000 lines; bad lines are returned with their line numbers and do not stop
+the others. Mappings and roster changes are applied by reprocess, not on upload.
 
 ### Roster rule limits and check
 
@@ -1248,7 +1624,7 @@ unsaved view (`attendance_id` null) until the punch is approved. Terminal punche
 
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
-| `GET /api/v1/hr/rosters/public-holidays` | `roster.view` | List holidays, optionally by `year` |
+| `GET /api/v1/hr/rosters/public-holidays` | `roster.view` | List holidays, optionally by `year` (2000-2100; outside that range returns 422) |
 | `POST /api/v1/hr/rosters/public-holidays` | global `roster.manage` | Add a holiday (optional `source`, `needs_verification`) |
 | `PUT /api/v1/hr/rosters/public-holidays/{holiday_id}` | global `roster.manage` | Edit name, date, source or verification flag; a date already in use returns 400 |
 | `POST /api/v1/hr/rosters/public-holidays/provisional` | global `roster.manage` | Add the provisional Grenada calendar for `year` (2000-2100), skipping dates already present; rows carry `source` "provisional - verify with GAA HR" |
@@ -1348,7 +1724,30 @@ these anonymous endpoints:
 | `GET /api/cap/{identifier}.xml` | Latest CAP XML snapshot for an identifier |
 
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
-`POST /alerts/{id}/publish` accepts only an `APPROVED` alert with a recorded approval, which the author may give (409 otherwise; owner decision 2026-10-23, ADR-0023 amendment). `POST /alerts/{id}/reviews` (`{"outcome": "reviewed" | "changes_requested", "note": "..."}`, permission `cap.alert.approve`) records an optional colleague review by someone other than the author (403 for the author, 409 unless the alert is Submitted or Approved); it never changes the alert's state. Asking for a review is the submit step; `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
+`POST /alerts/{id}/publish` accepts only an `APPROVED` alert with a recorded approval, which the author may give (409 otherwise; owner decision 2026-10-23, ADR-0023 amendment). `POST /alerts/{id}/reviews` (`{"outcome": "reviewed" | "changes_requested", "note": "..."}`, permission `cap.alert.approve`) records an optional colleague review by someone other than the author (403 for the author, 409 unless the alert is Submitted or Approved); it never changes the alert's state. Asking for a review is the submit step; `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). A failed duty-supervisor notice about a schema mismatch is logged and never stops the send, publish or cancel. Editing a Submitted or Approved alert returns it to `DRAFT`.
+
+`GET /api/v1/cap/gms-catalogue` (permission `cap.alert.read` or `app.weather.access`, either desk) returns the GMS warning catalogue: the hazard groups and event names, the category labels (`category_labels`: a list of `{key, label}` objects, one per CAP category), the parish geocodes (`ISO3166-2:GD`), and the product and colour rules (MeteoAlarm awareness code and CAP severity per colour). It is read-only; the desk reads it instead of keeping its own copy. The rules change only through a reviewed code change.
+
+A normal publish checks the generated XML against the official OASIS CAP 1.2 schema (`src/cap/standards`) and refuses a non-conforming document with 422 (the message begins `CAP XML does not conform`). Emergency publish (`POST .../emergency-publish`) and cancellation (`POST .../cancel`) are never blocked by a schema mismatch: the warning goes out, the mismatch is recorded in the audit entry (`schema_mismatch`), logged as an error, and sent to the duty supervisor. This is an audited path, not an approval bypass. When an emergency publish goes out past a mismatch, the response's `snapshot.schema_mismatch` carries the first problem (null otherwise), so the desk can say the warning was published with a format problem.
+
+`POST /api/v1/cap/alerts/{id}/updates` (permission `cap.alert.create`) starts an Update of a published Alert or Update: a Draft with `msg_type: Update` that copies the content, keeps the status, sender and scope, and references the original (its stored `sent`, exactly). It goes through the normal approval; publishing it supersedes the original. 201 for a new draft, 200 with the existing one when an Update of that alert is already being prepared (draft, submitted or approved). 409 when the alert is not published, is not an Alert or Update, or was imported; 422 when it does not follow the CAP 1.2 schema. The original's audit trail records `update_started`.
+
+CAP feed sources (`POST /api/v1/cap/feeds`, `PATCH /api/v1/cap/feeds/{id}`, permission `cap.feed.manage`) accept only an https URL on port 443 (an explicit `:443` is fine) with a host and no credentials, and no literal private or local host. `PATCH` checks the URL only when it changes. A feed saved on plain http earlier is flagged (`insecure_since`, `grace_ends_at`, `grace_expired` on `CapFeedImportPublic`), keeps being fetched for 14 days from the flag, then is skipped (`last_error` `plain http no longer allowed`) and not deleted. The check runs at save and does no DNS lookup. A refused URL is a 422 with one generic message that does not name the host. A feed's `last_error` is a generic class message (`host refused`, `could not fetch` or `ingest failed`); the detail is in the server log.
+`PATCH /api/v1/cap/settings` accepts `web` only as one https address and `contact` only as plain text (no control characters, line breaks or angle brackets); other values are a 422. Settings changes are recorded in the CAP audit trail as changed field names with old and new values, except `signing_certificate_ref`, which is masked.
+
+An import (`POST /api/v1/cap/alerts/import`, feeds too) is refused only when it is malformed XML or contains a DTD (400). Any other problem is stored: `schema_conformant: false`, with every problem in `schema_error`. An import changed to be storable is flagged the same way and lists each change. `import_source` is `feed` or `manual`. Publishing an imported alert, normally or in an emergency, needs `confirm_imported: true` in the request body (409 without it). Save-time checks (422, naming the value): a `responseType` outside the nine CAP values, a `language` that is not an xs:language tag, a `web` address with spaces, quotes or angle brackets, a character XML cannot carry (vertical tab and form feed become newlines), and a non-finite altitude, ceiling or coordinate. The import body is capped at 5 MB.
+
+`sent` is the time an alert went out: publish (normal and emergency) stamps it, and so do cancellations. The drafting time is not kept. The CAP settings `wmo_oid` must be a WMO OID of the form `2.49.0.1.<country>.<authority>` (digits and dots only); anything else is a 422.
+
+The public routes (`/api/cap/alerts`, `/alerts/{identifier}`, `/past`, `/latest-active`) return `CapAlertPublicView`, which drops `schema_conformant`, `schema_error`, `import_source`, `created_by_user_id` and `updated_by_user_id` (who created or changed an alert is not public). `note` stays: the CAP XML publishes it too. Staff routes return the full `CapAlertPublic`. `GET /api/v1/cap/alerts/by-identifier/{identifier}` (`cap.alert.read`) is the staff detail lookup by CAP identifier, including drafts and imports. Staff alerts carry `allowed_actions`: the actions their `lifecycle_state` allows (`submit`, `approve`, `publish`, `emergency_publish`, `cancel`, `expire`), from the table in `src/cap/transitions.py`. It depends on the state only, so the permission and approval-policy checks still apply when an action is requested.
+
+Feeds and URL imports are fetched only over https (plain http only for a registered feed that uses it), through a helper that connects to the address the host check validated, rebuilds the URL from parsed components, does not follow redirects, and caps the body at 5 MB.
+
+Save-time checks (422, naming the value): `responseType` must be one of the nine CAP values, `language` must be an xs:language tag, and `web` must be one address with no spaces, quotes or angle brackets.
+
+`GET /api/v1/cap/statistics?start=&end=&hazard=` (permission `cap.alert.read`) counts published warnings (`published_at` set, so expired and cancelled ones count; status `Actual`, message type `Alert`; updates, cancellations, exercises and tests are left out) by CAP event (`by_hazard`, only events that occur), GMS colour (`by_colour`: green, yellow, orange, red and `unassigned`, always all five; a warning counts once, at its highest colour across its information blocks, so the colour table adds up to `total`; the `awareness_level` value is read with the spellings `levels.parse_awareness` accepts, so surrounding whitespace (any Unicode space, including no-break and ideographic spaces) and the case of the colour word do not matter; an Outlook block (its last `GMS:product` is `Outlook`) has no colour, so its `awareness_level` is not counted, as the public feed reads it; a block whose stored parameters are not a JSON array, such as null, has no colour; within one block the highest `awareness_level` value counts, whereas the public feed's `levels.read_level` takes the last, so the two differ only when a block repeats the parameter), parish (`by_parish`: the seven catalogue parishes and `no-parish`, always all eight) and month (`by_month`, every month in the period, keys `YYYY-MM`). `start` and `end` are Grenada-time days, inclusive; they default to twelve months back and today (a default start is never before 2000-01-01, so `end` alone works for an early end date), and the response echoes the period used. `hazard` is an exact CAP event. A warning counts once in `total` and `by_colour` however many information blocks or areas it has; a warning with several hazards (one per information block) counts once in each hazard, and one covering several parishes counts in each. 422 when `start` is after `end`, when `start` is before 2000-01-01, when `end` is more than a year after today, or when the period is longer than 3660 days (about ten years), where the length is `end` minus `start` in days. `GET /api/v1/cap/statistics/export.csv` takes the same parameters and returns the same counts as `text/csv; charset=utf-8` with an attachment filename, columns `table,key,label,count` (first data row is the total); text starting with `=`, `+`, `-` or `@` is prefixed with `'` so a spreadsheet does not run it. The warning desk downloads it through `/desk/statistics/export`.
+
+The integrations response (`GET /api/v1/cap/integrations`) lists `publish_channels`: MQTT and WIS2 report `not_configured`, and no job is queued for them. Each MQTT broker row carries `delivery: not_configured`.
 
 Only Public alerts with `status=Actual` create CAP publish side-effect jobs. The
 worker also skips previously queued jobs for any other status or scope, so an
@@ -1411,7 +1810,7 @@ Leave balances come only from the append-only `hr.leave_balance_event` ledger, w
 
 ### Employee membership and account security
 
-Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `EmploymentPublic`, `EmploymentRecordPublic` (the admin read) and `EmploymentUpdate` carry `end_date` (last day of employment, #797; null clears it, and it cannot precede `start_date`). That date is the last day of employment: roles work through it and stop at midnight Grenada time after it, and a daily job then sets the status to `TERMINATED`. Changing an end date (setting, moving or clearing it) on someone who holds live organisation-wide roles needs organisation-wide `hr.employment.manage` (403 otherwise). A change of `department_id` to another department ends the person's live roles in that organisation (#797); see `apps/api/fastapi/src/hr/AGENTS.md`. `GET /api/v1/auth/users/me/security` returns current-account security status and active-session metadata (app, client type, recorded `user_agent` and `ip_address`, last-used and expiry times), never bearer tokens, session secrets or TOTP secrets. The IP and user agent are shown only to the account owner so they can recognise their own devices. The response also carries `password_changed_at` (null until the password is next changed, reset or set up after the column shipped). Password and Google sign-in remember the browser/OS family of each device (`user.known_device_keys`, capped at 20); a sign-in from an unfamiliar family after the first ever device emails the account owner a "New sign-in" alert in the background, linking to `/sessions`. Alert failures are logged and never block sign-in. Existing `/auth/users/me/security/2fa/setup` and `/auth/users/me/security/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
+Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `EmploymentPublic`, `EmploymentRecordPublic` (the admin read) and `EmploymentUpdate` carry `end_date` (last day of employment, #797; null clears it, and it cannot precede `start_date`). That date is the last day of employment: roles work through it and stop at midnight Grenada time after it, and a daily job then sets the status to `TERMINATED`. Changing an end date (setting, moving or clearing it) on someone who holds live organisation-wide roles needs organisation-wide `hr.employment.manage` (403 otherwise). A change of `department_id` to another department ends the person's live roles in that organisation (#797); see `apps/api/fastapi/src/hr/AGENTS.md`. `GET /api/v1/auth/users/me/security` returns current-account security status and active-session metadata (app, client type, recorded `user_agent` and `ip_address`, last-used and expiry times), never bearer tokens, session secrets or TOTP secrets. The IP and user agent are shown only to the account owner so they can recognise their own devices. The response also carries `password_changed_at` (null until the password is next changed, reset or set up after the column shipped). Password and Google sign-in remember the browser/OS family of each device (`user.known_device_keys`, capped at 20); a sign-in from an unfamiliar family after the first ever device emails the account owner a "New sign-in" alert in the background, linking to `/sessions`. Alert failures are logged and never block sign-in. Existing `/auth/users/me/security/2fa/setup` and `/auth/users/me/security/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator. For a privileged account (`privileged_mfa.is_privileged`) setup also emails a one-time code to the account (issue #625): setup returns `email_code_required: true`, and activate needs that code as the optional `email_code` field alongside the TOTP `code`. Wrong or missing codes are 400; five wrong codes lock the enrolment for 30 minutes and setup then starts again. Setup is limited to three codes per account in 15 minutes and ten per 24 hours (429); a code counts only once its email is sent. The code expires after ten minutes. Changing the email of a privileged account with no authenticator is refused (403, `email_change_blocked`).
 
 Managed HR workflows must be created through their form submission endpoints. Public generic workflow creation cannot attach a new workflow to a managed HR record. Finalization validates the record's authoritative workflow and department before status or balance changes. The dashboard honours `roster.view` for department data and preserves personal roster access when that permission is absent.
 
@@ -1420,7 +1819,7 @@ HR form submission dates: leave, shift swap, absentee, daily status and parking 
 
 ### Registration approval and recovery
 
-Public signup creates an active but `registration_pending` account and sends a verification email; verification is recorded (`email_verified_at`) but never blocks sign-in, joining, app access or staff approval (16 October 2026). `ALLOW_PUBLIC_SIGNUP` defaults to true; explicitly setting it false closes registration. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied. Signup accepts passwords of 12–128 characters and ignores privilege fields. Verification delivery failure preserves the pending account so verification can be requested again.
+Public sign-up no longer creates accounts from a password (#958). `POST /auth/users/signup` answers like `email-code/start` and sends a sign-in code; the first verified code creates a self-service `registration_pending` account. A code sign-in confirms the email (`email_verified_at`); verification never blocks sign-in with a password, joining, app access or staff approval (16 October 2026, updated 31 October 2026). `ALLOW_PUBLIC_SIGNUP` defaults to true; setting it false closes code sign-up. The first verified code for an unverified self-registered account clears any password, authenticator, recovery codes, remembered devices, external identities and API keys, revokes its sessions and audits `pw_retired`; administrator-created and admin-activated accounts are not affected. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied.
 
 An administrator saves department/grade membership and issues the permanent staff credential, then calls `POST /api/v1/hr/setup/staff/{user_id}/approve-registration`. Approval requires active employment and a non-revoked credential, grants the existing `staff` role with self scope, and writes an audit entry. It does not infer management privileges from a grade. Missing employee number, employment type or start date does not block credential activation; `StaffCard.employment_ready` reports this separately from account approval and email verification. HR submission readiness rules still apply.
 
@@ -1857,7 +2256,7 @@ decoded into public units: temperature/dew point (°C), relative humidity (Magnu
 wind (compass, kt, mph; `wind_calm`), MSL pressure (hPa) with 3-hour trend,
 precipitation with its period (trace flagged), 24-hour rainfall, plain-English
 present weather and cloud cover. `status` is `provisional` until the reading is
-`accepted`, following real-time practice; weather.gd labels it so. Staff fields
+`accepted` (`historical` for an imported archive record), following real-time practice; weather.gd labels it so. Staff fields
 (actor, QC notes, raw TAC, WIS2 data) never leave `src/eregister/public.py`. No
 reading returns `{"observation": null}`; an unavailable register returns 503.
 
@@ -1873,6 +2272,18 @@ of one daily total per UTC date, taken from the 24-hour rainfall group (RRR, tra
 `rain_day_threshold_mm`). Temperature extremes are the highest/lowest of the
 section 3 maximum/minimum groups and decimal air temperatures, with the time of
 each. `provisional` is true unless every contributing reading is `accepted`.
+Climpact figures (owner, 1 Nov 2026) come from the same daily totals:
+`heavy_rain_days` counts totals of at least 10 mm (R10mm,
+`heavy_rain_threshold_mm`); `longest_dry_spell_days` with its
+`longest_dry_spell_start`/`_end` dates and `current_dry_spell_days` count
+consecutive reported days under 1 mm (CDD, `dry_day_threshold_mm`), a day with no
+total breaking a run, and the current spell ending at the latest reported day (0
+when it was wet, `null` when that total is more than a day older than the period's
+last day). Wind is decoded per reading like `/public/current`:
+`mean_wind_kt` averages reported speeds with calm as 0 kn,
+`prevailing_wind_direction` is the most frequent 8-point direction of non-calm
+readings, and `max_gust_kt`/`max_gust_at` give the strongest gust. All are
+additive and `null` when not reported.
 `rain_report_days` out of `days_elapsed` shows completeness. No readings returns
 `{"summary": null}`; unreported figures are `null`, never zero.
 
@@ -2036,14 +2447,26 @@ is a warning (`unused_supplementary`) until it is confirmed against Vol. I.1. Th
 endpoint does not save, publish, or
 transmit an observation; `POST /api/v1/eregister/observations` stores a
 draft (validated, see below). `GET /api/v1/eregister/observations` filters by
-`station_id`, `kind`, `state`, `reviewed` and an exact `observed_at` (the record
-occupying an hour), and pages with `limit` and `offset` (`offset` above 10 million is
+`station_id`, `kind`, `state`, `reviewed`, an exact `observed_at` (the record
+occupying an hour) and a time range `observed_from` (inclusive) to `observed_to`
+(exclusive), both UTC, and pages with `limit` and `offset` (`offset` above 10 million is
 `422`). A refused WIS2 or email hand-off after acceptance is stored as a `failed`
 send with the reason in `last_error`. Correcting an observation (`POST .../{id}/correct`) holds any queued WIS2 file of
 the replaced observation (status stays `queued`, `last_error` "Held while a correction
 is pending"): accepting the correction drops the held file (`failed`, "Replaced by a
 correction before it was delivered"); rejecting the correction releases it so the
 original reading is retried as before.
+
+`POST .../{id}/bufr-override` (`eregister.qc`, never the observer of the observation or
+of any observation it corrects) records a reviewer
+override of a failed or mismatched BUFR check with a required reason of 10 to 500
+characters after cleaning. It lets email and WIS2 send that record as it is; the
+record's message and validity do not change, and a correction or a re-encoding ends it.
+`409` when the check passed or the observation is rejected or superseded. The override
+is stored as `bufr.override` (`by`, `by_name`, `at`, `reason`, `record_sha256`) and audited
+(reason and `record_sha256`). Rejecting a correction restores the original with its
+override, which applies again while it still matches that record. `bufr` and `iwxxm` on
+create and correct bodies are read-only and ignored on write.
 
 `POST .../{id}/review` takes an optional `updated_at`, the value the reviewer saw
 when opening the record (to the second). If the record was saved or decided since (accept, reject and reopen also move
@@ -2055,6 +2478,23 @@ Recording and reading the register (`POST` and `GET
 `eregister.observe` (role `eregister-observer`), `eregister.qc` or
 `eregister.send`; anyone else gets `403`. A saved SYNOP shows on the public
 weather site as provisional, so a signed-in account alone is not enough.
+
+*Historical records (additive, 11 Nov 2026).* Register state `historical` marks imported
+archive records (the hourly sheet importer with `--historical`, or the one-off
+`scripts/mark_imported_historical.py` for drafts it saved earlier). They are official
+as recorded: never sent (email and WIS2 answer `409` whatever
+`EREGISTER_SEND_REQUIRE_ACCEPTED` says), never in the acceptance queue
+(`state=draft,qc_pending`), cannot be accepted, rejected or reopened, but can be reviewed
+(`reviewed` or `query` with a note) and corrected (the original becomes `superseded`; the
+correction is saved as `historical` too). The `state` filter of the list accepts
+`historical`. `POST /api/v1/eregister/observations/review-day` (`eregister.qc`) takes
+`station_id`, `date` (a Grenada local day, `YYYY-MM-DD`), `outcome` (`reviewed` or
+`query`) and a `note` (required for a query); it marks every reviewable SYNOP of that
+day (historical, draft, qc_pending and accepted) that is not yet reviewed, skips the
+reviewer's own records and records already reviewed, audits each mark, and answers
+`{reviewed, skipped_own, skipped_already}`. Problems in a record do not exclude it. The call has no `updated_at` version check (a bulk action: records changed after the reviewer loaded the day are still marked), and it needs `eregister.qc`, while the single review also accepts `eregister.observe` and `eregister.send` holders. A correction of a historical record is saved as `historical`, so it is never sent or queued for acceptance. `GET .../public/current` ignores historical records.
+Public `PublicObservation.status` gains `historical`, and a month summary's
+`provisional` flag does not count historical records as provisional.
 
 #### eRegister entry rules (owner decisions, 23 Oct 2026)
 
@@ -2146,7 +2586,13 @@ person. Accepting validates the workbook (`422`) and then queues the WIS2 file
 and the email at once (best effort: a refused hand-off, for example an hour the
 automatic source owns, never undoes the acceptance; see `GET .../sends`).
 `reject` and `reopen` need a reason; `reopen` (and `reject`) is `409` once a WIS2
-file was queued or sent. Rejecting a correction (a row with `supersedes_id`)
+file was queued or sent. The staff `RegisterObservationRead` carries
+`allowed_actions`: the QC actions its state allows (`accept`, `reject`, `reopen`,
+`correct`; `accept` only for a SYNOP), from the table in
+`src/eregister/transitions.py`. It depends on the state and kind only, so a WIS2
+file or email already queued or sent can still refuse `reject`, `reopen` or a
+re-save with `409`, and the permission and four-eyes checks still apply. The
+anonymous `public/*` routes do not carry it. Rejecting a correction (a row with `supersedes_id`)
 releases the held WIS2 file of the observation it replaced and, in the same
 transaction, puts that `superseded` observation back to the state it had before
 (`accepted`, or `draft`/`qc_pending` for a never-accepted one) with its own QC
@@ -2165,8 +2611,15 @@ warnings included) and `actor_name` (who recorded it).
 
 `POST /observations` validates a SYNOP: errors (including a keyed day or hour that
 differs from `observed_at` in UTC) are `422` with `detail.message` and
-`detail.issues`; warnings pass. There is one live observation per station, time
-and kind (partial unique index): saving again as the observer of an unsent draft
+`detail.issues` (`EregisterValidationError`; the same body on `correct` and
+`accept`); warnings pass. On those routes the 422 is documented as
+`EregisterValidationError | ValidationErrorResponse`, since a malformed request
+answers the request validation body instead. Review, reject, reopen, email and
+publish document `ApiError | ValidationErrorResponse`, because their 422 detail
+is a string.
+
+There is one live observation per station, time and kind (partial unique
+index): saving again as the observer of an unsent draft
 updates it in place (`200`, same `id`); otherwise `409`.
 `POST .../{id}/correct` (body `{"body": {...}, "reason": "..."}`, `201`) saves a
 replacement that supersedes the observation (`supersedes_id`); the old row
@@ -2175,8 +2628,9 @@ it is rejected or already superseded. Accepting a replacement of an hour already
 sent to WIS2 sends a correction (`ObservationSend.is_correction`; the email is
 marked `CORRECTION` with a `CCA` line). `POST .../validate-synop` also takes an
 optional `observed_at` to run the same time check. `.../publish` (WIS2) answers
-`409` unless the observation is `accepted`; `.../email` still accepts a validated
-draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set. Every decision and review
+`409` unless the observation is `accepted`; `.../email` also answers `409` unless the
+observation is `accepted` (`EREGISTER_SEND_REQUIRE_ACCEPTED`, default true; false lets a validated
+draft be emailed). Every decision and review
 is audited (`eregister_observation`).
 
 ### GAA operational catalogues
@@ -2247,6 +2701,9 @@ cd ../..
 pnpm generate:api-client
 pnpm check:drift
 ```
+
+The full generated list of routes, with zone, auth and operation IDs, is in
+`docs/api/routes.md`; regenerate it with `pnpm generate:api-routes`.
 
 Operation IDs use a stable domain-prefixed camel-case convention such as
 `capGetAlert`, `hrCreateLeaveRequest`, and `authLogin`. They are unique public
@@ -2497,7 +2954,9 @@ system administrators retain full CMS access.
 - `POST /api/v1/auth/onboarding/{user_id}/admin-activate` (`authAdminActivateAccount`): superuser with an enrolled authenticator vouches for an existing active, non-superuser account (also one with `email_verification_required` true). Body `{reason, expected_email}` (reason 10 to 500 characters; `expected_email` must equal the account's address or the call is refused with 409, and it is stored in the audit entry). Clears `email_verification_required` and writes the `account_activation`/`activated` audit entry (actor, reason, `admin_override`), so `require_verified_or_admin_activated` passes (staff role, owner/admin membership); `email_verified_at` stays empty and the deposit and organiser-request gate (`require_verified_email`) still refuses. Idempotent (a repeat writes an `admin_activate_noop` audit entry); returns the onboarding status (`admin_activated`). 409 for inactive or superuser targets.
 - `POST /api/v1/auth/onboarding/{user_id}/resend-verification` (`authAdminResendVerification`): same caller rule and body; rate limited (5/minute). Sends the existing verification email again and answers `{delivered, message}` (`delivered: false` when mail is unconfigured or fails); audited as `resend_sent` / `resend_failed`.
 - `DELETE /api/v1/auth/onboarding/{user_id}/activation` (`authRevokeActivation`): superuser revokes outstanding links.
-- `POST /api/v1/auth/onboarding/activate` (`authConfirmActivation`): public, rate-limited; takes the one-use token and a 12–128 character password. Requires an active eligible target and an active superuser issuer, unchanged email and credentials. Atomically consumes proof, sets password, clears password setup/email requirement, revokes sessions and outstanding challenges. Does not verify email, approve pending staff, grant roles, change CMS access or reset MFA.
+- `POST /api/v1/auth/onboarding/{user_id}/sign-in-setup` (`authIssueSignInSetup`): holder of `user.manage` in scope (or a superuser) with an MFA-verified session (`get_current_mfa_user_manager`, enforced in every environment). Requires `identity_confirmed: true`; returns the same private-fragment URL shape (`/activate#token=`) and expiry once with `Cache-Control: no-store`. Valid for 24 hours, one use, replaces earlier sign-in links. Body `{identity_confirmed, reason?}`: a reason is required unless the email is unverified or password setup is pending, and must be 3 to 500 characters, or at least 10 when the email is verified (422 otherwise; 400 when identity is not confirmed). It is stored in the audit row as a sensitive field, so readers without `audit.view_sensitive` see it masked. Anyone privileged, holding `user.manage` or a department-manager-or-above role, or holding a permission the caller lacks, is refused (403) unless the caller is a superuser, as is a privileged account without an authenticator. A courtesy notice without the link goes to the address on file on issue and on completion. Out-of-scope and unknown ids return 404; the caller's own account, owners (unless the caller is a superuser), and inactive or ended-employment accounts are refused (403/409); 429 when the per-administrator (20 per hour) or per-account (5 per hour) limit is reached. Counters read the `sign_in_setup`/`issued` audit rows. Never verifies email, changes `email_verification_required`, grants roles or app access, or reveals the password to the administrator.
+- `DELETE /api/v1/auth/onboarding/{user_id}/sign-in-setup` (`authRevokeSignInSetup`): same caller rule; cancels outstanding sign-in setup links (404 outside scope).
+- `POST /api/v1/auth/onboarding/activate` (`authConfirmActivation`): public, rate-limited; takes the one-use token and a 12–128 character password. Accepts both administrator activation links (`staff_activation`, 30 minutes) and sign-in setup links (`sign_in_setup`, 24 hours), dispatching on the challenge purpose. Requires an active eligible target and an active superuser issuer (activation) or an issuer still holding the scope and eligibility checks (sign-in setup), unchanged email and credentials. Atomically consumes proof, sets password, clears password setup (and, for activation, the email requirement), revokes sessions and outstanding challenges. Sign-in setup confirmation also revokes Google identities, remembered devices and API keys the account created (the squatting-retirement clean-up, #984), and keeps the authenticator and recovery codes. Does not verify email, approve pending staff, grant roles, change CMS access or reset MFA.
 
 Activation is limited to incomplete or unverified non-superuser accounts. Established verified accounts use the existing recovery process. Issuance, revocation and completion are audited under `account`; links and passwords are excluded from history. No new database migration is required: challenges, account flags and audit storage already exist.
 
@@ -2631,6 +3090,35 @@ Events stores the resulting file ids: `ListingUpsert.image_file_id`,
 `PUT /events/manage/organiser/logo` (`{file_id}`, null clears), returned as
 `ListingCard.image_file_id` and `OrganiserPublic.logo_file_id`. A new id must be a
 completed upload of that organiser's organisation and purpose, else 409.
+
+## Profile photos (#1303)
+
+The `/me` routes accept an account token or a session of the account app
+(`account.barrels.gd`, ADR-0057; `OwnAccountUser` in `src/dependencies.py`);
+every other route refuses app sessions.
+
+A Barrels account's own photo, stored in `public.user_image` (one per person)
+as 64, 256 and 512 pixel square WebP images. The person uploads and replaces it,
+with no approval step. Everyone who shares an organisation with them sees it:
+an active membership of the same active platform organisation, or active
+employment in the same HR organisation.
+
+| Call | Behaviour |
+| --- | --- |
+| `GET /profile-images/me` | `{user_id, version, updated_at, sizes}`; 404 without a photo |
+| `PUT /profile-images/me` | The image itself as the request body, `Content-Type` `image/jpeg`, `image/png` or `image/webp` (415 otherwise; the real format is read from the bytes, so the generated client's fixed `image/jpeg` works for all three). Up to 5 MB, refused (413) as soon as the declared or streamed size passes it, never buffered. At least 32 pixels a side and at most 16 megapixels (422 otherwise, with the reason). Turned upright, cropped square, stored as WebP with no metadata (no EXIF or GPS location). Replaces and deletes the previous photo; `version` changes. 503 without storage settings |
+| `DELETE /profile-images/me` | 204; 404 without a photo |
+| `GET /profile-images/me/image?size=64\|256\|512` | Your own photo: 307 to a 5-minute presigned GET (same caching as below); 404 without one. For the account app, whose sessions cannot read other people's photos |
+| `GET /profile-images/org/{user_id}?size=64\|256\|512` | 307 to a 5-minute presigned GET, `Cache-Control: private, max-age=240`, `Vary: Authorization, Cookie` (default size 256; others 422). The person, superusers and people sharing an organisation only; a hidden photo and a missing one are the same 404 (cached privately for 60 s), so show initials |
+| `DELETE /profile-images/org/{user_id}` | Removes an unsuitable photo: `hr.employment.manage` over the person (or superuser), never your own (use `/me`). 403 otherwise. Recorded as `profile_image` in the person's employee history |
+
+Errors 413, 415, 422 and 503 carry the usual `{detail}` body. The upload body is
+the named `BinaryFile` schema (the OpenAPI build names every inline binary
+request body), so the client sends a `Blob` or `File`.
+
+`ProfileIdentityPublic.avatar_url` (HR profile) is the same-origin link
+`/api/v1/profile-images/org/{user_id}?size=256&v=<version>`, or null. Deleting
+an account deletes its photo row (`ON DELETE CASCADE`) and its stored files.
 
 ## Outbound webhooks (PF6, ADR-0029)
 

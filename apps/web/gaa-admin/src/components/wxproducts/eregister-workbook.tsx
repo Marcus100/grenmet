@@ -1,11 +1,19 @@
 "use client";
 
+import type { SynopValidationIssue } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { CircleAlert, Mail, Save, Send, TriangleAlert } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import {
+  CircleAlert,
+  CircleCheck,
+  Mail,
+  Save,
+  Send,
+  TriangleAlert,
+} from "lucide-react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 
 const COPY_FEEDBACK_MS = 2000;
@@ -18,13 +26,25 @@ interface Station {
   position: string;
 }
 
-interface ValidationIssue {
-  field: string;
-  message: string;
-  severity?: "error" | "warning";
-}
+type ValidationIssue = SynopValidationIssue;
 type Status = "idle" | "checking" | "valid" | "invalid" | "error";
 type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+/** Save and approve in one step; notes (warnings) ask for a confirmation first. */
+export interface ApprovalController {
+  /** An approval run is going on: the form is locked until it ends. */
+  busy: boolean;
+  /** Back to editing without approving. */
+  cancel: () => void;
+  /** Go ahead with the notes the observer has seen. */
+  confirm: () => void;
+  message: string | null;
+  /** Check, save and (after confirming any notes) approve. */
+  start: () => void;
+  status: "idle" | "confirming" | "working" | "approved" | "error";
+  /** How many notes the confirmation is about. */
+  warningCount: number;
+}
 
 import { type StationSettings, withDerived } from "./eregister-derived";
 import {
@@ -52,6 +72,9 @@ import {
 } from "./eregister-ui";
 
 interface Props {
+  approval?: ApprovalController;
+  /** Why emailing is not possible now (the observation is not accepted); null when it is. */
+  emailBlocked?: string | null;
   expectedMetar?: string | null;
   issues: ValidationIssue[];
   metarPreview: string;
@@ -121,7 +144,7 @@ function SendStatus({ send }: { send: SendController }) {
       {send.confirming && (
         <fieldset
           aria-label="Confirm send"
-          className="flex flex-wrap items-center gap-3 rounded-md border border-border border-l-4 border-l-primary bg-card px-3 py-2"
+          className="border-border border-l-primary bg-card flex flex-wrap items-center gap-3 rounded-md border border-l-4 px-3 py-2"
         >
           <p>
             {send.repeat
@@ -161,10 +184,61 @@ function SendStatus({ send }: { send: SendController }) {
   );
 }
 
+/** The confirmation for approving with notes: focus starts on the safe choice. */
+function ApprovalConfirm({
+  approval,
+  busy,
+}: {
+  approval: ApprovalController;
+  busy: boolean;
+}) {
+  const goBack = useRef<HTMLButtonElement>(null);
+  // Focus the safe choice once, and always call the latest cancel.
+  const latestCancel = useRef(approval.cancel);
+  latestCancel.current = approval.cancel;
+  useEffect(() => {
+    goBack.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") latestCancel.current();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+  const notes = approval.warningCount === 1 ? "note" : "notes";
+  return (
+    <div
+      aria-describedby="eregister-approval-text"
+      aria-label="Confirm approval"
+      className="border-border border-l-warning bg-card space-y-2 rounded-md border border-l-4 px-3 py-2 text-sm"
+      role="alertdialog"
+    >
+      <p id="eregister-approval-text">
+        This observation has {approval.warningCount} {notes} (listed above).
+        Approving saves it and queues it for WIS2 and email.
+      </p>
+      <div className="flex gap-2">
+        <Button disabled={busy} onClick={approval.confirm} type="button">
+          Approve anyway
+        </Button>
+        <Button
+          onClick={approval.cancel}
+          ref={goBack}
+          type="button"
+          variant="outline"
+        >
+          Go back
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function ERegisterWorkbook({
   station,
   values,
   observedAt,
+  approval,
+  emailBlocked = null,
   issues,
   validationStatus,
   saveStatus,
@@ -228,10 +302,10 @@ export function ERegisterWorkbook({
         const keys = upper ? [upper.key] : columnKeys(column);
         const severity = keys
           .map((k) => issueSeverity(issues, k))
-          .reduce(
+          .reduce<"error" | "warning" | undefined>(
             (worst, next) =>
               worst === "error" || next === "error" ? "error" : (worst ?? next),
-            undefined as "error" | "warning" | undefined
+            undefined
           );
         if (column.computed && layer === "lower") {
           // Calculated from other entries (visibility code, dew point, humidity).
@@ -239,7 +313,7 @@ export function ERegisterWorkbook({
             <Input
               aria-label={`${column.label} (${column.code}), calculated`}
               className={cn(
-                "h-9 cursor-default rounded-none border-0 bg-muted px-0.5 text-center font-mono text-body-sm text-muted-foreground shadow-none",
+                "bg-muted text-body-sm text-muted-foreground h-9 cursor-default rounded-none border-0 px-0.5 text-center font-mono shadow-none",
                 column.signed?.role === "sign" ? "w-10" : "w-12"
               )}
               readOnly
@@ -268,7 +342,7 @@ export function ERegisterWorkbook({
                 : `${column.label} (${column.code})`
             }
             className={cn(
-              "h-9 rounded-none border-0 border-transparent border-b-2 bg-muted/40 px-0.5 text-center font-mono text-body-sm shadow-none hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-inset",
+              "bg-muted/40 text-body-sm hover:bg-muted/70 h-9 rounded-none border-0 border-b-2 border-transparent px-0.5 text-center font-mono shadow-none focus-visible:ring-2 focus-visible:ring-inset",
               width,
               severity === "error" &&
                 "border-destructive bg-destructive/10 text-destructive",
@@ -320,147 +394,199 @@ export function ERegisterWorkbook({
       </div>
 
       <form className="flex flex-col gap-6" onSubmit={onSubmit}>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-stretch gap-4">
-            {REGISTER_SECTIONS.slice(0, 1).map(renderTable)}
-            <SectionCard
-              action={<Badge variant="light-info">Draft · QC required</Badge>}
-              className="w-fit max-w-full"
-              title="Observation"
-            >
-              <dl className="space-y-3 p-4 text-sm">
-                <div>
-                  <dt className="font-medium">{station.name}</dt>
-                  <dd className="text-muted-foreground">
-                    Station {station.number} ({station.icao}) ·{" "}
-                    {station.position}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Observation hour</dt>
-                  <dd className="font-medium tabular-nums">
-                    {observedAt.replace("T", " ")} UTC
-                  </dd>
-                </div>
-              </dl>
-            </SectionCard>
-          </div>
-          {REGISTER_SECTIONS.slice(1).map(renderTable)}
-          <div className="flex flex-wrap items-start gap-4">
-            <TimeMarks
-              renderInput={(key, label) => (
-                <Input
-                  aria-label={`Time mark: ${label}`}
-                  className="h-9 w-28 text-center font-mono"
-                  maxLength={16}
-                  onChange={(event) => {
-                    onValueChange(key, event.target.value);
-                    changed([key]);
-                  }}
-                  value={values[key] ?? ""}
-                />
-              )}
-              values={values}
-            />
-            {onSaveStationSettings ? (
-              <StationSettingsCard
-                key={JSON.stringify(stationSettings)}
-                onSave={onSaveStationSettings}
-                settings={stationSettings}
+        <fieldset
+          className="m-0 flex min-w-0 flex-col gap-6 border-0 p-0"
+          disabled={approval?.busy}
+        >
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-stretch gap-4">
+              {REGISTER_SECTIONS.slice(0, 1).map(renderTable)}
+              <SectionCard
+                action={<Badge variant="light-info">Draft · QC required</Badge>}
+                className="w-fit max-w-full"
+                title="Observation"
+              >
+                <dl className="space-y-3 p-4 text-sm">
+                  <div>
+                    <dt className="font-medium">{station.name}</dt>
+                    <dd className="text-muted-foreground">
+                      Station {station.number} ({station.icao}) ·{" "}
+                      {station.position}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Observation hour</dt>
+                    <dd className="font-medium tabular-nums">
+                      {observedAt.replace("T", " ")} UTC
+                    </dd>
+                  </div>
+                </dl>
+              </SectionCard>
+            </div>
+            {REGISTER_SECTIONS.slice(1).map(renderTable)}
+            <div className="flex flex-wrap items-start gap-4">
+              <TimeMarks
+                renderInput={(key, label) => (
+                  <Input
+                    aria-label={`Time mark: ${label}`}
+                    className="h-9 w-28 text-center font-mono"
+                    maxLength={16}
+                    onChange={(event) => {
+                      onValueChange(key, event.target.value);
+                      changed([key]);
+                    }}
+                    value={values[key] ?? ""}
+                  />
+                )}
+                values={values}
               />
-            ) : (
-              <PendingSettingsNote settings={stationSettings} />
-            )}
+              {onSaveStationSettings ? (
+                <StationSettingsCard
+                  key={JSON.stringify(stationSettings)}
+                  onSave={onSaveStationSettings}
+                  settings={stationSettings}
+                />
+              ) : (
+                <PendingSettingsNote settings={stationSettings} />
+              )}
+            </div>
           </div>
-        </div>
-        {errors.length > 0 && (
-          <div
-            className="space-y-1 rounded-md border border-destructive/30 border-l-4 border-l-destructive bg-destructive/5 px-3 py-2 text-destructive text-xs"
-            id="eregister-errors"
-            role="alert"
-          >
-            <p className="flex items-center gap-1.5 font-semibold">
-              <CircleAlert className="size-3.5" />
-              Error · fix before saving
-            </p>
-            {errors.map((issue) => (
-              <p key={`${issue.field}-${issue.message}`}>
-                <strong>{FIELD_LABELS[issue.field] ?? issue.field}</strong>:{" "}
-                {issue.message}
+          {errors.length > 0 && (
+            <div
+              className="border-destructive/30 border-l-destructive bg-destructive/5 text-destructive space-y-1 rounded-md border border-l-4 px-3 py-2 text-xs"
+              id="eregister-errors"
+              role="alert"
+            >
+              <p className="flex items-center gap-1.5 font-semibold">
+                <CircleAlert className="size-3.5" />
+                Error · fix before saving
               </p>
-            ))}
-          </div>
-        )}
-        {warnings.length > 0 && (
-          <div
-            className="space-y-1 rounded-md border border-border border-l-4 border-l-warning bg-card px-3 py-2 text-foreground text-xs"
-            id="eregister-warnings"
-            role="status"
-          >
-            <p className="flex items-center gap-1.5 font-semibold">
-              <TriangleAlert className="size-3.5 text-warning" />
-              Note · does not block saving
-            </p>
-            {warnings.map((issue) => (
-              <p key={`${issue.field}-${issue.message}`}>
-                <strong>{FIELD_LABELS[issue.field] ?? issue.field}</strong>:{" "}
-                {issue.message}
+              {errors.map((issue) => (
+                <p key={`${issue.field}-${issue.message}`}>
+                  <strong>{FIELD_LABELS[issue.field] ?? issue.field}</strong>:{" "}
+                  {issue.message}
+                </p>
+              ))}
+            </div>
+          )}
+          {warnings.length > 0 && (
+            <div
+              className="border-border border-l-warning bg-card text-foreground space-y-1 rounded-md border border-l-4 px-3 py-2 text-xs"
+              id="eregister-warnings"
+              role="status"
+            >
+              <p className="flex items-center gap-1.5 font-semibold">
+                <TriangleAlert className="text-warning size-3.5" />
+                Note · does not block saving
               </p>
-            ))}
+              {warnings.map((issue) => (
+                <p key={`${issue.field}-${issue.message}`}>
+                  <strong>{FIELD_LABELS[issue.field] ?? issue.field}</strong>:{" "}
+                  {issue.message}
+                </p>
+              ))}
+            </div>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-muted-foreground text-xs">
+              {validationStatus === "valid"
+                ? "WMO checks passed for the current workbook."
+                : "Validate to check the entries against the WMO code tables. Errors block saving; notes only advise."}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                disabled={validationStatus === "checking"}
+                onClick={onValidate}
+                type="button"
+                variant="outline"
+              >
+                {validationStatus === "checking"
+                  ? "Checking…"
+                  : "Validate observation"}
+              </Button>
+              <Button
+                disabled={send.pending !== null}
+                onClick={() => send.request("wis2")}
+                type="button"
+                variant="ghost"
+              >
+                <Send />
+                Send last obs
+              </Button>
+              <Button
+                aria-describedby={
+                  emailBlocked ? "eregister-email-reason" : undefined
+                }
+                disabled={send.pending !== null || emailBlocked !== null}
+                onClick={() => send.request("email")}
+                type="button"
+                variant="ghost"
+              >
+                <Mail />
+                Email observation
+              </Button>
+              <Button
+                disabled={saveStatus === "saving" || approval?.busy}
+                type="submit"
+                variant={approval ? "outline" : "default"}
+              >
+                <Save />
+                {saveStatus === "saving" ? "Saving…" : "Save draft"}
+              </Button>
+              {approval ? (
+                <Button
+                  disabled={
+                    saveStatus === "saving" ||
+                    validationStatus === "checking" ||
+                    send.pending !== null ||
+                    approval.busy ||
+                    approval.status === "confirming"
+                  }
+                  onClick={approval.start}
+                  type="button"
+                >
+                  <CircleCheck />
+                  {approval.busy ? "Approving…" : "Save and approve"}
+                </Button>
+              ) : null}
+            </div>
           </div>
-        )}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-muted-foreground text-xs">
-            {validationStatus === "valid"
-              ? "WMO checks passed for the current workbook."
-              : "Validate to check the entries against the WMO code tables. Errors block saving; notes only advise."}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              disabled={validationStatus === "checking"}
-              onClick={onValidate}
-              type="button"
-              variant="outline"
+          {approval?.status === "confirming" && (
+            <ApprovalConfirm
+              approval={approval}
+              busy={saveStatus === "saving"}
+            />
+          )}
+          {approval?.status === "approved" && (
+            <p className="text-xs" role="status">
+              {approval.message ?? "Approved."}
+            </p>
+          )}
+          {approval?.status === "error" && (
+            <p className="text-destructive text-xs" role="alert">
+              {approval.message ?? "The observation could not be approved."}
+            </p>
+          )}
+          {emailBlocked ? (
+            <p
+              className="text-muted-foreground text-xs"
+              id="eregister-email-reason"
             >
-              {validationStatus === "checking"
-                ? "Checking…"
-                : "Validate observation"}
-            </Button>
-            <Button
-              disabled={send.pending !== null}
-              onClick={() => send.request("wis2")}
-              type="button"
-              variant="ghost"
-            >
-              <Send />
-              Send last obs
-            </Button>
-            <Button
-              disabled={send.pending !== null}
-              onClick={() => send.request("email")}
-              type="button"
-              variant="ghost"
-            >
-              <Mail />
-              Email observation
-            </Button>
-            <Button disabled={saveStatus === "saving"} type="submit">
-              <Save />
-              {saveStatus === "saving" ? "Saving…" : "Save draft"}
-            </Button>
-          </div>
-        </div>
-        <SendStatus send={send} />
-        {saveStatus === "saved" && (
-          <p className="text-muted-foreground text-xs" role="status">
-            Draft saved. QC approval is still required.
-          </p>
-        )}
-        {saveStatus === "error" && (
-          <p className="text-destructive text-xs" role="alert">
-            Draft could not be saved. Check the API and try again.
-          </p>
-        )}
+              {emailBlocked}
+            </p>
+          ) : null}
+          <SendStatus send={send} />
+          {saveStatus === "saved" && approval?.status !== "approved" && (
+            <p className="text-muted-foreground text-xs" role="status">
+              Draft saved. Approve it to send it to WIS2 and email.
+            </p>
+          )}
+          {saveStatus === "error" && (
+            <p className="text-destructive text-xs" role="alert">
+              Draft could not be saved. Check the API and try again.
+            </p>
+          )}
+        </fieldset>
       </form>
       <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard
@@ -472,7 +598,7 @@ export function ERegisterWorkbook({
               WMO encoder will generate this after code-table and cross-field
               validation.
             </p>
-            <code className="block rounded-lg bg-muted px-3 py-3 font-mono text-muted-foreground text-xs">
+            <code className="bg-muted text-muted-foreground block rounded-lg px-3 py-3 font-mono text-xs">
               Pending validation · {station.number} ·{" "}
               {observedAt.replace("T", " ")} UTC
             </code>
@@ -492,13 +618,14 @@ export function ERegisterWorkbook({
               elements are checked). Copy it, or type the report you send; each
               element that differs from the observation is flagged.
             </p>
-            <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-3 font-mono text-xs">
+            <code className="bg-muted block overflow-x-auto rounded-lg px-3 py-3 font-mono text-xs whitespace-nowrap">
               {expectedMetar ?? metarPreview}
             </code>
             <div className="flex gap-2">
               <Input
                 aria-label="METAR or SPECI as sent"
                 className="font-mono text-xs"
+                disabled={approval?.busy}
                 maxLength={400}
                 onChange={(event) =>
                   onValueChange("metar_text", event.target.value)
@@ -519,7 +646,7 @@ export function ERegisterWorkbook({
             </div>
             {metarIssues.map(({ key, message }) => (
               <p
-                className="text-amber-700 text-xs dark:text-amber-400"
+                className="text-xs text-amber-700 dark:text-amber-400"
                 key={key}
               >
                 {message}

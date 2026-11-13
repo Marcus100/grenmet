@@ -1,5 +1,6 @@
 import type { SectorOutlook } from "@barrelsgd/api-client";
 import { SECTORS, type SectorKey } from "@barrelsgd/gms/sectors";
+import { clock12 } from "@/lib/clock";
 import { warningHref } from "@/lib/warning-detail";
 
 /** Impact levels, mildest first; the bar on a tile runs from green to red. */
@@ -11,6 +12,8 @@ const asLevel = (colour: string | null | undefined): Level | null =>
 
 /** One alert or warning as a sector tile shows it. */
 export interface SectorItem {
+  /** "What to do": the first sentence of the alert's response text, or "" when it has none. */
+  advice: string;
   /**
    * A Green "All clear" bulletin: information, not an alert. It has no level
    * and never raises the tile's impact bar.
@@ -45,17 +48,38 @@ const DAY = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
 });
+const AS_OF_DAY = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/Grenada",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+});
+const AS_OF_TIME = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/Grenada",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
 const DAY_KEY = new Intl.DateTimeFormat("en-CA", {
   timeZone: "America/Grenada",
 });
-const SENTENCE_END = /^(.+?[.!?])(\s|$)/;
+const SENTENCE_END = /^(.+?[.!?])(\s|$)/u;
 const SUMMARY_LIMIT = 140;
 
 const dayKey = (date: Date) => DAY_KEY.format(date);
 
+/**
+ * When the outlook was read, in Grenada time ("Tue 10 Nov, 9:53 p.m. AST"), so
+ * a stale feed does not read as current; the homepage uses a.m. and p.m.
+ */
+export function formatOutlookAsOf(iso: string): string {
+  const when = new Date(iso);
+  return `${AS_OF_DAY.format(when)}, ${clock12(AS_OF_TIME.format(when))} AST`;
+}
+
 /** The first sentence, clipped, so a tile stays short. */
 export function firstSentence(text: string): string {
-  const clean = text.replace(/\s+/g, " ").trim();
+  const clean = text.replace(/\s+/gu, " ").trim();
   const sentence = SENTENCE_END.exec(clean)?.[1] ?? clean;
   return sentence.length <= SUMMARY_LIMIT
     ? sentence
@@ -80,10 +104,15 @@ export function whenLabel(
 /**
  * A Green bulletin whose notice type is "All clear" (owner decision, 30 Oct
  * 2026). Only Green qualifies: an "All clear" at another level is still an
- * alert, so it keeps its level.
+ * alert, so it keeps its level. Takes a sector outlook item, or a forecast's
+ * advisories snapshot item mapped to these two fields.
  */
-export function isAllClear(item: SectorOutlook["items"][number]): boolean {
-  return item.colour === "green" && item.notice_type === "All clear";
+export function isAllClear(item: {
+  colour?: string | null;
+  notice_type?: string | null;
+}): boolean {
+  // Compared trimmed: older saved forecast snapshots may carry " All clear".
+  return item.colour === "green" && item.notice_type?.trim() === "All clear";
 }
 
 const levelLabel = (colour: string | null | undefined) =>
@@ -120,6 +149,7 @@ export function buildSectorTiles(
             now
           ),
           summary: firstSentence(item.impacts),
+          advice: item.response ? firstSentence(item.response) : "",
           href: hrefFor(item),
           everyone: item.affects_everyone,
           allClear,
@@ -138,4 +168,77 @@ export function buildSectorTiles(
       more: Math.max(0, all.length - perTile),
     };
   });
+}
+
+const LEVEL_NAME: Record<Level, string> = {
+  green: "Green",
+  yellow: "Yellow",
+  orange: "Orange",
+  red: "Red",
+};
+
+/** "Marine", "Marine and Health", "Marine, Health and Aviation". */
+function joinLabels(labels: string[]): string {
+  if (labels.length <= 1) {
+    return labels[0] ?? "";
+  }
+  return `${labels.slice(0, -1).join(", ")} and ${labels.at(-1)}`;
+}
+
+/** "No sector needs special advice: tourism and outdoors, …, and roads and transport can plan as normal." */
+export function allClearSentence(): string {
+  const names = SECTORS.map(({ label }) =>
+    label.replace(" & ", " and ").toLowerCase()
+  );
+  const list =
+    names.length > 1
+      ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`
+      : (names[0] ?? "");
+  return `No sector needs special advice: ${list} can plan as normal.`;
+}
+
+/**
+ * The compact card's bold line and short text, written from the week's
+ * published alerts and warnings only (owner, 8 Nov 2026): the highest level and
+ * the sectors at it, then the first item there and when it applies. With
+ * nothing published it says so; it never invents an all-clear.
+ */
+export function weekSummary(
+  tiles: SectorTile[],
+  complete = true
+): {
+  headline: string;
+  text: string;
+} {
+  const withItems = tiles.filter((tile) => tile.items.length > 0);
+  if (withItems.length === 0) {
+    // A partly read feed never reads as an all-clear.
+    return complete
+      ? {
+          headline: "No alerts or warnings this week",
+          // One plain sentence naming who can plan as normal (owner, 10 Nov 2026).
+          text: allClearSentence(),
+        }
+      : { headline: "This week's alerts and warnings", text: "" };
+  }
+  const label = (tile: SectorTile) =>
+    SECTORS.find(({ value }) => value === tile.sector)?.label ?? tile.sector;
+  const peakIndex = Math.max(
+    -1,
+    ...withItems.map((tile) => (tile.peak ? LEVELS.indexOf(tile.peak) : -1))
+  );
+  const peak = peakIndex >= 0 ? LEVELS[peakIndex] : undefined;
+  const top = peak ? withItems.filter((tile) => tile.peak === peak) : withItems;
+  const sectors =
+    top.length === tiles.length ? "all sectors" : joinLabels(top.map(label));
+  // The line under the headline is an item at the headline's level.
+  const first = peak
+    ? top.flatMap((tile) => tile.items).find((item) => item.colour === peak)
+    : top[0]?.items[0];
+  return {
+    headline: peak
+      ? `${LEVEL_NAME[peak]} level for ${sectors}`
+      : `Outlooks for ${sectors}`,
+    text: first ? `${first.title} · ${first.when}` : "",
+  };
 }

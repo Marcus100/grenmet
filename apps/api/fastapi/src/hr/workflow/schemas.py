@@ -4,6 +4,7 @@ from typing import Literal, Self
 from pydantic import Field, model_validator
 
 from src.auth.models import RoleAssignmentScope
+from src.hr.roster.schemas import OverrideReason
 from src.models import BaseModel, UtcDateTime
 
 from .models import WorkflowAction, WorkflowStatus, WorkflowType
@@ -107,6 +108,7 @@ class WorkflowActionRequest(BaseModel):
     step_id: uuid.UUID | None = None
     action: WorkflowAction
     comments: str | None = Field(default=None, max_length=1000)
+    rule_override_reason: OverrideReason = None
 
 
 class WorkflowInstanceDetails(BaseModel):

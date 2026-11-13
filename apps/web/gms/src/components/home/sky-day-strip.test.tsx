@@ -3,15 +3,16 @@ import { describe, expect, it } from "vitest";
 import { HeroSelectionProvider } from "@/components/home/hero-selection";
 import {
   iconY,
+  isTonight,
   lineSegments,
   SkyDayStrip,
   type StripDay,
 } from "@/components/home/sky-day-strip";
 
-const FRIDAY = /Fri/;
-const NOW_TAB = /Now/;
-const LAST_TAB = /Last reading/;
-const RAIN_CHANCE = /Medium chance of rain/;
+const FRIDAY = /Fri/u;
+const NOW_TAB = /Now/u;
+const LAST_TAB = /Last reading/u;
+const TONIGHT_TAB = /Tonight/u;
 
 const day = (overrides: Partial<StripDay>): StripDay => ({
   condition: "sunny",
@@ -23,7 +24,6 @@ const day = (overrides: Partial<StripDay>): StripDay => ({
   low: 25,
   month: "Oct",
   path: "/weather/2026/10/23",
-  rainWord: null,
   slug: "2026-10-23",
   ...overrides,
 });
@@ -77,32 +77,51 @@ describe("SkyDayStrip", () => {
     expect(tab).not.toHaveTextContent(NOW_TAB);
   });
 
-  it("leaves out the rain row when no day gives a chance of rain", () => {
+  it("has no rain row: maximum, icon, minimum, day and date", () => {
     renderStrip([day({}), day({ slug: "2026-10-24", dayName: "Sat" })]);
     const tab = screen.getByRole("link", { name: FRIDAY });
-    // Maximum, icon, minimum, day and date: no blank row between.
     expect(tab.children).toHaveLength(5);
+    expect(tab).not.toHaveTextContent("chance of rain");
     expect(screen.getByRole("link", { name: NOW_TAB }).children).toHaveLength(
       5
     );
   });
 
-  it("reads top to bottom: maximum, sky, rain chance, minimum, then day and date", () => {
-    renderStrip([day({ rainWord: "Medium" })]);
+  it("reads top to bottom: maximum, sky, minimum, then day and date", () => {
+    renderStrip([day({})]);
     const tab = screen.getByRole("link", { name: FRIDAY });
-    expect(tab).toHaveTextContent(RAIN_CHANCE);
     const children = Array.from(tab.children).map(
       (node) => node.textContent ?? ""
     );
     const maximum = children.findIndex((text) => text.includes("maximum"));
     const icon = children.indexOf("");
-    const rain = children.findIndex((text) => text.includes("chance of rain"));
     const minimum = children.findIndex((text) => text.includes("minimum"));
     const name = children.indexOf("Fri");
     expect(maximum).toBeGreaterThanOrEqual(0);
-    expect([maximum, icon, rain, minimum, name]).toEqual(
-      [maximum, icon, rain, minimum, name].toSorted((x, y) => x - y)
+    expect([maximum, icon, minimum, name]).toEqual(
+      [maximum, icon, minimum, name].toSorted((x, y) => x - y)
     );
+  });
+
+  it("turns today into Tonight with the low on top after the evening forecast", () => {
+    renderStrip([
+      day({ high: null, isToday: true, low: 25, tonight: true }),
+      day({ slug: "2026-10-24", dayName: "Sat", high: 32 }),
+    ]);
+    const tab = screen.getByRole("link", { name: TONIGHT_TAB });
+    expect(tab).toHaveTextContent("25°");
+    expect(tab).toHaveTextContent("minimum tonight");
+    expect(tab).not.toHaveTextContent("—");
+    expect(tab).not.toHaveTextContent("Fri");
+    // The low is shown once, on top.
+    expect(within(tab).getAllByText("25°")).toHaveLength(1);
+  });
+
+  it("treats only today with a low and no high as tonight", () => {
+    expect(isTonight({ high: null, isToday: true, low: 25 })).toBe(true);
+    expect(isTonight({ high: 31, isToday: true, low: 25 })).toBe(false);
+    expect(isTonight({ high: null, isToday: false, low: 25 })).toBe(false);
+    expect(isTonight({ high: null, isToday: true, low: null })).toBe(false);
   });
 
   it("leads with a Now tab at every width", () => {

@@ -54,9 +54,11 @@ import {
   toRefund,
   toTill,
 } from "./api-mappers";
+import { ERROR_CODES, errorCodeOf } from "./error-code";
 import { getManagedAccess } from "./events-api";
 import { friendlyConflict } from "./order-errors";
 import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
+import { detailOfData } from "./validation-detail";
 
 /**
  * Every Events write goes through here: the member's token is read from the
@@ -67,25 +69,15 @@ import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
 
 type Options = Awaited<ReturnType<typeof apiOptions>>;
 
-/** The API's message when object storage is not set up; shown as is. */
-const UPLOADS_UNAVAILABLE = "Uploads are not configured";
-
 /** What the API answers (503) when card checkout is configured but cannot start. */
-const CARD_UNAVAILABLE_PREFIX = "Online payment is temporarily unavailable";
 const CARD_UNAVAILABLE =
   "Card payments are temporarily unavailable. Try again in a moment.";
 /** A replay found an order that already expired (409); start over with a new key. */
-const ATTEMPT_EXPIRED_PREFIX = "That attempt expired";
 const ATTEMPT_EXPIRED = "That attempt expired. Start a new one.";
 const GENERIC_FAILURE = "Something went wrong. Try again shortly.";
 
 function detailOf(error: ResponseError): string | null {
-  const data: unknown = error.data;
-  if (typeof data !== "object" || data === null || !("detail" in data)) {
-    return null;
-  }
-  const { detail } = data;
-  return typeof detail === "string" ? detail : null;
+  return detailOfData(error.data);
 }
 
 async function run<T>(
@@ -120,18 +112,19 @@ function failureOf(
     return { ok: false, error: GENERIC_FAILURE };
   }
   const detail = detailOf(error);
+  const code = errorCodeOf(error.data);
   if (error.status === 401) {
     return { ok: false, error: SIGN_IN_REQUIRED };
   }
-  if (error.status === 503 && detail?.startsWith(CARD_UNAVAILABLE_PREFIX)) {
+  if (error.status === 503 && code === ERROR_CODES.cardPaymentUnavailable) {
     return { ok: false, error: CARD_UNAVAILABLE, freshKey: true };
   }
-  if (error.status === 409 && detail?.startsWith(ATTEMPT_EXPIRED_PREFIX)) {
+  if (error.status === 409 && code === ERROR_CODES.attemptExpired) {
     return { ok: false, error: ATTEMPT_EXPIRED, freshKey: true };
   }
   if (
     (error.status >= 400 && error.status < 500) ||
-    (error.status === 503 && detail === UPLOADS_UNAVAILABLE)
+    (error.status === 503 && code === ERROR_CODES.uploadsNotConfigured)
   ) {
     const message =
       explainConflict && error.status === 409
@@ -143,11 +136,10 @@ function failureOf(
     };
   }
   reportError(error, area);
-  return {
-    ok: false,
-    error: GENERIC_FAILURE,
-    ...(error.status >= 500 ? { freshKey: true as const } : {}),
-  };
+  // A bare 5xx keeps the key: a gateway error can follow a committed order, and
+  // the same key replays that order instead of creating a second one. Only the
+  // two server-confirmed cases above (503 payment unavailable, 409 expired) drop it.
+  return { ok: false, error: GENERIC_FAILURE };
 }
 
 export async function setGoing(slug: string, going: boolean) {
@@ -343,9 +335,6 @@ export async function requestOrganiser(organiser: OrganiserCreate) {
   });
 }
 
-/** The API's 409 when the organiser is not in the rejected state. */
-const NOT_REJECTED_PREFIX = "Only a rejected request can be resubmitted";
-
 /**
  * Puts a rejected organiser back in the moderation queue. The organiser is
  * resolved here the way the /dash page resolves it (`getManagedAccess`: the
@@ -375,7 +364,7 @@ export async function resubmitOrganiser(): Promise<
     if (
       error instanceof ResponseError &&
       error.status === 409 &&
-      detailOf(error)?.startsWith(NOT_REJECTED_PREFIX)
+      errorCodeOf(error.data) === ERROR_CODES.organisationNotRejected
     ) {
       revalidatePath("/", "layout");
       return { ok: true, data: "unchanged" };

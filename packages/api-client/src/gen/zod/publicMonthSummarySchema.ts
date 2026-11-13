@@ -23,6 +23,36 @@ export const publicMonthSummarySchema = z
     max_temperature_at: z.union([z.iso.datetime(), z.null()]).optional(),
     min_temperature_c: z.union([z.number(), z.null()]).optional(),
     min_temperature_at: z.union([z.iso.datetime(), z.null()]).optional(),
+    heavy_rain_days: z
+      .union([z.int(), z.null()])
+      .optional()
+      .describe("Days with a 24 h total of 10 mm or more (R10mm)."),
+    heavy_rain_threshold_mm: z.number().optional().default(10),
+    longest_dry_spell_days: z
+      .union([z.int(), z.null()])
+      .optional()
+      .describe(
+        "Longest run of reported days under 1 mm (CDD); a day without a total breaks it."
+      ),
+    longest_dry_spell_start: z.union([z.iso.date(), z.null()]).optional(),
+    longest_dry_spell_end: z.union([z.iso.date(), z.null()]).optional(),
+    current_dry_spell_days: z
+      .union([z.int(), z.null()])
+      .optional()
+      .describe(
+        "Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old."
+      ),
+    dry_day_threshold_mm: z.number().optional().default(1),
+    mean_wind_kt: z
+      .union([z.number(), z.null()])
+      .optional()
+      .describe("Mean of the reported wind speeds, calm as 0 kn."),
+    prevailing_wind_direction: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe("Most frequent 8-point direction of non-calm readings."),
+    max_gust_kt: z.union([z.int(), z.null()]).optional(),
+    max_gust_at: z.union([z.iso.datetime(), z.null()]).optional(),
     provisional: z.boolean(),
   })
   .describe(

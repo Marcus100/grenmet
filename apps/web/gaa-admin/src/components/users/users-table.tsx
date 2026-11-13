@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { flexRender } from "@tanstack/react-table";
 import type { LegacyReactTable } from "@tanstack/react-table/legacy";
 import type { MouseEvent } from "react";
@@ -114,7 +115,7 @@ export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
       <Separator />
 
       <div className="flex items-center justify-between px-4">
-        <div className="flex items-center gap-4 text-muted-foreground text-sm">
+        <div className="text-muted-foreground flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <span>Rows per page</span>
             <Select
@@ -148,11 +149,12 @@ export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                className={
-                  table.getCanPreviousPage()
-                    ? undefined
-                    : "pointer-events-none opacity-50"
-                }
+                className={cn(
+                  // Icon-only (text=""): keep a 32px target, not 18px.
+                  "min-w-8 justify-center",
+                  !table.getCanPreviousPage() &&
+                    "pointer-events-none opacity-50"
+                )}
                 href="#"
                 onClick={(event) => {
                   preventPaginationNavigation(event);
@@ -189,11 +191,11 @@ export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
             ) : null}
             <PaginationItem>
               <PaginationNext
-                className={
-                  table.getCanNextPage()
-                    ? undefined
-                    : "pointer-events-none opacity-50"
-                }
+                className={cn(
+                  // Icon-only (text=""): keep a 32px target, not 18px.
+                  "min-w-8 justify-center",
+                  !table.getCanNextPage() && "pointer-events-none opacity-50"
+                )}
                 href="#"
                 onClick={(event) => {
                   preventPaginationNavigation(event);

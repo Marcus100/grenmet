@@ -9,6 +9,7 @@ export const registerObservationReadPropertiesStateEnum = {
   accepted: "accepted",
   rejected: "rejected",
   superseded: "superseded",
+  historical: "historical",
 } as const;
 
 export type RegisterObservationReadPropertiesStateEnum =

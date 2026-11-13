@@ -18,7 +18,7 @@ import {
 } from "@/components/bus/test-fixtures";
 import BusPage from "./page";
 
-const NEXT_CHANGE = /from 20 Dec 2026/;
+const NEXT_CHANGE = /from 20 Dec 2026/u;
 
 describe("BusPage (overview)", () => {
   beforeEach(() => {

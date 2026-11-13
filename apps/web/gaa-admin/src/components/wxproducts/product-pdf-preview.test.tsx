@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductPdfPreview } from "./product-pdf-preview";
 
-const SAVE_TO_DOWNLOAD_HINT = /Save draft to download these changes\./;
+const SAVE_TO_DOWNLOAD_HINT = /Save draft to download these changes\./u;
 
 const download = vi.hoisted(() => vi.fn());
 const previewControls = {
@@ -187,7 +187,7 @@ it("groups entered weather, wind, marine, tides and astronomy without empty fiel
           tide1Type: "High",
           tide1Time: "15:30",
           tide1Height: "0.4",
-          sunrise: "06:00",
+          sunsetToday: "06:00",
           word: "Convection",
           definition: "Rising warm air",
         },

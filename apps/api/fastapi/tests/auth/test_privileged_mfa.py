@@ -7,7 +7,6 @@ import jwt
 import pyotp
 import pytest
 from cryptography.fernet import Fernet
-from fastapi import HTTPException
 
 from src.auth import app_service, mfa_rollout, service, totp
 from src.auth.account_security import new_recovery_codes, verify_factor
@@ -25,12 +24,17 @@ def encryption(monkeypatch):
         auth_settings, "AUTH_TOTP_ENCRYPTION_KEYS", [Fernet.generate_key().decode()]
     )
     monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "disabled")
+    # The emailed enrolment code is fixed so ``enrol`` can pass the value that was issued.
+    monkeypatch.setattr(app_service, "new_code", lambda: "424242")
 
 
 async def enrol(session, user):
     secret = await service.begin_totp_setup(session=session, user=user)
     assert await service.activate_totp(
-        session=session, user=user, code=pyotp.TOTP(secret).now()
+        session=session,
+        user=user,
+        code=pyotp.TOTP(secret).now(),
+        email_code=app_service.new_code(),
     )
     codes = await new_recovery_codes(
         session, user, "password123", pyotp.TOTP(secret).now()
@@ -172,11 +176,11 @@ async def test_direct_token_wrong_owner_expired_and_app_scoped_session_denied(
     await enrol(db_async, user)
     monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "enforce")
     expired_token = create_access_token(user.id, timedelta(seconds=-1))
-    with pytest.raises(HTTPException) as error:
+    with pytest.raises(AppException) as error:
         await require_privileged_mfa(db_async, user, token=expired_token)
     assert error.value.status_code == 401
     direct = create_access_token(user.id, timedelta(minutes=5))
-    with pytest.raises(HTTPException):
+    with pytest.raises(AppException):
         await require_privileged_mfa(db_async, user, token=direct)
     for owner, app_name, expiry in [
         (other, "auth", timedelta(days=1)),
@@ -192,7 +196,7 @@ async def test_direct_token_wrong_owner_expired_and_app_scoped_session_denied(
             mfa_verified_at=utc_now(),
         )
         token, _ = service.issue_access_token_for_user(user=user, db_session=stored)
-        with pytest.raises(HTTPException):
+        with pytest.raises(AppException):
             await require_privileged_mfa(db_async, user, token=token)
 
 
@@ -643,7 +647,7 @@ async def test_cap_approvers_and_publishers_are_privileged(
     await require_privileged_mfa(db_async, user)  # allowed without MFA
 
     monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "enforce")
-    with pytest.raises(HTTPException) as refused:
+    with pytest.raises(AppException) as refused:
         await require_privileged_mfa(db_async, user)
     assert refused.value.status_code == 403
 

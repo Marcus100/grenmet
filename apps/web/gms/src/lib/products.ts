@@ -1,5 +1,7 @@
 import "server-only";
 import {
+  type IssuedProducts,
+  issuedProductsSchema,
   type PublicCurrentConditions,
   type PublicForecast,
   type PublicMonthSummary,
@@ -62,7 +64,7 @@ export type ProductResult =
   | { status: "not-found" }
   | { status: "unavailable" };
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 /**
  * One published product by id, for pages and editorial links. Stays readable
@@ -109,7 +111,7 @@ export const fetchPublicForecast = cache(
   }
 );
 
-/** How many days ahead Plan your week looks. */
+/** How many days ahead the sector card ("What it means for you") looks. */
 export const SECTOR_OUTLOOK_DAYS = 7;
 
 /**
@@ -161,25 +163,78 @@ export const fetchCurrentConditions = cache(
 );
 
 /** MBIA month-to-date summary; null when there are no readings or on any failure. */
-export const fetchMonthSummary = cache(
-  async function fetchMonthSummary(): Promise<PublicMonthSummary | null> {
-    try {
-      const response = await fetch(
-        endpoint("month-summary", "eregister"),
-        requestOptions()
-      );
-      if (!response.ok) return null;
-      const parsed = publicMonthSummaryResponseSchema.safeParse(
-        await response.json()
-      );
-      if (!parsed.success) {
-        reportError(parsed.error, "gms-month-summary-contract");
-        return null;
-      }
-      return parsed.data.summary ?? null;
-    } catch (error) {
-      reportError(error, "gms-month-summary");
+export const fetchMonthSummary = cache(async function fetchMonthSummary(
+  month?: string
+): Promise<PublicMonthSummary | null> {
+  try {
+    const url = endpoint("month-summary", "eregister");
+    if (month) url.searchParams.set("month", month);
+    const response = await fetch(url, requestOptions());
+    if (!response.ok) return null;
+    const parsed = publicMonthSummaryResponseSchema.safeParse(
+      await response.json()
+    );
+    if (!parsed.success) {
+      reportError(parsed.error, "gms-month-summary-contract");
       return null;
     }
+    return parsed.data.summary ?? null;
+  } catch (error) {
+    reportError(error, "gms-month-summary");
+    return null;
   }
-);
+});
+
+export type IssuedResult =
+  | { status: "ok"; products: IssuedProducts["products"] }
+  | { status: "unavailable" };
+
+/** The most recently issued products, current or expired, for the RSS feed. */
+export async function fetchIssuedProducts(limit = 20): Promise<IssuedResult> {
+  try {
+    const url = endpoint("issued-products");
+    url.searchParams.set("limit", String(limit));
+    const response = await fetch(url, requestOptions());
+    if (!response.ok) return { status: "unavailable" };
+    const parsed = issuedProductsSchema.safeParse(await response.json());
+    if (!parsed.success) {
+      reportError(parsed.error, "gms-issued-contract");
+      return { status: "unavailable" };
+    }
+    return { status: "ok", products: parsed.data.products };
+  } catch (error) {
+    reportError(error, "gms-issued");
+    return { status: "unavailable" };
+  }
+}
+
+/**
+ * The published PDF of one product, passed through from FastAPI so it is
+ * served from this site's own domain. No logic: status, type and file name
+ * pass through; an unreachable API is a 503.
+ */
+export async function proxyProductPdf(id: string): Promise<Response> {
+  if (!UUID.test(id)) return new Response("Not found", { status: 404 });
+  try {
+    const upstream = await fetch(
+      endpoint(`products/${encodeURIComponent(id)}/pdf`),
+      { ...requestOptions(), signal: AbortSignal.timeout(30_000) }
+    );
+    const headers = new Headers({ "Cache-Control": "no-store" });
+    for (const name of [
+      "content-type",
+      "content-disposition",
+      "x-content-type-options",
+    ]) {
+      const value = upstream.headers.get(name);
+      if (value) headers.set(name, value);
+    }
+    return new Response(upstream.body, { status: upstream.status, headers });
+  } catch (error) {
+    reportError(error, "gms-product-pdf");
+    return new Response("Product PDF unavailable", {
+      status: 503,
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
+}

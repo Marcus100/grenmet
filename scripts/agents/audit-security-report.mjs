@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 
 const TRACKERS = new Set([721, 722, 733]);
-const LEGACY_TITLE = /^Open (dependabot|code-scanning) alert (\d+)$/;
-const GENERATED_MARKER = /<!-- codex-audit:[a-f0-9]{16} -->/;
+const LEGACY_TITLE = /^Open (dependabot|code-scanning) alert (\d+)$/u;
+const GENERATED_MARKER = /<!-- codex-audit:[a-f0-9]{16} -->/u;
 const parse = (value) =>
   typeof value === "string" ? JSON.parse(value) : value;
 const flat = (value) => parse(value).flat(Number.POSITIVE_INFINITY);
@@ -38,6 +38,30 @@ export function validateSecurityMetadata(item) {
     throw new Error("Invalid tracked group");
 }
 
+// A closed tracker must not block other publication: its groups fall back to
+// per-group issues and the gap is recorded as a visible coverage blocker.
+function recordClosedTracker(result, number) {
+  console.warn(
+    [
+      "Tracking issue",
+      number,
+      "is not open; reporting its groups separately",
+    ].join(" ")
+  );
+  result.blockers.push({
+    command: "audit tracker",
+    issueNumber: number,
+    key: ["coverage:tracker", number].join(":"),
+    summary: [
+      "Tracking issue",
+      number,
+      "is not open; its dependency groups were reported as separate issues.",
+      "Reopen it or reassign the groups.",
+    ].join(" "),
+    title: ["Tracking issue", number, "unavailable"].join(" "),
+  });
+}
+
 // Run under the publisher's shared flock. GitHub comments are the durable state,
 // so restarting the host or losing local receipts cannot reset the daily limit.
 export async function updateTrackers({
@@ -48,6 +72,7 @@ export async function updateTrackers({
   observedAt,
   dryRun,
   safeText,
+  result,
 }) {
   const targets = new Map();
   for (const number of TRACKERS) {
@@ -57,11 +82,10 @@ export async function updateTrackers({
     );
     if (!(items.length || complete)) continue;
     const issue = parse(await runGh(["api", `repos/${repo}/issues/${number}`]));
-    if (!items.length && issue.state !== "open") continue;
-    if (issue.state !== "open" || issue.pull_request)
-      throw new Error(
-        `Tracking issue ${number} is not open; review coverage before reporting`
-      );
+    if (issue.state !== "open" || issue.pull_request) {
+      recordClosedTracker(result, number);
+      continue;
+    }
     for (const item of items) targets.set(item.key, number);
     const comments = flat(
       await runGh([

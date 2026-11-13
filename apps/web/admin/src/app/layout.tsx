@@ -1,4 +1,5 @@
 import "./globals.css";
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 
 import { SkipLink } from "@barrelsgd/ui/components/ui/skip-link";
 import type { Metadata } from "next";
@@ -27,7 +28,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html className={notoSans.variable} lang="en">
-      <body className="min-h-screen bg-background text-foreground antialiased">
+      <body className="bg-background text-foreground min-h-screen antialiased">
+        <PublicEnvScript />
         <SkipLink />
         {children}
       </body>

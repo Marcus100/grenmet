@@ -12,12 +12,27 @@ auto-merge).
 Main merges and production publication or deployment require separate explicit
 authorization (see `AGENTS.md`).
 
-Branch flow: `task → (PR) → dev → (PR) → staging → (PR) → main → (release vN.M) → prod`.
+Branch flow: `task → (PR) → dev → (PR) → staging → (PR) → main → (release vX.Y.Z) → prod`.
 Integrate current `origin/dev` into the task branch and validate before opening
 the PR; if `dev` advances, integrate and revalidate. Never force-push or bypass
 hooks. Promotion is always via PR; reuse an open promotion PR. Rulesets enforce
 the required checks on `staging` and `main` PRs; `infra/github/rulesets.json`
 is their committed copy and `pnpm guardrails:rulesets` checks it.
+
+A promotion PR whose merge result has the same git tree as a dev commit that
+passed every required check reuses those results: its CI skips the suites and
+the gates report success in about a minute (`scripts/ci/promotion-verified.mjs`,
+#1239). If anything does not match (a commit that did not come from dev, a
+failed or cancelled check on that dev commit, an API error), the PR runs the
+full suite. On `main` pushes only the API workflow runs, to keep the default
+branch's security scans current; production deploys only images staging verified.
+
+A deploy skips a migration service (prestart, cms-migrate) whose image and
+configuration already completed against the same database: same volume, same
+databases and the same Alembic revision (#1239). After any manual change to a
+database outside a deploy (a restore, a dropped table, a hand-run migration),
+run the next deploy with `FORCE_MIGRATIONS=1` on the environment, or delete
+`~/.local/state/grenmet-deploy/<project>/migrated` on the host.
 
 ## 1. Pre-flight on dev
 
@@ -33,6 +48,13 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
 
 ## 2. Promote dev → staging
 
+- **Automated (when `PROMOTE_STAGING_ENABLED` is `true`):** `promote-staging.yml`
+  creates or updates the `dev` to `staging` PR every day at 06:00 Grenada time
+  and arms auto-merge on it (staging only). Agents then do not open, edit or
+  merge that PR. `staging-smoke.yml` tests the deployed staging and comments the
+  result; review that and do the signed-in checks. Setup, hold and recovery:
+  `docs/operations/staging-promotion-automation.md`. The steps below apply when
+  the automation is off.
 - Once the authorized batch has been merged into `dev`, automatically
   create or update its staging promotion PR with a recap. Reuse an open PR.
 - Review the entire promotion diff; exclude unrelated or unfinished work.
@@ -47,8 +69,11 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
   any agent merge whose base is not `dev`.
 - If dev advances, review and verify the new head. Fix failures locally and
   revalidate before pushing; do not blindly retry CI.
-- The push to `staging` triggers `pipeline-staging.yml`,
-  which builds and smoke-tests a complete core image set alongside CI, then deploys only after every gate succeeds.
+- The push to `staging` triggers `pipeline-staging.yml`, which promotes the
+  images `dev-images.yml` already built for the same git tree (it dispatches the dev build itself when it
+  never ran, and waits up to 45 minutes), after checking the required checks passed on the
+  dev commit, then deploys them. It does not rebuild or re-run CI. A successful
+  deploy marks those digests staging-verified for production.
 - Verify the staging deploy job succeeded: `gh run list --workflow=pipeline-staging.yml --limit 1`
 
 ## 3. Promote staging → main
@@ -59,17 +84,21 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
 
 ## 4. Publish the release (deploys prod)
 
-- Tag convention: `vN.M`, strictly increasing (…v0.10, v0.11). The tag IS the
-  image tag — it must be new.
+- Tag convention: `vX.Y.Z`, strictly increasing (v1.0.0, v1.0.1, …). Releases
+  before v1.0.0 used `vN.M` (up to v0.31). The tag IS the image tag — it must be new.
 - Easiest: run the **Draft Release** workflow (`gh workflow run draft-release.yml`).
-  It picks the next `vN.M`, creates a **draft** release on `main` with notes
+  It picks the next `vX.Y.Z` (patch plus one; pass `-f tag=vX.Y.Z` for a minor or
+  major release), creates a **draft** release on `main` with notes
   generated from the PRs merged since the previous release, and prints its URL.
   A draft does not deploy anything; review the notes, then **human publishes**
   it from the Releases page.
 - By hand instead: draft notes from merged changes, then **human publishes**:
-  `gh release create vN.M --target main --title "vN.M" --notes "…"`
-- Publishing triggers `pipeline-prod.yml`: builds ALL images at the tag, then
-  deploys via `deploy.yml` on the self-hosted `production` runner. The runner
+  `gh release create vX.Y.Z --target main --title "vX.Y.Z" --notes "…"`
+- Publishing triggers `pipeline-prod.yml`: promotes the staging-verified
+  digests for the tagged commit's git tree (nothing is rebuilt; it fails if
+  staging never deployed that tree), then deploys via `deploy.yml` on the
+  self-hosted `production` runner. `main` must carry exactly what staging ran:
+  no commits on `main` or `staging` that did not come from `dev`. The runner
   must be online or the job queues silently — check with
   `gh run list --workflow=pipeline-prod.yml --limit 1`.
 
@@ -83,6 +112,8 @@ The draft's generated notes only list pull request titles. Before publishing, ad
 - **Rollback note:** whether the previous release still runs against the new schema.
 
 ## 5. Verify prod
+
+- `/runtime-env.js` on each web app carries that environment's public settings (site and API address, Sentry, Turnstile key). It is cached up to 60 seconds, including at Cloudflare, so a settings change reaches browsers within a minute.
 
 - API health: `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/`
 - Spot-check app domains: `auth` / `admin` / `docs` / `weather` / `signal` / `mbia` / `events` / `hapi` `.barrels.gd`.
@@ -156,20 +187,199 @@ files are covered, or that the dump timestamp is UTC (the nightly job names file
 with the runner's clock). A passing gate is not a replacement for step 1 above
 before a destructive migration.
 
+## Migration lock timeouts
+
+Issue 1097 (production v1.0.3): `ALTER TABLE hr.employment_record ADD
+COLUMN` waited 19 minutes for a read lock held by a session that had been idle in
+a transaction for five days. Every app query on that table queued behind the
+`ALTER`. Three guards now stop a repeat from stalling a deploy silently. They cover
+the main database's Alembic migrations only (the `prestart` upgrade of the main
+history). They do not cover:
+
+- the Payload CMS migration (`cms-migrate`, database `gms_cms`), or
+- the weather, eRegister, janitorial and transport Alembic histories, which
+  `prestart` also runs. A lock wait in those is not timed out or retried, so it
+  can still hang the deploy as before.
+
+- **Migrations fail fast.** `alembic/env.py` sets `lock_timeout` on the migration
+  connection (`MIGRATION_LOCK_TIMEOUT`, default `10s`; `0` disables). The setting is
+  session-level, not transaction-local, so it survives the commits that Alembic's
+  `autocommit_block` makes mid-upgrade (three HR and CAP revisions use it). The
+  migration connection comes from a `NullPool` and is closed afterwards, so the
+  setting cannot reach app sessions. A statement that waits longer fails with
+  `canceling statement due to lock timeout`. No `statement_timeout` is set: it
+  would abort a long data backfill. `lock_timeout` limits only the wait for a lock,
+  not how long a statement runs.
+- **The deploy retries that failure only.** In the `migrations` phase, `core.sh`
+  reruns a migration service when, and only when, its output contains that lock
+  timeout message. It makes up to `MIGRATION_LOCK_RETRY_ATTEMPTS` attempts (default
+  3) and pauses `MIGRATION_LOCK_RETRY_PAUSE_SECONDS` (default 30) between them. Any
+  other failure stops the deploy at once. A rerun is safe because each committed
+  step stays committed: Alembic commits at every `autocommit_block` and its version
+  table records what finished, and Payload records each applied migration. The
+  previous release keeps serving until the deploy passes `migrations`.
+- **Idle transactions end, for new connections only.** The main async engine passes
+  `idle_in_transaction_session_timeout` to every connection it opens
+  (`DB_IDLE_IN_TRANSACTION_TIMEOUT`, default `300` seconds; `0` disables). Postgres
+  sets it per connection when that connection opens, so a session left over from an
+  older release never gets it. A request holds its transaction only while it runs.
+  ARQ's default job limit is 300 seconds, but three cron jobs override it (900, 1800
+  and 3600 seconds). Those jobs are safe because they hold no transaction during
+  their fetch. A connection idle in a transaction for five minutes is therefore
+  almost certainly leaked. Watch for `terminating connection due to idle-in-transaction
+  timeout` in the logs. The separate weather, eRegister, janitorial and transport
+  engines do not set it. The limit can also be set on the application role in the
+  database instead.
+
+**Limit of the retry.** Three attempts with a 10-second lock wait and two 30-second
+pauses last about 90 seconds in all. That is shorter than the 300-second idle
+limit, and the limit does not apply to a leaked session from an older release. So a
+deploy can still fail while the leaked session is idle. Expect that and use the
+manual steps below.
+
+If the deploy still stops at `migrations` with a lock timeout, find the blocked
+statement and the session holding the lock (run as a superuser on the database
+named in the error):
+
+```sql
+SELECT blocked.pid AS blocked_pid, left(blocked.query, 80) AS blocked_query,
+       blocker.pid AS blocker_pid, blocker.state, blocker.application_name,
+       blocker.client_addr, now() - blocker.xact_start AS transaction_age,
+       left(blocker.query, 80) AS blocker_query
+FROM pg_stat_activity AS blocked
+JOIN LATERAL unnest(pg_blocking_pids(blocked.pid)) AS b(pid) ON true
+JOIN pg_stat_activity AS blocker ON blocker.pid = b.pid
+WHERE blocked.datname = current_database();
+```
+
+Before ending a blocker, confirm that it is a leaked read: `state` is
+`idle in transaction` and `blocker_query` is a `SELECT` (or it is an old app
+process that no longer serves traffic). Then end only that session:
+
+```sql
+SELECT pg_terminate_backend(<blocker_pid>);
+```
+
+Do not end a session that is running a write, a migration or a backup. Then rerun
+the deploy. Record the blocker's `application_name` and `client_addr` in the
+release notes so the leaking code path can be fixed.
+
+## Build once, promote by digest
+
+Lands with PR #1026 (stacked on PR #1020 and PR #1025; merge in that order, owner
+merges because workflows change). Until then the previous build-at-release
+pipeline described in sections 2 and 4 is what runs. Issue #1019 is the design.
+
+**Why it works.** `staging` and `main` are merge commits of `dev`, so a commit
+there has the same git tree as the dev commit it came from. Images are keyed by
+that tree: what staging proved is exactly what production runs.
+
+| Step | Workflow | What happens |
+| --- | --- | --- |
+| Push to `dev` | `dev-images.yml` | `promote-images.mjs plan` picks the images the change touches (`select-images.mjs`) plus any the previous tree lacks. Those are built, smoke-tested and scanned, then tagged `tree-<tree>`. Unchanged images get `tree-<tree>` on the previous digest. |
+| Push to `staging` | `pipeline-staging.yml` | `promote staging` finds the dev commit with the same tree, requires every required status check of the dev ruleset to have passed on it, waits up to 45 minutes for its dev images (dispatching Dev Images when none ran), verifies each image's labels name a passing dev ancestor, retags the digests `staging-sha-<commit>` and `staging`, and deploys. After the deploy and smoke tests, `mark-verified` adds `staging-verified-tree-<tree>`. |
+| Publish a release | `pipeline-prod.yml` | `promote production` takes only `staging-verified-tree-<tree>` digests, tags `production-sha-<commit>` and deploys. `latest` and the release tag move after the production deploy. |
+| Deploy | `deploy.yml` / `core.sh` | The `image_digests` input becomes `DEPLOY_IMAGE_DIGESTS`; `core.sh` refuses any ghcr.io image not in the list. |
+
+**Server side (PR #1020).** `core.sh` pulls only images missing on the host
+(`PULL_PARALLEL`, default 4). With `ROLLING_DEPLOY=1` routed services (`api`,
+`web-*`) roll in batches of `ROLLOUT_PARALLEL` (default 4; `1` is one at a time).
+A new container is probed every 2 seconds while it starts (`start_interval`,
+Docker Engine 25 or later; an older engine stops the deploy in the `disk` phase).
+A healthy routed container whose Compose config hash is unchanged is kept. After
+a failed service no later batch starts. The backup gate, serial migrations,
+grants and smoke tests are unchanged.
+
+**Owner actions before the first run.** Create the GitHub environment `build`
+(no reviewers, deployment branch `dev`) with the secrets `SENTRY_AUTH_TOKEN` and
+`SENTRY_DSN_PRODUCTION`. Without them dev builds pass but skip source-map upload
+and the build-time Sentry endpoint. The first dev push after the merge builds every
+image (no earlier tree tags), and staging must deploy a tree before production can
+release it.
+
+**Runtime settings.** Web images no longer carry the environment's
+public settings; see [Public settings at run time](../env.md#public-settings-at-run-time).
+On the first staging deploy check `/runtime-env.js` on each app returns staging
+values and that Sentry and Turnstile load. The file is cached up to 60 seconds, so
+a settings change reaches browsers within a minute.
+
+**When promotion fails.**
+
+| Message or symptom | Cause | Action |
+| --- | --- | --- |
+| No dev commit with this tree | Something was pushed to `staging` or `main` that did not come from `dev` | Merge the change into `dev` first. Do not push around it. |
+| Required checks not green on the dev commit | CI failed or is still running on `dev` | Fix on `dev`, then promote again. Do not re-run blindly. |
+| Dev images missing for the tree | `dev-images.yml` failed or never ran | The pipeline dispatches **Dev Images** for that commit and waits up to 45 minutes. By hand: dispatch `dev-images.yml` with `sha` set to the dev commit, then re-run the pipeline. |
+| Production: no `staging-verified-tree` digests | Staging never deployed that tree | Deploy it to staging first. |
+
 ## Rollback / redeploy
 
-Re-deploying an existing release needs no builds: manually dispatch the
-**Deploy** workflow (`deploy.yml`) with `environment=production` and the release
-tag. For a release before the domain migration, select that release tag as the
-workflow ref too, so its matching Compose definition is used. The
-`deploy-prod.yml` and `deploy-staging.yml` entries delegate to the same Deploy
-workflow; they no longer use separate legacy Compose files.
+Rollback is a redeploy of the previous release's images. It never rebuilds and it
+never undoes database migrations.
 
-Redeploying an older tag does not undo database migrations. Keep each release's
-migrations additive (new tables and nullable columns), and remove old columns or
-tables only in a later release, once no deployed version reads them. That is what
-lets the previous release keep running against the newer schema. A migration that
-cannot satisfy this needs a written recovery plan in the pull request before it merges.
+If promotion cannot run because the dev images for the tree are missing, the
+staging pipeline dispatches **Dev Images** for that dev commit itself and waits
+up to 45 minutes. To do it by hand: dispatch **Dev Images** (`dev-images.yml`)
+with `sha` set to the dev commit, then re-run the pipeline. To redeploy an
+existing release, dispatch **Deploy** with `image_tag=sha-<commit>`, the
+`image_digests` from the original promotion run summary and, only when you have
+no digest list, `manual_redeploy`. A tree that never passed through dev has no
+fallback: merge it into dev first.
+
+**Rollback by digest.**
+
+1. Find the last good release and its promotion run: `gh release list --limit 3`,
+   then `gh run list --workflow=pipeline-prod.yml --limit 5`. The run summary lists
+   the image digests it deployed.
+2. Dispatch **Deploy** (`deploy.yml`) with `environment=production`,
+   `image_tag=production-sha-<commit>` of the last good release (the images already
+   exist) and `image_digests` copied from that run summary. Only when no digest list
+   is available, tick `manual_redeploy`; `core.sh` then accepts the commit label or
+   a `gd.barrels.build-once=true` image. (`image_digests` and `manual_redeploy` land
+   with PR #1026; on `origin/dev` dispatch with the release tag.)
+3. Watch `gh run watch`, then run section 5, "Verify prod".
+4. Tell the owner before and after. Production deploys need the owner's go.
+
+A release made before PR #1026 has no digest list: use its release tag as on
+`origin/dev` today, and select that tag as the workflow ref when it predates the
+domain migration so its matching Compose definition is used. The `deploy-prod.yml`
+and `deploy-staging.yml` entries delegate to the same Deploy workflow.
+
+**Database.** Redeploying an older release does not undo database migrations. Keep
+each release's migrations additive (new tables and nullable or defaulted columns),
+and remove old columns or tables only in a later release, once no deployed version
+reads them. That is what lets the previous release keep running against the newer
+schema. A migration that cannot satisfy this needs a written recovery plan in the
+pull request before it merges. Do not run a migration `down` in production to roll
+back: restore from the backup named in the release notes only when data is wrong,
+with the owner (see [restore drill](restore-drill.md) and the backup gate above).
+
+**Web public settings.** A wrong site, API or Sentry value is fixed
+by correcting the GitHub environment variable and redeploying; no rebuild.
+
+### CMS migrations (Payload, database `gms_cms`)
+
+The `cms-migrate` service runs the Payload migrations in
+`apps/web/cms/src/migrations/` on every deploy that includes it. The previous CMS
+image keeps working against a newer schema when the migration only adds columns,
+tables or enum types with a default or without NOT NULL. Reverting a release
+therefore means redeploying the old image and leaving the schema as it is.
+
+| Migration | Change | Old image on new schema? | If the release is reverted |
+| --- | --- | --- | --- |
+| `20261101_172726_desk_post_types` | Adds `format` (enum, NOT NULL, default `standard`), `media_url`, `author_role` to `desk_updates`, and the matching `version_*` columns to `_desk_updates_v`, plus two enum types | Yes: old inserts omit the columns and the default applies | Leave the schema. Posts created with a non-standard format show as ordinary posts in the old image. `down` drops the columns and loses those values; use it only on staging. |
+| `20261029_150427_author_name_and_desk_cover` | Adds `author_name` (live posts) and a cover image reference (desk updates) | Yes (additive, nullable) | Leave the schema |
+| `20261029_095750_newsletter_and_social_ticks` | Adds newsletter and social tick columns | Yes (additive) | Leave the schema |
+| `20261029_023326_publication_log_and_scheduling` | Adds the `publication_log` table and `publish_at` columns | Yes (additive) | Leave the schema; scheduled posts do not publish while the old image runs |
+| `20261029_030000_duty_note_to_live_posts` | Copies duty notes into `live_posts` (data) | Yes | Copied rows stay; do not re-run |
+| `20261028_214120_gms_content_data` | Rewrites `desk_updates.kind` values (data) | Check: the old image may not recognise the new values | Restore from backup if values must go back; ask the owner |
+| `20261028_214119_gms_content_schema`, `_220706_related_links_paste`, `_223907_social_image` | Content schema, related links and social image columns | Yes (additive); `related_links_paste` also inserts rows | Leave the schema |
+
+Rows describe what each migration's SQL does; read the file before relying on a
+row for a release that changes it. Add a row to this table in the same pull
+request as every new CMS migration, including "if reverted". Never edit an applied
+migration. A destructive CMS migration needs the backup gate above and a verified
+CMS dump first (the nightly backup covers `gms_cms` only when it is provisioned).
 
 ## Dependabot pull requests
 

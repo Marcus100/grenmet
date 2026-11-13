@@ -15,6 +15,7 @@ from src.hr.models import Department, EmploymentRecord
 from src.hr.organisations import require_organisation_permission
 from src.hr.roster.expansion import expand_shift
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     RosterAssignment,
     RosterPeriod,
     RosterPeriodStatus,
@@ -225,6 +226,7 @@ async def submit_attendance(
     current_user: User,
     attendance_id: uuid.UUID,
     expected_revision: int,
+    rule_override_reason: str | None = None,
 ) -> AttendanceRecord:
     record = await session.scalar(
         select(AttendanceRecord)
@@ -261,6 +263,7 @@ async def submit_attendance(
         workflow_type=WorkflowType.TIMESHEET,
         entity_type="attendance",
         entity_id=record.id,
+        rule_override_reason=rule_override_reason,
     )
     instance = await session.get(WorkflowInstance, record.workflow_instance_id)
     if instance:
@@ -314,9 +317,7 @@ async def week_rows(
         )
         .where(
             RosterAssignment.assignment_date.between(start, end),
-            RosterPeriod.status.in_(
-                [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-            ),
+            RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
             ShiftCatalog.category == ShiftCategory.WORK,
         )
     )
@@ -445,6 +446,7 @@ async def propose_correction(
         workflow_type=WorkflowType.TIMESHEET,
         entity_type="attendance_correction",
         entity_id=correction.id,
+        rule_override_reason=payload.rule_override_reason,
     )
     workflow = await session.get(WorkflowInstance, correction.workflow_instance_id)
     if workflow:

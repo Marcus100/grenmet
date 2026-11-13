@@ -32,6 +32,7 @@ from src.cap.schemas import (
     CapAlertPublic,
     PublicWarnings,
 )
+from src.cap.transitions import ENDED_STATES, EVER_PUBLISHED_STATES
 from src.utils.datetime import utc_now
 
 
@@ -105,9 +106,7 @@ async def public_past_alerts(*, session: AsyncSession) -> CapAlertListPublic:
         .where(
             CapAlert.scope == CapScope.PUBLIC,
             sa.or_(
-                CapAlert.lifecycle_state.in_(
-                    {CapLifecycleState.EXPIRED, CapLifecycleState.CANCELLED}
-                ),
+                CapAlert.lifecycle_state.in_(ENDED_STATES),
                 sa.and_(
                     CapAlert.lifecycle_state == CapLifecycleState.PUBLISHED,
                     CapAlert.msg_type.in_(
@@ -133,11 +132,7 @@ async def public_past_alerts(*, session: AsyncSession) -> CapAlertListPublic:
 async def public_all_alerts(*, session: AsyncSession) -> CapAlertListPublic:
     alerts = await _public_alerts_by_state(
         session=session,
-        states={
-            CapLifecycleState.PUBLISHED,
-            CapLifecycleState.EXPIRED,
-            CapLifecycleState.CANCELLED,
-        },
+        states=EVER_PUBLISHED_STATES,
     )
     return CapAlertListPublic(data=alerts, count=len(alerts))
 
@@ -148,15 +143,7 @@ async def public_alert_by_identifier(
     result = await session.execute(
         select(CapAlert)
         .where(CapAlert.identifier == identifier)
-        .where(
-            CapAlert.lifecycle_state.in_(
-                {
-                    CapLifecycleState.PUBLISHED,
-                    CapLifecycleState.EXPIRED,
-                    CapLifecycleState.CANCELLED,
-                }
-            )
-        )
+        .where(CapAlert.lifecycle_state.in_(EVER_PUBLISHED_STATES))
         # Public-scope only — Restricted/Private alerts are not anonymously readable.
         .where(CapAlert.scope == CapScope.PUBLIC)
     )
@@ -187,7 +174,7 @@ async def latest_snapshot_for_identifier(
 
 
 async def _public_alerts_by_state(
-    *, session: AsyncSession, states: set[CapLifecycleState]
+    *, session: AsyncSession, states: frozenset[CapLifecycleState]
 ) -> list[CapAlertPublic]:
     stmt = (
         select(CapAlert)
@@ -227,13 +214,7 @@ async def _attach_public_replacements(
         .where(
             CapReference.identifier.in_([alert.identifier for alert in alerts]),
             CapAlert.msg_type.in_({CapMessageType.UPDATE, CapMessageType.CANCEL}),
-            CapAlert.lifecycle_state.in_(
-                {
-                    CapLifecycleState.PUBLISHED,
-                    CapLifecycleState.EXPIRED,
-                    CapLifecycleState.CANCELLED,
-                }
-            ),
+            CapAlert.lifecycle_state.in_(EVER_PUBLISHED_STATES),
             CapAlert.scope == CapScope.PUBLIC,
         )
         .order_by(CapAlert.sent.desc())

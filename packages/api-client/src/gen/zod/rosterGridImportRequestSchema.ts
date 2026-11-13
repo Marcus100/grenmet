@@ -12,4 +12,10 @@ export const rosterGridImportRequestSchema = z.object({
   csv_text: z.string(),
   file_name: z.string().optional().default("roster.csv"),
   publish: z.boolean().optional().default(false),
+  rule_override_reason: z
+    .union([z.string().max(1000), z.null()])
+    .optional()
+    .describe(
+      "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
+    ),
 });

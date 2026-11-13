@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { RosterRuleSetPublic } from "./RosterRuleSetPublic.js";
 import type { RosterRulesPublic } from "./RosterRulesPublic.js";
 import type { RuleViolationPublic } from "./RuleViolationPublic.js";
 
@@ -16,4 +17,5 @@ export type RosterRuleCheckPublic = {
   rules: RosterRulesPublic;
   violations: RuleViolationPublic[];
   count: number;
+  rule_set?: RosterRuleSetPublic | null;
 };

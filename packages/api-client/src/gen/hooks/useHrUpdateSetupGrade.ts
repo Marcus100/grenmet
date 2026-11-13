@@ -53,7 +53,7 @@ export function hrUpdateSetupGradeMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Create or update a grade. Grade codes are unique within a department.
+ * @description Create or update a grade. Grade codes are unique within a department. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
  * @summary Create or update a grade
  * {@link /api/v1/hr/setup/grades/:grade_id}
  */

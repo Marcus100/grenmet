@@ -25,9 +25,9 @@ from src.auth.models import Permission, Role, RolePermissionLink, User
 from src.baseline.department import GMS_DEPARTMENT_IDS
 from src.hr.models import EmploymentRecord, EmploymentStatus
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     RosterAssignment,
     RosterPeriod,
-    RosterPeriodStatus,
     ShiftCatalog,
     ShiftCategory,
 )
@@ -46,6 +46,7 @@ OBSERVATION_MISSING = "gms.observation_missing"
 SEND_FAILED = "gms.send_failed"
 RECORD_QUERY = "gms.record_query"
 NHC_PRODUCT = "gms.nhc_product"
+CAP_FORMAT_PROBLEM = "gms.cap_format_problem"
 
 # Permissions that make someone a recipient (on duty first, else every holder).
 REGISTER_REVIEW_PERMISSIONS = ("eregister.qc", "eregister.send")
@@ -86,6 +87,21 @@ def register() -> None:
             title="Warning {{ action }}: {{ headline }}",
             body="{{ identifier }} was {{ action }}.",
             variables=("action", "headline", "identifier"),
+            urgent=True,
+        ),
+        EventDef(
+            key=CAP_FORMAT_PROBLEM,
+            label="Warning published with a CAP format problem",
+            description=(
+                "A warning went out, by emergency publish or cancellation, even though its "
+                "XML does not fully follow the CAP 1.2 schema."
+            ),
+            audience=_AUDIENCE.format(
+                "The duty supervisor on shift, else every holder"
+            ),
+            title="CAP format problem: {{ headline }}",
+            body="{{ identifier }} was {{ action }} with a CAP format problem: {{ problem }}",
+            variables=("action", "headline", "identifier", "problem"),
             urgent=True,
         ),
         EventDef(
@@ -242,9 +258,7 @@ async def duty_roster(
         .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
         .where(
             RosterPeriod.department_id.in_(GMS_DEPARTMENT_IDS),
-            RosterPeriod.status.in_(
-                (RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED)
-            ),
+            RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
             RosterAssignment.assignment_date.in_((today - timedelta(days=1), today)),
         )
     )

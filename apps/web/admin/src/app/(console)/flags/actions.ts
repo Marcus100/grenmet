@@ -1,6 +1,6 @@
 "use server";
 
-import { isAuthApiError } from "@barrelsgd/auth";
+import { isAuthApiError, type ValidationErrorItem } from "@barrelsgd/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -24,7 +24,8 @@ const UNPROCESSABLE = 422;
 const CONFLICT = 409;
 const NOT_FOUND = 404;
 const MAX_MESSAGE = 300;
-const JSON_START = /^[[{]/;
+const JSON_START = /^[[{]/u;
+const VALIDATION_FALLBACK = "Validation error";
 
 async function staffToken(): Promise<string> {
   const gate = await requireGate("/flags");
@@ -37,6 +38,25 @@ function done(code: FlagNoticeCode): never {
   redirect(`/flags?notice=${code}`);
 }
 
+const MAX_PROBLEMS = 5;
+
+/**
+ * Field-level problems of a 422, as "field: reason". The field is the last
+ * name in the location (the form's own field name); the reason is the API's
+ * message, kept only if it is plain text. Duplicates and extras are dropped.
+ */
+function fieldProblems(error: { errors: ValidationErrorItem[] }): string[] {
+  const lines = error.errors.flatMap((item) => {
+    const field = item.loc.filter((part) => part !== "body").at(-1);
+    const reason = item.msg.trim();
+    if (!reason || reason.length > MAX_MESSAGE || JSON_START.test(reason)) {
+      return [];
+    }
+    return [field === undefined ? reason : `${field}: ${reason}`];
+  });
+  return [...new Set(lines)].slice(0, MAX_PROBLEMS);
+}
+
 /** A readable message for a rejected save. Plain-text details only. */
 function rejection(error: { detail: string; status: number }): string {
   if (error.status === CONFLICT) {
@@ -44,7 +64,11 @@ function rejection(error: { detail: string; status: number }): string {
   }
   if (error.status === UNPROCESSABLE) {
     const detail = error.detail.trim();
-    return detail && !JSON_START.test(detail) && detail.length <= MAX_MESSAGE
+    // The documented validation 422 says only "Validation error": not a reason.
+    return detail &&
+      detail !== VALIDATION_FALLBACK &&
+      !JSON_START.test(detail) &&
+      detail.length <= MAX_MESSAGE
       ? detail
       : "The API did not accept those values. Check the fields and try again.";
   }
@@ -94,7 +118,11 @@ export async function saveFlagAction(
     if (error.status === 401) redirect("/signin?sign_in=expired");
     if (error.status === NOT_FOUND) done("flag-missing");
     if (error.status >= SERVER_ERROR) reportError(error, "admin-flags");
-    return { message: rejection(error), values: collectValues(formData) };
+    return {
+      message: rejection(error),
+      problems: error.status === UNPROCESSABLE ? fieldProblems(error) : [],
+      values: collectValues(formData),
+    };
   }
   return done(flagId ? "flag-updated" : "flag-created");
 }

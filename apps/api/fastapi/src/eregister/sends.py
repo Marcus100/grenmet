@@ -12,17 +12,19 @@ from typing import Any, cast
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy import func, select, text
+from sqlalchemy import bindparam, func, select, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
-from src.exceptions import AppException
+from src.eregister.exceptions import ObservationNotFoundError
+from src.exceptions import AppException, AppValidationError
 from src.notifications import service as notification_service
 from src.notifications.config import notification_settings
 from src.notifications.models import OutboundEmail, OutboundEmailStatus
 from src.utils.datetime import utc_now
 
-from . import encode, entries, gate, rules
+from . import bufr, encode, encodings, entries, gate, rules, stations, transitions
 from .config import eregister_settings, wis2box_settings
 from .models import (
     STATUS_FAILED,
@@ -42,7 +44,6 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
-NOT_SENDABLE_STATES = ("rejected", "superseded")
 # Accepted (by the observer or other register staff) is enough to leave the
 # building; the optional review never holds WIS2 or email back.
 SENDABLE_ACCEPTED_STATES = ("accepted",)
@@ -78,27 +79,93 @@ async def load_sendable(
     )
     row = result.mappings().first()
     if row is None:
-        raise HTTPException(404, "Observation not found")
+        raise ObservationNotFoundError()
     data = dict(row)
     if data["kind"] != "SYNOP":
-        raise HTTPException(409, "Only SYNOP observations can be sent")
+        raise AppException("Only SYNOP observations can be sent", 409)
     state = data["state"]
-    if state in NOT_SENDABLE_STATES:
-        raise HTTPException(409, f"A {state} observation cannot be sent")
+    if state in transitions.NOT_SENDABLE_STATES:
+        raise AppException(f"A {state} observation cannot be sent", 409)
     if (
         require_accepted or eregister_settings.SEND_REQUIRE_ACCEPTED
     ) and state not in SENDABLE_ACCEPTED_STATES:
-        raise HTTPException(409, "Only QC-accepted observations can be sent")
+        raise AppException("Only QC-accepted observations can be sent", 409)
     issues = entries.validation_issues(
         data["body"] or {}, data["observed_at"], stored=True
     )
     errors = [issue for issue in issues if issue.severity == "error"]
     if errors:
         detail = "; ".join(f"{issue.field}: {issue.message}" for issue in errors[:3])
-        raise HTTPException(422, f"Observation does not pass validation: {detail}")
+        raise AppValidationError(f"Observation does not pass validation: {detail}")
     workbook = encode.workbook_from_body(data["body"] or {})
     _, decoded = rules.validate_synop(workbook, recompute=False)
+    await _require_bufr(session, data)
     return SendableObservation(data, workbook, decoded)
+
+
+async def _require_bufr(session: AsyncSession, data: dict[str, Any]) -> None:
+    """Refuse WIS2 and email while the observation's BUFR is not valid.
+
+    The stored record is used when present. A row accepted before the BUFR was stored
+    (or a record never written) is checked now, from the same values, and not stored.
+    A failed check passes only with a reviewer override given for this exact record
+    (``bufr.override_for``); the override never changes the record's bytes or validity.
+    """
+    stored = data.get("bufr")
+    record: dict[str, Any] = stored if isinstance(stored, dict) else {}
+    if record.get("base64") is None:
+        # Never encoded, or the encoder failed: encode again, so a transient failure
+        # does not block for ever. The new record is stored either way, and keeps
+        # an override only while the encoding is unchanged.
+        fresh = await encode_bufr_now(session, data)
+        record = bufr.carry_over(record, fresh)
+        await _store_bufr(session, data["id"], record)
+    if record.get("valid") is True:
+        return
+    if bufr.override_for(record) is not None:
+        return
+    reasons = record.get("errors") or ["the BUFR check did not pass"]
+    if record.get("base64") is None:
+        raise AppException(
+            f"BUFR could not be encoded, so the observation is not sent: {reasons[0]}",
+            409,
+        )
+    # A message exists and its values differ from the observation: blocked until corrected.
+    raise AppException(
+        f"BUFR check failed, so the observation is not sent: {reasons[0]}", 409
+    )
+
+
+async def encode_bufr_now(
+    session: AsyncSession, data: dict[str, Any]
+) -> dict[str, Any]:
+    """The BUFR record of a saved row, encoded now and not stored (the caller stores it)."""
+    failed = bufr.failed_record(encodings.ENCODER_FAILED)
+    try:
+        station = await stations.pressure_for(session, str(data["station_id"]))
+    except Exception:
+        logger.exception("eRegister pressure settings lookup failed while sending")
+        return failed
+    return await encodings.run_encoder(
+        "BUFR",
+        bufr.record_for_row,
+        failed,
+        body=data["body"] or {},
+        station=station,
+        observed_at=data["observed_at"],
+    )
+
+
+_STORE_BUFR = text(
+    "UPDATE register_observations SET bufr = CAST(:bufr AS jsonb) WHERE id = :id"
+).bindparams(bindparam("bufr", type_=JSONB(none_as_null=True)))
+
+
+async def _store_bufr(
+    session: AsyncSession, observation_id: Any, record: dict[str, Any]
+) -> None:
+    await session.execute(_STORE_BUFR, {"bufr": record, "id": str(observation_id)})
+    await session.commit()
 
 
 async def _claim(
@@ -123,9 +190,8 @@ async def _claim(
     )
     if existing and not resend:
         label = "emailed" if target == TARGET_EMAIL else "queued for WIS2"
-        raise HTTPException(
-            409,
-            f"{REPEAT_SEND_PREFIX}{label}. Send again with resend=true.",
+        raise AppException(
+            f"{REPEAT_SEND_PREFIX}{label}. Send again with resend=true.", 409
         )
 
 
@@ -208,7 +274,7 @@ async def queue_email(
 ) -> ObservationSend:
     recipients = eregister_settings.recipients
     if not recipients:
-        raise HTTPException(409, "No recipients configured")
+        raise AppException("No recipients configured", 409)
     await _claim(session, observation_id, TARGET_EMAIL, resend=resend)
     subject, body = email_content(item, encode.synop_tac(item.workbook))
     outbox: list[OutboundEmail] = [
@@ -391,7 +457,7 @@ async def queue_wis2(
     del resend  # WIS2 files are never repeated (ADR-0032)
     reason = wis2_unavailable_reason(item)
     if reason:
-        raise HTTPException(409, reason)
+        raise AppException(reason, 409)
     await lock_wis2_hour(session, item.station_id, item.observed_at)
     # Recheck under the lock: a correction may have replaced this observation while
     # this request waited.
@@ -399,8 +465,8 @@ async def queue_wis2(
         text("SELECT state FROM register_observations WHERE id = :id"),
         {"id": str(observation_id)},
     )
-    if current in NOT_SENDABLE_STATES:
-        raise HTTPException(409, f"A {current} observation cannot be sent")
+    if current in transitions.NOT_SENDABLE_STATES:
+        raise AppException(f"A {current} observation cannot be sent", 409)
     # The gate comes first: an hour owned by the automatic source is never
     # queued, and a station-hour is claimed by one observation only. A WIS2
     # file is never queued twice, so `resend` does not apply here.

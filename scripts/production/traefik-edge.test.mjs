@@ -9,28 +9,31 @@ const read = (path) =>
   readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 
 const compose = read("infra/docker/docker-compose.deploy.yml");
-const TOP_LEVEL_KEY = /^\S/;
-const SERVICE_HEADER = /^ {2}([a-z0-9-]+):\s*$/;
-const LIST_ITEM = /^ {6}- (.+?)\s*$/;
-const SECTION = /^ {4}([a-z_]+):(.*)$/;
-const VARIABLE = /\$\{([A-Z0-9_]+)(?:(:-|:\+|:\?)([^${}]*))?\}/g;
+const TOP_LEVEL_KEY = /^\S/u;
+const SERVICE_HEADER = /^ {2}([a-z0-9-]+):\s*$/u;
+const LIST_ITEM = /^ {6}- (.+?)\s*$/u;
+const SECTION = /^ {4}([a-z_]+):(.*)$/u;
+const VARIABLE = /\$\{([A-Z0-9_]+)(?:(:-|:\+|:\?)([^${}]*))?\}/gu;
 const SOCKET = "/var/run/docker.sock";
 const STAGING_ONLY = ["staging-auth", "staging-noindex"];
-const DASHBOARD_USER = /\$\{USERNAME\}/;
-const PROFILE = /^ {4}profiles: \["([a-z]+)"\]/m;
-const ROUTER_LABEL = /^traefik\.http\.routers\.([^.]+)\.(.+)$/;
-const PROVIDER_SUFFIX = /@docker$/;
+const DASHBOARD_USER = /\$\{USERNAME\}/u;
+const PROFILE = /^ {4}profiles: \["([a-z]+)"\]/mu;
+const ROUTER_LABEL = /^traefik\.http\.routers\.([^.]+)\.(.+)$/u;
+const PROVIDER_SUFFIX = /@docker$/u;
 const SOCKET_PROXY_IMAGE =
-  /^ {4}image: tecnativa\/docker-socket-proxy:v[0-9.]+@sha256:[0-9a-f]{64}$/m;
-const CONTAINERS_ALLOWED = /^ {6}CONTAINERS: 1$/m;
-const POST_DENIED = /^ {6}POST: 0$/m;
+  /^ {4}image: tecnativa\/docker-socket-proxy:v[0-9.]+@sha256:[0-9a-f]{64}$/mu;
+const CONTAINERS_ALLOWED = /^ {6}CONTAINERS: 1$/mu;
+const POST_DENIED = /^ {6}POST: 0$/mu;
 const INTERNAL_NETWORK =
-  /^ {2}docker-api:\n {4}driver: bridge\n {4}internal: true$/m;
-const READ_ONLY = /^ {4}read_only: true$/m;
-const DURATION = /[=][1-9][0-9]*s$/;
-const HR_LIMIT = /^MAX_DOCUMENT_BYTES = (.+)$/m;
-const UPLOAD_ROUTER = /^(grenmet-api|web-cms|adminer)/;
-const STAGING_PROFILE = /^ {4}profiles: \["staging"\]$/m;
+  /^ {2}docker-api:\n {4}driver: bridge\n {4}internal: true$/mu;
+const READ_ONLY = /^ {4}read_only: true$/mu;
+const DURATION = /[=][1-9][0-9]*s$/u;
+const HR_LIMIT = /^MAX_DOCUMENT_BYTES = (.+)$/mu;
+const UPLOAD_ROUTER = /^(grenmet-api|web-cms|adminer)/u;
+const STAGING_PROFILE = /^ {4}profiles: \["staging"\]$/mu;
+const ORIGIN_GATE = /^origin-gate/u;
+const SWITCHED_FORWARDED_HEADERS =
+  /\$\{TRAEFIK_FORWARDED_HEADERS:-insecure=false\}$/u;
 
 // Top-level `services:` blocks as raw text plus their list-valued sections.
 function services(text) {
@@ -179,10 +182,13 @@ function middlewareKind(name, labels) {
   return key?.slice(prefix.length).split(".")[0];
 }
 
+// The app routers on websecure (the origin gate is tested on its own below).
 function websecureRouters(environment) {
   const { routers } = edge(environment);
-  return [...routers].filter(([, router]) =>
-    (router.entrypoints ?? "").split(",").includes("websecure")
+  return [...routers].filter(
+    ([name, router]) =>
+      !ORIGIN_GATE.test(name) &&
+      (router.entrypoints ?? "").split(",").includes("websecure")
   );
 }
 
@@ -202,7 +208,7 @@ test("only the socket proxy mounts the Docker socket, read-only and allow-listed
   ])
     assert.doesNotMatch(
       socketProxy.body,
-      new RegExp(`^ {6}${denied}: 1$`, "m")
+      new RegExp(`^ {6}${denied}: 1$`, "mu")
     );
   assert.deepEqual(socketProxy.lists.networks, ["docker-api"]);
   for (const service of parsed.values()) {
@@ -426,4 +432,117 @@ test("Adminer stays staging-only behind its own credentials", () => {
       "adminer-auth-staging"
     )
   );
+});
+
+test("forwarded headers, the client-IP depth and the challenge come only from the Cloudflare switch", () => {
+  // Off (the env files alone, as before render-env.py) is Traefik's default.
+  const off = {};
+  assert.deepEqual(
+    flags
+      .filter((flag) => flag.includes("forwardedHeaders"))
+      .map((flag) => interpolate(flag, off)),
+    ["--entrypoints.websecure.forwardedHeaders.insecure=false"]
+  );
+  assert.deepEqual(
+    flags
+      .filter((flag) => flag.includes("challenge"))
+      .map((flag) => interpolate(flag, off)),
+    ["--certificatesresolvers.letsencrypt.acme.tlschallenge=true"]
+  );
+  // Nothing hard-codes trust: the ranges arrive only through render-env.py.
+  const items = [...parsed.values()].flatMap((service) =>
+    Object.values(service.lists).flat()
+  );
+  assert.equal(
+    items.some((item) => item.includes("trustedIPs=")),
+    false
+  );
+  assert.equal(
+    items.some((item) => item.includes("insecure=true")),
+    false
+  );
+  for (const flag of flags.filter((item) => item.includes("forwardedHeaders")))
+    assert.match(flag, SWITCHED_FORWARDED_HEADERS);
+});
+
+test("the origin gate outranks every router, refuses with 403 and is inert when off", () => {
+  for (const environment of Object.keys(ENVIRONMENTS)) {
+    const { labels, routers, entrypointMiddlewares } = edge(environment);
+    const suffix = environment === "staging" ? "-staging" : "";
+    const gate = routers.get(`origin-gate${suffix}`);
+    assert.ok(gate, `${environment} has the origin gate`);
+    // Off (env files only): a rule no TCP client can match.
+    assert.equal(gate.rule, "ClientIP(`255.255.255.255/32`)");
+    assert.equal(gate.entrypoints, "websecure");
+    assert.equal(gate.tls, "true");
+    assert.equal(gate.service, "noop@internal");
+    for (const [name, router] of routers)
+      if (name !== `origin-gate${suffix}`)
+        assert.ok(
+          Number(router.priority ?? 0) < Number(gate.priority),
+          `${name} must rank below the gate`
+        );
+    assert.equal(gate.middlewares, `origin-deny${suffix}`);
+    assert.equal(
+      labels[
+        `traefik.http.middlewares.origin-deny${suffix}.ipallowlist.sourcerange`
+      ],
+      "127.0.0.1/32"
+    );
+    // The secret header never reaches an app, gate on or off.
+    assert.ok(
+      entrypointMiddlewares.includes(`strip-origin-secret${suffix}@docker`)
+    );
+    assert.equal(
+      labels[
+        `traefik.http.middlewares.strip-origin-secret${suffix}.headers.customrequestheaders.X-Barrels-Origin`
+      ],
+      ""
+    );
+  }
+});
+
+test("probed services recover from one slow probe within seconds", () => {
+  const probed = [...services(compose).values()].flatMap((service) =>
+    (service.lists.labels ?? [])
+      .map(
+        (label) =>
+          label.match(
+            /^traefik\.http\.services\.([^.]+)\.loadbalancer\.healthcheck\.path=/u
+          )?.[1]
+      )
+      .filter(Boolean)
+      .map((name) => ({
+        service: service.name,
+        labels: service.lists.labels,
+        name,
+      }))
+  );
+  assert.ok(probed.length >= 4, "expected the API and probed web services");
+  const seconds = (labels, name, option) => {
+    const value = labels
+      .find((label) =>
+        label.startsWith(
+          `traefik.http.services.${name}.loadbalancer.healthcheck.${option}=`
+        )
+      )
+      ?.split("=")[1];
+    assert.ok(value, `${name} sets healthcheck.${option}`);
+    assert.match(value, /^[1-9][0-9]*s$/u);
+    return Number.parseInt(value, 10);
+  };
+  for (const { service, labels, name } of probed) {
+    assert.ok(
+      seconds(labels, name, "unhealthyinterval") <= 5,
+      `${service} re-probes an unhealthy server within 5 s`
+    );
+    assert.ok(
+      seconds(labels, name, "timeout") >= 10,
+      `${service} allows a busy probe at least 10 s`
+    );
+    assert.ok(
+      seconds(labels, name, "interval") > seconds(labels, name, "timeout"),
+      `${service} probes less often than its timeout`
+    );
+  }
 });

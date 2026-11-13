@@ -6,7 +6,8 @@ import type {
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import { COLOUR_LABEL } from "@/lib/cap-levels";
+import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
+import { colourLabel } from "@/lib/cap-levels";
 import {
   IBF_COLOUR_MEANING,
   starterColourResponses,
@@ -28,6 +29,7 @@ export function SubtypeImpactEditor({
   subtype: CapProfileSubtype;
   onChange: (next: CapProfileSubtype) => void;
 }) {
+  const catalogue = useGmsCatalogue();
   const levels = subtype.impact_levels ?? [];
   const responses = subtype.colour_responses ?? [];
   const started = levels.length > 0 || responses.length > 0;
@@ -92,7 +94,7 @@ export function SubtypeImpactEditor({
       {responses.map((response, index) => (
         <ProfileField
           key={response.colour}
-          label={`${COLOUR_LABEL[response.colour]} response (${IBF_COLOUR_MEANING[response.colour]})`}
+          label={`${colourLabel(catalogue, response.colour)} response (${IBF_COLOUR_MEANING[response.colour]})`}
           multiline
           onChange={(value) => setResponse(index, { response: value })}
           value={response.response ?? ""}

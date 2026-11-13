@@ -70,6 +70,12 @@ updates:
       - dependency-name: redis
         update-types:
           - version-update:semver-major
+      # aiobotocore (pulled in by s3fs) pins botocore to a narrow window that trails
+      # the newest boto3/botocore, so a bot bump of either cannot resolve (#486).
+      # Let s3fs/aiobotocore drive the AWS stack; remove these two entries once
+      # aiobotocore supports the current botocore.
+      - dependency-name: boto3
+      - dependency-name: botocore
 
   # Docker (API)
   - package-ecosystem: docker
@@ -113,6 +119,18 @@ updates:
     target-branch: dev
     schedule:
       interval: weekly
+    commit-message:
+      prefix: ⬆
+
+  # SURFACE's pip-compiled requirements (vendored). Version updates are off
+  # (limit 0): the file is regenerated when upstream is reconciled (VENDORED.md).
+  # Security updates for it still open pull requests.
+  - package-ecosystem: pip
+    directory: /surface/api
+    target-branch: dev
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
     commit-message:
       prefix: ⬆
 

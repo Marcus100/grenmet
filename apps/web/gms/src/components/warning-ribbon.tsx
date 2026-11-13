@@ -25,11 +25,22 @@ export function WarningRibbon({ alerts }: { alerts: AlertsResult }) {
 
   return (
     <Link className={cn("block", WARNING_LEVEL_SURFACE[level])} href="/alerts">
-      <span className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-body leading-body sm:px-6 xl:px-8">
+      <span className="text-body leading-body mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 sm:px-6 xl:px-8">
         <TriangleAlertIcon aria-hidden="true" className="size-5 shrink-0" />
         <b className="font-bold">{alertsSummary(alerts)}</b>
-        <span>{detail}</span>
-        <span className="ml-auto whitespace-nowrap font-bold underline">
+        {/* Phones keep one line with "View alerts" beside the level (owner,
+            10 Nov 2026). An outage keeps its advice on a second line, because
+            it tells people what to do instead. */}
+        <span
+          className={cn(
+            level === "unknown"
+              ? "order-last basis-full sm:order-none sm:basis-auto"
+              : "hidden sm:inline"
+          )}
+        >
+          {detail}
+        </span>
+        <span className="ml-auto font-bold whitespace-nowrap underline">
           View alerts
         </span>
       </span>

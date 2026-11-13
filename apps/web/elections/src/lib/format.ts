@@ -1,6 +1,6 @@
-const NICKNAME = /\s*\(.*\)$/;
-const NAME_SEPARATORS = /[\s,]+/;
-const YEAR_MONTH = /^\d{4}-\d{2}$/;
+const NICKNAME = /\s*\(.*\)$/u;
+const NAME_SEPARATORS = /[\s,]+/u;
+const YEAR_MONTH = /^\d{4}-\d{2}$/u;
 
 const NUMBER = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 

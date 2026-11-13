@@ -196,9 +196,11 @@ nothing is created or alerts until the owner applies and unpauses them.
 | Heartbeat | worker poll completion | `WORKER_HEARTBEAT_URL` (rendered as `TELEMETRY_WORKER_HEARTBEAT_URL`) | 1 min + 2 min grace |
 
 Every monitor checks every 3 minutes, verifies TLS and alerts 14 days before
-certificate expiry (`ssl_expiration`); email only. Ten active monitors fill the
-free allowance, so the staging pilot monitor 5014248 and the old Google test must
-be retired first (the provider refuses to exceed `limits`). `deferred: true`
+certificate expiry (`ssl_expiration`); email and phone push (the owner's channel,
+9 Nov 2026). Ten active monitors fill the free allowance (Free plan confirmed
+9 Nov 2026): the staging pilot monitor 5014248 and the old Google test were
+deleted that day, so staging availability is covered by the probe runner and its
+heartbeat only, and `limitsVerified` is true. `deferred: true`
 resources are validated but never created; remove the flag when a slot frees up.
 `apps/web/admin` (Barrels control plane) is deployed with the 2026-10-21 admin host move and has no
 monitor yet (the staff-portal monitor now probes `gms.barrels.gd`). Babydoll
@@ -213,12 +215,21 @@ then rerun with `operation=apply`. Record each returned ID in `betterstack.json`
 unpause in Better Stack and set `"paused": false` in the file.
 
 **Secrets (production GitHub environment):** `BETTERSTACK_API_TOKEN`,
-`PROBE_HEARTBEAT_URL`, `BACKUP_HEARTBEAT_URL`, `WORKER_HEARTBEAT_URL` (copy the
+`PROBE_HEARTBEAT_URL`, `WORKER_HEARTBEAT_URL` (copy the
 heartbeat URLs from Better Stack after apply; they are credentials and never live
 in the repository), and `SENTRY_AUTH_TOKEN` (needs `project:releases`) for the
 deploy marker. Variables: `SENTRY_ORG` (defaults to `grenmet`),
 `TELEMETRY_ENABLED=true` for Redis counters, `MONITORING_DEPLOY_ENABLED=true` for
 the probe runner install.
+
+**Secret (`production-backup` GitHub environment):** `BACKUP_HEARTBEAT_URL`. The
+daily `backup-database.yml` job runs in that environment and pings it as its last
+step, only when all seven databases were dumped, restore-checked and uploaded.
+Without the secret the job sends nothing and still passes. `monitoring-maintenance.yml`
+reads a secret of the same name from the `production` environment for its own
+backup run; if that workflow is ever scheduled for production, give it a separate
+Better Stack heartbeat, because two jobs pinging one heartbeat hide each other's
+failures.
 
 ### Sentry releases, crons and alert rules
 
@@ -257,7 +268,7 @@ exceed `OUTBOX_ALERT_THRESHOLD` (0). Counters need `TELEMETRY_ENABLED=true`.
 
 ## Live evidence on 2026-10-02
 
-- [Staging API readiness monitor 5014248](https://incidents.betterstack.com/team/t476349/monitors/5014248): up; checks every 180 s; validates TLS and `"status":"ready"`; confirmation/recovery 180 s; email only.
+- Staging API readiness monitor 5014248 (deleted 9 Nov 2026 to free the slot for production): up; checks every 180 s; validates TLS and `"status":"ready"`; confirmation/recovery 180 s; email only.
 - [Synthetic incident 1026034957](https://incidents.betterstack.com/team/t476349/incidents/1026034957): email sent at 18:15:51 UTC, opened at 18:16:11, acknowledged at 18:16:19, resolved at 18:18:43. No application outage was induced. Recovery email receipt is not yet evidenced.
 - [Staging probe snapshot](monitoring-evidence/2026-10-02-staging-probes.jsonl): all nine configured HTTPS surfaces returned 200. This is one observation, not continuous availability.
 - [Provider summary](monitoring-evidence/2026-10-02-providers.json): observed Sentry staging issue activity and partial GitHub run counts; no app-specific synthetic delivery/source-map verification.
@@ -305,6 +316,19 @@ The probe runner retains its new journal for 14 days and sanitized monthly
 sample totals for at most 24 calendar months in the same atomic journal. No cleanup applies to old datasets. The owner installed the probe
 service through SSH; CI/CD adoption is prepared below. Worker settings and scheduled
 backup hooks are not yet live.
+
+## Version 1.0.0 additions to watch
+
+These features have no separate uptime monitor: the Better Stack probes cover the
+`/api/health` and readiness addresses listed in `scripts/monitoring/betterstack.json`
+only. This is where a failure shows instead. Nothing here adds a new monitor.
+
+| Feature | Where a failure shows |
+| --- | --- |
+| Month summary (`GET /api/v1/eregister/public/month-summary`, feeds the "Grenada in data" cards and the Climate Bulletin figures) | The route answers 503 with `{"error": "Month summary is unavailable"}` and `Cache-Control: no-store` when the eRegister database cannot be read. Otherwise it is cached for 300 seconds. Anonymous, limited to 60 requests a minute per IP. |
+| Marine Forecast (kind `marine-forecast`, due 05:00 Grenada time) | The five-minute overdue sweep (`notifications/gms_sweeps.py`) tells the staff allowed to author it when no issue dated today is published 15 minutes after 05:00, and stops after 6 hours. Each notification is sent once per product per day. |
+| Climate Bulletin (kind `climate-bulletin`, monthly, issued on the 15th) | No overdue sweep covers it. Check the issued product on the 15th; its figures come from the month summary above. |
+| CAP feed validation (`apps/api/fastapi/src/cap`) | A feed URL that is not `https` on port 443 is refused with a generic 422 when saved. A feed saved on plain `http` before that rule is fetched for 14 days, then skipped; the feed's `last_error` reads `plain http no longer allowed` and the API reports `grace_expired`. Other feed problems show as `host refused`, `could not fetch` or `ingest failed` (details are in the API log, not in the response). |
 
 ## Remaining promotion gates and owner steps
 

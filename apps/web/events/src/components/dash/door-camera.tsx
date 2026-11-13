@@ -183,7 +183,7 @@ export function DoorCamera({
   if (support === "unsupported" || support === "insecure") {
     return (
       <p
-        className="flex items-start gap-2 text-body text-muted-foreground"
+        className="text-body text-muted-foreground flex items-start gap-2"
         data-testid="camera-unsupported"
       >
         <CameraOff className="mt-0.5 size-4 shrink-0" />
@@ -209,7 +209,7 @@ export function DoorCamera({
       <div className={active ? "space-y-2" : "hidden"}>
         <video
           aria-label="Camera view: point at the ticket QR code"
-          className="aspect-square w-full max-w-sm rounded-xl border bg-muted object-cover"
+          className="bg-muted aspect-square w-full max-w-sm rounded-xl border object-cover"
           muted
           playsInline
           ref={video}

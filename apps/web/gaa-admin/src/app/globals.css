@@ -332,6 +332,19 @@
 /* END BARRELS DESIGN SYSTEM V1 */
 
 /*
+  Staff portal fix: the shared dark palette has no --primary-soft, so the soft
+  panel stayed light under light dark-mode text (1.07:1 on the HR home page).
+  Same pair as the dark --accent. Kept here, after the generated block, so
+  `pnpm design-system:check` stays in sync with @barrelsgd/ui.
+*/
+@layer base {
+  .dark {
+    --primary-soft: #16324a;
+    --primary-soft-foreground: #e6eaf2;
+  }
+}
+
+/*
   GMS brand layer — Mini Brand Presentation 2026.
 
   Layer 2 of the shared foundation resolves entirely through layer 1, so

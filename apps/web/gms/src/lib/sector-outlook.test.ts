@@ -3,12 +3,35 @@ import { describe, expect, it } from "vitest";
 import {
   buildSectorTiles,
   firstSentence,
+  formatOutlookAsOf,
+  isAllClear,
   whenLabel,
 } from "@/lib/sector-outlook";
 
 // 28 Oct 2026, 11:00 in Grenada (UTC-4).
 const NOW = new Date("2026-10-28T15:00:00Z");
 const at = (iso: string) => new Date(iso);
+
+describe("isAllClear", () => {
+  it("is a Green item whose notice is All clear, compared trimmed", () => {
+    expect(isAllClear({ colour: "green", notice_type: "All clear" })).toBe(
+      true
+    );
+    expect(isAllClear({ colour: "green", notice_type: " All clear " })).toBe(
+      true
+    );
+  });
+
+  it("is not an All clear above Green, or any other notice", () => {
+    expect(isAllClear({ colour: "yellow", notice_type: "All clear" })).toBe(
+      false
+    );
+    expect(isAllClear({ colour: "green", notice_type: "Advisory" })).toBe(
+      false
+    );
+    expect(isAllClear({ colour: "green", notice_type: null })).toBe(false);
+  });
+});
 
 describe("whenLabel", () => {
   it("says in effect for something already running", () => {
@@ -253,5 +276,18 @@ describe("buildSectorTiles", () => {
     const [tourism] = buildSectorTiles(outlook(many), NOW, 2);
     expect(tourism?.items).toHaveLength(2);
     expect(tourism?.more).toBe(3);
+  });
+});
+
+describe("formatOutlookAsOf", () => {
+  it("writes the time with a.m. and p.m. in Grenada", () => {
+    // 01:53 UTC on 11 Nov is 9:53 p.m. on 10 Nov in Grenada (UTC-4).
+    expect(formatOutlookAsOf("2026-11-11T01:53:00Z")).toBe(
+      "Tue 10 Nov, 9:53 p.m. AST"
+    );
+    // 04:30 UTC is 12:30 a.m. in Grenada.
+    expect(formatOutlookAsOf("2026-11-11T04:30:00Z")).toBe(
+      "Wed 11 Nov, 12:30 a.m. AST"
+    );
   });
 });

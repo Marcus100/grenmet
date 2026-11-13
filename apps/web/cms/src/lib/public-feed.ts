@@ -5,6 +5,7 @@ import { Stories } from "../collections/stories";
 import { NOTE_KIND } from "./duty-note";
 import { type EditorialLink, editorialLinksSchema } from "./editorial-links";
 import { bodyToText } from "./lexical";
+import { isLive } from "./publication-status";
 import { isOnSite, liveWhere } from "./publication-window";
 
 export const ARTICLE_COLLECTIONS = {
@@ -64,10 +65,26 @@ export function toLinkedProduct(links: EditorialLink[]) {
     : null;
 }
 
+/**
+ * The issued product a desk post is based on: its first product link, the
+ * main one if there is one. The GMS site shows "Based on the ..." under the
+ * card (owner, 1 Nov 2026).
+ */
+export function toBasedOn(links: EditorialLink[]) {
+  const product =
+    links.find((link) => link.type === "product" && link.isMain) ??
+    links.find((link) => link.type === "product");
+  return product?.ref
+    ? { productId: product.ref, title: product.title || null }
+    : null;
+}
+
 /** Public shape of one published article; never staff or workflow fields. */
 export function toArticle(collection: ArticleCollection, doc: Doc) {
   const config = ARTICLE_COLLECTIONS[collection];
   const image = upload(doc.image);
+  const social = (doc.social ?? {}) as Doc;
+  const socialImage = upload(social.image);
   const relatedLinks = editorialLinksSchema.parse(doc.relatedLinks ?? []);
   return {
     id: String(doc.id),
@@ -82,6 +99,9 @@ export function toArticle(collection: ArticleCollection, doc: Doc) {
     ),
     summary: (doc.summary as string | undefined) ?? null,
     authorName: (doc.authorName as string | undefined) ?? null,
+    authorRole: (doc.authorRole as string | undefined) ?? null,
+    format: (doc.format as string | undefined) ?? null,
+    mediaUrl: (doc.mediaUrl as string | undefined) ?? null,
     body: bodyToText(doc.body),
     imageUrl: (image?.url as string | undefined) ?? null,
     imageAlt: (image?.alt as string | undefined) ?? null,
@@ -92,6 +112,13 @@ export function toArticle(collection: ArticleCollection, doc: Doc) {
     updatedAt: String(doc.updatedAt),
     relatedLinks,
     linkedProduct: toLinkedProduct(relatedLinks),
+    basedOn: toBasedOn(relatedLinks),
+    pinned: doc.pinned === true,
+    // Page sharing image: the general social image, then the cover.
+    socialImageUrl:
+      (socialImage?.url as string | undefined) ??
+      (image?.url as string | undefined) ??
+      null,
   };
 }
 export type PublicArticle = ReturnType<typeof toArticle>;
@@ -103,8 +130,9 @@ export async function findArticles(
   {
     limit = 20,
     now = new Date(),
+    pinnedOnly = false,
     slug,
-  }: { limit?: number; now?: Date; slug?: string } = {}
+  }: { limit?: number; now?: Date; pinnedOnly?: boolean; slug?: string } = {}
 ): Promise<PublicArticle[]> {
   const result = await payload.find({
     collection,
@@ -112,7 +140,11 @@ export async function findArticles(
     depth: 1,
     limit: slug ? 1 : limit,
     sort: "-publishedAt",
-    where: liveWhere(now, ...(slug ? [{ slug: { equals: slug } }] : [])),
+    where: liveWhere(
+      now,
+      ...(slug ? [{ slug: { equals: slug } }] : []),
+      ...(pinnedOnly ? [{ pinned: { equals: true } }] : [])
+    ),
   });
   return result.docs.map((doc) => toArticle(collection, doc as unknown as Doc));
 }
@@ -473,7 +505,7 @@ export async function findDiscover(payload: Payload, now: Date = new Date()) {
           whatHappened: String(entry.whatHappened),
           imageUrl: (upload(entry.image)?.url as string | undefined) ?? null,
           story:
-            story && story.status === "published"
+            story && isLive(story)
               ? { title: String(story.title), slug: String(story.slug) }
               : null,
         }

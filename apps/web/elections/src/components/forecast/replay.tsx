@@ -290,14 +290,14 @@ export function Replay({
                 <path d={arc(a, b, 140, 110)} fill={colour} key={a} />
               ))}
               <text
-                className="fill-(--el-nnp-ink) font-semibold text-[14px]"
+                className="fill-(--el-nnp-ink) text-[14px] font-semibold"
                 x={18}
                 y={182}
               >
                 NNP majority
               </text>
               <text
-                className="fill-(--el-ndc-ink) font-semibold text-[14px]"
+                className="fill-(--el-ndc-ink) text-[14px] font-semibold"
                 textAnchor="end"
                 x={322}
                 y={182}
@@ -323,7 +323,7 @@ export function Replay({
               </g>
               <circle cx={170} cy={160} fill="var(--el-ink)" r={7} />
               <text
-                className="fill-(--el-ink) font-bold font-serif text-[20px]"
+                className="fill-(--el-ink) font-serif text-[20px] font-bold"
                 id="replay-live"
                 textAnchor="middle"
                 x={170}
@@ -335,37 +335,37 @@ export function Replay({
           </ChartViewport>
           <dl aria-live="polite" className="mt-4 grid grid-cols-3 gap-3">
             <div>
-              <dt className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+              <dt className="text-el-muted text-sm font-semibold tracking-[0.07em] uppercase">
                 Reported
               </dt>
-              <dd className="font-semibold text-lg tabular-nums">
+              <dd className="text-lg font-semibold tabular-nums">
                 {counted} of {total}
               </dd>
-              <dd className="text-base text-el-muted">
+              <dd className="text-el-muted text-base">
                 {pct(doneVotes / allVotes, 0)} of the NDC–NNP vote
               </dd>
             </div>
             <div>
-              <dt className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+              <dt className="text-el-muted text-sm font-semibold tracking-[0.07em] uppercase">
                 Swing since 2018
               </dt>
-              <dd className="font-semibold text-lg tabular-nums">
+              <dd className="text-lg font-semibold tabular-nums">
                 {swing >= 0 ? "+" : "−"}
                 {Math.abs(swing).toFixed(1)}
               </dd>
-              <dd className="text-base text-el-muted">
+              <dd className="text-el-muted text-base">
                 points toward the {swing >= 0 ? "NDC" : "NNP"}, ±
                 {(estimate.swingSd * 100).toFixed(1)}
               </dd>
             </div>
             <div>
-              <dt className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+              <dt className="text-el-muted text-sm font-semibold tracking-[0.07em] uppercase">
                 Projected NDC seats
               </dt>
-              <dd className="font-semibold text-lg tabular-nums">
+              <dd className="text-lg font-semibold tabular-nums">
                 {estimate.median}
               </dd>
-              <dd className="text-base text-el-muted">
+              <dd className="text-el-muted text-base">
                 80% range {estimate.lo}–{estimate.hi}
               </dd>
             </div>
@@ -377,7 +377,7 @@ export function Replay({
               const called = strength >= 0.98;
               return (
                 <span
-                  className={`grid aspect-square place-items-center rounded-[2px] font-bold text-sm ${called ? "outline-2 outline-el-ink outline-offset-1" : ""}`}
+                  className={`grid aspect-square place-items-center rounded-[2px] text-sm font-bold ${called ? "outline-el-ink outline-2 outline-offset-1" : ""}`}
                   key={code}
                   style={{
                     background: `color-mix(in oklab, ${partyColor(lead)} ${Math.round(15 + 85 * strength)}%, var(--el-paper-2))`,
@@ -393,7 +393,7 @@ export function Replay({
               );
             })}
           </div>
-          <p className="mt-1 text-base text-el-muted leading-relaxed">
+          <p className="text-el-muted mt-1 text-base leading-relaxed">
             Colour strength shows each seat’s projected chance. Outlined seats
             are called at 99%.
           </p>
@@ -421,7 +421,7 @@ export function Replay({
             omitted={omitted}
             unavailableReason="Located polling-division geometry is unavailable for this count."
           />
-          <p className="mt-2 text-base text-el-ink-2">
+          <p className="text-el-ink-2 mt-2 text-base">
             Partial count: {counted} of {total} divisions reported. Colours show
             the lead in reported NDC–NNP votes, with ties and no reported votes
             neutral. Constituency totals sum only reported divisions; they do
@@ -444,7 +444,7 @@ export function Replay({
           </details>
           <figcaption
             aria-live="polite"
-            className="mt-2 text-base text-el-ink-2"
+            className="text-el-ink-2 mt-2 text-base"
           >
             {latest
               ? `Latest: ${latest.division} ${latest.place} (${names[latest.code]}): NDC ${fmt(latest.ndc)}, NNP ${fmt(latest.nnp)}.`
@@ -452,7 +452,7 @@ export function Replay({
           </figcaption>
         </figure>
       </div>
-      <p className="text-base text-el-muted leading-relaxed">
+      <p className="text-el-muted text-base leading-relaxed">
         The counting order is simulated
         <Flag
           note="The real 2022 order in which divisions reported has not been published."

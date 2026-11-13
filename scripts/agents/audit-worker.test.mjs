@@ -10,19 +10,19 @@ import { groupKey } from "./audit-security.mjs";
 import { cleanCheckout, executePlan, SCHEDULES } from "./audit-worker.mjs";
 
 const sha = "a".repeat(40);
-const NOT_RUN_PATTERN = /not run/;
-const PRIVATE_OUTPUT_PATTERN = /private failure output|private details/;
-const FAILURE_NAMES_PATTERN = /lint \/ frontend/;
-const API_TESTS_PATTERN = /API tests/;
+const NOT_RUN_PATTERN = /not run/u;
+const PRIVATE_OUTPUT_PATTERN = /private failure output|private details/u;
+const FAILURE_NAMES_PATTERN = /lint \/ frontend/u;
+const API_TESTS_PATTERN = /API tests/u;
 const WORKFLOW_EVIDENCE_PATTERN =
-  /Evidence: https:\/\/github\.com\/Marcus100\/grenmet\/actions\/runs\/77/;
-const UNSAFE_JOB_NAME_PATTERN = /secret-name|with newline/;
+  /Evidence: https:\/\/github\.com\/Marcus100\/grenmet\/actions\/runs\/77/u;
+const UNSAFE_JOB_NAME_PATTERN = /secret-name|with newline/u;
 const DAILY_ENDPOINT_LEAK_PATTERN =
-  /user:pass|token=do-not-print|plain\.example|query\.example|prod\.example/;
-const CERTIFICATE_REMAINING_PATTERN = /12 more days/;
-const CHECKOUT_EXISTS_PATTERN = /already exists/;
-const CHECKOUT_PINNED_PATTERN = /not clean and pinned/;
-const UTC_SUFFIX_PATTERN = /UTC$/;
+  /user:pass|token=do-not-print|plain\.example|query\.example|prod\.example/u;
+const CERTIFICATE_REMAINING_PATTERN = /12 more days/u;
+const CHECKOUT_EXISTS_PATTERN = /already exists/u;
+const CHECKOUT_PINNED_PATTERN = /not clean and pinned/u;
+const UTC_SUFFIX_PATTERN = /UTC$/u;
 const tempDirectory = (t, prefix) => {
   const root = mkdtempSync(join(tmpdir(), prefix));
   t.after(() => rmSync(root, { recursive: true, force: true }));
@@ -101,6 +101,38 @@ test("six-hour plan discovers every app test script and all six migration config
   const migrations = plan.filter((item) => item.id.startsWith("migration:"));
   assert.equal(migrations.length, 6);
   assert.ok(migrations.every((item) => item.oneHead));
+});
+
+test("six-hour plan gives the large gaa-admin test suite more time than the other apps", (t) => {
+  const root = tempDirectory(t, "audit-timeout-");
+  for (const app of ["gaa-admin", "small"]) {
+    const directory = join(root, "apps", "web", app);
+    mkdirSync(directory, { recursive: true });
+    writeFileSync(
+      join(directory, "package.json"),
+      JSON.stringify({ scripts: { test: "vitest run" } })
+    );
+  }
+  const api = join(root, "apps", "api", "fastapi");
+  for (const config of [
+    "alembic.ini",
+    "domains/auth/alembic.ini",
+    "domains/wx/alembic.ini",
+    "domains/hr/alembic.ini",
+    "domains/cap/alembic.ini",
+    "domains/audit/alembic.ini",
+  ]) {
+    const path = join(api, config);
+    mkdirSync(join(path, ".."), { recursive: true });
+    writeFileSync(path, "[alembic]\n");
+  }
+  const timeouts = Object.fromEntries(
+    sixHourlyPlan(root)
+      .filter((item) => item.id.startsWith("tests:"))
+      .map((item) => [item.id, item.timeout])
+  );
+  assert.equal(timeouts["tests:small"], 900_000);
+  assert.ok(timeouts["tests:gaa-admin"] > 1_800_000);
 });
 
 test("dependency setup failure makes subsequent planned checks unknown and unrun", async () => {

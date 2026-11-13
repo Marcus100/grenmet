@@ -66,11 +66,31 @@ shows an empty state when live. Licence: OpenSky is research-only (see
 
 ## Contact form
 
-`contact-form.tsx` → `POST /api/contact`, validation in `src/lib/contact.ts`
-(Zod). The route validates and proxies to FastAPI `POST /api/v1/contact/messages`
-(site `mbia`; `src/contact` stores it and emails `MBIA_CONTACT_RECIPIENT`
-through the worker outbox). `turnstileToken` is forwarded but not verified yet
-(`contact.service.verify_turnstile`). The form does not send a token today.
+`contact-form.tsx` → `POST /api/contact` (Next route handler, a thin proxy).
+The route validates and proxies to FastAPI `POST /api/v1/contact/public/mbia/messages`
+through the typed `contactSendSiteContactMessage` client. mbia does not use the deprecated
+`/contact/messages` route. The API stores the message
+and emails the `mbia` public site's `contact_recipient` (set in the organisation
+admin, not an env var; the old `MBIA_CONTACT_RECIPIENT` is only a fallback).
+Field limits come from the generated `contactMessageBodySchema`; the form adds
+the subject list in `src/lib/contact.ts`.
+
+The `mbia` public site must exist, be active and accept contact
+(`accepts_contact`) in the API. Otherwise the route answers 404 "Contact
+messages are not available right now."
+
+The route forwards the visitor's address (`X-Visitor-IP`, with
+`X-Visitor-Secret`) through `src/lib/visitor-headers.ts`, so the API's per-site
+rate limit and Turnstile see the visitor, not this server. It needs the same
+`TRUSTED_WEB_SECRET` as the API and `VISITOR_IP_PROXY_HOPS` (1, or 2 behind
+Cloudflare). Without the secret the headers are not sent.
+
+Turnstile: the form renders the widget when `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is
+set and sends the token as `turnstileToken`; the route forwards it as
+`turnstile_token`. FastAPI verifies it (`src.turnstile.require_turnstile`)
+against the site's Turnstile policy (`turnstile_mode`: inherit, off or enforce).
+When enforcement is off, no token is needed. A failed or missing token is a 400,
+shown as "Verification failed".
 
 ## Testing
 

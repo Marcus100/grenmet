@@ -50,10 +50,10 @@ const inputs: ReplayInputs = {
     },
   ],
 };
-const N01_LABEL = /N01 · First: partial count/;
-const N02_LABEL = /N02 · Second: partial count/;
-const MISSING_LABEL = /Boundary unavailable for A01/;
-const MISSING_RESULT = /A01 · Missing boundary \(Carriacou\): NDC 7, NNP 7/;
+const N01_LABEL = /N01 · First: partial count/u;
+const N02_LABEL = /N02 · Second: partial count/u;
+const MISSING_LABEL = /Boundary unavailable for A01/u;
+const MISSING_RESULT = /A01 · Missing boundary \(Carriacou\): NDC 7, NNP 7/u;
 
 function setup(
   divisionPaths: Record<string, string> = {

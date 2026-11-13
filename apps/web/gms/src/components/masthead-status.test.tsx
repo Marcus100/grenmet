@@ -8,8 +8,8 @@ import type { AlertsResult } from "@/lib/cap-alerts";
 const route = vi.hoisted(() => ({ pathname: "/alerts" }));
 vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
 
-const NOT_ALL_CLEAR = /does not mean there are no alerts/i;
-const WARNINGS_TAB = /Alerts/;
+const NOT_ALL_CLEAR = /does not mean there are no alerts/iu;
+const WARNINGS_TAB = /Alerts/u;
 
 const NONE: AlertsResult = { activeCount: 0, groups: [], status: "ok" };
 const SEVERE: AlertsResult = {
@@ -43,6 +43,22 @@ describe("WarningRibbon", () => {
     render(<WarningRibbon alerts={SEVERE} />);
     expect(screen.getByText("Take action now · 1 active")).toBeInTheDocument();
     expect(screen.getByRole("link")).toHaveAttribute("href", "/alerts");
+  });
+
+  it("keeps phones to one line: the message shows from small tablets up", () => {
+    render(<WarningRibbon alerts={SEVERE} />);
+    const message = screen.getByText(
+      "Official alerts are in effect for the tri-island state."
+    );
+    expect(message).toHaveClass("hidden", "sm:inline");
+    expect(screen.getByText("View alerts")).toBeVisible();
+  });
+
+  it("keeps the outage advice on phones, on its own line", () => {
+    render(<WarningRibbon alerts={{ status: "unavailable" }} />);
+    const advice = screen.getByText(NOT_ALL_CLEAR);
+    expect(advice).not.toHaveClass("hidden");
+    expect(advice).toHaveClass("basis-full", "order-last");
   });
 
   it("never presents an outage as an all-clear", () => {

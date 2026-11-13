@@ -321,7 +321,7 @@ The issue covers `worker-jobs` and `notification-sweeps`.
 | Inputs | `MONITORING_BACKUP_KINDS` and the four `MONITORING_SPACES_*` secrets per environment (steps 3 and 5). |
 | What is counted | Each kind's `latest-success.json` marker in Spaces, checked by the same rules as `scripts/production/check-backup-age.py` (under 24 hours old, full coverage). A readable but stale or incomplete marker is a failure; an unreadable marker leaves the issue open as "needs configuration". |
 | Production backup workflow inputs | Environment `production-backup` already holds `DO_SPACES_*` and `POSTGRES_USER`. Still unset on 2026-10-30: variable `BACKUP_MARKERS_ENABLED`, and variables `WEATHER_BACKUP_ENABLED` and `SUTRON_BACKUP_ENABLED` if those backups are wanted. Variable `CMS_BACKUP_ENABLED` exists. |
-| Maintenance workflow inputs | `monitoring-maintenance.yml` (scheduled backup and weekly restore test) is off until variables `MONITORING_MAINTENANCE_ENABLED`, `MONITORING_REVISION` (a full approved commit SHA that matches the installed monitoring revision) and `MONITORING_STORAGE_VERIFIED=true` are set, and secret `BACKUP_HEARTBEAT_URL` exists in the production environment. Staging already has the secret; production does not. |
+| Maintenance workflow inputs | `monitoring-maintenance.yml` (scheduled backup and weekly restore test) is off until variables `MONITORING_MAINTENANCE_ENABLED`, `MONITORING_REVISION` (a full approved commit SHA that matches the installed monitoring revision) and `MONITORING_STORAGE_VERIFIED=true` are set, and secret `BACKUP_HEARTBEAT_URL` exists in the production environment. Staging already has the secret; production does not. It must be a different heartbeat from the one `backup-database.yml` pings from the `production-backup` environment. |
 | Alert to owner | Better Stack backup heartbeat (24 hour period, 2 hour grace) by email; #648 as a GitHub issue. |
 
 ## Optional: the WSL advisory path
@@ -349,7 +349,7 @@ owner something is down. Status on 2026-10-30 is from `gh secret list` and
 | --- | --- | --- | --- |
 | production | `BETTERSTACK_API_TOKEN` | secret | missing (staging has it) |
 | production | `PROBE_HEARTBEAT_URL` | secret | missing |
-| production | `BACKUP_HEARTBEAT_URL` | secret | missing |
+| production-backup | `BACKUP_HEARTBEAT_URL` | secret | missing (read by `backup-database.yml`) |
 | production | `WORKER_HEARTBEAT_URL` | secret | missing |
 | production | `TELEMETRY_ENABLED` | variable | missing |
 | production | `MONITORING_DEPLOY_ENABLED` | variable | missing |
@@ -381,3 +381,10 @@ recovery email is not yet evidenced).
 - Which backup kinds are genuinely in production use (`weather`, `objects`, `sutron`).
 - The Sentry plan limits for cron monitors and retained events.
 - Whether the Sentry organisation uses the default or a regional API address.
+
+## Features with no separate monitor
+
+The month summary, the Marine Forecast, the Climate Bulletin and the CAP feed
+validation have no uptime monitor of their own. Where a failure of each one shows
+is listed in `docs/operations/analytics-monitoring.md` (table "Where a failure
+shows"). Read it before launch so the operator knows what to look for.

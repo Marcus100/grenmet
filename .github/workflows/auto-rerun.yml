@@ -1,0 +1,53 @@
+name: Auto re-run infrastructure failures
+
+# Re-runs a failed CI or image-build run once when a failed job hit a registry
+# rate limit, a network timeout or a lost runner (scripts/ci/rerun-infra-failures.mjs
+# holds the patterns). A run that failed on real test, lint or build errors is
+# left alone. Never touches deploy, promotion or release workflows.
+#
+# workflow_run workflows only run from the default branch (main), so this takes
+# effect after the first release that carries it. Until then, run it by hand:
+#   GH_REPO=Marcus100/grenmet node scripts/ci/rerun-infra-failures.mjs <run-id>
+on:
+  workflow_run:
+    workflows:
+      - CI
+      - CI — Web Apps
+      - API Client Generation
+      - Build and Push Docker Images
+      - Build Web App Images
+      - Build Weather Images
+      - Dev Images
+      - SURFACE
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: auto-rerun-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  rerun:
+    name: Re-run if infrastructure failed
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.run_attempt < 2
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      # Default-branch code only: nothing from the failed run's branch is checked out.
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          sparse-checkout: scripts/ci
+      - name: Re-run the failed jobs once if infrastructure caused them
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RERUN_DELAY_SECONDS: "240"
+        run: node scripts/ci/rerun-infra-failures.mjs "$RUN_ID"

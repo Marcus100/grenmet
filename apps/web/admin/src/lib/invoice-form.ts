@@ -7,24 +7,31 @@
  * (cents) by string parsing, never through floating point.
  */
 
+import { type InvoiceStatus, invoiceStatus } from "@barrelsgd/api-client";
+
 export const LINE_SLOTS = 8;
 export const PAYMENT_METHODS = ["bank_transfer", "cash", "cheque"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
-export const INVOICE_STATUSES = [
-  "draft",
-  "issued",
-  "partially_paid",
-  "paid",
-  "void",
-] as const;
+/** Every invoice status the API can return, from the generated client. */
+export const INVOICE_STATUSES: readonly InvoiceStatus[] =
+  Object.values(invoiceStatus);
+/** Invoices still owed money: issued, or part-paid. FastAPI owns the rules. */
+const OPEN_INVOICE_STATUSES: readonly InvoiceStatus[] = [
+  invoiceStatus.issued,
+  invoiceStatus.partially_paid,
+];
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,100}$/;
-const MONEY = /^(\d{1,12})(?:\.(\d{1,2}))?$/;
-const QUANTITY = /^\d{1,9}(?:\.\d{1,3})?$/;
-const RATE = /^\d{1,3}(?:\.\d{1,2})?$/;
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export function isOpenInvoice(status: InvoiceStatus): boolean {
+  return OPEN_INVOICE_STATUSES.includes(status);
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,100}$/u;
+const MONEY = /^(\d{1,12})(?:\.(\d{1,2}))?$/u;
+const QUANTITY = /^\d{1,9}(?:\.\d{1,3})?$/u;
+const RATE = /^\d{1,3}(?:\.\d{1,2})?$/u;
+const DATE = /^\d{4}-\d{2}-\d{2}$/u;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 const MAX_DESCRIPTION = 500;
 const MAX_NOTES = 2000;
 const MAX_ADDRESS = 1000;

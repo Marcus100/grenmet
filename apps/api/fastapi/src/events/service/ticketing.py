@@ -27,7 +27,7 @@ from src.auth.models import User
 from src.exceptions import AppException
 from src.utils.datetime import utc_now
 
-from .. import order_payments, outbox, rewards_hook, schemas, tickets
+from .. import order_payments, outbox, rewards_hook, schemas, tickets, transitions
 from ..config import events_settings
 from ..exceptions import EventsConflict, EventsNotFound
 from ..models import (
@@ -39,6 +39,7 @@ from ..models import (
     Ticket,
     TicketTier,
 )
+from ..transitions import ListingStatus, OrderStatus, TicketStatus, move_ticket
 from . import holds
 from .common import _naive_utc, _pairs
 
@@ -56,7 +57,7 @@ async def _claimable_listing(db: AsyncSession, slug: str) -> Listing:
     # cancelling the event (which takes the exclusive lock).
     listing = await db.scalar(
         select(Listing)
-        .where(Listing.slug == slug, Listing.status == "published")
+        .where(Listing.slug == slug, Listing.status == ListingStatus.PUBLISHED.value)
         .with_for_update(read=True)
     )
     if listing is None:
@@ -107,7 +108,7 @@ async def claim_tickets(
             "Those tickets were just taken; please try again"
         ) from None
     checkout_url = None
-    if order.status == holds.PENDING:
+    if order.status == OrderStatus.PENDING_PAYMENT.value:
         checkout_url = await _payment_link(db, user, listing, order)
     return _order_public(listing, order, tiers, issued, checkout_url)
 
@@ -136,7 +137,7 @@ async def _create_order(
         again = await _existing_order(db, user, listing, idempotency_key, wanted)
         if again is not None:
             return again, tiers, await _tickets_of(db, again)
-    valid = Ticket.status == "valid"
+    valid = Ticket.status == TicketStatus.VALID.value
     sold = _pairs(
         await db.execute(
             select(Ticket.tier_id, func.count())
@@ -177,9 +178,10 @@ async def _create_order(
         total_minor=total,
         currency=tiers[0].currency,
         idempotency_key=idempotency_key,
+        # The first status is set at creation, not by a transition.
+        status=(OrderStatus.PENDING_PAYMENT if paid else OrderStatus.CONFIRMED).value,
     )
     if paid:
-        order.status = holds.PENDING
         order.payment_method = "online"
         order.payment_expires_at = utc_now() + timedelta(
             minutes=events_settings.ORDER_HOLD_MINUTES
@@ -274,9 +276,11 @@ async def _existing_order(
         items[tier_id] += quantity
     if items != wanted:
         raise EventsConflict("This Idempotency-Key was already used for another order")
-    if order.status == "expired":
+    if order.status == OrderStatus.EXPIRED.value:
         # Never hand back a dead order as a successful claim; the client starts over.
-        raise EventsConflict("That attempt expired. Start a new one.")
+        raise EventsConflict(
+            "That attempt expired. Start a new one.", code="ATTEMPT_EXPIRED"
+        )
     return order
 
 
@@ -326,10 +330,12 @@ async def _payment_link(
             update(Order)
             .where(
                 Order.id == order_id,
-                Order.status == holds.PENDING,
+                Order.status.in_(
+                    transitions.bulk_sources(transitions.ORDER_MOVES, "expire")
+                ),
                 Order.payment_intent_id.is_(None),
             )
-            .values(status="expired")
+            .values(status=transitions.bulk_target(transitions.ORDER_MOVES, "expire"))
         )
         await db.commit()
         raise
@@ -344,7 +350,7 @@ def _order_public(
     checkout_url: str | None,
 ) -> schemas.OrderPublic:
     names = {tier.id: tier.name for tier in tiers}
-    pending = order.status == holds.PENDING
+    pending = order.status == OrderStatus.PENDING_PAYMENT.value
     return schemas.OrderPublic(
         id=order.id,
         listing_slug=listing.slug,
@@ -382,7 +388,7 @@ async def my_order(
         )
     )
     checkout_url = None
-    if order.status == holds.PENDING:
+    if order.status == OrderStatus.PENDING_PAYMENT.value:
         checkout_url = await _payment_link(db, user, listing, order)
     return _order_public(
         listing, order, tiers, await _tickets_of(db, order), checkout_url
@@ -396,7 +402,7 @@ def _summary(
     admitted_at: datetime | None = None,
 ) -> schemas.TicketSummary:
     can_cancel = (
-        ticket.status == "valid"
+        ticket.status == TicketStatus.VALID.value
         and admitted_at is None
         and listing.starts_at > _naive_utc(utc_now())
     )
@@ -468,7 +474,7 @@ async def cancel_ticket(
     tier = await db.get(TicketTier, ticket.tier_id)
     assert listing is not None
     assert tier is not None
-    if ticket.status != "valid":
+    if ticket.status != TicketStatus.VALID.value:
         raise EventsConflict("This ticket is already cancelled")
     if await db.scalar(
         select(Order.id).where(
@@ -484,7 +490,7 @@ async def cancel_ticket(
         raise EventsConflict("This ticket has already been used at the door")
     if listing.starts_at <= _naive_utc(utc_now()):
         raise EventsConflict("Tickets can't be cancelled once the event has started")
-    ticket.status = "cancelled"
+    move_ticket(ticket, "cancel")
     ticket.cancelled_at = utc_now()
     db.add(ticket)
     await db.commit()
@@ -499,8 +505,16 @@ async def cancel_valid_tickets(db: AsyncSession, listing_id: uuid.UUID) -> int:
     """
     result = await db.execute(
         update(Ticket)
-        .where(Ticket.listing_id == listing_id, Ticket.status == "valid")
-        .values(status="cancelled", cancelled_at=utc_now())
+        .where(
+            Ticket.listing_id == listing_id,
+            Ticket.status.in_(
+                transitions.bulk_sources(transitions.TICKET_MOVES, "cancel")
+            ),
+        )
+        .values(
+            status=transitions.bulk_target(transitions.TICKET_MOVES, "cancel"),
+            cancelled_at=utc_now(),
+        )
         .returning(Ticket.id)
     )
     cancelled = list(result.scalars())

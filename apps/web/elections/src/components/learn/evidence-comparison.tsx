@@ -22,15 +22,15 @@ export function EvidenceComparison({
   const [metric, setMetric] = useState<EvidenceMetric>("votes");
   const id = useId();
   return (
-    <details className="mt-4 border-el-rule border-t pt-4">
-      <summary className="cursor-pointer font-semibold text-base">
+    <details className="border-el-rule mt-4 border-t pt-4">
+      <summary className="cursor-pointer text-base font-semibold">
         Compare national statistics and their evidence
       </summary>
       <div className="mt-4 flex flex-wrap items-center gap-4 text-base">
         <label htmlFor={`${id}-metric`}>
           Measure{" "}
           <select
-            className="ml-2 rounded-md border border-el-rule bg-background p-2"
+            className="border-el-rule bg-background ml-2 rounded-md border p-2"
             id={`${id}-metric`}
             onChange={(event) =>
               setMetric(event.target.value as EvidenceMetric)
@@ -52,7 +52,7 @@ export function EvidenceComparison({
         </label>
       </div>
       <p
-        className="mt-3 max-w-prose text-base text-el-muted leading-relaxed"
+        className="text-el-muted mt-3 max-w-prose text-base leading-relaxed"
         role="status"
       >
         {officialOnly
@@ -103,7 +103,7 @@ export function EvidenceComparison({
                       </summary>
                       <p className="mt-2 leading-relaxed">{evidence.formula}</p>
                       <p className="mt-1 leading-relaxed">{evidence.source}</p>
-                      <p className="mt-1 text-el-muted leading-relaxed">
+                      <p className="text-el-muted mt-1 leading-relaxed">
                         {evidence.note}
                       </p>
                     </details>

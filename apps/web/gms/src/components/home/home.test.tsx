@@ -1,6 +1,6 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ExploreToday, GrenadaInData } from "@/components/home/data-sections";
+import { GrenadaInData, SectorDeskCard } from "@/components/home/data-sections";
 import { SkyHero } from "@/components/home/sky-hero";
 import { WarningTakeover } from "@/components/home/warning-takeover";
 import { WeatherNow } from "@/components/home/weather-now";
@@ -15,8 +15,8 @@ vi.mock("@/lib/products", () => ({
   fetchSectorOutlook: async () => null,
 }));
 
-const HERO_NAME = /^Grenada weather/;
-const STATION_NAME = /Maurice Bishop International \(MBIA\)/;
+const HERO_NAME = /^Grenada weather/u;
+const STATION_NAME = /Maurice Bishop International \(MBIA\)/u;
 
 function alert(overrides: Partial<PublicAlert>): PublicAlert {
   return {
@@ -37,7 +37,7 @@ const result = (alerts: PublicAlert[]): AlertsResult => ({
   status: "ok",
 });
 
-const NO_OBSERVATION_LABEL = /^No current observation · /;
+const NO_OBSERVATION_LABEL = /^No current observation · /u;
 
 describe("WarningTakeover", () => {
   it("renders the live take-action alert and links to it", () => {
@@ -105,7 +105,7 @@ describe("SkyHero", () => {
 
 describe("data sections", () => {
   it.each([
-    ["Explore today", ExploreToday],
+    ["What it means for you", SectorDeskCard],
     ["Grenada in data", GrenadaInData],
   ])(
     "shows %s without a sample or placeholder notice",
@@ -119,7 +119,6 @@ describe("data sections", () => {
     render(await WeatherNow());
     expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
       "Satellite",
-      "Radar",
       "Wind",
       "Seas",
       "Audio",

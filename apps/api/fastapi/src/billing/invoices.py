@@ -28,7 +28,7 @@ from src.utils.datetime import utc_now
 from src.utils.filenames import pdf_filename
 from src.utils.timezones import GRENADA
 
-from . import calc, emails, pdf
+from . import calc, emails, pdf, transitions
 from .config import billing_settings
 from .exceptions import (
     CustomerNotFoundError,
@@ -60,7 +60,7 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
-OPEN_STATUSES = (InvoiceStatus.ISSUED.value, InvoiceStatus.PARTIALLY_PAID.value)
+OPEN_STATUSES = transitions.OPEN_STATUSES
 PDF_LINK_SECONDS = 7 * 24 * 3600
 ENTITY = "billing_invoice"
 
@@ -402,8 +402,7 @@ async def issue(
         days=billing_settings.INVOICE_PAYMENT_TERMS_DAYS
     )
     invoice.legal_entity_name = billing_settings.INVOICE_LEGAL_ENTITY_NAME
-    invoice.status = InvoiceStatus.ISSUED.value
-    invoice.issued_at = utc_now()
+    transitions.move_invoice(invoice, "issue", at=utc_now())
     await session.flush()
 
     organisation = await session.get(
@@ -446,9 +445,8 @@ async def void(
         )
     audit_service.set_actor(session, actor.id)
     clean = reason.strip()
-    invoice.status = InvoiceStatus.VOID.value
+    transitions.move_invoice(invoice, "void", at=utc_now())
     invoice.void_reason = clean
-    invoice.voided_at = utc_now()
     await audit_service.record_change(
         session,
         entity_type=ENTITY,
@@ -488,11 +486,8 @@ async def record_payment(
         )
     )
     invoice.paid_minor += payload.amount_minor
-    invoice.status = (
-        InvoiceStatus.PAID.value
-        if invoice.paid_minor == invoice.total_minor
-        else InvoiceStatus.PARTIALLY_PAID.value
-    )
+    settled = invoice.paid_minor == invoice.total_minor
+    transitions.move_invoice(invoice, "settle" if settled else "part_pay")
     await session.flush()
     session.expire(invoice, ["payments"])
     return await get_detail(session, invoice_id)

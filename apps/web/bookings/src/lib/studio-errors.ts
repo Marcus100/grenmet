@@ -119,6 +119,9 @@ export const SETTINGS_ADMIN_REQUIRED: StudioFailure = {
   nextStep: "Ask the business owner to make you an admin, then try again.",
 };
 
+/** The fixed `detail` of the documented request-validation 422. */
+const VALIDATION_FALLBACK = "Validation error";
+
 /**
  * The API's messages as text: `detail` as a string (AppException), or the
  * `msg` of each item in `detail[]` (FastAPI request validation) or `errors[]`
@@ -129,23 +132,26 @@ export function detailText(data: unknown): string {
     return "";
   }
   const { detail, errors } = data as { detail?: unknown; errors?: unknown };
+  const messagesOf = (list: unknown): string[] =>
+    (Array.isArray(list) ? list : [])
+      .map((item) =>
+        typeof item === "object" && item !== null && "msg" in item
+          ? String((item as { msg: unknown }).msg)
+          : ""
+      )
+      .filter(Boolean);
   if (typeof detail === "string") {
-    return detail;
+    // The documented validation envelope carries a fixed detail; its errors
+    // hold the words the rules need (for example "reserved").
+    const head = detail === VALIDATION_FALLBACK ? [] : [detail];
+    return [...head, ...messagesOf(errors)].join("; ");
   }
-  const list = Array.isArray(detail) ? detail : errors;
-  const items = Array.isArray(list) ? list : [];
-  return items
-    .map((item) =>
-      typeof item === "object" && item !== null && "msg" in item
-        ? String((item as { msg: unknown }).msg)
-        : ""
-    )
-    .join("; ");
+  return messagesOf(Array.isArray(detail) ? detail : errors).join("; ");
 }
 
 const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
   {
-    match: /already in use/i,
+    match: /already in use/iu,
     failure: {
       kind: "conflict",
       message: "That booking address is already in use.",
@@ -153,7 +159,7 @@ const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
     },
   },
   {
-    match: /reserved/i,
+    match: /reserved/iu,
     failure: {
       kind: "invalid",
       message: "That booking address is reserved by the platform.",
@@ -161,7 +167,7 @@ const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
     },
   },
   {
-    match: /deposit cannot exceed/i,
+    match: /deposit cannot exceed/iu,
     failure: {
       kind: "invalid",
       message: "The deposit cannot exceed the price.",
@@ -169,7 +175,7 @@ const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
     },
   },
   {
-    match: /unknown iana timezone/i,
+    match: /unknown iana timezone/iu,
     failure: {
       kind: "invalid",
       message: "That timezone is not recognised.",
@@ -177,7 +183,7 @@ const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
     },
   },
   {
-    match: /overlap/i,
+    match: /overlap/iu,
     failure: {
       kind: "invalid",
       message: "Two working periods on the same day overlap.",

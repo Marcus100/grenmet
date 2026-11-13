@@ -1,12 +1,15 @@
 "use client";
 
 import {
+  type ApiError,
+  type EregisterValidationError,
   eregisterAcceptRegisterObservation,
   eregisterListRegisterObservations,
   eregisterRejectRegisterObservation,
   eregisterReopenRegisterObservation,
   eregisterReviewRegisterObservation,
   type RegisterObservationRead,
+  type ValidationErrorResponse,
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
@@ -20,6 +23,9 @@ import {
 } from "@barrelsgd/ui/components/ui/dialog";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useCallback, useEffect, useState } from "react";
+import { BufrCheck } from "./eregister-bufr-override";
+import { iwxxmStatus } from "./eregister-iwxxm";
+import { isSynopRefusal } from "./eregister-refusal";
 import { SectionCard } from "./eregister-ui";
 
 export type QcState = RegisterObservationRead["state"];
@@ -32,6 +38,7 @@ const STATE_LABEL: Record<QcState, string> = {
   qc_pending: "Awaiting acceptance",
   rejected: "Rejected",
   superseded: "Superseded",
+  historical: "Historical",
 };
 
 const STATE_VARIANT: Record<
@@ -43,6 +50,7 @@ const STATE_VARIANT: Record<
   qc_pending: "light-warning",
   rejected: "light-error",
   superseded: "light-light",
+  historical: "light-light",
 };
 
 const REASON_REQUIRED: Record<QcAction, boolean> = {
@@ -93,11 +101,8 @@ export function decisionError(
   if (error && typeof error === "object" && "detail" in error) {
     const { detail } = error as { detail: unknown };
     if (typeof detail === "string") return detail;
-    if (detail && typeof detail === "object" && "message" in detail) {
-      const { message } = detail as { message: unknown };
-      if (typeof message === "string") return message;
-    }
   }
+  if (isSynopRefusal(error)) return error.detail.message;
   if (status === 403) {
     return "You need an eRegister permission, and cannot review your own observation.";
   }
@@ -109,13 +114,20 @@ function utcLabel(iso: string): string {
   return new Date(stamp).toISOString().slice(0, 16).replace("T", " ");
 }
 
+/** The four decision calls answer the same shapes; one type lets them share a caller. */
+interface DecisionResult {
+  data?: RegisterObservationRead;
+  error?: ApiError | EregisterValidationError | ValidationErrorResponse;
+  response?: Response;
+}
+
 function decide(
   action: QcAction,
   id: string,
   reason: string,
   outcome: ReviewOutcome,
   seenUpdatedAt: string
-) {
+): Promise<DecisionResult> {
   const path = { observation_id: id };
   const text = reason.trim() || null;
   if (action === "review") {
@@ -226,6 +238,21 @@ function DecisionDialog({
   );
 }
 
+/** The IWXXM METAR check in words; the colour only repeats what the text says. */
+function IwxxmLine({ observation }: { observation: RegisterObservationRead }) {
+  const status = iwxxmStatus(observation);
+  if (!status) return null;
+  return (
+    <p
+      className={
+        status.ok ? "text-muted-foreground text-xs" : "text-warning text-xs"
+      }
+    >
+      {status.text}
+    </p>
+  );
+}
+
 function ObservationLine({
   observation,
 }: {
@@ -246,17 +273,18 @@ function ObservationLine({
         </span>
       </div>
       {observation.coded ? (
-        <code className="block overflow-x-auto whitespace-nowrap rounded bg-muted px-2 py-1 font-mono text-xs tabular-nums">
+        <code className="bg-muted block overflow-x-auto rounded px-2 py-1 font-mono text-xs whitespace-nowrap tabular-nums">
           {observation.coded}
         </code>
       ) : null}
       {warnings.length > 0 ? (
-        <ul className="list-disc pl-5 text-warning text-xs">
+        <ul className="text-warning list-disc pl-5 text-xs">
           {warnings.map((issue) => (
             <li key={`${issue.field}-${issue.code}`}>{issue.message}</li>
           ))}
         </ul>
       ) : null}
+      <IwxxmLine observation={observation} />
       {observation.review_outcome ? (
         <p className="text-muted-foreground text-xs">
           {observation.review_outcome === "query" ? "Query" : "Reviewed"}
@@ -370,11 +398,56 @@ interface RowAction {
   label: string;
 }
 
+/** The actions the API's lifecycle table decides per row (`allowed_actions`, #1181). */
+const SERVER_DECIDED: ReadonlySet<QcAction> = new Set<QcAction>([
+  "accept",
+  "reject",
+  "reopen",
+]);
+/** Shown in the row when its state or kind rules out a button. */
+export function blockedLine(labels: string[]): string {
+  return `${labels.join(" and ")}: not available for this observation's state or kind.`;
+}
+
+/**
+ * Whether the row's state and kind allow this action. The API computes
+ * `allowed_actions` from those alone; a WIS2 file or email already queued or
+ * sent can still refuse with a 409 whose detail the dialog shows, and
+ * permissions and the four-eyes rule stay with the server. The API always
+ * sends the field; a row without it (an older API) is not second-guessed.
+ */
+export function serverAllows(
+  observation: RegisterObservationRead,
+  action: QcAction
+): boolean {
+  if (!SERVER_DECIDED.has(action)) return true;
+  const allowed = observation.allowed_actions;
+  return allowed === undefined || allowed.includes(action);
+}
+
+function blockedLabels(
+  entries: RowAction[],
+  item: RegisterObservationRead
+): string[] {
+  return entries
+    .filter((entry) => !serverAllows(item, entry.action))
+    .map((entry) => entry.label);
+}
+
+/** A visible reason, since a disabled button cannot be focused for a tooltip. */
+function BlockedNote({ labels }: { labels: string[] }) {
+  if (labels.length === 0) return null;
+  return (
+    <span className="text-muted-foreground text-xs">{blockedLine(labels)}</span>
+  );
+}
+
 function QueueSection({
   actions,
   empty,
   heading,
   onAct,
+  onOverridden,
   query,
   refresh,
   userId,
@@ -383,6 +456,7 @@ function QueueSection({
   empty: string;
   heading: string;
   onAct: (action: QcAction, observation: RegisterObservationRead) => void;
+  onOverridden: (updated: RegisterObservationRead) => void;
   query: QueueQuery;
   refresh: number;
   userId: string;
@@ -393,16 +467,16 @@ function QueueSection({
   );
   return (
     <section aria-label={heading}>
-      <p className="border-b px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
+      <p className="text-muted-foreground border-b px-4 py-2 text-xs font-medium tracking-wide uppercase">
         {heading} ({status === "ready" ? total : "…"})
       </p>
       {status === "error" ? (
-        <p className="px-4 py-3 text-destructive text-sm" role="alert">
+        <p className="text-destructive px-4 py-3 text-sm" role="alert">
           This list could not be loaded.
         </p>
       ) : null}
       {status === "ready" && items.length === 0 ? (
-        <p className="px-4 py-3 text-muted-foreground text-sm" role="status">
+        <p className="text-muted-foreground px-4 py-3 text-sm" role="status">
           {empty}
         </p>
       ) : null}
@@ -415,6 +489,11 @@ function QueueSection({
               key={item.id}
             >
               <ObservationLine observation={item} />
+              <BufrCheck
+                observation={item}
+                onOverridden={onOverridden}
+                userId={userId}
+              />
               <div className="flex flex-col items-end gap-1">
                 {own && query.reviewed === false ? (
                   <span className="text-muted-foreground text-xs">
@@ -424,7 +503,9 @@ function QueueSection({
                 <div className="flex gap-2">
                   {actions(item, own).map((entry) => (
                     <Button
-                      disabled={entry.disabled}
+                      disabled={
+                        entry.disabled || !serverAllows(item, entry.action)
+                      }
                       key={entry.action}
                       onClick={() => onAct(entry.action, item)}
                       size="sm"
@@ -436,6 +517,7 @@ function QueueSection({
                     </Button>
                   ))}
                 </div>
+                <BlockedNote labels={blockedLabels(actions(item, own), item)} />
               </div>
             </li>
           );
@@ -485,6 +567,7 @@ export function QcQueue({
         empty="No observations are waiting for acceptance."
         heading="Awaiting acceptance"
         onAct={onAct}
+        onOverridden={decided}
         query={{ state: "draft,qc_pending" }}
         refresh={refresh}
         userId={userId}
@@ -497,6 +580,7 @@ export function QcQueue({
         empty="No accepted observations are waiting for a review."
         heading="Review queue"
         onAct={onAct}
+        onOverridden={decided}
         query={{ reviewed: false, state: "accepted" }}
         refresh={refresh}
         userId={userId}

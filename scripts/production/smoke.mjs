@@ -1,8 +1,8 @@
-const anchorHref = /<a\b[^>]*\bhref=["']([^"']+)["']/g;
-const validState = /^[A-Za-z0-9_-]{32}$/;
-const validDomain = /^[a-z0-9.-]+$/;
+const anchorHref = /<a\b[^>]*\bhref=["']([^"']+)["']/gu;
+const validState = /^[A-Za-z0-9_-]{32}$/u;
+const validDomain = /^[a-z0-9.-]+$/u;
 const renderError =
-  /NEXT_HTTP_ERROR_FALLBACK|Application error:|An error occurred in the Server Components render|"digest"\s*:|\\"digest\\"\s*:/;
+  /NEXT_HTTP_ERROR_FALLBACK|Application error:|An error occurred in the Server Components render|"digest"\s*:|\\"digest\\"\s*:/u;
 
 export function validPage(response, body, expected) {
   return response.ok && body.includes(expected) && !renderError.test(body);
@@ -16,8 +16,17 @@ export async function check(url, expected, fetcher = fetch) {
   const body = await response.text();
   if (!validPage(response, body, expected))
     throw new Error(
-      `Functional smoke failed: ${new URL(url).hostname}${new URL(url).pathname} (HTTP ${response.status}; expected ${expected})`
+      `Functional smoke failed: ${new URL(url).hostname}${new URL(url).pathname} (HTTP ${response.status}; expected ${expected}; got ${excerpt(body)})`
     );
+}
+
+/** A short single-line start of a response body, to tell a proxy's 503 from the app's. */
+export function excerpt(body, limit = 120) {
+  const line = body.replace(/\s+/gu, " ").trim();
+  if (!line) return "an empty body";
+  return JSON.stringify(
+    line.length > limit ? `${line.slice(0, limit)}…` : line
+  );
 }
 
 export async function checkCmsSignIn(domain, fetcher = fetch) {
@@ -80,14 +89,57 @@ async function checkWithRetry(url, expected, fetcher, attempts) {
   }
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// A freshly started Next app can take over 20 s to answer its first request
+// (staging deploy 2026-11-01). One unmeasured GET per host, with a generous
+// timeout, absorbs that cold start. Its outcome is ignored on purpose: the
+// checks that follow decide pass or fail.
+export async function warmUp(domain, fetcher = fetch) {
+  const hosts = [
+    "api",
+    "gms",
+    "cms",
+    "auth",
+    "docs",
+    "weather",
+    "signal",
+    "mbia",
+    "events",
+  ];
+  await Promise.all(
+    hosts.map(async (host) => {
+      try {
+        const response = await fetcher(`https://${host}.${domain}/`, {
+          redirect: "follow",
+          signal: AbortSignal.timeout(60_000),
+        });
+        await response.text();
+      } catch {
+        // Intentionally ignored; see above.
+      }
+    })
+  );
+}
+
+// One retry per check so a single slow or dropped request does not fail a
+// release that is healthy. The second failure is thrown unchanged.
+async function once(run) {
+  try {
+    return await run();
+  } catch {
+    await sleep(Number(process.env.SMOKE_RETRY_DELAY_MS ?? 15_000));
+    return run();
+  }
+}
+
 export async function checkDeployment(domain, fetcher = fetch) {
   if (!(domain && validDomain.test(domain)))
     throw new Error("A valid base domain is required");
+  await warmUp(domain, fetcher);
   // The public homepage feed GMS reads. Empty published content is valid.
-  await check(
-    `https://cms.${domain}/api/public/home`,
-    '"deskUpdates":',
-    fetcher
+  await once(() =>
+    check(`https://cms.${domain}/api/public/home`, '"deskUpdates":', fetcher)
   );
   for (const [host, path, marker] of [
     ["api", "/api/v1/utils/ready/", '"ready"'],
@@ -102,11 +154,11 @@ export async function checkDeployment(domain, fetcher = fetch) {
       `https://${host}.${domain}${path}`,
       marker,
       fetcher,
-      host === "gms" ? 4 : 1
+      host === "gms" ? 4 : 2
     );
   for (const host of ["docs", "weather", "signal", "mbia", "events"])
-    await check(`https://${host}.${domain}/`, "<main", fetcher);
-  await checkCmsSignIn(domain, fetcher);
+    await checkWithRetry(`https://${host}.${domain}/`, "<main", fetcher, 2);
+  await once(() => checkCmsSignIn(domain, fetcher));
 }
 
 // Staging web hosts sit behind Traefik basic auth. With `user:password` set, it is

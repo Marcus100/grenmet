@@ -200,6 +200,10 @@ class EmploymentRecord(Base):
             "end_date IS NULL OR start_date IS NULL OR end_date >= start_date",
             name="ck_hr_employment_end_not_before_start",
         ),
+        sa.CheckConstraint(
+            "rule_worker_type IS NULL OR rule_worker_type IN ('SHIFT', 'NON_SHIFT')",
+            name="ck_hr_employment_rule_worker_type",
+        ),
         {"schema": "hr"},
     )
 
@@ -238,6 +242,12 @@ class EmploymentRecord(Base):
     )
     work_location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[EmploymentStatus] = mapped_column(default=EmploymentStatus.ACTIVE)
+    # Roster rules (#380). Covered staff are checked against the union roster
+    # rules; HR may turn this off (for example for management). ``rule_worker_type``
+    # (SHIFT or NON_SHIFT) overrides the department rule set's worker type; NULL
+    # means "use the department's". Edited only with roster.rules.manage.
+    union_covered: Mapped[bool] = mapped_column(default=True, server_default=sa.true())
+    rule_worker_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 

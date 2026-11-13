@@ -155,7 +155,7 @@ export function OrganisationIdentity({
   return (
     <section
       aria-label="HR organisation"
-      className="space-y-3 rounded-lg border border-border p-4"
+      className="border-border space-y-3 rounded-lg border p-4"
     >
       <h2 className="font-semibold">Organisation</h2>
       <p className="text-muted-foreground text-sm">

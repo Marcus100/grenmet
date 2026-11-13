@@ -16,7 +16,7 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
-const THUNDER = /Which cloud brings thunder and lightning\?/;
+const THUNDER = /Which cloud brings thunder and lightning\?/u;
 const params = Promise.resolve({ slug: "can-you-name-these-five-clouds" });
 
 it("plays a published CMS quiz", async () => {

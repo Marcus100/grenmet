@@ -2,6 +2,7 @@
 """Create a private runner-only .env.local. Never executes dotenv content."""
 import base64
 import binascii
+import importlib.util
 import ipaddress
 import json
 import os
@@ -9,6 +10,17 @@ import re
 import sys
 from pathlib import Path
 from urllib.parse import quote, urlparse
+
+
+def _sibling(name):
+    """Load scripts/production/<name>.py, wherever this script is run or loaded from."""
+    spec = importlib.util.spec_from_file_location(name, Path(__file__).resolve().with_name(f"{name}.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+load_cloudflare_ranges = _sibling("cloudflare_ranges").load
 
 
 def read_config(path):
@@ -46,6 +58,110 @@ def fernet_keys(environment, name):
     return keys
 
 
+PAYSLIP_KEY_ID = re.compile(r"[A-Za-z0-9_-]{1,32}")
+# A deploy-safe subset: the value is written into a quoted env file and passed
+# through compose interpolation, so no quotes, "$", backslashes or spaces.
+PAYSLIP_KEY_SECRET = re.compile(r"[A-Za-z0-9._~+/=-]{32,}")
+
+
+def payslip_hmac_keys(environment):
+    """Optional keyid:secret pairs, comma separated, current key first.
+
+    Unset is allowed (the API then refuses to issue payslips). The error names
+    the entry position only and never echoes a key id or secret.
+    """
+    raw = (environment.get("PAYSLIP_HMAC_KEYS", "") or "").strip()
+    if not raw:
+        return ""
+    seen = set()
+    for position, item in enumerate(raw.split(","), start=1):
+        key_id, separator, secret = item.strip().partition(":")
+        if not separator or not PAYSLIP_KEY_ID.fullmatch(key_id):
+            raise ValueError(f"PAYSLIP_HMAC_KEYS entry {position} must look like keyid:secret") from None
+        if not PAYSLIP_KEY_SECRET.fullmatch(secret):
+            raise ValueError(
+                f"PAYSLIP_HMAC_KEYS entry {position} needs a secret of at least 32 "
+                "letters, digits or . _ ~ + / = -"
+            ) from None
+        if key_id in seen:
+            raise ValueError(f"PAYSLIP_HMAC_KEYS entry {position} repeats a key id") from None
+        seen.add(key_id)
+    return ",".join(item.strip() for item in raw.split(","))
+
+
+# Edge settings for CLOUDFLARE_PROXY_ENABLED (docs/operations/cloudflare-proxy.md).
+# Off is Traefik's own default (forwarded headers trusted from nobody) and the
+# existing TLS challenge, so an unset switch changes nothing. On, all four move
+# together: Traefik trusts forwarded headers only from Cloudflare's ranges, the
+# per-client cap and the visitor address skip Cloudflare's hop (2 = Cloudflare
+# then Traefik), and certificates renew over HTTP because Cloudflare terminates
+# TLS in front of the origin.
+#
+# On also turns on the origin gate: a connection from a Cloudflare address
+# without the zone's secret header (CLOUDFLARE_ORIGIN_SECRET, set on every
+# request by a Cloudflare Transform Rule, scripts/production/cloudflare-origin-header.py)
+# is refused with 403 before any router sees it. Cloudflare's addresses are
+# shared by every Cloudflare customer, so without this anyone's Worker could
+# connect to the droplet and choose its own X-Forwarded-For. Direct connections
+# from elsewhere are not matched: Traefik never trusts their forwarded headers.
+# CLOUDFLARE_ORIGIN_SECRET_PREVIOUS is also accepted while a rotation is applied.
+ORIGIN_HEADER = "X-Barrels-Origin"
+# Off: a rule no request can match (no TCP client has the broadcast address).
+ORIGIN_GATE_OFF = "ClientIP(`255.255.255.255/32`)"
+ORIGIN_SECRET = re.compile(r"[A-Za-z0-9_-]{32,128}")
+EDGE_OFF = {
+    "VISITOR_IP_PROXY_HOPS": "1",
+    "TRAEFIK_FORWARDED_HEADERS": "insecure=false",
+    "TRAEFIK_CLIENT_IP_DEPTH": "0",
+    "TRAEFIK_ACME_CHALLENGE": "tlschallenge=true",
+    "TRAEFIK_ORIGIN_GATE_RULE": ORIGIN_GATE_OFF,
+}
+
+
+def origin_gate_rule(ranges, secrets):
+    sources = " || ".join(f"ClientIP(`{network}`)" for network in ranges)
+    accepted = " && ".join(f"!Header(`{ORIGIN_HEADER}`, `{secret}`)" for secret in secrets)
+    return f"({sources}) && {accepted}"
+
+
+def origin_secrets(environment, values):
+    """The accepted origin secrets (current first). Errors never echo values."""
+    current = environment.get("CLOUDFLARE_ORIGIN_SECRET", "")
+    previous = environment.get("CLOUDFLARE_ORIGIN_SECRET_PREVIOUS", "")
+    if not current:
+        raise ValueError("CLOUDFLARE_ORIGIN_SECRET is required when CLOUDFLARE_PROXY_ENABLED is true")
+    for name, value in (("CLOUDFLARE_ORIGIN_SECRET", current), ("CLOUDFLARE_ORIGIN_SECRET_PREVIOUS", previous)):
+        if value and not ORIGIN_SECRET.fullmatch(value):
+            raise ValueError(f"{name} must be 32 to 128 letters, digits, '-' or '_' (openssl rand -hex 32)")
+    if previous == current:
+        previous = ""
+    others = {
+        value
+        for key, value in values.items()
+        if value and (key.endswith(("_SECRET", "_PASSWORD", "_KEY", "_TOKEN")) or key == "EMAIL_HASH_PEPPER")
+    }
+    if current in others or previous in others:
+        raise ValueError("CLOUDFLARE_ORIGIN_SECRET must differ from every other deployment secret")
+    return [current, previous] if previous else [current]
+
+
+def cloudflare_edge(environment, values):
+    switch = environment.get("CLOUDFLARE_PROXY_ENABLED", "")
+    if switch not in {"", "true", "false"}:
+        raise ValueError("CLOUDFLARE_PROXY_ENABLED must be true or false")
+    if switch != "true":
+        return {"CLOUDFLARE_PROXY_ENABLED": "false", **EDGE_OFF}
+    ranges = load_cloudflare_ranges()
+    return {
+        "CLOUDFLARE_PROXY_ENABLED": "true",
+        "VISITOR_IP_PROXY_HOPS": "2",
+        "TRAEFIK_FORWARDED_HEADERS": "trustedIPs=" + ",".join(ranges),
+        "TRAEFIK_CLIENT_IP_DEPTH": "1",
+        "TRAEFIK_ACME_CHALLENGE": "httpchallenge.entrypoint=web",
+        "TRAEFIK_ORIGIN_GATE_RULE": origin_gate_rule(ranges, origin_secrets(environment, values)),
+    }
+
+
 def render(config, environment):
     required = REQUIRED_SECRETS
     values = {}
@@ -59,11 +175,11 @@ def render(config, environment):
     # API ignores a shorter value, which silently pools all visitors in one bucket.
     if len(values["TRUSTED_WEB_SECRET"]) < 32:
         raise ValueError("TRUSTED_WEB_SECRET must contain at least 32 characters")
-    for key in ['WXWATCH_INGEST_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'ELECTIONS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET', 'BOOKINGS_SSO_CLIENT_SECRET', 'BARRELS_ADMIN_SSO_CLIENT_SECRET', 'PAYMENTS_STRIPE_SECRET_KEY', 'PAYMENTS_STRIPE_WEBHOOK_SECRET', 'PAYMENTS_STRIPE_SUCCESS_URL', 'PAYMENTS_STRIPE_CANCEL_URL', 'META_PAGE_ID', 'META_INSTAGRAM_ACCOUNT_ID', 'META_PAGE_ACCESS_TOKEN', 'SOCIAL_LINK_HOSTS', 'SOCIAL_IMAGE_HOSTS', 'CMS_DISTRIBUTION_SECRET']:
+    for key in ['WXWATCH_INGEST_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET', 'BOOKINGS_SSO_CLIENT_SECRET', 'ACCOUNT_SSO_CLIENT_SECRET', 'BARRELS_ADMIN_SSO_CLIENT_SECRET', 'CAP_SSO_CLIENT_SECRET', 'PAYMENTS_STRIPE_SECRET_KEY', 'PAYMENTS_STRIPE_WEBHOOK_SECRET', 'PAYMENTS_STRIPE_SUCCESS_URL', 'PAYMENTS_STRIPE_CANCEL_URL', 'META_PAGE_ID', 'META_INSTAGRAM_ACCOUNT_ID', 'META_PAGE_ACCESS_TOKEN', 'SOCIAL_LINK_HOSTS', 'SOCIAL_IMAGE_HOSTS', 'CMS_DISTRIBUTION_SECRET']:
         values[key] = environment.get(key, "")
     # Single sign-on (ADR-0017): staff apps can't sign in without theirs;
     # Events stays off until its secret is set.
-    for key in ["GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET", "EVENTS_SSO_CLIENT_SECRET", "WEATHER_SSO_CLIENT_SECRET", "MBIA_SSO_CLIENT_SECRET", "SIGNAL_SSO_CLIENT_SECRET", "DOCS_SSO_CLIENT_SECRET", "ELECTIONS_SSO_CLIENT_SECRET", "GMSDASH_SSO_CLIENT_SECRET", "BOOKINGS_SSO_CLIENT_SECRET", "BARRELS_ADMIN_SSO_CLIENT_SECRET"]:
+    for key in ["GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET", "EVENTS_SSO_CLIENT_SECRET", "WEATHER_SSO_CLIENT_SECRET", "MBIA_SSO_CLIENT_SECRET", "SIGNAL_SSO_CLIENT_SECRET", "DOCS_SSO_CLIENT_SECRET", "GMSDASH_SSO_CLIENT_SECRET", "BOOKINGS_SSO_CLIENT_SECRET", "ACCOUNT_SSO_CLIENT_SECRET", "BARRELS_ADMIN_SSO_CLIENT_SECRET", "CAP_SSO_CLIENT_SECRET"]:
         if values[key] and len(values[key]) < 32:
             raise ValueError(f"{key} must contain at least 32 characters")
     # One secret per app: a leaked or shared value must not sign in to another app.
@@ -86,6 +202,8 @@ def render(config, environment):
     values["ORG_SECRET_ENCRYPTION_KEYS"] = json.dumps(
         fernet_keys(environment, "ORG_SECRET_ENCRYPTION_KEYS"), separators=(",", ":")
     )
+    # Payroll payslip signing keys (docs/env.md): a dedicated secret, API only.
+    values["PAYSLIP_HMAC_KEYS"] = payslip_hmac_keys(environment)
     # The payments core runs in Stripe TEST mode only (ADR-0027): a live key must
     # never reach a deployment until the owner approves a live rail.
     stripe_key = values["PAYMENTS_STRIPE_SECRET_KEY"]
@@ -120,6 +238,13 @@ def render(config, environment):
     if telemetry_enabled not in {"", "true", "false"}:
         raise ValueError("TELEMETRY_ENABLED must be true or false")
     values["TELEMETRY_ENABLED"] = "true" if telemetry_enabled == "true" else "false"
+    # Worker Sentry Cron check-ins (src/worker/cron_monitor.py). Off unless the
+    # GitHub environment variable says true: each monitor may be billable.
+    sentry_crons_enabled = environment.get("SENTRY_CRONS_ENABLED", "")
+    if sentry_crons_enabled not in {"", "true", "false"}:
+        raise ValueError("SENTRY_CRONS_ENABLED must be true or false")
+    values["SENTRY_CRONS_ENABLED"] = "true" if sentry_crons_enabled == "true" else "false"
+    values.update(cloudflare_edge(environment, values))
     values["TELEMETRY_WORKER_HEARTBEAT_URL"] = environment.get("TELEMETRY_WORKER_HEARTBEAT_URL", "")
     heartbeat = values["TELEMETRY_WORKER_HEARTBEAT_URL"]
     if heartbeat:
@@ -144,7 +269,7 @@ def render(config, environment):
         entry = service["environments"].get(config.get("ENVIRONMENT"), {})
         sentry = entry.get("sentry", {})
         secret_ref = sentry.get("secretRef")
-        if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "cap", "gmsdash", "signal", "mbia", "events", "bookings", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
+        if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "cap", "gmsdash", "signal", "mbia", "events", "bookings", "account", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
             raise ValueError("Invalid shared Sentry routing")
         values[f"SENTRY_DSN_{app}"] = environment.get(secret_ref, "") if secret_ref else sentry.get("dsn") or ""
     for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]:

@@ -1,13 +1,14 @@
 import type { CollectionBeforeValidateHook, Field } from "payload";
+import { isLive } from "../lib/publication-status";
 
-const SLUG = /^[a-z0-9]+(?:[/-][a-z0-9]+)*$/;
+const SLUG = /^[a-z0-9]+(?:[/-][a-z0-9]+)*$/u;
 
 export const slugPart = (value: unknown) =>
   String(value ?? "")
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-+|-+$/gu, "");
 
 export const slugField: Field = {
   name: "slug",
@@ -37,7 +38,7 @@ export function buildSlug(
 ): CollectionBeforeValidateHook {
   return async ({ data, originalDoc, req }) => {
     if (!data) return data;
-    if (originalDoc?.slug && originalDoc.status === "published") {
+    if (originalDoc?.slug && isLive(originalDoc)) {
       data.slug = originalDoc.slug;
       return data;
     }

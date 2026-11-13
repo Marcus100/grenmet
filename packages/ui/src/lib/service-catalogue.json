@@ -325,11 +325,10 @@
             "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
-            "status": "configured",
-            "kind": "direct-pilot",
-            "monitorId": 5014248,
-            "deliveryEvidence": [],
-            "dashboard": "https://incidents.betterstack.com/team/t476349/monitors/5014248"
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
           }
         },
         "production": {
@@ -1518,6 +1517,96 @@
           "availability": {
             "status": "unconfigured",
             "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "account",
+      "owner": "barrels",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": false,
+      "healthPath": "/api/health",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3018",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": "https://account.staging.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false,
+            "reason": "Owner requested production-only browser analytics on 2026-10-05. All staging subdomains are excluded."
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://account.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
             "monitorId": null,
             "deliveryEvidence": []
           }

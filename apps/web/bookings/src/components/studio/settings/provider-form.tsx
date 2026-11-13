@@ -38,7 +38,7 @@ export function ProviderForm({
   const prefix = `provider-${provider?.id ?? "new"}`;
 
   useEffect(() => {
-    if (state.status === "done" && !provider) {
+    if (state.status === "success" && !provider) {
       formRef.current?.reset();
     }
   }, [state, provider]);
@@ -71,7 +71,7 @@ export function ProviderForm({
           services.map((item) => (
             <Label className="min-h-11 items-center gap-3" key={item.id}>
               <input
-                className="size-5 accent-primary"
+                className="accent-primary size-5"
                 defaultChecked={provider?.service_ids.includes(item.id)}
                 name="serviceIds"
                 type="checkbox"

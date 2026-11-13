@@ -12,26 +12,30 @@ import { capResourceCreateSchema } from "./capResourceCreateSchema.js";
 import { capSeveritySchema } from "./capSeveritySchema.js";
 import { capUrgencySchema } from "./capUrgencySchema.js";
 
-export const capInfoCreateSchema = z.object({
-  language: z.string().min(2).max(35).optional().default("en"),
-  categories: z.array(capCategorySchema).optional(),
-  event: z.string().min(1).max(255),
-  event_codes: z.array(capNameValueSchema).optional(),
-  response_types: z.array(z.string()).optional(),
-  urgency: capUrgencySchema.optional().default("Expected"),
-  severity: capSeveritySchema.optional().default("Moderate"),
-  certainty: capCertaintySchema.optional().default("Likely"),
-  audience: z.union([z.string().max(500), z.null()]).optional(),
-  effective: z.union([z.iso.datetime(), z.null()]).optional(),
-  onset: z.union([z.iso.datetime(), z.null()]).optional(),
-  expires: z.union([z.iso.datetime(), z.null()]).optional(),
-  sender_name: z.union([z.string().max(255), z.null()]).optional(),
-  headline: z.string().min(1).max(255),
-  description: z.string().min(1).max(4000),
-  instruction: z.union([z.string().max(4000), z.null()]).optional(),
-  web: z.union([z.string().max(500), z.null()]).optional(),
-  contact: z.union([z.string().max(500), z.null()]).optional(),
-  parameters: z.array(capNameValueSchema).optional(),
-  resources: z.array(capResourceCreateSchema).optional(),
-  areas: z.array(capAreaCreateSchema).optional(),
-});
+export const capInfoCreateSchema = z
+  .object({
+    language: z.string().min(2).max(35).optional().default("en"),
+    categories: z.array(capCategorySchema).optional(),
+    event: z.string().min(1).max(255),
+    event_codes: z.array(capNameValueSchema).optional(),
+    response_types: z.array(z.string()).optional(),
+    urgency: capUrgencySchema.optional().default("Expected"),
+    severity: capSeveritySchema.optional().default("Moderate"),
+    certainty: capCertaintySchema.optional().default("Likely"),
+    audience: z.union([z.string().max(500), z.null()]).optional(),
+    effective: z.union([z.iso.datetime(), z.null()]).optional(),
+    onset: z.union([z.iso.datetime(), z.null()]).optional(),
+    expires: z.union([z.iso.datetime(), z.null()]).optional(),
+    sender_name: z.union([z.string().max(255), z.null()]).optional(),
+    headline: z.string().min(1).max(255),
+    description: z.string().min(1).max(4000),
+    instruction: z.union([z.string().max(4000), z.null()]).optional(),
+    web: z.union([z.string().max(500), z.null()]).optional(),
+    contact: z.union([z.string().max(500), z.null()]).optional(),
+    parameters: z.array(capNameValueSchema).optional(),
+    resources: z.array(capResourceCreateSchema).optional(),
+    areas: z.array(capAreaCreateSchema).optional(),
+  })
+  .describe(
+    "Save-time checks. They run on what a forecaster types, not on stored rows."
+  );

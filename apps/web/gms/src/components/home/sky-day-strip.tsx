@@ -10,14 +10,22 @@ import {
 
 export interface StripDay extends ForecastDay {
   href: string;
-  /** Issued chance of rain in words ("Medium"); null when none. */
-  rainWord: string | null;
+  /**
+   * Today after the evening forecast: no maximum, only tonight's minimum. The
+   * column then reads "Tonight" with the low on top (owner, 10 Nov 2026).
+   */
+  tonight?: boolean;
+}
+
+/** Today's column is tonight once the issue gives a low but no high. */
+export function isTonight(day: Pick<ForecastDay, "high" | "isToday" | "low">) {
+  return day.isToday && day.high === null && day.low !== null;
 }
 
 /** The Now column, the first tab at every width. */
 export interface StripNow {
   href: string;
-  /** "Last" when the reading is older than 90 minutes; defaults to "Now". */
+  /** "Last" when the reading is older than two hours; defaults to "Now". */
   label?: "Now" | "Last";
   sky: WeatherCondition;
   temperature: number | null;
@@ -96,6 +104,7 @@ function IconRow({
       className={cn("relative my-0.5 block w-full", ICON_ROW_CLASS)}
     >
       <svg
+        aria-hidden="true"
         className="absolute inset-0 size-full overflow-visible"
         preserveAspectRatio="none"
         viewBox={`0 0 100 ${ICON_ROW}`}
@@ -115,9 +124,10 @@ function IconRow({
 
 /**
  * The hero's tabs: Now, then every forecast day. Each column reads top to
- * bottom: the high (the temperature for Now), a filled sky icon on a soft
- * line that rises and falls with the temperature, the chance of rain in
- * words, the low, then the day and date. Each tab is a real link to its
+ * bottom: the high (the temperature for Now; tonight's low for Tonight), a
+ * filled sky icon on a soft line that rises and falls with the temperature,
+ * the low, then the day and date. The chance of rain is in the day's panel,
+ * not the row (owner, 10 Nov 2026). Each tab is a real link to its
  * route, and a plain click switches the card and panel instantly; the
  * selected tab is a lighter column and carries `aria-current`.
  */
@@ -128,19 +138,17 @@ export function SkyDayStrip({
   days: StripDay[];
   now: StripNow;
 }) {
-  const temperatures = [now.temperature, ...days.map((day) => day.high)];
+  const top = (day: StripDay) => (day.tonight ? day.low : day.high);
+  const temperatures = [now.temperature, ...days.map(top)];
   const known = temperatures.filter((value): value is number => value !== null);
   const coolest = known.length ? Math.min(...known) : 0;
   const warmest = known.length ? Math.max(...known) : 0;
   const ys = temperatures.map((value) => iconY(value, coolest, warmest));
   const small = "text-caption tabular-nums leading-caption";
-  // The rain row only shows when a forecast gives a chance of rain; an empty
-  // row left a gap between the icons and the lows.
-  const anyRain = days.some((day) => day.rainWord);
 
   return (
     <nav aria-label="Forecast days">
-      <ul className="grid grid-cols-6 overflow-hidden rounded-gm-card bg-gm-scrim">
+      <ul className="rounded-gm-card bg-gm-scrim grid grid-cols-6 overflow-hidden">
         <li className="min-w-0">
           <TabLink
             className={TAB}
@@ -151,7 +159,7 @@ export function SkyDayStrip({
             idleClassName={IDLE}
             slug="now"
           >
-            <span className="font-bold text-body-base tabular-nums leading-body-base">
+            <span className="text-body-base leading-body-base font-bold tabular-nums">
               <Temperature value={now.temperature} />
             </span>
             <IconRow
@@ -160,16 +168,11 @@ export function SkyDayStrip({
               sky={now.sky}
               y={ys[0] ?? null}
             />
-            {/* No rain chance or low for a reading: keep the rows so tabs line up. */}
-            {anyRain && (
-              <span aria-hidden="true" className={small}>
-                {"\u00a0"}
-              </span>
-            )}
+            {/* No low for a reading: keep the row so tabs line up. */}
             <span aria-hidden="true" className={small}>
               {"\u00a0"}
             </span>
-            <span className="mt-1 font-bold text-body-base leading-body-base">
+            <span className="text-body-base leading-body-base mt-1 font-bold">
               {now.label ?? "Now"}
               {now.label === "Last" && (
                 <span className="sr-only"> reading</span>
@@ -185,7 +188,7 @@ export function SkyDayStrip({
           const column = index + 1;
           return (
             <li
-              className="min-w-0 border-gm-text-inverse/10 border-l"
+              className="border-gm-text-inverse/10 min-w-0 border-l"
               key={day.slug}
             >
               <TabLink
@@ -197,10 +200,12 @@ export function SkyDayStrip({
                 idleClassName={IDLE}
                 slug={day.slug}
               >
-                <span className="font-bold text-body-base tabular-nums leading-body-base">
-                  <Temperature value={day.high} />
-                  {day.high !== null && (
-                    <span className="sr-only"> maximum</span>
+                <span className="text-body-base leading-body-base font-bold tabular-nums">
+                  <Temperature value={top(day)} />
+                  {top(day) !== null && (
+                    <span className="sr-only">
+                      {day.tonight ? " minimum tonight" : " maximum"}
+                    </span>
                   )}
                 </span>
                 <IconRow
@@ -210,24 +215,13 @@ export function SkyDayStrip({
                   sky={day.condition}
                   y={ys[column] ?? null}
                 />
-                {anyRain && (
-                  <span
-                    className={cn(
-                      small,
-                      "max-w-full overflow-hidden text-clip whitespace-nowrap text-gm-sky tracking-tight"
-                    )}
-                  >
-                    {day.rainWord ?? "\u00a0"}
-                    {day.rainWord && (
-                      <span className="sr-only"> chance of rain</span>
-                    )}
-                  </span>
-                )}
                 <span className={cn(small, "text-gm-text-inverse/85")}>
-                  {missing ? (
+                  {missing || day.tonight ? (
                     <>
                       <span aria-hidden="true">{"\u00a0"}</span>
-                      <span className="sr-only">No forecast yet</span>
+                      {missing && (
+                        <span className="sr-only">No forecast yet</span>
+                      )}
                     </>
                   ) : (
                     <>
@@ -238,8 +232,8 @@ export function SkyDayStrip({
                     </>
                   )}
                 </span>
-                <span className="mt-1 font-bold text-body-base leading-body-base">
-                  {day.dayName}
+                <span className="text-body-base leading-body-base mt-1 font-bold">
+                  {day.tonight ? "Tonight" : day.dayName}
                 </span>
                 <span className={cn(small, "text-gm-text-inverse/85")}>
                   {day.date}

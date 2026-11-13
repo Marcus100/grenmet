@@ -13,6 +13,11 @@ export const shiftCatalogPublicSchema = z.object({
   start_time: z.union([z.string(), z.null()]).optional(),
   end_time: z.union([z.string(), z.null()]).optional(),
   ends_next_day: z.boolean(),
+  break_minutes: z
+    .int()
+    .optional()
+    .default(0)
+    .describe("Unpaid break inside the shift, in minutes."),
   counts_as_work_hours: z.boolean(),
   needs_reason: z.boolean(),
   needs_approval: z.boolean(),

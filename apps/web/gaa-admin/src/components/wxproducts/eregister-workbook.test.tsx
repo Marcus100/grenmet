@@ -4,8 +4,8 @@ import { expect, it, vi } from "vitest";
 import type { StationSettings } from "./eregister-derived";
 import { ERegisterWorkbook } from "./eregister-workbook";
 
-const EXPECTED_TEXT = /NSC 28\/21 Q1013=/;
-const WARNING_TEXT = /Q1014 differs/;
+const EXPECTED_TEXT = /NSC 28\/21 Q1013=/u;
+const WARNING_TEXT = /Q1014 differs/u;
 
 function renderWorkbook(
   issues: { field: string; message: string; severity?: "error" | "warning" }[],
@@ -22,7 +22,7 @@ function renderWorkbook(
   render(
     <ERegisterWorkbook
       expectedMetar={extra.expectedMetar}
-      issues={issues}
+      issues={issues.map((issue) => ({ code: "test", ...issue }))}
       metarPreview="TGPY"
       observedAt="2026-07-07T23:00"
       onBack={vi.fn()}

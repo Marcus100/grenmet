@@ -16,9 +16,9 @@ export function PageIntro({
   children: ReactNode;
 }) {
   return (
-    <header className="mb-8 max-w-3xl border-signal-gold border-t-4 pt-6">
+    <header className="border-signal-gold mb-8 max-w-3xl border-t-4 pt-6">
       <Eyebrow>{eyebrow}</Eyebrow>
-      <h1 className="mt-4 font-semibold font-serif text-4xl leading-tight tracking-tight sm:text-5xl">
+      <h1 className="mt-4 font-serif text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
         {title}
       </h1>
       <div className="mt-4 text-lg leading-relaxed">{children}</div>
@@ -42,7 +42,7 @@ export function StoryCard({
   return (
     <article className="min-w-0">
       {article.reviewStatus === "sample" ? (
-        <p className="mb-3 text-signal-muted text-sm">
+        <p className="text-signal-muted mb-3 text-sm">
           June 2026 design sample
         </p>
       ) : null}
@@ -50,7 +50,7 @@ export function StoryCard({
       <Eyebrow>{getSection(article.section)?.label ?? article.section}</Eyebrow>
       <Heading
         className={cn(
-          "mt-3 font-semibold font-serif leading-tight tracking-tight",
+          "mt-3 font-serif leading-tight font-semibold tracking-tight",
           lead ? "text-3xl sm:text-4xl" : "text-2xl"
         )}
       >
@@ -74,10 +74,10 @@ export function EmptyState({
 }) {
   return (
     <div className="border-signal-rule border-y py-10">
-      <h2 className="font-semibold font-serif text-2xl">{title}</h2>
+      <h2 className="font-serif text-2xl font-semibold">{title}</h2>
       <p className="mt-3 max-w-2xl text-lg leading-relaxed">{children}</p>
       <Link
-        className="mt-4 inline-flex min-h-11 items-center text-signal-green underline underline-offset-4"
+        className="text-signal-green mt-4 inline-flex min-h-11 items-center underline underline-offset-4"
         href="/topics"
       >
         Explore all topics →
@@ -89,13 +89,13 @@ export function ArchiveInvitation() {
   return (
     <aside
       aria-labelledby="keep-reading-title"
-      className="mx-auto mt-12 max-w-7xl border-signal-gold border-t-4 bg-secondary px-4 py-10 sm:px-8 lg:py-12"
+      className="border-signal-gold bg-secondary mx-auto mt-12 max-w-7xl border-t-4 px-4 py-10 sm:px-8 lg:py-12"
     >
       <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
         <div>
           <Eyebrow>There’s more to the story</Eyebrow>
           <h2
-            className="mt-4 font-semibold font-serif text-4xl leading-tight"
+            className="mt-4 font-serif text-4xl leading-tight font-semibold"
             id="keep-reading-title"
           >
             Stay curious.
@@ -107,7 +107,7 @@ export function ArchiveInvitation() {
             interest. Your next good read starts here.
           </p>
           <Link
-            className="mt-6 inline-flex min-h-11 items-center border-signal-green border-b-2 font-semibold text-signal-green"
+            className="border-signal-green text-signal-green mt-6 inline-flex min-h-11 items-center border-b-2 font-semibold"
             href="/archive"
           >
             Explore the archive →
@@ -138,21 +138,21 @@ export function ArchiveInvitation() {
             },
           ].map((item) => (
             <div
-              className="flex flex-col border-signal-rule border-t pt-5"
+              className="border-signal-rule flex flex-col border-t pt-5"
               key={item.href}
             >
               <span
                 aria-hidden="true"
-                className="font-semibold text-signal-green text-sm"
+                className="text-signal-green text-sm font-semibold"
               >
                 {item.number}
               </span>
-              <h3 className="mt-4 font-semibold font-serif text-2xl leading-tight">
+              <h3 className="mt-4 font-serif text-2xl leading-tight font-semibold">
                 {item.title}
               </h3>
               <p className="mt-3 text-base leading-relaxed">{item.text}</p>
               <Link
-                className="mt-auto inline-flex min-h-11 items-center pt-6 font-semibold text-signal-green text-sm underline underline-offset-4"
+                className="text-signal-green mt-auto inline-flex min-h-11 items-center pt-6 text-sm font-semibold underline underline-offset-4"
                 href={item.href}
               >
                 {item.label} →
@@ -167,7 +167,7 @@ export function ArchiveInvitation() {
 export function DemoNote({ reviewStatus }: { reviewStatus?: string }) {
   if (reviewStatus === "editorial-preview") {
     return (
-      <aside className="my-6 border-signal-gold border-l-4 pl-4 text-base leading-relaxed">
+      <aside className="border-signal-gold my-6 border-l-4 pl-4 text-base leading-relaxed">
         <strong>Editorial preview.</strong> Source-based summary prepared for
         human review. Sources checked on 3 October 2026; follow the linked
         originals for updates. This has not been approved as Signal reporting.
@@ -175,7 +175,7 @@ export function DemoNote({ reviewStatus }: { reviewStatus?: string }) {
     );
   }
   return (
-    <aside className="my-6 border-signal-gold border-l-4 pl-4 text-base leading-relaxed">
+    <aside className="border-signal-gold my-6 border-l-4 pl-4 text-base leading-relaxed">
       <strong>Sample story.</strong> This is demonstration content from June
       2026. Claims, forecasts and deadlines have not been verified for
       publication. Do not rely on it for current decisions.

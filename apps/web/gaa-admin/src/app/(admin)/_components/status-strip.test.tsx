@@ -47,7 +47,7 @@ describe("StatusStrip", () => {
     await renderStrip();
 
     expect(screen.getByText("2")).toBeInTheDocument();
-    expect(screen.getByText("1 / 4")).toBeInTheDocument();
+    expect(screen.getByText("1 / 5")).toBeInTheDocument();
     expect(screen.getByText("1 bulletin live")).toBeInTheDocument();
     expect(screen.getByText("4 open requests in total")).toBeInTheDocument();
     expect(screen.getByText("In effect")).toBeInTheDocument();
@@ -80,17 +80,19 @@ describe("StatusStrip", () => {
     loadAlerts.mockResolvedValue(ok({ count: 0, data: [] }));
     loadProducts.mockResolvedValue(
       ok(
-        ["morning", "midday", "evening", "outlook"].map((kind) => ({
-          id: kind,
-          kind,
-          values: { issuedAt: "2026-09-09T07:00" },
-        }))
+        ["morning", "midday", "evening", "outlook", "marine-forecast"].map(
+          (kind) => ({
+            id: kind,
+            kind,
+            values: { issuedAt: "2026-09-09T07:00" },
+          })
+        )
       )
     );
     loadImagery.mockResolvedValue(ok([]));
     loadHr.mockResolvedValue(ok({ approvals: [], open_requests: 0 }));
     await renderStrip();
-    expect(screen.getByText("4 / 4")).toBeInTheDocument();
+    expect(screen.getByText("5 / 5")).toBeInTheDocument();
     expect(screen.queryByText("Complete")).not.toBeInTheDocument();
   });
 });

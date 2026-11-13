@@ -7,6 +7,7 @@ import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { leaveRequestActionSchema } from "./leaveRequestActionSchema.js";
 import { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
+import { rosterRuleWarningsErrorPublicSchema } from "./rosterRuleWarningsErrorPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrActionLeaveRequestPathLeaveRequestIdSchema = z.uuid();
@@ -21,6 +22,11 @@ export const hrActionLeaveRequestStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const hrActionLeaveRequestStatus409Schema =
+  rosterRuleWarningsErrorPublicSchema.describe(
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
+  );
+
 export const hrActionLeaveRequestStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -32,6 +38,7 @@ export const hrActionLeaveRequestResponseSchema =
 export const hrActionLeaveRequestErrorSchema = z.union([
   hrActionLeaveRequestStatus403Schema,
   hrActionLeaveRequestStatus404Schema,
+  hrActionLeaveRequestStatus409Schema,
   hrActionLeaveRequestStatus422Schema,
 ]);
 

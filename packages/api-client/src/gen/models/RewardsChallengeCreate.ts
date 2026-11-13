@@ -24,7 +24,7 @@ export type RewardsChallengeCreate = {
    */
   metric: ChallengeMetric;
   /**
-   * @maxLength 1000000
+   * @maximum 1000000
    * @type integer
    */
   target_total: number;

@@ -29,6 +29,7 @@ export function organisationsGrantMemberRole<
       method: "POST",
       url: "/api/v1/organisations/org/members/{membership_id}/grants",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

@@ -13,8 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Order, OrderItem
-
-PENDING = "pending_payment"
+from ..transitions import OrderStatus
 
 
 async def held_by_tier(
@@ -27,7 +26,10 @@ async def held_by_tier(
     stmt = (
         select(OrderItem.tier_id, func.coalesce(func.sum(OrderItem.quantity), 0))
         .join(Order, Order.id == OrderItem.order_id)
-        .where(OrderItem.tier_id.in_(tier_ids), Order.status == PENDING)
+        .where(
+            OrderItem.tier_id.in_(tier_ids),
+            Order.status == OrderStatus.PENDING_PAYMENT.value,
+        )
         .group_by(OrderItem.tier_id)
     )
     if user_id is not None:

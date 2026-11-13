@@ -34,12 +34,12 @@ export default async function HomePage() {
           >
             {events.length} upcoming across Grenada
           </Badge>
-          <h1 className="font-bold font-display text-display tracking-tight">
+          <h1 className="font-display text-display font-bold tracking-tight">
             Find your people.
             <br />
             <span className="text-events-hibiscus">Find what's on.</span>
           </h1>
-          <p className="max-w-lg text-body-base text-muted-foreground">
+          <p className="text-body-base text-muted-foreground max-w-lg">
             Fetes, meetups, food, sport and culture across Grenada, Carriacou
             and Petite Martinique — and the groups and people behind them.
           </p>
@@ -49,9 +49,9 @@ export default async function HomePage() {
                 Search events
               </label>
               <div className="relative flex-1">
-                <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="text-muted-foreground absolute top-1/2 left-3.5 size-4 -translate-y-1/2" />
                 <input
-                  className="h-12 w-full rounded-full border border-input bg-card pr-4 pl-10 text-body outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
+                  className="border-input bg-card text-body focus-visible:ring-ring/40 h-12 w-full rounded-full border pr-4 pl-10 outline-none focus-visible:ring-3"
                   id="home-search"
                   name="q"
                   placeholder="Search fetes, meetups, venues…"
@@ -80,7 +80,7 @@ export default async function HomePage() {
               ] as const
             ).map(([label, href]) => (
               <Link
-                className="rounded-full border border-border bg-card px-3.5 py-1.5 font-medium text-caption hover:border-foreground"
+                className="border-border bg-card text-caption hover:border-foreground rounded-full border px-3.5 py-1.5 font-medium"
                 href={href ?? "/events"}
                 key={label}
               >
@@ -138,7 +138,7 @@ export default async function HomePage() {
                 >
                   <Icon className="size-6" />
                   <span>
-                    <span className="block font-display font-semibold text-body-base">
+                    <span className="font-display text-body-base block font-semibold">
                       {CATEGORY_LABELS[category]}
                     </span>
                     <span className="text-caption opacity-80">
@@ -168,7 +168,7 @@ export default async function HomePage() {
             const { icon: Icon, tone } = CATEGORY_STYLE[group.category];
             return (
               <article
-                className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5"
+                className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-5"
                 key={group.id}
               >
                 <div className="flex items-center gap-3">
@@ -181,7 +181,7 @@ export default async function HomePage() {
                     <Icon className="size-5" />
                   </span>
                   <div className="min-w-0">
-                    <h3 className="truncate font-display font-semibold text-body-base">
+                    <h3 className="font-display text-body-base truncate font-semibold">
                       <Link
                         className="hover:underline"
                         href={`/groups/${group.slug}`}
@@ -195,7 +195,7 @@ export default async function HomePage() {
                     </p>
                   </div>
                 </div>
-                <p className="flex-1 text-body text-muted-foreground">
+                <p className="text-body text-muted-foreground flex-1">
                   {group.tagline}
                 </p>
                 <ToggleButton
@@ -231,12 +231,12 @@ function Section({
   return (
     <section className="space-y-5">
       <div className="flex items-end justify-between gap-4">
-        <h2 className="font-bold font-display text-heading-sm tracking-tight sm:text-heading-base">
+        <h2 className="font-display text-heading-sm sm:text-heading-base font-bold tracking-tight">
           {title}
         </h2>
         {href ? (
           <Link
-            className="flex items-center gap-1 font-medium text-body text-events-hibiscus-deep hover:underline"
+            className="text-body text-events-hibiscus-deep flex items-center gap-1 font-medium hover:underline"
             href={href}
           >
             See all

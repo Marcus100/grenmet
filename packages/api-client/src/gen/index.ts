@@ -1,6 +1,8 @@
 export * from "./.kubb/client.js";
 export * from "./.kubb/serializers.js";
 export * from "./.kubb/standardSchema.js";
+export { almanacGetAstronomy } from "./clients/almanacGetAstronomy.js";
+export { almanacGetTides } from "./clients/almanacGetTides.js";
 export { auditGetHistory } from "./clients/auditGetHistory.js";
 export { authAccountEmailCodeStart } from "./clients/authAccountEmailCodeStart.js";
 export { authAccountEmailCodeVerify } from "./clients/authAccountEmailCodeVerify.js";
@@ -52,6 +54,7 @@ export { authGoogleComplete } from "./clients/authGoogleComplete.js";
 export { authGoogleFinish } from "./clients/authGoogleFinish.js";
 export { authGoogleStart } from "./clients/authGoogleStart.js";
 export { authIssueActivation } from "./clients/authIssueActivation.js";
+export { authIssueSignInSetup } from "./clients/authIssueSignInSetup.js";
 export { authJoinAccountApp } from "./clients/authJoinAccountApp.js";
 export { authLeaveAccountApp } from "./clients/authLeaveAccountApp.js";
 export { authListAccountApps } from "./clients/authListAccountApps.js";
@@ -69,6 +72,7 @@ export { authRequestStaffAccess } from "./clients/authRequestStaffAccess.js";
 export { authResetPassword } from "./clients/authResetPassword.js";
 export { authRevokeActivation } from "./clients/authRevokeActivation.js";
 export { authRevokeSecuritySession } from "./clients/authRevokeSecuritySession.js";
+export { authRevokeSignInSetup } from "./clients/authRevokeSignInSetup.js";
 export { authTwofaActivate } from "./clients/authTwofaActivate.js";
 export { authTwofaDisable } from "./clients/authTwofaDisable.js";
 export { authTwofaSetup } from "./clients/authTwofaSetup.js";
@@ -142,8 +146,10 @@ export { capDraftFromHazardProfile } from "./clients/capDraftFromHazardProfile.j
 export { capDuplicateAlert } from "./clients/capDuplicateAlert.js";
 export { capEmergencyPublishAlert } from "./clients/capEmergencyPublishAlert.js";
 export { capExpireAlert } from "./clients/capExpireAlert.js";
+export { capExportStatisticsCsv } from "./clients/capExportStatisticsCsv.js";
 export { capGetActiveMap } from "./clients/capGetActiveMap.js";
 export { capGetAlert } from "./clients/capGetAlert.js";
+export { capGetAlertByIdentifier } from "./clients/capGetAlertByIdentifier.js";
 export { capGetAlerts } from "./clients/capGetAlerts.js";
 export { capGetAlertsGeojson } from "./clients/capGetAlertsGeojson.js";
 export { capGetAudit } from "./clients/capGetAudit.js";
@@ -152,6 +158,7 @@ export { capGetCapXml } from "./clients/capGetCapXml.js";
 export { capGetCatalogs } from "./clients/capGetCatalogs.js";
 export { capGetEscalation } from "./clients/capGetEscalation.js";
 export { capGetFeeds } from "./clients/capGetFeeds.js";
+export { capGetGmsCatalogue } from "./clients/capGetGmsCatalogue.js";
 export { capGetHazardProfiles } from "./clients/capGetHazardProfiles.js";
 export { capGetIbfMatrix } from "./clients/capGetIbfMatrix.js";
 export { capGetIntegrations } from "./clients/capGetIntegrations.js";
@@ -162,7 +169,9 @@ export { capGetPublicLatestActive } from "./clients/capGetPublicLatestActive.js"
 export { capGetPublicPastAlerts } from "./clients/capGetPublicPastAlerts.js";
 export { capGetPublicWarnings } from "./clients/capGetPublicWarnings.js";
 export { capGetRss } from "./clients/capGetRss.js";
+export { capGetStatistics } from "./clients/capGetStatistics.js";
 export { capImportAlert } from "./clients/capImportAlert.js";
+export { capIssueAlertUpdate } from "./clients/capIssueAlertUpdate.js";
 export { capPublishAlert } from "./clients/capPublishAlert.js";
 export { capRecordAlertReview } from "./clients/capRecordAlertReview.js";
 export { capSaveHazardProfile } from "./clients/capSaveHazardProfile.js";
@@ -199,12 +208,14 @@ export { eregisterGetStationSettings } from "./clients/eregisterGetStationSettin
 export { eregisterListObservationSends } from "./clients/eregisterListObservationSends.js";
 export { eregisterListRegisterObservations } from "./clients/eregisterListRegisterObservations.js";
 export { eregisterListRegistryStations } from "./clients/eregisterListRegistryStations.js";
+export { eregisterOverrideRegisterObservationBufr } from "./clients/eregisterOverrideRegisterObservationBufr.js";
 export { eregisterPublicCurrentConditions } from "./clients/eregisterPublicCurrentConditions.js";
 export { eregisterPublicMonthSummary } from "./clients/eregisterPublicMonthSummary.js";
 export { eregisterPublishRegisterObservation } from "./clients/eregisterPublishRegisterObservation.js";
 export { eregisterPutStationSettings } from "./clients/eregisterPutStationSettings.js";
 export { eregisterRejectRegisterObservation } from "./clients/eregisterRejectRegisterObservation.js";
 export { eregisterReopenRegisterObservation } from "./clients/eregisterReopenRegisterObservation.js";
+export { eregisterReviewRegisterDay } from "./clients/eregisterReviewRegisterDay.js";
 export { eregisterReviewRegisterObservation } from "./clients/eregisterReviewRegisterObservation.js";
 export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./clients/eventsAcceptConnection.js";
@@ -294,7 +305,10 @@ export { feedbackSendPageFeedback } from "./clients/feedbackSendPageFeedback.js"
 export { flightsGetFlightBoard } from "./clients/flightsGetFlightBoard.js";
 export { hrActionLeaveRequest } from "./clients/hrActionLeaveRequest.js";
 export { hrActionShiftSwap } from "./clients/hrActionShiftSwap.js";
+export { hrAddTerminalUser } from "./clients/hrAddTerminalUser.js";
 export { hrApproveClockPunch } from "./clients/hrApproveClockPunch.js";
+export { hrApprovePayPeriod } from "./clients/hrApprovePayPeriod.js";
+export { hrApprovePayPeriodForIssue } from "./clients/hrApprovePayPeriodForIssue.js";
 export { hrApproveStaffRegistration } from "./clients/hrApproveStaffRegistration.js";
 export { hrApproveTimesheet } from "./clients/hrApproveTimesheet.js";
 export { hrArchiveDocument } from "./clients/hrArchiveDocument.js";
@@ -303,36 +317,55 @@ export { hrBulkAssignments } from "./clients/hrBulkAssignments.js";
 export { hrCheckPeriodRules } from "./clients/hrCheckPeriodRules.js";
 export { hrCheckShiftSwapRules } from "./clients/hrCheckShiftSwapRules.js";
 export { hrClock } from "./clients/hrClock.js";
+export { hrClosePayPeriod } from "./clients/hrClosePayPeriod.js";
 export { hrClosePeriod } from "./clients/hrClosePeriod.js";
+export { hrComputePayPeriod } from "./clients/hrComputePayPeriod.js";
+export { hrConfirmMyDeduction } from "./clients/hrConfirmMyDeduction.js";
 export { hrCreateAbsenteeReport } from "./clients/hrCreateAbsenteeReport.js";
 export { hrCreateCalendarEvent } from "./clients/hrCreateCalendarEvent.js";
 export { hrCreateClockSite } from "./clients/hrCreateClockSite.js";
+export { hrCreateDeductionType } from "./clients/hrCreateDeductionType.js";
 export { hrCreateDepartment } from "./clients/hrCreateDepartment.js";
+export { hrCreateEmployeeBasicPay } from "./clients/hrCreateEmployeeBasicPay.js";
+export { hrCreateEmployeeDeduction } from "./clients/hrCreateEmployeeDeduction.js";
 export { hrCreateHoliday } from "./clients/hrCreateHoliday.js";
 export { hrCreateHrEmployment } from "./clients/hrCreateHrEmployment.js";
 export { hrCreateInstance } from "./clients/hrCreateInstance.js";
 export { hrCreateLeaveRequest } from "./clients/hrCreateLeaveRequest.js";
 export { hrCreateOrganisation } from "./clients/hrCreateOrganisation.js";
 export { hrCreateParkingPermit } from "./clients/hrCreateParkingPermit.js";
+export { hrCreatePayCalendar } from "./clients/hrCreatePayCalendar.js";
+export { hrCreatePayItemRate } from "./clients/hrCreatePayItemRate.js";
+export { hrCreatePayLine } from "./clients/hrCreatePayLine.js";
+export { hrCreatePayPeriod } from "./clients/hrCreatePayPeriod.js";
 export { hrCreatePeriod } from "./clients/hrCreatePeriod.js";
 export { hrCreateShift } from "./clients/hrCreateShift.js";
 export { hrCreateShiftSwap } from "./clients/hrCreateShiftSwap.js";
+export { hrCreateSocialInsuranceScheme } from "./clients/hrCreateSocialInsuranceScheme.js";
 export { hrCreateStatusReport } from "./clients/hrCreateStatusReport.js";
+export { hrCreateTaxTable } from "./clients/hrCreateTaxTable.js";
 export { hrCreateTemplate } from "./clients/hrCreateTemplate.js";
 export { hrCreateTemplateStep } from "./clients/hrCreateTemplateStep.js";
 export { hrCreateTimesheet } from "./clients/hrCreateTimesheet.js";
 export { hrCreateTrainingRecord } from "./clients/hrCreateTrainingRecord.js";
 export { hrDeleteAbsenteeReport } from "./clients/hrDeleteAbsenteeReport.js";
+export { hrDeleteDepartmentRuleSet } from "./clients/hrDeleteDepartmentRuleSet.js";
+export { hrDeleteDraftTimesheet } from "./clients/hrDeleteDraftTimesheet.js";
 export { hrDeleteLeaveRequest } from "./clients/hrDeleteLeaveRequest.js";
 export { hrDeleteMySignature } from "./clients/hrDeleteMySignature.js";
+export { hrDeletePayLine } from "./clients/hrDeletePayLine.js";
 export { hrDeleteShiftSwap } from "./clients/hrDeleteShiftSwap.js";
 export { hrDeleteStatusReport } from "./clients/hrDeleteStatusReport.js";
 export { hrDownloadDocument } from "./clients/hrDownloadDocument.js";
 export { hrDownloadSignedDocument } from "./clients/hrDownloadSignedDocument.js";
+export { hrExportBankTransferCsv } from "./clients/hrExportBankTransferCsv.js";
+export { hrExportGlJournalCsv } from "./clients/hrExportGlJournalCsv.js";
+export { hrExportPayPeriodCsv } from "./clients/hrExportPayPeriodCsv.js";
 export { hrGetAbsenteeReports } from "./clients/hrGetAbsenteeReports.js";
 export { hrGetAttendanceReview } from "./clients/hrGetAttendanceReview.js";
 export { hrGetAttendanceWeek } from "./clients/hrGetAttendanceWeek.js";
 export { hrGetAttendanceWeekPdf } from "./clients/hrGetAttendanceWeekPdf.js";
+export { hrGetDepartmentRuleSet } from "./clients/hrGetDepartmentRuleSet.js";
 export { hrGetDepartmentRules } from "./clients/hrGetDepartmentRules.js";
 export { hrGetDepartmentTimesheets } from "./clients/hrGetDepartmentTimesheets.js";
 export { hrGetDocument } from "./clients/hrGetDocument.js";
@@ -348,8 +381,14 @@ export { hrGetMySignature } from "./clients/hrGetMySignature.js";
 export { hrGetMySignedDocuments } from "./clients/hrGetMySignedDocuments.js";
 export { hrGetMyTimesheets } from "./clients/hrGetMyTimesheets.js";
 export { hrGetOrganisationCatalogue } from "./clients/hrGetOrganisationCatalogue.js";
+export { hrGetOrganisationRuleSet } from "./clients/hrGetOrganisationRuleSet.js";
 export { hrGetOrganisations } from "./clients/hrGetOrganisations.js";
 export { hrGetParkingPermits } from "./clients/hrGetParkingPermits.js";
+export { hrGetPayPeriod } from "./clients/hrGetPayPeriod.js";
+export { hrGetPayPeriodAmounts } from "./clients/hrGetPayPeriodAmounts.js";
+export { hrGetPayPeriodSummary } from "./clients/hrGetPayPeriodSummary.js";
+export { hrGetPayrollExportSettings } from "./clients/hrGetPayrollExportSettings.js";
+export { hrGetPayslipPdf } from "./clients/hrGetPayslipPdf.js";
 export { hrGetPeriod } from "./clients/hrGetPeriod.js";
 export { hrGetPeriodRevisions } from "./clients/hrGetPeriodRevisions.js";
 export { hrGetProductAccess } from "./clients/hrGetProductAccess.js";
@@ -375,17 +414,35 @@ export { hrImportCsv } from "./clients/hrImportCsv.js";
 export { hrImportGrid } from "./clients/hrImportGrid.js";
 export { hrImportOrganisation } from "./clients/hrImportOrganisation.js";
 export { hrImportStaffBalances } from "./clients/hrImportStaffBalances.js";
+export { hrImportTerminalPunches } from "./clients/hrImportTerminalPunches.js";
 export { hrIssueParkingDecal } from "./clients/hrIssueParkingDecal.js";
 export { hrListAssignments } from "./clients/hrListAssignments.js";
 export { hrListCalendarEvents } from "./clients/hrListCalendarEvents.js";
 export { hrListClockSites } from "./clients/hrListClockSites.js";
 export { hrListDepartmentMembers } from "./clients/hrListDepartmentMembers.js";
 export { hrListDepartments } from "./clients/hrListDepartments.js";
+export { hrListEmployeeBasicPay } from "./clients/hrListEmployeeBasicPay.js";
+export { hrListEmployeeDeductions } from "./clients/hrListEmployeeDeductions.js";
+export { hrListEmployeePayProfiles } from "./clients/hrListEmployeePayProfiles.js";
 export { hrListHolidays } from "./clients/hrListHolidays.js";
+export { hrListMyDeductions } from "./clients/hrListMyDeductions.js";
+export { hrListMyPayslips } from "./clients/hrListMyPayslips.js";
 export { hrListMyShiftSwaps } from "./clients/hrListMyShiftSwaps.js";
+export { hrListPayCalendars } from "./clients/hrListPayCalendars.js";
+export { hrListPayItemRates } from "./clients/hrListPayItemRates.js";
+export { hrListPayItems } from "./clients/hrListPayItems.js";
+export { hrListPayLines } from "./clients/hrListPayLines.js";
+export { hrListPayPeriods } from "./clients/hrListPayPeriods.js";
+export { hrListPayrollDepartmentSettings } from "./clients/hrListPayrollDepartmentSettings.js";
 export { hrListPendingClockPunches } from "./clients/hrListPendingClockPunches.js";
+export { hrListPeriodPayslips } from "./clients/hrListPeriodPayslips.js";
 export { hrListPeriods } from "./clients/hrListPeriods.js";
+export { hrListRuleOverrides } from "./clients/hrListRuleOverrides.js";
+export { hrListRuleProfiles } from "./clients/hrListRuleProfiles.js";
 export { hrListShiftCatalog } from "./clients/hrListShiftCatalog.js";
+export { hrListStatutoryTables } from "./clients/hrListStatutoryTables.js";
+export { hrListTerminalPunches } from "./clients/hrListTerminalPunches.js";
+export { hrListTerminalUsers } from "./clients/hrListTerminalUsers.js";
 export { hrLoadProvisionalHolidays } from "./clients/hrLoadProvisionalHolidays.js";
 export { hrOffboardStaff } from "./clients/hrOffboardStaff.js";
 export { hrPatchDocument } from "./clients/hrPatchDocument.js";
@@ -398,19 +455,28 @@ export { hrPreviewShiftSwapPdf } from "./clients/hrPreviewShiftSwapPdf.js";
 export { hrPreviewStatusReportPdf } from "./clients/hrPreviewStatusReportPdf.js";
 export { hrProposeAttendanceCorrection } from "./clients/hrProposeAttendanceCorrection.js";
 export { hrPublishPeriod } from "./clients/hrPublishPeriod.js";
+export { hrPutDepartmentRuleSet } from "./clients/hrPutDepartmentRuleSet.js";
 export { hrPutDepartmentRules } from "./clients/hrPutDepartmentRules.js";
+export { hrPutOrganisationRuleSet } from "./clients/hrPutOrganisationRuleSet.js";
+export { hrPutRuleProfile } from "./clients/hrPutRuleProfile.js";
+export { hrRefreshPayPeriodTableState } from "./clients/hrRefreshPayPeriodTableState.js";
 export { hrRejectClockPunch } from "./clients/hrRejectClockPunch.js";
 export { hrRemoveHoliday } from "./clients/hrRemoveHoliday.js";
+export { hrRemoveTerminalUser } from "./clients/hrRemoveTerminalUser.js";
 export { hrRenameOrganisation } from "./clients/hrRenameOrganisation.js";
+export { hrReprocessTerminalPunches } from "./clients/hrReprocessTerminalPunches.js";
+export { hrReturnPayPeriod } from "./clients/hrReturnPayPeriod.js";
 export { hrRotateClockSite } from "./clients/hrRotateClockSite.js";
 export { hrSaveAttendance } from "./clients/hrSaveAttendance.js";
 export { hrSaveMySignature } from "./clients/hrSaveMySignature.js";
 export { hrSaveWorkflowConfiguration } from "./clients/hrSaveWorkflowConfiguration.js";
 export { hrSetClockSiteActive } from "./clients/hrSetClockSiteActive.js";
+export { hrSetStatutoryTableState } from "./clients/hrSetStatutoryTableState.js";
 export { hrSubmitAbsenteeReport } from "./clients/hrSubmitAbsenteeReport.js";
 export { hrSubmitAttendance } from "./clients/hrSubmitAttendance.js";
 export { hrSubmitLeaveRequest } from "./clients/hrSubmitLeaveRequest.js";
 export { hrSubmitParkingPermit } from "./clients/hrSubmitParkingPermit.js";
+export { hrSubmitPayPeriod } from "./clients/hrSubmitPayPeriod.js";
 export { hrSubmitShiftSwap } from "./clients/hrSubmitShiftSwap.js";
 export { hrSubmitStatusReport } from "./clients/hrSubmitStatusReport.js";
 export { hrSubmitTimesheet } from "./clients/hrSubmitTimesheet.js";
@@ -418,11 +484,14 @@ export { hrTakeAction } from "./clients/hrTakeAction.js";
 export { hrUpdateAbsenteeReport } from "./clients/hrUpdateAbsenteeReport.js";
 export { hrUpdateCalendarEvent } from "./clients/hrUpdateCalendarEvent.js";
 export { hrUpdateDepartment } from "./clients/hrUpdateDepartment.js";
+export { hrUpdateEmployeePayProfile } from "./clients/hrUpdateEmployeePayProfile.js";
 export { hrUpdateHoliday } from "./clients/hrUpdateHoliday.js";
 export { hrUpdateHrEmployment } from "./clients/hrUpdateHrEmployment.js";
 export { hrUpdateHrProfileMe } from "./clients/hrUpdateHrProfileMe.js";
 export { hrUpdateLeaveRequest } from "./clients/hrUpdateLeaveRequest.js";
 export { hrUpdateParkingPermit } from "./clients/hrUpdateParkingPermit.js";
+export { hrUpdatePayrollDepartmentSetting } from "./clients/hrUpdatePayrollDepartmentSetting.js";
+export { hrUpdatePayrollExportSettings } from "./clients/hrUpdatePayrollExportSettings.js";
 export { hrUpdateProductPolicy } from "./clients/hrUpdateProductPolicy.js";
 export { hrUpdateRoleConfiguration } from "./clients/hrUpdateRoleConfiguration.js";
 export { hrUpdateSetupGrade } from "./clients/hrUpdateSetupGrade.js";
@@ -531,6 +600,12 @@ export { paymentsGetBalance } from "./clients/paymentsGetBalance.js";
 export { paymentsGetIntent } from "./clients/paymentsGetIntent.js";
 export { paymentsListIntents } from "./clients/paymentsListIntents.js";
 export { paymentsRecordManualPayment } from "./clients/paymentsRecordManualPayment.js";
+export { profileImagesGetMine } from "./clients/profileImagesGetMine.js";
+export { profileImagesRemove } from "./clients/profileImagesRemove.js";
+export { profileImagesRemoveMine } from "./clients/profileImagesRemoveMine.js";
+export { profileImagesSetMine } from "./clients/profileImagesSetMine.js";
+export { profileImagesShow } from "./clients/profileImagesShow.js";
+export { profileImagesShowMine } from "./clients/profileImagesShowMine.js";
 export { pushSubscribe } from "./clients/pushSubscribe.js";
 export { pushUnsubscribe } from "./clients/pushUnsubscribe.js";
 export { pushVapidPublicKey } from "./clients/pushVapidPublicKey.js";
@@ -644,6 +719,7 @@ export { webhooksOutUpdateEndpoint } from "./clients/webhooksOutUpdateEndpoint.j
 export { wxproductsCreateTropicalSystem } from "./clients/wxproductsCreateTropicalSystem.js";
 export { wxproductsGetPublicProduct } from "./clients/wxproductsGetPublicProduct.js";
 export { wxproductsGetPublicTropicalSystem } from "./clients/wxproductsGetPublicTropicalSystem.js";
+export { wxproductsListIssuedProducts } from "./clients/wxproductsListIssuedProducts.js";
 export { wxproductsListPublicProducts } from "./clients/wxproductsListPublicProducts.js";
 export { wxproductsListPublicTropicalSystems } from "./clients/wxproductsListPublicTropicalSystems.js";
 export { wxproductsListTropicalSystems } from "./clients/wxproductsListTropicalSystems.js";
@@ -657,6 +733,7 @@ export { wxproductsPreviewProduct } from "./clients/wxproductsPreviewProduct.js"
 export { wxproductsPreviewProductPdf } from "./clients/wxproductsPreviewProductPdf.js";
 export { wxproductsProductRevisionPdf } from "./clients/wxproductsProductRevisionPdf.js";
 export { wxproductsPublicForecast } from "./clients/wxproductsPublicForecast.js";
+export { wxproductsPublicProductPdf } from "./clients/wxproductsPublicProductPdf.js";
 export { wxproductsPublicSectorOutlook } from "./clients/wxproductsPublicSectorOutlook.js";
 export { wxproductsSaveAviationDraft } from "./clients/wxproductsSaveAviationDraft.js";
 export { wxproductsSaveProduct } from "./clients/wxproductsSaveProduct.js";
@@ -672,6 +749,7 @@ export { wxwatchFinishRun } from "./clients/wxwatchFinishRun.js";
 export { wxwatchImage } from "./clients/wxwatchImage.js";
 export { wxwatchIngest } from "./clients/wxwatchIngest.js";
 export { wxwatchLatest } from "./clients/wxwatchLatest.js";
+export { wxwatchMarineGuidance } from "./clients/wxwatchMarineGuidance.js";
 export { wxwatchMetadata } from "./clients/wxwatchMetadata.js";
 export { wxwatchPoint } from "./clients/wxwatchPoint.js";
 export { wxwatchPropose } from "./clients/wxwatchPropose.js";
@@ -683,6 +761,16 @@ export { wxwatchRetrievals } from "./clients/wxwatchRetrievals.js";
 export { wxwatchSourceChecks } from "./clients/wxwatchSourceChecks.js";
 export { wxwatchStartRun } from "./clients/wxwatchStartRun.js";
 export { wxwatchWeatherImage } from "./clients/wxwatchWeatherImage.js";
+export {
+  almanacGetAstronomyQueryKey,
+  almanacGetAstronomyQueryOptions,
+  useAlmanacGetAstronomy,
+} from "./hooks/useAlmanacGetAstronomy.js";
+export {
+  almanacGetTidesQueryKey,
+  almanacGetTidesQueryOptions,
+  useAlmanacGetTides,
+} from "./hooks/useAlmanacGetTides.js";
 export {
   auditGetHistoryQueryKey,
   auditGetHistoryQueryOptions,
@@ -939,6 +1027,11 @@ export {
   useAuthIssueActivation,
 } from "./hooks/useAuthIssueActivation.js";
 export {
+  authIssueSignInSetupMutationKey,
+  authIssueSignInSetupMutationOptions,
+  useAuthIssueSignInSetup,
+} from "./hooks/useAuthIssueSignInSetup.js";
+export {
   authJoinAccountAppMutationKey,
   authJoinAccountAppMutationOptions,
   useAuthJoinAccountApp,
@@ -1023,6 +1116,11 @@ export {
   authRevokeSecuritySessionMutationOptions,
   useAuthRevokeSecuritySession,
 } from "./hooks/useAuthRevokeSecuritySession.js";
+export {
+  authRevokeSignInSetupMutationKey,
+  authRevokeSignInSetupMutationOptions,
+  useAuthRevokeSignInSetup,
+} from "./hooks/useAuthRevokeSignInSetup.js";
 export {
   authTwofaActivateMutationKey,
   authTwofaActivateMutationOptions,
@@ -1389,6 +1487,11 @@ export {
   useCapExpireAlert,
 } from "./hooks/useCapExpireAlert.js";
 export {
+  capExportStatisticsCsvQueryKey,
+  capExportStatisticsCsvQueryOptions,
+  useCapExportStatisticsCsv,
+} from "./hooks/useCapExportStatisticsCsv.js";
+export {
   capGetActiveMapQueryKey,
   capGetActiveMapQueryOptions,
   useCapGetActiveMap,
@@ -1398,6 +1501,11 @@ export {
   capGetAlertQueryOptions,
   useCapGetAlert,
 } from "./hooks/useCapGetAlert.js";
+export {
+  capGetAlertByIdentifierQueryKey,
+  capGetAlertByIdentifierQueryOptions,
+  useCapGetAlertByIdentifier,
+} from "./hooks/useCapGetAlertByIdentifier.js";
 export {
   capGetAlertsQueryKey,
   capGetAlertsQueryOptions,
@@ -1438,6 +1546,11 @@ export {
   capGetFeedsQueryOptions,
   useCapGetFeeds,
 } from "./hooks/useCapGetFeeds.js";
+export {
+  capGetGmsCatalogueQueryKey,
+  capGetGmsCatalogueQueryOptions,
+  useCapGetGmsCatalogue,
+} from "./hooks/useCapGetGmsCatalogue.js";
 export {
   capGetHazardProfilesQueryKey,
   capGetHazardProfilesQueryOptions,
@@ -1489,10 +1602,20 @@ export {
   useCapGetRss,
 } from "./hooks/useCapGetRss.js";
 export {
+  capGetStatisticsQueryKey,
+  capGetStatisticsQueryOptions,
+  useCapGetStatistics,
+} from "./hooks/useCapGetStatistics.js";
+export {
   capImportAlertMutationKey,
   capImportAlertMutationOptions,
   useCapImportAlert,
 } from "./hooks/useCapImportAlert.js";
+export {
+  capIssueAlertUpdateMutationKey,
+  capIssueAlertUpdateMutationOptions,
+  useCapIssueAlertUpdate,
+} from "./hooks/useCapIssueAlertUpdate.js";
 export {
   capPublishAlertMutationKey,
   capPublishAlertMutationOptions,
@@ -1674,6 +1797,11 @@ export {
   useEregisterListRegistryStations,
 } from "./hooks/useEregisterListRegistryStations.js";
 export {
+  eregisterOverrideRegisterObservationBufrMutationKey,
+  eregisterOverrideRegisterObservationBufrMutationOptions,
+  useEregisterOverrideRegisterObservationBufr,
+} from "./hooks/useEregisterOverrideRegisterObservationBufr.js";
+export {
   eregisterPublicCurrentConditionsQueryKey,
   eregisterPublicCurrentConditionsQueryOptions,
   useEregisterPublicCurrentConditions,
@@ -1703,6 +1831,11 @@ export {
   eregisterReopenRegisterObservationMutationOptions,
   useEregisterReopenRegisterObservation,
 } from "./hooks/useEregisterReopenRegisterObservation.js";
+export {
+  eregisterReviewRegisterDayMutationKey,
+  eregisterReviewRegisterDayMutationOptions,
+  useEregisterReviewRegisterDay,
+} from "./hooks/useEregisterReviewRegisterDay.js";
 export {
   eregisterReviewRegisterObservationMutationKey,
   eregisterReviewRegisterObservationMutationOptions,
@@ -2149,10 +2282,25 @@ export {
   useHrActionShiftSwap,
 } from "./hooks/useHrActionShiftSwap.js";
 export {
+  hrAddTerminalUserMutationKey,
+  hrAddTerminalUserMutationOptions,
+  useHrAddTerminalUser,
+} from "./hooks/useHrAddTerminalUser.js";
+export {
   hrApproveClockPunchMutationKey,
   hrApproveClockPunchMutationOptions,
   useHrApproveClockPunch,
 } from "./hooks/useHrApproveClockPunch.js";
+export {
+  hrApprovePayPeriodMutationKey,
+  hrApprovePayPeriodMutationOptions,
+  useHrApprovePayPeriod,
+} from "./hooks/useHrApprovePayPeriod.js";
+export {
+  hrApprovePayPeriodForIssueMutationKey,
+  hrApprovePayPeriodForIssueMutationOptions,
+  useHrApprovePayPeriodForIssue,
+} from "./hooks/useHrApprovePayPeriodForIssue.js";
 export {
   hrApproveStaffRegistrationMutationKey,
   hrApproveStaffRegistrationMutationOptions,
@@ -2194,10 +2342,25 @@ export {
   useHrClock,
 } from "./hooks/useHrClock.js";
 export {
+  hrClosePayPeriodMutationKey,
+  hrClosePayPeriodMutationOptions,
+  useHrClosePayPeriod,
+} from "./hooks/useHrClosePayPeriod.js";
+export {
   hrClosePeriodMutationKey,
   hrClosePeriodMutationOptions,
   useHrClosePeriod,
 } from "./hooks/useHrClosePeriod.js";
+export {
+  hrComputePayPeriodMutationKey,
+  hrComputePayPeriodMutationOptions,
+  useHrComputePayPeriod,
+} from "./hooks/useHrComputePayPeriod.js";
+export {
+  hrConfirmMyDeductionMutationKey,
+  hrConfirmMyDeductionMutationOptions,
+  useHrConfirmMyDeduction,
+} from "./hooks/useHrConfirmMyDeduction.js";
 export {
   hrCreateAbsenteeReportMutationKey,
   hrCreateAbsenteeReportMutationOptions,
@@ -2214,10 +2377,25 @@ export {
   useHrCreateClockSite,
 } from "./hooks/useHrCreateClockSite.js";
 export {
+  hrCreateDeductionTypeMutationKey,
+  hrCreateDeductionTypeMutationOptions,
+  useHrCreateDeductionType,
+} from "./hooks/useHrCreateDeductionType.js";
+export {
   hrCreateDepartmentMutationKey,
   hrCreateDepartmentMutationOptions,
   useHrCreateDepartment,
 } from "./hooks/useHrCreateDepartment.js";
+export {
+  hrCreateEmployeeBasicPayMutationKey,
+  hrCreateEmployeeBasicPayMutationOptions,
+  useHrCreateEmployeeBasicPay,
+} from "./hooks/useHrCreateEmployeeBasicPay.js";
+export {
+  hrCreateEmployeeDeductionMutationKey,
+  hrCreateEmployeeDeductionMutationOptions,
+  useHrCreateEmployeeDeduction,
+} from "./hooks/useHrCreateEmployeeDeduction.js";
 export {
   hrCreateHolidayMutationKey,
   hrCreateHolidayMutationOptions,
@@ -2249,6 +2427,26 @@ export {
   useHrCreateParkingPermit,
 } from "./hooks/useHrCreateParkingPermit.js";
 export {
+  hrCreatePayCalendarMutationKey,
+  hrCreatePayCalendarMutationOptions,
+  useHrCreatePayCalendar,
+} from "./hooks/useHrCreatePayCalendar.js";
+export {
+  hrCreatePayItemRateMutationKey,
+  hrCreatePayItemRateMutationOptions,
+  useHrCreatePayItemRate,
+} from "./hooks/useHrCreatePayItemRate.js";
+export {
+  hrCreatePayLineMutationKey,
+  hrCreatePayLineMutationOptions,
+  useHrCreatePayLine,
+} from "./hooks/useHrCreatePayLine.js";
+export {
+  hrCreatePayPeriodMutationKey,
+  hrCreatePayPeriodMutationOptions,
+  useHrCreatePayPeriod,
+} from "./hooks/useHrCreatePayPeriod.js";
+export {
   hrCreatePeriodMutationKey,
   hrCreatePeriodMutationOptions,
   useHrCreatePeriod,
@@ -2264,10 +2462,20 @@ export {
   useHrCreateShiftSwap,
 } from "./hooks/useHrCreateShiftSwap.js";
 export {
+  hrCreateSocialInsuranceSchemeMutationKey,
+  hrCreateSocialInsuranceSchemeMutationOptions,
+  useHrCreateSocialInsuranceScheme,
+} from "./hooks/useHrCreateSocialInsuranceScheme.js";
+export {
   hrCreateStatusReportMutationKey,
   hrCreateStatusReportMutationOptions,
   useHrCreateStatusReport,
 } from "./hooks/useHrCreateStatusReport.js";
+export {
+  hrCreateTaxTableMutationKey,
+  hrCreateTaxTableMutationOptions,
+  useHrCreateTaxTable,
+} from "./hooks/useHrCreateTaxTable.js";
 export {
   hrCreateTemplateMutationKey,
   hrCreateTemplateMutationOptions,
@@ -2294,6 +2502,16 @@ export {
   useHrDeleteAbsenteeReport,
 } from "./hooks/useHrDeleteAbsenteeReport.js";
 export {
+  hrDeleteDepartmentRuleSetMutationKey,
+  hrDeleteDepartmentRuleSetMutationOptions,
+  useHrDeleteDepartmentRuleSet,
+} from "./hooks/useHrDeleteDepartmentRuleSet.js";
+export {
+  hrDeleteDraftTimesheetMutationKey,
+  hrDeleteDraftTimesheetMutationOptions,
+  useHrDeleteDraftTimesheet,
+} from "./hooks/useHrDeleteDraftTimesheet.js";
+export {
   hrDeleteLeaveRequestMutationKey,
   hrDeleteLeaveRequestMutationOptions,
   useHrDeleteLeaveRequest,
@@ -2303,6 +2521,11 @@ export {
   hrDeleteMySignatureMutationOptions,
   useHrDeleteMySignature,
 } from "./hooks/useHrDeleteMySignature.js";
+export {
+  hrDeletePayLineMutationKey,
+  hrDeletePayLineMutationOptions,
+  useHrDeletePayLine,
+} from "./hooks/useHrDeletePayLine.js";
 export {
   hrDeleteShiftSwapMutationKey,
   hrDeleteShiftSwapMutationOptions,
@@ -2324,6 +2547,21 @@ export {
   useHrDownloadSignedDocument,
 } from "./hooks/useHrDownloadSignedDocument.js";
 export {
+  hrExportBankTransferCsvMutationKey,
+  hrExportBankTransferCsvMutationOptions,
+  useHrExportBankTransferCsv,
+} from "./hooks/useHrExportBankTransferCsv.js";
+export {
+  hrExportGlJournalCsvMutationKey,
+  hrExportGlJournalCsvMutationOptions,
+  useHrExportGlJournalCsv,
+} from "./hooks/useHrExportGlJournalCsv.js";
+export {
+  hrExportPayPeriodCsvMutationKey,
+  hrExportPayPeriodCsvMutationOptions,
+  useHrExportPayPeriodCsv,
+} from "./hooks/useHrExportPayPeriodCsv.js";
+export {
   hrGetAbsenteeReportsQueryKey,
   hrGetAbsenteeReportsQueryOptions,
   useHrGetAbsenteeReports,
@@ -2343,6 +2581,11 @@ export {
   hrGetAttendanceWeekPdfQueryOptions,
   useHrGetAttendanceWeekPdf,
 } from "./hooks/useHrGetAttendanceWeekPdf.js";
+export {
+  hrGetDepartmentRuleSetQueryKey,
+  hrGetDepartmentRuleSetQueryOptions,
+  useHrGetDepartmentRuleSet,
+} from "./hooks/useHrGetDepartmentRuleSet.js";
 export {
   hrGetDepartmentRulesQueryKey,
   hrGetDepartmentRulesQueryOptions,
@@ -2419,6 +2662,11 @@ export {
   useHrGetOrganisationCatalogue,
 } from "./hooks/useHrGetOrganisationCatalogue.js";
 export {
+  hrGetOrganisationRuleSetQueryKey,
+  hrGetOrganisationRuleSetQueryOptions,
+  useHrGetOrganisationRuleSet,
+} from "./hooks/useHrGetOrganisationRuleSet.js";
+export {
   hrGetOrganisationsQueryKey,
   hrGetOrganisationsQueryOptions,
   useHrGetOrganisations,
@@ -2428,6 +2676,31 @@ export {
   hrGetParkingPermitsQueryOptions,
   useHrGetParkingPermits,
 } from "./hooks/useHrGetParkingPermits.js";
+export {
+  hrGetPayPeriodQueryKey,
+  hrGetPayPeriodQueryOptions,
+  useHrGetPayPeriod,
+} from "./hooks/useHrGetPayPeriod.js";
+export {
+  hrGetPayPeriodAmountsQueryKey,
+  hrGetPayPeriodAmountsQueryOptions,
+  useHrGetPayPeriodAmounts,
+} from "./hooks/useHrGetPayPeriodAmounts.js";
+export {
+  hrGetPayPeriodSummaryQueryKey,
+  hrGetPayPeriodSummaryQueryOptions,
+  useHrGetPayPeriodSummary,
+} from "./hooks/useHrGetPayPeriodSummary.js";
+export {
+  hrGetPayrollExportSettingsQueryKey,
+  hrGetPayrollExportSettingsQueryOptions,
+  useHrGetPayrollExportSettings,
+} from "./hooks/useHrGetPayrollExportSettings.js";
+export {
+  hrGetPayslipPdfQueryKey,
+  hrGetPayslipPdfQueryOptions,
+  useHrGetPayslipPdf,
+} from "./hooks/useHrGetPayslipPdf.js";
 export {
   hrGetPeriodQueryKey,
   hrGetPeriodQueryOptions,
@@ -2554,6 +2827,11 @@ export {
   useHrImportStaffBalances,
 } from "./hooks/useHrImportStaffBalances.js";
 export {
+  hrImportTerminalPunchesMutationKey,
+  hrImportTerminalPunchesMutationOptions,
+  useHrImportTerminalPunches,
+} from "./hooks/useHrImportTerminalPunches.js";
+export {
   hrIssueParkingDecalMutationKey,
   hrIssueParkingDecalMutationOptions,
   useHrIssueParkingDecal,
@@ -2584,30 +2862,115 @@ export {
   useHrListDepartments,
 } from "./hooks/useHrListDepartments.js";
 export {
+  hrListEmployeeBasicPayQueryKey,
+  hrListEmployeeBasicPayQueryOptions,
+  useHrListEmployeeBasicPay,
+} from "./hooks/useHrListEmployeeBasicPay.js";
+export {
+  hrListEmployeeDeductionsQueryKey,
+  hrListEmployeeDeductionsQueryOptions,
+  useHrListEmployeeDeductions,
+} from "./hooks/useHrListEmployeeDeductions.js";
+export {
+  hrListEmployeePayProfilesQueryKey,
+  hrListEmployeePayProfilesQueryOptions,
+  useHrListEmployeePayProfiles,
+} from "./hooks/useHrListEmployeePayProfiles.js";
+export {
   hrListHolidaysQueryKey,
   hrListHolidaysQueryOptions,
   useHrListHolidays,
 } from "./hooks/useHrListHolidays.js";
+export {
+  hrListMyDeductionsQueryKey,
+  hrListMyDeductionsQueryOptions,
+  useHrListMyDeductions,
+} from "./hooks/useHrListMyDeductions.js";
+export {
+  hrListMyPayslipsQueryKey,
+  hrListMyPayslipsQueryOptions,
+  useHrListMyPayslips,
+} from "./hooks/useHrListMyPayslips.js";
 export {
   hrListMyShiftSwapsQueryKey,
   hrListMyShiftSwapsQueryOptions,
   useHrListMyShiftSwaps,
 } from "./hooks/useHrListMyShiftSwaps.js";
 export {
+  hrListPayCalendarsQueryKey,
+  hrListPayCalendarsQueryOptions,
+  useHrListPayCalendars,
+} from "./hooks/useHrListPayCalendars.js";
+export {
+  hrListPayItemRatesQueryKey,
+  hrListPayItemRatesQueryOptions,
+  useHrListPayItemRates,
+} from "./hooks/useHrListPayItemRates.js";
+export {
+  hrListPayItemsQueryKey,
+  hrListPayItemsQueryOptions,
+  useHrListPayItems,
+} from "./hooks/useHrListPayItems.js";
+export {
+  hrListPayLinesQueryKey,
+  hrListPayLinesQueryOptions,
+  useHrListPayLines,
+} from "./hooks/useHrListPayLines.js";
+export {
+  hrListPayPeriodsQueryKey,
+  hrListPayPeriodsQueryOptions,
+  useHrListPayPeriods,
+} from "./hooks/useHrListPayPeriods.js";
+export {
+  hrListPayrollDepartmentSettingsQueryKey,
+  hrListPayrollDepartmentSettingsQueryOptions,
+  useHrListPayrollDepartmentSettings,
+} from "./hooks/useHrListPayrollDepartmentSettings.js";
+export {
   hrListPendingClockPunchesQueryKey,
   hrListPendingClockPunchesQueryOptions,
   useHrListPendingClockPunches,
 } from "./hooks/useHrListPendingClockPunches.js";
+export {
+  hrListPeriodPayslipsQueryKey,
+  hrListPeriodPayslipsQueryOptions,
+  useHrListPeriodPayslips,
+} from "./hooks/useHrListPeriodPayslips.js";
 export {
   hrListPeriodsQueryKey,
   hrListPeriodsQueryOptions,
   useHrListPeriods,
 } from "./hooks/useHrListPeriods.js";
 export {
+  hrListRuleOverridesQueryKey,
+  hrListRuleOverridesQueryOptions,
+  useHrListRuleOverrides,
+} from "./hooks/useHrListRuleOverrides.js";
+export {
+  hrListRuleProfilesQueryKey,
+  hrListRuleProfilesQueryOptions,
+  useHrListRuleProfiles,
+} from "./hooks/useHrListRuleProfiles.js";
+export {
   hrListShiftCatalogQueryKey,
   hrListShiftCatalogQueryOptions,
   useHrListShiftCatalog,
 } from "./hooks/useHrListShiftCatalog.js";
+export {
+  hrListStatutoryTablesQueryKey,
+  hrListStatutoryTablesQueryOptions,
+  useHrListStatutoryTables,
+} from "./hooks/useHrListStatutoryTables.js";
+export {
+  hrListTerminalPunchesQueryKey,
+  hrListTerminalPunchesQueryOptions,
+  useHrListTerminalPunches,
+} from "./hooks/useHrListTerminalPunches.js";
+export {
+  hrListTerminalUsersQueryKey,
+  hrListTerminalUsersQueryOptions,
+  useHrListTerminalUsers,
+} from "./hooks/useHrListTerminalUsers.js";
 export {
   hrLoadProvisionalHolidaysMutationKey,
   hrLoadProvisionalHolidaysMutationOptions,
@@ -2669,10 +3032,30 @@ export {
   useHrPublishPeriod,
 } from "./hooks/useHrPublishPeriod.js";
 export {
+  hrPutDepartmentRuleSetMutationKey,
+  hrPutDepartmentRuleSetMutationOptions,
+  useHrPutDepartmentRuleSet,
+} from "./hooks/useHrPutDepartmentRuleSet.js";
+export {
   hrPutDepartmentRulesMutationKey,
   hrPutDepartmentRulesMutationOptions,
   useHrPutDepartmentRules,
 } from "./hooks/useHrPutDepartmentRules.js";
+export {
+  hrPutOrganisationRuleSetMutationKey,
+  hrPutOrganisationRuleSetMutationOptions,
+  useHrPutOrganisationRuleSet,
+} from "./hooks/useHrPutOrganisationRuleSet.js";
+export {
+  hrPutRuleProfileMutationKey,
+  hrPutRuleProfileMutationOptions,
+  useHrPutRuleProfile,
+} from "./hooks/useHrPutRuleProfile.js";
+export {
+  hrRefreshPayPeriodTableStateMutationKey,
+  hrRefreshPayPeriodTableStateMutationOptions,
+  useHrRefreshPayPeriodTableState,
+} from "./hooks/useHrRefreshPayPeriodTableState.js";
 export {
   hrRejectClockPunchMutationKey,
   hrRejectClockPunchMutationOptions,
@@ -2684,10 +3067,25 @@ export {
   useHrRemoveHoliday,
 } from "./hooks/useHrRemoveHoliday.js";
 export {
+  hrRemoveTerminalUserMutationKey,
+  hrRemoveTerminalUserMutationOptions,
+  useHrRemoveTerminalUser,
+} from "./hooks/useHrRemoveTerminalUser.js";
+export {
   hrRenameOrganisationMutationKey,
   hrRenameOrganisationMutationOptions,
   useHrRenameOrganisation,
 } from "./hooks/useHrRenameOrganisation.js";
+export {
+  hrReprocessTerminalPunchesMutationKey,
+  hrReprocessTerminalPunchesMutationOptions,
+  useHrReprocessTerminalPunches,
+} from "./hooks/useHrReprocessTerminalPunches.js";
+export {
+  hrReturnPayPeriodMutationKey,
+  hrReturnPayPeriodMutationOptions,
+  useHrReturnPayPeriod,
+} from "./hooks/useHrReturnPayPeriod.js";
 export {
   hrRotateClockSiteMutationKey,
   hrRotateClockSiteMutationOptions,
@@ -2714,6 +3112,11 @@ export {
   useHrSetClockSiteActive,
 } from "./hooks/useHrSetClockSiteActive.js";
 export {
+  hrSetStatutoryTableStateMutationKey,
+  hrSetStatutoryTableStateMutationOptions,
+  useHrSetStatutoryTableState,
+} from "./hooks/useHrSetStatutoryTableState.js";
+export {
   hrSubmitAbsenteeReportMutationKey,
   hrSubmitAbsenteeReportMutationOptions,
   useHrSubmitAbsenteeReport,
@@ -2733,6 +3136,11 @@ export {
   hrSubmitParkingPermitMutationOptions,
   useHrSubmitParkingPermit,
 } from "./hooks/useHrSubmitParkingPermit.js";
+export {
+  hrSubmitPayPeriodMutationKey,
+  hrSubmitPayPeriodMutationOptions,
+  useHrSubmitPayPeriod,
+} from "./hooks/useHrSubmitPayPeriod.js";
 export {
   hrSubmitShiftSwapMutationKey,
   hrSubmitShiftSwapMutationOptions,
@@ -2769,6 +3177,11 @@ export {
   useHrUpdateDepartment,
 } from "./hooks/useHrUpdateDepartment.js";
 export {
+  hrUpdateEmployeePayProfileMutationKey,
+  hrUpdateEmployeePayProfileMutationOptions,
+  useHrUpdateEmployeePayProfile,
+} from "./hooks/useHrUpdateEmployeePayProfile.js";
+export {
   hrUpdateHolidayMutationKey,
   hrUpdateHolidayMutationOptions,
   useHrUpdateHoliday,
@@ -2793,6 +3206,16 @@ export {
   hrUpdateParkingPermitMutationOptions,
   useHrUpdateParkingPermit,
 } from "./hooks/useHrUpdateParkingPermit.js";
+export {
+  hrUpdatePayrollDepartmentSettingMutationKey,
+  hrUpdatePayrollDepartmentSettingMutationOptions,
+  useHrUpdatePayrollDepartmentSetting,
+} from "./hooks/useHrUpdatePayrollDepartmentSetting.js";
+export {
+  hrUpdatePayrollExportSettingsMutationKey,
+  hrUpdatePayrollExportSettingsMutationOptions,
+  useHrUpdatePayrollExportSettings,
+} from "./hooks/useHrUpdatePayrollExportSettings.js";
 export {
   hrUpdateProductPolicyMutationKey,
   hrUpdateProductPolicyMutationOptions,
@@ -3333,6 +3756,36 @@ export {
   paymentsRecordManualPaymentMutationOptions,
   usePaymentsRecordManualPayment,
 } from "./hooks/usePaymentsRecordManualPayment.js";
+export {
+  profileImagesGetMineQueryKey,
+  profileImagesGetMineQueryOptions,
+  useProfileImagesGetMine,
+} from "./hooks/useProfileImagesGetMine.js";
+export {
+  profileImagesRemoveMutationKey,
+  profileImagesRemoveMutationOptions,
+  useProfileImagesRemove,
+} from "./hooks/useProfileImagesRemove.js";
+export {
+  profileImagesRemoveMineMutationKey,
+  profileImagesRemoveMineMutationOptions,
+  useProfileImagesRemoveMine,
+} from "./hooks/useProfileImagesRemoveMine.js";
+export {
+  profileImagesSetMineMutationKey,
+  profileImagesSetMineMutationOptions,
+  useProfileImagesSetMine,
+} from "./hooks/useProfileImagesSetMine.js";
+export {
+  profileImagesShowQueryKey,
+  profileImagesShowQueryOptions,
+  useProfileImagesShow,
+} from "./hooks/useProfileImagesShow.js";
+export {
+  profileImagesShowMineQueryKey,
+  profileImagesShowMineQueryOptions,
+  useProfileImagesShowMine,
+} from "./hooks/useProfileImagesShowMine.js";
 export {
   pushSubscribeMutationKey,
   pushSubscribeMutationOptions,
@@ -3899,6 +4352,11 @@ export {
   wxproductsGetPublicTropicalSystemQueryOptions,
 } from "./hooks/useWxproductsGetPublicTropicalSystem.js";
 export {
+  useWxproductsListIssuedProducts,
+  wxproductsListIssuedProductsQueryKey,
+  wxproductsListIssuedProductsQueryOptions,
+} from "./hooks/useWxproductsListIssuedProducts.js";
+export {
   useWxproductsListPublicProducts,
   wxproductsListPublicProductsQueryKey,
   wxproductsListPublicProductsQueryOptions,
@@ -3963,6 +4421,11 @@ export {
   wxproductsPublicForecastQueryKey,
   wxproductsPublicForecastQueryOptions,
 } from "./hooks/useWxproductsPublicForecast.js";
+export {
+  useWxproductsPublicProductPdf,
+  wxproductsPublicProductPdfQueryKey,
+  wxproductsPublicProductPdfQueryOptions,
+} from "./hooks/useWxproductsPublicProductPdf.js";
 export {
   useWxproductsPublicSectorOutlook,
   wxproductsPublicSectorOutlookQueryKey,
@@ -4038,6 +4501,11 @@ export {
   wxwatchLatestQueryKey,
   wxwatchLatestQueryOptions,
 } from "./hooks/useWxwatchLatest.js";
+export {
+  useWxwatchMarineGuidance,
+  wxwatchMarineGuidanceQueryKey,
+  wxwatchMarineGuidanceQueryOptions,
+} from "./hooks/useWxwatchMarineGuidance.js";
 export {
   useWxwatchMetadata,
   wxwatchMetadataQueryKey,
@@ -4129,6 +4597,24 @@ export { ageingBucket } from "./models/AgeingBucket.js";
 export type { AgeingBucketPublic } from "./models/AgeingBucketPublic.js";
 export type { AirResponse } from "./models/AirResponse.js";
 export type { AirRow } from "./models/AirRow.js";
+export type {
+  AlmanacGetAstronomyOptions,
+  AlmanacGetAstronomyQuery,
+  AlmanacGetAstronomyResponse,
+  AlmanacGetAstronomyResponses,
+  AlmanacGetAstronomyStatus200,
+  AlmanacGetAstronomyStatus422,
+} from "./models/AlmanacGetAstronomy.js";
+export type { AlmanacGetAstronomyParametersSchemaEnum } from "./models/AlmanacGetAstronomyParametersSchemaEnum.js";
+export { almanacGetAstronomyParametersSchemaEnum } from "./models/AlmanacGetAstronomyParametersSchemaEnum.js";
+export type {
+  AlmanacGetTidesOptions,
+  AlmanacGetTidesQuery,
+  AlmanacGetTidesResponse,
+  AlmanacGetTidesResponses,
+  AlmanacGetTidesStatus200,
+  AlmanacGetTidesStatus422,
+} from "./models/AlmanacGetTides.js";
 export type { AnnouncementPublic } from "./models/AnnouncementPublic.js";
 export type { ApiError } from "./models/ApiError.js";
 export type { ApiKeyCreate } from "./models/ApiKeyCreate.js";
@@ -4168,6 +4654,8 @@ export type { AreaCreatePropertiesSpaceTypeAnyOfEnum } from "./models/AreaCreate
 export { areaCreatePropertiesSpaceTypeAnyOfEnum } from "./models/AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
 export type { AreaUpdate } from "./models/AreaUpdate.js";
 export type { AreaView } from "./models/AreaView.js";
+export type { AstronomyDay } from "./models/AstronomyDay.js";
+export type { AstronomyResponse } from "./models/AstronomyResponse.js";
 export type { AttemptStatus } from "./models/AttemptStatus.js";
 export { attemptStatus } from "./models/AttemptStatus.js";
 export type { AttendanceCorrectionCreate } from "./models/AttendanceCorrectionCreate.js";
@@ -4198,7 +4686,6 @@ export type {
   AuthAccountEmailCodeStartStatus200,
   AuthAccountEmailCodeStartStatus422,
   AuthAccountEmailCodeStartStatus429,
-  AuthAccountEmailCodeStartStatus503,
 } from "./models/AuthAccountEmailCodeStart.js";
 export type {
   AuthAccountEmailCodeVerifyBody,
@@ -4733,6 +5220,20 @@ export type {
   AuthIssueActivationStatus422,
 } from "./models/AuthIssueActivation.js";
 export type {
+  AuthIssueSignInSetupBody,
+  AuthIssueSignInSetupOptions,
+  AuthIssueSignInSetupPath,
+  AuthIssueSignInSetupResponse,
+  AuthIssueSignInSetupResponses,
+  AuthIssueSignInSetupStatus201,
+  AuthIssueSignInSetupStatus400,
+  AuthIssueSignInSetupStatus403,
+  AuthIssueSignInSetupStatus404,
+  AuthIssueSignInSetupStatus409,
+  AuthIssueSignInSetupStatus422,
+  AuthIssueSignInSetupStatus429,
+} from "./models/AuthIssueSignInSetup.js";
+export type {
   AuthJoinAccountAppBody,
   AuthJoinAccountAppOptions,
   AuthJoinAccountAppPath,
@@ -4848,9 +5349,9 @@ export type {
   AuthRegisterUserOptions,
   AuthRegisterUserResponse,
   AuthRegisterUserResponses,
-  AuthRegisterUserStatus201,
-  AuthRegisterUserStatus400,
+  AuthRegisterUserStatus200,
   AuthRegisterUserStatus422,
+  AuthRegisterUserStatus429,
 } from "./models/AuthRegisterUser.js";
 export type {
   AuthReplaceRecoveryCodesBody,
@@ -4898,6 +5399,16 @@ export type {
   AuthRevokeSecuritySessionStatus404,
   AuthRevokeSecuritySessionStatus422,
 } from "./models/AuthRevokeSecuritySession.js";
+export type {
+  AuthRevokeSignInSetupOptions,
+  AuthRevokeSignInSetupPath,
+  AuthRevokeSignInSetupResponse,
+  AuthRevokeSignInSetupResponses,
+  AuthRevokeSignInSetupStatus204,
+  AuthRevokeSignInSetupStatus403,
+  AuthRevokeSignInSetupStatus404,
+  AuthRevokeSignInSetupStatus422,
+} from "./models/AuthRevokeSignInSetup.js";
 export type {
   AuthTwofaActivateBody,
   AuthTwofaActivateOptions,
@@ -5177,7 +5688,9 @@ export type {
   BillingVoidInvoiceStatus409,
   BillingVoidInvoiceStatus422,
 } from "./models/BillingVoidInvoice.js";
+export type { BinaryFile } from "./models/BinaryFile.js";
 export type { BodyAuthLoginAccessToken } from "./models/BodyAuthLoginAccessToken.js";
+export type { BodyHrImportTerminalPunches } from "./models/BodyHrImportTerminalPunches.js";
 export type { BodyHrUploadDocument } from "./models/BodyHrUploadDocument.js";
 export type { BookingAgenda } from "./models/BookingAgenda.js";
 export type { BookingAgendaDay } from "./models/BookingAgendaDay.js";
@@ -5696,6 +6209,7 @@ export type { BookingWorkingHoursUpdate } from "./models/BookingWorkingHoursUpda
 export type { BookingWorkingPeriodIn } from "./models/BookingWorkingPeriodIn.js";
 export type { BookingWorkingPeriodPublic } from "./models/BookingWorkingPeriodPublic.js";
 export type { BrowserSession } from "./models/BrowserSession.js";
+export type { BufrOverrideRequest } from "./models/BufrOverrideRequest.js";
 export type { BuildingCreate } from "./models/BuildingCreate.js";
 export type { BuildingCreatePropertiesKindEnum } from "./models/BuildingCreatePropertiesKindEnum.js";
 export { buildingCreatePropertiesKindEnum } from "./models/BuildingCreatePropertiesKindEnum.js";
@@ -5719,7 +6233,9 @@ export type { CapAlertImportRequest } from "./models/CapAlertImportRequest.js";
 export type { CapAlertImportRequestPropertiesSourceEnum } from "./models/CapAlertImportRequestPropertiesSourceEnum.js";
 export { capAlertImportRequestPropertiesSourceEnum } from "./models/CapAlertImportRequestPropertiesSourceEnum.js";
 export type { CapAlertListPublic } from "./models/CapAlertListPublic.js";
+export type { CapAlertListPublicView } from "./models/CapAlertListPublicView.js";
 export type { CapAlertPublic } from "./models/CapAlertPublic.js";
+export type { CapAlertPublicView } from "./models/CapAlertPublicView.js";
 export type { CapAlertUpdate } from "./models/CapAlertUpdate.js";
 export type {
   CapApproveAlertBody,
@@ -5765,8 +6281,10 @@ export type {
 export type { CapCatalogsPublic } from "./models/CapCatalogsPublic.js";
 export type { CapCategory } from "./models/CapCategory.js";
 export { capCategory } from "./models/CapCategory.js";
+export type { CapCategoryLabelPublic } from "./models/CapCategoryLabelPublic.js";
 export type { CapCertainty } from "./models/CapCertainty.js";
 export { capCertainty } from "./models/CapCertainty.js";
+export type { CapColourRulePublic } from "./models/CapColourRulePublic.js";
 export type {
   CapCreateAlertBody,
   CapCreateAlertOptions,
@@ -5884,6 +6402,16 @@ export type {
   CapExpireAlertStatus404,
   CapExpireAlertStatus422,
 } from "./models/CapExpireAlert.js";
+export type {
+  CapExportStatisticsCsvOptions,
+  CapExportStatisticsCsvQuery,
+  CapExportStatisticsCsvResponse,
+  CapExportStatisticsCsvResponses,
+  CapExportStatisticsCsvStatus200,
+  CapExportStatisticsCsvStatus401,
+  CapExportStatisticsCsvStatus403,
+  CapExportStatisticsCsvStatus422,
+} from "./models/CapExportStatisticsCsv.js";
 export type { CapFeedImportCreate } from "./models/CapFeedImportCreate.js";
 export type { CapFeedImportPublic } from "./models/CapFeedImportPublic.js";
 export type { CapFeedImportUpdate } from "./models/CapFeedImportUpdate.js";
@@ -5905,6 +6433,17 @@ export type {
   CapGetAlertStatus404,
   CapGetAlertStatus422,
 } from "./models/CapGetAlert.js";
+export type {
+  CapGetAlertByIdentifierOptions,
+  CapGetAlertByIdentifierPath,
+  CapGetAlertByIdentifierResponse,
+  CapGetAlertByIdentifierResponses,
+  CapGetAlertByIdentifierStatus200,
+  CapGetAlertByIdentifierStatus401,
+  CapGetAlertByIdentifierStatus403,
+  CapGetAlertByIdentifierStatus404,
+  CapGetAlertByIdentifierStatus422,
+} from "./models/CapGetAlertByIdentifier.js";
 export type {
   CapGetAlertsOptions,
   CapGetAlertsQuery,
@@ -5978,6 +6517,15 @@ export type {
   CapGetFeedsStatus403,
   CapGetFeedsStatus422,
 } from "./models/CapGetFeeds.js";
+export type {
+  CapGetGmsCatalogueOptions,
+  CapGetGmsCatalogueResponse,
+  CapGetGmsCatalogueResponses,
+  CapGetGmsCatalogueStatus200,
+  CapGetGmsCatalogueStatus401,
+  CapGetGmsCatalogueStatus403,
+  CapGetGmsCatalogueStatus422,
+} from "./models/CapGetGmsCatalogue.js";
 export type {
   CapGetHazardProfilesOptions,
   CapGetHazardProfilesResponse,
@@ -6061,6 +6609,17 @@ export type {
   CapGetRssStatus422,
 } from "./models/CapGetRss.js";
 export type {
+  CapGetStatisticsOptions,
+  CapGetStatisticsQuery,
+  CapGetStatisticsResponse,
+  CapGetStatisticsResponses,
+  CapGetStatisticsStatus200,
+  CapGetStatisticsStatus401,
+  CapGetStatisticsStatus403,
+  CapGetStatisticsStatus422,
+} from "./models/CapGetStatistics.js";
+export type { CapHazardGroupPublic } from "./models/CapHazardGroupPublic.js";
+export type {
   CapImportAlertBody,
   CapImportAlertOptions,
   CapImportAlertResponse,
@@ -6074,13 +6633,27 @@ export type { CapInfoCreate } from "./models/CapInfoCreate.js";
 export type { CapInfoPublic } from "./models/CapInfoPublic.js";
 export type { CapIntegrationStatus } from "./models/CapIntegrationStatus.js";
 export { capIntegrationStatus } from "./models/CapIntegrationStatus.js";
+export type {
+  CapIssueAlertUpdateOptions,
+  CapIssueAlertUpdatePath,
+  CapIssueAlertUpdateResponse,
+  CapIssueAlertUpdateResponses,
+  CapIssueAlertUpdateStatus201,
+  CapIssueAlertUpdateStatus401,
+  CapIssueAlertUpdateStatus403,
+  CapIssueAlertUpdateStatus404,
+  CapIssueAlertUpdateStatus409,
+  CapIssueAlertUpdateStatus422,
+} from "./models/CapIssueAlertUpdate.js";
 export type { CapLifecycleState } from "./models/CapLifecycleState.js";
 export { capLifecycleState } from "./models/CapLifecycleState.js";
 export type { CapMessageType } from "./models/CapMessageType.js";
 export { capMessageType } from "./models/CapMessageType.js";
 export type { CapNameValue } from "./models/CapNameValue.js";
+export type { CapParishPublic } from "./models/CapParishPublic.js";
 export type { CapPredefinedAreaCreate } from "./models/CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./models/CapPredefinedAreaPublic.js";
+export type { CapProductRulePublic } from "./models/CapProductRulePublic.js";
 export type { CapProfileCellText } from "./models/CapProfileCellText.js";
 export type { CapProfileCellTextPropertiesImpactEnum } from "./models/CapProfileCellTextPropertiesImpactEnum.js";
 export { capProfileCellTextPropertiesImpactEnum } from "./models/CapProfileCellTextPropertiesImpactEnum.js";
@@ -6104,6 +6677,7 @@ export { capProfileRulePropertiesOperatorEnum } from "./models/CapProfileRulePro
 export type { CapProfileSave } from "./models/CapProfileSave.js";
 export type { CapProfileSubtype } from "./models/CapProfileSubtype.js";
 export type { CapProfileTemplate } from "./models/CapProfileTemplate.js";
+export type { CapPublishAction } from "./models/CapPublishAction.js";
 export type {
   CapPublishAlertBody,
   CapPublishAlertOptions,
@@ -6155,6 +6729,8 @@ export type { CapSettingsUpdate } from "./models/CapSettingsUpdate.js";
 export type { CapSeverity } from "./models/CapSeverity.js";
 export { capSeverity } from "./models/CapSeverity.js";
 export type { CapSnapshotPublic } from "./models/CapSnapshotPublic.js";
+export type { CapStatisticsBucket } from "./models/CapStatisticsBucket.js";
+export type { CapStatisticsPublic } from "./models/CapStatisticsPublic.js";
 export type { CapStatus } from "./models/CapStatus.js";
 export { capStatus } from "./models/CapStatus.js";
 export type {
@@ -6464,6 +7040,13 @@ export { dataFormat } from "./models/DataFormat.js";
 export type { DataParameter } from "./models/DataParameter.js";
 export { dataParameter } from "./models/DataParameter.js";
 export type { DataRequestCreate } from "./models/DataRequestCreate.js";
+export type { DeductionCategory } from "./models/DeductionCategory.js";
+export { deductionCategory } from "./models/DeductionCategory.js";
+export type { DeductionKind } from "./models/DeductionKind.js";
+export { deductionKind } from "./models/DeductionKind.js";
+export type { DeductionLinePublic } from "./models/DeductionLinePublic.js";
+export type { DeductionTypeCreate } from "./models/DeductionTypeCreate.js";
+export type { DeductionTypePublic } from "./models/DeductionTypePublic.js";
 export type { DeliveryAdmin } from "./models/DeliveryAdmin.js";
 export type { DeliveryAdminList } from "./models/DeliveryAdminList.js";
 export type { DeliveryAdminPropertiesStatusEnum } from "./models/DeliveryAdminPropertiesStatusEnum.js";
@@ -6496,9 +7079,20 @@ export type { EmailConfirm } from "./models/EmailConfirm.js";
 export type { EmailRequest } from "./models/EmailRequest.js";
 export type { EmergencyContactPublic } from "./models/EmergencyContactPublic.js";
 export type { EmergencyContactUpdate } from "./models/EmergencyContactUpdate.js";
+export type { EmployeeBasicPayCreate } from "./models/EmployeeBasicPayCreate.js";
+export type { EmployeeBasicPayPublic } from "./models/EmployeeBasicPayPublic.js";
+export type { EmployeeBasicPaysPublic } from "./models/EmployeeBasicPaysPublic.js";
+export type { EmployeeDeductionCreate } from "./models/EmployeeDeductionCreate.js";
+export type { EmployeeDeductionPublic } from "./models/EmployeeDeductionPublic.js";
+export type { EmployeeDeductionsPublic } from "./models/EmployeeDeductionsPublic.js";
 export type { EmployeeDocumentListPublic } from "./models/EmployeeDocumentListPublic.js";
 export type { EmployeeDocumentPublic } from "./models/EmployeeDocumentPublic.js";
 export type { EmployeeDocumentUpdate } from "./models/EmployeeDocumentUpdate.js";
+export type { EmployeeGrossPublic } from "./models/EmployeeGrossPublic.js";
+export type { EmployeePayProfilePublic } from "./models/EmployeePayProfilePublic.js";
+export type { EmployeePayProfilesPublic } from "./models/EmployeePayProfilesPublic.js";
+export type { EmployeePayProfileUpdate } from "./models/EmployeePayProfileUpdate.js";
+export type { EmployeePaySummary } from "./models/EmployeePaySummary.js";
 export type { EmploymentAdminUpdate } from "./models/EmploymentAdminUpdate.js";
 export type { EmploymentCreate } from "./models/EmploymentCreate.js";
 export type { EmploymentPublic } from "./models/EmploymentPublic.js";
@@ -6663,6 +7257,19 @@ export type {
   EregisterListRegistryStationsStatus422,
 } from "./models/EregisterListRegistryStations.js";
 export type {
+  EregisterOverrideRegisterObservationBufrBody,
+  EregisterOverrideRegisterObservationBufrOptions,
+  EregisterOverrideRegisterObservationBufrPath,
+  EregisterOverrideRegisterObservationBufrResponse,
+  EregisterOverrideRegisterObservationBufrResponses,
+  EregisterOverrideRegisterObservationBufrStatus200,
+  EregisterOverrideRegisterObservationBufrStatus401,
+  EregisterOverrideRegisterObservationBufrStatus403,
+  EregisterOverrideRegisterObservationBufrStatus404,
+  EregisterOverrideRegisterObservationBufrStatus409,
+  EregisterOverrideRegisterObservationBufrStatus422,
+} from "./models/EregisterOverrideRegisterObservationBufr.js";
+export type {
   EregisterPublicCurrentConditionsOptions,
   EregisterPublicCurrentConditionsResponse,
   EregisterPublicCurrentConditionsResponses,
@@ -6732,6 +7339,16 @@ export type {
   EregisterReopenRegisterObservationStatus422,
 } from "./models/EregisterReopenRegisterObservation.js";
 export type {
+  EregisterReviewRegisterDayBody,
+  EregisterReviewRegisterDayOptions,
+  EregisterReviewRegisterDayResponse,
+  EregisterReviewRegisterDayResponses,
+  EregisterReviewRegisterDayStatus200,
+  EregisterReviewRegisterDayStatus401,
+  EregisterReviewRegisterDayStatus403,
+  EregisterReviewRegisterDayStatus422,
+} from "./models/EregisterReviewRegisterDay.js";
+export type {
   EregisterReviewRegisterObservationBody,
   EregisterReviewRegisterObservationOptions,
   EregisterReviewRegisterObservationPath,
@@ -6754,6 +7371,7 @@ export type {
   EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "./models/EregisterValidateSynopObservation.js";
+export type { EregisterValidationError } from "./models/EregisterValidationError.js";
 export type { ErrorMessage } from "./models/ErrorMessage.js";
 export type { EventCategoryNode } from "./models/EventCategoryNode.js";
 export type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./models/EventCategoryNodePropertiesAppliesToItemsEnum.js";
@@ -7794,6 +8412,7 @@ export { forecastSourcePropertiesKindEnum } from "./models/ForecastSourcePropert
 export type { Frequency } from "./models/Frequency.js";
 export type { Gender } from "./models/Gender.js";
 export { gender } from "./models/Gender.js";
+export type { GmsCataloguePublic } from "./models/GmsCataloguePublic.js";
 export type { GmsColour } from "./models/GmsColour.js";
 export { gmsColour } from "./models/GmsColour.js";
 export type { GoogleChallengePublic } from "./models/GoogleChallengePublic.js";
@@ -7805,6 +8424,7 @@ export type { GradeInput } from "./models/GradeInput.js";
 export type { GradePublic } from "./models/GradePublic.js";
 export type { GradeSetup } from "./models/GradeSetup.js";
 export type { GrantCreate } from "./models/GrantCreate.js";
+export type { GrantRevokePublic } from "./models/GrantRevokePublic.js";
 export type { GroupDetail } from "./models/GroupDetail.js";
 export type { GroupDetailPropertiesCategoryEnum } from "./models/GroupDetailPropertiesCategoryEnum.js";
 export { groupDetailPropertiesCategoryEnum } from "./models/GroupDetailPropertiesCategoryEnum.js";
@@ -7846,6 +8466,7 @@ export type {
   HrActionLeaveRequestStatus200,
   HrActionLeaveRequestStatus403,
   HrActionLeaveRequestStatus404,
+  HrActionLeaveRequestStatus409,
   HrActionLeaveRequestStatus422,
 } from "./models/HrActionLeaveRequest.js";
 export type {
@@ -7858,8 +8479,21 @@ export type {
   HrActionShiftSwapStatus400,
   HrActionShiftSwapStatus403,
   HrActionShiftSwapStatus404,
+  HrActionShiftSwapStatus409,
   HrActionShiftSwapStatus422,
 } from "./models/HrActionShiftSwap.js";
+export type {
+  HrAddTerminalUserBody,
+  HrAddTerminalUserOptions,
+  HrAddTerminalUserResponse,
+  HrAddTerminalUserResponses,
+  HrAddTerminalUserStatus201,
+  HrAddTerminalUserStatus400,
+  HrAddTerminalUserStatus401,
+  HrAddTerminalUserStatus403,
+  HrAddTerminalUserStatus409,
+  HrAddTerminalUserStatus422,
+} from "./models/HrAddTerminalUser.js";
 export type {
   HrApproveClockPunchBody,
   HrApproveClockPunchOptions,
@@ -7873,6 +8507,33 @@ export type {
   HrApproveClockPunchStatus422,
 } from "./models/HrApproveClockPunch.js";
 export type {
+  HrApprovePayPeriodBody,
+  HrApprovePayPeriodOptions,
+  HrApprovePayPeriodPath,
+  HrApprovePayPeriodResponse,
+  HrApprovePayPeriodResponses,
+  HrApprovePayPeriodStatus200,
+  HrApprovePayPeriodStatus400,
+  HrApprovePayPeriodStatus401,
+  HrApprovePayPeriodStatus403,
+  HrApprovePayPeriodStatus404,
+  HrApprovePayPeriodStatus409,
+  HrApprovePayPeriodStatus422,
+} from "./models/HrApprovePayPeriod.js";
+export type {
+  HrApprovePayPeriodForIssueOptions,
+  HrApprovePayPeriodForIssuePath,
+  HrApprovePayPeriodForIssueResponse,
+  HrApprovePayPeriodForIssueResponses,
+  HrApprovePayPeriodForIssueStatus200,
+  HrApprovePayPeriodForIssueStatus400,
+  HrApprovePayPeriodForIssueStatus401,
+  HrApprovePayPeriodForIssueStatus403,
+  HrApprovePayPeriodForIssueStatus404,
+  HrApprovePayPeriodForIssueStatus409,
+  HrApprovePayPeriodForIssueStatus422,
+} from "./models/HrApprovePayPeriodForIssue.js";
+export type {
   HrApproveStaffRegistrationOptions,
   HrApproveStaffRegistrationPath,
   HrApproveStaffRegistrationResponse,
@@ -7884,6 +8545,7 @@ export type {
   HrApproveStaffRegistrationStatus422,
 } from "./models/HrApproveStaffRegistration.js";
 export type {
+  HrApproveTimesheetBody,
   HrApproveTimesheetOptions,
   HrApproveTimesheetPath,
   HrApproveTimesheetResponse,
@@ -7892,6 +8554,7 @@ export type {
   HrApproveTimesheetStatus400,
   HrApproveTimesheetStatus403,
   HrApproveTimesheetStatus404,
+  HrApproveTimesheetStatus409,
   HrApproveTimesheetStatus422,
 } from "./models/HrApproveTimesheet.js";
 export type {
@@ -7924,6 +8587,7 @@ export type {
   HrBulkAssignmentsStatus400,
   HrBulkAssignmentsStatus403,
   HrBulkAssignmentsStatus404,
+  HrBulkAssignmentsStatus409,
   HrBulkAssignmentsStatus422,
 } from "./models/HrBulkAssignments.js";
 export type {
@@ -7959,6 +8623,19 @@ export type {
   HrClockStatus422,
 } from "./models/HrClock.js";
 export type {
+  HrClosePayPeriodOptions,
+  HrClosePayPeriodPath,
+  HrClosePayPeriodResponse,
+  HrClosePayPeriodResponses,
+  HrClosePayPeriodStatus200,
+  HrClosePayPeriodStatus400,
+  HrClosePayPeriodStatus401,
+  HrClosePayPeriodStatus403,
+  HrClosePayPeriodStatus404,
+  HrClosePayPeriodStatus409,
+  HrClosePayPeriodStatus422,
+} from "./models/HrClosePayPeriod.js";
+export type {
   HrClosePeriodOptions,
   HrClosePeriodPath,
   HrClosePeriodResponse,
@@ -7969,6 +8646,32 @@ export type {
   HrClosePeriodStatus404,
   HrClosePeriodStatus422,
 } from "./models/HrClosePeriod.js";
+export type {
+  HrComputePayPeriodOptions,
+  HrComputePayPeriodPath,
+  HrComputePayPeriodResponse,
+  HrComputePayPeriodResponses,
+  HrComputePayPeriodStatus200,
+  HrComputePayPeriodStatus400,
+  HrComputePayPeriodStatus401,
+  HrComputePayPeriodStatus403,
+  HrComputePayPeriodStatus404,
+  HrComputePayPeriodStatus409,
+  HrComputePayPeriodStatus422,
+} from "./models/HrComputePayPeriod.js";
+export type {
+  HrConfirmMyDeductionOptions,
+  HrConfirmMyDeductionPath,
+  HrConfirmMyDeductionResponse,
+  HrConfirmMyDeductionResponses,
+  HrConfirmMyDeductionStatus200,
+  HrConfirmMyDeductionStatus400,
+  HrConfirmMyDeductionStatus401,
+  HrConfirmMyDeductionStatus403,
+  HrConfirmMyDeductionStatus404,
+  HrConfirmMyDeductionStatus409,
+  HrConfirmMyDeductionStatus422,
+} from "./models/HrConfirmMyDeduction.js";
 export type {
   HrCreateAbsenteeReportBody,
   HrCreateAbsenteeReportOptions,
@@ -8001,6 +8704,19 @@ export type {
   HrCreateClockSiteStatus422,
 } from "./models/HrCreateClockSite.js";
 export type {
+  HrCreateDeductionTypeBody,
+  HrCreateDeductionTypeOptions,
+  HrCreateDeductionTypeResponse,
+  HrCreateDeductionTypeResponses,
+  HrCreateDeductionTypeStatus201,
+  HrCreateDeductionTypeStatus400,
+  HrCreateDeductionTypeStatus401,
+  HrCreateDeductionTypeStatus403,
+  HrCreateDeductionTypeStatus404,
+  HrCreateDeductionTypeStatus409,
+  HrCreateDeductionTypeStatus422,
+} from "./models/HrCreateDeductionType.js";
+export type {
   HrCreateDepartmentBody,
   HrCreateDepartmentOptions,
   HrCreateDepartmentResponse,
@@ -8010,6 +8726,32 @@ export type {
   HrCreateDepartmentStatus403,
   HrCreateDepartmentStatus422,
 } from "./models/HrCreateDepartment.js";
+export type {
+  HrCreateEmployeeBasicPayBody,
+  HrCreateEmployeeBasicPayOptions,
+  HrCreateEmployeeBasicPayResponse,
+  HrCreateEmployeeBasicPayResponses,
+  HrCreateEmployeeBasicPayStatus201,
+  HrCreateEmployeeBasicPayStatus400,
+  HrCreateEmployeeBasicPayStatus401,
+  HrCreateEmployeeBasicPayStatus403,
+  HrCreateEmployeeBasicPayStatus404,
+  HrCreateEmployeeBasicPayStatus409,
+  HrCreateEmployeeBasicPayStatus422,
+} from "./models/HrCreateEmployeeBasicPay.js";
+export type {
+  HrCreateEmployeeDeductionBody,
+  HrCreateEmployeeDeductionOptions,
+  HrCreateEmployeeDeductionResponse,
+  HrCreateEmployeeDeductionResponses,
+  HrCreateEmployeeDeductionStatus201,
+  HrCreateEmployeeDeductionStatus400,
+  HrCreateEmployeeDeductionStatus401,
+  HrCreateEmployeeDeductionStatus403,
+  HrCreateEmployeeDeductionStatus404,
+  HrCreateEmployeeDeductionStatus409,
+  HrCreateEmployeeDeductionStatus422,
+} from "./models/HrCreateEmployeeDeduction.js";
 export type {
   HrCreateHolidayBody,
   HrCreateHolidayOptions,
@@ -8075,6 +8817,59 @@ export type {
   HrCreateParkingPermitStatus422,
 } from "./models/HrCreateParkingPermit.js";
 export type {
+  HrCreatePayCalendarBody,
+  HrCreatePayCalendarOptions,
+  HrCreatePayCalendarResponse,
+  HrCreatePayCalendarResponses,
+  HrCreatePayCalendarStatus201,
+  HrCreatePayCalendarStatus400,
+  HrCreatePayCalendarStatus401,
+  HrCreatePayCalendarStatus403,
+  HrCreatePayCalendarStatus404,
+  HrCreatePayCalendarStatus409,
+  HrCreatePayCalendarStatus422,
+} from "./models/HrCreatePayCalendar.js";
+export type {
+  HrCreatePayItemRateBody,
+  HrCreatePayItemRateOptions,
+  HrCreatePayItemRateResponse,
+  HrCreatePayItemRateResponses,
+  HrCreatePayItemRateStatus201,
+  HrCreatePayItemRateStatus400,
+  HrCreatePayItemRateStatus401,
+  HrCreatePayItemRateStatus403,
+  HrCreatePayItemRateStatus404,
+  HrCreatePayItemRateStatus409,
+  HrCreatePayItemRateStatus422,
+} from "./models/HrCreatePayItemRate.js";
+export type {
+  HrCreatePayLineBody,
+  HrCreatePayLineOptions,
+  HrCreatePayLinePath,
+  HrCreatePayLineResponse,
+  HrCreatePayLineResponses,
+  HrCreatePayLineStatus201,
+  HrCreatePayLineStatus400,
+  HrCreatePayLineStatus401,
+  HrCreatePayLineStatus403,
+  HrCreatePayLineStatus404,
+  HrCreatePayLineStatus409,
+  HrCreatePayLineStatus422,
+} from "./models/HrCreatePayLine.js";
+export type {
+  HrCreatePayPeriodBody,
+  HrCreatePayPeriodOptions,
+  HrCreatePayPeriodResponse,
+  HrCreatePayPeriodResponses,
+  HrCreatePayPeriodStatus201,
+  HrCreatePayPeriodStatus400,
+  HrCreatePayPeriodStatus401,
+  HrCreatePayPeriodStatus403,
+  HrCreatePayPeriodStatus404,
+  HrCreatePayPeriodStatus409,
+  HrCreatePayPeriodStatus422,
+} from "./models/HrCreatePayPeriod.js";
+export type {
   HrCreatePeriodBody,
   HrCreatePeriodOptions,
   HrCreatePeriodResponse,
@@ -8105,6 +8900,19 @@ export type {
   HrCreateShiftSwapStatus422,
 } from "./models/HrCreateShiftSwap.js";
 export type {
+  HrCreateSocialInsuranceSchemeBody,
+  HrCreateSocialInsuranceSchemeOptions,
+  HrCreateSocialInsuranceSchemeResponse,
+  HrCreateSocialInsuranceSchemeResponses,
+  HrCreateSocialInsuranceSchemeStatus201,
+  HrCreateSocialInsuranceSchemeStatus400,
+  HrCreateSocialInsuranceSchemeStatus401,
+  HrCreateSocialInsuranceSchemeStatus403,
+  HrCreateSocialInsuranceSchemeStatus404,
+  HrCreateSocialInsuranceSchemeStatus409,
+  HrCreateSocialInsuranceSchemeStatus422,
+} from "./models/HrCreateSocialInsuranceScheme.js";
+export type {
   HrCreateStatusReportBody,
   HrCreateStatusReportOptions,
   HrCreateStatusReportResponse,
@@ -8114,6 +8922,19 @@ export type {
   HrCreateStatusReportStatus403,
   HrCreateStatusReportStatus422,
 } from "./models/HrCreateStatusReport.js";
+export type {
+  HrCreateTaxTableBody,
+  HrCreateTaxTableOptions,
+  HrCreateTaxTableResponse,
+  HrCreateTaxTableResponses,
+  HrCreateTaxTableStatus201,
+  HrCreateTaxTableStatus400,
+  HrCreateTaxTableStatus401,
+  HrCreateTaxTableStatus403,
+  HrCreateTaxTableStatus404,
+  HrCreateTaxTableStatus409,
+  HrCreateTaxTableStatus422,
+} from "./models/HrCreateTaxTable.js";
 export type {
   HrCreateTemplateBody,
   HrCreateTemplateOptions,
@@ -8169,6 +8990,26 @@ export type {
   HrDeleteAbsenteeReportStatus422,
 } from "./models/HrDeleteAbsenteeReport.js";
 export type {
+  HrDeleteDepartmentRuleSetOptions,
+  HrDeleteDepartmentRuleSetPath,
+  HrDeleteDepartmentRuleSetResponse,
+  HrDeleteDepartmentRuleSetResponses,
+  HrDeleteDepartmentRuleSetStatus204,
+  HrDeleteDepartmentRuleSetStatus403,
+  HrDeleteDepartmentRuleSetStatus422,
+} from "./models/HrDeleteDepartmentRuleSet.js";
+export type {
+  HrDeleteDraftTimesheetOptions,
+  HrDeleteDraftTimesheetPath,
+  HrDeleteDraftTimesheetResponse,
+  HrDeleteDraftTimesheetResponses,
+  HrDeleteDraftTimesheetStatus204,
+  HrDeleteDraftTimesheetStatus400,
+  HrDeleteDraftTimesheetStatus403,
+  HrDeleteDraftTimesheetStatus404,
+  HrDeleteDraftTimesheetStatus422,
+} from "./models/HrDeleteDraftTimesheet.js";
+export type {
   HrDeleteLeaveRequestOptions,
   HrDeleteLeaveRequestPath,
   HrDeleteLeaveRequestResponse,
@@ -8188,6 +9029,19 @@ export type {
   HrDeleteMySignatureStatus401,
   HrDeleteMySignatureStatus422,
 } from "./models/HrDeleteMySignature.js";
+export type {
+  HrDeletePayLineOptions,
+  HrDeletePayLinePath,
+  HrDeletePayLineResponse,
+  HrDeletePayLineResponses,
+  HrDeletePayLineStatus204,
+  HrDeletePayLineStatus400,
+  HrDeletePayLineStatus401,
+  HrDeletePayLineStatus403,
+  HrDeletePayLineStatus404,
+  HrDeletePayLineStatus409,
+  HrDeletePayLineStatus422,
+} from "./models/HrDeletePayLine.js";
 export type {
   HrDeleteShiftSwapOptions,
   HrDeleteShiftSwapPath,
@@ -8234,6 +9088,45 @@ export type {
   HrDownloadSignedDocumentStatus422,
 } from "./models/HrDownloadSignedDocument.js";
 export type {
+  HrExportBankTransferCsvOptions,
+  HrExportBankTransferCsvPath,
+  HrExportBankTransferCsvResponse,
+  HrExportBankTransferCsvResponses,
+  HrExportBankTransferCsvStatus200,
+  HrExportBankTransferCsvStatus400,
+  HrExportBankTransferCsvStatus401,
+  HrExportBankTransferCsvStatus403,
+  HrExportBankTransferCsvStatus404,
+  HrExportBankTransferCsvStatus409,
+  HrExportBankTransferCsvStatus422,
+} from "./models/HrExportBankTransferCsv.js";
+export type {
+  HrExportGlJournalCsvOptions,
+  HrExportGlJournalCsvPath,
+  HrExportGlJournalCsvResponse,
+  HrExportGlJournalCsvResponses,
+  HrExportGlJournalCsvStatus200,
+  HrExportGlJournalCsvStatus400,
+  HrExportGlJournalCsvStatus401,
+  HrExportGlJournalCsvStatus403,
+  HrExportGlJournalCsvStatus404,
+  HrExportGlJournalCsvStatus409,
+  HrExportGlJournalCsvStatus422,
+} from "./models/HrExportGlJournalCsv.js";
+export type {
+  HrExportPayPeriodCsvOptions,
+  HrExportPayPeriodCsvPath,
+  HrExportPayPeriodCsvResponse,
+  HrExportPayPeriodCsvResponses,
+  HrExportPayPeriodCsvStatus200,
+  HrExportPayPeriodCsvStatus400,
+  HrExportPayPeriodCsvStatus401,
+  HrExportPayPeriodCsvStatus403,
+  HrExportPayPeriodCsvStatus404,
+  HrExportPayPeriodCsvStatus409,
+  HrExportPayPeriodCsvStatus422,
+} from "./models/HrExportPayPeriodCsv.js";
+export type {
   HrGetAbsenteeReportsOptions,
   HrGetAbsenteeReportsQuery,
   HrGetAbsenteeReportsResponse,
@@ -8278,6 +9171,15 @@ export type {
   HrGetAttendanceWeekPdfStatus409,
   HrGetAttendanceWeekPdfStatus422,
 } from "./models/HrGetAttendanceWeekPdf.js";
+export type {
+  HrGetDepartmentRuleSetOptions,
+  HrGetDepartmentRuleSetPath,
+  HrGetDepartmentRuleSetResponse,
+  HrGetDepartmentRuleSetResponses,
+  HrGetDepartmentRuleSetStatus200,
+  HrGetDepartmentRuleSetStatus403,
+  HrGetDepartmentRuleSetStatus422,
+} from "./models/HrGetDepartmentRuleSet.js";
 export type {
   HrGetDepartmentRulesOptions,
   HrGetDepartmentRulesPath,
@@ -8421,6 +9323,15 @@ export type {
   HrGetOrganisationCatalogueStatus422,
 } from "./models/HrGetOrganisationCatalogue.js";
 export type {
+  HrGetOrganisationRuleSetOptions,
+  HrGetOrganisationRuleSetPath,
+  HrGetOrganisationRuleSetResponse,
+  HrGetOrganisationRuleSetResponses,
+  HrGetOrganisationRuleSetStatus200,
+  HrGetOrganisationRuleSetStatus403,
+  HrGetOrganisationRuleSetStatus422,
+} from "./models/HrGetOrganisationRuleSet.js";
+export type {
   HrGetOrganisationsOptions,
   HrGetOrganisationsResponse,
   HrGetOrganisationsResponses,
@@ -8438,6 +9349,72 @@ export type {
   HrGetParkingPermitsStatus403,
   HrGetParkingPermitsStatus422,
 } from "./models/HrGetParkingPermits.js";
+export type {
+  HrGetPayPeriodOptions,
+  HrGetPayPeriodPath,
+  HrGetPayPeriodResponse,
+  HrGetPayPeriodResponses,
+  HrGetPayPeriodStatus200,
+  HrGetPayPeriodStatus400,
+  HrGetPayPeriodStatus401,
+  HrGetPayPeriodStatus403,
+  HrGetPayPeriodStatus404,
+  HrGetPayPeriodStatus409,
+  HrGetPayPeriodStatus422,
+} from "./models/HrGetPayPeriod.js";
+export type {
+  HrGetPayPeriodAmountsOptions,
+  HrGetPayPeriodAmountsPath,
+  HrGetPayPeriodAmountsResponse,
+  HrGetPayPeriodAmountsResponses,
+  HrGetPayPeriodAmountsStatus200,
+  HrGetPayPeriodAmountsStatus400,
+  HrGetPayPeriodAmountsStatus401,
+  HrGetPayPeriodAmountsStatus403,
+  HrGetPayPeriodAmountsStatus404,
+  HrGetPayPeriodAmountsStatus409,
+  HrGetPayPeriodAmountsStatus422,
+} from "./models/HrGetPayPeriodAmounts.js";
+export type {
+  HrGetPayPeriodSummaryOptions,
+  HrGetPayPeriodSummaryPath,
+  HrGetPayPeriodSummaryResponse,
+  HrGetPayPeriodSummaryResponses,
+  HrGetPayPeriodSummaryStatus200,
+  HrGetPayPeriodSummaryStatus400,
+  HrGetPayPeriodSummaryStatus401,
+  HrGetPayPeriodSummaryStatus403,
+  HrGetPayPeriodSummaryStatus404,
+  HrGetPayPeriodSummaryStatus409,
+  HrGetPayPeriodSummaryStatus422,
+} from "./models/HrGetPayPeriodSummary.js";
+export type {
+  HrGetPayrollExportSettingsOptions,
+  HrGetPayrollExportSettingsQuery,
+  HrGetPayrollExportSettingsResponse,
+  HrGetPayrollExportSettingsResponses,
+  HrGetPayrollExportSettingsStatus200,
+  HrGetPayrollExportSettingsStatus400,
+  HrGetPayrollExportSettingsStatus401,
+  HrGetPayrollExportSettingsStatus403,
+  HrGetPayrollExportSettingsStatus404,
+  HrGetPayrollExportSettingsStatus409,
+  HrGetPayrollExportSettingsStatus422,
+} from "./models/HrGetPayrollExportSettings.js";
+export type {
+  HrGetPayslipPdfOptions,
+  HrGetPayslipPdfPath,
+  HrGetPayslipPdfResponse,
+  HrGetPayslipPdfResponses,
+  HrGetPayslipPdfStatus200,
+  HrGetPayslipPdfStatus400,
+  HrGetPayslipPdfStatus401,
+  HrGetPayslipPdfStatus403,
+  HrGetPayslipPdfStatus404,
+  HrGetPayslipPdfStatus409,
+  HrGetPayslipPdfStatus422,
+  HrGetPayslipPdfStatus429,
+} from "./models/HrGetPayslipPdf.js";
 export type {
   HrGetPeriodOptions,
   HrGetPeriodPath,
@@ -8660,6 +9637,7 @@ export type {
   HrImportCsvStatus200,
   HrImportCsvStatus400,
   HrImportCsvStatus403,
+  HrImportCsvStatus409,
   HrImportCsvStatus422,
 } from "./models/HrImportCsv.js";
 export type {
@@ -8671,6 +9649,7 @@ export type {
   HrImportGridStatus400,
   HrImportGridStatus403,
   HrImportGridStatus404,
+  HrImportGridStatus409,
   HrImportGridStatus422,
 } from "./models/HrImportGrid.js";
 export type {
@@ -8694,6 +9673,18 @@ export type {
   HrImportStaffBalancesStatus409,
   HrImportStaffBalancesStatus422,
 } from "./models/HrImportStaffBalances.js";
+export type {
+  HrImportTerminalPunchesBody,
+  HrImportTerminalPunchesOptions,
+  HrImportTerminalPunchesResponse,
+  HrImportTerminalPunchesResponses,
+  HrImportTerminalPunchesStatus201,
+  HrImportTerminalPunchesStatus400,
+  HrImportTerminalPunchesStatus401,
+  HrImportTerminalPunchesStatus403,
+  HrImportTerminalPunchesStatus409,
+  HrImportTerminalPunchesStatus422,
+} from "./models/HrImportTerminalPunches.js";
 export type {
   HrIssueParkingDecalBody,
   HrIssueParkingDecalOptions,
@@ -8760,6 +9751,45 @@ export type {
   HrListDepartmentsStatus422,
 } from "./models/HrListDepartments.js";
 export type {
+  HrListEmployeeBasicPayOptions,
+  HrListEmployeeBasicPayQuery,
+  HrListEmployeeBasicPayResponse,
+  HrListEmployeeBasicPayResponses,
+  HrListEmployeeBasicPayStatus200,
+  HrListEmployeeBasicPayStatus400,
+  HrListEmployeeBasicPayStatus401,
+  HrListEmployeeBasicPayStatus403,
+  HrListEmployeeBasicPayStatus404,
+  HrListEmployeeBasicPayStatus409,
+  HrListEmployeeBasicPayStatus422,
+} from "./models/HrListEmployeeBasicPay.js";
+export type {
+  HrListEmployeeDeductionsOptions,
+  HrListEmployeeDeductionsQuery,
+  HrListEmployeeDeductionsResponse,
+  HrListEmployeeDeductionsResponses,
+  HrListEmployeeDeductionsStatus200,
+  HrListEmployeeDeductionsStatus400,
+  HrListEmployeeDeductionsStatus401,
+  HrListEmployeeDeductionsStatus403,
+  HrListEmployeeDeductionsStatus404,
+  HrListEmployeeDeductionsStatus409,
+  HrListEmployeeDeductionsStatus422,
+} from "./models/HrListEmployeeDeductions.js";
+export type {
+  HrListEmployeePayProfilesOptions,
+  HrListEmployeePayProfilesQuery,
+  HrListEmployeePayProfilesResponse,
+  HrListEmployeePayProfilesResponses,
+  HrListEmployeePayProfilesStatus200,
+  HrListEmployeePayProfilesStatus400,
+  HrListEmployeePayProfilesStatus401,
+  HrListEmployeePayProfilesStatus403,
+  HrListEmployeePayProfilesStatus404,
+  HrListEmployeePayProfilesStatus409,
+  HrListEmployeePayProfilesStatus422,
+} from "./models/HrListEmployeePayProfiles.js";
+export type {
   HrListHolidaysOptions,
   HrListHolidaysQuery,
   HrListHolidaysResponse,
@@ -8768,6 +9798,30 @@ export type {
   HrListHolidaysStatus403,
   HrListHolidaysStatus422,
 } from "./models/HrListHolidays.js";
+export type {
+  HrListMyDeductionsOptions,
+  HrListMyDeductionsResponse,
+  HrListMyDeductionsResponses,
+  HrListMyDeductionsStatus200,
+  HrListMyDeductionsStatus400,
+  HrListMyDeductionsStatus401,
+  HrListMyDeductionsStatus403,
+  HrListMyDeductionsStatus404,
+  HrListMyDeductionsStatus409,
+  HrListMyDeductionsStatus422,
+} from "./models/HrListMyDeductions.js";
+export type {
+  HrListMyPayslipsOptions,
+  HrListMyPayslipsResponse,
+  HrListMyPayslipsResponses,
+  HrListMyPayslipsStatus200,
+  HrListMyPayslipsStatus400,
+  HrListMyPayslipsStatus401,
+  HrListMyPayslipsStatus403,
+  HrListMyPayslipsStatus404,
+  HrListMyPayslipsStatus409,
+  HrListMyPayslipsStatus422,
+} from "./models/HrListMyPayslips.js";
 export type {
   HrListMyShiftSwapsOptions,
   HrListMyShiftSwapsQuery,
@@ -8779,6 +9833,85 @@ export type {
   HrListMyShiftSwapsStatus422,
 } from "./models/HrListMyShiftSwaps.js";
 export type {
+  HrListPayCalendarsOptions,
+  HrListPayCalendarsQuery,
+  HrListPayCalendarsResponse,
+  HrListPayCalendarsResponses,
+  HrListPayCalendarsStatus200,
+  HrListPayCalendarsStatus400,
+  HrListPayCalendarsStatus401,
+  HrListPayCalendarsStatus403,
+  HrListPayCalendarsStatus404,
+  HrListPayCalendarsStatus409,
+  HrListPayCalendarsStatus422,
+} from "./models/HrListPayCalendars.js";
+export type {
+  HrListPayItemRatesOptions,
+  HrListPayItemRatesQuery,
+  HrListPayItemRatesResponse,
+  HrListPayItemRatesResponses,
+  HrListPayItemRatesStatus200,
+  HrListPayItemRatesStatus400,
+  HrListPayItemRatesStatus401,
+  HrListPayItemRatesStatus403,
+  HrListPayItemRatesStatus404,
+  HrListPayItemRatesStatus409,
+  HrListPayItemRatesStatus422,
+} from "./models/HrListPayItemRates.js";
+export type {
+  HrListPayItemsOptions,
+  HrListPayItemsQuery,
+  HrListPayItemsResponse,
+  HrListPayItemsResponses,
+  HrListPayItemsStatus200,
+  HrListPayItemsStatus400,
+  HrListPayItemsStatus401,
+  HrListPayItemsStatus403,
+  HrListPayItemsStatus404,
+  HrListPayItemsStatus409,
+  HrListPayItemsStatus422,
+} from "./models/HrListPayItems.js";
+export type {
+  HrListPayLinesOptions,
+  HrListPayLinesPath,
+  HrListPayLinesQuery,
+  HrListPayLinesResponse,
+  HrListPayLinesResponses,
+  HrListPayLinesStatus200,
+  HrListPayLinesStatus400,
+  HrListPayLinesStatus401,
+  HrListPayLinesStatus403,
+  HrListPayLinesStatus404,
+  HrListPayLinesStatus409,
+  HrListPayLinesStatus422,
+} from "./models/HrListPayLines.js";
+export type {
+  HrListPayPeriodsOptions,
+  HrListPayPeriodsQuery,
+  HrListPayPeriodsResponse,
+  HrListPayPeriodsResponses,
+  HrListPayPeriodsStatus200,
+  HrListPayPeriodsStatus400,
+  HrListPayPeriodsStatus401,
+  HrListPayPeriodsStatus403,
+  HrListPayPeriodsStatus404,
+  HrListPayPeriodsStatus409,
+  HrListPayPeriodsStatus422,
+} from "./models/HrListPayPeriods.js";
+export type {
+  HrListPayrollDepartmentSettingsOptions,
+  HrListPayrollDepartmentSettingsQuery,
+  HrListPayrollDepartmentSettingsResponse,
+  HrListPayrollDepartmentSettingsResponses,
+  HrListPayrollDepartmentSettingsStatus200,
+  HrListPayrollDepartmentSettingsStatus400,
+  HrListPayrollDepartmentSettingsStatus401,
+  HrListPayrollDepartmentSettingsStatus403,
+  HrListPayrollDepartmentSettingsStatus404,
+  HrListPayrollDepartmentSettingsStatus409,
+  HrListPayrollDepartmentSettingsStatus422,
+} from "./models/HrListPayrollDepartmentSettings.js";
+export type {
   HrListPendingClockPunchesOptions,
   HrListPendingClockPunchesQuery,
   HrListPendingClockPunchesResponse,
@@ -8787,6 +9920,19 @@ export type {
   HrListPendingClockPunchesStatus403,
   HrListPendingClockPunchesStatus422,
 } from "./models/HrListPendingClockPunches.js";
+export type {
+  HrListPeriodPayslipsOptions,
+  HrListPeriodPayslipsPath,
+  HrListPeriodPayslipsResponse,
+  HrListPeriodPayslipsResponses,
+  HrListPeriodPayslipsStatus200,
+  HrListPeriodPayslipsStatus400,
+  HrListPeriodPayslipsStatus401,
+  HrListPeriodPayslipsStatus403,
+  HrListPeriodPayslipsStatus404,
+  HrListPeriodPayslipsStatus409,
+  HrListPeriodPayslipsStatus422,
+} from "./models/HrListPeriodPayslips.js";
 export type {
   HrListPeriodsOptions,
   HrListPeriodsQuery,
@@ -8797,6 +9943,25 @@ export type {
   HrListPeriodsStatus422,
 } from "./models/HrListPeriods.js";
 export type {
+  HrListRuleOverridesOptions,
+  HrListRuleOverridesPath,
+  HrListRuleOverridesQuery,
+  HrListRuleOverridesResponse,
+  HrListRuleOverridesResponses,
+  HrListRuleOverridesStatus200,
+  HrListRuleOverridesStatus403,
+  HrListRuleOverridesStatus422,
+} from "./models/HrListRuleOverrides.js";
+export type {
+  HrListRuleProfilesOptions,
+  HrListRuleProfilesPath,
+  HrListRuleProfilesResponse,
+  HrListRuleProfilesResponses,
+  HrListRuleProfilesStatus200,
+  HrListRuleProfilesStatus403,
+  HrListRuleProfilesStatus422,
+} from "./models/HrListRuleProfiles.js";
+export type {
   HrListShiftCatalogOptions,
   HrListShiftCatalogQuery,
   HrListShiftCatalogResponse,
@@ -8805,6 +9970,40 @@ export type {
   HrListShiftCatalogStatus403,
   HrListShiftCatalogStatus422,
 } from "./models/HrListShiftCatalog.js";
+export type {
+  HrListStatutoryTablesOptions,
+  HrListStatutoryTablesQuery,
+  HrListStatutoryTablesResponse,
+  HrListStatutoryTablesResponses,
+  HrListStatutoryTablesStatus200,
+  HrListStatutoryTablesStatus400,
+  HrListStatutoryTablesStatus401,
+  HrListStatutoryTablesStatus403,
+  HrListStatutoryTablesStatus404,
+  HrListStatutoryTablesStatus409,
+  HrListStatutoryTablesStatus422,
+} from "./models/HrListStatutoryTables.js";
+export type {
+  HrListTerminalPunchesOptions,
+  HrListTerminalPunchesQuery,
+  HrListTerminalPunchesResponse,
+  HrListTerminalPunchesResponses,
+  HrListTerminalPunchesStatus200,
+  HrListTerminalPunchesStatus400,
+  HrListTerminalPunchesStatus401,
+  HrListTerminalPunchesStatus403,
+  HrListTerminalPunchesStatus422,
+} from "./models/HrListTerminalPunches.js";
+export type {
+  HrListTerminalUsersOptions,
+  HrListTerminalUsersQuery,
+  HrListTerminalUsersResponse,
+  HrListTerminalUsersResponses,
+  HrListTerminalUsersStatus200,
+  HrListTerminalUsersStatus401,
+  HrListTerminalUsersStatus403,
+  HrListTerminalUsersStatus422,
+} from "./models/HrListTerminalUsers.js";
 export type {
   HrLoadProvisionalHolidaysBody,
   HrLoadProvisionalHolidaysOptions,
@@ -8928,6 +10127,7 @@ export type {
   HrProposeAttendanceCorrectionStatus422,
 } from "./models/HrProposeAttendanceCorrection.js";
 export type {
+  HrPublishPeriodBody,
   HrPublishPeriodOptions,
   HrPublishPeriodPath,
   HrPublishPeriodResponse,
@@ -8936,8 +10136,19 @@ export type {
   HrPublishPeriodStatus400,
   HrPublishPeriodStatus403,
   HrPublishPeriodStatus404,
+  HrPublishPeriodStatus409,
   HrPublishPeriodStatus422,
 } from "./models/HrPublishPeriod.js";
+export type {
+  HrPutDepartmentRuleSetBody,
+  HrPutDepartmentRuleSetOptions,
+  HrPutDepartmentRuleSetPath,
+  HrPutDepartmentRuleSetResponse,
+  HrPutDepartmentRuleSetResponses,
+  HrPutDepartmentRuleSetStatus200,
+  HrPutDepartmentRuleSetStatus403,
+  HrPutDepartmentRuleSetStatus422,
+} from "./models/HrPutDepartmentRuleSet.js";
 export type {
   HrPutDepartmentRulesBody,
   HrPutDepartmentRulesOptions,
@@ -8948,6 +10159,40 @@ export type {
   HrPutDepartmentRulesStatus403,
   HrPutDepartmentRulesStatus422,
 } from "./models/HrPutDepartmentRules.js";
+export type {
+  HrPutOrganisationRuleSetBody,
+  HrPutOrganisationRuleSetOptions,
+  HrPutOrganisationRuleSetPath,
+  HrPutOrganisationRuleSetResponse,
+  HrPutOrganisationRuleSetResponses,
+  HrPutOrganisationRuleSetStatus200,
+  HrPutOrganisationRuleSetStatus403,
+  HrPutOrganisationRuleSetStatus422,
+} from "./models/HrPutOrganisationRuleSet.js";
+export type {
+  HrPutRuleProfileBody,
+  HrPutRuleProfileOptions,
+  HrPutRuleProfilePath,
+  HrPutRuleProfileResponse,
+  HrPutRuleProfileResponses,
+  HrPutRuleProfileStatus200,
+  HrPutRuleProfileStatus403,
+  HrPutRuleProfileStatus404,
+  HrPutRuleProfileStatus422,
+} from "./models/HrPutRuleProfile.js";
+export type {
+  HrRefreshPayPeriodTableStateOptions,
+  HrRefreshPayPeriodTableStatePath,
+  HrRefreshPayPeriodTableStateResponse,
+  HrRefreshPayPeriodTableStateResponses,
+  HrRefreshPayPeriodTableStateStatus200,
+  HrRefreshPayPeriodTableStateStatus400,
+  HrRefreshPayPeriodTableStateStatus401,
+  HrRefreshPayPeriodTableStateStatus403,
+  HrRefreshPayPeriodTableStateStatus404,
+  HrRefreshPayPeriodTableStateStatus409,
+  HrRefreshPayPeriodTableStateStatus422,
+} from "./models/HrRefreshPayPeriodTableState.js";
 export type {
   HrRejectClockPunchBody,
   HrRejectClockPunchOptions,
@@ -8971,6 +10216,17 @@ export type {
   HrRemoveHolidayStatus422,
 } from "./models/HrRemoveHoliday.js";
 export type {
+  HrRemoveTerminalUserOptions,
+  HrRemoveTerminalUserPath,
+  HrRemoveTerminalUserResponse,
+  HrRemoveTerminalUserResponses,
+  HrRemoveTerminalUserStatus204,
+  HrRemoveTerminalUserStatus401,
+  HrRemoveTerminalUserStatus403,
+  HrRemoveTerminalUserStatus404,
+  HrRemoveTerminalUserStatus422,
+} from "./models/HrRemoveTerminalUser.js";
+export type {
   HrRenameOrganisationBody,
   HrRenameOrganisationOptions,
   HrRenameOrganisationPath,
@@ -8981,6 +10237,31 @@ export type {
   HrRenameOrganisationStatus404,
   HrRenameOrganisationStatus422,
 } from "./models/HrRenameOrganisation.js";
+export type {
+  HrReprocessTerminalPunchesBody,
+  HrReprocessTerminalPunchesOptions,
+  HrReprocessTerminalPunchesResponse,
+  HrReprocessTerminalPunchesResponses,
+  HrReprocessTerminalPunchesStatus200,
+  HrReprocessTerminalPunchesStatus400,
+  HrReprocessTerminalPunchesStatus401,
+  HrReprocessTerminalPunchesStatus403,
+  HrReprocessTerminalPunchesStatus422,
+} from "./models/HrReprocessTerminalPunches.js";
+export type {
+  HrReturnPayPeriodBody,
+  HrReturnPayPeriodOptions,
+  HrReturnPayPeriodPath,
+  HrReturnPayPeriodResponse,
+  HrReturnPayPeriodResponses,
+  HrReturnPayPeriodStatus200,
+  HrReturnPayPeriodStatus400,
+  HrReturnPayPeriodStatus401,
+  HrReturnPayPeriodStatus403,
+  HrReturnPayPeriodStatus404,
+  HrReturnPayPeriodStatus409,
+  HrReturnPayPeriodStatus422,
+} from "./models/HrReturnPayPeriod.js";
 export type { HrRolePublic } from "./models/HrRolePublic.js";
 export type {
   HrRotateClockSiteOptions,
@@ -9038,6 +10319,20 @@ export type {
   HrSetClockSiteActiveStatus422,
 } from "./models/HrSetClockSiteActive.js";
 export type {
+  HrSetStatutoryTableStateBody,
+  HrSetStatutoryTableStateOptions,
+  HrSetStatutoryTableStatePath,
+  HrSetStatutoryTableStateResponse,
+  HrSetStatutoryTableStateResponses,
+  HrSetStatutoryTableStateStatus200,
+  HrSetStatutoryTableStateStatus400,
+  HrSetStatutoryTableStateStatus401,
+  HrSetStatutoryTableStateStatus403,
+  HrSetStatutoryTableStateStatus404,
+  HrSetStatutoryTableStateStatus409,
+  HrSetStatutoryTableStateStatus422,
+} from "./models/HrSetStatutoryTableState.js";
+export type {
   HrSubmitAbsenteeReportBody,
   HrSubmitAbsenteeReportOptions,
   HrSubmitAbsenteeReportPath,
@@ -9087,6 +10382,19 @@ export type {
   HrSubmitParkingPermitStatus422,
 } from "./models/HrSubmitParkingPermit.js";
 export type {
+  HrSubmitPayPeriodOptions,
+  HrSubmitPayPeriodPath,
+  HrSubmitPayPeriodResponse,
+  HrSubmitPayPeriodResponses,
+  HrSubmitPayPeriodStatus200,
+  HrSubmitPayPeriodStatus400,
+  HrSubmitPayPeriodStatus401,
+  HrSubmitPayPeriodStatus403,
+  HrSubmitPayPeriodStatus404,
+  HrSubmitPayPeriodStatus409,
+  HrSubmitPayPeriodStatus422,
+} from "./models/HrSubmitPayPeriod.js";
+export type {
   HrSubmitShiftSwapBody,
   HrSubmitShiftSwapOptions,
   HrSubmitShiftSwapPath,
@@ -9120,6 +10428,7 @@ export type {
   HrSubmitTimesheetStatus400,
   HrSubmitTimesheetStatus403,
   HrSubmitTimesheetStatus404,
+  HrSubmitTimesheetStatus409,
   HrSubmitTimesheetStatus422,
 } from "./models/HrSubmitTimesheet.js";
 export type {
@@ -9132,6 +10441,7 @@ export type {
   HrTakeActionStatus400,
   HrTakeActionStatus403,
   HrTakeActionStatus404,
+  HrTakeActionStatus409,
   HrTakeActionStatus422,
 } from "./models/HrTakeAction.js";
 export type {
@@ -9170,6 +10480,20 @@ export type {
   HrUpdateDepartmentStatus404,
   HrUpdateDepartmentStatus422,
 } from "./models/HrUpdateDepartment.js";
+export type {
+  HrUpdateEmployeePayProfileBody,
+  HrUpdateEmployeePayProfileOptions,
+  HrUpdateEmployeePayProfilePath,
+  HrUpdateEmployeePayProfileResponse,
+  HrUpdateEmployeePayProfileResponses,
+  HrUpdateEmployeePayProfileStatus200,
+  HrUpdateEmployeePayProfileStatus400,
+  HrUpdateEmployeePayProfileStatus401,
+  HrUpdateEmployeePayProfileStatus403,
+  HrUpdateEmployeePayProfileStatus404,
+  HrUpdateEmployeePayProfileStatus409,
+  HrUpdateEmployeePayProfileStatus422,
+} from "./models/HrUpdateEmployeePayProfile.js";
 export type {
   HrUpdateHolidayBody,
   HrUpdateHolidayOptions,
@@ -9227,6 +10551,33 @@ export type {
   HrUpdateParkingPermitStatus404,
   HrUpdateParkingPermitStatus422,
 } from "./models/HrUpdateParkingPermit.js";
+export type {
+  HrUpdatePayrollDepartmentSettingBody,
+  HrUpdatePayrollDepartmentSettingOptions,
+  HrUpdatePayrollDepartmentSettingPath,
+  HrUpdatePayrollDepartmentSettingResponse,
+  HrUpdatePayrollDepartmentSettingResponses,
+  HrUpdatePayrollDepartmentSettingStatus200,
+  HrUpdatePayrollDepartmentSettingStatus400,
+  HrUpdatePayrollDepartmentSettingStatus401,
+  HrUpdatePayrollDepartmentSettingStatus403,
+  HrUpdatePayrollDepartmentSettingStatus404,
+  HrUpdatePayrollDepartmentSettingStatus409,
+  HrUpdatePayrollDepartmentSettingStatus422,
+} from "./models/HrUpdatePayrollDepartmentSetting.js";
+export type {
+  HrUpdatePayrollExportSettingsBody,
+  HrUpdatePayrollExportSettingsOptions,
+  HrUpdatePayrollExportSettingsResponse,
+  HrUpdatePayrollExportSettingsResponses,
+  HrUpdatePayrollExportSettingsStatus200,
+  HrUpdatePayrollExportSettingsStatus400,
+  HrUpdatePayrollExportSettingsStatus401,
+  HrUpdatePayrollExportSettingsStatus403,
+  HrUpdatePayrollExportSettingsStatus404,
+  HrUpdatePayrollExportSettingsStatus409,
+  HrUpdatePayrollExportSettingsStatus422,
+} from "./models/HrUpdatePayrollExportSettings.js";
 export type {
   HrUpdateProductPolicyBody,
   HrUpdateProductPolicyOptions,
@@ -9395,6 +10746,7 @@ export type { InvoiceStatus } from "./models/InvoiceStatus.js";
 export { invoiceStatus } from "./models/InvoiceStatus.js";
 export type { InvoiceSummaryPublic } from "./models/InvoiceSummaryPublic.js";
 export type { InvoiceVoid } from "./models/InvoiceVoid.js";
+export type { IssuedProducts } from "./models/IssuedProducts.js";
 export type { ItemCreate } from "./models/ItemCreate.js";
 export type { ItemListPublic } from "./models/ItemListPublic.js";
 export type { ItemPublic } from "./models/ItemPublic.js";
@@ -9769,6 +11121,7 @@ export type { ListingUpsertPropertiesVisibilityEnum } from "./models/ListingUpse
 export { listingUpsertPropertiesVisibilityEnum } from "./models/ListingUpsertPropertiesVisibilityEnum.js";
 export type { LocationCreate } from "./models/LocationCreate.js";
 export type { LocationListPublic } from "./models/LocationListPublic.js";
+export type { LocationOut } from "./models/LocationOut.js";
 export type { LocationPublic } from "./models/LocationPublic.js";
 export type { LocationUpdate } from "./models/LocationUpdate.js";
 export type { ManagedListing } from "./models/ManagedListing.js";
@@ -9878,6 +11231,8 @@ export type {
 } from "./models/ModelsListOrganisations.js";
 export type { MovementKind } from "./models/MovementKind.js";
 export { movementKind } from "./models/MovementKind.js";
+export type { MyDeductionPublic } from "./models/MyDeductionPublic.js";
+export type { MyDeductionsPublic } from "./models/MyDeductionsPublic.js";
 export type { MyMembershipPublic } from "./models/MyMembershipPublic.js";
 export type { MyProfile } from "./models/MyProfile.js";
 export type { MyProfilePropertiesIntentsItemsEnum } from "./models/MyProfilePropertiesIntentsItemsEnum.js";
@@ -9900,6 +11255,10 @@ export type { NhcJobPropertiesKindEnum } from "./models/NhcJobPropertiesKindEnum
 export { nhcJobPropertiesKindEnum } from "./models/NhcJobPropertiesKindEnum.js";
 export type { NhcJobPropertiesStatusEnum } from "./models/NhcJobPropertiesStatusEnum.js";
 export { nhcJobPropertiesStatusEnum } from "./models/NhcJobPropertiesStatusEnum.js";
+export type { NhcMarineGuidance } from "./models/NhcMarineGuidance.js";
+export type { NhcMarineGuidancePropertiesStatusEnum } from "./models/NhcMarineGuidancePropertiesStatusEnum.js";
+export { nhcMarineGuidancePropertiesStatusEnum } from "./models/NhcMarineGuidancePropertiesStatusEnum.js";
+export type { NhcMarinePeriod } from "./models/NhcMarinePeriod.js";
 export type { NhcPage } from "./models/NhcPage.js";
 export type { NhcPointRequest } from "./models/NhcPointRequest.js";
 export type { NhcPrefill } from "./models/NhcPrefill.js";
@@ -10587,6 +11946,7 @@ export type { OutlookProductPreviewInput } from "./models/OutlookProductPreviewI
 export type { OutlookProductWrite } from "./models/OutlookProductWrite.js";
 export type { OutlookStoredProduct } from "./models/OutlookStoredProduct.js";
 export type { OutlookValuesDraft } from "./models/OutlookValuesDraft.js";
+export type { OvertimeBandPublic } from "./models/OvertimeBandPublic.js";
 export type { PageFeedbackAccepted } from "./models/PageFeedbackAccepted.js";
 export type { PageFeedbackCreate } from "./models/PageFeedbackCreate.js";
 export type { PaginatedResponseAuditEntryPublic } from "./models/PaginatedResponseAuditEntryPublic.js";
@@ -10609,6 +11969,31 @@ export type { ParkingPermitPublic } from "./models/ParkingPermitPublic.js";
 export type { ParkingPermitSubmit } from "./models/ParkingPermitSubmit.js";
 export type { PassportStopPublic } from "./models/PassportStopPublic.js";
 export type { PassportTrailPublic } from "./models/PassportTrailPublic.js";
+export type { PayBasis } from "./models/PayBasis.js";
+export { payBasis } from "./models/PayBasis.js";
+export type { PayCalendarCreate } from "./models/PayCalendarCreate.js";
+export type { PayCalendarPublic } from "./models/PayCalendarPublic.js";
+export type { PayCalendarsPublic } from "./models/PayCalendarsPublic.js";
+export type { PayFrequency } from "./models/PayFrequency.js";
+export { payFrequency } from "./models/PayFrequency.js";
+export type { PayItemKind } from "./models/PayItemKind.js";
+export { payItemKind } from "./models/PayItemKind.js";
+export type { PayItemMethod } from "./models/PayItemMethod.js";
+export { payItemMethod } from "./models/PayItemMethod.js";
+export type { PayItemPublic } from "./models/PayItemPublic.js";
+export type { PayItemRateCreate } from "./models/PayItemRateCreate.js";
+export type { PayItemRatePublic } from "./models/PayItemRatePublic.js";
+export type { PayItemRatesPublic } from "./models/PayItemRatesPublic.js";
+export type { PayItemsPublic } from "./models/PayItemsPublic.js";
+export type { PayItemTotal } from "./models/PayItemTotal.js";
+export type { PayItemUnit } from "./models/PayItemUnit.js";
+export { payItemUnit } from "./models/PayItemUnit.js";
+export type { PayLineAmountPublic } from "./models/PayLineAmountPublic.js";
+export type { PayLineKind } from "./models/PayLineKind.js";
+export { payLineKind } from "./models/PayLineKind.js";
+export type { PayLineManualCreate } from "./models/PayLineManualCreate.js";
+export type { PayLinePublic } from "./models/PayLinePublic.js";
+export type { PayLinesPublic } from "./models/PayLinesPublic.js";
 export type { PaymentAttemptPublic } from "./models/PaymentAttemptPublic.js";
 export type { PaymentBalanceListPublic } from "./models/PaymentBalanceListPublic.js";
 export type { PaymentBalancePublic } from "./models/PaymentBalancePublic.js";
@@ -10772,6 +12157,25 @@ export type {
   PaymentsRecordManualPaymentStatus409,
   PaymentsRecordManualPaymentStatus422,
 } from "./models/PaymentsRecordManualPayment.js";
+export type { PayPeriodAmountsPublic } from "./models/PayPeriodAmountsPublic.js";
+export type { PayPeriodCreate } from "./models/PayPeriodCreate.js";
+export type { PayPeriodDetail } from "./models/PayPeriodDetail.js";
+export type { PayPeriodPublic } from "./models/PayPeriodPublic.js";
+export type { PayPeriodReturn } from "./models/PayPeriodReturn.js";
+export type { PayPeriodReview } from "./models/PayPeriodReview.js";
+export type { PayPeriodStatus } from "./models/PayPeriodStatus.js";
+export { payPeriodStatus } from "./models/PayPeriodStatus.js";
+export type { PayPeriodsPublic } from "./models/PayPeriodsPublic.js";
+export type { PayRunKind } from "./models/PayRunKind.js";
+export { payRunKind } from "./models/PayRunKind.js";
+export type { PayrollDepartmentSettingPublic } from "./models/PayrollDepartmentSettingPublic.js";
+export type { PayrollDepartmentSettingsPublic } from "./models/PayrollDepartmentSettingsPublic.js";
+export type { PayrollDepartmentSettingUpdate } from "./models/PayrollDepartmentSettingUpdate.js";
+export type { PayrollExportSettingsPublic } from "./models/PayrollExportSettingsPublic.js";
+export type { PayrollExportSettingsUpdate } from "./models/PayrollExportSettingsUpdate.js";
+export type { PaySummaryPublic } from "./models/PaySummaryPublic.js";
+export type { PayslipPublic } from "./models/PayslipPublic.js";
+export type { PayslipsPublic } from "./models/PayslipsPublic.js";
 export type { PermissionCreate } from "./models/PermissionCreate.js";
 export type { PermissionPublic } from "./models/PermissionPublic.js";
 export type { PersonChip } from "./models/PersonChip.js";
@@ -10792,6 +12196,9 @@ export type { PostIn } from "./models/PostIn.js";
 export type { PostponeEvent } from "./models/PostponeEvent.js";
 export type { PostponeResult } from "./models/PostponeResult.js";
 export type { PreferencesUnsubscribeRequest } from "./models/PreferencesUnsubscribeRequest.js";
+export type { PrincipalPhase } from "./models/PrincipalPhase.js";
+export type { PrincipalPhasePropertiesPhaseEnum } from "./models/PrincipalPhasePropertiesPhaseEnum.js";
+export { principalPhasePropertiesPhaseEnum } from "./models/PrincipalPhasePropertiesPhaseEnum.js";
 export type { ProductAccessCurrent } from "./models/ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./models/ProductAccessInput.js";
 export type { ProductAccessPublic } from "./models/ProductAccessPublic.js";
@@ -10807,6 +12214,81 @@ export type { ProfileAuditPublic } from "./models/ProfileAuditPublic.js";
 export type { ProfileDetailsPublic } from "./models/ProfileDetailsPublic.js";
 export type { ProfileDetailsUpdate } from "./models/ProfileDetailsUpdate.js";
 export type { ProfileIdentityPublic } from "./models/ProfileIdentityPublic.js";
+export type { ProfileImagePublic } from "./models/ProfileImagePublic.js";
+export type { ProfileImageSize } from "./models/ProfileImageSize.js";
+export { profileImageSize } from "./models/ProfileImageSize.js";
+export type {
+  ProfileImagesGetMineOptions,
+  ProfileImagesGetMineResponse,
+  ProfileImagesGetMineResponses,
+  ProfileImagesGetMineStatus200,
+  ProfileImagesGetMineStatus401,
+  ProfileImagesGetMineStatus403,
+  ProfileImagesGetMineStatus404,
+  ProfileImagesGetMineStatus422,
+} from "./models/ProfileImagesGetMine.js";
+export type {
+  ProfileImagesRemoveOptions,
+  ProfileImagesRemovePath,
+  ProfileImagesRemoveResponse,
+  ProfileImagesRemoveResponses,
+  ProfileImagesRemoveStatus204,
+  ProfileImagesRemoveStatus401,
+  ProfileImagesRemoveStatus403,
+  ProfileImagesRemoveStatus404,
+  ProfileImagesRemoveStatus422,
+} from "./models/ProfileImagesRemove.js";
+export type {
+  ProfileImagesRemoveMineOptions,
+  ProfileImagesRemoveMineResponse,
+  ProfileImagesRemoveMineResponses,
+  ProfileImagesRemoveMineStatus204,
+  ProfileImagesRemoveMineStatus401,
+  ProfileImagesRemoveMineStatus403,
+  ProfileImagesRemoveMineStatus404,
+  ProfileImagesRemoveMineStatus422,
+} from "./models/ProfileImagesRemoveMine.js";
+export type {
+  ProfileImagesSetMineBody,
+  ProfileImagesSetMineBodyJpeg,
+  ProfileImagesSetMineBodyPng,
+  ProfileImagesSetMineBodyWebp,
+  ProfileImagesSetMineOptions,
+  ProfileImagesSetMineResponse,
+  ProfileImagesSetMineResponses,
+  ProfileImagesSetMineStatus200,
+  ProfileImagesSetMineStatus401,
+  ProfileImagesSetMineStatus403,
+  ProfileImagesSetMineStatus413,
+  ProfileImagesSetMineStatus415,
+  ProfileImagesSetMineStatus422,
+  ProfileImagesSetMineStatus503,
+} from "./models/ProfileImagesSetMine.js";
+export type {
+  ProfileImagesShowOptions,
+  ProfileImagesShowPath,
+  ProfileImagesShowQuery,
+  ProfileImagesShowResponse,
+  ProfileImagesShowResponses,
+  ProfileImagesShowStatus307,
+  ProfileImagesShowStatus401,
+  ProfileImagesShowStatus403,
+  ProfileImagesShowStatus404,
+  ProfileImagesShowStatus422,
+  ProfileImagesShowStatus503,
+} from "./models/ProfileImagesShow.js";
+export type {
+  ProfileImagesShowMineOptions,
+  ProfileImagesShowMineQuery,
+  ProfileImagesShowMineResponse,
+  ProfileImagesShowMineResponses,
+  ProfileImagesShowMineStatus307,
+  ProfileImagesShowMineStatus401,
+  ProfileImagesShowMineStatus403,
+  ProfileImagesShowMineStatus404,
+  ProfileImagesShowMineStatus422,
+  ProfileImagesShowMineStatus503,
+} from "./models/ProfileImagesShowMine.js";
 export type { ProfilePublic } from "./models/ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./models/ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./models/ProfilePublicPropertiesConnectionStateEnum.js";
@@ -10884,6 +12366,8 @@ export type {
 } from "./models/PushVapidPublicKey.js";
 export type { QcDecisionBody } from "./models/QcDecisionBody.js";
 export type { QcDecisionRequest } from "./models/QcDecisionRequest.js";
+export type { RateKind } from "./models/RateKind.js";
+export { rateKind } from "./models/RateKind.js";
 export type { ReadinessUnavailable } from "./models/ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./models/ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./models/ReceivablesPublic.js";
@@ -10929,6 +12413,8 @@ export type { RequisitionStatus } from "./models/RequisitionStatus.js";
 export { requisitionStatus } from "./models/RequisitionStatus.js";
 export type { RequisitionUpdate } from "./models/RequisitionUpdate.js";
 export type { ReviewAssignment } from "./models/ReviewAssignment.js";
+export type { ReviewDayRequest } from "./models/ReviewDayRequest.js";
+export type { ReviewDayResult } from "./models/ReviewDayResult.js";
 export type { ReviewInput } from "./models/ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
 export { reviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
@@ -11540,14 +13026,29 @@ export { rosterPeriodStatus } from "./models/RosterPeriodStatus.js";
 export type { RosterPeriodsPublic } from "./models/RosterPeriodsPublic.js";
 export type { RosterPreferencesPublic } from "./models/RosterPreferencesPublic.js";
 export type { RosterPreferencesUpdate } from "./models/RosterPreferencesUpdate.js";
+export type { RosterPublishRequest } from "./models/RosterPublishRequest.js";
 export type { RosterRevisionAction } from "./models/RosterRevisionAction.js";
 export { rosterRevisionAction } from "./models/RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./models/RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./models/RosterRevisionsPublic.js";
 export type { RosterRuleCheckPublic } from "./models/RosterRuleCheckPublic.js";
+export type { RosterRuleOverridePublic } from "./models/RosterRuleOverridePublic.js";
+export type { RosterRuleOverridesPublic } from "./models/RosterRuleOverridesPublic.js";
+export type { RosterRuleProfilePublic } from "./models/RosterRuleProfilePublic.js";
+export type { RosterRuleProfilesPublic } from "./models/RosterRuleProfilesPublic.js";
+export type { RosterRuleProfileUpdate } from "./models/RosterRuleProfileUpdate.js";
+export type { RosterRuleSetPublic } from "./models/RosterRuleSetPublic.js";
+export type { RosterRuleSetUpdate } from "./models/RosterRuleSetUpdate.js";
 export type { RosterRulesPublic } from "./models/RosterRulesPublic.js";
 export type { RosterRulesUpdate } from "./models/RosterRulesUpdate.js";
+export type { RosterRuleWarningsErrorPublic } from "./models/RosterRuleWarningsErrorPublic.js";
 export type { RouteView } from "./models/RouteView.js";
+export type { RuleOverrideContext } from "./models/RuleOverrideContext.js";
+export { ruleOverrideContext } from "./models/RuleOverrideContext.js";
+export type { RuleSetSource } from "./models/RuleSetSource.js";
+export { ruleSetSource } from "./models/RuleSetSource.js";
+export type { RuleState } from "./models/RuleState.js";
+export { ruleState } from "./models/RuleState.js";
 export type { RuleViolationPublic } from "./models/RuleViolationPublic.js";
 export type { RunFinish } from "./models/RunFinish.js";
 export type { RunFinishPropertiesStatusEnum } from "./models/RunFinishPropertiesStatusEnum.js";
@@ -11617,7 +13118,10 @@ export type { SignatureInput } from "./models/SignatureInput.js";
 export type { SignaturePublic } from "./models/SignaturePublic.js";
 export type { SignedDocumentList } from "./models/SignedDocumentList.js";
 export type { SignedDocumentPublic } from "./models/SignedDocumentPublic.js";
+export type { SignInSetupIssue } from "./models/SignInSetupIssue.js";
 export type { SiteSubscribeRequest } from "./models/SiteSubscribeRequest.js";
+export type { SocialInsuranceSchemeCreate } from "./models/SocialInsuranceSchemeCreate.js";
+export type { SocialInsuranceSchemePublic } from "./models/SocialInsuranceSchemePublic.js";
 export type { StaffCard } from "./models/StaffCard.js";
 export type { StaffCreate } from "./models/StaffCreate.js";
 export type { StaffEventRow } from "./models/StaffEventRow.js";
@@ -11646,6 +13150,7 @@ export type { StatusReportPublic } from "./models/StatusReportPublic.js";
 export type { StatusReportSubmit } from "./models/StatusReportSubmit.js";
 export type { StatusStaffingEntry } from "./models/StatusStaffingEntry.js";
 export type { StatusStaffingPublic } from "./models/StatusStaffingPublic.js";
+export type { StatutoryTablesPublic } from "./models/StatutoryTablesPublic.js";
 export type { StockLevelListPublic } from "./models/StockLevelListPublic.js";
 export type { StockLevelPublic } from "./models/StockLevelPublic.js";
 export type { StockMovementCreate } from "./models/StockMovementCreate.js";
@@ -12042,17 +13547,42 @@ export type { SynopDecoded } from "./models/SynopDecoded.js";
 export type { SynopticImageGroup } from "./models/SynopticImageGroup.js";
 export type { SynopticImageGroups } from "./models/SynopticImageGroups.js";
 export type { SynopticSlots } from "./models/SynopticSlots.js";
+export type { SynopValidationErrorDetail } from "./models/SynopValidationErrorDetail.js";
 export type { SynopValidationIssue } from "./models/SynopValidationIssue.js";
 export type { SynopValidationRequest } from "./models/SynopValidationRequest.js";
 export type { SynopValidationResponse } from "./models/SynopValidationResponse.js";
 export type { SynopWorkbook } from "./models/SynopWorkbook.js";
+export type { TableState } from "./models/TableState.js";
+export { tableState } from "./models/TableState.js";
+export type { TableStatePublic } from "./models/TableStatePublic.js";
+export type { TableStateUpdate } from "./models/TableStateUpdate.js";
 export type { TaskCreate } from "./models/TaskCreate.js";
 export type { TaskUpdate } from "./models/TaskUpdate.js";
 export type { TaskView } from "./models/TaskView.js";
+export type { TaxBandCreate } from "./models/TaxBandCreate.js";
+export type { TaxBandPublic } from "./models/TaxBandPublic.js";
+export type { TaxMethod } from "./models/TaxMethod.js";
+export { taxMethod } from "./models/TaxMethod.js";
+export type { TaxTableCreate } from "./models/TaxTableCreate.js";
+export type { TaxTablePublic } from "./models/TaxTablePublic.js";
 export type { TeamCapabilitiesPublic } from "./models/TeamCapabilitiesPublic.js";
 export type { TeamMemberGrantPublic } from "./models/TeamMemberGrantPublic.js";
 export type { TeamMemberListPublic } from "./models/TeamMemberListPublic.js";
 export type { TeamMemberPublic } from "./models/TeamMemberPublic.js";
+export type { TerminalAttentionOutcome } from "./models/TerminalAttentionOutcome.js";
+export { terminalAttentionOutcome } from "./models/TerminalAttentionOutcome.js";
+export type { TerminalImportErrorPublic } from "./models/TerminalImportErrorPublic.js";
+export type { TerminalImportPublic } from "./models/TerminalImportPublic.js";
+export type { TerminalOutcomeCounts } from "./models/TerminalOutcomeCounts.js";
+export type { TerminalPunchesPublic } from "./models/TerminalPunchesPublic.js";
+export type { TerminalPunchOutcome } from "./models/TerminalPunchOutcome.js";
+export { terminalPunchOutcome } from "./models/TerminalPunchOutcome.js";
+export type { TerminalPunchPublic } from "./models/TerminalPunchPublic.js";
+export type { TerminalReprocessPublic } from "./models/TerminalReprocessPublic.js";
+export type { TerminalReprocessRequest } from "./models/TerminalReprocessRequest.js";
+export type { TerminalUserCreate } from "./models/TerminalUserCreate.js";
+export type { TerminalUserPublic } from "./models/TerminalUserPublic.js";
+export type { TerminalUsersPublic } from "./models/TerminalUsersPublic.js";
 export type { ThreadCreate } from "./models/ThreadCreate.js";
 export type { ThreadDetail } from "./models/ThreadDetail.js";
 export type { ThreadDetailPropertiesKindEnum } from "./models/ThreadDetailPropertiesKindEnum.js";
@@ -12060,6 +13590,10 @@ export { threadDetailPropertiesKindEnum } from "./models/ThreadDetailPropertiesK
 export type { ThreadSummary } from "./models/ThreadSummary.js";
 export type { TicketDetail } from "./models/TicketDetail.js";
 export type { TicketSummary } from "./models/TicketSummary.js";
+export type { TideEvent } from "./models/TideEvent.js";
+export type { TideEventPropertiesEventTypeEnum } from "./models/TideEventPropertiesEventTypeEnum.js";
+export { tideEventPropertiesEventTypeEnum } from "./models/TideEventPropertiesEventTypeEnum.js";
+export type { TidesResponse } from "./models/TidesResponse.js";
 export type { TierInput } from "./models/TierInput.js";
 export type { TierPublic } from "./models/TierPublic.js";
 export type { TillClose } from "./models/TillClose.js";
@@ -12067,6 +13601,8 @@ export type { TillOpen } from "./models/TillOpen.js";
 export type { TillPublic } from "./models/TillPublic.js";
 export type { TillPublicPropertiesStatusEnum } from "./models/TillPublicPropertiesStatusEnum.js";
 export { tillPublicPropertiesStatusEnum } from "./models/TillPublicPropertiesStatusEnum.js";
+export type { TimeOfDay } from "./models/TimeOfDay.js";
+export type { TimesheetApproveRequest } from "./models/TimesheetApproveRequest.js";
 export type { TimesheetCreate } from "./models/TimesheetCreate.js";
 export type { TimesheetDetails } from "./models/TimesheetDetails.js";
 export type { TimesheetEntryInput } from "./models/TimesheetEntryInput.js";
@@ -12547,6 +14083,8 @@ export type {
   WebhooksOutUpdateEndpointStatus422,
 } from "./models/WebhooksOutUpdateEndpoint.js";
 export type { WebhookTestResult } from "./models/WebhookTestResult.js";
+export type { WorkerType } from "./models/WorkerType.js";
+export { workerType } from "./models/WorkerType.js";
 export type { WorkflowAction } from "./models/WorkflowAction.js";
 export { workflowAction } from "./models/WorkflowAction.js";
 export type { WorkflowActionRequest } from "./models/WorkflowActionRequest.js";
@@ -12573,6 +14111,8 @@ export type { WorkingDayHoliday } from "./models/WorkingDayHoliday.js";
 export type { WorkingDaysPublic } from "./models/WorkingDaysPublic.js";
 export type { WorkingDaysPublicPropertiesMethodEnum } from "./models/WorkingDaysPublicPropertiesMethodEnum.js";
 export { workingDaysPublicPropertiesMethodEnum } from "./models/WorkingDaysPublicPropertiesMethodEnum.js";
+export type { WorkPattern } from "./models/WorkPattern.js";
+export { workPattern } from "./models/WorkPattern.js";
 export type {
   WxproductsCreateTropicalSystemBody,
   WxproductsCreateTropicalSystemOptions,
@@ -12605,6 +14145,15 @@ export type {
   WxproductsGetPublicTropicalSystemStatus422,
   WxproductsGetPublicTropicalSystemStatus503,
 } from "./models/WxproductsGetPublicTropicalSystem.js";
+export type {
+  WxproductsListIssuedProductsOptions,
+  WxproductsListIssuedProductsQuery,
+  WxproductsListIssuedProductsResponse,
+  WxproductsListIssuedProductsResponses,
+  WxproductsListIssuedProductsStatus200,
+  WxproductsListIssuedProductsStatus422,
+  WxproductsListIssuedProductsStatus503,
+} from "./models/WxproductsListIssuedProducts.js";
 export type {
   WxproductsListPublicProductsOptions,
   WxproductsListPublicProductsQuery,
@@ -12738,6 +14287,16 @@ export type {
   WxproductsPublicForecastStatus422,
   WxproductsPublicForecastStatus503,
 } from "./models/WxproductsPublicForecast.js";
+export type {
+  WxproductsPublicProductPdfOptions,
+  WxproductsPublicProductPdfPath,
+  WxproductsPublicProductPdfResponse,
+  WxproductsPublicProductPdfResponses,
+  WxproductsPublicProductPdfStatus200,
+  WxproductsPublicProductPdfStatus404,
+  WxproductsPublicProductPdfStatus422,
+  WxproductsPublicProductPdfStatus503,
+} from "./models/WxproductsPublicProductPdf.js";
 export type {
   WxproductsPublicSectorOutlookOptions,
   WxproductsPublicSectorOutlookQuery,
@@ -12903,6 +14462,17 @@ export type {
   WxwatchLatestStatus422,
 } from "./models/WxwatchLatest.js";
 export type {
+  WxwatchMarineGuidanceOptions,
+  WxwatchMarineGuidanceResponse,
+  WxwatchMarineGuidanceResponses,
+  WxwatchMarineGuidanceStatus200,
+  WxwatchMarineGuidanceStatus401,
+  WxwatchMarineGuidanceStatus403,
+  WxwatchMarineGuidanceStatus404,
+  WxwatchMarineGuidanceStatus422,
+  WxwatchMarineGuidanceStatus503,
+} from "./models/WxwatchMarineGuidance.js";
+export type {
   WxwatchMetadataOptions,
   WxwatchMetadataQuery,
   WxwatchMetadataResponse,
@@ -13054,6 +14624,27 @@ export { ageingBucketPublicSchema } from "./zod/ageingBucketPublicSchema.js";
 export { ageingBucketSchema } from "./zod/ageingBucketSchema.js";
 export { airResponseSchema } from "./zod/airResponseSchema.js";
 export { airRowSchema } from "./zod/airRowSchema.js";
+export { almanacGetAstronomyParametersSchemaEnumSchema } from "./zod/almanacGetAstronomyParametersSchemaEnumSchema.js";
+export {
+  almanacGetAstronomyErrorSchema,
+  almanacGetAstronomyQueryFromSchema,
+  almanacGetAstronomyQueryLocationSchema,
+  almanacGetAstronomyQuerySchema,
+  almanacGetAstronomyQueryToSchema,
+  almanacGetAstronomyResponseSchema,
+  almanacGetAstronomyStatus200Schema,
+  almanacGetAstronomyStatus422Schema,
+} from "./zod/almanacGetAstronomySchema.js";
+export {
+  almanacGetTidesErrorSchema,
+  almanacGetTidesQueryFromSchema,
+  almanacGetTidesQuerySchema,
+  almanacGetTidesQueryStationSchema,
+  almanacGetTidesQueryToSchema,
+  almanacGetTidesResponseSchema,
+  almanacGetTidesStatus200Schema,
+  almanacGetTidesStatus422Schema,
+} from "./zod/almanacGetTidesSchema.js";
 export { announcementPublicSchema } from "./zod/announcementPublicSchema.js";
 export { apiErrorSchema } from "./zod/apiErrorSchema.js";
 export { apiKeyCreatedSchema } from "./zod/apiKeyCreatedSchema.js";
@@ -13091,6 +14682,8 @@ export { areaCreatePropertiesSpaceTypeAnyOfEnumSchema } from "./zod/areaCreatePr
 export { areaCreateSchema } from "./zod/areaCreateSchema.js";
 export { areaUpdateSchema } from "./zod/areaUpdateSchema.js";
 export { areaViewSchema } from "./zod/areaViewSchema.js";
+export { astronomyDaySchema } from "./zod/astronomyDaySchema.js";
+export { astronomyResponseSchema } from "./zod/astronomyResponseSchema.js";
 export { attemptStatusSchema } from "./zod/attemptStatusSchema.js";
 export { attendanceCorrectionCreateSchema } from "./zod/attendanceCorrectionCreateSchema.js";
 export { attendanceCorrectionPublicSchema } from "./zod/attendanceCorrectionPublicSchema.js";
@@ -13122,7 +14715,6 @@ export {
   authAccountEmailCodeStartStatus200Schema,
   authAccountEmailCodeStartStatus422Schema,
   authAccountEmailCodeStartStatus429Schema,
-  authAccountEmailCodeStartStatus503Schema,
 } from "./zod/authAccountEmailCodeStartSchema.js";
 export {
   authAccountEmailCodeVerifyBodySchema,
@@ -13640,6 +15232,20 @@ export {
   authIssueActivationStatus422Schema,
 } from "./zod/authIssueActivationSchema.js";
 export {
+  authIssueSignInSetupBodySchema,
+  authIssueSignInSetupErrorSchema,
+  authIssueSignInSetupPathSchema,
+  authIssueSignInSetupPathUserIdSchema,
+  authIssueSignInSetupResponseSchema,
+  authIssueSignInSetupStatus201Schema,
+  authIssueSignInSetupStatus400Schema,
+  authIssueSignInSetupStatus403Schema,
+  authIssueSignInSetupStatus404Schema,
+  authIssueSignInSetupStatus409Schema,
+  authIssueSignInSetupStatus422Schema,
+  authIssueSignInSetupStatus429Schema,
+} from "./zod/authIssueSignInSetupSchema.js";
+export {
   authJoinAccountAppBodySchema,
   authJoinAccountAppErrorSchema,
   authJoinAccountAppPathAppSchema,
@@ -13746,9 +15352,9 @@ export {
   authRegisterUserBodySchema,
   authRegisterUserErrorSchema,
   authRegisterUserResponseSchema,
-  authRegisterUserStatus201Schema,
-  authRegisterUserStatus400Schema,
+  authRegisterUserStatus200Schema,
   authRegisterUserStatus422Schema,
+  authRegisterUserStatus429Schema,
 } from "./zod/authRegisterUserSchema.js";
 export {
   authReplaceRecoveryCodesBodySchema,
@@ -13793,6 +15399,16 @@ export {
   authRevokeSecuritySessionStatus404Schema,
   authRevokeSecuritySessionStatus422Schema,
 } from "./zod/authRevokeSecuritySessionSchema.js";
+export {
+  authRevokeSignInSetupErrorSchema,
+  authRevokeSignInSetupPathSchema,
+  authRevokeSignInSetupPathUserIdSchema,
+  authRevokeSignInSetupResponseSchema,
+  authRevokeSignInSetupStatus204Schema,
+  authRevokeSignInSetupStatus403Schema,
+  authRevokeSignInSetupStatus404Schema,
+  authRevokeSignInSetupStatus422Schema,
+} from "./zod/authRevokeSignInSetupSchema.js";
 export {
   authTwofaActivateBodySchema,
   authTwofaActivateErrorSchema,
@@ -14067,7 +15683,9 @@ export {
   billingVoidInvoiceStatus409Schema,
   billingVoidInvoiceStatus422Schema,
 } from "./zod/billingVoidInvoiceSchema.js";
+export { binaryFileSchema } from "./zod/binaryFileSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./zod/bodyAuthLoginAccessTokenSchema.js";
+export { bodyHrImportTerminalPunchesSchema } from "./zod/bodyHrImportTerminalPunchesSchema.js";
 export { bodyHrUploadDocumentSchema } from "./zod/bodyHrUploadDocumentSchema.js";
 export { bookingAgendaDaySchema } from "./zod/bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
@@ -14613,6 +16231,7 @@ export { bookingWorkingHoursUpdateSchema } from "./zod/bookingWorkingHoursUpdate
 export { bookingWorkingPeriodInSchema } from "./zod/bookingWorkingPeriodInSchema.js";
 export { bookingWorkingPeriodPublicSchema } from "./zod/bookingWorkingPeriodPublicSchema.js";
 export { browserSessionSchema } from "./zod/browserSessionSchema.js";
+export { bufrOverrideRequestSchema } from "./zod/bufrOverrideRequestSchema.js";
 export { buildingCreatePropertiesKindEnumSchema } from "./zod/buildingCreatePropertiesKindEnumSchema.js";
 export { buildingCreateSchema } from "./zod/buildingCreateSchema.js";
 export { buildingUpdateSchema } from "./zod/buildingUpdateSchema.js";
@@ -14632,7 +16251,9 @@ export { capAlertCreateSchema } from "./zod/capAlertCreateSchema.js";
 export { capAlertImportRequestPropertiesSourceEnumSchema } from "./zod/capAlertImportRequestPropertiesSourceEnumSchema.js";
 export { capAlertImportRequestSchema } from "./zod/capAlertImportRequestSchema.js";
 export { capAlertListPublicSchema } from "./zod/capAlertListPublicSchema.js";
+export { capAlertListPublicViewSchema } from "./zod/capAlertListPublicViewSchema.js";
 export { capAlertPublicSchema } from "./zod/capAlertPublicSchema.js";
+export { capAlertPublicViewSchema } from "./zod/capAlertPublicViewSchema.js";
 export { capAlertUpdateSchema } from "./zod/capAlertUpdateSchema.js";
 export {
   capApproveAlertBodySchema,
@@ -14675,8 +16296,10 @@ export {
   capCancelAlertStatus422Schema,
 } from "./zod/capCancelAlertSchema.js";
 export { capCatalogsPublicSchema } from "./zod/capCatalogsPublicSchema.js";
+export { capCategoryLabelPublicSchema } from "./zod/capCategoryLabelPublicSchema.js";
 export { capCategorySchema } from "./zod/capCategorySchema.js";
 export { capCertaintySchema } from "./zod/capCertaintySchema.js";
+export { capColourRulePublicSchema } from "./zod/capColourRulePublicSchema.js";
 export {
   capCreateAlertBodySchema,
   capCreateAlertErrorSchema,
@@ -14789,6 +16412,18 @@ export {
   capExpireAlertStatus404Schema,
   capExpireAlertStatus422Schema,
 } from "./zod/capExpireAlertSchema.js";
+export {
+  capExportStatisticsCsvErrorSchema,
+  capExportStatisticsCsvQueryEndSchema,
+  capExportStatisticsCsvQueryHazardSchema,
+  capExportStatisticsCsvQuerySchema,
+  capExportStatisticsCsvQueryStartSchema,
+  capExportStatisticsCsvResponseSchema,
+  capExportStatisticsCsvStatus200Schema,
+  capExportStatisticsCsvStatus401Schema,
+  capExportStatisticsCsvStatus403Schema,
+  capExportStatisticsCsvStatus422Schema,
+} from "./zod/capExportStatisticsCsvSchema.js";
 export { capFeedImportCreateSchema } from "./zod/capFeedImportCreateSchema.js";
 export { capFeedImportPublicSchema } from "./zod/capFeedImportPublicSchema.js";
 export { capFeedImportUpdateSchema } from "./zod/capFeedImportUpdateSchema.js";
@@ -14798,6 +16433,17 @@ export {
   capGetActiveMapStatus200Schema,
   capGetActiveMapStatus422Schema,
 } from "./zod/capGetActiveMapSchema.js";
+export {
+  capGetAlertByIdentifierErrorSchema,
+  capGetAlertByIdentifierPathIdentifierSchema,
+  capGetAlertByIdentifierPathSchema,
+  capGetAlertByIdentifierResponseSchema,
+  capGetAlertByIdentifierStatus200Schema,
+  capGetAlertByIdentifierStatus401Schema,
+  capGetAlertByIdentifierStatus403Schema,
+  capGetAlertByIdentifierStatus404Schema,
+  capGetAlertByIdentifierStatus422Schema,
+} from "./zod/capGetAlertByIdentifierSchema.js";
 export {
   capGetAlertErrorSchema,
   capGetAlertPathAlertIdSchema,
@@ -14883,6 +16529,14 @@ export {
   capGetFeedsStatus422Schema,
 } from "./zod/capGetFeedsSchema.js";
 export {
+  capGetGmsCatalogueErrorSchema,
+  capGetGmsCatalogueResponseSchema,
+  capGetGmsCatalogueStatus200Schema,
+  capGetGmsCatalogueStatus401Schema,
+  capGetGmsCatalogueStatus403Schema,
+  capGetGmsCatalogueStatus422Schema,
+} from "./zod/capGetGmsCatalogueSchema.js";
+export {
   capGetHazardProfilesErrorSchema,
   capGetHazardProfilesResponseSchema,
   capGetHazardProfilesStatus200Schema,
@@ -14957,6 +16611,19 @@ export {
   capGetRssStatus422Schema,
 } from "./zod/capGetRssSchema.js";
 export {
+  capGetStatisticsErrorSchema,
+  capGetStatisticsQueryEndSchema,
+  capGetStatisticsQueryHazardSchema,
+  capGetStatisticsQuerySchema,
+  capGetStatisticsQueryStartSchema,
+  capGetStatisticsResponseSchema,
+  capGetStatisticsStatus200Schema,
+  capGetStatisticsStatus401Schema,
+  capGetStatisticsStatus403Schema,
+  capGetStatisticsStatus422Schema,
+} from "./zod/capGetStatisticsSchema.js";
+export { capHazardGroupPublicSchema } from "./zod/capHazardGroupPublicSchema.js";
+export {
   capImportAlertBodySchema,
   capImportAlertErrorSchema,
   capImportAlertResponseSchema,
@@ -14968,11 +16635,25 @@ export {
 export { capInfoCreateSchema } from "./zod/capInfoCreateSchema.js";
 export { capInfoPublicSchema } from "./zod/capInfoPublicSchema.js";
 export { capIntegrationStatusSchema } from "./zod/capIntegrationStatusSchema.js";
+export {
+  capIssueAlertUpdateErrorSchema,
+  capIssueAlertUpdatePathAlertIdSchema,
+  capIssueAlertUpdatePathSchema,
+  capIssueAlertUpdateResponseSchema,
+  capIssueAlertUpdateStatus201Schema,
+  capIssueAlertUpdateStatus401Schema,
+  capIssueAlertUpdateStatus403Schema,
+  capIssueAlertUpdateStatus404Schema,
+  capIssueAlertUpdateStatus409Schema,
+  capIssueAlertUpdateStatus422Schema,
+} from "./zod/capIssueAlertUpdateSchema.js";
 export { capLifecycleStateSchema } from "./zod/capLifecycleStateSchema.js";
 export { capMessageTypeSchema } from "./zod/capMessageTypeSchema.js";
 export { capNameValueSchema } from "./zod/capNameValueSchema.js";
+export { capParishPublicSchema } from "./zod/capParishPublicSchema.js";
 export { capPredefinedAreaCreateSchema } from "./zod/capPredefinedAreaCreateSchema.js";
 export { capPredefinedAreaPublicSchema } from "./zod/capPredefinedAreaPublicSchema.js";
+export { capProductRulePublicSchema } from "./zod/capProductRulePublicSchema.js";
 export { capProfileCellTextPropertiesImpactEnumSchema } from "./zod/capProfileCellTextPropertiesImpactEnumSchema.js";
 export { capProfileCellTextPropertiesLikelihoodEnumSchema } from "./zod/capProfileCellTextPropertiesLikelihoodEnumSchema.js";
 export { capProfileCellTextSchema } from "./zod/capProfileCellTextSchema.js";
@@ -14990,6 +16671,7 @@ export { capProfileRuleSchema } from "./zod/capProfileRuleSchema.js";
 export { capProfileSaveSchema } from "./zod/capProfileSaveSchema.js";
 export { capProfileSubtypeSchema } from "./zod/capProfileSubtypeSchema.js";
 export { capProfileTemplateSchema } from "./zod/capProfileTemplateSchema.js";
+export { capPublishActionSchema } from "./zod/capPublishActionSchema.js";
 export {
   capPublishAlertBodySchema,
   capPublishAlertErrorSchema,
@@ -15038,6 +16720,8 @@ export { capSettingsPublicSchema } from "./zod/capSettingsPublicSchema.js";
 export { capSettingsUpdateSchema } from "./zod/capSettingsUpdateSchema.js";
 export { capSeveritySchema } from "./zod/capSeveritySchema.js";
 export { capSnapshotPublicSchema } from "./zod/capSnapshotPublicSchema.js";
+export { capStatisticsBucketSchema } from "./zod/capStatisticsBucketSchema.js";
+export { capStatisticsPublicSchema } from "./zod/capStatisticsPublicSchema.js";
 export { capStatusSchema } from "./zod/capStatusSchema.js";
 export {
   capSubmitAlertBodySchema,
@@ -15352,6 +17036,11 @@ export { dashboardRequestSchema } from "./zod/dashboardRequestSchema.js";
 export { dataFormatSchema } from "./zod/dataFormatSchema.js";
 export { dataParameterSchema } from "./zod/dataParameterSchema.js";
 export { dataRequestCreateSchema } from "./zod/dataRequestCreateSchema.js";
+export { deductionCategorySchema } from "./zod/deductionCategorySchema.js";
+export { deductionKindSchema } from "./zod/deductionKindSchema.js";
+export { deductionLinePublicSchema } from "./zod/deductionLinePublicSchema.js";
+export { deductionTypeCreateSchema } from "./zod/deductionTypeCreateSchema.js";
+export { deductionTypePublicSchema } from "./zod/deductionTypePublicSchema.js";
 export { deliveryAdminListSchema } from "./zod/deliveryAdminListSchema.js";
 export { deliveryAdminPropertiesStatusEnumSchema } from "./zod/deliveryAdminPropertiesStatusEnumSchema.js";
 export { deliveryAdminSchema } from "./zod/deliveryAdminSchema.js";
@@ -15378,9 +17067,20 @@ export { emailConfirmSchema } from "./zod/emailConfirmSchema.js";
 export { emailRequestSchema } from "./zod/emailRequestSchema.js";
 export { emergencyContactPublicSchema } from "./zod/emergencyContactPublicSchema.js";
 export { emergencyContactUpdateSchema } from "./zod/emergencyContactUpdateSchema.js";
+export { employeeBasicPayCreateSchema } from "./zod/employeeBasicPayCreateSchema.js";
+export { employeeBasicPayPublicSchema } from "./zod/employeeBasicPayPublicSchema.js";
+export { employeeBasicPaysPublicSchema } from "./zod/employeeBasicPaysPublicSchema.js";
+export { employeeDeductionCreateSchema } from "./zod/employeeDeductionCreateSchema.js";
+export { employeeDeductionPublicSchema } from "./zod/employeeDeductionPublicSchema.js";
+export { employeeDeductionsPublicSchema } from "./zod/employeeDeductionsPublicSchema.js";
 export { employeeDocumentListPublicSchema } from "./zod/employeeDocumentListPublicSchema.js";
 export { employeeDocumentPublicSchema } from "./zod/employeeDocumentPublicSchema.js";
 export { employeeDocumentUpdateSchema } from "./zod/employeeDocumentUpdateSchema.js";
+export { employeeGrossPublicSchema } from "./zod/employeeGrossPublicSchema.js";
+export { employeePayProfilePublicSchema } from "./zod/employeePayProfilePublicSchema.js";
+export { employeePayProfilesPublicSchema } from "./zod/employeePayProfilesPublicSchema.js";
+export { employeePayProfileUpdateSchema } from "./zod/employeePayProfileUpdateSchema.js";
+export { employeePaySummarySchema } from "./zod/employeePaySummarySchema.js";
 export { employmentAdminUpdateSchema } from "./zod/employmentAdminUpdateSchema.js";
 export { employmentCreateSchema } from "./zod/employmentCreateSchema.js";
 export { employmentPublicSchema } from "./zod/employmentPublicSchema.js";
@@ -15520,6 +17220,8 @@ export {
   eregisterListRegisterObservationsQueryKindSchema,
   eregisterListRegisterObservationsQueryLimitSchema,
   eregisterListRegisterObservationsQueryObservedAtSchema,
+  eregisterListRegisterObservationsQueryObservedFromSchema,
+  eregisterListRegisterObservationsQueryObservedToSchema,
   eregisterListRegisterObservationsQueryOffsetSchema,
   eregisterListRegisterObservationsQueryReviewedSchema,
   eregisterListRegisterObservationsQuerySchema,
@@ -15541,6 +17243,19 @@ export {
   eregisterListRegistryStationsStatus403Schema,
   eregisterListRegistryStationsStatus422Schema,
 } from "./zod/eregisterListRegistryStationsSchema.js";
+export {
+  eregisterOverrideRegisterObservationBufrBodySchema,
+  eregisterOverrideRegisterObservationBufrErrorSchema,
+  eregisterOverrideRegisterObservationBufrPathObservationIdSchema,
+  eregisterOverrideRegisterObservationBufrPathSchema,
+  eregisterOverrideRegisterObservationBufrResponseSchema,
+  eregisterOverrideRegisterObservationBufrStatus200Schema,
+  eregisterOverrideRegisterObservationBufrStatus401Schema,
+  eregisterOverrideRegisterObservationBufrStatus403Schema,
+  eregisterOverrideRegisterObservationBufrStatus404Schema,
+  eregisterOverrideRegisterObservationBufrStatus409Schema,
+  eregisterOverrideRegisterObservationBufrStatus422Schema,
+} from "./zod/eregisterOverrideRegisterObservationBufrSchema.js";
 export {
   eregisterPublicCurrentConditionsErrorSchema,
   eregisterPublicCurrentConditionsResponseSchema,
@@ -15610,6 +17325,15 @@ export {
   eregisterReopenRegisterObservationStatus422Schema,
 } from "./zod/eregisterReopenRegisterObservationSchema.js";
 export {
+  eregisterReviewRegisterDayBodySchema,
+  eregisterReviewRegisterDayErrorSchema,
+  eregisterReviewRegisterDayResponseSchema,
+  eregisterReviewRegisterDayStatus200Schema,
+  eregisterReviewRegisterDayStatus401Schema,
+  eregisterReviewRegisterDayStatus403Schema,
+  eregisterReviewRegisterDayStatus422Schema,
+} from "./zod/eregisterReviewRegisterDaySchema.js";
+export {
   eregisterReviewRegisterObservationBodySchema,
   eregisterReviewRegisterObservationErrorSchema,
   eregisterReviewRegisterObservationPathObservationIdSchema,
@@ -15631,6 +17355,7 @@ export {
   eregisterValidateSynopObservationStatus403Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./zod/eregisterValidateSynopObservationSchema.js";
+export { eregisterValidationErrorSchema } from "./zod/eregisterValidationErrorSchema.js";
 export { errorMessageSchema } from "./zod/errorMessageSchema.js";
 export { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./zod/eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 export { eventCategoryNodeSchema } from "./zod/eventCategoryNodeSchema.js";
@@ -16703,6 +18428,7 @@ export { forecastSourcePropertiesKindEnumSchema } from "./zod/forecastSourceProp
 export { forecastSourceSchema } from "./zod/forecastSourceSchema.js";
 export { frequencySchema } from "./zod/frequencySchema.js";
 export { genderSchema } from "./zod/genderSchema.js";
+export { gmsCataloguePublicSchema } from "./zod/gmsCataloguePublicSchema.js";
 export { gmsColourSchema } from "./zod/gmsColourSchema.js";
 export { googleChallengePublicSchema } from "./zod/googleChallengePublicSchema.js";
 export { googleCompleteSchema } from "./zod/googleCompleteSchema.js";
@@ -16713,6 +18439,7 @@ export { gradeInputSchema } from "./zod/gradeInputSchema.js";
 export { gradePublicSchema } from "./zod/gradePublicSchema.js";
 export { gradeSetupSchema } from "./zod/gradeSetupSchema.js";
 export { grantCreateSchema } from "./zod/grantCreateSchema.js";
+export { grantRevokePublicSchema } from "./zod/grantRevokePublicSchema.js";
 export { groupDetailPropertiesCategoryEnumSchema } from "./zod/groupDetailPropertiesCategoryEnumSchema.js";
 export { groupDetailPropertiesJoinPolicyEnumSchema } from "./zod/groupDetailPropertiesJoinPolicyEnumSchema.js";
 export { groupDetailPropertiesParishEnumSchema } from "./zod/groupDetailPropertiesParishEnumSchema.js";
@@ -16744,6 +18471,7 @@ export {
   hrActionLeaveRequestStatus200Schema,
   hrActionLeaveRequestStatus403Schema,
   hrActionLeaveRequestStatus404Schema,
+  hrActionLeaveRequestStatus409Schema,
   hrActionLeaveRequestStatus422Schema,
 } from "./zod/hrActionLeaveRequestSchema.js";
 export {
@@ -16756,8 +18484,20 @@ export {
   hrActionShiftSwapStatus400Schema,
   hrActionShiftSwapStatus403Schema,
   hrActionShiftSwapStatus404Schema,
+  hrActionShiftSwapStatus409Schema,
   hrActionShiftSwapStatus422Schema,
 } from "./zod/hrActionShiftSwapSchema.js";
+export {
+  hrAddTerminalUserBodySchema,
+  hrAddTerminalUserErrorSchema,
+  hrAddTerminalUserResponseSchema,
+  hrAddTerminalUserStatus201Schema,
+  hrAddTerminalUserStatus400Schema,
+  hrAddTerminalUserStatus401Schema,
+  hrAddTerminalUserStatus403Schema,
+  hrAddTerminalUserStatus409Schema,
+  hrAddTerminalUserStatus422Schema,
+} from "./zod/hrAddTerminalUserSchema.js";
 export {
   hrApproveClockPunchBodySchema,
   hrApproveClockPunchErrorSchema,
@@ -16771,6 +18511,33 @@ export {
   hrApproveClockPunchStatus422Schema,
 } from "./zod/hrApproveClockPunchSchema.js";
 export {
+  hrApprovePayPeriodForIssueErrorSchema,
+  hrApprovePayPeriodForIssuePathPeriodIdSchema,
+  hrApprovePayPeriodForIssuePathSchema,
+  hrApprovePayPeriodForIssueResponseSchema,
+  hrApprovePayPeriodForIssueStatus200Schema,
+  hrApprovePayPeriodForIssueStatus400Schema,
+  hrApprovePayPeriodForIssueStatus401Schema,
+  hrApprovePayPeriodForIssueStatus403Schema,
+  hrApprovePayPeriodForIssueStatus404Schema,
+  hrApprovePayPeriodForIssueStatus409Schema,
+  hrApprovePayPeriodForIssueStatus422Schema,
+} from "./zod/hrApprovePayPeriodForIssueSchema.js";
+export {
+  hrApprovePayPeriodBodySchema,
+  hrApprovePayPeriodErrorSchema,
+  hrApprovePayPeriodPathPeriodIdSchema,
+  hrApprovePayPeriodPathSchema,
+  hrApprovePayPeriodResponseSchema,
+  hrApprovePayPeriodStatus200Schema,
+  hrApprovePayPeriodStatus400Schema,
+  hrApprovePayPeriodStatus401Schema,
+  hrApprovePayPeriodStatus403Schema,
+  hrApprovePayPeriodStatus404Schema,
+  hrApprovePayPeriodStatus409Schema,
+  hrApprovePayPeriodStatus422Schema,
+} from "./zod/hrApprovePayPeriodSchema.js";
+export {
   hrApproveStaffRegistrationErrorSchema,
   hrApproveStaffRegistrationPathSchema,
   hrApproveStaffRegistrationPathUserIdSchema,
@@ -16782,6 +18549,7 @@ export {
   hrApproveStaffRegistrationStatus422Schema,
 } from "./zod/hrApproveStaffRegistrationSchema.js";
 export {
+  hrApproveTimesheetBodySchema,
   hrApproveTimesheetErrorSchema,
   hrApproveTimesheetPathSchema,
   hrApproveTimesheetPathTimesheetIdSchema,
@@ -16790,6 +18558,7 @@ export {
   hrApproveTimesheetStatus400Schema,
   hrApproveTimesheetStatus403Schema,
   hrApproveTimesheetStatus404Schema,
+  hrApproveTimesheetStatus409Schema,
   hrApproveTimesheetStatus422Schema,
 } from "./zod/hrApproveTimesheetSchema.js";
 export {
@@ -16821,6 +18590,7 @@ export {
   hrBulkAssignmentsStatus400Schema,
   hrBulkAssignmentsStatus403Schema,
   hrBulkAssignmentsStatus404Schema,
+  hrBulkAssignmentsStatus409Schema,
   hrBulkAssignmentsStatus422Schema,
 } from "./zod/hrBulkAssignmentsSchema.js";
 export {
@@ -16855,6 +18625,19 @@ export {
   hrClockStatus422Schema,
 } from "./zod/hrClockSchema.js";
 export {
+  hrClosePayPeriodErrorSchema,
+  hrClosePayPeriodPathPeriodIdSchema,
+  hrClosePayPeriodPathSchema,
+  hrClosePayPeriodResponseSchema,
+  hrClosePayPeriodStatus200Schema,
+  hrClosePayPeriodStatus400Schema,
+  hrClosePayPeriodStatus401Schema,
+  hrClosePayPeriodStatus403Schema,
+  hrClosePayPeriodStatus404Schema,
+  hrClosePayPeriodStatus409Schema,
+  hrClosePayPeriodStatus422Schema,
+} from "./zod/hrClosePayPeriodSchema.js";
+export {
   hrClosePeriodErrorSchema,
   hrClosePeriodPathPeriodIdSchema,
   hrClosePeriodPathSchema,
@@ -16865,6 +18648,32 @@ export {
   hrClosePeriodStatus404Schema,
   hrClosePeriodStatus422Schema,
 } from "./zod/hrClosePeriodSchema.js";
+export {
+  hrComputePayPeriodErrorSchema,
+  hrComputePayPeriodPathPeriodIdSchema,
+  hrComputePayPeriodPathSchema,
+  hrComputePayPeriodResponseSchema,
+  hrComputePayPeriodStatus200Schema,
+  hrComputePayPeriodStatus400Schema,
+  hrComputePayPeriodStatus401Schema,
+  hrComputePayPeriodStatus403Schema,
+  hrComputePayPeriodStatus404Schema,
+  hrComputePayPeriodStatus409Schema,
+  hrComputePayPeriodStatus422Schema,
+} from "./zod/hrComputePayPeriodSchema.js";
+export {
+  hrConfirmMyDeductionErrorSchema,
+  hrConfirmMyDeductionPathDeductionIdSchema,
+  hrConfirmMyDeductionPathSchema,
+  hrConfirmMyDeductionResponseSchema,
+  hrConfirmMyDeductionStatus200Schema,
+  hrConfirmMyDeductionStatus400Schema,
+  hrConfirmMyDeductionStatus401Schema,
+  hrConfirmMyDeductionStatus403Schema,
+  hrConfirmMyDeductionStatus404Schema,
+  hrConfirmMyDeductionStatus409Schema,
+  hrConfirmMyDeductionStatus422Schema,
+} from "./zod/hrConfirmMyDeductionSchema.js";
 export {
   hrCreateAbsenteeReportBodySchema,
   hrCreateAbsenteeReportErrorSchema,
@@ -16894,6 +18703,18 @@ export {
   hrCreateClockSiteStatus422Schema,
 } from "./zod/hrCreateClockSiteSchema.js";
 export {
+  hrCreateDeductionTypeBodySchema,
+  hrCreateDeductionTypeErrorSchema,
+  hrCreateDeductionTypeResponseSchema,
+  hrCreateDeductionTypeStatus201Schema,
+  hrCreateDeductionTypeStatus400Schema,
+  hrCreateDeductionTypeStatus401Schema,
+  hrCreateDeductionTypeStatus403Schema,
+  hrCreateDeductionTypeStatus404Schema,
+  hrCreateDeductionTypeStatus409Schema,
+  hrCreateDeductionTypeStatus422Schema,
+} from "./zod/hrCreateDeductionTypeSchema.js";
+export {
   hrCreateDepartmentBodySchema,
   hrCreateDepartmentErrorSchema,
   hrCreateDepartmentResponseSchema,
@@ -16902,6 +18723,30 @@ export {
   hrCreateDepartmentStatus403Schema,
   hrCreateDepartmentStatus422Schema,
 } from "./zod/hrCreateDepartmentSchema.js";
+export {
+  hrCreateEmployeeBasicPayBodySchema,
+  hrCreateEmployeeBasicPayErrorSchema,
+  hrCreateEmployeeBasicPayResponseSchema,
+  hrCreateEmployeeBasicPayStatus201Schema,
+  hrCreateEmployeeBasicPayStatus400Schema,
+  hrCreateEmployeeBasicPayStatus401Schema,
+  hrCreateEmployeeBasicPayStatus403Schema,
+  hrCreateEmployeeBasicPayStatus404Schema,
+  hrCreateEmployeeBasicPayStatus409Schema,
+  hrCreateEmployeeBasicPayStatus422Schema,
+} from "./zod/hrCreateEmployeeBasicPaySchema.js";
+export {
+  hrCreateEmployeeDeductionBodySchema,
+  hrCreateEmployeeDeductionErrorSchema,
+  hrCreateEmployeeDeductionResponseSchema,
+  hrCreateEmployeeDeductionStatus201Schema,
+  hrCreateEmployeeDeductionStatus400Schema,
+  hrCreateEmployeeDeductionStatus401Schema,
+  hrCreateEmployeeDeductionStatus403Schema,
+  hrCreateEmployeeDeductionStatus404Schema,
+  hrCreateEmployeeDeductionStatus409Schema,
+  hrCreateEmployeeDeductionStatus422Schema,
+} from "./zod/hrCreateEmployeeDeductionSchema.js";
 export {
   hrCreateHolidayBodySchema,
   hrCreateHolidayErrorSchema,
@@ -16962,6 +18807,56 @@ export {
   hrCreateParkingPermitStatus422Schema,
 } from "./zod/hrCreateParkingPermitSchema.js";
 export {
+  hrCreatePayCalendarBodySchema,
+  hrCreatePayCalendarErrorSchema,
+  hrCreatePayCalendarResponseSchema,
+  hrCreatePayCalendarStatus201Schema,
+  hrCreatePayCalendarStatus400Schema,
+  hrCreatePayCalendarStatus401Schema,
+  hrCreatePayCalendarStatus403Schema,
+  hrCreatePayCalendarStatus404Schema,
+  hrCreatePayCalendarStatus409Schema,
+  hrCreatePayCalendarStatus422Schema,
+} from "./zod/hrCreatePayCalendarSchema.js";
+export {
+  hrCreatePayItemRateBodySchema,
+  hrCreatePayItemRateErrorSchema,
+  hrCreatePayItemRateResponseSchema,
+  hrCreatePayItemRateStatus201Schema,
+  hrCreatePayItemRateStatus400Schema,
+  hrCreatePayItemRateStatus401Schema,
+  hrCreatePayItemRateStatus403Schema,
+  hrCreatePayItemRateStatus404Schema,
+  hrCreatePayItemRateStatus409Schema,
+  hrCreatePayItemRateStatus422Schema,
+} from "./zod/hrCreatePayItemRateSchema.js";
+export {
+  hrCreatePayLineBodySchema,
+  hrCreatePayLineErrorSchema,
+  hrCreatePayLinePathPeriodIdSchema,
+  hrCreatePayLinePathSchema,
+  hrCreatePayLineResponseSchema,
+  hrCreatePayLineStatus201Schema,
+  hrCreatePayLineStatus400Schema,
+  hrCreatePayLineStatus401Schema,
+  hrCreatePayLineStatus403Schema,
+  hrCreatePayLineStatus404Schema,
+  hrCreatePayLineStatus409Schema,
+  hrCreatePayLineStatus422Schema,
+} from "./zod/hrCreatePayLineSchema.js";
+export {
+  hrCreatePayPeriodBodySchema,
+  hrCreatePayPeriodErrorSchema,
+  hrCreatePayPeriodResponseSchema,
+  hrCreatePayPeriodStatus201Schema,
+  hrCreatePayPeriodStatus400Schema,
+  hrCreatePayPeriodStatus401Schema,
+  hrCreatePayPeriodStatus403Schema,
+  hrCreatePayPeriodStatus404Schema,
+  hrCreatePayPeriodStatus409Schema,
+  hrCreatePayPeriodStatus422Schema,
+} from "./zod/hrCreatePayPeriodSchema.js";
+export {
   hrCreatePeriodBodySchema,
   hrCreatePeriodErrorSchema,
   hrCreatePeriodResponseSchema,
@@ -16989,6 +18884,18 @@ export {
   hrCreateShiftSwapStatus422Schema,
 } from "./zod/hrCreateShiftSwapSchema.js";
 export {
+  hrCreateSocialInsuranceSchemeBodySchema,
+  hrCreateSocialInsuranceSchemeErrorSchema,
+  hrCreateSocialInsuranceSchemeResponseSchema,
+  hrCreateSocialInsuranceSchemeStatus201Schema,
+  hrCreateSocialInsuranceSchemeStatus400Schema,
+  hrCreateSocialInsuranceSchemeStatus401Schema,
+  hrCreateSocialInsuranceSchemeStatus403Schema,
+  hrCreateSocialInsuranceSchemeStatus404Schema,
+  hrCreateSocialInsuranceSchemeStatus409Schema,
+  hrCreateSocialInsuranceSchemeStatus422Schema,
+} from "./zod/hrCreateSocialInsuranceSchemeSchema.js";
+export {
   hrCreateStatusReportBodySchema,
   hrCreateStatusReportErrorSchema,
   hrCreateStatusReportResponseSchema,
@@ -16997,6 +18904,18 @@ export {
   hrCreateStatusReportStatus403Schema,
   hrCreateStatusReportStatus422Schema,
 } from "./zod/hrCreateStatusReportSchema.js";
+export {
+  hrCreateTaxTableBodySchema,
+  hrCreateTaxTableErrorSchema,
+  hrCreateTaxTableResponseSchema,
+  hrCreateTaxTableStatus201Schema,
+  hrCreateTaxTableStatus400Schema,
+  hrCreateTaxTableStatus401Schema,
+  hrCreateTaxTableStatus403Schema,
+  hrCreateTaxTableStatus404Schema,
+  hrCreateTaxTableStatus409Schema,
+  hrCreateTaxTableStatus422Schema,
+} from "./zod/hrCreateTaxTableSchema.js";
 export {
   hrCreateTemplateBodySchema,
   hrCreateTemplateErrorSchema,
@@ -17049,6 +18968,26 @@ export {
   hrDeleteAbsenteeReportStatus422Schema,
 } from "./zod/hrDeleteAbsenteeReportSchema.js";
 export {
+  hrDeleteDepartmentRuleSetErrorSchema,
+  hrDeleteDepartmentRuleSetPathDepartmentIdSchema,
+  hrDeleteDepartmentRuleSetPathSchema,
+  hrDeleteDepartmentRuleSetResponseSchema,
+  hrDeleteDepartmentRuleSetStatus204Schema,
+  hrDeleteDepartmentRuleSetStatus403Schema,
+  hrDeleteDepartmentRuleSetStatus422Schema,
+} from "./zod/hrDeleteDepartmentRuleSetSchema.js";
+export {
+  hrDeleteDraftTimesheetErrorSchema,
+  hrDeleteDraftTimesheetPathSchema,
+  hrDeleteDraftTimesheetPathTimesheetIdSchema,
+  hrDeleteDraftTimesheetResponseSchema,
+  hrDeleteDraftTimesheetStatus204Schema,
+  hrDeleteDraftTimesheetStatus400Schema,
+  hrDeleteDraftTimesheetStatus403Schema,
+  hrDeleteDraftTimesheetStatus404Schema,
+  hrDeleteDraftTimesheetStatus422Schema,
+} from "./zod/hrDeleteDraftTimesheetSchema.js";
+export {
   hrDeleteLeaveRequestErrorSchema,
   hrDeleteLeaveRequestPathLeaveRequestIdSchema,
   hrDeleteLeaveRequestPathSchema,
@@ -17067,6 +19006,20 @@ export {
   hrDeleteMySignatureStatus401Schema,
   hrDeleteMySignatureStatus422Schema,
 } from "./zod/hrDeleteMySignatureSchema.js";
+export {
+  hrDeletePayLineErrorSchema,
+  hrDeletePayLinePathLineIdSchema,
+  hrDeletePayLinePathPeriodIdSchema,
+  hrDeletePayLinePathSchema,
+  hrDeletePayLineResponseSchema,
+  hrDeletePayLineStatus204Schema,
+  hrDeletePayLineStatus400Schema,
+  hrDeletePayLineStatus401Schema,
+  hrDeletePayLineStatus403Schema,
+  hrDeletePayLineStatus404Schema,
+  hrDeletePayLineStatus409Schema,
+  hrDeletePayLineStatus422Schema,
+} from "./zod/hrDeletePayLineSchema.js";
 export {
   hrDeleteShiftSwapErrorSchema,
   hrDeleteShiftSwapPathSchema,
@@ -17112,6 +19065,45 @@ export {
   hrDownloadSignedDocumentStatus404Schema,
   hrDownloadSignedDocumentStatus422Schema,
 } from "./zod/hrDownloadSignedDocumentSchema.js";
+export {
+  hrExportBankTransferCsvErrorSchema,
+  hrExportBankTransferCsvPathPeriodIdSchema,
+  hrExportBankTransferCsvPathSchema,
+  hrExportBankTransferCsvResponseSchema,
+  hrExportBankTransferCsvStatus200Schema,
+  hrExportBankTransferCsvStatus400Schema,
+  hrExportBankTransferCsvStatus401Schema,
+  hrExportBankTransferCsvStatus403Schema,
+  hrExportBankTransferCsvStatus404Schema,
+  hrExportBankTransferCsvStatus409Schema,
+  hrExportBankTransferCsvStatus422Schema,
+} from "./zod/hrExportBankTransferCsvSchema.js";
+export {
+  hrExportGlJournalCsvErrorSchema,
+  hrExportGlJournalCsvPathPeriodIdSchema,
+  hrExportGlJournalCsvPathSchema,
+  hrExportGlJournalCsvResponseSchema,
+  hrExportGlJournalCsvStatus200Schema,
+  hrExportGlJournalCsvStatus400Schema,
+  hrExportGlJournalCsvStatus401Schema,
+  hrExportGlJournalCsvStatus403Schema,
+  hrExportGlJournalCsvStatus404Schema,
+  hrExportGlJournalCsvStatus409Schema,
+  hrExportGlJournalCsvStatus422Schema,
+} from "./zod/hrExportGlJournalCsvSchema.js";
+export {
+  hrExportPayPeriodCsvErrorSchema,
+  hrExportPayPeriodCsvPathPeriodIdSchema,
+  hrExportPayPeriodCsvPathSchema,
+  hrExportPayPeriodCsvResponseSchema,
+  hrExportPayPeriodCsvStatus200Schema,
+  hrExportPayPeriodCsvStatus400Schema,
+  hrExportPayPeriodCsvStatus401Schema,
+  hrExportPayPeriodCsvStatus403Schema,
+  hrExportPayPeriodCsvStatus404Schema,
+  hrExportPayPeriodCsvStatus409Schema,
+  hrExportPayPeriodCsvStatus422Schema,
+} from "./zod/hrExportPayPeriodCsvSchema.js";
 export {
   hrGetAbsenteeReportsErrorSchema,
   hrGetAbsenteeReportsQueryDepartmentIdSchema,
@@ -17162,6 +19154,15 @@ export {
   hrGetAttendanceWeekStatus409Schema,
   hrGetAttendanceWeekStatus422Schema,
 } from "./zod/hrGetAttendanceWeekSchema.js";
+export {
+  hrGetDepartmentRuleSetErrorSchema,
+  hrGetDepartmentRuleSetPathDepartmentIdSchema,
+  hrGetDepartmentRuleSetPathSchema,
+  hrGetDepartmentRuleSetResponseSchema,
+  hrGetDepartmentRuleSetStatus200Schema,
+  hrGetDepartmentRuleSetStatus403Schema,
+  hrGetDepartmentRuleSetStatus422Schema,
+} from "./zod/hrGetDepartmentRuleSetSchema.js";
 export {
   hrGetDepartmentRulesErrorSchema,
   hrGetDepartmentRulesPathDepartmentIdSchema,
@@ -17315,6 +19316,15 @@ export {
   hrGetOrganisationCatalogueStatus422Schema,
 } from "./zod/hrGetOrganisationCatalogueSchema.js";
 export {
+  hrGetOrganisationRuleSetErrorSchema,
+  hrGetOrganisationRuleSetPathOrganisationIdSchema,
+  hrGetOrganisationRuleSetPathSchema,
+  hrGetOrganisationRuleSetResponseSchema,
+  hrGetOrganisationRuleSetStatus200Schema,
+  hrGetOrganisationRuleSetStatus403Schema,
+  hrGetOrganisationRuleSetStatus422Schema,
+} from "./zod/hrGetOrganisationRuleSetSchema.js";
+export {
   hrGetOrganisationsErrorSchema,
   hrGetOrganisationsResponseSchema,
   hrGetOrganisationsStatus200Schema,
@@ -17333,6 +19343,72 @@ export {
   hrGetParkingPermitsStatus403Schema,
   hrGetParkingPermitsStatus422Schema,
 } from "./zod/hrGetParkingPermitsSchema.js";
+export {
+  hrGetPayPeriodAmountsErrorSchema,
+  hrGetPayPeriodAmountsPathPeriodIdSchema,
+  hrGetPayPeriodAmountsPathSchema,
+  hrGetPayPeriodAmountsResponseSchema,
+  hrGetPayPeriodAmountsStatus200Schema,
+  hrGetPayPeriodAmountsStatus400Schema,
+  hrGetPayPeriodAmountsStatus401Schema,
+  hrGetPayPeriodAmountsStatus403Schema,
+  hrGetPayPeriodAmountsStatus404Schema,
+  hrGetPayPeriodAmountsStatus409Schema,
+  hrGetPayPeriodAmountsStatus422Schema,
+} from "./zod/hrGetPayPeriodAmountsSchema.js";
+export {
+  hrGetPayPeriodErrorSchema,
+  hrGetPayPeriodPathPeriodIdSchema,
+  hrGetPayPeriodPathSchema,
+  hrGetPayPeriodResponseSchema,
+  hrGetPayPeriodStatus200Schema,
+  hrGetPayPeriodStatus400Schema,
+  hrGetPayPeriodStatus401Schema,
+  hrGetPayPeriodStatus403Schema,
+  hrGetPayPeriodStatus404Schema,
+  hrGetPayPeriodStatus409Schema,
+  hrGetPayPeriodStatus422Schema,
+} from "./zod/hrGetPayPeriodSchema.js";
+export {
+  hrGetPayPeriodSummaryErrorSchema,
+  hrGetPayPeriodSummaryPathPeriodIdSchema,
+  hrGetPayPeriodSummaryPathSchema,
+  hrGetPayPeriodSummaryResponseSchema,
+  hrGetPayPeriodSummaryStatus200Schema,
+  hrGetPayPeriodSummaryStatus400Schema,
+  hrGetPayPeriodSummaryStatus401Schema,
+  hrGetPayPeriodSummaryStatus403Schema,
+  hrGetPayPeriodSummaryStatus404Schema,
+  hrGetPayPeriodSummaryStatus409Schema,
+  hrGetPayPeriodSummaryStatus422Schema,
+} from "./zod/hrGetPayPeriodSummarySchema.js";
+export {
+  hrGetPayrollExportSettingsErrorSchema,
+  hrGetPayrollExportSettingsQueryOrganisationIdSchema,
+  hrGetPayrollExportSettingsQuerySchema,
+  hrGetPayrollExportSettingsResponseSchema,
+  hrGetPayrollExportSettingsStatus200Schema,
+  hrGetPayrollExportSettingsStatus400Schema,
+  hrGetPayrollExportSettingsStatus401Schema,
+  hrGetPayrollExportSettingsStatus403Schema,
+  hrGetPayrollExportSettingsStatus404Schema,
+  hrGetPayrollExportSettingsStatus409Schema,
+  hrGetPayrollExportSettingsStatus422Schema,
+} from "./zod/hrGetPayrollExportSettingsSchema.js";
+export {
+  hrGetPayslipPdfErrorSchema,
+  hrGetPayslipPdfPathPayslipIdSchema,
+  hrGetPayslipPdfPathSchema,
+  hrGetPayslipPdfResponseSchema,
+  hrGetPayslipPdfStatus200Schema,
+  hrGetPayslipPdfStatus400Schema,
+  hrGetPayslipPdfStatus401Schema,
+  hrGetPayslipPdfStatus403Schema,
+  hrGetPayslipPdfStatus404Schema,
+  hrGetPayslipPdfStatus409Schema,
+  hrGetPayslipPdfStatus422Schema,
+  hrGetPayslipPdfStatus429Schema,
+} from "./zod/hrGetPayslipPdfSchema.js";
 export {
   hrGetPeriodRevisionsErrorSchema,
   hrGetPeriodRevisionsPathPeriodIdSchema,
@@ -17562,6 +19638,7 @@ export {
   hrImportCsvStatus200Schema,
   hrImportCsvStatus400Schema,
   hrImportCsvStatus403Schema,
+  hrImportCsvStatus409Schema,
   hrImportCsvStatus422Schema,
 } from "./zod/hrImportCsvSchema.js";
 export {
@@ -17572,6 +19649,7 @@ export {
   hrImportGridStatus400Schema,
   hrImportGridStatus403Schema,
   hrImportGridStatus404Schema,
+  hrImportGridStatus409Schema,
   hrImportGridStatus422Schema,
 } from "./zod/hrImportGridSchema.js";
 export {
@@ -17593,6 +19671,17 @@ export {
   hrImportStaffBalancesStatus409Schema,
   hrImportStaffBalancesStatus422Schema,
 } from "./zod/hrImportStaffBalancesSchema.js";
+export {
+  hrImportTerminalPunchesBodySchema,
+  hrImportTerminalPunchesErrorSchema,
+  hrImportTerminalPunchesResponseSchema,
+  hrImportTerminalPunchesStatus201Schema,
+  hrImportTerminalPunchesStatus400Schema,
+  hrImportTerminalPunchesStatus401Schema,
+  hrImportTerminalPunchesStatus403Schema,
+  hrImportTerminalPunchesStatus409Schema,
+  hrImportTerminalPunchesStatus422Schema,
+} from "./zod/hrImportTerminalPunchesSchema.js";
 export {
   hrIssueParkingDecalBodySchema,
   hrIssueParkingDecalErrorSchema,
@@ -17664,6 +19753,49 @@ export {
   hrListDepartmentsStatus422Schema,
 } from "./zod/hrListDepartmentsSchema.js";
 export {
+  hrListEmployeeBasicPayErrorSchema,
+  hrListEmployeeBasicPayQueryOrganisationIdSchema,
+  hrListEmployeeBasicPayQuerySchema,
+  hrListEmployeeBasicPayQueryUserIdSchema,
+  hrListEmployeeBasicPayResponseSchema,
+  hrListEmployeeBasicPayStatus200Schema,
+  hrListEmployeeBasicPayStatus400Schema,
+  hrListEmployeeBasicPayStatus401Schema,
+  hrListEmployeeBasicPayStatus403Schema,
+  hrListEmployeeBasicPayStatus404Schema,
+  hrListEmployeeBasicPayStatus409Schema,
+  hrListEmployeeBasicPayStatus422Schema,
+} from "./zod/hrListEmployeeBasicPaySchema.js";
+export {
+  hrListEmployeeDeductionsErrorSchema,
+  hrListEmployeeDeductionsQueryOrganisationIdSchema,
+  hrListEmployeeDeductionsQuerySchema,
+  hrListEmployeeDeductionsQueryUserIdSchema,
+  hrListEmployeeDeductionsResponseSchema,
+  hrListEmployeeDeductionsStatus200Schema,
+  hrListEmployeeDeductionsStatus400Schema,
+  hrListEmployeeDeductionsStatus401Schema,
+  hrListEmployeeDeductionsStatus403Schema,
+  hrListEmployeeDeductionsStatus404Schema,
+  hrListEmployeeDeductionsStatus409Schema,
+  hrListEmployeeDeductionsStatus422Schema,
+} from "./zod/hrListEmployeeDeductionsSchema.js";
+export {
+  hrListEmployeePayProfilesErrorSchema,
+  hrListEmployeePayProfilesQueryLimitSchema,
+  hrListEmployeePayProfilesQueryOrganisationIdSchema,
+  hrListEmployeePayProfilesQuerySchema,
+  hrListEmployeePayProfilesQuerySkipSchema,
+  hrListEmployeePayProfilesResponseSchema,
+  hrListEmployeePayProfilesStatus200Schema,
+  hrListEmployeePayProfilesStatus400Schema,
+  hrListEmployeePayProfilesStatus401Schema,
+  hrListEmployeePayProfilesStatus403Schema,
+  hrListEmployeePayProfilesStatus404Schema,
+  hrListEmployeePayProfilesStatus409Schema,
+  hrListEmployeePayProfilesStatus422Schema,
+} from "./zod/hrListEmployeePayProfilesSchema.js";
+export {
   hrListHolidaysErrorSchema,
   hrListHolidaysQuerySchema,
   hrListHolidaysQueryYearSchema,
@@ -17672,6 +19804,28 @@ export {
   hrListHolidaysStatus403Schema,
   hrListHolidaysStatus422Schema,
 } from "./zod/hrListHolidaysSchema.js";
+export {
+  hrListMyDeductionsErrorSchema,
+  hrListMyDeductionsResponseSchema,
+  hrListMyDeductionsStatus200Schema,
+  hrListMyDeductionsStatus400Schema,
+  hrListMyDeductionsStatus401Schema,
+  hrListMyDeductionsStatus403Schema,
+  hrListMyDeductionsStatus404Schema,
+  hrListMyDeductionsStatus409Schema,
+  hrListMyDeductionsStatus422Schema,
+} from "./zod/hrListMyDeductionsSchema.js";
+export {
+  hrListMyPayslipsErrorSchema,
+  hrListMyPayslipsResponseSchema,
+  hrListMyPayslipsStatus200Schema,
+  hrListMyPayslipsStatus400Schema,
+  hrListMyPayslipsStatus401Schema,
+  hrListMyPayslipsStatus403Schema,
+  hrListMyPayslipsStatus404Schema,
+  hrListMyPayslipsStatus409Schema,
+  hrListMyPayslipsStatus422Schema,
+} from "./zod/hrListMyPayslipsSchema.js";
 export {
   hrListMyShiftSwapsErrorSchema,
   hrListMyShiftSwapsQueryPageSchema,
@@ -17684,6 +19838,92 @@ export {
   hrListMyShiftSwapsStatus422Schema,
 } from "./zod/hrListMyShiftSwapsSchema.js";
 export {
+  hrListPayCalendarsErrorSchema,
+  hrListPayCalendarsQueryOrganisationIdSchema,
+  hrListPayCalendarsQuerySchema,
+  hrListPayCalendarsResponseSchema,
+  hrListPayCalendarsStatus200Schema,
+  hrListPayCalendarsStatus400Schema,
+  hrListPayCalendarsStatus401Schema,
+  hrListPayCalendarsStatus403Schema,
+  hrListPayCalendarsStatus404Schema,
+  hrListPayCalendarsStatus409Schema,
+  hrListPayCalendarsStatus422Schema,
+} from "./zod/hrListPayCalendarsSchema.js";
+export {
+  hrListPayItemRatesErrorSchema,
+  hrListPayItemRatesQueryOrganisationIdSchema,
+  hrListPayItemRatesQuerySchema,
+  hrListPayItemRatesResponseSchema,
+  hrListPayItemRatesStatus200Schema,
+  hrListPayItemRatesStatus400Schema,
+  hrListPayItemRatesStatus401Schema,
+  hrListPayItemRatesStatus403Schema,
+  hrListPayItemRatesStatus404Schema,
+  hrListPayItemRatesStatus409Schema,
+  hrListPayItemRatesStatus422Schema,
+} from "./zod/hrListPayItemRatesSchema.js";
+export {
+  hrListPayItemsErrorSchema,
+  hrListPayItemsQueryOrganisationIdSchema,
+  hrListPayItemsQuerySchema,
+  hrListPayItemsResponseSchema,
+  hrListPayItemsStatus200Schema,
+  hrListPayItemsStatus400Schema,
+  hrListPayItemsStatus401Schema,
+  hrListPayItemsStatus403Schema,
+  hrListPayItemsStatus404Schema,
+  hrListPayItemsStatus409Schema,
+  hrListPayItemsStatus422Schema,
+} from "./zod/hrListPayItemsSchema.js";
+export {
+  hrListPayLinesErrorSchema,
+  hrListPayLinesPathPeriodIdSchema,
+  hrListPayLinesPathSchema,
+  hrListPayLinesQueryDepartmentIdSchema,
+  hrListPayLinesQueryLimitSchema,
+  hrListPayLinesQuerySchema,
+  hrListPayLinesQuerySkipSchema,
+  hrListPayLinesQueryUserIdSchema,
+  hrListPayLinesResponseSchema,
+  hrListPayLinesStatus200Schema,
+  hrListPayLinesStatus400Schema,
+  hrListPayLinesStatus401Schema,
+  hrListPayLinesStatus403Schema,
+  hrListPayLinesStatus404Schema,
+  hrListPayLinesStatus409Schema,
+  hrListPayLinesStatus422Schema,
+} from "./zod/hrListPayLinesSchema.js";
+export {
+  hrListPayPeriodsErrorSchema,
+  hrListPayPeriodsQueryCalendarIdSchema,
+  hrListPayPeriodsQueryLimitSchema,
+  hrListPayPeriodsQueryOrganisationIdSchema,
+  hrListPayPeriodsQuerySchema,
+  hrListPayPeriodsQuerySkipSchema,
+  hrListPayPeriodsResponseSchema,
+  hrListPayPeriodsStatus200Schema,
+  hrListPayPeriodsStatus400Schema,
+  hrListPayPeriodsStatus401Schema,
+  hrListPayPeriodsStatus403Schema,
+  hrListPayPeriodsStatus404Schema,
+  hrListPayPeriodsStatus409Schema,
+  hrListPayPeriodsStatus422Schema,
+} from "./zod/hrListPayPeriodsSchema.js";
+export {
+  hrListPayrollDepartmentSettingsErrorSchema,
+  hrListPayrollDepartmentSettingsQueryOrganisationIdSchema,
+  hrListPayrollDepartmentSettingsQuerySchema,
+  hrListPayrollDepartmentSettingsResponseSchema,
+  hrListPayrollDepartmentSettingsStatus200Schema,
+  hrListPayrollDepartmentSettingsStatus400Schema,
+  hrListPayrollDepartmentSettingsStatus401Schema,
+  hrListPayrollDepartmentSettingsStatus403Schema,
+  hrListPayrollDepartmentSettingsStatus404Schema,
+  hrListPayrollDepartmentSettingsStatus409Schema,
+  hrListPayrollDepartmentSettingsStatus422Schema,
+} from "./zod/hrListPayrollDepartmentSettingsSchema.js";
+export {
   hrListPendingClockPunchesErrorSchema,
   hrListPendingClockPunchesQueryLimitSchema,
   hrListPendingClockPunchesQueryOffsetSchema,
@@ -17693,6 +19933,19 @@ export {
   hrListPendingClockPunchesStatus403Schema,
   hrListPendingClockPunchesStatus422Schema,
 } from "./zod/hrListPendingClockPunchesSchema.js";
+export {
+  hrListPeriodPayslipsErrorSchema,
+  hrListPeriodPayslipsPathPeriodIdSchema,
+  hrListPeriodPayslipsPathSchema,
+  hrListPeriodPayslipsResponseSchema,
+  hrListPeriodPayslipsStatus200Schema,
+  hrListPeriodPayslipsStatus400Schema,
+  hrListPeriodPayslipsStatus401Schema,
+  hrListPeriodPayslipsStatus403Schema,
+  hrListPeriodPayslipsStatus404Schema,
+  hrListPeriodPayslipsStatus409Schema,
+  hrListPeriodPayslipsStatus422Schema,
+} from "./zod/hrListPeriodPayslipsSchema.js";
 export {
   hrListPeriodsErrorSchema,
   hrListPeriodsQueryDepartmentIdSchema,
@@ -17704,6 +19957,26 @@ export {
   hrListPeriodsStatus422Schema,
 } from "./zod/hrListPeriodsSchema.js";
 export {
+  hrListRuleOverridesErrorSchema,
+  hrListRuleOverridesPathDepartmentIdSchema,
+  hrListRuleOverridesPathSchema,
+  hrListRuleOverridesQueryLimitSchema,
+  hrListRuleOverridesQuerySchema,
+  hrListRuleOverridesResponseSchema,
+  hrListRuleOverridesStatus200Schema,
+  hrListRuleOverridesStatus403Schema,
+  hrListRuleOverridesStatus422Schema,
+} from "./zod/hrListRuleOverridesSchema.js";
+export {
+  hrListRuleProfilesErrorSchema,
+  hrListRuleProfilesPathDepartmentIdSchema,
+  hrListRuleProfilesPathSchema,
+  hrListRuleProfilesResponseSchema,
+  hrListRuleProfilesStatus200Schema,
+  hrListRuleProfilesStatus403Schema,
+  hrListRuleProfilesStatus422Schema,
+} from "./zod/hrListRuleProfilesSchema.js";
+export {
   hrListShiftCatalogErrorSchema,
   hrListShiftCatalogQueryIncludeInactiveSchema,
   hrListShiftCatalogQuerySchema,
@@ -17712,6 +19985,46 @@ export {
   hrListShiftCatalogStatus403Schema,
   hrListShiftCatalogStatus422Schema,
 } from "./zod/hrListShiftCatalogSchema.js";
+export {
+  hrListStatutoryTablesErrorSchema,
+  hrListStatutoryTablesQueryOrganisationIdSchema,
+  hrListStatutoryTablesQuerySchema,
+  hrListStatutoryTablesResponseSchema,
+  hrListStatutoryTablesStatus200Schema,
+  hrListStatutoryTablesStatus400Schema,
+  hrListStatutoryTablesStatus401Schema,
+  hrListStatutoryTablesStatus403Schema,
+  hrListStatutoryTablesStatus404Schema,
+  hrListStatutoryTablesStatus409Schema,
+  hrListStatutoryTablesStatus422Schema,
+} from "./zod/hrListStatutoryTablesSchema.js";
+export {
+  hrListTerminalPunchesErrorSchema,
+  hrListTerminalPunchesQueryDepartmentIdSchema,
+  hrListTerminalPunchesQueryFromDateSchema,
+  hrListTerminalPunchesQueryLimitSchema,
+  hrListTerminalPunchesQueryOffsetSchema,
+  hrListTerminalPunchesQueryOutcomeSchema,
+  hrListTerminalPunchesQuerySchema,
+  hrListTerminalPunchesQueryTerminalSchema,
+  hrListTerminalPunchesQueryToDateSchema,
+  hrListTerminalPunchesResponseSchema,
+  hrListTerminalPunchesStatus200Schema,
+  hrListTerminalPunchesStatus400Schema,
+  hrListTerminalPunchesStatus401Schema,
+  hrListTerminalPunchesStatus403Schema,
+  hrListTerminalPunchesStatus422Schema,
+} from "./zod/hrListTerminalPunchesSchema.js";
+export {
+  hrListTerminalUsersErrorSchema,
+  hrListTerminalUsersQueryDepartmentIdSchema,
+  hrListTerminalUsersQuerySchema,
+  hrListTerminalUsersResponseSchema,
+  hrListTerminalUsersStatus200Schema,
+  hrListTerminalUsersStatus401Schema,
+  hrListTerminalUsersStatus403Schema,
+  hrListTerminalUsersStatus422Schema,
+} from "./zod/hrListTerminalUsersSchema.js";
 export {
   hrLoadProvisionalHolidaysBodySchema,
   hrLoadProvisionalHolidaysErrorSchema,
@@ -17828,6 +20141,7 @@ export {
   hrProposeAttendanceCorrectionStatus422Schema,
 } from "./zod/hrProposeAttendanceCorrectionSchema.js";
 export {
+  hrPublishPeriodBodySchema,
   hrPublishPeriodErrorSchema,
   hrPublishPeriodPathPeriodIdSchema,
   hrPublishPeriodPathSchema,
@@ -17836,8 +20150,19 @@ export {
   hrPublishPeriodStatus400Schema,
   hrPublishPeriodStatus403Schema,
   hrPublishPeriodStatus404Schema,
+  hrPublishPeriodStatus409Schema,
   hrPublishPeriodStatus422Schema,
 } from "./zod/hrPublishPeriodSchema.js";
+export {
+  hrPutDepartmentRuleSetBodySchema,
+  hrPutDepartmentRuleSetErrorSchema,
+  hrPutDepartmentRuleSetPathDepartmentIdSchema,
+  hrPutDepartmentRuleSetPathSchema,
+  hrPutDepartmentRuleSetResponseSchema,
+  hrPutDepartmentRuleSetStatus200Schema,
+  hrPutDepartmentRuleSetStatus403Schema,
+  hrPutDepartmentRuleSetStatus422Schema,
+} from "./zod/hrPutDepartmentRuleSetSchema.js";
 export {
   hrPutDepartmentRulesBodySchema,
   hrPutDepartmentRulesErrorSchema,
@@ -17848,6 +20173,40 @@ export {
   hrPutDepartmentRulesStatus403Schema,
   hrPutDepartmentRulesStatus422Schema,
 } from "./zod/hrPutDepartmentRulesSchema.js";
+export {
+  hrPutOrganisationRuleSetBodySchema,
+  hrPutOrganisationRuleSetErrorSchema,
+  hrPutOrganisationRuleSetPathOrganisationIdSchema,
+  hrPutOrganisationRuleSetPathSchema,
+  hrPutOrganisationRuleSetResponseSchema,
+  hrPutOrganisationRuleSetStatus200Schema,
+  hrPutOrganisationRuleSetStatus403Schema,
+  hrPutOrganisationRuleSetStatus422Schema,
+} from "./zod/hrPutOrganisationRuleSetSchema.js";
+export {
+  hrPutRuleProfileBodySchema,
+  hrPutRuleProfileErrorSchema,
+  hrPutRuleProfilePathSchema,
+  hrPutRuleProfilePathUserIdSchema,
+  hrPutRuleProfileResponseSchema,
+  hrPutRuleProfileStatus200Schema,
+  hrPutRuleProfileStatus403Schema,
+  hrPutRuleProfileStatus404Schema,
+  hrPutRuleProfileStatus422Schema,
+} from "./zod/hrPutRuleProfileSchema.js";
+export {
+  hrRefreshPayPeriodTableStateErrorSchema,
+  hrRefreshPayPeriodTableStatePathPeriodIdSchema,
+  hrRefreshPayPeriodTableStatePathSchema,
+  hrRefreshPayPeriodTableStateResponseSchema,
+  hrRefreshPayPeriodTableStateStatus200Schema,
+  hrRefreshPayPeriodTableStateStatus400Schema,
+  hrRefreshPayPeriodTableStateStatus401Schema,
+  hrRefreshPayPeriodTableStateStatus403Schema,
+  hrRefreshPayPeriodTableStateStatus404Schema,
+  hrRefreshPayPeriodTableStateStatus409Schema,
+  hrRefreshPayPeriodTableStateStatus422Schema,
+} from "./zod/hrRefreshPayPeriodTableStateSchema.js";
 export {
   hrRejectClockPunchBodySchema,
   hrRejectClockPunchErrorSchema,
@@ -17871,6 +20230,17 @@ export {
   hrRemoveHolidayStatus422Schema,
 } from "./zod/hrRemoveHolidaySchema.js";
 export {
+  hrRemoveTerminalUserErrorSchema,
+  hrRemoveTerminalUserPathSchema,
+  hrRemoveTerminalUserPathTerminalUserIdSchema,
+  hrRemoveTerminalUserResponseSchema,
+  hrRemoveTerminalUserStatus204Schema,
+  hrRemoveTerminalUserStatus401Schema,
+  hrRemoveTerminalUserStatus403Schema,
+  hrRemoveTerminalUserStatus404Schema,
+  hrRemoveTerminalUserStatus422Schema,
+} from "./zod/hrRemoveTerminalUserSchema.js";
+export {
   hrRenameOrganisationBodySchema,
   hrRenameOrganisationErrorSchema,
   hrRenameOrganisationPathOrganisationIdSchema,
@@ -17881,6 +20251,30 @@ export {
   hrRenameOrganisationStatus404Schema,
   hrRenameOrganisationStatus422Schema,
 } from "./zod/hrRenameOrganisationSchema.js";
+export {
+  hrReprocessTerminalPunchesBodySchema,
+  hrReprocessTerminalPunchesErrorSchema,
+  hrReprocessTerminalPunchesResponseSchema,
+  hrReprocessTerminalPunchesStatus200Schema,
+  hrReprocessTerminalPunchesStatus400Schema,
+  hrReprocessTerminalPunchesStatus401Schema,
+  hrReprocessTerminalPunchesStatus403Schema,
+  hrReprocessTerminalPunchesStatus422Schema,
+} from "./zod/hrReprocessTerminalPunchesSchema.js";
+export {
+  hrReturnPayPeriodBodySchema,
+  hrReturnPayPeriodErrorSchema,
+  hrReturnPayPeriodPathPeriodIdSchema,
+  hrReturnPayPeriodPathSchema,
+  hrReturnPayPeriodResponseSchema,
+  hrReturnPayPeriodStatus200Schema,
+  hrReturnPayPeriodStatus400Schema,
+  hrReturnPayPeriodStatus401Schema,
+  hrReturnPayPeriodStatus403Schema,
+  hrReturnPayPeriodStatus404Schema,
+  hrReturnPayPeriodStatus409Schema,
+  hrReturnPayPeriodStatus422Schema,
+} from "./zod/hrReturnPayPeriodSchema.js";
 export { hrRolePublicSchema } from "./zod/hrRolePublicSchema.js";
 export {
   hrRotateClockSiteErrorSchema,
@@ -17936,6 +20330,21 @@ export {
   hrSetClockSiteActiveStatus422Schema,
 } from "./zod/hrSetClockSiteActiveSchema.js";
 export {
+  hrSetStatutoryTableStateBodySchema,
+  hrSetStatutoryTableStateErrorSchema,
+  hrSetStatutoryTableStatePathKindSchema,
+  hrSetStatutoryTableStatePathSchema,
+  hrSetStatutoryTableStatePathTableIdSchema,
+  hrSetStatutoryTableStateResponseSchema,
+  hrSetStatutoryTableStateStatus200Schema,
+  hrSetStatutoryTableStateStatus400Schema,
+  hrSetStatutoryTableStateStatus401Schema,
+  hrSetStatutoryTableStateStatus403Schema,
+  hrSetStatutoryTableStateStatus404Schema,
+  hrSetStatutoryTableStateStatus409Schema,
+  hrSetStatutoryTableStateStatus422Schema,
+} from "./zod/hrSetStatutoryTableStateSchema.js";
+export {
   hrSubmitAbsenteeReportBodySchema,
   hrSubmitAbsenteeReportErrorSchema,
   hrSubmitAbsenteeReportPathAbsenteeReportIdSchema,
@@ -17985,6 +20394,19 @@ export {
   hrSubmitParkingPermitStatus422Schema,
 } from "./zod/hrSubmitParkingPermitSchema.js";
 export {
+  hrSubmitPayPeriodErrorSchema,
+  hrSubmitPayPeriodPathPeriodIdSchema,
+  hrSubmitPayPeriodPathSchema,
+  hrSubmitPayPeriodResponseSchema,
+  hrSubmitPayPeriodStatus200Schema,
+  hrSubmitPayPeriodStatus400Schema,
+  hrSubmitPayPeriodStatus401Schema,
+  hrSubmitPayPeriodStatus403Schema,
+  hrSubmitPayPeriodStatus404Schema,
+  hrSubmitPayPeriodStatus409Schema,
+  hrSubmitPayPeriodStatus422Schema,
+} from "./zod/hrSubmitPayPeriodSchema.js";
+export {
   hrSubmitShiftSwapBodySchema,
   hrSubmitShiftSwapErrorSchema,
   hrSubmitShiftSwapPathSchema,
@@ -18018,6 +20440,7 @@ export {
   hrSubmitTimesheetStatus400Schema,
   hrSubmitTimesheetStatus403Schema,
   hrSubmitTimesheetStatus404Schema,
+  hrSubmitTimesheetStatus409Schema,
   hrSubmitTimesheetStatus422Schema,
 } from "./zod/hrSubmitTimesheetSchema.js";
 export {
@@ -18030,6 +20453,7 @@ export {
   hrTakeActionStatus400Schema,
   hrTakeActionStatus403Schema,
   hrTakeActionStatus404Schema,
+  hrTakeActionStatus409Schema,
   hrTakeActionStatus422Schema,
 } from "./zod/hrTakeActionSchema.js";
 export {
@@ -18068,6 +20492,20 @@ export {
   hrUpdateDepartmentStatus404Schema,
   hrUpdateDepartmentStatus422Schema,
 } from "./zod/hrUpdateDepartmentSchema.js";
+export {
+  hrUpdateEmployeePayProfileBodySchema,
+  hrUpdateEmployeePayProfileErrorSchema,
+  hrUpdateEmployeePayProfilePathSchema,
+  hrUpdateEmployeePayProfilePathUserIdSchema,
+  hrUpdateEmployeePayProfileResponseSchema,
+  hrUpdateEmployeePayProfileStatus200Schema,
+  hrUpdateEmployeePayProfileStatus400Schema,
+  hrUpdateEmployeePayProfileStatus401Schema,
+  hrUpdateEmployeePayProfileStatus403Schema,
+  hrUpdateEmployeePayProfileStatus404Schema,
+  hrUpdateEmployeePayProfileStatus409Schema,
+  hrUpdateEmployeePayProfileStatus422Schema,
+} from "./zod/hrUpdateEmployeePayProfileSchema.js";
 export {
   hrUpdateHolidayBodySchema,
   hrUpdateHolidayErrorSchema,
@@ -18124,6 +20562,32 @@ export {
   hrUpdateParkingPermitStatus404Schema,
   hrUpdateParkingPermitStatus422Schema,
 } from "./zod/hrUpdateParkingPermitSchema.js";
+export {
+  hrUpdatePayrollDepartmentSettingBodySchema,
+  hrUpdatePayrollDepartmentSettingErrorSchema,
+  hrUpdatePayrollDepartmentSettingPathDepartmentIdSchema,
+  hrUpdatePayrollDepartmentSettingPathSchema,
+  hrUpdatePayrollDepartmentSettingResponseSchema,
+  hrUpdatePayrollDepartmentSettingStatus200Schema,
+  hrUpdatePayrollDepartmentSettingStatus400Schema,
+  hrUpdatePayrollDepartmentSettingStatus401Schema,
+  hrUpdatePayrollDepartmentSettingStatus403Schema,
+  hrUpdatePayrollDepartmentSettingStatus404Schema,
+  hrUpdatePayrollDepartmentSettingStatus409Schema,
+  hrUpdatePayrollDepartmentSettingStatus422Schema,
+} from "./zod/hrUpdatePayrollDepartmentSettingSchema.js";
+export {
+  hrUpdatePayrollExportSettingsBodySchema,
+  hrUpdatePayrollExportSettingsErrorSchema,
+  hrUpdatePayrollExportSettingsResponseSchema,
+  hrUpdatePayrollExportSettingsStatus200Schema,
+  hrUpdatePayrollExportSettingsStatus400Schema,
+  hrUpdatePayrollExportSettingsStatus401Schema,
+  hrUpdatePayrollExportSettingsStatus403Schema,
+  hrUpdatePayrollExportSettingsStatus404Schema,
+  hrUpdatePayrollExportSettingsStatus409Schema,
+  hrUpdatePayrollExportSettingsStatus422Schema,
+} from "./zod/hrUpdatePayrollExportSettingsSchema.js";
 export {
   hrUpdateProductPolicyBodySchema,
   hrUpdateProductPolicyErrorSchema,
@@ -18284,6 +20748,7 @@ export { invoiceListPublicSchema } from "./zod/invoiceListPublicSchema.js";
 export { invoiceStatusSchema } from "./zod/invoiceStatusSchema.js";
 export { invoiceSummaryPublicSchema } from "./zod/invoiceSummaryPublicSchema.js";
 export { invoiceVoidSchema } from "./zod/invoiceVoidSchema.js";
+export { issuedProductsSchema } from "./zod/issuedProductsSchema.js";
 export { itemCreateSchema } from "./zod/itemCreateSchema.js";
 export { itemListPublicSchema } from "./zod/itemListPublicSchema.js";
 export { itemPublicSchema } from "./zod/itemPublicSchema.js";
@@ -18633,6 +21098,7 @@ export { listingUpsertPropertiesVisibilityEnumSchema } from "./zod/listingUpsert
 export { listingUpsertSchema } from "./zod/listingUpsertSchema.js";
 export { locationCreateSchema } from "./zod/locationCreateSchema.js";
 export { locationListPublicSchema } from "./zod/locationListPublicSchema.js";
+export { locationOutSchema } from "./zod/locationOutSchema.js";
 export { locationPublicSchema } from "./zod/locationPublicSchema.js";
 export { locationUpdateSchema } from "./zod/locationUpdateSchema.js";
 export { managedListingSchema } from "./zod/managedListingSchema.js";
@@ -18738,6 +21204,8 @@ export {
   modelsListOrganisationsStatus422Schema,
 } from "./zod/modelsListOrganisationsSchema.js";
 export { movementKindSchema } from "./zod/movementKindSchema.js";
+export { myDeductionPublicSchema } from "./zod/myDeductionPublicSchema.js";
+export { myDeductionsPublicSchema } from "./zod/myDeductionsPublicSchema.js";
 export { myMembershipPublicSchema } from "./zod/myMembershipPublicSchema.js";
 export { myProfilePropertiesIntentsItemsEnumSchema } from "./zod/myProfilePropertiesIntentsItemsEnumSchema.js";
 export { myProfilePropertiesVisibilityEnumSchema } from "./zod/myProfilePropertiesVisibilityEnumSchema.js";
@@ -18754,6 +21222,9 @@ export { nhcEditionSchema } from "./zod/nhcEditionSchema.js";
 export { nhcJobPropertiesKindEnumSchema } from "./zod/nhcJobPropertiesKindEnumSchema.js";
 export { nhcJobPropertiesStatusEnumSchema } from "./zod/nhcJobPropertiesStatusEnumSchema.js";
 export { nhcJobSchema } from "./zod/nhcJobSchema.js";
+export { nhcMarineGuidancePropertiesStatusEnumSchema } from "./zod/nhcMarineGuidancePropertiesStatusEnumSchema.js";
+export { nhcMarineGuidanceSchema } from "./zod/nhcMarineGuidanceSchema.js";
+export { nhcMarinePeriodSchema } from "./zod/nhcMarinePeriodSchema.js";
 export { nhcPageSchema } from "./zod/nhcPageSchema.js";
 export { nhcPointRequestSchema } from "./zod/nhcPointRequestSchema.js";
 export { nhcPrefillRequestPropertiesKindEnumSchema } from "./zod/nhcPrefillRequestPropertiesKindEnumSchema.js";
@@ -19454,6 +21925,7 @@ export { outlookProductPreviewSchema } from "./zod/outlookProductPreviewSchema.j
 export { outlookProductWriteSchema } from "./zod/outlookProductWriteSchema.js";
 export { outlookStoredProductSchema } from "./zod/outlookStoredProductSchema.js";
 export { outlookValuesDraftSchema } from "./zod/outlookValuesDraftSchema.js";
+export { overtimeBandPublicSchema } from "./zod/overtimeBandPublicSchema.js";
 export { pageFeedbackAcceptedSchema } from "./zod/pageFeedbackAcceptedSchema.js";
 export { pageFeedbackCreateSchema } from "./zod/pageFeedbackCreateSchema.js";
 export { paginatedResponseAuditEntryPublicSchema } from "./zod/paginatedResponseAuditEntryPublicSchema.js";
@@ -19474,6 +21946,25 @@ export { parkingPermitPublicSchema } from "./zod/parkingPermitPublicSchema.js";
 export { parkingPermitSubmitSchema } from "./zod/parkingPermitSubmitSchema.js";
 export { passportStopPublicSchema } from "./zod/passportStopPublicSchema.js";
 export { passportTrailPublicSchema } from "./zod/passportTrailPublicSchema.js";
+export { payBasisSchema } from "./zod/payBasisSchema.js";
+export { payCalendarCreateSchema } from "./zod/payCalendarCreateSchema.js";
+export { payCalendarPublicSchema } from "./zod/payCalendarPublicSchema.js";
+export { payCalendarsPublicSchema } from "./zod/payCalendarsPublicSchema.js";
+export { payFrequencySchema } from "./zod/payFrequencySchema.js";
+export { payItemKindSchema } from "./zod/payItemKindSchema.js";
+export { payItemMethodSchema } from "./zod/payItemMethodSchema.js";
+export { payItemPublicSchema } from "./zod/payItemPublicSchema.js";
+export { payItemRateCreateSchema } from "./zod/payItemRateCreateSchema.js";
+export { payItemRatePublicSchema } from "./zod/payItemRatePublicSchema.js";
+export { payItemRatesPublicSchema } from "./zod/payItemRatesPublicSchema.js";
+export { payItemsPublicSchema } from "./zod/payItemsPublicSchema.js";
+export { payItemTotalSchema } from "./zod/payItemTotalSchema.js";
+export { payItemUnitSchema } from "./zod/payItemUnitSchema.js";
+export { payLineAmountPublicSchema } from "./zod/payLineAmountPublicSchema.js";
+export { payLineKindSchema } from "./zod/payLineKindSchema.js";
+export { payLineManualCreateSchema } from "./zod/payLineManualCreateSchema.js";
+export { payLinePublicSchema } from "./zod/payLinePublicSchema.js";
+export { payLinesPublicSchema } from "./zod/payLinesPublicSchema.js";
 export { paymentAttemptPublicSchema } from "./zod/paymentAttemptPublicSchema.js";
 export { paymentBalanceListPublicSchema } from "./zod/paymentBalanceListPublicSchema.js";
 export { paymentBalancePublicSchema } from "./zod/paymentBalancePublicSchema.js";
@@ -19652,6 +22143,23 @@ export {
   paymentsRecordManualPaymentStatus409Schema,
   paymentsRecordManualPaymentStatus422Schema,
 } from "./zod/paymentsRecordManualPaymentSchema.js";
+export { payPeriodAmountsPublicSchema } from "./zod/payPeriodAmountsPublicSchema.js";
+export { payPeriodCreateSchema } from "./zod/payPeriodCreateSchema.js";
+export { payPeriodDetailSchema } from "./zod/payPeriodDetailSchema.js";
+export { payPeriodPublicSchema } from "./zod/payPeriodPublicSchema.js";
+export { payPeriodReturnSchema } from "./zod/payPeriodReturnSchema.js";
+export { payPeriodReviewSchema } from "./zod/payPeriodReviewSchema.js";
+export { payPeriodStatusSchema } from "./zod/payPeriodStatusSchema.js";
+export { payPeriodsPublicSchema } from "./zod/payPeriodsPublicSchema.js";
+export { payRunKindSchema } from "./zod/payRunKindSchema.js";
+export { payrollDepartmentSettingPublicSchema } from "./zod/payrollDepartmentSettingPublicSchema.js";
+export { payrollDepartmentSettingsPublicSchema } from "./zod/payrollDepartmentSettingsPublicSchema.js";
+export { payrollDepartmentSettingUpdateSchema } from "./zod/payrollDepartmentSettingUpdateSchema.js";
+export { payrollExportSettingsPublicSchema } from "./zod/payrollExportSettingsPublicSchema.js";
+export { payrollExportSettingsUpdateSchema } from "./zod/payrollExportSettingsUpdateSchema.js";
+export { paySummaryPublicSchema } from "./zod/paySummaryPublicSchema.js";
+export { payslipPublicSchema } from "./zod/payslipPublicSchema.js";
+export { payslipsPublicSchema } from "./zod/payslipsPublicSchema.js";
 export { permissionCreateSchema } from "./zod/permissionCreateSchema.js";
 export { permissionPublicSchema } from "./zod/permissionPublicSchema.js";
 export { personChipSchema } from "./zod/personChipSchema.js";
@@ -19671,6 +22179,8 @@ export { postInSchema } from "./zod/postInSchema.js";
 export { postponeEventSchema } from "./zod/postponeEventSchema.js";
 export { postponeResultSchema } from "./zod/postponeResultSchema.js";
 export { preferencesUnsubscribeRequestSchema } from "./zod/preferencesUnsubscribeRequestSchema.js";
+export { principalPhasePropertiesPhaseEnumSchema } from "./zod/principalPhasePropertiesPhaseEnumSchema.js";
+export { principalPhaseSchema } from "./zod/principalPhaseSchema.js";
 export { productAccessCurrentSchema } from "./zod/productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./zod/productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./zod/productAccessPublicSchema.js";
@@ -19685,6 +22195,78 @@ export { profileAuditPublicSchema } from "./zod/profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./zod/profileDetailsPublicSchema.js";
 export { profileDetailsUpdateSchema } from "./zod/profileDetailsUpdateSchema.js";
 export { profileIdentityPublicSchema } from "./zod/profileIdentityPublicSchema.js";
+export { profileImagePublicSchema } from "./zod/profileImagePublicSchema.js";
+export { profileImageSizeSchema } from "./zod/profileImageSizeSchema.js";
+export {
+  profileImagesGetMineErrorSchema,
+  profileImagesGetMineResponseSchema,
+  profileImagesGetMineStatus200Schema,
+  profileImagesGetMineStatus401Schema,
+  profileImagesGetMineStatus403Schema,
+  profileImagesGetMineStatus404Schema,
+  profileImagesGetMineStatus422Schema,
+} from "./zod/profileImagesGetMineSchema.js";
+export {
+  profileImagesRemoveMineErrorSchema,
+  profileImagesRemoveMineResponseSchema,
+  profileImagesRemoveMineStatus204Schema,
+  profileImagesRemoveMineStatus401Schema,
+  profileImagesRemoveMineStatus403Schema,
+  profileImagesRemoveMineStatus404Schema,
+  profileImagesRemoveMineStatus422Schema,
+} from "./zod/profileImagesRemoveMineSchema.js";
+export {
+  profileImagesRemoveErrorSchema,
+  profileImagesRemovePathSchema,
+  profileImagesRemovePathUserIdSchema,
+  profileImagesRemoveResponseSchema,
+  profileImagesRemoveStatus204Schema,
+  profileImagesRemoveStatus401Schema,
+  profileImagesRemoveStatus403Schema,
+  profileImagesRemoveStatus404Schema,
+  profileImagesRemoveStatus422Schema,
+} from "./zod/profileImagesRemoveSchema.js";
+export {
+  profileImagesSetMineBodySchema,
+  profileImagesSetMineBodySchemaJpeg,
+  profileImagesSetMineBodySchemaPng,
+  profileImagesSetMineBodySchemaWebp,
+  profileImagesSetMineErrorSchema,
+  profileImagesSetMineResponseSchema,
+  profileImagesSetMineStatus200Schema,
+  profileImagesSetMineStatus401Schema,
+  profileImagesSetMineStatus403Schema,
+  profileImagesSetMineStatus413Schema,
+  profileImagesSetMineStatus415Schema,
+  profileImagesSetMineStatus422Schema,
+  profileImagesSetMineStatus503Schema,
+} from "./zod/profileImagesSetMineSchema.js";
+export {
+  profileImagesShowMineErrorSchema,
+  profileImagesShowMineQuerySchema,
+  profileImagesShowMineQuerySizeSchema,
+  profileImagesShowMineResponseSchema,
+  profileImagesShowMineStatus307Schema,
+  profileImagesShowMineStatus401Schema,
+  profileImagesShowMineStatus403Schema,
+  profileImagesShowMineStatus404Schema,
+  profileImagesShowMineStatus422Schema,
+  profileImagesShowMineStatus503Schema,
+} from "./zod/profileImagesShowMineSchema.js";
+export {
+  profileImagesShowErrorSchema,
+  profileImagesShowPathSchema,
+  profileImagesShowPathUserIdSchema,
+  profileImagesShowQuerySchema,
+  profileImagesShowQuerySizeSchema,
+  profileImagesShowResponseSchema,
+  profileImagesShowStatus307Schema,
+  profileImagesShowStatus401Schema,
+  profileImagesShowStatus403Schema,
+  profileImagesShowStatus404Schema,
+  profileImagesShowStatus422Schema,
+  profileImagesShowStatus503Schema,
+} from "./zod/profileImagesShowSchema.js";
 export { profilePublicPropertiesConnectionStateEnumSchema } from "./zod/profilePublicPropertiesConnectionStateEnumSchema.js";
 export { profilePublicSchema } from "./zod/profilePublicSchema.js";
 export { profileUpdateSchema } from "./zod/profileUpdateSchema.js";
@@ -19752,6 +22334,7 @@ export {
 } from "./zod/pushVapidPublicKeySchema.js";
 export { qcDecisionBodySchema } from "./zod/qcDecisionBodySchema.js";
 export { qcDecisionRequestSchema } from "./zod/qcDecisionRequestSchema.js";
+export { rateKindSchema } from "./zod/rateKindSchema.js";
 export { readinessUnavailableSchema } from "./zod/readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./zod/receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./zod/receivablesPublicSchema.js";
@@ -19788,6 +22371,8 @@ export { requisitionRejectSchema } from "./zod/requisitionRejectSchema.js";
 export { requisitionStatusSchema } from "./zod/requisitionStatusSchema.js";
 export { requisitionUpdateSchema } from "./zod/requisitionUpdateSchema.js";
 export { reviewAssignmentSchema } from "./zod/reviewAssignmentSchema.js";
+export { reviewDayRequestSchema } from "./zod/reviewDayRequestSchema.js";
+export { reviewDayResultSchema } from "./zod/reviewDayResultSchema.js";
 export { reviewInputPropertiesDecisionEnumSchema } from "./zod/reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./zod/reviewInputSchema.js";
 export { reviewPublicSchema } from "./zod/reviewPublicSchema.js";
@@ -20405,13 +22990,25 @@ export { rosterPeriodStatusSchema } from "./zod/rosterPeriodStatusSchema.js";
 export { rosterPeriodsPublicSchema } from "./zod/rosterPeriodsPublicSchema.js";
 export { rosterPreferencesPublicSchema } from "./zod/rosterPreferencesPublicSchema.js";
 export { rosterPreferencesUpdateSchema } from "./zod/rosterPreferencesUpdateSchema.js";
+export { rosterPublishRequestSchema } from "./zod/rosterPublishRequestSchema.js";
 export { rosterRevisionActionSchema } from "./zod/rosterRevisionActionSchema.js";
 export { rosterRevisionPublicSchema } from "./zod/rosterRevisionPublicSchema.js";
 export { rosterRevisionsPublicSchema } from "./zod/rosterRevisionsPublicSchema.js";
 export { rosterRuleCheckPublicSchema } from "./zod/rosterRuleCheckPublicSchema.js";
+export { rosterRuleOverridePublicSchema } from "./zod/rosterRuleOverridePublicSchema.js";
+export { rosterRuleOverridesPublicSchema } from "./zod/rosterRuleOverridesPublicSchema.js";
+export { rosterRuleProfilePublicSchema } from "./zod/rosterRuleProfilePublicSchema.js";
+export { rosterRuleProfilesPublicSchema } from "./zod/rosterRuleProfilesPublicSchema.js";
+export { rosterRuleProfileUpdateSchema } from "./zod/rosterRuleProfileUpdateSchema.js";
+export { rosterRuleSetPublicSchema } from "./zod/rosterRuleSetPublicSchema.js";
+export { rosterRuleSetUpdateSchema } from "./zod/rosterRuleSetUpdateSchema.js";
 export { rosterRulesPublicSchema } from "./zod/rosterRulesPublicSchema.js";
 export { rosterRulesUpdateSchema } from "./zod/rosterRulesUpdateSchema.js";
+export { rosterRuleWarningsErrorPublicSchema } from "./zod/rosterRuleWarningsErrorPublicSchema.js";
 export { routeViewSchema } from "./zod/routeViewSchema.js";
+export { ruleOverrideContextSchema } from "./zod/ruleOverrideContextSchema.js";
+export { ruleSetSourceSchema } from "./zod/ruleSetSourceSchema.js";
+export { ruleStateSchema } from "./zod/ruleStateSchema.js";
 export { ruleViolationPublicSchema } from "./zod/ruleViolationPublicSchema.js";
 export { runFinishPropertiesStatusEnumSchema } from "./zod/runFinishPropertiesStatusEnumSchema.js";
 export { runFinishSchema } from "./zod/runFinishSchema.js";
@@ -20471,7 +23068,10 @@ export { signatureInputSchema } from "./zod/signatureInputSchema.js";
 export { signaturePublicSchema } from "./zod/signaturePublicSchema.js";
 export { signedDocumentListSchema } from "./zod/signedDocumentListSchema.js";
 export { signedDocumentPublicSchema } from "./zod/signedDocumentPublicSchema.js";
+export { signInSetupIssueSchema } from "./zod/signInSetupIssueSchema.js";
 export { siteSubscribeRequestSchema } from "./zod/siteSubscribeRequestSchema.js";
+export { socialInsuranceSchemeCreateSchema } from "./zod/socialInsuranceSchemeCreateSchema.js";
+export { socialInsuranceSchemePublicSchema } from "./zod/socialInsuranceSchemePublicSchema.js";
 export { staffCardSchema } from "./zod/staffCardSchema.js";
 export { staffCreateSchema } from "./zod/staffCreateSchema.js";
 export { staffEventRowSchema } from "./zod/staffEventRowSchema.js";
@@ -20497,6 +23097,7 @@ export { statusReportPublicSchema } from "./zod/statusReportPublicSchema.js";
 export { statusReportSubmitSchema } from "./zod/statusReportSubmitSchema.js";
 export { statusStaffingEntrySchema } from "./zod/statusStaffingEntrySchema.js";
 export { statusStaffingPublicSchema } from "./zod/statusStaffingPublicSchema.js";
+export { statutoryTablesPublicSchema } from "./zod/statutoryTablesPublicSchema.js";
 export { stockLevelListPublicSchema } from "./zod/stockLevelListPublicSchema.js";
 export { stockLevelPublicSchema } from "./zod/stockLevelPublicSchema.js";
 export { stockMovementCreateSchema } from "./zod/stockMovementCreateSchema.js";
@@ -20896,29 +23497,55 @@ export { synopDecodedSchema } from "./zod/synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./zod/synopticImageGroupSchema.js";
 export { synopticImageGroupsSchema } from "./zod/synopticImageGroupsSchema.js";
 export { synopticSlotsSchema } from "./zod/synopticSlotsSchema.js";
+export { synopValidationErrorDetailSchema } from "./zod/synopValidationErrorDetailSchema.js";
 export { synopValidationIssueSchema } from "./zod/synopValidationIssueSchema.js";
 export { synopValidationRequestSchema } from "./zod/synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./zod/synopValidationResponseSchema.js";
 export { synopWorkbookSchema } from "./zod/synopWorkbookSchema.js";
+export { tableStatePublicSchema } from "./zod/tableStatePublicSchema.js";
+export { tableStateSchema } from "./zod/tableStateSchema.js";
+export { tableStateUpdateSchema } from "./zod/tableStateUpdateSchema.js";
 export { taskCreateSchema } from "./zod/taskCreateSchema.js";
 export { taskUpdateSchema } from "./zod/taskUpdateSchema.js";
 export { taskViewSchema } from "./zod/taskViewSchema.js";
+export { taxBandCreateSchema } from "./zod/taxBandCreateSchema.js";
+export { taxBandPublicSchema } from "./zod/taxBandPublicSchema.js";
+export { taxMethodSchema } from "./zod/taxMethodSchema.js";
+export { taxTableCreateSchema } from "./zod/taxTableCreateSchema.js";
+export { taxTablePublicSchema } from "./zod/taxTablePublicSchema.js";
 export { teamCapabilitiesPublicSchema } from "./zod/teamCapabilitiesPublicSchema.js";
 export { teamMemberGrantPublicSchema } from "./zod/teamMemberGrantPublicSchema.js";
 export { teamMemberListPublicSchema } from "./zod/teamMemberListPublicSchema.js";
 export { teamMemberPublicSchema } from "./zod/teamMemberPublicSchema.js";
+export { terminalAttentionOutcomeSchema } from "./zod/terminalAttentionOutcomeSchema.js";
+export { terminalImportErrorPublicSchema } from "./zod/terminalImportErrorPublicSchema.js";
+export { terminalImportPublicSchema } from "./zod/terminalImportPublicSchema.js";
+export { terminalOutcomeCountsSchema } from "./zod/terminalOutcomeCountsSchema.js";
+export { terminalPunchesPublicSchema } from "./zod/terminalPunchesPublicSchema.js";
+export { terminalPunchOutcomeSchema } from "./zod/terminalPunchOutcomeSchema.js";
+export { terminalPunchPublicSchema } from "./zod/terminalPunchPublicSchema.js";
+export { terminalReprocessPublicSchema } from "./zod/terminalReprocessPublicSchema.js";
+export { terminalReprocessRequestSchema } from "./zod/terminalReprocessRequestSchema.js";
+export { terminalUserCreateSchema } from "./zod/terminalUserCreateSchema.js";
+export { terminalUserPublicSchema } from "./zod/terminalUserPublicSchema.js";
+export { terminalUsersPublicSchema } from "./zod/terminalUsersPublicSchema.js";
 export { threadCreateSchema } from "./zod/threadCreateSchema.js";
 export { threadDetailPropertiesKindEnumSchema } from "./zod/threadDetailPropertiesKindEnumSchema.js";
 export { threadDetailSchema } from "./zod/threadDetailSchema.js";
 export { threadSummarySchema } from "./zod/threadSummarySchema.js";
 export { ticketDetailSchema } from "./zod/ticketDetailSchema.js";
 export { ticketSummarySchema } from "./zod/ticketSummarySchema.js";
+export { tideEventPropertiesEventTypeEnumSchema } from "./zod/tideEventPropertiesEventTypeEnumSchema.js";
+export { tideEventSchema } from "./zod/tideEventSchema.js";
+export { tidesResponseSchema } from "./zod/tidesResponseSchema.js";
 export { tierInputSchema } from "./zod/tierInputSchema.js";
 export { tierPublicSchema } from "./zod/tierPublicSchema.js";
 export { tillCloseSchema } from "./zod/tillCloseSchema.js";
 export { tillOpenSchema } from "./zod/tillOpenSchema.js";
 export { tillPublicPropertiesStatusEnumSchema } from "./zod/tillPublicPropertiesStatusEnumSchema.js";
 export { tillPublicSchema } from "./zod/tillPublicSchema.js";
+export { timeOfDaySchema } from "./zod/timeOfDaySchema.js";
+export { timesheetApproveRequestSchema } from "./zod/timesheetApproveRequestSchema.js";
 export { timesheetCreateSchema } from "./zod/timesheetCreateSchema.js";
 export { timesheetDetailsSchema } from "./zod/timesheetDetailsSchema.js";
 export { timesheetEntryInputSchema } from "./zod/timesheetEntryInputSchema.js";
@@ -21383,6 +24010,7 @@ export {
   webhooksOutUpdateEndpointStatus422Schema,
 } from "./zod/webhooksOutUpdateEndpointSchema.js";
 export { webhookTestResultSchema } from "./zod/webhookTestResultSchema.js";
+export { workerTypeSchema } from "./zod/workerTypeSchema.js";
 export { workflowActionRequestSchema } from "./zod/workflowActionRequestSchema.js";
 export { workflowActionSchema } from "./zod/workflowActionSchema.js";
 export { workflowConfigurationInputSchema } from "./zod/workflowConfigurationInputSchema.js";
@@ -21404,6 +24032,7 @@ export { workflowTypeSchema } from "./zod/workflowTypeSchema.js";
 export { workingDayHolidaySchema } from "./zod/workingDayHolidaySchema.js";
 export { workingDaysPublicPropertiesMethodEnumSchema } from "./zod/workingDaysPublicPropertiesMethodEnumSchema.js";
 export { workingDaysPublicSchema } from "./zod/workingDaysPublicSchema.js";
+export { workPatternSchema } from "./zod/workPatternSchema.js";
 export {
   wxproductsCreateTropicalSystemBodySchema,
   wxproductsCreateTropicalSystemErrorSchema,
@@ -21435,6 +24064,15 @@ export {
   wxproductsGetPublicTropicalSystemStatus422Schema,
   wxproductsGetPublicTropicalSystemStatus503Schema,
 } from "./zod/wxproductsGetPublicTropicalSystemSchema.js";
+export {
+  wxproductsListIssuedProductsErrorSchema,
+  wxproductsListIssuedProductsQueryLimitSchema,
+  wxproductsListIssuedProductsQuerySchema,
+  wxproductsListIssuedProductsResponseSchema,
+  wxproductsListIssuedProductsStatus200Schema,
+  wxproductsListIssuedProductsStatus422Schema,
+  wxproductsListIssuedProductsStatus503Schema,
+} from "./zod/wxproductsListIssuedProductsSchema.js";
 export {
   wxproductsListPublicProductsErrorSchema,
   wxproductsListPublicProductsQueryKindSchema,
@@ -21576,6 +24214,16 @@ export {
   wxproductsPublicForecastStatus422Schema,
   wxproductsPublicForecastStatus503Schema,
 } from "./zod/wxproductsPublicForecastSchema.js";
+export {
+  wxproductsPublicProductPdfErrorSchema,
+  wxproductsPublicProductPdfPathProductIdSchema,
+  wxproductsPublicProductPdfPathSchema,
+  wxproductsPublicProductPdfResponseSchema,
+  wxproductsPublicProductPdfStatus200Schema,
+  wxproductsPublicProductPdfStatus404Schema,
+  wxproductsPublicProductPdfStatus422Schema,
+  wxproductsPublicProductPdfStatus503Schema,
+} from "./zod/wxproductsPublicProductPdfSchema.js";
 export {
   wxproductsPublicSectorOutlookErrorSchema,
   wxproductsPublicSectorOutlookQueryDaysSchema,
@@ -21751,6 +24399,16 @@ export {
   wxwatchLatestStatus200Schema,
   wxwatchLatestStatus422Schema,
 } from "./zod/wxwatchLatestSchema.js";
+export {
+  wxwatchMarineGuidanceErrorSchema,
+  wxwatchMarineGuidanceResponseSchema,
+  wxwatchMarineGuidanceStatus200Schema,
+  wxwatchMarineGuidanceStatus401Schema,
+  wxwatchMarineGuidanceStatus403Schema,
+  wxwatchMarineGuidanceStatus404Schema,
+  wxwatchMarineGuidanceStatus422Schema,
+  wxwatchMarineGuidanceStatus503Schema,
+} from "./zod/wxwatchMarineGuidanceSchema.js";
 export {
   wxwatchMetadataErrorSchema,
   wxwatchMetadataQueryDaySchema,

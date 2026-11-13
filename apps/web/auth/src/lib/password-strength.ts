@@ -8,7 +8,7 @@ export interface PasswordStrength {
   readonly score: 0 | 1 | 2 | 3 | 4;
 }
 
-const CHARACTER_CLASSES = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/];
+const CHARACTER_CLASSES = [/[a-z]/u, /[A-Z]/u, /\d/u, /[^A-Za-z0-9]/u];
 
 const LABELS: readonly StrengthLabel[] = [
   "Too short",

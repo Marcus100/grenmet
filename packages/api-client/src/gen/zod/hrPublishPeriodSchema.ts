@@ -6,6 +6,8 @@
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rosterPeriodPublicSchema } from "./rosterPeriodPublicSchema.js";
+import { rosterPublishRequestSchema } from "./rosterPublishRequestSchema.js";
+import { rosterRuleWarningsErrorPublicSchema } from "./rosterRuleWarningsErrorPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrPublishPeriodPathPeriodIdSchema = z.uuid();
@@ -24,6 +26,11 @@ export const hrPublishPeriodStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const hrPublishPeriodStatus409Schema =
+  rosterRuleWarningsErrorPublicSchema.describe(
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
+  );
+
 export const hrPublishPeriodStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -35,8 +42,13 @@ export const hrPublishPeriodErrorSchema = z.union([
   hrPublishPeriodStatus400Schema,
   hrPublishPeriodStatus403Schema,
   hrPublishPeriodStatus404Schema,
+  hrPublishPeriodStatus409Schema,
   hrPublishPeriodStatus422Schema,
 ]);
+
+export const hrPublishPeriodBodySchema = rosterPublishRequestSchema
+  .optional()
+  .default({});
 
 export const hrPublishPeriodPathSchema = z.object({
   period_id: z.uuid(),

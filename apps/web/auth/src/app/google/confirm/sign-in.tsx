@@ -31,7 +31,7 @@ export function GoogleConfirm({ requiresTotp }: { requiresTotp: boolean }) {
         {pending ? "Signing in…" : "Continue"}
       </button>
       <Link
-        className={`${textLinkClass} block text-center text-body-sm`}
+        className={`${textLinkClass} text-body-sm block text-center`}
         href="/google/start"
         prefetch={false}
       >

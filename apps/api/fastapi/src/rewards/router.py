@@ -5,7 +5,7 @@ Routers commit; service functions flush.
 """
 
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Query, status
 
@@ -352,8 +352,8 @@ async def org_list_entries(
     session: SessionDep,
     org: RewardsOrgMember,
     pagination: PaginationDep,
-    program_id: uuid.UUID | None = Query(default=None),
-    kind: EntryKind | None = Query(default=None),
+    program_id: Annotated[uuid.UUID | None, Query()] = None,
+    kind: Annotated[EntryKind | None, Query()] = None,
 ) -> Any:
     return await _org_entries(
         session=session,
@@ -378,7 +378,7 @@ async def org_list_redemptions(
     session: SessionDep,
     org: RewardsOrgMember,
     pagination: PaginationDep,
-    program_id: uuid.UUID | None = Query(default=None),
+    program_id: Annotated[uuid.UUID | None, Query()] = None,
 ) -> Any:
     return await _org_entries(
         session=session,
@@ -469,7 +469,7 @@ async def admin_list_flags(
     *,
     session: SessionDep,
     _manager: RewardsManager,
-    include_resolved: bool = Query(default=False),
+    include_resolved: Annotated[bool, Query()] = False,
 ) -> Any:
     return await service.list_flags(session, include_resolved=include_resolved)
 

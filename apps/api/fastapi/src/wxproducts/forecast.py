@@ -48,6 +48,10 @@ def period(product: PublishedProduct, day: datetime, prefix: str) -> ForecastPer
         for key in ("wind", "seaState", "highTides", "lowTides", "sunrise", "sunset")
     }
     details["summary"] = values.get(prefix + "Weather" if prefix else "summary", "")
+    # The forecaster's sky choice (Clear … Overcast) drives the site's icon;
+    # outlook days have it too since 10 Nov 2026. Absent on older issues.
+    if value("condition"):
+        details["condition"] = value("condition")
     if not prefix:
         for key in ("observedTemperature", "word", "definition"):
             if values.get(key):

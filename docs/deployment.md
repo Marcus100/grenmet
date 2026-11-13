@@ -11,6 +11,7 @@
 This monorepo uses GitHub Actions with self-hosted runners to deploy to staging and production.
 Each environment runs on its own dedicated Digital Ocean droplet. Elections Grenada
 is the exception: it deploys independently to Vercel; see [its deployment guide](web/elections-deployment.md).
+Static sites are moving to Cloudflare Pages ([ADR-0036](adr/0036-hosting-split.md) amendment); `commit.barrels.gd` is already there.
 
 For operational SSH access, use the `deploy` account on production and `root` on
 staging. Authenticate with the existing SSH key; DigitalOcean API authentication
@@ -22,11 +23,47 @@ Promotion follows `dev → staging → main → release`. Use pull requests for 
 promotion; the user merges them and publishes the release. See the
 [release runbook](operations/release-runbook.md) for the full sequence.
 
-- A push to `staging` runs `pipeline-staging.yml`: CI, applicable image builds,
-  then deployment with the `staging` image tag.
+Images are built once, when a change lands on `dev`, and promoted by digest
+(issue #1019; full description and recovery steps in the
+[release runbook](operations/release-runbook.md#build-once-promote-by-digest)):
+
+- A push to `dev` runs `dev-images.yml`: it builds, smoke-tests and scans only
+  the images the change touches and tags every release image `tree-<git tree>`;
+  unchanged images reuse the previous tree's digest. Dev builds use the `build`
+  GitHub environment for production's build-time Sentry values.
+- A push to `staging` runs `pipeline-staging.yml`. Staging is a merge of dev, so
+  its commit has the same git tree as the dev commit it came from.
+  `scripts/ci/promote-images.mjs` finds that dev commit, checks the required
+  status checks passed on it (`infra/github/rulesets.json`), retags the exact
+  `tree-<tree>` digests as `staging-sha-<commit>` and deploys them. Nothing is
+  rebuilt or re-tested. After a successful deploy (smoke tests included) the
+  digests are tagged `staging-verified-tree-<tree>`.
 - Merging to `main` does not build deployment images or deploy production.
-- Publishing a release runs `pipeline-prod.yml`: builds all images at the release
-  tag, then deploys that same tag for FastAPI, web apps, and migrations.
+- Publishing a release runs `pipeline-prod.yml`: it promotes only the
+  `staging-verified-tree-<tree>` digests for the release commit's tree, so
+  production runs exactly what staging ran, and fails if staging never deployed
+  that tree. `latest` and the release tag move after the production deploy.
+- `core.sh` refuses any image whose digest is not in the promotion's list
+  (`DEPLOY_IMAGE_DIGESTS`).
+- Promotion checks, before any retag: the required checks passed by the same
+  GitHub App the dev ruleset names (rules read from the dev commit), and every
+  image's `org.opencontainers.image.revision` label names the promoted dev
+  commit or an ancestor of it that itself passed the required checks, and its
+  `gd.barrels.tree` label is that commit's tree (a reused image keeps the labels
+  of the commit that built it). Only `dev-images.yml` can write `tree-*` tags.
+  Known gap: build provenance is a BuildKit attestation inside the image, not a
+  GitHub artifact attestation, so `gh attestation verify` does not apply;
+  integrity rests on registry write access, the labels and the digest list.
+- If the dev images for a tree are missing, the staging pipeline dispatches
+  `dev-images.yml` for that commit and waits (see the release runbook).
+- The `build` GitHub environment needs the secrets `SENTRY_AUTH_TOKEN`,
+  `SENTRY_DSN_PRODUCTION` and `SENTRY_DSN_STAGING`. A dev web build fails when
+  the catalogue routes the app to Sentry but the DSN is empty (admin is not
+  routed yet and is skipped).
+- Server deploy speed (lands with PR #1020): `core.sh` pulls only images missing
+  on the host (`PULL_PARALLEL`, default 4) and, with `ROLLING_DEPLOY=1`, rolls
+  routed services in batches (`ROLLOUT_PARALLEL`, default 4 on staging, 2 on
+  production).
 - A manual **Deploy** dispatch redeploys existing images; it does not build them.
   Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 
@@ -103,10 +140,12 @@ Go into each environment and add the following secrets. Staging and production u
 | `JANITORIAL_DB_PASSWORD` | Janitorial database password | Generate a separate random value |
 | `TRANSPORT_DB_PASSWORD` | Transport database password | Generate a separate random value |
 | `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment and per app)   |
+| `CAP_SSO_CLIENT_SECRET` | CAP warning desk single sign-on secret (`cap.${BASE_DOMAIN}/desk`; empty keeps its sign-in off, public alert pages unaffected) | `openssl rand -base64 32` (different per environment and per app) |
 | `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels staff console single sign-on secret (empty keeps its sign-in off; superusers only) | `openssl rand -base64 32` (different per environment and per app) |
 | `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment and per app)   |
 | `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment and per app) |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Bookings single sign-on secret (optional; empty keeps sign-in off; the API must register `bookings` first) | `openssl rand -base64 32` (different per environment and per app) |
+| `ACCOUNT_SSO_CLIENT_SECRET` | Account single sign-on secret (optional; empty keeps sign-in off; the API must register `account` first). Compose passes it to `api` and `web-account`; `render-env.py` and `deploy.yml` do not carry it yet (follow-up, ADR-0057) | `openssl rand -base64 32` (different per environment and per app) |
 | `EVENTS_SSO_CLIENT_SECRET` | Events single sign-on secret (optional) | `openssl rand -base64 32` (different per environment)        |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
@@ -163,7 +202,10 @@ runner labels (`staging` vs `production`).
 **Recommended spec:**
 
 - OS: Ubuntu 24.04 LTS
-- Size: 4 GB RAM / 2 vCPU minimum (size for the enabled services and measured workload)
+- Size: 4 GB RAM / 2 vCPU minimum (size for the enabled services and measured workload).
+  Both core droplets run `s-2vcpu-4gb` since 2026-11-12. At 2 GB, production had
+  used 1.9 of its 2 GB swap, with no room for the second container a rolling
+  deploy starts briefly.
 - Region: closest to your users
 - Add your SSH key at creation time
 
@@ -227,6 +269,12 @@ ufw allow 443   # HTTPS
 ufw enable
 ufw status
 ```
+
+`ufw` does not filter ports that Docker publishes. The control that matters is a
+DigitalOcean Cloud Firewall attached to the droplet: see
+[host hardening](operations/host-hardening.md) step 4, and the
+[Cloudflare proxy runbook](operations/cloudflare-proxy.md) for limiting 80 and 443
+to Cloudflare.
 
 ### 2.6 Install the GitHub Actions self-hosted runner
 
@@ -307,7 +355,7 @@ Verify login, return URLs, and any data-backed pages you changed.
 
 1. Open a PR from `staging` to `main`; wait for checks and merge on GitHub.
 2. Go to **Releases → Draft a new release**.
-3. Choose a new, increasing `vN.M` tag targeting `main` and publish the release.
+3. Choose a new, increasing `vX.Y.Z` tag (e.g. `v1.0.8`) targeting `main` and publish the release.
 4. Watch **Production Pipeline** build all images at that tag and deploy them.
 5. Verify the production domains and API readiness as above.
 
@@ -339,6 +387,13 @@ A new required secret goes in `REQUIRED_SECRETS` in
 `scripts/production/render-env.py` and in the `deploy.yml` env block; the same
 test fails if either is missing.
 
+### Image pulls
+
+The `pull-verify` phase pins every image by digest in `runtime/deploy.lock.yml`,
+then pulls only images not already on the host, `PULL_PARALLEL` (default 4) at
+a time. An image already present under that digest is byte-for-byte the one
+wanted, so unchanged services cost no download.
+
 ### Rolling starts (no gap while containers are replaced)
 
 By default the `start` phase recreates every app service, which stops each
@@ -348,15 +403,29 @@ run 37131928180).
 
 Set the GitHub environment variable `ROLLING_DEPLOY` to `1` (or `true`) to start routed
 services (`api` and every `web-*`, the `routed` role in
-`scripts/ci/release-scope.mjs`) one at a time instead:
+`scripts/ci/release-scope.mjs`) in parallel batches instead (`ROLLOUT_PARALLEL`,
+default 4; `1` restores one at a time):
 
 1. Start a second container from the new image beside the old one.
 2. Wait until it is healthy. Traefik only routes to healthy containers.
 3. Stop and remove the old container.
 
+The `api` and `web-*` healthchecks set `start_interval: 2s`, so a new container is
+probed every 2 seconds during its start period, so a rolling start no longer waits
+up to 30 seconds for the first probe. This needs Docker Engine 25 or later:
+the deploy checks the engine in its `disk` phase and stops there, before anything
+changes, on an older one.
+
 If the new container never becomes healthy, it is removed, the old one keeps
-serving, and the deploy fails in the `start` phase. Workers and the proxy are
-not rolled: they still start the ordinary way after the routed services.
+serving, and the deploy fails in the `start` phase. Workers are not rolled:
+after the routed services they start one at a time, each healthy before the
+next, so two workers loading the app together do not starve the API on a
+small host.
+
+A routed service whose running container is healthy and whose Compose config
+hash (digest-pinned image, environment, labels) is unchanged is kept as it is.
+Every service in a batch finishes before the next batch starts; after a failure
+no later batch starts. Log lines are prefixed with the service name.
 
 Stopped leftover containers of a routed service are removed before each
 rolling start. If a deploy fails or is cancelled mid-rollout, the unfinished new
@@ -562,12 +631,15 @@ hurricane/spice hosts; no legacy redirects are installed.
 | CAP alert hub | 3010 | https://cap.barrels.gd | https://cap.staging.barrels.gd |
 | GMS Dashboard | 3013 | https://gmsdash.barrels.gd | https://gmsdash.staging.barrels.gd |
 | Bookings | 3015 | https://bookings.barrels.gd | https://bookings.staging.barrels.gd |
+| Account | 3018 | https://account.barrels.gd | https://account.staging.barrels.gd |
 | Elections | 3007 | https://elections.barrels.gd (Vercel) | Vercel preview deployments |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
 Cloudflare wildcard A records point `*.barrels.gd` to the production droplet and
 `*.staging.barrels.gd` to the staging droplet (IPs: see the DigitalOcean dashboard). The DNS configuration supplied on 2026-09-06 uses DNS-only mode;
-Traefik obtains host certificates through the existing ACME challenge.
+Traefik obtains host certificates through the existing ACME challenge. Moving the
+droplet hostnames behind Cloudflare's proxy is one planned change (issue #859):
+see the [Cloudflare proxy runbook](operations/cloudflare-proxy.md).
 
 Roll out staging first and verify every app health endpoint, login return URLs,
 and API CORS. Promote through main and a new release after staging succeeds.
@@ -606,7 +678,7 @@ checks below before promoting.
    no values). Before the first deploy, and again before promoting to production,
    confirm every secret that is set is unique per app and per environment:
    `GAA_ADMIN`, `BARRELS_ADMIN`, `CMS`, `EVENTS`, `WEATHER`, `MBIA`, `SIGNAL`,
-   `DOCS`, `ELECTIONS`, `GMSDASH` and `BOOKINGS` `_SSO_CLIENT_SECRET`. Regenerate
+   `DOCS`, `GMSDASH` and `BOOKINGS` `_SSO_CLIENT_SECRET`. Regenerate
    any duplicates with `openssl rand -base64 32` (and update the matching app and
    API value together).
 1. DNS: `*.staging.barrels.gd` already resolves everything to the staging VM, so

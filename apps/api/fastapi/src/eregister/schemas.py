@@ -1,12 +1,22 @@
-from typing import Annotated, Any, Literal
+from datetime import date as CalendarDate
+from typing import Annotated, Any, Literal, Self
 from uuid import UUID, uuid4
 
-from pydantic import AwareDatetime, ConfigDict, Field, RootModel, StringConstraints
+from pydantic import (
+    AwareDatetime,
+    ConfigDict,
+    Field,
+    RootModel,
+    StringConstraints,
+    model_validator,
+)
 
 from src.models import BaseModel, UtcDateTime
 
+from . import transitions
+from .transitions import RegisterState
+
 ObservationKind = Literal["SYNOP", "METAR", "SPECI"]
-RegisterState = Literal["draft", "qc_pending", "accepted", "rejected", "superseded"]
 
 
 class SynopWorkbook(BaseModel):
@@ -111,6 +121,23 @@ class SynopValidationIssue(BaseModel):
     severity: Literal["error", "warning"] = "error"
 
 
+class SynopValidationErrorDetail(BaseModel):
+    """Why a SYNOP was refused: a summary and every issue, warnings included."""
+
+    message: str = Field(
+        description="Summary naming the first few errors, for a banner or toast."
+    )
+    issues: list[SynopValidationIssue] = Field(
+        description="Every issue found; at least one has severity `error`."
+    )
+
+
+class EregisterValidationError(BaseModel):
+    """422 body when a SYNOP workbook fails validation on save, correct or accept."""
+
+    detail: SynopValidationErrorDetail
+
+
 class SynopDecoded(BaseModel):
     """SI values decoded from the coded groups; missing or unobserved is null."""
 
@@ -155,6 +182,19 @@ class SynopValidationResponse(BaseModel):
     )
 
 
+# Kept in the request schemas so existing clients stay valid; never stored from a client.
+IGNORED_BUFR = (
+    "Read-only: ignored on write. The server writes the BUFR record (and any "
+    "reviewer override) at acceptance and sending; a save stores none, or an "
+    "error record when the station settings could not be read."
+)
+IGNORED_IWXXM = (
+    "Read-only: ignored on write. The server writes the IWXXM record at acceptance "
+    "and sending; a save stores none, or an error record when the station settings "
+    "could not be read."
+)
+
+
 class RegisterObservationWrite(BaseModel):
     station_id: str = Field(min_length=1, max_length=64)
     station_name: str | None = Field(default=None, max_length=200)
@@ -164,11 +204,21 @@ class RegisterObservationWrite(BaseModel):
     issued_at: UtcDateTime | None = None
     body: dict[str, Any] = Field(default_factory=dict)
     raw_tac: str | None = Field(default=None, max_length=12000)
-    bufr: dict[str, Any] | None = None
-    iwxxm: dict[str, Any] | None = None
+    bufr: dict[str, Any] | None = Field(default=None, description=IGNORED_BUFR)
+    iwxxm: dict[str, Any] | None = Field(default=None, description=IGNORED_IWXXM)
 
 
 class RegisterObservationRead(RegisterObservationWrite):
+    bufr: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            "The server's BUFR record: message, checks, validity and any reviewer "
+            "override (`override`: by, by_name, at, reason, record_sha256)."
+        ),
+    )
+    iwxxm: dict[str, Any] | None = Field(
+        default=None, description="The server's IWXXM record: XML, validity, errors."
+    )
     id: UUID
     state: RegisterState
     qc_notes: str | None = None
@@ -196,6 +246,24 @@ class RegisterObservationRead(RegisterObservationWrite):
     created_at: UtcDateTime
     updated_at: UtcDateTime
 
+    allowed_actions: list[str] = Field(
+        default_factory=list,
+        description=(
+            "The QC actions this state allows: accept, reject, reopen, correct "
+            "(accept only for SYNOP). Computed from the state and kind alone: a WIS2 "
+            "file or email already queued or sent can still refuse reject, reopen "
+            "or a re-save, and the 409 detail says why."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _fill_allowed_actions(self) -> Self:
+        # Derived, never read from the stored row or from a client.
+        self.allowed_actions = transitions.allowed_actions(
+            self.state, synop=self.kind == "SYNOP"
+        )
+        return self
+
 
 class RegisterObservationList(BaseModel):
     observations: list[RegisterObservationRead]
@@ -212,8 +280,8 @@ class RegisterObservationCorrection(BaseModel):
     aerodrome_icao: str | None = Field(default=None, min_length=4, max_length=4)
     issued_at: Annotated[UtcDateTime, AwareDatetime()] | None = None
     raw_tac: str | None = Field(default=None, max_length=12000)
-    bufr: dict[str, Any] | None = None
-    iwxxm: dict[str, Any] | None = None
+    bufr: dict[str, Any] | None = Field(default=None, description=IGNORED_BUFR)
+    iwxxm: dict[str, Any] | None = Field(default=None, description=IGNORED_IWXXM)
     reason: str | None = Field(default=None, max_length=1000)
 
 
@@ -241,6 +309,31 @@ class ReviewRequest(BaseModel):
             "`updated_at` of the record the reviewer opened. When sent and the "
             "record changed since, the review is refused with 409."
         ),
+    )
+
+
+class ReviewDayRequest(BaseModel):
+    station_id: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)
+    ]
+    date: CalendarDate = Field(
+        description="The day in Grenada local time (UTC-4), YYYY-MM-DD.",
+    )
+    outcome: Literal["reviewed", "query"]
+    note: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Required for a query; optional for reviewed.",
+    )
+
+
+class ReviewDayResult(BaseModel):
+    reviewed: int = Field(description="Records marked by this request.")
+    skipped_own: int = Field(
+        description="Left alone: recorded by the reviewer (a different person reviews)."
+    )
+    skipped_already: int = Field(
+        description="Left alone: already reviewed (reviewed or query)."
     )
 
 
@@ -367,7 +460,7 @@ class PublicObservation(BaseModel):
     station_id: str
     station_name: str | None = None
     observed_at: UtcDateTime
-    status: Literal["provisional", "accepted"]
+    status: Literal["provisional", "accepted", "historical"]
     temperature_c: float | None = None
     dew_point_c: float | None = None
     relative_humidity: int | None = None
@@ -424,6 +517,30 @@ class PublicMonthSummary(BaseModel):
     max_temperature_at: UtcDateTime | None = None
     min_temperature_c: float | None = None
     min_temperature_at: UtcDateTime | None = None
+    heavy_rain_days: int | None = Field(
+        default=None, description="Days with a 24 h total of 10 mm or more (R10mm)."
+    )
+    heavy_rain_threshold_mm: float = 10.0
+    longest_dry_spell_days: int | None = Field(
+        default=None,
+        description="Longest run of reported days under 1 mm (CDD); a day without a total breaks it.",
+    )
+    longest_dry_spell_start: CalendarDate | None = None
+    longest_dry_spell_end: CalendarDate | None = None
+    current_dry_spell_days: int | None = Field(
+        default=None,
+        description="Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old.",
+    )
+    dry_day_threshold_mm: float = 1.0
+    mean_wind_kt: float | None = Field(
+        default=None, description="Mean of the reported wind speeds, calm as 0 kn."
+    )
+    prevailing_wind_direction: str | None = Field(
+        default=None,
+        description="Most frequent 8-point direction of non-calm readings.",
+    )
+    max_gust_kt: int | None = None
+    max_gust_at: UtcDateTime | None = None
     provisional: bool
 
 
@@ -463,6 +580,16 @@ class ObservationSendList(BaseModel):
 
 class SendObservationBody(RootModel[SendObservationRequest | None]):
     """Optional send options. An absent body and null are both accepted."""
+
+
+class BufrOverrideRequest(BaseModel):
+    reason: str = Field(
+        max_length=1000,
+        description=(
+            "Why a failed or mismatched BUFR check may be sent anyway. Required: "
+            "10 to 500 characters after cleaning."
+        ),
+    )
 
 
 class QcDecisionBody(RootModel[QcDecisionRequest | None]):

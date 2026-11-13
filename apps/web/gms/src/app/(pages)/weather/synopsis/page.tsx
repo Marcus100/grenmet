@@ -4,6 +4,7 @@ import { PageSection } from "@/components/pages/page-section";
 import { Prose } from "@/components/pages/prose";
 import { Provenance } from "@/components/pages/provenance";
 import { UnavailableNotice } from "@/components/pages/unavailable-notice";
+import { wallClockLabel } from "@/lib/clock";
 import { fetchPublishedProducts } from "@/lib/products";
 import { latestSynopsis } from "@/lib/weather-pages";
 
@@ -29,7 +30,7 @@ export default async function SynopsisPage() {
       )}
       {result.status === "ok" && !synopsis && (
         <p
-          className="rounded-gm-card border border-gm-border p-4 text-body-base leading-body-base"
+          className="rounded-gm-card border-gm-border text-body-base leading-body-base border p-4"
           role="status"
         >
           No forecast narrative is currently published. Check back after the
@@ -46,15 +47,15 @@ export default async function SynopsisPage() {
               time={synopsis.issuedAt}
             />
             <Prose paragraphs={synopsis.paragraphs} />
-            <p className="mt-4 font-mono text-body-sm text-gm-text-secondary leading-body-sm">
+            <p className="text-body-sm text-gm-text-secondary leading-body-sm mt-4 font-mono">
               From the{" "}
               <Link
-                className="underline underline-offset-4 hover:text-gm-blue-ink"
+                className="hover:text-gm-blue-ink underline underline-offset-4"
                 href={`/weather/issued/${synopsis.id}`}
               >
                 {synopsis.kindLabel}
               </Link>{" "}
-              issued {synopsis.issuedAt.replace("T", " ")} (Grenada time)
+              issued {wallClockLabel(synopsis.issuedAt)} AST
             </p>
           </PageSection>
           {synopsis.watch.length > 0 && (

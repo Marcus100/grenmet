@@ -1,8 +1,8 @@
 import "server-only";
 import {
-  type CapAlertPublic,
-  capAlertListPublicSchema,
-  capAlertPublicSchema,
+  type CapAlertPublicView,
+  capAlertListPublicViewSchema,
+  capAlertPublicViewSchema,
   publicWarningsSchema,
 } from "@barrelsgd/api-client";
 import { captureException } from "@sentry/nextjs";
@@ -74,7 +74,7 @@ export const fetchActiveAlerts = cache(async (): Promise<AlertsResult> => {
 });
 
 export type PublicAlertResult =
-  | { status: "ok"; alert: CapAlertPublic }
+  | { status: "ok"; alert: CapAlertPublicView }
   | { status: "not-found" }
   | { status: "unavailable" };
 
@@ -102,7 +102,39 @@ export const fetchPublicAlert = cache(
         return { status: "unavailable" };
       }
       return {
-        alert: capAlertPublicSchema.parse(await response.json()),
+        alert: capAlertPublicViewSchema.parse(await response.json()),
+        status: "ok",
+      };
+    } catch (error) {
+      reportUnavailable(error);
+      return { status: "unavailable" };
+    }
+  }
+);
+
+export type PastAlertsResult =
+  | { alerts: CapAlertPublicView[]; status: "ok" }
+  | { status: "unavailable" };
+
+/**
+ * Expired and cancelled public warnings, with whether the feed could be read.
+ * The Past alerts page uses this so an unread feed is never shown as "none".
+ */
+export const fetchPastAlertsResult = cache(
+  async (): Promise<PastAlertsResult> => {
+    try {
+      const response = await fetch(`${env.CAP_API_URL}/api/cap/past`, {
+        cache: "no-store",
+        signal: AbortSignal.timeout(WARNING_FETCH_TIMEOUT_MS),
+      });
+      if (!response.ok) {
+        reportUnavailable(
+          new Error(`CAP past alerts responded ${response.status}`)
+        );
+        return { status: "unavailable" };
+      }
+      return {
+        alerts: capAlertListPublicViewSchema.parse(await response.json()).data,
         status: "ok",
       };
     } catch (error) {
@@ -113,25 +145,11 @@ export const fetchPublicAlert = cache(
 );
 
 /**
- * Expired and cancelled public warnings. Failure yields an empty list: this
- * feeds the "recently ended" all-clear, which is supplementary — the active
- * feed, not this one, decides whether the site says "unavailable".
+ * The same list for the "recently ended" all-clear on the alerts page. Failure
+ * yields an empty list: that card is supplementary, and the active feed, not
+ * this one, decides whether the site says "unavailable".
  */
-export const fetchPastAlerts = cache(async (): Promise<CapAlertPublic[]> => {
-  try {
-    const response = await fetch(`${env.CAP_API_URL}/api/cap/past`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(WARNING_FETCH_TIMEOUT_MS),
-    });
-    if (!response.ok) {
-      reportUnavailable(
-        new Error(`CAP past alerts responded ${response.status}`)
-      );
-      return [];
-    }
-    return capAlertListPublicSchema.parse(await response.json()).data;
-  } catch (error) {
-    reportUnavailable(error);
-    return [];
-  }
-});
+export const fetchPastAlerts = async (): Promise<CapAlertPublicView[]> => {
+  const result = await fetchPastAlertsResult();
+  return result.status === "ok" ? result.alerts : [];
+};

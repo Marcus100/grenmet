@@ -109,9 +109,16 @@ test("tracker comments are change-only, once per UTC day, and survive publisher 
   options.observedAt = "2026-10-27T12:00:00Z";
   await updateTrackers(options);
   assert.equal(calls.filter((c) => c[0] === "issue").length, 2);
-  await assert.rejects(() =>
-    updateTrackers({ ...options, runGh: () => ({ state: "closed" }) })
-  );
+  const result = { blockers: [] };
+  const targets = await updateTrackers({
+    ...options,
+    result,
+    runGh: () => ({ state: "closed" }),
+  });
+  assert.equal(targets.size, 0);
+  assert.equal(result.blockers.length, 1);
+  assert.ok(result.blockers[0].summary.includes("not open"));
+  assert.ok(result.blockers[0].key.startsWith("coverage:tracker:"));
 });
 test("legacy closure requires own generated issue and a real replacement; capped groups stay open", async () => {
   const item = (await dependencyObservations([alert(1)]))[0];

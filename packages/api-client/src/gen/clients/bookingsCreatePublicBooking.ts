@@ -28,6 +28,7 @@ export function bookingsCreatePublicBooking<
     request({
       method: "POST",
       url: "/api/v1/bookings/public/{slug}/bookings",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

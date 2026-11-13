@@ -18,9 +18,35 @@ const PERIOD_TITLES: Record<string, string> = {
   midday: "Midday Forecast",
   evening: "Tonight",
 };
-function conditionFor(summary: string): WeatherCondition {
+/** The forecast desk's Conditions choices (cloud amount) as icons. */
+const SKY_CHOICES: Record<string, WeatherCondition> = {
+  clear: "sunny",
+  fair: "sunny",
+  "partly cloudy": "partly-cloudy",
+  cloudy: "cloudy",
+  overcast: "cloudy",
+};
+const RAIN_WORDS = ["shower", "rain", "thunder", "drizzle"];
+const NO_RAIN = /\b(?:no|without|little chance of) (?:rain|showers?)\b/u;
+
+/**
+ * A period's icon. Rain in the chosen weather types wins, because Conditions
+ * is cloud cover only; then the forecaster's Conditions choice; only issues
+ * saved without one fall back to the words, where "no rain" never reads as
+ * rain.
+ */
+export function conditionFor(
+  summary: string,
+  sky?: string,
+  weatherTypes = ""
+): WeatherCondition {
+  const rainy = (text: string) =>
+    RAIN_WORDS.some((word) => text.includes(word)) && !NO_RAIN.test(text);
+  if (rainy(weatherTypes.toLowerCase())) return "showers";
+  const chosen = sky ? SKY_CHOICES[sky.trim().toLowerCase()] : undefined;
+  if (chosen) return chosen;
   const text = summary.toLowerCase();
-  if (text.includes("shower") || text.includes("rain")) return "showers";
+  if (rainy(text)) return "showers";
   if (text.includes("partly")) return "partly-cloudy";
   if (text.includes("sunny") || text.includes("fair")) return "sunny";
   return "cloudy";
@@ -130,9 +156,14 @@ function periodData(period: ForecastPeriod, index: number): ForecastDayData {
     low: period.low ?? null,
     conditions: conditions(period),
     title: periodTitle(period, index),
-    condition: conditionFor(summary),
+    condition: conditionFor(
+      summary,
+      period.details?.condition,
+      period.conditions?.find((tile) => tile.label === "Weather type")?.value
+    ),
     summary,
     source: "",
+    validTo: period.valid_to,
   };
 }
 /** Presentation only: the API supplies selected periods and all time boundaries. */

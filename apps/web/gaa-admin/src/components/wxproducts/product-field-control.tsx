@@ -18,20 +18,30 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import type { ReactNode } from "react";
 import { SectorCheckboxes } from "@/components/sectors/sector-checkboxes";
 import { ProductNumberInput } from "@/components/wxproducts/product-number-input";
+import { ProductWeatherControl } from "@/components/wxproducts/product-weather-control";
 import {
   productFieldCaption,
   productFieldLabel,
   productFieldUnit,
 } from "@/lib/wxproducts/units";
 
-const DAY_SECTION_PREFIX = /^Day (\d)/;
-const SUN_TIME_KEY = /(?:sunrise|sunset)$/i;
-const WEATHER_TYPE_KEY = /^(day\d)?[Ww]eatherType$/;
+const DAY_SECTION_PREFIX = /^Day (\d)/u;
+const SUN_TIME_KEY = /(?:sunrise|sunset)(?:Today|Tomorrow)?$/iu;
+const WEATHER_TEXT_KEY = /^(day\d)?[Ww]eatherTypeText$/u;
+/** Help under a field whose label alone does not say how to choose. */
+const FIELD_HELP: Record<string, string> = {
+  notice:
+    "Information: awareness only, no action needed. Advisory: take precautions. All clear: the hazard has ended and this event closes.",
+  moonPhaseDate:
+    "Date of the next new, first-quarter, full or last-quarter moon.",
+  bulletinNumber:
+    "Proposed from the last issue of this alert: the next number while the event continues, 1 after an all clear or once it expired.",
+};
 /** Size inputs to the data they hold; only free prose spans the card. */
 function fieldWidth(f: ProductField) {
   if (f.key === "definition") return "w-full max-w-sm";
-  // "Moderate or heavy showers" is the longest weather type.
-  if (WEATHER_TYPE_KEY.test(f.key)) return "w-60";
+  // The generated weather sentence is prose.
+  if (WEATHER_TEXT_KEY.test(f.key)) return "col-span-full basis-full max-w-xl";
   if (f.type === "textarea") return "col-span-full basis-full";
   if (sectionParts(f.section).group === "Tides") {
     if (f.options) return "w-32";
@@ -62,8 +72,8 @@ function fieldWidth(f: ProductField) {
   return "w-full max-w-sm";
 }
 const ROW_START =
-  /^(day\d)?(maxTemperature|minTemperature|Max|Min|swellDir|SwellDir)$/;
-const ROW_FOLLOWER = /^(day\d)?(minTemperature|Min)$/;
+  /^(day\d)?(maxTemperature|minTemperature|Max|Min|swellDir|SwellDir)$/u;
+const ROW_FOLLOWER = /^(day\d)?(minTemperature|Min)$/u;
 /**
  * Fields that begin their own row in a section: the temperatures (maximum and
  * minimum together) and swell direction. A minimum right after its maximum
@@ -93,26 +103,57 @@ export function sectionParts(section: string) {
 const CLEAR_OPTION = "__none__";
 
 export function ProductFieldControl({
+  error,
   field: f,
   kind,
   onChange,
   value,
 }: {
+  /** The blocking message from the last failed attempt, shown inline. */
+  error?: string;
   field: ProductField;
   kind: ProductKind;
   onChange: (value: string) => void;
   value: string;
 }) {
-  if (f.type === "sectors")
+  const inputId = `${kind}-${f.key}`;
+  const errorId = `${inputId}-error`;
+  const invalid = error ? true : undefined;
+  const describedBy = error ? errorId : undefined;
+  const errorText = error ? (
+    <p className="text-destructive text-xs leading-4" id={errorId}>
+      {error}
+    </p>
+  ) : null;
+  if (f.type === "weather")
     return (
-      <SectorCheckboxes
-        className="col-span-full basis-full"
-        onChange={(next) => onChange(formatSectors(next))}
-        value={parseSectors(value)}
+      <ProductWeatherControl
+        error={error}
+        id={inputId}
+        label={productFieldLabel(f, kind)}
+        onChange={onChange}
+        value={value ?? ""}
       />
     );
-  const inputId = `${kind}-${f.key}`;
-  const accessibleLabel = `${productFieldLabel(f)}${f.required ? " *" : ""}`;
+  if (f.type === "sectors")
+    return (
+      <>
+        <SectorCheckboxes
+          className="col-span-full basis-full"
+          onChange={(next) => onChange(formatSectors(next))}
+          value={parseSectors(value)}
+        />
+        {error ? (
+          <p
+            className="text-destructive col-span-full basis-full text-xs leading-4"
+            id={errorId}
+          >
+            {error}
+          </p>
+        ) : null}
+      </>
+    );
+  const accessibleLabel = `${productFieldLabel(f, kind)}${f.required ? " *" : ""}`;
   const showCaption =
     Boolean(value?.trim()) ||
     ["date", "time", "datetime-local"].includes(f.type ?? "");
@@ -126,6 +167,8 @@ export function ProductFieldControl({
         value={value}
       >
         <SelectTrigger
+          aria-describedby={describedBy}
+          aria-invalid={invalid}
           aria-label={accessibleLabel}
           className={cn(
             "min-w-0 flex-1 rounded-none border-0 bg-transparent pl-1.5 focus-visible:ring-0 dark:bg-transparent",
@@ -133,9 +176,9 @@ export function ProductFieldControl({
           )}
           data-slot="input-group-control"
           id={inputId}
-          title={productFieldLabel(f)}
+          title={productFieldLabel(f, kind)}
         >
-          <SelectValue placeholder={productFieldCaption(f)} />
+          <SelectValue placeholder={productFieldCaption(f, kind)} />
         </SelectTrigger>
         <SelectContent>
           {f.required ? null : (
@@ -152,22 +195,27 @@ export function ProductFieldControl({
   } else if (f.type === "textarea") {
     control = (
       <InputGroupTextarea
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
         aria-label={accessibleLabel}
         className={cn("min-h-16", showCaption && "pt-5")}
         id={inputId}
         maxLength={12_000}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={productFieldCaption(f)}
+        placeholder={productFieldCaption(f, kind)}
         rows={2}
-        title={productFieldLabel(f)}
+        title={productFieldLabel(f, kind)}
         value={value ?? ""}
       />
     );
   } else if (f.type === "number") {
     control = (
       <ProductNumberInput
+        describedBy={describedBy}
         field={f}
         id={inputId}
+        invalid={invalid}
+        kind={kind}
         onChange={onChange}
         value={value ?? ""}
       />
@@ -175,13 +223,15 @@ export function ProductFieldControl({
   } else {
     control = (
       <InputGroupInput
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
         aria-label={accessibleLabel}
         className={showCaption ? "pt-3 pb-0 leading-4" : undefined}
         id={inputId}
         maxLength={12_000}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={productFieldCaption(f)}
-        title={productFieldLabel(f)}
+        placeholder={productFieldCaption(f, kind)}
+        title={productFieldLabel(f, kind)}
         type={f.type ?? "text"}
         value={value ?? ""}
       />
@@ -197,40 +247,49 @@ export function ProductFieldControl({
       orientation="horizontal"
     >
       <FieldLabel className="sr-only" htmlFor={inputId}>
-        {productFieldLabel(f)}
+        {productFieldLabel(f, kind)}
         {f.required ? " *" : ""}
       </FieldLabel>
-      <InputGroup className="min-w-0 flex-1">
-        {showCaption ? (
-          <InputGroupAddon
-            align="inline-start"
-            aria-hidden="true"
-            className="pointer-events-none absolute top-0.5 right-2 left-2 z-10 justify-start gap-1 truncate p-0 font-normal text-xs leading-3"
-          >
-            {productFieldCaption(f)}
-            {f.required ? <span className="text-destructive">*</span> : null}
-          </InputGroupAddon>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <InputGroup className="min-w-0">
+          {showCaption ? (
+            <InputGroupAddon
+              align="inline-start"
+              aria-hidden="true"
+              className="pointer-events-none absolute top-0.5 right-2 left-2 z-10 justify-start gap-1 truncate p-0 text-xs leading-3 font-normal"
+            >
+              {productFieldCaption(f, kind)}
+              {f.required ? <span className="text-destructive">*</span> : null}
+            </InputGroupAddon>
+          ) : null}
+          {!showCaption && f.required ? (
+            <InputGroupAddon
+              align="inline-start"
+              aria-hidden="true"
+              className="text-destructive pointer-events-none self-start text-xs"
+            >
+              *
+            </InputGroupAddon>
+          ) : null}
+          {control}
+          {productFieldUnit(f, kind) &&
+          sectionParts(f.section).group !== "Wind" ? (
+            <InputGroupAddon
+              align="inline-end"
+              aria-hidden="true"
+              className="shrink-0 text-xs"
+            >
+              {productFieldUnit(f, kind)}
+            </InputGroupAddon>
+          ) : null}
+        </InputGroup>
+        {errorText}
+        {FIELD_HELP[f.key] ? (
+          <p className="text-muted-foreground max-w-sm text-xs leading-4">
+            {FIELD_HELP[f.key]}
+          </p>
         ) : null}
-        {!showCaption && f.required ? (
-          <InputGroupAddon
-            align="inline-start"
-            aria-hidden="true"
-            className="pointer-events-none self-start text-destructive text-xs"
-          >
-            *
-          </InputGroupAddon>
-        ) : null}
-        {control}
-        {productFieldUnit(f) && sectionParts(f.section).group !== "Wind" ? (
-          <InputGroupAddon
-            align="inline-end"
-            aria-hidden="true"
-            className="shrink-0 text-xs"
-          >
-            {productFieldUnit(f)}
-          </InputGroupAddon>
-        ) : null}
-      </InputGroup>
+      </div>
     </Field>
   );
 }

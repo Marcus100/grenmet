@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
+from src.auth import assignments as auth_assignments
 from src.auth import service as auth_service
 from src.auth.models import Permission, Role, User, UserImage, UserRoleAssignment
 from src.auth.models import Session as LoginSession
@@ -53,6 +54,71 @@ def employment_complete(employment: EmploymentRecord | None) -> bool:
 def require_admin(user: User) -> None:
     if not user.is_superuser:
         raise AppException("Administrator access required", 403)
+
+
+HR_SETUP_KEY = "hr.setup.manage"
+
+
+async def setup_organisation_ids(session: AsyncSession, actor: User) -> set[str]:
+    """Organisations where ``actor`` holds ``hr.setup.manage`` through a live assignment."""
+    from src.auth.access import effective_roles
+    from src.auth.policy import _active_assignments
+
+    held = {
+        role.id
+        for role in await effective_roles(session, actor)
+        if any(permission.key == HR_SETUP_KEY for permission in role.permissions)
+    }
+    if not held:
+        return set()
+    return {
+        grant.organisation_id
+        for grant in await _active_assignments(session=session, user_id=actor.id)
+        if grant.role_id in held
+    }
+
+
+async def require_setup_organisation(
+    session: AsyncSession, actor: User, *organisation_ids: str | None
+) -> None:
+    """Refuse HR setup unless ``actor`` may act in every organisation it touches.
+
+    Superusers keep every organisation. Anyone else needs a live assignment in each
+    one (issue #1080). An action that names no organisation, such as the unassigned
+    accounts list, is superuser only. Another organisation gets the same 404 as an
+    unknown one, so existence does not leak.
+    """
+    if actor.is_superuser:
+        return
+    touched = [item for item in organisation_ids if item is not None]
+    allowed = await setup_organisation_ids(session, actor)
+    if not touched or not allowed:
+        # No organisation to administer at all: plain refusal, no organisation hint.
+        raise AppException("Administrator access required", 403)
+    if any(item not in allowed for item in touched):
+        raise AppException("Organisation not found", 404)
+
+
+async def _staff_organisation_id(
+    session: AsyncSession, user_id: uuid.UUID
+) -> str | None:
+    """The organisation a staff member belongs to: employment first, then credential."""
+    employment = await employment_for(session, user_id)
+    if employment is not None:
+        return employment.organisation_id
+    credential = await session.get(StaffCredential, user_id)
+    if credential is None:
+        return None
+    department = await session.get(Department, credential.department_id)
+    return department.organisation_id if department else None
+
+
+async def _policy_organisation_id(session: AsyncSession, key: str) -> str | None:
+    """Approval policies keyed ``hr:<department>:<kind>`` belong to that department's organisation."""
+    if not key.startswith("hr:"):
+        return None
+    department = await session.get(Department, key.split(":")[1])
+    return department.organisation_id if department else None
 
 
 async def employment_for(
@@ -246,7 +312,6 @@ async def list_staff(
 async def save_staff(
     session: AsyncSession, actor: User, user_id: uuid.UUID, body: StaffInput
 ) -> None:
-    require_admin(actor)
     user = (
         (
             await session.execute(
@@ -262,6 +327,15 @@ async def save_staff(
     if not grade or not grade.is_active or grade.department_id != body.department_id:
         raise AppException("Choose an active grade in this department", 400)
     department = await department_for(session, body.department_id)
+    staff_organisation_id = await _staff_organisation_id(session, user_id)
+    if not actor.is_superuser and (staff_organisation_id is None or user.is_superuser):
+        # An account with no organisation yet is only listed to platform
+        # administrators (the unassigned list is superuser only), so claiming it
+        # for an organisation stays theirs too; so does any superuser account.
+        raise AppException("Administrator access required", 403)
+    await require_setup_organisation(
+        session, actor, department.organisation_id, staff_organisation_id
+    )
     if (
         body.organisation_id is not None
         and department.organisation_id != body.organisation_id
@@ -321,6 +395,21 @@ async def save_staff(
         }
     }
     await validate_service_facts(personnel_updates, employment)
+    # A department move re-assigns everything: the person's live roles in the
+    # organisation end (the baseline SELF-scope staff role stays) and an
+    # administrator re-grants at the destination. Same rule as the HR route
+    # (#797); only a superuser reaches here, so organisation-wide roles end too (#1055).
+    moved_department = (
+        employment.department_id is not None
+        and employment.department_id != body.department_id
+    )
+    if moved_department:
+        await auth_assignments.end_assignments_for_employment(
+            session=session,
+            user_id=user_id,
+            organisation_id=employment.organisation_id,
+            organisation_wide=True,
+        )
     employment.department_id = body.department_id
     employment.grade_id = body.grade_id
     employment.position = grade.label
@@ -354,9 +443,10 @@ async def save_staff(
 async def save_grade(
     session: AsyncSession, actor: User, grade_id: str, body: GradeInput
 ) -> Grade:
-    require_admin(actor)
-    if not await session.get(Department, body.department_id):
+    department = await session.get(Department, body.department_id)
+    if department is None:
         raise AppException("Department not found", 404)
+    await require_setup_organisation(session, actor, department.organisation_id)
     grade = await session.get(Grade, grade_id)
     if grade and grade.department_id != body.department_id:
         raise AppException("A grade cannot be moved between departments", 400)
@@ -397,7 +487,9 @@ async def save_grade(
 async def set_balance(
     session: AsyncSession, actor: User, user_id: uuid.UUID, body: BalanceInput
 ) -> None:
-    require_admin(actor)
+    await require_setup_organisation(
+        session, actor, await _staff_organisation_id(session, user_id)
+    )
     user = (
         (
             await session.execute(
@@ -429,13 +521,15 @@ async def set_balance(
 
 
 async def offboard(session: AsyncSession, actor: User, user_id: uuid.UUID) -> None:
-    require_admin(actor)
     if actor.id == user_id:
         raise AppException("Another administrator must offboard you", 400)
     user = await session.get(User, user_id)
     credential = await session.get(StaffCredential, user_id)
     if not user or not credential:
         raise AppException("Staff credential not found", 404)
+    await require_setup_organisation(
+        session, actor, await _staff_organisation_id(session, user_id)
+    )
     user.is_active = False
     credential.revoked_at = utc_now()
     employment = await employment_for(session, user_id)
@@ -536,7 +630,7 @@ async def require_leave_ready(
 async def read_setup_grades(
     *, session: AsyncSession, current_user: User, organisation_id: str | None = None
 ) -> list[Grade]:
-    require_admin(current_user)
+    await require_setup_organisation(session, current_user, organisation_id)
     statement = select(Grade).order_by(Grade.rank)
     if organisation_id is not None:
         if await session.get(Organisation, organisation_id) is None:
@@ -550,7 +644,7 @@ async def read_setup_grades(
 async def read_setup_policies(
     *, session: AsyncSession, current_user: User, organisation_id: str | None = None
 ) -> list[ApprovalPolicy]:
-    require_admin(current_user)
+    await require_setup_organisation(session, current_user, organisation_id)
     statement = select(ApprovalPolicy)
     if organisation_id is not None:
         if await session.get(Organisation, organisation_id) is None:
@@ -588,11 +682,14 @@ async def update_setup_policy(
 ) -> ApprovalPolicy:
     from src.exceptions import AppException
 
+    await require_setup_organisation(
+        session, current_user, await _policy_organisation_id(session, key)
+    )
     policy = await session.get(ApprovalPolicy, key)
     if policy is None:
         raise AppException("Policy not found", 404)
-    for key, value in body.model_dump().items():
-        setattr(policy, key, value)
+    for field, value in body.model_dump().items():
+        setattr(policy, field, value)
     session.add(policy)
     session.add(
         BaselineAudit(
@@ -678,7 +775,6 @@ def identity_ready_for_approval(user: User) -> bool:
 async def approve_registration(
     session: AsyncSession, actor: User, user_id: uuid.UUID
 ) -> None:
-    require_admin(actor)
     from src.auth.models import RoleAssignmentScope, UserRoleLink
 
     user = (
@@ -692,6 +788,9 @@ async def approve_registration(
     )
     if user is None:
         raise AppException("User not found", 404)
+    await require_setup_organisation(
+        session, actor, await _staff_organisation_id(session, user_id)
+    )
     if not user.registration_pending:
         raise AppException("This registration has already been resolved", 409)
     employment = await employment_for(session, user_id)

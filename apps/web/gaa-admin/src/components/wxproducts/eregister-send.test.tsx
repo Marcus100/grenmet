@@ -14,14 +14,18 @@ vi.mock("@barrelsgd/api-client", () => ({
   eregisterPublishRegisterObservation: mocks.publish,
 }));
 
-import { describeSends, useObservationSends } from "./eregister-send";
+import {
+  describeSends,
+  failedReason,
+  useObservationSends,
+} from "./eregister-send";
 import { ERegisterWorkbook } from "./eregister-workbook";
 
-const EMAIL_BUTTON = /Email observation/;
-const WIS2_BUTTON = /Send last obs/;
-const EMAIL_PROMPT = /Email this observation/;
-const WIS2_PROMPT = /through wis2box/;
-const REPEAT_PROMPT = /already sent to this target/;
+const EMAIL_BUTTON = /Email observation/u;
+const WIS2_BUTTON = /Send last obs/u;
+const EMAIL_PROMPT = /Email this observation/u;
+const WIS2_PROMPT = /through wis2box/u;
+const REPEAT_PROMPT = /already sent to this target/u;
 const OBSERVATION = "11111111-1111-4111-8111-111111111111";
 
 function send(overrides: Partial<ObservationSend>): ObservationSend {
@@ -35,6 +39,43 @@ function send(overrides: Partial<ObservationSend>): ObservationSend {
     ...overrides,
   };
 }
+
+describe("failedReason", () => {
+  it("is null when nothing failed", () => {
+    expect(failedReason([send({ status: "sent" })])).toBeNull();
+  });
+
+  it("reports a failure of a target's latest send", () => {
+    expect(
+      failedReason([
+        send({ last_error: "WIS2 is not configured", status: "failed" }),
+      ])
+    ).toBe("WIS2 is not configured");
+  });
+
+  it("ignores an earlier failure once a later send to the same target went through", () => {
+    // Newest first, as the register lists them.
+    expect(
+      failedReason([
+        send({ id: "a", status: "sent" }),
+        send({ id: "b", last_error: "old failure", status: "failed" }),
+      ])
+    ).toBeNull();
+  });
+
+  it("reports the latest failure of a target even when an older send to the other target went through", () => {
+    expect(
+      failedReason([
+        send({
+          last_error: "WIS2 is not configured",
+          status: "failed",
+          target: "wis2",
+        }),
+        send({ status: "sent", target: "email" }),
+      ])
+    ).toBe("WIS2 is not configured");
+  });
+});
 
 describe("describeSends", () => {
   it("is empty before anything is sent", () => {

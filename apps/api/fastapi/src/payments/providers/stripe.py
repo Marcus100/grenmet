@@ -19,7 +19,8 @@ import json
 import logging
 import time
 import uuid
-from collections.abc import Callable, Mapping
+from collections.abc import AsyncIterator, Callable, Mapping
+from contextlib import asynccontextmanager
 from typing import Any
 
 import httpx
@@ -39,6 +40,7 @@ from .base import (
     ProviderEvent,
     ProviderRefund,
     ProviderStatus,
+    RefundListing,
     RefundResult,
 )
 
@@ -51,6 +53,10 @@ WHSEC_PREFIX = "whsec_"  # prefix of a Stripe webhook signing key
 _transport: httpx.AsyncBaseTransport | None = None
 #: Longest checkout line-item name we send.
 _TITLE_MAX = 120
+#: Refunds per page when listing a payment's refunds (Stripe's maximum).
+REFUND_PAGE_SIZE = 100
+#: Pages read before a listing is reported incomplete (bounds a runaway loop).
+REFUND_MAX_PAGES = 20
 # Test seam: the clock used for the webhook tolerance window.
 _now: Callable[[], float] = time.time
 
@@ -167,6 +173,31 @@ def _listed_refunds(listing: object) -> tuple[tuple[ProviderRefund, ...], bool]:
     return refunds, listing.get("has_more") is not True
 
 
+def _echoes(intent: Intent, item: object) -> bool:
+    """True when a listed refund is about this payment: its ``payment_intent`` is the
+    intent's provider payment and its currency the intent's. Anything else is
+    logged and left out of the listing, so it is never reconciled onto this payment."""
+    if not isinstance(item, dict):
+        return False
+    payment = item.get("payment_intent")
+    if isinstance(payment, dict):
+        payment = payment.get("id")
+    same_payment = payment == intent.provider_payment_ref
+    same_currency = _currency(item.get("currency")) == intent.currency.upper()
+    if same_payment and same_currency:
+        return True
+    logger.warning(
+        "Stripe listed a refund for another payment or currency; skipped",
+        extra={
+            "intent_id": str(intent.id),
+            "refund_ref": _str(item.get("id")),
+            "payment_matches": same_payment,
+            "currency_matches": same_currency,
+        },
+    )
+    return False
+
+
 def normalise_event(event: dict[str, Any]) -> ProviderEvent:
     """Map a verified Stripe event to the core's vocabulary."""
     event_id = _str(event.get("id"))
@@ -244,6 +275,8 @@ class StripeProvider:
         self._config = config or payments_settings
         # Refuses a missing or non-test key before anything can be sent.
         self._secret_key = require_test_key(self._config.STRIPE_SECRET_KEY)
+        #: Set inside ``batch()``: one HTTP client for every request in the block.
+        self._client: httpx.AsyncClient | None = None
 
     # --- HTTP ------------------------------------------------------------------
 
@@ -253,20 +286,22 @@ class StripeProvider:
         path: str,
         *,
         data: dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
         idempotency_key: str | None = None,
     ) -> dict[str, Any]:
         headers = {"Authorization": f"Bearer {self._secret_key}"}
         if idempotency_key:
             headers["Idempotency-Key"] = idempotency_key
         try:
-            async with httpx.AsyncClient(
-                base_url=self._config.STRIPE_API_BASE,
-                timeout=self._config.REQUEST_TIMEOUT_SECONDS,
-                transport=_transport,
-            ) as client:
-                response = await client.request(
-                    method, path, data=data, headers=headers
+            if self._client is not None:
+                response = await self._client.request(
+                    method, path, data=data, params=params, headers=headers
                 )
+            else:
+                async with self._new_client() as client:
+                    response = await client.request(
+                        method, path, data=data, params=params, headers=headers
+                    )
         except httpx.HTTPError:
             logger.warning("Stripe request failed", extra={"path": path})
             raise ProviderRequestError() from None
@@ -283,6 +318,24 @@ class StripeProvider:
         if not isinstance(body, dict):
             raise ProviderRequestError()
         return body
+
+    def _new_client(self) -> httpx.AsyncClient:
+        return httpx.AsyncClient(
+            base_url=self._config.STRIPE_API_BASE,
+            timeout=self._config.REQUEST_TIMEOUT_SECONDS,
+            transport=_transport,
+        )
+
+    @asynccontextmanager
+    async def batch(self) -> AsyncIterator[None]:
+        """Send every request made inside the block over one HTTP client (one
+        connection pool), as a batch job does. Outside it each request opens its own."""
+        async with self._new_client() as client:
+            self._client = client
+            try:
+                yield
+            finally:
+                self._client = None
 
     # --- PaymentProvider -------------------------------------------------------
 
@@ -377,3 +430,49 @@ class StripeProvider:
         if body.get("status") == "expired":
             return ProviderStatus(status=IntentStatus.CANCELLED.value)
         return ProviderStatus(status=IntentStatus.REQUIRES_PAYMENT.value)
+
+    async def list_refunds(
+        self, intent: Intent, *, stop: Callable[[], bool] | None = None
+    ) -> RefundListing:
+        """Every refund Stripe holds for the payment, newest first, following
+        ``has_more`` page by page. A refund object that cannot be read is skipped.
+        Stops after ``REFUND_MAX_PAGES`` pages, or when ``stop()`` is true before a
+        further page (a caller's time budget), and reports the listing incomplete."""
+        if not intent.provider_payment_ref:
+            return RefundListing(refunds=())
+        refunds: list[ProviderRefund] = []
+        params = {
+            "payment_intent": intent.provider_payment_ref,
+            "limit": str(REFUND_PAGE_SIZE),
+        }
+        for _ in range(REFUND_MAX_PAGES):
+            body = await self._request("GET", "/v1/refunds", params=params)
+            data = body.get("data")
+            if not isinstance(data, list):
+                raise ProviderRequestError()
+            refunds.extend(
+                refund
+                for refund in (
+                    _refund_object(item) for item in data if _echoes(intent, item)
+                )
+                if refund is not None
+            )
+            if body.get("has_more") is not True:
+                return RefundListing(refunds=tuple(refunds))
+            last = data[-1] if data else None
+            cursor = _str(last.get("id")) if isinstance(last, dict) else None
+            if cursor is None:
+                # More pages but no cursor to ask for them: never loop on page one.
+                raise ProviderRequestError()
+            params = {**params, "starting_after": cursor}
+            if stop is not None and stop():
+                logger.warning(
+                    "Stripe refund listing stopped early for the time budget",
+                    extra={"intent_id": str(intent.id), "listed": len(refunds)},
+                )
+                return RefundListing(refunds=tuple(refunds), complete=False)
+        logger.error(
+            "Stripe refund listing stopped at the page limit",
+            extra={"intent_id": str(intent.id), "pages": REFUND_MAX_PAGES},
+        )
+        return RefundListing(refunds=tuple(refunds), complete=False)

@@ -7,7 +7,7 @@ vi.mock("@barrelsgd/ui/components/posthog-provider", () => ({
   CookieSettingsButton: () => <button type="button">Cookie settings</button>,
 }));
 
-const INDEPENDENCE = /independent Barrels Grenada project/;
+const INDEPENDENCE = /independent Barrels Grenada project/u;
 
 describe("elections SiteFooter", () => {
   it("keeps the independence line and links the Barrels support address", () => {

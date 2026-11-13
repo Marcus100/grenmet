@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
-import type { CapAlertListPublic } from "./CapAlertListPublic.js";
+import type { CapAlertListPublicView } from "./CapAlertListPublicView.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
-export type CapGetPublicPastAlertsStatus200 = CapAlertListPublic;
+export type CapGetPublicPastAlertsStatus200 = CapAlertListPublicView;
 
 /**
  * @description Validation error envelope returned for malformed requests.

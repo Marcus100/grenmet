@@ -12,7 +12,7 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
-    "test": "vitest run",
+    "test": "content-collections build && vitest run",
     "type-check": "rm -f next-env.d.ts && rm -rf .next/dev/types && next typegen && content-collections build && tsc --noEmit"
   },
   "type": "module",
@@ -29,7 +29,7 @@
     "@content-collections/mdx": "catalog:",
     "@content-collections/next": "catalog:",
     "@sentry/nextjs": "catalog:",
-    "@sindresorhus/slugify": "^3.0.1",
+    "@sindresorhus/slugify": "^4.0.1",
     "@t3-oss/env-nextjs": "catalog:",
     "@tailwindcss/typography": "catalog:",
     "@types/react-highlight-words": "^0.20.1",
@@ -46,7 +46,7 @@
     "remark-gfm": "catalog:",
     "remark-mdx": "^3.1.1",
     "server-only": "catalog:",
-    "shiki": "^4.5.0",
+    "shiki": "^4.6.0",
     "unist-util-visit": "^5.2.0",
     "zod": "catalog:",
     "zustand": "catalog:"

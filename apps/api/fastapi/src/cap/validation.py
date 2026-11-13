@@ -1,23 +1,33 @@
 import ipaddress
+import logging
 import re
 import socket
 from datetime import UTC, datetime
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlsplit
 from uuid import UUID
 
 from fastapi.concurrency import run_in_threadpool
 from shapely.geometry import shape
 from shapely.validation import explain_validity
 
-from src.cap.exceptions import CapImportError
+from src.cap.exceptions import CapFeedUrlError, CapHostRefusedError, CapImportError
 from src.cap.levels import validate_level, validate_sectors
-from src.cap.models import CapMessageType, CapScope
-from src.cap.schemas import CapAlertPublic, CapNameValue, CapValidationResult
+from src.cap.models import CapMessageType, CapScope, CapStatus
+from src.cap.schemas import (
+    CapAlertPublic,
+    CapAreaPublic,
+    CapNameValue,
+    CapValidationResult,
+)
 from src.utils.datetime import utc_now
+
+logger = logging.getLogger(__name__)
 
 # Cap the response body pulled from an external CAP source (memory-DoS guard).
 MAX_IMPORT_BYTES = 5 * 1024 * 1024
+
+_URL_CONTROL_OR_SPACE = re.compile(r"[\s\x00-\x1f\x7f]")
 
 
 def validate_import_url(url: str) -> None:
@@ -27,41 +37,79 @@ def validate_import_url(url: str) -> None:
     literal private/loopback/link-local/reserved IPs and local hostnames.
     Host resolution is checked separately by ``ensure_public_host``.
     """
-    parsed = urlparse(url)
+    try:
+        parsed = urlparse(url)
+    except ValueError as exc:  # e.g. a malformed IPv6 literal
+        raise CapHostRefusedError("malformed URL") from exc
     if parsed.scheme not in ("http", "https"):
-        raise CapImportError(f"unsupported URL scheme '{parsed.scheme or ''}'")
+        raise CapHostRefusedError(f"unsupported URL scheme '{parsed.scheme or ''}'")
     if parsed.username or parsed.password:
-        raise CapImportError("credentials in import URL are not allowed")
+        raise CapHostRefusedError("credentials in import URL are not allowed")
     host = parsed.hostname
     if not host:
-        raise CapImportError("import URL has no host")
+        raise CapHostRefusedError("import URL has no host")
     lowered = host.lower()
     if lowered == "localhost" or lowered.endswith(
         (".local", ".internal", ".localhost")
     ):
-        raise CapImportError(f"host '{host}' is not permitted")
+        raise CapHostRefusedError(f"host '{host}' is not permitted")
     try:
         ip = ipaddress.ip_address(host)
     except ValueError:
         return  # a hostname — DNS-resolved addresses are checked in ensure_public_host
     if not ip.is_global:
-        raise CapImportError(f"host '{host}' resolves to a non-public address")
+        raise CapHostRefusedError(f"host '{host}' resolves to a non-public address")
 
 
-async def ensure_public_host(host: str) -> None:
-    """Resolve ``host`` and reject it if any address is non-public (SSRF guard)."""
+def validate_feed_url(url: str) -> None:
+    """Save-time check for a registered feed URL: https on port 443, public literal host, no credentials.
+
+    Runs the same pure checks as ``validate_import_url`` and adds the https-only rule.
+    It does no DNS lookup: the ingest path resolves the host with ``ensure_public_host``
+    before every fetch. Any refusal raises ``CapFeedUrlError`` with a fixed message; the
+    reason is logged, not returned.
+    """
+    if _URL_CONTROL_OR_SPACE.search(url):
+        logger.info(
+            "CAP feed URL refused at save", extra={"reason": "control or space"}
+        )
+        raise CapFeedUrlError()
+    try:
+        parts = urlsplit(url)
+        scheme = parts.scheme.lower()
+        if scheme != "https":
+            raise CapHostRefusedError(f"scheme '{scheme}' is not https")
+        if parts.port not in (None, 443):  # .port raises ValueError when invalid
+            raise CapHostRefusedError(f"port {parts.port} is not 443")
+        validate_import_url(url)
+    except (CapImportError, ValueError) as exc:
+        logger.info("CAP feed URL refused at save", extra={"reason": str(exc)})
+        raise CapFeedUrlError() from exc
+
+
+async def ensure_public_host(host: str) -> str:
+    """Resolve ``host``, reject it if any address is non-public, and return the first address.
+
+    The caller connects to the returned address (see ``src.cap.safe_fetch``), so the
+    name is not resolved a second time between this check and the connection.
+    """
     try:
         infos = await run_in_threadpool(socket.getaddrinfo, host, None)
     except socket.gaierror as exc:
-        raise CapImportError(f"could not resolve host '{host}': {exc}") from exc
+        raise CapHostRefusedError(f"could not resolve host '{host}': {exc}") from exc
+    addresses: list[str] = []
     for info in infos:
-        addr = info[4][0]
+        addr = str(info[4][0])
         try:
             ip = ipaddress.ip_address(addr)
         except ValueError:
             continue
         if not ip.is_global:
-            raise CapImportError(f"host '{host}' resolves to a non-public address")
+            raise CapHostRefusedError(f"host '{host}' resolves to a non-public address")
+        addresses.append(addr)
+    if not addresses:
+        raise CapHostRefusedError(f"could not resolve host '{host}'")
+    return addresses[0]
 
 
 def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:
@@ -85,6 +133,13 @@ def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:
         and not alert.info
     ):
         errors.append("at least one info block is required")
+    # A real warning (not a test, exercise or cancellation) needs an expiry and,
+    # when public, an area. Cancellations stay exempt so a flawed warning can
+    # always be withdrawn.
+    issued_warning = alert.status == CapStatus.ACTUAL and alert.msg_type in (
+        CapMessageType.ALERT,
+        CapMessageType.UPDATE,
+    )
 
     for info_index, info in enumerate(alert.info, start=1):
         prefix = f"info[{info_index}]"
@@ -104,8 +159,15 @@ def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:
             errors.append(f"{prefix}.expires must be after effective")
         if info.expires and _as_naive_utc(info.expires) <= utc_now():
             warnings.append(f"{prefix}.expires is in the past")
+        if issued_warning and not info.expires:
+            # Without an author-set expiry a warning's active window falls back to a
+            # default, so public feeds may keep showing it (ADR-0056, #1312).
+            errors.append(f"{prefix}.expires is required for an Actual warning")
         if not info.areas:
-            warnings.append(f"{prefix} has no area blocks")
+            if issued_warning and alert.scope == CapScope.PUBLIC:
+                errors.append(f"{prefix} needs an area for an Actual public warning")
+            else:
+                warnings.append(f"{prefix} has no area blocks")
         level_errors, level_warnings = validate_level(
             info.parameters, info.severity, prefix
         )
@@ -123,6 +185,9 @@ def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:
             geom_error = _validate_geometry(area.geometry)
             if geom_error:
                 errors.append(f"{area_prefix}.geometry {geom_error}")
+            errors.extend(
+                f"{area_prefix} {problem}" for problem in _coordinate_range_errors(area)
+            )
 
     return CapValidationResult(is_valid=not errors, errors=errors, warnings=warnings)
 
@@ -167,6 +232,51 @@ def _validate_geometry(geojson: dict[str, Any] | None) -> str | None:
     if not geom.is_valid:
         return f"is invalid: {explain_validity(geom)}"
     return None
+
+
+def _in_range(lon: float, lat: float) -> bool:
+    return -180 <= lon <= 180 and -90 <= lat <= 90
+
+
+def _coordinate_range_errors(area: CapAreaPublic) -> list[str]:
+    """Every point must be a real place: longitude ±180, latitude ±90.
+
+    Stored polygons are [lon, lat] (see ``xml._parse_polygon``); circles are
+    {lat, lon, radius}. Idea from wmo-raf/cap-aggregator's polygon check
+    (ADR-0056 item 6).
+    """
+    problems: list[str] = []
+    rings = list(area.polygons) + [
+        ring for multipolygon in area.multipolygons for ring in multipolygon
+    ]
+    if any(
+        len(point) >= 2 and not _in_range(point[0], point[1])
+        for ring in rings
+        for point in ring
+    ):
+        problems.append(
+            "polygon has a coordinate outside latitude ±90 or longitude ±180"
+        )
+    for circle in area.circles:
+        if "lat" not in circle or "lon" not in circle:
+            problems.append("circle needs a centre latitude and longitude")
+            break
+        if not _in_range(circle["lon"], circle["lat"]):
+            problems.append("circle centre is outside latitude ±90 or longitude ±180")
+            break
+        if circle.get("radius", 0.0) < 0:
+            problems.append("circle radius must not be negative")
+            break
+    if area.geometry:
+        try:
+            min_lon, min_lat, max_lon, max_lat = shape(area.geometry).bounds
+        except Exception:  # noqa: BLE001 - malformed geometry is reported elsewhere
+            return problems
+        if not (_in_range(min_lon, min_lat) and _in_range(max_lon, max_lat)):
+            problems.append(
+                "geometry has a coordinate outside latitude ±90 or longitude ±180"
+            )
+    return problems
 
 
 def _as_naive_utc(value: datetime) -> datetime:

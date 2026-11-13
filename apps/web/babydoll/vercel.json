@@ -1,8 +1,20 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "pnpm build",
+  "buildCommand": "pnpm --filter '@barrelsgd/web-babydoll^...' run build && pnpm build",
   "installCommand": "pnpm install --frozen-lockfile",
+  "redirects": [
+    {
+      "source": "/book",
+      "destination": "https://babydollgnd.as.me",
+      "permanent": false
+    },
+    {
+      "source": "/booking/:path*",
+      "destination": "/contact",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

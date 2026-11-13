@@ -7,6 +7,7 @@ import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rosterCsvImportResponseSchema } from "./rosterCsvImportResponseSchema.js";
 import { rosterCsvValidationRequestSchema } from "./rosterCsvValidationRequestSchema.js";
+import { rosterRuleWarningsErrorPublicSchema } from "./rosterRuleWarningsErrorPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrImportCsvStatus200Schema = rosterCsvImportResponseSchema;
@@ -19,6 +20,11 @@ export const hrImportCsvStatus403Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const hrImportCsvStatus409Schema =
+  rosterRuleWarningsErrorPublicSchema.describe(
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
+  );
+
 export const hrImportCsvStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -29,6 +35,7 @@ export const hrImportCsvResponseSchema = hrImportCsvStatus200Schema;
 export const hrImportCsvErrorSchema = z.union([
   hrImportCsvStatus400Schema,
   hrImportCsvStatus403Schema,
+  hrImportCsvStatus409Schema,
   hrImportCsvStatus422Schema,
 ]);
 

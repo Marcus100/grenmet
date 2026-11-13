@@ -1,0 +1,58 @@
+name: CI health report
+
+# Weekly summary of CI speed and reliability (slowest jobs, failure rates,
+# jobs that passed only on a re-run, queue time) kept in one open issue
+# labelled ci-health. Reads Actions data only; never runs repository code
+# beyond scripts/ci/health-report.mjs.
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-health
+  cancel-in-progress: false
+
+jobs:
+  report:
+    name: Update CI health issue
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          sparse-checkout: scripts/ci
+      - name: Fetch the last week of runs and jobs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          since=$(date -u -d '7 days ago' +%Y-%m-%d)
+          gh api --paginate "repos/$GH_REPO/actions/runs?created=>=$since&per_page=100" \
+            --jq '.workflow_runs[] | select(.event != "dynamic")' | jq -s '.[:400]' > runs.json
+          echo "Runs: $(jq length runs.json)"
+          jq -r '.[] | select(.status == "completed") | .id' runs.json | while read -r id; do
+            gh api --paginate "repos/$GH_REPO/actions/runs/$id/jobs?filter=all&per_page=100" --jq '.jobs[]' || true
+          done | jq -s . > jobs.json
+          echo "Jobs: $(jq length jobs.json)"
+      - name: Render and publish the report
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          node scripts/ci/health-report.mjs runs.json jobs.json > report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+          gh label create ci-health --color 0e8a16 --description "Weekly CI health report" 2>/dev/null || true
+          issue=$(gh issue list --label ci-health --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$issue" ]; then
+            gh issue edit "$issue" --body-file report.md
+          else
+            gh issue create --title "CI health report" --label ci-health --body-file report.md
+          fi

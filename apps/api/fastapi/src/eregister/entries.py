@@ -10,7 +10,7 @@ and stays visible).
 
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
@@ -21,20 +21,22 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.eregister.exceptions import ObservationNotFoundError
+from src.exceptions import AppException
 
-from . import derive, encode, rules, stations
+from . import bufr, cl1_import, derive, encode, iwxxm, rules, stations, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, ERegisterSend
 from .schemas import (
     RegisterObservationCorrection,
     RegisterObservationCreate,
     RegisterObservationRead,
+    SynopValidationErrorDetail,
     SynopValidationIssue,
     SynopWorkbook,
 )
 
 logger = logging.getLogger(__name__)
 
-UNSENT_EDITABLE = ("draft", "qc_pending")
 ISSUE_PREVIEW = 3
 
 
@@ -129,12 +131,15 @@ def require_valid_synop(
     errors = [issue for issue in issues if issue.severity == "error"]
     if errors:
         summary = "; ".join(f"{i.field}: {i.message}" for i in errors[:ISSUE_PREVIEW])
+        # Shaped by the documented EregisterValidationError so the two cannot drift.
+        # Deliberately HTTPException: the body's detail is an object, and an AppException
+        # message is always a string, so the wire body could not stay identical.
         raise HTTPException(
             422,
-            detail={
-                "message": f"Observation does not pass validation: {summary}",
-                "issues": [issue.model_dump() for issue in issues],
-            },
+            detail=SynopValidationErrorDetail(
+                message=f"Observation does not pass validation: {summary}",
+                issues=issues,
+            ).model_dump(),
         )
 
 
@@ -184,6 +189,52 @@ async def live_row(
     return dict(row) if row else None
 
 
+PRESSURE_NOTE = (
+    "The station's pressure settings could not be read when this was saved, so it "
+    "was saved without them. Accepting it or sending it encodes this record again."
+)
+
+
+async def _saved_station(
+    register: AsyncSession, station_id: str
+) -> tuple[derive.PressureSettings | None, dict[str, Any] | None]:
+    """The station's pressure amounts for a save, and the notes to store when the lookup fails.
+
+    A failed lookup never fails the save (the acceptance path does the same): the station
+    is left out and both encodings are stored as errors that say why. A failed SQL
+    statement and any other failure are treated alike.
+
+    The lookup runs in a SAVEPOINT and never rolls back the outer transaction, so the row
+    lock correct() holds (and its state guard) still stands after a failure. This is why
+    it reads the station directly instead of through ``stations.pressure_for``, whose
+    rollback would end the whole transaction and release that lock.
+    """
+    station = (station_id or "").strip()
+    if not station:
+        return None, None
+    try:
+        async with register.begin_nested():
+            settings = await stations.get(register, station)
+        return stations.pressure_settings(settings), None
+    except Exception:
+        logger.exception(
+            "eRegister pressure settings lookup failed while saving; encodings stored as errors"
+        )
+        return None, {
+            "bufr": bufr.failed_record(PRESSURE_NOTE),
+            "iwxxm": iwxxm.failed_record(PRESSURE_NOTE),
+        }
+
+
+def _server_records(notes: dict[str, Any] | None) -> dict[str, Any]:
+    """The BUFR and IWXXM records a save stores. Clients never supply them: acceptance
+    and sending write them, so a client cannot store a valid record or an override."""
+    return {
+        "bufr": notes["bufr"] if notes else None,
+        "iwxxm": notes["iwxxm"] if notes else None,
+    }
+
+
 def _json_params(values: dict[str, Any]) -> dict[str, Any]:
     return {
         "body": values["body"],
@@ -196,10 +247,11 @@ _INSERT = text(
     """
     INSERT INTO register_observations
       (id, station_id, station_name, aerodrome_icao, kind, observed_at, issued_at,
-       body, raw_tac, bufr, iwxxm, actor_id, supersedes_id)
+       body, raw_tac, bufr, iwxxm, actor_id, supersedes_id, state)
     VALUES (:id, :station_id, :station_name, :aerodrome_icao, CAST(:kind AS observation_kind),
             :observed_at, :issued_at, CAST(:body AS jsonb), :raw_tac, CAST(:bufr AS jsonb),
-            CAST(:iwxxm AS jsonb), :actor_id, :supersedes_id)
+            CAST(:iwxxm AS jsonb), :actor_id, :supersedes_id,
+            CAST(:state AS register_state))
     RETURNING *
     """
 ).bindparams(
@@ -214,7 +266,7 @@ _UPDATE = text(
     SET station_name = :station_name, aerodrome_icao = :aerodrome_icao,
         issued_at = :issued_at, body = CAST(:body AS jsonb), raw_tac = :raw_tac,
         bufr = CAST(:bufr AS jsonb), iwxxm = CAST(:iwxxm AS jsonb),
-        state = 'draft', updated_at = now(),
+        state = CAST(:state AS register_state), updated_at = now(),
         review_outcome = NULL, review_note = NULL,
         reviewed_by = NULL, reviewed_at = NULL
     WHERE id = :id
@@ -233,33 +285,48 @@ async def create(
     app_session: AsyncSession,
     data: RegisterObservationCreate,
     user: User,
+    state: Literal["draft", "historical"] = "draft",
 ) -> tuple[dict[str, Any], bool]:
-    """Save an observation. Returns the row and whether it was newly inserted."""
-    station = await stations.pressure_for(register, data.station_id)
+    """Save an observation. Returns the row and whether it was newly inserted.
+
+    ``state`` is ``draft`` for every API save. Only the archive importer passes
+    ``historical``; it may also refresh its own unsent historical row in place.
+    """
+    station, notes = await _saved_station(register, data.station_id)
     if data.kind == "SYNOP":
         history = await history_for(register, data.station_id, data.observed_at)
         require_valid_synop(data.body, data.observed_at, station, history)
     values = data.model_dump()
+    values.update(_server_records(notes))
     values["body"] = derive.apply_to_body(values["body"], station)
     await lock_key(register, data.station_id, data.observed_at, data.kind)
     existing = await live_row(register, data.station_id, data.observed_at, data.kind)
     if existing is not None:
+        # The same 409 below covers "not your draft" and "already sent": a re-save is
+        # a save_draft, refused once any email or WIS2 file is queued or sent.
         own_draft = str(existing["actor_id"]) == str(user.id) and (
-            existing["state"] in UNSENT_EDITABLE
+            transitions.state_allows(existing["state"], "save_draft")
+            or (state == "historical" and existing["state"] == "historical")
         )
         if own_draft and not await _has_sends(app_session, existing["id"]):
             result = await register.execute(
-                _UPDATE, {**values, **_json_params(values), "id": existing["id"]}
+                _UPDATE,
+                {
+                    **values,
+                    **_json_params(values),
+                    "id": existing["id"],
+                    "state": state,
+                },
             )
             saved = dict(result.mappings().one())
             await register.commit()
             return saved, False
         await register.rollback()
-        raise HTTPException(
-            409,
+        raise AppException(
             "An observation for this station and time already exists "
             f"({existing['id']}, {existing['state']}). Correct it instead of "
             "saving a second one.",
+            409,
         )
     try:
         result = await register.execute(
@@ -269,14 +336,15 @@ async def create(
                 **_json_params(values),
                 "actor_id": str(user.id),
                 "supersedes_id": None,
+                "state": state,
             },
         )
         saved = dict(result.mappings().one())
         await register.commit()
     except IntegrityError as exc:
         await register.rollback()
-        raise HTTPException(
-            409, "An observation for this station and time already exists"
+        raise AppException(
+            "An observation for this station and time already exists", 409
         ) from exc
     return saved, True
 
@@ -295,23 +363,34 @@ async def correct(
     )
     found = result.mappings().first()
     if found is None:
-        raise HTTPException(404, "Observation not found")
+        raise ObservationNotFoundError()
     old = dict(found)
-    if old["state"] in ("rejected", "superseded"):
+    try:
+        transitions.guard(
+            old["state"],
+            "correct",
+            refusal=f"A {old['state']} observation cannot be corrected",
+        )
+    except AppException:
+        # Release the row lock before the refusal, as before the guard existed.
         await register.rollback()
-        raise HTTPException(409, f"A {old['state']} observation cannot be corrected")
-    station = await stations.pressure_for(register, old["station_id"])
+        raise
+    station, notes = await _saved_station(register, old["station_id"])
     if old["kind"] == "SYNOP":
         history = await history_for(register, old["station_id"], old["observed_at"])
         require_valid_synop(data.body, old["observed_at"], station, history)
     values: dict[str, Any] = {
         **data.model_dump(exclude={"reason"}),
+        **_server_records(notes),
         "id": str(uuid4()),
         "station_id": old["station_id"],
         "kind": old["kind"],
         "observed_at": old["observed_at"],
         "actor_id": str(user.id),
         "supersedes_id": str(observation_id),
+        # A correction of an archive record stays an archive record: never sent,
+        # never in the acceptance queue.
+        "state": "historical" if old["state"] == "historical" else "draft",
     }
     values["body"] = derive.apply_to_body(values["body"], station)
     # The old row leaves the live set first so the unique index admits the new one.
@@ -360,6 +439,15 @@ def listing_row(
     if row["kind"] == "SYNOP":
         body = row["body"] or {}
         item.issues = validation_issues(body, row["observed_at"], None, stored=True)
+        # Only an importer draft nobody has touched: a reviewed, corrected or
+        # edited row keeps its own warnings.
+        if (
+            cl1_import.is_imported(body.get("notes"))
+            and row["state"] in ("draft", "historical")
+            and not row["review_outcome"]
+            and row["supersedes_id"] is None
+        ):
+            item.issues = cl1_import.merge_sheet_gaps(item.issues)
         try:
             item.coded = encode.synop_tac(encode.workbook_from_body(body))
         except ValueError, TypeError:

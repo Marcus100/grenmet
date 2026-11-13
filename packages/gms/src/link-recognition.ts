@@ -16,10 +16,17 @@ const SITE_HOSTS = new Set([
   "www.weather.gd",
   "localhost:3003",
 ]);
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ISSUED = /^\/weather\/issued\/([^/]+)$/;
-const ALERT = /^\/alerts\/([^/]+)$/;
-const QUERY_OR_HASH = /[?#]/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const ISSUED = /^\/weather\/issued\/([^/]+)$/u;
+const ALERT = /^\/alerts\/([^/]+)$/u;
+const QUERY_OR_HASH = /[?#]/u;
+
+/**
+ * Pages that still exist (they redirect) but are no longer in the menu. A CMS
+ * post may hold a link to one, and without this list it would read as a
+ * warning identifier because `/alerts/<name>` is the warning pattern.
+ */
+const RETIRED_MENU_PAGES = new Set(["/alerts/advisories", "/alerts/marine"]);
 
 /** Drops trailing slashes with a loop, not a backtracking pattern. */
 function trimTrailingSlashes(path: string): string {
@@ -52,7 +59,8 @@ export function recognizeLink(input: string): RecognizedLink {
   const issued = path.match(ISSUED)?.[1];
   if (issued && UUID.test(issued))
     return { type: "product", ref: issued.toLowerCase() };
-  if (linkablePage(path)) return { type: "page", ref: path };
+  if (linkablePage(path) || RETIRED_MENU_PAGES.has(path))
+    return { type: "page", ref: path };
   const alert = path.match(ALERT)?.[1];
   if (alert) {
     try {

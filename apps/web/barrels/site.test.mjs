@@ -4,31 +4,63 @@ import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import "./build.mjs";
 
-const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/s;
-const PRIVACY_DIALOG = /<section[^>]*role="dialog"/s;
-const OVERCLAIM = /certified|ISO\s?\d|Microsoft Partner|Google Partner/i;
-const ELEMENT_ID = /\sid="([\w-]+)"/g;
-const WHITESPACE = /\s+/;
-const LOCAL_SRC = /src="\/[^"]+"/;
-const DESCRIBED_BY = /aria-describedby="([^"]+)"/g;
-const SCRIPT_OPEN = /<script\b([^>]*)>/g;
-const SCRIPT_SRC = /<script[^>]*src="([^"]+)"/g;
-const STYLE_BLOCK = /<style\b/;
-const STYLE_ATTRIBUTE = /\sstyle="/;
-const EVENT_ATTRIBUTE = /\son[a-z]+="/i;
-const PACKAGE_HEADING = /<h2 id="package-[\w-]+">([^<]+)<\/h2>/g;
-const H1_TAG = /<h1>/g;
-const CSS_VARIABLE = /var\((--[\w-]+)\)/g;
-const NEWSLETTER_LABEL = /<label for="newsletter-email">/;
+const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/su;
+const PRIVACY_DIALOG = /<section[^>]*role="dialog"/su;
+const OVERCLAIM = /certified|ISO\s?\d|Microsoft Partner|Google Partner/iu;
+const ELEMENT_ID = /\sid="([\w-]+)"/gu;
+const WHITESPACE = /\s+/u;
+const LOCAL_SRC = /src="\/[^"]+"/u;
+const DESCRIBED_BY = /aria-describedby="([^"]+)"/gu;
+const SCRIPT_OPEN = /<script\b([^>]*)>/giu;
+const SCRIPT_SRC = /<script[^>]*src="([^"]+)"/giu;
+const STYLE_BLOCK = /<style\b/u;
+const STYLE_ATTRIBUTE = /\sstyle="/u;
+const EVENT_ATTRIBUTE = /\son[a-z]+="/iu;
+const PACKAGE_HEADING = /<h2 id="package-[\w-]+">([^<]+)<\/h2>/gu;
+const H1_TAG = /<h1>/gu;
+const CSS_VARIABLE = /var\((--[\w-]+)\)/gu;
+const NEWSLETTER_LABEL = /<label for="newsletter-email">/u;
+const GOOGLE_TAG_MANAGER = /googletagmanager/iu;
+const CLOUDFLARE_CHALLENGES = /challenges\.cloudflare\.com/iu;
+const NOT_FOUND_TITLE = /<h1>Page not found<\/h1>/u;
+
 const PAGES = [
   "index.html",
   "services/index.html",
   "contact/index.html",
   "subscribe/status/index.html",
+  // Served with status 404 by Cloudflare Pages (and Vercel) for unknown paths.
+  "404.html",
 ];
 
 const read = (path) =>
   readFileSync(new URL(`./dist/${path}`, import.meta.url), "utf8");
+
+// Hosts of every absolute or protocol-relative URL in a text, parsed with
+// `new URL` so a host is compared exactly instead of matched as a substring.
+const URL_IN_TEXT = /(?:https?:)?\/\/[^\s"'<>()]+/gu;
+const hostsIn = (text) =>
+  (text.match(URL_IN_TEXT) ?? [])
+    .filter((candidate) => URL.canParse(candidate, "https://base.invalid"))
+    .map((candidate) => new URL(candidate, "https://base.invalid").hostname);
+
+// Whether any URL in a text has exactly this host.
+const mentionsHost = (text, host) =>
+  hostsIn(text).some((found) => found === host);
+
+// Source tokens of one CSP directive (name in lower case), e.g. connect-src -> ["https://a.example", ...].
+const directiveSources = (csp, name) => {
+  const part = csp
+    .split(";")
+    .map((entry) => entry.trim())
+    .find((entry) => entry.split(WHITESPACE)[0].toLowerCase() === name);
+  return part ? part.split(WHITESPACE).slice(1) : [];
+};
+// Whether a CSP source list allows exactly this origin (scheme, host and port).
+const allowsOrigin = (sources, origin) =>
+  sources.some(
+    (source) => URL.canParse(source) && new URL(source).origin === origin
+  );
 
 test("holding page ships accessible content and only local analytics wiring", () => {
   const html = read("index.html");
@@ -37,7 +69,20 @@ test("holding page ships accessible content and only local analytics wiring", ()
   assert.ok(html.includes('href="https://eugine.me/"'));
   assert.ok(html.includes("Built by Eugine Whint"));
   assert.ok(html.includes('src="/analytics.mjs"'));
-  assert.ok(!html.includes("googletagmanager.com"));
+  // Positive control: the URL parser must still find the links it should.
+  assert.ok(
+    mentionsHost(html, "eugine.me"),
+    "URL parser finds the byline link"
+  );
+  assert.ok(
+    !(
+      mentionsHost(html, "googletagmanager.com") ||
+      mentionsHost(html, "www.googletagmanager.com")
+    ),
+    "holding page never loads Google Tag Manager directly"
+  );
+  // Loose guard: no mention of the name at all, however it is written.
+  assert.doesNotMatch(html, GOOGLE_TAG_MANAGER);
   // Privacy popup starts hidden; analytics.mjs reveals it only where
   // optional analytics is configured.
   assert.ok(html.includes('aria-label="Privacy settings"'));
@@ -130,11 +175,51 @@ test("pages keep to the CSP: no inline script, style or event handlers", () => {
   }
 });
 
-test("forms post JSON to FastAPI with the barrels site and list, never a native submit", () => {
+// The CONTACT_URL template literal: `${API_ORIGIN}<path>`.
+const CONTACT_URL_TEMPLATE = /const CONTACT_URL = `\$\{API_ORIGIN\}([^`]*)`;/u;
+const DEPRECATED_CONTACT_PATH = "/api/v1/contact/messages";
+const CONTACT_SITE_PATH = "/api/v1/contact/public/barrels/messages";
+
+test("contact form targets the per-site barrels route, not the deprecated one", () => {
   const forms = read("forms.mjs");
-  assert.ok(forms.includes("/api/v1/contact/messages"));
+  const match = forms.match(CONTACT_URL_TEMPLATE);
+  assert.ok(match, "CONTACT_URL is API_ORIGIN plus a constant path");
+  const path = match[1];
+  assert.ok(!path.includes("${"), "contact path has no interpolated values");
+  // Parse the path (never substring-match it), with a placeholder origin.
+  const contact = new URL(path, "https://api.invalid");
+  assert.equal(
+    contact.origin,
+    "https://api.invalid",
+    "path stays on the API origin"
+  );
+  assert.equal(contact.search, "", "no query string carries visitor data");
+  assert.equal(contact.hash, "", "no fragment carries visitor data");
+  assert.equal(contact.pathname, CONTACT_SITE_PATH);
+  assert.notEqual(contact.pathname, DEPRECATED_CONTACT_PATH);
+  // Positive control: the deprecated path is still a valid URL path to parse.
+  assert.equal(
+    new URL(DEPRECATED_CONTACT_PATH, "https://api.invalid").pathname,
+    DEPRECATED_CONTACT_PATH
+  );
+  // The body no longer names the site; the path does.
+  assert.ok(
+    !forms.includes('site: "barrels"'),
+    "contact body has no site field"
+  );
+  // Production API origin is parsed exactly.
+  const origins = [...forms.matchAll(/"(https?:\/\/[^"]+)"/gu)].map(
+    ([, candidate]) => new URL(candidate)
+  );
+  assert.ok(
+    origins.some((url) => url.origin === "https://api.barrels.gd"),
+    "production API origin is present"
+  );
+});
+
+test("forms post JSON to FastAPI with the barrels list, never a native submit", () => {
+  const forms = read("forms.mjs");
   assert.ok(forms.includes("/api/v1/subscriptions"));
-  assert.ok(forms.includes('site: "barrels"'));
   assert.ok(forms.includes('list_key: "barrels"'));
   assert.ok(forms.includes("event.preventDefault()"));
   assert.ok(forms.includes('"Content-Type": "application/json"'));
@@ -180,7 +265,11 @@ test("static modules share the reader policy and CSP permits only the required e
   ).value;
   assert.ok(csp.includes("script-src 'self' https://www.googletagmanager.com"));
   assert.ok(
-    csp.includes("connect-src") && csp.includes("https://api.barrels.gd")
+    allowsOrigin(
+      directiveSources(csp, "connect-src"),
+      "https://api.barrels.gd"
+    ),
+    "connect-src allows the Barrels API origin"
   );
   assert.ok(csp.includes("form-action 'none'"));
   assert.ok(!csp.includes("unsafe-inline"));
@@ -193,14 +282,17 @@ test("CSP allows Cloudflare Turnstile for scripts, frames and connections only",
   const csp = config.headers[0].headers.find(
     (header) => header.key === "Content-Security-Policy"
   ).value;
-  const directive = (name) =>
-    csp.split(";").find((part) => part.trim().startsWith(`${name} `)) ?? "";
   for (const name of ["script-src", "frame-src", "connect-src"])
     assert.ok(
-      directive(name).includes("https://challenges.cloudflare.com"),
+      allowsOrigin(
+        directiveSources(csp, name),
+        "https://challenges.cloudflare.com"
+      ),
       `${name} allows Turnstile`
     );
-  assert.ok(!directive("style-src").includes("cloudflare"));
+  const styleSources = directiveSources(csp, "style-src");
+  assert.ok(styleSources.length > 0, "style-src directive is present");
+  assert.ok(!styleSources.some((source) => source.includes("cloudflare")));
   assert.ok(csp.includes("default-src 'none'"));
 });
 
@@ -208,11 +300,22 @@ test("forms send a Turnstile token only when a site key is configured", () => {
   const forms = read("forms.mjs");
   assert.ok(forms.includes('from "./turnstile-config.mjs"'));
   assert.ok(forms.includes("turnstile_token"));
-  assert.ok(forms.includes("challenges.cloudflare.com/turnstile/v0/api.js"));
+  const turnstileScripts = (forms.match(URL_IN_TEXT) ?? [])
+    .filter((candidate) => URL.canParse(candidate))
+    .map((candidate) => new URL(candidate))
+    .filter((url) => url.pathname === "/turnstile/v0/api.js");
+  assert.ok(turnstileScripts.length > 0, "Turnstile script URL is present");
+  for (const url of turnstileScripts) {
+    assert.equal(url.protocol, "https:");
+    assert.equal(url.hostname, "challenges.cloudflare.com");
+  }
   assert.ok(forms.includes("render=explicit"));
   // The script is loaded from forms.mjs, never from a page.
-  for (const page of PAGES)
-    assert.ok(!read(page).includes("challenges.cloudflare.com"), page);
+  for (const page of PAGES) {
+    const html = read(page);
+    assert.ok(!mentionsHost(html, "challenges.cloudflare.com"), page);
+    assert.doesNotMatch(html, CLOUDFLARE_CHALLENGES, page);
+  }
 });
 
 test("the site key is written at build time and defaults to none", () => {
@@ -234,4 +337,25 @@ test("the site key is written at build time and defaults to none", () => {
     read("turnstile-config.mjs"),
     'export const TURNSTILE_SITE_KEY = "";\n'
   );
+});
+
+test("Cloudflare Pages serves the same response headers as vercel.json", () => {
+  const config = JSON.parse(
+    readFileSync(new URL("./vercel.json", import.meta.url), "utf8")
+  );
+  const lines = read("_headers").split("\n");
+  assert.equal(lines[0], "/*");
+  for (const header of config.headers[0].headers) {
+    assert.ok(
+      lines.includes(`  ${header.key}: ${header.value}`),
+      `${header.key} is missing from _headers`
+    );
+  }
+});
+
+test("unknown paths get a real not-found page, not the homepage", () => {
+  const html = read("404.html");
+  assert.match(html, NOT_FOUND_TITLE);
+  assert.ok(html.includes('href="/"'), "links back to the homepage");
+  assert.ok(html.includes('content="noindex"'), "kept out of search results");
 });

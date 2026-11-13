@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { gmsCatalogueFixture } from "@/test/cap-gms-catalogue.fixture";
 import { nth } from "@/test/nth";
 import {
   buildCircleArea,
@@ -10,11 +11,11 @@ import {
 
 describe("buildGeocodeArea", () => {
   it("returns null when no parishes are selected", () => {
-    expect(buildGeocodeArea([])).toBeNull();
+    expect(buildGeocodeArea(gmsCatalogueFixture, [])).toBeNull();
   });
 
   it("builds one geocode per parish with a human-readable areaDesc", () => {
-    const area = buildGeocodeArea(["andrew", "david"]);
+    const area = buildGeocodeArea(gmsCatalogueFixture, ["andrew", "david"]);
     expect(area).toEqual({
       kind: "GEOCODE",
       area_desc: "Saint Andrew, Saint David",
@@ -26,24 +27,35 @@ describe("buildGeocodeArea", () => {
   });
 
   it("uses the real ISO 3166-2:GD dependency code for Carriacou & Petite Martinique", () => {
-    const area = buildGeocodeArea(["carriacou-pm"]);
+    const area = buildGeocodeArea(gmsCatalogueFixture, ["carriacou-pm"]);
     expect(area?.geocodes).toEqual([
       { value_name: "ISO3166-2:GD", value: "GD-10" },
     ]);
   });
 
   it("silently drops unknown parish ids rather than throwing", () => {
-    const area = buildGeocodeArea(["andrew", "not-a-real-parish"]);
+    const area = buildGeocodeArea(gmsCatalogueFixture, [
+      "andrew",
+      "not-a-real-parish",
+    ]);
     expect(area?.geocodes).toHaveLength(1);
+  });
+});
+
+describe("catalogue-driven geocodes", () => {
+  it("takes the geocode system from the catalogue, not a copy in the web app", () => {
+    const other = { ...gmsCatalogueFixture, geocode_name: "TEST:GD" };
+    expect(buildGeocodeArea(other, ["andrew"])?.geocodes).toEqual([
+      { value_name: "TEST:GD", value: "GD-01" },
+    ]);
   });
 });
 
 describe("parishNames", () => {
   it("preserves selection order and drops unknown ids", () => {
-    expect(parishNames(["mark", "andrew", "nope"])).toEqual([
-      "Saint Mark",
-      "Saint Andrew",
-    ]);
+    expect(
+      parishNames(gmsCatalogueFixture, ["mark", "andrew", "nope"])
+    ).toEqual(["Saint Mark", "Saint Andrew"]);
   });
 });
 

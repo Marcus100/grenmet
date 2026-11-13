@@ -50,6 +50,12 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     ),
     # HR — employment & profile
     PermissionDef("hr.employment.manage", "Manage employment records"),
+    # HR setup (baseline routes). Held by an organisation's HR admins, and used for
+    # that organisation only (issue #1080); superusers keep every organisation.
+    PermissionDef(
+        "hr.setup.manage",
+        "Set up HR for the organisation you administer: staff onboarding, grades, approval policies, leave balances and the GMS catalogue",
+    ),
     # HR — department calendar
     PermissionDef("calendar.view", "View the department calendar"),
     PermissionDef(
@@ -64,11 +70,46 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("roster.view", "View rosters"),
     PermissionDef("roster.manage", "Create and manage rosters"),
     PermissionDef("roster.import", "Import rosters from CSV"),
+    PermissionDef("roster.rules.manage", "Edit roster rules and union coverage"),
     # HR — timesheet
     PermissionDef("timesheet.submit.self", "Submit own timesheet"),
     PermissionDef("timesheet.submit.proxy", "Submit a timesheet on behalf of another"),
     PermissionDef("timesheet.approve", "Approve timesheets"),
     PermissionDef("timesheet.read.department", "Read timesheets across a department"),
+    # HR — payroll inputs (quantities only; HrPlus stays the payroll of record).
+    # Granted to no default role: nobody gains access until the owner assigns them.
+    PermissionDef(
+        "hr.payroll.read.department",
+        "Read payroll input quantities for employees in assigned departments",
+    ),
+    PermissionDef(
+        "hr.payroll.prepare",
+        "Prepare pay periods: compute quantities, add manual lines, submit (organisation-wide)",
+    ),
+    PermissionDef(
+        "hr.payroll.approve",
+        "Approve or return pay periods prepared by someone else; needs two-step verification",
+    ),
+    PermissionDef(
+        "hr.payroll.export",
+        "Export approved payroll inputs as CSV; needs two-step verification",
+    ),
+    PermissionDef(
+        "hr.payroll.rates.manage",
+        "Set dated pay rates and basic pay (organisation-wide); needs two-step verification",
+    ),
+    PermissionDef(
+        "hr.payroll.tables.confirm",
+        "Confirm tax, social insurance and deduction tables someone else created; needs two-step verification",
+    ),
+    PermissionDef(
+        "hr.payroll.read.self",
+        "See and confirm your own payroll records and issued payslips",
+    ),
+    PermissionDef(
+        "hr.payroll.read.amounts",
+        "See pay amounts, rates and basic pay (organisation-wide only)",
+    ),
     # HR — leave
     PermissionDef("leave.request.create.self", "Create own leave request"),
     PermissionDef("leave.request.action", "Approve/reject leave requests"),
@@ -331,6 +372,7 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("app.elections.access", "Sign in to Elections Grenada"),
     PermissionDef("app.gmsdash.access", "Sign in to the GMS Dashboard"),
     PermissionDef("app.bookings.access", "Sign in to Barrels Bookings"),
+    PermissionDef("app.account.access", "Sign in to your Barrels account"),
     PermissionDef(
         "gmsdash.guidance.view",
         "Read raw model guidance meteograms without an organisation entitlement",
@@ -484,6 +526,7 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
         (
             "user.manage",
             "hr.employment.manage",
+            "hr.setup.manage",
             "hr.document.create",
             "hr.document.read.department",
             "hr.training.read.department",
@@ -496,6 +539,7 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "roster.view",
             "roster.manage",
             "roster.import",
+            "roster.rules.manage",
             "timesheet.approve",
             "timesheet.read.department",
             "timesheet.submit.proxy",
@@ -647,6 +691,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
         "Barrels Bookings member: granted on first sign-in",
         ("app.bookings.access",),
     ),
+    "account-member": (
+        "Barrels account member: granted on first sign-in",
+        ("app.account.access",),
+    ),
     "gmsdash-operator": (
         "GMS Dashboard operator: reads model guidance and decides organisation access requests",
         ("gmsdash.guidance.view", "gmsdash.access.review"),
@@ -757,6 +805,11 @@ DEPARTMENT_AUTHORITY_KEYS = tuple(
 for _name in ("department-manager", "department-assistant-manager"):
     DEFAULT_ROLES[_name] = (DEFAULT_ROLES[_name][0], DEPARTMENT_AUTHORITY_KEYS)
 
+# Keys added to a default role after deployed databases first seeded it. Seeding
+# never re-touches an existing role, so each (role, key) is granted once, tracked by
+# a ``bundle:<role>:<key>`` BaselineStep marker. An owner's later removal then sticks.
+LATE_BUNDLE_KEYS: tuple[tuple[str, str], ...] = (("hr-admin", "hr.setup.manage"),)
+
 
 def _derive_columns(key: str) -> tuple[str, str, str]:
     """Derive descriptive (entity, action, access) from a dotted permission key.
@@ -817,6 +870,17 @@ def seed_permissions_and_roles(session: Session) -> None:
                 role.permissions.append(key_to_perm[key])
         session.add(role)
         session.add(BaselineStep(key=marker))
+    for role_name, key in LATE_BUNDLE_KEYS:
+        bundle_marker = f"bundle:{role_name}:{key}"
+        if session.get(BaselineStep, bundle_marker):
+            continue
+        role = session.execute(
+            select(Role).where(Role.name == role_name)
+        ).scalar_one_or_none()
+        if role is not None and key not in {p.key for p in role.permissions}:
+            role.permissions.append(key_to_perm[key])
+            session.add(role)
+        session.add(BaselineStep(key=bundle_marker))
     session.commit()
 
 
@@ -861,4 +925,18 @@ async def seed_permissions_and_roles_async(session: AsyncSession) -> None:
             )
             session.add(role)
         session.add(BaselineStep(key=marker))
+    for role_name, key in LATE_BUNDLE_KEYS:
+        bundle_marker = f"bundle:{role_name}:{key}"
+        if await session.get(BaselineStep, bundle_marker):
+            continue
+        role_result = await session.execute(
+            select(Role)
+            .where(Role.name == role_name)
+            .options(selectinload(Role.permissions))
+        )
+        role = role_result.scalars().first()
+        if role is not None and key not in {p.key for p in role.permissions}:
+            role.permissions.append(key_to_perm[key])
+            session.add(role)
+        session.add(BaselineStep(key=bundle_marker))
     await session.commit()

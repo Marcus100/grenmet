@@ -25,6 +25,7 @@ export function hrSubmitShiftSwap<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/shift-swaps/{shift_swap_id}/submit",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrSubmitShiftSwapResponses, ThrowOnError>>

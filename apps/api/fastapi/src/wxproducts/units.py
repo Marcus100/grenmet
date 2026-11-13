@@ -22,6 +22,9 @@ KNOT_IN = {"kt": 1.0, "mph": 1852 / 1609.344, "km/h": 1.852, "m/s": 1852 / 3600}
 METRES_PER_FOOT = 0.3048
 
 PUBLIC_WIND_UNIT: WindUnit = "mph"
+# Marine products (Marine Forecast, Marine / Small Craft alerts) give wind in
+# knots, as WMO and peer services do (owner, 9 Nov 2026, issue #1197).
+MARINE_WIND_UNIT: WindUnit = "kt"
 
 COMPASS_POINTS = (
     "N",
@@ -157,16 +160,28 @@ def height_text(low: float | None, high: float | None) -> str:
     return f"{span} ft" if span else ""
 
 
+def marine_height_text(low: float | None, high: float | None) -> str:
+    """Marine heights in metres with feet in brackets: "1.5–2.5 m (5–8 ft)"."""
+    metres = _span(low, high, places=1)
+    return f"{metres} m ({height_text(low, high)})" if metres else ""
+
+
 def sea_state_text(start: str, end: str = "") -> str:
     if start and end and end != start:
         return f"{start} to {end.lower()}"
     return start or end
 
 
-def swell_text(direction: str, period: float | None, height: float | None) -> str:
+def swell_text(
+    direction: str,
+    period: float | None,
+    height: float | None,
+    *,
+    marine: bool = False,
+) -> str:
     parts = [direction]
     if height is not None:
-        parts.append(height_text(height, None))
+        parts.append((marine_height_text if marine else height_text)(height, None))
     if period is not None:
         parts.append(f"every {_num(period)} s")
     return " ".join(p for p in parts if p)

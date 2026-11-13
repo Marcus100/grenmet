@@ -3,12 +3,16 @@ import { WARNING_LEVEL_LABEL, type WarningLevel } from "@/lib/alerts";
 import type { AlertFeature } from "@/lib/cap-api";
 import {
   boundsFor,
+  landPath,
   MAP_WIDTH,
   type MapShape,
   projectionFor,
   REFERENCE_PLACES,
   toShape,
 } from "@/lib/map-geometry";
+
+/** Room a place label needs to the right of its marker, in map units. */
+const LABEL_ROOM = 130;
 
 const FILL: Record<WarningLevel, string> = {
   none: "fill-gm-warning-green-bg stroke-gm-warning-green-border",
@@ -36,20 +40,34 @@ export function AlertMap({ features }: { features: AlertFeature[] }) {
     <div className="space-y-4">
       <svg
         aria-labelledby="alert-map-title"
-        className="h-auto w-full rounded-gm-card border border-gm-border bg-gm-surface"
+        className="rounded-gm-card border-gm-border bg-gm-surface h-auto w-full border"
         role="img"
         viewBox={`0 0 ${MAP_WIDTH} ${projection.height}`}
       >
         <title id="alert-map-title">
-          Map of areas under an active alert. The numbered list below gives the
-          same information in text.
+          {features.length > 0
+            ? "Map of Grenada, Carriacou and Petite Martinique with the areas under an active alert. The numbered list below gives the same information in text."
+            : "Map of Grenada, Carriacou and Petite Martinique. No alert areas are in effect."}
         </title>
+        <path
+          className="fill-gm-surface-muted stroke-gm-border-input"
+          d={landPath(projection)}
+          strokeWidth={1}
+        />
         {REFERENCE_PLACES.map((place) => {
           const [x, y] = projection.project(place.lon, place.lat);
+          // A label near the right edge is drawn to the left of its marker,
+          // so it is never cut off.
+          const flip = x > MAP_WIDTH - LABEL_ROOM;
           return (
             <g className="fill-gm-text-muted" key={place.name}>
               <circle cx={x} cy={y} r={3} />
-              <text className="text-caption" x={x + 6} y={y + 4}>
+              <text
+                className="text-caption"
+                textAnchor={flip ? "end" : "start"}
+                x={flip ? x - 6 : x + 6}
+                y={y + 4}
+              >
                 {place.name}
               </text>
             </g>
@@ -77,7 +95,7 @@ export function AlertMap({ features }: { features: AlertFeature[] }) {
             ) : null}
             {shape.label ? (
               <text
-                className="fill-gm-text-primary font-bold text-body"
+                className="fill-gm-text-primary text-body font-bold"
                 textAnchor="middle"
                 x={shape.label[0]}
                 y={shape.label[1] + 5}
@@ -89,34 +107,38 @@ export function AlertMap({ features }: { features: AlertFeature[] }) {
         ))}
       </svg>
       <p className="text-caption text-gm-text-muted">
-        Shapes show alert areas, not coastlines. Place markers are approximate.
+        Island outlines are simplified parish boundaries from geoBoundaries (©
+        OpenStreetMap contributors), not official boundaries. Place markers are
+        approximate.
       </p>
-      <ol className="space-y-2">
-        {shapes.map(({ feature, number, shape }) => (
-          <li
-            className="rounded-gm-card border border-gm-border p-3 text-body-sm"
-            key={`${feature.properties.identifier}-${number}`}
-          >
-            <span className="font-bold">{number}. </span>
-            <span className="font-semibold">
-              {WARNING_LEVEL_LABEL[shape.level]}
-              {shape.severity === "Unknown" ? "" : ` (${shape.severity})`}
-            </span>
-            {": "}
-            <Link
-              className="text-gm-blue-ink underline"
-              href={`/alerts/${encodeURIComponent(feature.properties.identifier)}`}
-              prefetch={false}
+      {shapes.length > 0 ? (
+        <ol className="space-y-2">
+          {shapes.map(({ feature, number, shape }) => (
+            <li
+              className="rounded-gm-card border-gm-border text-body-sm border p-3"
+              key={`${feature.properties.identifier}-${number}`}
             >
-              {feature.properties.headline ?? feature.properties.identifier}
-            </Link>
-            {feature.properties.areaDesc
-              ? ` · ${feature.properties.areaDesc}`
-              : ""}
-            {shape.label ? "" : " · no map shape published"}
-          </li>
-        ))}
-      </ol>
+              <span className="font-bold">{number}. </span>
+              <span className="font-semibold">
+                {WARNING_LEVEL_LABEL[shape.level]}
+                {shape.severity === "Unknown" ? "" : ` (${shape.severity})`}
+              </span>
+              {": "}
+              <Link
+                className="text-gm-blue-ink underline"
+                href={`/alerts/${encodeURIComponent(feature.properties.identifier)}`}
+                prefetch={false}
+              >
+                {feature.properties.headline ?? feature.properties.identifier}
+              </Link>
+              {feature.properties.areaDesc
+                ? ` · ${feature.properties.areaDesc}`
+                : ""}
+              {shape.label ? "" : " · no map shape published"}
+            </li>
+          ))}
+        </ol>
+      ) : null}
     </div>
   );
 }

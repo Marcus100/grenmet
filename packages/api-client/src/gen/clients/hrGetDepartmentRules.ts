@@ -11,9 +11,10 @@ import type {
 } from "../models/HrGetDepartmentRules.js";
 
 /**
- * @description Return the roster rule limits for a department. A null limit means the rule is disabled. Requires roster.view within the department scope.
- * @summary Read department roster rule limits
+ * @description Deprecated: use GET /departments/{department_id}/rule-set. Returns the effective consecutive-shift and weekly-hour limits; min_rest_hours is always null (there is no minimum-rest rule). Requires roster.view within the department scope.
+ * @summary Read department roster rule limits (deprecated)
  * {@link /api/v1/hr/rosters/departments/:department_id/rules}
+ * @deprecated
  */
 export function hrGetDepartmentRules<ThrowOnError extends boolean = true>(
   options: Options<HrGetDepartmentRulesOptions, ThrowOnError>

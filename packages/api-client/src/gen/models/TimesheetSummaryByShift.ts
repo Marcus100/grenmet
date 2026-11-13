@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { OvertimeBandPublic } from "./OvertimeBandPublic.js";
 import type { ShiftHoursSummary } from "./ShiftHoursSummary.js";
 
 export type TimesheetSummaryByShift = {
@@ -16,4 +17,9 @@ export type TimesheetSummaryByShift = {
   grand_total_roster: string;
   grand_total_actual: string;
   grand_total_overtime: string;
+  /**
+   * @description Overtime hours by rate multiplier for the whole timesheet.
+   * @type array | undefined
+   */
+  overtime_bands?: OvertimeBandPublic[];
 };

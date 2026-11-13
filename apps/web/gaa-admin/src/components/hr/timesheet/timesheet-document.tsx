@@ -69,26 +69,26 @@ export function TimesheetDocument({
   return (
     <Paper className="flex flex-col px-8 py-8 text-zinc-900">
       <header className="mb-6 text-center">
-        <div className="font-semibold text-base">
+        <div className="text-base font-semibold">
           GRENADA AIRPORTS AUTHORITY
         </div>
-        <div className="font-semibold text-sm">
+        <div className="text-sm font-semibold">
           MAURICE BISHOP INTERNATIONAL AIRPORT & LAURISTON AIRPORT
         </div>
-        <h1 className="mt-1 font-bold text-lg">OFFICIAL TIME SHEET</h1>
+        <h1 className="mt-1 text-lg font-bold">OFFICIAL TIME SHEET</h1>
       </header>
       <SubmissionDate submission={submission} />
 
       <div className="mb-4 flex justify-between text-sm">
         <span className="flex items-end gap-2 font-semibold">
           DEPARTMENT:
-          <span className="min-w-28 border-zinc-900 border-b font-normal">
+          <span className="min-w-28 border-b border-zinc-900 font-normal">
             {values.department || " "}
           </span>
         </span>
         <span className="flex items-end gap-2 font-semibold">
           PERIOD:
-          <span className="min-w-28 border-zinc-900 border-b font-normal">
+          <span className="min-w-28 border-b border-zinc-900 font-normal">
             {values.period || " "}
           </span>
         </span>
@@ -99,7 +99,7 @@ export function TimesheetDocument({
           <tr>
             {TIMESHEET_COLUMNS.map((col) => (
               <th
-                className="border border-zinc-900 px-0.5 py-1 font-semibold leading-tight"
+                className="border border-zinc-900 px-0.5 py-1 leading-tight font-semibold"
                 key={col.key}
               >
                 {col.label}
@@ -132,7 +132,7 @@ export function TimesheetDocument({
 
       <div className="mt-10 flex justify-center">
         <div className="w-1/2 text-center text-sm">
-          <div className="mb-1 border-zinc-900 border-b" />
+          <div className="mb-1 border-b border-zinc-900" />
           <span>Department Manager / Supervisor</span>
         </div>
       </div>

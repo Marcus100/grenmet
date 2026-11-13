@@ -38,6 +38,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from src import operational_metrics
 from src.orm import Base
 from src.utils.datetime import utc_now
+from src.utils.retry_state import RetryTable, backoff_seconds, is_exhausted
 
 logger = logging.getLogger(__name__)
 
@@ -60,12 +61,31 @@ class OutboxStatus(str, Enum):
     DEAD = "dead"
 
 
+# A row is pending until its handler finishes (done) or it gives up (dead). A failed
+# attempt that will be retried keeps the row pending, so it is not a status move.
+STATUS_MOVES: RetryTable[OutboxStatus] = RetryTable(
+    {
+        OutboxStatus.PENDING: frozenset({OutboxStatus.DONE, OutboxStatus.DEAD}),
+        OutboxStatus.DONE: frozenset(),
+        OutboxStatus.DEAD: frozenset(),
+    }
+)
+
+
 class Outbox(Base):
     __tablename__ = "outbox"
     __table_args__ = (
         sa.UniqueConstraint("topic", "dedupe_key", name="outbox_topic_dedupe_key_key"),
         sa.CheckConstraint("status IN ('pending', 'done', 'dead')", name="status"),
         sa.Index("outbox_due_idx", "status", "next_attempt_at"),
+        # Pending rows by the order they are about (``pending_for_order``), e.g.
+        # the Events check for a refund already waiting on an order.
+        sa.Index(
+            "outbox_pending_order_idx",
+            "topic",
+            sa.text("(payload ->> 'order_id')"),
+            postgresql_where=sa.text("status = 'pending'"),
+        ),
         {"schema": "platform"},
     )
 
@@ -129,7 +149,9 @@ def registered_topics() -> list[str]:
 
 def retry_delay_seconds(attempts: int) -> int:
     """Delay after the ``attempts``-th failure: 60 s, 120 s, ... capped at 1 h."""
-    return min(_RETRY_BASE_SECONDS << max(attempts - 1, 0), _RETRY_MAX_SECONDS)
+    return backoff_seconds(
+        attempts, base_seconds=_RETRY_BASE_SECONDS, max_seconds=_RETRY_MAX_SECONDS
+    )
 
 
 async def enqueue(
@@ -163,6 +185,19 @@ async def enqueue(
         .on_conflict_do_nothing(index_elements=["topic", "dedupe_key"])
     )
     return bool(getattr(result, "rowcount", 0))
+
+
+def pending_for_order(topic: str, order_id: str) -> sa.ColumnElement[bool]:
+    """Pending rows of ``topic`` whose payload names ``order_id``.
+
+    The status and the payload key are written as SQL constants, not bound
+    parameters, so the planner matches ``outbox_pending_order_idx`` (its
+    expression and partial predicate) even under a generic prepared plan."""
+    return sa.and_(
+        Outbox.topic == topic,
+        Outbox.status == sa.literal_column(f"'{OutboxStatus.PENDING.value}'"),
+        Outbox.payload.op("->>")(sa.literal_column("'order_id'")) == order_id,
+    )
 
 
 async def drain(
@@ -220,6 +255,7 @@ async def drain(
             await session.rollback()
             await _record_failure(session, message, exc, moment)
         else:
+            STATUS_MOVES.require(row.status, OutboxStatus.DONE)
             row.status = OutboxStatus.DONE.value
             row.attempts += 1
             row.last_error = None
@@ -262,8 +298,11 @@ async def _record_failure(
     # The exception type only: messages can quote the payload's personal data.
     row.last_error = type(error).__name__
     row.updated_at = moment
-    dead = row.attempts >= MAX_ATTEMPTS or isinstance(error, TerminalFailure)
+    dead = is_exhausted(row.attempts, MAX_ATTEMPTS) or isinstance(
+        error, TerminalFailure
+    )
     if dead:
+        STATUS_MOVES.require(row.status, OutboxStatus.DEAD)
         row.status = OutboxStatus.DEAD.value
         await _run_dead_handler(session, message, error)
     else:

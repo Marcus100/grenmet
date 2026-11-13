@@ -2,15 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { collectProblems, formatBrief } from "./improve.mjs";
 
-const DID_NOT_TRIGGER_RE = /did not trigger on: CI is red/;
-const PARAPHRASE_IT_NEVER_RE = /Paraphrase it; never paste it/;
-const SCORER_RULE_VIOLATION_RE = /\| scorer \| rule-violation \| 2 \| 2 \|/;
-const SCOPE_CREEP_RE = /scope-creep/;
-const SESSION_ABCDEF_RE = /session abcdef12/;
-const NOTHING_TO_PROPOSE_RE = /Nothing to propose/;
-const ROSTER_MISS_RE = /^did not trigger on: The roster endpoint/;
-const REBASE_MISS_RE = /^did not trigger on: Rebase stopped/;
-const WRONG_TRIGGER_RE = /^triggered wrongly on: Rebase stopped/;
+const DID_NOT_TRIGGER_RE = /did not trigger on: CI is red/u;
+const PARAPHRASE_IT_NEVER_RE = /Paraphrase it; never paste it/u;
+const SCORER_RULE_VIOLATION_RE = /\| scorer \| rule-violation \| 2 \| 2 \|/u;
+const SCOPE_CREEP_RE = /scope-creep/u;
+const SESSION_ABCDEF_RE = /session abcdef12/u;
+const NOTHING_TO_PROPOSE_RE = /Nothing to propose/u;
+const ROSTER_MISS_RE = /^did not trigger on: The roster endpoint/u;
+const REBASE_MISS_RE = /^did not trigger on: Rebase stopped/u;
+const WRONG_TRIGGER_RE = /^triggered wrongly on: Rebase stopped/u;
 
 const score = (scorer, verdict, extra = {}) => ({
   evidence: `${scorer} ${verdict}`,

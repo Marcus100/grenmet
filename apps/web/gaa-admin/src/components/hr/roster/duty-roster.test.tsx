@@ -14,8 +14,9 @@ import { nth } from "@/test/nth";
 import { DutyRoster } from "./duty-roster";
 
 const BASE = "http://localhost";
-const SAVE_ONE_LABEL = /Save \(1\)/;
-const APPROVED_ABSENCE_LABEL = /scheduled E, Approved absence/;
+const SAVE_ONE_LABEL = /Save \(1\)/u;
+const APPROVED_ABSENCE_LABEL = /scheduled E, Approved absence/u;
+const NOT_SCHEDULED = /, not scheduled$/u;
 
 const CATALOG = {
   data: [
@@ -193,12 +194,78 @@ describe("DutyRoster (wired)", () => {
     expect(screen.getByRole("button", { name: "Publish" })).toBeEnabled();
   });
 
-  it("shows no warning panel when nothing is breached", async () => {
+  it("shows a clear empty state when nothing is breached", async () => {
+    renderRoster();
+    const panel = await screen.findByRole("region", {
+      name: "Roster rule warnings",
+    });
+    await waitFor(() =>
+      expect(panel).toHaveTextContent("No roster rule warnings this month")
+    );
+  });
+
+  it("asks for a reason when publishing breaks a rule, then resends it", async () => {
+    const bodies: unknown[] = [];
+    server.use(
+      http.patch(
+        `${BASE}/api/v1/hr/rosters/periods/${PERIOD.id}/publish`,
+        async ({ request }) => {
+          const text = await request.text();
+          const body = text
+            ? (JSON.parse(text) as { rule_override_reason?: string })
+            : null;
+          bodies.push(body);
+          if (!body?.rule_override_reason) {
+            return HttpResponse.json(
+              {
+                detail: "1 roster rule warning: give a reason to save anyway",
+                code: "ROSTER_RULE_WARNINGS",
+                context: "PUBLISH",
+                violations: [
+                  {
+                    code: "MAX_CONSECUTIVE_DAYS",
+                    user_id: MEMBERS.data[0]?.user_id,
+                    start_date: `${year}-${pad(month + 1)}-02`,
+                    end_date: `${year}-${pad(month + 1)}-05`,
+                    observed: "4",
+                    limit: "3",
+                    detail: "4 consecutive shifts; maximum is 3",
+                  },
+                ],
+              },
+              { status: 409 }
+            );
+          }
+          return HttpResponse.json({ ...PERIOD, status: "PUBLISHED" });
+        }
+      )
+    );
     renderRoster();
     await screen.findByText("G. Tamar");
-    expect(
-      screen.queryByRole("region", { name: "Roster rule warnings" })
-    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Publish" }));
+    const confirm = await screen.findByRole("dialog");
+    fireEvent.click(within(confirm).getByRole("button", { name: "Publish" }));
+
+    const warnings = await screen.findByRole("list", { name: "Rule warnings" });
+    expect(warnings).toHaveTextContent("G. Tamar");
+    expect(warnings).toHaveTextContent("Too many consecutive shifts");
+    const publishAnyway = screen.getByRole("button", {
+      name: "Publish anyway",
+    });
+    fireEvent.click(publishAnyway);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "at least 3 characters"
+    );
+    fireEvent.change(screen.getByLabelText("Reason for saving anyway"), {
+      target: { value: "Two officers on sick leave" },
+    });
+    fireEvent.click(publishAnyway);
+    await waitFor(() =>
+      expect(bodies.at(-1)).toEqual({
+        rule_override_reason: "Two officers on sick leave",
+      })
+    );
+    expect(bodies).toHaveLength(2);
   });
 
   it("shows an approved exception while retaining the original scheduled shift", async () => {
@@ -226,6 +293,24 @@ describe("DutyRoster (wired)", () => {
     expect(button).toHaveTextContent("E*");
     expect(button).toHaveAttribute("title", "Scheduled E · Approved absence");
   });
+
+  it("names every grid cell and month arrow for screen readers", async () => {
+    renderRoster();
+    expect(await screen.findByText("G. Tamar")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Previous month" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Next month" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: NOT_SCHEDULED }).length
+    ).toBeGreaterThan(0);
+    for (const button of screen.getAllByRole("button")) {
+      expect(button).toHaveAccessibleName();
+    }
+  });
+
   it("renders members, legend from the catalog, and saved assignments", async () => {
     renderRoster();
 

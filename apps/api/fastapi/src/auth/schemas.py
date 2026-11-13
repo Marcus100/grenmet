@@ -205,10 +205,16 @@ class SessionUserPublic(BaseModel):
 class TwoFactorSetupResponse(BaseModel):
     secret: str
     provisioning_uri: str
+    # True for a privileged account: a one-time code was emailed to it and activation
+    # needs that code as ``email_code`` alongside the authenticator code.
+    email_code_required: bool = False
 
 
 class TwoFactorCodeRequest(BaseModel):
     code: str = Field(min_length=6, max_length=10)
+    # The emailed code. Required only to activate the first authenticator of a
+    # privileged account (issue #625); ignored otherwise.
+    email_code: str | None = Field(default=None, min_length=6, max_length=6)
 
 
 class TwoFactorDisableRequest(BaseModel):

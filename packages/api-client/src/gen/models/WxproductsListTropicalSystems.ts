@@ -12,15 +12,15 @@ export type WxproductsListTropicalSystemsQuery = {
   status?: TropicalSystemPublicPropertiesStatusEnum | null;
   season?: number | null;
   /**
-   * @minLength 1
-   * @maxLength 200
+   * @minimum 1
+   * @maximum 200
    * @default 100
    * @type integer | undefined
    */
   limit?: number;
   /**
-   * @minLength 0
-   * @maxLength 10000
+   * @minimum 0
+   * @maximum 10000
    * @default 0
    * @type integer | undefined
    */

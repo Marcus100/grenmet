@@ -31,10 +31,15 @@ export function InfoTable({
 }: InfoTableProps) {
   const keys = rowKeys(rows);
   return (
-    <div className="overflow-x-auto rounded-gm-card border border-gm-border">
+    <section
+      aria-label={caption ? `Table: ${caption}` : "Table"}
+      className="rounded-gm-card border-gm-border focus-visible:shadow-gm-focus overflow-x-auto border focus-visible:outline-none"
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: a region that scrolls sideways must be reachable by keyboard (WCAG 2.1.1)
+      tabIndex={0}
+    >
       <table className="w-full border-collapse text-left">
         {caption && (
-          <caption className="border-gm-border border-b bg-gm-surface px-4 py-2.5 text-gm-text-secondary text-label leading-label lg:px-5">
+          <caption className="border-gm-border bg-gm-surface text-gm-text-secondary text-label leading-label border-b px-4 py-2.5 lg:px-5">
             {caption}
           </caption>
         )}
@@ -42,7 +47,7 @@ export function InfoTable({
           <tr>
             {headers.map((header) => (
               <th
-                className="whitespace-nowrap px-4 py-2.5 font-bold text-gm-heading text-label uppercase leading-label tracking-wider lg:px-5 lg:py-3"
+                className="text-gm-heading text-label leading-label px-4 py-2.5 font-bold tracking-wider whitespace-nowrap uppercase lg:px-5 lg:py-3"
                 key={header}
                 scope="col"
               >
@@ -57,7 +62,7 @@ export function InfoTable({
               {row.map((cell, columnIndex) => (
                 <td
                   className={cn(
-                    "px-4 py-2.5 text-body text-gm-text-secondary leading-body lg:px-5 lg:py-3",
+                    "text-body text-gm-text-secondary leading-body px-4 py-2.5 lg:px-5 lg:py-3",
                     monoColumns?.includes(columnIndex) &&
                       "font-mono tabular-nums"
                   )}
@@ -70,6 +75,6 @@ export function InfoTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </section>
   );
 }

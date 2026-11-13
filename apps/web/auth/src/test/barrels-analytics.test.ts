@@ -34,7 +34,7 @@ it("static Barrels uses the shared consent and Google protocol with no preview c
     .replaceAll('"accessVerified":false', '"accessVerified":true');
   const transport = read("google-analytics.js");
   const entry = read("analytics.mjs").replace(
-    /^import[\s\S]*?from ["'][^"']+["'];/gm,
+    /^import[\s\S]*?from ["'][^"']+["'];/gmu,
     ""
   );
   for (const origin of ["https://barrels.gd", "https://preview.vercel.app"]) {
@@ -44,7 +44,7 @@ it("static Barrels uses the shared consent and Google protocol with no preview c
     });
     try {
       dom.window.eval(
-        [configured, transport, entry].join("\n").replace(/\bexport /g, "")
+        [configured, transport, entry].join("\n").replace(/\bexport /gu, "")
       );
       // Even a stale verified staging ID must not activate collection.
       expect(

@@ -5,12 +5,12 @@ import { SummaryCard } from "@/components/home/summary-card";
 import { Temperature } from "@/components/measure";
 import {
   isOtherGrenadaDay,
-  isStale,
   localDay,
   localTime,
 } from "@/lib/current-conditions";
 import { feelsLike } from "@/lib/feels-like";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
+import { isStale } from "@/lib/freshness";
 import { nowReadings, skyFromWords } from "@/lib/hero-readings";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ function Numeral({
           —<span className="sr-only">No current temperature</span>
         </>
       ) : (
-        <Temperature value={value} />
+        <Temperature showUnit value={value} />
       )}
     </p>
   );
@@ -42,9 +42,12 @@ function Numeral({
  */
 function sourceLine(
   weather: WeatherSnapshot,
-  station: string,
+  station: string | null,
   now?: Date
 ): string {
+  if (station === null) {
+    return "No observing station here";
+  }
   const current = weather.current;
   if (current) {
     const time = isOtherGrenadaDay(current.observedAt, now)
@@ -75,7 +78,8 @@ export function NowSummary({
   compact?: boolean;
   /** Clock for the stale-reading line; defaults to the render time. */
   now?: Date;
-  station: string;
+  /** Observing station name; null when the place has none. */
+  station: string | null;
   weather: WeatherSnapshot;
 }) {
   const current = weather.current;
@@ -85,7 +89,10 @@ export function NowSummary({
     current?.temperature == null ? null : (
       <>
         Feels like{" "}
-        <Temperature value={feelsLike(current.temperature, current.humidity)} />
+        <Temperature
+          showUnit
+          value={feelsLike(current.temperature, current.humidity)}
+        />
       </>
     );
   return (
@@ -124,7 +131,7 @@ export function NowPanel({ weather }: { weather: WeatherSnapshot }) {
   return (
     <section
       aria-label="Current conditions"
-      className="grid h-full content-start gap-3 rounded-gm-card bg-gm-scrim px-4 py-3 lg:px-5"
+      className="rounded-gm-card bg-gm-scrim grid h-full content-start gap-3 px-4 py-3 lg:px-5"
     >
       {current ? (
         <ReadingGrid
@@ -132,7 +139,7 @@ export function NowPanel({ weather }: { weather: WeatherSnapshot }) {
           readings={nowReadings(current)}
         />
       ) : (
-        <p className="font-bold text-body-base leading-body-base">
+        <p className="text-body-base leading-body-base font-bold">
           No current observation
         </p>
       )}

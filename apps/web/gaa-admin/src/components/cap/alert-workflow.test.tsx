@@ -1,6 +1,6 @@
 import { type CapAlertPublic, configureApiClient } from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import {
@@ -8,17 +8,28 @@ import {
   afterEach,
   beforeAll,
   beforeEach,
+  describe,
   expect,
   it,
   vi,
 } from "vitest";
-import { AlertWorkflow } from "./alert-workflow";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
+import { AlertWorkflow, errorText } from "./alert-workflow";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 const ID = "11111111-1111-4111-8111-111111111111";
 const URL = `http://localhost/api/v1/cap/alerts/${ID}`;
-const DRAFT_HINT = /Draft: request review\. Publishing needs an approval/;
-const REVIEW = /I have reviewed this saved alert/;
+const DRAFT_HINT = /Draft: request review\. Publishing needs an approval/u;
+const REVIEW = /I have reviewed this saved alert/u;
+/** What the API offers per state (mirrors transitions.py OFFERED_ACTIONS). */
+const OFFERED: Record<CapAlertPublic["lifecycle_state"], string[]> = {
+  APPROVED: ["publish", "emergency_publish"],
+  CANCELLED: [],
+  DRAFT: ["submit", "emergency_publish"],
+  EXPIRED: [],
+  PUBLISHED: ["cancel", "expire"],
+  SUBMITTED: ["approve", "emergency_publish"],
+};
 const initial: CapAlertPublic = {
   id: ID,
   identifier: "GD-warning-1",
@@ -27,6 +38,7 @@ const initial: CapAlertPublic = {
   status: "Test",
   msg_type: "Alert",
   scope: "Public",
+  allowed_actions: OFFERED.DRAFT,
   lifecycle_state: "DRAFT",
   created_by_user_id: ID,
   created_at: "2026-09-17T12:00:00Z",
@@ -45,6 +57,10 @@ const initial: CapAlertPublic = {
   ],
 };
 let alert: CapAlertPublic;
+/** Moves the saved alert to a state and the actions the API offers there. */
+function setState(state: CapAlertPublic["lifecycle_state"]) {
+  alert = { ...alert, allowed_actions: OFFERED[state], lifecycle_state: state };
+}
 let actions: string[];
 let emergencyBody: unknown;
 let permissionKeys: string[];
@@ -67,7 +83,7 @@ const server = setupServer(
   http.post(`${URL}/emergency-publish`, async ({ request }) => {
     emergencyBody = await request.json();
     actions.push("emergency-publish");
-    alert = { ...alert, lifecycle_state: "PUBLISHED" };
+    setState("PUBLISHED");
     return HttpResponse.json({ alert, snapshot: {} });
   }),
   http.post(`${URL}/:action`, ({ params }) => {
@@ -81,10 +97,7 @@ const server = setupServer(
       expire: "EXPIRED",
     } as const;
     if (!(action in states)) return new HttpResponse(null, { status: 404 });
-    alert = {
-      ...alert,
-      lifecycle_state: states[action as keyof typeof states],
-    };
+    setState(states[action as keyof typeof states]);
     return HttpResponse.json(
       action === "publish" ? { alert, snapshot: {} } : alert
     );
@@ -216,7 +229,7 @@ it("shows validation errors and prevents submission", async () => {
 });
 
 it("shows a backend approval refusal without advancing state", async () => {
-  alert.lifecycle_state = "SUBMITTED";
+  setState("SUBMITTED");
   server.use(
     http.post(`${URL}/approve`, () =>
       HttpResponse.json(
@@ -234,8 +247,34 @@ it("shows a backend approval refusal without advancing state", async () => {
   ).toBeInTheDocument();
 });
 
+it("shows the messages of a documented validation 422, not its fixed detail", async () => {
+  setState("SUBMITTED");
+  server.use(
+    http.post(`${URL}/approve`, () =>
+      HttpResponse.json(
+        {
+          detail: "Validation error",
+          errors: [
+            {
+              loc: ["body", "note"],
+              msg: "Value error, A review note is required",
+              type: "value_error",
+            },
+          ],
+        },
+        { status: 422 }
+      )
+    )
+  );
+  show();
+  await review();
+  fireEvent.click(screen.getByRole("button", { name: "Record approval" }));
+  await screen.findByText("Value error, A review note is required");
+  expect(screen.queryByText("Validation error")).not.toBeInTheDocument();
+});
+
 it("hides review actions from users without the approve permission", async () => {
-  alert.lifecycle_state = "SUBMITTED";
+  setState("SUBMITTED");
   show();
   await screen.findByRole("button", { name: "Record approval" });
   expect(
@@ -244,7 +283,7 @@ it("hides review actions from users without the approve permission", async () =>
 });
 
 it("records an optional colleague review without changing the state", async () => {
-  alert.lifecycle_state = "SUBMITTED";
+  setState("SUBMITTED");
   permissionKeys = ["cap.alert.approve"];
   let body: unknown;
   server.use(
@@ -264,7 +303,7 @@ it("records an optional colleague review without changing the state", async () =
 });
 
 it("cancels a published alert after confirming, and issuing a Cancel message", async () => {
-  alert.lifecycle_state = "PUBLISHED";
+  setState("PUBLISHED");
   show();
   const cancel = await screen.findByRole("button", { name: "Cancel alert" });
   expect(cancel).toBeDisabled();
@@ -280,7 +319,7 @@ it("cancels a published alert after confirming, and issuing a Cancel message", a
 });
 
 it("asks before marking a published alert expired, and does nothing until confirmed", async () => {
-  alert.lifecycle_state = "PUBLISHED";
+  setState("PUBLISHED");
   show();
   fireEvent.click(await screen.findByRole("button", { name: "Mark expired" }));
   fireEvent.click(
@@ -296,12 +335,12 @@ it("asks before marking a published alert expired, and does nothing until confir
 });
 
 it("reloads state after a conflict without automatically repeating publication", async () => {
-  alert.lifecycle_state = "APPROVED";
+  setState("APPROVED");
   let attempts = 0;
   server.use(
     http.post(`${URL}/publish`, () => {
       attempts++;
-      alert.lifecycle_state = "PUBLISHED";
+      setState("PUBLISHED");
       return HttpResponse.json(
         {
           detail: "Only a draft, submitted or approved alert can be published.",
@@ -335,4 +374,62 @@ it("does not expose actions when loading the alert fails", async () => {
   expect(
     screen.queryByRole("button", { name: "Request review" })
   ).not.toBeInTheDocument();
+});
+
+it("keeps Publish disabled when the API does not list publish, even when approved", async () => {
+  setState("APPROVED");
+  alert = { ...alert, allowed_actions: ["emergency_publish"] };
+  show();
+  await review();
+  expect(
+    screen.getByRole("button", { name: "Publish CAP alert" })
+  ).toBeDisabled();
+  expect(
+    screen.queryByRole("button", { name: "Record approval" })
+  ).not.toBeInTheDocument();
+});
+
+it("hides Cancel when the API does not list cancel, and keeps Mark expired", async () => {
+  setState("PUBLISHED");
+  alert = { ...alert, allowed_actions: ["expire"] };
+  show();
+  await screen.findByRole("button", { name: "Mark expired" });
+  expect(
+    screen.queryByRole("button", { name: "Cancel alert" })
+  ).not.toBeInTheDocument();
+});
+
+describe("errorText", () => {
+  const fallback = "Could not save.";
+
+  it("never shows a raw HTTP status line", () => {
+    expect(
+      errorText(
+        new Error(
+          "POST /api/v1/cap/alerts failed with status 422 Unprocessable Content"
+        ),
+        fallback
+      )
+    ).toBe(fallback);
+  });
+
+  it("joins a FastAPI validation list instead of printing JSON", () => {
+    const error = {
+      data: {
+        detail: [
+          { loc: ["body", "info"], msg: "Expires must be after effective" },
+          { loc: ["body", "area"], msg: "Add an area description" },
+        ],
+      },
+    };
+    expect(errorText(error, fallback)).toBe(
+      "Expires must be after effective; Add an area description"
+    );
+  });
+
+  it("keeps the API's own sentence", () => {
+    expect(errorText({ data: { detail: "Permission denied" } }, fallback)).toBe(
+      "Permission denied"
+    );
+  });
 });

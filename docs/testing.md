@@ -27,11 +27,12 @@ current behavior as correct. Track unknown requirements explicitly.
 | Shared TypeScript logic | Vitest through exported behavior; consumer tests may cover shared modules |
 | React interactions | Testing Library with user actions, accessible queries and observable results; MSW for controlled HTTP responses |
 | Next.js workflows | Playwright against a running application for authentication, server rendering and complete browser-to-API flows |
+| Codes and calculations (SYNOP, BUFR, IWXXM, METAR, humidity, pressure) | Hypothesis property tests (`apps/api/fastapi/tests/test_eregister_properties.py`): round-trips, physical bounds and an independent decoder over generated readings, derandomised in CI; keep example tests for known cases and pin every shrunk failure as one |
 | Generated API client | OpenAPI drift and serialization/error/credential-isolation tests; do not edit generated code |
 | Payload CMS | Access rules, real database editorial workflows, migrations, public content and media behavior |
 | Configuration-only packages | Consumer type checks, configuration validation and runtime image checks; no artificial unit suite required |
 | Collectors | Existing pytest/unittest suites with recorded or synthetic weather input, temporary output and simulated network/hardware failures |
-| SURFACE | Its Django test suite and dedicated PostGIS integration checks for maintained custom behavior |
+| SURFACE | Its Django test suite and dedicated PostGIS integration checks for maintained custom behavior; CI runs them in the built deploy image when SURFACE changes (`.github/workflows/ci-surface.yml`, see `VENDORED.md`) |
 | wis2box | Configuration and supported runtime ingestion/publication/recovery checks; software runs from upstream images |
 | geonetcast and notebooks | Representative input/output and scientific invariants for operational transformations; classify exploratory notebooks separately |
 | Repository scripts | Existing Node/Python tests for guardrails, environment rendering, migration orchestration, backups and verification lifecycle |
@@ -49,6 +50,7 @@ upstream UI libraries unless our composition or custom behavior introduces risk.
 | Dev and pull-request CI | Unit/component/API/integration checks, contract drift, lint/types, required aggregate gates |
 | Docker build | Check actual runtime imports, entrypoints, assets, migration dependencies and image vulnerabilities |
 | Staging | Deployed readiness and representative authenticated workflows using owned synthetic data; verify PDF generation, storage and cross-app authentication |
+| Staging journeys | `tests/staging/` (Playwright, `pnpm e2e:staging`), run after each staging deploy by the Staging Smoke workflow: public pages on desktop and phone with no page errors or broken images, the issued-products RSS, sign-in and the staff-portal redirect, a read-only signed-in journey (needs the `STAGING_E2E_EMAIL`/`STAGING_E2E_PASSWORD` secrets, #933), and axe-core WCAG 2.1 A/AA checks on the homepage, alerts, issued forecasts and sign-in. Automation finds roughly a third of WCAG issues; keep a manual keyboard and screen-reader pass before releases |
 | Production | Safe readiness/public checks, release-linked error monitoring and operational alerts; no general mutation/fuzzing suite against live business records |
 | Scheduled operations | Restore drills, broader security checks and performance testing against designated test targets |
 
@@ -136,8 +138,18 @@ Where each floor is enforced:
 
 ## CI test sharding
 
-CI splits the two slowest suites into parallel jobs on free runners. Every test
-still runs on every push; only wall time changes.
+CI splits the two slowest suites into parallel jobs on free runners; sharding
+only changes wall time.
+
+**Job scope.** On dev PRs and dev pushes, `selectJobs` in
+`scripts/ci/select-images.mjs` skips the test suites only when a diff touches
+nothing but documentation, root markdown, agent or editor configuration, or
+SURFACE (which has its own job). Code changes run both the API and web suites,
+because each side's tests read the other's files. Collector tests run only for
+collector sources, Python manifests or unrecognised paths. Promotion PRs, main
+pushes and deployment runs always run every suite. The gate jobs (`CI Success`,
+`Run Tests`, `Build Web Apps`) accept a skip only when the selection says the
+suite was not needed.
 
 - **API (`ci-api.yml`).** `test-shard` is a matrix of four jobs, each with its own
   Postgres service: `shard 1/3`, `2/3`, `3/3` and `fuzz`. Shards use
@@ -170,15 +182,18 @@ still runs on every push; only wall time changes.
   exceeds the CPU count. Set `PYTEST_WORKERS=<n>` to override. The plan printed by
   `--dry-run` shows the count. If a shared local Postgres produces fixture
   `TimeoutError`s at high counts, lower `PYTEST_WORKERS`.
-- The pre-push hook (`.husky/pre-push`) runs `check:ci` and `type-check` for the
-  whole workspace (Turbo caches them) but tests only the packages whose files
-  changed in the commits being pushed, with no dependants. It reads the pushed
-  refs from stdin (`scripts/verification/pre-push-scope.mjs`). A change to
-  `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `turbo.json` or the root `package.json`,
-  or a range git cannot resolve, runs every package's tests; commits touching no
-  package skip tests. CI still runs the full suite. `PRE_PUSH_SCOPE="--affected"`
-  (or any Turbo flags) scopes all three steps by hand; `PRE_PUSH_SCOPE=""` is a
-  full local run.
+- The pre-push hook (`.husky/pre-push`) is light by default: GitHub CI runs the full
+  lint, type check and tests on every pull request and is the gate that counts, so a
+  push only runs `biome check` on the files its commits add or change
+  (`scripts/verification/pre-push-scope.mjs --files`; an unreadable range lints
+  nothing). This keeps pushes cheap on small machines (the full gates repeatedly
+  exhausted memory on the 8 GB development host). `PRE_PUSH_FULL=1` restores the
+  previous local gates: `check:ci` and `type-check` for the whole workspace (Turbo
+  caches them) and tests only for the packages whose files changed in the pushed
+  commits, with no dependants. A change to `pnpm-lock.yaml`, `pnpm-workspace.yaml`,
+  `turbo.json` or the root `package.json`, or a range git cannot resolve, runs every
+  package's tests in that mode. `PRE_PUSH_SCOPE="--affected"` (or any Turbo flags)
+  scopes the three full steps by hand; `PRE_PUSH_SCOPE=""` is a full local run.
 - gaa-admin pure-logic tests are `*.test.ts` and run in the fast `node` Vitest
   project; only tests that need a DOM are `*.test.tsx` (the `dom` project).
 

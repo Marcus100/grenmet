@@ -14,10 +14,10 @@ import {
 
 const SCRIPT = fileURLToPath(new URL("./claim-issue.mjs", import.meta.url));
 const HOUR_MS = 3_600_000;
-const HELD_BY_ALPHA = /already claimed \(agent lock for #7 by alpha/;
-const HELD_BY_NEXT = /by next/;
-const NO_LOCK = /no lock to release/;
-const REFUSED = /remote refused.*pnpm agents:sweep/;
+const HELD_BY_ALPHA = /already claimed \(agent lock for #7 by alpha/u;
+const HELD_BY_NEXT = /by next/u;
+const NO_LOCK = /no lock to release/u;
+const REFUSED = /remote refused.*pnpm agents:sweep/u;
 
 function git(cwd, ...args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8" });

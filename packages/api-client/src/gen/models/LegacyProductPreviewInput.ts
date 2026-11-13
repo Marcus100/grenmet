@@ -11,7 +11,7 @@ export type LegacyProductPreviewInput = {
     [key: string]: string;
   };
   /**
-   * @minLength 0
+   * @minimum 0
    * @type integer
    */
   expectedRevision: number;
@@ -21,6 +21,7 @@ export type LegacyProductPreviewInput = {
    */
   changeSummary: string;
   kind:
+    | "climate-bulletin"
     | "coastal"
     | "cyclone"
     | "dust"
@@ -28,6 +29,7 @@ export type LegacyProductPreviewInput = {
     | "flood"
     | "heat"
     | "marine"
+    | "marine-forecast"
     | "midday"
     | "morning"
     | "thunderstorm"

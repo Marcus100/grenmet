@@ -2,6 +2,7 @@
 
 import {
   type AttendanceShiftPublic,
+  type RosterRuleWarningsErrorPublic,
   useHrGetAttendanceWeek,
   useHrProposeAttendanceCorrection,
   useHrSaveAttendance,
@@ -14,6 +15,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { reportError } from "@/lib/report-error";
 import { hrApiErrorMessage } from "../api-error";
+import { ruleWarningsFrom } from "../roster/rule-codes";
+import { RuleOverrideDialog } from "../roster/rule-override-dialog";
+import { OvertimeBands } from "./overtime-bands";
 
 const GRENADA = "America/Grenada";
 
@@ -54,6 +58,13 @@ function AttendanceShift({
   const [notes, setNotes] = useState(shift.notes ?? "");
   const [correcting, setCorrecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A submission or correction that breaks roster rules, awaiting a reason.
+  const [override, setOverride] = useState<{
+    review: boolean;
+    arrival: string;
+    departure: string;
+    warnings: RosterRuleWarningsErrorPublic;
+  } | null>(null);
   const save = useHrSaveAttendance();
   const submit = useHrSubmitAttendance();
   const correction = useHrProposeAttendanceCorrection();
@@ -64,18 +75,19 @@ function AttendanceShift({
   async function persist(
     review: boolean,
     markedArrival = arrival,
-    markedDeparture = departure
-  ) {
+    markedDeparture = departure,
+    ruleReason?: string
+  ): Promise<boolean> {
     setError(null);
     if (!markedArrival || ((review || correcting) && !markedDeparture)) {
       setError(
         "Record arrival and departure before requesting supervisor review"
       );
-      return;
+      return false;
     }
     if (correcting && !reason.trim()) {
       setError("Explain why the recorded time needs correction");
-      return;
+      return false;
     }
     const body = {
       roster_assignment_id: id,
@@ -93,6 +105,7 @@ function AttendanceShift({
             ...body,
             departed_at: body.departed_at,
             reason: reason.trim(),
+            ...(ruleReason ? { rule_override_reason: ruleReason } : {}),
           },
         });
         setCorrecting(false);
@@ -104,7 +117,10 @@ function AttendanceShift({
         if (review && saved.attendance_id) {
           await submit.mutateAsync({
             path: { attendance_id: saved.attendance_id },
-            body: { expected_revision: saved.revision ?? 1 },
+            body: {
+              expected_revision: saved.revision ?? 1,
+              ...(ruleReason ? { rule_override_reason: ruleReason } : {}),
+            },
           });
         }
         toast.success(
@@ -113,15 +129,50 @@ function AttendanceShift({
       }
       await refresh();
     } catch (caught) {
+      const warnings = ruleWarningsFrom(caught);
+      if (warnings) {
+        setOverride({
+          review,
+          arrival: markedArrival,
+          departure: markedDeparture,
+          warnings,
+        });
+        return false;
+      }
+      // Any other failure closes the dialog; the typed reason is kept.
+      setOverride(null);
       reportError(caught, "hr-attendance");
       setError(errorDetail(caught));
+      return false;
     }
+    setOverride(null);
+    return true;
   }
   return (
-    <article className="space-y-4 rounded-lg border bg-card p-4">
+    <article className="bg-card space-y-4 rounded-lg border p-4">
+      <RuleOverrideDialog
+        busy={pending}
+        labels={new Map([[shift.user_id, shift.employee_name]])}
+        onCancel={() => {
+          setOverride(null);
+          // The save before the held submission raised the revision.
+          refresh();
+        }}
+        onConfirm={(ruleReason) =>
+          override
+            ? persist(
+                override.review,
+                override.arrival,
+                override.departure,
+                ruleReason
+              )
+            : false
+        }
+        warnings={override?.warnings ?? null}
+      />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="font-semibold text-sm">
+          <h3 className="text-sm font-semibold">
             {shift.shift_date} · {shift.shift_code} · {shift.employee_name}
           </h3>
           <p className="text-muted-foreground text-xs">
@@ -203,7 +254,8 @@ function AttendanceShift({
         </div>
         <p className="text-muted-foreground text-sm">
           Elapsed: {shift.elapsed_hours ?? "—"} h · Recorded work:{" "}
-          {shift.actual_hours ?? "—"} h
+          {shift.actual_hours ?? "—"} h ·{" "}
+          <OvertimeBands bands={shift.overtime_bands} />
         </p>
       </div>
       {correcting && (
@@ -291,7 +343,7 @@ export function AttendanceTimesheet() {
     >
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-semibold text-lg">My shift attendance</h2>
+          <h2 className="text-lg font-semibold">My shift attendance</h2>
           <p className="text-muted-foreground text-sm">
             Record your actual arrival, departure and break duration. Each
             completed shift goes to your supervisor.
@@ -330,8 +382,8 @@ export function AttendanceTimesheet() {
           </p>
           <p className="text-muted-foreground text-xs">
             Overnight shifts stay with their scheduled start date. D shift is
-            recorded once; M/E reports reference the same attendance. Hours
-            shown do not determine pay or overtime.
+            recorded once; M/E reports reference the same attendance. Overtime
+            is counted by rate band (hours only); pay is not calculated here.
           </p>
           {week.data.shifts.length === 0 && (
             <p className="rounded-lg border p-4 text-sm">

@@ -3,6 +3,7 @@ import "server-only";
 import {
   customerListPublicSchema,
   customerPublicSchema,
+  type InvoiceStatus,
   invoiceDetailPublicSchema,
   invoiceListPublicSchema,
   organisationAdminListPublicSchema,
@@ -21,7 +22,7 @@ export interface InvoiceFilters {
   overdue?: boolean;
   page: number;
   q?: string;
-  status?: string;
+  status?: InvoiceStatus;
 }
 
 export interface DraftBody {

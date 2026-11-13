@@ -17,6 +17,7 @@ from src.auth.models import User
 from src.events.models import Activity, Organiser
 from src.notifications.models import Notification
 from src.organisations.models import PlatformOrganisation
+from src.pagination import MAX_PAGE
 from src.utils.datetime import utc_now
 from tests.events.roles import user_with_role
 from tests.events.support import (
@@ -92,6 +93,21 @@ async def test_only_staff_with_the_right_role_reach_the_queue(
             method, url, json=body, headers=headers_for(member)
         )
         assert plain.status_code == 403, (method, url, plain.text)
+
+
+async def test_the_queue_refuses_a_page_too_large_for_the_database(
+    async_client: httpx.AsyncClient, events_db: SessionFactory, db_async: AsyncSession
+) -> None:
+    # An unbounded page once became an OFFSET beyond int64 and failed as a 500 (fuzz).
+    _ = events_db
+    moderator = await user_with_role(db_async, "events-moderator")
+    headers = headers_for(moderator)
+    for page in (0, MAX_PAGE + 1, 2**63):
+        response = await async_client.get(ADMIN, headers=headers, params={"page": page})
+        assert response.status_code == 422, (page, response.text)
+    last = await async_client.get(ADMIN, headers=headers, params={"page": MAX_PAGE})
+    assert last.status_code == 200
+    assert last.json()["data"] == []
 
 
 async def test_moderator_reads_but_cannot_decide(
@@ -274,7 +290,10 @@ async def test_rejected_organiser_resubmits_and_is_reviewed_again(
 
     # Not rejected yet.
     async with client_with_real_roles(owner) as client:
-        assert (await client.post(resubmit)).status_code == 409
+        not_rejected = await client.post(resubmit)
+        assert not_rejected.status_code == 409
+        # Clients match on the code, not on the wording of the message.
+        assert not_rejected.json()["code"] == "ORGANISATION_NOT_REJECTED"
     await async_client.post(
         f"{ADMIN}/{org_id}/reject", headers=headers, json={"reason": "Missing bio"}
     )

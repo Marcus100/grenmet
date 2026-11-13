@@ -182,7 +182,8 @@ async def list_attendees(
         "notified. `refund` decides the money already paid online: `full`, `none` or "
         "`follow_policy` (default; an organiser-cancelled event is refunded in full). "
         "A refund that fails is counted in `refunds_failed` and can be retried from "
-        "the order; it never undoes the cancel."
+        "the order; it never undoes the cancel. An order whose earlier refund is "
+        "still waiting for the payment provider is counted in `orders_pending`."
     ),
     operation_id="eventsOrgCancelEvent",
     responses=WRITE_ERRORS,

@@ -6,8 +6,14 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
+import { AlertGroups } from "@/components/pages/alert-groups";
+import { ExerciseBanner } from "@/components/pages/exercise-banner";
+import { InfoTable } from "@/components/pages/info-table";
+import { PageSection } from "@/components/pages/page-section";
 import { PublishedProducts } from "@/components/pages/published-products";
 import { BULLETIN_GUIDANCE } from "@/lib/bulletins";
+import { fetchActiveAlerts } from "@/lib/cap";
+import { PREPARE_PAGE } from "@/lib/hazard-pages";
 export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params,
@@ -37,16 +43,40 @@ export default async function BulletinPage({
   )
     notFound();
   const category = hazard as keyof typeof BULLETIN_CATEGORIES;
+  const alerts = await fetchActiveAlerts();
+  const prepare = PREPARE_PAGE[category];
   return (
     <div className="space-y-6">
       <PageHeader
         description={BULLETIN_GUIDANCE[category]}
-        title={`${BULLETIN_CATEGORIES[category]} bulletins`}
+        title={`${BULLETIN_CATEGORIES[category]} alerts and warnings`}
       />
+      <ExerciseBanner result={alerts} />
+      <PageSection heading="Warnings in effect (yellow, orange and red)">
+        <AlertGroups
+          emptyLabel={`No ${BULLETIN_CATEGORIES[category].toLowerCase()} warning is in effect for Grenada, Carriacou or Petite Martinique.`}
+          only={[BULLETIN_CATEGORIES[category]]}
+          result={alerts}
+        />
+      </PageSection>
       <PublishedProducts kinds={[category]} />
-      <section className="max-w-prose space-y-3 rounded-gm-card border border-gm-border bg-gm-surface p-5 text-body-base leading-body-base">
-        <h2 className="font-bold font-gm-display text-gm-heading text-heading-md leading-heading-md">
-          Reading a bulletin
+      {category === "marine" ? (
+        <PageSection heading="Marine advisory thresholds">
+          <InfoTable
+            caption="Thresholds used by the Grenada Meteorological Service"
+            headers={["Product", "Seas", "Wind"]}
+            rows={[
+              ["Small Craft Advisory", "2.0 m and above", "20 kt and above"],
+              ["High Surf Advisory", "2.5 m breaking surf", "Any"],
+              ["Gale Warning", "Any", "34 kt and above"],
+              ["Storm Warning", "Any", "48 kt and above"],
+            ]}
+          />
+        </PageSection>
+      ) : null}
+      <section className="rounded-gm-card border-gm-border bg-gm-surface text-body-base leading-body-base max-w-prose space-y-3 border p-5">
+        <h2 className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold">
+          Reading an alert
         </h2>
         <p>
           Check the issue time, area covered and validity first. Read the
@@ -54,21 +84,29 @@ export default async function BulletinPage({
           change the earlier assessment.
         </p>
         <p>
-          The hazard count in Warnings in effect comes from CAP. These bulletin
-          pages are maintained separately while the product formats are
-          developed.
+          Yellow, orange and red notices are warnings, issued through CAP. The
+          green-level products issued by GMS are called GMS alerts. This page
+          shows both for this hazard.
         </p>
         <Link
-          className="font-semibold text-gm-blue-ink underline"
+          className="text-gm-blue-ink font-semibold underline"
           href="/alerts"
         >
-          View current CAP alerts
+          View all alerts in effect
         </Link>
+        {prepare ? (
+          <Link
+            className="text-gm-blue-ink block font-semibold underline"
+            href={prepare.href}
+          >
+            {prepare.label}
+          </Link>
+        ) : null}
       </section>
-      <nav aria-label="Bulletin categories" className="flex flex-wrap gap-3">
+      <nav aria-label="Hazards" className="flex flex-wrap gap-3">
         {Object.entries(BULLETIN_CATEGORIES).map(([key, label]) => (
           <Link
-            className="rounded-lg border px-3 py-2 hover:bg-muted"
+            className="hover:bg-muted rounded-lg border px-3 py-2"
             href={`/alerts/bulletins/${key}`}
             key={key}
           >

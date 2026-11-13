@@ -29,6 +29,7 @@ export function authAdminResendVerification<
       method: "POST",
       url: "/api/v1/auth/onboarding/{user_id}/resend-verification",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

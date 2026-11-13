@@ -56,27 +56,27 @@ import {
   writeReceipt,
 } from "../../scripts/verification/receipt.mjs";
 
-const BLOCKED_MESSAGE = /BLOCKED/;
+const BLOCKED_MESSAGE = /BLOCKED/u;
 const baseIs = (base, files = ["apps/web/docs/page.tsx"]) => ({
   lookupBase: () => base,
   lookupFiles: () => files,
 });
-const OWNER_MERGES_STAGING = /owner merges staging/;
-const OTHER_REPO = /only marcus100\/grenmet/;
-const GH_REPO_SET = /GH_REPO/;
-const RETARGETS = /retargets/;
-const API_MERGE = /gh api merge/;
-const OWNER_ONLY_FILE = /owner merges changes to agent limits/;
-const UNKNOWN_FILES = /unknown file list/;
-const MAIN_BASE = /main/;
-const UNKNOWN_BASE = /unknown base/;
-const ADMIN_FLAG = /--admin/;
-const REDACTED_MARK = /\[REDACTED\]/;
-const NEWEST_ENTRY = /entry 59 /;
-const SECOND_NEWEST_ENTRY = /entry 58 /;
-const ELLIPSIS = /…/;
-const FIRST_BULLET = /first/;
-const SECOND_BULLET = /second\n {2}continued/;
+const OWNER_MERGES_STAGING = /owner merges staging/u;
+const OTHER_REPO = /only marcus100\/grenmet/u;
+const GH_REPO_SET = /GH_REPO/u;
+const RETARGETS = /retargets/u;
+const API_MERGE = /gh api merge/u;
+const OWNER_ONLY_FILE = /owner merges changes to agent limits/u;
+const UNKNOWN_FILES = /unknown file list/u;
+const MAIN_BASE = /main/u;
+const UNKNOWN_BASE = /unknown base/u;
+const ADMIN_FLAG = /--admin/u;
+const REDACTED_MARK = /\[REDACTED\]/u;
+const NEWEST_ENTRY = /entry 59 /u;
+const SECOND_NEWEST_ENTRY = /entry 58 /u;
+const ELLIPSIS = /…/u;
+const FIRST_BULLET = /first/u;
+const SECOND_BULLET = /second\n {2}continued/u;
 
 const hooksDir = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -953,6 +953,28 @@ test("verify-before-stop: verified work stays verified after commit, not after a
     assert.equal(decideStop(dir), "block");
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("verify-before-stop: pushed, clean work passes because CI checks it", () => {
+  const { dir, git } = scratchRepo();
+  const remote = mkdtempSync(join(tmpdir(), "stop-gate-remote-"));
+  try {
+    spawnSync("git", ["init", "--bare", "--quiet", remote]);
+    git("remote", "add", "origin", remote);
+    git("checkout", "--quiet", "-b", "task");
+    writeFileSync(join(dir, "app.js"), "export const a = 5;\n");
+    git("commit", "--quiet", "-am", "change");
+    // Committed but not pushed: still needs a check.
+    assert.equal(decideStop(dir), "block");
+    git("push", "--quiet", "-u", "origin", "task");
+    assert.equal(decideStop(dir), "allow");
+    // A new edit after the push is unchecked again.
+    writeFileSync(join(dir, "app.js"), "export const a = 6;\n");
+    assert.equal(decideStop(dir), "block");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(remote, { recursive: true, force: true });
   }
 });
 

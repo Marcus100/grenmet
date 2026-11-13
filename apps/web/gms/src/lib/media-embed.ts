@@ -5,7 +5,7 @@
  */
 export type MediaKind = "video" | "audio";
 
-const YOUTUBE_ID = /^[\w-]{6,20}$/;
+const YOUTUBE_ID = /^[\w-]{6,20}$/u;
 const YOUTUBE_HOSTS = new Set([
   "youtube.com",
   "www.youtube.com",
@@ -21,7 +21,7 @@ const SOUNDCLOUD_HOSTS = new Set([
   "www.soundcloud.com",
   "on.soundcloud.com",
 ]);
-const YOUTUBE_PATH = /^\/(?:shorts|live|embed)\/([\w-]+)/;
+const YOUTUBE_PATH = /^\/(?:shorts|live|embed)\/([\w-]+)/u;
 
 function youtubeId(url: URL): string | null {
   if (url.hostname === "youtu.be") return url.pathname.slice(1);

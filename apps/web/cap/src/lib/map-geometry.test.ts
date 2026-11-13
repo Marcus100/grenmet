@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { AlertFeature } from "@/lib/cap-api";
-import { boundsFor, projectionFor, toShape } from "@/lib/map-geometry";
+import {
+  boundsFor,
+  landPath,
+  projectionFor,
+  toShape,
+} from "@/lib/map-geometry";
 
-const PATH = /^M.*Z$/;
+const PATH = /^M.*Z$/u;
 const props = { identifier: "a", severity: "Severe" };
 
 describe("map geometry", () => {
@@ -38,5 +43,20 @@ describe("map geometry", () => {
     const shape = toShape({ geometry: null, properties: props }, projection);
     expect(shape.d).toBeNull();
     expect(shape.label).toBeNull();
+  });
+
+  it("draws every parish as land, inside the map", () => {
+    const projection = projectionFor(boundsFor([]));
+    const d = landPath(projection);
+    // Seven subdivisions, each at least one closed ring.
+    expect(d.match(/M/gu)?.length).toBeGreaterThanOrEqual(7);
+    expect(d.match(/Z/gu)?.length).toBe(d.match(/M/gu)?.length);
+    const numbers = d.match(/-?\d+(\.\d+)?/gu)?.map(Number) ?? [];
+    const xs = numbers.filter((_, index) => index % 2 === 0);
+    const ys = numbers.filter((_, index) => index % 2 === 1);
+    expect(Math.min(...xs)).toBeGreaterThanOrEqual(0);
+    expect(Math.max(...xs)).toBeLessThanOrEqual(projection.width);
+    expect(Math.min(...ys)).toBeGreaterThanOrEqual(0);
+    expect(Math.max(...ys)).toBeLessThanOrEqual(projection.height);
   });
 });

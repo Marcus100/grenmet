@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { Discover, skyCard } from "@/components/home/discover";
 import { fetchHomeContent, type HomeContent } from "@/lib/cms";
@@ -20,9 +20,10 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const SUN_TIMES = /Sunrise \d:\d\d a\.m\. · sunset \d:\d\d p\.m\./;
-const CLOUD_QUIZ = /Can you name these five clouds/;
-const RAINBOWS = /Where rainbows are/;
+const SUN_TIMES = /Sunrise \d:\d\d a\.m\. · sunset \d:\d\d p\.m\./u;
+const MOON_PHASE_WORDS = /\blit\b|Waxing|Waning|Full Moon|New Moon|Quarter/u;
+const CLOUD_QUIZ = /Can you name these five clouds/u;
+const RAINBOWS = /Where rainbows are/u;
 const NOW = new Date("2026-09-29T15:00:00Z");
 function home(overrides: Partial<HomeContent> = {}): HomeContent {
   const none = { status: "ok" as const, articles: [] };
@@ -85,6 +86,19 @@ it("shows the calculated sky and each published card, linked", async () => {
   );
 });
 
+it("names a fact's source once and keeps every card's text to four lines", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home());
+  render(await Discover({ now: NOW }));
+  const fact = screen.getByRole("link", { name: RAINBOWS });
+  expect(
+    within(fact).getAllByText("Met Office", { exact: false })
+  ).toHaveLength(1);
+  expect(within(fact).getByText("Source: Met Office")).toBeInTheDocument();
+  expect(within(fact).getByText("The sun is behind you.")).toHaveClass(
+    "line-clamp-4"
+  );
+});
+
 it("follows the editors' card choice and drops cards with no entry", async () => {
   const content = home({
     settings: {
@@ -116,6 +130,30 @@ it("keeps the sky card when the CMS is down, and hides on request", async () => 
     })
   );
   expect(await Discover({ now: NOW })).toBeNull();
+});
+
+it("shows no calculated moon phase; the tile says it is coming and keeps the sun times", () => {
+  const card = skyCard(NOW, null);
+  expect(card.title).toBe("Moon and tides coming soon");
+  expect(card.title).not.toMatch(MOON_PHASE_WORDS);
+  expect(card.detail).toMatch(SUN_TIMES);
+});
+
+it("keeps the Discover section with the moon tile alone when no CMS card is published", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(
+    home({
+      discover: null,
+      settings: {
+        discoverCards: ["sky", "on-this-day", "quiz", "fact"],
+        hiddenSections: [],
+        sectionCopy: {},
+        exploreReading: {},
+      },
+    })
+  );
+  render(await Discover({ now: NOW }));
+  expect(screen.getByText("Moon and tides coming soon")).toBeInTheDocument();
+  expect(screen.getAllByRole("listitem")).toHaveLength(1);
 });
 
 it("lets an editor's sky note lead the sky card", () => {

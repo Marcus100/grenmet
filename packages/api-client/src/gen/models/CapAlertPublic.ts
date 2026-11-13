@@ -20,6 +20,13 @@ export type CapAlertPublic = {
   identifier: string;
   sender: string;
   /**
+   * @default true
+   * @type boolean | undefined
+   */
+  schema_conformant?: boolean;
+  schema_error?: string | null;
+  import_source?: string | null;
+  /**
    * @description
    * Format: `date-time`
    * @type string
@@ -34,6 +41,7 @@ export type CapAlertPublic = {
   codes?: string[];
   note?: string | null;
   lifecycle_state: CapLifecycleState;
+  allowed_actions?: string[];
   /**
    * @description
    * Format: `uuid`

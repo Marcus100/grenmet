@@ -15,14 +15,15 @@ export type EventsListVerificationCasesQuery = {
    */
   status?: VerificationStatus;
   /**
-   * @minLength 1
+   * @minimum 1
+   * @maximum 1000000
    * @default 1
    * @type integer | undefined
    */
   page?: number;
   /**
-   * @minLength 1
-   * @maxLength 100
+   * @minimum 1
+   * @maximum 100
    * @default 25
    * @type integer | undefined
    */

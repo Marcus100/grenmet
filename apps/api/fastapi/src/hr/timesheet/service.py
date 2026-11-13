@@ -10,6 +10,7 @@ from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import service as audit_service
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
 from src.hr.constants import (
@@ -25,6 +26,7 @@ from src.hr.dependencies import get_timesheet_or_404
 from src.hr.exceptions import (
     HRPermissionDeniedError,
     HRValidationError,
+    TimesheetNotFoundError,
 )
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus
 from src.hr.organisations import require_organisation_permission
@@ -32,11 +34,11 @@ from src.hr.roster import service as roster_service
 from src.hr.roster.expansion import shift_hours
 from src.hr.roster.holidays import PROVISIONAL_SOURCE
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     PublicHoliday,
     RosterAssignment,
     RosterAvailability,
     RosterPeriod,
-    RosterPeriodStatus,
     ShiftCatalog,
     ShiftCategory,
 )
@@ -51,7 +53,9 @@ from src.hr.workflow.models import (
 )
 from src.hr.workflow.schemas import WorkflowActionRequest, WorkflowInstanceCreate
 from src.utils.datetime import utc_now
+from src.utils.timezones import local_today
 
+from . import transitions as timesheet_transitions
 from .models import (
     DepartmentPolicy,
     SubmissionMode,
@@ -212,9 +216,7 @@ async def create_timesheet(
         .join(RosterPeriod, RosterPeriod.id == RosterAssignment.roster_period_id)
         .where(
             RosterPeriod.department_id == payload.department_id,
-            RosterPeriod.status.in_(
-                [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-            ),
+            RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
             RosterAssignment.user_id == target_user_id,
             RosterAssignment.assignment_date >= payload.period_start,
             RosterAssignment.assignment_date <= payload.period_end,
@@ -266,6 +268,7 @@ async def submit_timesheet(
     timesheet_id: uuid.UUID,
     submission_mode: SubmissionMode,
     signature_version: uuid.UUID | None = None,
+    rule_override_reason: str | None = None,
 ) -> Timesheet:
     await session.execute(
         select(Timesheet).where(Timesheet.id == timesheet_id).with_for_update()
@@ -341,9 +344,7 @@ async def submit_timesheet(
                 RosterAssignment.id.in_(linked_ids),
                 RosterAssignment.user_id == timesheet.user_id,
                 RosterPeriod.department_id == timesheet.department_id,
-                RosterPeriod.status.in_(
-                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                ),
+                RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
             )
             .with_for_update(of=RosterAssignment)
         )
@@ -362,9 +363,16 @@ async def submit_timesheet(
             )
 
     await ensure_timesheet_workflow(
-        session=session, current_user=current_user, timesheet=timesheet
+        session=session,
+        current_user=current_user,
+        timesheet=timesheet,
+        rule_override_reason=rule_override_reason,
     )
-    timesheet.status = TimesheetStatus.SUBMITTED
+    timesheet_transitions.move_timesheet(
+        timesheet,
+        "submit",
+        refusal=ERROR_TIMESHEET_ALREADY_SUBMITTED,
+    )
     timesheet.submitted_by_user_id = current_user.id
     timesheet.submitted_at = utc_now()
     timesheet.updated_at = utc_now()
@@ -396,8 +404,68 @@ async def submit_timesheet(
     return timesheet
 
 
-async def approve_timesheet(
+async def delete_draft_timesheet(
     *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
+) -> None:
+    """Delete the caller's own unsubmitted draft and its entries. The editor uses
+    this to replace a draft whose submission was held for roster rule warnings
+    (#380) instead of leaving a duplicate behind. Submitted timesheets and their
+    approval history are never deleted.
+
+    Same authority as creating and submitting (``timesheet.submit.self`` and live
+    employment in the filing department). A missing id and someone else's
+    timesheet are both 404, so existence is not revealed. Entries are deleted
+    through the ORM so the change history records every one."""
+    require_permission(
+        current_user=current_user, permission_key="timesheet.submit.self"
+    )
+    timesheet = await session.scalar(
+        select(Timesheet).where(Timesheet.id == timesheet_id).with_for_update()
+    )
+    if timesheet is None or timesheet.user_id != current_user.id:
+        raise TimesheetNotFoundError()
+    employment = await session.scalar(
+        select(EmploymentRecord).where(EmploymentRecord.user_id == current_user.id)
+    )
+    if (
+        employment is None
+        or employment.department_id != timesheet.department_id
+        or not employment.is_live(local_today())
+    ):
+        raise HRPermissionDeniedError(
+            "Timesheet department must match the employee's active employment"
+        )
+    if timesheet.status != TimesheetStatus.DRAFT:
+        raise HRValidationError("Only an unsubmitted draft timesheet can be deleted")
+    has_history = await session.scalar(
+        select(WorkflowInstance.id)
+        .where(
+            WorkflowInstance.entity_type == "timesheet",
+            WorkflowInstance.entity_id == timesheet.id,
+        )
+        .limit(1)
+    )
+    if has_history:
+        raise HRValidationError("Previously submitted timesheets must be retained")
+    audit_service.set_actor(session, current_user.id)
+    entries = (
+        await session.scalars(
+            select(TimesheetEntry).where(TimesheetEntry.timesheet_id == timesheet.id)
+        )
+    ).all()
+    for entry in entries:
+        await session.delete(entry)
+    await session.flush()
+    await session.delete(timesheet)
+    await session.commit()
+
+
+async def approve_timesheet(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    timesheet_id: uuid.UUID,
+    rule_override_reason: str | None = None,
 ) -> Timesheet:
     require_permission(current_user=current_user, permission_key="timesheet.approve")
     timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
@@ -425,7 +493,10 @@ async def approve_timesheet(
             session=session,
             current_user=current_user,
             workflow_instance_id=instance.id,
-            action_in=WorkflowActionRequest(action=WorkflowAction.APPROVE),
+            action_in=WorkflowActionRequest(
+                action=WorkflowAction.APPROVE,
+                rule_override_reason=rule_override_reason,
+            ),
         )
         await session.refresh(timesheet)
         return timesheet
@@ -435,7 +506,20 @@ async def approve_timesheet(
         raise HRValidationError(
             "Staff timesheets require the configured approval workflow"
         )
-    timesheet.status = TimesheetStatus.APPROVED
+    # Legacy approval without a workflow runs the same roster rule checks (#380).
+    from src.hr.roster import change_checks
+
+    await change_checks.check_timesheet_approval(
+        session,
+        timesheet=timesheet,
+        actor_id=current_user.id,
+        reason=rule_override_reason,
+    )
+    timesheet_transitions.move_timesheet(
+        timesheet,
+        "approve",
+        refusal=ERROR_TIMESHEET_NOT_SUBMITTED,
+    )
     timesheet.approved_by_user_id = current_user.id
     timesheet.approved_at = utc_now()
     timesheet.updated_at = utc_now()
@@ -544,17 +628,35 @@ async def get_timesheet_summary(
         grand_actual += total_actual
         grand_overtime += total_overtime
 
+    from src.hr.roster import overtime_service
+    from src.hr.roster.overtime import merge_bands
+    from src.hr.roster.schemas import OvertimeBandPublic
+
+    bands = await overtime_service.timesheet_bands(
+        session,
+        user_id=timesheet.user_id,
+        department_id=timesheet.department_id,
+        entries=entries,
+    )
     return TimesheetSummaryByShift(
         timesheet_id=timesheet_id,
         shifts=shifts,
         grand_total_roster=grand_roster,
         grand_total_actual=grand_actual,
         grand_total_overtime=grand_overtime,
+        overtime_bands=[
+            OvertimeBandPublic(rate=band.rate, hours=band.hours)
+            for band in merge_bands(bands.values())
+        ],
     )
 
 
 async def ensure_timesheet_workflow(
-    *, session: AsyncSession, current_user: User, timesheet: Timesheet
+    *,
+    session: AsyncSession,
+    current_user: User,
+    timesheet: Timesheet,
+    rule_override_reason: str | None = None,
 ) -> None:
     result = await session.execute(
         select(WorkflowTemplate).where(
@@ -589,7 +691,10 @@ async def ensure_timesheet_workflow(
         session=session,
         current_user=current_user,
         workflow_instance_id=instance.id,
-        action_in=WorkflowActionRequest(action=WorkflowAction.SUBMIT),
+        action_in=WorkflowActionRequest(
+            action=WorkflowAction.SUBMIT,
+            rule_override_reason=rule_override_reason,
+        ),
         require_actor_permission=False,
         commit=False,
     )
@@ -630,9 +735,7 @@ async def prefill_from_roster(
             .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
             .where(
                 RosterPeriod.department_id == department_id,
-                RosterPeriod.status.in_(
-                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                ),
+                RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
                 RosterAssignment.user_id == current_user.id,
                 RosterAssignment.assignment_date >= period_start,
                 RosterAssignment.assignment_date <= period_end,

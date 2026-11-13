@@ -11,7 +11,7 @@ import type {
 } from "../models/HrUpdateStaffBalance.js";
 
 /**
- * @description Record an audited leave balance adjustment.
+ * @description Record an audited leave balance adjustment. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
  * @summary Record an audited leave balance adjustment
  * {@link /api/v1/hr/setup/staff/:user_id/balance}
  */
@@ -25,6 +25,7 @@ export function hrUpdateStaffBalance<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/setup/staff/{user_id}/balance",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrUpdateStaffBalanceResponses, ThrowOnError>>

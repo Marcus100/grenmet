@@ -11,8 +11,10 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import warnings
 from datetime import timedelta
 from cryptography.fernet import Fernet
+from django.core.exceptions import ImproperlyConfigured
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -43,9 +45,25 @@ CIPHER_SUITE = Fernet(SECRET_ENCRYPTION_KEY)  # Create a reusable cipher suite
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('SURFACE_DJANGO_DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
 
-USE_X_FORWARDED_HOST = True
+
+def _list_from_env(name, default=''):
+    """A comma-separated environment variable as a list, blanks dropped."""
+    return [item.strip() for item in os.getenv(name, default).split(',') if item.strip()]
+
+
+# Host names this site answers to (#947), comma separated. Any other Host
+# header gets a 400. The default covers the local stack and the container
+# healthchecks; production sets SURFACE_ALLOWED_HOSTS in
+# infra/weather/docker-compose.surface.yml from SURFACE_HOST
+# (surface.barrels.gd), plus localhost and 127.0.0.1 for the healthcheck.
+ALLOWED_HOSTS = _list_from_env('SURFACE_ALLOWED_HOSTS', 'localhost,127.0.0.1')
+
+# Off (#947): neither nginx config sets X-Forwarded-Host. In production Traefik
+# sets it, but locally a client value would pass straight through and could
+# pick the host Django uses. Both nginx configs pass the real Host header
+# (proxy_set_header Host $host), so Django needs nothing else.
+USE_X_FORWARDED_HOST = False
 
 # Both nginx configs (surface/nginx/nginx.conf and infra/weather/surface-nginx.conf)
 # pass X-Forwarded-Proto; the weather one carries Traefik's value, so Django
@@ -55,11 +73,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Extra origins Django should trust for unsafe requests, comma separated and
 # with the scheme, for example
 # SURFACE_CSRF_TRUSTED_ORIGINS=https://surface.example.org
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv('SURFACE_CSRF_TRUSTED_ORIGINS', '').split(',')
-    if origin.strip()
-]
+CSRF_TRUSTED_ORIGINS = _list_from_env('SURFACE_CSRF_TRUSTED_ORIGINS')
 
 # Application definition
 
@@ -121,7 +135,71 @@ WSGI_APPLICATION = 'tempestas_api.wsgi.application'
 
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-CORS_ALLOW_ALL_ORIGINS = True
+
+_FALSE_VALUES = ("0", "false", "no", "off")
+_TRUE_VALUES = ("1", "true", "yes", "on")
+
+
+def _secure_cookies_from_env(value):
+    """Secure cookies are on unless the value is an explicit false (0, false,
+    no, off, any case). Unset is on. Empty or unrecognised values (a typo such
+    as "ture") also stay on, with a warning, so a mistake never weakens it."""
+    if value is None:
+        return True
+    text = value.strip().lower()
+    if text in _FALSE_VALUES:
+        return False
+    if text not in _TRUE_VALUES:
+        warnings.warn(
+            "SURFACE_SECURE_COOKIES=%r is not a recognised value; keeping "
+            "Secure cookies on. Use 0, false, no or off to turn them off, or "
+            "1, true, yes or on." % value,
+            RuntimeWarning,
+        )
+    return True
+
+
+def _hsts_seconds_from_env(value):
+    """HSTS max-age in seconds: a whole number, zero or more. Anything else
+    stops startup so a bad value is never silently ignored."""
+    try:
+        seconds = int(value)
+    except (TypeError, ValueError):
+        seconds = -1
+    if seconds < 0:
+        raise ImproperlyConfigured(
+            "SURFACE_HSTS_SECONDS must be a whole number of seconds, zero or "
+            "more (got %r)." % (value,)
+        )
+    return seconds
+
+
+# HTTPS hardening (#904). Production serves SURFACE only over HTTPS behind
+# Traefik, which sets X-Forwarded-Proto (see SECURE_PROXY_SSL_HEADER above).
+# Secure cookies are the default and only an explicit false turns them off. The
+# local surface/docker-compose.yml serves plain HTTP (http://localhost:8081)
+# and sets SURFACE_SECURE_COOKIES=False for its api service; without that,
+# browsers drop the session and CSRF cookies and sign-in fails.
+SESSION_COOKIE_SECURE = _secure_cookies_from_env(os.getenv('SURFACE_SECURE_COOKIES'))
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+
+# HSTS is sent only on HTTPS responses, so plain-HTTP stacks are unaffected.
+# Ramp the max-age up once SURFACE has run cleanly on HTTPS: 3600 (1 hour,
+# the default) -> 604800 (1 week) -> 2592000 (30 days) -> 31536000 (1 year).
+# Browsers remember the value, so lowering it later only takes effect after
+# the old max-age expires. includeSubDomains and preload stay off: SURFACE is
+# one host and must not commit its parent domain.
+SECURE_HSTS_SECONDS = _hsts_seconds_from_env(os.getenv('SURFACE_HSTS_SECONDS', '3600'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+
+# Cross-origin access (#946): only the origins listed in
+# SURFACE_CORS_ALLOWED_ORIGINS (comma separated, with the scheme, for example
+# https://surface.barrels.gd) get CORS headers, credentials included. Unset or
+# empty means no cross-origin access; SURFACE's own pages are same-origin and
+# need none. Production sets it in infra/weather/docker-compose.surface.yml.
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = _list_from_env('SURFACE_CORS_ALLOWED_ORIGINS')
 CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {

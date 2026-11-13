@@ -2,7 +2,8 @@
 
 import json
 from collections.abc import AsyncGenerator
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from uuid import uuid4
 
@@ -243,6 +244,66 @@ async def put(session, at, *, state="draft", station="78958", **fields):
     await session.commit()
 
 
+def test_grenada_day_start_is_local_midnight():
+    # 02:30 UTC on 11 Nov is 22:30 on 10 Nov in Grenada (UTC-4).
+    assert public.grenada_day_start(datetime(2026, 11, 11, 2, 30, tzinfo=UTC)) == (
+        datetime(2026, 11, 10, 4, tzinfo=UTC)
+    )
+    assert public.grenada_day_start(datetime(2026, 11, 10, 4, tzinfo=UTC)) == (
+        datetime(2026, 11, 10, 4, tzinfo=UTC)
+    )
+
+
+async def test_latest_keeps_the_days_extremes_between_main_hours(register_db):
+    s = register_db
+    # 14:00 local: a main hour with Tx and Tn.
+    await put(
+        s,
+        datetime(2026, 11, 10, 18, tzinfo=UTC),
+        air_temp="31.0",
+        s3_max_temp="313",
+        s3_min_temp="254",
+    )
+    # 15:00 local but rejected: never a source.
+    await put(
+        s,
+        datetime(2026, 11, 10, 19, tzinfo=UTC),
+        state="rejected",
+        air_temp="40.0",
+        s3_max_temp="400",
+        s3_min_temp="100",
+    )
+    # 18:00 local: an intermediate hour without them.
+    await put(s, datetime(2026, 11, 10, 22, tzinfo=UTC), air_temp="30.0")
+    observation = await public.latest(s, datetime(2026, 11, 10, 22, 30, tzinfo=UTC))
+    assert observation is not None
+    assert observation.temperature_c == 30.0
+    assert (observation.max_temperature_c, observation.min_temperature_c) == (
+        31.3,
+        25.4,
+    )
+
+    # A reading's own value wins; the missing one is still filled.
+    await put(
+        s, datetime(2026, 11, 10, 23, tzinfo=UTC), air_temp="29.0", s3_max_temp="320"
+    )
+    observation = await public.latest(s, datetime(2026, 11, 10, 23, 30, tzinfo=UTC))
+    assert observation is not None
+    assert (observation.max_temperature_c, observation.min_temperature_c) == (
+        32.0,
+        25.4,
+    )
+
+    # A new Grenada day starts empty: yesterday's extremes never carry over.
+    await put(s, datetime(2026, 11, 11, 5, tzinfo=UTC), air_temp="26.0")
+    observation = await public.latest(s, datetime(2026, 11, 11, 5, 30, tzinfo=UTC))
+    assert observation is not None
+    assert (observation.max_temperature_c, observation.min_temperature_c) == (
+        None,
+        None,
+    )
+
+
 def test_month_bounds_handle_boundaries():
     assert public.month_bounds(None, NOW)[0] == "2026-10"
     assert public.month_bounds("2026-02", NOW) == (
@@ -299,19 +360,33 @@ async def test_month_summary_aggregates_in_sql(register_db):
         s3_min_temp="1015",  # sign digit 1: negative
     )
     await put(s, datetime(2026, 10, 18, 20, tzinfo=UTC), s3_rainfall_24h="999")
+    # The register's own format: four digits in tenths of a millimetre, 9999 trace.
+    await put(s, datetime(2026, 10, 7, 12, tzinfo=UTC), s3_rainfall_24h="0123")
+    await put(s, datetime(2026, 10, 8, 12, tzinfo=UTC), s3_rainfall_24h="9999")
 
     result = await public.month_summary(s, None, NOW)
     assert result is not None
-    assert result.rainfall_mm == 12.3  # 0 + 0.2 + 0.1 + 12
-    assert (result.rain_report_days, result.rain_days) == (4, 2)
+    assert result.rainfall_mm == 24.6  # 0 + 0.2 + 0.1 + 12 + 12.3 + trace
+    assert (result.rain_report_days, result.rain_days) == (6, 3)
     assert result.rain_day_threshold_mm == 0.2
     assert result.max_temperature_c == 32.6
     assert result.max_temperature_at == datetime(2026, 10, 5, 12, tzinfo=UTC)
     assert result.min_temperature_c == -1.5
-    assert result.observation_count == 6  # future-dated typo excluded
+    assert result.observation_count == 8  # future-dated typo excluded
     assert result.days_elapsed == 18
     assert result.period_end == NOW
     assert result.provisional is True
+    # Climpact figures from the same daily totals (owner, 1 Nov 2026).
+    assert result.heavy_rain_days == 2  # 12 mm on the 5th, 12.3 mm on the 7th
+    # Dry (< 1 mm): 1st, then 3rd-4th (the unreported 2nd breaks the run).
+    assert result.longest_dry_spell_days == 2
+    assert (result.longest_dry_spell_start, result.longest_dry_spell_end) == (
+        date(2026, 10, 3),
+        date(2026, 10, 4),
+    )
+    # The latest total (the 8th) is long before the 18th: the spell is unknown.
+    assert result.current_dry_spell_days is None
+    assert result.mean_wind_kt is None and result.max_gust_kt is None
 
     # Past month: full period, nothing from October leaks in.
     sept = await public.month_summary(s, "2026-09", NOW)
@@ -361,3 +436,61 @@ async def test_month_summary_endpoint(register_db):
             assert down.headers["cache-control"] == "no-store"
     finally:
         app.dependency_overrides.pop(get_public_session, None)
+
+
+def test_dry_spells_count_reported_days_under_one_millimetre():
+    d = date(2026, 10, 1)
+    days = [
+        (d, Decimal("0")),
+        (d + timedelta(days=1), Decimal("0.9")),
+        (d + timedelta(days=2), Decimal("4")),
+        (d + timedelta(days=3), Decimal("0")),
+        (d + timedelta(days=4), Decimal("0.2")),
+        (d + timedelta(days=5), Decimal("0")),
+        (d + timedelta(days=7), Decimal("0")),  # the 7th is missing: a new run
+    ]
+    longest, start, end, current = public.dry_spells(days)
+    assert (longest, start, end, current) == (
+        3,
+        d + timedelta(days=3),
+        d + timedelta(days=5),
+        1,
+    )
+    assert public.dry_spells([]) == (None, None, None, None)
+    # Through the 7th: the run is current. Through the 10th: unknown.
+    assert public.dry_spells(days, d + timedelta(days=7))[3] == 1
+    assert public.dry_spells(days, d + timedelta(days=10))[3] is None
+
+
+def test_wind_month_means_speeds_and_finds_the_prevailing_point_and_top_gust():
+    at = datetime(2026, 10, 2, 12, tzinfo=UTC)
+    rows = [
+        (at, {"wind_dir": "09", "wind_speed": "12", "wind_indicator": "4"}),
+        (
+            at + timedelta(hours=1),
+            {
+                "wind_dir": "10",
+                "wind_speed": "16",
+                "wind_indicator": "4",
+                "wind_gust": "28",
+            },
+        ),
+        (
+            at + timedelta(hours=2),
+            {"wind_dir": "00", "wind_speed": "00", "wind_indicator": "4"},
+        ),  # calm
+        (
+            at + timedelta(hours=3),
+            {
+                "wind_dir": "18",
+                "wind_speed": "08",
+                "wind_indicator": "4",
+                "wind_gust": "20",
+            },
+        ),
+    ]
+    mean, prevailing, gust_kt, gust_at = public.wind_month(rows)
+    assert mean == 9.0  # (12 + 16 + 0 + 8) / 4
+    assert prevailing == "E"
+    assert (gust_kt, gust_at) == (28, at + timedelta(hours=1))
+    assert public.wind_month([]) == (None, None, None, None)

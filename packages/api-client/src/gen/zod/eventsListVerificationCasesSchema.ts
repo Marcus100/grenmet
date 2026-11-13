@@ -15,6 +15,7 @@ export const eventsListVerificationCasesQueryStatusSchema =
 export const eventsListVerificationCasesQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1);
 
@@ -54,6 +55,6 @@ export const eventsListVerificationCasesErrorSchema = z.union([
 
 export const eventsListVerificationCasesQuerySchema = z.object({
   status: verificationStatusSchema.optional().default("pending"),
-  page: z.int().min(1).optional().default(1),
+  page: z.int().min(1).max(1000000).optional().default(1),
   size: z.int().min(1).max(100).optional().default(25),
 });

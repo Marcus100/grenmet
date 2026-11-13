@@ -151,6 +151,29 @@ def require_permission(*, current_user: User, permission_key: str) -> None:
         raise AuthorizationError(ERROR_PERMISSION_DENIED)
 
 
+def require_any_permission(
+    *, current_user: User, permission_keys: tuple[str, ...]
+) -> None:
+    """Allow the action when the user holds at least one of ``permission_keys``.
+
+    Used where two areas of the staff desk share one read-only resource, such as the
+    CAP and wxproducts areas sharing the GMS warning catalogue.
+    """
+    if any(
+        has_permission(current_user=current_user, permission_key=key)
+        for key in permission_keys
+    ):
+        return
+    logger.warning(
+        "Permission denied",
+        extra={
+            "user_id": str(current_user.id),
+            "permission_key": ",".join(permission_keys),
+        },
+    )
+    raise AuthorizationError(ERROR_PERMISSION_DENIED)
+
+
 async def can_act_on_user(
     *,
     session: AsyncSession,

@@ -1,0 +1,190 @@
+name: Mirror base images
+
+# Docker Hub rate-limits CI (429 Too Many Requests, issue #816). This workflow
+# copies every third-party Docker Hub image the repository builds from or runs
+# as a service container into GHCR (ghcr.io/<owner>/base/<name>), by digest, so
+# the digest pins stay valid. Dockerfiles and workflows then pull from GHCR.
+# What to mirror is derived from the repository files by
+# scripts/ci/base-images.mjs; see docs/operations/ci-base-images.md.
+#
+# Schedules and workflow_dispatch only run from the default branch (main). The
+# push trigger runs the version of this file on dev and staging as well, so the
+# mirror is populated before the Dockerfiles that reference it reach main.
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+    inputs:
+      extra_ref:
+        description: >-
+          Optional branch to read as well (for example a branch that adds an image),
+          so its digests are mirrored before its PR builds.
+        required: false
+        default: ""
+  push:
+    branches: [main, staging, dev]
+    paths:
+      - .github/workflows/mirror-base-images.yml
+      - .github/workflows/*.yml
+      - .github/actions/**
+      - scripts/ci/base-images.mjs
+      - "**/Dockerfile*"
+      - "**/*.dockerfile"
+      - "**/*compose*.yml"
+      - "**/*compose*.yaml"
+
+permissions: {}
+
+concurrency:
+  group: mirror-base-images
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Plan mirror
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      operations: ${{ steps.plan.outputs.operations }}
+    steps:
+      # The script comes from the ref that triggered the run; the files it reads
+      # come from every long-lived branch, so a digest that is on dev but not yet
+      # on main is already mirrored.
+      - name: Check out the triggering ref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          path: self
+          persist-credentials: false
+      - name: Check out main
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: main
+          path: refs/main
+          persist-credentials: false
+      - name: Check out staging
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: staging
+          path: refs/staging
+          persist-credentials: false
+      - name: Check out dev
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: dev
+          path: refs/dev
+          persist-credentials: false
+      - name: Check out the extra branch
+        if: inputs.extra_ref != ''
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: ${{ inputs.extra_ref }}
+          path: refs/extra
+          persist-credentials: false
+      - name: Derive the images to mirror
+        id: plan
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          roots=(--root refs/main --root refs/staging --root refs/dev)
+          if [ -d refs/extra ]; then roots+=(--root refs/extra); fi
+          node self/scripts/ci/base-images.mjs plan "${roots[@]}" --owner "${OWNER,,}" > plan.json
+          jq -r '.operations[] | "\(.kind)\t\(.source)\t\(.target)"' plan.json
+          echo "operations=$(jq -c .operations plan.json)" >> "$GITHUB_OUTPUT"
+
+  mirror:
+    name: Copy to GHCR
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      packages: write
+    env:
+      OWNER: ${{ github.repository_owner }}
+      OPERATIONS: ${{ needs.plan.outputs.operations }}
+    steps:
+      - name: Log in to Docker Hub (source)
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to GitHub Container Registry (target)
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # This job holds the write token and runs no repository code. The plan is
+      # data, re-validated here: sources must be Docker Hub, targets must be under
+      # <owner>/base/.
+      - name: Copy images by digest
+        run: |
+          set -euo pipefail
+          owner="${OWNER,,}"
+          source_re='^docker\.io/[a-z0-9][a-z0-9._/-]*(:[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}|@sha256:[0-9a-f]{64})$'
+          target_re="^ghcr\\.io/${owner}/base/[a-z0-9][a-z0-9._/-]*:[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}\$"
+          rows="$(jq -r '.[] | [.kind, .source, .target, (.digest // "")] | @tsv' <<<"$OPERATIONS")"
+          failed=0
+          : > "$RUNNER_TEMP/targets.txt"
+          while IFS=$'\t' read -r kind source target digest; do
+            [[ "$source" =~ $source_re ]] || { echo "::error::Refusing source $source"; exit 1; }
+            [[ "$target" =~ $target_re ]] || { echo "::error::Refusing target $target"; exit 1; }
+            echo "$target" >> "$RUNNER_TEMP/targets.txt"
+            if [ "$kind" = pinned ]; then
+              want="$digest"
+              have="$(docker buildx imagetools inspect "$target" --format '{{.Manifest.Digest}}' 2>/dev/null || true)"
+              if [ "$have" = "$want" ]; then
+                echo "present  $target"
+                continue
+              fi
+            else
+              want="$(docker buildx imagetools inspect "$source" --format '{{.Manifest.Digest}}')"
+            fi
+            # Copying an image index with no changes keeps its digest, which is
+            # what keeps the pins in the Dockerfiles valid.
+            docker buildx imagetools create --tag "$target" "$source"
+            got="$(docker buildx imagetools inspect "$target" --format '{{.Manifest.Digest}}')"
+            if [ "$got" != "$want" ]; then
+              echo "::error::$target is $got, expected $want"
+              failed=1
+            else
+              echo "copied   $target $got"
+            fi
+          done <<<"$rows"
+          exit "$failed"
+      # New GHCR packages start private, and GitHub has no API to publish a package
+      # of a personal account. Private packages cannot be pulled anonymously, so this
+      # fails the run until the owner has made each package public (once per package).
+      - name: Verify the packages are public
+        run: |
+          set -euo pipefail
+          accept='application/vnd.oci.image.index.v1+json,application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.list.v2+json'
+          private=()
+          declare -A seen=()
+          while read -r target; do
+            repository="${target%:*}"
+            repository="${repository#ghcr.io/}"
+            tag="${target##*:}"
+            if [ -n "${seen[$repository]:-}" ]; then continue; fi
+            seen[$repository]=1
+            token="$(curl -fsS "https://ghcr.io/token?service=ghcr.io&scope=repository:${repository}:pull" | jq -r '.token')"
+            code="$(curl -s -o /dev/null -w '%{http_code}' -I -H "Authorization: Bearer ${token}" -H "Accept: ${accept}" "https://ghcr.io/v2/${repository}/manifests/${tag}")"
+            if [ "$code" != 200 ]; then private+=("$repository"); fi
+          done < "$RUNNER_TEMP/targets.txt"
+          {
+            echo "### Mirrored packages"
+            for repository in "${!seen[@]}"; do echo "- ghcr.io/${repository}"; done | sort
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${#private[@]}" -gt 0 ]; then
+            {
+              echo
+              echo "### Make these packages public (one-time)"
+              echo "Profile > Packages > the package > Package settings > Danger Zone > Change visibility > Public."
+              for repository in "${private[@]}"; do echo "- ghcr.io/${repository}"; done
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::${#private[@]} mirrored package(s) are not public yet; see the run summary."
+            exit 1
+          fi

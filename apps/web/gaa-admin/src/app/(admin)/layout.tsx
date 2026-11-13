@@ -3,6 +3,7 @@ import { SessionUserProvider } from "@barrelsgd/auth";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { getAuthConfig } from "@/lib/auth-config";
+import { profileImageUrl } from "@/lib/profile-image";
 import { reportError } from "@/lib/report-error";
 import {
   authApiFetch,
@@ -51,17 +52,17 @@ export default async function AdminLayout({
   if (mfaDetail) {
     return (
       <main className="mx-auto max-w-xl space-y-4 p-6">
-        <h1 className="font-semibold text-foreground text-xl">
+        <h1 className="text-foreground text-xl font-semibold">
           Two-step verification required
         </h1>
         <p className="text-muted-foreground">{mfaDetail}</p>
         <a
-          className="block text-primary underline"
+          className="text-primary block underline"
           href={new URL("/security", getAuthConfig().authAppUrl).toString()}
         >
           Open account security
         </a>
-        <a className="block text-primary underline" href="/signin">
+        <a className="text-primary block underline" href="/signin">
           Sign in again
         </a>
       </main>
@@ -74,7 +75,11 @@ export default async function AdminLayout({
   return (
     <SessionUserProvider user={user}>
       <AppShell
-        user={{ name: user.full_name ?? user.email, email: user.email }}
+        user={{
+          avatar: profileImageUrl(user.id),
+          email: user.email,
+          name: user.full_name ?? user.email,
+        }}
       >
         {children}
       </AppShell>

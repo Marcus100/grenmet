@@ -3,14 +3,15 @@
 import uuid
 
 import jwt
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import apps, service, totp
 from src.auth.config import auth_settings
+from src.auth.exceptions import SignInAgainError
 from src.auth.models import Session as LoginSession
 from src.auth.models import User
 from src.auth.utils import ALGORITHM
+from src.exceptions import AuthorizationError
 
 # Stable machine-readable suffix of the 403 detail (the detail still starts with
 # "Set up two-step verification", which GAA Admin and the auth app match to send
@@ -46,7 +47,7 @@ def session_id_from_token(token: str) -> uuid.UUID | None:
     try:
         payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.InvalidTokenError:
-        raise HTTPException(401, "Sign in again") from None
+        raise SignInAgainError() from None
     try:
         return uuid.UUID(str(payload.get("sid", "")))
     except ValueError:
@@ -70,11 +71,10 @@ async def require_mfa_session(
         if session_id is not None:
             login_session = await session.get(LoginSession, session_id)
     if not user.totp_enabled or not totp.is_encrypted(user.totp_secret):
-        raise HTTPException(
-            403,
+        raise AuthorizationError(
             "Set up two-step verification and save recovery codes in account "
             "security before using privileged staff tools "
-            f"({ENROLMENT_REQUIRED_CODE})",
+            f"({ENROLMENT_REQUIRED_CODE})"
         )
     if (
         login_session is None
@@ -87,9 +87,8 @@ async def require_mfa_session(
         or not service.is_session_active(login_session)
         or login_session.mfa_verified_at is None
     ):
-        raise HTTPException(
-            403,
-            "Sign in again with your authenticator or recovery code before using privileged staff tools",
+        raise AuthorizationError(
+            "Sign in again with your authenticator or recovery code before using privileged staff tools"
         )
 
 

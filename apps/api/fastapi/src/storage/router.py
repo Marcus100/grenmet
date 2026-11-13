@@ -3,13 +3,18 @@
 import re
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Response
 from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 
 from src.auth.browser import BrowserUser
+from src.exceptions import NotFoundError
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, NOT_FOUND
 from src.storage import service
+from src.storage.exceptions import (
+    InvalidImagePathError,
+    ObjectStorageNotConfiguredError,
+)
 from src.wxwatch import assets
 from src.wxwatch.config import wxwatch_settings
 from src.wxwatch.dependencies import ImageSession
@@ -44,21 +49,19 @@ async def weather_image(storage_path: str, _current_user: BrowserUser) -> Respon
     if not _is_safe_image_path(storage_path) or any(
         part in {"", ".", ".."} for part in storage_path.split("/")
     ):
-        raise HTTPException(status_code=400, detail="Invalid image path")
+        raise InvalidImagePathError()
     if wxwatch_settings.LOCAL_IMAGES_DIR is not None:
         root = wxwatch_settings.LOCAL_IMAGES_DIR.resolve()
         path = (root / storage_path).resolve()
         if not path.is_relative_to(root) or not path.is_file():
-            raise HTTPException(404, "Archived image not found")
+            raise NotFoundError("Archived image not found")
         return FileResponse(path, headers={"Cache-Control": "private, no-store"})
     try:
         url = service.storage_service.presigned_download_url(
             f"wxwatch/{storage_path}", expires_in=60
         )
     except service.StorageNotConfiguredError:
-        raise HTTPException(
-            status_code=503, detail="Weather object storage is not configured"
-        ) from None
+        raise ObjectStorageNotConfiguredError() from None
     return RedirectResponse(
         url, status_code=307, headers={"Cache-Control": "private, no-store"}
     )

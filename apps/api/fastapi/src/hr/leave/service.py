@@ -22,15 +22,16 @@ from src.hr.exceptions import (
 from src.hr.models import EDITABLE_STATUSES, EmploymentRecord, RequestStatus
 from src.hr.roster.holidays import PROVISIONAL_SOURCE
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     PublicHoliday,
     RosterAssignment,
     RosterPeriod,
-    RosterPeriodStatus,
     ShiftCatalog,
     ShiftCategory,
 )
 from src.hr.signatures import service as signature_service
 from src.hr.workflow import service as workflow_service
+from src.hr.workflow import transitions as workflow_transitions
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
@@ -296,7 +297,7 @@ async def submit_leave_request(
         if workflow_id:
             leave_request.workflow_instance_id = workflow_id
 
-    leave_request.status = RequestStatus.SUBMITTED
+    workflow_transitions.submit_request(leave_request)
     leave_request.updated_at = utc_now()
     session.add(leave_request)
     await signature_service.capture(
@@ -450,7 +451,9 @@ async def action_leave_request(
             session=session,
             current_user=current_user,
             workflow_instance_id=leave_request.workflow_instance_id,
-            action_in=WorkflowActionRequest(action=action),
+            action_in=WorkflowActionRequest(
+                action=action, rule_override_reason=payload.rule_override_reason
+            ),
         )
         await session.refresh(leave_request)
         return leave_request
@@ -471,6 +474,19 @@ async def action_leave_request(
         and payload.status == RequestStatus.CANCELLED
     ):
         raise HRValidationError("Request already resolved")
+    if (
+        leave_request.status == RequestStatus.APPROVED
+        and payload.status == RequestStatus.CANCELLED
+    ):
+        # Legacy cancellation without a workflow: same roster rule check (#380).
+        from src.hr.roster import change_checks
+
+        await change_checks.check_cancelled_absence(
+            session,
+            entity=leave_request,
+            actor_id=current_user.id,
+            reason=payload.rule_override_reason,
+        )
     leave_request.status = payload.status
     if payload.head_of_dept_comments is not None:
         leave_request.head_of_dept_comments = payload.head_of_dept_comments
@@ -576,9 +592,7 @@ async def working_days_between(
             .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
             .where(
                 RosterPeriod.department_id == department_id,
-                RosterPeriod.status.in_(
-                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                ),
+                RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
                 RosterAssignment.user_id == current_user.id,
                 RosterAssignment.assignment_date >= start,
                 RosterAssignment.assignment_date <= end,

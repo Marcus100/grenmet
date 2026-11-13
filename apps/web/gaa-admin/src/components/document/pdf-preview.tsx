@@ -167,7 +167,7 @@ export function PdfPreview({
     <section aria-label={title} className="space-y-3 rounded-xl border p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
-          <h2 className="font-medium text-lg">{title}</h2>
+          <h2 className="text-lg font-medium">{title}</h2>
           {description ? (
             <p className="text-muted-foreground text-xs">{description}</p>
           ) : null}
@@ -228,7 +228,7 @@ export function PdfPreview({
             title={`${title} frame`}
           />
         ) : (
-          <div className="grid aspect-[210/297] w-full place-items-center rounded-sm border bg-muted p-4 text-center text-muted-foreground text-sm">
+          <div className="bg-muted text-muted-foreground grid aspect-[210/297] w-full place-items-center rounded-sm border p-4 text-center text-sm">
             No preview yet
           </div>
         )}

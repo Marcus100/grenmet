@@ -24,6 +24,7 @@ export function authConfirmActivation<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/onboarding/activate",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthConfirmActivationResponses, ThrowOnError>>

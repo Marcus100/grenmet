@@ -74,7 +74,7 @@ Rules:
 
 ## Backups
 
-Production backup automation covers all six core production databases:
+Production backup automation covers the six core production databases, plus `gms_cms` when `CMS_BACKUP_ENABLED=true`:
 
 - `app_prod`
 - `wxwatch`
@@ -99,7 +99,7 @@ The workflow uses custom-format `pg_dump`, verifies each dump by restoring into 
 
 - No repo-level ER diagram.
 - No retention rule encoded for official records (the table below). A daily personal-data purge exists (`purge_expired_data`, `src/worker/retention.py`): contact, subscriptions, feedback comments, idempotency and outbox rows, booking manage tokens.
-- No automated restore drill workflow.
+- The restore drill workflow (`restore-drill.yml`, ADR-0021) runs monthly (the 1st, 05:30 UTC) and on demand; it has passed against the production backup.
 - No cross-domain data lineage catalogue.
 - Field-level audit (`audit_entry`, `src/audit`) covers only domains that opt in (HR, billing, organisations, contacts, rewards, stores and others); aviation, forecasts and system configuration are not registered.
 
@@ -196,7 +196,7 @@ WIS 2.0 is the WMO's next-generation information system for global meteorologica
 | SURFACE → wis2box observation publisher | Verified on sandbox | Gate 2 production cutover |
 | Core observation data published to Global Cache | Gap — requires production cutover and global verification | Gate 2 |
 | WIS2Downloader operational feed | Confirmation required — no repository evidence | Gate 3 |
-| CAP alerts published to WIS2 | Gap — `publish.wis2box` job exists but its worker is not deployed | Gate 4 |
+| CAP alerts published to WIS2 | Gap — no WIS2 publish job is queued; it starts once the local wis2box is live (owner decision 2026-10-30) | Gate 4 |
 
 Capability gates, ownership, evidence requirements, and the distinction between
 observation and CAP publishing are maintained in the

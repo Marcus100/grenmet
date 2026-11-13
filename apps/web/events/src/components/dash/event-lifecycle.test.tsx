@@ -5,9 +5,9 @@ import { cancelEventWithRefund } from "@/data/order-actions";
 import { EventLifecycle } from "./event-lifecycle";
 
 const MAY_HAVE_GONE = "The cancel may have gone through";
-const RE_1 = /Follow the business policy/;
-const RE_2 = /Refund in full/;
-const RE_3 = /moves no money/;
+const RE_1 = /Follow the business policy/u;
+const RE_2 = /Refund in full/u;
+const RE_3 = /moves no money/u;
 
 const refresh = vi.fn();
 

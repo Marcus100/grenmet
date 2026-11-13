@@ -1,6 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { CapAlert } from "@/lib/cap-api";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { AlertList } from "./alert-list";
 
 // Guards the optionality introduced when the cap UI moved onto the generated

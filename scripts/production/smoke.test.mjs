@@ -1,14 +1,16 @@
-const functionalFailure = /Functional smoke failed/;
-const cmsFailure = /CMS sign-in destination failed/;
-const authFailure = /auth.staging.example.test/;
+const functionalFailure = /Functional smoke failed/u;
+const cmsFailure = /CMS sign-in destination failed/u;
+const authFailure = /auth.staging.example.test/u;
 
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
   check,
+  excerpt,
   checkCmsSignIn,
   checkDeployment,
   validPage,
+  warmUp,
   withEdgeCredentials,
 } from "./smoke.mjs";
 
@@ -267,4 +269,60 @@ test("CMS handoff requires a working auth sign-in form", async () => {
     ),
     functionalFailure
   );
+});
+
+test("warm-up sends one unmeasured request per host and ignores its failures", async () => {
+  const hosts = [];
+  await warmUp("staging.example.test", (url, init) => {
+    hosts.push(new URL(url).hostname);
+    assert.ok(init.signal);
+    return Promise.reject(new Error("cold start"));
+  });
+  assert.equal(new Set(hosts).size, 9);
+  assert.equal(hosts.length, 9);
+});
+
+test("a single cold-start failure per check is retried, a second one is still loud", async () => {
+  const ok = (url) => {
+    const { hostname, pathname } = new URL(url);
+    if (pathname === "/auth/start")
+      return Promise.resolve(cmsHandoff("staging.example.test"));
+    if (pathname === "/signin")
+      return Promise.resolve(new Response(cmsLink("staging.example.test")));
+    if (hostname.startsWith("auth."))
+      return Promise.resolve(new Response("<form>Sign in</form>"));
+    return Promise.resolve(
+      new Response(
+        '<main>{"deskUpdates":{},"ready":true,"data":[],"products":[]}</main>'
+      )
+    );
+  };
+  const failedOnce = new Set();
+  await checkDeployment("staging.example.test", (url, init) => {
+    const key = new URL(url).hostname + new URL(url).pathname;
+    if (init?.signal && !failedOnce.has(key) && key.startsWith("docs.")) {
+      failedOnce.add(key);
+      return Promise.reject(new Error("slow"));
+    }
+    return ok(url);
+  });
+  await assert.rejects(
+    checkDeployment("staging.example.test", (url) =>
+      new URL(url).hostname.startsWith("docs.")
+        ? Promise.resolve(new Response("<html>nope</html>"))
+        : ok(url)
+    ),
+    functionalFailure
+  );
+});
+
+test("a failed check says what came back, so a proxy 503 reads differently from the app's", async () => {
+  await assert.rejects(
+    check("https://api.example.test/api/v1/utils/ready/", '"ready"', () =>
+      Promise.resolve(new Response("no available server", { status: 503 }))
+    ),
+    /HTTP 503; expected "ready"; got "no available server"\)/u
+  );
+  assert.equal(excerpt("  \n "), "an empty body");
+  assert.equal(excerpt(`a\n${"b".repeat(200)}`).length, 123);
 });

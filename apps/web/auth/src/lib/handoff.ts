@@ -18,8 +18,8 @@ export type HandoffResult =
   | { kind: "sign-in" }
   | { kind: "unavailable" };
 
-const APP_KEY = /^[a-z][a-z0-9-]{1,30}$/;
-const STATE = /^[A-Za-z0-9_-]{16,200}$/;
+const APP_KEY = /^[a-z][a-z0-9-]{1,30}$/u;
+const STATE = /^[A-Za-z0-9_-]{16,200}$/u;
 
 export interface HandoffRequest {
   app: string;

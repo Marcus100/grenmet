@@ -9,9 +9,9 @@ export function Provenance({
   children?: React.ReactNode;
 }) {
   return (
-    <p className="mt-2 text-base text-el-muted leading-relaxed">
+    <p className="text-el-muted mt-2 text-base leading-relaxed">
       {!official && (
-        <span className="mr-1.5 inline-block rounded-[2px] border border-el-rule-2 px-1 font-semibold text-el-ink-2 text-sm uppercase tracking-[0.06em]">
+        <span className="border-el-rule-2 text-el-ink-2 mr-1.5 inline-block rounded-[2px] border px-1 text-sm font-semibold tracking-[0.06em] uppercase">
           Not officially sourced
         </span>
       )}

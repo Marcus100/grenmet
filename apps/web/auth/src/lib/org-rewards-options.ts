@@ -54,11 +54,11 @@ export const ACHIEVEMENT_RULES = [
 ] as const;
 
 /** Organisation ids are `org_<hex>`, or a legacy slug-like id such as `gaa`. */
-export const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,64}$/;
+export const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,64}$/u;
 
-const SMALL_NUMBER = /^\d{1,6}$/;
-const ACHIEVEMENT_KEY = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SMALL_NUMBER = /^\d{1,6}$/u;
+const ACHIEVEMENT_KEY = /^[a-z0-9]+(-[a-z0-9]+)*$/u;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 export function isUuid(value: string): boolean {
   return UUID.test(value);

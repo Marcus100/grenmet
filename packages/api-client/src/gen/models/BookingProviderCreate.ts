@@ -17,8 +17,8 @@ export type BookingProviderCreate = {
    */
   active?: boolean;
   /**
-   * @minLength 0
-   * @maxLength 10000
+   * @minimum 0
+   * @maximum 10000
    * @default 0
    * @type integer | undefined
    */

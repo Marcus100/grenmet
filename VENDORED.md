@@ -35,6 +35,11 @@ reconciling an upstream release.
 | `werkzeug` | 3.1.4 | 3.1.9 | Dependabot #389 | Transitive via `flask` |
 | `fsspec` | 2025.12.0 | 2026.6.0 | Dependabot #391 | Transitive via `pyiceberg` |
 | `multidict` | 6.7.0 | 6.9.1 | Dependabot #393 | Transitive via `yarl` |
+| `h2` | 4.3.0 | 4.4.1 | Dependabot, GHSA-6hr6-w5qg-qmwg (duplicate Host header, request smuggling) | Transitive via `httpx` |
+| `hpack` | 4.1.0 | 4.2.0 | Dependabot, GHSA-8v8h-hg4w-mvq2 (unbounded integer decoding) | Transitive via `h2` |
+| `idna` | 3.11 | 3.15 | Dependabot, GHSA-65pc-fj4g-8rjx (crafted internationalised names) | Transitive via `httpx`, `requests` |
+| `flask` | 3.1.2 | 3.1.3 | Dependabot, GHSA-68rp-wp8r-4726 (session missing `Vary: Cookie`) | Transitive via `pygeoapi`, which asks for plain `Flask` |
+| `pygments` | 2.19.2 | 2.20.0 | Dependabot, GHSA-5239-wwwm-4pmq (regular-expression denial of service) | Transitive via `rich` |
 
 The transitive pins were first edited in place in the pip-compiled
 `requirements.txt`. The lock was then re-resolved with `pip-compile` for #722
@@ -58,6 +63,32 @@ the database to PostgreSQL 17, because Django 5.2 needs PostgreSQL 14 or newer.
 | `django-material` | 1.10.0 | 1.12.0 | Unmaintained (merged into django-viewflow); works on 5.2 in the smoke run below, replace when SURFACE's UI is reworked |
 | `django-timescaledb` | 0.2.12 | 0.2.13 | Last release 2023; works on 5.2 and TimescaleDB 2.31 in the smoke run below |
 | `django-ckeditor` | 6.7.1 | removed | Bundled CKEditor 4 was end of life (#803). The six rich-text fields are plain `TextField`s with plain text boxes; migration `wx/0079` converts stored HTML to plain text once. It is not reversible: take a database dump (`pg_dump`, or a copy of the `data/postgresql` volume) before running `migrate`, and old migrations reference `models.TextField` |
+
+HTTPS hardening (#904): session and CSRF cookies are Secure and HSTS is sent, in
+`tempestas_api/settings.py`. Only an explicit `SURFACE_SECURE_COOKIES` of `0`,
+`false`, `no` or `off` (any case) turns Secure cookies off; unset, empty or a typo
+such as `ture` keeps them on (the last two log a warning). `SURFACE_HSTS_SECONDS`
+defaults to 3600 and must be a whole number, zero or more, or startup stops; ramp
+it to one year as `api/production.env.example` describes. No includeSubDomains or
+preload. The local `docker-compose.yml` serves plain HTTP, so its `api` service
+sets `SURFACE_SECURE_COOKIES=False` (override with `SURFACE_SECURE_COOKIES=True`
+in the shell or the compose `.env` when fronting it with HTTPS); the production
+stack (`infra/weather/docker-compose.surface.yml`) does not set it. Any other
+plain-HTTP deployment must set it itself or sign-in fails with a CSRF error.
+
+Host and CORS lock-down (#946, #947), in `tempestas_api/settings.py`:
+`ALLOWED_HOSTS` comes from `SURFACE_ALLOWED_HOSTS` (comma separated, default
+`localhost,127.0.0.1`; any other Host gets a 400) instead of `*`.
+`USE_X_FORWARDED_HOST` is off: neither nginx config sets `X-Forwarded-Host`, so
+on the local stack a client value would reach Django unchanged, and both pass
+the real `Host`. CORS no longer allows every origin: only
+`SURFACE_CORS_ALLOWED_ORIGINS` (comma separated, with scheme, default none) get
+CORS headers, credentials included. The production stack
+(`infra/weather/docker-compose.surface.yml`) sets both from `SURFACE_HOST`
+(`surface.barrels.gd`), keeps `localhost,127.0.0.1` for the api container's
+healthcheck, and sends `SURFACE_HOST` as the Host of Traefik's healthcheck.
+Another install (a LAN address) lists its own names in its env file.
+`wx/tests/test_hosts_and_cors.py` covers both.
 
 Django 5 code changes: sign-out in `templates/base.html` is a POST form
 (`LogoutView` no longer accepts GET), and the unused `USE_L10N` setting is gone.
@@ -89,10 +120,18 @@ a CSRF-enforced client signed in and loaded the station map, admin, the
 maintenance report list, the new-report form and a report whose text fields held
 `<script>` and `<img onerror>` strings, which rendered escaped.
 
-**No CI gate covers SURFACE.** `scripts/ci/select-images.mjs` treats `surface/`
-as deferred and no workflow runs its tests, so verification on the host stack
-(`surface/docker-compose.yml` or the weather compose) is the only gate. Run
-`wx/tests` with the `manage.py test` command inside the built image too.
+**CI gate (#805).** `.github/workflows/ci-surface.yml`, called from `ci-api.yml`,
+builds `Dockerfile.deploy` (not pushed) and runs, inside that image against the
+`timescaledb-ha` image from `docker-compose.yml`: `manage.py check --fail-level
+WARNING`, `check --deploy`, `makemigrations --check --dry-run` and `manage.py
+test` (which applies every migration to a fresh database). `CI Success` requires it
+only when `scripts/ci/select-images.mjs` selects SURFACE: a change under
+`surface/` or to that workflow, including on promotion PRs. `check --deploy`
+warnings that are accepted by design (W005, W008, W021) are listed with their reasons in
+`surface/ci/deploy-check-accepted.txt`; the job fails on an unlisted warning and on a
+listed one that no longer appears. No tests are skipped. Host verification with
+`docker-compose.yml` is still the check for the running stack (sign-in, pages,
+Celery).
 
 ## wis2box/
 

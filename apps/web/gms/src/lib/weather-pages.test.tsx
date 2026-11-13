@@ -12,10 +12,10 @@ import {
 } from "@/lib/forecast-selection";
 import type { UnitSystem } from "@/lib/units";
 import {
+  forecastRows,
   hasIssuedForecast,
   latestSynopsis,
   stationReading,
-  threeDayRows,
 } from "@/lib/weather-pages";
 
 /**
@@ -75,9 +75,9 @@ function forecast(issuedDays: number): PublicForecast {
   };
 }
 
-describe("3-day rows", () => {
+describe("forecast rows", () => {
   it("maps API periods to table rows in the visitor's units", () => {
-    const rows = threeDayRows(weatherFromForecast(forecast(5)).days);
+    const rows = forecastRows(weatherFromForecast(forecast(5)).days, 3);
     expect(rows).toHaveLength(3);
     const first = rows[0] ?? [];
     expect(first[0]).toBe("Today");
@@ -94,6 +94,12 @@ describe("3-day rows", () => {
     expect(shownIn(rows[2]?.[0], "metric")).toContain("16");
   });
 
+  it("shows tonight plus four days by default", () => {
+    const rows = forecastRows(weatherFromForecast(forecast(5)).days);
+    expect(rows).toHaveLength(5);
+    expect(rows[0]?.[0]).toBe("Today");
+  });
+
   it("falls back to the feed's text for a wind tile with no numbers", () => {
     const days = weatherFromForecast(forecast(1)).days;
     const [day] = days;
@@ -105,14 +111,14 @@ describe("3-day rows", () => {
         { label: "Wind direction", value: "ENE" },
       ],
     };
-    const [row] = threeDayRows([plain]);
+    const [row] = forecastRows([plain]);
     expect(shownIn(row?.[4], "metric")).toBe("ENE 16 mph");
   });
 
   it("says so when a day has no published forecast", () => {
     const days = weatherFromForecast(forecast(1)).days;
     expect(hasIssuedForecast(days)).toBe(true);
-    expect(threeDayRows(days)[2]?.[1]).toBe("No published forecast yet");
+    expect(forecastRows(days)[2]?.[1]).toBe("No published forecast yet");
   });
 
   it("reports nothing issued for an empty or unavailable feed", () => {
@@ -120,7 +126,7 @@ describe("3-day rows", () => {
       false
     );
     expect(hasIssuedForecast(unavailableWeather().days)).toBe(false);
-    expect(threeDayRows([])).toEqual([]);
+    expect(forecastRows([])).toEqual([]);
   });
 });
 
@@ -269,6 +275,84 @@ describe("latest synopsis", () => {
     expect(result?.watch).toEqual([
       "Small Craft Advisory: Choppy seas for small craft.",
       "Dust haze",
+    ]);
+  });
+
+  it("lists an All clear as information after the alerts in force, not as one of them", () => {
+    const advisories = JSON.stringify({
+      complete: true,
+      items: [
+        {
+          source: "Bulletin",
+          title: "Marine",
+          colour: "green",
+          noticeType: "All clear",
+          impacts: "Seas have returned to normal.",
+        },
+        {
+          source: "Bulletin",
+          title: "Heat",
+          colour: "green",
+          noticeType: "Advisory",
+          impacts: "Hot afternoons.",
+        },
+      ],
+    });
+    const result = latestSynopsis([
+      product("morning", "2026-09-14T10:00:00Z", {
+        summary: "Fair.",
+        advisories,
+      }),
+    ]);
+    expect(result?.watch).toEqual([
+      "Heat: Hot afternoons.",
+      "All clear: Marine",
+    ]);
+  });
+
+  it("recognises an older snapshot's All clear with surrounding spaces", () => {
+    const advisories = JSON.stringify({
+      complete: true,
+      items: [
+        {
+          title: "Marine",
+          colour: "green",
+          noticeType: " All clear ",
+          impacts: "Seas have returned to normal.",
+        },
+      ],
+    });
+    const result = latestSynopsis([
+      product("morning", "2026-09-14T10:00:00Z", {
+        summary: "Fair.",
+        advisories,
+      }),
+    ]);
+    expect(result?.watch).toEqual(["All clear: Marine"]);
+  });
+
+  it("keeps an All clear above Green as an alert in force", () => {
+    // Only Green qualifies: an All clear at another level keeps its level.
+    const advisories = JSON.stringify({
+      complete: false,
+      items: [
+        {
+          title: "Marine",
+          colour: "yellow",
+          noticeType: "All clear",
+          impacts: "Choppy seas.",
+        },
+      ],
+    });
+    const result = latestSynopsis([
+      product("morning", "2026-09-14T10:00:00Z", {
+        summary: "Fair.",
+        advisories,
+      }),
+    ]);
+    expect(result?.watch).toEqual([
+      "Marine: Choppy seas.",
+      "Weather alerts could not be fully confirmed when this forecast was issued.",
     ]);
   });
 

@@ -144,6 +144,14 @@ Public pages: `/weather/issued`, `/weather/tropics` (NHC outlook),
 `/alerts/bulletins`, and `/weather/issued/<id>` (the old `/products/*`
 URLs redirect).
 `/marine/forecast` also shows issued marine bulletins.
+Each hazard page (`/alerts/bulletins/<hazard>`, plus the richer `/alerts/cyclone`
+and `/alerts/tsunami`) shows both kinds of notice: yellow, orange and red CAP
+warnings, and the green-level products issued by GMS, which the site calls
+**GMS alerts**. Where GMS has a how-to-prepare page the hazard page links to it
+(`src/lib/hazard-pages.ts`). The old `/alerts/marine` address redirects to
+`/alerts/bulletins/marine` (`ROUTE_MOVES`). The issued-forecast archive
+(`/weather/issued`) lists every product kind; Fisher's forecast reads the
+`marine-forecast` kind.
 All product forms have printable PDF previews, including the restored forecast and marine layouts and complete data sheets. There is no public archive or scheduled NHC collection. Existing legacy product tables and example document components
 remain available; the new desk stores authored drafts/publications separately.
 
@@ -221,7 +229,16 @@ not yet marked [ADR-0051](../adr/0051-gms-product-model.md) Accepted. In force:
   is downloaded by hand; scheduled NHC pulls (every few hours 15 May to 30 November,
   every 6 hours off season) are off by default per environment.
 
+Built since (2 to 4 November 2026, PRs #1029 and #1053):
+
+- The 05:00 Marine Forecast is a forecast (kind `marine-forecast`), valid 05:00 to 05:00
+  the next day for Grenada, Carriacou and Petite Martinique waters. It imports the green
+  alerts and CAP warnings in force, has no typed small-craft field, has its own
+  printable sheet, and is covered by the overdue-forecast reminder at 05:00.
+  The older Small Craft bulletin (kind `marine`) remains a separate bulletin kind.
+
 Not built yet:
 
-- The marine bulletin becomes a 05:00 marine forecast (05:00 to 05:00 next day for
-  Grenada, Carriacou and Petite Martinique waters), with separate green marine alerts.
+- A separate `marine-alert` product kind (ADR-0051 proposed one). There is no such kind
+  in the code; marine hazards use the existing "Marine / Small Craft" and "Coastal Hazard"
+  bulletin categories and CAP.

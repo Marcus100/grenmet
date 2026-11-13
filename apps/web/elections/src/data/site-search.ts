@@ -12,8 +12,8 @@ export interface SiteSearchEntry {
   summary: string;
   title: string;
 }
-const MARKS = /[\u0300-\u036f]/g;
-const PUNCTUATION = /[^a-z0-9]+/g;
+const MARKS = /[\u0300-\u036f]/gu;
+const PUNCTUATION = /[^a-z0-9]+/gu;
 function normalise(value: string) {
   return value
     .normalize("NFD")

@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-08
 
 This guide records the current Barrels Grenada security posture and the rules that keep docs and code aligned. It is not a full organizational security policy; it is the repo-level baseline for engineers.
 
@@ -20,7 +20,9 @@ This guide records the current Barrels Grenada security posture and the rules th
 | Authorization | FastAPI has superuser checks plus role, permission, and scoped role-assignment checks. CAP uses explicit permission keys such as `cap.alert.publish`. |
 | Rate limiting | Login and password recovery/reset endpoints use SlowAPI limits: `10/minute` for login flows and `5/minute` for recovery/reset. |
 | Webhooks | The Resend webhook verifies Svix signatures when `RESEND_WEBHOOK_SECRET` is set. If unset, it logs a warning and accepts events. |
+| CAP feed and import fetches | Registered CAP feeds must be `https` on port 443, with no credentials and no literal private host (checked when the URL is saved). Every fetch re-checks the host resolves to a public address, connects to that checked address, follows no redirects, has a fixed timeout and reads at most 5 MB (`apps/api/fastapi/src/cap/safe_fetch.py`). A feed registered on plain `http` before the rule keeps working for 14 days from the day it was first flagged, then is skipped with the error "plain http no longer allowed" until its URL is changed to `https`. See `apps/api/fastapi/src/cap/AGENTS.md`. |
 | Vulnerability scanning | Image verification blocks fixable high/critical findings before publishing; JSON/SARIF evidence is retained. The initial enforcement candidate still requires remediation and staging acceptance. |
+| Base image supply | Third-party base and service images are pinned by digest and copied by digest from Docker Hub to `ghcr.io/marcus100/base/` by the `Mirror base images` workflow; builds and CI service containers pull the mirror. The workflow's write token never runs repository code. See `docs/operations/ci-base-images.md`. |
 | Error tracking | FastAPI initializes Sentry outside local environments when `SENTRY_DSN` is set. Next.js apps include Sentry instrumentation files and build-time Sentry configuration. |
 | Analytics | Production-only, consent-gated Google Analytics 4 on seven public origins. PostHog is wired in the shared runtime but disabled (all mappings empty). See ADR-0045 and `docs/operations/analytics-monitoring.md`. |
 
@@ -74,6 +76,7 @@ Security-sensitive deployment facts:
 - Compose files use private Docker networks per environment.
 - PostgreSQL is published on the droplet's private IP only (`${CORE_PRIVATE_IP}:5432` in `docker-compose.deploy.yml`, validated as an RFC1918 address by `render-env.py`), never on the public interface. Anything else on the same DigitalOcean VPC can reach it, so a DigitalOcean Cloud Firewall must restrict inbound 5432 to the hosts that need it. Local compose exposes port `5432` for development.
 - Adminer is included in staging and local development. Production compose currently does not include Adminer.
+- Forwarded headers (`X-Forwarded-For`) are trusted by Traefik from nobody, unless `CLOUDFLARE_PROXY_ENABLED` is on; then only from Cloudflare's vendored ranges (`infra/cloudflare/ip-ranges.txt`), with the visitor counted two hops from the right everywhere it is used, the origin firewall limited to the same ranges, and an origin gate that answers 403 to a Cloudflare-address connection without the zone's secret `X-Barrels-Origin` header (added by a Cloudflare Transform Rule, removed before any app sees it), so another Cloudflare customer cannot reach the droplet and choose its own address ([Cloudflare proxy runbook](operations/cloudflare-proxy.md)).
 - Traefik reads Docker only through `traefik-socket-proxy` (read-only container/event endpoints on an internal network); no internet-facing container mounts the Docker socket. Traefik runs read-only with all capabilities dropped except `NET_BIND_SERVICE`.
 - Staging web hosts require `STAGING_BASIC_AUTH_USERS` basic auth and send `X-Robots-Tag: noindex, nofollow`; the staging API sends only the header. Production is unaffected.
 - Every HTTPS request is capped at 100 concurrent requests per client IP; request bodies are limited to 30 MiB at the edge on the API, CMS and staging Adminer (Traefik `buffering`, which also buffers responses). The Next.js web apps have no edge body limit on purpose, because response buffering would break streaming and loading states: Next.js 16 caps server-action bodies at 1 MB by default (no app raises `serverActions.bodySizeLimit`) and no web route accepts file uploads. Access logs are JSON without request headers or query strings.
@@ -82,17 +85,17 @@ Security-sensitive deployment facts:
 
 The following are not globally implemented yet:
 
-- Content Security Policy for all Next.js apps. Traefik already sends HSTS, nosniff, X-Frame-Options and Referrer-Policy on every host. CSP is Report-Only on `docs`, `signal`, `bookings`, `mbia` and `elections` (`packages/ui/src/lib/content-security-policy.ts`, reports go to Sentry where a DSN is set), and on `babydoll` through `apps/web/babydoll/vercel.json`. Enforcement follows a clean 7-day report window per app. Babydoll has no Sentry, so it has no report endpoint: its violations appear only in the browser console, and its 7-day window cannot be measured until a report endpoint exists (follow-up). Remaining without any CSP: admin, auth, cap, cms, events, gaa-admin, gms and gmsdash, which need nonces or a non-nonce policy (handoff §4.2 and §4.3). `barrels` already enforces its own policy in `vercel.json`.
+- Content Security Policy for all Next.js apps. Traefik already sends HSTS, nosniff, X-Frame-Options and Referrer-Policy on every host. CSP is Report-Only on `docs`, `signal`, `bookings`, `mbia` and `elections` (`packages/ui/src/lib/content-security-policy.ts`, reports go to Sentry where a DSN is set), and on `babydoll` through `apps/web/babydoll/vercel.json`. Enforcement follows a clean 7-day report window per app. Babydoll has no Sentry, so it has no report endpoint: its violations appear only in the browser console, and its 7-day window cannot be measured until a report endpoint exists (follow-up). Remaining without any CSP: admin, auth, cap, cms, events, gaa-admin, gms and gmsdash, which need nonces or a non-nonce policy (handoff §4.2 and §4.3). Profile photos (#1303) load through a same-origin link that redirects to the storage host, so a policy for any app that shows them must list that host (the presigned Spaces origin or `STORAGE_PUBLIC_BASE_URL`) in `img-src` (`extra.img`), or every photo falls back to initials. `barrels` already enforces its own policy in `vercel.json`.
 - Complete audit coverage across all domains. Shared HR audit and account-activation history exist; coverage is opt-in.
 - Mandatory MFA for privileged accounts and encryption of stored TOTP secrets. TOTP, recovery codes and app-scoped SSO already exist.
 - Verification of deployed Redis-backed rate limiting configuration; the implementation already supports Redis.
 - WAF or bot-protection layer.
-- Formal backup restore drill evidence.
+- A scheduled restore drill that includes the application check. Manual drills against the production backup passed on 2026-11-04 and 2026-11-09 (`docs/operations/restore-drill.md`).
 - Formal data retention and deletion policy in code for account, HR and Events data (public-form retention is implemented, see Data retention below).
 
 Do not document these as complete controls until code or infrastructure exists.
 
-The [secure development gap check](operations/ssdf-gap-check.md) compares the repository with the NIST SSDF and ranks further gaps, including disabled secret scanning and Dependabot alerts.
+The [secure development gap check](operations/ssdf-gap-check.md) compares the repository with the NIST SSDF and ranks further gaps. Secret scanning with push protection, Dependabot alerts and Dependabot security updates were switched on after that assessment.
 
 ## Supply-chain checks
 
@@ -136,6 +139,55 @@ The scanner exits zero for findings so evidence can be retained before the
 separate policy step rejects the image. This does not suppress scanner errors.
 SARIF upload to the Security tab is reporting; it cannot override the policy
 step. The filesystem scan remains supplemental reporting.
+
+### OS package patch dates
+
+Rebuilding an image does not pick up a newly published OS package fix on its
+own. BuildKit reuses the cached upgrade layer. Every web Dockerfile therefore
+runs `apk upgrade` behind `ARG ALPINE_PATCH_DATE`, and the API's
+`Dockerfile.prod` runs `apt-get upgrade` behind `ARG DEBIAN_PATCH_DATE`.
+Changing the date rebuilds that layer (issue #1142).
+`scripts/ci/image-patch-dates.mjs` manages the dates:
+
+- `check`: every release Dockerfile has a valid date, and each family uses one date.
+- `bump <YYYY-MM-DD> [alpine|debian|all]`: moves the dates forward, never back.
+- `plan <image>=<trivy.json> ...`: applies the exception policy, then lists the
+  Dockerfiles that a bump fixes (blocked OS package findings) and the findings
+  that need a person (language packages).
+- `targets tags <tag>...` or `targets digests "<repo@sha256:…>..."`: the
+  registry images to scan, each with its exception scope, as a workflow matrix.
+
+`.github/workflows/image-scan-daily.yml` scans the `dev`, `staging` and
+`latest` tag of every release image daily from the registry
+(`scan-image` with `source: remote`). When only OS packages block, it bumps the
+patch date and opens a fix pull request into `dev`. It does this with the
+GitHub App named by the repository variable `IMAGE_FIX_APP_ID`, whose private
+key is in the secret `IMAGE_FIX_APP_PRIVATE_KEY`. Without the App, or for
+language package findings, the job fails and lists what to fix.
+`pipeline-staging.yml` also scans each promoted digest before it deploys, so a
+digest that has become vulnerable since its build cannot reach staging.
+
+How the fix job limits the App:
+
+- The App is granted Contents and Pull requests write and nothing else. It must
+  **not** have the Workflows permission (it could then rewrite workflow files),
+  and it must **not** be a bypass actor on any ruleset, so its pull requests
+  need the same checks and review as any other.
+- The workflow requests a token limited to those two permissions
+  (`permission-contents`, `permission-pull-requests`), whatever else the
+  installation allows.
+- Scripts from the `dev` checkout (`image-patch-dates.mjs`,
+  `check-vulnerabilities.mjs`) run only in steps with no token. The token
+  exists in the last step only, which runs `git push` and `gh pr create` and no
+  repository script. Checkouts do not persist credentials.
+- It bumps dates only when a `dev` image is blocked by OS packages. A blocked
+  `staging` or `latest` tag with a clean `dev` is fixed by the next promotion
+  and opens no pull request. It opens none while an `agent/image-patch-*` pull
+  request is still open.
+- The scan jobs check out `main`, so exceptions come from
+  `.github/security/vulnerability-exceptions.json` on `main`. An exception added
+  on `dev` applies to this scan only after promotion, so the daily run can stay
+  red until then.
 
 ### Exceptions
 
@@ -333,6 +385,7 @@ counts only, never addresses or message text.
 | `list_subscription` unsubscribed | Plaintext address nulled at unsubscribe; the row keeps `email_hash` as consent proof. Not purged. |
 | `email_suppression` | Stores only `email_hash`; kept so a bounced or complaining address is never mailed again. |
 | `org.contact` | Plaintext address, name and phone kept while the organisation serves the person. Erasure (`contacts` service, organisation admin) blanks them, revokes consent and keeps `email_hash` plus `erased_at` as a tombstone. No automatic purge yet; the organisation decides. |
+| `user_image` profile photo | Kept while the account exists; the person or HR can remove it at any time. Deleting the account deletes the row and the stored files. Uploads carry no EXIF or GPS metadata. |
 | `page_feedback` comments | Comment nulled after 24 months; the row stays so helpful / not helpful counts do not change. |
 
 Address hash: `hash_email` = HMAC-SHA256 keyed by the `EMAIL_HASH_PEPPER`

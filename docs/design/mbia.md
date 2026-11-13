@@ -271,7 +271,7 @@ States: flight board empty ("No departures scheduled for the rest of today"), st
 
 WCAG 2.2 AA. Photo heroes need a navy overlay sufficient for white text ≥4.5:1; the
 arrivals/departures toggle is a real radio group or tabs; tap targets ≥44px; honour
-`prefers-reduced-motion` for the hover lift and image zooms. The layout renders `SkipLink`. Known gap: `--input` is `--gaa-rule` (below 3:1) — label inputs visibly.
+`prefers-reduced-motion` for the hover lift and image zooms. The layout renders `SkipLink`. Form controls: `--input` is `--gaa-muted` (6.17:1 on white, 5.74:1 on mist), so input, textarea and select outlines meet 1.4.11's 3:1; `--gaa-rule` (1.22:1 on white) is decorative only and must not outline a control. Label inputs visibly.
 
 ## Agent prompt guide
 

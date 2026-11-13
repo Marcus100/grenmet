@@ -24,14 +24,14 @@ export function StatTiles({ stats }: { stats: readonly Stat[] }) {
     >
       {stats.map((stat) => (
         <motion.div
-          className="flex flex-col gap-1 rounded-gm-card border border-gm-border bg-background p-4 lg:p-5"
+          className="rounded-gm-card border-gm-border bg-background flex flex-col gap-1 border p-4 lg:p-5"
           key={stat.label}
           variants={fadeUp}
         >
-          <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
+          <p className="text-gm-text-muted text-label leading-label font-bold tracking-wider uppercase">
             {stat.label}
           </p>
-          <p className="font-bold font-gm-display text-gm-heading text-heading-lg tabular-nums leading-heading-lg">
+          <p className="font-gm-display text-gm-heading text-heading-lg leading-heading-lg font-bold tabular-nums">
             {stat.value}
           </p>
           {stat.detail && (

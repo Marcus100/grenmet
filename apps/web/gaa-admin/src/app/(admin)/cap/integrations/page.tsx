@@ -45,7 +45,7 @@ export default async function IntegrationsPage() {
       </p>
       {groups.map((group) => (
         <section className="space-y-3" key={group.key}>
-          <h2 className="font-semibold text-lg">{group.title}</h2>
+          <h2 className="text-lg font-semibold">{group.title}</h2>
           {(data[group.key] ?? []).length === 0 ? (
             <p>No records reported.</p>
           ) : null}

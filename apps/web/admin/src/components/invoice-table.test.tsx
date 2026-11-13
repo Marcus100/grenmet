@@ -1,11 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { InvoiceEditor } from "@/components/invoice-editor";
-import { InvoiceTable } from "@/components/invoice-table";
+import { type InvoiceRow, InvoiceTable } from "@/components/invoice-table";
 
-const DESCRIPTION_LABEL = /^Description \d$/;
+const DESCRIPTION_LABEL = /^Description \d$/u;
 
-const rows = [
+const rows: InvoiceRow[] = [
   {
     id: "11111111-1111-4111-8111-111111111111",
     number: "BG-2026-0001",

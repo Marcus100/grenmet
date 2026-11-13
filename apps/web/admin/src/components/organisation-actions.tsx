@@ -32,7 +32,7 @@ function Disclosure({
 }) {
   return (
     <details className="rounded-md border p-3">
-      <summary className="cursor-pointer font-medium text-sm">{label}</summary>
+      <summary className="cursor-pointer text-sm font-medium">{label}</summary>
       <div className="mt-3">{children}</div>
     </details>
   );

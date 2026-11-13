@@ -25,6 +25,10 @@ export type HrGetDepartmentRulesStatus403 = ApiError;
  */
 export type HrGetDepartmentRulesStatus422 = ValidationErrorResponse;
 
+/**
+ * @deprecated
+ * @type object
+ */
 export type HrGetDepartmentRulesOptions = {
   body?: never;
   path: HrGetDepartmentRulesPath;

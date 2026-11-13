@@ -29,10 +29,10 @@ function show(
   );
 }
 
-const NOTHING_MORE = /nothing more to do/;
-const REASON = /Reason/;
-const BY_HAND = /refund it by hand/;
-const POLICY_HINT = /more than the\s+cancellation cutoff away/;
+const NOTHING_MORE = /nothing more to do/u;
+const REASON = /Reason/u;
+const BY_HAND = /refund it by hand/u;
+const POLICY_HINT = /more than the\s+cancellation cutoff away/u;
 
 const buttons = () =>
   screen.queryAllByRole("button").map((button) => button.textContent);
@@ -79,7 +79,7 @@ describe("button visibility", () => {
 describe("dialogs", () => {
   it("runs confirm straight away and announces the result", async () => {
     actions.confirmBookingAction.mockResolvedValue({
-      status: "done",
+      status: "success",
       message: "Booking confirmed.",
     });
     show("pending");
@@ -124,7 +124,7 @@ describe("dialogs", () => {
     ["Keep the deposit", "keep"],
   ])("submits the %s choice", async (label, value) => {
     actions.cancelBookingAction.mockResolvedValue({
-      status: "done",
+      status: "success",
       message: "Booking cancelled.",
     });
     show("pending", { refundable: true });
@@ -160,7 +160,7 @@ describe("dialogs", () => {
 
   it("shows a failed refund as an alert and moves focus to it", async () => {
     actions.cancelBookingAction.mockResolvedValue({
-      status: "done",
+      status: "success",
       warning: true,
       message:
         "Booking cancelled. The deposit refund failed; refund it by hand.",
@@ -182,7 +182,7 @@ describe("dialogs", () => {
 
   it("moves focus to the result after a final action", async () => {
     actions.completeBookingAction.mockResolvedValue({
-      status: "done",
+      status: "success",
       message: "Marked as completed.",
     });
     show("confirmed", { started: true });
@@ -224,7 +224,7 @@ describe("dialogs", () => {
 
   it("submits the reason, closes and announces on success", async () => {
     actions.cancelBookingAction.mockResolvedValue({
-      status: "done",
+      status: "success",
       message: "Booking cancelled.",
     });
     show("pending");
@@ -286,7 +286,7 @@ describe("dialogs", () => {
 
   it("confirms a no-show before running it", async () => {
     actions.noShowBookingAction.mockResolvedValue({
-      status: "done",
+      status: "success",
       message: "Marked as a no-show.",
     });
     show("confirmed", { started: true });

@@ -1,44 +1,73 @@
-"""Warn-only roster rule check for a proposed shift exchange.
+"""Roster rule check for a shift exchange (#380).
 
 Applies the exchange to the two employees' published rosters in memory and reports
-only the rule breaches the exchange would introduce, so a pre-existing breach is not
-blamed on the swap. It never blocks approval.
+only the breaches it would introduce, so a pre-existing breach is not blamed on the
+swap. An exchange both employees agreed to is exempt from the 7-day notice rule
+(owner, 2026-10-31). Reversing an approved exchange is a supervisor's change, so it
+is checked including notice. Final approval and reversal enforce these checks: the
+approver must give a reason when a rule breaks.
 """
 
-from datetime import timedelta
-
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import require_permission
-from src.hr.roster.models import (
-    RosterAssignment,
-    RosterPeriod,
-    RosterPeriodStatus,
-    ShiftCatalog,
-)
-from src.hr.roster.rule_service import policy_for, rules_from_policy
+from src.hr.roster import rule_service
 from src.hr.roster.rules import (
     RosterRules,
     RosterShift,
     RuleViolation,
-    check_roster_rules,
+    check_notice,
 )
 from src.hr.roster.service import require_roster_read_scope
+from src.utils.timezones import local_today
 
 from .models import ShiftSwapRequest
 
-_MIN_WINDOW_DAYS = 7
 
+async def swap_violations(
+    session: AsyncSession, swap: ShiftSwapRequest, *, notice: bool = False
+) -> tuple[RosterRules, list[RuleViolation]]:
+    """Breaches from exchanging the two employees' cells on the swap dates. The
+    same exchange applied to the swapped roster reverses it, so reversal uses this
+    with ``notice=True``."""
+    parties = {swap.requesting_user_id, swap.counterpart_user_id}
+    dates = {swap.source_date, swap.target_date}
+    changed: list[rule_service.Cell] = []
 
-def _key(violation: RuleViolation) -> tuple[str, str, str, str]:
-    return (
-        violation.code.value,
-        str(violation.user_id),
-        violation.start_date.isoformat(),
-        violation.end_date.isoformat(),
+    def mutate(cells: rule_service.Cells) -> rule_service.Cells:
+        for day in dates:
+            mine = (swap.requesting_user_id, day)
+            theirs = (swap.counterpart_user_id, day)
+            if mine in cells and theirs in cells:
+                if cells[mine].shift.code != cells[theirs].shift.code:
+                    changed.extend([mine, theirs])
+                mine_shift, their_shift = cells[mine].shift, cells[theirs].shift
+                cells[mine] = RosterShift(
+                    user_id=swap.requesting_user_id,
+                    assignment_date=day,
+                    shift=their_shift,
+                )
+                cells[theirs] = RosterShift(
+                    user_id=swap.counterpart_user_id,
+                    assignment_date=day,
+                    shift=mine_shift,
+                )
+        return cells
+
+    rules, found = await rule_service.change_violations(
+        session,
+        department_id=swap.department_id,
+        user_ids=parties,
+        dates=dates,
+        mutate=mutate,
     )
+    if notice:
+        profiles = await rule_service.profiles_for(session, parties)
+        found += check_notice(
+            changed, today=local_today(), rules=rules, profiles=profiles
+        )
+    return rules, found
 
 
 async def check_swap_rules(
@@ -48,44 +77,4 @@ async def check_swap_rules(
     if current_user.id not in parties:
         require_permission(current_user=current_user, permission_key="roster.view")
         await require_roster_read_scope(session, current_user, swap.department_id)
-    rules = rules_from_policy(await policy_for(session, swap.department_id))
-    if rules == RosterRules():
-        return rules, []
-
-    dates = {swap.source_date, swap.target_date}
-    pad = timedelta(days=max(_MIN_WINDOW_DAYS, rules.max_consecutive_days or 0))
-    rows = (
-        await session.execute(
-            select(RosterAssignment, ShiftCatalog)
-            .join(RosterPeriod, RosterPeriod.id == RosterAssignment.roster_period_id)
-            .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
-            .where(
-                RosterAssignment.user_id.in_(parties),
-                RosterAssignment.assignment_date >= min(dates) - pad,
-                RosterAssignment.assignment_date <= max(dates) + pad,
-                RosterPeriod.status.in_(
-                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                ),
-            )
-        )
-    ).all()
-    cells = {(a.user_id, a.assignment_date): shift for a, shift in rows}
-    before = [
-        RosterShift(user_id=user_id, assignment_date=day, shift=shift)
-        for (user_id, day), shift in cells.items()
-    ]
-    swapped = dict(cells)
-    for day in dates:
-        mine = (swap.requesting_user_id, day)
-        theirs = (swap.counterpart_user_id, day)
-        if mine in cells and theirs in cells:
-            swapped[mine], swapped[theirs] = cells[theirs], cells[mine]
-    after = [
-        RosterShift(user_id=user_id, assignment_date=day, shift=shift)
-        for (user_id, day), shift in swapped.items()
-    ]
-    existing = {_key(v) for v in check_roster_rules(before, rules)}
-    introduced = [
-        v for v in check_roster_rules(after, rules) if _key(v) not in existing
-    ]
-    return rules, introduced
+    return await swap_violations(session, swap)

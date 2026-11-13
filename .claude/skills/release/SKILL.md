@@ -14,9 +14,18 @@ Once the owner has merged, monitor the resulting staging deployment. Main merges
 publication/deployment need separate authorization. Never bypass protection,
 hooks, or failing checks.
 
+**Automation:** when the repository variable `PROMOTE_STAGING_ENABLED` is
+`true` (`gh variable get PROMOTE_STAGING_ENABLED`), the `promote-staging.yml`
+workflow opens and auto-merges the staging PR daily and `staging-smoke.yml`
+tests the deploy. Then do NOT open, edit or merge the staging PR; do not arm
+auto-merge. The remaining review is reading the staging smoke comment (or the
+`staging-smoke` issue) and the signed-in checks. Hold or turn off per
+`docs/operations/staging-promotion-automation.md`. Sections 2 below apply only
+when the automation is off.
+
 **1. Pre-flight**
 Start from the current `origin/dev`; never push `dev` yourself. See
-`AGENTS.md` → Git and GitHub Workflow.
+`docs/agents/workflow.md` → Git and GitHub workflow.
 
 Confirm the latest `dev` CI run is green (`gh run list --branch dev --limit 3`);
 if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
@@ -52,9 +61,10 @@ Obtain separate authorization before merging. Remind the user: merging to main
 builds nothing extra and does not deploy prod.
 
 **4. Release**
-Determine the next `vN.M` tag from `gh release list --limit 3`. Draft release
+Determine the next `vX.Y.Z` tag from `gh release list --limit 3` (tags are
+three-part, e.g. `v1.0.7`). Draft release
 notes from the PRs/commits promoted. Show the exact
-`gh release create vN.M --target main --title "vN.M" --notes "…"` command and
+`gh release create vX.Y.Z --target main --title "vX.Y.Z" --notes "…"` command and
 stop — the user publishes. After publish, watch `pipeline-prod.yml`; note that
 a queued deploy job usually means the self-hosted production runner is offline.
 

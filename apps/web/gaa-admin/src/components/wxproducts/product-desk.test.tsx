@@ -13,30 +13,33 @@ import {
 } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
+import { GmsCatalogueProvider } from "@/components/cap/gms-catalogue";
+import { gmsCatalogueFixture } from "@/test/cap-gms-catalogue.fixture";
 import { ProductDesk } from "./product-desk";
 
-const PUBLICATION_CONFIRMATION = /checked the content/;
+const PUBLICATION_CONFIRMATION = /checked the content/u;
 
-const OPEN_MARINE = /^Open Marine/;
-const ISSUE_DATE_LABEL = /Issue date and time/;
-const FORECASTER_LABEL = /Forecaster on duty/;
-const AREA_LABEL = /Area covered/;
-const SPEED_FROM_LABEL = /Speed from \(mph\)/;
-const WEATHER_SUMMARY_LABEL = /^Weather forecast \*$/;
-const SPEED_TO_LABEL = /Speed to \(mph\)/;
-const WAVES_FROM_LABEL = /Waves from \(ft\)/;
-const WAVES_METRES_HINT = /Waves ≈ 0.55 m/;
-const HIGH_TIDES_LABEL = /High tides \(times\)/;
-const TIDE_TIME_LABEL = /^Tide \d time$/;
-const WIND_SUMMARY_LABEL = /^Wind summary/;
-const MAX_WINDS_LABEL = /Maximum winds and gusts/;
-const DAY_ONE_HEADING = /^Day 1/;
-const EVENT_TIME_LABEL = /Event date and time/;
-const FIELD_LIMIT_ERROR = /forecast field limit/;
+const OPEN_MARINE = /^Open Marine/u;
+const ISSUE_DATE_LABEL = /Issue date and time/u;
+const FORECASTER_LABEL = /Forecaster on duty/u;
+const AREA_LABEL = /Area covered/u;
+const SPEED_FROM_LABEL = /Speed from \(mph\)/u;
+const KNOTS_FROM_LABEL = /Speed from \(kt\)/u;
+const WEATHER_SUMMARY_LABEL = /^Weather forecast \*$/u;
+const SPEED_TO_LABEL = /Speed to \(mph\)/u;
+const WAVES_FROM_LABEL = /Waves from \(ft\)/u;
+const WAVES_METRES_HINT = /Waves ≈ 0.55 m/u;
+const HIGH_TIDES_LABEL = /High tides \(times\)/u;
+const TIDE_TIME_LABEL = /^Tide \d time$/u;
+const WIND_SUMMARY_LABEL = /^Wind summary/u;
+const MAX_WINDS_LABEL = /Maximum winds and gusts/u;
+const DAY_ONE_HEADING = /^Day 1/u;
+const EVENT_TIME_LABEL = /Event date and time/u;
+const FIELD_LIMIT_ERROR = /forecast field limit/u;
 const REVISION_TWO_LINE =
-  /Revision 2 · publish · Ann Forecaster · 2026-10-07T12:00:00Z/;
+  /Revision 2 · publish · Ann Forecaster · 2026-10-07T12:00:00Z/u;
 const REVISION_ONE_LINE =
-  /Revision 1 · save · Ann Forecaster · 2026-10-07T11:00:00Z/;
+  /Revision 1 · save · Ann Forecaster · 2026-10-07T11:00:00Z/u;
 
 const actions = vi.hoisted(() => ({
   loadProductsAction: vi.fn(),
@@ -95,17 +98,19 @@ vi.mock("@barrelsgd/gms/components/product-content", () => ({
 
 function render(ui: ReactElement) {
   return baseRender(
-    <SessionUserProvider
-      user={{
-        id: "u-1",
-        email: "forecaster@gms.gd",
-        full_name: "Signed In Forecaster",
-        is_active: true,
-        is_superuser: false,
-      }}
-    >
-      {ui}
-    </SessionUserProvider>
+    <GmsCatalogueProvider catalogue={gmsCatalogueFixture}>
+      <SessionUserProvider
+        user={{
+          id: "u-1",
+          email: "forecaster@gms.gd",
+          full_name: "Signed In Forecaster",
+          is_active: true,
+          is_superuser: false,
+        }}
+      >
+        {ui}
+      </SessionUserProvider>
+    </GmsCatalogueProvider>
   );
 }
 beforeEach(() => {
@@ -120,7 +125,13 @@ beforeEach(() => {
   URL.revokeObjectURL = vi.fn();
 });
 async function openEditor() {
-  render(<ProductDesk kinds={["morning"]} title="Forecasts" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["morning"]}
+      title="Forecasts"
+    />
+  );
   const button = await screen.findByRole("button", {
     name: "Validate and preview",
   });
@@ -165,7 +176,7 @@ it("shows backend validation errors without offering publication", async () => {
   });
   fireEvent.click(await openEditor());
   await screen.findByText("An expired product cannot be published");
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
 });
 it("does not offer publication when preview is unavailable", async () => {
   actions.previewProductAction.mockResolvedValue({
@@ -174,12 +185,16 @@ it("does not offer publication when preview is unavailable", async () => {
   });
   fireEvent.click(await openEditor());
   await screen.findByText("Preview unavailable");
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
 });
 
 it("shows a tab per forecast kind and switches when the form is clean", async () => {
   render(
-    <ProductDesk kinds={["morning", "midday", "evening"]} title="Forecasts" />
+    <ProductDesk
+      description="Test desk."
+      kinds={["morning", "midday", "evening"]}
+      title="Forecasts"
+    />
   );
   const tabs = screen.getAllByRole("tab");
   expect(tabs).toHaveLength(3);
@@ -212,6 +227,7 @@ it("shows a tab per forecast kind and switches when the form is clean", async ()
 it("uses compact alert tab names and opens the existing earthquake and tsunami editor", async () => {
   render(
     <ProductDesk
+      description="Test desk."
       kinds={[
         "outlook",
         "cyclone",
@@ -256,7 +272,13 @@ it("uses compact alert tab names and opens the existing earthquake and tsunami e
 });
 
 it("keeps evening periods in subtabs without losing edits or rendering PDFs", async () => {
-  render(<ProductDesk kinds={["evening"]} title="Forecasts" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["evening"]}
+      title="Forecasts"
+    />
+  );
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Save draft" })).toBeEnabled()
   );
@@ -331,7 +353,13 @@ it("preserves publication review when switching evening periods and invalidates 
     ok: true,
     preview: { values, errors: [], checked_at: "2026-10-12T22:00:00Z" },
   }));
-  render(<ProductDesk kinds={["evening"]} title="Forecasts" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["evening"]}
+      title="Forecasts"
+    />
+  );
   await waitFor(() =>
     expect(
       screen.getByRole("button", { name: "Validate and preview" })
@@ -339,7 +367,9 @@ it("preserves publication review when switching evening periods and invalidates 
   );
   fireEvent.click(screen.getByRole("button", { name: "Validate and preview" }));
   await screen.findByRole("region", { name: "Publication preview" });
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
   fireEvent.click(screen.getByRole("tab", { name: "Day 2" }));
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
   fireEvent.change(
@@ -357,7 +387,11 @@ it("preserves publication review when switching evening periods and invalidates 
 
 it("asks before switching tabs with unsaved changes", async () => {
   render(
-    <ProductDesk kinds={["morning", "midday", "evening"]} title="Forecasts" />
+    <ProductDesk
+      description="Test desk."
+      kinds={["morning", "midday", "evening"]}
+      title="Forecasts"
+    />
   );
   await waitFor(() =>
     expect(
@@ -401,7 +435,13 @@ it("uses today's fixed forecast slot without redundant date controls", async () 
 });
 
 it("keeps bulletin issue timing editable without duplicate desk controls", async () => {
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   await waitFor(() =>
     expect(
       screen.getByRole("button", { name: "Validate and preview" })
@@ -453,7 +493,13 @@ it("opens older products across kinds from the shared archive and starts new for
     ok: true,
     products: [archived],
   });
-  render(<ProductDesk kinds={["marine", "cyclone"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine", "cyclone"]}
+      title="Bulletins"
+    />
+  );
   fireEvent.click(
     await screen.findByRole("button", {
       name: "Open Evening Forecast 2026-01-01T18:00",
@@ -502,7 +548,13 @@ it("starts a new forecast from the last issued one without carrying over its tim
     ok: true,
     products: [draftOnly, last],
   });
-  render(<ProductDesk kinds={["morning"]} title="Forecasts" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["morning"]}
+      title="Forecasts"
+    />
+  );
   fireEvent.click(
     await screen.findByRole("button", { name: "Start from last issued" })
   );
@@ -537,7 +589,13 @@ it("does not offer to copy the last issued hazard bulletin", async () => {
       },
     ],
   });
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   await screen.findByRole("button", { name: "Load example draft" });
   expect(
     screen.queryByRole("button", { name: "Start from last issued" })
@@ -571,8 +629,8 @@ it("uses compact wind and astronomy rows with preferred units and canonical save
   );
   expect(wind).not.toHaveClass("rounded-lg", "p-4");
   const astronomy = screen.getByRole("region", { name: "Astronomy fields" });
-  const sunrise = within(astronomy).getByLabelText("Sunrise");
-  const sunset = within(astronomy).getByLabelText("Sunset");
+  const sunrise = within(astronomy).getByLabelText("Sunrise tomorrow");
+  const sunset = within(astronomy).getByLabelText("Sunset today");
   expect(sunrise.closest("[data-slot=field]")?.parentElement).toHaveClass(
     "grid-cols-2"
   );
@@ -612,7 +670,7 @@ it("uses compact wind and astronomy rows with preferred units and canonical save
     ?.querySelector("label > span[aria-hidden]");
   expect(visibleLabel).toBeNull();
   expect(min.closest("[data-slot=input-group]")).toHaveTextContent("Min temp");
-  expect(sunrise).toHaveAttribute("placeholder", "Sunrise");
+  expect(sunrise).toHaveAttribute("placeholder", "Sunrise tomorrow");
   expect(screen.getByLabelText("Term")).toHaveAttribute("placeholder", "Term");
   expect(screen.getByLabelText("Meaning")).toHaveAttribute(
     "placeholder",
@@ -656,14 +714,19 @@ it("adds and removes tide rows, shifting later tides up", async () => {
 
 it("gives marine bulletins structured wind while cyclones keep free text", async () => {
   const view = render(
-    <ProductDesk kinds={["marine", "cyclone"]} title="Bulletins" />
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine", "cyclone"]}
+      title="Bulletins"
+    />
   );
   await waitFor(() =>
     expect(
       screen.getByRole("button", { name: "Validate and preview" })
     ).toBeEnabled()
   );
-  expect(screen.getByLabelText(SPEED_FROM_LABEL)).toBeInTheDocument();
+  // Marine alerts take wind in knots (owner, 9 Nov 2026).
+  expect(screen.getByLabelText(KNOTS_FROM_LABEL)).toBeInTheDocument();
   expect(screen.queryByLabelText(WIND_SUMMARY_LABEL)).toBeNull();
   expect(screen.queryByLabelText(FORECASTER_LABEL)).toBeNull();
   expect(screen.getByText("Signed In Forecaster")).toBeInTheDocument();
@@ -690,7 +753,13 @@ it("validates and publishes a bulletin after saving its draft", async () => {
     ok: true,
     preview: { values, errors: [], checked_at: "2026-10-07T12:00:00Z" },
   }));
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   const save = screen.getByRole("button", { name: "Save draft" });
   await waitFor(() => expect(save).toBeEnabled());
   fireEvent.click(save);
@@ -739,18 +808,26 @@ it("shows saved-draft validation errors beside the publication controls", async 
       checked_at: "2026-10-07T12:00:00Z",
     },
   });
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
   const validate = screen.getByRole("button", { name: "Validate and preview" });
   fireEvent.click(validate);
   const message = await screen.findByText("Describe this issue or revision");
-  expect(validate.closest("form")).toContainElement(message);
+  const summary = screen.getByRole("alert");
+  expect(summary).toContainElement(message);
+  expect(summary.closest("form")).not.toBeNull();
   expect(
     screen.getByLabelText("Issue / revision note")
   ).toHaveAccessibleDescription(
     "Required to validate and publish a saved draft, including its first publication."
   );
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
 });
 
 it("snapshots reviewed guidance and requires a fresh review after a system edit", async () => {
@@ -782,7 +859,9 @@ it("snapshots reviewed guidance and requires a fresh review after a system edit"
       },
     })
   );
-  render(<ProductDesk kinds={["outlook"]} title="Alerts" />);
+  render(
+    <ProductDesk description="Test desk." kinds={["outlook"]} title="Alerts" />
+  );
   const validate = screen.getByRole("button", { name: "Validate and preview" });
   await waitFor(() => expect(validate).toBeEnabled());
   fireEvent.click(
@@ -815,7 +894,7 @@ it("snapshots reviewed guidance and requires a fresh review after a system edit"
   fireEvent.change(screen.getByLabelText("System narrative"), {
     target: { value: "Manual override" },
   });
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
   expect(screen.getByText("Changes pending")).toBeInTheDocument();
   expect(actions.previewProductPdfAction).toHaveBeenCalledTimes(1);
   fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
@@ -869,12 +948,20 @@ it("requires a revision note before withdrawing a published product", async () =
     ok: true,
     products: [storedMarine()],
   });
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
 
   fireEvent.click(screen.getByRole("button", { name: "Withdraw publication" }));
   expect(
-    await screen.findByText("Explain the withdrawal in the revision note.")
+    await screen.findByRole("link", {
+      name: "Explain the withdrawal in the revision note.",
+    })
   ).toBeInTheDocument();
   expect(screen.queryByRole("alertdialog")).toBeNull();
 
@@ -911,7 +998,13 @@ it("loads the revision history on request, lists each revision and reports a fai
         },
       ],
     });
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
   const load = screen.getByRole("button", { name: "View revision history" });
 
@@ -947,7 +1040,13 @@ it("tells the forecaster to raise or lower an old draft above green", async () =
       },
     ],
   });
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "raise it to a warning (a CAP alert) or change it to green"

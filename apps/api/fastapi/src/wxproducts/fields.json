@@ -69,22 +69,13 @@
       "section": "Weather",
       "key": "weatherType",
       "label": "Weather type",
-      "options": [
-        "Haze",
-        "Dust haze",
-        "Mist",
-        "Thunder (no rain)",
-        "Fog",
-        "Drizzle",
-        "Light rain",
-        "Moderate rain",
-        "Heavy rain",
-        "Light showers",
-        "Moderate or heavy showers",
-        "Violent showers",
-        "Thunderstorms",
-        "Severe thunderstorms"
-      ],
+      "type": "weather",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "weatherTypeText",
+      "label": "Weather wording",
       "requiredOnPublish": false
     },
     {
@@ -284,15 +275,15 @@
     },
     {
       "section": "Marine",
-      "key": "swellPeriod",
-      "label": "Swell period (s)",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
       "type": "number",
       "requiredOnPublish": false
     },
     {
       "section": "Marine",
-      "key": "swellHeight",
-      "label": "Swell height (m)",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
       "type": "number",
       "requiredOnPublish": false
     },
@@ -506,6 +497,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -513,6 +505,7 @@
       "key": "tide1Time",
       "label": "Tide 1 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -520,6 +513,7 @@
       "key": "tide1Height",
       "label": "Tide 1 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -530,6 +524,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -537,6 +532,7 @@
       "key": "tide2Time",
       "label": "Tide 2 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -544,6 +540,7 @@
       "key": "tide2Height",
       "label": "Tide 2 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -554,6 +551,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -561,6 +559,7 @@
       "key": "tide3Time",
       "label": "Tide 3 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -568,6 +567,7 @@
       "key": "tide3Height",
       "label": "Tide 3 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -578,6 +578,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -585,6 +586,7 @@
       "key": "tide4Time",
       "label": "Tide 4 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -592,6 +594,7 @@
       "key": "tide4Height",
       "label": "Tide 4 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -622,6 +625,22 @@
       "section": "Astronomy",
       "key": "sunset",
       "label": "Sunset",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunsetToday",
+      "label": "Sunset today",
+      "type": "time",
+      "fillFrom": "almanac",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunriseTomorrow",
+      "label": "Sunrise tomorrow",
+      "type": "time",
+      "fillFrom": "almanac",
       "requiredOnPublish": false
     },
     {
@@ -739,22 +758,13 @@
       "section": "Weather",
       "key": "weatherType",
       "label": "Weather type",
-      "options": [
-        "Haze",
-        "Dust haze",
-        "Mist",
-        "Thunder (no rain)",
-        "Fog",
-        "Drizzle",
-        "Light rain",
-        "Moderate rain",
-        "Heavy rain",
-        "Light showers",
-        "Moderate or heavy showers",
-        "Violent showers",
-        "Thunderstorms",
-        "Severe thunderstorms"
-      ],
+      "type": "weather",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "weatherTypeText",
+      "label": "Weather wording",
       "requiredOnPublish": false
     },
     {
@@ -796,6 +806,7 @@
       "label": "Midday temperature at MBIA (°C)",
       "type": "number",
       "required": true,
+      "fillFrom": "register",
       "requiredOnPublish": true
     },
     {
@@ -962,15 +973,15 @@
     },
     {
       "section": "Marine",
-      "key": "swellPeriod",
-      "label": "Swell period (s)",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
       "type": "number",
       "requiredOnPublish": false
     },
     {
       "section": "Marine",
-      "key": "swellHeight",
-      "label": "Swell height (m)",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
       "type": "number",
       "requiredOnPublish": false
     },
@@ -1184,6 +1195,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1191,6 +1203,7 @@
       "key": "tide1Time",
       "label": "Tide 1 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1198,6 +1211,7 @@
       "key": "tide1Height",
       "label": "Tide 1 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1208,6 +1222,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1215,6 +1230,7 @@
       "key": "tide2Time",
       "label": "Tide 2 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1222,6 +1238,7 @@
       "key": "tide2Height",
       "label": "Tide 2 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1232,6 +1249,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1239,6 +1257,7 @@
       "key": "tide3Time",
       "label": "Tide 3 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1246,6 +1265,7 @@
       "key": "tide3Height",
       "label": "Tide 3 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1256,6 +1276,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1263,6 +1284,7 @@
       "key": "tide4Time",
       "label": "Tide 4 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1270,6 +1292,7 @@
       "key": "tide4Height",
       "label": "Tide 4 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1417,22 +1440,13 @@
       "section": "Weather",
       "key": "weatherType",
       "label": "Weather type",
-      "options": [
-        "Haze",
-        "Dust haze",
-        "Mist",
-        "Thunder (no rain)",
-        "Fog",
-        "Drizzle",
-        "Light rain",
-        "Moderate rain",
-        "Heavy rain",
-        "Light showers",
-        "Moderate or heavy showers",
-        "Violent showers",
-        "Thunderstorms",
-        "Severe thunderstorms"
-      ],
+      "type": "weather",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "weatherTypeText",
+      "label": "Weather wording",
       "requiredOnPublish": false
     },
     {
@@ -1631,15 +1645,15 @@
     },
     {
       "section": "Marine",
-      "key": "swellPeriod",
-      "label": "Swell period (s)",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
       "type": "number",
       "requiredOnPublish": false
     },
     {
       "section": "Marine",
-      "key": "swellHeight",
-      "label": "Swell height (m)",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
       "type": "number",
       "requiredOnPublish": false
     },
@@ -1853,6 +1867,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1860,6 +1875,7 @@
       "key": "tide1Time",
       "label": "Tide 1 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1867,6 +1883,7 @@
       "key": "tide1Height",
       "label": "Tide 1 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1877,6 +1894,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1884,6 +1902,7 @@
       "key": "tide2Time",
       "label": "Tide 2 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1891,6 +1910,7 @@
       "key": "tide2Height",
       "label": "Tide 2 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1901,6 +1921,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1908,6 +1929,7 @@
       "key": "tide3Time",
       "label": "Tide 3 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1915,6 +1937,7 @@
       "key": "tide3Height",
       "label": "Tide 3 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1925,6 +1948,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1932,6 +1956,7 @@
       "key": "tide4Time",
       "label": "Tide 4 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -1939,6 +1964,7 @@
       "key": "tide4Height",
       "label": "Tide 4 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2033,23 +2059,38 @@
     },
     {
       "section": "Day 1",
+      "key": "day1Condition",
+      "label": "Conditions",
+      "options": [
+        "Clear",
+        "Fair",
+        "Partly cloudy",
+        "Cloudy",
+        "Overcast"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
       "key": "day1WeatherType",
       "label": "Weather type",
+      "type": "weather",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
+      "key": "day1WeatherTypeText",
+      "label": "Weather wording",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
+      "key": "day1RainChance",
+      "label": "Chance of rain",
       "options": [
-        "Haze",
-        "Dust haze",
-        "Mist",
-        "Thunder (no rain)",
-        "Fog",
-        "Drizzle",
-        "Light rain",
-        "Moderate rain",
-        "Heavy rain",
-        "Light showers",
-        "Moderate or heavy showers",
-        "Violent showers",
-        "Thunderstorms",
-        "Severe thunderstorms"
+        "Low",
+        "Medium",
+        "High"
       ],
       "requiredOnPublish": false
     },
@@ -2227,15 +2268,15 @@
     },
     {
       "section": "Day 1 · Marine",
-      "key": "day1SwellPeriod",
-      "label": "Swell period (s)",
+      "key": "day1SwellHeight",
+      "label": "Swell height (m)",
       "type": "number",
       "requiredOnPublish": false
     },
     {
       "section": "Day 1 · Marine",
-      "key": "day1SwellHeight",
-      "label": "Swell height (m)",
+      "key": "day1SwellPeriod",
+      "label": "Swell period (s)",
       "type": "number",
       "requiredOnPublish": false
     },
@@ -2285,6 +2326,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2292,6 +2334,7 @@
       "key": "day1Tide1Time",
       "label": "Tide 1 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2299,6 +2342,7 @@
       "key": "day1Tide1Height",
       "label": "Tide 1 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2309,6 +2353,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2316,6 +2361,7 @@
       "key": "day1Tide2Time",
       "label": "Tide 2 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2323,6 +2369,7 @@
       "key": "day1Tide2Height",
       "label": "Tide 2 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2333,6 +2380,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2340,6 +2388,7 @@
       "key": "day1Tide3Time",
       "label": "Tide 3 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2347,6 +2396,7 @@
       "key": "day1Tide3Height",
       "label": "Tide 3 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2357,6 +2407,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2364,6 +2415,7 @@
       "key": "day1Tide4Time",
       "label": "Tide 4 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2371,6 +2423,7 @@
       "key": "day1Tide4Height",
       "label": "Tide 4 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2403,23 +2456,38 @@
     },
     {
       "section": "Day 2",
+      "key": "day2Condition",
+      "label": "Conditions",
+      "options": [
+        "Clear",
+        "Fair",
+        "Partly cloudy",
+        "Cloudy",
+        "Overcast"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
       "key": "day2WeatherType",
       "label": "Weather type",
+      "type": "weather",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
+      "key": "day2WeatherTypeText",
+      "label": "Weather wording",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
+      "key": "day2RainChance",
+      "label": "Chance of rain",
       "options": [
-        "Haze",
-        "Dust haze",
-        "Mist",
-        "Thunder (no rain)",
-        "Fog",
-        "Drizzle",
-        "Light rain",
-        "Moderate rain",
-        "Heavy rain",
-        "Light showers",
-        "Moderate or heavy showers",
-        "Violent showers",
-        "Thunderstorms",
-        "Severe thunderstorms"
+        "Low",
+        "Medium",
+        "High"
       ],
       "requiredOnPublish": false
     },
@@ -2597,15 +2665,15 @@
     },
     {
       "section": "Day 2 · Marine",
-      "key": "day2SwellPeriod",
-      "label": "Swell period (s)",
+      "key": "day2SwellHeight",
+      "label": "Swell height (m)",
       "type": "number",
       "requiredOnPublish": false
     },
     {
       "section": "Day 2 · Marine",
-      "key": "day2SwellHeight",
-      "label": "Swell height (m)",
+      "key": "day2SwellPeriod",
+      "label": "Swell period (s)",
       "type": "number",
       "requiredOnPublish": false
     },
@@ -2655,6 +2723,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2662,6 +2731,7 @@
       "key": "day2Tide1Time",
       "label": "Tide 1 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2669,6 +2739,7 @@
       "key": "day2Tide1Height",
       "label": "Tide 1 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2679,6 +2750,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2686,6 +2758,7 @@
       "key": "day2Tide2Time",
       "label": "Tide 2 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2693,6 +2766,7 @@
       "key": "day2Tide2Height",
       "label": "Tide 2 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2703,6 +2777,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2710,6 +2785,7 @@
       "key": "day2Tide3Time",
       "label": "Tide 3 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2717,6 +2793,7 @@
       "key": "day2Tide3Height",
       "label": "Tide 3 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2727,6 +2804,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2734,6 +2812,7 @@
       "key": "day2Tide4Time",
       "label": "Tide 4 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2741,6 +2820,7 @@
       "key": "day2Tide4Height",
       "label": "Tide 4 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -2773,23 +2853,38 @@
     },
     {
       "section": "Day 3",
+      "key": "day3Condition",
+      "label": "Conditions",
+      "options": [
+        "Clear",
+        "Fair",
+        "Partly cloudy",
+        "Cloudy",
+        "Overcast"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
       "key": "day3WeatherType",
       "label": "Weather type",
+      "type": "weather",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
+      "key": "day3WeatherTypeText",
+      "label": "Weather wording",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
+      "key": "day3RainChance",
+      "label": "Chance of rain",
       "options": [
-        "Haze",
-        "Dust haze",
-        "Mist",
-        "Thunder (no rain)",
-        "Fog",
-        "Drizzle",
-        "Light rain",
-        "Moderate rain",
-        "Heavy rain",
-        "Light showers",
-        "Moderate or heavy showers",
-        "Violent showers",
-        "Thunderstorms",
-        "Severe thunderstorms"
+        "Low",
+        "Medium",
+        "High"
       ],
       "requiredOnPublish": false
     },
@@ -2967,15 +3062,15 @@
     },
     {
       "section": "Day 3 · Marine",
-      "key": "day3SwellPeriod",
-      "label": "Swell period (s)",
+      "key": "day3SwellHeight",
+      "label": "Swell height (m)",
       "type": "number",
       "requiredOnPublish": false
     },
     {
       "section": "Day 3 · Marine",
-      "key": "day3SwellHeight",
-      "label": "Swell height (m)",
+      "key": "day3SwellPeriod",
+      "label": "Swell period (s)",
       "type": "number",
       "requiredOnPublish": false
     },
@@ -3025,6 +3120,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3032,6 +3128,7 @@
       "key": "day3Tide1Time",
       "label": "Tide 1 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3039,6 +3136,7 @@
       "key": "day3Tide1Height",
       "label": "Tide 1 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3049,6 +3147,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3056,6 +3155,7 @@
       "key": "day3Tide2Time",
       "label": "Tide 2 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3063,6 +3163,7 @@
       "key": "day3Tide2Height",
       "label": "Tide 2 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3073,6 +3174,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3080,6 +3182,7 @@
       "key": "day3Tide3Time",
       "label": "Tide 3 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3087,6 +3190,7 @@
       "key": "day3Tide3Height",
       "label": "Tide 3 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3097,6 +3201,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3104,6 +3209,7 @@
       "key": "day3Tide4Time",
       "label": "Tide 4 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3111,6 +3217,7 @@
       "key": "day3Tide4Height",
       "label": "Tide 4 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3143,23 +3250,38 @@
     },
     {
       "section": "Day 4",
+      "key": "day4Condition",
+      "label": "Conditions",
+      "options": [
+        "Clear",
+        "Fair",
+        "Partly cloudy",
+        "Cloudy",
+        "Overcast"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
       "key": "day4WeatherType",
       "label": "Weather type",
+      "type": "weather",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
+      "key": "day4WeatherTypeText",
+      "label": "Weather wording",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
+      "key": "day4RainChance",
+      "label": "Chance of rain",
       "options": [
-        "Haze",
-        "Dust haze",
-        "Mist",
-        "Thunder (no rain)",
-        "Fog",
-        "Drizzle",
-        "Light rain",
-        "Moderate rain",
-        "Heavy rain",
-        "Light showers",
-        "Moderate or heavy showers",
-        "Violent showers",
-        "Thunderstorms",
-        "Severe thunderstorms"
+        "Low",
+        "Medium",
+        "High"
       ],
       "requiredOnPublish": false
     },
@@ -3337,15 +3459,15 @@
     },
     {
       "section": "Day 4 · Marine",
-      "key": "day4SwellPeriod",
-      "label": "Swell period (s)",
+      "key": "day4SwellHeight",
+      "label": "Swell height (m)",
       "type": "number",
       "requiredOnPublish": false
     },
     {
       "section": "Day 4 · Marine",
-      "key": "day4SwellHeight",
-      "label": "Swell height (m)",
+      "key": "day4SwellPeriod",
+      "label": "Swell period (s)",
       "type": "number",
       "requiredOnPublish": false
     },
@@ -3395,6 +3517,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3402,6 +3525,7 @@
       "key": "day4Tide1Time",
       "label": "Tide 1 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3409,6 +3533,7 @@
       "key": "day4Tide1Height",
       "label": "Tide 1 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3419,6 +3544,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3426,6 +3552,7 @@
       "key": "day4Tide2Time",
       "label": "Tide 2 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3433,6 +3560,7 @@
       "key": "day4Tide2Height",
       "label": "Tide 2 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3443,6 +3571,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3450,6 +3579,7 @@
       "key": "day4Tide3Time",
       "label": "Tide 3 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3457,6 +3587,7 @@
       "key": "day4Tide3Height",
       "label": "Tide 3 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3467,6 +3598,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3474,6 +3606,7 @@
       "key": "day4Tide4Time",
       "label": "Tide 4 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3481,6 +3614,7 @@
       "key": "day4Tide4Height",
       "label": "Tide 4 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -3594,6 +3728,1070 @@
       "requiredOnPublish": true
     }
   ],
+  "marine-forecast": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "advisories",
+      "label": "Alerts and advisories in force",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Synopsis",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "required": true,
+      "fillFrom": "nhc",
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
+      "required": true,
+      "fillFrom": "nhc",
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "seaStateFrom",
+      "label": "Sea state from",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Seas and swell",
+      "key": "seaStateTo",
+      "label": "Sea state to",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "waveHeightMin",
+      "label": "Waves from (m)",
+      "type": "number",
+      "required": true,
+      "fillFrom": "nhc",
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Seas and swell",
+      "key": "waveHeightMax",
+      "label": "Waves to (m)",
+      "type": "number",
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "swellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "seaState",
+      "label": "Marine summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "weatherType",
+      "label": "Weather type",
+      "type": "weather",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "weatherTypeText",
+      "label": "Weather wording",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Visibility",
+      "key": "visibilityMin",
+      "label": "Visibility from (km)",
+      "type": "number",
+      "required": false,
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Visibility",
+      "key": "visibilityMax",
+      "label": "Visibility to (km)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Visibility",
+      "key": "visibility",
+      "label": "Visibility summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Outlook",
+      "key": "outlook",
+      "label": "Outlook (next 24 hours)",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Type",
+      "label": "Tide 1",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Time",
+      "label": "Tide 1 time",
+      "type": "time",
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Height",
+      "label": "Tide 1 height (m)",
+      "type": "number",
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Type",
+      "label": "Tide 2",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Time",
+      "label": "Tide 2 time",
+      "type": "time",
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Height",
+      "label": "Tide 2 height (m)",
+      "type": "number",
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Type",
+      "label": "Tide 3",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Time",
+      "label": "Tide 3 time",
+      "type": "time",
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Height",
+      "label": "Tide 3 height (m)",
+      "type": "number",
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Type",
+      "label": "Tide 4",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Time",
+      "label": "Tide 4 time",
+      "type": "time",
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Height",
+      "label": "Tide 4 height (m)",
+      "type": "number",
+      "fillFrom": "tides",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunrise",
+      "label": "Sunrise",
+      "type": "time",
+      "fillFrom": "almanac",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunset",
+      "label": "Sunset",
+      "type": "time",
+      "fillFrom": "almanac",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "moonrise",
+      "label": "Moonrise",
+      "type": "time",
+      "fillFrom": "almanac",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "moonset",
+      "label": "Moonset",
+      "type": "time",
+      "fillFrom": "almanac",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "moonPhase",
+      "label": "Moon phase",
+      "options": [
+        "New moon",
+        "Waxing crescent",
+        "First quarter",
+        "Waxing gibbous",
+        "Full moon",
+        "Waning gibbous",
+        "Last quarter",
+        "Waning crescent"
+      ],
+      "fillFrom": "almanac",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "moonPhaseDate",
+      "label": "Next principal phase date",
+      "type": "date",
+      "fillFrom": "almanac",
+      "requiredOnPublish": false
+    }
+  ],
+  "climate-bulletin": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "volume",
+      "label": "Volume",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "issue",
+      "label": "Issue number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "month",
+      "label": "Month reviewed (YYYY-MM)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "contacts",
+      "label": "Contacts for more information (one per line)",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Climate drivers",
+      "key": "enso",
+      "label": "El Niño-Southern Oscillation (ENSO)",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Climate drivers",
+      "key": "sst",
+      "label": "Sea surface temperatures (SSTs)",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Standardized Precipitation Index",
+      "key": "spi1",
+      "label": "SPI, month reviewed",
+      "options": [
+        "Exceptionally Dry",
+        "Extremely Dry",
+        "Severely Dry",
+        "Moderately Dry",
+        "Abnormally Dry",
+        "Normal",
+        "Abnormally Wet",
+        "Moderately Wet",
+        "Severely Wet",
+        "Extremely Wet",
+        "Exceptionally Wet"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Standardized Precipitation Index",
+      "key": "spi3",
+      "label": "SPI, 3 months",
+      "options": [
+        "Exceptionally Dry",
+        "Extremely Dry",
+        "Severely Dry",
+        "Moderately Dry",
+        "Abnormally Dry",
+        "Normal",
+        "Abnormally Wet",
+        "Moderately Wet",
+        "Severely Wet",
+        "Extremely Wet",
+        "Exceptionally Wet"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Standardized Precipitation Index",
+      "key": "spi6",
+      "label": "SPI, 6 months",
+      "options": [
+        "Exceptionally Dry",
+        "Extremely Dry",
+        "Severely Dry",
+        "Moderately Dry",
+        "Abnormally Dry",
+        "Normal",
+        "Abnormally Wet",
+        "Moderately Wet",
+        "Severely Wet",
+        "Extremely Wet",
+        "Exceptionally Wet"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Standardized Precipitation Index",
+      "key": "spi12",
+      "label": "SPI, 12 months",
+      "options": [
+        "Exceptionally Dry",
+        "Extremely Dry",
+        "Severely Dry",
+        "Moderately Dry",
+        "Abnormally Dry",
+        "Normal",
+        "Abnormally Wet",
+        "Moderately Wet",
+        "Severely Wet",
+        "Extremely Wet",
+        "Exceptionally Wet"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Potential evapotranspiration",
+      "key": "pet",
+      "label": "Potential evapotranspiration (mm/day)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Potential evapotranspiration",
+      "key": "petRatio",
+      "label": "Atmospheric water demand compared with supply (times)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Precipitation outlook",
+      "key": "precipOutlook",
+      "label": "Precipitation outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Precipitation outlook",
+      "key": "precipRangeMin",
+      "label": "Normal range for the season (mm), from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Precipitation outlook",
+      "key": "precipRangeMax",
+      "label": "Normal range for the season (mm), to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wet days",
+      "key": "wetDaysOutlook",
+      "label": "Wet days outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wet days",
+      "key": "wetDaysMin",
+      "label": "Usual number of wet days, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wet days",
+      "key": "wetDaysMax",
+      "label": "Usual number of wet days, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wet days",
+      "key": "wetDaysImplication",
+      "label": "Implication",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "7-day wet spells (20% wettest)",
+      "key": "wetSpellsOutlook",
+      "label": "7-day wet spells outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "7-day wet spells (20% wettest)",
+      "key": "wetSpellsMin",
+      "label": "Historical number of 7-day wet spells, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "7-day wet spells (20% wettest)",
+      "key": "wetSpellsMax",
+      "label": "Historical number of 7-day wet spells, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "7-day wet spells (20% wettest)",
+      "key": "wetSpellsImplication",
+      "label": "Implication",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Extreme 3-day wet spells (1% wettest)",
+      "key": "extremeSpellsOutlook",
+      "label": "Extreme 3-day wet spells outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Extreme 3-day wet spells (1% wettest)",
+      "key": "extremeSpellsMin",
+      "label": "Historical number of extreme 3-day wet spells (leave 'from' empty or 0 for 'up to'), from",
+      "type": "number",
+      "required": false,
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Extreme 3-day wet spells (1% wettest)",
+      "key": "extremeSpellsMax",
+      "label": "Historical number of extreme 3-day wet spells (leave 'from' empty or 0 for 'up to'), to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Extreme 3-day wet spells (1% wettest)",
+      "key": "extremeSpellsImplication",
+      "label": "Implication",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMeanOutlook",
+      "label": "Mean temperature outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMaxOutlook",
+      "label": "Maximum (daytime) temperature outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMaxRangeMin",
+      "label": "Normal maximum temperature (°C), from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMaxRangeMax",
+      "label": "Normal maximum temperature (°C), to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMinOutlook",
+      "label": "Minimum (night-time) temperature outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMinRangeMin",
+      "label": "Normal minimum temperature (°C), from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMinRangeMax",
+      "label": "Normal minimum temperature (°C), to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "heatStress",
+      "label": "Potential heat stress (optional; adds the table)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Temperature",
+      "key": "extremeHeat",
+      "label": "Extreme heat (optional; adds the table)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Drought outlook",
+      "key": "droughtOutlook",
+      "label": "Drought outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactAgriculture",
+      "label": "Agriculture",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactWater",
+      "label": "Water",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactHealth",
+      "label": "Health",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactTourism",
+      "label": "Tourism",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactDrm",
+      "label": "Disaster Risk Management",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactEnergy",
+      "label": "Energy",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactFisheries",
+      "label": "Fisheries",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactInfrastructure",
+      "label": "Infrastructure",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "General implications",
+      "key": "generalImplications",
+      "label": "General implications",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyRainfallOutlook",
+      "label": "Rainfall (mm), outlook",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyRainfallRangeMin",
+      "label": "Rainfall (mm), normal range, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyRainfallRangeMax",
+      "label": "Rainfall (mm), normal range, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyRainfallObserved",
+      "label": "Rainfall (mm), observed",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetDaysOutlook",
+      "label": "Wet days, outlook",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetDaysRangeMin",
+      "label": "Wet days, normal range, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetDaysRangeMax",
+      "label": "Wet days, normal range, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetDaysObserved",
+      "label": "Wet days, observed",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetSpellOutlook",
+      "label": "7-day wet spell, outlook",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetSpellRangeMin",
+      "label": "7-day wet spell, normal range, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetSpellRangeMax",
+      "label": "7-day wet spell, normal range, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetSpellObserved",
+      "label": "7-day wet spell, observed",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTmaxOutlook",
+      "label": "Tmax (°C), outlook",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTmaxRangeMin",
+      "label": "Tmax (°C), normal range, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTmaxRangeMax",
+      "label": "Tmax (°C), normal range, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTmaxObserved",
+      "label": "Tmax (°C), observed",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTminOutlook",
+      "label": "Tmin (°C), outlook",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTminRangeMin",
+      "label": "Tmin (°C), normal range, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTminRangeMax",
+      "label": "Tmin (°C), normal range, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTminObserved",
+      "label": "Tmin (°C), observed",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Trivia",
+      "key": "triviaAnswer",
+      "label": "Last month's question and its answer",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Trivia",
+      "key": "triviaQuestion",
+      "label": "This month's question, with options",
+      "type": "textarea",
+      "requiredOnPublish": false
+    }
+  ],
   "cyclone": [
     {
       "section": "Issue details",
@@ -3647,6 +4845,12 @@
     },
     {
       "section": "Bulletin",
+      "key": "reference",
+      "label": "Archive reference",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
       "key": "level",
       "label": "Colour level",
       "options": [
@@ -3658,7 +4862,7 @@
     {
       "section": "Bulletin",
       "key": "notice",
-      "label": "Notice type",
+      "label": "Bulletin purpose",
       "options": [
         "Information",
         "Advisory",
@@ -3676,38 +4880,38 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "systemName",
       "label": "System name / identifier",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "position",
       "label": "Location / coordinates",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "movement",
       "label": "Movement (include units)",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "wind",
       "label": "Maximum winds and gusts (include units)",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "pressure",
       "label": "Central pressure (hPa)",
       "type": "number",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "track",
       "label": "Expected track and timing",
       "type": "textarea",
@@ -3823,6 +5027,12 @@
     },
     {
       "section": "Bulletin",
+      "key": "reference",
+      "label": "Archive reference",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
       "key": "level",
       "label": "Colour level",
       "options": [
@@ -3834,7 +5044,7 @@
     {
       "section": "Bulletin",
       "key": "notice",
-      "label": "Notice type",
+      "label": "Bulletin purpose",
       "options": [
         "Information",
         "Advisory",
@@ -3852,7 +5062,7 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "weather",
       "label": "Weather",
       "type": "textarea",
@@ -3904,6 +5114,7 @@
         "Variable"
       ],
       "required": true,
+      "fillFrom": "nhc",
       "requiredOnPublish": true
     },
     {
@@ -3929,6 +5140,7 @@
         "NNW",
         "Variable"
       ],
+      "fillFrom": "nhc",
       "requiredOnPublish": false
     },
     {
@@ -3937,6 +5149,7 @@
       "label": "Speed from (kt)",
       "type": "number",
       "required": true,
+      "fillFrom": "nhc",
       "requiredOnPublish": true
     },
     {
@@ -3944,6 +5157,7 @@
       "key": "windSpeedMax",
       "label": "Speed to (kt)",
       "type": "number",
+      "fillFrom": "nhc",
       "requiredOnPublish": false
     },
     {
@@ -3951,6 +5165,7 @@
       "key": "windGust",
       "label": "Gusts (kt)",
       "type": "number",
+      "fillFrom": "nhc",
       "requiredOnPublish": false
     },
     {
@@ -4002,6 +5217,7 @@
       "label": "Waves from (m)",
       "type": "number",
       "required": true,
+      "fillFrom": "nhc",
       "requiredOnPublish": true
     },
     {
@@ -4009,6 +5225,7 @@
       "key": "waveHeightMax",
       "label": "Waves to (m)",
       "type": "number",
+      "fillFrom": "nhc",
       "requiredOnPublish": false
     },
     {
@@ -4038,15 +5255,15 @@
     },
     {
       "section": "Marine",
-      "key": "swellPeriod",
-      "label": "Swell period (s)",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
       "type": "number",
       "requiredOnPublish": false
     },
     {
       "section": "Marine",
-      "key": "swellHeight",
-      "label": "Swell height (m)",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
       "type": "number",
       "requiredOnPublish": false
     },
@@ -4064,6 +5281,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4071,6 +5289,7 @@
       "key": "tide1Time",
       "label": "Tide 1 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4078,6 +5297,7 @@
       "key": "tide1Height",
       "label": "Tide 1 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4088,6 +5308,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4095,6 +5316,7 @@
       "key": "tide2Time",
       "label": "Tide 2 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4102,6 +5324,7 @@
       "key": "tide2Height",
       "label": "Tide 2 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4112,6 +5335,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4119,6 +5343,7 @@
       "key": "tide3Time",
       "label": "Tide 3 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4126,6 +5351,7 @@
       "key": "tide3Height",
       "label": "Tide 3 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4136,6 +5362,7 @@
         "High",
         "Low"
       ],
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4143,6 +5370,7 @@
       "key": "tide4Time",
       "label": "Tide 4 time",
       "type": "time",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4150,6 +5378,7 @@
       "key": "tide4Height",
       "label": "Tide 4 height (m)",
       "type": "number",
+      "fillFrom": "tides",
       "requiredOnPublish": false
     },
     {
@@ -4310,6 +5539,12 @@
     },
     {
       "section": "Bulletin",
+      "key": "reference",
+      "label": "Archive reference",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
       "key": "level",
       "label": "Colour level",
       "options": [
@@ -4321,7 +5556,7 @@
     {
       "section": "Bulletin",
       "key": "notice",
-      "label": "Notice type",
+      "label": "Bulletin purpose",
       "options": [
         "Information",
         "Advisory",
@@ -4339,13 +5574,13 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "rainfall",
       "label": "Expected rainfall, duration and units",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "flooding",
       "label": "Flood-prone areas / river conditions",
       "type": "textarea",
@@ -4461,6 +5696,12 @@
     },
     {
       "section": "Bulletin",
+      "key": "reference",
+      "label": "Archive reference",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
       "key": "level",
       "label": "Colour level",
       "options": [
@@ -4472,7 +5713,7 @@
     {
       "section": "Bulletin",
       "key": "notice",
-      "label": "Notice type",
+      "label": "Bulletin purpose",
       "options": [
         "Information",
         "Advisory",
@@ -4490,14 +5731,14 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "storms",
       "label": "Storm timing, coverage and intensity",
       "type": "textarea",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "hazards",
       "label": "Lightning, gusts, hail and rainfall",
       "type": "textarea",
@@ -4613,6 +5854,12 @@
     },
     {
       "section": "Bulletin",
+      "key": "reference",
+      "label": "Archive reference",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
       "key": "level",
       "label": "Colour level",
       "options": [
@@ -4624,7 +5871,7 @@
     {
       "section": "Bulletin",
       "key": "notice",
-      "label": "Notice type",
+      "label": "Bulletin purpose",
       "options": [
         "Information",
         "Advisory",
@@ -4830,6 +6077,12 @@
     },
     {
       "section": "Bulletin",
+      "key": "reference",
+      "label": "Archive reference",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
       "key": "level",
       "label": "Colour level",
       "options": [
@@ -4841,7 +6094,7 @@
     {
       "section": "Bulletin",
       "key": "notice",
-      "label": "Notice type",
+      "label": "Bulletin purpose",
       "options": [
         "Information",
         "Advisory",
@@ -5057,6 +6310,12 @@
     },
     {
       "section": "Bulletin",
+      "key": "reference",
+      "label": "Archive reference",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
       "key": "level",
       "label": "Colour level",
       "options": [
@@ -5068,7 +6327,7 @@
     {
       "section": "Bulletin",
       "key": "notice",
-      "label": "Notice type",
+      "label": "Bulletin purpose",
       "options": [
         "Information",
         "Advisory",
@@ -5086,7 +6345,7 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "dust",
       "label": "Dust / haze concentration and extent",
       "type": "textarea",
@@ -5223,6 +6482,12 @@
     },
     {
       "section": "Bulletin",
+      "key": "reference",
+      "label": "Archive reference",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
       "key": "level",
       "label": "Colour level",
       "options": [
@@ -5234,7 +6499,7 @@
     {
       "section": "Bulletin",
       "key": "notice",
-      "label": "Notice type",
+      "label": "Bulletin purpose",
       "options": [
         "Information",
         "Advisory",
@@ -5297,13 +6562,13 @@
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "surge",
       "label": "Surge / coastal inundation (include units)",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "tides",
       "label": "High tides and affected coastlines",
       "requiredOnPublish": false
@@ -5418,6 +6683,12 @@
     },
     {
       "section": "Bulletin",
+      "key": "reference",
+      "label": "Archive reference",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
       "key": "level",
       "label": "Colour level",
       "options": [
@@ -5429,7 +6700,7 @@
     {
       "section": "Bulletin",
       "key": "notice",
-      "label": "Notice type",
+      "label": "Bulletin purpose",
       "options": [
         "Information",
         "Advisory",
@@ -5447,31 +6718,31 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "source",
       "label": "Event source / official bulletin reference",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "eventTime",
       "label": "Event date and time (include time zone)",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "location",
       "label": "Event location and magnitude",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "arrival",
       "label": "Expected arrival times (include time zone)",
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Weather",
       "key": "waveHeight",
       "label": "Expected wave heights (include units)",
       "requiredOnPublish": false

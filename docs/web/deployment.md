@@ -24,6 +24,7 @@ The build workflow publishes these images under `ghcr.io/marcus100/`:
 | CAP alert hub | `barrelsgd-web-cap` |
 | GMS Dashboard | `barrelsgd-web-gmsdash` |
 | Bookings | `barrelsgd-web-bookings` |
+| Account | `barrelsgd-web-account` |
 
 FastAPI is built separately as `ghcr.io/marcus100/grenmet`. Staging uses tag
 `staging`; production releases use the same release tag for every image,

@@ -1,4 +1,4 @@
-export const sentryIgnoredSpans = [/.*/];
+export const sentryIgnoredSpans = [/.*/u];
 
 /** Explicit opt-outs keep SDK upgrades from broadening customer-data collection. */
 export const sentryDataCollection = {
@@ -55,7 +55,7 @@ const SAFE_TAGS = new Set([
   "user_id",
 ]);
 
-const OPAQUE_ID = /^[A-Za-z0-9_-]{1,64}$/;
+const OPAQUE_ID = /^[A-Za-z0-9_-]{1,64}$/u;
 
 /** UUID or short token; rejects emails, names and anything with spaces or "@". */
 function isOpaqueId(value: unknown): value is string {

@@ -1,6 +1,8 @@
 """Apply the final approval and its accounting effects in the workflow transaction."""
 
 import uuid
+from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,14 +19,37 @@ from src.hr.leave.models import (
 )
 from src.hr.models import RequestStatus
 from src.hr.parking.models import ParkingPermit
-from src.hr.timesheet.models import Timesheet, TimesheetStatus
+from src.hr.timesheet import transitions as timesheet_transitions
+from src.hr.timesheet.models import Timesheet
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus
+from src.hr.workflow.transitions import (
+    mirror_request_status,
+    request_status_for,
+)
 from src.utils.datetime import utc_now
 
 
+def _hours_between(start: datetime, end: datetime, break_minutes: int) -> Decimal:
+    seconds = Decimal(str((end - start).total_seconds())) - Decimal(break_minutes * 60)
+    return (seconds / Decimal(3600)).quantize(Decimal("0.01"))
+
+
 async def finalize_entity(
-    session: AsyncSession, instance: WorkflowInstance, actor_id: uuid.UUID
+    session: AsyncSession,
+    instance: WorkflowInstance,
+    actor_id: uuid.UUID,
+    *,
+    rule_override_reason: str | None = None,
 ) -> None:
+    """Apply a decision's effects. Roster rule checks (#380) run first and raise
+    409 warnings unless ``rule_override_reason`` is given."""
+    from src.hr.roster import change_checks
+
+    if instance.entity_type == "pay_period":
+        from src.hr.payroll import service as payroll_service
+
+        await payroll_service.finalize_review(session, instance, actor_id)
+        return
     if instance.entity_type == "attendance_correction":
         from src.hr.attendance.models import AttendanceCorrection, AttendanceRecord
         from src.hr.workflow.models import WorkflowType
@@ -50,6 +75,20 @@ async def finalize_entity(
         if instance.status == WorkflowStatus.APPROVED:
             if attendance.revision != correction.expected_revision:
                 raise AppException("Attendance changed; propose a new correction", 409)
+            await change_checks.check_attendance_approval(
+                session,
+                record=attendance,
+                hours=_hours_between(
+                    correction.arrived_at,
+                    correction.departed_at,
+                    correction.break_minutes,
+                ),
+                breaks_recorded=correction.break_minutes > 0,
+                actor_id=actor_id,
+                reason=rule_override_reason,
+                entity_type="attendance_correction",
+                entity_id=correction.id,
+            )
             attendance.arrived_at = correction.arrived_at
             attendance.departed_at = correction.departed_at
             attendance.break_minutes = correction.break_minutes
@@ -71,6 +110,19 @@ async def finalize_entity(
             or attendance.departed_at is None
         ):
             raise AppException("Workflow does not match this attendance revision", 409)
+        if instance.status == WorkflowStatus.APPROVED:
+            from src.hr.attendance.service import actual_hours
+
+            await change_checks.check_attendance_approval(
+                session,
+                record=attendance,
+                hours=actual_hours(attendance),
+                breaks_recorded=attendance.break_minutes > 0,
+                actor_id=actor_id,
+                reason=rule_override_reason,
+                entity_type="attendance",
+                entity_id=attendance.id,
+            )
         return
     if instance.entity_type == "timesheet":
         timesheet = await session.get(Timesheet, instance.entity_id)
@@ -98,13 +150,16 @@ async def finalize_entity(
             ):
                 raise AppException("Workflow does not match this timesheet", 409)
             approved = instance.status == WorkflowStatus.APPROVED
-            if instance.status == WorkflowStatus.RETURNED:
-                timesheet_status = TimesheetStatus.RETURNED
-            elif approved:
-                timesheet_status = TimesheetStatus.APPROVED
-            else:
-                timesheet_status = TimesheetStatus.REJECTED
-            timesheet.status = timesheet_status
+            if approved:
+                await change_checks.check_timesheet_approval(
+                    session,
+                    timesheet=timesheet,
+                    actor_id=actor_id,
+                    reason=rule_override_reason,
+                )
+            timesheet_transitions.move_timesheet(
+                timesheet, timesheet_transitions.workflow_move_for(instance.status)
+            )
             timesheet.approved_by_user_id = actor_id if approved else None
             timesheet.approved_at = utc_now() if approved else None
             timesheet.updated_at = utc_now()
@@ -140,17 +195,19 @@ async def finalize_entity(
     }[instance.entity_type]
     if instance.workflow_type.value != expected_type:
         raise AppException("Workflow type does not match this HR record", 409)
-    targets = {
-        WorkflowStatus.APPROVED: RequestStatus.APPROVED,
-        WorkflowStatus.REJECTED: RequestStatus.REJECTED,
-        WorkflowStatus.RETURNED: RequestStatus.RETURNED,
-        WorkflowStatus.CANCELLED: RequestStatus.CANCELLED,
-    }
-    target = targets.get(instance.status)
+    target = request_status_for(instance.status)
     if target is None:
         return
     if entity.status == target:
         return
+    if (
+        isinstance(entity, (LeaveRequest, AbsenteeReport))
+        and target == RequestStatus.CANCELLED
+        and entity.status == RequestStatus.APPROVED
+    ):
+        await change_checks.check_cancelled_absence(
+            session, entity=entity, actor_id=actor_id, reason=rule_override_reason
+        )
     if isinstance(entity, LeaveRequest) and target == RequestStatus.CANCELLED:
         await ledger.reverse_approval(session, request=entity, actor_id=actor_id)
     if isinstance(entity, ShiftSwapRequest) and target == RequestStatus.APPROVED:
@@ -160,6 +217,9 @@ async def finalize_entity(
             raise AppException(
                 "The other employee must agree before final approval", 400
             )
+        await change_checks.check_swap_approval(
+            session, swap=entity, actor_id=actor_id, reason=rule_override_reason
+        )
         await roster_effects.apply_exchange(session, entity, actor_id)
     if (
         isinstance(entity, LeaveRequest)
@@ -185,6 +245,6 @@ async def finalize_entity(
             actor_id=actor_id,
             leave_request_id=entity.id,
         )
-    entity.status = target
+    mirror_request_status(entity, instance.status)
     entity.updated_at = utc_now()
     session.add(entity)

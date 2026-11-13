@@ -3,6 +3,7 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
+import type { FormState } from "@barrelsgd/ui/lib/form-state";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
@@ -12,12 +13,6 @@ import {
 } from "@/lib/alert-signup";
 import { reportError } from "@/lib/report-error";
 
-type FormState =
-  | { status: "idle" }
-  | { status: "submitting" }
-  | { status: "success" }
-  | { status: "error"; message: string };
-
 /** Outcome of the emailed confirm or unsubscribe link, from `?result=`. */
 export function AlertSignupResult() {
   const result = useSearchParams().get("result");
@@ -26,7 +21,7 @@ export function AlertSignupResult() {
   }
   return (
     <p
-      className="mb-6 rounded border-gm-border border-l-4 bg-gm-surface px-4 py-3 text-body-base text-gm-heading"
+      className="border-gm-border bg-gm-surface text-body-base text-gm-heading mb-6 rounded border-l-4 px-4 py-3"
       role="status"
     >
       {SIGNUP_RESULTS[result]}
@@ -92,7 +87,7 @@ export function AlertEmailSignup() {
   if (state.status === "success") {
     return (
       <p
-        className="rounded border-gm-border border-l-4 bg-gm-surface px-4 py-3 text-body-base text-gm-heading"
+        className="border-gm-border bg-gm-surface text-body-base text-gm-heading rounded border-l-4 px-4 py-3"
         role="status"
       >
         Check your email to confirm. We will only send alerts once you click the
@@ -114,9 +109,9 @@ export function AlertEmailSignup() {
           type="email"
         />
       </div>
-      <label className="flex items-start gap-3 text-body-base">
+      <label className="text-body-base flex items-start gap-3">
         <input
-          className="mt-1 size-5 shrink-0 accent-primary"
+          className="accent-primary mt-1 size-5 shrink-0"
           name="consent"
           required
           type="checkbox"
@@ -130,7 +125,7 @@ export function AlertEmailSignup() {
         {state.status === "submitting" ? "Sending…" : "Email me alerts"}
       </Button>
       {state.status === "error" && (
-        <p className="font-medium text-body-base text-destructive" role="alert">
+        <p className="text-body-base text-destructive font-medium" role="alert">
           {state.message}
         </p>
       )}

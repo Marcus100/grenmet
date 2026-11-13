@@ -44,15 +44,15 @@ export function NavUser({ user }: { readonly user: NavUserData }) {
               />
             }
           >
-            <Avatar className="h-8 w-8 rounded-lg grayscale">
-              <AvatarImage alt={user.name} src={user.avatar || undefined} />
+            <Avatar className="h-8 w-8 rounded-lg">
+              <AvatarImage alt="" src={user.avatar || undefined} />
               <AvatarFallback className="rounded-lg">
                 {getInitials(user.name)}
               </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
-              <span className="truncate text-muted-foreground text-xs">
+              <span className="text-muted-foreground truncate text-xs">
                 {user.email}
               </span>
             </div>

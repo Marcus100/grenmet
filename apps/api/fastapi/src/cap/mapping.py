@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.cap.common import feed_grace_ends_at, feed_grace_expired, is_plain_http
 from src.cap.exceptions import (
     CapAlertNotFoundError,
 )
@@ -14,18 +15,22 @@ from src.cap.models import (
     CapAlert,
     CapArea,
     CapCategory,
+    CapFeedImport,
     CapInfo,
     CapPredefinedArea,
 )
 from src.cap.schemas import (
     CapAlertPublic,
     CapAreaPublic,
+    CapFeedImportPublic,
     CapInfoPublic,
     CapNameValue,
     CapPredefinedAreaPublic,
     CapReferencePublic,
     CapResourcePublic,
 )
+from src.cap.transitions import allowed_actions
+from src.utils.datetime import utc_now
 
 
 def _as_categories(values: list[str]) -> list[CapCategory]:
@@ -92,6 +97,9 @@ def _to_public_from_loaded(
         id=alert.id,
         identifier=alert.identifier,
         sender=alert.sender,
+        schema_conformant=alert.schema_conformant,
+        schema_error=alert.schema_error,
+        import_source=alert.import_source,
         sent=alert.sent,
         status=alert.status,
         msg_type=alert.msg_type,
@@ -102,6 +110,7 @@ def _to_public_from_loaded(
         codes=list(alert.codes or []),
         note=alert.note,
         lifecycle_state=alert.lifecycle_state,
+        allowed_actions=allowed_actions(alert.lifecycle_state),
         created_by_user_id=alert.created_by_user_id,
         updated_by_user_id=alert.updated_by_user_id,
         submitted_at=alert.submitted_at,
@@ -181,3 +190,17 @@ def _predefined_area_to_public(area: CapPredefinedArea) -> CapPredefinedAreaPubl
         created_at=area.created_at,
         updated_at=area.updated_at,
     )
+
+
+def feed_to_public(feed: CapFeedImport) -> CapFeedImportPublic:
+    """A feed row with its plain-http grace state worked out at read time."""
+    public = CapFeedImportPublic.model_validate(feed, from_attributes=True)
+    if not is_plain_http(feed.url):
+        # A stale flag on a feed that is now https is not shown.
+        public.insecure_since = None
+        public.grace_ends_at = None
+        public.grace_expired = False
+        return public
+    public.grace_ends_at = feed_grace_ends_at(feed.insecure_since)
+    public.grace_expired = feed_grace_expired(feed.insecure_since, utc_now())
+    return public

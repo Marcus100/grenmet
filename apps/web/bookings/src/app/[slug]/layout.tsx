@@ -11,7 +11,7 @@ export default function BusinessLayout({
       <main className="flex-1 py-10" id="main-content">
         {children}
       </main>
-      <footer className="flex flex-col gap-1 border-border border-t py-6 text-muted-foreground text-sm">
+      <footer className="border-border text-muted-foreground flex flex-col gap-1 border-t py-6 text-sm">
         <span>Booking by Barrels</span>
         <span>
           Problems with the booking service itself? Email Barrels Grenada

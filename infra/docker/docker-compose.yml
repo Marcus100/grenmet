@@ -50,7 +50,7 @@ services:
       - grenmet
 
   adminer:
-    image: adminer:6.1.2@sha256:251295c1cd51d3889f1c42ffa4864b24eeab51f0caf395cfe5bf4726c5ec9a2a
+    image: adminer:6.3.0@sha256:3a07decd833c2375ea749aa8018250c1db4859a78bd55354f797bfb591733233
     container_name: grenmet-adminer
     restart: "no"
     depends_on:
@@ -65,7 +65,7 @@ services:
       - grenmet
 
   mailcatcher:
-    image: axllent/mailpit:v1.32.0@sha256:0790692be935ea4420d085694f7985b1f692ca6a8771ab0e0bd8ba75ac180498
+    image: axllent/mailpit:v1.33.1@sha256:aef2aacc11f075ec0fb6874275ee4a421e688e11a96ebb296134d1735c7761ce
     container_name: grenmet-mailcatcher
     restart: "no"
     ports:

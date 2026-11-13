@@ -6,6 +6,7 @@ import {
   Avatar,
   AvatarBadge,
   AvatarFallback,
+  AvatarImage,
 } from "@barrelsgd/ui/components/ui/avatar";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
@@ -13,6 +14,7 @@ import { cn, getInitials } from "@barrelsgd/ui/lib/utils";
 import type { RowData, TableFeatures } from "@tanstack/react-table";
 import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
 import { Check, Clock, X } from "lucide-react";
+import { profileImageUrl } from "@/lib/profile-image";
 import { UserRowActions } from "./user-row-actions";
 import type { UserRow, UserRowStatus } from "./users-row";
 
@@ -89,18 +91,21 @@ function getLastActiveBadge(lastActive: number) {
   return { className: "bg-muted-foreground text-muted", icon: X };
 }
 
-function AvatarCell({
+export function AvatarCell({
   lastActive,
   name,
+  userId,
 }: {
   lastActive: number;
   name: string;
+  userId: string;
 }) {
   const badge = getLastActiveBadge(lastActive);
   const BadgeIcon = badge.icon;
 
   return (
     <Avatar className={cn("font-medium", getAvatarTone(name))} size="lg">
+      <AvatarImage alt="" src={profileImageUrl(userId)} />
       <AvatarFallback>{getInitials(name)}</AvatarFallback>
       <AvatarBadge className={badge.className}>
         {BadgeIcon ? <BadgeIcon /> : null}
@@ -121,7 +126,7 @@ function RoleCell({
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {primary ? (
-        <span className="whitespace-nowrap text-sm">{primary}</span>
+        <span className="text-sm whitespace-nowrap">{primary}</span>
       ) : (
         <span className="text-muted-foreground text-sm">—</span>
       )}
@@ -191,12 +196,13 @@ export const usersColumns: LegacyColumnDef<UserRow>[] = [
         <AvatarCell
           lastActive={row.original.lastActiveMinutes}
           name={row.original.name}
+          userId={row.original.user.id}
         />
         <div className="min-w-0">
-          <div className="truncate font-medium text-foreground text-sm">
+          <div className="text-foreground truncate text-sm font-medium">
             {row.original.name}
           </div>
-          <div className="truncate text-muted-foreground text-sm">
+          <div className="text-muted-foreground truncate text-sm">
             {row.original.email}
           </div>
         </div>

@@ -17,6 +17,7 @@ import type {
   HrBulkAssignmentsStatus400,
   HrBulkAssignmentsStatus403,
   HrBulkAssignmentsStatus404,
+  HrBulkAssignmentsStatus409,
   HrBulkAssignmentsStatus422,
 } from "../models/HrBulkAssignments.js";
 
@@ -35,6 +36,7 @@ export function hrBulkAssignmentsMutationOptions<TContext = unknown>(
       | HrBulkAssignmentsStatus400
       | HrBulkAssignmentsStatus403
       | HrBulkAssignmentsStatus404
+      | HrBulkAssignmentsStatus409
       | HrBulkAssignmentsStatus422
     >,
     HrBulkAssignmentsOptions,
@@ -64,6 +66,7 @@ export function useHrBulkAssignments<TContext>(
         | HrBulkAssignmentsStatus400
         | HrBulkAssignmentsStatus403
         | HrBulkAssignmentsStatus404
+        | HrBulkAssignmentsStatus409
         | HrBulkAssignmentsStatus422
       >,
       HrBulkAssignmentsOptions,
@@ -87,6 +90,7 @@ export function useHrBulkAssignments<TContext>(
       | HrBulkAssignmentsStatus400
       | HrBulkAssignmentsStatus403
       | HrBulkAssignmentsStatus404
+      | HrBulkAssignmentsStatus409
       | HrBulkAssignmentsStatus422
     >,
     HrBulkAssignmentsOptions,
@@ -99,6 +103,7 @@ export function useHrBulkAssignments<TContext>(
       | HrBulkAssignmentsStatus400
       | HrBulkAssignmentsStatus403
       | HrBulkAssignmentsStatus404
+      | HrBulkAssignmentsStatus409
       | HrBulkAssignmentsStatus422
     >,
     HrBulkAssignmentsOptions,
@@ -116,6 +121,7 @@ export function useHrBulkAssignments<TContext>(
       | HrBulkAssignmentsStatus400
       | HrBulkAssignmentsStatus403
       | HrBulkAssignmentsStatus404
+      | HrBulkAssignmentsStatus409
       | HrBulkAssignmentsStatus422
     >,
     HrBulkAssignmentsOptions,

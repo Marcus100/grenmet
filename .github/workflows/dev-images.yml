@@ -1,0 +1,130 @@
+name: Dev Images
+
+# The commit is in the run name so promotion can find a build it dispatched.
+run-name: Dev Images ${{ inputs.sha || github.sha }}
+
+# Build once (issue #1019): every change that lands on dev gets one image set,
+# tagged by git tree (`tree-<tree>`). Only images the change touches are built;
+# the rest reuse the previous tree's digests. Staging and production promote
+# these exact digests (pipeline-staging.yml, pipeline-prod.yml) and never build.
+on:
+  push:
+    branches: [dev]
+  # Started by pipeline-staging when a dev commit has no images yet.
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Dev commit to build (default: the dispatched ref's head)"
+        required: false
+        default: ""
+        type: string
+
+# Queued, never cancelled: a later run reuses this run's tags.
+concurrency:
+  group: dev-images
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      sha: ${{ steps.plan.outputs.sha }}
+      tree: ${{ steps.plan.outputs.tree }}
+      api: ${{ steps.plan.outputs.api }}
+      web: ${{ steps.plan.outputs.web }}
+      reuse: ${{ steps.plan.outputs.reuse }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Only dev commits are built
+        env:
+          INPUT_SHA: ${{ inputs.sha }}
+        run: |
+          # Images become staging and production releases, so a dispatch may
+          # only name a commit that is on dev.
+          if [[ -n "$INPUT_SHA" ]]; then
+            [[ "$INPUT_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::sha must be a full commit SHA"; exit 1; }
+            git merge-base --is-ancestor "$INPUT_SHA" origin/dev || { echo "::error::$INPUT_SHA is not on dev"; exit 1; }
+          else
+            [[ "$GITHUB_REF" == refs/heads/dev ]] || { echo "::error::Dispatch from dev (or name a dev commit)"; exit 1; }
+          fi
+      - id: plan
+        env:
+          DEV_SHA: ${{ inputs.sha }}
+        run: node scripts/ci/promote-images.mjs plan
+
+  build-api:
+    name: Build API image
+    needs: plan
+    if: needs.plan.outputs.api == 'true'
+    uses: ./.github/workflows/build-api-image.yml
+    with:
+      ref: ${{ needs.plan.outputs.sha }}
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+  build-web:
+    name: Build web images
+    needs: plan
+    if: needs.plan.outputs.web != '[]'
+    uses: ./.github/workflows/build-web-images.yml
+    with:
+      ref: ${{ needs.plan.outputs.sha }}
+      images: ${{ needs.plan.outputs.web }}
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+  reuse:
+    name: Reuse unchanged images
+    needs: plan
+    if: needs.plan.outputs.reuse != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - env:
+          TREE: ${{ needs.plan.outputs.tree }}
+          REUSE_DIGESTS: ${{ needs.plan.outputs.reuse }}
+        run: node scripts/ci/promote-images.mjs reuse
+
+  # Stable result for the run: promotion looks for the tags, not this job.
+  dev-images:
+    name: Dev images
+    needs: [plan, build-api, build-web, reuse]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            [[ "$result" == success || "$result" == skipped ]] || { echo "::error::A dev image job ended $result"; exit 1; }
+          done
+          [[ "${{ needs.plan.result }}" == success ]] || { echo "::error::Planning failed"; exit 1; }
