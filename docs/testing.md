@@ -121,12 +121,12 @@ Where each floor is enforced:
   `coverage/coverage-summary.json` reports with the baseline. Apps without a report
   are skipped.
 - **Web, in CI.** `ci-web.yml` runs the `web-coverage` job: one matrix entry per
-  app in `coverageApps` (`scripts/ci/select-images.mjs`: `auth`, `gms`, `mbia`,
+  app in `coverageApps` (`scripts/ci/select-images.mjs`: `admin`, `auth`, `bookings`, `cap`, `events`, `gms`, `gmsdash`, `mbia`,
   `signal`), each running `pnpm -C <app> run test:coverage` and then
   `node scripts/guardrails/check-coverage.mjs --only web`. It runs beside the
   TypeScript Tests job and is part of the `build` aggregate gate. Dev PRs and dev
   pushes run only the apps whose files changed (shared packages and root files
-  select all, as in image selection); promotion PRs and pushes run all four. A
+  select all, as in image selection); promotion PRs and pushes run all of them. A
   skipped matrix leaves the gate green only when selection succeeded.
 - **gaa-admin is not in CI coverage.** Its full run takes about 40 minutes locally
   and hit a 30 s test timeout under instrumentation, so its floor is enforced only
