@@ -11,7 +11,8 @@ under the same keys, their models and ``register()`` calls in
 ``src/database.py`` and ``alembic/env.py``. Migration steps and what stays out
 of scope: ADR-0031.
 
-This module imports no domain code (manifests hold import paths), so
+This module imports no domain code at import time (manifests hold import
+paths; ``worker_jobs()`` imports job modules when called), so
 ``src.database`` and ``alembic/env.py`` can read it without a circular import.
 """
 

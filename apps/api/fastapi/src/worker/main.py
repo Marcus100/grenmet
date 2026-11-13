@@ -683,7 +683,7 @@ _DOMAIN_JOBS = worker_jobs()
 
 def __getattr__(name: str) -> Any:
     """Keep manifest jobs reachable as ``src.worker.main.<job>`` (tests, arq)."""
-    for function, _ in _DOMAIN_JOBS:
+    for function, _ in globals().get("_DOMAIN_JOBS", ()):
         if function.__name__ == name:
             return function
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
@@ -834,3 +834,14 @@ class WorkerSettings:
             if job.cron is not None
         ),
     ]
+
+
+def _check_unique_job_names(functions: list[Any]) -> None:
+    """arq keeps one job per name, so a manifest job may not reuse a name."""
+    names = [function.__name__ for function in functions]
+    duplicates = sorted({name for name in names if names.count(name) > 1})
+    if duplicates:
+        raise ValueError(f"worker job names used twice: {duplicates}")
+
+
+_check_unique_job_names(WorkerSettings.functions)

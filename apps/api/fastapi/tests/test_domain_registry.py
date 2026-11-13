@@ -236,3 +236,11 @@ def test_a_job_outside_its_domain_fails() -> None:
 def test_a_job_name_used_twice_fails() -> None:
     with pytest.raises(ValueError, match="registered twice"):
         worker_jobs((*DOMAINS, Domain("flights", jobs=DOMAINS[-1].jobs)))
+
+
+def test_a_manifest_job_may_not_reuse_a_built_in_job_name() -> None:
+    worker = _worker()
+    functions = [*worker.WorkerSettings.functions, worker.purge_expired_data]
+    with pytest.raises(ValueError, match="purge_expired_data"):
+        worker._check_unique_job_names(functions)
+    worker._check_unique_job_names(worker.WorkerSettings.functions)
