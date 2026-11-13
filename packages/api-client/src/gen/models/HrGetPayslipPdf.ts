@@ -18,7 +18,6 @@ export type HrGetPayslipPdfPath = {
 /**
  * @description
  * Format: `binary`
- * @type string
  */
 export type HrGetPayslipPdfStatus200 = Blob;
 

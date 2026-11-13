@@ -7,7 +7,7 @@ import * as z from "zod";
 import { documentCategorySchema } from "./documentCategorySchema.js";
 
 export const bodyHrUploadDocumentSchema = z.object({
-  file: z.instanceof(File).describe("The document to store"),
+  file: z.instanceof(Blob).describe("The document to store"),
   user_id: z.uuid(),
   title: z.string().min(1).max(255),
   organisation_id: z.union([z.string(), z.null()]).optional(),

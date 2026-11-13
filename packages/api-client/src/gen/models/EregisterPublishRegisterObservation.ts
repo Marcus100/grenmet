@@ -59,7 +59,7 @@ export type EregisterPublishRegisterObservationBody =
   | undefined;
 
 export type EregisterPublishRegisterObservationOptions = {
-  body: EregisterPublishRegisterObservationBody;
+  body?: EregisterPublishRegisterObservationBody;
   path: EregisterPublishRegisterObservationPath;
   query?: never;
   headers?: never;

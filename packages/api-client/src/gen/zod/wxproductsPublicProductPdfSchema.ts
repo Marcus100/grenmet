@@ -9,7 +9,7 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const wxproductsPublicProductPdfPathProductIdSchema = z.uuid();
 
-export const wxproductsPublicProductPdfStatus200Schema = z.instanceof(File);
+export const wxproductsPublicProductPdfStatus200Schema = z.instanceof(Blob);
 
 export const wxproductsPublicProductPdfStatus404Schema = productFeedErrorSchema;
 

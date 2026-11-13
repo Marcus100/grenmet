@@ -7,7 +7,7 @@ import * as z from "zod";
 import { authoringErrorSchema } from "./authoringErrorSchema.js";
 import { productPreviewBodySchema } from "./productPreviewBodySchema.js";
 
-export const wxproductsPreviewProductPdfStatus200Schema = z.instanceof(File);
+export const wxproductsPreviewProductPdfStatus200Schema = z.instanceof(Blob);
 
 export const wxproductsPreviewProductPdfStatus401Schema = authoringErrorSchema;
 
