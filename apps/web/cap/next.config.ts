@@ -11,7 +11,11 @@ const EDGE_CACHE =
 // The staff warning desk (/desk) and its single sign-on routes (/auth) carry a
 // forecaster's session: never cached anywhere. Cloudflare's cache rules cache
 // static assets only and bypass `*_session` cookies (cloudflare-proxy.md).
-const STAFF_NO_STORE = "private, no-store";
+// `no-transform` stops Cloudflare rewriting the HTML: its Email Address
+// Obfuscation turned the warning contact ("meteorology@gaa.gd; 1-473-…") into
+// a link that decodes back as two text nodes, so React refused to hydrate
+// /desk/new (error #418, issue #1327). Staff pages need no scraper protection.
+const STAFF_NO_STORE = "private, no-store, no-transform";
 const STAFF_PATHS = ["/desk", "/desk/:path*", "/auth/:path*"];
 
 const nextConfig: NextConfig = {
