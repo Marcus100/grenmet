@@ -20,6 +20,7 @@ barrelsgd/
 │       ├── gaa-admin/          # Current GAA staff portal; GMS pilot plus GAA-wide modules
 │       ├── auth/               # Shared staff sign-in/sign-up interface
 │       ├── babydoll/           # Babydoll Beauty Bar client website (Next.js on Vercel)
+│       ├── account/            # Barrels account: a person's profile and photo (account.barrels.gd)
 │       ├── bookings/           # Barrels Bookings: public booking pages and studio (skeleton)
 │       ├── barrels/            # Static Barrels Grenada company homepage
 │       ├── cms/                # GMS editorial content service (Payload CMS)
@@ -121,6 +122,7 @@ From repo root:
 - [auth](apps/web/auth/README.md) – `pnpm dev:web:auth`
 - [events](apps/web/events) – `pnpm dev:web:events`
 - [bookings](apps/web/bookings/AGENTS.md) – `pnpm dev:web:bookings`
+- [account](apps/web/account/AGENTS.md) – `pnpm dev:web:account`
 - [elections](apps/web/elections) – `pnpm dev:web:elections`
 - [cms](apps/web/cms/README.md) – `pnpm dev:web:cms`
 - [docs](apps/web/docs/README.md) – `pnpm dev:web:docs`
@@ -186,6 +188,7 @@ All commands are run from the monorepo root.
 | `pnpm dev:web:elections` | [elections](apps/web/elections) |
 | `pnpm dev:web:events` | [events](apps/web/events) |
 | `pnpm dev:web:bookings` | [bookings](apps/web/bookings/AGENTS.md) |
+| `pnpm dev:web:account` | [account](apps/web/account/AGENTS.md) |
 
 API (FastAPI): use `pnpm start` for infra + API, or follow the fully qualified
 Compose commands in [docs/api/development.md](docs/api/development.md) for an
@@ -251,6 +254,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | elections | [apps/web/elections/AGENTS.md](apps/web/elections/AGENTS.md) |
 | events | [apps/web/events/AGENTS.md](apps/web/events/AGENTS.md) |
 | bookings | [apps/web/bookings/AGENTS.md](apps/web/bookings/AGENTS.md) |
+| account | [apps/web/account/AGENTS.md](apps/web/account/AGENTS.md) |
 | docs | [apps/web/docs/README.md](apps/web/docs/README.md) |
 | mbia | [apps/web/mbia](apps/web/mbia) |
 | signal | [apps/web/signal/README.md](apps/web/signal/README.md) |

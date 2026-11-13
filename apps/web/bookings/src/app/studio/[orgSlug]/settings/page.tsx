@@ -1,8 +1,10 @@
 import type {
+  BookingExceptionPublic,
   BookingProviderSettings,
   BookingServicePublic,
   BookingSettings,
 } from "@barrelsgd/api-client";
+import { ResponseError } from "@barrelsgd/api-client";
 import { formatDuration } from "@barrelsgd/bookings-web/lib/booking-format";
 import {
   Empty,
@@ -11,11 +13,14 @@ import {
   EmptyTitle,
 } from "@barrelsgd/ui/components/ui/empty";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { HoursForm } from "@/components/studio/settings/hours-form";
 import { ProfileForm } from "@/components/studio/settings/profile-form";
 import { ProviderForm } from "@/components/studio/settings/provider-form";
 import { ServiceForm } from "@/components/studio/settings/service-form";
+import { TimeOffSection } from "@/components/studio/settings/time-off";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
 import {
   hhmm,
@@ -23,7 +28,7 @@ import {
   periodsByDay,
   WEEKDAYS,
 } from "@/lib/settings-view";
-import { getSettings } from "@/lib/studio-api";
+import { getSettings, listExceptions } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import { canManageBookings, DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
@@ -70,6 +75,26 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
   const editable = canManageBookings(org.value.role);
   const zone = data.profile?.timezone ?? DEFAULT_TIMEZONE;
   const currency = data.profile?.currency ?? "XCD";
+  // Time off that is still running or still to come, one request per provider
+  // (the API has no organisation-wide list). A failure only blanks that
+  // provider's Time off section; the rest of Settings stays usable.
+  const startsFrom = new Date().toISOString();
+  const timeOff = await Promise.all(
+    data.providers.map(
+      async (item) =>
+        [
+          item.id,
+          await loadTimeOff(
+            session.accessToken,
+            organisationId,
+            item.id,
+            startsFrom,
+            here
+          ),
+        ] as const
+    )
+  );
+  const timeOffByProvider = new Map(timeOff);
 
   return (
     <div className="space-y-8">
@@ -183,6 +208,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
                   orgSlug={orgSlug}
                   provider={item}
                   services={data.services}
+                  timeOff={timeOffByProvider.get(item.id) ?? null}
                   zone={zone}
                 />
               </li>
@@ -203,11 +229,12 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         </h2>
         <Empty className="border-border border">
           <EmptyHeader>
-            <EmptyTitle>Time off, extra hours and menu order</EmptyTitle>
+            <EmptyTitle>Extra hours and menu order</EmptyTitle>
             <EmptyDescription>
-              The API supports them but this screen does not edit them yet.
-              Until then, time off cannot be set here and services and providers
-              are listed in their saved order.
+              Extra hours (open time outside the weekly hours) can be seen and
+              removed under each provider&apos;s time off, but not added here
+              yet. Services and providers are listed in their saved order until
+              reordering is built.
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
@@ -280,12 +307,15 @@ function ProviderCard({
   orgSlug,
   provider,
   services,
+  timeOff,
   zone,
 }: {
   editable: boolean;
   orgSlug: string;
   provider: BookingProviderSettings;
   services: BookingServicePublic[];
+  /** Null when this provider's time off could not be loaded. */
+  timeOff: BookingExceptionPublic[] | null;
   zone: string;
 }) {
   const offered = services.filter((item) =>
@@ -327,6 +357,14 @@ function ProviderCard({
             <HoursList hours={provider.working_hours} zone={zone} />
           </>
         )}
+        <TimeOffSection
+          editable={editable}
+          exceptions={timeOff ?? []}
+          orgSlug={orgSlug}
+          providerId={provider.id}
+          unavailable={timeOff === null}
+          zone={zone}
+        />
       </div>
     </details>
   );
@@ -363,4 +401,37 @@ function HoursList({
       )}
     </div>
   );
+}
+
+/**
+ * One provider's time off, or null when it cannot be read. A 401 goes to
+ * sign-in. Any other API refusal is the person's problem to retry and is not
+ * reported; a server fault or a non-API error is reported, then the section
+ * says it could not be loaded.
+ */
+async function loadTimeOff(
+  accessToken: string,
+  organisationId: string,
+  providerId: string,
+  startsFrom: string,
+  returnTo: string
+): Promise<BookingExceptionPublic[] | null> {
+  try {
+    return await listExceptions(
+      accessToken,
+      organisationId,
+      providerId,
+      startsFrom
+    );
+  } catch (error) {
+    if (ResponseError.is(error) && error.status === 401) {
+      redirect(`/signin?${new URLSearchParams({ returnTo })}`);
+    }
+    const clientRefusal =
+      ResponseError.is(error) && error.status >= 400 && error.status < 500;
+    if (!clientRefusal) {
+      reportError(error, "studio");
+    }
+    return null;
+  }
 }

@@ -42492,7 +42492,7 @@
           "profile-images"
         ],
         "summary": "Upload or replace your profile photo",
-        "description": "Send the image itself as the request body with Content-Type image/jpeg, image/png or image/webp, up to 5 MB and 16 megapixels. The photo is turned upright, cropped square, stored as 64, 256 and 512 pixel WebP images, and its metadata (including GPS location) is removed. It is visible at once to people who share an organisation with you.",
+        "description": "Send the image itself as the request body with Content-Type image/jpeg, image/png or image/webp, up to 5 MB and 16 megapixels. The photo is turned upright, cropped square, stored as 64, 256 and 512 pixel WebP images, and its metadata (including GPS location) is removed. It is visible at once to people who share an organisation with you. At most 10 uploads a minute per person (429 after that).",
         "operationId": "profileImagesSetMine",
         "requestBody": {
           "content": {
@@ -42584,6 +42584,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many uploads; try later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Profileimagessetmine"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -42649,6 +42667,92 @@
             "OAuth2PasswordBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/profile-images/me/image": {
+      "get": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Show your profile photo",
+        "description": "Redirects to a short-lived link to your own image (for the account app, whose sessions cannot read other people's photos). 404 when you have none.",
+        "operationId": "profileImagesShowMine",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ProfileImageSize",
+              "default": 256
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Redirect to the image",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Photo storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/profile-images/org/{user_id}": {

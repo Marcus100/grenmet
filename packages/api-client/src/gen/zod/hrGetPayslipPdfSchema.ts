@@ -9,7 +9,7 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const hrGetPayslipPdfPathPayslipIdSchema = z.uuid();
 
-export const hrGetPayslipPdfStatus200Schema = z.instanceof(File);
+export const hrGetPayslipPdfStatus200Schema = z.instanceof(Blob);
 
 export const hrGetPayslipPdfStatus400Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."

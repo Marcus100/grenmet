@@ -38,7 +38,7 @@
 ## Change checklist
 - New permission → add to `PERMISSIONS`, default role grants if needed, gate the UI in gaa-admin, and add a test.
 - Session/cookie behaviour → verify `packages/auth`, `apps/web/auth`, and every delegating app (root Blast-Radius table).
-- Route changes → `openapi.json`, client regen, `docs/api/contracts.md`.
+- Route changes → `openapi.json`, client regen, `pnpm generate:api-routes`; `docs/api/contracts.md` when the blast-radius check asks (it always does when an operation's security or the security schemes change).
 
 ## Account apps (join and leave)
 `barrels-admin` (Barrels control plane, `apps/web/admin`) is a staff-scope app with `AppDefinition.superuser_only`: staff tokens, but only active superusers pass `app.allows(user)` at handoff, session exchange/refresh, account "Join" and the account app list (non-superusers get 403 "Barrels staff only", never an access request). Tests: `tests/auth/test_app_handoff.py`.
@@ -46,6 +46,8 @@
 `app_router.account_router` (`/auth/account/apps`, `/{app}/join`, `/{app}/leave`) manages memberships for the auth.barrels.gd account session; `_account_session_user` rejects app sessions. Leaving removes only the app's default role link and ends that app's sessions (`sessions.revoke_user_app_sessions`); staff-scope apps cannot be left. Tests: `tests/auth/test_account_apps.py`.
 
 `bookings` (Barrels Bookings, `apps/web/bookings`) is a self-service `app`-scope site (instant Join, role `bookings-member`, permission `app.bookings.access`).
+
+`account` (Barrels account, `apps/web/account`, ADR-0057) is a self-service `app`-scope site like `bookings` (instant Join, role `account-member`, permission `app.account.access`). Its URL and secret are `ACCOUNT_APP_URL` and `ACCOUNT_SSO_CLIENT_SECRET`; sign-in stays off while the secret is empty. Tests: `tests/auth/test_account_app.py`.
 
 `gmsdash` (GMS Dashboard, `apps/web/gmsdash`) is a self-service `app`-scope site like the others (instant Join, role `gmsdash-member`). The gate to its data is the organisation entitlement and a staff-approved access request, not the Join; see `src/models_guidance/AGENTS.md`.
 
@@ -57,6 +59,7 @@ The photo domain has its own ADR-0031 manifest; its notes live here because the 
 
 - **Table:** `public.user_image` (`src.auth.models.UserImage`, one row per user, `ON DELETE CASCADE` since `profileimage20261113`). `object_key` is the storage prefix of one upload (`users/<user_id>/profile-image/<hex>`); its sizes are `<prefix>/<64|256|512>.webp`. A new upload gets a new prefix, so cached pages never show a half-replaced photo, and the old files are deleted after the commit. The older baseline table `userimage` is unused and kept untouched (owner decision); `src/model_registry.py` tells Alembic to ignore it.
 - **Owner decisions (2026-11-13):** the person uploads and replaces their own photo, with no approval step. HR (`hr.employment.manage` over the person, via `can_act_on_user`) and superusers may remove one, but nobody uploads for someone else. Visible only to the person, superusers and people sharing an organisation (`service.shares_organisation`: active membership of the same active platform organisation, or active employment in the same HR organisation).
+- **Upload limits (#1332):** 10 a minute per person (`UPLOAD_LIMIT`; the limiter key is the uploader's id, set by `_remember_uploader`, because web apps call the API server-side from one address). The row is inserted, or locked before it is repointed (`_point_row_at`, retried once if a removal deletes it mid-save); `remove_image` locks the row too. A save that does not finish, including a cancelled request, schedules `_reconcile_upload` on its own session, which deletes the new files only if the row does not point at them.
 - **Upload:** the raw request body (`image/jpeg`, `image/png` or `image/webp`; 415 otherwise), read by `router._read_image_body`, which refuses at 5 MB from the declared length or while streaming (413). Not multipart: a form is parsed whole before the handler runs, so it could not be capped.
 - **Processing** (`images.py`, pure, run in a thread, at most two at once per process via `service._PROCESSING`): JPEG, PNG or WebP, at least 32 px a side, at most 16 megapixels (checked from the header before decoding; JPEG decodes at reduced scale). `exif_transpose`, square centre crop, WebP at quality 85. Re-encoding copies no metadata. Pillow is used directly here as in `hr/signatures` and `wxwatch`; it is not a declared dependency of fast-back.
 - **Reads:** `GET /profile-images/org/{user_id}` answers a 307 to a 5-minute presigned GET. A hidden photo and a missing one are the same 404, so the route cannot reveal who has a photo outside your organisations. Web apps link it same-origin through their `/api` proxy; HR's `ProfileIdentityPublic.avatar_url` is that link with `?size=256&v=<version>`.

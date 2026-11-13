@@ -162,6 +162,51 @@ def cloudflare_edge(environment, values):
     }
 
 
+# The core database image, its data mount and its volume move together
+# (docs/operations/postgres-18-upgrade.md). PostgreSQL 17 images keep their data at
+# /var/lib/postgresql/data. 18 keeps it in /var/lib/postgresql/18/docker and refuses to
+# start with anything mounted at .../data, so the mount follows the image's major.
+# Mounting a 17 volume at the 18 path would make a 17 image start an empty database
+# inside it, which is why the mount is never set by hand.
+POSTGRES_IMAGE = re.compile(
+    r"(?:postgres:(?P<plain>17|18)|postgis/postgis:(?P<postgis>17-3\.5|18-3\.7))@sha256:[0-9a-f]{64}"
+)
+POSTGRES_DATA_MOUNT = {17: "/var/lib/postgresql/data", 18: "/var/lib/postgresql"}
+# A volume created for a newer major carries it in its name (grenmet_pgdata18); the
+# volumes that predate the upgrade hold 17 and keep their names. So an image cannot be
+# paired with a volume of another major, which would stop the database at start-up.
+VOLUME_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
+VOLUME_MAJOR = re.compile(r"pgdata(1[0-9])$")
+
+
+def core_postgres(config, environment):
+    """Image, data mount and volume of the core database, checked as one set."""
+    image = environment.get("CORE_POSTGRES_IMAGE", "")
+    match = POSTGRES_IMAGE.fullmatch(image)
+    if not match:
+        raise ValueError("CORE_POSTGRES_IMAGE must pin an approved PostgreSQL 17 or 18 image digest")
+    if image.startswith("postgis/") and environment.get("POSTGIS_RESTORE_VERIFIED") != "true":
+        raise ValueError("PostGIS rollout requires an operator-recorded isolated restore verification")
+    major = int((match.group("plain") or match.group("postgis")).split("-")[0])
+    # CORE_PGDATA_VOLUME (a GitHub environment variable) switches the volume during the
+    # upgrade; unset keeps the committed PGDATA_VOLUME of the environment file.
+    volume = environment.get("CORE_PGDATA_VOLUME", "") or config.get("PGDATA_VOLUME", "")
+    if not VOLUME_NAME.fullmatch(volume):
+        raise ValueError("PGDATA_VOLUME (or CORE_PGDATA_VOLUME) must be a Docker volume name")
+    tagged = VOLUME_MAJOR.search(volume)
+    volume_major = int(tagged.group(1)) if tagged else 17
+    if volume_major != major:
+        raise ValueError(
+            f"CORE_POSTGRES_IMAGE is PostgreSQL {major} but the data volume holds PostgreSQL "
+            f"{volume_major}: change CORE_POSTGRES_IMAGE and CORE_PGDATA_VOLUME together"
+        )
+    return {
+        "CORE_POSTGRES_IMAGE": image,
+        "CORE_POSTGRES_DATA_MOUNT": POSTGRES_DATA_MOUNT[major],
+        "PGDATA_VOLUME": volume,
+    }
+
+
 def render(config, environment):
     required = REQUIRED_SECRETS
     values = {}
@@ -175,11 +220,11 @@ def render(config, environment):
     # API ignores a shorter value, which silently pools all visitors in one bucket.
     if len(values["TRUSTED_WEB_SECRET"]) < 32:
         raise ValueError("TRUSTED_WEB_SECRET must contain at least 32 characters")
-    for key in ['WXWATCH_INGEST_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET', 'BOOKINGS_SSO_CLIENT_SECRET', 'BARRELS_ADMIN_SSO_CLIENT_SECRET', 'CAP_SSO_CLIENT_SECRET', 'PAYMENTS_STRIPE_SECRET_KEY', 'PAYMENTS_STRIPE_WEBHOOK_SECRET', 'PAYMENTS_STRIPE_SUCCESS_URL', 'PAYMENTS_STRIPE_CANCEL_URL', 'META_PAGE_ID', 'META_INSTAGRAM_ACCOUNT_ID', 'META_PAGE_ACCESS_TOKEN', 'SOCIAL_LINK_HOSTS', 'SOCIAL_IMAGE_HOSTS', 'CMS_DISTRIBUTION_SECRET']:
+    for key in ['WXWATCH_INGEST_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET', 'BOOKINGS_SSO_CLIENT_SECRET', 'ACCOUNT_SSO_CLIENT_SECRET', 'BARRELS_ADMIN_SSO_CLIENT_SECRET', 'CAP_SSO_CLIENT_SECRET', 'PAYMENTS_STRIPE_SECRET_KEY', 'PAYMENTS_STRIPE_WEBHOOK_SECRET', 'PAYMENTS_STRIPE_SUCCESS_URL', 'PAYMENTS_STRIPE_CANCEL_URL', 'META_PAGE_ID', 'META_INSTAGRAM_ACCOUNT_ID', 'META_PAGE_ACCESS_TOKEN', 'SOCIAL_LINK_HOSTS', 'SOCIAL_IMAGE_HOSTS', 'CMS_DISTRIBUTION_SECRET']:
         values[key] = environment.get(key, "")
     # Single sign-on (ADR-0017): staff apps can't sign in without theirs;
     # Events stays off until its secret is set.
-    for key in ["GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET", "EVENTS_SSO_CLIENT_SECRET", "WEATHER_SSO_CLIENT_SECRET", "MBIA_SSO_CLIENT_SECRET", "SIGNAL_SSO_CLIENT_SECRET", "DOCS_SSO_CLIENT_SECRET", "GMSDASH_SSO_CLIENT_SECRET", "BOOKINGS_SSO_CLIENT_SECRET", "BARRELS_ADMIN_SSO_CLIENT_SECRET", "CAP_SSO_CLIENT_SECRET"]:
+    for key in ["GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET", "EVENTS_SSO_CLIENT_SECRET", "WEATHER_SSO_CLIENT_SECRET", "MBIA_SSO_CLIENT_SECRET", "SIGNAL_SSO_CLIENT_SECRET", "DOCS_SSO_CLIENT_SECRET", "GMSDASH_SSO_CLIENT_SECRET", "BOOKINGS_SSO_CLIENT_SECRET", "ACCOUNT_SSO_CLIENT_SECRET", "BARRELS_ADMIN_SSO_CLIENT_SECRET", "CAP_SSO_CLIENT_SECRET"]:
         if values[key] and len(values[key]) < 32:
             raise ValueError(f"{key} must contain at least 32 characters")
     # One secret per app: a leaked or shared value must not sign in to another app.
@@ -269,7 +314,7 @@ def render(config, environment):
         entry = service["environments"].get(config.get("ENVIRONMENT"), {})
         sentry = entry.get("sentry", {})
         secret_ref = sentry.get("secretRef")
-        if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "cap", "gmsdash", "signal", "mbia", "events", "bookings", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
+        if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "cap", "gmsdash", "signal", "mbia", "events", "bookings", "account", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
             raise ValueError("Invalid shared Sentry routing")
         values[f"SENTRY_DSN_{app}"] = environment.get(secret_ref, "") if secret_ref else sentry.get("dsn") or ""
     for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]:
@@ -287,11 +332,7 @@ def render(config, environment):
     runtime_user = config.get("FASTAPI_DB_USER", "")
     if not re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]*", runtime_user) or runtime_user in {values["POSTGRES_USER"], "postgres", "app", "gms_cms", "wxwatch", "wxproducts", "transport", "janitorial"}:
         raise ValueError("FASTAPI_DB_USER must be a dedicated non-administrator role")
-    image = environment.get("CORE_POSTGRES_IMAGE", "")
-    if not re.fullmatch(r"(?:postgres:17|postgis/postgis:17-3\.5)@sha256:[0-9a-f]{64}", image):
-        raise ValueError("CORE_POSTGRES_IMAGE must pin an approved PostgreSQL 17 image digest")
-    if image.startswith("postgis/") and environment.get("POSTGIS_RESTORE_VERIFIED") != "true":
-        raise ValueError("PostGIS rollout requires an operator-recorded isolated restore verification")
+    values.update(core_postgres(config, environment))
     redis_image = environment.get("CORE_REDIS_IMAGE", "")
     if not re.fullmatch(r"redis:7-alpine@sha256:[0-9a-f]{64}", redis_image):
         raise ValueError("CORE_REDIS_IMAGE must pin an approved Redis 7 image digest")
@@ -299,7 +340,7 @@ def render(config, environment):
     address = ipaddress.ip_address(environment.get("CORE_PRIVATE_IP", ""))
     if not any(address in ipaddress.ip_network(network) for network in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]):
         raise ValueError("CORE_PRIVATE_IP must be an RFC1918 private address")
-    values.update(CORE_POSTGRES_IMAGE=image, CORE_PRIVATE_IP=str(address))
+    values["CORE_PRIVATE_IP"] = str(address)
     tag = environment.get("DEPLOY_IMAGE_TAG", "")
     if not re.fullmatch(r"sha-[0-9a-f]{40}", tag):
         raise ValueError("DEPLOY_IMAGE_TAG must be sha- followed by a full commit SHA")

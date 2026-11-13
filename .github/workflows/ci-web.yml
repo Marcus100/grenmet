@@ -379,7 +379,7 @@ jobs:
       - name: Log in to Docker Hub for base images
         # Fork and Dependabot PRs cannot access repository Actions secrets.
         if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -393,7 +393,7 @@ jobs:
         # Best-effort: without credentials the build simply runs cache-cold
         # rather than failing the check.
         continue-on-error: true
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -430,7 +430,7 @@ jobs:
     timeout-minutes: 15
     services:
       postgres:
-        image: ghcr.io/marcus100/base/postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
+        image: ghcr.io/marcus100/base/postgis/postgis:18-3.7@sha256:c5d1ba4292ff7b4471ff41cd515c677633797b72cdd2a7bb691cadaab91f1a1f
         env:
           POSTGRES_USER: storage_test
           POSTGRES_PASSWORD: test-only-password
@@ -477,7 +477,7 @@ jobs:
       - name: Log in to Docker Hub for base images
         # Fork and Dependabot PRs cannot access repository Actions secrets.
         if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}

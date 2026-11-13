@@ -7,7 +7,7 @@ import * as z from "zod";
 
 export const bodyHrImportTerminalPunchesSchema = z.object({
   file: z
-    .instanceof(File)
+    .instanceof(Blob)
     .describe("ZKTeco ATTLOG text export or CSV (device_user_id,punched_at)"),
   department_id: z.string().min(1).max(64),
   terminal: z.string().min(1).max(60),

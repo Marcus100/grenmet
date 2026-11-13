@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-13
 
 This guide documents the operational infrastructure implemented in this repo today. For first-time server setup see [deployment.md](deployment.md). For local development failures see [troubleshooting.md](troubleshooting.md).
 
@@ -20,11 +20,11 @@ since 2026-11-12, each running Ubuntu 24.04 and Docker Engine 29.
 
 Each stack includes:
 
-- `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI (which also holds the `events` schema, ADR-0003), `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister` and the CMS (`gms_cms`).
+- `db`: PostgreSQL 18 (staging and production stay on 17 until each runs the upgrade in [the PostgreSQL 18 upgrade plan](operations/postgres-18-upgrade.md); the image, data mount and volume move together). The same server hosts separate databases for FastAPI (which also holds the `events` schema, ADR-0003), `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister` and the CMS (`gms_cms`).
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP publish jobs, notification and email outboxes, retention purge; see `src/worker/AGENTS.md`).
-- `web-cms`, `web-auth`, `web-admin` (Barrels staff console), `web-gmsadmin` (GMS/GAA portal), `web-docs`, `web-gms`, `web-signal`, `web-mbia`, `web-events`, `web-cap`, `web-gmsdash`, and `web-bookings`: twelve configured web services (recounted from `docker-compose.deploy.yml`). The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-gmsadmin`.
+- `web-cms`, `web-auth`, `web-admin` (Barrels staff console), `web-gmsadmin` (GMS/GAA portal), `web-docs`, `web-gms`, `web-signal`, `web-mbia`, `web-events`, `web-cap`, `web-gmsdash`, `web-bookings` and `web-account`: thirteen configured web services (recounted from `docker-compose.deploy.yml`). The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-gmsadmin`.
 - `proxy`: Traefik v3, terminating HTTPS and routing by host.
 - `adminer`: present in staging only in the current compose files.
 
@@ -147,4 +147,4 @@ These are not implemented as repo-level controls yet:
 - External uptime monitoring and alert rules in production. Better Stack is the provider (ADR-0037): monitors and heartbeats are defined in `scripts/monitoring/betterstack.json`; only the staging probe-runner heartbeat is live, and the production ones stay paused until their secrets are set ([#1143](https://github.com/Marcus100/grenmet/issues/1143)).
 - OpenTelemetry for the FastAPI app. The vendored CAP Composer has OTEL support, but the main FastAPI app currently uses Sentry plus request logs.
 - Verified Redis-backed rate limiting in each environment. `src/rate_limit.py` uses `REDIS_URL` (set in `docker-compose.deploy.yml`); only a deployed check is missing.
-- Timed, end-to-end recovery drills proving application recovery and RTO. The backup workflow already restores each database dump into a temporary database and checks for tables. The [restore drill](operations/restore-drill.md) (ADR-0021) now restores every database into a throwaway container and checks migrations and row floors; it passed against the production backup on 2026-11-04 and end to end on 2026-11-09 ([#926](https://github.com/Marcus100/grenmet/issues/926)). Still open: the monthly schedule, and the opt-in `api_check` that starts the application, which is built but unrun.
+- Timed, end-to-end recovery drills proving application recovery and RTO. The backup workflow already restores each database dump into a temporary database and checks for tables. The [restore drill](operations/restore-drill.md) (ADR-0021) now restores every database into a throwaway container and checks migrations and row floors; it passed against the production backup on 2026-11-04 and end to end on 2026-11-09 ([#926](https://github.com/Marcus100/grenmet/issues/926)). It now runs monthly (the 1st, 05:30 UTC) and a failed run opens an issue. Still open: the opt-in `api_check` that starts the application, which is built but unrun.

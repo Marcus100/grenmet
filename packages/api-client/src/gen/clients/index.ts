@@ -602,6 +602,7 @@ export { profileImagesRemove } from "./profileImagesRemove.js";
 export { profileImagesRemoveMine } from "./profileImagesRemoveMine.js";
 export { profileImagesSetMine } from "./profileImagesSetMine.js";
 export { profileImagesShow } from "./profileImagesShow.js";
+export { profileImagesShowMine } from "./profileImagesShowMine.js";
 export { pushSubscribe } from "./pushSubscribe.js";
 export { pushUnsubscribe } from "./pushUnsubscribe.js";
 export { pushVapidPublicKey } from "./pushVapidPublicKey.js";

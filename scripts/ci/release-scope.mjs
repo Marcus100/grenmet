@@ -55,6 +55,12 @@ export const webImages = [
     path: "apps/web/bookings",
     port: 3015,
   },
+  {
+    app: "account",
+    image: "web-account",
+    path: "apps/web/account",
+    port: 3018,
+  },
 ];
 export const weatherImages = [];
 export const releaseScope = {

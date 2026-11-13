@@ -92,7 +92,7 @@ cd apps/api/fastapi && uv run --frozen --package fast-back python -c "from src.m
 cd ../../.. && pnpm generate:api-client && pnpm check:drift
 ```
 
-Update `docs/api/contracts.md` for new endpoints or breaking changes.
+Run `pnpm generate:api-routes`, and update `docs/api/contracts.md` for removed, public, webhook or re-secured routes, breaking changes, or routes it already describes.
 `tests/test_openapi_contract.py` enforces operation IDs, descriptions, and
 named enums.
 

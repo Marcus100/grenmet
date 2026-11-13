@@ -19,12 +19,17 @@ import {
   routedServices,
 } from "../ci/release-scope.mjs";
 
+const DOCKER_25_REQUIRED = /Docker Engine 25 or later is required/u;
+
 const ENOUGH_FREE_KB = 40 * 1024 * 1024;
 const RECLAIMED_LINE = /Total reclaimed space: 1\.2GB/u;
 const FREE_DISK_LINE =
   /Free disk space on \/var\/lib\/docker: 40 GB \(need 6 GB\)/u;
 const LOW_DISK_ERROR = /Not enough free disk space to pull images: 2 GB free/u;
 const STACK_UNTOUCHED = /the running stack was not touched/u;
+const UNFINISHED_UPGRADE =
+  /A PostgreSQL major upgrade of production is unfinished \(.*production\.in-progress\): refusing to (deploy|backup)\. Nothing was changed\./u;
+const CLEAR_MARKER_STEP = /clear-marker mode/u;
 const OVERRIDE_ERROR = /10 GB free.*12 GB required/u;
 const SECRET_MARKER = "ci-secret-marker-must-not-leak";
 const RUNNER_DISK_ERROR =
@@ -36,6 +41,7 @@ function runDeploy({
   failure = "none",
   freeKb = ENOUGH_FREE_KB,
   extraEnv = {},
+  operation = "deploy",
 }) {
   const root = mkdtempSync(join(tmpdir(), "core-delivery-"));
   try {
@@ -208,7 +214,7 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
     writeFileSync(join(root, "summary"), "");
     const result = spawnSync(
       "bash",
-      [join(root, "scripts/production/core.sh"), "deploy"],
+      [join(root, "scripts/production/core.sh"), operation],
       {
         env: {
           ...process.env,
@@ -252,6 +258,8 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           TEST_LIVE_SUBNET: "",
           ROLLOUT_SETTLE_SECONDS: "0",
           ROLLOUT_POLL_SECONDS: "0",
+          // No unfinished PostgreSQL major upgrade unless a test records one.
+          PG_UPGRADE_DIR: join(root, "pg-upgrade"),
           ...extraEnv,
         },
         encoding: "utf8",
@@ -416,6 +424,35 @@ test("a failure after the project was stopped says nothing is serving", () => {
   assert.equal(result.stdout.includes("are still running"), false);
 });
 
+test("an unfinished PostgreSQL major upgrade blocks deploys and backups before anything changes", () => {
+  const markers = mkdtempSync(join(tmpdir(), "pg-upgrade-marker-"));
+  try {
+    writeFileSync(
+      join(markers, "production.in-progress"),
+      "volume=grenmet_pgdata18\n"
+    );
+    for (const operation of ["deploy", "backup"]) {
+      const { result, calls } = runDeploy({
+        environment: "production",
+        operation,
+        extraEnv: { PG_UPGRADE_DIR: markers },
+      });
+      assert.equal(result.status, 1, operation);
+      assert.match(result.stderr, UNFINISHED_UPGRADE);
+      assert.match(result.stderr, CLEAR_MARKER_STEP);
+      assert.equal(calls, "", `${operation} must not call any tool`);
+    }
+    // Another environment's marker does not block this one.
+    const { result } = runDeploy({
+      environment: "staging",
+      extraEnv: { PG_UPGRADE_DIR: markers },
+    });
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(markers, { recursive: true, force: true });
+  }
+});
+
 // The backup gate reads the backup store, not the database, so it runs first: an
 // enforced stale-backup block must leave the previous release serving.
 test("an engine too old for healthcheck start_interval stops the deploy before anything changes", () => {
@@ -425,7 +462,7 @@ test("an engine too old for healthcheck start_interval stops the deploy before a
       extraEnv: { TEST_ENGINE_VERSION: version },
     });
     assert.notEqual(result.status, 0, version);
-    assert.match(result.stderr, /Docker Engine 25 or later is required/u);
+    assert.match(result.stderr, DOCKER_25_REQUIRED);
     assert.equal(calls.includes("docker pull"), false, version);
     assert.equal(calls.includes(" up -d"), false, version);
     assert.equal(calls.includes(" down "), false, version);

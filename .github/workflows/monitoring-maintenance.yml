@@ -83,6 +83,13 @@ jobs:
           trap 'rm -rf -- "$BACKUP_DIR"' EXIT
           exec 9>"/var/lock/grenmet-core-$TARGET.lock"
           flock -w 1800 9
+          # Never back up or restore-check a database a PostgreSQL major upgrade has not
+          # finished checking (scripts/production/postgres-major-upgrade.sh).
+          marker="${PG_UPGRADE_DIR:-/var/backups/grenmet/pg-major-upgrade}/$TARGET.in-progress"
+          if [[ -e "$marker" ]]; then
+            echo "A PostgreSQL major upgrade of $TARGET is unfinished ($marker); maintenance skipped until it finishes or is rolled back." >&2
+            exit 1
+          fi
           python3 scripts/monitoring/maintenance.py "$OPERATION" --environment "$TARGET" --report "$RUNNER_TEMP/monitoring-$TARGET.json"
       - name: Remove this run's isolated restore containers even on cancellation
         if: always() && steps.target.outputs.enabled == 'true'

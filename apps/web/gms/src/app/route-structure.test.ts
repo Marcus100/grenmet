@@ -30,7 +30,7 @@ function pageFolders(dir: string): string[] {
 function foldersAbove(folder: string): string[] {
   const folders: string[] = [];
   let current = folder;
-  for (;;) {
+  while (true) {
     folders.push(current);
     if (current === APP_DIR) {
       return folders;

@@ -7699,6 +7699,7 @@ export type {
   ProfileImagesSetMineStatus413,
   ProfileImagesSetMineStatus415,
   ProfileImagesSetMineStatus422,
+  ProfileImagesSetMineStatus429,
   ProfileImagesSetMineStatus503,
 } from "./ProfileImagesSetMine.js";
 export type {
@@ -7714,6 +7715,18 @@ export type {
   ProfileImagesShowStatus422,
   ProfileImagesShowStatus503,
 } from "./ProfileImagesShow.js";
+export type {
+  ProfileImagesShowMineOptions,
+  ProfileImagesShowMineQuery,
+  ProfileImagesShowMineResponse,
+  ProfileImagesShowMineResponses,
+  ProfileImagesShowMineStatus307,
+  ProfileImagesShowMineStatus401,
+  ProfileImagesShowMineStatus403,
+  ProfileImagesShowMineStatus404,
+  ProfileImagesShowMineStatus422,
+  ProfileImagesShowMineStatus503,
+} from "./ProfileImagesShowMine.js";
 export type { ProfilePublic } from "./ProfilePublic.js";
 export type { ProfilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";
 export { profilePublicPropertiesConnectionStateEnum } from "./ProfilePublicPropertiesConnectionStateEnum.js";

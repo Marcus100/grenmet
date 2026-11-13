@@ -94,6 +94,8 @@ class MaintenanceTests(unittest.TestCase):
                 )
             if args[:2] == ["docker", "ps"]:
                 return SimpleNamespace(stdout="source")
+            if args[:3] == ["docker", "image", "inspect"]:
+                return SimpleNamespace(stdout='{"/var/lib/postgresql/data":{}}')
             if args[:2] == ["docker", "inspect"]:
                 return SimpleNamespace(
                     stdout="healthy" if "Health" in args[3] else "sha256:" + "a" * 64
@@ -134,10 +136,38 @@ class MaintenanceTests(unittest.TestCase):
             with self.assertRaises(subprocess.CalledProcessError):
                 maintenance.restore("staging", "grenmet-staging")
         start = next(args for args in calls if args[:2] == ["docker", "run"])
+        self.assertEqual(start[start.index("--tmpfs") + 1].split(":")[0], "/var/lib/postgresql/data")
+        self.assertIn("PGDATA=/var/lib/postgresql/data/pgdata", start)
         self.assertEqual(start[start.index("--network") + 1], "none")
         self.assertEqual(start[start.index("--memory") + 1], "1g")
         self.assertTrue(calls[-1][3].startswith("grenmet-restore-staging-"))
         self.assertEqual(calls[-1][:3], ["docker", "rm", "-fv"])
+
+    def test_restore_storage_follows_the_image_postgresql_major(self):
+        def mounts(declared):
+            with patch.object(
+                maintenance, "run", return_value=SimpleNamespace(stdout=declared)
+            ):
+                return maintenance.data_mounts("sha256:" + "b" * 64)
+
+        # 17: the existing layout, data in a subdirectory of the tmpfs.
+        self.assertEqual(
+            mounts('{"/var/lib/postgresql/data":{}}'),
+            [
+                "--tmpfs",
+                "/var/lib/postgresql/data:rw,size=1073741824",
+                "--env",
+                "PGDATA=/var/lib/postgresql/data/pgdata",
+            ],
+        )
+        # 18 refuses a mount at .../data; its default PGDATA lies inside this tmpfs.
+        eighteen = mounts('{"/var/lib/postgresql":{}}')
+        self.assertEqual(
+            eighteen, ["--tmpfs", "/var/lib/postgresql:rw,size=1073741824"]
+        )
+        self.assertFalse(any(flag.startswith("PGDATA=") for flag in eighteen))
+        with self.assertRaises(ValueError):
+            mounts("null")
 
     def test_every_object_including_markers_is_verified(self):
         with tempfile.TemporaryDirectory() as directory:

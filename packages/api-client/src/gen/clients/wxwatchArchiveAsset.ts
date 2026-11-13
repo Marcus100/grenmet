@@ -28,6 +28,7 @@ export function wxwatchArchiveAsset<ThrowOnError extends boolean = true>(
         { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
+      responseType: "blob",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<WxwatchArchiveAssetResponses, ThrowOnError>>

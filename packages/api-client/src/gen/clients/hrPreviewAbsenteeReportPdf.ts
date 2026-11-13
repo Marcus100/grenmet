@@ -33,6 +33,7 @@ export function hrPreviewAbsenteeReportPdf<ThrowOnError extends boolean = true>(
           ? { request: contentType }
           : contentType),
       },
+      responseType: { "application/json": "json", "application/pdf": "blob" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

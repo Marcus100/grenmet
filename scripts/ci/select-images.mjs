@@ -70,7 +70,17 @@ export function selectSurface(paths, mode = "affected") {
 // Web apps whose Vitest coverage floors CI enforces (scripts/guardrails/
 // coverage-baseline.json). gaa-admin is left out: its full coverage run takes
 // about 40 minutes locally (docs/testing.md, Coverage floors).
-export const coverageApps = ["auth", "gms", "mbia", "signal"];
+export const coverageApps = [
+  "admin",
+  "auth",
+  "bookings",
+  "cap",
+  "events",
+  "gms",
+  "gmsdash",
+  "mbia",
+  "signal",
+];
 
 // Coverage runs follow the same scope as the image checks: dev PRs and dev
 // pushes run the affected apps, every other event runs all of them.

@@ -185,6 +185,8 @@ the API image and the local source mount contain the same migration assets.
 | `GMSDASH_SSO_CLIENT_SECRET` | Secret the GMS Dashboard web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Set the same value for the API and `apps/web/gmsdash`. |
 | `BOOKINGS_APP_URL` | Public URL of the Barrels Bookings web app (app-scoped sign-in). Default `http://localhost:3015`. |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Secret the Bookings web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Empty (the default) keeps sign-in off. Set the same value for the API and `apps/web/bookings`. |
+| `ACCOUNT_APP_URL` | Public URL of the Barrels account web app (`account.barrels.gd`, ADR-0057; app-scoped sign-in). Default `http://localhost:3018`. |
+| `ACCOUNT_SSO_CLIENT_SECRET` | Secret the account web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Empty (the default) keeps sign-in off. Set the same value for the API and `apps/web/account`. |
 | `MODELS_GUIDANCE_ENABLED` | Worker fetch of ECMWF IFS/AIFS and NOAA GFS point guidance (`src/models_guidance`). Default `false`; a run downloads hundreds of MB, so enable deliberately. |
 | `MODELS_GUIDANCE_MODELS` / `MODELS_GUIDANCE_POINTS` / `MODELS_GUIDANCE_POLL_MINUTE` / `MODELS_GUIDANCE_HORIZON_HOURS` / `MODELS_GUIDANCE_RETENTION_DAYS` / `MODELS_GUIDANCE_CACHE_DIR` | Optional. Models (`ifs,aifs,gfs`), JSON list of points (key, name, latitude, longitude; default MBIA, Lauriston, Petite Martinique), the minute of each hourly check (default 20), forecast length (default 240 h), stored-run retention (default 7 days) and the parent directory for temporary GRIB files. |
 | `EVENTS_GOOGLE_REDIRECT_URI` | Google OAuth redirect for Events sign-in (e.g. `https://events.barrels.gd/auth/google/callback`); Google sign-in for Events is offered only when this and `GOOGLE_CLIENT_ID` are set. |
@@ -310,7 +312,7 @@ For staging/production, replace with the actual subdomain hosts (no port needed)
 **Production** (exact hosts; list every app that sends users back to auth):
 
 ```text
-AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cap.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
+AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,account.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cap.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
 ```
 
 Staging uses the same labels under `staging.barrels.gd`. The shared Compose file
@@ -342,6 +344,7 @@ site's secret is set; the same value must be set for the API. Elections
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
 | bookings | `bookings` | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
+| account | `account` | `ACCOUNT_SSO_CLIENT_SECRET` | `account_session` |
 
 The weather site (gms) has no sign-in (owner, 1 Nov 2026), so it has no entry in
 this table and no `WEATHER_SSO_CLIENT_SECRET` or `WEATHER_SHOW_SIGN_IN`
@@ -434,6 +437,17 @@ GMS Dashboard (model meteograms for entitled organisations). No database; it cal
 | `GMSDASH_SSO_CLIENT_SECRET` | Same value as the API's; without it `/auth/callback` returns 503 and nobody can sign in |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
 
+### account (`apps/web/account/.env.local`)
+
+Barrels account (ADR-0057): a person's profile and profile photo. Every page needs a Barrels sign-in; the photo is uploaded and read through the same-origin `/api/v1/*` proxy, which exchanges the session cookie for a bearer token. No database; the API is called from the server at `AUTH_API_URL`.
+
+| Variable | Purpose |
+|---|---|
+| `AUTH_API_URL` / `AUTH_API_V1_STR` / `AUTH_APP_URL` | FastAPI base URL (`http://api:8000` in deployment), API prefix and the Barrels sign-in app |
+| `ACCOUNT_SESSION_COOKIE_NAME` | Host-only session cookie (default `account_session`) |
+| `ACCOUNT_SSO_CLIENT_SECRET` | Same value as the API's registration for `account`; without it `/auth/callback` returns 503. Optional in deployment (empty keeps sign-in off). A GitHub environment secret passed by `deploy.yml` and rendered by `render-env.py` |
+| `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
+
 ### bookings (`apps/web/bookings/.env.local`)
 
 Barrels Bookings. Only `/studio` needs sign-in; the public booking pages (`/[slug]`) need no sign-in. No database; the Bookings API is called from the server only, at `AUTH_API_URL`.
@@ -484,7 +498,7 @@ No environment variables. The site is a static export with no server code
 (owner, 13 Nov 2026); the booking address is `ONLINE_BOOKING_URL` in
 `src/data/site.ts`.
 
-FastAPI: `BOOKINGS_BABYDOLL_SITE_URL` (default `https://babydoll.barrels.gd`) is read only by the on-demand Babydoll seed (`src/bookings/seed.py`) for the booking manage link and the public site row.
+FastAPI: `BOOKINGS_BABYDOLL_SITE_URL` (default `https://babydoll.barrels.gd`) is read only by the on-demand Babydoll seed (`src/bookings/seed.py`) for the public site row. The seed builds the booking manage link from `BOOKINGS_APP_URL` (`<app>/<public slug>/booking/{token}`), because the manage page lives in the bookings app.
 
 ### Staging demo seed (`apps/api/fastapi/scripts/seed_staging_demo.py`)
 

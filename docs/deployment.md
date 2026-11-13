@@ -145,6 +145,7 @@ Go into each environment and add the following secrets. Staging and production u
 | `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment and per app)   |
 | `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment and per app) |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Bookings single sign-on secret (optional; empty keeps sign-in off; the API must register `bookings` first) | `openssl rand -base64 32` (different per environment and per app) |
+| `ACCOUNT_SSO_CLIENT_SECRET` | Account single sign-on secret (optional; empty keeps sign-in off; the API must register `account` first). Compose passes it to `api` and `web-account`; `render-env.py` and `deploy.yml` do not carry it yet (follow-up, ADR-0057) | `openssl rand -base64 32` (different per environment and per app) |
 | `EVENTS_SSO_CLIENT_SECRET` | Events single sign-on secret (optional) | `openssl rand -base64 32` (different per environment)        |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
@@ -335,6 +336,9 @@ For a fresh droplet only, create the external volumes named by `PGDATA_VOLUME`,
 `REDIS_VOLUME`, and `CERTS_VOLUME` in `staging.env` before the first deployment.
 Existing droplets must retain their existing volumes. Compose deliberately fails
 if a required external volume is missing instead of silently creating an empty database.
+The GitHub variable `CORE_PGDATA_VOLUME`, when set, replaces `PGDATA_VOLUME` for the
+PostgreSQL 18 move; `render-env.py` refuses a database image and volume of different
+majors ([PostgreSQL 18 upgrade](operations/postgres-18-upgrade.md)).
 
 The deployment starts Postgres, ensures the configured databases exist, then
 starts the remaining services with migrations enforced through dependencies.
@@ -630,6 +634,7 @@ hurricane/spice hosts; no legacy redirects are installed.
 | CAP alert hub | 3010 | https://cap.barrels.gd | https://cap.staging.barrels.gd |
 | GMS Dashboard | 3013 | https://gmsdash.barrels.gd | https://gmsdash.staging.barrels.gd |
 | Bookings | 3015 | https://bookings.barrels.gd | https://bookings.staging.barrels.gd |
+| Account | 3018 | https://account.barrels.gd | https://account.staging.barrels.gd |
 | Elections | 3007 | https://elections.barrels.gd (Vercel) | Vercel preview deployments |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 

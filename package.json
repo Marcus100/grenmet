@@ -32,6 +32,7 @@
     "dev:web:babydoll": "turbo run dev --filter=@barrelsgd/web-babydoll",
     "dev:web:commit": "turbo run dev --filter=@barrelsgd/web-commit",
     "dev:web:bookings": "turbo run dev --filter=@barrelsgd/web-bookings",
+    "dev:web:account": "turbo run dev --filter=@barrelsgd/web-account",
     "design-system:sync": "node scripts/design-system/design-system-sync.mjs --write",
     "design-system:check": "node scripts/design-system/design-system-sync.mjs --check",
     "design-system:contrast": "node scripts/design-system/design-system-contrast.mjs",
