@@ -334,3 +334,17 @@ test("the site key is written at build time and defaults to none", () => {
     'export const TURNSTILE_SITE_KEY = "";\n'
   );
 });
+
+test("Cloudflare Pages serves the same response headers as vercel.json", () => {
+  const config = JSON.parse(
+    readFileSync(new URL("./vercel.json", import.meta.url), "utf8")
+  );
+  const lines = read("_headers").split("\n");
+  assert.equal(lines[0], "/*");
+  for (const header of config.headers[0].headers) {
+    assert.ok(
+      lines.includes(`  ${header.key}: ${header.value}`),
+      `${header.key} is missing from _headers`
+    );
+  }
+});
