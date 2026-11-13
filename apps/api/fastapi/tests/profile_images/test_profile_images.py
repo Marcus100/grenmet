@@ -497,3 +497,31 @@ async def test_other_app_sessions_cannot_use_the_photo_routes(
         f"{URL}/me", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == 401
+
+
+async def test_a_cancelled_save_deletes_the_new_files(
+    db_async: AsyncSession,
+    store: FakeStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import asyncio
+
+    from src.profile_images import service
+
+    user = await make_user(db_async)
+
+    async def cancelled_commit() -> None:
+        raise asyncio.CancelledError
+
+    monkeypatch.setattr(db_async, "commit", cancelled_commit)
+    with pytest.raises(asyncio.CancelledError):
+        await service.set_image(session=db_async, user=user, raw=_jpeg())
+    assert store.objects == {}
+    assert len(store.deleted) == 3
+
+
+async def test_the_upload_route_is_rate_limited() -> None:
+    from src.main import app
+
+    operation = app.openapi()["paths"]["/api/v1/profile-images/me"]["put"]
+    assert "429" in operation["responses"]

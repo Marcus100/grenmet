@@ -42584,6 +42584,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many uploads; try later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Profileimagessetmine"
+                }
+              }
+            }
           }
         },
         "security": [

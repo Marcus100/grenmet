@@ -17,7 +17,7 @@ import uuid
 from datetime import datetime
 
 from botocore.exceptions import BotoCoreError, ClientError
-from sqlalchemy import and_, exists, select
+from sqlalchemy import and_, exists, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
@@ -84,6 +84,12 @@ async def _delete_objects(prefix: str) -> None:
             logger.warning("Profile photo object not deleted", extra={"prefix": prefix})
 
 
+async def _discard_upload(session: AsyncSession, prefix: str) -> None:
+    """Undo a save that did not complete: roll back and delete its new files."""
+    await session.rollback()
+    await _delete_objects(prefix)
+
+
 async def delete_stored_files(prefix: str) -> None:
     """Remove an upload's stored sizes, if storage is configured (best effort)."""
     if storage.storage_service.is_configured:
@@ -93,30 +99,28 @@ async def delete_stored_files(prefix: str) -> None:
 async def set_image(*, session: AsyncSession, user: User, raw: bytes) -> UserImage:
     """Store a new photo for ``user`` and drop the previous one.
 
-    The files go up first under a fresh prefix; the row then points at them in
-    one statement that inserts or updates, so two uploads at once cannot fail
-    on the one-photo-per-person rule. If saving the row fails, the new files are
-    deleted again.
+    The files go up first under a fresh prefix, then the row points at them. A
+    new row is inserted or, when one exists, locked and updated, so the files it
+    pointed at are always known and deleted, even when two first uploads race.
+    If anything stops the save, including a cancelled request, the new files
+    are deleted again.
     """
     _require_storage()
     async with _PROCESSING:
         sizes = await run_in_threadpool(images.process, raw)
     prefix = f"users/{user.id}/profile-image/{uuid.uuid4().hex}"
-    for size, data in sizes.items():
-        await run_in_threadpool(
-            storage.storage_service.put_object,
-            object_key(prefix, size),
-            data,
-            content_type="image/webp",
-        )
-    now = utc_now()
+    saved = False
+    previous: str | None = None
     try:
-        previous = await session.scalar(
-            select(UserImage.object_key)
-            .where(UserImage.user_id == user.id)
-            .with_for_update()
-        )
-        await session.execute(
+        for size, data in sizes.items():
+            await run_in_threadpool(
+                storage.storage_service.put_object,
+                object_key(prefix, size),
+                data,
+                content_type="image/webp",
+            )
+        now = utc_now()
+        inserted = await session.scalar(
             insert(UserImage)
             .values(
                 id=uuid.uuid4(),
@@ -125,16 +129,27 @@ async def set_image(*, session: AsyncSession, user: User, raw: bytes) -> UserIma
                 created_at=now,
                 updated_at=now,
             )
-            .on_conflict_do_update(
-                index_elements=[UserImage.user_id],
-                set_={"object_key": prefix, "updated_at": now},
-            )
+            .on_conflict_do_nothing(index_elements=[UserImage.user_id])
+            .returning(UserImage.id)
         )
+        if inserted is None:
+            # A row exists (perhaps committed by a concurrent first upload):
+            # lock it, remember its files, then point it at the new ones.
+            previous = await session.scalar(
+                select(UserImage.object_key)
+                .where(UserImage.user_id == user.id)
+                .with_for_update()
+            )
+            await session.execute(
+                update(UserImage)
+                .where(UserImage.user_id == user.id)
+                .values(object_key=prefix, updated_at=now)
+            )
         await session.commit()
-    except Exception:
-        await session.rollback()
-        await _delete_objects(prefix)
-        raise
+        saved = True
+    finally:
+        if not saved:
+            await asyncio.shield(_discard_upload(session, prefix))
     if previous and previous != prefix:
         await _delete_objects(previous)
     row: UserImage | None = await session.scalar(

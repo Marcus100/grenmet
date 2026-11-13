@@ -9,7 +9,13 @@ from fastapi.responses import RedirectResponse
 from src.auth.models import UserImage
 from src.dependencies import CurrentUser, OwnAccountUser, SessionDep
 from src.models import ApiError
-from src.openapi_responses import AUTHENTICATED, NOT_FOUND, ResponseMap
+from src.openapi_responses import (
+    AUTHENTICATED,
+    NOT_FOUND,
+    RateLimitedBody,
+    ResponseMap,
+)
+from src.rate_limit import limiter
 
 from . import images, service
 from .exceptions import (
@@ -29,6 +35,9 @@ INVALID: ResponseMap = {
     },
     422: {"model": ApiError, "description": "Not a usable JPEG, PNG or WebP photo"},
 }
+#: Uploads per minute per visitor address (#1332): a photo is rarely changed,
+#: and an office sharing one address still has plenty of headroom.
+UPLOAD_LIMIT = "10/minute"
 CONTENT_TYPES = ("image/jpeg", "image/png", "image/webp")
 IMAGE_BODY = {
     "requestBody": {
@@ -104,9 +113,15 @@ async def get_my_profile_image(
         "visible at once to people who share an organisation with you."
     ),
     operation_id="profileImagesSetMine",
-    responses={**AUTHENTICATED, **INVALID, **UNAVAILABLE},
+    responses={
+        **AUTHENTICATED,
+        **INVALID,
+        **UNAVAILABLE,
+        429: {"model": RateLimitedBody, "description": "Too many uploads; try later"},
+    },
     openapi_extra=IMAGE_BODY,
 )
+@limiter.limit(UPLOAD_LIMIT)
 async def set_my_profile_image(
     *, request: Request, session: SessionDep, current_user: OwnAccountUser
 ) -> Any:

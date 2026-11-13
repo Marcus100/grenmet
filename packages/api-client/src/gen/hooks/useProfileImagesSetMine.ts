@@ -19,6 +19,7 @@ import type {
   ProfileImagesSetMineStatus413,
   ProfileImagesSetMineStatus415,
   ProfileImagesSetMineStatus422,
+  ProfileImagesSetMineStatus429,
   ProfileImagesSetMineStatus503,
 } from "../models/ProfileImagesSetMine.js";
 
@@ -41,6 +42,7 @@ export function profileImagesSetMineMutationOptions<TContext = unknown>(
       | ProfileImagesSetMineStatus413
       | ProfileImagesSetMineStatus415
       | ProfileImagesSetMineStatus422
+      | ProfileImagesSetMineStatus429
       | ProfileImagesSetMineStatus503
     >,
     ProfileImagesSetMineOptions,
@@ -72,6 +74,7 @@ export function useProfileImagesSetMine<TContext>(
         | ProfileImagesSetMineStatus413
         | ProfileImagesSetMineStatus415
         | ProfileImagesSetMineStatus422
+        | ProfileImagesSetMineStatus429
         | ProfileImagesSetMineStatus503
       >,
       ProfileImagesSetMineOptions,
@@ -99,6 +102,7 @@ export function useProfileImagesSetMine<TContext>(
       | ProfileImagesSetMineStatus413
       | ProfileImagesSetMineStatus415
       | ProfileImagesSetMineStatus422
+      | ProfileImagesSetMineStatus429
       | ProfileImagesSetMineStatus503
     >,
     ProfileImagesSetMineOptions,
@@ -113,6 +117,7 @@ export function useProfileImagesSetMine<TContext>(
       | ProfileImagesSetMineStatus413
       | ProfileImagesSetMineStatus415
       | ProfileImagesSetMineStatus422
+      | ProfileImagesSetMineStatus429
       | ProfileImagesSetMineStatus503
     >,
     ProfileImagesSetMineOptions,
@@ -132,6 +137,7 @@ export function useProfileImagesSetMine<TContext>(
       | ProfileImagesSetMineStatus413
       | ProfileImagesSetMineStatus415
       | ProfileImagesSetMineStatus422
+      | ProfileImagesSetMineStatus429
       | ProfileImagesSetMineStatus503
     >,
     ProfileImagesSetMineOptions,
