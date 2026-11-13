@@ -437,8 +437,10 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    with op.get_context().autocommit_block():
-        op.execute(f'DROP INDEX CONCURRENTLY IF EXISTS hr."{MISSING_INDEX}"')
+    # Transactional on purpose: migration tests run every later downgrade inside
+    # one transaction they roll back, and the table is small.
+    # migration-safety: drops only the index this revision added.
+    op.execute(f'DROP INDEX IF EXISTS hr."{MISSING_INDEX}"')
     for table, column, _ in REQUIRED_JSON:
         op.alter_column(table, column, schema="hr", nullable=True)
     for schema, old, new in RENAMES:
