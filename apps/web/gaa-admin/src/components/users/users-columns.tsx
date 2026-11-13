@@ -91,7 +91,7 @@ function getLastActiveBadge(lastActive: number) {
   return { className: "bg-muted-foreground text-muted", icon: X };
 }
 
-function AvatarCell({
+export function AvatarCell({
   lastActive,
   name,
   userId,
@@ -105,7 +105,7 @@ function AvatarCell({
 
   return (
     <Avatar className={cn("font-medium", getAvatarTone(name))} size="lg">
-      <AvatarImage alt="" loading="lazy" src={profileImageUrl(userId)} />
+      <AvatarImage alt="" src={profileImageUrl(userId)} />
       <AvatarFallback>{getInitials(name)}</AvatarFallback>
       <AvatarBadge className={badge.className}>
         {BadgeIcon ? <BadgeIcon /> : null}

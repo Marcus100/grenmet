@@ -45,7 +45,7 @@ export function NavUser({ user }: { readonly user: NavUserData }) {
             }
           >
             <Avatar className="h-8 w-8 rounded-lg">
-              <AvatarImage alt={user.name} src={user.avatar || undefined} />
+              <AvatarImage alt="" src={user.avatar || undefined} />
               <AvatarFallback className="rounded-lg">
                 {getInitials(user.name)}
               </AvatarFallback>
