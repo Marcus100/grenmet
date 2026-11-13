@@ -24,9 +24,8 @@ export default async function MapPage() {
           above.
         </p>
       ) : null}
-      {hasData && result.data.features.length > 0 ? (
-        <AlertMap features={result.data.features} />
-      ) : null}
+      {/* Always draw the islands, so an empty map never looks like a failed one. */}
+      {hasData ? <AlertMap features={result.data.features} /> : null}
     </div>
   );
 }
