@@ -192,7 +192,7 @@ export function Footer() {
             <br />A department of the Grenada Airports Authority. Maurice Bishop
             International Airport, St. George.
           </p>
-          <address className="text-body-sm leading-body-sm lg:text-body lg:leading-body flex flex-col gap-0.5 not-italic">
+          <address className="text-body-sm leading-body-sm lg:text-body lg:leading-body flex flex-col not-italic [&>a]:flex [&>a]:min-h-7 [&>a]:items-center">
             <a className={LINK} href={`tel:${GMS_CONTACTS.mainLine.tel}`}>
               Main line {GMS_CONTACTS.mainLine.label}
             </a>

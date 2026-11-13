@@ -76,7 +76,7 @@ export default async function WarningsPage() {
             </Suspense>
           </section>
           {alertsLevel(alerts) === "none" && (
-            <div className="rounded-gm-card border-gm-border text-body leading-body flex flex-col gap-1 border border-dashed p-4">
+            <div className="rounded-gm-card border-gm-border text-body leading-body flex flex-col gap-1 border p-4">
               <b className="text-gm-heading">What we are watching</b>
               <span>
                 The tropical weather outlook covers systems that could affect us
@@ -103,7 +103,7 @@ export default async function WarningsPage() {
         <Prose
           paragraphs={[
             "Warnings are listed by hazard and, within each hazard, most severe first. Select a warning for what to expect, what to do, where and when. A warning stays here until it expires or the Grenada Meteorological Service cancels it, then shows under “Ended” for 24 hours as the all-clear.",
-            "This page reflects the CAP feed published by GMS. If the feed cannot be reached, this page says so rather than showing an empty list — an unreachable feed is not the same as an all-clear. Green alerts are listed in their own section, with the same rule: an unreadable list is said, never shown as none.",
+            "If we cannot read our warning feed or the Green alerts, this page says so. A list we could not read is never an all-clear.",
           ]}
         />
       </PageSection>
