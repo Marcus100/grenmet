@@ -3102,6 +3102,10 @@ employment in the same HR organisation.
 | `GET /profile-images/org/{user_id}?size=64\|256\|512` | 307 to a 5-minute presigned GET, `Cache-Control: private, max-age=240`, `Vary: Authorization, Cookie` (default size 256; others 422). The person, superusers and people sharing an organisation only; a hidden photo and a missing one are the same 404, so show initials |
 | `DELETE /profile-images/org/{user_id}` | Removes an unsuitable photo: `hr.employment.manage` over the person (or superuser), never your own (use `/me`). 403 otherwise. Recorded as `profile_image` in the person's employee history |
 
+Errors 413, 415, 422 and 503 carry the usual `{detail}` body. The upload body is
+the named `BinaryFile` schema (the OpenAPI build names every inline binary
+request body), so the client sends a `Blob` or `File`.
+
 `ProfileIdentityPublic.avatar_url` (HR profile) is the same-origin link
 `/api/v1/profile-images/org/{user_id}?size=256&v=<version>`, or null. Deleting
 an account deletes its photo row (`ON DELETE CASCADE`) and its stored files.

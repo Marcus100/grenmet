@@ -1088,6 +1088,7 @@ export {
   billingVoidInvoiceStatus409Schema,
   billingVoidInvoiceStatus422Schema,
 } from "./billingVoidInvoiceSchema.js";
+export { binaryFileSchema } from "./binaryFileSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrImportTerminalPunchesSchema } from "./bodyHrImportTerminalPunchesSchema.js";
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";

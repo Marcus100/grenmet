@@ -51,7 +51,11 @@ export type ProfileImagesShowStatus404 = ApiError;
  */
 export type ProfileImagesShowStatus422 = ValidationErrorResponse;
 
-export type ProfileImagesShowStatus503 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ProfileImagesShowStatus503 = ApiError;
 
 export type ProfileImagesShowOptions = {
   body?: never;

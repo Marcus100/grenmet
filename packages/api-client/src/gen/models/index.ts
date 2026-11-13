@@ -1125,6 +1125,7 @@ export type {
   BillingVoidInvoiceStatus409,
   BillingVoidInvoiceStatus422,
 } from "./BillingVoidInvoice.js";
+export type { BinaryFile } from "./BinaryFile.js";
 export type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
 export type { BodyHrImportTerminalPunches } from "./BodyHrImportTerminalPunches.js";
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";

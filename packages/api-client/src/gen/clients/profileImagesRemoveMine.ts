@@ -11,6 +11,7 @@ import type {
 } from "../models/ProfileImagesRemoveMine.js";
 
 /**
+ * @description Deletes the photo and its stored images; 404 when you have none.
  * @summary Remove your profile photo
  * {@link /api/v1/profile-images/me}
  */

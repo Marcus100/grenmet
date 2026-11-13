@@ -5682,6 +5682,7 @@ export type {
   BillingVoidInvoiceStatus409,
   BillingVoidInvoiceStatus422,
 } from "./models/BillingVoidInvoice.js";
+export type { BinaryFile } from "./models/BinaryFile.js";
 export type { BodyAuthLoginAccessToken } from "./models/BodyAuthLoginAccessToken.js";
 export type { BodyHrImportTerminalPunches } from "./models/BodyHrImportTerminalPunches.js";
 export type { BodyHrUploadDocument } from "./models/BodyHrUploadDocument.js";
@@ -15664,6 +15665,7 @@ export {
   billingVoidInvoiceStatus409Schema,
   billingVoidInvoiceStatus422Schema,
 } from "./zod/billingVoidInvoiceSchema.js";
+export { binaryFileSchema } from "./zod/binaryFileSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./zod/bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrImportTerminalPunchesSchema } from "./zod/bodyHrImportTerminalPunchesSchema.js";
 export { bodyHrUploadDocumentSchema } from "./zod/bodyHrUploadDocumentSchema.js";

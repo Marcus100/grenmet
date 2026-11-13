@@ -42498,20 +42498,17 @@
           "content": {
             "image/jpeg": {
               "schema": {
-                "type": "string",
-                "format": "binary"
+                "$ref": "#/components/schemas/BinaryFile"
               }
             },
             "image/png": {
               "schema": {
-                "type": "string",
-                "format": "binary"
+                "$ref": "#/components/schemas/BinaryFile"
               }
             },
             "image/webp": {
               "schema": {
-                "type": "string",
-                "format": "binary"
+                "$ref": "#/components/schemas/BinaryFile"
               }
             }
           },
@@ -42529,7 +42526,14 @@
             }
           },
           "422": {
-            "description": "Not a usable JPEG, PNG or WebP photo"
+            "description": "Not a usable JPEG, PNG or WebP photo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -42552,13 +42556,34 @@
             }
           },
           "413": {
-            "description": "Larger than 5 MB"
+            "description": "Larger than 5 MB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           },
           "415": {
-            "description": "Not sent as image/jpeg, image/png or image/webp"
+            "description": "Not sent as image/jpeg, image/png or image/webp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           },
           "503": {
-            "description": "Photo storage is not configured"
+            "description": "Photo storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -42572,6 +42597,7 @@
           "profile-images"
         ],
         "summary": "Remove your profile photo",
+        "description": "Deletes the photo and its stored images; 404 when you have none.",
         "operationId": "profileImagesRemoveMine",
         "responses": {
           "204": {
@@ -42709,7 +42735,14 @@
             }
           },
           "503": {
-            "description": "Photo storage is not configured"
+            "description": "Photo storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -119623,6 +119656,11 @@
           "paid"
         ],
         "type": "string"
+      },
+      "BinaryFile": {
+        "title": "BinaryFile",
+        "type": "string",
+        "format": "binary"
       }
     },
     "securitySchemes": {

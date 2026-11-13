@@ -4,6 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { BinaryFile } from "./BinaryFile.js";
 import type { ProfileImagePublic } from "./ProfileImagePublic.js";
 
 export type ProfileImagesSetMineStatus200 = ProfileImagePublic;
@@ -20,34 +21,50 @@ export type ProfileImagesSetMineStatus401 = ApiError;
  */
 export type ProfileImagesSetMineStatus403 = ApiError;
 
-export type ProfileImagesSetMineStatus413 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ProfileImagesSetMineStatus413 = ApiError;
 
-export type ProfileImagesSetMineStatus415 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ProfileImagesSetMineStatus415 = ApiError;
 
-export type ProfileImagesSetMineStatus422 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ProfileImagesSetMineStatus422 = ApiError;
 
-export type ProfileImagesSetMineStatus503 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ProfileImagesSetMineStatus503 = ApiError;
 
 /**
  * @description
  * Format: `binary`
  * @type string
  */
-export type ProfileImagesSetMineBodyJpeg = Blob;
+export type ProfileImagesSetMineBodyJpeg = BinaryFile;
 
 /**
  * @description
  * Format: `binary`
  * @type string
  */
-export type ProfileImagesSetMineBodyPng = Blob;
+export type ProfileImagesSetMineBodyPng = BinaryFile;
 
 /**
  * @description
  * Format: `binary`
  * @type string
  */
-export type ProfileImagesSetMineBodyWebp = Blob;
+export type ProfileImagesSetMineBodyWebp = BinaryFile;
 
 export type ProfileImagesSetMineBody =
   | ProfileImagesSetMineBodyJpeg

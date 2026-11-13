@@ -8,6 +8,7 @@ from fastapi.responses import RedirectResponse
 
 from src.auth.models import UserImage
 from src.dependencies import CurrentUser, SessionDep
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND, ResponseMap
 
 from . import images, service
@@ -21,9 +22,12 @@ from .schemas import ProfileImagePublic, ProfileImageSize
 router = APIRouter(prefix="/profile-images", tags=["profile-images"])
 
 INVALID: ResponseMap = {
-    413: {"description": "Larger than 5 MB"},
-    415: {"description": "Not sent as image/jpeg, image/png or image/webp"},
-    422: {"description": "Not a usable JPEG, PNG or WebP photo"},
+    413: {"model": ApiError, "description": "Larger than 5 MB"},
+    415: {
+        "model": ApiError,
+        "description": "Not sent as image/jpeg, image/png or image/webp",
+    },
+    422: {"model": ApiError, "description": "Not a usable JPEG, PNG or WebP photo"},
 }
 CONTENT_TYPES = ("image/jpeg", "image/png", "image/webp")
 IMAGE_BODY = {
@@ -36,7 +40,9 @@ IMAGE_BODY = {
     }
 }
 REDIRECT: ResponseMap = {307: {"description": "Redirect to the image"}}
-UNAVAILABLE: ResponseMap = {503: {"description": "Photo storage is not configured"}}
+UNAVAILABLE: ResponseMap = {
+    503: {"model": ApiError, "description": "Photo storage is not configured"}
+}
 
 
 async def _read_image_body(request: Request) -> bytes:
@@ -113,6 +119,7 @@ async def set_my_profile_image(
     "/me",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Remove your profile photo",
+    description="Deletes the photo and its stored images; 404 when you have none.",
     operation_id="profileImagesRemoveMine",
     responses={**AUTHENTICATED, **NOT_FOUND},
 )

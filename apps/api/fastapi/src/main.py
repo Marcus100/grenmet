@@ -669,6 +669,28 @@ def _lift_inline_enums(schema: dict[str, Any]) -> None:
             path_item[method] = walk(operation, pascal(context), True)
 
 
+BINARY_FILE = {"title": "BinaryFile", "type": "string", "format": "binary"}
+
+
+def _name_binary_bodies(schema: dict[str, Any]) -> None:
+    """Point inline binary request bodies (raw uploads) at one named component,
+    so the generated client gets a named type instead of an anonymous one."""
+    found = False
+    for item in schema.get("paths", {}).values():
+        for operation in item.values():
+            if not isinstance(operation, dict):
+                continue
+            content = (operation.get("requestBody") or {}).get("content", {})
+            for media in content.values():
+                if media.get("schema") == {"type": "string", "format": "binary"}:
+                    media["schema"] = {"$ref": "#/components/schemas/BinaryFile"}
+                    found = True
+    if found:
+        schema.setdefault("components", {}).setdefault("schemas", {})["BinaryFile"] = (
+            BINARY_FILE
+        )
+
+
 def _custom_openapi() -> dict[str, Any]:
     if app.openapi_schema:
         return app.openapi_schema
@@ -685,6 +707,7 @@ def _custom_openapi() -> dict[str, Any]:
         license_info=app.license_info,
     )
     _lift_inline_enums(schema)
+    _name_binary_bodies(schema)
     app.openapi_schema = schema
     return schema
 

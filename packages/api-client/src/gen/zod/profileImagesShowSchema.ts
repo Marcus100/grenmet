@@ -34,7 +34,9 @@ export const profileImagesShowStatus422Schema =
     "Validation error envelope returned for malformed requests."
   );
 
-export const profileImagesShowStatus503Schema = z.unknown();
+export const profileImagesShowStatus503Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const profileImagesShowResponseSchema = z.unknown();
 
