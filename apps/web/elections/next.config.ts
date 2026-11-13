@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   output: "export",
   images: { unoptimized: true },
   reactCompiler: true,
+  // A static export ignores redirects() and headers(): the redirect lives in
+  // public/_redirects (Cloudflare Pages) and vercel.json, and the response
+  // headers are written to out/_headers by scripts/pages-headers.mjs.
 };
 
 export default withSentryConfig(nextConfig, {
