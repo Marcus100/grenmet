@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # uv — Python package manager used by apps/api/fastapi. Installed system-wide
 # so the agent can work on the FastAPI app too.
-COPY --from=ghcr.io/astral-sh/uv:0.12.24@sha256:3af4716e991d6956a41e573eab705d0ee08500cd829ed30293eb8472f372c65a /uv /uvx /usr/local/bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.8@sha256:5cc1805e2426484abca4ad46ea783bab281fdb225fd82d8ce6d66a81254bac85 /uv /uvx /usr/local/bin/
 
 # Keep the Python interpreter in the image, outside mutable login/cache volumes.
 ENV UV_PYTHON_INSTALL_DIR=/opt/uv/python
