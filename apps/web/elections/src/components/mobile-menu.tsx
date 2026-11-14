@@ -1,5 +1,6 @@
 "use client";
 
+import { useMenuFocus } from "@barrelsgd/ui/hooks/use-menu-focus";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import type { Route } from "next";
@@ -29,6 +30,7 @@ export function MobileMenu({ status }: { status?: string }) {
   const [top, setTop] = useState(0);
   const button = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
+  useMenuFocus({ buttonRef: button, open, panelId: MENU_ID });
 
   // A link to another page closes the menu.
   // biome-ignore lint/correctness/useExhaustiveDependencies: run on route change only

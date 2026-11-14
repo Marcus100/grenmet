@@ -1,6 +1,7 @@
 "use client";
 
 import { Logo } from "@barrelsgd/gms/components/logo";
+import { useMenuFocus } from "@barrelsgd/ui/hooks/use-menu-focus";
 import { AnchorIcon, BellIcon, PlaneIcon } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -43,6 +44,11 @@ export function Header({ alerts, green }: HeaderProps) {
   const [menuTop, setMenuTop] = useState(0);
   const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  useMenuFocus({
+    buttonRef: menuButtonRef,
+    open: navOpen,
+    panelId: "site-menu",
+  });
 
   /** The menu opens under the header, so the logo and the button never move. */
   function toggleNav() {
