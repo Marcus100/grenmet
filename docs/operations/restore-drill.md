@@ -1,8 +1,8 @@
 # Restore drill
 
-**Status:** Run once against the production backup and passed; a supervised staging-target run is still open ([#926](https://github.com/Marcus100/grenmet/issues/926)). Run 41789991594 (2026-11-04) succeeded: the restore step took about 1.5 minutes and the whole run 1 minute 57 seconds.  
+**Status:** Passed against the production backup. Run 41789991594 (2026-11-04) succeeded: the restore step took about 1.5 minutes and the whole run 1 minute 57 seconds. Run 42679143332 (2026-11-09) passed end to end and closed [#926](https://github.com/Marcus100/grenmet/issues/926). Runs monthly (see Schedule below); the application check (`api_check`) has not been run.  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-04
+**Last updated:** 2026-11-12
 
 Proves that the latest off-host backups rebuild every core database and match the
 code. Decision and rationale: [ADR-0021](../adr/0021-timed-recovery-drill.md). The
@@ -114,5 +114,16 @@ example 90 percent of the observed rows) and save them as
 { "app_prod": { "hr.employment_record": 100 } }
 ```
 
-Table names use `schema.table`. Floors are enforced from the next run. Enable a monthly
-schedule only after one human-timed run passes.
+Table names use `schema.table`. Floors are enforced from the next run.
+
+## Schedule
+
+The drill runs on the 1st of each month at 05:30 UTC against the production backup
+set and the latest release, with no API check. A failed scheduled run opens (or adds
+a comment to) the issue "friction: monthly restore drill failed". Dispatch it by hand
+to choose a ref, the staging set or the API check.
+
+The drill shares the `prod-droplet` queue with deploys and backups, and GitHub keeps
+only one waiting run per queue, so a drill that is still waiting can be dropped by a
+newer deploy or backup. A dropped run is cancelled, not failed, so it opens no issue:
+if no drill ran in a month, dispatch it by hand.

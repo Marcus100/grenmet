@@ -8,6 +8,8 @@ import "server-only";
 
 import {
   type BookingAgenda,
+  type BookingExceptionCreate,
+  type BookingExceptionPublic,
   type BookingMyOrganisation,
   type BookingProfilePublic,
   type BookingProfileUpdate,
@@ -26,14 +28,17 @@ import {
   bookingsCancelStudioBooking,
   bookingsCompleteStudioBooking,
   bookingsConfirmStudioBooking,
+  bookingsCreateException,
   bookingsCreateProvider,
   bookingsCreateService,
   bookingsCreateStudioBooking,
   bookingsDeclineStudioBooking,
+  bookingsDeleteException,
   bookingsGetAgenda,
   bookingsGetProfile,
   bookingsGetSettings,
   bookingsGetStudioBooking,
+  bookingsListExceptions,
   bookingsListMyOrganisations,
   bookingsListProviders,
   bookingsListServices,
@@ -416,5 +421,54 @@ export function replaceHours(
     body: { periods },
   })
     .unwrap()
+    .catch(redactRequest);
+}
+
+// --- time off (provider exceptions) --------------------------------------------
+// Time off blocks bookings and extra hours open times outside the weekly plan.
+// The API has no update: a change is a delete and a new add.
+
+/** One provider's time off and extra hours that end after `startsFrom` (ISO). */
+export function listExceptions(
+  accessToken: string,
+  organisationId: string,
+  providerId: string,
+  startsFrom: string
+): Promise<BookingExceptionPublic[]> {
+  return bookingsListExceptions({
+    client: studioClient(accessToken, organisationId),
+    path: { provider_id: providerId },
+    query: { starts_from: startsFrom },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function createException(
+  accessToken: string,
+  organisationId: string,
+  providerId: string,
+  body: BookingExceptionCreate
+): Promise<BookingExceptionPublic> {
+  return bookingsCreateException({
+    client: studioClient(accessToken, organisationId),
+    path: { provider_id: providerId },
+    body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+export function deleteException(
+  accessToken: string,
+  organisationId: string,
+  exceptionId: string
+): Promise<void> {
+  return bookingsDeleteException({
+    client: studioClient(accessToken, organisationId),
+    path: { exception_id: exceptionId },
+  })
+    .unwrap()
+    .then(() => undefined)
     .catch(redactRequest);
 }

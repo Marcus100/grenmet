@@ -13,6 +13,7 @@ import pytest
 
 from src.auth.models import User
 from src.eregister import cl1_import, derive
+from src.eregister.schemas import SynopValidationIssue
 from tests import test_eregister_send
 
 AMOUNTS = derive.PressureSettings(0.0, 0.3, 1.0, 0.1)  # 78958, owner confirmed
@@ -311,3 +312,43 @@ async def test_converted_hours_save_through_the_api_as_drafts_and_repeat_safely(
         "/api/v1/eregister/observations", params={"station_id": cl1_import.STATION_ID}
     )
     assert len(listed.json()["observations"]) == 2
+
+
+def _issue(code: str, field: str) -> SynopValidationIssue:
+    return SynopValidationIssue(
+        field=field, code=code, message=f"old {code}", severity="warning"
+    )
+
+
+def test_sheet_gaps_become_one_note_listing_what_the_sheet_lacks() -> None:
+    keep = _issue("group_909_without_rainfall", "s3_group_909")
+    merged = cl1_import.merge_sheet_gaps(
+        [
+            _issue("missing_station_pressure", "station_pressure"),
+            keep,
+            _issue("missing_pressure_change", "pressure_tendency"),
+            _issue("rainfall_omitted_at_main_hour", "precip_indicator"),
+            _issue("missing_txtn", "s3_max_temp"),
+        ]
+    )
+    assert merged[0] == keep
+    assert [issue.code for issue in merged] == [
+        "group_909_without_rainfall",
+        "not_in_source",
+    ]
+    assert merged[1].message == (
+        "Not in the hourly sheet this hour was imported from, so left blank: "
+        "station pressure, pressure tendency, rainfall and maximum and minimum "
+        "temperatures."
+    )
+
+
+def test_rows_without_sheet_gaps_are_untouched() -> None:
+    issues = [_issue("group_909_without_rainfall", "s3_group_909")]
+    assert cl1_import.merge_sheet_gaps(issues) == issues
+
+
+def test_only_the_importers_own_notes_count_as_imported() -> None:
+    assert cl1_import.is_imported(f"{cl1_import.IMPORT_NOTE_PREFIX}, row 4")
+    assert not cl1_import.is_imported("Keyed by the observer")
+    assert not cl1_import.is_imported(None)

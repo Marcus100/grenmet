@@ -18,8 +18,10 @@ jobs:
   inventory:
     if: github.ref == 'refs/heads/main'
     runs-on: [self-hosted, "${{ inputs.environment }}", core]
+    # The droplet's shared group (Deploy, the backup, the restore drill and the
+    # PostgreSQL major upgrade), so the inventory never reads a database mid-change.
     concurrency:
-      group: core-${{ inputs.environment }}
+      group: ${{ inputs.environment == 'production' && 'prod-droplet' || 'core-staging' }}
       cancel-in-progress: false
     timeout-minutes: 10
     environment:

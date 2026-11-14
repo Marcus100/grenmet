@@ -17,9 +17,12 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
   `/auth/callback` (needs `CAP_SSO_CLIENT_SECRET`; unset, sign-in says it is
   off). `src/proxy.ts` runs only for `/desk*` and checks the cookie exists;
   `lib/desk/gate.ts` is the real check (staff token plus `cap.alert.read`),
-  called by every page. `/desk*` and `/auth/*` send `private, no-store` and
-  `X-Robots-Tag: noindex` (`next.config.ts`). Cloudflare's cache rules
-  (`scripts/production/cloudflare-cache-rules.py`) cache static assets only and
+  called by every page. `/desk*` and `/auth/*` send `private, no-store,
+  no-transform` and `X-Robots-Tag: noindex` (`next.config.ts`);
+  `no-transform` keeps Cloudflare's Email Address Obfuscation from rewriting
+  addresses in desk HTML, which breaks React hydration (#1327). Cloudflare's
+  cache rules (`scripts/production/cloudflare-cache-rules.py`) cache static
+  assets only and
   bypass `*_session` cookies and the paths `/desk` and `/auth/`, which keeps the
   desk out. Browser calls use `@barrelsgd/api-client` with base URL
   `/desk`, through `app/desk/api/[...path]/route.ts`: an allow-list
@@ -82,7 +85,10 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
 - **Severity by text.** Cards and the map list always state severity, urgency
   and certainty in words; colour is additional. The map is an inline SVG drawn
   on the server from the GeoJSON, with no map library and no client JS. It
-  shows alert areas and approximate place markers, not coastlines.
+  always draws the islands (simplified parish outlines from
+  `src/data/grenada-boundaries.ts`, server-rendered so no client weight) with
+  approximate place markers, and alert areas on top; with no alert in force it
+  still shows the islands, so an empty map never looks like a failed one.
 - **Weight.** About 106 KB gzip of first-load JavaScript for modern browsers.
   Keep public pages under 120 KB: no client Sentry SDK or analytics, no client
   components beyond those named above. Desk code (maps, editor) must stay

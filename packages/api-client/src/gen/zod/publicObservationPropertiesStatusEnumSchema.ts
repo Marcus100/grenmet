@@ -8,4 +8,5 @@ import * as z from "zod";
 export const publicObservationPropertiesStatusEnumSchema = z.enum([
   "provisional",
   "accepted",
+  "historical",
 ]);

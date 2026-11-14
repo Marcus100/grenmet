@@ -9,7 +9,6 @@ import type { ProductPreviewBody } from "./ProductPreviewBody.js";
 /**
  * @description
  * Format: `binary`
- * @type string
  */
 export type WxproductsPreviewProductPdfStatus200 = Blob;
 

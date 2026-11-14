@@ -55,11 +55,11 @@ def main():
             session.commit()
 
             logger.info("=" * 60)
-            logger.info(f"Successfully cleared {len(test_users)} users")
+            logger.info("Successfully cleared %d users", len(test_users))
             logger.info("=" * 60)
 
     except Exception as e:
-        logger.error(f"Failed to clear seed data: {e}", exc_info=True)
+        logger.error("Failed to clear seed data: %s", e, exc_info=True)
         sys.exit(1)
 
 

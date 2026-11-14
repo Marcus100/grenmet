@@ -729,13 +729,15 @@ it("credits every story picture, and says Unsplash for the stock fallback", asyn
 
 it("hides only desk posts that have no place left in the row", () => {
   // Two pinned cards (forecast, warnings): posts 1 and 2 fill four places on
-  // laptops; on portrait tablets only post 1 fits.
-  expect(deskPostVisibility(0, 2)).toBe("");
+  // laptops; portrait tablets have two places, both taken by the pinned cards.
+  expect(deskPostVisibility(0, 2)).toBe("md:max-lg:hidden");
   expect(deskPostVisibility(1, 2)).toBe("md:max-lg:hidden");
   expect(deskPostVisibility(2, 2)).toBe("md:hidden");
   // Pinned cards never hide: with five pinned, every post waits for "All desk posts".
   expect(deskPostVisibility(0, 5)).toBe("md:hidden");
   expect(deskPostVisibility(0, 0)).toBe("");
+  expect(deskPostVisibility(1, 0)).toBe("");
+  expect(deskPostVisibility(2, 0)).toBe("md:max-lg:hidden");
   expect(deskPostVisibility(3, 0)).toBe("md:max-lg:hidden");
   expect(deskPostVisibility(4, 0)).toBe("md:hidden");
 });

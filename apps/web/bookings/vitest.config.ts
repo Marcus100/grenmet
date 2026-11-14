@@ -9,6 +9,13 @@ export default defineConfig({
     // Turbo runs two test tasks at once; half the cores each keeps them from starving each other.
     maxWorkers: "50%",
     environment: "jsdom",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "json-summary", "html"],
+      // Default scope (files the suite loads). Floors only rise; mirrored in
+      // scripts/guardrails/coverage-baseline.json.
+      thresholds: { lines: 92.6, branches: 87.9 },
+    },
     // jsdom looks like a browser to the typed env module, which then refuses
     // server variables; supply the values the code under test reads instead.
     env: {

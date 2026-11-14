@@ -6,12 +6,12 @@ Port **3003**. Public weather dashboard for Spice Island (Grenada) — daily for
 
 ## Auth pattern
 
-**No sign-in (owner decision, 1 Nov 2026).** The weather site has no public
+**No public sign-in.** The weather site has no
 sign-in at all. There is no account button in the header or the nav drawer, no
 "Your account" block, and no `/auth/*` routes or `src/lib/auth-config.ts`. Every
 page is readable without an account. Do not add a sign-in entry point here
 without a new owner decision. The `weather` registry key (ADR-0017) is not
-used by this app. Issue #1006.
+used by this app.
 
 ## Data sources — no database
 
@@ -27,7 +27,7 @@ No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
   (a live post of kind `note`, read from `weatherNow`, with its related links), home
   settings, report write-ups, Weather now live posts. The homepage reads CMS
   content in one call (`fetchHomeContent`). The CMS holds no figures: a post's
-  a post's main related link (`isMain`) is a card only for a warning or a GMS page: `components/featured-link.tsx` shows a warning (`linked-alert.tsx`, live via `fetchPublicAlert`) or a GMS page (`linked-page.tsx`, from `NAV_SECTIONS`); site addresses are built from the stored id/identifier/path (`lib/related-link-href.ts`), never the pasted host. An issued product is never a card (owner, 29 Oct 2026); it stays a plain related link, and the older `linkedProduct` field is ignored. Live media are click-to-load (`components/home/click-to-load-media.tsx`,
+  a post's main related link (`isMain`) is a card only for a warning or a GMS page: `components/featured-link.tsx` shows a warning (`linked-alert.tsx`, live via `fetchPublicAlert`) or a GMS page (`linked-page.tsx`, from `NAV_SECTIONS`); site addresses are built from the stored id/identifier/path (`lib/related-link-href.ts`), never the pasted host. An issued product is never a card; it stays a plain related link, and the older `linkedProduct` field is ignored. Live media are click-to-load (`components/home/click-to-load-media.tsx`,
   allowlist in `lib/media-embed.ts`; focus moves to the frame on play). The
   site sends no Content-Security-Policy yet; a future one needs `frame-src`
   for `youtube-nocookie.com`, `facebook.com` and `w.soundcloud.com`.
@@ -41,8 +41,7 @@ No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
 
 ## Routes
 
-Seven sections, one URL root each (Bold sky IA, 28 Sep 2026; Warnings became
-Alerts and moved first on 29 Sep): `/alerts`, `/weather`, `/marine`, `/climate`, `/services`, `/explore`, `/about`.
+Seven sections, one URL root each (Bold sky IA; Alerts comes first): `/alerts`, `/weather`, `/marine`, `/climate`, `/services`, `/explore`, `/about`.
 
 ```text
 src/app/
@@ -63,7 +62,7 @@ src/app/
   api/health/route.ts
 ```
 
-- **404s and streaming (30 Oct 2026):** a `loading.tsx` streams its response
+- **404s and streaming:** a `loading.tsx` streams its response
   before a page's `notFound()` runs, so that status is 200 (Next docs,
   "Status codes"). `(pages)/loading.tsx` covers the standing pages, so the
   planned placeholders (`(planned)/`) and the CMS items (`(articles)/`) live
@@ -72,7 +71,7 @@ src/app/
   navigation skeleton (the previous page stays until the item arrives).
   Static event pages and CAP alert ids under `(pages)` still answer 200 when
   missing (not fixed).
-- **Unknown URLs never reach a page (30 Oct 2026):** a `notFound()` thrown
+- **Unknown URLs never reach a page:** a `notFound()` thrown
   while a page renders on the server (every gms page is dynamic: the root
   layout reads live alerts) makes Next 16 send an empty error document
   (`<html id="__next_error__">`) that stays blank until JavaScript runs. So no
@@ -86,11 +85,11 @@ src/app/
   `(weather)/[location]` route has `dynamicParams = false` and calls
   `notFound()` for other slugs: it answers unknown one-segment URLs with the
   server-rendered 404 only while it is prerendered (the enabled places are
-  generated; Next's router rejects every other slug). Since Carriacou was
-  enabled (2 Nov 2026), recheck `/this-page-does-not-exist` with curl after a build. A CMS item
+  generated; Next's router rejects every other slug). With Carriacou
+  enabled, recheck `/this-page-does-not-exist` with curl after a build. A CMS item
   or other dynamic page that calls `notFound()` for a missing item still gets
   the empty error document (not fixed).
-- **Masthead and /alerts status (30 Oct 2026):** the CAP warnings and the GMS
+- **Masthead and /alerts status:** the CAP warnings and the GMS
   outlook's Green counts are separate promises. `WithStatus`
   (`components/with-alerts.tsx`) shows a warning at once and awaits the outlook
   only when no warning is in effect. `fetchGreenStatus` / `fetchGreenAlerts`
@@ -113,21 +112,20 @@ src/app/
   A built page whose product is not issued yet (its page says "Not yet available
   from GMS") is marked `coming()` instead: it keeps its real route and shows a
   "Coming" label in the menu, drawer, sitemap and section index (`isComing`).
-  Moved or retired addresses go into `ROUTE_MOVES` (issue #1168 moved product
-  archive to `/weather/archive`, disaster management, construction, education and
-  media to `/about/…`, and retired `/alerts/marine`, `/alerts/advisories`,
-  `/alerts/cyclone/archive` and `/about/services`).
-- **Words for alerts (owner, 9 Nov 2026):** the green-level products GMS issues
+  Moved or retired addresses go into `ROUTE_MOVES` (for example the product
+  archive moves to `/weather/archive`, disaster management, construction, education
+  and media move to `/about/…`, and `/alerts/marine`, `/alerts/advisories`,
+  `/alerts/cyclone/archive` and `/about/services` are retired).
+- **Words for alerts:** the green-level products GMS issues
   are **GMS alerts**; yellow, orange and red notices are **warnings** (CAP).
   Each hazard page (`/alerts/bulletins/<hazard>`) shows both, with a
   how-to-prepare link from `src/lib/hazard-pages.ts`. A page that leaves the
   menu but still redirects goes into `RETIRED_MENU_PAGES` in
   `packages/gms/src/link-recognition.ts`, so a stored CMS link stays a page and
   not a warning identifier.
-- **No invented figures (owner rule, 18 Oct 2026):** the public site never
+- **No invented figures:** the public site never
   shows invented or sample figures; every page shows real data or an honest
-  notice. This reverses the 30 Sep 2026 decision that allowed sample content on
-  the home page. A page or home section whose product is not yet issued keeps
+  notice. A page or home section whose product is not yet issued keeps
   its structure and explanatory text and renders `<PlaceholderNotice />`
   ("Not yet available from GMS"; `compact` inside an otherwise live page; the
   optional `source` prop links a live page meanwhile). Never put placeholder
@@ -152,7 +150,7 @@ src/app/
   "minimal". Nothing is typed in the CMS.
   Tests: `placeholder-notice.test.tsx`, the "hero readings" block in
   `sky-hero-panels.test.tsx` and `data-sections.test.tsx` guard this.
-- **Home hero (owner design, 29 Oct 2026):** a card for the selected tab
+- **Home hero:** a card for the selected tab
   (`components/home/hero-card.tsx`), the tabs (Now, then five days, at every
   width) and the selected tab's details panel (`SkyHero selected=`). Phones
   stack card, tabs, panel and keep one height on every tab (`ByTab` stacks the
@@ -174,8 +172,8 @@ src/app/
   own section above). A Moon tile waits for the planned almanac data. No other
   hero tabs (marine lives at `/marine`). The website has no bottom tab bar;
   `MobileTabBar` is kept for the app.
-- **Units (28 Oct 2026):** every hero measurement is metric or imperial,
-  metric until a visitor chooses (owner first chose imperial, then metric) (switch in the top corner of the home hero card, above the tabs, `components/units-toggle.tsx` placed by `components/home/sky-hero.tsx`; it was in the header until 31 Oct 2026, so only the home page has the switch and other pages show the saved choice (the switch is on the home page only, in the hero card); saved in `localStorage`
+- **Units:** every hero measurement is metric or imperial,
+  metric until a visitor chooses (owner first chose imperial, then metric) (switch in the top corner of the home hero card, above the tabs, `components/units-toggle.tsx` placed by `components/home/sky-hero.tsx`; only the home page has the switch, and other pages show the saved choice; saved in `localStorage`
   `gm-units`). The API sends WMO units (°C, knots, metres, km, hPa, mm). A figure
   is a `Measure` (`lib/units.ts`) rendered by `components/measure.tsx` in both
   systems; `globals.css` shows one by `<html data-units>`, so static pages never
@@ -216,7 +214,7 @@ src/app/
 - **Search:** `SiteSearch` (masthead button or `/`) ranks `NAV_SECTIONS` pages plus
   published CMS articles from `/api/search` (read-only proxy) with
   `src/lib/search.ts`. New menu pages are searchable automatically.
-- **Dark mode (done, owner 1 Nov 2026, #1001):** `<html class="gm-site">` scopes the GMS dark
+- **Dark mode:** `<html class="gm-site">` scopes the GMS dark
   palette. The site opens in light (`ThemeBootScript` defaults to `light` in
   `layout.tsx`) and does not follow the device. `ThemeToggle` (main bar beside search
   and the alert pill, and the drawer) switches between light and dark only; there is
@@ -234,8 +232,7 @@ src/app/
   or expired product says so in words ("Observed 3 hours ago (11:00 a.m. AST)
   — older than usual", "This forecast expired at …; the next issue is due …",
   via `observationNote` / `validityNote` and `FreshnessNotice`), never only by
-  colour. Home page exception (owner,
-  28 Oct 2026): the hero Now card carries only its top line ("Last observed …
+  colour. Home page exception: the hero Now card carries only its top line ("Last observed …
   · provisional") and Grenada in data only its caption; detail pages keep the
   full block. GMS forms store offset-less
   Grenada times; read them with `parseGrenadaTime`, never `new Date()`.
@@ -249,7 +246,7 @@ src/app/
   `next.config.ts` header), never in the sitemap or nav. Set the CMS's
   `GMS_PREVIEW_URL` to this page's address. Tests: `lib/cms-preview.test.ts`
   (expired, forged, malformed, outage), `app/(pages)/preview/page.test.tsx`.
-- **Missing CMS items (30 Oct 2026):** `src/proxy.ts` runs only on the CMS
+- **Missing CMS items:** `src/proxy.ts` runs only on the CMS
   item addresses (`/explore/news|updates|reports/...`, `/explore/explained/<slug>`,
   `/explore/quiz/<slug>`). On a full page load it asks the CMS's public list
   endpoint whether the item exists (`lib/cms-item.ts` maps the address to the

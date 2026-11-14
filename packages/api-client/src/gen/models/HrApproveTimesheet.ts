@@ -59,7 +59,7 @@ export type HrApproveTimesheetStatus422 = ValidationErrorResponse;
 export type HrApproveTimesheetBody = TimesheetApproveRequest | undefined;
 
 export type HrApproveTimesheetOptions = {
-  body: HrApproveTimesheetBody;
+  body?: HrApproveTimesheetBody;
   path: HrApproveTimesheetPath;
   query?: never;
   headers?: never;

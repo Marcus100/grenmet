@@ -32,7 +32,7 @@ describe("Footer", () => {
     ).toHaveAttribute("href", "mailto:meteorology@gaa.gd");
   });
 
-  it("names each social network, with an icon or its name", () => {
+  it("names each social network", () => {
     render(<Footer />);
     const list = screen.getByRole("list", { name: "GMS on social media" });
     const links = within(list).getAllByRole("link");
@@ -46,15 +46,20 @@ describe("Footer", () => {
     ]);
   });
 
-  it("draws brand marks as hidden inline SVG, and LinkedIn as a round in button", () => {
+  it("draws every mark as hidden inline SVG with no visible text, so the label is the whole name", () => {
     render(<Footer />);
     const list = screen.getByRole("list", { name: "GMS on social media" });
+    // WCAG 2.5.3: visible text must be in the accessible name; a mark has none.
+    for (const link of within(list).getAllByRole("link")) {
+      expect(link.textContent).toBe("");
+      expect(link.querySelector("svg")?.getAttribute("aria-hidden")).toBe(
+        "true"
+      );
+    }
     const linkedin = within(list).getByRole("link", {
       name: "GMS on LinkedIn",
     });
-    expect(linkedin).toHaveTextContent("in");
-    expect(linkedin).not.toHaveTextContent("LinkedIn");
-    expect(linkedin.querySelector("svg")).toBeNull();
+    expect(linkedin.querySelector("svg path")?.getAttribute("d")).toBeTruthy();
     // Every social button is the same round size, so they sit in one row.
     for (const link of within(list).getAllByRole("link")) {
       expect(link).toHaveClass("size-9", "rounded-full");

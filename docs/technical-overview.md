@@ -70,6 +70,7 @@ Next.js apps follow `@barrelsgd/web-<app>`.
 | `gmsdash` | 3013 | GMS Dashboard: raw-model point meteograms for entitled organisations | FastAPI models-guidance API; app-scoped sign-in through the auth.barrels.gd handoff |
 | `babydoll` | 3014 | Babydoll Beauty Bar client website (Vercel) | Local content; online booking through the Bookings API behind a switch |
 | `bookings` | 3015 | Barrels Bookings: public booking pages and the `/studio` staff area (skeleton) | Bookings API (public and org routes); app-scoped Barrels sign-in pending API registration |
+| `account` | 3018 | Barrels account: a person's name, email and profile photo (ADR-0057) | Profile photo API through the same-origin proxy; app-scoped Barrels sign-in |
 | `commit` | 3019 | Commit, the Barrels engineering blog: one post per release (Cloudflare Pages, static export) | Local MDX content; no API calls |
 | `barrels` | — | Barrels Grenada company homepage | Static HTML/CSS; separate build, no Next.js dev port |
 
@@ -94,10 +95,10 @@ Ticketing, door admission, outlet cash, settlement and paid tiers
 (test-mode Stripe or the manual rail) also run on FastAPI; no page renders demo fixtures.
 
 The [FastAPI Events domain](../apps/api/fastapi/src/events/AGENTS.md) already
-contains listings, groups, connections, messaging, and access rules, with its
-own database and Alembic history. The web UI uses app-scoped email-code sign-in
-and a host-only session cookie. Events data lives in the `events` schema of the main
-database (ADR-0003). This inventory describes
+contains listings, groups, connections, messaging, and access rules. Its data lives
+in the `events` schema of the main database (ADR-0003), migrated by the main
+Alembic chain. The web UI uses app-scoped email-code sign-in and a host-only
+session cookie. This inventory describes
 source implementation, not deployment or operational acceptance.
 
 ## Auth architecture

@@ -561,6 +561,8 @@ export function AlertEditor(props: AlertEditorProps) {
                   htmlFor={`${id}-${key}`}
                   key={key}
                   label={key.charAt(0).toUpperCase() + key.slice(1)}
+                  // An Actual warning cannot publish without an expiry (ADR-0056).
+                  required={key === "expires"}
                 >
                   <Input
                     className="w-56"

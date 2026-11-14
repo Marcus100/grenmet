@@ -19267,6 +19267,569 @@
         }
       }
     },
+    "/api/v1/hr/attendance/terminal-users": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "List terminal user mappings",
+        "description": "Device user IDs mapped to employees in a department. Requires roster.manage in the department scope.",
+        "operationId": "hrListTerminalUsers",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalUsersPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Map a terminal user ID to an employee",
+        "description": "One device ID per person and one person per device ID in the department. Only the device's user ID is stored, never biometric data. Requires roster.manage in the department scope.",
+        "operationId": "hrAddTerminalUser",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminalUserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalUserPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/terminal-users/{terminal_user_id}": {
+      "delete": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Remove a terminal user mapping",
+        "description": "Punches already decided keep their outcome; run reprocess to decide held punches again. Requires roster.manage in the department scope.",
+        "operationId": "hrRemoveTerminalUser",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "terminal_user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Terminal User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/terminal-imports": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Import a terminal punch export",
+        "description": "Upload a ZKTeco ATTLOG text export, or a CSV with a device_user_id,punched_at header. Times are Grenada local. Each new punch is decided in time order: an arrival or departure is recorded through the phone-punch attendance path; unmapped, repeat, unmatched and refused punches are kept with their outcome. Re-uploading the same file (same terminal label) imports nothing twice. Requires roster.manage in the department scope.",
+        "operationId": "hrImportTerminalPunches",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_hrImportTerminalPunches"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalImportPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/attendance/terminal-punches": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "List terminal punches that need HR attention",
+        "description": "By default UNMAPPED, NO_SHIFT and REFUSED punches, oldest first. Filter by one outcome, terminal label or Grenada local date range. Requires roster.manage in the department scope.",
+        "operationId": "hrListTerminalPunches",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "outcome",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TerminalAttentionOutcome"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Outcome"
+            }
+          },
+          {
+            "name": "terminal",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Terminal"
+            }
+          },
+          {
+            "name": "from_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From Date"
+            }
+          },
+          {
+            "name": "to_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To Date"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalPunchesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/terminal-punches/reprocess": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Decide held terminal punches again",
+        "description": "Runs the import decisions again for a department's UNMAPPED and NO_SHIFT punches, after a device mapping or roster change. Requires roster.manage in the department scope.",
+        "operationId": "hrReprocessTerminalPunches",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminalReprocessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalReprocessPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/payroll/items": {
       "get": {
         "tags": [
@@ -41858,6 +42421,506 @@
         }
       }
     },
+    "/api/v1/profile-images/me": {
+      "get": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Get your profile photo details",
+        "description": "404 when you have no photo. Read the image itself through GET /profile-images/org/{user_id} with your own user id.",
+        "operationId": "profileImagesGetMine",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileImagePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Upload or replace your profile photo",
+        "description": "Send the image itself as the request body with Content-Type image/jpeg, image/png or image/webp, up to 5 MB and 16 megapixels. The photo is turned upright, cropped square, stored as 64, 256 and 512 pixel WebP images, and its metadata (including GPS location) is removed. It is visible at once to people who share an organisation with you. At most 10 uploads a minute per person (429 after that).",
+        "operationId": "profileImagesSetMine",
+        "requestBody": {
+          "content": {
+            "image/jpeg": {
+              "schema": {
+                "$ref": "#/components/schemas/BinaryFile"
+              }
+            },
+            "image/png": {
+              "schema": {
+                "$ref": "#/components/schemas/BinaryFile"
+              }
+            },
+            "image/webp": {
+              "schema": {
+                "$ref": "#/components/schemas/BinaryFile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileImagePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Not a usable JPEG, PNG or WebP photo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Larger than 5 MB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Not sent as image/jpeg, image/png or image/webp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Photo storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many uploads; try later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Profileimagessetmine"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Remove your profile photo",
+        "description": "Deletes the photo and its stored images; 404 when you have none.",
+        "operationId": "profileImagesRemoveMine",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/profile-images/me/image": {
+      "get": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Show your profile photo",
+        "description": "Redirects to a short-lived link to your own image (for the account app, whose sessions cannot read other people's photos). 404 when you have none.",
+        "operationId": "profileImagesShowMine",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ProfileImageSize",
+              "default": 256
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Redirect to the image",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Photo storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profile-images/org/{user_id}": {
+      "get": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Show a person's profile photo",
+        "description": "Redirects to a short-lived link to the image. Visible to the person, superusers and people who share an organisation with them (active membership of the same organisation, or active employment in the same HR organisation). Otherwise, or when there is no photo, 404: show initials instead.",
+        "operationId": "profileImagesShow",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ProfileImageSize",
+              "default": 256
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Redirect to the image",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Photo storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "profile-images"
+        ],
+        "summary": "Remove someone's profile photo",
+        "description": "For an unsuitable photo. Requires hr.employment.manage over the person (or superuser). Recorded in their employee history. Staff cannot upload a photo for someone else.",
+        "operationId": "profileImagesRemove",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/subscriptions": {
       "post": {
         "tags": [
@@ -44071,6 +45134,135 @@
         }
       }
     },
+    "/api/v1/wxproducts/public/products/{product_id}/pdf": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Download a published weather product as PDF",
+        "description": "Anonymous PDF of the product's published revision, the same sheet GMS issued, for its permanent page and feed entry. Stays available after the product expires; withdrawn or unknown products are 404. The rendered sheet is reused for repeat requests of the same published revision.",
+        "operationId": "wxproductsPublicProductPdf",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Product Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "headers": {
+              "Content-Disposition": {
+                "description": "Inline, with a human, dated file name (ASCII filename plus RFC 6266 filename*).",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/public/issued-products": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "List recently issued weather products",
+        "description": "Anonymous list of the most recently published products, newest first, including expired ones (`current` says which are in force), for the public archive and RSS feed. Withdrawn products are not listed.",
+        "operationId": "wxproductsListIssuedProducts",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedProducts"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/wxproducts/products": {
       "get": {
         "tags": [
@@ -45603,7 +46795,7 @@
           "eregister"
         ],
         "summary": "List register observations",
-        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind, QC state (comma separated, for example `draft,qc_pending`; `historical` is an imported archive record) and an observation time range (`observed_from` inclusive, `observed_to` exclusive, UTC), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterListRegisterObservations",
         "security": [
           {
@@ -45656,7 +46848,7 @@
               "anyOf": [
                 {
                   "type": "string",
-                  "pattern": "^(draft|qc_pending|accepted|rejected|superseded)(,(draft|qc_pending|accepted|rejected|superseded))*$"
+                  "pattern": "^(draft|qc_pending|accepted|rejected|superseded|historical)(,(draft|qc_pending|accepted|rejected|superseded|historical))*$"
                 },
                 {
                   "type": "null"
@@ -45703,6 +46895,44 @@
               "title": "Observed At"
             },
             "description": "Only observations for exactly this UTC time (to find the record occupying an hour)."
+          },
+          {
+            "name": "observed_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only observations at or after this UTC time (inclusive start of a range).",
+              "title": "Observed From"
+            },
+            "description": "Only observations at or after this UTC time (inclusive start of a range)."
+          },
+          {
+            "name": "observed_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only observations before this UTC time (exclusive end of a range).",
+              "title": "Observed To"
+            },
+            "description": "Only observations before this UTC time (exclusive end of a range)."
           },
           {
             "name": "limit",
@@ -46374,6 +47604,84 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/eregister/observations/review-day": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Record a review of every reviewable SYNOP of one day",
+        "description": "Marks every reviewable SYNOP of the station on one Grenada local day (UTC-4) that is not yet reviewed, as `reviewed` or `query` (a note is required for a query). Historical and accepted records are included; records you recorded yourself and records already reviewed are skipped and counted. Problems in a record do not exclude it. It changes no state and never holds back sending; each mark is audited. Requires `eregister.qc`.",
+        "operationId": "eregisterReviewRegisterDay",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewDayRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDayResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "A note is required for a query, or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregisterreviewregisterday"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `eregister.qc`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/api/v1/eregister/observations/{observation_id}/review": {
@@ -70076,6 +71384,35 @@
         ],
         "title": "Body_authLoginAccessToken"
       },
+      "Body_hrImportTerminalPunches": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "ZKTeco ATTLOG text export or CSV (device_user_id,punched_at)"
+          },
+          "department_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Department Id"
+          },
+          "terminal": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Terminal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "department_id",
+          "terminal"
+        ],
+        "title": "Body_hrImportTerminalPunches"
+      },
       "Body_hrUploadDocument": {
         "properties": {
           "file": {
@@ -84270,6 +85607,23 @@
         ],
         "title": "InvoiceVoid"
       },
+      "IssuedProducts": {
+        "properties": {
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/PublicProductDetail"
+            },
+            "type": "array",
+            "title": "Products"
+          }
+        },
+        "type": "object",
+        "required": [
+          "products"
+        ],
+        "title": "IssuedProducts",
+        "description": "Recently published products, newest first, current or expired (#1197).\n\nThe public archive and RSS feed read this; each item has a permanent page and\nPDF. Withdrawn products are not listed."
+      },
       "ItemCreate": {
         "properties": {
           "sku": {
@@ -96243,6 +97597,49 @@
         ],
         "title": "ProfileIdentityPublic"
       },
+      "ProfileImagePublic": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "sizes": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Sizes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "version",
+          "updated_at",
+          "sizes"
+        ],
+        "title": "ProfileImagePublic"
+      },
+      "ProfileImageSize": {
+        "type": "integer",
+        "enum": [
+          64,
+          256,
+          512
+        ],
+        "title": "ProfileImageSize",
+        "description": "Square sizes stored for each photo, in pixels."
+      },
       "ProfilePublic": {
         "properties": {
           "handle": {
@@ -99947,6 +101344,71 @@
           "permissions"
         ],
         "title": "ReviewAssignment"
+      },
+      "ReviewDayRequest": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Station Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date",
+            "description": "The day in Grenada local time (UTC-4), YYYY-MM-DD."
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Required for a query; optional for reviewed."
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "date",
+          "outcome"
+        ],
+        "title": "ReviewDayRequest"
+      },
+      "ReviewDayResult": {
+        "properties": {
+          "reviewed": {
+            "type": "integer",
+            "title": "Reviewed",
+            "description": "Records marked by this request."
+          },
+          "skipped_own": {
+            "type": "integer",
+            "title": "Skipped Own",
+            "description": "Left alone: recorded by the reviewer (a different person reviews)."
+          },
+          "skipped_already": {
+            "type": "integer",
+            "title": "Skipped Already",
+            "description": "Left alone: already reviewed (reviewed or query)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "reviewed",
+          "skipped_own",
+          "skipped_already"
+        ],
+        "title": "ReviewDayResult"
       },
       "ReviewInput": {
         "properties": {
@@ -110380,6 +111842,387 @@
         "title": "TeamMemberPublic",
         "description": "A roster row for team managers. Display name only; never an email."
       },
+      "TerminalAttentionOutcome": {
+        "type": "string",
+        "enum": [
+          "UNMAPPED",
+          "NO_SHIFT",
+          "REFUSED"
+        ],
+        "title": "TerminalAttentionOutcome",
+        "description": "Outcomes HR must look at: held or refused, never silently dropped."
+      },
+      "TerminalImportErrorPublic": {
+        "properties": {
+          "line": {
+            "type": "integer",
+            "title": "Line"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line",
+          "message"
+        ],
+        "title": "TerminalImportErrorPublic"
+      },
+      "TerminalImportPublic": {
+        "properties": {
+          "import_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Import Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "terminal": {
+            "type": "string",
+            "title": "Terminal"
+          },
+          "new_punches": {
+            "type": "integer",
+            "title": "New Punches"
+          },
+          "duplicates": {
+            "type": "integer",
+            "title": "Duplicates"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/TerminalImportErrorPublic"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "outcomes": {
+            "$ref": "#/components/schemas/TerminalOutcomeCounts"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/TerminalPunchPublic"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "import_id",
+          "department_id",
+          "terminal",
+          "new_punches",
+          "duplicates",
+          "errors",
+          "outcomes",
+          "rows"
+        ],
+        "title": "TerminalImportPublic"
+      },
+      "TerminalOutcomeCounts": {
+        "properties": {
+          "recorded": {
+            "type": "integer",
+            "title": "Recorded",
+            "default": 0
+          },
+          "already_recorded": {
+            "type": "integer",
+            "title": "Already Recorded",
+            "default": 0
+          },
+          "repeat": {
+            "type": "integer",
+            "title": "Repeat",
+            "default": 0
+          },
+          "no_shift": {
+            "type": "integer",
+            "title": "No Shift",
+            "default": 0
+          },
+          "unmapped": {
+            "type": "integer",
+            "title": "Unmapped",
+            "default": 0
+          },
+          "refused": {
+            "type": "integer",
+            "title": "Refused",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "TerminalOutcomeCounts",
+        "description": "How many punches ended in each outcome. Zero when none did."
+      },
+      "TerminalPunchOutcome": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "UNMAPPED",
+          "REPEAT",
+          "RECORDED",
+          "ALREADY_RECORDED",
+          "NO_SHIFT",
+          "REFUSED"
+        ],
+        "title": "TerminalPunchOutcome",
+        "description": "What the import decided for one terminal punch (ADR-0040).\n\nPENDING is transient: a row is written first and decided straight after, so it\nsurvives only if an import stopped part way. ``ALREADY_RECORDED`` means the shift\nalready has this arrival or departure (for example from an approved phone punch\nclose in time), so no second record is written."
+      },
+      "TerminalPunchPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "terminal": {
+            "type": "string",
+            "title": "Terminal"
+          },
+          "device_user_id": {
+            "type": "string",
+            "title": "Device User Id"
+          },
+          "punched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Punched At"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "employee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Name"
+          },
+          "roster_assignment_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roster Assignment Id"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ClockPunchKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/TerminalPunchOutcome"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "import_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Import Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department_id",
+          "terminal",
+          "device_user_id",
+          "punched_at",
+          "outcome",
+          "import_id"
+        ],
+        "title": "TerminalPunchPublic"
+      },
+      "TerminalPunchesPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TerminalPunchPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "TerminalPunchesPublic"
+      },
+      "TerminalReprocessPublic": {
+        "properties": {
+          "processed": {
+            "type": "integer",
+            "title": "Processed"
+          },
+          "outcomes": {
+            "$ref": "#/components/schemas/TerminalOutcomeCounts"
+          },
+          "remaining": {
+            "type": "integer",
+            "title": "Remaining"
+          }
+        },
+        "type": "object",
+        "required": [
+          "processed",
+          "outcomes",
+          "remaining"
+        ],
+        "title": "TerminalReprocessPublic"
+      },
+      "TerminalReprocessRequest": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Department Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id"
+        ],
+        "title": "TerminalReprocessRequest"
+      },
+      "TerminalUserCreate": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Department Id"
+          },
+          "device_user_id": {
+            "type": "string",
+            "pattern": "^\\S{1,32}$",
+            "title": "Device User Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "device_user_id",
+          "user_id"
+        ],
+        "title": "TerminalUserCreate"
+      },
+      "TerminalUserPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "device_user_id": {
+            "type": "string",
+            "title": "Device User Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department_id",
+          "device_user_id",
+          "user_id",
+          "employee_name",
+          "created_at"
+        ],
+        "title": "TerminalUserPublic"
+      },
+      "TerminalUsersPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TerminalUserPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "TerminalUsersPublic"
+      },
       "ThreadCreate": {
         "properties": {
           "handle": {
@@ -117610,7 +119453,8 @@
         "type": "string",
         "enum": [
           "provisional",
-          "accepted"
+          "accepted",
+          "historical"
         ]
       },
       "PublicObservationPropertiesPressureTrendAnyOfEnum": {
@@ -117644,7 +119488,8 @@
           "qc_pending",
           "accepted",
           "rejected",
-          "superseded"
+          "superseded",
+          "historical"
         ]
       },
       "RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum": {
@@ -117915,6 +119760,11 @@
           "paid"
         ],
         "type": "string"
+      },
+      "BinaryFile": {
+        "title": "BinaryFile",
+        "type": "string",
+        "format": "binary"
       }
     },
     "securitySchemes": {
@@ -118115,6 +119965,10 @@
     {
       "name": "webhooks-out",
       "description": "Signed outbound webhooks for organisations."
+    },
+    {
+      "name": "profile-images",
+      "description": "Profile photos: your own, and those of people in your organisations."
     },
     {
       "name": "permissions",

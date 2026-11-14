@@ -1,8 +1,18 @@
 # Babydoll bookings cutover
 
-**Status:** Active runbook; not yet executed  
+**Status:** Superseded on 2026-11-13; kept for its production prerequisites  
 **Owner:** Barrels Grenada engineering (client decisions: Babydoll Beauty Bar owner)  
 **Last updated:** 2026-10-20
+
+> **Superseded (owner, 13 Nov 2026).** The Babydoll site no longer hosts
+> booking: it is a static site, and `/book`, `/booking/[token]` and the
+> `BABYDOLL_ONLINE_BOOKING` switch were removed. Booking moves to the studio's
+> page on the Barrels bookings site (`apps/web/bookings`). The cutover is now:
+> run the seed (section 1e), check the production prerequisites in section 1
+> (still valid for `apps/web/bookings`), then set `ONLINE_BOOKING_URL` in
+> `apps/web/babydoll/src/data/site.ts` and the `/book` redirect in
+> `apps/web/babydoll/public/_redirects` and `vercel.json`. Sections 1d, 3.3 and
+> 3.4 no longer apply.
 
 This runbook moves Babydoll Beauty Bar from its Acuity booking link to Barrels
 Bookings (`babydoll.barrels.gd/book`). It is the checklist for handoff items

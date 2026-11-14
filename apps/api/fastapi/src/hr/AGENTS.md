@@ -12,6 +12,7 @@ All tables live in the `hr` schema of the main database (main Alembic history).
 - **Organisation boundary:** records are scoped by organisation/department (`docs/hr/organisation-boundary.md`). Use `src.auth.policy.can_act_on_user…` for cross-user access; never trust a client-supplied user or department ID.
 - **Declared state machines.** Workflow instances (`workflow/transitions.py`, which also maps the request status they mirror), timesheets (`timesheet/transitions.py`) and clock punches (`attendance/transitions.py`) each have one declared table. Every status write goes through that module's `move_*` function. Roster periods that staff can see are `roster.models.ROSTER_VISIBLE_PERIOD_STATUSES`; do not copy the pair. Tests: `tests/hr/test_*transitions.py`, `tests/hr/test_roster_visible_statuses.py`.
 - **Change history:** models registered in `hr/audit.py` (`registry.track`) are audited automatically on flush. Register new HR models that hold personal or approval data; mark sensitive fields.
+- **Terminal punches (ADR-0040):** `attendance/terminal_service.py` imports a fingerprint or fob export. Only the device user ID and the punch time are stored, never biometric data. Every write is made as the employee through `save_attendance` (the phone-punch path), and only after the HR actor passes `timesheet.submit.proxy` and `can_act_on_user` for that employee; otherwise the punch is REFUSED and nothing is written. A refusal does not stop the upload, and REFUSED punches are decided again by reprocess. Departures use the midpoint between the open shift's end and the next rostered start; arrivals must not be nearer the end, and wait while an earlier punch of the same device is UNMAPPED or PENDING (never NO_SHIFT, which would chain). One scan at a seamless handover opens the next shift and leaves the earlier record open for HR. Re-runs are idempotent by (department, normalised terminal label, device ID, punch time). Each punch is its own transaction (save_attendance commits). Parser: `terminal_parser.py`; tests `tests/hr/test_terminal_*.py`.
 - **Notifications:** HR events are declared in `hr/notifications.py` and sent via `src.notifications.service.notify` inside the same transaction.
 - Permission keys (`roster.*`, `timesheet.*`, `leave.*`, `calendar.*`, …) live in `src/auth/permissions.py`.
 
@@ -25,15 +26,15 @@ For cross-form attendance, roster and PDF alignment, follow `docs/hr/end-to-end-
 ## Related
 ADR-0008, ADR-0009, `apps/web/gaa-admin/AGENTS.md` (`/hr` routes), `docs/hr/`.
 
-## Ending employment (#789, #797)
-- **One status writer.** Every change of `EmploymentRecord.status` goes through `hr/employment_status.set_employment_status`: the HR route (`update_employment_for_user`), staff offboarding (`baseline.service.offboard`) and the daily job. Any change ends the user's live assignments of every scope (except the SELF-scope `staff` role) in that organisation, with audit entries (`auth.assignments.end_assignments_for_employment`). Reinstating does not restore them. INACTIVE is therefore permanent for roles: do not use it for temporary leave or suspension. The caller decides `organisation_wide` (ALL-scope roles, #794); a department-scope HR admin passes `False` and leaves organisation-wide roles paused.
-- **End date (#797).** `EmploymentRecord.end_date` is the last day of employment (nullable; CHECK not before `start_date`; merged-value validation in `organisations.validate_service_facts`). The end date is the last day of employment: roles work through that whole day and end at midnight after it (Grenada time, `utils/timezones.local_today`, never UTC). Once the end date is before today the record counts as ended: `EmploymentRecord.is_live` and `models.live_employment_clause` drive `auth.policy._active_assignments`, `auth.access.effective_roles` and delegated grants. Access stops on the date, before any job runs.
+## Ending employment
+- **One status writer.** Every change of `EmploymentRecord.status` goes through `hr/employment_status.set_employment_status`: the HR route (`update_employment_for_user`), staff offboarding (`baseline.service.offboard`) and the daily job. Any change ends the user's live assignments of every scope (except the SELF-scope `staff` role) in that organisation, with audit entries (`auth.assignments.end_assignments_for_employment`). Reinstating does not restore them. INACTIVE is therefore permanent for roles: do not use it for temporary leave or suspension. The caller decides `organisation_wide` (ALL-scope roles); a department-scope HR admin passes `False` and leaves organisation-wide roles paused.
+- **End date.** `EmploymentRecord.end_date` is the last day of employment (nullable; CHECK not before `start_date`; merged-value validation in `organisations.validate_service_facts`). The end date is the last day of employment: roles work through that whole day and end at midnight after it (Grenada time, `utils/timezones.local_today`, never UTC). Once the end date is before today the record counts as ended: `EmploymentRecord.is_live` and `models.live_employment_clause` drive `auth.policy._active_assignments`, `auth.access.effective_roles` and delegated grants. Access stops on the date, before any job runs.
 - **Daily job.** `end_due_employment_records` (worker, 04:10 UTC = 00:10 Grenada) sets ACTIVE records whose end date is before today (Grenada) to TERMINATED with organisation-wide authority. Each record runs in its own savepoint, so one failure leaves the others committed; failures are logged by employment id and the run is then reported as failed. The TERMINATED change itself is audited by the `EmploymentRecord` listener. Idempotent: only ACTIVE rows match, so a second run changes nothing. Tests: `tests/worker/test_employment_end_job.py`.
 - **Changing an end date** (setting, moving or clearing it) on someone who holds a live ALL-scope assignment needs organisation-wide `hr.employment.manage`, the same as a transfer: otherwise 403 and nothing changes. With no live ALL-scope role, a department admin who may edit the record can set, move or clear it. Tests: `tests/hr/test_employment_end_date.py`.
 - **Reinstating** with an end date that is before today (400) until the date is cleared or moved, otherwise the next run would end the record again.
-- **Department transfer (#797).** Changing `department_id` to another department ends every live non-baseline assignment in that organisation (audited); an administrator re-grants at the destination. Same-department edits end nothing. A person who holds a live ALL-scope assignment can be transferred only by someone with organisation-wide `hr.employment.manage` (`has_organisation_wide_hr_authority`); anyone else gets 403 `HRPermissionDeniedError` and nothing changes, including the status. Tests: `tests/hr/test_employment_transfer_roles.py`.
+- **Department transfer.** Changing `department_id` to another department ends every live non-baseline assignment in that organisation (audited); an administrator re-grants at the destination. Same-department edits end nothing. A person who holds a live ALL-scope assignment can be transferred only by someone with organisation-wide `hr.employment.manage` (`has_organisation_wide_hr_authority`); anyone else gets 403 `HRPermissionDeniedError` and nothing changes, including the status. Tests: `tests/hr/test_employment_transfer_roles.py`.
 - **Deleted record.** No code path deletes an `EmploymentRecord`. User deletion (`auth.service.delete_user`) removes the row by database cascade, but `user_role_assignment.user_id` has no `ON DELETE`, so a user holding any assignment cannot be deleted (verified: foreign-key violation, row kept). Nothing needs ending. If a delete path is ever added, it must end the roles in the same transaction through `set_employment_status`.
-- **Known gap.** Roles stop at midnight after the end date, but other `status == ACTIVE` checks (roster, timesheet, leave, exchange, baseline readiness, notifications, supervisor validation) see an ended employment only after the daily job has run, up to about a day later. Named workflow approvers are checked live (`workflow/service._named_actor_in_organisation`, #797). Role-based workflow steps are gated through the roles, which are already live, so they need no separate change.
+- **Known gap.** Roles stop at midnight after the end date, but other `status == ACTIVE` checks (roster, timesheet, leave, exchange, baseline readiness, notifications, supervisor validation) see an ended employment only after the daily job has run, up to about a day later. Named workflow approvers are checked live (`workflow/service._named_actor_in_organisation`). Role-based workflow steps are gated through the roles, which are already live, so they need no separate change.
 - A user cannot change their own employment status. A self-transfer is not special-cased: the person's own roles end, and their own authority is only what their destination scope allows.
 
 ## Payroll (`payroll/`)
@@ -71,11 +72,11 @@ files and cutover are later slices that need their own approval.
   assignments; SELF grants nothing); prepare, approve and export need ALL scope.
   A period in an organisation without payroll access is a 404. Export needs an
   MFA-verified session and writes a `pay_period_export` audit entry with counts.
-- **Overtime bands (#890).** `OVERTIME_BAND` items name a `band` as #890 names
+- **Overtime bands.** `OVERTIME_BAND` items name a `band` as the roster rules name
   it (the multiplier: "1.5", "2", "3"). `overtime.RosterOvertimeBands` reads
   them from `roster.overtime_service.attendance_bands` (time outside the rostered
   shift, and whole holiday or rest days); payroll never repeats the band maths.
-  #890 computes bands on read, so payroll copies them into pay-line quantities
+  The roster computes bands on read, so payroll copies them into pay-line quantities
   at computation and the lines lock at submission. Manual band lines are refused
   where the employee's department computes bands, and allowed with a reason
   where it does not.
@@ -155,9 +156,23 @@ files and cutover are later slices that need their own approval.
 (gross pay), `tests/hr/test_payroll_deductions.py` (deductions),
 `tests/hr/test_payroll_payslips.py` (payslips and files). Synthetic data only.
 
-## Roster rules (#380)
+## Roster rules
 - Rules are data: `roster.RosterRuleSet` (organisation default, department rows replace it; built-in `rules.DEFAULT_RULES` when none). Edit with `roster.rules.manage` (HR admins; organisation rows need organisation-wide scope). Union coverage and worker type live on `EmploymentRecord` (`union_covered`, `rule_worker_type`) and are edited only through `PUT /hr/rosters/employees/{id}/rule-profile` with the same key, never by the employee themselves.
 - Every path that changes scheduled or worked time must call the shared checks and `rule_service.enforce`: publish and published-roster edits (`roster/service.py`), exchange approval, leave/absence cancellation, timesheet and attendance approval (`roster/change_checks.py` via `workflow/finalize.py`). A break raises `RosterRuleWarningsError` (409) unless `rule_override_reason` is given; the override is stored in `RosterRuleOverride` and the record's change history. Report only breaches the change introduces (`rules.introduced`), except at publish.
 - Worked hours are the shift span minus `ShiftCatalog.break_minutes` (`expansion.worked_shift_hours`); never use the raw span for limits or bands. Every route that can raise the warnings wraps its `responses` in `roster.schemas.with_rule_warnings` and takes an `OverrideReason` field.
 - Overtime bands (`roster/overtime.py`, `overtime_service.py`) are hours only and computed on read. Readings and open questions: `docs/hr/roster-rules.md`. Do not copy agreement text into the repository.
 - Tests that publish fixture rosters not about rules pass `rule_override_reason`.
+
+## Splitting `payroll/service.py`
+
+`payroll/service.py` is far larger than a module should be and is deliberately not split on its own (`docs/agents/advisory-audit.md`). It imports `deductions` and `gross` at module level, while `deductions`, `gross` and `payslips` import `employee_name` and `_line_columns` back from it inside functions to avoid an import cycle. The next task that changes one of the groups below moves that group into its own module first, in a commit with no behaviour change:
+
+- **Catalogue and calendars:** `list_items`, `list_calendars`, `create_calendar`.
+- **Profiles and department settings:** `list_profiles`, `update_profile`, `list_department_settings`, `update_department_setting`.
+- **Periods:** `create_period`, `list_periods`, `period_view`, `allowed_actions`, `period_detail`.
+- **Computation from attendance, roster and holidays:** `approved_shifts`, `shift_quantities`, `_sync_run`, `_adjustments`, `compute`.
+- **Manual lines:** `add_manual_line`, `delete_manual_line`.
+- **Workflow:** `submit`, `approve`, `return_for_changes`, `finalize_review`.
+- **Export and close:** `export_csv`, `close`.
+
+Move `employee_name` and `_line_columns` to a small shared module first: that removes the function-level imports and lets the other groups move without a cycle.

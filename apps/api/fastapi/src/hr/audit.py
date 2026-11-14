@@ -23,6 +23,8 @@ from .attendance.models import (
     AttendanceRecord,
     ClockPunch,
     ClockSite,
+    TerminalPunch,
+    TerminalUser,
 )
 from .calendar.models import CalendarEvent
 from .dailystatus.models import StatusReport, StatusReportEntry
@@ -494,6 +496,29 @@ def register() -> None:
         record_type="clock_punch",
         label="Phone clock punch",
         sensitive=("review_note",),
+    )
+
+    # Terminal import (ADR-0040): who is mapped to which device ID, and what became
+    # of each imported punch. The device user ID is recorded; no biometric data is.
+    registry.register_entity(
+        "terminal_user",
+        _department_permission(TerminalUser, "roster.manage", uuid_id=True),
+    )
+    registry.track(
+        TerminalUser,
+        record_type="terminal_user",
+        label="Terminal user mapping",
+        sensitive=("device_user_id",),
+    )
+    registry.register_entity(
+        "terminal_punch",
+        _department_permission(TerminalPunch, "roster.manage", uuid_id=True),
+    )
+    registry.track(
+        TerminalPunch,
+        record_type="terminal_punch",
+        label="Terminal punch",
+        sensitive=("device_user_id",),
     )
 
     # Payroll inputs: periods (status, approval, export count) and lines entered

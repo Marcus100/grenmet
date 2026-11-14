@@ -19,6 +19,21 @@ hooks. Promotion is always via PR; reuse an open promotion PR. Rulesets enforce
 the required checks on `staging` and `main` PRs; `infra/github/rulesets.json`
 is their committed copy and `pnpm guardrails:rulesets` checks it.
 
+A promotion PR whose merge result has the same git tree as a dev commit that
+passed every required check reuses those results: its CI skips the suites and
+the gates report success in about a minute (`scripts/ci/promotion-verified.mjs`,
+#1239). If anything does not match (a commit that did not come from dev, a
+failed or cancelled check on that dev commit, an API error), the PR runs the
+full suite. On `main` pushes only the API workflow runs, to keep the default
+branch's security scans current; production deploys only images staging verified.
+
+A deploy skips a migration service (prestart, cms-migrate) whose image and
+configuration already completed against the same database: same volume, same
+databases and the same Alembic revision (#1239). After any manual change to a
+database outside a deploy (a restore, a dropped table, a hand-run migration),
+run the next deploy with `FORCE_MIGRATIONS=1` on the environment, or delete
+`~/.local/state/grenmet-deploy/<project>/migrated` on the host.
+
 ## 1. Pre-flight on dev
 
 - `pnpm fix:changed` then `pnpm type-check` — both clean.
@@ -269,6 +284,8 @@ that tree: what staging proved is exactly what production runs.
 **Server side (PR #1020).** `core.sh` pulls only images missing on the host
 (`PULL_PARALLEL`, default 4). With `ROLLING_DEPLOY=1` routed services (`api`,
 `web-*`) roll in batches of `ROLLOUT_PARALLEL` (default 4; `1` is one at a time).
+A new container is probed every 2 seconds while it starts (`start_interval`,
+Docker Engine 25 or later; an older engine stops the deploy in the `disk` phase).
 A healthy routed container whose Compose config hash is unchanged is kept. After
 a failed service no later batch starts. The backup gate, serial migrations,
 grants and smoke tests are unchanged.

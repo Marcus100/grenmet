@@ -87,7 +87,7 @@ params. Delegate to `service`; never put business logic in the route.
 
 ## 6. Wire it up
 
-- `src/main.py`: import the router and `app.include_router(hr_<form>_router, prefix="/api/v1")`.
+- `src/main.py`: import the router and add it to `_LEGACY_MOUNTS` as `"hr.<form>": Mount("hr.<form>", hr_<form>_router)`; add the same key to `MOUNT_ORDER` in `src/domains.py` where the route should appear in `openapi.json` (ADR-0031; `hr` moves to its own manifest later).
 - `src/hr/workflow/models.py`: add `WorkflowType.<FORM>`.
 - `src/hr/models.py` `ApprovalAuthority`: add `can_approve_<form>: bool = False` if it needs an approval gate.
 - `src/hr/constants.py`: add `ERROR_<FORM>_NOT_FOUND` (+ any rule messages).
@@ -155,5 +155,5 @@ docker compose exec api uv run --frozen --package fast-back pytest tests/hr/test
 ## 11. Contract sync (Ask-First)
 
 New public routes change the OpenAPI contract. Regenerate `openapi.json` and the
-TypeScript client (`pnpm generate:api-client`) and update `docs/api/contracts.md` —
+TypeScript client (`pnpm generate:api-client`), run `pnpm generate:api-routes`, and update `docs/api/contracts.md` for public routes —
 CI fails on drift. Confirm with the user before committing contract changes.
