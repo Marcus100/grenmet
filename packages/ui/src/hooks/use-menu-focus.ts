@@ -42,10 +42,13 @@ function inertOutside(root: Element, keep: readonly Element[]): Element[] {
  */
 export function useMenuFocus({
   buttonRef,
+  onHidden,
   open,
   panelId,
 }: {
   buttonRef: RefObject<HTMLElement | null>;
+  /** Called if the button is hidden while open (a resize past its breakpoint). */
+  onHidden: () => void;
   open: boolean;
   panelId: string;
 }): void {
@@ -69,16 +72,24 @@ export function useMenuFocus({
       } else if (!event.shiftKey && active === last) {
         event.preventDefault();
         first?.focus();
-      } else if (!order.includes(active as HTMLElement)) {
+      } else if (!order.some((element) => element === active)) {
         event.preventDefault();
         first?.focus();
       }
     };
     document.addEventListener("keydown", onKey);
 
+    // A menu whose button is hidden by a breakpoint cannot be closed by its
+    // button, so it closes itself rather than leaving the page inert.
+    const onResize = () => {
+      if (button.getClientRects().length === 0) onHidden();
+    };
+    window.addEventListener("resize", onResize);
+
     return () => {
+      window.removeEventListener("resize", onResize);
       document.removeEventListener("keydown", onKey);
       for (const element of changed) element.removeAttribute("inert");
     };
-  }, [buttonRef, open, panelId]);
+  }, [buttonRef, onHidden, open, panelId]);
 }

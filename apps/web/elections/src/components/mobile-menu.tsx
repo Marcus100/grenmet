@@ -30,7 +30,12 @@ export function MobileMenu({ status }: { status?: string }) {
   const [top, setTop] = useState(0);
   const button = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
-  useMenuFocus({ buttonRef: button, open, panelId: MENU_ID });
+  useMenuFocus({
+    buttonRef: button,
+    onHidden: () => setOpen(false),
+    open,
+    panelId: MENU_ID,
+  });
 
   // A link to another page closes the menu.
   // biome-ignore lint/correctness/useExhaustiveDependencies: run on route change only

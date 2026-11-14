@@ -46,6 +46,7 @@ export function Header({ alerts, green }: HeaderProps) {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   useMenuFocus({
     buttonRef: menuButtonRef,
+    onHidden: () => setNavOpen(false),
     open: navOpen,
     panelId: "site-menu",
   });
