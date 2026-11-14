@@ -28,7 +28,7 @@ if [ "${PRESTART_SYNC:-0}" = "1" ]; then
     UV_CMD=(uv)
     if ! command -v uv >/dev/null 2>&1; then
         echo "📥 Installing uv runtime..."
-        python -m pip install --no-cache-dir uv
+        python -m pip install --no-cache-dir 'uv>=0.13.8,<0.14'
         # Ensure user base bin (where uv is installed) is on PATH
         export PATH="$(python -m site --user-base)/bin:$PATH"
         if ! command -v uv >/dev/null 2>&1; then

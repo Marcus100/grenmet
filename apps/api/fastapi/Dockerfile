@@ -2,7 +2,7 @@
 FROM ghcr.io/marcus100/base/python:3.14-slim-bookworm@sha256:3fe1a0b6c2d6b2ebb572906cdabeca75aeb558c0c17db5ffefbcf8094871c32b
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.12.24@sha256:3af4716e991d6956a41e573eab705d0ee08500cd829ed30293eb8472f372c65a /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.13.8@sha256:5cc1805e2426484abca4ad46ea783bab281fdb225fd82d8ce6d66a81254bac85 /uv /bin/uv
 
 # uv runs again at container start (prestart.sh syncs, api/worker use `uv run`),
 # so point HOME and the uv cache at a directory appuser owns. UV_LINK_MODE=copy
