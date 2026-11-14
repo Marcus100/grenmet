@@ -193,8 +193,9 @@ people. The first user of this is the bookings product; Events comes next.
      person who has or had an employment record, and removed for anyone else.
      Pay, leave, attendance and employment records are kept in every case. Former
      staff keep their date of birth and address for **6 years after employment
-     ends (provisional, pending GAA's confirmation)**; the scheduled clean-up is a
-     separate issue, not part of the deletion fix. A person cannot delete their
+     ends (provisional, pending GAA's confirmation)**; the scheduled clean-up is the
+     worker job `clear_former_staff_personal_details` (#1431); the period is the one
+     constant `FORMER_STAFF_PERSONAL_DETAILS_RETENTION_YEARS` in `src/hr/constants.py`. A person cannot delete their
      account while any employment record has not ended: no end date, or an end date
      today or later, whatever the record's status (so an INACTIVE record with no end
      date blocks). Only a record whose end date has passed lets them delete it; HR
