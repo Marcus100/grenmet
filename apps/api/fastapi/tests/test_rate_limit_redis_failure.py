@@ -1,6 +1,7 @@
 """The limiter never blocks the event loop and fails open when Redis is down."""
 
 import threading
+from typing import Any
 import time
 
 import httpx
@@ -56,16 +57,18 @@ async def test_limiter_still_limits_with_working_storage() -> None:
 
 
 @pytest.mark.asyncio
-async def test_check_runs_off_the_event_loop() -> None:
+async def test_check_runs_off_the_event_loop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     limiter = AsyncSafeLimiter(key_func=visitor_address, storage_uri="memory://")
     checked: list[int] = []
     original = limiter._check_request_limit
 
-    def spy(*args: object, **kwargs: object) -> None:
+    def spy(*args: Any, **kwargs: Any) -> None:
         checked.append(threading.get_ident())
-        original(*args, **kwargs)  # type: ignore[arg-type]
+        original(*args, **kwargs)
 
-    limiter._check_request_limit = spy  # type: ignore[method-assign]
+    monkeypatch.setattr(limiter, "_check_request_limit", spy)
     await _hit(_app(limiter), 1)
     assert checked
     assert checked[0] != threading.get_ident()
