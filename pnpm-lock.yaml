@@ -406,8 +406,8 @@ catalogs:
       specifier: ^7.0.2
       version: 7.0.2
     ultracite:
-      specifier: 8.1.1
-      version: 8.1.1
+      specifier: 8.2.0
+      version: 8.2.0
     vaul:
       specifier: ^1.1.2
       version: 1.1.2
@@ -466,7 +466,7 @@ importers:
         version: 2.11.11
       ultracite:
         specifier: 'catalog:'
-        version: 8.1.1(@biomejs/biome@2.6.7)(prettier@3.9.8)
+        version: 8.2.0(@biomejs/biome@2.6.7)(prettier@3.9.8)
 
   apps/pwa/printix:
     dependencies:
@@ -9538,8 +9538,8 @@ packages:
     resolution: {integrity: sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A==}
     engines: {node: '>=18'}
 
-  ultracite@8.1.1:
-    resolution: {integrity: sha512-L4gRVHVm8AWvKr/TF6Zz2g23awXsEn+2P4X1BXE8Xwm9p2ZggkQBFbroWM7eCkZ59PtAnMp3wmLFXbxVLv8Btw==}
+  ultracite@8.2.0:
+    resolution: {integrity: sha512-4g7+Lnx3ICVhdNKs4UXGHbhw9rHiECDy0YuDaS7/XaZOxU3vVBdzF804C9X2K5d6to+/+J8GWJ+h54BhQRmnEg==}
     engines: {node: ^22.22.2 || >=24.15.0}
     hasBin: true
     peerDependencies:
@@ -18308,7 +18308,7 @@ snapshots:
 
   uint8array-extras@1.5.0: {}
 
-  ultracite@8.1.1(@biomejs/biome@2.6.7)(prettier@3.9.8):
+  ultracite@8.2.0(@biomejs/biome@2.6.7)(prettier@3.9.8):
     dependencies:
       '@clack/prompts': 1.8.1
       cli-truncate: 6.1.1

@@ -6,11 +6,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Logo } from "@/components/Logo";
+import { MobileNavigation } from "@/components/MobileNavigation";
 import {
-  MobileNavigation,
   useIsInsideMobileNavigation,
   useMobileNavigationStore,
-} from "@/components/MobileNavigation";
+} from "@/components/mobile-navigation-store";
 import { getNavigationSection } from "@/components/Navigation";
 import { MobileSearch, Search } from "@/components/Search";
 
@@ -78,7 +78,11 @@ export function Header({
       />
       <Search />
       <div className={cn("flex items-center gap-5", !catalogue && "lg:hidden")}>
-        <MobileNavigation />
+        <MobileNavigation
+          header={
+            <Header className="duration-300 ease-out group-data-ending-style:opacity-0 group-data-ending-style:duration-200 group-data-ending-style:ease-in group-data-starting-style:opacity-0" />
+          }
+        />
         <Link aria-label="Home" href={"/" as Route} onClick={closeMobileNav}>
           <Logo className="h-7 w-auto" variant="monogram" />
         </Link>
