@@ -15,7 +15,7 @@ export function PageCard({
 }) {
   return (
     <Link
-      className="group border-gaa-rule hover:border-gaa-sea/40 flex flex-col rounded-2xl border bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+      className="group border-gaa-rule hover:border-gaa-sea/40 flex flex-col rounded-2xl border bg-white p-6 transition-[translate,box-shadow,border-color] hover:-translate-y-0.5 hover:shadow-lg"
       href={href as Route}
     >
       {meta ? (

@@ -61,7 +61,7 @@ function DesktopNav() {
         {NAV_GROUPS.map((group) => (
           <li className="relative" key={group.label}>
             <details className="group" data-site-nav="" name="site-nav">
-              <summary className="hover:bg-muted focus-visible:ring-ring/50 group-open:bg-muted/50 inline-flex h-9 w-max cursor-pointer list-none items-center justify-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all outline-none focus-visible:ring-3 [&::-webkit-details-marker]:hidden">
+              <summary className="hover:bg-muted focus-visible:ring-ring/50 group-open:bg-muted/50 inline-flex h-9 w-max cursor-pointer list-none items-center justify-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-[background-color,box-shadow] outline-none focus-visible:ring-3 [&::-webkit-details-marker]:hidden">
                 {group.label}
                 <ChevronDownIcon
                   aria-hidden="true"
