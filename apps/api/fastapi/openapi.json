@@ -9551,7 +9551,7 @@
           "bookings"
         ],
         "summary": "My bookings across businesses",
-        "description": "The signed-in person's bookings with every business, newest first. A booking is listed when its business contact is linked to the account (a signed-in booking with a verified matching email, ADR-0058). Filter with `upcoming`; page with `page` and `size`.",
+        "description": "The signed-in person's bookings with every business. `upcoming=true` lists soonest first; `upcoming=false` and no filter list newest first. A booking is listed when its business contact is linked to the account (a signed-in booking with a verified matching email, ADR-0058). Accepts a full account token or the account app's session; other apps' tokens get 401. Page with `page` and `size`.",
         "operationId": "bookingsListMyBookings",
         "security": [
           {
@@ -9572,10 +9572,10 @@
                   "type": "null"
                 }
               ],
-              "description": "True: starting now or later. False: earlier. Omit: all.",
+              "description": "True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first.",
               "title": "Upcoming"
             },
-            "description": "True: starting now or later. False: earlier. Omit: all."
+            "description": "True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first."
           },
           {
             "name": "page",

@@ -12,7 +12,9 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const bookingsListMyBookingsQueryUpcomingSchema = z
   .union([z.boolean(), z.null()])
   .optional()
-  .describe("True: starting now or later. False: earlier. Omit: all.");
+  .describe(
+    "True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first."
+  );
 
 export const bookingsListMyBookingsQueryPageSchema = z
   .int()
@@ -64,7 +66,9 @@ export const bookingsListMyBookingsQuerySchema = z.object({
   upcoming: z
     .union([z.boolean(), z.null()])
     .optional()
-    .describe("True: starting now or later. False: earlier. Omit: all."),
+    .describe(
+      "True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first."
+    ),
   page: z
     .int()
     .min(1)
