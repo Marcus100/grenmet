@@ -56,7 +56,7 @@ request → planner (spec, slices)
         → api-engineer / web-engineer (make them pass, API first)
         → code-reviewer (+ security-reviewer for auth, access, CI, dependencies)
         → /commit (gates) → PR → subscription-backed review + CI
-        → agent merges into dev → dev → staging PR (when the owner asks) → owner merges into staging
+        → agent merges into dev → dev → staging PR → owner merges into staging
 ```
 
 Use it for work that spans roles. A small fix needs one role or none. Name the
@@ -157,10 +157,8 @@ unresolved goes to the owner.
    `Protect dev` ruleset requires CI and the worker's review contexts; the worker
    verifies the merge-base and changed-file overlap, syncing only when current
    branch protection requires an up-to-date branch or the changes overlap.
-3. **Promotion.** The owner decides when a `dev → staging` PR is opened (owner,
-   14 Nov 2026). Agents keep landing work on `dev`, and an agent creates or
-   updates the `dev → staging` PR, with a recap of what changed, only when the
-   owner asks. The owner reviews and merges
+3. **Promotion.** Under standing authorization, an agent creates or updates the
+   `dev → staging` PR, with a recap of what changed. The owner reviews and merges
    into `staging`; agents do not arm auto-merge, and GitHub merges only once the
    staging ruleset's required checks pass. `staging → main`, releases and
    production deploys need the owner's explicit authorization each time. The

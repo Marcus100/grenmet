@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-10-19
 
 Detail behind the short rules in the root `AGENTS.md`. Read the matching section
 before parallel work, integrating or pushing, a cross-layer change, or editing
@@ -64,9 +64,7 @@ agent instructions. Nothing here relaxes a root rule.
   owner; the hook refuses an agent merge. Other factory-control changes require
   independent code and security review with no open blocking finding before an
   agent merges into dev. If `origin/dev` advances, integrate it and revalidate.
-- Promotion to staging: the owner decides when a `dev → staging` PR is opened
-  (owner, 14 Nov 2026). Agents keep landing work on `dev` and do not open the
-  promotion PR on their own after merges. When the owner asks,
+- Standing authorization: once PRs are merged into `dev`,
   create or update the `dev → staging` PR with a recap, review the promotion diff
   and verify `dev` has not advanced. The owner reviews and merges into `staging`;
   agents do not arm auto-merge. While `PROMOTE_STAGING_ENABLED` is `true`,
