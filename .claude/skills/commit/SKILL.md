@@ -51,10 +51,11 @@ Claude Code fills these in; in Codex, run the commands.
    owner the block from `pnpm agents:handoff`.
 
 5. Use PRs for `dev → staging → main` promotion, reusing an existing promotion PR.
-   Once the PR is merged into `dev`, create or update the staging PR following
-   `/release`; the owner reviews and merges into `staging` (agents do not arm
-   auto-merge). Creating the PR has standing authorization. Main merges and production publication or
-   deployment still require separate authorization.
+   Once the PR is merged into `dev`, stop: say what is now waiting on `dev`. Open
+   or update the staging PR (following `/release`) only when the owner asks for
+   it; the owner reviews and merges into `staging` (agents do not arm auto-merge).
+   Main merges and production publication or deployment still require separate
+   authorization.
 
 6. Run the `file-friction` skill for anything you worked around during this task.
 

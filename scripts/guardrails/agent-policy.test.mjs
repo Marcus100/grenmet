@@ -1,5 +1,5 @@
-// The git policy agents act on (where work lands, who merges, what has
-// standing authorization) is stated in several files that each tool reads on
+// The git policy agents act on (where work lands, who merges, when a staging
+// promotion PR is opened) is stated in several files that each tool reads on
 // its own: the root AGENTS.md, the workflow and roles docs, the release
 // runbook and the commit and release skills. They drifted once: roles.md
 // suspended an authorization that the commit and release skills still
@@ -72,6 +72,10 @@ const RETIRED = [
 ];
 const LANDS_BY_PR = /(?:PR|pull request)s? (?:in)?to `dev`/u;
 const AGENTS_MERGE_WHEN_GREEN = /CI\s+is\s+green[^.]*review/iu;
+// Owner decision, 14 Nov 2026: agents keep landing work on dev and open the
+// dev → staging PR only when the owner asks. The earlier wording gave agents
+// standing authorization to open it after every merge; it must not come back.
+const OWNER_DECIDES_PROMOTION = /when\s+the\s+owner\s+asks/iu;
 const STANDING_AUTHORIZATION = /standing (?:user )?authori[sz]ation/iu;
 const PROMOTES_BY_AUTO_MERGE = /auto-merge/u;
 const LIMITS_PRODUCTION = /(?:explicit|separate)[^.]*authori[sz]ation/iu;
@@ -150,7 +154,10 @@ test("every full policy file states the complete landing and promotion policy", 
       AGENTS_MERGE_WHEN_GREEN,
       "agents merge into dev once CI is green and the review is clean",
     ],
-    [STANDING_AUTHORIZATION, "staging promotion has standing authorization"],
+    [
+      OWNER_DECIDES_PROMOTION,
+      "the staging promotion PR is opened only when the owner asks",
+    ],
     [
       PROMOTES_BY_AUTO_MERGE,
       "staging promotion mentions auto-merge (the owner merges; agents do not arm it)",
@@ -162,6 +169,11 @@ test("every full policy file states the complete landing and promotion policy", 
     for (const [pattern, meaning] of required) {
       assert.match(text, pattern, `${file}: ${meaning}`);
     }
+    assert.doesNotMatch(
+      text,
+      STANDING_AUTHORIZATION,
+      `${file}: staging promotion no longer has standing authorization`
+    );
   }
 });
 
