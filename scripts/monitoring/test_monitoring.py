@@ -7,6 +7,9 @@ from report import build_reports
 from journal import compact
 from incidents import reconcile
 from alert_test import exercise
+import betterstack
+import io
+import urllib.error
 from unittest.mock import Mock, patch
 
 
@@ -32,7 +35,9 @@ class MonitoringTests(unittest.TestCase):
         with patch.dict(os.environ, {"STAGING_PROBE_CREDENTIALS": "probe:secret"}):
             web = request_headers(services["auth"], "staging")
             self.assertEqual(web["Authorization"], "Basic cHJvYmU6c2VjcmV0")
-            self.assertNotIn("Authorization", request_headers(services["api"], "staging"))
+            self.assertNotIn(
+                "Authorization", request_headers(services["api"], "staging")
+            )
             self.assertNotIn(
                 "Authorization", request_headers(services["auth"], "production")
             )
@@ -143,6 +148,41 @@ class MonitoringTests(unittest.TestCase):
             "windows"
         ][0]
         self.assertIsNone(row["availability"]["sampledAvailability"])
+
+    def test_a_provider_refusal_names_its_status_and_reason_without_urls(self):
+        body = json.dumps(
+            {
+                "errors": {
+                    "url": ["is invalid, see https://example.com/heartbeat/abc123"]
+                }
+            }
+        ).encode()
+        refusal = urllib.error.HTTPError(
+            "https://provider.invalid/monitors",
+            422,
+            "Unprocessable",
+            {},
+            io.BytesIO(body),
+        )
+        opener = Mock()
+        opener.open.side_effect = refusal
+        with (
+            patch.dict(os.environ, {"BETTERSTACK_API_TOKEN": "token-not-shown"}),
+            patch("betterstack.urllib.request.build_opener", return_value=opener),
+            self.assertRaises(betterstack.ProviderRefusal) as caught,
+        ):
+            betterstack.request("POST", "monitors", {"url": "https://x.invalid"})
+        message = str(caught.exception)
+        self.assertIn("POST monitors answered HTTP 422", message)
+        self.assertIn("is invalid", message)
+        self.assertNotIn("abc123", message)
+        self.assertNotIn("token-not-shown", message)
+
+    def test_a_refusal_without_a_readable_body_still_names_the_status(self):
+        refusal = urllib.error.HTTPError(
+            "https://provider.invalid/monitors", 302, "Found", {}, io.BytesIO(b"<html>")
+        )
+        self.assertEqual(betterstack.refusal_reason(refusal), "no readable reason")
 
 
 if __name__ == "__main__":
