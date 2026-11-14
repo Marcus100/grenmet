@@ -1142,6 +1142,8 @@ export type { BookingExceptionKind } from "./BookingExceptionKind.js";
 export { bookingExceptionKind } from "./BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./BookingExceptionPublic.js";
 export type { BookingManualDepositCreate } from "./BookingManualDepositCreate.js";
+export type { BookingMyBooking } from "./BookingMyBooking.js";
+export type { BookingMyBookingList } from "./BookingMyBookingList.js";
 export type { BookingMyOrganisation } from "./BookingMyOrganisation.js";
 export type { BookingOrder } from "./BookingOrder.js";
 export type { BookingProfilePublic } from "./BookingProfilePublic.js";
@@ -1456,6 +1458,16 @@ export type {
   BookingsListExceptionsStatus404,
   BookingsListExceptionsStatus422,
 } from "./BookingsListExceptions.js";
+export type {
+  BookingsListMyBookingsOptions,
+  BookingsListMyBookingsQuery,
+  BookingsListMyBookingsResponse,
+  BookingsListMyBookingsResponses,
+  BookingsListMyBookingsStatus200,
+  BookingsListMyBookingsStatus401,
+  BookingsListMyBookingsStatus403,
+  BookingsListMyBookingsStatus422,
+} from "./BookingsListMyBookings.js";
 export type {
   BookingsListMyOrganisationsOptions,
   BookingsListMyOrganisationsResponse,

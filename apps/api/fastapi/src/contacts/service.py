@@ -7,6 +7,7 @@ to join two records. Logs never carry addresses, names or phone numbers.
 """
 
 import logging
+import uuid
 from collections.abc import Mapping, Sequence
 
 from sqlalchemy import ColumnElement, func, select, update
@@ -17,7 +18,7 @@ from src.audit import service as audit_service
 from src.auth.models import User
 from src.pagination import PaginationParams
 from src.utils.datetime import utc_now
-from src.utils.email_hash import hash_email
+from src.utils.email_hash import hash_email, normalise_email
 from src.webhooks_out import service as webhook_service
 
 from . import references
@@ -179,6 +180,33 @@ async def upsert_contact(
     if consents:
         await _apply_consents(session, contact, consents, source)
     return contact
+
+
+async def link_verified_account(
+    session: AsyncSession,
+    contact: Contact,
+    *,
+    booking_email: str,
+    user_id: uuid.UUID,
+    account_email: str,
+    account_email_verified: bool,
+) -> bool:
+    """Link ``contact`` to the account that booked with it (ADR-0058).
+
+    Only when the account's verified email is the booking's email, compared with
+    the same normalisation the email hash uses. Name and phone never link. A
+    contact that already has an account link is left alone, to this account or
+    another (no relink). Returns True when this call made the link.
+    """
+    if not account_email_verified or contact.erased_at is not None:
+        return False
+    if contact.user_id is not None:
+        return False
+    if normalise_email(account_email) != normalise_email(booking_email):
+        return False
+    contact.user_id = user_id
+    await session.flush()
+    return True
 
 
 async def create_without_email(

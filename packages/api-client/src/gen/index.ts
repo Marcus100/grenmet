@@ -120,6 +120,7 @@ export { bookingsGetStorefront } from "./clients/bookingsGetStorefront.js";
 export { bookingsGetStudioBooking } from "./clients/bookingsGetStudioBooking.js";
 export { bookingsGetWorkingHours } from "./clients/bookingsGetWorkingHours.js";
 export { bookingsListExceptions } from "./clients/bookingsListExceptions.js";
+export { bookingsListMyBookings } from "./clients/bookingsListMyBookings.js";
 export { bookingsListMyOrganisations } from "./clients/bookingsListMyOrganisations.js";
 export { bookingsListProviders } from "./clients/bookingsListProviders.js";
 export { bookingsListServices } from "./clients/bookingsListServices.js";
@@ -1352,6 +1353,11 @@ export {
   bookingsListExceptionsQueryOptions,
   useBookingsListExceptions,
 } from "./hooks/useBookingsListExceptions.js";
+export {
+  bookingsListMyBookingsQueryKey,
+  bookingsListMyBookingsQueryOptions,
+  useBookingsListMyBookings,
+} from "./hooks/useBookingsListMyBookings.js";
 export {
   bookingsListMyOrganisationsQueryKey,
   bookingsListMyOrganisationsQueryOptions,
@@ -5706,6 +5712,8 @@ export type { BookingExceptionKind } from "./models/BookingExceptionKind.js";
 export { bookingExceptionKind } from "./models/BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./models/BookingExceptionPublic.js";
 export type { BookingManualDepositCreate } from "./models/BookingManualDepositCreate.js";
+export type { BookingMyBooking } from "./models/BookingMyBooking.js";
+export type { BookingMyBookingList } from "./models/BookingMyBookingList.js";
 export type { BookingMyOrganisation } from "./models/BookingMyOrganisation.js";
 export type { BookingOrder } from "./models/BookingOrder.js";
 export type { BookingProfilePublic } from "./models/BookingProfilePublic.js";
@@ -6020,6 +6028,16 @@ export type {
   BookingsListExceptionsStatus404,
   BookingsListExceptionsStatus422,
 } from "./models/BookingsListExceptions.js";
+export type {
+  BookingsListMyBookingsOptions,
+  BookingsListMyBookingsQuery,
+  BookingsListMyBookingsResponse,
+  BookingsListMyBookingsResponses,
+  BookingsListMyBookingsStatus200,
+  BookingsListMyBookingsStatus401,
+  BookingsListMyBookingsStatus403,
+  BookingsListMyBookingsStatus422,
+} from "./models/BookingsListMyBookings.js";
 export type {
   BookingsListMyOrganisationsOptions,
   BookingsListMyOrganisationsResponse,
@@ -15701,6 +15719,8 @@ export { bookingExceptionCreateSchema } from "./zod/bookingExceptionCreateSchema
 export { bookingExceptionKindSchema } from "./zod/bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./zod/bookingExceptionPublicSchema.js";
 export { bookingManualDepositCreateSchema } from "./zod/bookingManualDepositCreateSchema.js";
+export { bookingMyBookingListSchema } from "./zod/bookingMyBookingListSchema.js";
+export { bookingMyBookingSchema } from "./zod/bookingMyBookingSchema.js";
 export { bookingMyOrganisationSchema } from "./zod/bookingMyOrganisationSchema.js";
 export { bookingOrderSchema } from "./zod/bookingOrderSchema.js";
 export { bookingProfilePublicSchema } from "./zod/bookingProfilePublicSchema.js";
@@ -16036,6 +16056,18 @@ export {
   bookingsListExceptionsStatus404Schema,
   bookingsListExceptionsStatus422Schema,
 } from "./zod/bookingsListExceptionsSchema.js";
+export {
+  bookingsListMyBookingsErrorSchema,
+  bookingsListMyBookingsQueryPageSchema,
+  bookingsListMyBookingsQuerySchema,
+  bookingsListMyBookingsQuerySizeSchema,
+  bookingsListMyBookingsQueryUpcomingSchema,
+  bookingsListMyBookingsResponseSchema,
+  bookingsListMyBookingsStatus200Schema,
+  bookingsListMyBookingsStatus401Schema,
+  bookingsListMyBookingsStatus403Schema,
+  bookingsListMyBookingsStatus422Schema,
+} from "./zod/bookingsListMyBookingsSchema.js";
 export {
   bookingsListMyOrganisationsErrorSchema,
   bookingsListMyOrganisationsResponseSchema,
