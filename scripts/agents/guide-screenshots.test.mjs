@@ -40,6 +40,18 @@ test("rejects duplicate ids, relative paths and bad steps", () => {
   );
 });
 
+test("rejects empty step text and non-list steps instead of skipping them", () => {
+  assert.throws(
+    () => parseManifest({ screens: [{ id: "d", app: "docs", path: "/", steps: [{ click: "" }] }] }),
+    /exactly one of/u
+  );
+  assert.throws(
+    () => parseManifest({ screens: [{ id: "e", app: "docs", path: "/", steps: "Week" }] }),
+    /must be a list/u
+  );
+  assert.throws(() => parseManifest({ screens: [null] }), /must be an object/u);
+});
+
 test("runs steps in order against the page", async () => {
   const calls = [];
   const page = {

@@ -79,7 +79,7 @@ def check(service, environment, opener=None):
     return result
 
 
-WINDOW = 12  # last 12 checks: 36 minutes at the 3-minute cadence
+WINDOW = 12  # last 12 checks: 60 minutes at the runner's 5-minute timer
 OPEN_DOWN_SHARE = 6  # half of a full window down opens an incident
 QUIET_UPS = 4  # recovery needs this many successes in a row...
 CLOSE_MAX_DOWN = 3  # ...and at most this many failures left in the window

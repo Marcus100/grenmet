@@ -88,7 +88,9 @@ captures every screen listed in the manifest in one run. Each entry names an app
 a path, a width, a theme and optional steps (`click`, `press`, `waitForText`).
 Start the app's dev server on the host first. Screens behind sign-in need
 `GUIDE_STORAGE_STATE=<file>`, a Playwright storage-state file from a seeded test
-account; never commit that file. Add `--only <id>` to capture one screen. The
+account; never commit that file. Screenshots are committed to a public repository,
+so signed-in screens must come from that seeded account only, never from a real
+person's session. Add `--only <id>` to capture one screen. The
 idea comes from ADL's capture script (MIT); the manifest is JSON to avoid a new
 dependency.
 

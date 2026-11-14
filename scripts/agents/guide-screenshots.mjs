@@ -15,7 +15,7 @@
 //   pnpm guide:screenshots --manifest scripts/agents/guide-screens.json \
 //     --out apps/web/docs/src/images/guides [--only roster-week]
 
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { developmentOrigin } from "./ui-screenshots.mjs";
@@ -36,6 +36,9 @@ export function parseManifest(manifest) {
   const seen = new Set();
   return manifest.screens.map((screen, index) => {
     const where = `screen ${index + 1}`;
+    if (!screen || typeof screen !== "object") {
+      throw new Error(`${where}: must be an object.`);
+    }
     if (typeof screen.id !== "string" || !ID_PATTERN.test(screen.id)) {
       throw new Error(`${where}: 'id' must be lowercase letters, digits and dashes.`);
     }
@@ -52,8 +55,14 @@ export function parseManifest(manifest) {
     const theme = screen.theme ?? "light";
     if (!THEMES.has(theme)) throw new Error(`${screen.id}: theme must be light or dark.`);
     const steps = screen.steps ?? [];
+    if (!Array.isArray(steps)) throw new Error(`${screen.id}: 'steps' must be a list.`);
     for (const step of steps) {
-      const kinds = STEP_KINDS.filter((kind) => typeof step[kind] === "string");
+      if (!step || typeof step !== "object") {
+        throw new Error(`${screen.id}: each step must be an object.`);
+      }
+      const kinds = STEP_KINDS.filter(
+        (kind) => typeof step[kind] === "string" && step[kind].trim() !== ""
+      );
       if (kinds.length !== 1) {
         throw new Error(`${screen.id}: each step needs exactly one of ${STEP_KINDS.join(", ")}.`);
       }
@@ -105,6 +114,9 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 2) {
     const flag = argv[i];
     const value = argv[i + 1];
+    if (value === undefined || value.startsWith("--")) {
+      throw new Error(`${flag} needs a value.`);
+    }
     if (flag === "--manifest") options.manifest = value;
     else if (flag === "--out") options.out = value;
     else if (flag === "--only") options.only = value;
@@ -125,16 +137,19 @@ async function main() {
   const outDir = options.out;
   mkdirSync(outDir, { recursive: true });
   const storageState = process.env.GUIDE_STORAGE_STATE || undefined;
+  // Resolve every app before launching a browser, so a typo fails at once.
+  const targets = screens.map((screen) => ({
+    screen,
+    origin: developmentOrigin(catalogue, screen.app),
+  }));
 
   const { chromium } = await import("@playwright/test");
   const browser = await chromium.launch();
   try {
     const results = [];
-    for (const screen of screens) {
-      const origin = developmentOrigin(catalogue, screen.app);
+    for (const { screen, origin } of targets) {
       results.push(await capture(browser, screen, origin, outDir, storageState));
     }
-    writeFileSync(join(outDir, "results.json"), `${JSON.stringify(results, null, 2)}\n`);
     for (const result of results) {
       console.log(result.error ? `FAILED ${result.id}: ${result.error}` : `ok ${result.file}`);
     }
