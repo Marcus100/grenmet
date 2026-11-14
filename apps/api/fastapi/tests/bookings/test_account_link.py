@@ -743,3 +743,102 @@ async def test_past_bookings_stay_newest_first(
         assert resp.status_code == 200, resp.text
         seen.extend(row["id"] for row in resp.json()["data"])
     assert seen == [newer, older]
+
+
+async def test_a_pending_customers_full_token_lists_their_bookings(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    # Awaiting staff approval is normal for an end customer: the list still works.
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"pend-{uuid.uuid4().hex[:6]}@example.com")
+    booking = await _book_in(async_client, studio, ada, slot=0)
+    ada.registration_pending = True
+    await db_async.commit()
+    resp = await async_client.get(f"{API}/me/bookings", headers=headers_for(ada))
+    assert resp.status_code == 200, resp.text
+    assert [row["id"] for row in resp.json()["data"]] == [booking]
+
+
+async def test_a_pending_customers_account_app_session_lists_their_bookings(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    studio = await _studio(db_async, async_client)
+    email = f"apppend-{uuid.uuid4().hex[:6]}@example.com"
+    user, token = await _account_app_session(async_client, db_async, monkeypatch, email)
+    booking = await _book_in(async_client, studio, user, slot=0)
+    user.registration_pending = True
+    await db_async.commit()
+    resp = await async_client.get(
+        f"{API}/me/bookings", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert resp.status_code == 200, resp.text
+    assert [row["id"] for row in resp.json()["data"]] == [booking]
+
+
+async def test_an_account_app_session_without_app_access_is_refused(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    email = f"noaccess-{uuid.uuid4().hex[:6]}@example.com"
+    _user, token = await _account_app_session(
+        async_client, db_async, monkeypatch, email
+    )
+    # The person no longer holds app.account.access: the eligibility check says no.
+    from src.auth import eligibility
+
+    async def no_access(**_: object) -> bool:
+        return False
+
+    monkeypatch.setattr(eligibility, "is_eligible_for_app", no_access)
+    resp = await async_client.get(
+        f"{API}/me/bookings", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert resp.status_code == 401, resp.text
+
+
+async def test_a_deactivated_account_is_refused_on_both_token_kinds(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    email = f"deact-{uuid.uuid4().hex[:6]}@example.com"
+    user, token = await _account_app_session(async_client, db_async, monkeypatch, email)
+    full = headers_for(user)
+    user.is_active = False
+    await db_async.commit()
+    app = await async_client.get(
+        f"{API}/me/bookings", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert app.status_code == 401, app.text
+    full_resp = await async_client.get(f"{API}/me/bookings", headers=full)
+    assert full_resp.status_code == 401, full_resp.text
+
+
+async def test_upcoming_ties_on_the_same_start_page_by_id(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    # Two bookings at the same instant in two studios: the id breaks the tie, so
+    # paging with size 1 returns each once, in one stable order.
+    first = await _studio(db_async, async_client)
+    second = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"tie-{uuid.uuid4().hex[:6]}@example.com")
+    ada_headers = headers_for(ada)
+    a = await _book_in(async_client, first, ada, slot=0)
+    b = await _book_in(async_client, second, ada, slot=0)
+    starts = set()
+    seen: list[dict] = []
+    for page in (1, 2):
+        resp = await async_client.get(
+            f"{API}/me/bookings",
+            headers=ada_headers,
+            params={"upcoming": "true", "page": page, "size": 1},
+        )
+        assert resp.status_code == 200, resp.text
+        seen.extend(resp.json()["data"])
+    for row in seen:
+        starts.add(row["starts_at"])
+    assert len(starts) == 1, "both bookings must share one start for this test"
+    assert [row["id"] for row in seen] == sorted([a, b])

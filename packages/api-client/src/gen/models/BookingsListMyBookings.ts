@@ -10,7 +10,7 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsListMyBookingsQuery = {
   /**
-   * @description True: starting now or later. False: earlier. Omit: all.
+   * @description True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first.
    */
   upcoming?: boolean | null;
   /**

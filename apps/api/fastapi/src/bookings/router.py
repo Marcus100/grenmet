@@ -14,7 +14,12 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from src import idempotency
 from src.auth.models import User
-from src.dependencies import OwnAccountUser, SessionDep, TokenDep, optional_account
+from src.dependencies import (
+    OwnAccountAnyUser,
+    SessionDep,
+    TokenDep,
+    optional_account,
+)
 from src.models import ApiError
 from src.openapi_responses import (
     AUTHENTICATED,
@@ -131,11 +136,16 @@ async def list_my_bookings(
     *,
     request: Request,
     session: SessionDep,
-    current_user: OwnAccountUser,
+    current_user: OwnAccountAnyUser,
     pagination: PaginationDep,
     upcoming: Annotated[
         bool | None,
-        Query(description="True: starting now or later. False: earlier. Omit: all."),
+        Query(
+            description=(
+                "True: starting now or later, soonest first (starts_at, then id, "
+                "ascending). False: earlier, newest first. Omit: all, newest first."
+            )
+        ),
     ] = None,
 ) -> Any:
     _ = request  # the rate limiter reads it
