@@ -1,6 +1,7 @@
 """Global handlers: server bugs answer 500, genuine client errors keep their shape."""
 
 import logging
+import uuid
 from collections.abc import Iterator
 from types import SimpleNamespace
 
@@ -9,8 +10,11 @@ import pytest
 from fastapi import APIRouter
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.exceptions import _integrity_details
 from src.main import app
+from tests.factories import make_user
 
 
 class Body(BaseModel):
@@ -54,6 +58,14 @@ async def _not_null() -> None:
 @_router.get("/unique")
 async def _unique() -> None:
     raise _integrity("23505", "items_name_key")
+
+
+_REAL_ERRORS: list[IntegrityError] = []
+
+
+@_router.get("/real-unique")
+async def _real_unique() -> None:
+    raise _REAL_ERRORS[-1]
 
 
 @pytest.fixture
@@ -111,3 +123,19 @@ async def test_unique_violation_still_409_and_logged(
     records = [r for r in caplog.records if r.name == "src.exceptions"]
     assert len(records) == 1
     assert records[0].error_type == "IntegrityError"  # type: ignore[attr-defined]
+
+
+@pytest.mark.asyncio
+async def test_real_unique_violation_is_409(
+    client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """The asyncpg driver error carries the SQLSTATE the handler reads."""
+    email = f"dup-{uuid.uuid4()}@example.com"
+    await make_user(db_async, email=email)
+    with pytest.raises(IntegrityError) as caught:
+        await make_user(db_async, email=email)
+    await db_async.rollback()
+    _REAL_ERRORS.append(caught.value)
+    assert _integrity_details(caught.value)[0] == "23505"
+    response = await client.get("/_test-error-handlers/real-unique")
+    assert response.status_code == 409

@@ -149,6 +149,7 @@ async def integrity_error_handler(
     """
     sqlstate, constraint = _integrity_details(exc)
     if sqlstate != UNIQUE_VIOLATION_SQLSTATE:
+        # Re-raising lets Starlette's ServerErrorMiddleware answer a logged 500.
         raise exc
     logger.warning(
         "Unmapped unique violation answered as 409 constraint=%s",
