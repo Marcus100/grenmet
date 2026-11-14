@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from typing import Any, cast
 
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, Response
@@ -48,8 +48,9 @@ from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
 from src.contact.router import router as contact_router
-from src.contacts.router import router as contacts_router
 from src.content_distribution.router import router as content_distribution_router
+from src.domain_manifest import Mount, resolve_router
+from src.domains import ordered_mounts
 from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
 from src.eregister.iwxxm import preload_schema_in_background
@@ -67,10 +68,10 @@ from src.exceptions import (
 )
 from src.feature_flags.router import router as feature_flags_router
 from src.feedback.router import router as feedback_router
-from src.flights.router import router as flights_router
 from src.hr.absentee.router import router as hr_absentee_router
 from src.hr.attendance.clock_router import router as hr_clock_router
 from src.hr.attendance.router import router as hr_attendance_router
+from src.hr.attendance.terminal_router import router as hr_terminal_router
 from src.hr.calendar.router import router as hr_calendar_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
 from src.hr.dashboard.router import router as hr_dashboard_router
@@ -103,8 +104,6 @@ from src.request_context import (
     resolve_request_id,
 )
 from src.rewards.router import router as rewards_router
-
-# from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
 from src.storage.uploads_router import router as uploads_router
 from src.stores.router import router as stores_router
@@ -114,7 +113,6 @@ from src.transport import database as transport_database
 from src.transport.router import router as transport_router
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
-from src.webhooks_out.router import router as webhooks_out_router
 from src.wxproducts import database as wxproducts_database
 from src.wxproducts.router import router as wxproducts_router
 from src.wxwatch import database as wxwatch_database
@@ -295,6 +293,10 @@ OPENAPI_TAGS = [
     {
         "name": "webhooks-out",
         "description": "Signed outbound webhooks for organisations.",
+    },
+    {
+        "name": "profile-images",
+        "description": "Profile photos: your own, and those of people in your organisations.",
     },
     {"name": "permissions", "description": "Permission administration operations."},
     {
@@ -494,74 +496,101 @@ if settings.all_cors_origins:
         expose_headers=[REQUEST_ID_HEADER],
     )
 app.add_middleware(RequestLoggingMiddleware)
-# Include routers
-# app.include_router(shipments_router, prefix=settings.API_V1_STR)
-# Auth-related routers (split for better organization)
-app.include_router(login_router, prefix=settings.API_V1_STR)
-app.include_router(users_router, prefix=settings.API_V1_STR)
-app.include_router(twofa_router, prefix=settings.API_V1_STR)
-app.include_router(roles_router, prefix=settings.API_V1_STR)
-app.include_router(permissions_router, prefix=settings.API_V1_STR)
-app.include_router(role_assignments_router, prefix=settings.API_V1_STR)
-app.include_router(billing_router, prefix=settings.API_V1_STR)
-app.include_router(billing_invoice_router, prefix=settings.API_V1_STR)
-app.include_router(rewards_router, prefix=settings.API_V1_STR)
-app.include_router(payments_router, prefix=settings.API_V1_STR)
-app.include_router(bookings_router, prefix=settings.API_V1_STR)
-app.include_router(bookings_settings_router, prefix=settings.API_V1_STR)
-app.include_router(hr_profile_router, prefix=settings.API_V1_STR)
-app.include_router(hr_workflow_router, prefix=settings.API_V1_STR)
-app.include_router(hr_roster_router, prefix=settings.API_V1_STR)
-app.include_router(hr_calendar_router, prefix=settings.API_V1_STR)
-app.include_router(hr_timesheet_router, prefix=settings.API_V1_STR)
-app.include_router(hr_clock_router, prefix=settings.API_V1_STR)
-app.include_router(hr_attendance_router, prefix=settings.API_V1_STR)
-app.include_router(hr_payroll_router, prefix=settings.API_V1_STR)
-app.include_router(hr_training_router, prefix=settings.API_V1_STR)
-app.include_router(hr_signatures_router, prefix=settings.API_V1_STR)
-app.include_router(hr_leave_router, prefix=settings.API_V1_STR)
-app.include_router(hr_absentee_router, prefix=settings.API_V1_STR)
-app.include_router(hr_exchange_router, prefix=settings.API_V1_STR)
-app.include_router(hr_dailystatus_router, prefix=settings.API_V1_STR)
-app.include_router(hr_parking_router, prefix=settings.API_V1_STR)
-app.include_router(hr_documents_router, prefix=settings.API_V1_STR)
-app.include_router(audit_router, prefix=settings.API_V1_STR)
-app.include_router(stores_router, prefix=settings.API_V1_STR)
-app.include_router(notifications_router, prefix=settings.API_V1_STR)
-app.include_router(organisations_router, prefix=settings.API_V1_STR)
-app.include_router(feature_flags_router, prefix=settings.API_V1_STR)
-app.include_router(contacts_router, prefix=settings.API_V1_STR)
-app.include_router(cap_router, prefix=settings.API_V1_STR)
-app.include_router(cap_public_router)
 
-# Other routers
-app.include_router(utils_router, prefix=settings.API_V1_STR)
-app.include_router(weather_images_router, prefix=settings.API_V1_STR)
-app.include_router(uploads_router, prefix=settings.API_V1_STR)
-app.include_router(webhooks_router, prefix=settings.API_V1_STR)
-app.include_router(webhooks_out_router, prefix=settings.API_V1_STR)
-app.include_router(subscriptions_router, prefix=settings.API_V1_STR)
-app.include_router(push_router, prefix=settings.API_V1_STR)
-app.include_router(contact_router, prefix=settings.API_V1_STR)
-app.include_router(feedback_router, prefix=settings.API_V1_STR)
-app.include_router(content_distribution_router, prefix=settings.API_V1_STR)
-app.include_router(flights_router, prefix=settings.API_V1_STR)
-app.include_router(environmental_router, prefix=settings.API_V1_STR)
-app.include_router(almanac_router, prefix=settings.API_V1_STR)
-app.include_router(models_guidance_router, prefix=settings.API_V1_STR)
-app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
-app.include_router(eregister_router, prefix=settings.API_V1_STR)
-app.include_router(wxwatch_router, prefix=settings.API_V1_STR)
-app.include_router(wxwatch_public_router, prefix=settings.API_V1_STR)
-app.include_router(nhc_router, prefix=settings.API_V1_STR)
-app.include_router(wxwatch_ingestion_router, prefix=settings.API_V1_STR)
-app.include_router(browser_auth_router, prefix=settings.API_V1_STR)
-app.include_router(janitorial_router, prefix=settings.API_V1_STR)
-app.include_router(transport_router, prefix=settings.API_V1_STR)
-app.include_router(events_router, prefix=settings.API_V1_STR)
-app.include_router(events_moderation_router, prefix=settings.API_V1_STR)
-app.include_router(events_org_router, prefix=settings.API_V1_STR)
-app.include_router(events_staff_router, prefix=settings.API_V1_STR)
+
+def _legacy(key: str, router: APIRouter, *, versioned: bool = True) -> Mount:
+    return Mount(key, router, versioned)
+
+
+# Routers not yet moved to a domain manifest (ADR-0031), by MOUNT_ORDER key.
+_LEGACY_MOUNTS: dict[str, Mount] = {
+    mount.key: mount
+    for mount in (
+        _legacy("auth.login", login_router),
+        _legacy("auth.users", users_router),
+        _legacy("auth.twofa", twofa_router),
+        _legacy("auth.roles", roles_router),
+        _legacy("auth.permissions", permissions_router),
+        _legacy("auth.role_assignments", role_assignments_router),
+        _legacy("billing.billing", billing_router),
+        _legacy("billing.invoices", billing_invoice_router),
+        _legacy("rewards.rewards", rewards_router),
+        _legacy("payments.payments", payments_router),
+        _legacy("bookings.bookings", bookings_router),
+        _legacy("bookings.settings", bookings_settings_router),
+        _legacy("hr.profile", hr_profile_router),
+        _legacy("hr.workflow", hr_workflow_router),
+        _legacy("hr.roster", hr_roster_router),
+        _legacy("hr.calendar", hr_calendar_router),
+        _legacy("hr.timesheet", hr_timesheet_router),
+        _legacy("hr.clock", hr_clock_router),
+        _legacy("hr.attendance", hr_attendance_router),
+        _legacy("hr.terminal", hr_terminal_router),
+        _legacy("hr.payroll", hr_payroll_router),
+        _legacy("hr.training", hr_training_router),
+        _legacy("hr.signatures", hr_signatures_router),
+        _legacy("hr.leave", hr_leave_router),
+        _legacy("hr.absentee", hr_absentee_router),
+        _legacy("hr.exchange", hr_exchange_router),
+        _legacy("hr.dailystatus", hr_dailystatus_router),
+        _legacy("hr.parking", hr_parking_router),
+        _legacy("hr.documents", hr_documents_router),
+        _legacy("audit.audit", audit_router),
+        _legacy("stores.stores", stores_router),
+        _legacy("notifications.notifications", notifications_router),
+        _legacy("organisations.organisations", organisations_router),
+        _legacy("feature_flags.feature_flags", feature_flags_router),
+        _legacy("cap.cap", cap_router),
+        _legacy("cap.public", cap_public_router, versioned=False),
+        _legacy("utils.utils", utils_router),
+        _legacy("storage.weather_images", weather_images_router),
+        _legacy("storage.uploads", uploads_router),
+        _legacy("webhooks.webhooks", webhooks_router),
+        _legacy("subscriptions.subscriptions", subscriptions_router),
+        _legacy("push.push", push_router),
+        _legacy("contact.contact", contact_router),
+        _legacy("feedback.feedback", feedback_router),
+        _legacy(
+            "content_distribution.content_distribution", content_distribution_router
+        ),
+        _legacy("environmental.environmental", environmental_router),
+        _legacy("almanac.almanac", almanac_router),
+        _legacy("models_guidance.models_guidance", models_guidance_router),
+        _legacy("wxproducts.wxproducts", wxproducts_router),
+        _legacy("eregister.eregister", eregister_router),
+        _legacy("wxwatch.wxwatch", wxwatch_router),
+        _legacy("wxwatch.public", wxwatch_public_router),
+        _legacy("wxwatch.nhc", nhc_router),
+        _legacy("wxwatch.ingestion", wxwatch_ingestion_router),
+        _legacy("auth.browser", browser_auth_router),
+        _legacy("janitorial.janitorial", janitorial_router),
+        _legacy("transport.transport", transport_router),
+        _legacy("events.events", events_router),
+        _legacy("events.moderation", events_moderation_router),
+        _legacy("events.org", events_org_router),
+        _legacy("events.staff", events_staff_router),
+        _legacy("auth.onboarding", onboarding_router),
+        _legacy("auth.modern", modern_auth_router),
+        _legacy("auth.app", app_auth_router),
+        _legacy("auth.account_apps", account_apps_router),
+        _legacy("baseline.staff_setup", staff_setup_router),
+        _legacy("hr.dashboard", hr_dashboard_router),
+        _legacy("baseline.governance", governance_router),
+    )
+}
+
+
+def _mount_routers() -> None:
+    for mount in ordered_mounts(_LEGACY_MOUNTS):
+        router = resolve_router(mount.router)
+        if mount.versioned:
+            app.include_router(router, prefix=settings.API_V1_STR)
+        else:
+            app.include_router(router)
+
+
+_mount_routers()
+
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
@@ -569,7 +598,8 @@ app.add_exception_handler(ValidationError, validation_exception_handler)  # type
 app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
 app.add_exception_handler(IntegrityError, integrity_error_handler)  # type: ignore[arg-type]
 
-# Include private router for local development
+# Include private router for local development. It mounts after every
+# MOUNT_ORDER router, so a path it shares with one of them loses (ADR-0031).
 if settings.ENVIRONMENT == "local":
     try:
         from src.private.router import (  # type: ignore[import-untyped]
@@ -588,20 +618,6 @@ def get_scalar_docs() -> Any:
         openapi_url=openapi_url,
         title=settings.PROJECT_NAME,
     )
-
-
-app.include_router(onboarding_router, prefix=settings.API_V1_STR)
-app.include_router(modern_auth_router, prefix=settings.API_V1_STR)
-app.include_router(app_auth_router, prefix=settings.API_V1_STR)
-app.include_router(account_apps_router, prefix=settings.API_V1_STR)
-
-app.include_router(staff_setup_router, prefix=settings.API_V1_STR)
-
-
-app.include_router(hr_dashboard_router, prefix=settings.API_V1_STR)
-
-
-app.include_router(governance_router, prefix=settings.API_V1_STR)
 
 
 def _lift_inline_enums(schema: dict[str, Any]) -> None:
@@ -653,6 +669,28 @@ def _lift_inline_enums(schema: dict[str, Any]) -> None:
             path_item[method] = walk(operation, pascal(context), True)
 
 
+BINARY_FILE = {"title": "BinaryFile", "type": "string", "format": "binary"}
+
+
+def _name_binary_bodies(schema: dict[str, Any]) -> None:
+    """Point inline binary request bodies (raw uploads) at one named component,
+    so the generated client gets a named type instead of an anonymous one."""
+    found = False
+    for item in schema.get("paths", {}).values():
+        for operation in item.values():
+            if not isinstance(operation, dict):
+                continue
+            content = (operation.get("requestBody") or {}).get("content", {})
+            for media in content.values():
+                if media.get("schema") == {"type": "string", "format": "binary"}:
+                    media["schema"] = {"$ref": "#/components/schemas/BinaryFile"}
+                    found = True
+    if found:
+        schema.setdefault("components", {}).setdefault("schemas", {})["BinaryFile"] = (
+            BINARY_FILE
+        )
+
+
 def _custom_openapi() -> dict[str, Any]:
     if app.openapi_schema:
         return app.openapi_schema
@@ -669,6 +707,7 @@ def _custom_openapi() -> dict[str, Any]:
         license_info=app.license_info,
     )
     _lift_inline_enums(schema)
+    _name_binary_bodies(schema)
     app.openapi_schema = schema
     return schema
 

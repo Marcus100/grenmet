@@ -42,6 +42,7 @@ export function Header({ alerts, green }: HeaderProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [menuTop, setMenuTop] = useState(0);
   const headerRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   /** The menu opens under the header, so the logo and the button never move. */
   function toggleNav() {
@@ -135,6 +136,7 @@ export function Header({ alerts, green }: HeaderProps) {
               aria-label={navOpen ? "Close navigation" : "Open navigation"}
               className="hover:bg-gm-text-inverse/10 focus-visible:ring-gm-lime flex size-11 items-center justify-center rounded-md outline-none focus-visible:ring-2 lg:hidden"
               onClick={toggleNav}
+              ref={menuButtonRef}
               type="button"
             >
               {/* Three bars that fold into an X. */}
@@ -160,7 +162,11 @@ export function Header({ alerts, green }: HeaderProps) {
       <NavDrawer
         alerts={alerts}
         green={green}
-        onClose={() => setNavOpen(false)}
+        onClose={() => {
+          setNavOpen(false);
+          // Closing returns the keyboard to the button that opened the menu.
+          menuButtonRef.current?.focus();
+        }}
         open={navOpen}
         top={menuTop}
       />

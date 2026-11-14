@@ -42,12 +42,19 @@ send_client = send_tests.send_client
 incoming = send_tests.incoming
 recipients = send_tests.recipients
 
-STATES = ("draft", "qc_pending", "accepted", "rejected", "superseded")
+STATES = (
+    "draft",
+    "qc_pending",
+    "accepted",
+    "rejected",
+    "superseded",
+    "historical",
+)
 SENDS = ("none", "email", "wis2")
 ACTIONS = ("accept", "reject", "reopen", "correct", "save")
 
 PENDING = {"draft", "qc_pending"}
-LIVE = {"draft", "qc_pending", "accepted"}
+LIVE = {"draft", "qc_pending", "accepted", "historical"}
 
 # --- hand-written expectations --------------------------------------------------
 
@@ -96,6 +103,7 @@ EXPECTED_ALLOWED_ACTIONS: dict[str, list[str]] = {
     "accepted": ["reopen", "correct"],
     "rejected": ["reopen"],
     "superseded": [],
+    "historical": ["correct"],
 }
 EXPECTED_ALLOWED_ACTIONS_NO_SYNOP: dict[str, list[str]] = {
     state: [action for action in actions if action != "accept"]
@@ -107,6 +115,7 @@ EXPECTED_ALLOWED_ACTIONS_WIS2: dict[str, list[str]] = {
     "accepted": ["correct"],
     "rejected": [],
     "superseded": [],
+    "historical": ["correct"],
 }
 
 
@@ -155,7 +164,14 @@ def test_named_state_groups() -> None:
     assert transitions.PENDING_STATES == PENDING
     assert transitions.LIVE_STATES == LIVE
     assert transitions.REVIEWABLE_STATES == LIVE
-    assert transitions.NOT_SENDABLE_STATES == {"rejected", "superseded"}
+    assert transitions.NOT_SENDABLE_STATES == {
+        "rejected",
+        "superseded",
+        "historical",
+    }
+    # Historical is never awaiting acceptance, but it can be reviewed and corrected.
+    assert "historical" not in transitions.PENDING_STATES
+    assert "historical" in transitions.REVIEWABLE_STATES
     assert transitions.NOT_SENDABLE_STATES | transitions.LIVE_STATES == set(STATES)
 
 
@@ -286,7 +302,9 @@ async def test_each_state_and_send_gets_todays_status_and_result(
     assert response.status_code == SUCCESS_STATUS[action], response.text
     if action == "correct":
         replacement = response.json()
-        assert replacement["state"] == "draft"
+        assert replacement["state"] == (
+            "historical" if state == "historical" else "draft"
+        )
         assert replacement["supersedes_id"] == observation
     else:
         assert response.json()["id"] == observation

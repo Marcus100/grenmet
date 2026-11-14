@@ -54,6 +54,10 @@ class AuthConfig(BaseSettings):
     GMSDASH_SSO_CLIENT_SECRET: str = ""
     BOOKINGS_APP_URL: str = "http://localhost:3015"
     BOOKINGS_SSO_CLIENT_SECRET: str = ""
+    # Barrels account (apps/web/account, ADR-0057): a person's profile and
+    # security pages, separate from sign-in. Self-service, like the sites.
+    ACCOUNT_APP_URL: str = "http://localhost:3018"
+    ACCOUNT_SSO_CLIENT_SECRET: str = ""
     # One-time codes by SMS/WhatsApp. "disabled" until a provider is chosen
     # (every message costs money); "console" logs codes for local development.
     PHONE_OTP_PROVIDER: Literal["disabled", "console"] = "disabled"

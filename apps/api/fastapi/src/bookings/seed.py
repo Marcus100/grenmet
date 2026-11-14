@@ -11,7 +11,9 @@ the studio has edited since. Run it from ``apps/api/fastapi``::
     uv run --frozen --package fast-back python -m src.bookings.seed
 
 ``--dry-run`` reports what would be created and rolls back. The site address
-comes from ``BOOKINGS_BABYDOLL_SITE_URL`` (default ``https://babydoll.barrels.gd``).
+comes from ``BOOKINGS_BABYDOLL_SITE_URL`` (default ``https://babydoll.barrels.gd``);
+the manage link in emails points at the bookings app (``BOOKINGS_APP_URL``),
+where the manage-booking page lives.
 """
 
 import argparse
@@ -48,6 +50,7 @@ from .schemas import (
 ORGANISATION_ID = "babydoll"
 ORGANISATION_NAME = "Babydoll Beauty Bar"
 PUBLIC_SLUG = "babydoll-beauty-bar"
+PRODUCTION_APP_URL = "https://bookings.barrels.gd"
 SITE_KEY = "babydoll"
 PROVIDER_NAME = "Jeriann"
 ENTITLEMENTS = ("bookings", "contacts")
@@ -55,23 +58,24 @@ _LOCK_ID = 73190507
 
 #: Services mirror ``SERVICE_MENU`` in apps/web/babydoll/src/data/site.ts (names
 #: and XCD prices; add-ons are booked with another service and are left out).
-#: The site publishes no durations: the minutes below are working assumptions
-#: for the studio to correct. (category, name, minutes, price in whole XCD, note)
+#: The site publishes no durations: the minutes below are the ones on the
+#: studio's public Acuity booking page (read 13 Nov 2026), for the studio to
+#: correct in Settings. (category, name, minutes, price in whole XCD, note)
 _MENU: tuple[tuple[str, str, int, int, str | None], ...] = (
-    ("Lashes", "Luxe Classic", 120, 210, "Consultation required."),
-    ("Lashes", "Hybrid", 135, 225, None),
+    ("Lashes", "Luxe Classic", 150, 210, "Consultation required."),
+    ("Lashes", "Hybrid", 150, 225, None),
     ("Lashes", "Volume", 150, 245, None),
-    ("Lashes", "Lash touch-up", 45, 65, "At one week."),
-    ("Lashes", "Refill, 2–3 weeks", 90, 130, "Book while 40%+ of extensions remain."),
-    ("Lashes", "Professional removal", 30, 45, None),
+    ("Lashes", "Lash touch-up", 60, 65, "At one week."),
+    ("Lashes", "Refill, 2–3 weeks", 120, 130, "Book while 40%+ of extensions remain."),
+    ("Lashes", "Professional removal", 40, 45, None),
     ("Brows", "Signature brow sculpt & wax", 30, 40, None),
-    ("Brows", "Hybrid brow tint / stain", 30, 60, None),
-    ("Brows", "Hybrid brow tint & wax", 45, 100, None),
-    ("Brows", "Brow lamination", 75, 180, None),
+    ("Brows", "Hybrid brow tint / stain", 20, 60, None),
+    ("Brows", "Hybrid brow tint & wax", 60, 100, None),
+    ("Brows", "Brow lamination", 60, 180, None),
     ("Brows", "Lamination maintenance", 45, 100, "At 2–3 weeks."),
-    ("Facials & waxing", "Custom facial", 75, 180, None),
+    ("Facials & waxing", "Custom facial", 60, 180, None),
     ("Facials & waxing", "Upper lip", 15, 15, None),
-    ("Facials & waxing", "Chin", 15, 25, None),
+    ("Facials & waxing", "Chin", 30, 25, None),
 )
 
 #: Published hours (``HOURS`` in site.ts): Mon-Fri 9:30-17:30, Sat 9:00-17:30.
@@ -92,6 +96,15 @@ class SeedResult:
 
 def _site_url() -> str:
     return bookings_settings.BABYDOLL_SITE_URL.rstrip("/")
+
+
+def _manage_url_template() -> str:
+    """Manage link for emails: the bookings app's page for this studio."""
+    app_url = bookings_settings.APP_URL.rstrip("/")
+    if not app_url.startswith("https://"):
+        # Local development sets an http address; a manage link must be https.
+        app_url = PRODUCTION_APP_URL
+    return f"{app_url}/{PUBLIC_SLUG}/booking/{{token}}"
 
 
 async def seed_babydoll(session: AsyncSession) -> SeedResult:
@@ -136,7 +149,7 @@ async def seed_babydoll(session: AsyncSession) -> SeedResult:
                 horizon_days=60,
                 cancel_cutoff_hours=24,
                 requires_confirmation=True,
-                manage_url_template=f"{site_url}/booking/{{token}}",
+                manage_url_template=_manage_url_template(),
             ),
         )
         result.created.append("profile")

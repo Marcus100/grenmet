@@ -9,7 +9,7 @@ import { apiErrorSchema } from "./apiErrorSchema.js";
 
 export const hrPreviewAbsenteeReportPdfStatus200SchemaJson = z.unknown();
 
-export const hrPreviewAbsenteeReportPdfStatus200SchemaPdf = z.instanceof(File);
+export const hrPreviewAbsenteeReportPdfStatus200SchemaPdf = z.instanceof(Blob);
 
 export const hrPreviewAbsenteeReportPdfStatus200Schema = z.union([
   hrPreviewAbsenteeReportPdfStatus200SchemaJson,

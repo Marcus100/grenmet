@@ -5,9 +5,25 @@
       "lines": 89,
       "branches": 74
     },
+    "web/admin": {
+      "lines": 93.8,
+      "branches": 82.8
+    },
     "web/auth": {
       "lines": 79,
       "branches": 71
+    },
+    "web/bookings": {
+      "lines": 92.6,
+      "branches": 87.9
+    },
+    "web/cap": {
+      "lines": 87.4,
+      "branches": 75
+    },
+    "web/events": {
+      "lines": 83.8,
+      "branches": 74.3
     },
     "web/gaa-admin": {
       "lines": 64.8,
@@ -16,6 +32,10 @@
     "web/gms": {
       "lines": 90,
       "branches": 79
+    },
+    "web/gmsdash": {
+      "lines": 66.4,
+      "branches": 55.0
     },
     "web/mbia": {
       "lines": 23,

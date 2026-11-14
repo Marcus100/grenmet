@@ -69,13 +69,30 @@ describe("proxy: CMS items", () => {
     expect(exists).not.toHaveBeenCalled();
   });
 
-  it("runs only on the CMS item addresses", () => {
+  it("runs only on the CMS item addresses and one-word addresses", () => {
     expect(config.matcher).toEqual([
+      "/:word",
       "/explore/news/:path+",
       "/explore/updates/:path+",
       "/explore/reports/:path+",
       "/explore/explained/:slug",
       "/explore/quiz/:slug",
     ]);
+  });
+});
+
+describe("proxy: one-word addresses", () => {
+  it("answers a made-up word with the not-found page, status 404", async () => {
+    const response = await proxy(request("/journey-missing-page"));
+    expect(response.status).toBe(404);
+    expect(rewrittenTo(response)).toBe(NOT_FOUND_PATH);
+  });
+
+  it("lets a real page, a file and a client navigation through", async () => {
+    for (const path of ["/about", "/robots.txt"]) {
+      expect(rewrittenTo(await proxy(request(path))), path).toBeNull();
+    }
+    const client = await proxy(request("/no-such-word", { rsc: "1" }));
+    expect(rewrittenTo(client)).toBeNull();
   });
 });

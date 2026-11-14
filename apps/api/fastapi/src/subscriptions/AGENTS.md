@@ -22,7 +22,7 @@
 - A new product creates a public site with `accepts_subscriptions` and `site_url`; no code change. Confirm and unsubscribe redirects use `service.site_url_for` (the site row first, then `SUBSCRIPTIONS_SITE_URLS`). The CAP worker still uses the synchronous environment-only `site_url` (follow-up).
 - `gms-alerts` ("GMS weather alerts") is the CAP list: confirmed addresses get one email per published, updated or cancelled alert from the worker (`src/worker/cap_email.py`). The GMS site redirects `/subscribe/status` to `/alerts/get-alerts` with the query kept, where the page shows the result.
 
-## Adding a mailing list (checked 2026-10-29)
+## Adding a mailing list
 
 Sign-up, confirm, one-list unsubscribe, preferences and the expiry purge are already generic. A list that is only a sign-up list (like `signal`, `barrels`, `gms-alerts`) needs:
 

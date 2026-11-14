@@ -70,6 +70,8 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/",
-    "/((?!_next/static|_next/image|favicon\\.ico|runtime-env\\.js|images/|wxwatch/.*\\.).*)",
+    // maplibre-gl-worker.mjs: the map's web worker (src/lib/maplibre-worker.ts);
+    // a redirect to /signin would leave every map blank.
+    "/((?!_next/static|_next/image|favicon\\.ico|runtime-env\\.js|maplibre-gl-worker\\.mjs|images/|wxwatch/.*\\.).*)",
   ],
 };

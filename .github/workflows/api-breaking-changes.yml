@@ -51,7 +51,7 @@ jobs:
       - name: Check openapi.json with oasdiff
         if: ${{ !cancelled() }}
         continue-on-error: ${{ contains(github.event.pull_request.labels.*.name, 'breaking-change') }}
-        uses: oasdiff/oasdiff-action/breaking@9e56cf8b3aff7edb326d5767d3d23f96127e20c3 # v0.1.21
+        uses: oasdiff/oasdiff-action/breaking@8a211b41745fcecdfa4a86531ffbf08934fb14f6 # v0.1.23
         env:
           OASDIFF_CONFIG: scripts/api/oasdiff.yaml
         with:

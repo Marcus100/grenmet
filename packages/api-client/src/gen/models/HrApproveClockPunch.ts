@@ -49,7 +49,7 @@ export type HrApproveClockPunchStatus422 = ValidationErrorResponse;
 export type HrApproveClockPunchBody = ClockPunchApproveBody | undefined;
 
 export type HrApproveClockPunchOptions = {
-  body: HrApproveClockPunchBody;
+  body?: HrApproveClockPunchBody;
   path: HrApproveClockPunchPath;
   query?: never;
   headers?: never;

@@ -248,11 +248,17 @@ async def update_password(
 async def delete_user(*, session: AsyncSession, user: User) -> None:
     user_id = str(user.id)
     from src.auth.modern_models import AuthChallenge
+    from src.profile_images import service as profile_images
 
     # Outstanding activation/sign-in challenges must not block account deletion.
     await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user.id))
+    # The photo row cascades with the user; its stored files are removed after.
+    photo = await profile_images.get_image(session=session, user_id=user.id)
+    photo_prefix = photo.object_key if photo else None
     await session.delete(user)
     await session.commit()
+    if photo_prefix:
+        await profile_images.delete_stored_files(photo_prefix)
     logger.info("User deleted", extra={"user_id": user_id})
 
 

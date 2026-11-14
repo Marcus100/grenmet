@@ -806,6 +806,7 @@
       "label": "Midday temperature at MBIA (°C)",
       "type": "number",
       "required": true,
+      "fillFrom": "register",
       "requiredOnPublish": true
     },
     {

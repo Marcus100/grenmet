@@ -11,7 +11,7 @@ export const wxproductsProductRevisionPdfPathProductIdSchema = z.uuid();
 
 export const wxproductsProductRevisionPdfPathRevisionSchema = z.int();
 
-export const wxproductsProductRevisionPdfStatus200Schema = z.instanceof(File);
+export const wxproductsProductRevisionPdfStatus200Schema = z.instanceof(Blob);
 
 export const wxproductsProductRevisionPdfStatus401Schema = authoringErrorSchema;
 

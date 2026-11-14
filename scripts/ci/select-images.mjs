@@ -9,6 +9,7 @@ import { execFileSync } from "node:child_process";
 import { appendFileSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { promotionVerified } from "./promotion-verified.mjs";
 import { releaseScope, weatherImages, webImages } from "./release-scope.mjs";
 
 export { weatherImages, webImages } from "./release-scope.mjs";
@@ -69,7 +70,17 @@ export function selectSurface(paths, mode = "affected") {
 // Web apps whose Vitest coverage floors CI enforces (scripts/guardrails/
 // coverage-baseline.json). gaa-admin is left out: its full coverage run takes
 // about 40 minutes locally (docs/testing.md, Coverage floors).
-export const coverageApps = ["auth", "gms", "mbia", "signal"];
+export const coverageApps = [
+  "admin",
+  "auth",
+  "bookings",
+  "cap",
+  "events",
+  "gms",
+  "gmsdash",
+  "mbia",
+  "signal",
+];
 
 // Coverage runs follow the same scope as the image checks: dev PRs and dev
 // pushes run the affected apps, every other event runs all of them.
@@ -139,10 +150,44 @@ export function changedPaths(
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   // Standalone CI entry point; never reads application secrets.
   const {
-    IMAGE_BUILD_MODE: mode = "full",
+    IMAGE_BUILD_MODE: requestedMode = "full",
     GITHUB_EVENT_PATH: eventPath,
     GITHUB_OUTPUT: output,
+    GITHUB_REPOSITORY: repository,
   } = process.env;
+  // Promotion PRs (into staging or main) reuse dev's results when their tree
+  // passed every required check on dev (scripts/ci/promotion-verified.mjs);
+  // otherwise they run everything, like any other full run.
+  let verified = false;
+  if (requestedMode === "promotion") {
+    const run = (command) => (args) =>
+      execFileSync(command, args, {
+        encoding: "utf8",
+        maxBuffer: 64 * 1024 * 1024,
+      });
+    const result = promotionVerified({
+      git: run("git"),
+      gh: run("gh"),
+      repository,
+    });
+    verified = result.verified;
+    console.log(
+      verified
+        ? `Reusing dev checks: ${result.reason}.`
+        : `Running every check: ${result.reason}`
+    );
+  }
+  const mode = requestedMode === "promotion" ? "full" : requestedMode;
+  appendFileSync(output, `verified=${JSON.stringify(verified)}\n`);
+  if (verified) {
+    for (const [key, value] of Object.entries(noImages))
+      appendFileSync(output, `${key}=${JSON.stringify(value)}\n`);
+    appendFileSync(output, "surface=false\n");
+    for (const key of Object.keys(selectJobs([], "full")))
+      appendFileSync(output, `${key}=false\n`);
+    appendFileSync(output, "coverage=[]\n");
+    process.exit(0);
+  }
   let selection;
   let coverage;
   let surface;

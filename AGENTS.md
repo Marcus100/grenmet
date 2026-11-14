@@ -17,7 +17,7 @@ tooling. Start with `docs/technical-overview.md`.
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
 | `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, almanac, push, rewards, bookings, webhooks_out, contacts, payments, feature_flags, content_distribution) |
-| `apps/web/<app>/AGENTS.md` | admin, auth, bookings, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
+| `apps/web/<app>/AGENTS.md` | account, admin, auth, bookings, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Vercel) |
 | `apps/web/commit/AGENTS.md` | Commit, the Barrels engineering blog (one post per release; static Next.js on Cloudflare Pages) |
@@ -30,7 +30,7 @@ tooling. Start with `docs/technical-overview.md`.
 ```bash
 pnpm install  # dependencies
 pnpm start  # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
-pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 babydoll:3014 bookings:3015 commit:3019 — HOST ONLY
+pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 babydoll:3014 bookings:3015 account:3018 commit:3019 — HOST ONLY
 pnpm verify:changed  # only the gates this diff needs (--dry-run to list; --full adds fuzz; PYTEST_WORKERS=n)
 pnpm fix:changed  # formats dirty files; in shared checkouts use `pnpm exec ultracite fix <owned-files>`
 pnpm type-check  # TypeScript across all packages
@@ -56,7 +56,7 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 
 ## Always
 
-- Check cheaply locally and let GitHub run the heavy gates: while building, format and lint the files you touch and run the tests of the code you changed (one suite at a time on small machines). The pre-push hook only lints the files you push; GitHub CI runs the full lint, type check, tests and image builds on every pull request and is the gate that counts. `PRE_PUSH_FULL=1` restores the old full local run when you want it.
+- Check cheaply locally and let GitHub run the heavy gates: while building, format and lint the files you touch and run the tests of the code you changed (one suite at a time on small machines). The pre-push hook only lints the files you push; GitHub CI runs the full lint, type check, tests and image builds on every pull request and is the gate that counts. `PRE_PUSH_FULL=1` runs the full local check suite when you want it.
 - Before calling a task done, run the targeted tests of what you changed, grep every importer and callsite of changed symbols, finish every affected layer, then push: GitHub CI is the full gate and a task is done when it is green. Run `pnpm verify:changed` locally only for work you are not pushing (or with `--full` before a risky merge); a Stop hook asks once if changes are neither pushed nor verified. See the blast-radius table in `docs/agents/workflow.md`.
 - Put backend logic in Python (FastAPI). The only TypeScript backend is the Payload CMS (`apps/web/cms`). Next.js route handlers may only validate, proxy to FastAPI, or render; never add database access, business rules, or delivery there.
 - Failure budget: if the same check fails twice on the same error, stop editing. Report the raw output and your proposed fix, then wait for the user (routines: record it in the run record, mark the outcome `blocked` and stop).

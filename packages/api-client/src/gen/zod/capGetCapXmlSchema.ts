@@ -9,7 +9,7 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const capGetCapXmlPathIdentifierSchema = z.string();
 
-export const capGetCapXmlStatus200Schema = z.instanceof(File);
+export const capGetCapXmlStatus200Schema = z.instanceof(Blob);
 
 export const capGetCapXmlStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."

@@ -2,7 +2,7 @@
 
     draft, qc_pending -> accepted | rejected          (accept, reject)
     accepted, rejected -> qc_pending                  (reopen)
-    draft, qc_pending, accepted -> superseded         (correct: the original)
+    draft, qc_pending, accepted, historical -> superseded  (correct: the original)
     superseded -> the state recorded on the row       (restore, when a correction is rejected)
     draft, qc_pending -> draft                        (save_draft: the observer re-saves, unsent only)
 
@@ -23,7 +23,9 @@ from typing import Literal, NamedTuple
 
 from src.exceptions import AppException
 
-RegisterState = Literal["draft", "qc_pending", "accepted", "rejected", "superseded"]
+RegisterState = Literal[
+    "draft", "qc_pending", "accepted", "rejected", "superseded", "historical"
+]
 
 RegisterAction = Literal[
     "accept",
@@ -47,16 +49,23 @@ QC_PENDING: RegisterState = "qc_pending"
 ACCEPTED: RegisterState = "accepted"
 REJECTED: RegisterState = "rejected"
 SUPERSEDED: RegisterState = "superseded"
+# Imported archive record: official as recorded, never sent, never awaiting acceptance.
+HISTORICAL: RegisterState = "historical"
 
 # Named state groups.
 # Awaiting acceptance: the observer may still change the content (unsent only).
 PENDING_STATES: frozenset[RegisterState] = frozenset({DRAFT, QC_PENDING})
 # Not rejected and not superseded: the live reading for its hour. A reviewer may
 # record a review; it can be corrected.
-LIVE_STATES: frozenset[RegisterState] = frozenset({DRAFT, QC_PENDING, ACCEPTED})
+LIVE_STATES: frozenset[RegisterState] = frozenset(
+    {DRAFT, QC_PENDING, ACCEPTED, HISTORICAL}
+)
 REVIEWABLE_STATES: frozenset[RegisterState] = LIVE_STATES
-# Rejected or superseded: never sent, and not public.
-NOT_SENDABLE_STATES: frozenset[RegisterState] = frozenset({REJECTED, SUPERSEDED})
+# Rejected or superseded: never sent, and not public. A historical record is never
+# sent either, whatever EREGISTER_SEND_REQUIRE_ACCEPTED says, but it is public.
+NOT_SENDABLE_STATES: frozenset[RegisterState] = frozenset(
+    {REJECTED, SUPERSEDED, HISTORICAL}
+)
 
 TRANSITIONS: dict[RegisterAction, Transition] = {
     # QC: the observer, or other register staff, accept a SYNOP after validation.
