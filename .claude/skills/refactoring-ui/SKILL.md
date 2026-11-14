@@ -20,7 +20,7 @@ The book's core advice is "define systems in advance so you stop making the same
 
 GMS's own palette is `--gm-*` in `packages/gms/src/styles/foundation.css` — a brand layer, not the shared contract.
 
-**Read the lane spec first.** `docs/design/<gms|gaa-admin|mbia|signal>.md` states each app's colours by role (with contrast), type roles, the allowed radii, elevation approach, signature components and do/don'ts. The heuristics below tell you *how* to judge; the lane spec tells you *what is on-system* for that app.
+**Read the lane spec first.** `docs/design/<lane>.md` (one per app; `ls docs/design`) states each app's colours by role (with contrast), type roles, the allowed radii, elevation approach, signature components and do/don'ts. The heuristics below tell you *how* to judge; the lane spec tells you *what is on-system* for that app.
 
 Adding or changing a token is a cross-app contract change and needs user approval. If a book technique demands a value that has no token, say so and stop — that is a token request, not a licence to hardcode. Everything below is achievable with what already exists.
 
