@@ -268,7 +268,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 - Docker & Docker Compose
 - Python 3.14 (FastAPI and Python workspace tools; see root `pyproject.toml`)
 - Node.js 24 or newer (see root `package.json` engines)
-- pnpm 12.3.4 (the pinned `packageManager` in root `package.json`)
+- pnpm 12.20.0 (the pinned `packageManager` in root `package.json`)
 
 ### Packages
 

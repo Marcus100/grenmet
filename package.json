@@ -2,10 +2,10 @@
   "name": "barrelsgd-monorepo",
   "version": "0.2.0",
   "private": true,
-  "packageManager": "pnpm@12.3.4",
+  "packageManager": "pnpm@12.20.0",
   "engines": {
     "node": ">=24",
-    "pnpm": ">=12.3.4"
+    "pnpm": ">=12.20.0"
   },
   "scripts": {
     "build": "turbo run build",

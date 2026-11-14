@@ -9,7 +9,7 @@ For infrastructure commands (Postgres, FastAPI, Docker): see the
 
 ## Prerequisites
 
-- Node.js 24+ (`engines` in `package.json`), pnpm 12.3.4 (`packageManager`)
+- Node.js 24+ (`engines` in `package.json`), pnpm 12.20.0 (`packageManager`)
 - Docker on the **host** for `pnpm start` (Postgres, Redis, FastAPI, worker)
 - A local env file in each app you run, copied from the app's
   `.env.local.example`. Agents must never write env files.
