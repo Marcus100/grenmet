@@ -1,0 +1,99 @@
+---
+title: Attendance from the terminal at the door, profile photos, an account app, and a database ready for PostgreSQL 18
+summary: Version 1.0.8 turns fingerprint and fob terminal exports into attendance, adds profile photos that only colleagues can see, starts a separate account app, gives Bookings time off per provider, makes missing pages answer a real 404 on three more sites, fixes accessibility findings from two design audits, and ships PostgreSQL 18 support with a manual upgrade workflow.
+date: 2026-11-14
+release: 1.0.8
+---
+
+Version 1.0.8 carries 75 pull requests since v1.0.7, plus 27 dependency updates. It
+has four database migrations: two only add things, and two change index names, one
+foreign key and three required columns without deleting data, so the previous
+version still runs against the new schema. Production stays on PostgreSQL 17 with
+this release; the PostgreSQL 18 work ships the support and the upgrade tool, and
+staging made the move first as the rehearsal.
+
+### Staff and attendance
+
+- **Punches from the terminal:** HR uploads the export from the fingerprint and fob
+  terminal, and each scan becomes attendance against the person's rostered shift.
+  A scan from an unknown device ID, one with no matching shift, or one that is
+  refused is held for HR instead of guessed at, and can be decided again once the
+  roster or the link to a staff member is fixed. Uploading the same export twice
+  records nothing twice. Only the device user ID and the scan time are stored,
+  never fingerprint data.
+- **Profile photos:** a person uploads, replaces or removes their own photo. It is
+  turned upright, cropped square and stored without location or camera data. Only
+  people in the same organisation can see it, HR can remove an unsuitable one, and
+  uploads are rate-limited. Photos show in the staff portal's header and staff list,
+  with initials when there is none.
+- **A roster a screen reader can read:** every cell of the duty roster and its month
+  arrows now have a name, such as the person, the date and the duty. Before, 692
+  buttons on one page were announced only as "button".
+
+### Account and Bookings
+
+- **A separate account app:** sign-in keeps to signing in, and a new account app
+  will hold a person's profile, security and sessions. Its first page shows name,
+  email and the profile photo. Sign-in to it stays off in production until its
+  setup is finished.
+- **Time off in Bookings:** each provider in Studio settings has a Time off
+  section. Owners and admins add time off on the business's own clock, and the
+  section says "No time off planned" instead of hiding when it is empty.
+- **Bookings fixes:** the manage link in confirmation emails points at the bookings
+  app, and the first studio's service durations match its public booking page. Its
+  own website is now a plain static site whose Book buttons open the booking page.
+
+### Weather service
+
+- **Real 404 pages:** an unknown address on the weather site, a missing event page
+  and unknown paths on the Barrels homepage now answer "not found" with status 404.
+  They used to show a not-found page with status 200, which search engines read as
+  a real page.
+- **Accessibility:** wide tables can be reached and scrolled by keyboard, the phone
+  menu returns focus to its button when it closes, footer contact links are large
+  enough to tap, and the LinkedIn button's name matches what it shows. These came
+  from a design audit of 13 pages and from checks that now run in a browser against
+  staging after every deploy.
+- **Calmer alerts page:** with nothing in effect, the page says the all-clear once
+  and the green level reads "Nothing in effect. Plan as normal."
+- **Media on request:** Weather now opens on the first tab that has content, and no
+  video or audio frame loads until the reader chooses one.
+
+### Forecast desk and eRegister
+
+- **Month workbook:** a register month laid out like the paper hourly sheet, one row
+  per local hour, with day review, filters and CSV export. Imported archive records
+  get their own "historical" state: official as recorded, never sent, still
+  reviewable and correctable.
+- **Clearer warnings:** each warning appears once per row, in plain words, with the
+  reason. Queue buttons are switched off when the action would be refused.
+- **Fill from register:** the midday forecast fills its midday temperature from the
+  12:00 observation, and says why when it cannot.
+- **PDF and feed:** every issued product has a public PDF and an entry in a feed.
+- **Checks before a warning is published:** a real alert needs an expiry and, when
+  public, an area; coordinates must be real; and a repeat of an alert from the last
+  hour gets a warning suggesting an update instead. The public alert map draws the
+  islands even when no alert is in force, and the desk's maps draw parishes again.
+
+### Platform
+
+- **PostgreSQL 18 readiness:** development, CI and the restore drill run PostgreSQL
+  18, deploys accept 17 or 18, and a manual workflow moves one environment at a
+  time. It runs a dry run by default, dumps and restores every database, compares
+  row counts, revisions, extensions and roles with the old server, and never
+  touches the old data, so going back is a matter of pointing at it again.
+- **Steadier deploys:** one slow health probe recovers in seconds instead of half a
+  minute, workers start one at a time, new containers are probed every two seconds
+  while they start, and migration steps are skipped when nothing they depend on
+  changed.
+- **Seeing problems sooner:** warnings and errors from the API and workers go to
+  Sentry Logs with personal data removed, the daily backup reports that it
+  finished, the restore drill runs monthly, and people are told when a weather
+  image collector goes quiet.
+- **Migrations kept honest:** a test now refuses a migration that would break the
+  previous version during a rolling release, and another compares the models with
+  the migrated database on every CI run.
+- **Less shared editing:** API domains register their own routers, models and
+  worker jobs, and the full route list is generated from the OpenAPI document.
+- **Security updates:** fixed releases of a dozen indirect dependencies, and the
+  regular dependency updates.
