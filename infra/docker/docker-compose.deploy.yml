@@ -1003,6 +1003,8 @@ services:
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      # "My bookings" links each business to its page on the bookings site.
+      BOOKINGS_APP_URL: https://bookings.${BASE_DOMAIN}
       # Optional: empty keeps sign-in off (single sign-on, ADR-0017).
       ACCOUNT_SSO_CLIENT_SECRET: ${ACCOUNT_SSO_CLIENT_SECRET:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_ACCOUNT:-}

@@ -17,6 +17,7 @@ export default defineConfig({
       AUTH_API_URL: "http://localhost:8000",
       AUTH_API_V1_STR: "/api/v1",
       ACCOUNT_SESSION_COOKIE_NAME: "account_session",
+      BOOKINGS_APP_URL: "http://localhost:3015",
     },
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
