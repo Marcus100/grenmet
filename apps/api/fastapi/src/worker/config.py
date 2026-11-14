@@ -53,11 +53,3 @@ worker_settings = WorkerConfig()
 # treats a Redis error as its fail-open or fail-closed path, so a timeout takes that
 # same path. Half a second is far above a healthy round trip on the shared instance.
 REQUEST_REDIS_TIMEOUT_SECONDS = 0.5
-
-
-def request_redis_timeouts() -> dict[str, float]:
-    """Keyword arguments for ``Redis.from_url`` on a request path."""
-    return {
-        "socket_connect_timeout": REQUEST_REDIS_TIMEOUT_SECONDS,
-        "socket_timeout": REQUEST_REDIS_TIMEOUT_SECONDS,
-    }

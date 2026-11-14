@@ -55,7 +55,7 @@ from src.auth.models import User
 from src.exceptions import AppException
 from src.notifications import outbox_handlers
 from src.utils.email_hash import hash_email, normalise_email
-from src.worker.config import request_redis_timeouts, worker_settings
+from src.worker.config import REQUEST_REDIS_TIMEOUT_SECONDS, worker_settings
 
 from . import emails
 
@@ -117,7 +117,8 @@ class RedisCodeStore:
             self._client = Redis.from_url(
                 self._url,
                 decode_responses=True,
-                **request_redis_timeouts(),
+                socket_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
+                socket_connect_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
             )
         return self._client
 

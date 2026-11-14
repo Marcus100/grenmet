@@ -14,7 +14,7 @@ from typing import Any
 
 from redis.asyncio import Redis
 
-from src.worker.config import request_redis_timeouts, worker_settings
+from src.worker.config import REQUEST_REDIS_TIMEOUT_SECONDS, worker_settings
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,8 @@ def _get_client() -> Redis | None:
         _client = Redis.from_url(
             worker_settings.REDIS_URL,
             decode_responses=True,
-            **request_redis_timeouts(),
+            socket_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
+            socket_connect_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
         )
     return _client
 
