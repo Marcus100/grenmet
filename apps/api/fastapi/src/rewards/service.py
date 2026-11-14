@@ -681,7 +681,10 @@ async def cancel_redemption(
 async def cancel_open_redemptions(session: AsyncSession, *, account: User) -> int:
     """Cancel every open redemption code of an account being anonymised (ADR-0058),
     so a code the person held cannot be confirmed for the anonymous account.
-    Returns how many were cancelled. Flushes; the caller commits."""
+    Returns how many were cancelled. Flushes; the caller commits.
+
+    A code that staff confirm while this runs is already spent: it is skipped, not
+    treated as a failure, so the deletion still completes."""
     open_ids = (
         await session.scalars(
             select(Entry.id).where(
@@ -691,9 +694,14 @@ async def cancel_open_redemptions(session: AsyncSession, *, account: User) -> in
             )
         )
     ).all()
+    cancelled = 0
     for entry_id in open_ids:
-        await cancel_redemption(session, account=account, entry_id=entry_id)
-    return len(open_ids)
+        try:
+            await cancel_redemption(session, account=account, entry_id=entry_id)
+        except RewardsConflictError:
+            continue
+        cancelled += 1
+    return cancelled
 
 
 async def confirm_redemption(

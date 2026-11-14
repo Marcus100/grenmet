@@ -21,7 +21,7 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
-from src.auth import modern_service, otp, service
+from src.auth import modern_service, otp, placeholders, service
 from src.auth.account_security import record_security, verify_factor
 from src.auth.app_schemas import (
     AccountAppPublic,
@@ -153,6 +153,9 @@ async def _verify_code(
 async def _unique_username(session: AsyncSession, email: str) -> str:
     base = "".join(ch for ch in email.split("@", 1)[0].lower() if ch.isalnum())[:40]
     base = base or "member"
+    if base == placeholders.PLACEHOLDER_PREFIX.rstrip("-"):
+        # "deleted-<hex>" is the reserved placeholder form (src/auth/placeholders.py).
+        base = "member"
     for _ in range(5):
         candidate = f"{base}-{secrets.token_hex(3)}"
         taken = await session.scalar(select(User.id).where(User.username == candidate))
@@ -165,6 +168,9 @@ async def _create_member(
     session: AsyncSession, *, email: str, first_name: str | None, last_name: str | None
 ) -> User:
     """A self-service account: no staff approval, no password until set."""
+    if placeholders.is_placeholder_email(email):
+        # The reserved form of an anonymised account (ADR-0058, #1375).
+        raise AppException("That email address can't be used. Use another.", 400)
     user = User(
         email=email,
         username=await _unique_username(session, email),

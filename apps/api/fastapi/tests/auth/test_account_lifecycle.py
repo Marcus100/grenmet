@@ -7,6 +7,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import account_security, modern_service, service
+from src.auth.constants import SUCCESS_USER_DELETED
 from src.auth.models import User
 from src.auth.modern_service import drain_setup_emails
 from src.auth.utils import create_access_token
@@ -306,7 +307,8 @@ async def test_account_with_rewards_history_can_be_deleted(
     headers = {"Authorization": "Bearer " + login.json()["access_token"]}
 
     deleted = await async_client.delete("/api/v1/auth/users/me", headers=headers)
-    assert 200 <= deleted.status_code < 300, deleted.text
+    assert deleted.status_code == 200, deleted.text
+    assert deleted.json()["message"] == SUCCESS_USER_DELETED
 
     after = await async_client.post("/api/v1/auth/sessions", json=login_body)
     assert after.status_code == 400

@@ -7,6 +7,7 @@ from sqlalchemy import delete, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SQLAlchemySession
 
+from src.auth import placeholders
 from src.auth.assignments import (
     audit_assignment,
     create_user_role_assignment,
@@ -81,7 +82,7 @@ from src.auth.utils import (
     get_password_hash_async,
     verify_password_async,
 )
-from src.exceptions import AppException
+from src.exceptions import AppException, AuthorizationError
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
@@ -303,7 +304,88 @@ async def _end_organisation_access(
     )
 
 
-def _anonymise_fields(user: User, now: datetime) -> None:
+async def require_no_live_employment(session: AsyncSession, user: User) -> None:
+    """Refuse self-deletion while the person is still employed (owner decision,
+    14 Nov 2026). HR ends the employment first, and the account is then deleted."""
+    from src.hr.models import EmploymentRecord, live_employment_clause
+    from src.utils.timezones import local_today
+
+    live = await session.scalar(
+        select(EmploymentRecord.id)
+        .where(
+            EmploymentRecord.user_id == user.id, live_employment_clause(local_today())
+        )
+        .limit(1)
+    )
+    if live is not None:
+        raise AuthorizationError(
+            "You are still employed. Contact HR before deleting your account."
+        )
+
+
+async def _clear_hr_personal_details(
+    session: AsyncSession, user_id: uuid.UUID, now: datetime
+) -> None:
+    """Owner decision (14 Nov 2026), ADR-0058 section 7. Contact details always go.
+    Date of birth and the address are kept for a person who has or had an employment
+    record, for six years after employment ends (provisional, pending GAA), and removed
+    for anyone else. Employment, pay, leave and attendance records are not touched.
+
+    Core statements, not ORM changes: the HR audit tracks these tables, and an ORM
+    change would store the old phone number or birth date in the audit trail."""
+    from src.hr.models import EmploymentRecord, UserAddress, UserProfile
+
+    employed_before = (
+        await session.scalar(
+            select(EmploymentRecord.id)
+            .where(EmploymentRecord.user_id == user_id)
+            .limit(1)
+        )
+        is not None
+    )
+    values: dict[str, Any] = {
+        "phone": None,
+        "emergency_contact_name": None,
+        "emergency_contact_phone": None,
+        "emergency_contact_relationship": None,
+        "gender": None,
+        "nationality": None,
+        "updated_at": now,
+    }
+    if not employed_before:
+        values["date_of_birth"] = None
+    await session.execute(
+        update(UserProfile).where(UserProfile.user_id == user_id).values(**values)
+    )
+    if not employed_before:
+        await session.execute(delete(UserAddress).where(UserAddress.user_id == user_id))
+
+
+def is_anonymised(user: User) -> bool:
+    """True once ``delete_user`` has run: deactivated, with a placeholder email. Sign-up
+    refuses the placeholder form, so only an anonymised account can hold it."""
+    return not user.is_active and placeholders.is_placeholder_email(user.email)
+
+
+async def _new_placeholder_token(session: AsyncSession) -> str:
+    """A random token that no account's placeholder uses yet. The draw is random, so a
+    collision is practically impossible; the check repeats the draw if one ever occurs."""
+    for _ in range(5):
+        token = placeholders.new_placeholder_token()
+        taken = await session.scalar(
+            select(User.id).where(
+                or_(
+                    User.email == placeholders.placeholder_email(token),
+                    User.username == placeholders.placeholder_username(token),
+                )
+            )
+        )
+        if taken is None:
+            return token
+    raise AppException("The account could not be anonymised. Try again.", 503)
+
+
+def _anonymise_fields(user: User, token: str, now: datetime) -> None:
     """Replace the personal fields and deactivate the account (ADR-0058 section 7).
 
     The email and username are unique, so they become random placeholders on
@@ -311,9 +393,8 @@ def _anonymise_fields(user: User, now: datetime) -> None:
     becomes ``DUMMY_PASSWORD_HASH``, a real bcrypt hash of a random secret that nobody
     holds, so no sign-in can match it.
     """
-    placeholder = user.id.hex
-    user.email = f"deleted-{placeholder}@example.com"
-    user.username = f"deleted-{placeholder}"
+    user.email = placeholders.placeholder_email(token)
+    user.username = placeholders.placeholder_username(token)
     user.first_name = "Deleted"
     user.last_name = "user"
     user.middle_name = None
@@ -360,9 +441,15 @@ async def delete_user(
     from src.profile_images import service as profile_images
     from src.rewards import service as rewards_service
 
+    if is_anonymised(user):
+        # Already done: no second pass and no second audit row.
+        logger.info("User already anonymised", extra={"user_id": str(user.id)})
+        return
     user_id = user.id
+    actor_id = (actor or user).id
     now = utc_now()
-    audit.set_actor(session, (actor or user).id)
+    token = await _new_placeholder_token(session)
+    audit.set_actor(session, actor_id)
     # Outstanding activation/sign-in challenges must not outlive the account.
     await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user_id))
     # The photo row is removed here (no cascade now); its stored files go after commit.
@@ -375,6 +462,7 @@ async def delete_user(
     await rewards_service.cancel_open_redemptions(session, account=user)
     await _end_access_links(session, user_id, now)
     await _end_organisation_access(session, user_id, now)
+    await _clear_hr_personal_details(session, user_id, now)
     await session.execute(
         update(StaffCredential)
         .where(StaffCredential.user_id == user_id, StaffCredential.revoked_at.is_(None))
@@ -386,7 +474,11 @@ async def delete_user(
     await session.execute(
         delete(NotificationPreference).where(NotificationPreference.user_id == user_id)
     )
-    _anonymise_fields(user, now)
+    _anonymise_fields(user, token, now)
+    # The helpers above change the session's actor (the redemption reversal names the
+    # account, and the contact link restores what it found). The deletion is the
+    # actor's act, so name them again before the audit row is written.
+    audit.set_actor(session, actor_id)
     await audit.record_change(
         session,
         entity_type="account",

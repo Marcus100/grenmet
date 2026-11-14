@@ -223,18 +223,25 @@ async def request_staff_access(
     "/me",
     response_model=Message,
     summary="Delete current user",
-    description="Delete currently authenticated user account.",
+    description=(
+        "Delete currently authenticated user account. The account is anonymised, not "
+        "removed. Refused with 403 while the person is still employed: contact HR first."
+    ),
     responses={
         status.HTTP_200_OK: {"description": "User deleted"},
         status.HTTP_403_FORBIDDEN: {
             "model": ApiError,
-            "description": "Superuser cannot delete own account",
+            "description": (
+                "Superuser cannot delete own account, or the person is still employed "
+                "(contact HR first)"
+            ),
         },
     },
 )
 async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     if current_user.is_superuser:
         raise AuthorizationError(ERROR_SUPERUSER_DELETE_SELF)
+    await service.require_no_live_employment(session, current_user)
     await service.delete_user(session=session, user=current_user)
     return Message(message=SUCCESS_USER_DELETED)
 
