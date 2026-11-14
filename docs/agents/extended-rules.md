@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-14
+**Last updated:** 2026-11-14
 
 Detail moved out of the root `AGENTS.md` to keep it short. The rules are
 unchanged; `AGENTS.md` links here. Read the relevant section before touching
@@ -10,12 +10,24 @@ design tokens, branding, telemetry, monitoring or CI workflows.
 
 ## Design details
 
-- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections|events|commit>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
+- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the app's lane spec `docs/design/<lane>.md` where it has one (`ls docs/design`; DESIGN.md format; drift-tested by `pnpm test:docs`).
 - **Figma is not linked to this repo.** Ignore Figma tools and node URLs; design intent arrives via Claude Design or a supplied screenshot. Never ask for a Figma frame URL.
 - Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius or add design values to Tailwind config. New or changed `--gm-*` tokens need approval and land in `packages/gms/src/styles/foundation.css`, **not** `packages/ui`. Run `pnpm design-system:sync` after editing the canonical block in `packages/ui/src/styles/globals.css`.
 - Brand: navy `#0b132b`, blue `#2878f5`, sky `#37a3ef`, lime `#b9ee63`. Kit hues fail AA as small text — use `--gm-*-ink` for text under 24px regular / 18.66px bold, icons under ~24px, and fills behind small white text.
 - Logo: `@barrelsgd/gms/components/logo`; never hardcode a path or set `width`/`height` (use `className`). Retired: `--gm-sun`, the orange wordmark.
 - Token commands: `pnpm design-system:check` (gate), `:audit` / `:audit:full`, `:contrast`, `:sync`. Dark mode is class-based; prefer semantic tokens over `dark:*` in shared primitives; printable "papers" stay light.
+
+### Reviewing or polishing UI: check these before reporting a gap
+
+A review that reads one component file misses rules set elsewhere. Look here
+first, and cite the file you checked:
+
+- **Touch and motion base:** `packages/ui/src/styles/app-feel.css`, imported by every app's global stylesheet except `babydoll`, `barrels` and `cms`. It already sets `-webkit-tap-highlight-color: transparent`, `touch-action: manipulation` on controls, `user-select: none` on buttons, `overscroll-behavior: contain` on dialogs and menus, and the `prefers-reduced-motion` override for CSS animation. Because the tap highlight is off, every tappable control needs its own `:active` state.
+- **Class-name-only packages:** `packages/bookings-web` ships markup and class names; the host app's CSS styles it (`apps/web/bookings/src/app/booking.css`). A missing focus ring or hover state is a finding against the host stylesheet, not the component.
+- **Motion library:** `gms`, `gaa-admin` and `elections` wrap the app in `MotionConfig reducedMotion="user"`. GMS motion values live in `apps/web/gms/src/lib/motion.ts`; extend them instead of adding a second set. Warning and CAP surfaces use plain CSS transitions on purpose. A comment that explains a motion choice (the page transitions in `gms` and `gaa-admin`) is a recorded decision: raise it with the owner, do not remove it.
+- **Toasts:** `toast()` from `sonner` shows nothing unless the app mounts one `<Toaster />` at its root (`auth`: `src/app/providers.tsx`; `gaa-admin`: `AppToaster` in the root layout). Before adding `toast()` to another app, mount its Toaster; never mount a second one.
+- **Design rules learned in review** go into the lane spec, or `docs/design-system.md` when they apply to every app. Do not create a root `DESIGN.md`.
+- **Third-party design skills** (vendored in `.claude/skills` or personal) are advisory. Where one proposes a palette, typeface, easing value or copy style that differs from the lane spec and token contract, the lane spec and token contract win.
 
 ## Form patterns (React 19)
 
