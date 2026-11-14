@@ -268,13 +268,13 @@ If your issue isn't covered here, check the [Technical Overview](./technical-ove
 
 ### `Required uv version ... does not match the running version`
 
-The root `pyproject.toml` sets `required-version = ">=0.12.24,<0.13"` so your
+The root `pyproject.toml` sets `required-version = ">=0.13.8,<0.14"` so your
 machine, CI and the Docker images use one uv line (the lockfile format follows
-the uv version). A plain `uv self update` jumps to the newest release, which is
-outside the range. Install the pinned one:
+the uv version). A plain `uv self update` installs the newest release, which
+may be outside the range. Install the pinned one:
 
 ```bash
-uv self update 0.12.24
+uv self update 0.13.8
 ```
 
 ## Cloud sessions

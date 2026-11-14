@@ -8,9 +8,9 @@ dependencies = []
 package = false
 # One uv line everywhere (your machine, CI, Docker). The lockfile format follows
 # the uv version, so a different uv rewrites uv.lock. The Dockerfiles pin
-# 0.12.24 by digest; astral-sh/setup-uv reads this range in CI. Move to 0.13 in
+# 0.13.8 by digest; astral-sh/setup-uv reads this range in CI. Move to 0.14 in
 # one change: bump the Docker pins and this range together, then re-lock.
-required-version = ">=0.12.24,<0.13"
+required-version = ">=0.13.8,<0.14"
 # GDAL 3.6.2 has no Python dependencies, but its legacy setup.py requires the
 # native gdal-config binary even to read package metadata. Supplying that known
 # metadata keeps workspace locking portable; installation still requires GDAL.
