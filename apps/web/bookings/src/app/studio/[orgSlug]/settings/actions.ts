@@ -17,9 +17,12 @@ import { getSession } from "@/lib/session";
 import { parseHours, parseMoney } from "@/lib/settings-view";
 import type { ActionState } from "@/lib/studio-action-state";
 import {
+  createException,
   createProvider,
   createService,
+  deleteException,
   findOrganisation,
+  getBusinessTimezone,
   replaceHours,
   saveProfile,
   updateProvider,
@@ -31,6 +34,12 @@ import {
   settingsFailure,
 } from "@/lib/studio-errors";
 import { canManageBookings, isUuid } from "@/lib/studio-view";
+import {
+  type TimeOffFieldErrors,
+  type TimeOffState,
+  timeOffFieldErrors,
+  timeOffWindow,
+} from "@/lib/time-off";
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/u;
 const BOOKING_ADDRESS = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/u;
@@ -389,4 +398,114 @@ export async function saveHoursAction(
     return failed(orgSlug, error);
   }
   return saved(orgSlug, "Weekly hours saved.");
+}
+
+const REASON_MAX = 200;
+
+/** A refused time-off add: the message, and the fields the API or the rules named. */
+function timeOffRefusal(
+  message: string,
+  nextStep: string,
+  fields?: TimeOffFieldErrors
+): TimeOffState {
+  return {
+    status: "error",
+    kind: "invalid",
+    message,
+    nextStep,
+    ...(fields ? { fields } : {}),
+  };
+}
+
+/**
+ * Adds time off for one provider. The typed times are on the business clock
+ * (its own profile timezone, read here, not trusted from the form), so they
+ * become UTC before the API sees them.
+ */
+export async function saveTimeOffAction(
+  orgSlug: string,
+  _previous: TimeOffState,
+  formData: FormData
+): Promise<TimeOffState> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return auth.state;
+  }
+  const providerId = field(formData, "providerId");
+  if (!isUuid(providerId)) {
+    return timeOffRefusal(
+      "Choose a provider and try again.",
+      "Reload the settings and add the time off again."
+    );
+  }
+  const reason = field(formData, "reason").trim();
+  if (reason.length > REASON_MAX) {
+    return timeOffRefusal(
+      "The reason is too long.",
+      "Keep the reason to 200 characters or fewer.",
+      { reason: "Keep the reason to 200 characters or fewer." }
+    );
+  }
+  try {
+    const zone = await getBusinessTimezone(
+      auth.accessToken,
+      auth.organisationId
+    );
+    const window = timeOffWindow(
+      field(formData, "startsAt"),
+      field(formData, "endsAt"),
+      zone
+    );
+    if (!window.ok) {
+      return timeOffRefusal(
+        window.message,
+        "Fix the highlighted fields.",
+        window.fields
+      );
+    }
+    await createException(auth.accessToken, auth.organisationId, providerId, {
+      kind: "time_off",
+      starts_at: window.startsAt,
+      ends_at: window.endsAt,
+      reason: reason || null,
+    });
+  } catch (error) {
+    const state = failed(orgSlug, error);
+    const fields = ResponseError.is(error)
+      ? timeOffFieldErrors(error.data)
+      : undefined;
+    if (state.status !== "error" || !fields) {
+      return state;
+    }
+    return { ...state, message: "Check the highlighted fields.", fields };
+  }
+  return saved(orgSlug, "Time off added.");
+}
+
+/**
+ * Removes one time-off or extra-hours row. The client asks first (a dialog);
+ * a row that is already gone answers 404 and the page says so.
+ */
+export async function removeTimeOffAction(
+  orgSlug: string,
+  exceptionId: string,
+  _previous: TimeOffState,
+  _formData: FormData
+): Promise<TimeOffState> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return auth.state;
+  }
+  if (!isUuid(exceptionId)) {
+    return timeOffRefusal(
+      "That time off no longer exists.",
+      "Reload the settings and try again."
+    );
+  }
+  try {
+    await deleteException(auth.accessToken, auth.organisationId, exceptionId);
+  } catch (error) {
+    return failed(orgSlug, error);
+  }
+  return saved(orgSlug, "Time off removed.");
 }

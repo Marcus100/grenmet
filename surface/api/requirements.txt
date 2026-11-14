@@ -398,7 +398,7 @@ snuggs==1.4.7
     # via rasterio
 sortedcontainers==2.4.0
     # via pyiceberg
-soupsieve==3.0.4
+soupsieve==4.0
     # via
     #   -r requirements.in
     #   beautifulsoup4
