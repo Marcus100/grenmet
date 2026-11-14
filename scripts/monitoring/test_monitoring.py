@@ -184,6 +184,26 @@ class MonitoringTests(unittest.TestCase):
         )
         self.assertEqual(betterstack.refusal_reason(refusal), "no readable reason")
 
+    def test_a_new_resource_is_created_without_a_team_field(self):
+        config = {
+            "teamId": 1,
+            "limitsVerified": True,
+            "limits": {"monitors": 10, "heartbeats": 10},
+            "resources": [
+                {
+                    "kind": "heartbeats",
+                    "environment": "production",
+                    "settings": {"name": "Production · sample", "paused": True},
+                }
+            ],
+        }
+        live = {"monitors": [], "heartbeats": []}
+        (change,) = betterstack.plan(config, "production", live)
+        self.assertEqual(change["method"], "POST")
+        self.assertEqual(
+            change["settings"], {"name": "Production · sample", "paused": True}
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -124,7 +124,10 @@ def plan(config, environment, live):
                 {
                     "method": "POST",
                     "path": kind,
-                    "settings": dict(settings, team_id=config["teamId"]),
+                    # No team field in the body: the provider refuses it
+                    # (HTTP 422, "misspelled some attributes"); a team token
+                    # creates in its own team, which the listing above checks.
+                    "settings": dict(settings),
                 }
             )
     for kind in ("monitors", "heartbeats"):
