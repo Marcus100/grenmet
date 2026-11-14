@@ -47,3 +47,17 @@ class WorkerConfig(BaseSettings):
 
 
 worker_settings = WorkerConfig()
+
+# Request-path Redis clients (lockout, email codes, CAP and flight caches) must fail
+# fast when Redis stops answering, not hang the request. Each call site already
+# treats a Redis error as its fail-open or fail-closed path, so a timeout takes that
+# same path. Half a second is far above a healthy round trip on the shared instance.
+REQUEST_REDIS_TIMEOUT_SECONDS = 0.5
+
+
+def request_redis_timeouts() -> dict[str, float]:
+    """Keyword arguments for ``Redis.from_url`` on a request path."""
+    return {
+        "socket_connect_timeout": REQUEST_REDIS_TIMEOUT_SECONDS,
+        "socket_timeout": REQUEST_REDIS_TIMEOUT_SECONDS,
+    }

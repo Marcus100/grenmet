@@ -13,7 +13,7 @@ import logging
 from redis.asyncio import Redis
 
 from src.auth.config import auth_settings
-from src.worker.config import worker_settings
+from src.worker.config import request_redis_timeouts, worker_settings
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,11 @@ class LoginLockout:
             return self._client
         if not self._redis_url:
             return None
-        self._client = Redis.from_url(self._redis_url, decode_responses=True)
+        self._client = Redis.from_url(
+            self._redis_url,
+            decode_responses=True,
+            **request_redis_timeouts(),
+        )
         return self._client
 
     def _fail_key(self, identifier: str) -> str:
