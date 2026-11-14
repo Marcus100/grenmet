@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
 from src.auth import app_service, placeholders, service
+from src.auth import utils as auth_utils
 from src.auth.models import (
     Session,
     Title,
@@ -27,7 +28,11 @@ from src.auth.models import (
 )
 from src.auth.modern_models import ExternalIdentity
 from src.auth.schemas import UserCreate, UserUpdate, UserUpdateMe
-from src.auth.utils import DUMMY_PASSWORD_HASH, verify_password
+from src.auth.utils import (
+    ANONYMISED_PASSWORD_MARKER,
+    verify_password,
+    verify_password_async,
+)
 from src.baseline.models import StaffCredential
 from src.contacts.models import Contact
 from src.exceptions import AppException
@@ -645,6 +650,26 @@ async def test_a_former_employees_birth_date_and_address_are_kept(
     assert kept.status == EmploymentStatus.TERMINATED
 
 
+async def test_an_inactive_record_with_no_end_date_blocks_self_deletion(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """Owner decision (14 Nov 2026): any record that has not ended blocks, whatever its
+    status. INACTIVE with no end date is not an ended employment."""
+    person = await make_user(db_async)
+    department = await make_department(db_async)
+    record = await make_employee(db_async, user=person, department_id=department.id)
+    record.status = EmploymentStatus.INACTIVE
+    record.end_date = None
+    headers = await _login_headers(async_client, db_async, person)
+
+    refused = await async_client.delete(ME, headers=headers)
+
+    assert refused.status_code == 403
+    assert "Contact HR" in refused.json()["detail"]
+    await db_async.refresh(person)
+    assert person.is_active is True
+
+
 async def test_an_active_employee_cannot_delete_their_account(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
@@ -701,7 +726,7 @@ async def test_a_deactivated_account_holding_a_placeholder_email_is_really_anony
     assert anonymous is not None
     assert anonymous.email != old_email
     assert anonymous.hashed_password != old_hash
-    assert anonymous.hashed_password == DUMMY_PASSWORD_HASH
+    assert anonymous.hashed_password == ANONYMISED_PASSWORD_MARKER
     assert len(await _deletion_audit_rows(db_async, user_id)) == 1
 
 
@@ -798,3 +823,64 @@ async def test_a_pending_redemption_cannot_be_confirmed_once_the_account_is_deac
     still_open = await db_async.get(Entry, redemption_id)
     assert still_open is not None
     assert still_open.status == EntryStatus.PENDING.value
+
+
+async def test_the_marker_never_matches_and_never_raises() -> None:
+    """The anonymised marker is not bcrypt. Verifying any password against it answers
+    False, without raising, whatever the password is."""
+    for candidate in ("", PASSWORD, ANONYMISED_PASSWORD_MARKER, "x" * 200):
+        assert verify_password(candidate, ANONYMISED_PASSWORD_MARKER) is False
+        assert (
+            await verify_password_async(candidate, ANONYMISED_PASSWORD_MARKER) is False
+        )
+
+
+async def test_a_second_process_does_not_repeat_the_deletion(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """DUMMY_PASSWORD_HASH differs in every process. A repeat deletion in another
+    process must still see the account as anonymised: one audit row, no second pass."""
+    user = await make_user(db_async)
+    await db_async.commit()
+    user_id = user.id
+    await service.delete_user(session=db_async, user=user)
+    stored = await db_async.get(User, user_id)
+    assert stored is not None
+    assert stored.hashed_password == ANONYMISED_PASSWORD_MARKER
+
+    other_process_hash = auth_utils.get_password_hash("another process's secret")
+    monkeypatch.setattr(auth_utils, "DUMMY_PASSWORD_HASH", other_process_hash)
+    monkeypatch.setattr(service, "DUMMY_PASSWORD_HASH", other_process_hash)
+    again = await db_async.get(User, user_id)
+    assert again is not None
+    await service.delete_user(session=db_async, user=again)
+
+    assert len(await _deletion_audit_rows(db_async, user_id)) == 1
+
+
+async def test_login_against_an_anonymised_account_fails_cleanly(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    user = await make_user(db_async)
+    old_email = user.email
+    headers = await _login_headers(async_client, db_async, user)
+    deleted = await async_client.delete(ME, headers=headers)
+    assert deleted.status_code == 200, deleted.text
+    anonymous = await db_async.get(User, user.id)
+    assert anonymous is not None
+    await db_async.refresh(anonymous)
+    placeholder_email = anonymous.email
+
+    for email in (old_email, placeholder_email):
+        for password in (PASSWORD, "an arbitrary guess at a password"):
+            attempt = await async_client.post(
+                SESSIONS, json={"email": email, "password": password}
+            )
+            assert attempt.status_code == 400, attempt.text
+
+
+def test_padded_placeholder_forms_are_refused() -> None:
+    assert placeholders.is_placeholder_username("  deleted-abc")
+    assert placeholders.is_placeholder_email(" deleted-abc@example.com ")
+    with pytest.raises(AppException):
+        placeholders.require_usable_identity(email=None, username=" Deleted-abc ")

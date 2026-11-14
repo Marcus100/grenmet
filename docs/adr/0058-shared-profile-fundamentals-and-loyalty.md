@@ -194,8 +194,11 @@ people. The first user of this is the bookings product; Events comes next.
      Pay, leave, attendance and employment records are kept in every case. Former
      staff keep their date of birth and address for **6 years after employment
      ends (provisional, pending GAA's confirmation)**; the scheduled clean-up is a
-     separate issue, not part of the deletion fix. A person who is still employed
-     cannot delete their account in the account app: HR ends the employment first.
+     separate issue, not part of the deletion fix. A person cannot delete their
+     account while any employment record has not ended: no end date, or an end date
+     today or later, whatever the record's status (so an INACTIVE record with no end
+     date blocks). Only a record whose end date has passed lets them delete it; HR
+     ends the employment first.
    - **When a business leaves:** its programmes pause, members get 30 days to
      redeem, then everything left expires. The business gets an export of its
      contacts and ledger.

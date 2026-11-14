@@ -27,12 +27,12 @@ def placeholder_username(token: str) -> str:
 
 
 def is_placeholder_email(email: str) -> bool:
-    local, _, domain = email.lower().rpartition("@")
+    local, _, domain = email.strip().lower().rpartition("@")
     return domain == PLACEHOLDER_DOMAIN and local.startswith(PLACEHOLDER_PREFIX)
 
 
 def is_placeholder_username(username: str) -> bool:
-    return username.lower().startswith(PLACEHOLDER_PREFIX)
+    return username.strip().lower().startswith(PLACEHOLDER_PREFIX)
 
 
 def require_usable_identity(*, email: str | None, username: str | None) -> None:

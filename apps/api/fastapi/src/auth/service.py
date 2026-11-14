@@ -77,6 +77,7 @@ from src.auth.user_queries import (
     get_users_by_ids,
 )
 from src.auth.utils import (
+    ANONYMISED_PASSWORD_MARKER,
     DUMMY_PASSWORD_HASH,
     get_password_hash,
     get_password_hash_async,
@@ -310,15 +311,21 @@ async def _end_organisation_access(
 
 
 async def require_no_live_employment(session: AsyncSession, user: User) -> None:
-    """Refuse self-deletion while the person is still employed (owner decision,
-    14 Nov 2026). HR ends the employment first, and the account is then deleted."""
-    from src.hr.models import EmploymentRecord, live_employment_clause
+    """Refuse self-deletion while any employment record has not ended (owner decision,
+    14 Nov 2026), whatever its status: a record with no end date, or an end date today
+    or later, blocks. Only a record whose end date has passed lets the person delete
+    their account. HR ends the employment first."""
+    from src.hr.models import EmploymentRecord
     from src.utils.timezones import local_today
 
     live = await session.scalar(
         select(EmploymentRecord.id)
         .where(
-            EmploymentRecord.user_id == user.id, live_employment_clause(local_today())
+            EmploymentRecord.user_id == user.id,
+            or_(
+                EmploymentRecord.end_date.is_(None),
+                EmploymentRecord.end_date >= local_today(),
+            ),
         )
         .limit(1)
     )
@@ -374,7 +381,7 @@ def is_anonymised(user: User) -> bool:
     gets the full deletion."""
     return (
         not user.is_active
-        and user.hashed_password == DUMMY_PASSWORD_HASH
+        and user.hashed_password == ANONYMISED_PASSWORD_MARKER
         and placeholders.is_placeholder_email(user.email)
         and placeholders.is_placeholder_username(user.username)
     )
@@ -403,8 +410,8 @@ def _anonymise_fields(user: User, token: str, now: datetime) -> None:
 
     The email and username are unique, so they become random placeholders on
     ``example.com`` (reserved for documentation, never delivered). The password hash
-    becomes ``DUMMY_PASSWORD_HASH``, a real bcrypt hash of a random secret that nobody
-    holds, so no sign-in can match it.
+    becomes ``ANONYMISED_PASSWORD_MARKER``: a fixed value that is not bcrypt, so no
+    password matches it and ``verify_password`` answers False without raising.
     """
     user.email = placeholders.placeholder_email(token)
     user.username = placeholders.placeholder_username(token)
@@ -421,7 +428,7 @@ def _anonymise_fields(user: User, token: str, now: datetime) -> None:
     user.staff_access_requested_at = None
     user.last_login_at = None
     user.password_changed_at = None
-    user.hashed_password = DUMMY_PASSWORD_HASH
+    user.hashed_password = ANONYMISED_PASSWORD_MARKER
     user.totp_secret = None
     user.totp_enabled = False
     user.mfa_recovery_hashes = []
