@@ -9,8 +9,12 @@ the studio has edited since. Run it from ``apps/api/fastapi``::
 
     uv run --frozen --package fast-back python -m src.bookings.seed --dry-run
     uv run --frozen --package fast-back python -m src.bookings.seed
+    uv run --frozen --package fast-back python -m src.bookings.seed --notify-email <address>
 
-``--dry-run`` reports what would be created and rolls back. The site address
+``--dry-run`` reports what would be created and rolls back. ``--notify-email``
+sets the studio's notification address, but only when this run creates the
+profile; an existing profile keeps its value and the output says so. The address
+is never defaulted or read from the environment. The site address
 comes from ``BOOKINGS_BABYDOLL_SITE_URL`` (default ``https://babydoll.barrels.gd``);
 the manage link in emails points at the bookings app (``BOOKINGS_APP_URL``),
 where the manage-booking page lives.
@@ -23,6 +27,7 @@ import sys
 from dataclasses import asdict, dataclass, field
 from datetime import time
 
+from pydantic import EmailStr, TypeAdapter, ValidationError
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -58,9 +63,8 @@ _LOCK_ID = 73190507
 
 #: Services mirror ``SERVICE_MENU`` in apps/web/babydoll/src/data/site.ts (names
 #: and XCD prices; add-ons are booked with another service and are left out).
-#: The site publishes no durations: the minutes below are the ones on the
-#: studio's public Acuity booking page (read 13 Nov 2026), for the studio to
-#: correct in Settings. (category, name, minutes, price in whole XCD, note)
+#: The services, prices and durations were confirmed by the studio on 14 Nov 2026.
+#: (category, name, minutes, price in whole XCD, note)
 _MENU: tuple[tuple[str, str, int, int, str | None], ...] = (
     ("Lashes", "Luxe Classic", 150, 210, "Consultation required."),
     ("Lashes", "Hybrid", 150, 225, None),
@@ -84,14 +88,34 @@ _HOURS = [
     for day in range(5)
 ] + [BookingWorkingPeriodIn(weekday=5, start_time=time(9, 0), end_time=time(17, 30))]
 
+#: Minutes kept free after each seeded service for clean-up (studio request).
+SERVICE_BUFFER_AFTER_MIN = 15
+
 
 @dataclass
 class SeedResult:
     created: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
 
     @property
     def changed(self) -> bool:
         return bool(self.created)
+
+
+def _check_notify_email(value: str) -> str:
+    """Return ``value`` if it is a valid email address, else raise ValueError."""
+    try:
+        return TypeAdapter(EmailStr).validate_python(value)
+    except ValidationError as error:
+        raise ValueError("notify email must be a valid email address") from error
+
+
+def _notify_email_arg(value: str) -> str:
+    """argparse type for ``--notify-email``: a clean usage error, before any write."""
+    try:
+        return _check_notify_email(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError(str(error)) from error
 
 
 def _site_url() -> str:
@@ -107,8 +131,14 @@ def _manage_url_template() -> str:
     return f"{app_url}/{PUBLIC_SLUG}/booking/{{token}}"
 
 
-async def seed_babydoll(session: AsyncSession) -> SeedResult:
-    """Create what is missing for Babydoll. Flushes; the caller commits."""
+async def seed_babydoll(
+    session: AsyncSession, *, notify_email: str | None = None
+) -> SeedResult:
+    """Create what is missing for Babydoll. Flushes; the caller commits.
+
+    ``notify_email`` is applied only when this call creates the profile.
+    """
+    checked_email = None if notify_email is None else _check_notify_email(notify_email)
     await session.execute(text("SELECT pg_advisory_xact_lock(:id)"), {"id": _LOCK_ID})
     result = SeedResult()
     site_url = _site_url()
@@ -149,10 +179,16 @@ async def seed_babydoll(session: AsyncSession) -> SeedResult:
                 horizon_days=60,
                 cancel_cutoff_hours=24,
                 requires_confirmation=True,
+                notify_email=checked_email,
                 manage_url_template=_manage_url_template(),
             ),
         )
         result.created.append("profile")
+    elif checked_email is not None:
+        result.notes.append(
+            "notify_email not applied: the profile already exists, so the "
+            "studio's value is kept"
+        )
 
     existing = set(
         await session.scalars(
@@ -171,6 +207,7 @@ async def seed_babydoll(session: AsyncSession) -> SeedResult:
                 description=note,
                 duration_min=minutes,
                 price_minor=price * 100,
+                buffer_after_min=SERVICE_BUFFER_AFTER_MIN,
                 sort_order=order,
             ),
         )
@@ -222,11 +259,11 @@ async def seed_babydoll(session: AsyncSession) -> SeedResult:
     return result
 
 
-async def run(*, dry_run: bool) -> int:
+async def run(*, dry_run: bool, notify_email: str | None = None) -> int:
     from src.database import async_session_factory
 
     async with async_session_factory() as session:
-        result = await seed_babydoll(session)
+        result = await seed_babydoll(session, notify_email=notify_email)
         if dry_run:
             await session.rollback()
         else:
@@ -237,7 +274,21 @@ async def run(*, dry_run: bool) -> int:
     return 0
 
 
-if __name__ == "__main__":
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true")
-    raise SystemExit(asyncio.run(run(dry_run=parser.parse_args().dry_run)))
+    parser.add_argument(
+        "--notify-email",
+        type=_notify_email_arg,
+        metavar="<address>",
+        default=None,
+        help="studio notification address, applied only when this run creates the profile",
+    )
+    return parser
+
+
+if __name__ == "__main__":
+    args = build_parser().parse_args()
+    raise SystemExit(
+        asyncio.run(run(dry_run=args.dry_run, notify_email=args.notify_email))
+    )
