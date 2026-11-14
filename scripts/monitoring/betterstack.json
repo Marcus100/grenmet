@@ -54,6 +54,7 @@
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5237461,
       "settings": {
         "pronounceable_name": "Production · GAA API readiness",
         "url": "https://api.barrels.gd/api/v1/utils/ready/",
@@ -69,12 +70,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5237462,
       "settings": {
         "pronounceable_name": "Production · Barrels ID (auth) health",
         "url": "https://auth.barrels.gd/api/health",
@@ -89,12 +91,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5237463,
       "settings": {
         "pronounceable_name": "Production · GAA staff portal health",
         "url": "https://gms.barrels.gd/api/health",
@@ -109,12 +112,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5237464,
       "settings": {
         "pronounceable_name": "Production · GMS weather health",
         "url": "https://weather.barrels.gd/api/health",
@@ -129,12 +133,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5237465,
       "settings": {
         "pronounceable_name": "Production · CAP alert hub health",
         "url": "https://cap.barrels.gd/api/health",
@@ -149,12 +154,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5237466,
       "settings": {
         "pronounceable_name": "Production · GMS dashboard health",
         "url": "https://gmsdash.barrels.gd/api/health",
@@ -169,12 +175,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5237467,
       "settings": {
         "pronounceable_name": "Production · GMS docs health",
         "url": "https://docs.barrels.gd/api/health",
@@ -189,12 +196,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5237468,
       "settings": {
         "pronounceable_name": "Production · MBIA health",
         "url": "https://mbia.barrels.gd/api/health",
@@ -209,12 +217,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5237469,
       "settings": {
         "pronounceable_name": "Production · Signal health",
         "url": "https://signal.barrels.gd/api/health",
@@ -229,12 +238,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5237470,
       "settings": {
         "pronounceable_name": "Production · Elections health",
         "url": "https://elections.barrels.gd/api/health",
@@ -249,7 +259,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -340,6 +350,7 @@
     {
       "environment": "production",
       "kind": "heartbeats",
+      "id": 532224,
       "settings": {
         "name": "Production · probe runner",
         "period": 300,
@@ -348,12 +359,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
       "environment": "production",
       "kind": "heartbeats",
+      "id": 532225,
       "settings": {
         "name": "Production · verified core backup",
         "period": 86400,
@@ -368,6 +380,7 @@
     {
       "environment": "production",
       "kind": "heartbeats",
+      "id": 532226,
       "settings": {
         "name": "Production · worker poll completion",
         "period": 60,
