@@ -7,16 +7,9 @@ packages:
   - "packages/*"
 
 # pnpm 12 reads workspace settings here, including lifecycle-script permissions.
-# These exact versions were selected and tested before the pnpm 12 migration.
-# Preserve the default release-age policy for all other/future versions.
-minimumReleaseAgeExclude:
-  - "@gunshi/plugin-dryrun@0.37.2"
-  - "@gunshi/plugin@0.37.2"
-  - "dompurify@3.4.15"
-  - "gunshi@0.37.2"
-  - "react-resizable-panels@4.12.4"
-  - "simple-icons@16.30.0"
-  - "ultracite@7.11.0"
+# Preserve the default release-age policy; add an exact version here only for
+# a release that must be installed before it ages in.
+minimumReleaseAgeExclude: []
 strictPeerDependencies: false
 autoInstallPeers: true
 # Reject hardcoded versions for catalogued dependencies at `pnpm add` time.
@@ -64,7 +57,7 @@ catalog:
 
 
   # Styling
-  tailwindcss: "^4.3.3"
+  tailwindcss: "^4.3.5"
   "@tailwindcss/postcss": "^4.3.5"
 
   # Weather and GIS maps
@@ -90,7 +83,7 @@ catalog:
   sonner: "^2.0.8"
   recharts: "^3.10.1"
   vaul: "^1.1.2"
-  react-resizable-panels: "^4.21.0"
+  react-resizable-panels: "^4.22.0"
   input-otp: "^1.5.0"
   qrcode: "^1.5.4"
   "@types/qrcode": "^1.5.6"
@@ -104,7 +97,7 @@ catalog:
   "@tanstack/react-table": "^9.3.1"
 
   # Animation — motion (successor to framer-motion); import from "motion/react"
-  motion: ^14.12.0
+  motion: ^14.14.0
 
   # Types
   "@types/node": ^26.6.6
@@ -139,7 +132,7 @@ catalog:
 
   # Repository tooling
   "@biomejs/biome": "~2.6.6"
-  turbo: "^2.11.10"
+  turbo: "^2.11.11"
   ultracite: "8.1.1"
   husky: "^9.1.7"
   knip: "^6.45.0"
@@ -164,8 +157,8 @@ catalog:
   "@sentry/nextjs": ^11.12.0
 
   # Analytics
-  "posthog-js": ^1.447.9
-  "posthog-node": ^5.68.1
+  "posthog-js": ^1.448.0
+  "posthog-node": ^5.73.0
 
   # Testing
   vitest: ^5.1.0
@@ -175,7 +168,7 @@ catalog:
   "@testing-library/user-event": "^14.6.9"
   "@testing-library/jest-dom": "^7.0.1"
   "@testing-library/dom": ^10.4.2
-  jsdom: ^31.0.0
+  jsdom: ^31.0.1
   "@playwright/test": "^1.65.0"
   # Accessibility checks in the staging journeys (owner approved, 11 Nov 2026).
   "@axe-core/playwright": "^4.14.0"

@@ -21,7 +21,7 @@
     "react": "*"
   },
   "dependencies": {
-    "react-email": "^6.11.11"
+    "react-email": "^6.11.12"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",
