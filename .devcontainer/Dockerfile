@@ -39,7 +39,7 @@ ENV UV_PYTHON=3.14.7
 RUN uv python install 3.14.7
 
 # pnpm v12 via corepack (matches the monorepo's package manager)
-RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
+RUN corepack enable && corepack prepare pnpm@12.18.0 --activate
 
 # The coding agents themselves. Pinned so a rebuild doesn't silently drift —
 # bump deliberately (check current versions with `npm view <pkg> version`).
