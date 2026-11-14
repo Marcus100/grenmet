@@ -5,18 +5,18 @@ description = ""
 requires-python = ">=3.14,<3.15"
 dependencies = [
     # Upgrade the HTTP layer together; frozen lockfile records the tested pair.
-    "fastapi[standard]>=0.162.4,<0.163.0",
+    "fastapi[standard]>=0.163.0,<0.164.0",
     "starlette>=1.10.0,<1.11.0",
     "pydantic>=2.14.3,<3.0.0",
-    "pydantic-settings>=2.16.1,<3.0.0",
+    "pydantic-settings>=2.16.3,<3.0.0",
     "resend>=2.53.2,<3.0.0",
     "jinja2>=3.1.4,<4.0.0",
     "alembic>=1.13.0,<2.0.0",
     "httpx>=0.27,<1.0.0",
-    "psycopg[binary]>=3.3.8,<4.0.0",
+    "psycopg[binary]>=3.3.9,<4.0.0",
     "asyncpg>=0.29.0,<1.0.0",
     "bcrypt>=4.2.0,<5.0.0",
-    "sentry-sdk[fastapi]>=2.74.0,<3.0.0",
+    "sentry-sdk[fastapi]>=2.75.0,<3.0.0",
     "pyjwt>=2.9,<3.0.0",
     "scalar-fastapi>=1.4.4",
     # Exact pin: src/rate_limit.py (AsyncSafeLimiter) calls slowapi's private
@@ -32,7 +32,7 @@ dependencies = [
     "pyotp>=2.10.0",
     "shapely>=2.1.2",
     "feedparser>=6.0.12",
-    "signxml>=5.0.1",
+    "signxml>=5.3.0",
     "defusedxml>=0.7.1",
     "stripe>=16.0.0,<17.0.0",
     "weasyprint>=70",
@@ -47,11 +47,11 @@ dependencies = [
     "csv2bufr>=0.8.8",
     # Imported directly by src/ (issue #1413). Declared so an upstream package
     # dropping or loosening its own requirement cannot move or remove them.
-    "sqlalchemy>=2.0.54,<2.1",
+    "sqlalchemy>=2.0.57,<2.1",
     "pillow>=13.0.0,<14.0.0",
     "lxml>=6.1.3,<7.0.0",
     # No upper bound: security releases must not wait on a constraint change.
-    "cryptography>=50.0.1",
+    "cryptography>=50.0.2",
     # boto3 pins the matching botocore; this only records the direct import.
     "botocore>=1.43.36",
     # The storage layer behind slowapi (pinned above); src/rate_limit.py uses it.
@@ -61,16 +61,16 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=7.4.3",
-    "pytest-asyncio>=1.4.1.post1",
+    "pytest-asyncio>=1.5.0",
     "pytest-cov>=6.0.0",
     "pytest-xdist>=3.6.0",
     "mypy>=1.8.0",
-    "ruff>=0.17.2",
+    "ruff>=0.17.5",
     "pre-commit>=3.6.2",
     "coverage>=7.4.3",
     "fakeredis>=2.37.0",
     "types-defusedxml>=0.7.0.20260504",
-    "schemathesis>=4.33.0",
+    "schemathesis>=4.33.4",
     # Property-based tests (owner approved 11 Nov 2026); already installed through Schemathesis.
     "hypothesis>=6.170.15",
     # Independent decoders used only to cross-check eregister.encode (SYNOP TAC, BUFR CSV).
