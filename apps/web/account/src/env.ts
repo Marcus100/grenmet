@@ -14,6 +14,13 @@ export const env = createEnv({
       .string()
       .optional()
       .default("account_session"),
+    // Public URL of the bookings site; "My bookings" links each business to
+    // `<BOOKINGS_APP_URL>/<business slug>` (docs/env.md).
+    BOOKINGS_APP_URL: z
+      .string()
+      .url()
+      .optional()
+      .default("http://localhost:3015"),
     // Deployment passes "" when the secret isn't set: treat that as off.
     ACCOUNT_SSO_CLIENT_SECRET: z.preprocess(
       (value) => value || undefined,
@@ -33,6 +40,7 @@ export const env = createEnv({
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     ACCOUNT_SESSION_COOKIE_NAME: process.env.ACCOUNT_SESSION_COOKIE_NAME,
+    BOOKINGS_APP_URL: process.env.BOOKINGS_APP_URL,
     ACCOUNT_SSO_CLIENT_SECRET: process.env.ACCOUNT_SSO_CLIENT_SECRET,
     NEXT_PUBLIC_SENTRY_DSN: readPublicEnv("NEXT_PUBLIC_SENTRY_DSN"),
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: readPublicEnv(

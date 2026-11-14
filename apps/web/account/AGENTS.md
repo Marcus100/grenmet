@@ -49,12 +49,33 @@ and apps move here in later PRs. Sign-in stays on `auth.barrels.gd`
 ```text
 src/app/
   page.tsx                     ← profile: name, email, photo upload/replace/remove (server read, client mutations)
+  bookings/page.tsx            ← My bookings: upcoming (soonest first) and past (paged), server read; links each business to BOOKINGS_APP_URL/<slug>
   signin/page.tsx              ← hand-off to auth; `sign_in=expired` says so and offers a retry
   auth/start|callback|logout   ← single sign-on (ADR-0017)
   api/[...path]/route.ts       ← same-origin proxy to /api/v1/* (session → bearer)
   api/health/route.ts
   error.tsx, global-error.tsx, not-found.tsx
 ```
+
+## My bookings (ADR-0058, slice 1)
+
+- `src/lib/my-bookings-api.ts` (server-only) reads `GET /api/v1/bookings/me/bookings`
+  with `authApiFetch` and the generated Zod schema. Two calls per load: upcoming
+  (`upcoming=true`, `size=20`, page in `?upcoming_page=`; the API lists it soonest
+  first, so nothing is re-sorted) and past (`size=10`, page in `?past_page=`,
+  newest first). Each pager keeps the other section's page. Each section fails
+  on its own.
+- The API sends no timezone, so `LocalBookingWhen` (client leaf) renders the
+  time in UTC, labelled, on the server and until hydration, then in the viewer's
+  zone. Nothing is assumed.
+- `BOOKINGS_APP_URL` (server env, `docs/env.md`; compose sets it on `web-account`)
+  builds each business link, `src/lib/bookings-site.ts`. No manage link: the API
+  does not return one.
+- A first 401 redirects to sign-in once, with `reauth=1` in the return path. A
+  401 that arrives with that marker shows the section's inline message and does
+  not redirect again (no sign-in loop). Other 4xx show the inline message without
+  a report; anything else is reported with `reportError(error, "account-my-bookings")`.
+- `AccountNav` (Profile, My bookings) sits at the top of both pages.
 
 ## Errors and telemetry
 
