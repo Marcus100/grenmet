@@ -178,6 +178,22 @@ class MonitoringTests(unittest.TestCase):
         self.assertNotIn("abc123", message)
         self.assertNotIn("token-not-shown", message)
 
+    def test_redaction_removes_tokens_bearers_and_scheme_less_heartbeat_paths(self):
+        with patch.dict(os.environ, {"BETTERSTACK_API_TOKEN": "tok-short"}):
+            text = betterstack.redact(
+                "echo tok-short; Authorization: Bearer abc.def; "
+                "uptime.betterstack.com/api/v1/heartbeat/zK1shortone; "
+                "key ABCDEFGHIJKLMNOPQRSTUVWX; url is invalid"
+            )
+        for secret in (
+            "tok-short",
+            "abc.def",
+            "zK1shortone",
+            "ABCDEFGHIJKLMNOPQRSTUVWX",
+        ):
+            self.assertNotIn(secret, text)
+        self.assertIn("url is invalid", text)
+
     def test_a_refusal_without_a_readable_body_still_names_the_status(self):
         refusal = urllib.error.HTTPError(
             "https://provider.invalid/monitors", 302, "Found", {}, io.BytesIO(b"<html>")

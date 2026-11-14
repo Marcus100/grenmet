@@ -45,8 +45,9 @@ class ProviderRefusal(ValueError):
     """The provider answered with an error status.
 
     Carries the status and the provider's own reason so a failed run says why.
-    A refusal body holds validation messages, never a heartbeat URL or a token;
-    the reason is still cut short and stripped of anything URL-shaped.
+    A refusal body should hold only validation messages; the reason is still
+    cut short and stripped of the API token, URLs, heartbeat paths, bearer
+    values and any long opaque run.
     """
 
     def __init__(self, method, path, status, reason):
@@ -57,11 +58,23 @@ class ProviderRefusal(ValueError):
 def refusal_reason(error):
     try:
         body = json.loads(error.read(4096).decode("utf-8", "replace"))
-    except OSError, ValueError:
+    except (OSError, ValueError):  # fmt: skip
         return "no readable reason"
     errors = body.get("errors") if isinstance(body, dict) else None
     text = json.dumps(errors) if errors else "no reason given"
-    return re.sub(r"https?://\S+", "<url>", text)[:400]
+    return redact(text)[:400]
+
+
+def redact(text):
+    """Remove anything that could be a credential from provider text."""
+    token = os.environ.get("BETTERSTACK_API_TOKEN")
+    if token:
+        text = text.replace(token, "<token>")
+    text = re.sub(r"https?://\S+", "<url>", text)
+    # A heartbeat URL without its scheme, a bearer header, or any long opaque run.
+    text = re.sub(r"\S*/heartbeat/\S+", "<url>", text)
+    text = re.sub(r"(?i)\bbearer\s+\S+", "<token>", text)
+    return re.sub(r"[A-Za-z0-9_-]{20,}", "<redacted>", text)
 
 
 def plan(config, environment, live):
@@ -197,7 +210,7 @@ if __name__ == "__main__":
         raise SystemExit(
             f"Provider reconciliation failed: {refusal}. No credential was logged."
         ) from None
-    except OSError, KeyError, ValueError:
+    except (OSError, KeyError, ValueError):  # fmt: skip
         raise SystemExit(
             "Provider reconciliation failed; check declared IDs, access and free quota. No response payload or credential was logged."
         ) from None
