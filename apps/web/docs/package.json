@@ -18,7 +18,7 @@
   "type": "module",
   "browserslist": "defaults, not ie <= 11",
   "dependencies": {
-    "@algolia/autocomplete-core": "^1.19.12",
+    "@algolia/autocomplete-core": "^1.19.13",
     "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
     "@barrelsgd/gms": "workspace:*",
