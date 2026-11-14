@@ -126,3 +126,17 @@ export function formatDuration(minutes: number): string {
   }
   return rest === 0 ? `${hours} hr` : `${hours} hr ${rest} min`;
 }
+
+/** A whole number of hours with the right noun: "1 hour", "24 hours". */
+export function formatHours(hours: number): string {
+  return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+}
+
+/**
+ * The place in an IANA timezone name, for a sentence: "Grenada" for
+ * "America/Grenada", "Port of Spain" for "America/Port_of_Spain". A zone with
+ * no region ("UTC") comes back as it is.
+ */
+export function timeZonePlace(timeZone: string): string {
+  return (timeZone.split("/").at(-1) ?? timeZone).replaceAll("_", " ");
+}

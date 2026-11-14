@@ -7,6 +7,7 @@ import type {
 import { ResponseError } from "@barrelsgd/api-client";
 import {
   formatDuration,
+  formatHours,
   formatMoney,
 } from "@barrelsgd/bookings-web/lib/booking-format";
 import {
@@ -279,7 +280,7 @@ function ProfileSummary({ profile }: { profile: BookingSettings["profile"] }) {
     ["Booking window", `${profile.horizon_days} days`],
     [
       "Cancellation cutoff",
-      `${profile.cancel_cutoff_hours} hours before the start`,
+      `${formatHours(profile.cancel_cutoff_hours ?? 24)} before the start`,
     ],
     [
       "Requests",

@@ -2,6 +2,7 @@ import { BookingFlow } from "@barrelsgd/bookings-web/components/booking-flow";
 import {
   formatDuration,
   formatMoney,
+  timeZonePlace,
 } from "@barrelsgd/bookings-web/lib/booking-format";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -64,7 +65,7 @@ export default async function BusinessBookingPage({
         </h1>
         <p className="text-muted-foreground">
           Book an appointment online. Times are in{" "}
-          {storefront.timezone.replace("_", " ")} time.
+          {timeZonePlace(storefront.timezone)} time.
         </p>
       </header>
 

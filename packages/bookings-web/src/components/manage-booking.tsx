@@ -3,7 +3,11 @@
 import type { BookingPublicDetail } from "@barrelsgd/api-client";
 import { useState } from "react";
 import type { Outcome } from "../lib/booking-errors";
-import { formatDateTime, formatMoney } from "../lib/booking-format";
+import {
+  formatDateTime,
+  formatHours,
+  formatMoney,
+} from "../lib/booking-format";
 import type {
   ContactChannel,
   ManageBookingActions,
@@ -131,7 +135,7 @@ export function ManageBooking({
 
       {active && !booking.can_cancel && (
         <p className="notice">
-          Changes close {booking.cancel_cutoff_hours} hours before your
+          Changes close {formatHours(booking.cancel_cutoff_hours)} before your
           appointment. To change or cancel now, please{" "}
           <a href={contact.href} rel="noopener" target="_blank">
             message us on {contact.label}
