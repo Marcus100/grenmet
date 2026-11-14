@@ -135,8 +135,9 @@ export function summary(
   overrides: Partial<TimetableVersionSummary> = {}
 ): TimetableVersionSummary {
   // As the API does: only a draft may be edited, published or discarded.
+  const status = overrides.status ?? "published";
   const allowedActions =
-    overrides.status === "draft" ? ["edit", "publish", "discard"] : [];
+    status === "draft" ? ["edit", "publish", "discard"] : [];
   return {
     allowedActions,
     id: 1,

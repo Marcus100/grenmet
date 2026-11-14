@@ -72,7 +72,7 @@ export default async function TimetableVersionPage({
           {version.notes ? (
             <p className="text-muted-foreground text-sm">{version.notes}</p>
           ) : null}
-          {version.state === "draft" ? (
+          {versionAllows(version, "edit") ? (
             <Card className="gap-2 p-4">
               <h2 className="font-semibold">Validation</h2>
               <IssueList issues={detail.issues} />

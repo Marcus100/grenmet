@@ -1379,6 +1379,10 @@ fails if a key used in code is missing from the catalog). Routers:
 `profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
 
+### Roster periods and their actions
+
+Every roster period (`RosterPeriodPublic`) carries `allowed_actions`: `edit` (draft or published), `publish` (draft only) and `close` (published only). It is computed from the status alone; the department scope, the roster rule warnings and the override reason are still checked when the action is taken. The duty roster reads it, so the screen and the API cannot disagree.
+
 ### Roster rules (#380)
 
 | Endpoint | Permission | Purpose |
