@@ -19,7 +19,10 @@ dependencies = [
     "sentry-sdk[fastapi]>=2.74.0,<3.0.0",
     "pyjwt>=2.9,<3.0.0",
     "scalar-fastapi>=1.4.4",
-    "slowapi>=0.1.9",
+    # Exact pin: src/rate_limit.py (AsyncSafeLimiter) calls slowapi's private
+    # Limiter._check_request_limit and sets request.state._rate_limiting_complete.
+    # Upgrade deliberately and re-run tests/test_rate_limit_*.py.
+    "slowapi==0.1.10",
     "python-json-logger>=2.0.0",
     "boto3>=1.43.36",
     "arq>=0.28.0",

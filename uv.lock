@@ -1472,7 +1472,7 @@ requires-dist = [
     { name = "setuptools", specifier = ">=78.1.1" },
     { name = "shapely", specifier = ">=2.1.2" },
     { name = "signxml", specifier = ">=5.0.1" },
-    { name = "slowapi", specifier = ">=0.1.9" },
+    { name = "slowapi", specifier = "==0.1.10" },
     { name = "starlette", specifier = ">=1.10.0,<1.11.0" },
     { name = "stripe", specifier = ">=16.0.0,<17.0.0" },
     { name = "weasyprint", specifier = ">=70" },
