@@ -12,7 +12,9 @@ COPY --from=ghcr.io/astral-sh/uv:0.12.24@sha256:3af4716e991d6956a41e573eab705d0e
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     UV_SYSTEM_PYTHON=1 \
-    UV_LINK_MODE=copy
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_DOWNLOADS=never
 
 # Set working directory
 WORKDIR /app
@@ -110,8 +112,6 @@ WORKDIR /app
 # written, avoiding an extra recursive ownership layer.
 COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 COPY --from=builder --chown=appuser:appuser /app/scripts/gms-ingest /app/scripts/gms-ingest
-# Patch packages inside the copied virtualenv before vulnerability scanning.
-RUN uv pip install --python /app/.venv/bin/python --no-cache --upgrade "msgpack>=1.2.3" "setuptools>=78.1.1"
 
 # Copy workspace metadata used by uv-powered operational commands
 COPY --chown=appuser:appuser pyproject.toml uv.lock ./
