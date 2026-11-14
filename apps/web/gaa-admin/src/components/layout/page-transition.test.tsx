@@ -1,17 +1,15 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { PageTransition } from "./page-transition";
-
-const route = vi.hoisted(() => ({ pathname: "/hr" }));
-vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
 
 afterEach(cleanup);
 
-it("renders its children", () => {
-  render(
+it("renders its children with no motion wrapper", () => {
+  const { container } = render(
     <PageTransition>
       <p>HR dashboard</p>
     </PageTransition>
   );
   expect(screen.getByText("HR dashboard")).toBeInTheDocument();
+  expect(container.firstElementChild).toBe(screen.getByText("HR dashboard"));
 });
