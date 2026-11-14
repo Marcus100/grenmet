@@ -25,11 +25,15 @@ class Out(BaseModel):
     count: int
 
 
+class _DriverError(Exception):
+    def __init__(self, sqlstate: str, constraint: str) -> None:
+        super().__init__("driver error")
+        self.sqlstate = sqlstate
+        self.diag = SimpleNamespace(constraint_name=constraint)
+
+
 def _integrity(sqlstate: str, constraint: str) -> IntegrityError:
-    orig = SimpleNamespace(
-        sqlstate=sqlstate, diag=SimpleNamespace(constraint_name=constraint)
-    )
-    return IntegrityError("INSERT ...", {}, orig)  # type: ignore[arg-type]
+    return IntegrityError("INSERT ...", {}, _DriverError(sqlstate, constraint))
 
 
 _router = APIRouter(prefix="/_test-error-handlers")
@@ -122,7 +126,7 @@ async def test_unique_violation_still_409_and_logged(
     }
     records = [r for r in caplog.records if r.name == "src.exceptions"]
     assert len(records) == 1
-    assert records[0].error_type == "IntegrityError"  # type: ignore[attr-defined]
+    assert getattr(records[0], "error_type", None) == "IntegrityError"
 
 
 @pytest.mark.asyncio
