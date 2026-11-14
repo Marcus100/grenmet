@@ -3,7 +3,28 @@
 ## Status
 
 Accepted — 2026-11-13 (issue #1373). The owner accepted all six recommended
-answers listed under "Owner answers" at the end. Nothing here is built yet.
+answers listed under "Owner answers" at the end. Slice 1 is partly built on
+`dev`; see "Progress" below.
+
+## Progress (14 November 2026)
+
+Slice 1 is partly built on `dev`. None of it is in a release yet (v1.0.8 does
+not contain it).
+
+Built:
+
+- A booking made while signed in links to the person's account (#1383).
+- `GET /api/v1/bookings/me/bookings` accepts a full account token or the account
+  app's session, and lists upcoming bookings soonest first (#1386).
+- The My bookings page in the account app (#1385).
+
+Not built:
+
+- The claim flow for past guest bookings.
+- The stamp card on bookings.
+- Member numbers and the QR pass (slice 2).
+- The account-deletion fix (issue #1375).
+- The `profiles` module.
 
 ## Context
 
