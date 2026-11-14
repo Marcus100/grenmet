@@ -71,6 +71,8 @@ describe("booking-format", () => {
     expect(formatMoney(21_000, "GBP")).toBe("GBP 210");
     expect(formatMoney(21_075, "GBP")).toBe("GBP 210.75");
     expect(formatMoney(21_000, "gbp")).toBe("GBP 210");
+    expect(formatMoney(-21_000, "XCD")).toBe("-EC$210");
+    expect(formatMoney(-1250, "GBP")).toBe("-GBP 12.50");
   });
 
   it("shows zero and groups thousands", () => {

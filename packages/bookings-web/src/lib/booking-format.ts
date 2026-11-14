@@ -82,6 +82,9 @@ export function formatDateTime(
  * Short prefixes for the currencies these bookings use, so a bare "$" never
  * reads as the wrong dollar. Other codes print as the code.
  */
+// Amounts are divided by 100, so only currencies with two decimal places are
+// supported (XCD, USD, NZD, TTD and the like); a zero- or three-decimal
+// currency such as JPY or KWD would need its own minor-unit rule first.
 const CURRENCY_PREFIX: Readonly<Record<string, string>> = {
   NZD: "NZ$",
   USD: "US$",
@@ -100,16 +103,19 @@ const CENTS_AMOUNT = new Intl.NumberFormat("en-US", {
  * A price or deposit from minor units and an ISO 4217 code:
  * "EC$210" (XCD), "EC$210.50" with cents, "US$210" (USD), "NZ$210" (NZD),
  * "GBP 210" for any other code. Whole amounts have no ".00"; thousands get
- * separators ("EC$1,250"). The currency is required so no caller can fall
+ * separators ("EC$1,250"); a negative amount reads "-EC$210". The currency is required so no caller can fall
  * back to a hidden default.
  */
 export function formatMoney(minor: number, currency: string): string {
   const code = currency.trim().toUpperCase();
-  const amount = (minor % 100 === 0 ? WHOLE_AMOUNT : CENTS_AMOUNT).format(
-    minor / 100
+  // The sign goes before the currency: "-EC$210", never "EC$-210".
+  const sign = minor < 0 ? "-" : "";
+  const size = Math.abs(minor);
+  const amount = (size % 100 === 0 ? WHOLE_AMOUNT : CENTS_AMOUNT).format(
+    size / 100
   );
   const prefix = CURRENCY_PREFIX[code];
-  return prefix ? `${prefix}${amount}` : `${code} ${amount}`;
+  return prefix ? `${sign}${prefix}${amount}` : `${sign}${code} ${amount}`;
 }
 
 export function formatDuration(minutes: number): string {
