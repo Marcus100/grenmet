@@ -23,6 +23,7 @@ const sources = {
   "events.md": ["apps/web/events/src/app/globals.css"],
   "gms.md": ["packages/gms/src/styles/foundation.css"],
   "mbia.md": ["apps/web/mbia/src/app/globals.css"],
+  "printix.md": ["apps/pwa/printix/src/styles/app.css"],
   "signal.md": ["apps/web/signal/src/app/globals.css"],
 };
 

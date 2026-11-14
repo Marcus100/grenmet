@@ -1,6 +1,8 @@
 packages:
   # Apps
   - "apps/web/*"
+  # Installable phone apps (progressive web apps)
+  - "apps/pwa/*"
   # Note: fastapi is Python, not managed by pnpm
 
   # Shared packages
@@ -60,6 +62,9 @@ catalog:
   next: 16.4.6
   babel-plugin-react-compiler: "^1.0.0"
   server-only: "0.0.1"
+  # Barcode reading where the browser has no BarcodeDetector (iPhone Safari):
+  # apps/pwa/printix. Brings zxing-wasm; the .wasm file is served from the app.
+  barcode-detector: "3.2.3"
   typescript: "^7.0.2"
 
 

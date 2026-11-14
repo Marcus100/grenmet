@@ -3,9 +3,11 @@ import { dirname } from "node:path";
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const manifests = new Map(
-  globSync(["packages/*/package.json", "apps/web/*/package.json"]).map(
-    (path) => [readJson(path).name, { data: readJson(path), path }]
-  )
+  globSync([
+    "packages/*/package.json",
+    "apps/web/*/package.json",
+    "apps/pwa/*/package.json",
+  ]).map((path) => [readJson(path).name, { data: readJson(path), path }])
 );
 
 // These Dockerfiles intentionally cache installation using explicit manifest
