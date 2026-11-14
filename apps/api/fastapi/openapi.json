@@ -792,7 +792,7 @@
           "users"
         ],
         "summary": "Delete current user",
-        "description": "Delete currently authenticated user account.",
+        "description": "Delete currently authenticated user account. The account is anonymised, not removed. Refused with 403 while the person is still employed: contact HR first.",
         "operationId": "authDeleteUserMe",
         "responses": {
           "200": {
@@ -816,7 +816,7 @@
             }
           },
           "403": {
-            "description": "Superuser cannot delete own account",
+            "description": "Superuser cannot delete own account, or the person is still employed (contact HR first)",
             "content": {
               "application/json": {
                 "schema": {

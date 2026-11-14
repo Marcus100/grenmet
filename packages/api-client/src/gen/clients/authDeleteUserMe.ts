@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthDeleteUserMe.js";
 
 /**
- * @description Delete currently authenticated user account.
+ * @description Delete currently authenticated user account. The account is anonymised, not removed. Refused with 403 while the person is still employed: contact HR first.
  * @summary Delete current user
  * {@link /api/v1/auth/users/me}
  */
