@@ -200,8 +200,8 @@ async def test_seeded_buffer_is_honoured_by_slots(
     params = {"service_id": service_id, "first_day": str(day), "last_day": str(day)}
     url = f"{API}/public/babydoll-beauty-bar/availability"
 
-    def starts(body: dict[str, object]) -> list[str]:
-        return [str(slot["starts_at"]) for slot in body["slots"]]  # type: ignore[index]
+    def starts(body: dict[str, list[dict[str, str]]]) -> list[str]:
+        return [slot["starts_at"] for slot in body["slots"]]
 
     before = starts((await async_client.get(url, params=params)).json())
     ten = f"{day}T14:00"  # 10:00 local (UTC-4)
