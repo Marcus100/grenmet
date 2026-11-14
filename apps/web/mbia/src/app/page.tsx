@@ -140,7 +140,7 @@ function QuickTasks() {
         const Icon = QUICK_TASK_ICONS[i] ?? ArrowRight;
         return (
           <Link
-            className="group border-gaa-rule hover:border-gaa-sea/40 flex items-start gap-4 rounded-2xl border bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            className="group border-gaa-rule hover:border-gaa-sea/40 flex items-start gap-4 rounded-2xl border bg-white p-5 transition-[translate,box-shadow,border-color] hover:-translate-y-0.5 hover:shadow-lg"
             href={task.href as Route}
             key={task.href}
           >
@@ -207,7 +207,7 @@ function Airports() {
       <div className="grid gap-6 md:grid-cols-3">
         {AIRPORT_CARDS.map((airport) => (
           <Link
-            className="group border-gaa-rule overflow-hidden rounded-2xl border bg-white transition-all hover:-translate-y-1 hover:shadow-xl"
+            className="group border-gaa-rule overflow-hidden rounded-2xl border bg-white transition-[translate,box-shadow,border-color] hover:-translate-y-1 hover:shadow-xl"
             href={airport.href}
             key={airport.href}
           >
@@ -320,7 +320,7 @@ function LatestNews() {
         <div className="grid gap-6 md:grid-cols-3">
           {news.map((post) => (
             <Link
-              className="group border-gaa-rule flex flex-col rounded-2xl border bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              className="group border-gaa-rule flex flex-col rounded-2xl border bg-white p-6 transition-[translate,box-shadow,border-color] hover:-translate-y-0.5 hover:shadow-lg"
               href={`/news/${post.slug}`}
               key={post.slug}
             >
