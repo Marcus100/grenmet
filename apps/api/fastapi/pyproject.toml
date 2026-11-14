@@ -45,6 +45,17 @@ dependencies = [
     "astral>=3.2",
     "xmlschema>=4.3.2",
     "csv2bufr>=0.8.8",
+    # Imported directly by src/ (issue #1413). Declared so an upstream package
+    # dropping or loosening its own requirement cannot move or remove them.
+    "sqlalchemy>=2.0.54,<2.1",
+    "pillow>=13.0.0,<14.0.0",
+    "lxml>=6.1.3,<7.0.0",
+    # No upper bound: security releases must not wait on a constraint change.
+    "cryptography>=50.0.1",
+    # boto3 pins the matching botocore; this only records the direct import.
+    "botocore>=1.43.36",
+    # The storage layer behind slowapi (pinned above); src/rate_limit.py uses it.
+    "limits>=5.8.0,<6.0.0",
 ]
 
 [dependency-groups]
