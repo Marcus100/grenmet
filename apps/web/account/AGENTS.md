@@ -61,14 +61,19 @@ src/app/
 
 - `src/lib/my-bookings-api.ts` (server-only) reads `GET /api/v1/bookings/me/bookings`
   with `authApiFetch` and the generated Zod schema. Two calls per load: upcoming
-  (`size=1000`, the API maximum, since it lists newest first) and past (`page`,
-  `size=10`, page in `?past_page=`). Each section fails on its own.
-- The API sends no timezone, so `LocalBookingWhen` (client leaf) formats times in
-  the viewer's zone and renders empty until hydration. Nothing is assumed.
+  (`upcoming=true`, `size=20`, page in `?upcoming_page=`; the API lists it soonest
+  first, so nothing is re-sorted) and past (`size=10`, page in `?past_page=`,
+  newest first). Each pager keeps the other section's page. Each section fails
+  on its own.
+- The API sends no timezone, so `LocalBookingWhen` (client leaf) renders the
+  time in UTC, labelled, on the server and until hydration, then in the viewer's
+  zone. Nothing is assumed.
 - `BOOKINGS_APP_URL` (server env, `docs/env.md`; compose sets it on `web-account`)
   builds each business link, `src/lib/bookings-site.ts`. No manage link: the API
   does not return one.
-- A 401 redirects to sign-in; other 4xx show the section's inline message without
+- A first 401 redirects to sign-in once, with `reauth=1` in the return path. A
+  401 that arrives with that marker shows the section's inline message and does
+  not redirect again (no sign-in loop). Other 4xx show the inline message without
   a report; anything else is reported with `reportError(error, "account-my-bookings")`.
 - `AccountNav` (Profile, My bookings) sits at the top of both pages.
 
