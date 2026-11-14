@@ -7,16 +7,9 @@ packages:
   - "packages/*"
 
 # pnpm 12 reads workspace settings here, including lifecycle-script permissions.
-# These exact versions were selected and tested before the pnpm 12 migration.
-# Preserve the default release-age policy for all other/future versions.
-minimumReleaseAgeExclude:
-  - "@gunshi/plugin-dryrun@0.37.2"
-  - "@gunshi/plugin@0.37.2"
-  - "dompurify@3.4.15"
-  - "gunshi@0.37.2"
-  - "react-resizable-panels@4.12.4"
-  - "simple-icons@16.30.0"
-  - "ultracite@7.11.0"
+# Preserve the default release-age policy; add an exact version here only for
+# a release that must be installed before it ages in.
+minimumReleaseAgeExclude: []
 strictPeerDependencies: false
 autoInstallPeers: true
 # Reject hardcoded versions for catalogued dependencies at `pnpm add` time.
