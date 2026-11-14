@@ -5,7 +5,10 @@ import type {
   BookingSettings,
 } from "@barrelsgd/api-client";
 import { ResponseError } from "@barrelsgd/api-client";
-import { formatDuration } from "@barrelsgd/bookings-web/lib/booking-format";
+import {
+  formatDuration,
+  formatMoney,
+} from "@barrelsgd/bookings-web/lib/booking-format";
 import {
   Empty,
   EmptyDescription,
@@ -22,12 +25,7 @@ import { TimeOffSection } from "@/components/studio/settings/time-off";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
-import {
-  hhmm,
-  moneyWithCurrency,
-  periodsByDay,
-  WEEKDAYS,
-} from "@/lib/settings-view";
+import { hhmm, periodsByDay, WEEKDAYS } from "@/lib/settings-view";
 import { getSettings, listExceptions } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import { canManageBookings, DEFAULT_TIMEZONE } from "@/lib/studio-view";
@@ -246,10 +244,10 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
 function serviceLine(item: BookingServicePublic, currency: string): string {
   const parts = [
     formatDuration(item.duration_min),
-    moneyWithCurrency(item.price_minor, currency),
+    formatMoney(item.price_minor, currency),
   ];
   if (item.deposit_minor > 0) {
-    parts.push(`${moneyWithCurrency(item.deposit_minor, currency)} deposit`);
+    parts.push(`${formatMoney(item.deposit_minor, currency)} deposit`);
   }
   if (!item.active) {
     parts.push("not offered");

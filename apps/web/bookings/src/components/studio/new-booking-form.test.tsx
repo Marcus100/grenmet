@@ -44,6 +44,7 @@ describe("idempotency key", () => {
   it("is made on mount, so the form is submittable only after it exists", () => {
     render(
       <NewBookingForm
+        currency="XCD"
         orgSlug="sea-salt"
         providers={[provider("p1", "Maya", [S1])]}
         services={[service(S1, "Massage")]}
@@ -62,6 +63,7 @@ describe("new booking form", () => {
   it("offers only providers for the chosen service and names the clock", () => {
     render(
       <NewBookingForm
+        currency="XCD"
         orgSlug="sea-salt"
         providers={[provider("p1", "Maya", [S1]), provider("p2", "Kofi", [S2])]}
         services={[service(S1, "Massage"), service(S2, "Facial")]}
@@ -91,6 +93,7 @@ describe("new booking form", () => {
     });
     render(
       <NewBookingForm
+        currency="XCD"
         orgSlug="sea-salt"
         providers={[provider("p1", "Maya", [S1])]}
         services={[service(S1, "Massage")]}

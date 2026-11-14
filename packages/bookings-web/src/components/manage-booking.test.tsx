@@ -68,6 +68,7 @@ describe("ManageBooking", () => {
     renderManage();
     expect(screen.getByRole("heading", { name: HYBRID })).toBeVisible();
     expect(screen.getByText(ORIGINAL_TIME)).toBeVisible();
+    expect(screen.getByText("EC$225")).toBeVisible();
     expect(
       screen.getByRole("link", { name: "Add to calendar" })
     ).toHaveAttribute("href", CALENDAR_HREF);

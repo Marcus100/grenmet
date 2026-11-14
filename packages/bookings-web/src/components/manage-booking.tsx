@@ -114,7 +114,7 @@ export function ManageBooking({
         </div>
         <div>
           <dt>Price</dt>
-          <dd>{formatMoney(booking.price_minor)}</dd>
+          <dd>{formatMoney(booking.price_minor, booking.currency)}</dd>
         </div>
       </dl>
 

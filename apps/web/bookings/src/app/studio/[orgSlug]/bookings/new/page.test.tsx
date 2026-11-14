@@ -12,7 +12,7 @@ vi.mock("@/lib/session", () => ({
 }));
 vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
-  getBusinessTimezone: vi.fn(),
+  getBusinessProfile: vi.fn(),
   listProviders: vi.fn(),
   listServices: vi.fn(),
 }));
@@ -30,7 +30,7 @@ vi.mock("next/navigation", () => ({
 
 import {
   findOrganisation,
-  getBusinessTimezone,
+  getBusinessProfile,
   listProviders,
   listServices,
 } from "@/lib/studio-api";
@@ -85,7 +85,10 @@ function role(value: "member" | "admin") {
 }
 
 beforeEach(() => {
-  vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+  vi.mocked(getBusinessProfile).mockResolvedValue({
+    currency: "XCD",
+    timezone: "America/Grenada",
+  });
   role("admin");
 });
 

@@ -69,12 +69,19 @@ describe("deposit state", () => {
 
   it("only claims what the agenda list knows", () => {
     expect(
-      agendaDepositView({ deposit_minor: 2500, status: "pending_payment" })
-        .label
+      agendaDepositView({
+        currency: "XCD",
+        deposit_minor: 2500,
+        status: "pending_payment",
+      }).label
     ).toBe("Deposit due");
     expect(
-      agendaDepositView({ deposit_minor: 2500, status: "confirmed" }).label
-    ).toBe("Deposit $25");
+      agendaDepositView({
+        currency: "XCD",
+        deposit_minor: 2500,
+        status: "confirmed",
+      }).label
+    ).toBe("Deposit EC$25");
   });
 });
 

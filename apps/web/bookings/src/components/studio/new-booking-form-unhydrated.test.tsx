@@ -47,6 +47,7 @@ const provider = {
 function form(providers: (typeof provider)[]) {
   return (
     <NewBookingForm
+      currency="XCD"
       orgSlug="sea-salt"
       providers={providers}
       services={[service]}
