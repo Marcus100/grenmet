@@ -8,6 +8,8 @@ import {
   storesListRequisitionsResponseSchema,
 } from "@barrelsgd/api-client";
 import type { z } from "zod";
+import { StoresAccessError } from "@/db/stores/stores-access-error";
+import { StoresNotFoundError } from "@/db/stores/stores-not-found-error";
 import {
   getAuthApiBaseUrl,
   getAuthApiPrefix,
@@ -45,20 +47,6 @@ async function storesGet<T extends z.ZodType>(
   if (response.status === 404) throw new StoresNotFoundError();
   if (!response.ok) throw new Error("Stores data unavailable");
   return schema.parse(await response.json());
-}
-
-/** The signed-in user has no stores permission or employment record. */
-export class StoresAccessError extends Error {
-  constructor() {
-    super("Stores access needed");
-  }
-}
-
-/** The record does not exist or is outside the caller's reach. */
-export class StoresNotFoundError extends Error {
-  constructor() {
-    super("Not found");
-  }
 }
 
 export function getStoresAccess() {
