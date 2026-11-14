@@ -14,7 +14,7 @@ Port **3001**. The heaviest app in the monorepo.
 | `@tanstack/react-query` | Server state — via `QueryProvider` in `src/providers/` |
 | `@tanstack/react-table` | Data tables with `Pagination` component |
 | `react-error-boundary` | Error boundaries around data-heavy sections |
-| `sonner` | Toast notifications |
+| `sonner` | Toast notifications: call `toast()` from client code; the one `<Toaster />` is `AppToaster` in the root layout (never mount a second) |
 | `date-fns` | Date formatting |
 | `msw` | API mocking in tests |
 
