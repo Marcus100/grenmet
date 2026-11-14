@@ -303,8 +303,11 @@ installation templates. Set `/etc/grenmet/monitoring.conf` to environment-specif
 set the checkout path/user to the actual host installation. Install the units,
 run one successful job, then enable the timer and unpause the heartbeat. Do not
 run two environments against the same state file. The runner refuses redirect
-responses and records every target separately, opens state after two failures
-and emits one recovery transition. The heartbeat is withheld if any checked
+responses and records every target separately. It opens state after two failures
+in a row, or when half of the last 12 checks (36 minutes) failed, so a flapping
+connection opens once instead of once per drop. Recovery needs four successes in a
+row and at most three failures left in the window, and is emitted once. The idea
+comes from wis2watch ADR 0002 (MIT, wmo-raf/wis2watch); no code is copied. The heartbeat is withheld if any checked
 target fails. With `PROBE_INCIDENTS_ENABLED=true`, per-target incidents open after repeated
 failures and resolve once on recovery. A protected team token is required. The
 runner heartbeat then tracks probe execution and incident delivery separately from

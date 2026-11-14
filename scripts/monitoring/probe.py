@@ -79,19 +79,40 @@ def check(service, environment, opener=None):
     return result
 
 
+WINDOW = 12  # last 12 checks: 36 minutes at the 3-minute cadence
+OPEN_DOWN_SHARE = 6  # half of a full window down opens an incident
+QUIET_UPS = 4  # recovery needs this many successes in a row...
+CLOSE_MAX_DOWN = 3  # ...and at most this many failures left in the window
+
+
 def transition(previous, status):
-    """Two consecutive failures open once; recovery is emitted once."""
-    previous = previous or {"failures": 0, "incident": False}
+    """Open on two consecutive failures or on a flapping window; close only when quiet.
+
+    Based on the duty-cycle rule in wmo-raf/wis2watch
+    docs/adr/0002-alert-on-duty-cycle-not-instantaneous-state.md (MIT): alert on
+    the share of time down, not on each drop and recovery, so a flapping
+    connection sends one opening message instead of one per cycle.
+    """
+    previous = previous or {"failures": 0, "incident": False, "history": []}
     if status not in {"up", "down"}:
         return previous, None
     failures = previous["failures"] + 1 if status == "down" else 0
+    history = (list(previous.get("history", [])) + [status == "down"])[-WINDOW:]
+    downs = sum(history)
     incident = previous["incident"]
     event = None
-    if failures >= 2 and not incident:
+    flapping = len(history) == WINDOW and downs >= OPEN_DOWN_SHARE
+    if (failures >= 2 or flapping) and not incident:
         incident, event = True, "opened"
-    elif status == "up" and incident:
-        incident, event = False, "recovered"
-    return {"failures": min(failures, 2), "incident": incident}, event
+    elif incident and status == "up":
+        quiet = len(history) >= QUIET_UPS and not any(history[-QUIET_UPS:])
+        if quiet and downs <= CLOSE_MAX_DOWN:
+            incident, event = False, "recovered"
+    return {
+        "failures": min(failures, 2),
+        "incident": incident,
+        "history": history,
+    }, event
 
 
 def ping(url):

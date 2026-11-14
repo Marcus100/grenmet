@@ -66,6 +66,7 @@
     "e2e": "node scripts/verification/e2e-if-up.mjs",
     "e2e:staging": "playwright test -c tests/staging/playwright.config.ts",
     "ui:screenshots": "node scripts/agents/ui-screenshots.mjs",
+    "guide:screenshots": "node scripts/agents/guide-screenshots.mjs",
     "test:docs": "node --test scripts/docs/*.test.mjs",
     "prepare": "husky",
     "lint": "turbo run lint",

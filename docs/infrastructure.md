@@ -116,6 +116,21 @@ Implemented backup behavior:
 - Uploads each dump to DigitalOcean Spaces under `production/YYYY/MM/DD/`.
 - Keeps local dump files for `BACKUP_RETENTION_DAYS=30`.
 
+### Retention table
+
+Idea taken from wmo-raf/climweb-backup-sync (archived; its README gives daily database copies for 10 days and weekly media archives). Nothing here copies code.
+
+| Copy | Today (as implemented) | Proposed for WAL-G (not built) | Needs |
+| --- | --- | --- | --- |
+| Daily database dump, production | One per day under `production/YYYY/MM/DD/` on Spaces; the workflow does not delete old dumps, so the bucket's lifecycle rule decides | Keep 10 days | Owner approval; confirm the Spaces lifecycle rule matches |
+| Local dump files, runner | 30 days (`BACKUP_RETENTION_DAYS`) | Same | None |
+| Weekly full base backup (WAL-G) | Not built | Keep 5 weeks | WAL-G work |
+| Continuous write-ahead logs | Not built | Keep from the oldest kept base backup to now | WAL-G work |
+| Restore drill | Monthly; restores every dump into a throwaway container ([restore drill](operations/restore-drill.md)) | Also restore the oldest kept copy, so a short retention is proven to work | WAL-G work |
+
+Acceptance for #1416 is partly met: this table is written. The last row is not built.
+Retention values are a policy choice and stay proposals until the owner confirms them.
+
 Until a shorter schedule is implemented, the practical RPO is at most 24 hours for data covered by this workflow. RTO must be proven by restore drills; the internal programme target is under 2 hours, but that should not be treated as verified until a timed restore has passed.
 
 Restore drill outline:
