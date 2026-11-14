@@ -26,7 +26,7 @@ in `apps/web/babydoll/src/data/site.ts` and the `/book` redirect
 
 | Item | State |
 | --- | --- |
-| Bookings app (`bookings.barrels.gd`) | Live on production since v1.0.7 |
+| Bookings app (`bookings.barrels.gd`) | Live on production (it was deployed before v1.0.8) |
 | Time off per provider in Studio settings (#1378) | In v1.0.8 |
 | Babydoll data on production | **Not seeded.** The seed's dry run passed there on v1.0.8 |
 | Babydoll data on staging | Seeded on 14 Nov 2026. A test booking was made on the public page, appeared as pending in the Studio agenda and was confirmed |
@@ -254,8 +254,8 @@ Still open:
 - **Q2.** No longer a Vercel question: the booking flow runs on the droplet.
   `render-env.py` sets `VISITOR_IP_PROXY_HOPS` to 1, or 2 behind the Cloudflare
   proxy; confirm with a header check on staging.
-- **Q3.** Partly answered: the bookings app has been live on production since
-  v1.0.7. Whether the two booking crons run there was not checked; only the code
+- **Q3.** Partly answered: the bookings app is live on production (it was
+  deployed before v1.0.8). Whether the two booking crons run there was not checked; only the code
   registration was read.
 - **Q4.** Is `EMAIL_HASH_PEPPER` set in production (the session log conflicts)?
   A missing pepper makes a public create fail with a 500 once the `contacts`

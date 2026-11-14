@@ -47,8 +47,8 @@ and control plane.
 **State (14 Nov 2026).** Items 1 and 2 below are built and released: the staff
 create route, the `apps/web/bookings` app with the public flow, `/studio` and
 Settings (time off per provider since v1.0.8), and the shared
-`packages/bookings-web` flow. The bookings app is live on production (since
-v1.0.7). The on-site flow at `babydoll.barrels.gd/book` and the
+`packages/bookings-web` flow. The bookings app is live on production (deployed
+before v1.0.8). The on-site flow at `babydoll.barrels.gd/book` and the
 `BABYDOLL_ONLINE_BOOKING` switch were removed on 13 Nov 2026 (static site).
 Babydoll is seeded on staging, where a test booking was made and confirmed; it
 is **not** seeded on production (the seed's dry run passed there on v1.0.8). The

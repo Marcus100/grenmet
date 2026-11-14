@@ -4,7 +4,7 @@ Port **3015**, host `bookings.${BASE_DOMAIN}` (`bookings.barrels.gd` in producti
 
 ## Status: public booking flow and staff studio live
 
-State on 14 Nov 2026: the app is live on production (since v1.0.7). Babydoll Beauty Bar, the pilot tenant, is seeded on staging, where a test booking made on the public page appeared as pending in the Studio agenda and was confirmed; it is **not** seeded on production yet, so `/babydoll-beauty-bar` answers "not found" there. Time off per provider is in v1.0.8. On `dev`, not released: prices show with the currency (`EC$210`, #1394). Go-live order: `docs/operations/babydoll-cutover.md`.
+State on 14 Nov 2026: the app is live on production (deployed before v1.0.8). Babydoll Beauty Bar, the pilot tenant, is seeded on staging, where a test booking made on the public page appeared as pending in the Studio agenda and was confirmed; it is **not** seeded on production yet, so `/babydoll-beauty-bar` answers "not found" there. Time off per provider is in v1.0.8. On `dev`, not released: prices show with the currency (`EC$210`, #1394). Go-live order: `docs/operations/babydoll-cutover.md`.
 
 `/[slug]` is the public booking flow for any business: storefront (name, services with duration, price and deposit label, providers), then the shared `@barrelsgd/bookings-web` flow (service, time, details, confirm), then `/[slug]/booking/[token]` to view, reschedule or cancel (plus `/ics` for the calendar file). The staff studio (`/studio`) is sign-in-guarded and built (see Studio below).
 

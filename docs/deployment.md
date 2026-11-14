@@ -15,7 +15,7 @@ Static sites are moving to Cloudflare Pages ([ADR-0036](adr/0036-hosting-split.m
 
 For operational SSH access, use the `deploy` account on both production and
 staging. On staging it has sudo, and root login and password login over SSH are
-off (verified 2026-11-14). Authenticate with the existing SSH key; DigitalOcean API authentication
+off (checked by the owner on 2026-11-13: root refused, `deploy` accepted). Authenticate with the existing SSH key; DigitalOcean API authentication
 through `doctl` does not unlock an encrypted SSH key.
 
 ## Pipeline overview
