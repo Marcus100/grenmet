@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-15
+**Last updated:** 2026-11-14
 
 Elections Grenada is an independent Vercel project in the existing monorepo.
 The Barrels holding page has its own Vercel project; operational apps retain the DigitalOcean/GitHub Actions release flow. The target
@@ -27,6 +27,12 @@ The app's `vercel.json` keeps build/install settings with its code. Enable
 `ENABLE_EXPERIMENTAL_COREPACK=1` in both Preview and Production so Vercel honors
 the root `package.json` package-manager pin instead of guessing from the lockfile.
 Do not install a different pnpm major to make deployment pass.
+
+Since 13 Nov 2026 the Git integration of this Vercel project is disconnected
+(owner; the same for the Barrels homepage and Babydoll), so pull requests get no
+Vercel checks. The site is leaving Vercel:
+[exit plan](../operations/vercel-exit-plan.md). The next paragraph applies only if
+Git is connected again.
 
 Select the production branch deliberately when connecting Git. The repository's
 existing promotion flow is `dev → staging → main`; use `main` for automatic

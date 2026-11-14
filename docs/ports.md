@@ -345,6 +345,17 @@ uses a port reserved for another or retired, or when ranges overlap:
 5. `apps/web/<app>/AGENTS.md` — the "Port **N**" header
 6. This file
 
+A new app host also needs one step outside the repository. The Cloudflare
+origin-secret rule lists hostnames, built from `PUBLIC_HOSTS` and `PRIVATE_HOSTS`
+in `scripts/production/cloudflare_rulesets.py` (add the host there in the same
+pull request). After the release that adds the host, re-apply the rule for each
+environment:
+`python3 scripts/production/cloudflare-origin-header.py --environment <env> --apply`
+([Cloudflare proxy runbook](operations/cloudflare-proxy.md), step 3). Without it,
+every request to the new host answers 403 once the proxy gate is on. The account
+app's host was added this way on staging on 2026-11-14; production is still to do
+(#1335).
+
 ## Auth return-host / CORS allowlists (env files — edit manually)
 
 These live in `.env.local` / `.env.local.example` and reference `localhost:<port>`:

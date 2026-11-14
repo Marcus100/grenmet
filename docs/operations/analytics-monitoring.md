@@ -1,8 +1,8 @@
 # Analytics and monitoring rollout
 
-**Status:** Dev implementation; staging availability pilot active; production rollout pending
+**Status:** Dev implementation; staging availability pilot active, with a known gap (staging probes report gated web apps as down, 2026-11-14); production rollout pending
 **Owner:** Barrels Grenada engineering
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-14
 
 Roll out **development → staging → production**. A successful `dev` push is not
 production delivery. The owner confirmed on 2026-10-03 that all providers use free
@@ -380,6 +380,8 @@ require at least 24 hours of staging evidence before production promotion.
   `MONITORING_DEPLOY_ENABLED=true`. It requires existing administrator privileges;
   it does not grant sudo access. A failed probe restores previous configuration.
   Existing state and journals remain in `/var/lib/grenmet-monitoring`.
+  **This step does not work on staging today** (see "Known gap" below), so the
+  variable is unset there.
 - `Monitoring maintenance` runs daily at 02:17 UTC and restores weekly Sunday at
   04:17 UTC. The workflow must first land on `main`, where GitHub schedules execute.
   Its protected environment variable `MONITORING_REVISION` must equal the full SHA
@@ -424,6 +426,41 @@ provider free-account limits, credential validation, workflow publication on the
 branch, runner installation privileges, storage lifecycle/capacity,
 controlled incident recovery delivery,
 live per-target incident/maintenance validation and 24-hour staging observation. No production application was deployed by this work.
+
+### Known gap: staging probes and the monitoring install (2026-11-14)
+
+Production monitoring is still not on. On staging two things are wrong:
+
+1. **The scheduled probes report every gated web app as down.** Staging web hosts
+   sit behind the staging gate (basic auth). The probe sends the gate credential
+   only when `STAGING_PROBE_CREDENTIALS` is in the probe configuration on the
+   server (`/etc/grenmet/monitoring.conf`). The GitHub secret exists, but it was
+   never written to the server, so each probe is refused at the gate. This is a
+   monitoring fault, not an outage: the deploy smoke checks, which carry the
+   credential, pass.
+2. **Setting `MONITORING_DEPLOY_ENABLED=true` does not fix it by itself.** The
+   deploy step "Install declared monitoring after application acceptance" runs
+   `sudo … scripts/monitoring/install.sh`, and fails with "sudo: a password is
+   required" because the runner user has no passwordless sudo. The failed step
+   also skips "Record staging-verified images" in the Staging Pipeline, which
+   production promotion needs. The variable was tried on 2026-11-14 and removed
+   again.
+
+Two ways forward; the owner chooses:
+
+- **A narrow sudoers rule for the runner user**, limited to the monitoring
+  install command and nothing else. Deploys then keep the probe configuration
+  current, including the gate credential. It widens what the runner user can do
+  as root, so it needs a security review first (the
+  [host hardening runbook](host-hardening.md) keeps the runner user out of the
+  `sudo` group on purpose).
+- **A one-time manual install by an administrator** on the staging server, with
+  the same inputs the deploy step passes. Nothing changes for the runner user, but
+  the install has to be repeated by hand whenever the probe code or its settings
+  change.
+
+Until one of these is done, leave `MONITORING_DEPLOY_ENABLED` unset on staging and
+read staging probe results for gated web apps as "not measured", not as an outage.
 
 Host monitoring scripts support Python 3.11+ (staging currently has Python 3.12).
 Format them with `ruff format --isolated --target-version py311`; the API's

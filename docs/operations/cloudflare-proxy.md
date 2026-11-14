@@ -2,7 +2,7 @@
 
 **Status:** Ready for the owner; nothing applied. Every switch is off until the owner turns it on.  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-10-31  
+**Last updated:** 2026-11-14  
 **Issue:** #859 (the pairing documented in #544)
 
 Today every `*.barrels.gd` and `*.staging.barrels.gd` hostname resolves straight to
@@ -219,6 +219,16 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
    `CLOUDFLARE_ZONE_ID`, or the gate refuses the alias with 403. The cache
    rules do not list aliases: an alias of `api.*` must also get its own
    "never cache" rule in that zone before it is proxied.
+
+   **Re-apply this step whenever a new app host is added.** The rule lists
+   hostnames; it is not a wildcard. A host added after the rule was last applied
+   (the account app's `account.*` was) is not in it, so once the proxy gate is
+   on every request to that host answers 403. After the release that adds the
+   host, run the plan and then
+   `python3 scripts/production/cloudflare-origin-header.py --environment <env> --apply`.
+   Done for staging on 2026-11-14 (it picked up `account.staging.barrels.gd`).
+   Production needs it before the account app goes live there
+   ([issue #1335](https://github.com/Marcus100/grenmet/issues/1335)).
 4. **Cache rules (harmless while grey).**
    ```bash
    python3 scripts/production/cloudflare-cache-rules.py --environment staging --print   # read the rules
@@ -523,6 +533,10 @@ None is user-facing and long-running. Long work belongs in the worker.
   for this zone only (free; Traefik then requires Cloudflare's client
   certificate); it is a separate reviewed change. Treat the droplets' addresses
   as already known: they were public in DNS until now.
+- **The origin header rule is a list of hosts, not a wildcard.** A new app host
+  gets 403 behind the gate until the origin-header script is re-applied for that
+  environment (step 3). Staging was re-applied on 2026-11-14 for the account app;
+  production is still to do (#1335).
 - **Traefik's access logs show Cloudflare's address.** Their `ClientAddr` is the
   connecting peer, which becomes a Cloudflare edge; use `cf-ray` and the API's
   own records to trace a visitor. Sign-in sessions record the visitor, not the
