@@ -29,7 +29,7 @@ is allocated by category.
 | `3000–3019` | Legacy, frozen | Arrival-ordered. 3008 shop, 3016 hr, 3017 business, 3018 account, 3019 spare; **3011 was never used and is never assigned** |
 | `3020–3029` | Platform surfaces | 3020 developers, 3021 status |
 | `3030–3059` | Barrels products | 3030 salesbus POS, 3031 tickets, 3032 passport, 3033 pay, 3034 media, 3035-3041 sector products (education, automotive, delivery, bus, park, taxi, homegrown) |
-| `3060–3089` | Client-dedicated apps | 3060 gaa corporate, 3061 janitor PWA, 3062 bus PWA, 3063 gms PWA |
+| `3060–3089` | Client-dedicated apps | 3060 gaa corporate, 3061 janitor PWA, 3062 bus PWA, 3063 gms PWA, 3064 Printix scanner PWA |
 | `3090–3099` | Dev tools | 3090 UI gallery, 3091 email preview |
 | `4000–4099` | Retired (Hono API) | Never reuse |
 | `8000–8019` | Barrels Python services | 8000 FastAPI, 8010 ai-gateway |
@@ -85,6 +85,7 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | 3061 | `@barrelsgd/web-janitor` (janitor PWA) | Reserved (client) |
 | 3062 | `@barrelsgd/web-gaa-bus` (bus PWA) | Reserved (client) |
 | 3063 | `@barrelsgd/web-gms-pwa` (GMS PWA) | Reserved (client) |
+| 3064 | `@barrelsgd/pwa-printix` (Printix ticket scanner PWA, `apps/pwa/printix`) | Built, dev only; not deployed (client) |
 | 3090 | `ui-gallery` (UI gallery, dev only) | Reserved (dev tool) |
 | 3091 | `email-preview` (email preview, dev only) | Reserved (dev tool) |
 

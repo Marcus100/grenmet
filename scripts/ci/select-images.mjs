@@ -27,13 +27,14 @@ function imagesForPath(path) {
   if (deferredPath.test(path)) return noImages;
   if (path.startsWith("packages/") || workspaceManifest.test(path))
     return { ...noImages, web: webImages };
-  // Elections, Babydoll (Vercel) and Commit (Cloudflare Pages) deploy
-  // independently. Their manifests still affect
+  // Elections, Babydoll (Vercel), Commit (Cloudflare Pages) and the phone
+  // apps under apps/pwa deploy independently. Their manifests still affect
   // Docker installation layers above, but their source does not enter them.
   if (
     path.startsWith("apps/web/elections/") ||
     path.startsWith("apps/web/babydoll/") ||
     path.startsWith("apps/web/commit/") ||
+    path.startsWith("apps/pwa/") ||
     path.startsWith("apps/web/barrels/")
   )
     return noImages;
@@ -105,6 +106,7 @@ const apiPythonPath = (path) =>
   path !== "apps/api/fastapi/openapi.json";
 const webPath = (path) =>
   path.startsWith("apps/web/") ||
+  path.startsWith("apps/pwa/") ||
   path.startsWith("packages/") ||
   path === "pnpm-lock.yaml" ||
   path === "pnpm-workspace.yaml";

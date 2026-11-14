@@ -14,7 +14,11 @@ const config = JSON.parse(
     .join("\n")
 );
 const projects = globSync(
-  ["apps/web/*/package.json", "packages/*/package.json"],
+  [
+    "apps/web/*/package.json",
+    "apps/pwa/*/package.json",
+    "packages/*/package.json",
+  ],
   { cwd: root }
 )
   .map(dirname)
@@ -25,7 +29,9 @@ const required = [
   ...projects.map((path) => `${path}/node_modules`),
   ".turbo",
   ...projects
-    .filter((path) => path.startsWith("apps/web/"))
+    .filter(
+      (path) => path.startsWith("apps/web/") || path.startsWith("apps/pwa/")
+    )
     .map((path) => `${path}/.next`),
 ];
 

@@ -28,6 +28,7 @@ COPY apps/web/bookings/package.json apps/web/bookings/
 COPY apps/web/cap/package.json apps/web/cap/
 COPY apps/web/cms/package.json apps/web/cms/
 COPY apps/web/commit/package.json apps/web/commit/
+COPY apps/pwa/printix/package.json apps/pwa/printix/
 COPY apps/web/docs/package.json apps/web/docs/
 COPY apps/web/elections/package.json apps/web/elections/
 COPY apps/web/events/package.json apps/web/events/

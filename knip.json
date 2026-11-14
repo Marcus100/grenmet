@@ -16,6 +16,9 @@
         "scripts/**/*.{mjs,ts}"
       ]
     },
+    "apps/pwa/*": {
+      "entry": ["{src/,}env.ts", "scripts/**/*.{mjs,ts}"]
+    },
     "apps/web/docs": {
       "entry": [
         "{src/,}env.ts",
