@@ -720,6 +720,11 @@ async def confirm_redemption(
     )
     if entry is None:
         raise RedemptionNotFoundError()
+    account = await session.get(User, entry.account_id)
+    if account is None or not account.is_active:
+        # A deactivated or anonymised account cannot redeem, even when a request raced
+        # the deletion. Answered like an unknown code, so it reveals nothing.
+        raise RedemptionNotFoundError()
     if entry.status != EntryStatus.PENDING.value:
         raise RewardsConflictError("This code has already been used or cancelled")
     staff_id = staff.id if staff else None

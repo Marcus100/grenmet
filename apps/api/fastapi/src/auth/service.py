@@ -150,6 +150,9 @@ def create_user_sync(*, session: SQLAlchemySession, user_create: UserCreate) -> 
 
 async def create_user(*, session: AsyncSession, user_create: UserCreate) -> User:
     """Create a new user with hashed password."""
+    placeholders.require_usable_identity(
+        email=user_create.email, username=user_create.username
+    )
     hashed_password = await get_password_hash_async(user_create.password)
     db_obj = User(
         **user_create.model_dump(exclude={"password"}),
@@ -170,6 +173,7 @@ async def update_user(
     *, session: AsyncSession, db_user: User, user_in: UserUpdate
 ) -> Any:
     """Update user with optional password hashing."""
+    placeholders.require_usable_identity(email=user_in.email, username=user_in.username)
     user_data = user_in.model_dump(exclude_unset=True)
     extra_data = {}
     if "password" in user_data:
@@ -207,6 +211,7 @@ async def update_user(
 async def update_user_me(
     *, session: AsyncSession, current_user: User, user_in: UserUpdateMe
 ) -> User:
+    placeholders.require_usable_identity(email=user_in.email, username=user_in.username)
     if user_in.email:
         existing = await get_user_by_email(session=session, email=user_in.email)
         if existing and existing.id != current_user.id:
@@ -362,9 +367,17 @@ async def _clear_hr_personal_details(
 
 
 def is_anonymised(user: User) -> bool:
-    """True once ``delete_user`` has run: deactivated, with a placeholder email. Sign-up
-    refuses the placeholder form, so only an anonymised account can hold it."""
-    return not user.is_active and placeholders.is_placeholder_email(user.email)
+    """True only for an account ``delete_user`` has really anonymised. Every marker is
+    one a person cannot set: deactivation, the shared password hash only the
+    anonymiser writes, and the placeholder email and username (refused on every write
+    path). An account that someone else deactivated with a placeholder email still
+    gets the full deletion."""
+    return (
+        not user.is_active
+        and user.hashed_password == DUMMY_PASSWORD_HASH
+        and placeholders.is_placeholder_email(user.email)
+        and placeholders.is_placeholder_username(user.username)
+    )
 
 
 async def _new_placeholder_token(session: AsyncSession) -> str:

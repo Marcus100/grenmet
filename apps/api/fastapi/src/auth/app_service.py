@@ -168,9 +168,7 @@ async def _create_member(
     session: AsyncSession, *, email: str, first_name: str | None, last_name: str | None
 ) -> User:
     """A self-service account: no staff approval, no password until set."""
-    if placeholders.is_placeholder_email(email):
-        # The reserved form of an anonymised account (ADR-0058, #1375).
-        raise AppException("That email address can't be used. Use another.", 400)
+    placeholders.require_usable_identity(email=email, username=None)
     user = User(
         email=email,
         username=await _unique_username(session, email),

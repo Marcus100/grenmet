@@ -8,6 +8,8 @@ drawn from the random source, never from the user id, which other people can see
 
 import secrets
 
+from src.exceptions import AppException
+
 PLACEHOLDER_PREFIX = "deleted-"
 PLACEHOLDER_DOMAIN = "example.com"
 
@@ -31,3 +33,13 @@ def is_placeholder_email(email: str) -> bool:
 
 def is_placeholder_username(username: str) -> bool:
     return username.lower().startswith(PLACEHOLDER_PREFIX)
+
+
+def require_usable_identity(*, email: str | None, username: str | None) -> None:
+    """Refuse the reserved placeholder form on any write that sets an email or a
+    username (sign-up, profile edits, admin create and update, activation). Only the
+    deletion flow may hold these values (ADR-0058, #1375)."""
+    if email is not None and is_placeholder_email(email):
+        raise AppException("That email address can't be used. Use another.", 400)
+    if username is not None and is_placeholder_username(username):
+        raise AppException("That username can't be used. Choose another.", 400)

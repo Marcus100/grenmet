@@ -26,7 +26,8 @@ from src.auth.models import (
     UserRoleLink,
 )
 from src.auth.modern_models import ExternalIdentity
-from src.auth.utils import verify_password
+from src.auth.schemas import UserCreate, UserUpdate, UserUpdateMe
+from src.auth.utils import DUMMY_PASSWORD_HASH, verify_password
 from src.baseline.models import StaffCredential
 from src.contacts.models import Contact
 from src.exceptions import AppException
@@ -50,6 +51,7 @@ from src.organisations.models import (
 from src.organisations.schemas import ApiKeyCreate
 from src.profile_images import service as profile_images_service
 from src.rewards import service as rewards_service
+from src.rewards.exceptions import RedemptionNotFoundError
 from src.rewards.models import Entry, EntryStatus
 from src.rewards.schemas import ProgramCreate
 from src.utils.datetime import utc_now
@@ -678,3 +680,121 @@ async def test_a_former_employee_can_delete_their_account(
     assert anonymous is not None
     await db_async.refresh(anonymous)
     assert anonymous.is_active is False
+
+
+async def test_a_deactivated_account_holding_a_placeholder_email_is_really_anonymised(
+    db_async: AsyncSession,
+) -> None:
+    """The placeholder form can no longer be set by a person (it is refused on every
+    write path). If it is ever on an account another way, deleting that account must
+    still erase it: only an anonymised account may take the early return."""
+    user = await make_user(db_async)
+    user.email = placeholders.placeholder_email(placeholders.new_placeholder_token())
+    user.is_active = False
+    await db_async.commit()
+    user_id, old_email = user.id, user.email
+    old_hash = user.hashed_password
+
+    await service.delete_user(session=db_async, user=user)
+
+    anonymous = await db_async.get(User, user_id)
+    assert anonymous is not None
+    assert anonymous.email != old_email
+    assert anonymous.hashed_password != old_hash
+    assert anonymous.hashed_password == DUMMY_PASSWORD_HASH
+    assert len(await _deletion_audit_rows(db_async, user_id)) == 1
+
+
+async def test_the_placeholder_email_and_username_are_refused_on_every_write(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async)
+    reserved_email = placeholders.placeholder_email(
+        placeholders.new_placeholder_token()
+    )
+    reserved_username = placeholders.placeholder_username(
+        placeholders.new_placeholder_token()
+    )
+    await db_async.commit()
+
+    with pytest.raises(AppException) as by_email:
+        await service.update_user_me(
+            session=db_async,
+            current_user=user,
+            user_in=UserUpdateMe(email=reserved_email),
+        )
+    assert by_email.value.status_code == 400
+    assert by_email.value.message == "That email address can't be used. Use another."
+
+    with pytest.raises(AppException) as by_username:
+        await service.update_user_me(
+            session=db_async,
+            current_user=user,
+            user_in=UserUpdateMe(username=reserved_username),
+        )
+    assert by_username.value.status_code == 400
+    assert by_username.value.message == "That username can't be used. Choose another."
+
+    with pytest.raises(AppException) as admin_edit:
+        await service.update_user(
+            session=db_async,
+            db_user=user,
+            user_in=UserUpdate(email=reserved_email),
+        )
+    assert admin_edit.value.status_code == 400
+
+    with pytest.raises(AppException) as created:
+        await service.create_user(
+            session=db_async,
+            user_create=UserCreate(
+                email=reserved_email,
+                username="fresh-member",
+                password="password123",
+                first_name="Ada",
+                last_name="Lovelace",
+            ),
+        )
+    assert created.value.status_code == 400
+
+
+async def test_a_legitimate_address_and_username_are_not_refused(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async)
+    await db_async.commit()
+
+    updated = await service.update_user_me(
+        session=db_async,
+        current_user=user,
+        user_in=UserUpdateMe(email="ada.new@example.org", username="ada-new"),
+    )
+
+    assert updated.email == "ada.new@example.org"
+    assert updated.username == "ada-new"
+
+
+async def test_a_pending_redemption_cannot_be_confirmed_once_the_account_is_deactivated(
+    db_async: AsyncSession,
+) -> None:
+    """A redemption requested in a parallel request during the deletion stays pending.
+    Confirming it must still fail, because the account can no longer redeem."""
+    customer, program = await _cafe_with_card(db_async, stamps=5)
+    redemption, _ = await rewards_service.request_redemption(
+        db_async, account=customer, program_id=program.id
+    )
+    await db_async.commit()
+    code, redemption_id = redemption.redeem_code, redemption.id
+    customer.is_active = False
+    await db_async.commit()
+
+    with pytest.raises(RedemptionNotFoundError):
+        await rewards_service.confirm_redemption(
+            db_async,
+            organisation_id=program.organisation_id,
+            code=code,
+            staff=None,
+        )
+
+    still_open = await db_async.get(Entry, redemption_id)
+    assert still_open is not None
+    assert still_open.status == EntryStatus.PENDING.value
