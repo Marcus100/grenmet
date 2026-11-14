@@ -1,8 +1,8 @@
 """The limiter never blocks the event loop and fails open when Redis is down."""
 
 import threading
-from typing import Any
 import time
+from typing import Any
 
 import httpx
 import pytest
