@@ -66,7 +66,8 @@ ensure_uv() {
     return 0
   fi
   if ! uv python install "$PY_VERSION" >/dev/null 2>&1; then
-    python3 -m pip install -q -U uv >/dev/null 2>&1 || return 1
+    # Match required-version in the root pyproject.toml: any other uv refuses to run.
+    python3 -m pip install -q 'uv>=0.12.24,<0.13' >/dev/null 2>&1 || return 1
     # The upgraded uv lands behind an older one on PATH; shadow it explicitly.
     printf '#!/bin/sh\nexec python3 -m uv "$@"\n' >"$BIN/uv"
     chmod +x "$BIN/uv"
