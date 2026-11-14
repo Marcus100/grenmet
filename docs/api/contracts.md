@@ -725,8 +725,9 @@ Implemented examples:
 | Situation | Shape |
 | --- | --- |
 | `AppException` | `{"detail":"message"}` |
-| Pydantic validation handler | `{"detail":"Validation error","errors":[...]}` |
-| Database integrity error | `{"detail":"Resource already exists or constraint violation"}` |
+| Request validation (`RequestValidationError`) | `{"errors":[{"type","loc","msg"}]}` (422) |
+| Unique violation not mapped by the code (SQLSTATE 23505) | `{"detail":"Resource already exists or constraint violation"}` (409) |
+| Any other database integrity error, or a Pydantic error raised in server code | Server error: `{"detail":"Internal Server Error"}` (500), logged and reported to Sentry |
 | FastAPI `HTTPException` | `{"detail": ...}` |
 | Rate limit exceeded (SlowAPI) | `{"error": "Rate limit exceeded: ..."}` (429) |
 | Account lockout after failed sign-ins | `{"detail": ...}` (429) |

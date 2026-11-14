@@ -12,7 +12,6 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, Response
 from fastapi.routing import APIRoute
-from pydantic import ValidationError
 from scalar_fastapi import get_scalar_api_reference
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -64,7 +63,6 @@ from src.exceptions import (
     app_exception_handler,
     integrity_error_handler,
     request_validation_exception_handler,
-    validation_exception_handler,
 )
 from src.feature_flags.router import router as feature_flags_router
 from src.feedback.router import router as feedback_router
@@ -594,7 +592,6 @@ _mount_routers()
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(ValidationError, validation_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
 app.add_exception_handler(IntegrityError, integrity_error_handler)  # type: ignore[arg-type]
 

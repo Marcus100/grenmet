@@ -193,3 +193,17 @@ async def test_integrations_report_mqtt_and_wis2_as_not_configured(
     }
     assert body["mqtt_brokers"]
     assert all(item["delivery"] == "not_configured" for item in body["mqtt_brokers"])
+
+
+async def test_cap_unknown_predefined_area_is_a_client_error(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    payload = _alert_payload()
+    payload["info"][0]["areas"][0]["predefined_area_id"] = (
+        "00000000-0000-4000-8000-000000000001"
+    )
+    response = await async_client.post(
+        "/api/v1/cap/alerts", headers=superuser_token_headers_async, json=payload
+    )
+    assert response.status_code == 422, response.text
