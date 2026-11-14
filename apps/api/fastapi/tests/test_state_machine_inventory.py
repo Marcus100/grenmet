@@ -8,10 +8,12 @@ listed in ``INVENTORY`` with a decision.
                every later write goes through its guard. ``where`` is that module.
     SWITCH     a setting a person turns (active/paused, scheduled/cancelled). Every
                move is allowed, so a table would only repeat the enum.
-    OUTCOME    written when the row is made, or as the recorded result of one
-               attempt. Nothing moves it afterwards by rule.
+    OUTCOME    written once, when the row is made. Nothing moves it afterwards.
     ATTRIBUTE  a description of the thing (a CAP message's ``Actual``/``Test``),
                not a place in a lifecycle.
+    IN_PLACE   a real lifecycle whose rules are still checked where each write
+               happens. It has no table yet; ``where`` says what the moves are
+               and why it was left. These are the candidates for the next table.
 
 Adding a model with a status column fails ``test_every_status_column_has_a_decision``
 until it has a row here. Assigning a status outside the files in ``STATUS_WRITERS``
@@ -22,6 +24,12 @@ the reason it is not a lifecycle.
 
 Lifecycles that have no status column are listed in ``UNSTORED``, so the index is
 complete. No database is needed.
+
+What the scan cannot see: it reads ORM attribute assignments (``row.status = ...``).
+Raw SQL (``UPDATE ... SET state``), bulk ``update().values(status=...)`` and
+``setattr`` over a dictionary of fields are invisible to it, and a file listed in
+``STATUS_WRITERS`` or as a table module may assign any status. It stops a new
+implicit lifecycle from appearing unnoticed; it does not prove every write is guarded.
 """
 
 import ast
@@ -46,6 +54,7 @@ class Kind(str, Enum):
     SWITCH = "switch"
     OUTCOME = "outcome"
     ATTRIBUTE = "attribute"
+    IN_PLACE = "in_place"
 
 
 class Decision(NamedTuple):
@@ -70,12 +79,15 @@ def _attribute(why: str) -> Decision:
     return Decision(Kind.ATTRIBUTE, why)
 
 
+def _in_place(why: str) -> Decision:
+    return Decision(Kind.IN_PLACE, why)
+
+
 _PAYROLL = _table("src/hr/payroll/transitions.py")
 _HR_REQUEST = _table("src/hr/workflow/transitions.py")
 _EVENTS = _table("src/events/transitions.py")
 _PAYMENTS = _table("src/payments/transitions.py")
 _CAP_SWITCH = _switch("an integration is active or paused by a CAP administrator")
-_DELIVERY = "the recorded result of a delivery attempt; retries are owned by the outbox"
 
 #: ``<models file>:<Model>.<column>`` -> the decision for that column.
 INVENTORY: dict[str, Decision] = {
@@ -96,9 +108,13 @@ INVENTORY: dict[str, Decision] = {
     "src/cap/models.py:CapFeedImport.status": _CAP_SWITCH,
     "src/cap/models.py:CapJobEvent.status": _table("src/worker/dispatch.py"),
     "src/cap/models.py:CapHazardProfile.state": _table("src/cap/transitions.py"),
-    "src/content_distribution/models.py:ContentDelivery.status": _outcome(_DELIVERY),
-    "src/eregister/models.py:ERegisterSend.status": _outcome(
-        "the recorded result of one send of a bulletin; a resend is a new row"
+    "src/content_distribution/models.py:ContentDelivery.status": _in_place(
+        "pending to scheduled, then posted, skipped, dry-run sent or dead; checked "
+        "in content_distribution/service.py, left out of the shared retry helper"
+    ),
+    "src/eregister/models.py:ERegisterSend.status": _in_place(
+        "queued to sent or failed, and a correction fails a queued send; checked "
+        "by the queued filters in eregister/sends.py and publisher.py"
     ),
     "src/events/models.py:GroupMember.status": _EVENTS,
     "src/events/models.py:Listing.status": _EVENTS,
@@ -120,7 +136,8 @@ INVENTORY: dict[str, Decision] = {
     "src/hr/leave/models.py:LeaveRequest.status": _HR_REQUEST,
     "src/hr/models.py:EmploymentRecord.status": _switch(
         "HR sets active, inactive or terminated in any order; "
-        "hr/employment_status.py is the one writer and ends the roles with it"
+        "hr/employment_status.py makes the change and ends the roles with it "
+        "(hr/service.py then re-applies the same value with the rest of the form)"
     ),
     "src/hr/parking/models.py:ParkingPermit.status": _HR_REQUEST,
     "src/hr/payroll/models.py:PayCalendar.rule_state": _PAYROLL,
@@ -146,8 +163,14 @@ INVENTORY: dict[str, Decision] = {
     "src/models_guidance/models.py:GuidanceAccessRequest.status": _table(
         "src/models_guidance/transitions.py"
     ),
-    "src/notifications/models.py:NotificationDelivery.status": _outcome(_DELIVERY),
-    "src/notifications/models.py:OutboundEmail.status": _outcome(_DELIVERY),
+    "src/notifications/models.py:NotificationDelivery.status": _in_place(
+        "pending to sent, failed or skipped, and failed is retried; checked by the "
+        "claim query in notifications/dispatch.py"
+    ),
+    "src/notifications/models.py:OutboundEmail.status": _in_place(
+        "pending to sent, failed or skipped, and failed is retried; checked in "
+        "notifications/dispatch.py and outbox_handlers.py"
+    ),
     "src/organisations/models.py:PlatformOrganisation.status": _switch(
         "a platform administrator sets active or suspended, either way round"
     ),
@@ -208,20 +231,20 @@ UNSTORED: dict[str, str] = {
 STATUS_WRITERS: dict[str, str] = {
     "src/bookings/public.py": "the booking guard: checks bookings/transitions.py first",
     "src/cap/service.py": "_set_lifecycle, the alert guard: checks cap/transitions.py",
-    "src/content_distribution/service.py": "delivery outcome (OUTCOME)",
+    "src/content_distribution/service.py": "delivery lifecycle (IN_PLACE)",
     "src/eregister/cl1_import.py": "an import report object, not a stored row",
     "src/eregister/daily_import.py": "an import report object, not a stored row",
-    "src/eregister/publisher.py": "send outcome (OUTCOME)",
-    "src/eregister/sends.py": "send outcome (OUTCOME)",
+    "src/eregister/publisher.py": "send lifecycle (IN_PLACE)",
+    "src/eregister/sends.py": "send lifecycle (IN_PLACE)",
     "src/events/order_refunds.py": "requeues an outbox row it owns",
     "src/events/service/moderation.py": "report and suggestion labels (SWITCH)",
-    "src/hr/employment_status.py": "the one writer of employment status (SWITCH)",
+    "src/hr/employment_status.py": "changes employment status and ends roles (SWITCH)",
     "src/hr/leave/service.py": (
         "legacy leave decision for requests that have no workflow instance; "
         "checked in place, kept until those requests are gone"
     ),
-    "src/notifications/dispatch.py": "delivery outcome (OUTCOME)",
-    "src/notifications/outbox_handlers.py": "delivery outcome (OUTCOME)",
+    "src/notifications/dispatch.py": "delivery lifecycle (IN_PLACE)",
+    "src/notifications/outbox_handlers.py": "delivery lifecycle (IN_PLACE)",
     "src/organisations/service.py": "organisation status (SWITCH)",
     "src/rewards/service.py": "programme status (SWITCH)",
     "src/rewards/social.py": "challenge status (SWITCH)",
