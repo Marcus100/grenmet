@@ -169,7 +169,7 @@ export function WarningStatusBand({
       <p className="text-body-base leading-body-base max-w-prose">
         {copy.guidance}
       </p>
-      <p className="text-body-sm leading-body-sm font-mono">
+      <p className="text-body-sm leading-body-sm tabular-nums">
         Last checked {CHECKED.format(checkedAt)} AST · CAP feed{" "}
         {alerts.status === "unavailable" ? "not responding" : "OK"}
         {greenNote}

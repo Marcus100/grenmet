@@ -5,6 +5,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+const HEALTHCHECK_PATH_LABEL =
+  /^traefik\.http\.services\.([^.]+)\.loadbalancer\.healthcheck\.path=/u;
+const WHOLE_SECONDS = /^[1-9][0-9]*s$/u;
+
 const read = (path) =>
   readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 
@@ -498,6 +502,46 @@ test("the origin gate outranks every router, refuses with 403 and is inert when 
         `traefik.http.middlewares.strip-origin-secret${suffix}.headers.customrequestheaders.X-Barrels-Origin`
       ],
       ""
+    );
+  }
+});
+
+test("probed services recover from one slow probe within seconds", () => {
+  const probed = [...services(compose).values()].flatMap((service) =>
+    (service.lists.labels ?? [])
+      .map((label) => label.match(HEALTHCHECK_PATH_LABEL)?.[1])
+      .filter(Boolean)
+      .map((name) => ({
+        service: service.name,
+        labels: service.lists.labels,
+        name,
+      }))
+  );
+  assert.ok(probed.length >= 4, "expected the API and probed web services");
+  const seconds = (labels, name, option) => {
+    const value = labels
+      .find((label) =>
+        label.startsWith(
+          `traefik.http.services.${name}.loadbalancer.healthcheck.${option}=`
+        )
+      )
+      ?.split("=")[1];
+    assert.ok(value, `${name} sets healthcheck.${option}`);
+    assert.match(value, WHOLE_SECONDS);
+    return Number.parseInt(value, 10);
+  };
+  for (const { service, labels, name } of probed) {
+    assert.ok(
+      seconds(labels, name, "unhealthyinterval") <= 5,
+      `${service} re-probes an unhealthy server within 5 s`
+    );
+    assert.ok(
+      seconds(labels, name, "timeout") >= 10,
+      `${service} allows a busy probe at least 10 s`
+    );
+    assert.ok(
+      seconds(labels, name, "interval") > seconds(labels, name, "timeout"),
+      `${service} probes less often than its timeout`
     );
   }
 });

@@ -19,7 +19,6 @@ export type HrGetAttendanceWeekPdfQuery = {
 /**
  * @description
  * Format: `binary`
- * @type string
  */
 export type HrGetAttendanceWeekPdfStatus200 = Blob;
 

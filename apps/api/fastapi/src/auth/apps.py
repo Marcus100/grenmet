@@ -182,6 +182,12 @@ def _apps() -> dict[str, AppDefinition]:
                 auth_settings.BOOKINGS_APP_URL,
                 auth_settings.BOOKINGS_SSO_CLIENT_SECRET,
             ),
+            (
+                "account",
+                "Barrels account",
+                auth_settings.ACCOUNT_APP_URL,
+                auth_settings.ACCOUNT_SSO_CLIENT_SECRET,
+            ),
         )
     ]
     return {

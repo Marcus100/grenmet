@@ -630,10 +630,15 @@ it("Escape closes the approval confirmation and approves nothing", async () => {
   await openEntryForm();
 
   approve();
-  await screen.findByRole("alertdialog");
-  fireEvent.keyDown(document, { key: "Escape" });
+  const dialog = await screen.findByRole("alertdialog");
+  // The dialog handles Escape on itself, so wait until focus has moved into
+  // it; a key sent to the document before that reaches nothing.
+  await waitFor(() =>
+    expect(dialog.contains(document.activeElement)).toBe(true)
+  );
+  fireEvent.keyDown(document.activeElement as Element, { key: "Escape" });
 
-  expect(screen.queryByRole("alertdialog")).toBeNull();
+  await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
   expect(mocks.create).not.toHaveBeenCalled();
   expect(mocks.accept).not.toHaveBeenCalled();
 });

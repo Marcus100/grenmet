@@ -19,7 +19,7 @@ API = "https://api.cloudflare.com/client/v4"
 # Hostname prefixes (before BASE_DOMAIN) of the routers in docker-compose.deploy.yml.
 # cloudflare-proxy.test.mjs fails when a router's host is in neither list.
 PUBLIC_HOSTS = ("weather", "events", "bookings", "cap", "gmsdash", "signal", "mbia", "docs")
-PRIVATE_HOSTS = ("api", "auth", "admin", "gms", "cms", "adminer")
+PRIVATE_HOSTS = ("api", "auth", "account", "admin", "gms", "cms", "adminer")
 KEPT_FIELDS = ("id", "ref", "expression", "action", "action_parameters", "description", "enabled", "logging")
 
 

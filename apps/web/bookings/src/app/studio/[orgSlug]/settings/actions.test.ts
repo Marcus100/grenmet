@@ -9,9 +9,12 @@ vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
 vi.mock("@/lib/studio-api", () => ({
+  createException: vi.fn(),
   createProvider: vi.fn(),
   createService: vi.fn(),
+  deleteException: vi.fn(),
   findOrganisation: vi.fn(),
+  getBusinessTimezone: vi.fn(),
   replaceHours: vi.fn(),
   saveProfile: vi.fn(),
   updateProvider: vi.fn(),
@@ -21,24 +24,36 @@ vi.mock("@/lib/studio-api", () => ({
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import {
+  createException,
   createProvider,
   createService,
+  deleteException,
   findOrganisation,
+  getBusinessTimezone,
   replaceHours,
   saveProfile,
   updateProvider,
   updateService,
 } from "@/lib/studio-api";
 import {
+  removeTimeOffAction,
   saveHoursAction,
   saveProfileAction,
   saveProviderAction,
   saveServiceAction,
+  saveTimeOffAction,
 } from "./actions";
 
 const SLUG = "sea-salt";
 const IDLE = { status: "idle" } as const;
 const SERVICE_ID = "44444444-4444-4444-8444-444444444444";
+const EXCEPTION_ID = "55555555-5555-4555-8555-555555555555";
+const LEAVE = {
+  providerId: PROVIDER_ID,
+  startsAt: "2026-11-20T09:00",
+  endsAt: "2026-11-20T17:00",
+  reason: "Annual leave",
+};
 
 function form(values: Record<string, string | string[]>) {
   const data = new FormData();
@@ -348,5 +363,120 @@ describe("providers and hours", () => {
       kind: "invalid",
       message: expect.stringContaining("overlap"),
     });
+  });
+});
+
+describe("time off", () => {
+  it("refuses a member before any add or remove", async () => {
+    org("member");
+    expect(await saveTimeOffAction(SLUG, IDLE, form(LEAVE))).toMatchObject({
+      status: "error",
+      kind: "forbidden",
+    });
+    expect(
+      await removeTimeOffAction(SLUG, EXCEPTION_ID, IDLE, form({}))
+    ).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(createException).not.toHaveBeenCalled();
+    expect(deleteException).not.toHaveBeenCalled();
+  });
+
+  it("sends the typed times as UTC on the business clock", async () => {
+    vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+    vi.mocked(createException).mockResolvedValue({} as never);
+    expect(await saveTimeOffAction(SLUG, IDLE, form(LEAVE))).toMatchObject({
+      status: "success",
+      message: "Time off added.",
+    });
+    // America/Grenada is UTC-4 all year: 09:00 local is 13:00 UTC.
+    expect(createException).toHaveBeenCalledWith("tok", ORG_ID, PROVIDER_ID, {
+      kind: "time_off",
+      starts_at: "2026-11-20T13:00:00.000Z",
+      ends_at: "2026-11-20T21:00:00.000Z",
+      reason: "Annual leave",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+  });
+
+  it("refuses an end that is not after the start, without calling the API", async () => {
+    vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+    const result = await saveTimeOffAction(
+      SLUG,
+      IDLE,
+      form({ ...LEAVE, endsAt: "2026-11-20T09:00" })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      kind: "invalid",
+      fields: { endsAt: "The end must be after the start." },
+    });
+    expect(createException).not.toHaveBeenCalled();
+  });
+
+  it("names the missing start and a reason that is too long", async () => {
+    vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+    expect(
+      await saveTimeOffAction(SLUG, IDLE, form({ ...LEAVE, startsAt: "" }))
+    ).toMatchObject({
+      fields: { startsAt: "Enter the start as a date and time." },
+    });
+    expect(
+      await saveTimeOffAction(
+        SLUG,
+        IDLE,
+        form({ ...LEAVE, reason: "x".repeat(201) })
+      )
+    ).toMatchObject({ status: "error", kind: "invalid" });
+    expect(createException).not.toHaveBeenCalled();
+  });
+
+  it("maps the API's field errors and keeps the form's own message", async () => {
+    vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+    vi.mocked(createException).mockRejectedValue(
+      apiError(422, {
+        detail: "Validation error",
+        errors: [
+          {
+            type: "value_error",
+            loc: ["body", "ends_at"],
+            msg: "Value error, ends_at must be after starts_at",
+          },
+        ],
+      })
+    );
+    expect(await saveTimeOffAction(SLUG, IDLE, form(LEAVE))).toMatchObject({
+      status: "error",
+      kind: "invalid",
+      fields: { endsAt: "The end must be after the start." },
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("reports a server fault from the add", async () => {
+    vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+    const fault = apiError(500);
+    vi.mocked(createException).mockRejectedValue(fault);
+    expect(await saveTimeOffAction(SLUG, IDLE, form(LEAVE))).toMatchObject({
+      status: "error",
+      kind: "unavailable",
+    });
+    expect(reportError).toHaveBeenCalledWith(fault, "studio");
+  });
+
+  it("removes one row for the resolved organisation", async () => {
+    vi.mocked(deleteException).mockResolvedValue(undefined);
+    expect(
+      await removeTimeOffAction(SLUG, EXCEPTION_ID, IDLE, form({}))
+    ).toMatchObject({ status: "success", message: "Time off removed." });
+    expect(deleteException).toHaveBeenCalledWith("tok", ORG_ID, EXCEPTION_ID);
+  });
+
+  it("says a row that is already gone no longer exists", async () => {
+    vi.mocked(deleteException).mockRejectedValue(
+      apiError(404, { detail: "x" })
+    );
+    expect(
+      await removeTimeOffAction(SLUG, EXCEPTION_ID, IDLE, form({}))
+    ).toMatchObject({ status: "error", kind: "not_found" });
+    expect(reportError).not.toHaveBeenCalled();
   });
 });

@@ -20,7 +20,14 @@ vi.mock("@barrelsgd/api-client", () => ({
   useAuthGetEffectiveAccess: () => ({ data: undefined }),
 }));
 
-import { decisionError, PAGE_SIZE, QcBadge, QcQueue } from "./eregister-qc";
+import {
+  blockedLine,
+  decisionError,
+  PAGE_SIZE,
+  QcBadge,
+  QcQueue,
+  serverAllows,
+} from "./eregister-qc";
 
 const ME = "user-me";
 const OTHER = "user-other";
@@ -54,6 +61,7 @@ const STANDARD_HOURS = /standard hours/u;
 const ERROR_NOT_LISTED = /error is not listed/u;
 const CHANGED_MESSAGE = /saved or decided since you opened it/u;
 const OWN_HINT = /another person reviews it/u;
+const BLOCKED_NOTE = /not available for this observation/u;
 
 /** Answer each queue by the filter the panel sends. */
 function serve(queues: {
@@ -174,6 +182,68 @@ describe("QcQueue", () => {
     await waitFor(() =>
       expect(mocks.list.mock.calls.length).toBeGreaterThan(2)
     );
+  });
+
+  it("offers only what the API's allowed_actions permits (#1181)", async () => {
+    // The payloads the list route really sends (tests/test_eregister_transitions.py):
+    // a METAR draft cannot be accepted; an accepted SYNOP can be reopened.
+    serve({
+      awaiting: [observation({ allowed_actions: ["reject"], kind: "METAR" })],
+      review: [
+        observation({
+          allowed_actions: ["reopen", "correct"],
+          id: DONE,
+          state: "accepted",
+        }),
+      ],
+    });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    const accept = await screen.findByRole("button", { name: "Accept" });
+    expect((accept as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(blockedLine(["Accept"]))).toBeTruthy();
+    expect(
+      (screen.getByRole("button", { name: "Reject" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
+    expect(
+      (screen.getByRole("button", { name: "Reopen" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
+    // Review is not table-decided; it keeps the four-eyes rule.
+    expect(
+      (screen.getByRole("button", { name: "Review" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
+    expect(screen.getAllByText(BLOCKED_NOTE)).toHaveLength(1);
+  });
+
+  it("does not second-guess a row without allowed_actions", () => {
+    const row = observation({});
+    expect(serverAllows(row, "accept")).toBe(true);
+    expect(serverAllows({ ...row, allowed_actions: [] }, "accept")).toBe(false);
+    expect(serverAllows({ ...row, allowed_actions: [] }, "review")).toBe(true);
+  });
+
+  it("shows each row's IWXXM METAR check in words", async () => {
+    serve({
+      review: [
+        observation({
+          id: DONE,
+          iwxxm: {
+            version: "2025-2",
+            valid: false,
+            errors: ["missing visibility"],
+          },
+          state: "accepted",
+        } as Partial<RegisterObservationRead>),
+      ],
+    });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    expect(
+      await screen.findByText(
+        "IWXXM 2025-2 METAR not valid: missing visibility"
+      )
+    ).toBeTruthy();
   });
 
   it("blocks reviewing your own accepted observation and allows others", async () => {

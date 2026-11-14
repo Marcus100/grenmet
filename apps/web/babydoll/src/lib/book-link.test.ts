@@ -1,42 +1,33 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { BOOKING_URL } from "@/data/site";
-import {
-  bookingLink,
-  ON_SITE_BOOKING_HREF,
-  siteBookingLink,
-} from "./book-link";
-
-const mocks = vi.hoisted(() => ({
-  env: { BABYDOLL_ONLINE_BOOKING: "off" as "on" | "off" },
-}));
-
-vi.mock("@/env", () => ({ env: mocks.env }));
-
-beforeEach(() => {
-  mocks.env.BABYDOLL_ONLINE_BOOKING = "off";
-});
+import { describe, expect, it } from "vitest";
+import { BOOKING_URL, ONLINE_BOOKING_URL } from "@/data/site";
+import { bookingLink, siteBookingLink } from "./book-link";
 
 describe("bookingLink", () => {
-  it("goes to Acuity in a new tab while online booking is off", () => {
-    expect(bookingLink(false)).toEqual({
+  it("goes to Acuity in a new tab while no online booking address is set", () => {
+    expect(bookingLink(null)).toEqual({
       href: BOOKING_URL,
       target: "_blank",
       rel: "noopener",
     });
   });
 
-  it("goes to the on-site /book route, in the same tab, while it is on", () => {
-    expect(bookingLink(true)).toEqual({ href: "/book" });
-    expect(ON_SITE_BOOKING_HREF).toBe("/book");
+  it("goes to the studio's page on the bookings site once one is set", () => {
+    expect(
+      bookingLink("https://bookings.barrels.gd/babydoll-beauty-bar")
+    ).toEqual({
+      href: "https://bookings.barrels.gd/babydoll-beauty-bar",
+      target: "_blank",
+      rel: "noopener",
+    });
   });
 });
 
 describe("siteBookingLink", () => {
-  it("follows the typed env switch", () => {
-    mocks.env.BABYDOLL_ONLINE_BOOKING = "off";
-    expect(siteBookingLink()).toEqual(bookingLink(false));
+  it("follows the address in the site data", () => {
+    expect(siteBookingLink()).toEqual(bookingLink(ONLINE_BOOKING_URL));
+  });
 
-    mocks.env.BABYDOLL_ONLINE_BOOKING = "on";
-    expect(siteBookingLink()).toEqual(bookingLink(true));
+  it("never points at a page on this site", () => {
+    expect(siteBookingLink().href.startsWith("https://")).toBe(true);
   });
 });

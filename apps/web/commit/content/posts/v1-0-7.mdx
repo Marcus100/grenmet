@@ -1,13 +1,13 @@
 ---
 title: A homepage that holds up in the evening, forecasts with the same fields every day, and pictures sized for the screen
 summary: Version 1.0.7 makes the GMS homepage read correctly after the evening forecast, gives every forecast day the same Conditions and Chance of rain fields, resizes and caches CMS pictures, fills empty picture areas with credited photos, and gives accepting and refusing cookies the same weight on every site.
-date: 2026-11-10
+date: 2026-11-11
 release: 1.0.7
-draft: true
 ---
 
-Version 1.0.7 is one pull request on top of v1.0.6. It has no database migration,
-and the API changes are additive, so the previous version still runs against it.
+Version 1.0.7 is two pull requests on top of v1.0.6, plus a CI fix. It has no
+database migration, and the API changes are additive, so the previous version
+still runs against it.
 
 ### Weather service
 
@@ -36,6 +36,9 @@ and the API changes are additive, so the previous version still runs against it.
   one sentence instead of six "None" labels; official and desk cards share one
   border, with the navy label marking what is official; the footer's social
   buttons are one round row.
+- **Readable times:** issued product pages and the synopsis show Grenada wall-clock
+  times such as "10 Nov 2026, 7:00 a.m." instead of revision stamps, and page
+  titles match the homepage.
 
 ### GMS products desk
 
@@ -43,8 +46,14 @@ and the API changes are additive, so the previous version still runs against it.
   optional Conditions and Chance of rain fields as the first period. The website
   draws each day's icon from the forecaster's Conditions choice, with rain in the
   words or weather types taking priority, instead of guessing from the text.
+- **Plain error messages:** a value out of range names its form field, for example
+  "Waves from (m): must be between …". The CAP editor and the product preview say
+  what went wrong in words instead of showing a raw HTTP error, and a failed CAP
+  save is reported so it can be fixed.
 
 ### Platform
 
 - **Cookie choice:** on every site that asks, "Accept cookies" and "Essential
   cookies only" are now equal buttons, with settings as a link.
+- **CI:** a push to `dev` no longer cancels an earlier `dev` run, so every merge is
+  tested.

@@ -6,13 +6,13 @@
 #   pnpm reset   - Tear down infra with volumes, then start Postgres only
 services:
   postgres:
-    image: postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
+    image: postgis/postgis:18-3.7@sha256:c5d1ba4292ff7b4471ff41cd515c677633797b72cdd2a7bb691cadaab91f1a1f
     container_name: grenmet-postgres
     restart: "no"
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
       - ../postgres/init-databases.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
       - ../postgres/init-cms.sh:/docker-entrypoint-initdb.d/02-cms.sh:ro
     environment:
@@ -50,7 +50,7 @@ services:
       - grenmet
 
   adminer:
-    image: adminer:6.2.0@sha256:400af848ac3f57938abde4867677df1b195674d232c8896a27d111d04b9c088c
+    image: adminer:6.3.0@sha256:3a07decd833c2375ea749aa8018250c1db4859a78bd55354f797bfb591733233
     container_name: grenmet-adminer
     restart: "no"
     depends_on:
@@ -65,7 +65,7 @@ services:
       - grenmet
 
   mailcatcher:
-    image: axllent/mailpit:v1.33.0@sha256:9b3a463be15354c0f0eba91697d80e3e0d8a5623ef0e627cacc836bc17fd5231
+    image: axllent/mailpit:v1.33.1@sha256:aef2aacc11f075ec0fb6874275ee4a421e688e11a96ebb296134d1735c7761ce
     container_name: grenmet-mailcatcher
     restart: "no"
     ports:

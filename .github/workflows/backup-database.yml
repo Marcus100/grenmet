@@ -27,6 +27,17 @@ jobs:
       BACKUP_DIR: /var/backups/grenmet
 
     steps:
+      # scripts/production/postgres-major-upgrade.sh keeps this marker until its data
+      # checks, restart and smoke checks pass: never back up an unchecked database.
+      - name: Refuse during an unfinished PostgreSQL major upgrade
+        run: |
+          set -euo pipefail
+          marker="${PG_UPGRADE_DIR:-/var/backups/grenmet/pg-major-upgrade}/production.in-progress"
+          if [[ -e "$marker" ]]; then
+            echo "A PostgreSQL major upgrade of production is unfinished ($marker): not backing up an unchecked database. Finish or roll back the upgrade first (docs/operations/postgres-18-upgrade.md)." >&2
+            exit 1
+          fi
+
       - name: Verify database connectivity
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
@@ -402,3 +413,34 @@ jobs:
           echo "transport:  $(du -h "$TRANSPORT_BACKUP_PATH" | cut -f1)"
           echo "eregister:  $(du -h "$EREGISTER_BACKUP_PATH" | cut -f1)"
           echo "Retention: $BACKUP_RETENTION_DAYS days"
+
+      # ── Monitoring ───────────────────────────────────────────────────────────────
+
+      # Last step, so it runs only after every dump, restore check and upload
+      # succeeded. Better Stack alerts when no ping arrives for 24 h + 2 h
+      # (docs/operations/analytics-monitoring.md). The address is a credential.
+      - name: Report success to monitoring
+        env:
+          BACKUP_HEARTBEAT_URL: ${{ secrets.BACKUP_HEARTBEAT_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${BACKUP_HEARTBEAT_URL:-}" ]]; then
+            echo "BACKUP_HEARTBEAT_URL is not set; no heartbeat sent"
+            exit 0
+          fi
+          if [[ -z "${CMS_BACKUP_PATH:-}" ]]; then
+            echo "::warning::gms_cms was not backed up (CMS_BACKUP_ENABLED is off); no heartbeat sent"
+            exit 0
+          fi
+          if [[ ! "$BACKUP_HEARTBEAT_URL" =~ ^https://(uptime|incidents)\.betterstack\.com/api/v1/heartbeat/[A-Za-z0-9_-]+$ ]]; then
+            echo "BACKUP_HEARTBEAT_URL is not a Better Stack heartbeat address" >&2
+            exit 1
+          fi
+          # Passed on stdin, not as an argument, so the address never shows in the
+          # host's process list. The check above rules out quotes and newlines.
+          if printf 'url = "%s"\n' "$BACKUP_HEARTBEAT_URL" |
+            curl --config - --fail --silent --max-time 10 --max-redirs 0 --output /dev/null; then
+            echo "Backup heartbeat sent"
+          else
+            echo "::warning::Backup succeeded, but the monitoring heartbeat was not delivered"
+          fi

@@ -1,6 +1,6 @@
 name: Draft Release
 
-# Creates a DRAFT release for the next vN.M tag on main, with notes generated from
+# Creates a DRAFT release for the next vX.Y.Z tag on main, with notes generated from
 # the PRs merged since the previous release. A draft does not trigger
 # pipeline-prod.yml: a human reviews the notes and clicks Publish, which is the
 # production gate (see docs/operations/release-runbook.md §4).
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag to draft (leave empty for the next vN.M after the latest release)"
+        description: "Tag to draft (leave empty for the next vX.Y.Z after the latest release)"
         required: false
         default: ""
 

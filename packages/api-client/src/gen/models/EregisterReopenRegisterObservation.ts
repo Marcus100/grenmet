@@ -54,7 +54,7 @@ export type EregisterReopenRegisterObservationStatus422 =
 export type EregisterReopenRegisterObservationBody = QcDecisionBody | undefined;
 
 export type EregisterReopenRegisterObservationOptions = {
-  body: EregisterReopenRegisterObservationBody;
+  body?: EregisterReopenRegisterObservationBody;
   path: EregisterReopenRegisterObservationPath;
   query?: never;
   headers?: never;

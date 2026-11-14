@@ -8,7 +8,7 @@ import { apiErrorSchema } from "./apiErrorSchema.js";
 import { shiftSwapRequestCreateSchema } from "./shiftSwapRequestCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const hrPreviewShiftSwapPdfStatus200Schema = z.instanceof(File);
+export const hrPreviewShiftSwapPdfStatus200Schema = z.instanceof(Blob);
 
 export const hrPreviewShiftSwapPdfStatus400Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."

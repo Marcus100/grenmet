@@ -7,7 +7,8 @@ description: Read-only health check of the local dev environment — Docker daem
 
 Diagnose the dev environment without changing it. **Read-only** — report findings
 and hand the user exact fix commands; never restart, delete, or reconfigure
-anything yourself (see Verify Environment Before Theorizing in `AGENTS.md`).
+anything yourself (root `AGENTS.md`: confirm the environment with a cheap check
+before acting on a setup or diagnosis theory).
 
 Run the check script first, then interpret:
 

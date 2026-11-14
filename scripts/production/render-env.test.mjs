@@ -11,6 +11,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
+const SENTRY_CRONS_FROM_VARS =
+  /^\s+SENTRY_CRONS_ENABLED: \$\{\{ vars\.SENTRY_CRONS_ENABLED \}\}$/mu;
+
 // A well-formed (not real) htpasswd bcrypt line, as `htpasswd -nbB` prints it.
 const HTPASSWD_ENTRY = (user) => `${user}:$2y$05$${"a".repeat(53)}`;
 
@@ -27,6 +30,8 @@ function fixture(directory) {
   env.AUTH_TOTP_ENCRYPTION_KEYS = undefined;
   env.ORG_SECRET_ENCRYPTION_KEYS = undefined;
   env.PAYMENTS_STRIPE_SECRET_KEY = undefined;
+  env.CORE_PGDATA_VOLUME = undefined;
+  env.POSTGIS_RESTORE_VERIFIED = undefined;
   for (const key of [
     "POSTGRES_USER",
     "POSTGRES_PASSWORD",
@@ -46,7 +51,11 @@ function fixture(directory) {
     env[key] = `test-only-configuration-value-32-characters-${key}`;
   env.STAGING_BASIC_AUTH_USERS = HTPASSWD_ENTRY("reviewer");
   env.ADMINER_BASIC_AUTH_USERS = HTPASSWD_ENTRY("dba");
-  const lines = ["FASTAPI_DB_USER=app_runtime", "ENVIRONMENT=staging"];
+  const lines = [
+    "FASTAPI_DB_USER=app_runtime",
+    "ENVIRONMENT=staging",
+    "PGDATA_VOLUME=grenmet-staging_pgdata-staging",
+  ];
   for (const domain of [
     "WXWATCH",
     "WXPRODUCTS",
@@ -126,6 +135,7 @@ test("rejects missing secrets, multiline values and mutable references without e
     { DEPLOY_IMAGE_TAG: "latest" },
     { CORE_REDIS_IMAGE: "redis:latest" },
     { TELEMETRY_ENABLED: "TRUE" },
+    { SENTRY_CRONS_ENABLED: "yes" },
     { TELEMETRY_WORKER_HEARTBEAT_URL: "https://example.test/DO-NOT-ECHO" },
     {
       TELEMETRY_WORKER_HEARTBEAT_URL:
@@ -186,6 +196,7 @@ test("staging and production pass integrations to the intended services", () => 
         EMAIL_RENDER_SECRET: "fixture-only",
         RESEND_WEBHOOK_SECRET: "whsec_fixture",
         TELEMETRY_ENABLED: "true",
+        SENTRY_CRONS_ENABLED: "true",
         AUTH_PRIVILEGED_MFA_MODE: "enforce",
         AUTH_TOTP_ENCRYPTION_KEYS: JSON.stringify([
           `${Buffer.alloc(32, 3).toString("base64url")}=`,
@@ -358,6 +369,10 @@ test("staging and production pass integrations to the intended services", () => 
         api.SENTRY_DSN
       );
       assert.equal(model.services.worker.environment.TELEMETRY_ENABLED, "true");
+      assert.equal(
+        model.services.worker.environment.SENTRY_CRONS_ENABLED,
+        "true"
+      );
       assert.equal(
         model.services.worker.environment.TELEMETRY_WORKER_HEARTBEAT_URL,
         env.TELEMETRY_WORKER_HEARTBEAT_URL
@@ -1173,6 +1188,11 @@ test("the Cloudflare switch refuses anything but true or false", () => {
   }
 });
 
+test("deploy.yml passes the Sentry crons switch from the GitHub environment", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  assert.match(workflow, SENTRY_CRONS_FROM_VARS);
+});
+
 test("deploy.yml passes the Cloudflare switch from the GitHub environment", () => {
   const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
   assert.match(workflow, SWITCH_PASS);
@@ -1290,4 +1310,112 @@ test("PAYSLIP_HMAC_KEYS renders empty by default, validates keyid:secret pairs w
     compose.indexOf("\n  redis:\n")
   );
   assert.ok(api.includes(line));
+});
+
+const POSTGRES_18 = `postgres:18@sha256:${"f".repeat(64)}`;
+const POSTGRES_17 = `postgres:17@sha256:${"a".repeat(64)}`;
+const VOLUME_SWITCH_PASS =
+  /^\s+CORE_PGDATA_VOLUME: \$\{\{ vars\.CORE_PGDATA_VOLUME \}\}$/mu;
+const SHELL_PGDATA_VOLUME = /^\s+PGDATA_VOLUME:/mu;
+
+test("the core database image, data mount and volume render as one PostgreSQL major", () => {
+  const legacy = render();
+  assert.equal(legacy.result.status, 0, legacy.result.stderr);
+  assert.equal(
+    GENERATED_LINE(legacy.output, "CORE_POSTGRES_IMAGE"),
+    `CORE_POSTGRES_IMAGE="${POSTGRES_17}"`
+  );
+  assert.equal(
+    GENERATED_LINE(legacy.output, "CORE_POSTGRES_DATA_MOUNT"),
+    'CORE_POSTGRES_DATA_MOUNT="/var/lib/postgresql/data"'
+  );
+  // Unset CORE_PGDATA_VOLUME keeps the committed volume of the environment file.
+  assert.equal(
+    GENERATED_LINE(legacy.output, "PGDATA_VOLUME"),
+    'PGDATA_VOLUME="grenmet-staging_pgdata-staging"'
+  );
+
+  const upgraded = render({
+    CORE_POSTGRES_IMAGE: POSTGRES_18,
+    CORE_PGDATA_VOLUME: "grenmet-staging_pgdata18",
+  });
+  assert.equal(upgraded.result.status, 0, upgraded.result.stderr);
+  assert.equal(
+    GENERATED_LINE(upgraded.output, "CORE_POSTGRES_DATA_MOUNT"),
+    'CORE_POSTGRES_DATA_MOUNT="/var/lib/postgresql"'
+  );
+  assert.equal(
+    GENERATED_LINE(upgraded.output, "PGDATA_VOLUME"),
+    'PGDATA_VOLUME="grenmet-staging_pgdata18"'
+  );
+});
+
+test("an image and a volume of different PostgreSQL majors are refused before any change", () => {
+  for (const change of [
+    // 18 on the old 17 volume: 18 would refuse to start and the database would be down.
+    { CORE_POSTGRES_IMAGE: POSTGRES_18 },
+    { CORE_POSTGRES_IMAGE: POSTGRES_18, CORE_PGDATA_VOLUME: "grenmet_pgdata" },
+    // 17 on the new volume, for example a rollback of only one of the two variables.
+    { CORE_PGDATA_VOLUME: "grenmet_pgdata18" },
+  ]) {
+    const { result } = render(change);
+    assert.notEqual(result.status, 0, JSON.stringify(change));
+    assert.ok(
+      result.stderr.includes(
+        "change CORE_POSTGRES_IMAGE and CORE_PGDATA_VOLUME together"
+      ),
+      result.stderr
+    );
+  }
+});
+
+test("only approved, digest-pinned PostgreSQL images and plain volume names are accepted", () => {
+  for (const image of [
+    "postgres:18",
+    `postgres:16@sha256:${"a".repeat(64)}`,
+    `postgres:19@sha256:${"a".repeat(64)}`,
+    `postgres:latest@sha256:${"a".repeat(64)}`,
+    `postgis/postgis:18-3.6@sha256:${"a".repeat(64)}`,
+  ]) {
+    const { result } = render({ CORE_POSTGRES_IMAGE: image });
+    assert.notEqual(result.status, 0, image);
+    assert.ok(result.stderr.includes("CORE_POSTGRES_IMAGE"), image);
+  }
+  for (const volume of [
+    "../grenmet_pgdata18",
+    "grenmet pgdata18",
+    "-pgdata18",
+  ]) {
+    const { result } = render({
+      CORE_POSTGRES_IMAGE: POSTGRES_18,
+      CORE_PGDATA_VOLUME: volume,
+    });
+    assert.notEqual(result.status, 0, volume);
+    assert.ok(result.stderr.includes("CORE_PGDATA_VOLUME"), volume);
+  }
+  // PostGIS stays behind the operator-recorded restore verification on both majors.
+  const postgis = `postgis/postgis:18-3.7@sha256:${"c".repeat(64)}`;
+  const unverified = render({
+    CORE_POSTGRES_IMAGE: postgis,
+    CORE_PGDATA_VOLUME: "grenmet_pgdata18",
+  });
+  assert.notEqual(unverified.result.status, 0);
+  const verified = render({
+    CORE_POSTGRES_IMAGE: postgis,
+    CORE_PGDATA_VOLUME: "grenmet_pgdata18",
+    POSTGIS_RESTORE_VERIFIED: "true",
+  });
+  assert.equal(verified.result.status, 0, verified.result.stderr);
+});
+
+test("deploy.yml passes the volume switch under a name Compose never reads from the shell", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  assert.match(workflow, VOLUME_SWITCH_PASS);
+  // An exported PGDATA_VOLUME, even empty, would override both env files in Compose.
+  assert.doesNotMatch(workflow, SHELL_PGDATA_VOLUME);
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  assert.ok(compose.includes("- pgdata:${CORE_POSTGRES_DATA_MOUNT:?"));
 });

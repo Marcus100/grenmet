@@ -4,12 +4,14 @@ on:
   # Required workflows always report; image selection happens inside jobs.
   # No workflow-level paths filter. Flow is dev → (PR) → staging → (PR) → main; those
   # promotion PRs are integration gates that must not skip checks (a path-skipped
-  # required check also deadlocks the PR). Promotion PRs check every image; dev changes select affected images.
+  # required check also deadlocks the PR). A promotion PR whose tree already passed
+  # every required check on dev reuses those results (#1239); any other promotion PR
+  # checks every image. Dev changes select affected images. Main pushes do not run CI.
   # The stable aggregate gate fails on unexpected skips or selection failures.
   # No staging push trigger: pipeline-staging calls this workflow on staging
   # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
-    branches: [main, dev]
+    branches: [dev]
   pull_request:
     branches: [main, staging, dev]
   workflow_call:
@@ -37,7 +39,11 @@ jobs:
     name: Select image checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: read
     outputs:
+      verified: ${{ steps.select.outputs.verified }}
       web: ${{ steps.select.outputs.web }}
       weather: ${{ steps.select.outputs.weather }}
       api: ${{ steps.select.outputs.api }}
@@ -53,12 +59,17 @@ jobs:
       - name: Select affected images (full set when comparison is unavailable)
         id: select
         env:
-          IMAGE_BUILD_MODE: ${{ inputs.deployment-builds && 'deployment' || ((github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' && github.base_ref == 'dev') && 'affected' || 'full') }}
+          IMAGE_BUILD_MODE: ${{ inputs.deployment-builds && 'deployment' || ((github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' && github.base_ref == 'dev') && 'affected' || (github.event_name == 'pull_request' && 'promotion' || 'full')) }}
+          # Promotion mode reads the dev commit's check-runs (#1239).
+          GH_TOKEN: ${{ github.token }}
         run: node scripts/ci/select-images.mjs
 
   # Job 1: Biome lint/format check (fast, runs on all web code)
   biome:
     name: Biome Check
+    needs: [image-selection]
+    # Skipped (reported as passed) only on a verified promotion PR (#1239).
+    if: ${{ !cancelled() && needs.image-selection.outputs.verified != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -73,6 +84,9 @@ jobs:
   # Job 2: TypeScript type-check (all web apps in parallel via Turbo)
   type-check:
     name: Type Check
+    needs: [image-selection]
+    # Skipped (reported as passed) only on a verified promotion PR (#1239).
+    if: ${{ !cancelled() && needs.image-selection.outputs.verified != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -105,6 +119,9 @@ jobs:
   # Job 3: Peer dependency audit (strict mode — catches version mismatches)
   peer-check:
     name: Peer Dependencies
+    needs: [image-selection]
+    # Skipped (reported as passed) only on a verified promotion PR (#1239).
+    if: ${{ !cancelled() && needs.image-selection.outputs.verified != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -118,6 +135,9 @@ jobs:
   # Job 4: Repository blast-radius rules across the complete change range
   guardrails:
     name: Repository Guardrails
+    needs: [image-selection]
+    # Skipped (reported as passed) only on a verified promotion PR (#1239).
+    if: ${{ !cancelled() && needs.image-selection.outputs.verified != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -170,6 +190,9 @@ jobs:
   # Job 5: Repository documentation and design-system drift
   drift:
     name: Repository Drift
+    needs: [image-selection]
+    # Skipped (reported as passed) only on a verified promotion PR (#1239).
+    if: ${{ !cancelled() && needs.image-selection.outputs.verified != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -326,7 +349,9 @@ jobs:
             const key = { 'container-smoke': 'web', 'weather-images': 'weather', 'web-coverage': 'coverage', tests: 'webtests', 'gaa-admin-tests': 'webtests', 'storage-integration': 'storage' }[name];
             const unselected = ['[]', 'false'];
             const omitted = key && selection.result === 'success' && unselected.includes(selection.outputs[key]);
-            if (job.result !== 'success' && !(omitted && job.result === 'skipped')) {
+            // A verified promotion PR reuses dev's passing results (#1239).
+            const promoted = name !== 'image-selection' && selection.result === 'success' && selection.outputs.verified === 'true';
+            if (job.result !== 'success' && !((omitted || promoted) && job.result === 'skipped')) {
               console.error(`${name}: ${job.result}`);
               process.exitCode = 1;
             }
@@ -354,7 +379,7 @@ jobs:
       - name: Log in to Docker Hub for base images
         # Fork and Dependabot PRs cannot access repository Actions secrets.
         if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -368,7 +393,7 @@ jobs:
         # Best-effort: without credentials the build simply runs cache-cold
         # rather than failing the check.
         continue-on-error: true
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -405,7 +430,7 @@ jobs:
     timeout-minutes: 15
     services:
       postgres:
-        image: ghcr.io/marcus100/base/postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
+        image: ghcr.io/marcus100/base/postgis/postgis:18-3.7@sha256:c5d1ba4292ff7b4471ff41cd515c677633797b72cdd2a7bb691cadaab91f1a1f
         env:
           POSTGRES_USER: storage_test
           POSTGRES_PASSWORD: test-only-password
@@ -417,8 +442,16 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: ./.github/actions/setup-node
-      - name: Install PostgreSQL client for runtime privilege checks
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Ensure PostgreSQL client for runtime privilege checks
+        # GitHub's Ubuntu image ships psql; apt is a fallback only, because the
+        # runner's Ubuntu mirrors have failed DNS for whole afternoons (#1262).
+        run: |
+          if command -v psql >/dev/null; then psql --version; exit 0; fi
+          for attempt in 1 2 3; do
+            sudo apt-get update && sudo apt-get install -y postgresql-client && exit 0
+            sleep $((attempt * 20))
+          done
+          exit 1
       - name: Build API client required by CMS migration configuration
         run: pnpm --filter @barrelsgd/api-client build
       - name: Fresh, concurrent and failed migrations; catalogue preservation
@@ -444,7 +477,7 @@ jobs:
       - name: Log in to Docker Hub for base images
         # Fork and Dependabot PRs cannot access repository Actions secrets.
         if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}

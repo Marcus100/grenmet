@@ -4,6 +4,34 @@
 
 Approved by the owner 2026-10-20; build it after the observations store (ADR-0032) lands.
 
+Steps 1 to 3 built 2026-11-12: `src/domain_manifest.py` (types), `src/domains.py`
+(`DOMAINS`, `MOUNT_ORDER`, `ordered_mounts`), `main.py` mounting every router
+in one loop, and the `webhooks_out` pilot (`src/webhooks_out/register.py`).
+`openapi.json` is byte-identical. Two hidden mounts moved after the API
+routes: the `/scalar` docs page and the local-only private router (which now
+loses to any API path it shares). Step 1 changed: route and tag order are not
+snapshotted, because the CI `openapi.json` regeneration diff already proves
+them; the only snapshot is a floor (`tests/snapshots/domain_registry_floor.json`:
+tables and outbox topics must not disappear), so adding a table needs no edit.
+A new domain adds one line to `DOMAINS` and one `MOUNT_ORDER` entry per router,
+not one line in total. Tags stay in `OPENAPI_TAGS` for now.
+
+Step 4 and the `contacts` pilot built 2026-11-13. Manifests name code by
+import path (`"src.x.router:router"`) instead of importing it, so
+`src/domains.py` imports no domain code and `src/database.py` and
+`alembic/env.py` read it without a circular import. A `Domain` also lists its
+schemas, model modules and `register()` modules; `database.py` calls
+`import_models()` and `run_registrations()`, and `env.py` adds
+`tracked_schemas()` to `_TRACKED_SCHEMAS`. Manifest registrations now run after
+the legacy ones; their order is not a contract (they fill lookup tables). `openapi.json` and the `alembic check` output are unchanged.
+Step 5 built 2026-11-13 with `flights` as the third pilot. A `Domain`
+lists `worker_modules` (imported by `startup` and `drain_outbox`; outbox
+handlers register on import) and `jobs` (`WorkerJob`: a `"module:attribute"`
+path and the `arq.cron` keywords). `WorkerSettings` appends them to `functions`
+and `cron_jobs`; a module `__getattr__` keeps them reachable as
+`src.worker.main.<job>`. The worker's job names and schedules are identical
+before and after. Step 6 is not started.
+
 ## Context
 
 Adding an API domain means editing four shared files in `apps/api/fastapi`, so parallel domain work collides in them.
