@@ -6,9 +6,10 @@ import { formatBookingWhen } from "@/lib/booking-when";
 const subscribe = () => () => undefined;
 
 /**
- * A booking's day and times in the browser's zone. The server cannot know the
- * viewer's zone, so it renders the element empty and the text appears once the
- * page is hydrated (no wrong time is ever printed).
+ * A booking's day and times. Before the browser has loaded (server render, no
+ * JavaScript) it shows the same times in UTC with a "UTC" label, so no reader
+ * sees an empty element. After hydration it switches to the viewer's own zone.
+ * The server snapshot is what React uses while hydrating, so the markup matches.
  */
 export function LocalBookingWhen({
   startsAt,
@@ -20,7 +21,7 @@ export function LocalBookingWhen({
   const text = useSyncExternalStore(
     subscribe,
     () => formatBookingWhen(startsAt, endsAt),
-    () => null
+    () => formatBookingWhen(startsAt, endsAt, "UTC")
   );
   return <time dateTime={startsAt}>{text}</time>;
 }

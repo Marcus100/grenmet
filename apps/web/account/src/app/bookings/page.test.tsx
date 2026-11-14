@@ -32,11 +32,12 @@ vi.mock("next/navigation", () => ({
 
 const API = "http://localhost:8000/api/v1/bookings/me/bookings";
 const BOOKINGS_BASE = "http://localhost:3015";
+const CUT_OFF_NOTICE = /Only the first/u;
 
 /** Ids must be UUIDs: the generated Zod schema checks them. */
-function row(id: string, overrides: Record<string, string> = {}) {
+function row(suffix: string, overrides: Record<string, string> = {}) {
   return {
-    id: `00000000-0000-4000-8000-${id}`,
+    id: `00000000-0000-4000-8000-${suffix}`,
     status: "confirmed",
     starts_at: "2030-01-10T14:00:00Z",
     ends_at: "2030-01-10T15:00:00Z",
@@ -85,20 +86,26 @@ async function renderPage(searchParams: Record<string, string> = {}) {
   render(element);
 }
 
+function linkNames(region: HTMLElement): (string | null)[] {
+  return within(region)
+    .getAllByRole("link")
+    .map((link) => link.textContent);
+}
+
 describe("My bookings page", () => {
-  it("lists upcoming soonest first and past in the order the API gave", async () => {
+  it("keeps the API order for upcoming (soonest first) and past (newest first)", async () => {
     replies.true = () =>
       HttpResponse.json(
         list([
-          row("000000000001", {
-            starts_at: "2030-03-01T14:00:00Z",
-            ends_at: "2030-03-01T15:00:00Z",
-            business_name: "Later Co",
-          }),
           row("000000000002", {
             starts_at: "2030-01-02T14:00:00Z",
             ends_at: "2030-01-02T15:00:00Z",
             business_name: "Sooner Co",
+          }),
+          row("000000000001", {
+            starts_at: "2030-03-01T14:00:00Z",
+            ends_at: "2030-03-01T15:00:00Z",
+            business_name: "Later Co",
           }),
         ])
       );
@@ -114,38 +121,46 @@ describe("My bookings page", () => {
       );
     await renderPage();
 
-    const upcoming = screen.getByRole("region", { name: "Upcoming" });
-    const names = within(upcoming)
-      .getAllByRole("link")
-      .map((link) => link.textContent);
-    expect(names).toEqual(["Sooner Co", "Later Co"]);
-
-    const past = screen.getByRole("region", { name: "Past" });
-    const pastNames = within(past)
-      .getAllByRole("link")
-      .map((link) => link.textContent);
-    expect(pastNames).toEqual(["Newest Past", "Older Past"]);
+    expect(linkNames(screen.getByRole("region", { name: "Upcoming" }))).toEqual(
+      ["Sooner Co", "Later Co"]
+    );
+    expect(linkNames(screen.getByRole("region", { name: "Past" }))).toEqual([
+      "Newest Past",
+      "Older Past",
+    ]);
   });
 
-  it("asks for upcoming with the largest page and past with the page size", async () => {
-    await renderPage({ past_page: "2" });
+  it("asks for both lists at their page sizes and the page each section is on", async () => {
+    await renderPage({ past_page: "2", upcoming_page: "3" });
     const upcoming = requested.find(
       (url) => url.searchParams.get("upcoming") === "true"
     );
     const past = requested.find(
       (url) => url.searchParams.get("upcoming") === "false"
     );
-    expect(upcoming?.searchParams.get("size")).toBe("1000");
+    expect(upcoming?.searchParams.get("size")).toBe("20");
+    expect(upcoming?.searchParams.get("page")).toBe("3");
     expect(past?.searchParams.get("size")).toBe("10");
     expect(past?.searchParams.get("page")).toBe("2");
   });
 
-  it("treats a page number that is not a whole number as page 1", async () => {
-    await renderPage({ past_page: "banana" });
-    const past = requested.find(
-      (url) => url.searchParams.get("upcoming") === "false"
-    );
-    expect(past?.searchParams.get("page")).toBe("1");
+  it("pages the upcoming list and keeps the past page in its links", async () => {
+    replies.true = () => HttpResponse.json(list([row("000000000005")], 45, 2));
+    await renderPage({ past_page: "4", upcoming_page: "2" });
+    const upcoming = screen.getByRole("region", { name: "Upcoming" });
+    expect(within(upcoming).getByText("Page 2 of 3")).toBeInTheDocument();
+    expect(
+      within(upcoming).getByRole("link", { name: "Previous" })
+    ).toHaveAttribute("href", "/bookings?past_page=4");
+    expect(
+      within(upcoming).getByRole("link", { name: "Next" })
+    ).toHaveAttribute("href", "/bookings?past_page=4&upcoming_page=3");
+  });
+
+  it("has no notice about a cut-off list", async () => {
+    replies.true = () => HttpResponse.json(list([row("000000000005")], 45));
+    await renderPage();
+    expect(screen.queryByText(CUT_OFF_NOTICE)).toBeNull();
   });
 
   it("shows both empty states in words, never hidden", async () => {
@@ -212,12 +227,26 @@ describe("My bookings page", () => {
     expect(reportError).not.toHaveBeenCalled();
   });
 
-  it("sends a 401 to sign-in with this page as the return target", async () => {
+  it("sends a first 401 to sign-in once, with the reauth marker in the return target", async () => {
     replies.true = () =>
       HttpResponse.json({ detail: "Gone." }, { status: 401 });
     await expect(renderPage()).rejects.toThrow(
-      "REDIRECT /signin?returnTo=%2Fbookings"
+      "REDIRECT /signin?returnTo=%2Fbookings%3Freauth%3D1"
     );
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("shows the sign-in message after a 401 that followed a sign-in, without redirecting", async () => {
+    replies.true = () =>
+      HttpResponse.json({ detail: "Gone." }, { status: 401 });
+    replies.false = () =>
+      HttpResponse.json({ detail: "Gone." }, { status: 401 });
+    await renderPage({ reauth: "1" });
+    for (const region of ["Upcoming", "Past"]) {
+      expect(
+        within(screen.getByRole("region", { name: region })).getByRole("alert")
+      ).toHaveTextContent("We could not load your bookings. Try again later.");
+    }
     expect(reportError).not.toHaveBeenCalled();
   });
 

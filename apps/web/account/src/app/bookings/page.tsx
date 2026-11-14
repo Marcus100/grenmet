@@ -1,7 +1,4 @@
-import type {
-  BookingMyBooking,
-  BookingMyBookingList,
-} from "@barrelsgd/api-client";
+import type { BookingMyBookingList } from "@barrelsgd/api-client";
 import { isAuthApiError } from "@barrelsgd/auth";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -19,22 +16,29 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-/** Query parameter for the past list's page number. */
+/** Query parameters: each section's page number. */
+const UPCOMING_PARAM = "upcoming_page";
 const PAST_PARAM = "past_page";
-const PAST_PAGE_SIZE = 10;
 /**
- * The API's largest page. It lists newest first, so a smaller page for upcoming
- * bookings would leave out the soonest ones.
+ * Set on the return trip of a sign-in that this page started after a 401. If
+ * the API refuses again, the page says so instead of sending the person round
+ * the sign-in loop once more.
  */
-const UPCOMING_SIZE = 1000;
+const REAUTH_PARAM = "reauth";
+const SECTION_PAGE_SIZE = 20;
+const PAST_PAGE_SIZE = 10;
 /** The API's largest page number. */
 const MAX_PAGE = 1_000_000;
+
+const SIGN_IN_AGAIN_RETURN = `/bookings?${REAUTH_PARAM}=1`;
 
 interface MyBookingsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-type SectionLoad = { ok: true; list: BookingMyBookingList } | { ok: false };
+type SectionLoad =
+  | { ok: true; list: BookingMyBookingList }
+  | { ok: false; reason: "refused" | "failed" };
 
 function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
@@ -48,55 +52,78 @@ function parsePage(raw: string | undefined): number {
 }
 
 /**
- * One section's bookings. A 401 means the session ended, so the person signs in
- * again, as the other pages do. Any other 4xx is shown inline without a report;
- * anything else (server or network failure, unreadable body) is reported.
+ * One section's bookings. A 401 sends the person to sign in once, with the
+ * reauth marker in the return target. A 401 that arrives after that sign-in
+ * is shown inline instead, so the page cannot loop. Other 4xx are shown inline
+ * without a report; anything else (server or network failure, unreadable body)
+ * is reported.
  */
 async function loadSection(
   accessToken: string,
-  query: MyBookingsQuery
+  query: MyBookingsQuery,
+  afterReauth: boolean
 ): Promise<SectionLoad> {
   try {
     return { ok: true, list: await getMyBookings(accessToken, query) };
   } catch (error) {
     if (isAuthApiError(error) && error.status === 401) {
-      redirect(`/signin?${new URLSearchParams({ returnTo: "/bookings" })}`);
+      if (!afterReauth) {
+        redirect(
+          `/signin?${new URLSearchParams({ returnTo: SIGN_IN_AGAIN_RETURN })}`
+        );
+      }
+      return { ok: false, reason: "refused" };
     }
-    if (!(isAuthApiError(error) && error.status >= 400 && error.status < 500)) {
-      reportError(error, "account-my-bookings");
+    if (isAuthApiError(error) && error.status >= 400 && error.status < 500) {
+      return { ok: false, reason: "refused" };
     }
-    return { ok: false };
+    reportError(error, "account-my-bookings");
+    return { ok: false, reason: "failed" };
   }
 }
 
-function sortSoonestFirst(
-  rows: readonly BookingMyBooking[]
-): BookingMyBooking[] {
-  return [...rows].sort(
-    (a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at)
-  );
+function failureSentence(
+  section: "upcoming" | "past",
+  reason: "refused" | "failed",
+  afterReauth: boolean
+): string {
+  if (afterReauth && reason === "refused") {
+    return "We could not load your bookings. Try again later.";
+  }
+  return `Your ${section} bookings could not be loaded just now. Refresh the page to try again.`;
 }
 
 /**
- * The signed-in person's bookings with every business: upcoming (soonest first)
- * and past (newest first, paged). Each section fails on its own.
+ * The signed-in person's bookings with every business: upcoming (soonest first,
+ * as the API orders them) and past (newest first). Both are paged and each
+ * section fails on its own.
  */
 export default async function MyBookingsPage({
   searchParams,
 }: MyBookingsPageProps) {
   const session = await requireSession("/bookings");
   const params = await searchParams;
+  const afterReauth = first(params[REAUTH_PARAM]) === "1";
+  const upcomingPage = parsePage(first(params[UPCOMING_PARAM]));
   const pastPage = parsePage(first(params[PAST_PARAM]));
 
   const [upcoming, past] = await Promise.all([
-    loadSection(session.accessToken, { upcoming: true, size: UPCOMING_SIZE }),
-    loadSection(session.accessToken, {
-      upcoming: false,
-      page: pastPage,
-      size: PAST_PAGE_SIZE,
-    }),
+    loadSection(
+      session.accessToken,
+      { upcoming: true, page: upcomingPage, size: SECTION_PAGE_SIZE },
+      afterReauth
+    ),
+    loadSection(
+      session.accessToken,
+      { upcoming: false, page: pastPage, size: PAST_PAGE_SIZE },
+      afterReauth
+    ),
   ]);
   const bookingsBaseUrl = env.BOOKINGS_APP_URL;
+  const upcomingKeep: Record<string, string> =
+    pastPage > 1 ? { [PAST_PARAM]: String(pastPage) } : {};
+  const pastKeep: Record<string, string> =
+    upcomingPage > 1 ? { [UPCOMING_PARAM]: String(upcomingPage) } : {};
 
   return (
     <main
@@ -118,22 +145,28 @@ export default async function MyBookingsPage({
         {upcoming.ok ? (
           <>
             <BookingList
-              bookings={sortSoonestFirst(upcoming.list.data)}
+              bookings={upcoming.list.data}
               bookingsBaseUrl={bookingsBaseUrl}
               emptyBody="Bookings you make while signed in appear here."
-              emptyTitle="No upcoming bookings"
+              emptyTitle={
+                upcomingPage > 1
+                  ? "No upcoming bookings on this page"
+                  : "No upcoming bookings"
+              }
             />
-            {upcoming.list.count > upcoming.list.data.length ? (
-              <p className="text-muted-foreground text-sm">
-                Only the first {upcoming.list.data.length} of{" "}
-                {upcoming.list.count} upcoming bookings are listed.
-              </p>
-            ) : null}
+            <ListPager
+              keep={upcomingKeep}
+              page={upcomingPage}
+              pageCount={Math.max(
+                1,
+                Math.ceil(upcoming.list.count / SECTION_PAGE_SIZE)
+              )}
+              pageParam={UPCOMING_PARAM}
+            />
           </>
         ) : (
           <p className="text-muted-foreground" role="alert">
-            Your upcoming bookings could not be loaded just now. Refresh the
-            page to try again.
+            {failureSentence("upcoming", upcoming.reason, afterReauth)}
           </p>
         )}
       </section>
@@ -155,6 +188,7 @@ export default async function MyBookingsPage({
               }
             />
             <ListPager
+              keep={pastKeep}
               page={pastPage}
               pageCount={Math.max(
                 1,
@@ -165,8 +199,7 @@ export default async function MyBookingsPage({
           </>
         ) : (
           <p className="text-muted-foreground" role="alert">
-            Your past bookings could not be loaded just now. Refresh the page to
-            try again.
+            {failureSentence("past", past.reason, afterReauth)}
           </p>
         )}
       </section>

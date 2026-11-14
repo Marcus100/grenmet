@@ -17,4 +17,10 @@ describe("formatBookingWhen", () => {
       "Saturday, 14 November 2026, 11:00 pm to Sunday, 15 November 2026, 12:30 am"
     );
   });
+
+  it("gives the same times in UTC with a UTC label for the fallback", () => {
+    expect(
+      formatBookingWhen("2030-01-10T14:00:00Z", "2030-01-10T15:30:00Z", "UTC")
+    ).toBe("Thursday, 10 January 2030, 2:00 pm UTC to 3:30 pm UTC");
+  });
 });

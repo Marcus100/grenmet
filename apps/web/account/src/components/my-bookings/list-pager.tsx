@@ -3,22 +3,33 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 
 interface ListPagerProps {
+  /** Other parameters to keep, so the other section keeps its page. */
+  keep?: Record<string, string>;
   /** The page on screen, 1-indexed. */
   page: number;
   pageCount: number;
-  /** Query parameter that carries the page number on /bookings. */
+  /** Query parameter that carries this list's page number on /bookings. */
   pageParam: string;
 }
 
-/** Previous and next links; page 1 has no parameter so its URL stays clean. */
-function pageHref(pageParam: string, page: number) {
+/** Previous and next links; page 1 has no page parameter so its URL stays clean. */
+function pageHref(
+  pageParam: string,
+  page: number,
+  keep: Record<string, string>
+) {
   return {
     pathname: "/bookings" as const,
-    query: page === 1 ? {} : { [pageParam]: String(page) },
+    query: page === 1 ? keep : { ...keep, [pageParam]: String(page) },
   };
 }
 
-export function ListPager({ page, pageCount, pageParam }: ListPagerProps) {
+export function ListPager({
+  page,
+  pageCount,
+  pageParam,
+  keep = {},
+}: ListPagerProps) {
   if (pageCount <= 1) return null;
   const previous = page > 1 ? page - 1 : null;
   const next = page < pageCount ? page + 1 : null;
@@ -30,7 +41,7 @@ export function ListPager({ page, pageCount, pageParam }: ListPagerProps) {
       ) : (
         <Link
           className={cn(buttonVariants({ variant: "outline" }))}
-          href={pageHref(pageParam, previous)}
+          href={pageHref(pageParam, previous, keep)}
         >
           Previous
         </Link>
@@ -43,7 +54,7 @@ export function ListPager({ page, pageCount, pageParam }: ListPagerProps) {
       ) : (
         <Link
           className={cn(buttonVariants({ variant: "outline" }))}
-          href={pageHref(pageParam, next)}
+          href={pageHref(pageParam, next, keep)}
         >
           Next
         </Link>

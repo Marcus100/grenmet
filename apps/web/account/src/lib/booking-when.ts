@@ -11,19 +11,29 @@ const CLOCK: Intl.DateTimeFormatOptions = {
 };
 
 /**
- * "Saturday 14 November 2026, 10:00 am to 11:00 am" in the viewer's own zone.
- * The API sends no timezone for a booking, so none is shown or assumed. A
- * booking that ends on another day repeats the day for its end time.
+ * "Saturday, 14 November 2026, 10:00 am to 11:00 am". With `"UTC"` the same
+ * text is in UTC and the clock times carry a "UTC" label; this is the text
+ * shown before the browser has loaded, so the zone is never hidden. Without it,
+ * the viewer's own zone is used and nothing is labelled, because the API sends
+ * no timezone for a booking. A booking that ends on another day repeats the
+ * day for its end time.
  */
-export function formatBookingWhen(startsAt: string, endsAt: string): string {
+export function formatBookingWhen(
+  startsAt: string,
+  endsAt: string,
+  zone?: "UTC"
+): string {
   const start = new Date(startsAt);
   const end = new Date(endsAt);
-  const startDay = new Intl.DateTimeFormat("en-GB", DAY).format(start);
-  const startClock = new Intl.DateTimeFormat("en-GB", CLOCK).format(start);
-  const endClock = new Intl.DateTimeFormat("en-GB", CLOCK).format(end);
-  if (start.toDateString() === end.toDateString()) {
-    return `${startDay}, ${startClock} to ${endClock}`;
+  const zoneOption: Intl.DateTimeFormatOptions = zone ? { timeZone: zone } : {};
+  const suffix = zone ? ` ${zone}` : "";
+  const day = (instant: Date) =>
+    new Intl.DateTimeFormat("en-GB", { ...DAY, ...zoneOption }).format(instant);
+  const clock = (instant: Date) =>
+    `${new Intl.DateTimeFormat("en-GB", { ...CLOCK, ...zoneOption }).format(instant)}${suffix}`;
+
+  if (day(start) === day(end)) {
+    return `${day(start)}, ${clock(start)} to ${clock(end)}`;
   }
-  const endDay = new Intl.DateTimeFormat("en-GB", DAY).format(end);
-  return `${startDay}, ${startClock} to ${endDay}, ${endClock}`;
+  return `${day(start)}, ${clock(start)} to ${day(end)}, ${clock(end)}`;
 }
