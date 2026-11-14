@@ -1,8 +1,12 @@
 # Printix Scanner (`@barrelsgd/pwa-printix`)
 
 Port **3064** (local dev only). Static export (`output: "export"`, written to
-`out/`); not deployed yet (target `scan.printixevent.com`, which needs a
-trusted certificate). Response headers live in `public/_headers`. Lane spec:
+`out/`). Test address: `https://printix-scanner.pages.dev` (Cloudflare Pages
+project `printix-scanner`, direct upload of `out/` with
+`wrangler pages deploy out --project-name printix-scanner --branch main`;
+create Pages projects through the Cloudflare API, since `wrangler pages
+project create` now tries to convert the app to a Worker). Final address
+`scan.printixevent.com` waits for the client, who controls that domain. Response headers live in `public/_headers`. Lane spec:
 `docs/design/printix.md`.
 
 Printix is a **client's** product: security-printed event tickets with a
