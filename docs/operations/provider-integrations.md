@@ -2,7 +2,7 @@
 
 **Status:** Active reference — configuration prepared; live acceptance pending  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-18
+**Last updated:** 2026-11-14
 
 Status: repository configuration prepared; account-side setup and live acceptance
 remain pending. No VM, DNS, account subscription or deployment was changed.
@@ -11,7 +11,7 @@ output on 2026-09-10:
 
 | Environment | Host | SSH account | Root disk usage shown at login |
 | --- | --- | --- | --- |
-| Staging | `grenmet-staging-01` (IP: see the DigitalOcean dashboard) | `root` | 62.1% of 47.39 GB |
+| Staging | `grenmet-staging-01` (IP: see the DigitalOcean dashboard) | `root` in September; `deploy` with sudo now (root and password login off, verified 2026-11-14) | 62.1% of 47.39 GB |
 | Production | `grenmet-prod` (IP: see the DigitalOcean dashboard) | `deploy` | 96.2% of 47.39 GB (44% on 2026-10-18) |
 
 **Production re-check, 2026-10-18** (owner-run, read-only commands): root disk
@@ -31,7 +31,8 @@ Exactly one GitHub Actions runner is registered and running on production:
 Before pruning anything, start with `df -h /`, `docker system df` and a
 container inventory. Do not prune database volumes or backup files blindly.
 Both hosts reported a pending restart in September; plan maintenance after
-confirming services, backups and recovery access.
+confirming services, backups and recovery access. On 2026-11-14 neither host had
+a reboot pending.
 
 Current repository domains are `*.staging.barrels.gd` and `*.barrels.gd`;
 confirm the GMS public aliases before changing DNS. GAA/GMS and Barrels products

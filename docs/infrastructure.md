@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-13
+**Last updated:** 2026-11-14
 
 This guide documents the operational infrastructure implemented in this repo today. For first-time server setup see [deployment.md](deployment.md). For local development failures see [troubleshooting.md](troubleshooting.md).
 
@@ -18,9 +18,21 @@ Staging and production run as Docker Compose stacks on dedicated DigitalOcean dr
 Both core droplets are DigitalOcean `s-2vcpu-4gb` (4 GB, 2 vCPU, region `nyc1`)
 since 2026-11-12, each running Ubuntu 24.04 and Docker Engine 29.
 
+State on 2026-11-14:
+
+- **Release:** production runs v1.0.8, published from `main` on 2026-11-14 (UTC) and
+  deployed by the Production Pipeline. `dev` is ahead of it.
+- **Database schema:** `alembic check` was run on production after v1.0.8 and
+  reported no differences between the models and the migrated database (the
+  follow-up from PR #1304).
+- **SSH:** on both droplets the administrator logs in as the `deploy` user. On
+  staging that user has sudo, and root login and password login over SSH are off
+  ([host hardening runbook](operations/host-hardening.md), step 2).
+- **Restarts:** neither droplet has a reboot pending.
+
 Each stack includes:
 
-- `db`: PostgreSQL 18 (staging and production stay on 17 until each runs the upgrade in [the PostgreSQL 18 upgrade plan](operations/postgres-18-upgrade.md); the image, data mount and volume move together). The same server hosts separate databases for FastAPI (which also holds the `events` schema, ADR-0003), `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister` and the CMS (`gms_cms`).
+- `db`: PostgreSQL 18 on staging since 2026-11-14; PostgreSQL 17 on production until it runs the upgrade in [the PostgreSQL 18 upgrade plan](operations/postgres-18-upgrade.md) (the image, data mount and volume move together). The same server hosts separate databases for FastAPI (which also holds the `events` schema, ADR-0003), `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister` and the CMS (`gms_cms`).
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP publish jobs, notification and email outboxes, retention purge; see `src/worker/AGENTS.md`).
