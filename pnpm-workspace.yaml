@@ -129,9 +129,9 @@ catalog:
   # API client generator (packages/api-client). Exact pins so `kubb generate`
   # output only changes when these are bumped on purpose. The @kubb plugins
   # version independently of the kubb core, so each keeps its own version.
-  kubb: 5.18.1
-  "@kubb/adapter-oas": 5.18.1
-  "@kubb/parser-ts": 5.18.1
+  kubb: 5.18.0
+  "@kubb/adapter-oas": 5.18.0
+  "@kubb/parser-ts": 5.18.0
   "@kubb/plugin-fetch": 5.13.2
   "@kubb/plugin-react-query": 5.9.1
   "@kubb/plugin-ts": 5.4.2
