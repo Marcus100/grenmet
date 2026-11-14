@@ -1,15 +1,16 @@
 # PostgreSQL 18 upgrade and restore-drill runbook
 
-**Status:** Approved by the owner 2026-11-13. Staging first, then production with the owner present  
+**Status:** Stage 2 (staging) done 2026-11-14. Stage 3 (production) not done; production is still on 17  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-13
+**Last updated:** 2026-11-14
 
 The operator steps and stop rules for moving the core database from PostgreSQL 17
 to 18 (issue #926 for the drill, issue #1024 item 4 for this runbook). The plan, the
 safety rules for the switch, the **PostgreSQL major upgrade** workflow and the
-rollback are in the [upgrade plan](postgres-18-upgrade.md). Development, CI and the
-restore drill default already run 18; staging and production stay on 17 until each
-runs the upgrade.
+rollback are in the [upgrade plan](postgres-18-upgrade.md), which also records the
+staging run and its three lessons. Development, CI and the restore drill default run
+18. Staging runs 18 since 2026-11-14. Production stays on 17 until it runs the
+upgrade.
 
 ## Rules that apply to every step
 
@@ -30,8 +31,8 @@ runs the upgrade.
 
 ## What PostGIS means here
 
-Staging and production run plain `postgres:17`, with `CORE_POSTGRES_IMAGE` checked by
-`scripts/production/render-env.py`. No application database creates the PostGIS
+Staging runs plain `postgres:18` (since 2026-11-14) and production plain `postgres:17`,
+with `CORE_POSTGRES_IMAGE` checked by `scripts/production/render-env.py`. No application database creates the PostGIS
 extension; the only extension migrations create is `btree_gist`. The PostGIS image
 (`postgis/postgis:18-3.7`) is the local development and test image. So the PostGIS part of the move is a development and CI change; nothing in
 production needs `ALTER EXTENSION postgis UPDATE` unless PostGIS is installed first.
@@ -55,17 +56,29 @@ production needs `ALTER EXTENSION postgis UPDATE` unless PostGIS is installed fi
 
 ## Stage 2: staging rehearsal
 
-Follow "Run it" in the [upgrade plan](postgres-18-upgrade.md#run-it-staging-first-then-production)
+**Done on 2026-11-14.** The workflow ran from the `staging` branch as a dry run, then
+as an upgrade: 8 databases, about 109 MB, every phase ok, about 4 minutes from
+stopping the services to passing smoke checks (reopen, 128 seconds, was the longest
+phase). The record and the three lessons are in the
+[upgrade plan](postgres-18-upgrade.md#staging-run-2026-11-14). The old 17 volume
+stays untouched for at least 14 days.
+
+For a repeat (for example after a rollback), follow "Run it" in the
+[upgrade plan](postgres-18-upgrade.md#run-it-staging-first-then-production)
 on staging: set both GitHub variables, run the workflow as a dry run, then as an
-upgrade. Record every phase's time from the run summary. Also check on staging only,
-because it was not checked locally: the Payload CMS (`pg` driver) against 18, and real
-data size and timing.
+upgrade. Record every phase's time from the run summary.
 
 ## Stage 3: production (owner present)
 
-1. Preconditions: stage 1 passed on production dumps, stage 2 recorded and clean,
-   the pull request that changes every pinned file is merged to `dev` and promoted,
-   and the owner has booked and announced the write-freeze window.
+1. Preconditions: stage 1 passed on production dumps, stage 2 recorded and clean
+   (done 2026-11-14), the release that carries the workflow is on `main` (done:
+   v1.0.8; GitHub only runs a `workflow_dispatch` workflow whose file is on the
+   default branch), and the owner has booked and announced the write-freeze window.
+   On the production droplet the work folder (`PG_UPGRADE_DIR`, default
+   `/var/backups/grenmet/pg-major-upgrade`) exists and is writable by the runner
+   user before the dry run; on staging it had to be created by hand. Between
+   setting the two GitHub variables and running the upgrade, no production deploy
+   runs.
 2. Run **Backup database** immediately before, note the backup id in the release
    notes, and confirm the off-host copy.
 3. Follow the same steps as staging, with the workflow dispatched from the release tag.
@@ -91,8 +104,9 @@ data size and timing.
 - The drill has not been run against real backups on any version
   ([launch checklist](launch-checklist.md#restore-drill)); the read-only Spaces key is
   an owner action.
-- `pg_upgrade` and the CMS on 18 are unchecked; the upgrade script was rehearsed locally
-  only, on synthetic data.
+- `pg_upgrade` is unchecked. The upgrade script has run on real data once, on staging
+  (2026-11-14); no separate check of the CMS on 18 is recorded beyond that run's smoke
+  checks.
 - Nothing opens an issue when the drill fails: watch the run.
 - The final dumps of each upgrade stay on the droplet until removed by hand with the old
   volume, after at least 14 days and with the owner's go

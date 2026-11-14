@@ -11,7 +11,10 @@ and apps move here in later PRs. Sign-in stays on `auth.barrels.gd`
   `/auth/callback` redeems the one-use code with `ACCOUNT_SSO_CLIENT_SECRET`,
   `/auth/logout` ends this app's session only. Registry key `account`
   (`apps/api/fastapi/src/auth/apps.py`). The callback returns 503 while the
-  secret is empty, so nobody can complete sign-in.
+  secret is empty, so nobody can complete sign-in. That is the state on
+  production (14 Nov 2026): the secret is not set there, so sign-in is off. On
+  staging sign-in works but stops at a "Join" prompt, which is wrong for an app
+  every person should have (#1335).
 - The session is a host-only `ACCOUNT_SESSION_COOKIE_NAME` cookie
   (`account_session`). `src/lib/session.ts` exchanges it for an app-scoped
   access token on the server; FastAPI checks the token on every call.
@@ -91,8 +94,15 @@ src/app/
   `auth` (ADR-0057 migration steps 2 and 3).
 - Content-Security-Policy `img-src`: profile photos redirect to presigned object
   storage; add that origin before the account policy is enforced.
-- `render-env.py` and `deploy.yml` do not carry `ACCOUNT_SSO_CLIENT_SECRET` yet;
-  the Better Stack monitor and DNS are production-only steps (ADR-0057 step 5).
+- Production wiring (#1335, ADR-0057 step 5): `render-env.py` and `deploy.yml`
+  carry `ACCOUNT_SSO_CLIENT_SECRET` (PR #1360), but the secret is not set on
+  production yet. The Cloudflare origin-secret rule must be re-applied for
+  production before the host goes live there (done for staging on 14 Nov 2026;
+  `docs/operations/cloudflare-proxy.md`, step 3). The Better Stack monitor and
+  DNS are production-only steps too.
+- Sign-in should not stop at a "Join" prompt for this app (#1335).
+- Release state: the scaffold and the profile photo page are in v1.0.8; My
+  bookings is on `dev` only (#1385).
 
 ## Tests
 

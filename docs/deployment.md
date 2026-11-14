@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-12
+**Last updated:** 2026-11-14
 
 > Current releases use `docker-compose.deploy.yml` and the canonical domain table
 > at the end of this guide. The per-environment `docker-compose.prod.yml` and
@@ -13,8 +13,9 @@ Each environment runs on its own dedicated Digital Ocean droplet. Elections Gren
 is the exception: it deploys independently to Vercel; see [its deployment guide](web/elections-deployment.md).
 Static sites are moving to Cloudflare Pages ([ADR-0036](adr/0036-hosting-split.md) amendment); `commit.barrels.gd` is already there.
 
-For operational SSH access, use the `deploy` account on production and `root` on
-staging. Authenticate with the existing SSH key; DigitalOcean API authentication
+For operational SSH access, use the `deploy` account on both production and
+staging. On staging it has sudo, and root login and password login over SSH are
+off (checked by the owner on 2026-11-13: root refused, `deploy` accepted). Authenticate with the existing SSH key; DigitalOcean API authentication
 through `doctl` does not unlock an encrypted SSH key.
 
 ## Pipeline overview
@@ -145,7 +146,7 @@ Go into each environment and add the following secrets. Staging and production u
 | `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment and per app)   |
 | `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment and per app) |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Bookings single sign-on secret (optional; empty keeps sign-in off; the API must register `bookings` first) | `openssl rand -base64 32` (different per environment and per app) |
-| `ACCOUNT_SSO_CLIENT_SECRET` | Account single sign-on secret (optional; empty keeps sign-in off; the API must register `account` first). Compose passes it to `api` and `web-account`; `render-env.py` and `deploy.yml` do not carry it yet (follow-up, ADR-0057) | `openssl rand -base64 32` (different per environment and per app) |
+| `ACCOUNT_SSO_CLIENT_SECRET` | Account single sign-on secret (optional; empty keeps sign-in off; the API must register `account` first). Compose passes it to `api` and `web-account`; `render-env.py` and `deploy.yml` carry it (PR #1360). Not set on production on 2026-11-14, so account sign-in is off there (#1335) | `openssl rand -base64 32` (different per environment and per app) |
 | `EVENTS_SSO_CLIENT_SECRET` | Events single sign-on secret (optional) | `openssl rand -base64 32` (different per environment)        |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
@@ -238,7 +239,7 @@ nslookup auth.staging.barrels.gd
 
 ### 2.3 Install Docker
 
-SSH into the droplet as root, then run:
+SSH into the droplet (as root on a brand-new droplet; as `deploy` with `sudo` on the existing ones), then run:
 
 ```bash
 curl -fsSL https://get.docker.com | sh
@@ -358,7 +359,7 @@ Verify login, return URLs, and any data-backed pages you changed.
 
 1. Open a PR from `staging` to `main`; wait for checks and merge on GitHub.
 2. Go to **Releases → Draft a new release**.
-3. Choose a new, increasing `vX.Y.Z` tag (e.g. `v1.0.8`) targeting `main` and publish the release.
+3. Choose a new, increasing `vX.Y.Z` tag (e.g. `v1.0.9`; v1.0.8 was published on 2026-11-14) targeting `main` and publish the release.
 4. Watch **Production Pipeline** build all images at that tag and deploy them.
 5. Verify the production domains and API readiness as above.
 
@@ -389,6 +390,14 @@ deployment host.
 A new required secret goes in `REQUIRED_SECRETS` in
 `scripts/production/render-env.py` and in the `deploy.yml` env block; the same
 test fails if either is missing.
+
+A new web app also brings a new hostname. Besides the port list in
+[ports.md](ports.md#where-each-web-app-port-lives), re-apply the Cloudflare
+origin-secret rule for each environment after the release that adds the host
+(`python3 scripts/production/cloudflare-origin-header.py --environment <env> --apply`;
+[Cloudflare proxy runbook](operations/cloudflare-proxy.md), step 3). The rule lists
+hostnames, so a host missing from it answers 403 on every request once the proxy
+gate is on.
 
 ### Image pulls
 
@@ -459,7 +468,7 @@ clean before you set it for `production`.
 ### Runner is offline
 
 ```bash
-# On the server, as root:
+# On the server, with sudo:
 cd /home/github/actions-runner
 ./svc.sh status
 ./svc.sh start

@@ -63,7 +63,7 @@ authoritative for priority. Tenancy follows
 | Bookings | One shared, organisation-scoped appointments API in FastAPI for every app; Babydoll Beauty Bar is the first tenant ([ADR-0024](../adr/0024-bookings-domain.md)) |
 | Booking engine | Port Easy!Appointments' model and availability rules into a native domain (clean-room; GPL code is never copied); no external engine |
 | Studio | Each client manages bookings in a signed-in `/studio` area of its own site (Barrels ID, organisation admin) |
-| Deposits | Taken on Barrels' merchant account through the provider-neutral adapter; Stripe and Republic Bank ePay (owner approaching the bank); whichever onboards first ships first |
+| Deposits | Taken on Barrels' merchant account through the provider-neutral adapter; Stripe and Republic Bank ePay (owner approaching the bank); whichever onboards first ships first. **Direction of 13 Nov 2026** (owner; issue #1372, no code yet): try both Stripe and Republic Bank's e-commerce service; each business is paid directly through its own merchant account and Barrels charges a subscription (Barrels does not hold client funds); online payment for bookings is optional, customers may pay in the salon |
 
 ## 30-day plan (2026-10-18 to 2026-11-17)
 
@@ -233,7 +233,7 @@ Three staging failures tonight passed every local gate:
 | Decision | Choice |
 | --- | --- |
 | Platform foundations | Build the shared APIs every future app uses before more product features: org config and access, reliability primitives, payments core, org contacts, org API keys, outbound webhooks and feature flags (PF-series below) |
-| Payments | Build a provider-neutral payments core **plus a Stripe test-mode adapter** now, with funds on Barrels' merchant account and payouts manual ([ADR-0027](../adr/0027-payments-core-and-providers.md)). No live card rail until the owner approves |
+| Payments | Build a provider-neutral payments core **plus a Stripe test-mode adapter** now, with funds on Barrels' merchant account and payouts manual ([ADR-0027](../adr/0027-payments-core-and-providers.md)). No live card rail until the owner approves. **Direction of 13 Nov 2026** (owner; issue #1372, no code yet): try both Stripe and Republic Bank's e-commerce service; each business is paid directly through its own merchant account and Barrels charges a subscription (Barrels does not hold client funds); online payment for bookings is optional, customers may pay in the salon |
 | API keys | Organisation-scoped; scopes come from `permissions.py` and are never wider than the creator's role; stored hashed, shown once, expiring, rotatable, audited ([ADR-0029](../adr/0029-organisation-api-keys-and-webhooks.md)). Supersedes "N4 waits for a client" |
 | Migration of existing domains | Each primitive ships with one pilot consumer; other domains move one per PR |
 | Rewards | Generic earn sources, Passport and trails, achievements, check-in streaks, organisation rewards admin. Guardrails relaxed for opt-in leaderboards, community challenges and stamp gifting, under constraints ([ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md)) |

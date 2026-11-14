@@ -2,7 +2,7 @@
 
 **Status:** Active checklist; every item below is open until the owner ticks it  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-10-30
+**Last updated:** 2026-11-14
 
 Planned launch: about 10 November 2026. The five daily monitoring issues
 ([#644](https://github.com/Marcus100/grenmet/issues/644) sentry,
@@ -352,7 +352,7 @@ owner something is down. Status on 2026-10-30 is from `gh secret list` and
 | production-backup | `BACKUP_HEARTBEAT_URL` | secret | missing (read by `backup-database.yml`) |
 | production | `WORKER_HEARTBEAT_URL` | secret | missing |
 | production | `TELEMETRY_ENABLED` | variable | missing |
-| production | `MONITORING_DEPLOY_ENABLED` | variable | missing |
+| production | `MONITORING_DEPLOY_ENABLED` | variable | missing. Do not set it before the runner user can run the monitoring install: on staging the deploy step failed with "sudo: a password is required" on 2026-11-14 and the variable was removed again ([known gap](analytics-monitoring.md#known-gap-staging-probes-and-the-monitoring-install-2026-11-14)) |
 | production | `SENTRY_CRONS_ENABLED` | variable (reaches the worker) | missing; check plan limits first |
 | production | `AUTH_TOTP_ENCRYPTION_KEYS`, `AUTH_PRIVILEGED_MFA_MODE` | secret, variable | missing; see [launch checklist](launch-checklist.md) |
 | production | `SENTRY_AUTH_TOKEN`, `SENTRY_DSN_PRODUCTION` | secrets | present |

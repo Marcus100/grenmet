@@ -3,7 +3,7 @@
 **Status:** Authoritative repository coverage map  
 **Effective:** 2026-08-16  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-31
+**Last updated:** 2026-11-14
 
 ## Purpose
 
@@ -31,7 +31,10 @@ X-like community app. Neither is an implemented repository surface. No package,
 port or deployment allocation is made here. Barrels owns product acceptance;
 the portfolio amendment records discovery dependencies.
 
-The auth application currently includes account management and rewards. Moving
+The auth application currently includes account management and rewards. Since
+ADR-0057 (2026-11-13) a separate account app holds the profile photo (in
+v1.0.8) and My bookings (on `dev`); the other account pages, tickets and
+rewards still live in the auth app until ADR-0057 steps 2 to 4. Moving
 those experiences into the daily home is future work, gated on identity and
 migration design. The target separate personal and per-business work accounts
 must not be presented as existing enforcement. Client sites and standalone apps
@@ -46,15 +49,15 @@ retain their own purpose; the Barrels admin control plane remains distinct.
 | `apps/web/cap` | GMS-branded public CAP alert hub (active alerts, map, history, feeds); built and operated by Barrels for GMS | Built, deploy wired (compose + release scope), awaiting DNS for `cap.barrels.gd` | Public alert hub first; sign-in CAP authoring moves here from `apps/web/gaa-admin` later |
 | `apps/web/gmsdash` | GMS Dashboard: GMS client service giving organisations raw ECMWF/NOAA model point meteograms (not an official forecast); access by organisation entitlement approved by GMS | Built, deploy wired (compose + release scope), awaiting DNS for `gmsdash.barrels.gd` and `GMSDASH_SSO_CLIENT_SECRET` | Premium GMS products for external users; more products join later |
 | `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Vercel site at barrels.gd |
-| `apps/web/babydoll` | Client website for Babydoll Beauty Bar (lash, brow and skin studio); built by Barrels, client owns its name, logo and content | Live (static) at `babydoll.barrels.gd`; pilot tenant for Barrels Bookings | Independent Next.js Vercel site; `/book`, `/booking/[token]` and `/studio` arrive with B4 and B5; the client's own domain `babydollbeautybar.com` later |
+| `apps/web/babydoll` | Client website for Babydoll Beauty Bar (lash, brow and skin studio); built by Barrels, client owns its name, logo and content | Live (static) at `babydoll.barrels.gd`; pilot tenant for Barrels Bookings | Static Next.js export on Vercel, moving to Cloudflare Pages; takes no bookings since 2026-11-13 (Book buttons open the studio's page on `apps/web/bookings` after the cutover; the studio screens are in that app); the client's own domain `babydollbeautybar.com` later |
 | `apps/web/commit` | Commit, the Barrels Grenada engineering blog: one post per release, starting with 1.0.0 | Built; not yet deployed (target `commit.barrels.gd`) | Static Next.js export on Cloudflare Pages (ADR-0036 amendment); posts are MDX in `content/posts/` |
 | `apps/web/gaa-admin` | GAA staff portal with GMS and GAA modules | Active; renamed at transition boundary 7 | `apps/web/gaa-admin`; GMS pilot followed by GAA department rollout |
 | `apps/web/gms` | GMS public weather service | Active foundation; renamed at transition boundary 6 | `apps/web/gms`; forecasts, observations, warnings, and public products |
 | `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
-| `apps/web/bookings` | Barrels Bookings: appointment booking for Grenada businesses (ADR-0024) | Skeleton | Public booking pages at `bookings.barrels.gd/{business}` and `/studio` on Barrels sign-in; booking widgets come from the shared package when extracted |
-| `apps/web/account` | Barrels account: a person's name, email and profile photo (ADR-0057) | Scaffold | `account.barrels.gd`; signs in through `auth.barrels.gd` (single sign-on); photo API from the FastAPI profile-images routes |
+| `apps/web/bookings` | Barrels Bookings: appointment booking for Grenada businesses (ADR-0024) | Live on production (it was deployed before v1.0.8); pilot tenant not yet seeded there (2026-11-14) | Public booking pages at `bookings.barrels.gd/{business}` and `/studio` on Barrels sign-in; the booking flow comes from `packages/bookings-web` |
+| `apps/web/account` | Barrels account: a person's name, email and profile photo (ADR-0057), plus My bookings on `dev` (ADR-0058) | Partly built: step 1 in v1.0.8; sign-in off on production until its secret is set (#1335) | `account.barrels.gd`; signs in through `auth.barrels.gd` (single sign-on); photo API from the FastAPI profile-images routes |
 | `apps/web/elections` | Barrels Elections Grenada product (Grenada election coverage and history) | Prototype; 2026 coverage first | Election coverage and results history from static checked data; a FastAPI domain for results night later |
 | `apps/web/signal` | Barrels Signal media product | Active | Editorial reader redesign and discovery preview; dedicated Signal CMS deferred until frontend review |
 | `apps/web/mbia` | GAA/MBIA passenger public service | Active | Keep distinct from GAA corporate and staff applications |
