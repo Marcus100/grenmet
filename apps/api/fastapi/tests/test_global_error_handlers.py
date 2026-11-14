@@ -116,15 +116,33 @@ async def test_unexpected_integrity_error_is_500(client: httpx.AsyncClient) -> N
 
 @pytest.mark.asyncio
 async def test_unique_violation_still_409_and_logged(
-    client: httpx.AsyncClient, caplog: pytest.LogCaptureFixture
+    client: httpx.AsyncClient,
 ) -> None:
-    with caplog.at_level(logging.WARNING, logger="src.exceptions"):
+    # Capture on the logger itself, not through caplog's root handler: another
+    # test in the same shard can reconfigure logging (propagate off, loggers
+    # disabled), which made this assertion depend on test order.
+    records: list[logging.LogRecord] = []
+
+    class _Collect(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            records.append(record)
+
+    target = logging.getLogger("src.exceptions")
+    handler = _Collect(level=logging.WARNING)
+    was_disabled, old_level = target.disabled, target.level
+    target.disabled = False
+    target.setLevel(logging.WARNING)
+    target.addHandler(handler)
+    try:
         response = await client.get("/_test-error-handlers/unique")
+    finally:
+        target.removeHandler(handler)
+        target.disabled = was_disabled
+        target.setLevel(old_level)
     assert response.status_code == 409
     assert response.json() == {
         "detail": "Resource already exists or constraint violation"
     }
-    records = [r for r in caplog.records if r.name == "src.exceptions"]
     assert len(records) == 1
     assert getattr(records[0], "error_type", None) == "IntegrityError"
 
