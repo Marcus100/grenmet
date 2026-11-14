@@ -8,8 +8,9 @@ allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *), Bash(cu
 
 Follow `docs/operations/release-runbook.md`. Work reaches `dev` by PR into `dev`
 that the agent merges once CI is green and the review is clean (`/commit` step
-4). Staging PR creation/update has standing user authorization; the owner
-reviews and merges into `staging`, and agents do not arm auto-merge.
+4). The owner decides when a staging PR is opened: open or update it only when
+the owner asks to promote (owner, 14 Nov 2026), not after each merge into `dev`.
+The owner reviews and merges into `staging`, and agents do not arm auto-merge.
 Once the owner has merged, monitor the resulting staging deployment. Main merges and production
 publication/deployment need separate authorization. Never bypass protection,
 hooks, or failing checks.
@@ -32,7 +33,8 @@ if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
 `/pre-merge` checklist. Report findings. Stop and ask if anything is red.
 
 **2. dev → staging**
-Create or reuse the promotion PR (`gh pr create --base staging --head dev`).
+When the owner has asked to promote, create or reuse the promotion PR
+(`gh pr create --base staging --head dev`).
 Review its complete diff for authorized, finished work. Keep the PR body's
 recap current: changed, gates, outcome and friction per `/commit` step 7. Verify
 `dev` still matches the reviewed head, then stop and tell the owner the PR is
