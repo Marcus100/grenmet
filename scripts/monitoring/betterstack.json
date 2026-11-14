@@ -374,7 +374,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
