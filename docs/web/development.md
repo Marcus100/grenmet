@@ -81,6 +81,19 @@ variables only through the app's typed `src/env.ts`. The full reference is
 - **Sentry** is wired through `instrumentation.ts` / `instrumentation-client.ts`
   in auth, docs, gaa-admin, gms, mbia, and signal. Do not remove these files.
 
+## User-guide screenshots
+
+`pnpm guide:screenshots --manifest scripts/agents/guide-screens.json --out apps/web/docs/src/images/guides`
+captures every screen listed in the manifest in one run. Each entry names an app,
+a path, a width, a theme and optional steps (`click`, `press`, `waitForText`).
+Start the app's dev server on the host first. Screens behind sign-in need
+`GUIDE_STORAGE_STATE=<file>`, a Playwright storage-state file from a seeded test
+account; never commit that file. Screenshots are committed to a public repository,
+so signed-in screens must come from that seeded account only, never from a real
+person's session. Add `--only <id>` to capture one screen. The
+idea comes from ADL's capture script (MIT); the manifest is JSON to avoid a new
+dependency.
+
 ## End-to-end smoke tests
 
 `gms` and `gaa-admin` have Playwright smoke tests in `apps/web/<app>/e2e/`:
