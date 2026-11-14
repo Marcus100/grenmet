@@ -10,7 +10,7 @@ import { NewBookingForm } from "@/components/studio/new-booking-form";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { requireSession } from "@/lib/session";
 import {
-  getBusinessTimezone,
+  getBusinessProfile,
   listProviders,
   listServices,
 } from "@/lib/studio-api";
@@ -52,7 +52,7 @@ export default async function NewBookingPage({ params }: NewBookingPageProps) {
       Promise.all([
         listServices(session.accessToken, organisationId),
         listProviders(session.accessToken, organisationId),
-        getBusinessTimezone(session.accessToken, organisationId),
+        getBusinessProfile(session.accessToken, organisationId),
       ]),
     here
   );
@@ -65,7 +65,7 @@ export default async function NewBookingPage({ params }: NewBookingPageProps) {
       />
     );
   }
-  const [allServices, allProviders, zone] = data.value;
+  const [allServices, allProviders, profile] = data.value;
   const providers = allProviders.filter((item) => item.active);
   const services = allServices.filter((item) =>
     providers.some((provider) => provider.service_ids.includes(item.id))
@@ -99,11 +99,12 @@ export default async function NewBookingPage({ params }: NewBookingPageProps) {
         </Empty>
       ) : (
         <NewBookingForm
+          currency={profile.currency}
           orgSlug={orgSlug}
           providers={providers}
           services={bookable}
-          today={todayIn(zone)}
-          zone={zone}
+          today={todayIn(profile.timezone)}
+          zone={profile.timezone}
         />
       )}
     </div>

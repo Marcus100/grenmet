@@ -127,10 +127,13 @@ function useFocusWhen(ref: RefObject<HTMLElement | null>, when: boolean): void {
 /** The confirmation: focus lands on its heading so screen readers announce it. */
 function BookingDone({
   booked,
+  currency,
   ManageLink,
   managePath,
 }: {
   booked: Booked;
+  /** The business currency; the receipt does not carry one. */
+  currency: string;
   ManageLink: BookingLink;
   managePath: string;
 }) {
@@ -154,7 +157,7 @@ function BookingDone({
         </div>
         <div>
           <dt>Price</dt>
-          <dd>{formatMoney(booking.price_minor)}</dd>
+          <dd>{formatMoney(booking.price_minor, currency)}</dd>
         </div>
       </dl>
       <p>
@@ -474,6 +477,7 @@ export function BookingFlow({
     return (
       <BookingDone
         booked={booked}
+        currency={storefront.currency}
         ManageLink={ManageLink}
         managePath={managePath}
       />
@@ -539,7 +543,7 @@ export function BookingFlow({
                   </span>
                 </span>
                 <span className="service-price">
-                  {formatMoney(item.price_minor)}
+                  {formatMoney(item.price_minor, storefront.currency)}
                 </span>
               </label>
             ))}

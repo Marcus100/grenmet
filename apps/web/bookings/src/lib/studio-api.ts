@@ -57,6 +57,8 @@ import { getAuthConfig } from "@/lib/auth-config";
 import { redactRequest } from "@/lib/redact-request";
 import { DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
+/** Used only when the business has no profile yet; matches the Settings page. */
+const DEFAULT_CURRENCY = "XCD";
 const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 const TIMEOUT_MS = 10_000;
 
@@ -153,27 +155,39 @@ export function listServices(
 }
 
 /**
- * The business's own timezone from its booking profile, so "today" is the day
- * on the business's calendar. A business without a profile yet has no zone
- * (404); it falls back to the default instead of failing the page.
+ * The business's timezone and currency from its booking profile: "today" is
+ * the day on the business's calendar, and prices show in its currency. A
+ * business without a profile yet has neither (404); both fall back to the
+ * defaults instead of failing the page.
  */
-export async function getBusinessTimezone(
+export async function getBusinessProfile(
   accessToken: string,
   organisationId: string
-): Promise<string> {
+): Promise<{ currency: string; timezone: string }> {
+  const fallback = { currency: DEFAULT_CURRENCY, timezone: DEFAULT_TIMEZONE };
   try {
     const profile = await bookingsGetProfile({
       client: studioClient(accessToken, organisationId),
     })
       .unwrap()
       .catch(redactRequest);
-    return profile.timezone ?? DEFAULT_TIMEZONE;
+    return {
+      currency: profile.currency ?? DEFAULT_CURRENCY,
+      timezone: profile.timezone ?? DEFAULT_TIMEZONE,
+    };
   } catch (error) {
     if (ResponseError.is(error) && error.status === 404) {
-      return DEFAULT_TIMEZONE;
+      return fallback;
     }
     throw error;
   }
+}
+
+export async function getBusinessTimezone(
+  accessToken: string,
+  organisationId: string
+): Promise<string> {
+  return (await getBusinessProfile(accessToken, organisationId)).timezone;
 }
 
 /** Enters a phone or walk-in booking. The key makes a retry safe. */

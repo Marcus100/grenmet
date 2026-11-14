@@ -53,9 +53,35 @@ describe("booking-format", () => {
     );
   });
 
-  it("formats minor units and durations", () => {
-    expect(formatMoney(21_000)).toBe("$210");
-    expect(formatMoney(1250)).toBe("$12.50");
+  it("prints Eastern Caribbean dollars as EC$, whole or with cents", () => {
+    expect(formatMoney(21_000, "XCD")).toBe("EC$210");
+    expect(formatMoney(21_050, "XCD")).toBe("EC$210.50");
+    expect(formatMoney(1250, "XCD")).toBe("EC$12.50");
+    expect(formatMoney(5, "XCD")).toBe("EC$0.05");
+  });
+
+  it("prints USD and NZD with their own prefix", () => {
+    expect(formatMoney(21_000, "USD")).toBe("US$210");
+    expect(formatMoney(19_900, "USD")).toBe("US$199");
+    expect(formatMoney(21_000, "NZD")).toBe("NZ$210");
+    expect(formatMoney(1250, "NZD")).toBe("NZ$12.50");
+  });
+
+  it("prints other currencies as the code and the amount", () => {
+    expect(formatMoney(21_000, "GBP")).toBe("GBP 210");
+    expect(formatMoney(21_075, "GBP")).toBe("GBP 210.75");
+    expect(formatMoney(21_000, "gbp")).toBe("GBP 210");
+  });
+
+  it("shows zero and groups thousands", () => {
+    expect(formatMoney(0, "XCD")).toBe("EC$0");
+    expect(formatMoney(0, "GBP")).toBe("GBP 0");
+    expect(formatMoney(125_000, "XCD")).toBe("EC$1,250");
+    expect(formatMoney(123_456_700, "XCD")).toBe("EC$1,234,567");
+    expect(formatMoney(123_456_789, "USD")).toBe("US$1,234,567.89");
+  });
+
+  it("formats durations", () => {
     expect(formatDuration(45)).toBe("45 min");
     expect(formatDuration(120)).toBe("2 hr");
     expect(formatDuration(135)).toBe("2 hr 15 min");

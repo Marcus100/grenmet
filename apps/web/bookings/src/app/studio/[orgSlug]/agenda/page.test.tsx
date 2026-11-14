@@ -193,7 +193,7 @@ describe("studio agenda", () => {
       `/studio/sea-salt/bookings/${BOOKING}`
     );
     expect(within(first).getByText("Confirmed")).toBeInTheDocument();
-    expect(within(first).getByText("Deposit $25")).toBeInTheDocument();
+    expect(within(first).getByText("Deposit EC$25")).toBeInTheDocument();
     expect(first).toHaveTextContent("with Maya");
     const second = screen.getByRole("link", { name: GRACE });
     expect(within(second).getByText("Awaiting deposit")).toBeInTheDocument();

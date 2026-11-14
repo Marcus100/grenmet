@@ -88,12 +88,12 @@ export default async function BusinessBookingPage({
                   <p className="text-muted-foreground text-sm">
                     {formatDuration(service.duration_min)}
                     {service.deposit_minor > 0
-                      ? ` · ${formatMoney(service.deposit_minor)} deposit`
+                      ? ` · ${formatMoney(service.deposit_minor, storefront.currency)} deposit`
                       : ""}
                   </p>
                 </div>
                 <p className="font-semibold">
-                  {formatMoney(service.price_minor)}
+                  {formatMoney(service.price_minor, storefront.currency)}
                 </p>
               </li>
             ))}
