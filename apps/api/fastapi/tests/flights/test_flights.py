@@ -108,6 +108,28 @@ async def test_poll_skips_when_flag_off() -> None:
     assert provider.calls == 0
 
 
+async def test_poll_continues_when_a_cache_write_times_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _StalledRedis:
+        calls = 0
+
+        async def set(self, *_: Any, **__: Any) -> None:
+            self.calls += 1
+            if self.calls == 1:
+                raise TimeoutError("redis timed out")
+
+    redis = _StalledRedis()
+    monkeypatch.setattr(cache, "_get_client", lambda: redis)
+    provider = _FakeProvider()
+    result = await service.poll_flights(
+        provider=provider, config=FlightsConfig(FLIGHTS_OPENSKY_ENABLED=True), now=NOW
+    )
+    assert redis.calls == 2
+    assert provider.calls == 2
+    assert result == {"TGPY:arrivals": 2, "TGPY:departures": 2}
+
+
 async def test_poll_caches_each_board_when_flag_on(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

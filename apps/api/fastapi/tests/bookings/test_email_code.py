@@ -651,3 +651,48 @@ async def test_redis_counter_always_has_a_ttl() -> None:
     finally:
         await client.delete(key)
         await client.aclose()
+
+
+# --- slow and stalled Redis (#1421) --------------------------------------------------
+
+
+class _DelayedRedis:
+    """Stands in for the redis client: ``get`` answers after ``delay`` seconds."""
+
+    def __init__(self, delay: float, *, limit: float) -> None:
+        self.delay, self.limit = delay, limit
+
+    async def get(self, _key: str) -> str:
+        # Mirror the client's per-command socket timeout.
+        if self.delay > self.limit:
+            await asyncio.sleep(self.limit)
+            raise TimeoutError("redis timed out")
+        await asyncio.sleep(self.delay)
+        return "stored"
+
+
+def _store_with(client: _DelayedRedis) -> email_code.RedisCodeStore:
+    store = email_code.RedisCodeStore("redis://unused")
+    store._client = client  # type: ignore[assignment]  # noqa: SLF001
+    return store
+
+
+def test_code_store_timeout_is_longer_than_fail_open_clients() -> None:
+    from src.worker.config import REQUEST_REDIS_TIMEOUT_SECONDS
+
+    assert email_code.CODE_STORE_TIMEOUT_SECONDS > REQUEST_REDIS_TIMEOUT_SECONDS
+
+
+async def test_slow_but_answering_redis_still_reads() -> None:
+    limit = email_code.CODE_STORE_TIMEOUT_SECONDS
+    store = _store_with(_DelayedRedis(0.6, limit=limit))
+    assert await store.get("k") == "stored"
+
+
+async def test_stalled_redis_fails_closed_within_a_bound() -> None:
+    limit = 0.2
+    store = _store_with(_DelayedRedis(5, limit=limit))
+    started = time.monotonic()
+    with pytest.raises(email_code.VerificationUnavailableError):
+        await store.get("k")
+    assert time.monotonic() - started < 1
