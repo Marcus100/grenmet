@@ -671,10 +671,22 @@ class _DelayedRedis:
         return "stored"
 
 
-def _store_with(client: _DelayedRedis) -> email_code.RedisCodeStore:
+def _store_with(
+    client: _DelayedRedis, monkeypatch: pytest.MonkeyPatch
+) -> email_code.RedisCodeStore:
     store = email_code.RedisCodeStore("redis://unused")
-    store._client = client  # type: ignore[assignment]  # noqa: SLF001
+    monkeypatch.setattr(store, "_client", client)
     return store
+
+
+def test_code_store_client_uses_the_longer_timeout() -> None:
+    kwargs = (
+        email_code.RedisCodeStore("redis://unused")
+        ._redis()
+        .connection_pool.connection_kwargs
+    )
+    assert kwargs["socket_timeout"] == email_code.CODE_STORE_TIMEOUT_SECONDS
+    assert kwargs["socket_connect_timeout"] == email_code.CODE_STORE_TIMEOUT_SECONDS
 
 
 def test_code_store_timeout_is_longer_than_fail_open_clients() -> None:
@@ -683,15 +695,19 @@ def test_code_store_timeout_is_longer_than_fail_open_clients() -> None:
     assert email_code.CODE_STORE_TIMEOUT_SECONDS > REQUEST_REDIS_TIMEOUT_SECONDS
 
 
-async def test_slow_but_answering_redis_still_reads() -> None:
+async def test_slow_but_answering_redis_still_reads(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     limit = email_code.CODE_STORE_TIMEOUT_SECONDS
-    store = _store_with(_DelayedRedis(0.6, limit=limit))
+    store = _store_with(_DelayedRedis(0.6, limit=limit), monkeypatch)
     assert await store.get("k") == "stored"
 
 
-async def test_stalled_redis_fails_closed_within_a_bound() -> None:
+async def test_stalled_redis_fails_closed_within_a_bound(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     limit = 0.2
-    store = _store_with(_DelayedRedis(5, limit=limit))
+    store = _store_with(_DelayedRedis(5, limit=limit), monkeypatch)
     started = time.monotonic()
     with pytest.raises(email_code.VerificationUnavailableError):
         await store.get("k")

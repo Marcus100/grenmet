@@ -46,9 +46,10 @@ async def store_board(
         "fetched_at": datetime.now(UTC).isoformat(),
         "rows": [r.model_dump(mode="json") for r in rows],
     }
+    payload = json.dumps(doc)
     try:
-        await client.set(cache_key(airport, board), json.dumps(doc), ex=ttl)
-    except Exception as exc:  # noqa: BLE001 - one cache fault must not abort the poll
+        await client.set(cache_key(airport, board), payload, ex=ttl)
+    except Exception as exc:  # one cache fault must not abort the poll
         logger.warning(
             "flight cache write failed",
             extra={"error_type": type(exc).__name__, "area": "flights"},

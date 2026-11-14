@@ -127,7 +127,8 @@ async def test_poll_continues_when_a_cache_write_times_out(
     )
     assert redis.calls == 2
     assert provider.calls == 2
-    assert result == {"TGPY:arrivals": 2, "TGPY:departures": 2}
+    # The failed write is not reported as cached.
+    assert result == {"TGPY:departures": 2}
 
 
 async def test_poll_caches_each_board_when_flag_on(
