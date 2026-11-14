@@ -117,7 +117,7 @@ footer {
 .lead {
   font-size: var(--font-size-heading-sm);
   line-height: var(--line-height-heading-sm);
-  color: var(--brand-text-secondary);
+  color: var(--brand-text-inverse);
 }
 .actions {
   display: flex;
@@ -179,7 +179,7 @@ button:disabled {
 }
 .suited {
   font-size: var(--font-size-body-sm);
-  color: var(--brand-text-muted);
+  color: var(--brand-border);
 }
 .suited span {
   font-weight: 600;
@@ -201,7 +201,7 @@ button:disabled {
   width: 100%;
   padding: var(--line-height-caption) var(--line-height-body-base);
   font: inherit;
-  color: var(--brand-text-inverse);
+  color: var(--brand-text-primary);
   background: var(--brand-surface-secondary);
   border: thin solid var(--brand-border);
   border-radius: var(--radius);
@@ -220,7 +220,7 @@ button:focus-visible {
 .form-note {
   margin: 0;
   font-size: var(--font-size-body-sm);
-  color: var(--brand-text-muted);
+  color: var(--brand-border);
 }
 .error {
   margin: 0;
