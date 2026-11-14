@@ -134,7 +134,11 @@ export const route6Trip: TimetableTripView = {
 export function summary(
   overrides: Partial<TimetableVersionSummary> = {}
 ): TimetableVersionSummary {
+  // As the API does: only a draft may be edited, published or discarded.
+  const allowedActions =
+    overrides.status === "draft" ? ["edit", "publish", "discard"] : [];
   return {
+    allowedActions,
     id: 1,
     label: "GAA staff transport memo",
     status: "published",

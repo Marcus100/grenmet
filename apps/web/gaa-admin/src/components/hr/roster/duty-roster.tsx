@@ -58,6 +58,7 @@ import {
   markShiftRuns,
   monthRange,
   nextCode,
+  periodAllows,
   workShiftCodes,
 } from "./roster-utils";
 import { ruleWarningsFrom } from "./rule-codes";
@@ -177,7 +178,7 @@ export function DutyRoster() {
     year: "numeric",
   });
 
-  const editable = Boolean(period) && period?.status !== "CLOSED";
+  const editable = periodAllows(period, "edit");
   const pendingCount = Object.keys(pendingEdits).length;
 
   function shiftMonth(delta: number) {
@@ -370,7 +371,7 @@ export function DutyRoster() {
             <Save data-icon="inline-start" />
             Save{pendingCount > 0 ? ` (${pendingCount})` : ""}
           </Button>
-          {period?.status === "DRAFT" ? (
+          {periodAllows(period, "publish") ? (
             <Dialog>
               <DialogTrigger
                 render={

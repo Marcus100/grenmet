@@ -4,6 +4,7 @@ import type {
   TimetableIssue,
   TimetableTripView,
   TimetableVersionState,
+  TimetableVersionSummary,
   TransportCatalogue,
   TransportRoute,
   TransportShift,
@@ -79,4 +80,20 @@ export function moveItem<T>(items: T[], index: number, delta: number): T[] {
   const next = [...items];
   next.splice(target, 0, ...next.splice(index, 1));
   return next;
+}
+
+/**
+ * What the API can offer on a timetable version (`allowedActions`, from
+ * `apps/api/fastapi/src/transport/timetable/transitions.py`). The API decides
+ * them from the status alone; permissions and validation are still checked on
+ * every call.
+ */
+export type TimetableVersionAction = "discard" | "edit" | "publish";
+
+/** Whether the API offers this action on the version. */
+export function versionAllows(
+  version: Pick<TimetableVersionSummary, "allowedActions">,
+  action: TimetableVersionAction
+): boolean {
+  return (version.allowedActions ?? []).includes(action);
 }

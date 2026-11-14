@@ -15,4 +15,10 @@ export const rosterPeriodPublicSchema = z.object({
   created_by_user_id: z.uuid(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
+  allowed_actions: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "What this status allows: edit, publish, close. Computed from the status alone; permissions, department scope and roster rule warnings are still checked when the action is taken."
+    ),
 });

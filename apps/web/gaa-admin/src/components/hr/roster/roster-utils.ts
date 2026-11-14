@@ -146,3 +146,18 @@ export function workShiftCodes(
     catalog.filter((s) => s.category === "WORK").map((s) => s.code)
   );
 }
+
+/**
+ * What the API can offer on a roster period (`allowed_actions`, from
+ * `apps/api/fastapi/src/hr/roster/transitions.py`). The API decides them from
+ * the status alone; permissions and roster rules are still checked on every call.
+ */
+export type RosterPeriodAction = "close" | "edit" | "publish";
+
+/** Whether the API offers this action on the period. No period offers nothing. */
+export function periodAllows(
+  period: Pick<RosterPeriodPublic, "allowed_actions"> | null | undefined,
+  action: RosterPeriodAction
+): boolean {
+  return (period?.allowed_actions ?? []).includes(action);
+}

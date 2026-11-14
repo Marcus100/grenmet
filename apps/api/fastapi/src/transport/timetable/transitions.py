@@ -48,6 +48,14 @@ def can_move(state: TimetableVersionStatus, move: TimetableVersionMove) -> bool:
     return state in TRANSITIONS[move].allowed_from
 
 
+def allowed_actions(state: TimetableVersionStatus) -> list[str]:
+    """What the state allows: ``edit`` while in ``EDITABLE``, then each move the
+    table allows. Computed from the state alone; permissions and the other checks
+    (rule warnings, validation errors) are still enforced when the action is taken."""
+    actions = ["edit"] if state in EDITABLE else []
+    return actions + [move for move in TRANSITIONS if can_move(state, move)]
+
+
 def move_version(version: TimetableVersion, move: TimetableVersionMove) -> None:
     """Set ``version.status`` to the move's target. Raises a 409 when the table does
     not allow the move from the current status."""

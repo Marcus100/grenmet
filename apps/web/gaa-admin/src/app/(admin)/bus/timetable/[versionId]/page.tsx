@@ -14,7 +14,11 @@ import {
   getTransportCatalogue,
 } from "@/db/transport/queries";
 import { formatDate } from "@/lib/transport/format";
-import { groupTrips, issuesByTrip } from "@/lib/transport/timetable";
+import {
+  groupTrips,
+  issuesByTrip,
+  versionAllows,
+} from "@/lib/transport/timetable";
 
 export const metadata: Metadata = {
   title: "Timetable version",
@@ -40,7 +44,7 @@ export default async function TimetableVersionPage({
   ]);
   if (!detail) notFound();
   const { version } = detail;
-  const editable = version.state === "draft" && access.canManageTimetable;
+  const editable = versionAllows(version, "edit") && access.canManageTimetable;
 
   let summary = `${detail.trips.length} trips`;
   if (version.effectiveDate) {
