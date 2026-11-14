@@ -55,5 +55,5 @@ it("is mounted once in the root layout", () => {
     "utf8"
   );
 
-  expect(layout.match(/<AppToaster \/>/gu)).toHaveLength(1);
+  expect(layout.match(/<AppToaster\b/gu)).toHaveLength(1);
 });
