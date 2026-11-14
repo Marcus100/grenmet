@@ -70,7 +70,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -91,7 +91,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -112,7 +112,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -133,7 +133,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -154,7 +154,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -175,7 +175,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -196,7 +196,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -217,7 +217,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -238,7 +238,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -259,7 +259,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
@@ -359,7 +359,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
