@@ -1157,7 +1157,18 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   answer (`Idempotency-Replayed: true`), the same key with a different body is 409.
   Public booking (`/bookings/public/{slug}/bookings` and
   `/bookings/public/bookings/{token}` with `/cancel`, `/reschedule`, `/ics`) uses it; the
-  manage token is returned once and only its hash is stored. Side effects (emails,
+  manage token is returned once and only its hash is stored. A booking sent with a
+  signed-in account token links the organisation's contact to that account only when
+  the account's verified email equals the booking email (case-insensitive); name and
+  phone never link, and a contact already linked to any account is not changed
+  (ADR-0058). Changing the account's email, or deleting the account, clears every
+  link it holds. Organisation responses never show the account id, and the
+  organisation's audit history records the link with no id and no actor. Not
+  backfilled: past guest bookings join the account's list only after the person books
+  while signed in with a verified matching email, or through the claim flow (a later
+  slice). Known behaviour (owner decision pending): a guest booking made with the email
+  of an already-linked contact appears in that account's list, and so does a guest
+  record merged into a linked one. Side effects (emails,
   reminders) run through the transactional outbox (`platform.outbox`, drained by the
   worker every 30 seconds), which gives at-least-once delivery.
 - **Organisation contacts** (PF3, ADR-0028): `/contacts/org/contacts` (upsert, list,
@@ -1209,6 +1220,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | Endpoint | Authentication | Contract |
 | --- | --- | --- |
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
+| `GET /api/v1/bookings/me/bookings?upcoming&page&size` | Account token only (`AccountUser`); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, newest first, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later; false: earlier; omitted: all. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`. No manage token, notes or other customers' details |
 | `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409, a platform reserved name 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |

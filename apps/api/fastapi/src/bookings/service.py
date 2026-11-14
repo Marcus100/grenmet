@@ -9,7 +9,7 @@ from collections import defaultdict
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import ColumnElement, delete, func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,6 +23,7 @@ from src.organisations.models import (
     OrganisationStatus,
     PlatformOrganisation,
 )
+from src.pagination import PaginationParams
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
@@ -555,6 +556,57 @@ def is_overlap_violation(error: DBAPIError) -> bool:
         return True
     code = getattr(error.orig, "sqlstate", None) or getattr(error.orig, "pgcode", None)
     return code == _DEADLOCK_SQLSTATE or "deadlock detected" in str(error.orig)
+
+
+async def list_my_bookings(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    *,
+    upcoming: bool | None,
+    pagination: PaginationParams,
+    now: datetime | None = None,
+) -> tuple[list[tuple[Booking, str, str, str]], int]:
+    """The account's bookings across organisations, newest first, one SQL page.
+
+    A booking is the account's when its customer's organisation contact is linked
+    to ``user_id`` (ADR-0058). Returns ``(booking, service name, business name,
+    business slug)`` rows and the total before paging. ``upcoming`` True keeps
+    bookings starting at or after now, False keeps the earlier ones, None keeps all.
+    """
+    moment = now or utc_now()
+    linked_customers = (
+        select(Customer.id)
+        .join(
+            Contact,
+            (Contact.id == Customer.contact_id)
+            & (Contact.organisation_id == Customer.organisation_id),
+        )
+        .where(Contact.user_id == user_id, Contact.erased_at.is_(None))
+    )
+    filters: list[ColumnElement[bool]] = [Booking.customer_id.in_(linked_customers)]
+    if upcoming is True:
+        filters.append(Booking.starts_at >= moment)
+    elif upcoming is False:
+        filters.append(Booking.starts_at < moment)
+    total = await session.scalar(
+        select(func.count()).select_from(Booking).where(*filters)
+    )
+    result = await session.execute(
+        select(
+            Booking,
+            Service.name,
+            BookingProfile.display_name,
+            BookingProfile.public_slug,
+        )
+        .join(Service, Service.id == Booking.service_id)
+        .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
+        .where(*filters)
+        .order_by(Booking.starts_at.desc(), Booking.id.desc())
+        .offset(pagination.skip)
+        .limit(pagination.limit)
+    )
+    rows = [(row[0], row[1], row[2], row[3]) for row in result.all()]
+    return rows, total or 0
 
 
 async def list_my_organisations(

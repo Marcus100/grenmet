@@ -14,7 +14,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from src import idempotency
 from src.auth.models import User
-from src.dependencies import SessionDep, TokenDep, optional_account
+from src.dependencies import AccountUser, SessionDep, TokenDep, optional_account
 from src.models import ApiError
 from src.openapi_responses import (
     AUTHENTICATED,
@@ -30,6 +30,7 @@ from src.organisations.dependencies import (
     resolve_org_caller,
 )
 from src.organisations.models import MembershipRole
+from src.pagination import PaginationDep
 from src.rate_limit import limiter
 from src.turnstile import require_turnstile
 
@@ -46,6 +47,8 @@ from .schemas import (
     BookingExceptionCreate,
     BookingExceptionPublic,
     BookingManualDepositCreate,
+    BookingMyBooking,
+    BookingMyBookingList,
     BookingMyOrganisation,
     BookingProfilePublic,
     BookingProfileUpdate,
@@ -103,6 +106,57 @@ async def list_my_organisations(*, session: SessionDep, user: StudioCaller) -> A
         )
         for o, role in rows
     ]
+
+
+@router.get(
+    "/me/bookings",
+    response_model=BookingMyBookingList,
+    summary="My bookings across businesses",
+    description=(
+        "The signed-in person's bookings with every business, newest first. A "
+        "booking is listed when its business contact is linked to the account "
+        "(a signed-in booking with a verified matching email, ADR-0058). Filter "
+        "with `upcoming`; page with `page` and `size`."
+    ),
+    operation_id="bookingsListMyBookings",
+    responses={
+        **AUTHENTICATED,
+        429: {"model": RateLimitedBody, "description": "Too many requests"},
+    },
+)
+@limiter.limit("60/minute")
+async def list_my_bookings(
+    *,
+    request: Request,
+    session: SessionDep,
+    current_user: AccountUser,
+    pagination: PaginationDep,
+    upcoming: Annotated[
+        bool | None,
+        Query(description="True: starting now or later. False: earlier. Omit: all."),
+    ] = None,
+) -> Any:
+    _ = request  # the rate limiter reads it
+    rows, total = await service.list_my_bookings(
+        session, current_user.id, upcoming=upcoming, pagination=pagination
+    )
+    return BookingMyBookingList(
+        data=[
+            BookingMyBooking(
+                id=booking.id,
+                status=BookingStatus(booking.status),
+                starts_at=booking.starts_at,
+                ends_at=booking.ends_at,
+                service_name=service_name,
+                business_name=business_name,
+                business_slug=business_slug,
+            )
+            for booking, service_name, business_name, business_slug in rows
+        ],
+        count=total,
+        page=pagination.page,
+        size=pagination.size,
+    )
 
 
 # Organisation routes require the "bookings" entitlement (org.organisation_app).

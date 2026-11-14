@@ -20,6 +20,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import service as audit_service
+from src.auth.email_verification import is_email_verified
 from src.auth.models import User
 from src.contacts import service as contacts_service
 from src.contacts.models import ConsentPurpose, Contact
@@ -507,6 +509,9 @@ async def create_booking(
     (``payload.email_proof``) unless a signed-in ``payer`` already vouches for the
     booking email (ADR-0018, #471); otherwise 403 ``email_verification_required``
     and nothing is stored. Returns ``(201, receipt as JSON)`` for ``run_idempotent``."""
+    # A signed-in payer must not be recorded as the actor of the business's contact
+    # history: readers see the actor's name (ADR-0058, account UUID never shared).
+    audit_service.set_actor(session, None)
     svc = await service.get_service(
         session, payload.service_id, organisation_id=profile.organisation_id
     )
@@ -526,7 +531,9 @@ async def create_booking(
             proof=payload.email_proof,
         )
     try:
-        return await _create_booking(session, profile, payload, svc, deposit, now=now)
+        return await _create_booking(
+            session, profile, payload, svc, deposit, payer=payer, now=now
+        )
     except BaseException:
         # The proof is single use, but a booking that never happened must not burn it.
         await use.release()
@@ -540,6 +547,7 @@ async def _create_booking(
     svc: Service,
     deposit: int,
     *,
+    payer: User | None,
     now: datetime | None,
 ) -> tuple[int, dict[str, Any]]:
     moment = now or utc_now()
@@ -556,6 +564,17 @@ async def _create_booking(
         raise BookingConflictError(SLOT_TAKEN)
 
     customer, contact = await _upsert_customer(session, profile, payload, moment)
+    if payer is not None:
+        # Ties the organisation's contact to the account that booked with it,
+        # only on a verified email match (contacts owns the rule).
+        await contacts_service.link_verified_account(
+            session,
+            contact,
+            booking_email=str(payload.customer_email),
+            user_id=payer.id,
+            account_email=payer.email,
+            account_email_verified=is_email_verified(payer),
+        )
     token, token_hash = new_manage_token()
     ends_at = starts_at + timedelta(minutes=svc.duration_min)
     if deposit > 0:
