@@ -33,7 +33,7 @@ from src.transport.models import (
 )
 from src.utils.timezones import GRENADA
 
-from . import schemas
+from . import schemas, transitions
 
 logger = logging.getLogger(__name__)
 
@@ -334,8 +334,8 @@ async def _version(session: AsyncSession, version_id: int) -> TimetableVersion:
 
 async def _draft(session: AsyncSession, version_id: int) -> TimetableVersion:
     version = await _version(session, version_id)
-    if version.status != TimetableVersionStatus.DRAFT:
-        raise TransportConflict("Only a draft timetable can be changed")
+    if version.status not in transitions.EDITABLE:
+        raise TransportConflict(transitions.NOT_A_DRAFT)
     return version
 
 
@@ -621,7 +621,7 @@ async def discard_draft(
 ) -> schemas.TimetableVersionSummary:
     _require_manage(user)
     draft = await _draft(session, version_id)
-    draft.status = TimetableVersionStatus.DISCARDED
+    transitions.move_version(draft, "discard")
     await session.commit()
     await session.refresh(draft)
     logger.info("Timetable draft discarded", extra={"version_id": version_id})
@@ -654,7 +654,7 @@ async def publish_draft(
             "Fix the timetable before publishing: "
             + "; ".join(sorted({issue.message for issue in errors}))
         )
-    draft.status = TimetableVersionStatus.PUBLISHED
+    transitions.move_version(draft, "publish")
     draft.effective_date = payload.effectiveDate
     draft.published_by = user.id
     draft.published_at = func.now()
