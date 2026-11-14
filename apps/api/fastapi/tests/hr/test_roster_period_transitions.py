@@ -71,3 +71,34 @@ def test_move_from_every_state(move: str, state: RosterPeriodStatus) -> None:
         assert raised.value.status_code == 400
         assert raised.value.message == EXPECTED_REFUSALS[(move, state)]
         assert period.status is state
+
+
+@pytest.mark.parametrize(
+    ("state", "expected"),
+    [(_D, ["edit", "publish"]), (_P, ["edit", "close"]), (_C, [])],
+)
+def test_allowed_actions_follow_the_table(
+    state: RosterPeriodStatus, expected: list[str]
+) -> None:
+    assert rt.allowed_actions(state) == expected
+
+
+def test_the_read_schema_derives_allowed_actions_and_ignores_input() -> None:
+    import uuid
+    from datetime import UTC, date, datetime
+
+    from src.hr.roster.schemas import RosterPeriodPublic
+
+    now = datetime(2026, 11, 1, tzinfo=UTC)
+    period = RosterPeriodPublic(
+        id=uuid.uuid4(),
+        department_id="met",
+        period_start=date(2026, 11, 1),
+        period_end=date(2026, 11, 30),
+        status=_C,
+        created_by_user_id=uuid.uuid4(),
+        created_at=now,
+        updated_at=now,
+        allowed_actions=["publish"],
+    )
+    assert period.allowed_actions == []

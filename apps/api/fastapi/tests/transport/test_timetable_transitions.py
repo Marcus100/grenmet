@@ -49,3 +49,13 @@ def test_move_from_every_state(move: str, state: TimetableVersionStatus) -> None
         assert raised.value.status_code == 409
         assert raised.value.message == "Only a draft timetable can be changed"
         assert version.status is state
+
+
+@pytest.mark.parametrize(
+    ("state", "expected"),
+    [(_D, ["edit", "publish", "discard"]), (_P, []), (_X, [])],
+)
+def test_allowed_actions_follow_the_table(
+    state: TimetableVersionStatus, expected: list[str]
+) -> None:
+    assert tt.allowed_actions(state) == expected

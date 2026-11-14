@@ -103646,6 +103646,14 @@
             "type": "string",
             "format": "date-time",
             "title": "Updated At"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Actions",
+            "description": "What this status allows: edit, publish, close. Computed from the status alone; permissions, department scope and roster rule warnings are still checked when the action is taken."
           }
         },
         "type": "object",
@@ -114319,6 +114327,14 @@
           "tripCount": {
             "type": "integer",
             "title": "Tripcount"
+          },
+          "allowedActions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowedactions",
+            "description": "What this status allows: edit, publish, discard (all only while a draft). Computed from the status alone; permissions and timetable validation errors are still checked when the action is taken."
           }
         },
         "type": "object",

@@ -15,6 +15,7 @@ import {
   markShiftRuns,
   monthRange,
   nextCode,
+  periodAllows,
   workShiftCodes,
 } from "./roster-utils";
 
@@ -241,5 +242,20 @@ describe("markShiftRuns", () => {
   it("returns one flag per day, including an empty month", () => {
     expect(markShiftRuns([], work)).toEqual([]);
     expect(markShiftRuns(["M", "M"], new Set())).toEqual([false, false]);
+  });
+});
+
+describe("periodAllows", () => {
+  it("offers only what the API lists for the period", () => {
+    const published = { allowed_actions: ["edit", "close"] };
+    expect(periodAllows(published, "edit")).toBe(true);
+    expect(periodAllows(published, "close")).toBe(true);
+    expect(periodAllows(published, "publish")).toBe(false);
+  });
+
+  it("offers nothing without a period or without the field", () => {
+    expect(periodAllows(undefined, "edit")).toBe(false);
+    expect(periodAllows(null, "publish")).toBe(false);
+    expect(periodAllows({}, "edit")).toBe(false);
   });
 });

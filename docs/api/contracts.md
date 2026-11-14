@@ -1379,6 +1379,10 @@ fails if a key used in code is missing from the catalog). Routers:
 `profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
 
+### Roster periods and their actions
+
+Every roster period (`RosterPeriodPublic`) carries `allowed_actions`: `edit` (draft or published), `publish` (draft only) and `close` (published only). It is computed from the status alone; the department scope, the roster rule warnings and the override reason are still checked when the action is taken. The duty roster reads it, so the screen and the API cannot disagree.
+
 ### Roster rules (#380)
 
 | Endpoint | Permission | Purpose |
@@ -2673,7 +2677,7 @@ to a timetable version.
 | `GET /transport/catalogue` | signed in | Routes, shifts, stops (with routes serving them today), service calendars — reference data the staff and driver apps also need |
 | `POST /transport/routes`, `PUT /transport/routes/{route_id}` | `transport.timetable.manage` | Route numbers unique (409) |
 | `POST /transport/stops`, `PUT /transport/stops/{stop_id}` | `transport.timetable.manage` | Stop codes unique (409); latitude and longitude given together or not at all (422) |
-| `GET /transport/timetable/versions[/{version_id}]` | `transport.view` | Versions newest first with `state` (`draft`, `scheduled`, `current`, `superseded`, `discarded`); detail adds trips and validation `issues` |
+| `GET /transport/timetable/versions[/{version_id}]` | `transport.view` | Versions newest first with `state` (`draft`, `scheduled`, `current`, `superseded`, `discarded`); each version carries `allowedActions` (`edit`, `publish`, `discard`, all only while a draft; computed from the status alone, permissions and validation are still checked on the call); detail adds trips and validation `issues` |
 | `POST /transport/timetable/versions` | `transport.timetable.manage` | Starts the single draft as a copy of the version in force; 409 if a draft exists |
 | `PUT …/{version_id}`, `POST …/{version_id}/discard` | `transport.timetable.manage` | Draft only (409 otherwise) |
 | `POST/PUT/DELETE …/{version_id}/trips[/{trip_id}]` | `transport.timetable.manage` | Draft only; references checked (422); a PUT replaces the whole ordered stop list |

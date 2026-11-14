@@ -22,4 +22,10 @@ export const timetableVersionSummarySchema = z.object({
   updatedAt: z.iso.datetime(),
   publishedAt: z.union([z.iso.datetime(), z.null()]),
   tripCount: z.int(),
+  allowedActions: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "What this status allows: edit, publish, discard (all only while a draft). Computed from the status alone; permissions and timetable validation errors are still checked when the action is taken."
+    ),
 });

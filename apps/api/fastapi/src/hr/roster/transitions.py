@@ -62,6 +62,14 @@ def can_move(state: RosterPeriodStatus, move: RosterPeriodMove) -> bool:
     return state in TRANSITIONS[move].allowed_from
 
 
+def allowed_actions(state: RosterPeriodStatus) -> list[str]:
+    """What the state allows: ``edit`` while in ``EDITABLE``, then each move the
+    table allows. Computed from the state alone; permissions and the other checks
+    (rule warnings, validation errors) are still enforced when the action is taken."""
+    actions = ["edit"] if state in EDITABLE else []
+    return actions + [move for move in TRANSITIONS if can_move(state, move)]
+
+
 def require_move(state: RosterPeriodStatus, move: RosterPeriodMove) -> None:
     """Raise the declared refusal (400, as before the table) when ``move`` is not
     allowed from ``state``."""
