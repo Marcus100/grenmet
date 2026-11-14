@@ -53,12 +53,29 @@ def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 
+#: Stored in ``hashed_password`` of an anonymised account (ADR-0058, #1375). It is not
+#: a bcrypt hash, so no password can match it, and no user path writes it (every
+#: password write hashes the new password). It is a fixed value, so every process
+#: and every restart agrees on it, unlike ``DUMMY_PASSWORD_HASH``.
+ANONYMISED_PASSWORD_MARKER = "!anonymised"
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain-text password against a stored bcrypt hash."""
-    return bcrypt.checkpw(
-        plain_password.encode("utf-8"),
-        hashed_password.encode("utf-8"),
-    )
+    """Verify a plain-text password against a stored bcrypt hash.
+
+    A stored value that is not a bcrypt hash (the anonymised marker) never matches and
+    never raises. It still spends one bcrypt check, so the answer takes as long as a
+    real check."""
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8"),
+        )
+    except ValueError:
+        bcrypt.checkpw(
+            plain_password.encode("utf-8"), DUMMY_PASSWORD_HASH.encode("utf-8")
+        )
+        return False
 
 
 # Constant-time equalizer for the unknown-user login path: verifying a supplied

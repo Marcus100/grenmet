@@ -187,6 +187,18 @@ people. The first user of this is the bookings product; Events comes next.
      revoke member numbers and write `forfeit` entries for unspent points.
      Ledger rows are kept under the anonymous ID for the business's accounts,
      then cut down to totals once the retention period ends.
+     **Owner decision, 14 November 2026 (issue #1375, PR #1429), per field:**
+     emergency contact name, phone and relationship, phone, gender and nationality
+     are cleared on every deletion. Date of birth and the address are kept for a
+     person who has or had an employment record, and removed for anyone else.
+     Pay, leave, attendance and employment records are kept in every case. Former
+     staff keep their date of birth and address for **6 years after employment
+     ends (provisional, pending GAA's confirmation)**; the scheduled clean-up is a
+     separate issue, not part of the deletion fix. A person cannot delete their
+     account while any employment record has not ended: no end date, or an end date
+     today or later, whatever the record's status (so an INACTIVE record with no end
+     date blocks). Only a record whose end date has passed lets them delete it; HR
+     ends the employment first.
    - **When a business leaves:** its programmes pause, members get 30 days to
      redeem, then everything left expires. The business gets an export of its
      contacts and ledger.
