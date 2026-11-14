@@ -86,7 +86,7 @@ def test_verify_never_raises_for_odd_input() -> None:
     for candidate in ("", "x" * 500, "é" * 300, "😀" * 200, "\x00" * 100):
         assert verify_password(candidate, stored) is False
     for stored_value in (ANONYMISED_PASSWORD_MARKER, "", "not-a-hash"):
-        for candidate in ("", "pw", "x" * 500, "é" * 300):
+        for candidate in ("", "pw", "x" * 500, "é" * 300, "a\x00b"):
             assert verify_password(candidate, stored_value) is False
 
 
@@ -106,3 +106,11 @@ async def test_login_with_over_long_password_is_a_normal_failure(
             json={"email": email, "password": "é" * 128},
         )
         assert response.status_code in (400, 401), response.text
+
+
+def test_first_superuser_password_over_72_bytes_fails_at_startup() -> None:
+    from src.config import Settings, settings
+
+    values = settings.model_dump(include=set(Settings.model_fields))
+    with pytest.raises(ValidationError, match="at most 72 bytes"):
+        Settings(**{**values, "FIRST_SUPERUSER_PASSWORD": "Aa1-" * 19})

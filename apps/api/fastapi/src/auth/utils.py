@@ -85,7 +85,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
         return bcrypt.checkpw(candidate, hashed_password.encode("utf-8"))
     except ValueError:
-        bcrypt.checkpw(candidate, DUMMY_PASSWORD_HASH.encode("utf-8"))
+        # A fixed input, not the caller's: if bcrypt refused the candidate itself
+        # (for example a NUL byte), the equalising check must not raise again.
+        bcrypt.checkpw(b"x", DUMMY_PASSWORD_HASH.encode("utf-8"))
         return False
 
 
