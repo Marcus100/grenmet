@@ -1,4 +1,5 @@
 import logging
+import uuid
 from typing import Any
 
 from sqlalchemy import delete
@@ -177,6 +178,7 @@ async def update_user(
         await ensure_email_change_allowed(session=session, user=db_user)
         db_user.email_verified_at = None
         db_user.email_verification_required = True
+        await _unlink_business_contacts(session, db_user.id)
     for key, value in {**user_data, **extra_data}.items():
         if key != "password":
             setattr(db_user, key, value)
@@ -212,6 +214,7 @@ async def update_user_me(
         await ensure_email_change_allowed(session=session, user=current_user)
         current_user.email_verified_at = None
         current_user.email_verification_required = True
+        await _unlink_business_contacts(session, current_user.id)
         await session.execute(
             delete(AuthSession).where(AuthSession.user_id == current_user.id)
         )
@@ -245,6 +248,14 @@ async def update_password(
     await set_password(session=session, user=user, new_password=new_password)
 
 
+async def _unlink_business_contacts(session: AsyncSession, user_id: uuid.UUID) -> None:
+    """Drop the account link on every business contact (ADR-0058). Lazy import:
+    the contacts domain sits above auth in the import graph."""
+    from src.contacts import service as contacts_service
+
+    await contacts_service.unlink_account(session, user_id)
+
+
 async def delete_user(*, session: AsyncSession, user: User) -> None:
     user_id = str(user.id)
     from src.auth.modern_models import AuthChallenge
@@ -255,6 +266,7 @@ async def delete_user(*, session: AsyncSession, user: User) -> None:
     # The photo row cascades with the user; its stored files are removed after.
     photo = await profile_images.get_image(session=session, user_id=user.id)
     photo_prefix = photo.object_key if photo else None
+    await _unlink_business_contacts(session, user.id)
     await session.delete(user)
     await session.commit()
     if photo_prefix:

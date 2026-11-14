@@ -18,6 +18,7 @@ import type {
   BookingsListMyBookingsStatus401,
   BookingsListMyBookingsStatus403,
   BookingsListMyBookingsStatus422,
+  BookingsListMyBookingsStatus429,
 } from "../models/BookingsListMyBookings.js";
 
 export const bookingsListMyBookingsQueryKey = ({
@@ -42,6 +43,7 @@ export function bookingsListMyBookingsQueryOptions(
       | BookingsListMyBookingsStatus401
       | BookingsListMyBookingsStatus403
       | BookingsListMyBookingsStatus422
+      | BookingsListMyBookingsStatus429
     >,
     BookingsListMyBookingsStatus200,
     typeof queryKey
@@ -83,6 +85,7 @@ export function useBookingsListMyBookings<
           | BookingsListMyBookingsStatus401
           | BookingsListMyBookingsStatus403
           | BookingsListMyBookingsStatus422
+          | BookingsListMyBookingsStatus429
         >,
         TData,
         TQueryData,
@@ -115,6 +118,7 @@ export function useBookingsListMyBookings<
       | BookingsListMyBookingsStatus401
       | BookingsListMyBookingsStatus403
       | BookingsListMyBookingsStatus422
+      | BookingsListMyBookingsStatus429
     >
   > & { queryKey: TQueryKey };
 

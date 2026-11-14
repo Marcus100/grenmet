@@ -8,13 +8,16 @@ to join two records. Logs never carry addresses, names or phone numbers.
 
 import logging
 import uuid
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
+from contextlib import contextmanager
+from typing import Any
 
 from sqlalchemy import ColumnElement, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
+from src.audit.listener import ACTOR_KEY
 from src.auth.models import User
 from src.pagination import PaginationParams
 from src.utils.datetime import utc_now
@@ -182,6 +185,39 @@ async def upsert_contact(
     return contact
 
 
+@contextmanager
+def _system_actor(session: AsyncSession) -> Iterator[None]:
+    """Attribute the writes inside to no user, then restore the caller's actor.
+
+    The account link is not a change anyone in the business made, and the actor
+    of an audit row is shown to the organisation's readers with their name."""
+    previous = session.info.get(ACTOR_KEY)
+    audit_service.set_actor(session, None)
+    try:
+        yield
+    finally:
+        audit_service.set_actor(session, previous)
+
+
+async def _record_account_marker(
+    session: AsyncSession,
+    contact: Contact,
+    action: str,
+    changes: dict[str, tuple[Any, Any]],
+) -> None:
+    """A value-free history row: the account identity itself is never written."""
+    await audit_service.record_change(
+        session,
+        entity_type=SUBJECT,
+        entity_id=contact.organisation_id,
+        record_type="contact",
+        record_id=contact.id,
+        action=action,
+        changes=changes,
+        organisation_id=contact.organisation_id,
+    )
+
+
 async def link_verified_account(
     session: AsyncSession,
     contact: Contact,
@@ -196,17 +232,46 @@ async def link_verified_account(
     Only when the account's verified email is the booking's email, compared with
     the same normalisation the email hash uses. Name and phone never link. A
     contact that already has an account link is left alone, to this account or
-    another (no relink). Returns True when this call made the link.
+    another (no relink). The row is locked and re-read first, so a concurrent
+    booking or email change cannot race the check. Returns True when this call
+    made the link.
     """
+    await session.refresh(contact, with_for_update=True)
     if not account_email_verified or contact.erased_at is not None:
         return False
     if contact.user_id is not None:
         return False
     if normalise_email(account_email) != normalise_email(booking_email):
         return False
-    contact.user_id = user_id
-    await session.flush()
+    with _system_actor(session):
+        contact.user_id = user_id
+        await _record_account_marker(
+            session, contact, "link_account", {"account": (None, "linked")}
+        )
+        await session.flush()
     return True
+
+
+async def unlink_account(session: AsyncSession, user_id: uuid.UUID) -> int:
+    """Clear the account link on every contact of ``user_id``; returns how many.
+
+    Called when the account's email changes or the account is deleted: a link
+    earned by an address the person no longer holds must not keep their past
+    bookings (ADR-0058). Future bookings relink only on a new verified match.
+    """
+    contacts = (
+        await session.scalars(
+            select(Contact).where(Contact.user_id == user_id).with_for_update()
+        )
+    ).all()
+    with _system_actor(session):
+        for contact in contacts:
+            contact.user_id = None
+            await _record_account_marker(
+                session, contact, "unlink_account", {"account": ("linked", "unlinked")}
+            )
+        await session.flush()
+    return len(contacts)
 
 
 async def create_without_email(

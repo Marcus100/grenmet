@@ -20,6 +20,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import service as audit_service
 from src.auth.email_verification import is_email_verified
 from src.auth.models import User
 from src.contacts import service as contacts_service
@@ -508,6 +509,9 @@ async def create_booking(
     (``payload.email_proof``) unless a signed-in ``payer`` already vouches for the
     booking email (ADR-0018, #471); otherwise 403 ``email_verification_required``
     and nothing is stored. Returns ``(201, receipt as JSON)`` for ``run_idempotent``."""
+    # A signed-in payer must not be recorded as the actor of the business's contact
+    # history: readers see the actor's name (ADR-0058, account UUID never shared).
+    audit_service.set_actor(session, None)
     svc = await service.get_service(
         session, payload.service_id, organisation_id=profile.organisation_id
     )

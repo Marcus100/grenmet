@@ -1452,6 +1452,7 @@ export {
   bookingsListMyBookingsStatus401Schema,
   bookingsListMyBookingsStatus403Schema,
   bookingsListMyBookingsStatus422Schema,
+  bookingsListMyBookingsStatus429Schema,
 } from "./bookingsListMyBookingsSchema.js";
 export {
   bookingsListMyOrganisationsErrorSchema,

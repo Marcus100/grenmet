@@ -14,5 +14,9 @@
 - Retention: `docs/security.md` (data retention table).
 - **Party/role references (ADR-0028):** a domain table with a required `contact_id` registers itself in `references.py` (`register(table)`, done in its `models.py`); `merge_contacts` re-points all registered rows to the kept contact before deleting the other. `create_without_email` makes a contact with no address (`email_hash` is NULL, never matched; used for walk-ins).
 
+- **Account link (ADR-0058):** `link_verified_account` (signed-in booking only; row locked and re-read first; erased contacts never link) and `unlink_account(user_id)` (clears every link of one account; called by auth on an email change and on account deletion, through the service, never the table). The link is never shown to businesses: `user_id` is excluded from the audit registry and from organisation responses (`contacts/router.py` `_view`); link and unlink write value-free `link_account` / `unlink_account` rows under the organisation's history, with no actor (`_system_actor`). Public bookings clear the audit actor so a signed-in payer's name never appears in the business's history.
+- **Not backfilled:** existing contacts are not linked. Past guest bookings appear in the account's list only after the person books while signed in with a verified matching email, or through the claim flow (a later slice).
+- **Known behaviour (owner decision pending):** a guest booking made with an email whose contact is already linked to an account appears in that account's list. A merge that folds a guest record into a linked one does the same.
+
 ## Tests
-`tests/contacts/test_contacts.py` (service rules, routes, roles, cross-organisation denial, entitlement, audit) and `tests/contacts/test_contacts_migration.py`.
+`tests/contacts/test_contacts.py` (service rules, routes, roles, cross-organisation denial, entitlement, audit) and `tests/contacts/test_contacts_migration.py`. Account link, unlink, privacy and merge: `tests/bookings/test_account_link.py`.

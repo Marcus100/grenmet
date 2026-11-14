@@ -119,10 +119,15 @@ async def list_my_organisations(*, session: SessionDep, user: StudioCaller) -> A
         "with `upcoming`; page with `page` and `size`."
     ),
     operation_id="bookingsListMyBookings",
-    responses=AUTHENTICATED,
+    responses={
+        **AUTHENTICATED,
+        429: {"model": RateLimitedBody, "description": "Too many requests"},
+    },
 )
+@limiter.limit("60/minute")
 async def list_my_bookings(
     *,
+    request: Request,
     session: SessionDep,
     current_user: AccountUser,
     pagination: PaginationDep,
@@ -131,6 +136,7 @@ async def list_my_bookings(
         Query(description="True: starting now or later. False: earlier. Omit: all."),
     ] = None,
 ) -> Any:
+    _ = request  # the rate limiter reads it
     rows, total = await service.list_my_bookings(
         session, current_user.id, upcoming=upcoming, pagination=pagination
     )

@@ -6037,6 +6037,7 @@ export type {
   BookingsListMyBookingsStatus401,
   BookingsListMyBookingsStatus403,
   BookingsListMyBookingsStatus422,
+  BookingsListMyBookingsStatus429,
 } from "./models/BookingsListMyBookings.js";
 export type {
   BookingsListMyOrganisationsOptions,
@@ -16067,6 +16068,7 @@ export {
   bookingsListMyBookingsStatus401Schema,
   bookingsListMyBookingsStatus403Schema,
   bookingsListMyBookingsStatus422Schema,
+  bookingsListMyBookingsStatus429Schema,
 } from "./zod/bookingsListMyBookingsSchema.js";
 export {
   bookingsListMyOrganisationsErrorSchema,

@@ -6,6 +6,7 @@
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingMyBookingListSchema } from "./bookingMyBookingListSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const bookingsListMyBookingsQueryUpcomingSchema = z
@@ -44,6 +45,11 @@ export const bookingsListMyBookingsStatus422Schema =
     "Validation error envelope returned for malformed requests."
   );
 
+export const bookingsListMyBookingsStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
+
 export const bookingsListMyBookingsResponseSchema =
   bookingsListMyBookingsStatus200Schema;
 
@@ -51,6 +57,7 @@ export const bookingsListMyBookingsErrorSchema = z.union([
   bookingsListMyBookingsStatus401Schema,
   bookingsListMyBookingsStatus403Schema,
   bookingsListMyBookingsStatus422Schema,
+  bookingsListMyBookingsStatus429Schema,
 ]);
 
 export const bookingsListMyBookingsQuerySchema = z.object({

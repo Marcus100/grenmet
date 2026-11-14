@@ -5,6 +5,7 @@
 
 import type { ApiError } from "./ApiError.js";
 import type { BookingMyBookingList } from "./BookingMyBookingList.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsListMyBookingsQuery = {
@@ -50,6 +51,8 @@ export type BookingsListMyBookingsStatus403 = ApiError;
  */
 export type BookingsListMyBookingsStatus422 = ValidationErrorResponse;
 
+export type BookingsListMyBookingsStatus429 = ApiError | ErrorMessage;
+
 export type BookingsListMyBookingsOptions = {
   body?: never;
   path?: never;
@@ -62,6 +65,7 @@ export type BookingsListMyBookingsResponses = {
   "401": BookingsListMyBookingsStatus401;
   "403": BookingsListMyBookingsStatus403;
   "422": BookingsListMyBookingsStatus422;
+  "429": BookingsListMyBookingsStatus429;
 };
 
 /**

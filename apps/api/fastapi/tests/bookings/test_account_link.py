@@ -13,7 +13,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
+from src.auth import service as auth_service
 from src.auth.models import User
+from src.auth.schemas import UserUpdateMe
 from src.bookings import public
 from src.bookings.models import Booking, BookingStatus
 from src.contacts import service as contacts_service
@@ -23,6 +25,7 @@ from src.rewards import outbox_handlers as rewards_handlers
 from src.rewards import service as rewards_service
 from src.rewards.models import Entry
 from src.rewards.schemas import ProgramCreate
+from src.utils.datetime import utc_now
 from src.utils.email_hash import hash_email
 from tests.bookings.booking_day import MONDAY, utc_at
 from tests.bookings.test_public_bookings import API, Studio, _body, _slots, _studio
@@ -345,3 +348,257 @@ async def test_business_staff_never_see_the_account_uuid(
     )
     assert listing.status_code == 200, listing.text
     assert {row["user_id"] for row in listing.json()["data"]} == {None}
+
+
+async def test_the_organisation_audit_history_never_names_the_account(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    # The audit rows of a linked booking exist, and none carries the account id
+    # or its address, as actor or as a changed value (ADR-0058).
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"audit-{uuid.uuid4().hex[:6]}@example.com")
+    ada_id, ada_email = ada.id, ada.email
+    await _book_in(async_client, studio, ada, slot=0)
+    history = await async_client.get(
+        f"/api/v1/audit/platform_organisation/{studio.org_id}", headers=studio.headers
+    )
+    assert history.status_code == 200, history.text
+    text = history.text
+    assert "link_account" in text
+    assert str(ada_id) not in text
+    assert ada_email not in text
+
+
+async def test_an_email_change_drops_the_old_link_and_its_earnings(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client, apps=FULL)
+    actor = await make_user(db_async)
+    await rewards_service.create_program(
+        db_async,
+        organisation_id=studio.org_id,
+        actor=actor,
+        payload=ProgramCreate(
+            name="Lash card",
+            stamps_required=3,
+            reward_description="A free fill",
+            qualifying_source_type="bookings.completed",
+        ),
+    )
+    ada = await make_user(db_async, email=f"old-{uuid.uuid4().hex[:6]}@example.com")
+    ada_id = ada.id
+    old_booking = await _book_in(async_client, studio, ada, slot=0)
+    assert (
+        await async_client.get(f"{API}/me/bookings", headers=headers_for(ada))
+    ).json()["count"] == 1
+
+    await auth_service.update_user_me(
+        session=db_async,
+        current_user=ada,
+        user_in=UserUpdateMe(email=f"new-{uuid.uuid4().hex[:6]}@example.com"),
+    )
+    await db_async.commit()
+    db_async.expire_all()
+    ada = await db_async.get(User, ada_id)
+    assert ada is not None
+    ada.email_verified_at = utc_now()  # verified again at the new address
+    await db_async.commit()
+
+    listed = await async_client.get(f"{API}/me/bookings", headers=headers_for(ada))
+    assert listed.status_code == 200, listed.text
+    assert listed.json()["count"] == 0
+
+    booking = await db_async.get(Booking, uuid.UUID(old_booking))
+    assert booking is not None
+    await public.transition(db_async, booking, BookingStatus.COMPLETED)
+    await db_async.commit()
+    rows = (
+        await db_async.scalars(
+            select(Outbox).where(
+                Outbox.topic == rewards_handlers.TOPIC,
+                Outbox.dedupe_key == f"bookings.completed:{old_booking}:{ada_id}",
+            )
+        )
+    ).all()
+    assert rows == []
+
+
+async def test_a_new_verified_address_links_a_new_contact(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"was-{uuid.uuid4().hex[:6]}@example.com")
+    ada_id = ada.id
+    await _book_in(async_client, studio, ada, slot=0)
+    new_email = f"now-{uuid.uuid4().hex[:6]}@example.com"
+    # The real email-change path: it unlinks the old contact.
+    await auth_service.update_user_me(
+        session=db_async, current_user=ada, user_in=UserUpdateMe(email=new_email)
+    )
+    await db_async.commit()
+    ada = await db_async.get(User, ada_id)
+    assert ada is not None
+    ada.email_verified_at = utc_now()  # verified at the new address
+    await db_async.commit()
+    headers = headers_for(ada)
+    await _book_in(async_client, studio, ada, slot=0)
+    contact = await _contact_for(db_async, studio.org_id, new_email)
+    assert contact.user_id == ada_id
+    listed = await async_client.get(f"{API}/me/bookings", headers=headers)
+    assert listed.json()["count"] == 1
+
+
+async def test_deleting_the_account_unlinks_its_contacts(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"gone-{uuid.uuid4().hex[:6]}@example.com")
+    ada_email = ada.email
+    await _book_in(async_client, studio, ada, slot=0)
+    await auth_service.delete_user(session=db_async, user=ada)
+    contact = await _contact_for(db_async, studio.org_id, ada_email)
+    assert contact.user_id is None
+
+
+async def test_an_erased_contact_is_not_listed(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"erased-{uuid.uuid4().hex[:6]}@example.com")
+    await _book_in(async_client, studio, ada, slot=0)
+    contact = await _contact_for(db_async, studio.org_id, ada.email)
+    await contacts_service.erase_contact(db_async, contact)
+    await db_async.commit()
+    listed = await async_client.get(f"{API}/me/bookings", headers=headers_for(ada))
+    assert listed.json()["count"] == 0
+
+
+async def test_an_erased_contact_is_never_linked(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    email = f"tomb-{uuid.uuid4().hex[:6]}@example.com"
+    contact = await contacts_service.upsert_contact(
+        db_async, studio.org_id, email=email, source="bookings"
+    )
+    await contacts_service.erase_contact(db_async, contact)
+    account = await make_user(db_async, email=email)
+    linked = await contacts_service.link_verified_account(
+        db_async,
+        contact,
+        booking_email=email,
+        user_id=account.id,
+        account_email=email,
+        account_email_verified=True,
+    )
+    assert linked is False
+    assert contact.user_id is None
+
+
+async def test_a_replayed_booking_does_not_relink_or_duplicate(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"rep-{uuid.uuid4().hex[:6]}@example.com")
+    headers = {**headers_for(ada), "Idempotency-Key": uuid.uuid4().hex}
+    slots = await _slots(async_client, studio)
+    body = _body(studio, slots[0], customer_email=ada.email)
+    first = await async_client.post(
+        f"{API}/public/{studio.slug}/bookings", headers=headers, json=body
+    )
+    assert first.status_code == 201, first.text
+    replay = await async_client.post(
+        f"{API}/public/{studio.slug}/bookings", headers=headers, json=body
+    )
+    assert replay.status_code == 201, replay.text
+    assert replay.headers.get("Idempotency-Replayed") == "true"
+    assert replay.json()["booking"]["id"] == first.json()["booking"]["id"]
+    listed = await async_client.get(f"{API}/me/bookings", headers=headers_for(ada))
+    assert listed.json()["count"] == 1
+    contact = await _contact_for(db_async, studio.org_id, ada.email)
+    assert contact.user_id == ada.id
+
+
+async def test_a_mixed_case_account_email_links_a_lowercase_booking(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    mixed = f"Mixed.Case-{uuid.uuid4().hex[:6]}@Example.com"
+    account = await make_user(db_async, email=mixed)
+    resp = await _signed_in_book(
+        async_client,
+        studio,
+        headers_for(account),
+        customer_email=mixed.lower(),
+    )
+    assert resp.status_code == 201, resp.text
+    contact = await _contact_for(db_async, studio.org_id, mixed)
+    assert contact.user_id == account.id
+
+
+async def test_one_account_lists_bookings_from_two_organisations(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    first = await _studio(db_async, async_client)
+    second = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"two-{uuid.uuid4().hex[:6]}@example.com")
+    await _book_in(async_client, first, ada, slot=0)
+    await _book_in(async_client, second, ada, slot=0)
+    listed = await async_client.get(f"{API}/me/bookings", headers=headers_for(ada))
+    assert listed.status_code == 200, listed.text
+    body = listed.json()
+    assert body["count"] == 2
+    assert {row["business_slug"] for row in body["data"]} == {first.slug, second.slug}
+
+
+async def test_paging_walks_every_booking_exactly_once(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"page-{uuid.uuid4().hex[:6]}@example.com")
+    ids = {await _book_in(async_client, studio, ada, slot=0)}
+    ids.add(await _book_in(async_client, studio, ada, slot=-1))
+    seen: list[str] = []
+    for page in (1, 2, 3):
+        resp = await async_client.get(
+            f"{API}/me/bookings",
+            headers=headers_for(ada),
+            params={"page": page, "size": 1},
+        )
+        assert resp.status_code == 200, resp.text
+        assert resp.json()["count"] == 2
+        seen.extend(row["id"] for row in resp.json()["data"])
+    assert sorted(seen) == sorted(ids)
+
+
+async def test_a_merge_keeps_the_account_link_and_its_bookings(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    guest_email = f"guest-{uuid.uuid4().hex[:6]}@example.com"
+    guest = await async_client.post(
+        f"{API}/public/{studio.slug}/bookings",
+        headers={"Idempotency-Key": uuid.uuid4().hex},
+        json=_body(
+            studio, (await _slots(async_client, studio))[0], customer_email=guest_email
+        ),
+    )
+    assert guest.status_code == 201, guest.text
+    ada = await make_user(db_async, email=f"merge-{uuid.uuid4().hex[:6]}@example.com")
+    ada_id, ada_email, ada_headers = ada.id, ada.email, headers_for(ada)
+    await _book_in(async_client, studio, ada, slot=0)
+    keep = await _contact_for(db_async, studio.org_id, guest_email)
+    drop = await _contact_for(db_async, studio.org_id, ada_email)
+    keep_id, drop_id = keep.id, drop.id
+    admin = await make_user(db_async)
+    await contacts_service.merge_contacts(
+        db_async, admin, keep_id, drop_id, organisation_id=studio.org_id
+    )
+    await db_async.commit()
+    db_async.expire_all()
+    kept = await db_async.get(Contact, keep_id)
+    assert kept is not None and kept.user_id == ada_id
+    # Known behaviour (owner decision pending): merging the guest's record into the
+    # linked one makes the guest's earlier booking appear in the account's list.
+    listed = await async_client.get(f"{API}/me/bookings", headers=ada_headers)
+    assert listed.json()["count"] == 2

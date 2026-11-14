@@ -1467,6 +1467,7 @@ export type {
   BookingsListMyBookingsStatus401,
   BookingsListMyBookingsStatus403,
   BookingsListMyBookingsStatus422,
+  BookingsListMyBookingsStatus429,
 } from "./BookingsListMyBookings.js";
 export type {
   BookingsListMyOrganisationsOptions,
