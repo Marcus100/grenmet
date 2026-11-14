@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 
 from redis.asyncio import Redis
 
-from src.worker.config import worker_settings
+from src.worker.config import REQUEST_REDIS_TIMEOUT_SECONDS, worker_settings
 
 from .schemas import FlightRow
 
@@ -22,7 +22,12 @@ def _get_client() -> Redis | None:
     if not worker_settings.REDIS_URL:
         return None
     if _client is None:
-        _client = Redis.from_url(worker_settings.REDIS_URL, decode_responses=True)
+        _client = Redis.from_url(
+            worker_settings.REDIS_URL,
+            decode_responses=True,
+            socket_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
+            socket_connect_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
+        )
     return _client
 
 

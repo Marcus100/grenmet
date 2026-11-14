@@ -55,7 +55,7 @@ from src.auth.models import User
 from src.exceptions import AppException
 from src.notifications import outbox_handlers
 from src.utils.email_hash import hash_email, normalise_email
-from src.worker.config import worker_settings
+from src.worker.config import REQUEST_REDIS_TIMEOUT_SECONDS, worker_settings
 
 from . import emails
 
@@ -114,7 +114,12 @@ class RedisCodeStore:
         if not self._url:
             raise VerificationUnavailableError
         if self._client is None:
-            self._client = Redis.from_url(self._url, decode_responses=True)
+            self._client = Redis.from_url(
+                self._url,
+                decode_responses=True,
+                socket_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
+                socket_connect_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
+            )
         return self._client
 
     async def _run[T](self, call: Callable[[Redis], Awaitable[T]]) -> T:
