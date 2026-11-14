@@ -558,6 +558,12 @@ def is_overlap_violation(error: DBAPIError) -> bool:
     return code == _DEADLOCK_SQLSTATE or "deadlock detected" in str(error.orig)
 
 
+def _my_bookings_order(upcoming: bool | None) -> tuple[Any, ...]:
+    if upcoming is True:
+        return (Booking.starts_at.asc(), Booking.id.asc())
+    return (Booking.starts_at.desc(), Booking.id.desc())
+
+
 async def list_my_bookings(
     session: AsyncSession,
     user_id: uuid.UUID,
@@ -566,7 +572,10 @@ async def list_my_bookings(
     pagination: PaginationParams,
     now: datetime | None = None,
 ) -> tuple[list[tuple[Booking, str, str, str]], int]:
-    """The account's bookings across organisations, newest first, one SQL page.
+    """The account's bookings across organisations, one SQL page.
+
+    Soonest first when ``upcoming`` is True (starts_at, id ascending); newest first
+    otherwise (past, or all when omitted).
 
     A booking is the account's when its customer's organisation contact is linked
     to ``user_id`` (ADR-0058). Returns ``(booking, service name, business name,
@@ -601,7 +610,7 @@ async def list_my_bookings(
         .join(Service, Service.id == Booking.service_id)
         .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
         .where(*filters)
-        .order_by(Booking.starts_at.desc(), Booking.id.desc())
+        .order_by(*_my_bookings_order(upcoming))
         .offset(pagination.skip)
         .limit(pagination.limit)
     )

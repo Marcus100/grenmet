@@ -11,7 +11,7 @@ import type {
 } from "../models/BookingsListMyBookings.js";
 
 /**
- * @description The signed-in person's bookings with every business, newest first. A booking is listed when its business contact is linked to the account (a signed-in booking with a verified matching email, ADR-0058). Filter with `upcoming`; page with `page` and `size`.
+ * @description The signed-in person's bookings with every business. `upcoming=true` lists soonest first; `upcoming=false` and no filter list newest first. A booking is listed when its business contact is linked to the account (a signed-in booking with a verified matching email, ADR-0058). Accepts a full account token or the account app's session; other apps' tokens get 401. Page with `page` and `size`.
  * @summary My bookings across businesses
  * {@link /api/v1/bookings/me/bookings}
  */
