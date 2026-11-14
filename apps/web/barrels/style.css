@@ -170,6 +170,7 @@ button:disabled {
   gap: var(--line-height-caption);
   align-content: start;
   padding: var(--line-height-body-base);
+  color: var(--brand-text-primary);
   background: var(--brand-surface-panel);
   border: thin solid var(--brand-border);
   border-radius: calc(var(--radius) * 3);
@@ -179,7 +180,7 @@ button:disabled {
 }
 .suited {
   font-size: var(--font-size-body-sm);
-  color: var(--brand-border);
+  color: var(--brand-text-secondary);
 }
 .suited span {
   font-weight: 600;
