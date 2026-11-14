@@ -201,6 +201,10 @@ class LeaveType(str, Enum):
     SICK = "SICK"
 ```
 
+## Status columns and state machines
+
+Every stored status is listed with a decision in `tests/test_state_machine_inventory.py`: a lifecycle with rules has one transition table (the domain's `transitions.py`) and every later status write goes through its `move_*` guard; a switch, an insert-time outcome or a descriptive attribute says why it has no table, and a lifecycle still checked where it is written is marked `IN_PLACE` as a candidate for the next table. Read that file first to find the rules for any status. A new status column, or a status assigned outside the listed files, fails the test until it is listed. Pattern to copy: `src/stores/transitions.py` with `tests/stores/test_requisition_transitions.py` (table-driven, no database). Keep refactors behaviour-preserving: same status code, message and check order.
+
 ## Settings
 
 Add domain-scoped settings to a `BaseSettings` subclass in `{domain}/config.py`, not to the global `Settings`. Follow the `AuthConfig` pattern in `src/auth/config.py`.

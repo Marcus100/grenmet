@@ -26,7 +26,7 @@ from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.exceptions import AppException
 from src.notifications import service as notification_service
-from src.organisations import members, service
+from src.organisations import members, service, transitions
 from src.organisations.exceptions import AlreadyMemberError, OrganisationNotFoundError
 from src.organisations.models import (
     Invitation,
@@ -159,7 +159,7 @@ async def add(
                 session, user, f"become an organisation {role.value}"
             )
         old_role, old_status = existing.role, existing.status
-        existing.status = MembershipStatus.ACTIVE.value
+        transitions.move_membership(existing, "reactivate")
         existing.role = role.value
         existing.invited_by_user_id = actor.id
         membership = existing

@@ -27,7 +27,7 @@ from src.exceptions import NotFoundError
 from src.organisations.models import PlatformOrganisation
 from src.utils.datetime import utc_now
 
-from . import sources
+from . import sources, transitions
 from .config import rewards_settings
 from .exceptions import (
     ProgramNotFoundError,
@@ -482,7 +482,7 @@ async def confirm_pending_earn(session: AsyncSession, entry_id: uuid.UUID) -> bo
     )
     if entry is None:
         return False
-    entry.status = EntryStatus.CONFIRMED.value
+    transitions.move_entry(entry, "confirm")
     entry.settled_at = utc_now()
     await session.flush()
     return True
@@ -551,7 +551,7 @@ async def _reverse(
         settled_at=utc_now(),
     )
     session.add(reversal)
-    entry.status = EntryStatus.REVERSED.value
+    transitions.move_entry(entry, "reverse")
     entry.settled_at = entry.settled_at or utc_now()
     await session.flush()
     return reversal
@@ -698,7 +698,7 @@ async def confirm_redemption(
         raise RewardsConflictError("This code has already been used or cancelled")
     staff_id = staff.id if staff else None
     audit_service.set_actor(session, staff_id)
-    entry.status = EntryStatus.CONFIRMED.value
+    transitions.move_entry(entry, "confirm")
     entry.settled_at = utc_now()
     entry.settled_by_user_id = staff_id
     await session.flush()
