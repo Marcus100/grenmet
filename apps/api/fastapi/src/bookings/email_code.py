@@ -55,7 +55,7 @@ from src.auth.models import User
 from src.exceptions import AppException
 from src.notifications import outbox_handlers
 from src.utils.email_hash import hash_email, normalise_email
-from src.worker.config import REQUEST_REDIS_TIMEOUT_SECONDS, worker_settings
+from src.worker.config import worker_settings
 
 from . import emails
 
@@ -68,6 +68,11 @@ LOCK_TTL = 900
 SEND_LIMIT = 5
 SEND_WINDOW = 3600
 _PREFIX = "bk:ec:"
+# Per command. Longer than the 0.5 s of the fail-open request-path clients: this
+# is an authentication check that fails closed, so a briefly slow Redis should
+# still answer rather than turn a correct code into a 503 (#1421). A stalled
+# Redis still fails closed after this long on the first command.
+CODE_STORE_TIMEOUT_SECONDS = 2.0
 
 
 class CodeRateLimitedError(AppException):
@@ -117,8 +122,8 @@ class RedisCodeStore:
             self._client = Redis.from_url(
                 self._url,
                 decode_responses=True,
-                socket_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
-                socket_connect_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
+                socket_timeout=CODE_STORE_TIMEOUT_SECONDS,
+                socket_connect_timeout=CODE_STORE_TIMEOUT_SECONDS,
             )
         return self._client
 
