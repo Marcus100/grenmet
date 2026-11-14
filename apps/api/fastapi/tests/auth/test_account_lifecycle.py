@@ -12,7 +12,11 @@ from src.auth.modern_service import drain_setup_emails
 from src.auth.utils import create_access_token
 from src.exceptions import AppException
 from src.hr.models import Grade
+from src.organisations.models import MembershipRole
+from src.rewards import service as rewards_service
+from src.rewards.schemas import ProgramCreate
 from tests.factories import make_department, make_role_with_permission, make_user
+from tests.organisations.support import make_org
 
 
 async def make_self_signup_user(
@@ -260,3 +264,49 @@ async def test_mfa_recovery_and_disable_api_journey(
     await db_async.refresh(user)
     assert not user.totp_enabled
     assert user.mfa_recovery_hashes == []
+
+
+@pytest.mark.usefixtures("db_async")
+async def test_account_with_rewards_history_can_be_deleted(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """Issue #1375: DELETE /auth/users/me must succeed for a customer who holds
+    a rewards ledger entry (the ledger refuses DELETE by trigger, and the
+    account-referencing rewards tables have no ON DELETE rule)."""
+    customer = await make_user(db_async)
+    owner = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Deletion Cafe",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("rewards",),
+    )
+    await rewards_service.create_program(
+        db_async,
+        organisation_id=org.id,
+        actor=owner,
+        payload=ProgramCreate(
+            name="Coffee card",
+            stamps_required=5,
+            reward_description="A free coffee",
+        ),
+    )
+    await rewards_service.record_qualifying_action(
+        db_async,
+        source_type=rewards_service.EVENTS_ADMISSION,
+        source_id=f"deletion-{uuid.uuid4().hex[:8]}",
+        organisation_id=org.id,
+        user_id=customer.id,
+    )
+    await db_async.commit()
+
+    login_body = {"email": customer.email, "password": "password123"}
+    login = await async_client.post("/api/v1/auth/sessions", json=login_body)
+    assert login.status_code == 200
+    headers = {"Authorization": "Bearer " + login.json()["access_token"]}
+
+    deleted = await async_client.delete("/api/v1/auth/users/me", headers=headers)
+    assert 200 <= deleted.status_code < 300, deleted.text
+
+    after = await async_client.post("/api/v1/auth/sessions", json=login_body)
+    assert after.status_code == 400

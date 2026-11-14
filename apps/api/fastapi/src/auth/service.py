@@ -1,8 +1,9 @@
 import logging
 import uuid
+from datetime import datetime
 from typing import Any
 
-from sqlalchemy import delete
+from sqlalchemy import delete, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SQLAlchemySession
 
@@ -256,22 +257,149 @@ async def _unlink_business_contacts(session: AsyncSession, user_id: uuid.UUID) -
     await contacts_service.unlink_account(session, user_id)
 
 
-async def delete_user(*, session: AsyncSession, user: User) -> None:
-    user_id = str(user.id)
-    from src.auth.modern_models import AuthChallenge
-    from src.profile_images import service as profile_images
+async def _end_access_links(
+    session: AsyncSession, user_id: uuid.UUID, now: datetime
+) -> None:
+    """Remove plain role links and end live role assignments (history stays)."""
+    from src.auth.models import UserRoleAssignment, UserRoleLink
 
-    # Outstanding activation/sign-in challenges must not block account deletion.
-    await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user.id))
-    # The photo row cascades with the user; its stored files are removed after.
-    photo = await profile_images.get_image(session=session, user_id=user.id)
+    await session.execute(delete(UserRoleLink).where(UserRoleLink.user_id == user_id))
+    await session.execute(
+        update(UserRoleAssignment)
+        .where(
+            UserRoleAssignment.user_id == user_id,
+            or_(
+                UserRoleAssignment.effective_to.is_(None),
+                UserRoleAssignment.effective_to > now,
+            ),
+        )
+        .values(effective_to=now)
+    )
+
+
+async def _end_organisation_access(
+    session: AsyncSession, user_id: uuid.UUID, now: datetime
+) -> None:
+    """Mark every membership removed and revoke its live grants. Rows stay for history."""
+    from src.organisations.models import Membership, MembershipGrant, MembershipStatus
+
+    await session.execute(
+        update(Membership)
+        .where(
+            Membership.user_id == user_id,
+            Membership.status != MembershipStatus.REMOVED.value,
+        )
+        .values(status=MembershipStatus.REMOVED.value, updated_at=now)
+    )
+    await session.execute(
+        update(MembershipGrant)
+        .where(
+            MembershipGrant.membership_id.in_(
+                select(Membership.id).where(Membership.user_id == user_id)
+            ),
+            MembershipGrant.revoked_at.is_(None),
+        )
+        .values(revoked_at=now)
+    )
+
+
+def _anonymise_fields(user: User, now: datetime) -> None:
+    """Replace the personal fields and deactivate the account (ADR-0058 section 7).
+
+    The email and username are unique, so they become random placeholders on
+    ``example.com`` (reserved for documentation, never delivered). The password hash
+    becomes ``DUMMY_PASSWORD_HASH``, a real bcrypt hash of a random secret that nobody
+    holds, so no sign-in can match it.
+    """
+    placeholder = user.id.hex
+    user.email = f"deleted-{placeholder}@example.com"
+    user.username = f"deleted-{placeholder}"
+    user.first_name = "Deleted"
+    user.last_name = "user"
+    user.middle_name = None
+    user.title = None
+    user.phone_e164 = None
+    user.phone_verified_at = None
+    user.email_verified_at = None
+    user.email_verification_required = False
+    user.password_setup_pending = False
+    user.registration_pending = False
+    user.staff_access_requested_at = None
+    user.last_login_at = None
+    user.password_changed_at = None
+    user.hashed_password = DUMMY_PASSWORD_HASH
+    user.totp_secret = None
+    user.totp_enabled = False
+    user.mfa_recovery_hashes = []
+    user.is_active = False
+    user.is_superuser = False
+    user.cms_access = "none"
+    user.updated_at = now
+
+
+async def delete_user(
+    *, session: AsyncSession, user: User, actor: User | None = None
+) -> None:
+    """Anonymise an account instead of deleting its row (ADR-0058 section 7, #1375).
+
+    The row stays under the same id because other tables reference it: the rewards
+    ledger, HR employment and pay records, and the audit trail. A hard delete was
+    refused (409) for any of them, and a cascade would have removed records the law may
+    require. So access and personal data go: sessions, API keys it created, Google
+    sign-ins, the authenticator and recovery codes, remembered devices, roles,
+    memberships, notification history, the photo and any open redemption code. The
+    account is deactivated, which every token check refuses. The deletion is audited
+    with no personal value.
+    """
+    from src.audit import service as audit
+    from src.auth.app_service import revoke_access_material
+    from src.auth.models import UserImage
+    from src.auth.modern_models import AuthChallenge
+    from src.baseline.models import StaffCredential
+    from src.notifications.models import Notification, NotificationPreference
+    from src.profile_images import service as profile_images
+    from src.rewards import service as rewards_service
+
+    user_id = user.id
+    now = utc_now()
+    audit.set_actor(session, (actor or user).id)
+    # Outstanding activation/sign-in challenges must not outlive the account.
+    await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user_id))
+    # The photo row is removed here (no cascade now); its stored files go after commit.
+    photo = await profile_images.get_image(session=session, user_id=user_id)
     photo_prefix = photo.object_key if photo else None
-    await _unlink_business_contacts(session, user.id)
-    await session.delete(user)
+    await session.execute(delete(UserImage).where(UserImage.user_id == user_id))
+    await _unlink_business_contacts(session, user_id)
+    # Sessions, Google sign-ins, remembered devices and API keys the account created.
+    await revoke_access_material(session, user)
+    await rewards_service.cancel_open_redemptions(session, account=user)
+    await _end_access_links(session, user_id, now)
+    await _end_organisation_access(session, user_id, now)
+    await session.execute(
+        update(StaffCredential)
+        .where(StaffCredential.user_id == user_id, StaffCredential.revoked_at.is_(None))
+        .values(revoked_at=now)
+    )
+    await session.execute(
+        delete(Notification).where(Notification.recipient_user_id == user_id)
+    )
+    await session.execute(
+        delete(NotificationPreference).where(NotificationPreference.user_id == user_id)
+    )
+    _anonymise_fields(user, now)
+    await audit.record_change(
+        session,
+        entity_type="account",
+        entity_id=str(user_id),
+        record_type="account_deletion",
+        record_id=str(user_id),
+        action="anonymised",
+        changes={"account": (None, "anonymised")},
+    )
     await session.commit()
     if photo_prefix:
         await profile_images.delete_stored_files(photo_prefix)
-    logger.info("User deleted", extra={"user_id": user_id})
+    logger.info("User anonymised", extra={"user_id": str(user_id)})
 
 
 async def authenticate(

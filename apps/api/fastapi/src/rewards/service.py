@@ -678,6 +678,24 @@ async def cancel_redemption(
     return entry
 
 
+async def cancel_open_redemptions(session: AsyncSession, *, account: User) -> int:
+    """Cancel every open redemption code of an account being anonymised (ADR-0058),
+    so a code the person held cannot be confirmed for the anonymous account.
+    Returns how many were cancelled. Flushes; the caller commits."""
+    open_ids = (
+        await session.scalars(
+            select(Entry.id).where(
+                Entry.account_id == account.id,
+                Entry.kind == EntryKind.REDEEM.value,
+                Entry.status == EntryStatus.PENDING.value,
+            )
+        )
+    ).all()
+    for entry_id in open_ids:
+        await cancel_redemption(session, account=account, entry_id=entry_id)
+    return len(open_ids)
+
+
 async def confirm_redemption(
     session: AsyncSession, *, organisation_id: str, code: str, staff: User | None
 ) -> tuple[Entry, Program]:

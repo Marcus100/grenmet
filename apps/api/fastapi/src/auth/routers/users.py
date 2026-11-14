@@ -375,5 +375,5 @@ async def delete_user(
         raise AuthorizationError(ERROR_SUPERUSER_DELETE_SELF)
     if user.is_superuser and not current_user.is_superuser:
         raise AuthorizationError(ERROR_INSUFFICIENT_PRIVILEGES)
-    await service.delete_user(session=session, user=user)
+    await service.delete_user(session=session, user=user, actor=current_user)
     return Message(message=SUCCESS_USER_DELETED)
