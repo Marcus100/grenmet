@@ -10,17 +10,22 @@ Only anonymised accounts are touched (the same markers as ``auth.service.is_anon
 and only when every employment record has an end date. Employment, pay, leave and
 attendance rows are never changed. Core statements, not ORM changes: the HR audit
 tracks these tables, and an ORM change would copy the old values into the audit trail.
+Earlier audit entries for these two records keep the old values, so the same batch
+blanks those values in the person's audit history (owner decision, issue #1447): the
+entry, its action, field names, actor and time stay; only the values go.
 Idempotent (a cleared account is no longer a candidate) and batched.
 """
 
 import logging
 import uuid
 from datetime import date
+from typing import Any
 
 from sqlalchemy import Select, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit
+from src.audit.models import AuditEntry
 from src.auth import placeholders
 from src.auth.models import User
 from src.auth.utils import ANONYMISED_PASSWORD_MARKER
@@ -32,6 +37,13 @@ from src.utils.timezones import local_today
 logger = logging.getLogger(__name__)
 
 BATCH_SIZE = 200
+
+# Audit history values removed with the live data. The address row is deleted, so every
+# field that locates the person goes; on the profile only the date of birth does.
+SCRUBBED_AUDIT_FIELDS: dict[str, frozenset[str]] = {
+    "user_profile": frozenset({"date_of_birth"}),
+    "user_address": frozenset({"line_1", "line_2", "city", "parish", "postal_code"}),
+}
 
 
 def retention_cutoff(today: date) -> date:
@@ -73,6 +85,38 @@ def _eligible_user_ids(cutoff: date, limit: int) -> Select[tuple[uuid.UUID]]:
     )
 
 
+def _scrubbed(
+    changes: list[dict[str, Any]], fields: frozenset[str]
+) -> list[dict[str, Any]]:
+    return [
+        {**change, "old": None, "new": None, "scrubbed": True}
+        if change.get("field") in fields
+        and (change.get("old") is not None or change.get("new") is not None)
+        else change
+        for change in changes
+    ]
+
+
+async def _scrub_audit_history(
+    session: AsyncSession, user_ids: list[uuid.UUID]
+) -> None:
+    entries = await session.execute(
+        select(AuditEntry.id, AuditEntry.record_type, AuditEntry.changes).where(
+            AuditEntry.entity_type == "employee",
+            AuditEntry.entity_id.in_([str(user_id) for user_id in user_ids]),
+            AuditEntry.record_type.in_(SCRUBBED_AUDIT_FIELDS),
+        )
+    )
+    for entry_id, record_type, changes in entries:
+        cleaned = _scrubbed(changes or [], SCRUBBED_AUDIT_FIELDS[record_type])
+        if cleaned != changes:
+            await session.execute(
+                update(AuditEntry)
+                .where(AuditEntry.id == entry_id)
+                .values(changes=cleaned)
+            )
+
+
 async def clear_expired_personal_details(
     session: AsyncSession, *, today: date | None = None
 ) -> int:
@@ -96,6 +140,7 @@ async def clear_expired_personal_details(
         await session.execute(
             delete(UserAddress).where(UserAddress.user_id.in_(user_ids))
         )
+        await _scrub_audit_history(session, user_ids)
         for user_id in user_ids:
             await audit.record_change(
                 session,

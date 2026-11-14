@@ -10,6 +10,7 @@ from src.audit.models import AuditEntry
 from src.auth import placeholders, service
 from src.auth.models import User
 from src.hr import retention
+from src.hr.constants import FORMER_STAFF_PERSONAL_DETAILS_RETENTION_YEARS
 from src.hr.models import EmploymentRecord, Gender, UserAddress, UserProfile
 from src.worker import main
 from tests.factories import make_department, make_employee, make_user
@@ -140,3 +141,89 @@ async def test_second_run_changes_nothing_and_audit_has_no_personal_value(
     dump = str(rows[0].changes)
     assert STREET not in dump
     assert "1990" not in dump
+
+
+def test_retention_period_is_at_least_one_year() -> None:
+    # 0 would clear everyone who has left at once.
+    assert FORMER_STAFF_PERSONAL_DETAILS_RETENTION_YEARS >= 1
+
+
+async def test_audit_history_loses_the_cleared_values(db_async: AsyncSession) -> None:
+    dept = await make_department(db_async, "ret_dept7")
+    user_id = str((await _former_employee(db_async, dept.id, LONG_AGO)).id)
+    kept_id = (await _former_employee(db_async, dept.id, INSIDE)).id
+    # An earlier edit by HR, so the history holds an old and a new value.
+    profile = await db_async.scalar(
+        select(UserProfile).where(UserProfile.user_id == kept_id)
+    )
+    assert profile is not None
+    profile.date_of_birth = date(1991, 5, 6)
+    db_async.add(
+        AuditEntry(
+            entity_type="employee",
+            entity_id=user_id,
+            record_type="user_address",
+            record_id=str(uuid.uuid4()),
+            action="update",
+            changes=[
+                {
+                    "field": "line_1",
+                    "old": "2 Old Road",
+                    "new": STREET,
+                    "sensitive": True,
+                },
+                {"field": "country", "old": None, "new": "Grenada", "sensitive": False},
+            ],
+        )
+    )
+    db_async.add(
+        AuditEntry(
+            entity_type="employee",
+            entity_id=user_id,
+            record_type="user_profile",
+            record_id=str(uuid.uuid4()),
+            action="update",
+            changes=[
+                {"field": "date_of_birth", "old": "1989-01-01", "new": DOB.isoformat()},
+                {"field": "gender", "old": None, "new": "female", "sensitive": False},
+            ],
+        )
+    )
+    await db_async.commit()
+
+    assert await retention.clear_expired_personal_details(db_async, today=TODAY) == 1
+
+    db_async.expire_all()
+    history = (
+        await db_async.scalars(
+            select(AuditEntry).where(
+                AuditEntry.entity_type == "employee",
+                AuditEntry.entity_id == user_id,
+                AuditEntry.record_type.in_(["user_profile", "user_address"]),
+            )
+        )
+    ).all()
+    assert history
+    dump = str([entry.changes for entry in history])
+    assert STREET not in dump
+    assert "2 Old Road" not in dump
+    assert "1990" not in dump
+    assert "1989" not in dump
+    # Entries, field names and non-personal values stay.
+    assert "Grenada" in dump
+    assert "female" in dump
+    assert "'field': 'line_1'" in dump
+
+    # The person still inside the period keeps their history.
+    kept_dump = str(
+        (
+            await db_async.scalars(
+                select(AuditEntry.changes).where(
+                    AuditEntry.entity_type == "employee",
+                    AuditEntry.entity_id == str(kept_id),
+                    AuditEntry.record_type == "user_profile",
+                )
+            )
+        ).all()
+    )
+    assert "1991" in kept_dump or "1990" in kept_dump
