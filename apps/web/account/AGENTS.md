@@ -49,12 +49,28 @@ and apps move here in later PRs. Sign-in stays on `auth.barrels.gd`
 ```text
 src/app/
   page.tsx                     ← profile: name, email, photo upload/replace/remove (server read, client mutations)
+  bookings/page.tsx            ← My bookings: upcoming (soonest first) and past (paged), server read; links each business to BOOKINGS_APP_URL/<slug>
   signin/page.tsx              ← hand-off to auth; `sign_in=expired` says so and offers a retry
   auth/start|callback|logout   ← single sign-on (ADR-0017)
   api/[...path]/route.ts       ← same-origin proxy to /api/v1/* (session → bearer)
   api/health/route.ts
   error.tsx, global-error.tsx, not-found.tsx
 ```
+
+## My bookings (ADR-0058, slice 1)
+
+- `src/lib/my-bookings-api.ts` (server-only) reads `GET /api/v1/bookings/me/bookings`
+  with `authApiFetch` and the generated Zod schema. Two calls per load: upcoming
+  (`size=1000`, the API maximum, since it lists newest first) and past (`page`,
+  `size=10`, page in `?past_page=`). Each section fails on its own.
+- The API sends no timezone, so `LocalBookingWhen` (client leaf) formats times in
+  the viewer's zone and renders empty until hydration. Nothing is assumed.
+- `BOOKINGS_APP_URL` (server env, `docs/env.md`; compose sets it on `web-account`)
+  builds each business link, `src/lib/bookings-site.ts`. No manage link: the API
+  does not return one.
+- A 401 redirects to sign-in; other 4xx show the section's inline message without
+  a report; anything else is reported with `reportError(error, "account-my-bookings")`.
+- `AccountNav` (Profile, My bookings) sits at the top of both pages.
 
 ## Errors and telemetry
 

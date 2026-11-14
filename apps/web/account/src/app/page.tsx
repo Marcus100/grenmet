@@ -1,5 +1,6 @@
 import type { ProfileImagePublic } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import { AccountNav } from "@/components/account-nav";
 import { ProfilePhotoPanel } from "@/components/profile-photo/profile-photo-panel";
 import { getMyProfilePhoto } from "@/lib/profile-photo-api";
 import { reportError } from "@/lib/report-error";
@@ -29,6 +30,7 @@ export default async function AccountHomePage() {
       className="mx-auto flex w-full max-w-3xl flex-col gap-8 p-6"
       id="main-content"
     >
+      <AccountNav current="profile" />
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <p className="text-muted-foreground text-sm font-medium">
