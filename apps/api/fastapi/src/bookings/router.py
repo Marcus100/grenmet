@@ -14,7 +14,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from src import idempotency
 from src.auth.models import User
-from src.dependencies import AccountUser, SessionDep, TokenDep, optional_account
+from src.dependencies import OwnAccountUser, SessionDep, TokenDep, optional_account
 from src.models import ApiError
 from src.openapi_responses import (
     AUTHENTICATED,
@@ -113,10 +113,12 @@ async def list_my_organisations(*, session: SessionDep, user: StudioCaller) -> A
     response_model=BookingMyBookingList,
     summary="My bookings across businesses",
     description=(
-        "The signed-in person's bookings with every business, newest first. A "
-        "booking is listed when its business contact is linked to the account "
-        "(a signed-in booking with a verified matching email, ADR-0058). Filter "
-        "with `upcoming`; page with `page` and `size`."
+        "The signed-in person's bookings with every business. `upcoming=true` lists "
+        "soonest first; `upcoming=false` and no filter list newest first. A booking "
+        "is listed when its business contact is linked to the account (a signed-in "
+        "booking with a verified matching email, ADR-0058). Accepts a full account "
+        "token or the account app's session; other apps' tokens get 401. Page with "
+        "`page` and `size`."
     ),
     operation_id="bookingsListMyBookings",
     responses={
@@ -129,7 +131,7 @@ async def list_my_bookings(
     *,
     request: Request,
     session: SessionDep,
-    current_user: AccountUser,
+    current_user: OwnAccountUser,
     pagination: PaginationDep,
     upcoming: Annotated[
         bool | None,
