@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/*
+ * Lane colours (docs/design/printix.md). One dark look: gate staff work at
+ * night and the result colours must carry at arm's length.
+ */
+@theme {
+  --color-px-ink: #0b0d0c;
+  --color-px-surface: #181b1a;
+  --color-px-rule: #2c312f;
+  --color-px-paper: #f4f6f3;
+  --color-px-muted: #9aa39d;
+  --color-px-green: #7ed321;
+  --color-px-valid: #2a9632;
+  --color-px-stop: #d43a45;
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  color: var(--color-px-paper);
+  color-scheme: dark;
+  background: var(--color-px-ink);
+}
+
+body {
+  /* A scanner is an app, not a page: no pull-to-refresh, no tap flash. */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}

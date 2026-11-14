@@ -1,0 +1,4 @@
+# Shared ignores are inherited from the repository .gitignore.
+/next-env.d.ts
+# Copied from node_modules by scripts/copy-wasm.mjs before dev and build.
+/public/zxing/

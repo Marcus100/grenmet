@@ -31,6 +31,7 @@
     "dev:web:elections": "turbo run dev --filter=@barrelsgd/web-elections",
     "dev:web:babydoll": "turbo run dev --filter=@barrelsgd/web-babydoll",
     "dev:web:commit": "turbo run dev --filter=@barrelsgd/web-commit",
+    "dev:pwa:printix": "turbo run dev --filter=@barrelsgd/pwa-printix",
     "dev:web:bookings": "turbo run dev --filter=@barrelsgd/web-bookings",
     "dev:web:account": "turbo run dev --filter=@barrelsgd/web-account",
     "design-system:sync": "node scripts/design-system/design-system-sync.mjs --write",
