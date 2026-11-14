@@ -3,10 +3,12 @@ import {
   addDays,
   formatDateTime,
   formatDuration,
+  formatHours,
   formatMoney,
   formatTime,
   groupByDay,
   localDay,
+  timeZonePlace,
   windowFrom,
 } from "./booking-format";
 
@@ -87,5 +89,20 @@ describe("booking-format", () => {
     expect(formatDuration(45)).toBe("45 min");
     expect(formatDuration(120)).toBe("2 hr");
     expect(formatDuration(135)).toBe("2 hr 15 min");
+  });
+
+  it("writes hours with the right noun", () => {
+    expect(formatHours(1)).toBe("1 hour");
+    expect(formatHours(24)).toBe("24 hours");
+    expect(formatHours(0)).toBe("0 hours");
+  });
+
+  it("names the place of a timezone for a sentence", () => {
+    expect(timeZonePlace(GRENADA)).toBe("Grenada");
+    expect(timeZonePlace("America/Port_of_Spain")).toBe("Port of Spain");
+    expect(timeZonePlace("America/Argentina/Buenos_Aires")).toBe(
+      "Buenos Aires"
+    );
+    expect(timeZonePlace("UTC")).toBe("UTC");
   });
 });

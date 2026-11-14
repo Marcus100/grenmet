@@ -12,6 +12,7 @@ const actions: ManageBookingActions = { cancel, loadSlots, reschedule };
 
 const ORIGINAL_TIME = /5 January 2027, 9:30 am/u;
 const CHANGES_CLOSE = /Changes close 24 hours before/u;
+const CHANGES_CLOSE_ONE = /Changes close 1 hour before/u;
 const MOVED_TIME = /6 January 2027, 9:30 am/u;
 const HYBRID = /Hybrid/u;
 const TOKEN = "secret-token-value-123";
@@ -119,6 +120,11 @@ describe("ManageBooking", () => {
       screen.queryByRole("button", { name: "Change time" })
     ).not.toBeInTheDocument();
     expect(screen.getByText(CHANGES_CLOSE)).toBeVisible();
+  });
+
+  it("writes a one-hour cutoff in the singular", () => {
+    renderManage({ ...booking, can_cancel: false, cancel_cutoff_hours: 1 });
+    expect(screen.getByText(CHANGES_CLOSE_ONE)).toBeVisible();
   });
 
   it("moves the booking to a chosen slot", async () => {

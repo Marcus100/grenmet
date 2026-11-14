@@ -22,7 +22,9 @@ import {
 import {
   formatDateTime,
   formatDuration,
+  formatHours,
   formatMoney,
+  timeZonePlace,
 } from "../lib/booking-format";
 import type {
   Booked,
@@ -174,6 +176,30 @@ function BookingDone({
       </p>
     </section>
   );
+}
+
+/** The id of a radio group's error line, or nothing when it has no error. */
+function groupErrorId(
+  field: "service" | "time",
+  errors: FieldErrors
+): string | undefined {
+  return errors[field] ? `${FIELD_IDS[field]}-error` : undefined;
+}
+
+/** A radio group's error, read out with the group through aria-describedby. */
+function GroupError({
+  errors,
+  field,
+}: {
+  errors: FieldErrors;
+  field: "service" | "time";
+}) {
+  const message = errors[field];
+  return message ? (
+    <p className="field-error" id={groupErrorId(field, errors)}>
+      {message}
+    </p>
+  ) : null;
 }
 
 interface TextFieldProps {
@@ -517,9 +543,13 @@ export function BookingFlow({
         </div>
       )}
 
-      <fieldset className="step" id={FIELD_IDS.service}>
+      <fieldset
+        aria-describedby={groupErrorId("service", errors)}
+        className="step"
+        id={FIELD_IDS.service}
+      >
         <legend>1. Choose a service</legend>
-        {errors.service && <p className="field-error">{errors.service}</p>}
+        <GroupError errors={errors} field="service" />
         {byCategory(storefront.services).map(([category, list]) => (
           <div className="service-group" key={category}>
             <h3>{category}</h3>
@@ -551,18 +581,22 @@ export function BookingFlow({
         ))}
         {storefront.services.length === 0 && (
           <p className="muted">
-            No services are open for online booking yet. Please message us on
+            No services are open for online booking yet. Please message us on{" "}
             {contact.label}.
           </p>
         )}
       </fieldset>
 
-      <fieldset className="step" id={FIELD_IDS.time}>
+      <fieldset
+        aria-describedby={groupErrorId("time", errors)}
+        className="step"
+        id={FIELD_IDS.time}
+      >
         <legend>2. Pick a day and time</legend>
         <p className="muted">
-          Times are in {storefront.timezone.replace("_", " ")} time.
+          Times are in {timeZonePlace(storefront.timezone)} time.
         </p>
-        {errors.time && <p className="field-error">{errors.time}</p>}
+        <GroupError errors={errors} field="time" />
         {service ? (
           <SlotPicker
             key={service.id}
@@ -692,7 +726,7 @@ export function BookingFlow({
 
       <p className="muted">
         By appointment only. You can change or cancel online until{" "}
-        {storefront.cancel_cutoff_hours} hours before your visit.
+        {formatHours(storefront.cancel_cutoff_hours)} before your visit.
       </p>
       {!stepOpen && (
         <button
