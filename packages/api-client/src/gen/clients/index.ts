@@ -613,6 +613,8 @@ export { printixEventSummary } from "./printixEventSummary.js";
 export { printixImportTickets } from "./printixImportTickets.js";
 export { printixListPairings } from "./printixListPairings.js";
 export { printixListTickets } from "./printixListTickets.js";
+export { printixOfflineAdmissions } from "./printixOfflineAdmissions.js";
+export { printixOfflineTickets } from "./printixOfflineTickets.js";
 export { printixPairingSummary } from "./printixPairingSummary.js";
 export { printixRevokePairing } from "./printixRevokePairing.js";
 export { printixUnvoidTicket } from "./printixUnvoidTicket.js";

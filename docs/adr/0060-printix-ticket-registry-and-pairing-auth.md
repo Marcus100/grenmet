@@ -149,6 +149,52 @@ built in this PR.
 | **Secret or value in logs** | The secret or a scanned value leaks into logs or Sentry. | Never logged; tests check the log text and the stored rows. | The scan log keeps values for 90 days after close (rule 16). |
 | **Admin acts without a trace** | A pairing or ticket change has no owner. | Acting administrator recorded in audit history (rule 14). | The history is only as trustworthy as the superuser account. |
 
+### Amendment: offline scanning (proposed 15 Nov 2026, owner review pending)
+
+Gates may lose signal on the night. The API side is built; the scanner app follows
+in a separate change.
+
+1. **Ticket list.** `GET /printix/public/offline-tickets` (pairing secret) returns the
+   pairing's event and every ticket on it: printed number, state (`valid`, `void`,
+   `admitted` with the first admission's time and gate), and a **keyed hash** of the
+   barcode: HMAC-SHA256 with a key unique to the pairing (its random id), cut to 128
+   bits. The barcode itself still never leaves the server (rule 13). No personal data.
+   Limited to 4 reads a minute per pairing, plus the address cap.
+2. **On the phone.** While online, the phone keeps the latest list. With no signal it
+   hashes what it scans with the list's key, admits a `valid` ticket it has not
+   admitted, refuses the rest, and queues each local admission with a reference,
+   the scanned value and the phone's time. Offline checks are by barcode only; typed
+   numbers are not checked offline.
+3. **Sync.** `POST /printix/public/offline-admissions` takes up to 100 queued
+   admissions. Each is checked like a live scan, by barcode only, and stamped with
+   the phone's time kept between the pairing's creation and the time of the sync.
+   **The server is the source of truth: the first admission it records wins.** Any
+   other answer is a conflict the phone must show: `already_admitted` (with the
+   first gate and time), `void`, `unknown`, `event_closed`. A scan before the close
+   time is admitted even if it syncs after; an event an administrator has closed
+   refuses every later sync (`event_closed`, but the scan log keeps the record).
+4. **Retries.** Each queued admission carries the phone's reference (`client_ref`),
+   unique per pairing in `scan_log`. A retried reference returns its first answer
+   and is not scanned again (the idempotency follow-up, for offline sync).
+5. **Caps.** The sync carries the raw barcode, not the hash, so holding the list does
+   not let anyone admit a ticket without its barcode. Offline rows are logged at the
+   server's time and do not count against the live scan cap (120 a minute), so a
+   phone coming back online can still scan. Unknown values share the live unknown
+   cap (20 a minute): past it, the rest of the batch is returned as `deferred`,
+   unanswered and unlogged, for the phone to send again. 12 sync requests a minute
+   per pairing.
+6. **Counts.** The summary's `duplicates_refused` counts live refusals only; a new
+   `offline_conflicts` counts offline admissions the server could not record.
+
+Threats this adds:
+
+| Threat | What happens | Controls | Residual risk |
+| --- | --- | --- | --- |
+| **Phone stolen with the list** | The thief holds keyed hashes of every barcode on the event. | HMAC per pairing; 128-bit hashes; revocation stops new downloads. | A barcode with little entropy (for example the three-digit printed number used as a barcode) can be recovered by trying every value. Long random barcodes cannot. |
+| **Queued values on a stolen phone** | Barcodes of tickets admitted offline but not yet synced. | Queue cleared on sync; those tickets are admitted already on the phone and refused once synced. | Until sync, a copy of such a ticket could enter at another gate. |
+| **Two gates admit the same ticket offline** | Both let someone in. | First sync wins; the second phone and the summary report a conflict. | Detected after the fact, not prevented. |
+| **Wrong phone clock** | Admission times are off. | Kept between pairing creation and sync time. | A phone clock that is wrong within that range is recorded as is. |
+
 ## Consequences
 
 - Gate access works without any staff account. Revocation is the main control, so

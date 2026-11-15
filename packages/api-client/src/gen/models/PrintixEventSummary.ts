@@ -23,10 +23,16 @@ export type PrintixEventSummary = {
    */
   not_yet_in: number;
   /**
-   * @description Scans of an already admitted ticket, refused.
+   * @description Live scans of an already admitted ticket, refused.
    * @type integer
    */
   duplicates_refused: number;
+  /**
+   * @description Offline admissions that the server could not record when the phone synced: the ticket was already admitted elsewhere, void, unknown or the event had closed. The person was let in at the gate.
+   * @default 0
+   * @type integer | undefined
+   */
+  offline_conflicts?: number;
   admitted_by_gate: PrintixGateCount[];
 };
 

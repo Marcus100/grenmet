@@ -19,5 +19,6 @@ export const SUMMARY: PrintixEventSummary = {
   admitted: 120,
   not_yet_in: 278,
   duplicates_refused: 3,
+  offline_conflicts: 0,
   admitted_by_gate: [{ gate: "Main gate", admitted: 120 }],
 };

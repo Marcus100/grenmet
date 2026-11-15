@@ -32,7 +32,12 @@ from src.exceptions import AppValidationError
 from src.utils.datetime import utc_now
 
 from . import constants, csv_import, transitions
-from .constants import PrintixEventStatus, PrintixScanOutcome, PrintixTicketStatus
+from .constants import (
+    PrintixEventStatus,
+    PrintixOfflineTicketState,
+    PrintixScanOutcome,
+    PrintixTicketStatus,
+)
 from .exceptions import (
     PrintixConflict,
     PrintixImportTooLarge,
@@ -49,6 +54,11 @@ from .schemas import (
     PrintixGateCount,
     PrintixImportIssue,
     PrintixImportReport,
+    PrintixOfflineAdmission,
+    PrintixOfflineAdmissionResult,
+    PrintixOfflineList,
+    PrintixOfflineSyncResult,
+    PrintixOfflineTicket,
     PrintixPairingCreated,
     PrintixScanResult,
     PrintixTicketPage,
@@ -189,6 +199,19 @@ async def event_summary(
             .where(
                 PrintixPairing.event_id == event.id,
                 PrintixScanLog.outcome == PrintixScanOutcome.ALREADY_ADMITTED.value,
+                PrintixScanLog.offline_scanned_at.is_(None),
+            )
+        )
+        or 0
+    )
+    offline_conflicts = int(
+        await session.scalar(
+            select(func.count(PrintixScanLog.id))
+            .join(PrintixPairing, PrintixPairing.id == PrintixScanLog.pairing_id)
+            .where(
+                PrintixPairing.event_id == event.id,
+                PrintixScanLog.offline_scanned_at.is_not(None),
+                PrintixScanLog.outcome != PrintixScanOutcome.ADMITTED.value,
             )
         )
         or 0
@@ -211,6 +234,7 @@ async def event_summary(
         admitted=admitted,
         not_yet_in=valid - admitted,
         duplicates_refused=duplicates,
+        offline_conflicts=offline_conflicts,
         admitted_by_gate=[
             PrintixGateCount(gate=str(gate or ""), admitted=int(count))
             for gate, count in gate_rows
@@ -679,7 +703,10 @@ async def _printed_number_ticket(
 async def _stamp_if_unadmitted(
     session: AsyncSession, ticket_id: uuid.UUID, pairing: PrintixPairing, now: datetime
 ) -> bool:
-    """True only for the one caller whose conditional UPDATE changed the row."""
+    """True only for the one caller whose conditional UPDATE changed the row.
+
+    ``now`` is the admission time written to the ticket: the server's time for a
+    live scan, the phone's (kept in bounds) for an offline one."""
     won = await session.execute(
         update(PrintixTicket)
         .where(
@@ -708,7 +735,12 @@ async def admit(
     """
     now = utc_now()
     await _lock_pairing(session, pairing.id)
-    if await _count_scans(session, pairing.id, now) >= constants.SCANS_PER_WINDOW:
+    if (
+        await _count_scans(
+            session, pairing.id, now, PrintixScanLog.offline_scanned_at.is_(None)
+        )
+        >= constants.SCANS_PER_WINDOW
+    ):
         raise _refuse_scan(pairing, "scans")
 
     value = value.strip()
@@ -747,14 +779,8 @@ async def admit(
             if ticket is not None and ticket.status == PrintixTicketStatus.VOID.value:
                 outcome = PrintixScanOutcome.VOID
 
-    if outcome is PrintixScanOutcome.UNKNOWN and (
-        await _count_scans(
-            session,
-            pairing.id,
-            now,
-            PrintixScanLog.outcome == PrintixScanOutcome.UNKNOWN.value,
-        )
-        >= constants.UNKNOWN_SCANS_PER_WINDOW
+    if outcome is PrintixScanOutcome.UNKNOWN and await _unknown_cap_reached(
+        session, pairing.id, now
     ):
         raise _refuse_scan(pairing, "unknown")
 
@@ -776,6 +802,12 @@ async def admit(
         extra={"subject_id": str(pairing.id), "target_id": str(event.id)},
     )
 
+    return _scan_result(outcome, ticket)
+
+
+def _scan_result(
+    outcome: PrintixScanOutcome, ticket: PrintixTicket | None
+) -> PrintixScanResult:
     shown = ticket if outcome is not PrintixScanOutcome.UNKNOWN else None
     stamped = (
         ticket
@@ -791,6 +823,224 @@ async def admit(
         printed_number=shown.printed_number if shown is not None else None,
         admitted_at=stamped.admitted_at if stamped is not None else None,
         admitted_gate=stamped.admitted_gate if stamped is not None else None,
+    )
+
+
+async def _unknown_cap_reached(
+    session: AsyncSession, pairing_id: uuid.UUID, now: datetime
+) -> bool:
+    """Live and offline unknowns share one cap, so a sync is no faster an oracle."""
+    return (
+        await _count_scans(
+            session,
+            pairing_id,
+            now,
+            PrintixScanLog.outcome == PrintixScanOutcome.UNKNOWN.value,
+        )
+        >= constants.UNKNOWN_SCANS_PER_WINDOW
+    )
+
+
+# --- Offline scanning -------------------------------------------------------
+
+
+def offline_hash_key(pairing: PrintixPairing) -> str:
+    """The pairing's own key for the offline list's barcode hashes.
+
+    The pairing id is random (uuid4) and not shown to a scanner anywhere else, so
+    two pairings' lists cannot be matched against each other or a precomputed
+    table. The key is not secret from the phone, which hashes what it scans.
+    """
+    return pairing.id.hex
+
+
+def offline_barcode_hash(key: str, value: str) -> str:
+    digest = hmac.new(key.encode("utf-8"), value.encode("utf-8"), hashlib.sha256)
+    return digest.hexdigest()[: constants.OFFLINE_HASH_HEX_LENGTH]
+
+
+def _offline_state(
+    status: str, admitted_at: datetime | None
+) -> PrintixOfflineTicketState:
+    if admitted_at is not None:
+        return PrintixOfflineTicketState.ADMITTED
+    if status == PrintixTicketStatus.VOID.value:
+        return PrintixOfflineTicketState.VOID
+    return PrintixOfflineTicketState.VALID
+
+
+async def offline_tickets(
+    session: AsyncSession, pairing: PrintixPairing
+) -> PrintixOfflineList:
+    """The pairing's event and every ticket on it, barcodes replaced by keyed hashes."""
+    event = await get_event(session, pairing.event_id)
+    generated_at = utc_now()
+    key = offline_hash_key(pairing)
+    rows = await session.execute(
+        select(
+            PrintixTicket.barcode_value,
+            PrintixTicket.printed_number,
+            PrintixTicket.status,
+            PrintixTicket.admitted_at,
+            PrintixTicket.admitted_gate,
+        )
+        .where(PrintixTicket.event_id == event.id)
+        .order_by(PrintixTicket.printed_number)
+    )
+    tickets = [
+        PrintixOfflineTicket(
+            barcode_hash=offline_barcode_hash(key, barcode),
+            printed_number=number,
+            state=_offline_state(status, admitted_at),
+            admitted_at=admitted_at,
+            admitted_gate=admitted_gate,
+        )
+        for barcode, number, status, admitted_at, admitted_gate in rows.all()
+    ]
+    logger.info(
+        "Printix offline list sent: %s tickets",
+        len(tickets),
+        extra={"subject_id": str(pairing.id), "target_id": str(event.id)},
+    )
+    return PrintixOfflineList(
+        event=event_public(event),
+        generated_at=generated_at,
+        hash_key=key,
+        tickets=tickets,
+    )
+
+
+def _offline_time(
+    pairing: PrintixPairing, scanned_at: datetime, now: datetime
+) -> datetime:
+    """The phone's time, kept between the pairing's creation and now."""
+    return min(max(to_naive_utc(scanned_at), pairing.created_at), now)
+
+
+async def _offline_outcome(
+    session: AsyncSession,
+    pairing: PrintixPairing,
+    event: PrintixEvent,
+    value: str,
+    when: datetime,
+) -> tuple[PrintixScanOutcome, PrintixTicket | None]:
+    """Barcode only: an offline admission never falls through to a printed number."""
+    if event.status == PrintixEventStatus.CLOSED.value or event.closes_at <= when:
+        return PrintixScanOutcome.EVENT_CLOSED, None
+    ticket = await _barcode_ticket(session, event.id, value)
+    if ticket is None:
+        return PrintixScanOutcome.UNKNOWN, None
+    if ticket.status == PrintixTicketStatus.VOID.value:
+        outcome = PrintixScanOutcome.VOID
+    elif await _stamp_if_unadmitted(session, ticket.id, pairing, when):
+        outcome = PrintixScanOutcome.ADMITTED
+    else:
+        outcome = PrintixScanOutcome.ALREADY_ADMITTED
+    # Reload: the conditional UPDATE bypassed the session's identity map.
+    ticket = await session.get(PrintixTicket, ticket.id, populate_existing=True)
+    if ticket is not None and ticket.status == PrintixTicketStatus.VOID.value:
+        outcome = PrintixScanOutcome.VOID
+    return outcome, ticket
+
+
+def _offline_result(
+    client_ref: uuid.UUID, outcome: PrintixScanOutcome, ticket: PrintixTicket | None
+) -> PrintixOfflineAdmissionResult:
+    result = _scan_result(outcome, ticket)
+    return PrintixOfflineAdmissionResult(
+        client_ref=client_ref,
+        outcome=result.outcome,
+        printed_number=result.printed_number,
+        admitted_at=result.admitted_at,
+        admitted_gate=result.admitted_gate,
+    )
+
+
+async def _answer_again(
+    session: AsyncSession, client_ref: uuid.UUID, row: PrintixScanLog
+) -> PrintixOfflineAdmissionResult:
+    """A retried reference: the stored outcome, with the ticket as it is now."""
+    ticket = (
+        await session.get(PrintixTicket, row.ticket_id, populate_existing=True)
+        if row.ticket_id is not None
+        else None
+    )
+    return _offline_result(client_ref, PrintixScanOutcome(row.outcome), ticket)
+
+
+async def _earlier_answers(
+    session: AsyncSession, pairing_id: uuid.UUID, refs: list[uuid.UUID]
+) -> dict[uuid.UUID, PrintixScanLog]:
+    rows = await session.scalars(
+        select(PrintixScanLog).where(
+            PrintixScanLog.pairing_id == pairing_id,
+            PrintixScanLog.client_ref.in_(refs),
+        )
+    )
+    return {row.client_ref: row for row in rows.all() if row.client_ref is not None}
+
+
+async def sync_offline_admissions(
+    session: AsyncSession,
+    pairing: PrintixPairing,
+    admissions: list[PrintixOfflineAdmission],
+) -> PrintixOfflineSyncResult:
+    """Record admissions a phone made offline. The server stays the source of truth.
+
+    Each is checked like a live scan, by barcode only, at the phone's time kept in
+    bounds. The first admission the server records wins; any other answer is a
+    conflict for the phone to show. Offline rows do not count against the live
+    scan cap, but unknowns share the live unknown cap: past it, the rest of the
+    batch is deferred, unanswered and unlogged. One transaction, under the
+    pairing's lock, so a retried reference is answered from its first row.
+    """
+    now = utc_now()
+    await _lock_pairing(session, pairing.id)
+    event = await get_event(session, pairing.event_id)
+    earlier = await _earlier_answers(
+        session, pairing.id, [admission.client_ref for admission in admissions]
+    )
+    results: list[PrintixOfflineAdmissionResult] = []
+    deferred = 0
+    for index, admission in enumerate(admissions):
+        prior = earlier.get(admission.client_ref)
+        if prior is not None:
+            results.append(await _answer_again(session, admission.client_ref, prior))
+            continue
+        when = _offline_time(pairing, admission.scanned_at, now)
+        value = admission.value.strip()
+        outcome, ticket = await _offline_outcome(session, pairing, event, value, when)
+        if outcome is PrintixScanOutcome.UNKNOWN and await _unknown_cap_reached(
+            session, pairing.id, now
+        ):
+            deferred = len(admissions) - index
+            break
+        session.add(
+            PrintixScanLog(
+                id=uuid.uuid4(),
+                pairing_id=pairing.id,
+                ticket_id=ticket.id if ticket is not None else None,
+                outcome=outcome.value,
+                value=value[: constants.SCAN_VALUE_LOG_LENGTH],
+                typed=False,
+                scanned_at=now,
+                offline_scanned_at=when,
+                client_ref=admission.client_ref,
+            )
+        )
+        await session.flush()
+        results.append(_offline_result(admission.client_ref, outcome, ticket))
+    await session.commit()
+    logger.info(
+        "Printix offline sync: %s handled, %s deferred",
+        len(results),
+        deferred,
+        extra={"subject_id": str(pairing.id), "target_id": str(event.id)},
+    )
+    return PrintixOfflineSyncResult(
+        results=results,
+        deferred=deferred,
+        retry_after_seconds=constants.SCAN_WINDOW_SECONDS if deferred else None,
     )
 
 

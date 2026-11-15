@@ -69,6 +69,12 @@ are placeholders until the client supplies artwork.
 QR generation for administrators, offline scanning, ticket types, re-entry,
 and the Barrels Events connection. Backend logic goes in FastAPI, never here.
 
+Offline scanning: the API side exists (`GET /printix/public/offline-tickets`,
+`POST /printix/public/offline-admissions`; ADR-0060, offline amendment). The
+app side (IndexedDB list and queue, Web Crypto HMAC, sync, online/offline and
+"waiting to sync" display, conflicts list, a service worker for loading with no
+signal) is the next change.
+
 ## Rules
 
 - Everything must stay static: no server actions, no route handlers that need

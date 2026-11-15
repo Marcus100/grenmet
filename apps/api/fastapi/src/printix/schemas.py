@@ -6,6 +6,7 @@ credential that admits it, so it leaves the server only in an import upload.
 
 import uuid
 from datetime import date
+from typing import Annotated
 
 from pydantic import AwareDatetime, Field, model_validator
 
@@ -118,7 +119,15 @@ class PrintixEventSummary(BaseModel):
     admitted: int
     not_yet_in: int = Field(description="Valid tickets not yet admitted.")
     duplicates_refused: int = Field(
-        description="Scans of an already admitted ticket, refused."
+        description="Live scans of an already admitted ticket, refused."
+    )
+    offline_conflicts: int = Field(
+        default=0,
+        description=(
+            "Offline admissions that the server could not record when the phone "
+            "synced: the ticket was already admitted elsewhere, void, unknown or "
+            "the event had closed. The person was let in at the gate."
+        ),
     )
     admitted_by_gate: list[PrintixGateCount]
 
@@ -148,3 +157,100 @@ class PrintixScanResult(BaseModel):
         default=None,
         description="The gate of the admission named in admitted_at.",
     )
+
+
+# --- Offline scanning ---------------------------------------------------------
+
+
+class PrintixOfflineTicket(BaseModel):
+    barcode_hash: str = Field(
+        description=(
+            "HMAC-SHA256 of the barcode value with the list's hash_key, hex, cut to "
+            f"{constants.OFFLINE_HASH_HEX_LENGTH} characters. The barcode itself is "
+            "never sent."
+        )
+    )
+    printed_number: str
+    state: constants.PrintixOfflineTicketState
+    admitted_at: UtcDateTime | None = Field(
+        default=None, description="For admitted, the first admission's time."
+    )
+    admitted_gate: str | None = Field(
+        default=None, description="For admitted, the first admission's gate."
+    )
+
+
+class PrintixOfflineList(BaseModel):
+    event: PrintixEventPublic
+    generated_at: UtcDateTime = Field(
+        description="When the server built this list. Admissions after it are not in it."
+    )
+    hash_key: str = Field(
+        description=(
+            "The key for barcode_hash, unique to this pairing. The phone hashes a "
+            "scanned value (trimmed) with it to look the ticket up offline."
+        )
+    )
+    tickets: list[PrintixOfflineTicket]
+
+
+ScanValue = Annotated[
+    str,
+    Field(
+        min_length=1,
+        max_length=constants.SCAN_VALUE_MAX,
+        pattern=rf"^[^{constants.CONTROL_CHARACTER_PATTERN[1:-1]}]*$",
+        description="The scanned barcode value. Control characters are refused.",
+    ),
+]
+
+
+class PrintixOfflineAdmission(BaseModel):
+    client_ref: uuid.UUID = Field(
+        description=(
+            "The phone's reference for this queued admission. A retry with the same "
+            "reference gets the first answer back and is not scanned again."
+        )
+    )
+    value: ScanValue
+    scanned_at: AwareDatetime = Field(
+        description=(
+            "When the phone admitted the ticket offline. Kept between the pairing's "
+            "creation and the time of the sync."
+        )
+    )
+
+
+class PrintixOfflineSyncRequest(BaseModel):
+    admissions: list[PrintixOfflineAdmission] = Field(
+        min_length=1, max_length=constants.OFFLINE_SYNC_BATCH_MAX
+    )
+
+    @model_validator(mode="after")
+    def _references_are_unique(self) -> PrintixOfflineSyncRequest:
+        refs = [admission.client_ref for admission in self.admissions]
+        if len(set(refs)) != len(refs):
+            raise ValueError("each client_ref may appear once in a batch")
+        return self
+
+
+class PrintixOfflineAdmissionResult(PrintixScanResult):
+    client_ref: uuid.UUID
+
+
+class PrintixOfflineSyncResult(BaseModel):
+    results: list[PrintixOfflineAdmissionResult] = Field(
+        description=(
+            "One answer per admission the server handled, in the order sent. Anything "
+            "other than admitted is a conflict: the person was let in offline, but the "
+            "server did not record this admission."
+        )
+    )
+    deferred: int = Field(
+        description=(
+            "Admissions at the end of the batch that were not handled, because too "
+            "many unknown values were sent in the last minute. Keep them and send "
+            "them again after retry_after_seconds."
+        )
+    )
+    retry_after_seconds: int | None = None

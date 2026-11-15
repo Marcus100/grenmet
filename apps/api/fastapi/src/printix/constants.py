@@ -42,6 +42,16 @@ SCAN_LOG_RETENTION_DAYS = 90
 #: Control characters (C0 and DEL) are never part of a barcode, a number or a name.
 CONTROL_CHARACTER_PATTERN = r"[\x00-\x1f\x7f]"
 
+#: Offline scanning (ADR-0060, offline amendment). A phone downloads the event's
+#: ticket list as keyed hashes, at most this often per pairing per minute.
+OFFLINE_LIST_READS_PER_MINUTE = 4
+#: Sync requests of queued offline admissions, per pairing per minute.
+OFFLINE_SYNC_REQUESTS_PER_MINUTE = 12
+#: Queued admissions in one sync request.
+OFFLINE_SYNC_BATCH_MAX = 100
+#: Hex characters kept of each HMAC-SHA256 barcode hash (128 bits).
+OFFLINE_HASH_HEX_LENGTH = 32
+
 MAX_IMPORT_BYTES = 2 * 1024 * 1024
 MAX_IMPORT_ROWS = 20_000
 MAX_REPORTED_ERRORS = 100
@@ -67,3 +77,11 @@ class PrintixScanOutcome(str, Enum):
     VOID = "void"
     UNKNOWN = "unknown"
     EVENT_CLOSED = "event_closed"
+
+
+class PrintixOfflineTicketState(str, Enum):
+    """A ticket's state in the offline list: may enter, void, or already in."""
+
+    VALID = "valid"
+    VOID = "void"
+    ADMITTED = "admitted"
