@@ -498,6 +498,9 @@ async def delete_user(
     await revoke_access_material(session, user)
     await rewards_service.cancel_open_redemptions(session, account=user)
     await _end_access_links(session, user_id, now)
+    # Roster locks of every affected organisation first, in id order (#1501), so the
+    # membership and grant writes below never lock in the reverse order.
+    await organisation_grants.lock_affected_rosters(session, user_id)
     await _end_organisation_access(session, user_id, now)
     # Grants the account handed to others end too (#1496). Runs after its memberships
     # are removed, which the cascade relies on.
