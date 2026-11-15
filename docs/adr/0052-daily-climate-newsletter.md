@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed — 2026-10-28. Built behind a switch that is **off**: `NEWSLETTER_DIGEST_ENABLED`
+Accepted — 2026-11-15 by the owner (built and in use). Earlier status, kept for history: Proposed — 2026-10-28. Built behind a switch that is **off**: `NEWSLETTER_DIGEST_ENABLED`
 defaults to false, so the 07:30 job queues nothing until the owner turns it on. Test list
 only until then. Supersedes the deferral of newsletters in
 `docs/exec-plans/gaa-modular-monolith-implementation.md` and
