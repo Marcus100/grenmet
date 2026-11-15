@@ -89,6 +89,17 @@ def _live(now: datetime) -> list[ColumnElement[bool]]:
     ]
 
 
+#: Trigger for a grant ended because its granter is gone (issue #1477).
+GRANTOR_GONE = "grantor_deleted"
+
+
+def _is_orphan(grant: MembershipGrant) -> bool:
+    """A live grant whose granter no longer exists (``granted_by`` NULL, set when the
+    granter's user row is deleted). No chain supports it, so it carries no keys and
+    the next organisation cascade ends it, audited as ``GRANTOR_GONE``."""
+    return grant.granted_by is None
+
+
 async def effective_keys(
     session: AsyncSession, *, membership: Membership
 ) -> frozenset[str]:
@@ -106,6 +117,8 @@ async def effective_keys(
         select(MembershipGrant.role_key).where(
             MembershipGrant.membership_id == membership.id,
             MembershipGrant.organisation_id == membership.organisation_id,
+            # A grant with no granter is inert (issue #1477): no keys until it is ended.
+            MembershipGrant.granted_by.is_not(None),
             *_live(utc_now()),
         )
     )
@@ -169,6 +182,7 @@ async def _expiry_ceiling(
         select(MembershipGrant.role_key, MembershipGrant.expires_at).where(
             MembershipGrant.membership_id == membership.id,
             MembershipGrant.organisation_id == membership.organisation_id,
+            MembershipGrant.granted_by.is_not(None),  # inert, as in effective_keys
             *_live(utc_now()),
         )
     )
@@ -498,6 +512,10 @@ async def revoke_grant_detailed(
         members = await _active_members(session, organisation_id)
         before = await _live_grants(session, organisation_id, now)
         candidates = _downstream(members, before, grant.membership_id)
+        # Grants with no granter have no chain to follow, so they are candidates here
+        # and never supported; they are ended with this cascade (issue #1477).
+        known = {c.id for c in candidates}
+        candidates += [g for g in before if _is_orphan(g) and g.id not in known]
     grant.revoked_at = now
     await session.flush()
     victims: list[MembershipGrant] = []
@@ -514,7 +532,7 @@ async def revoke_grant_detailed(
                 session,
                 victim,
                 organisation_id=organisation_id,
-                trigger="grant_revoked",
+                trigger=GRANTOR_GONE if _is_orphan(victim) else "grant_revoked",
                 root=grant.id,
                 grantor_membership_id=_grantor_membership(members, victim),
             )
@@ -595,6 +613,22 @@ async def end_issued_transitively(
     seen_members = set(frontier)
     seen_grants: set[str] = set()
     ended = 0
+    # Grants with no granter cannot be traced to a chain, so they end with any cascade
+    # rather than survive it (issue #1477). They are not followed further.
+    for grant in live:
+        if _is_orphan(grant):
+            seen_grants.add(grant.id)
+            ended += 1
+            await _end_cascaded(
+                session,
+                grant,
+                organisation_id=organisation_id,
+                trigger=GRANTOR_GONE,
+                root=root,
+                grantor_membership_id="",
+            )
+            if ended % CASCADE_FLUSH_BATCH == 0:
+                await session.flush()
     privileged = (MembershipRole.OWNER.value, MembershipRole.ADMIN.value)
     while frontier:
         member = members.get(frontier.pop())
