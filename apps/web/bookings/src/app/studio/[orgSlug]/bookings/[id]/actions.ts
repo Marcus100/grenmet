@@ -21,16 +21,24 @@ import {
   confirmBooking,
   declineBooking,
   findOrganisation,
+  getBusinessTimezone,
   markCompleted,
   markNoShow,
   recordManualDeposit,
+  rescheduleBooking,
 } from "@/lib/studio-api";
 import {
   ADMIN_REQUIRED,
   actionFailure,
   type StudioFailure,
 } from "@/lib/studio-errors";
-import { canManageBookings, isUuid } from "@/lib/studio-view";
+import {
+  canManageBookings,
+  isDay,
+  isTime,
+  isUuid,
+  zonedToUtcIso,
+} from "@/lib/studio-view";
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/u;
 
@@ -46,6 +54,11 @@ const cancelSchema = reasonSchema.extend({
   // Offered only when there is a deposit left to refund. Absent or "policy":
   // leave refund_deposit out so the business's cancellation cutoff decides.
   refundChoice: z.enum(["policy", "refund", "keep"]).optional(),
+});
+
+const rescheduleSchema = z.object({
+  date: z.string().refine(isDay, "Choose a date."),
+  time: z.string().refine(isTime, "Choose a start time."),
 });
 
 function fail(failure: StudioFailure): ActionState {
@@ -75,7 +88,11 @@ async function run(
   bookingId: string,
   done: string,
   call: Call,
-  options: { warnOnFailedRefund?: boolean } = {}
+  options: {
+    /** Words the API's refusal; null leaves it to the shared wording. */
+    failure?: (error: unknown) => StudioFailure | null;
+    warnOnFailedRefund?: boolean;
+  } = {}
 ): Promise<ActionState> {
   const returnTo = `/studio/${orgSlug}/bookings/${bookingId}`;
   if (!(SLUG.test(orgSlug) && isUuid(bookingId))) {
@@ -104,7 +121,7 @@ async function run(
     }
     detail = await call(session.accessToken, org.id, bookingId);
   } catch (error) {
-    const failure = actionFailure(error);
+    const failure = options.failure?.(error) ?? actionFailure(error);
     if (failure.kind === "signed_out") {
       redirect(`/signin?${new URLSearchParams({ returnTo })}`);
     }
@@ -159,6 +176,56 @@ export async function completeBookingAction(
   bookingId: string
 ): Promise<ActionState> {
   return await run(orgSlug, bookingId, "Marked as completed.", markCompleted);
+}
+
+/** A move the API refused: a clash is the common case, so say so. */
+function rescheduleFailure(error: unknown): StudioFailure | null {
+  if (ResponseError.is(error) && error.status === 409) {
+    return {
+      kind: "conflict",
+      message: "That time is not free, or the booking has changed.",
+      nextStep:
+        "Choose another time. The page has refreshed; check the booking's status.",
+    };
+  }
+  if (ResponseError.is(error) && error.status === 422) {
+    return {
+      kind: "invalid",
+      message: "That time was not accepted. It must be in the future.",
+      nextStep: "Choose a later date or time.",
+    };
+  }
+  return null;
+}
+
+export async function rescheduleBookingAction(
+  orgSlug: string,
+  bookingId: string,
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = rescheduleSchema.safeParse({
+    date: formData.get("date") ?? "",
+    time: formData.get("time") ?? "",
+  });
+  if (!parsed.success) {
+    return invalid(parsed.error.issues[0]?.message ?? "Choose a new time.");
+  }
+  const { date, time } = parsed.data;
+  return await run(
+    orgSlug,
+    bookingId,
+    "Booking moved. The customer has been emailed.",
+    async (token, org, id) =>
+      rescheduleBooking(
+        token,
+        org,
+        id,
+        // The wall-clock time is read on the business's own clock, fetched here.
+        zonedToUtcIso(date, time, await getBusinessTimezone(token, org))
+      ),
+    { failure: rescheduleFailure }
+  );
 }
 
 export async function declineBookingAction(

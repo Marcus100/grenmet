@@ -102,7 +102,9 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
             booking.deposit_captured_minor - booking.deposit_refunded_minor > 0
           }
           started={Date.parse(booking.starts_at) <= Date.now()}
+          startsAt={booking.starts_at}
           status={booking.status}
+          timezone={zone}
         />
       ) : null}
 
