@@ -15,7 +15,7 @@ legacy host until the exit plan removes it ([exit plan](../operations/vercel-exi
 | --- | --- |
 | Repository | `Marcus100/grenmet` |
 | Root directory | repository root |
-| Build command | `pnpm install --frozen-lockfile && pnpm --filter @barrelsgd/web-elections build` |
+| Build command | `pnpm install --frozen-lockfile --filter '@barrelsgd/web-elections...' && pnpm --filter '@barrelsgd/web-elections^...' run --if-present build && pnpm --filter @barrelsgd/web-elections build` |
 | Build output directory | `apps/web/elections/out` |
 | `NODE_VERSION` | `24` |
 | Build variables | `NEXT_PUBLIC_SITE_URL=https://elections.barrels.gd`, `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `SENTRY_PROJECT` (the same values as the Vercel project) |

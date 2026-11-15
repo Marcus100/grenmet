@@ -52,7 +52,7 @@ until its new home is verified; only then does DNS change.
      `public/_headers` and `public/_redirects` carry the headers and `/since-2022`;
      the build adds the Sentry report endpoint when a DSN is set.
    - **[owner]** Create the Pages project (no agent action without the owner):
-     build command `pnpm install --frozen-lockfile && pnpm --filter @barrelsgd/web-elections build`,
+     build command `pnpm install --frozen-lockfile --filter '@barrelsgd/web-elections...' && pnpm --filter '@barrelsgd/web-elections^...' run --if-present build && pnpm --filter @barrelsgd/web-elections build`,
      output `apps/web/elections/out`, `NODE_VERSION=24`, and the build variables
      from the Vercel project (`NEXT_PUBLIC_SITE_URL=https://elections.barrels.gd`,
      `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `SENTRY_PROJECT`).
