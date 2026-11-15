@@ -670,7 +670,7 @@
           "users"
         ],
         "summary": "Create user",
-        "description": "Create a global account (superuser only). HR placement and app admission are separate explicit actions.",
+        "description": "Create a global account (superuser only). HR placement and app admission are separate explicit actions. Superuser status is never granted here (403): send a superuser invitation instead (POST /api/v1/auth/superuser-invitations).",
         "operationId": "authCreateUser",
         "security": [
           {
@@ -719,7 +719,7 @@
             }
           },
           "403": {
-            "description": "Insufficient privileges",
+            "description": "Insufficient privileges, or is_superuser true (invitation only)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1125,7 +1125,7 @@
           "users"
         ],
         "summary": "Update user by ID",
-        "description": "Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only.",
+        "description": "Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409).",
         "operationId": "authUpdateUser",
         "security": [
           {
@@ -1176,7 +1176,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Insufficient privileges",
+            "description": "Insufficient privileges, is_superuser true (invitation only), or removing superuser status without a superuser authenticator and two-step sign-in",
             "content": {
               "application/json": {
                 "schema": {
@@ -1196,7 +1196,7 @@
             }
           },
           "409": {
-            "description": "Email already exists",
+            "description": "Email already exists, or removing superuser status would leave no active superuser",
             "content": {
               "application/json": {
                 "schema": {

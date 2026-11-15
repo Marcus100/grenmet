@@ -9,7 +9,9 @@ the token. The token alone grants nothing.
 An invitation is only as good as its inviter: acceptance refuses one whose inviter is
 no longer an active superuser, and offboarding closes the inviter's open invitations.
 Every creation, acceptance and supersession is audited, and every active superuser is
-told by email (no token and no reason in the mail).
+told by email (no token and no reason in the mail). Removing superuser status is
+``demote_superuser``; the generic user routes are the only other way to change it, and
+they never grant it.
 """
 
 import hashlib
@@ -28,6 +30,7 @@ from src.audit import service as audit
 from src.auth import app_service, service
 from src.auth.account_security import record_security
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
+from src.auth.exceptions import LastSuperuserError
 from src.auth.lockout import normalised_address
 from src.auth.models import SuperuserInvitation, User
 from src.auth.placeholders import is_placeholder_email
@@ -161,14 +164,78 @@ def _notice(session: AsyncSession, admin: User, title: str, body: str) -> None:
     )
 
 
-async def _notify_superusers(session: AsyncSession, *, title: str, body: str) -> None:
+async def _notify_superusers(
+    session: AsyncSession,
+    *,
+    title: str,
+    body: str,
+    exclude: frozenset[uuid.UUID] = frozenset(),
+) -> None:
     """Notify every active superuser who can receive mail. The placeholder first
     superuser (its address cannot receive mail) and unverified addresses are skipped,
-    so the outbox does not bounce."""
+    so the outbox does not bounce. ``exclude`` names accounts that already know."""
     for admin in await _active_superusers(session):
+        if admin.id in exclude:
+            continue
         if is_placeholder_email(admin.email) or admin.email_verified_at is None:
             continue
         _notice(session, admin, title, body)
+
+
+REVOKED_NOTICE_TITLE = "Superuser access removed"
+
+
+async def demote_superuser(session: AsyncSession, *, actor: User, target: User) -> bool:
+    """Remove superuser status from ``target`` (ADR-0059 rule 1). The caller has already
+    checked the actor's authenticator and two-step sign-in, and commits.
+
+    Returns False when the target is not a superuser (nothing changes). Otherwise the
+    grant is removed, one audit row names the actor and the target, the account's open
+    invitations are closed, and every other active superuser who can receive mail is
+    told. Refused when no other active superuser would remain. The active superusers
+    are locked in id order first, so two demotions cannot each see the other still
+    there."""
+    locked = (
+        await session.scalars(
+            select(User)
+            .where(User.is_superuser.is_(True), User.is_active.is_(True))
+            .order_by(User.id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+    ).all()
+    if not target.is_superuser:
+        return False
+    if not any(row.id != target.id for row in locked):
+        raise LastSuperuserError()
+    target.is_superuser = False
+    session.add(target)
+    audit.set_actor(session, actor.id)
+    await audit.record_change(
+        session,
+        entity_type="account",
+        entity_id=str(target.id),
+        record_type="account",
+        record_id=str(target.id),
+        action="superuser_revoked",
+        changes={
+            "actor_user_id": (None, str(actor.id)),
+            "target_user_id": (None, str(target.id)),
+            "is_superuser": (True, False),
+        },
+    )
+    await close_for_inviter(session, target.id)
+    actor_name = actor.full_name or actor.email
+    await _notify_superusers(
+        session,
+        title=REVOKED_NOTICE_TITLE,
+        body=(
+            f"{actor_name} removed superuser access from {target.email}. If you did "
+            "not expect this, review the superuser list in the admin app."
+        ),
+        exclude=frozenset({actor.id, target.id}),
+    )
+    return True
 
 
 async def create_invitation(

@@ -192,6 +192,7 @@ async def test_users_counts_and_id_mutations_are_scoped(
         user_id=target.id,
         user_in=UserUpdate(first_name="Corrected"),
         current_user=actor,
+        token="",  # only read when superuser status is removed
     )
     assert updated.first_name == "Corrected"
     for subject, changes in (
@@ -205,6 +206,7 @@ async def test_users_counts_and_id_mutations_are_scoped(
                 user_id=subject.id,
                 user_in=UserUpdate(**changes),
                 current_user=actor,
+                token="",
             )
     for other in (outsider, foreign):
         with pytest.raises(AppException):
@@ -215,6 +217,7 @@ async def test_users_counts_and_id_mutations_are_scoped(
                 user_id=other.id,
                 user_in=UserUpdate(first_name="Changed"),
                 current_user=actor,
+                token="",
             )
         with pytest.raises(AppException):
             await users.delete_user(db_async, actor, other.id)
