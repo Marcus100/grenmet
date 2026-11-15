@@ -398,4 +398,18 @@ describe("BookingFlow wording and announcements", () => {
 
     expect(screen.getByText(DATE_RANGE)).toHaveAttribute("aria-live", "polite");
   });
+
+  it("turns spell-check off for the email address", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await chooseSlot(user);
+    expect(await screen.findByLabelText("Email")).toHaveAttribute(
+      "spellcheck",
+      "false"
+    );
+    expect(screen.getByLabelText("Name")).not.toHaveAttribute(
+      "spellcheck",
+      "false"
+    );
+  });
 });
