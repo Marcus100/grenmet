@@ -1008,7 +1008,7 @@
           "users"
         ],
         "summary": "Password sign-up (retired)",
-        "description": "Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify.",
+        "description": "Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify. It cannot carry a Turnstile token, so while AUTH_TURNSTILE_SECRET_KEY is set it answers 400 \"Verification failed\" and sends nothing.",
         "operationId": "authRegisterUser",
         "requestBody": {
           "content": {
@@ -1037,6 +1037,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Turnstile verification failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -63605,13 +63615,13 @@
           "modern-auth"
         ],
         "summary": "Send a Barrels account sign-in code",
-        "description": "Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing.",
+        "description": "Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing. While the API has AUTH_TURNSTILE_SECRET_KEY set, a missing or rejected Cloudflare Turnstile token (turnstile_token) is 400 \"Verification failed\" for every address, before any lookup.",
         "operationId": "authAccountEmailCodeStart",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AppEmailCodeStart"
+                "$ref": "#/components/schemas/AccountEmailCodeStart"
               }
             }
           },
@@ -63634,6 +63644,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Turnstile verification failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -69592,6 +69612,57 @@
           "can_leave"
         ],
         "title": "AccountAppPublic"
+      },
+      "AccountEmailCodeStart": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "AccountEmailCodeStart",
+        "description": "The account's code start: also carries the Turnstile token (#959)."
       },
       "AccountSecurityPublic": {
         "properties": {

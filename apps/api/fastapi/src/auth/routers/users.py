@@ -52,6 +52,7 @@ from src.models import ApiError, Message
 from src.openapi_responses import AUTHENTICATED, RateLimitedBody
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 from src.rate_limit import limiter, mail_limit_address
+from src.turnstile import auth_turnstile_policy, require_turnstile
 
 router = APIRouter(prefix="/auth/users", tags=["users"])
 
@@ -260,14 +261,21 @@ async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
         "Retired (#958). This never creates a password account. It answers as the "
         "emailed-code start does (the same reply for every address) and sends a "
         "sign-in code, which creates the account on first use. Use "
-        "/auth/email-code/start and /auth/email-code/verify."
+        "/auth/email-code/start and /auth/email-code/verify. It cannot carry a "
+        "Turnstile token, so while AUTH_TURNSTILE_SECRET_KEY is set it answers "
+        '400 "Verification failed" and sends nothing.'
     ),
-    responses={429: {"model": RateLimitedBody, "description": "Rate limit exceeded"}},
+    responses={
+        400: {"model": ApiError, "description": "Turnstile verification failed"},
+        429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
+    },
 )
 @limiter.limit("5/minute")
 async def register_user(
     request: Request, session: SessionDep, user_in: UserRegister
 ) -> Any:
+    # No token field: otherwise this would bypass the code start's bot check.
+    await require_turnstile(request, None, auth_turnstile_policy())
     # The submitted password, names and username are discarded on purpose.
     return await app_service.account_email_code_start(
         session=session,

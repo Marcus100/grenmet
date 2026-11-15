@@ -12,6 +12,7 @@ export type { AccessRequestPublic } from "./AccessRequestPublic.js";
 export type { AccessReviewData } from "./AccessReviewData.js";
 export type { AccessStatusPublic } from "./AccessStatusPublic.js";
 export type { AccountAppPublic } from "./AccountAppPublic.js";
+export type { AccountEmailCodeStart } from "./AccountEmailCodeStart.js";
 export type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
 export type { AccountSessionRequest } from "./AccountSessionRequest.js";
 export type { AchievementRule } from "./AchievementRule.js";
@@ -131,6 +132,7 @@ export type {
   AuthAccountEmailCodeStartResponse,
   AuthAccountEmailCodeStartResponses,
   AuthAccountEmailCodeStartStatus200,
+  AuthAccountEmailCodeStartStatus400,
   AuthAccountEmailCodeStartStatus422,
   AuthAccountEmailCodeStartStatus429,
 } from "./AuthAccountEmailCodeStart.js";
@@ -817,6 +819,7 @@ export type {
   AuthRegisterUserResponse,
   AuthRegisterUserResponses,
   AuthRegisterUserStatus200,
+  AuthRegisterUserStatus400,
   AuthRegisterUserStatus422,
   AuthRegisterUserStatus429,
 } from "./AuthRegisterUser.js";

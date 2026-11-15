@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthAccountEmailCodeStart.js";
 
 /**
- * @description Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing.
+ * @description Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing. While the API has AUTH_TURNSTILE_SECRET_KEY set, a missing or rejected Cloudflare Turnstile token (turnstile_token) is 400 "Verification failed" for every address, before any lookup.
  * @summary Send a Barrels account sign-in code
  * {@link /api/v1/auth/email-code/start}
  */

@@ -4696,6 +4696,7 @@ export type { AccessRequestPublic } from "./models/AccessRequestPublic.js";
 export type { AccessReviewData } from "./models/AccessReviewData.js";
 export type { AccessStatusPublic } from "./models/AccessStatusPublic.js";
 export type { AccountAppPublic } from "./models/AccountAppPublic.js";
+export type { AccountEmailCodeStart } from "./models/AccountEmailCodeStart.js";
 export type { AccountSecurityPublic } from "./models/AccountSecurityPublic.js";
 export type { AccountSessionRequest } from "./models/AccountSessionRequest.js";
 export type { AchievementRule } from "./models/AchievementRule.js";
@@ -4815,6 +4816,7 @@ export type {
   AuthAccountEmailCodeStartResponse,
   AuthAccountEmailCodeStartResponses,
   AuthAccountEmailCodeStartStatus200,
+  AuthAccountEmailCodeStartStatus400,
   AuthAccountEmailCodeStartStatus422,
   AuthAccountEmailCodeStartStatus429,
 } from "./models/AuthAccountEmailCodeStart.js";
@@ -5501,6 +5503,7 @@ export type {
   AuthRegisterUserResponse,
   AuthRegisterUserResponses,
   AuthRegisterUserStatus200,
+  AuthRegisterUserStatus400,
   AuthRegisterUserStatus422,
   AuthRegisterUserStatus429,
 } from "./models/AuthRegisterUser.js";
@@ -14984,6 +14987,7 @@ export { accessRequestPublicSchema } from "./zod/accessRequestPublicSchema.js";
 export { accessReviewDataSchema } from "./zod/accessReviewDataSchema.js";
 export { accessStatusPublicSchema } from "./zod/accessStatusPublicSchema.js";
 export { accountAppPublicSchema } from "./zod/accountAppPublicSchema.js";
+export { accountEmailCodeStartSchema } from "./zod/accountEmailCodeStartSchema.js";
 export { accountSecurityPublicSchema } from "./zod/accountSecurityPublicSchema.js";
 export { accountSessionRequestSchema } from "./zod/accountSessionRequestSchema.js";
 export { achievementRuleSchema } from "./zod/achievementRuleSchema.js";
@@ -15101,6 +15105,7 @@ export {
   authAccountEmailCodeStartErrorSchema,
   authAccountEmailCodeStartResponseSchema,
   authAccountEmailCodeStartStatus200Schema,
+  authAccountEmailCodeStartStatus400Schema,
   authAccountEmailCodeStartStatus422Schema,
   authAccountEmailCodeStartStatus429Schema,
 } from "./zod/authAccountEmailCodeStartSchema.js";
@@ -15759,6 +15764,7 @@ export {
   authRegisterUserErrorSchema,
   authRegisterUserResponseSchema,
   authRegisterUserStatus200Schema,
+  authRegisterUserStatus400Schema,
   authRegisterUserStatus422Schema,
   authRegisterUserStatus429Schema,
 } from "./zod/authRegisterUserSchema.js";

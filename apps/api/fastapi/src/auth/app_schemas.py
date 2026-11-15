@@ -32,6 +32,13 @@ class AppEmailCodeStart(BaseModel):
     last_name: str | None = Field(default=None, max_length=100)
 
 
+class AccountEmailCodeStart(AppEmailCodeStart):
+    """The account's code start: also carries the Turnstile token (#959)."""
+
+    #: Required only while AUTH_TURNSTILE_SECRET_KEY is set on the API.
+    turnstile_token: str | None = Field(default=None, max_length=2048)
+
+
 class AppEmailCodeVerify(BaseModel):
     email: EmailStr
     code: str = Field(pattern=CODE_PATTERN)

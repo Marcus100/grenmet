@@ -14,6 +14,7 @@ import { authAccountEmailCodeStart } from "../clients/authAccountEmailCodeStart.
 import type {
   AuthAccountEmailCodeStartOptions,
   AuthAccountEmailCodeStartStatus200,
+  AuthAccountEmailCodeStartStatus400,
   AuthAccountEmailCodeStartStatus422,
   AuthAccountEmailCodeStartStatus429,
 } from "../models/AuthAccountEmailCodeStart.js";
@@ -30,7 +31,9 @@ export function authAccountEmailCodeStartMutationOptions<TContext = unknown>(
   return mutationOptions<
     AuthAccountEmailCodeStartStatus200,
     ResponseErrorConfig<
-      AuthAccountEmailCodeStartStatus422 | AuthAccountEmailCodeStartStatus429
+      | AuthAccountEmailCodeStartStatus400
+      | AuthAccountEmailCodeStartStatus422
+      | AuthAccountEmailCodeStartStatus429
     >,
     AuthAccountEmailCodeStartOptions,
     TContext
@@ -47,7 +50,7 @@ export function authAccountEmailCodeStartMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing.
+ * @description Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing. While the API has AUTH_TURNSTILE_SECRET_KEY set, a missing or rejected Cloudflare Turnstile token (turnstile_token) is 400 "Verification failed" for every address, before any lookup.
  * @summary Send a Barrels account sign-in code
  * {@link /api/v1/auth/email-code/start}
  */
@@ -56,7 +59,9 @@ export function useAuthAccountEmailCodeStart<TContext>(
     mutation?: UseMutationOptions<
       AuthAccountEmailCodeStartStatus200,
       ResponseErrorConfig<
-        AuthAccountEmailCodeStartStatus422 | AuthAccountEmailCodeStartStatus429
+        | AuthAccountEmailCodeStartStatus400
+        | AuthAccountEmailCodeStartStatus422
+        | AuthAccountEmailCodeStartStatus429
       >,
       AuthAccountEmailCodeStartOptions,
       TContext
@@ -76,7 +81,9 @@ export function useAuthAccountEmailCodeStart<TContext>(
   ) as UseMutationOptions<
     AuthAccountEmailCodeStartStatus200,
     ResponseErrorConfig<
-      AuthAccountEmailCodeStartStatus422 | AuthAccountEmailCodeStartStatus429
+      | AuthAccountEmailCodeStartStatus400
+      | AuthAccountEmailCodeStartStatus422
+      | AuthAccountEmailCodeStartStatus429
     >,
     AuthAccountEmailCodeStartOptions,
     TContext
@@ -85,7 +92,9 @@ export function useAuthAccountEmailCodeStart<TContext>(
   return useMutation<
     AuthAccountEmailCodeStartStatus200,
     ResponseErrorConfig<
-      AuthAccountEmailCodeStartStatus422 | AuthAccountEmailCodeStartStatus429
+      | AuthAccountEmailCodeStartStatus400
+      | AuthAccountEmailCodeStartStatus422
+      | AuthAccountEmailCodeStartStatus429
     >,
     AuthAccountEmailCodeStartOptions,
     TContext
@@ -99,7 +108,9 @@ export function useAuthAccountEmailCodeStart<TContext>(
   ) as UseMutationResult<
     AuthAccountEmailCodeStartStatus200,
     ResponseErrorConfig<
-      AuthAccountEmailCodeStartStatus422 | AuthAccountEmailCodeStartStatus429
+      | AuthAccountEmailCodeStartStatus400
+      | AuthAccountEmailCodeStartStatus422
+      | AuthAccountEmailCodeStartStatus429
     >,
     AuthAccountEmailCodeStartOptions,
     TContext

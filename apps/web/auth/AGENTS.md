@@ -49,7 +49,7 @@ src/app/
 
 Redis (production requirement): the emailed-code send cap and login lockout count in Redis (`REDIS_URL`). Unset, both fail open and nothing is limited. Confirm production sets it before relying on these limits.
 
-Not built, Ask-first (see issues): Turnstile on the code start step (#959); passkeys (WebAuthn) after launch (#960, needs owner approval of a Python WebAuthn dependency, for example `py_webauthn`; no passkey UI until shipped).
+Turnstile on the code start step (#959): `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY`, off when empty (docs/env.md). Not built: passkeys (WebAuthn) after launch (#960, needs owner approval of a Python WebAuthn dependency, for example `py_webauthn`; no passkey UI until shipped).
 
 ## Key conventions
 
