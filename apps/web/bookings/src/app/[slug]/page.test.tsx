@@ -18,6 +18,11 @@ vi.mock("./actions", () => ({
   loadSlots: { bind: vi.fn(() => vi.fn()) },
   submitBooking: { bind: vi.fn(() => vi.fn()) },
 }));
+vi.mock("next/headers", () => ({
+  headers: vi.fn(() =>
+    Promise.resolve(new Headers({ host: "bookings.example.test" }))
+  ),
+}));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");

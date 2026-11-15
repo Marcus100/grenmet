@@ -5,12 +5,14 @@ import {
   timeZonePlace,
 } from "@barrelsgd/bookings-web/lib/booking-format";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
 import { CONTACT_LABEL } from "@/lib/booking-errors";
+import { signInPath, signUpHref } from "@/lib/sign-in-links";
 import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
 import {
@@ -31,11 +33,6 @@ interface BusinessPageProps {
 const loadStorefront = cache(async (slug: string) =>
   isBusinessSlug(slug) ? await getStorefront(slug) : null
 );
-
-/** Where a guest creates a free Barrels account (sign-up lives on auth). */
-function signUpHref(): string {
-  return new URL("/signup", env.AUTH_APP_URL).toString();
-}
 
 export async function generateMetadata({
   params,
@@ -63,9 +60,12 @@ export default async function BusinessBookingPage({
   }
   const { providers, services } = storefront;
   // A signed-in person gets their own details prefilled and shortcuts from
-  // their own earlier bookings here; a guest gets a blank form and the
-  // invitation to create an account (a signed-in person already has one).
+  // their own earlier bookings here; a guest gets a blank form, the invitation
+  // to create an account or sign in, and a quiet sign-in link.
   const visitor = await loadVisitor(slug);
+  const accountInvite = visitor
+    ? undefined
+    : { href: signUpHref(env.AUTH_APP_URL, await headers(), slug) };
 
   return (
     <div className="booking space-y-10">
@@ -77,6 +77,18 @@ export default async function BusinessBookingPage({
           Book an appointment online. Times are in{" "}
           {timeZonePlace(storefront.timezone)} time.
         </p>
+        {accountInvite && (
+          <p className="text-muted-foreground">
+            Have a Barrels account?{" "}
+            <a
+              className="text-foreground inline-flex min-h-11 items-center underline underline-offset-4"
+              href={signInPath(slug)}
+            >
+              Sign in
+            </a>{" "}
+            to have your details filled in. You do not need one to book.
+          </p>
+        )}
       </header>
 
       <section aria-labelledby="services-title" className="space-y-3">
@@ -136,7 +148,7 @@ export default async function BusinessBookingPage({
             Book online
           </h2>
           <BookingFlow
-            accountInvite={visitor ? undefined : { href: signUpHref() }}
+            accountInvite={accountInvite}
             actions={{
               confirmEmailCode: confirmEmailCode.bind(null, slug),
               loadSlots: loadSlots.bind(null, slug),

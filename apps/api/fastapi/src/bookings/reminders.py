@@ -1,10 +1,14 @@
 """24-hour booking reminders (hourly job ``enqueue_booking_reminders``).
 
-Confirmed bookings that start within the next 24 hours get one reminder email on
-the platform outbox. The outbox's unique ``(topic, dedupe_key)`` with
+Confirmed bookings, and bookings still waiting for the business to confirm
+(``pending``), that start within the next 24 hours get one reminder email on
+the platform outbox. A pending booking's reminder says the business has not
+confirmed it yet. The outbox's unique ``(topic, dedupe_key)`` with
 ``booking-reminder:<booking id>`` makes the job safe to repeat: each booking is
-queued once however often it runs. The reminder has no manage link, because the
-manage token exists only as a hash.
+queued once however often it runs, so a booking that was reminded as pending and
+is confirmed later is not reminded a second time. The reminder has no manage
+link, because the manage token exists only as a hash (an owner decision on how
+to carry one is open).
 """
 
 from datetime import datetime, timedelta
@@ -21,6 +25,7 @@ from . import emails
 from .models import Booking, BookingProfile, BookingStatus, Customer, Provider, Service
 
 REMINDER_WINDOW = timedelta(hours=24)
+REMINDED_STATUSES = (BookingStatus.CONFIRMED.value, BookingStatus.PENDING.value)
 
 
 async def enqueue_due_reminders(
@@ -42,7 +47,7 @@ async def enqueue_due_reminders(
         .join(Customer, Customer.id == Booking.customer_id)
         .join(Contact, Contact.id == Customer.contact_id)
         .where(
-            Booking.status == BookingStatus.CONFIRMED.value,
+            Booking.status.in_(REMINDED_STATUSES),
             Booking.starts_at > moment,
             Booking.starts_at <= moment + REMINDER_WINDOW,
             Contact.email.is_not(None),
@@ -65,7 +70,8 @@ async def enqueue_due_reminders(
                 provider_name=provider.name,
                 starts_at=booking.starts_at,
                 tz=zone(profile.timezone),
-            )
+            ),
+            confirmed=booking.status == BookingStatus.CONFIRMED.value,
         )
         if await outbox_handlers.enqueue_email(
             session,

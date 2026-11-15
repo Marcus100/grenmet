@@ -224,13 +224,14 @@ function BookingDone({
           <h2 id="book-invite">Keep your bookings in one place</h2>
           <p>
             Booking never needs an account. If you would like one, it is free:
-            create a Barrels account with the same email address you used here.
-            When you are signed in and book with {studioName}, your bookings
-            with them, including this one, are listed under My bookings.
+            create a Barrels account, or sign in if you already have one, using
+            the same email address you used here. When you are signed in and
+            book with {studioName}, your bookings with them, including this one,
+            are listed under My bookings.
           </p>
           <p>
             <a className="btn" href={accountInvite.href}>
-              Create a free account
+              Create an account or sign in
             </a>
           </p>
         </section>

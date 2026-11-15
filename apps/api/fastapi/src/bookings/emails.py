@@ -61,9 +61,9 @@ def _account_invite(mail: BookingEmail) -> str:
     url = _e(mail.account_invite_url)
     return (
         "<p>Booking never needs an account. If you would like one, it is free: "
-        f'<a href="{url}">create a Barrels account</a> with this email address. '
-        f"When you are signed in and book with {_e(mail.business)}, your bookings "
-        "with them, including this one, are listed under My bookings.</p>"
+        f'<a href="{url}">create a Barrels account or sign in</a> with this email '
+        f"address. When you are signed in and book with {_e(mail.business)}, your "
+        "bookings with them, including this one, are listed under My bookings.</p>"
     )
 
 
@@ -143,11 +143,25 @@ def customer_rescheduled(mail: BookingEmail) -> tuple[str, str]:
     )
 
 
-def customer_reminder(mail: BookingEmail) -> tuple[str, str]:
+def customer_reminder(mail: BookingEmail, *, confirmed: bool = True) -> tuple[str, str]:
+    """A reminder within a day of the start.
+
+    ``confirmed`` false is a request the business has not accepted yet: the
+    wording says so and promises only what happens (an email once they decide).
+    """
+    if confirmed:
+        return (
+            f"Reminder: your booking at {mail.business}",
+            f"<p>Hello {_e(mail.customer_name)},</p>"
+            f"<p>A reminder of your booking within the next day.</p>"
+            f"{_details(mail)}{_manage(mail)}",
+        )
     return (
-        f"Reminder: your booking at {mail.business}",
+        f"Reminder: your booking request at {mail.business}",
         f"<p>Hello {_e(mail.customer_name)},</p>"
-        f"<p>A reminder of your booking within the next day.</p>"
+        f"<p>A reminder of your booking request for the next day. "
+        f"{_e(mail.business)} has not confirmed it yet. "
+        f"We will email you as soon as they do.</p>"
         f"{_details(mail)}{_manage(mail)}",
     )
 

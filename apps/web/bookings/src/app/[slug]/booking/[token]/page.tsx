@@ -1,7 +1,8 @@
 import { ManageBooking } from "@barrelsgd/bookings-web/components/manage-booking";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getBooking } from "@/lib/booking-api";
+import { MissingBooking } from "@/components/missing-booking";
+import { getBooking, getStorefront } from "@/lib/booking-api";
 import { CONTACT_LABEL } from "@/lib/booking-errors";
 import { isBusinessSlug } from "@/lib/slug";
 import {
@@ -30,7 +31,9 @@ export default async function ManageBookingPage({
   }
   const booking = await getBooking(token);
   if (!booking) {
-    notFound();
+    // Answered here, not with notFound(): a dynamic page that throws it sends
+    // an empty document. The proxy sets the 404 status for a full page load.
+    return <MissingBooking business={await getStorefront(slug)} slug={slug} />;
   }
   return (
     <div className="booking space-y-6">
