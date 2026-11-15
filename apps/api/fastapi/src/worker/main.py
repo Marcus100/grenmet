@@ -556,15 +556,19 @@ async def check_alert_outbox(ctx: dict[str, Any]) -> int:
 
 
 async def check_cap_job_failures(ctx: dict[str, Any]) -> int:
-    """Log an error when a CAP job has failed on every attempt (nothing retries it).
+    """Log an error once per exhausted CAP job (nothing retries it).
 
-    Counts and job kinds only: no recipients, payloads or error text.
+    The error is raised only for jobs not reported before (``failure_reported_at``
+    in the job result), so a job that stays failed does not repeat it every run.
+    The return value is the current exhausted count. Counts and job kinds only: no
+    recipients, payloads or error text.
     """
     from datetime import timedelta
 
     _ = ctx  # arq passes the job context; this check needs none of it
 
     from src.database import async_session_factory
+    from src.utils.datetime import utc_now
     from src.worker import cap_failure_mail, dispatch
 
     async with async_session_factory() as session:
@@ -573,15 +577,24 @@ async def check_cap_job_failures(ctx: dict[str, Any]) -> int:
             max_attempts=worker_settings.CAP_JOB_MAX_ATTEMPTS,
             window=timedelta(days=7),
         )
-        total = len(jobs)
-        if total:
-            logger.error(
-                "CAP jobs failed on every attempt",
-                extra={"count": total, "kinds": sorted({job.kind for job in jobs})},
-            )
+        if jobs:
+            now = utc_now()
+            new_jobs = [job for job in jobs if not dispatch.failure_reported(job)]
+            if new_jobs:
+                logger.error(
+                    "CAP jobs failed on every attempt",
+                    extra={
+                        "count": len(new_jobs),
+                        "kinds": sorted({job.kind for job in new_jobs}),
+                    },
+                )
+            # Emails are deduplicated per job and recipient, so queuing for every
+            # exhausted job still reaches a recipient configured after the failure.
             await cap_failure_mail.queue_failure_emails(session=session, jobs=jobs)
+            for job in new_jobs:
+                dispatch.mark_failure_reported(job, at=now)
             await session.commit()
-    return total
+    return len(jobs)
 
 
 async def check_outbox_backlog(ctx: dict[str, Any]) -> int:
