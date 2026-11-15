@@ -29,6 +29,7 @@
 - Only a non-app-scoped account session may start a handoff; redeem requires the app's `client_secret`. Cookie routes (`browser.get_cookie_user`) refuse app-scoped sessions.
 - Phone code delivery stays `disabled` in production until a provider is approved (cost).
 - Rate-limited endpoints use `src.rate_limit.limiter`; keep limits on any new unauthenticated route.
+- Any new code path that changes `User.email` or deletes a user must call `contacts.service.unlink_account` (through the service, never the table), as `update_user`, `update_user_me` and account deletion do (ADR-0058, #1384).
 
 ## Sign-in setup (`sign_in_setup.py`)
 - **Audit invariant:** the administrator's free-text reason is stored in the `sign_in_setup` audit row (`issued`, `changes.reason`) and marked `sensitive`, so `audit.list_history` returns it masked unless the reader holds `audit.view_sensitive` (superusers do). The reader of an account's history is the account holder or a superuser, so this is the default for the person being set up. Logs never carry the reason, link, password or address. No export of audit rows exists; the gaa-admin history renders values as React text (escaped), and `issued` entries show no change list.
