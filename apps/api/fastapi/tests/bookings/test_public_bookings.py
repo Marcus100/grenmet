@@ -5,6 +5,7 @@ import hashlib
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any
 
 import httpx
 import pytest
@@ -719,6 +720,63 @@ async def test_reschedule_moves_the_booking_and_keeps_it_active(
     ]
     assert "booking-rescheduled" in kinds
     assert "booking-studio-rescheduled" in kinds
+
+
+async def test_moving_away_and_back_notifies_every_time(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Keys built from the new start time made the third notification (back to
+    the first time) collide with the first and be swallowed."""
+    sent: list[tuple[str, str | None]] = []
+
+    async def record(
+        _session: object,
+        _organisation_id: str,
+        event_type: str,
+        _data: dict[str, Any],
+        *,
+        event_id: str | None = None,
+    ) -> int:
+        sent.append((event_type, event_id))
+        return 1
+
+    monkeypatch.setattr("src.webhooks_out.service.emit_event_safely", record)
+    studio, receipt, slots = await _booked(db_async, async_client)
+    token = receipt["manage_token"]
+    first = receipt["booking"]["starts_at"]
+    other = next(s for s in slots if s > first)
+    for target in (other, first, other, first):
+        response = await async_client.post(
+            f"{API}/public/bookings/{token}/reschedule", json={"starts_at": target}
+        )
+        assert response.status_code == 200, response.text
+
+    booking_id = receipt["booking"]["id"]
+    rows = await _emails(db_async, studio.org_id)
+    for prefix in ("booking-rescheduled", "booking-studio-rescheduled"):
+        mine = [
+            row.dedupe_key
+            for row in rows
+            if row.dedupe_key.startswith(f"{prefix}:{booking_id}")
+        ]
+        assert len(mine) == 4
+        assert len(set(mine)) == 4
+    moved = [event_id for kind, event_id in sent if kind == "booking.rescheduled"]
+    assert len(moved) == 4
+    assert len(set(moved)) == 4
+    # Each key names its own history row.
+    events = list(
+        await db_async.scalars(
+            select(BookingEvent)
+            .where(BookingEvent.booking_id == uuid.UUID(booking_id))
+            .order_by(BookingEvent.created_at, BookingEvent.id)
+            .execution_options(populate_existing=True)
+        )
+    )
+    ids = {str(event.id) for event in events[-4:]}
+    assert {str(key).rsplit(":", 1)[1] for key in moved} == ids
 
 
 async def test_reschedule_to_a_taken_slot_or_inside_the_cutoff_is_409(

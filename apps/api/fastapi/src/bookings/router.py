@@ -76,6 +76,7 @@ from .schemas import (
     BookingStudioCreate,
     BookingStudioDecline,
     BookingStudioDetail,
+    BookingStudioReschedule,
     BookingWorkingHoursUpdate,
     BookingWorkingPeriodPublic,
 )
@@ -648,6 +649,39 @@ async def confirm_studio_booking(
 ) -> Any:
     result = await studio.confirm(
         session, org.organisation_id, booking_id, actor_user_id=org.actor_id
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/reschedule",
+    response_model=BookingStudioDetail,
+    summary="Move a booking to another time",
+    description=(
+        "Moves a `pending` or `confirmed` booking to a new start with the same "
+        "provider and service, and emails the customer. Staff are not held to "
+        "opening hours, lead time or the horizon, but the time must be in the "
+        "future, on a whole minute and free (409 on a clash, 409 for any other "
+        "status, 422 for a time in the past or with seconds). The same time "
+        "again changes nothing."
+    ),
+    operation_id="bookingsRescheduleStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def reschedule_studio_booking(
+    *,
+    session: SessionDep,
+    org: BookingsOrgWrite,
+    booking_id: BookingId,
+    payload: BookingStudioReschedule,
+) -> Any:
+    result = await studio.reschedule(
+        session,
+        org.organisation_id,
+        booking_id,
+        payload.starts_at,
+        actor_user_id=org.actor_id,
     )
     await session.commit()
     return result

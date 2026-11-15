@@ -4,12 +4,7 @@
  */
 
 export type SecurityProof = {
-  /**
-   * @minLength 1
-   * @maxLength 128
-   * @type string
-   */
-  password: string;
+  password?: string | null;
   /**
    * @minLength 6
    * @maxLength 64

@@ -150,6 +150,7 @@ Totals: 634 paths and 762 operations.
 | POST | `/api/v1/bookings/org/bookings/{booking_id}/decline` | org | yes | Decline a booking request | `bookingsDeclineStudioBooking` |
 | POST | `/api/v1/bookings/org/bookings/{booking_id}/manual-deposit` | org | yes | Record a deposit taken outside Stripe | `bookingsRecordManualDeposit` |
 | POST | `/api/v1/bookings/org/bookings/{booking_id}/no-show` | org | yes | Mark a booking as a no-show | `bookingsNoShowStudioBooking` |
+| POST | `/api/v1/bookings/org/bookings/{booking_id}/reschedule` | org | yes | Move a booking to another time | `bookingsRescheduleStudioBooking` |
 | DELETE | `/api/v1/bookings/org/exceptions/{exception_id}` | org | yes | Remove time off or extra hours | `bookingsDeleteException` |
 | GET | `/api/v1/bookings/org/profile` | org | yes | Get my booking profile | `bookingsGetProfile` |
 | PUT | `/api/v1/bookings/org/profile` | org | yes | Create or update my booking profile | `bookingsUpsertProfile` |
