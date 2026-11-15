@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cloudflare cache rules for one environment: cache static assets only.
+"""Cloudflare cache rules for one environment: static assets and public storm feeds.
 
 Owner-run only; nothing calls this automatically. Idempotent: it rewrites only
 the rules it owns (ref `grenmet-<environment>-*`) in the zone's
@@ -11,7 +11,7 @@ http_request_cache_settings phase and keeps every other rule as it is.
     python3 scripts/production/cloudflare-cache-rules.py --environment staging --apply    # change
     python3 scripts/production/cloudflare-cache-rules.py --environment staging --remove --apply
 
-Rules run in order and a later match wins, so the three rules are:
+Rules run in order and a later match wins, so the four rules are:
   1. every host of the environment: do not cache (Cloudflare would otherwise cache
      some file extensions, PDFs and spreadsheets included, on any host);
   2. public hosts: /_next/static/ and static asset extensions may be cached, but
@@ -19,8 +19,13 @@ Rules run in order and a later match wins, so the three rules are:
      even with Cloudflare's default TTLs), with Cache Deception Armor;
   3. bypass again for the API and staff hosts, any /api/ path, /desk and /auth/ paths, and any request
      carrying a session cookie (every app's cookie ends in `_session`, plus the
-     CMS's `payload-token`).
-Runbook: docs/operations/cloudflare-proxy.md.
+     CMS's `payload-token`);
+  4. the reviewed storm exception (owner decision 2026-11-15): signed-out GET
+     requests for the public weather feeds in STORM_PATHS may be cached again,
+     only when the origin's Cache-Control says so (each handler sends
+     s-maxage=60 or less); never with a session cookie, an Authorization header
+     or an Origin header (cross-origin calls get per-origin CORS headers).
+Runbooks: docs/operations/cloudflare-proxy.md, docs/operations/cloudflare-storm-cache.md.
 """
 
 import argparse
@@ -51,6 +56,37 @@ STATIC_EXTENSIONS = (
     "css", "js", "mjs", "woff", "woff2", "ttf", "otf", "ico",
     "png", "jpg", "jpeg", "gif", "webp", "avif", "svg",
 )
+
+# The storm exception (owner decision 2026-11-15): public, same-for-everyone
+# weather feeds that Cloudflare may serve for about a minute. Each entry is
+# (host prefix, exact paths, path prefixes). Every route under these paths is a
+# signed-out GET with no per-user content. The origin opts each response in with
+# s-maxage of 60 seconds or less (apps/web/gms/src/lib/storm-cache.ts,
+# apps/api/fastapi/src/cap/router.py, apps/api/fastapi/src/wxwatch/public_router.py);
+# a response without Cache-Control, an error or a no-store answer is never stored.
+STORM_PATHS = (
+    # Feeds only, never HTML pages: Next.js serves an RSC payload and an HTML page at
+    # the same URL and Cloudflare ignores Vary, so caching /alerts could hand a
+    # payload to every visitor (review of #1514).
+    ("weather", ("/api/alerts/rss", "/api/alerts/geojson"), ("/api/satellite/",)),
+    ("api", (), ("/api/cap/", "/api/v1/wxwatch/public/")),
+)
+# A request carrying any of these headers is never served from or stored in the cache.
+STORM_BYPASS_HEADERS = ("authorization", "origin", "rsc", "next-router-prefetch", "next-router-state-tree")
+
+
+def storm_expression(domain):
+    """Signed-out GET requests for STORM_PATHS on this environment's hosts, nothing else."""
+    hosts = []
+    for prefix, exact, starts in STORM_PATHS:
+        paths = [f'http.request.uri.path eq "{path}"' for path in exact]
+        paths += [f'starts_with(http.request.uri.path, "{path}")' for path in starts]
+        hosts.append(f'(http.host eq "{prefix}.{domain}" and ({" or ".join(paths)}))')
+    cookies = " or ".join(f'http.cookie contains "{marker}"' for marker in SESSION_COOKIE_MARKERS)
+    headers = " or ".join(
+        f'any(lower(http.request.headers.names[*])[*] == "{name}")' for name in STORM_BYPASS_HEADERS
+    )
+    return f'(http.request.method eq "GET") and ({" or ".join(hosts)}) and not ({cookies} or {headers})'
 
 
 def rules(environment):
@@ -102,6 +138,22 @@ def rules(environment):
             ),
             "action": "set_cache_settings",
             "action_parameters": {"cache": False},
+            "enabled": True,
+        },
+        {
+            "ref": f"{ref}-storm-feeds",
+            "description": (
+                f"GrenMet {environment}: public weather feeds for about a minute, "
+                "signed-out GETs only (owner decision 2026-11-15)"
+            ),
+            "expression": storm_expression(domain),
+            "action": "set_cache_settings",
+            "action_parameters": {
+                "cache": True,
+                # The origin's s-maxage (60 s or less) is the edge time; no header, no cache.
+                "edge_ttl": {"mode": "bypass_by_default"},
+                "browser_ttl": {"mode": "bypass_by_default"},
+            },
             "enabled": True,
         },
     ]
