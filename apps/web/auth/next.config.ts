@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactCompiler: true,
   output: "standalone",
+  async headers() {
+    // The invitation page is reached from an emailed link; send no referrer from it.
+    return [
+      {
+        source: "/superuser-invite",
+        headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
+      },
+    ];
+  },
   ...(process.env.NODE_ENV === "production" && {
     outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
   }),
