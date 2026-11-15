@@ -387,7 +387,9 @@ function BookingRow({
         {formatTime(booking.ends_at, timezone)}
       </span>
       <span className="min-w-0">
-        <span className="block font-medium">{booking.customer_name}</span>
+        <span className="block font-medium break-words">
+          {booking.customer_name}
+        </span>
         <span className="text-muted-foreground block text-sm">
           {booking.service_name}
           {providerName ? ` with ${providerName}` : ""}

@@ -12,6 +12,8 @@ import { getAuthConfig } from "@/lib/auth-config";
 export interface StudioSession {
   accessToken: string;
   email: string;
+  /** The account's own name, empty when it has none (`name` falls back to the email). */
+  fullName: string;
   name: string;
 }
 
@@ -33,6 +35,7 @@ export const getSession = cache(async (): Promise<StudioSession | null> => {
     return {
       accessToken: access_token,
       email: user.email,
+      fullName: user.full_name,
       name: user.full_name || user.email,
     };
   } catch (error) {

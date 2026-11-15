@@ -5,7 +5,9 @@ import {
   BARRELS_SUPPORT_HREF,
 } from "@barrelsgd/ui/lib/support";
 
-export default function BusinessError({ reset }: { reset: () => void }) {
+// `retry` re-fetches and re-renders this page's children (Next 16.3+). `reset`
+// only clears the error and would render the same failed fetch again.
+export default function BusinessError({ retry }: { retry: () => void }) {
   return (
     <section className="space-y-4">
       <h1 className="text-2xl font-semibold">
@@ -23,7 +25,7 @@ export default function BusinessError({ reset }: { reset: () => void }) {
         </a>
         .
       </p>
-      <button className="btn btn-solid" onClick={reset} type="button">
+      <button className="btn btn-solid" onClick={() => retry()} type="button">
         Try again
       </button>
     </section>

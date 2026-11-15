@@ -125,9 +125,8 @@ describe("chrome", () => {
 
   it("the phone book bar links to booking", () => {
     render(<BookBar booking={bookingLink(null)} />);
-    expect(screen.getByRole("link", { name: "Book me" })).toHaveAttribute(
-      "href",
-      BOOKING_URL
-    );
+    expect(
+      screen.getByRole("link", { name: "Book me (opens in a new tab)" })
+    ).toHaveAttribute("href", BOOKING_URL);
   });
 });

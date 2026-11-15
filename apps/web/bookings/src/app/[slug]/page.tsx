@@ -12,9 +12,8 @@ import { BookingLink } from "@/components/booking-link";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
 import { CONTACT_LABEL } from "@/lib/booking-errors";
-import { reportError } from "@/lib/report-error";
-import { getSession } from "@/lib/session";
 import { signInPath, signUpHref } from "@/lib/sign-in-links";
+import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
 import {
   confirmEmailCode,
@@ -34,19 +33,6 @@ interface BusinessPageProps {
 const loadStorefront = cache(async (slug: string) =>
   isBusinessSlug(slug) ? await getStorefront(slug) : null
 );
-
-/**
- * Whether a Barrels account is signed in here. A sign-in fault must not stop a
- * visitor booking, so it counts as a guest (the booking action does the same).
- */
-async function isSignedIn(): Promise<boolean> {
-  try {
-    return (await getSession()) !== null;
-  } catch (error) {
-    reportError(error, "bookings-public-session");
-    return false;
-  }
-}
 
 export async function generateMetadata({
   params,
@@ -73,12 +59,13 @@ export default async function BusinessBookingPage({
     notFound();
   }
   const { providers, services } = storefront;
-  // Only guests are invited; a signed-in person already has an account.
-  const accountInvite = (await isSignedIn())
+  // A signed-in person gets their own details prefilled and shortcuts from
+  // their own earlier bookings here; a guest gets a blank form, the invitation
+  // to create an account or sign in, and a quiet sign-in link.
+  const visitor = await loadVisitor(slug);
+  const accountInvite = visitor
     ? undefined
-    : {
-        href: signUpHref(env.AUTH_APP_URL, await headers(), slug),
-      };
+    : { href: signUpHref(env.AUTH_APP_URL, await headers(), slug) };
 
   return (
     <div className="booking space-y-10">
@@ -98,8 +85,8 @@ export default async function BusinessBookingPage({
               href={signInPath(slug)}
             >
               Sign in
-            </a>
-            . You do not need one to book.
+            </a>{" "}
+            to have your details filled in. You do not need one to book.
           </p>
         )}
       </header>
@@ -168,9 +155,11 @@ export default async function BusinessBookingPage({
               requestEmailCode: requestEmailCode.bind(null, slug),
               submitBooking: submitBooking.bind(null, slug),
             }}
+            bookAgain={visitor?.bookAgain}
             contact={{ href: `/${slug}`, label: CONTACT_LABEL }}
             ManageLink={BookingLink}
             managePath={`/${slug}/booking`}
+            signedIn={visitor?.signedIn}
             storefront={storefront}
             studioName={storefront.display_name}
             turnstileSiteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
