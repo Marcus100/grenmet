@@ -132,6 +132,7 @@ export { bookingsReorderServices } from "./clients/bookingsReorderServices.js";
 export { bookingsReplaceWorkingHours } from "./clients/bookingsReplaceWorkingHours.js";
 export { bookingsRequestEmailCode } from "./clients/bookingsRequestEmailCode.js";
 export { bookingsReschedulePublicBooking } from "./clients/bookingsReschedulePublicBooking.js";
+export { bookingsRescheduleStudioBooking } from "./clients/bookingsRescheduleStudioBooking.js";
 export { bookingsUpdateProvider } from "./clients/bookingsUpdateProvider.js";
 export { bookingsUpdateService } from "./clients/bookingsUpdateService.js";
 export { bookingsUpsertProfile } from "./clients/bookingsUpsertProfile.js";
@@ -1413,6 +1414,11 @@ export {
   bookingsReschedulePublicBookingMutationOptions,
   useBookingsReschedulePublicBooking,
 } from "./hooks/useBookingsReschedulePublicBooking.js";
+export {
+  bookingsRescheduleStudioBookingMutationKey,
+  bookingsRescheduleStudioBookingMutationOptions,
+  useBookingsRescheduleStudioBooking,
+} from "./hooks/useBookingsRescheduleStudioBooking.js";
 export {
   bookingsUpdateProviderMutationKey,
   bookingsUpdateProviderMutationOptions,
@@ -5746,6 +5752,7 @@ export type { BookingStudioCustomer } from "./models/BookingStudioCustomer.js";
 export type { BookingStudioDecline } from "./models/BookingStudioDecline.js";
 export type { BookingStudioDetail } from "./models/BookingStudioDetail.js";
 export type { BookingStudioEvent } from "./models/BookingStudioEvent.js";
+export type { BookingStudioReschedule } from "./models/BookingStudioReschedule.js";
 export type {
   BookingsCancelPublicBookingBody,
   BookingsCancelPublicBookingOptions,
@@ -6181,6 +6188,21 @@ export type {
   BookingsReschedulePublicBookingStatus409,
   BookingsReschedulePublicBookingStatus422,
 } from "./models/BookingsReschedulePublicBooking.js";
+export type {
+  BookingsRescheduleStudioBookingBody,
+  BookingsRescheduleStudioBookingHeaders,
+  BookingsRescheduleStudioBookingOptions,
+  BookingsRescheduleStudioBookingPath,
+  BookingsRescheduleStudioBookingResponse,
+  BookingsRescheduleStudioBookingResponses,
+  BookingsRescheduleStudioBookingStatus200,
+  BookingsRescheduleStudioBookingStatus400,
+  BookingsRescheduleStudioBookingStatus401,
+  BookingsRescheduleStudioBookingStatus403,
+  BookingsRescheduleStudioBookingStatus404,
+  BookingsRescheduleStudioBookingStatus409,
+  BookingsRescheduleStudioBookingStatus422,
+} from "./models/BookingsRescheduleStudioBooking.js";
 export type {
   BookingsUpdateProviderBody,
   BookingsUpdateProviderHeaders,
@@ -15752,6 +15774,7 @@ export { bookingStudioCustomerSchema } from "./zod/bookingStudioCustomerSchema.j
 export { bookingStudioDeclineSchema } from "./zod/bookingStudioDeclineSchema.js";
 export { bookingStudioDetailSchema } from "./zod/bookingStudioDetailSchema.js";
 export { bookingStudioEventSchema } from "./zod/bookingStudioEventSchema.js";
+export { bookingStudioRescheduleSchema } from "./zod/bookingStudioRescheduleSchema.js";
 export {
   bookingsCancelPublicBookingBodySchema,
   bookingsCancelPublicBookingErrorSchema,
@@ -16217,6 +16240,22 @@ export {
   bookingsReschedulePublicBookingStatus409Schema,
   bookingsReschedulePublicBookingStatus422Schema,
 } from "./zod/bookingsReschedulePublicBookingSchema.js";
+export {
+  bookingsRescheduleStudioBookingBodySchema,
+  bookingsRescheduleStudioBookingErrorSchema,
+  bookingsRescheduleStudioBookingHeadersSchema,
+  bookingsRescheduleStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsRescheduleStudioBookingPathBookingIdSchema,
+  bookingsRescheduleStudioBookingPathSchema,
+  bookingsRescheduleStudioBookingResponseSchema,
+  bookingsRescheduleStudioBookingStatus200Schema,
+  bookingsRescheduleStudioBookingStatus400Schema,
+  bookingsRescheduleStudioBookingStatus401Schema,
+  bookingsRescheduleStudioBookingStatus403Schema,
+  bookingsRescheduleStudioBookingStatus404Schema,
+  bookingsRescheduleStudioBookingStatus409Schema,
+  bookingsRescheduleStudioBookingStatus422Schema,
+} from "./zod/bookingsRescheduleStudioBookingSchema.js";
 export {
   bookingsUpdateProviderBodySchema,
   bookingsUpdateProviderErrorSchema,

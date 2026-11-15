@@ -17,9 +17,11 @@ vi.mock("@/lib/studio-api", () => ({
   confirmBooking: vi.fn(),
   declineBooking: vi.fn(),
   findOrganisation: vi.fn(),
+  getBusinessTimezone: vi.fn(),
   markCompleted: vi.fn(),
   markNoShow: vi.fn(),
   recordManualDeposit: vi.fn(),
+  rescheduleBooking: vi.fn(),
 }));
 
 import { getSession } from "@/lib/session";
@@ -28,9 +30,11 @@ import {
   confirmBooking,
   declineBooking,
   findOrganisation,
+  getBusinessTimezone,
   markCompleted,
   markNoShow,
   recordManualDeposit,
+  rescheduleBooking,
 } from "@/lib/studio-api";
 import {
   cancelBookingAction,
@@ -39,6 +43,7 @@ import {
   declineBookingAction,
   noShowBookingAction,
   recordDepositAction,
+  rescheduleBookingAction,
 } from "./actions";
 
 const OK = { events: [] } as never;
@@ -450,5 +455,106 @@ describe("recordDepositAction", () => {
     );
     expect(await run()).toMatchObject({ kind: "unavailable" });
     expect(reportError).toHaveBeenCalledWith(expect.anything(), "studio");
+  });
+});
+
+describe("rescheduleBookingAction", () => {
+  beforeEach(() => {
+    vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+  });
+
+  it("reads the new time on the business's clock and tells staff the customer is emailed", async () => {
+    vi.mocked(rescheduleBooking).mockResolvedValue(OK);
+    const result = await rescheduleBookingAction(
+      SLUG,
+      BOOKING_ID,
+      IDLE,
+      form({ date: "2027-01-05", time: "09:30" })
+    );
+    expect(result).toEqual({
+      status: "success",
+      message: "Booking moved. The customer has been emailed.",
+    });
+    // 09:30 in Grenada (UTC-4) is 13:30 UTC; the zone comes from the server.
+    expect(rescheduleBooking).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      BOOKING_ID,
+      "2027-01-05T13:30:00.000Z"
+    );
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/agenda`);
+  });
+
+  it("refuses a bad date or time before any call", async () => {
+    for (const values of [
+      { date: "", time: "09:30" },
+      { date: "2027-02-31", time: "09:30" },
+      { date: "2027-01-05", time: "25:00" },
+    ]) {
+      const result = await rescheduleBookingAction(
+        SLUG,
+        BOOKING_ID,
+        IDLE,
+        form(values)
+      );
+      expect(result).toMatchObject({ status: "error", kind: "invalid" });
+    }
+    expect(rescheduleBooking).not.toHaveBeenCalled();
+  });
+
+  it("refuses a member before any call", async () => {
+    org("member");
+    const result = await rescheduleBookingAction(
+      SLUG,
+      BOOKING_ID,
+      IDLE,
+      form({ date: "2027-01-05", time: "09:30" })
+    );
+    expect(result).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(rescheduleBooking).not.toHaveBeenCalled();
+  });
+
+  it("says the time is taken on a 409 and refreshes the screens", async () => {
+    vi.mocked(rescheduleBooking).mockRejectedValue(apiError(409));
+    const result = await rescheduleBookingAction(
+      SLUG,
+      BOOKING_ID,
+      IDLE,
+      form({ date: "2027-01-05", time: "09:30" })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      kind: "conflict",
+      message: "That time is not free, or the booking has changed.",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith(
+      `/studio/${SLUG}/bookings/${BOOKING_ID}`
+    );
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("says a time in the past is not accepted on a 422", async () => {
+    vi.mocked(rescheduleBooking).mockRejectedValue(apiError(422));
+    const result = await rescheduleBookingAction(
+      SLUG,
+      BOOKING_ID,
+      IDLE,
+      form({ date: "2020-01-05", time: "09:30" })
+    );
+    expect(result).toMatchObject({ status: "error", kind: "invalid" });
+  });
+
+  it("sends a signed-out person to sign in", async () => {
+    vi.mocked(getSession).mockResolvedValue(null);
+    await expect(
+      rescheduleBookingAction(
+        SLUG,
+        BOOKING_ID,
+        IDLE,
+        form({ date: "2027-01-05", time: "09:30" })
+      )
+    ).rejects.toMatchObject({
+      message: expect.stringContaining("NEXT_REDIRECT /signin?returnTo="),
+    });
   });
 });

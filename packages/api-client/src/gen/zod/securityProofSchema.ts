@@ -6,6 +6,6 @@
 import * as z from "zod";
 
 export const securityProofSchema = z.object({
-  password: z.string().min(1).max(128),
+  password: z.union([z.string().max(128), z.null()]).optional(),
   code: z.string().min(6).max(64),
 });

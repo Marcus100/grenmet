@@ -279,6 +279,11 @@
 .notice-ok {
   background: var(--secondary);
 }
+/* The confirmation and the optional account invitation, stacked. */
+.book-done {
+  display: grid;
+  gap: 1rem;
+}
 .notice > * + * {
   margin-top: 0.75rem;
 }

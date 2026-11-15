@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
-/** What a business slug can contain in an address (letters, digits, hyphens). */
-const ORG_SEGMENT = /^[A-Za-z0-9._~-]+$/u;
+/** The same business slug shape the studio actions accept (lowercase letters, digits, inner hyphens). */
+const ORG_SEGMENT = /^[a-z0-9][a-z0-9-]{0,62}$/u;
 
 /**
  * `/studio/<business>` has no page of its own: send it to the agenda, the

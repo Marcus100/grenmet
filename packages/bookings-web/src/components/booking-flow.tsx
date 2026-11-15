@@ -57,7 +57,17 @@ function PlainLink({ children, className, href }: BookingLinkProps) {
   );
 }
 
+/** Where a guest can create a free account; the host passes it only to guests. */
+export interface AccountInvite {
+  href: string;
+}
+
 export interface BookingFlowProps {
+  /**
+   * An invitation shown after booking to a visitor who is not signed in. Never
+   * blocks a booking. Omit it for a signed-in visitor.
+   */
+  accountInvite?: AccountInvite;
   /** Server calls for slots and submission, passed in by the host app. */
   actions: BookingFlowActions;
   /** How people reach the studio by hand when no slot is open online. */
@@ -128,53 +138,77 @@ function useFocusWhen(ref: RefObject<HTMLElement | null>, when: boolean): void {
 
 /** The confirmation: focus lands on its heading so screen readers announce it. */
 function BookingDone({
+  accountInvite,
   booked,
   currency,
   ManageLink,
   managePath,
+  studioName,
 }: {
+  accountInvite: AccountInvite | undefined;
   booked: Booked;
   /** The business currency; the receipt does not carry one. */
   currency: string;
   ManageLink: BookingLink;
   managePath: string;
+  studioName: string;
 }) {
   const { booking, manageToken } = booked;
   const headingRef = useRef<HTMLHeadingElement>(null);
   useFocusWhen(headingRef, true);
   return (
-    <section aria-labelledby="book-done" className="notice notice-ok">
-      <h2 id="book-done" ref={headingRef} tabIndex={-1}>
-        Thank you, {booking.customer_name.split(" ")[0]}
-      </h2>
-      <p>{statusLine(booking.status)}</p>
-      <dl className="summary">
-        <div>
-          <dt>Service</dt>
-          <dd>{booking.service_name}</dd>
-        </div>
-        <div>
-          <dt>When</dt>
-          <dd>{formatDateTime(booking.starts_at, booking.timezone)}</dd>
-        </div>
-        <div>
-          <dt>Price</dt>
-          <dd>{formatMoney(booking.price_minor, currency)}</dd>
-        </div>
-      </dl>
-      <p>
-        <strong>Keep this link.</strong> It lets you see, change or cancel your
-        booking, and it is shown only once. We also send it to your email.
-      </p>
-      <p>
-        <ManageLink
-          className="btn btn-solid"
-          href={`${managePath}/${manageToken}`}
-        >
-          Manage my booking
-        </ManageLink>
-      </p>
-    </section>
+    <div className="book-done">
+      <section aria-labelledby="book-done" className="notice notice-ok">
+        <h2 id="book-done" ref={headingRef} tabIndex={-1}>
+          Thank you, {booking.customer_name.split(" ")[0]}
+        </h2>
+        <p>{statusLine(booking.status)}</p>
+        <dl className="summary">
+          <div>
+            <dt>Service</dt>
+            <dd>{booking.service_name}</dd>
+          </div>
+          <div>
+            <dt>When</dt>
+            <dd>{formatDateTime(booking.starts_at, booking.timezone)}</dd>
+          </div>
+          <div>
+            <dt>Price</dt>
+            <dd>{formatMoney(booking.price_minor, currency)}</dd>
+          </div>
+        </dl>
+        <p>
+          <strong>Keep this link.</strong> It lets you see, change or cancel
+          your booking, and it is shown only once. We also send it to your
+          email.
+        </p>
+        <p>
+          <ManageLink
+            className="btn btn-solid"
+            href={`${managePath}/${manageToken}`}
+          >
+            Manage my booking
+          </ManageLink>
+        </p>
+      </section>
+      {accountInvite && (
+        <section aria-labelledby="book-invite" className="notice">
+          <h2 id="book-invite">Keep your bookings in one place</h2>
+          <p>
+            Booking never needs an account. If you would like one, it is free:
+            create a Barrels account, or sign in if you already have one, using
+            the same email address you used here. When you are signed in and
+            book with {studioName}, your bookings with them, including this one,
+            are listed under My bookings.
+          </p>
+          <p>
+            <a className="btn" href={accountInvite.href}>
+              Create an account or sign in
+            </a>
+          </p>
+        </section>
+      )}
+    </div>
   );
 }
 
@@ -354,6 +388,7 @@ function CodePanel({
 }
 
 export function BookingFlow({
+  accountInvite,
   actions,
   contact,
   managePath,
@@ -503,10 +538,12 @@ export function BookingFlow({
   if (booked) {
     return (
       <BookingDone
+        accountInvite={accountInvite}
         booked={booked}
         currency={storefront.currency}
         ManageLink={ManageLink}
         managePath={managePath}
+        studioName={studioName}
       />
     );
   }
