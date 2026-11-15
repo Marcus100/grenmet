@@ -10,8 +10,9 @@ export const primaryButtonClass =
 export const secondaryButtonClass =
   "block w-full rounded-lg border border-border px-5 py-3 text-center font-medium text-foreground text-sm transition hover:bg-muted";
 
-export const textLinkClass =
-  "font-medium text-(--auth-accent) underline-offset-4 hover:underline";
+// Deliberately no colour class: text links keep the surrounding text colour, as
+// they always have. A colour class here would now apply and recolour them.
+export const textLinkClass = "font-medium underline-offset-4 hover:underline";
 
 export const errorBoxClass =
   "rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-destructive text-sm";

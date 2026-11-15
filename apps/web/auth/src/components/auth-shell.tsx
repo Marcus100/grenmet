@@ -63,7 +63,7 @@ export function AuthShell({
             Need help with your Barrels account? Email Barrels Grenada support
             at{" "}
             <a
-              className="text-foreground underline underline-offset-4"
+              className="underline underline-offset-4"
               href={BARRELS_SUPPORT_HREF}
             >
               {BARRELS_SUPPORT_EMAIL}

@@ -32,7 +32,7 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
             used already.
           </div>
           <Link
-            className="block text-center text-sm font-medium text-(--auth-accent) underline-offset-4 hover:underline"
+            className="block text-center text-sm font-medium underline-offset-4 hover:underline"
             href="/forgot-password"
           >
             Request a new link

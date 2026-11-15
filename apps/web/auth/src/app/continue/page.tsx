@@ -27,7 +27,7 @@ function Notice({ title, children }: { title: string; children: string }) {
   return (
     <AuthShell greeting="Barrels account" subtitle="One account, every app.">
       <AuthHeading title={title}>{children}</AuthHeading>
-      <a className="text-foreground text-sm underline" href="/">
+      <a className="text-sm underline" href="/">
         Go to your account
       </a>
     </AuthShell>
@@ -67,7 +67,7 @@ export default async function ContinuePage({ searchParams }: PageProps) {
             Privileged staff tools require an authenticator. Set it up, save
             recovery codes, then sign in again with your code.
           </AuthHeading>
-          <a className="text-foreground text-sm underline" href="/security">
+          <a className="text-sm underline" href="/security">
             Open account security
           </a>
         </AuthShell>
@@ -79,10 +79,7 @@ export default async function ContinuePage({ searchParams }: PageProps) {
             This session was created without an authenticator challenge. Sign in
             again using your authenticator or a saved recovery code.
           </AuthHeading>
-          <a
-            className="text-foreground text-sm underline"
-            href={signInPath(request, true)}
-          >
+          <a className="text-sm underline" href={signInPath(request, true)}>
             Sign in again
           </a>
         </AuthShell>
