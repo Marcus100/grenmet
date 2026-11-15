@@ -193,21 +193,6 @@ def test_summary_accepts_the_longest_normal_spacing() -> None:
     assert summarize_tides(_events(*events)).gaps == []
 
 
-def test_summary_flags_one_skipped_event() -> None:
-    # Normal spacing is about 6.2 hours; dropping one event leaves about 12.4.
-    events = _alternating(datetime(2027, 3, 1, 5, 0), 10)
-    del events[4]
-    summary = summarize_tides(_events(*events))
-    assert not summary.ok
-    assert len(summary.gaps) == 1
-    assert summary.gaps[0].hours == pytest.approx(12.4)
-
-
-def test_summary_accepts_the_longest_normal_spacing() -> None:
-    events = _alternating(datetime(2027, 3, 1, 5, 0), 8, step_hours=9.3)
-    assert summarize_tides(_events(*events)).gaps == []
-
-
 def test_summary_flags_duplicates_and_disorder() -> None:
     rows = _events(
         ("2027-03-01 12:00", "HIGH"),
