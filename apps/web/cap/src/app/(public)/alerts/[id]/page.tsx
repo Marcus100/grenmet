@@ -9,7 +9,38 @@ import { fetchAlert } from "@/lib/cap-api";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Alert details" };
+/** The alert's headline and summary for search results; the page itself is unchanged. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const identifier = safeDecode(id);
+  const result = await fetchAlert(identifier);
+  const view =
+    result.status === "ok" || result.status === "stale"
+      ? toAlertView(result.data)
+      : null;
+  if (!view) {
+    return { title: "Alert details" };
+  }
+  const description = view.description.replace(/\s+/gu, " ").trim();
+  const path = `/alerts/${encodeURIComponent(identifier)}`;
+  return {
+    title: view.headline || view.event,
+    description:
+      description.length > 160
+        ? `${description.slice(0, 157)}...`
+        : description,
+    alternates: { canonical: path },
+    openGraph: {
+      title: view.headline || view.event,
+      url: path,
+      type: "article",
+    },
+  };
+}
 
 export default async function AlertPage({
   params,

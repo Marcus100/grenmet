@@ -1,4 +1,6 @@
+import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { breadcrumbList } from "@barrelsgd/ui/lib/seo";
 import { BadgeCheck, Clock, MapPin, Repeat, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -14,7 +16,9 @@ import { TicketClaim } from "@/components/discovery/ticket-claim";
 import { setFollowing } from "@/data/actions";
 import { getEventBySlug, listEvents } from "@/data/events-api";
 import { categoryLabel, PARISH_LABELS, priceLabel } from "@/domain/labels";
+import { env } from "@/env";
 import { formatEventDate, formatTime } from "@/lib/datetime";
+import { eventJsonLd } from "@/lib/event-jsonld";
 
 type Params = Promise<{ slug: string }>;
 
@@ -23,8 +27,23 @@ export async function generateMetadata({
 }: {
   params: Params;
 }): Promise<Metadata> {
-  const event = await getEventBySlug((await params).slug);
-  return event ? { title: event.title, description: event.summary } : {};
+  const { slug } = await params;
+  const event = await getEventBySlug(slug);
+  if (!event) {
+    return {};
+  }
+  const path = `/events/${slug}`;
+  return {
+    title: event.title,
+    description: event.summary,
+    alternates: { canonical: path },
+    openGraph: {
+      title: event.title,
+      description: event.summary,
+      url: path,
+      type: "website",
+    },
+  };
 }
 
 export default async function EventPage({ params }: { params: Params }) {
@@ -35,6 +54,14 @@ export default async function EventPage({ params }: { params: Params }) {
   }
 
   const { group, organiser } = event;
+  const siteUrl = env.NEXT_PUBLIC_SITE_URL;
+  const structuredData = [
+    eventJsonLd(siteUrl, event),
+    breadcrumbList(siteUrl, [
+      { name: "Events", path: "/events" },
+      { name: event.title, path: `/events/${slug}` },
+    ]),
+  ];
   const upcoming = await listEvents(
     event.category ? { category: event.category } : {}
   );
@@ -45,6 +72,9 @@ export default async function EventPage({ params }: { params: Params }) {
 
   return (
     <div className="space-y-12">
+      {structuredData.map((data) => (
+        <JsonLd data={data} key={String(data["@type"])} />
+      ))}
       <article className="grid gap-8 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-6">
           <EventFlyer

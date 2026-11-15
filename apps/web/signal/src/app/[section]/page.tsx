@@ -17,8 +17,13 @@ export function generateStaticParams() {
   return SECTIONS.map((section) => ({ section: section.slug }));
 }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const meta = getSection((await params).section);
-  return { title: meta?.label, description: meta?.description };
+  const { section } = await params;
+  const meta = getSection(section);
+  return {
+    title: meta?.label,
+    description: meta?.description,
+    alternates: { canonical: `/${section}` },
+  };
 }
 export default async function SectionPage({ params }: Props) {
   const { section } = await params;

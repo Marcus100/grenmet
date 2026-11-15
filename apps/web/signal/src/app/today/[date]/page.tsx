@@ -21,7 +21,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { date } = await params;
   const brief = getBrief(date);
   if (!brief) return {};
-  return { title: brief.title, description: brief.dek };
+  return {
+    title: brief.title,
+    description: brief.dek,
+    alternates: { canonical: `/today/${date}` },
+  };
 }
 
 export default async function BriefPage({ params }: Props) {

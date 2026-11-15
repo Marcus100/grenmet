@@ -7,7 +7,12 @@ const TRAILING_SLASH = /\/$/u;
 // Built from this environment's site address at request time (issue #1019).
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Alert feeds" };
+export const metadata: Metadata = {
+  title: "Alert feeds",
+  description:
+    "Machine-readable weather alert feeds (CAP, RSS, GeoJSON) from the Grenada Meteorological Service.",
+  alternates: { canonical: "/feeds" },
+};
 
 const FEEDS = [
   {

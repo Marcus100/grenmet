@@ -1,7 +1,12 @@
 import { EmptyState, PageIntro, StoryCard } from "@/components/editorial";
 import { getCurrentArticles } from "@/lib/content";
 import { GUIDE_PATHS, selectStories } from "@/lib/discovery";
-export const metadata = { title: "Guides & explainers" };
+export const metadata = {
+  title: "Guides & explainers",
+  description:
+    "Go a little deeper: Grenada Signal guides and explainers on the stories that matter.",
+  alternates: { canonical: "/learn" },
+};
 export default function LearnPage() {
   const guides = selectStories(getCurrentArticles(), GUIDE_PATHS);
   return (

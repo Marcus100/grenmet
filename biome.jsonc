@@ -238,6 +238,7 @@
       "includes": [
         "apps/web/docs/src/app/layout.tsx",
         "apps/web/docs/src/app/*/page.tsx",
+        "apps/web/docs/src/app/sitemap.ts",
         "apps/web/mbia/src/app/*/*/page.tsx",
         "apps/web/mbia/src/lib/content.ts",
         "apps/web/signal/src/lib/content.ts",

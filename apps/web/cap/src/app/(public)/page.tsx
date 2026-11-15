@@ -1,3 +1,6 @@
+import { JsonLd } from "@barrelsgd/ui/components/json-ld";
+import { websiteJsonLd } from "@barrelsgd/ui/lib/seo";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AlertCard } from "@/components/alert-card";
 import { FeedStatus } from "@/components/feed-status";
@@ -14,6 +17,13 @@ import { env } from "@/lib/env";
 // caches the result for a minute (next.config.ts).
 export const dynamic = "force-dynamic";
 
+export const metadata: Metadata = {
+  title: "Grenada weather alerts",
+  description:
+    "Official weather alerts for Grenada, Carriacou and Petite Martinique, issued by the Grenada Meteorological Service.",
+  alternates: { canonical: "/" },
+};
+
 export default async function HomePage() {
   const now = new Date();
   const result = await fetchActive();
@@ -24,6 +34,14 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6">
+      <JsonLd
+        data={websiteJsonLd({
+          name: "Grenada weather alerts",
+          siteUrl: env.NEXT_PUBLIC_SITE_URL,
+          description:
+            "Official weather alerts for Grenada, issued by the Grenada Meteorological Service.",
+        })}
+      />
       <h1 className="text-gm-heading text-heading-lg font-semibold">
         Active weather alerts
       </h1>

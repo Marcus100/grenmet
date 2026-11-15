@@ -25,8 +25,22 @@ export async function generateMetadata({
 }: {
   params: Params;
 }): Promise<Metadata> {
-  const group = await getGroupBySlug((await params).slug);
-  return group ? { title: group.name, description: group.tagline } : {};
+  const slug = (await params).slug;
+  const group = await getGroupBySlug(slug);
+  if (!group) {
+    return {};
+  }
+  return {
+    title: group.name,
+    description: group.tagline,
+    alternates: { canonical: `/groups/${slug}` },
+    openGraph: {
+      title: group.name,
+      description: group.tagline,
+      url: `/groups/${slug}`,
+      type: "website",
+    },
+  };
 }
 
 export default async function GroupPage({ params }: { params: Params }) {

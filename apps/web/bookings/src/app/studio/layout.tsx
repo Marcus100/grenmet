@@ -1,8 +1,12 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import type { Metadata } from "next";
 import { getSession } from "@/lib/session";
 
 // Per-person pages: never prerendered or cached.
 export const dynamic = "force-dynamic";
+
+// Staff area for business owners and staff: never indexed.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 /**
  * The signed-in name and Sign out sit in the header on every studio screen.
