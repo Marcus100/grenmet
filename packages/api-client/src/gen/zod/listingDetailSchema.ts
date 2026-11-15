@@ -22,7 +22,7 @@ export const listingDetailSchema = z.object({
   slug: z.string(),
   title: z.string(),
   summary: z.string(),
-  category: groupDetailPropertiesCategoryEnumSchema,
+  category: z.union([groupDetailPropertiesCategoryEnumSchema, z.null()]),
   parish: groupDetailPropertiesParishEnumSchema,
   venue: z.string(),
   starts_at: z.iso.datetime(),

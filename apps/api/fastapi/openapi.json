@@ -89664,7 +89664,15 @@
             "title": "Summary"
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
@@ -89881,7 +89889,15 @@
             "title": "Summary"
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
@@ -90111,7 +90127,15 @@
             "default": ""
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
@@ -90272,7 +90296,6 @@
         "required": [
           "title",
           "summary",
-          "category",
           "parish",
           "venue",
           "starts_at",
@@ -90429,7 +90452,15 @@
             "title": "Summary"
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"

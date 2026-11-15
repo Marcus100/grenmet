@@ -2,7 +2,7 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 import type { PublicEvent } from "@/domain/types";
 import { addDaysToKey, grenadaDateKey, grenadaWeekday } from "@/lib/datetime";
-import { CATEGORY_STYLE } from "./category-style";
+import { categoryStyle } from "./category-style";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const WEEKS_SHOWN = 5;
@@ -68,7 +68,7 @@ export function MonthGrid({
                     <Link
                       className={cn(
                         "text-micro sm:text-caption block truncate rounded-md px-1.5 py-0.5 font-medium",
-                        CATEGORY_STYLE[event.category].tone
+                        categoryStyle(event.category).tone
                       )}
                       href={`/events/${event.slug}`}
                       title={event.title}

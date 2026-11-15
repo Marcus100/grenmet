@@ -170,6 +170,9 @@ async def _resolve_categories(
 ) -> tuple[uuid.UUID | None, uuid.UUID | None]:
     """The (category_id, subcategory_id) to store, validated against the type."""
     if body.category_slug is None and body.subcategory_slug is None:
+        if "category" in body.model_fields_set and body.category is None:
+            # The organiser cleared the category: uncategorised (#810).
+            return None, None
         category_id, sub_id = listing.category_id, listing.subcategory_id
         if category_id is None:
             return await _from_legacy(db, listing.category, listing_type)

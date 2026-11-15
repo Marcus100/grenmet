@@ -19,7 +19,9 @@ export const listingUpsertSchema = z.object({
   title: z.string().min(3).max(160),
   summary: z.string().min(10).max(160),
   description: z.string().max(8000).optional().default(""),
-  category: groupDetailPropertiesCategoryEnumSchema,
+  category: z
+    .union([groupDetailPropertiesCategoryEnumSchema, z.null()])
+    .optional(),
   parish: groupDetailPropertiesParishEnumSchema,
   venue: z.string().min(2).max(160),
   starts_at: z.iso.datetime(),

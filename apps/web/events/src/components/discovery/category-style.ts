@@ -1,5 +1,6 @@
 import {
   Briefcase,
+  CalendarDays,
   Church,
   Cpu,
   HeartPulse,
@@ -35,3 +36,13 @@ export const CATEGORY_STYLE: Record<
   family: { icon: Users, tone: "bg-events-lime text-events-ink" },
   wellness: { icon: HeartPulse, tone: "bg-events-sand text-events-ink" },
 };
+
+/** Style for an event, with a neutral panel when it has no category. */
+export function categoryStyle(category: EventCategory | null): {
+  readonly icon: LucideIcon;
+  readonly tone: string;
+} {
+  return category
+    ? CATEGORY_STYLE[category]
+    : { icon: CalendarDays, tone: "bg-muted text-foreground" };
+}

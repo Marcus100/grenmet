@@ -153,7 +153,11 @@ async def _cards(
                 slug=listing.slug,
                 title=listing.title,
                 summary=listing.summary,
-                category=_CATEGORY.validate_python(listing.category),
+                category=(
+                    _CATEGORY.validate_python(listing.category)
+                    if listing.category is not None
+                    else None
+                ),
                 parish=_PARISH.validate_python(listing.parish),
                 venue=listing.venue,
                 starts_at=listing.starts_at,

@@ -284,6 +284,23 @@ environment endpoints and provider setup. Changes to this hidden callback's
 implementation do not alter generated client types; changing its registration,
 signature or schema exposure still invokes the contract companion gate.
 
+## Events: uncategorised listings (added 15 Nov 2026, #810)
+
+An organiser may clear a listing's category. On `POST /events/manage/listings`
+and `PUT /events/manage/listings/{listing_id}`, `category` is now optional:
+left out, it keeps the current value (none on create); an explicit `null`
+clears it and, unless `category_slug` or `subcategory_slug` is sent too, the
+catalogue category as well. Real values are still checked (422).
+
+Breaking for readers: `category` on `ListingCard`, `ListingDetail` and
+`ManagedListing` (in `GET /events/listings`, `GET /events/listings/{slug}`,
+`GET /events/groups/{slug}` upcoming, `GET /events/me/plans` and
+`GET /events/manage`) can now be `null`. The only consumer, `apps/web/events`,
+is updated in the same change and shows "Uncategorised". Uncategorised
+listings appear in unfiltered discovery and search, never match the
+`category` or `category_slug` filters and are not counted in
+`GET /events/public/categories`.
+
 ## Public flight board
 
 `GET /api/v1/flights/board?airport=TGPY&board=arrivals|departures`
