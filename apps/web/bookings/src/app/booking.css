@@ -274,6 +274,54 @@
 .notice-ok {
   background: var(--secondary);
 }
+/* Who the booking is for ("Booking as ... Not you? Sign out"). */
+.signed-in-as {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  color: var(--muted-foreground);
+}
+.link-button {
+  min-height: 44px;
+  padding: 0;
+  font: inherit;
+  color: var(--foreground);
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+.link-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+/* "Book again" shortcuts above the full service list. */
+.book-again {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.book-again-list {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.book-again-choice {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  width: 100%;
+  padding-block: 0.5rem;
+  text-align: left;
+}
+.book-again-choice[aria-pressed="true"] {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
 /* The confirmation and the optional account invitation, stacked. */
 .book-done {
   display: grid;

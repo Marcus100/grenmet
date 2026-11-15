@@ -14,6 +14,7 @@ Backed by Barrels Bookings (`apps/api/fastapi/src/bookings`, ADR-0024).
   `ManageBookingActions`). Action references serialise across the Server
   Component boundary; closures do not, so pass the token as an argument.
 - `accountInvite` (`{ href }`, optional): the host passes it only to a visitor who is not signed in; after booking, the confirmation then shows "Keep your bookings in one place" with a free-account link. It never blocks a booking, and its wording says only what the API does (see `apps/api/fastapi/src/bookings/AGENTS.md`, account link).
+- `signedIn` (`SignedInVisitor`: name, email, phone, `signOutAction`) and `bookAgain` (`BookAgainChoice[]`: service id and last provider id): the host passes them only for a signed-in visitor and only from that person's own data. `signedIn` prefills the (still editable) fields and shows "Booking as <name>. Not you? Sign out" as a separate POST form beside the booking form; `bookAgain` shows shortcuts above the full service list (which stays), skipping services the business no longer offers; the provider shows only as "last time with ..." when the business has more than one, because the flow does not choose providers. Guests get neither.
 - Host-specific values are props too: `managePath`, `calendarHref`,
   `contact` (a `ContactChannel`: href and channel name), `studioName` (opt-in
   wording), `ManageLink` (defaults to a plain anchor), `turnstileSiteKey`.

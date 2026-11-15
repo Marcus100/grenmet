@@ -13,6 +13,7 @@ from sqlalchemy import ColumnElement, delete, func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.models import User
 from src.contacts.models import Contact
 from src.organisations import service as organisation_service
 from src.organisations.exceptions import OrganisationAppNotEntitledError
@@ -38,6 +39,7 @@ from .models import (
     AvailabilityException,
     Booking,
     BookingProfile,
+    BookingStatus,
     Customer,
     Provider,
     ProviderService,
@@ -616,6 +618,57 @@ async def list_my_bookings(
     )
     rows = [(row[0], row[1], row[2], row[3]) for row in result.all()]
     return rows, total or 0
+
+
+MY_CHOICES_LIMIT = 3
+
+
+async def my_choices(
+    session: AsyncSession, user: User, slug: str
+) -> tuple[str | None, list[tuple[uuid.UUID, uuid.UUID, datetime]]]:
+    """The caller's own history with one business: ``(phone, recent)``.
+
+    Only bookings whose customer's contact in that business is linked to the
+    caller (ADR-0058), the same rule as My bookings; nobody else's rows are read.
+    ``recent`` is ``(service_id, provider_id, last_booked_at)``: the latest
+    booking per service, soonest-ago first, at most ``MY_CHOICES_LIMIT``.
+    Cancelled bookings are left out. An unknown or switched-off slug is the
+    public 404.
+    """
+    profile = await get_public_profile(session, slug)
+    linked = (
+        select(Customer.id, Contact.phone)
+        .join(Contact, Contact.id == Customer.contact_id)
+        .where(
+            Customer.organisation_id == profile.organisation_id,
+            Contact.organisation_id == profile.organisation_id,
+            Contact.user_id == user.id,
+            Contact.erased_at.is_(None),
+        )
+    )
+    customers = (await session.execute(linked)).all()
+    phone = next((phone for _, phone in customers if phone), None) or user.phone_e164
+    if not customers:
+        return phone, []
+    rows = await session.execute(
+        select(Booking.service_id, Booking.provider_id, Booking.starts_at)
+        .where(
+            Booking.organisation_id == profile.organisation_id,
+            Booking.customer_id.in_([customer_id for customer_id, _ in customers]),
+            Booking.status != BookingStatus.CANCELLED.value,
+        )
+        .order_by(Booking.starts_at.desc(), Booking.id.desc())
+    )
+    seen: set[uuid.UUID] = set()
+    recent: list[tuple[uuid.UUID, uuid.UUID, datetime]] = []
+    for service_id, provider_id, starts_at in rows.all():
+        if service_id in seen:
+            continue
+        seen.add(service_id)
+        recent.append((service_id, provider_id, starts_at))
+        if len(recent) == MY_CHOICES_LIMIT:
+            break
+    return phone, recent
 
 
 async def list_my_organisations(

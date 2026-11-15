@@ -138,6 +138,7 @@ Totals: 633 paths and 761 operations.
 | Method | Path | Zone | Auth | Summary | Operation ID |
 | --- | --- | --- | --- | --- | --- |
 | GET | `/api/v1/bookings/me/bookings` | me | yes | My bookings across businesses | `bookingsListMyBookings` |
+| GET | `/api/v1/bookings/me/businesses/{slug}/choices` | me | yes | What my earlier bookings suggest for my next one with a business | `bookingsGetMyChoices` |
 | GET | `/api/v1/bookings/me/organisations` | me | yes | The caller's organisations that use Barrels Bookings | `bookingsListMyOrganisations` |
 | GET | `/api/v1/bookings/org/agenda` | org | yes | Get the agenda grouped by day | `bookingsGetAgenda` |
 | GET | `/api/v1/bookings/org/bookings` | org | yes | List bookings in a period | `bookingsListStudioBookings` |

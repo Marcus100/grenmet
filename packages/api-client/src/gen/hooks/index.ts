@@ -549,6 +549,11 @@ export {
   useBookingsGetAvailability,
 } from "./useBookingsGetAvailability.js";
 export {
+  bookingsGetMyChoicesQueryKey,
+  bookingsGetMyChoicesQueryOptions,
+  useBookingsGetMyChoices,
+} from "./useBookingsGetMyChoices.js";
+export {
   bookingsGetProfileQueryKey,
   bookingsGetProfileQueryOptions,
   useBookingsGetProfile,

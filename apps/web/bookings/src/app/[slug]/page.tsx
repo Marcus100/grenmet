@@ -11,8 +11,7 @@ import { BookingLink } from "@/components/booking-link";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
 import { CONTACT_LABEL } from "@/lib/booking-errors";
-import { reportError } from "@/lib/report-error";
-import { getSession } from "@/lib/session";
+import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
 import {
   confirmEmailCode,
@@ -32,19 +31,6 @@ interface BusinessPageProps {
 const loadStorefront = cache(async (slug: string) =>
   isBusinessSlug(slug) ? await getStorefront(slug) : null
 );
-
-/**
- * Whether a Barrels account is signed in here. A sign-in fault must not stop a
- * visitor booking, so it counts as a guest (the booking action does the same).
- */
-async function isSignedIn(): Promise<boolean> {
-  try {
-    return (await getSession()) !== null;
-  } catch (error) {
-    reportError(error, "bookings-public-session");
-    return false;
-  }
-}
 
 /** Where a guest creates a free Barrels account (sign-up lives on auth). */
 function signUpHref(): string {
@@ -76,10 +62,10 @@ export default async function BusinessBookingPage({
     notFound();
   }
   const { providers, services } = storefront;
-  // Only guests are invited; a signed-in person already has an account.
-  const accountInvite = (await isSignedIn())
-    ? undefined
-    : { href: signUpHref() };
+  // A signed-in person gets their own details prefilled and shortcuts from
+  // their own earlier bookings here; a guest gets a blank form and the
+  // invitation to create an account (a signed-in person already has one).
+  const visitor = await loadVisitor(slug);
 
   return (
     <div className="booking space-y-10">
@@ -150,16 +136,18 @@ export default async function BusinessBookingPage({
             Book online
           </h2>
           <BookingFlow
-            accountInvite={accountInvite}
+            accountInvite={visitor ? undefined : { href: signUpHref() }}
             actions={{
               confirmEmailCode: confirmEmailCode.bind(null, slug),
               loadSlots: loadSlots.bind(null, slug),
               requestEmailCode: requestEmailCode.bind(null, slug),
               submitBooking: submitBooking.bind(null, slug),
             }}
+            bookAgain={visitor?.bookAgain}
             contact={{ href: `/${slug}`, label: CONTACT_LABEL }}
             ManageLink={BookingLink}
             managePath={`/${slug}/booking`}
+            signedIn={visitor?.signedIn}
             storefront={storefront}
             studioName={storefront.display_name}
             turnstileSiteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}

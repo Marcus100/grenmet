@@ -1,7 +1,7 @@
 import type { BookingStorefront } from "@barrelsgd/api-client";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BookingFlowActions } from "../lib/booking-types";
 import { BookingFlow } from "./booking-flow";
@@ -455,5 +455,203 @@ describe("BookingFlow wording and announcements", () => {
     await screen.findByRole("radio", { name: "9:30 am" });
 
     expect(screen.getByText(DATE_RANGE)).toHaveAttribute("aria-live", "polite");
+  });
+});
+
+const ADA = {
+  email: "ada@example.com",
+  name: "Ada Lovelace",
+  phone: "+1 473 555 0100",
+  signOutAction: "/auth/logout",
+};
+const SECOND_SERVICE = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c11";
+const JERIANN = "a1b2c3d4-0000-4000-8000-000000000001";
+const MAYA = "a1b2c3d4-0000-4000-8000-000000000002";
+const LAST_TIME = /last time with Jeriann/u;
+const BOOKING_AS = /Booking as/u;
+const LASH_LIFT = /Lash lift/u;
+
+const twoServices: BookingStorefront = {
+  ...storefront,
+  providers: [
+    { id: JERIANN, name: "Jeriann", service_ids: [SERVICE_ID] },
+    { id: MAYA, name: "Maya", service_ids: [SERVICE_ID, SECOND_SERVICE] },
+  ],
+  services: [
+    ...storefront.services,
+    {
+      id: SECOND_SERVICE,
+      name: "Lash lift",
+      category: "Lashes",
+      description: null,
+      duration_min: 60,
+      price_minor: 9000,
+      deposit_minor: 0,
+    },
+  ],
+};
+
+function renderSignedIn(props: Partial<ComponentProps<typeof BookingFlow>>) {
+  return render(
+    <BookingFlow
+      actions={actions}
+      contact={CONTACT}
+      managePath="/booking"
+      storefront={twoServices}
+      studioName={STUDIO}
+      turnstileSiteKey=""
+      {...props}
+    />
+  );
+}
+
+describe("signed-in visitor", () => {
+  it("starts with their own name, email and phone, and says who they are booking as", () => {
+    renderSignedIn({ signedIn: ADA });
+    expect(screen.getByLabelText("Name")).toHaveValue("Ada Lovelace");
+    expect(screen.getByLabelText("Email")).toHaveValue("ada@example.com");
+    expect(screen.getByLabelText("Phone (optional)")).toHaveValue(
+      "+1 473 555 0100"
+    );
+    expect(screen.getByText(BOOKING_AS)).toHaveTextContent(
+      "Booking as Ada Lovelace. Not you?"
+    );
+    const signOut = screen.getByRole("button", { name: "Sign out" });
+    expect(signOut.closest("form")).toHaveAttribute("action", "/auth/logout");
+    expect(signOut.closest("form")).toHaveAttribute("method", "post");
+    // The sign-out form is not inside the booking form (forms cannot nest).
+    expect(
+      screen.getByRole("form", { name: "Book an appointment" })
+    ).not.toContainElement(signOut);
+  });
+
+  it("still lets them change every prefilled field", async () => {
+    const user = userEvent.setup();
+    renderSignedIn({ signedIn: ADA });
+    const name = screen.getByLabelText("Name");
+    await user.clear(name);
+    await user.type(name, "Grace Hopper");
+    const email = screen.getByLabelText("Email");
+    await user.clear(email);
+    await user.type(email, "grace@example.com");
+    const phone = screen.getByLabelText("Phone (optional)");
+    await user.clear(phone);
+    expect(name).toHaveValue("Grace Hopper");
+    expect(email).toHaveValue("grace@example.com");
+    expect(phone).toHaveValue("");
+  });
+
+  it("shows the email as who they are booking as when the account has no name", () => {
+    renderSignedIn({ signedIn: { ...ADA, name: "" } });
+    expect(screen.getByLabelText("Name")).toHaveValue("");
+    expect(screen.getByText(BOOKING_AS)).toHaveTextContent(
+      "Booking as ada@example.com."
+    );
+  });
+
+  it("books with the prefilled details as they are", async () => {
+    const user = userEvent.setup();
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: true,
+      data: { booking, manageToken: "tok-9" },
+    });
+    renderSignedIn({ signedIn: ADA });
+    await chooseSlot(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+    await screen.findByRole("heading", { name: "Thank you, Ada" });
+    expect(submitBooking).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "ada@example.com",
+        name: "Ada Lovelace",
+        phone: "+1 473 555 0100",
+      })
+    );
+  });
+});
+
+describe("guest", () => {
+  it("gets a blank form, no 'Booking as' line and no shortcuts", () => {
+    renderSignedIn({});
+    expect(screen.getByLabelText("Name")).toHaveValue("");
+    expect(screen.getByLabelText("Email")).toHaveValue("");
+    expect(screen.getByLabelText("Phone (optional)")).toHaveValue("");
+    expect(screen.queryByText(BOOKING_AS)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Book again" })
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("Book again", () => {
+  it("offers shortcuts above the full service list, which stays", () => {
+    renderSignedIn({
+      bookAgain: [{ providerId: JERIANN, serviceId: SECOND_SERVICE }],
+      signedIn: ADA,
+    });
+    const heading = screen.getByRole("heading", { name: "Book again" });
+    const list = screen.getByRole("list", { name: "Book again" });
+    expect(list).toHaveTextContent("Lash lift");
+    expect(list).toHaveTextContent("1 hr");
+    expect(list).toHaveTextContent("EC$90");
+    const firstRadio = screen.getByRole("radio", { name: HYBRID });
+    // Shortcuts come before the radios; every service is still offered.
+    expect(heading.compareDocumentPosition(firstRadio)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    );
+    expect(screen.getAllByRole("radio")).toHaveLength(2);
+  });
+
+  it("chooses the service and loads its times when pressed", async () => {
+    const user = userEvent.setup();
+    renderSignedIn({
+      bookAgain: [{ providerId: JERIANN, serviceId: SECOND_SERVICE }],
+      signedIn: ADA,
+    });
+    const shortcut = screen.getByRole("button", { name: LASH_LIFT });
+    expect(shortcut).toHaveAttribute("aria-pressed", "false");
+    await user.click(shortcut);
+    expect(shortcut).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("radio", { name: LASH_LIFT })).toBeChecked();
+    await waitFor(() =>
+      expect(loadSlots).toHaveBeenCalledWith(SECOND_SERVICE, expect.any(String))
+    );
+  });
+
+  it("names the provider used last time when the business has more than one", () => {
+    renderSignedIn({
+      bookAgain: [{ providerId: JERIANN, serviceId: SERVICE_ID }],
+      signedIn: ADA,
+    });
+    expect(screen.getByRole("list", { name: "Book again" })).toHaveTextContent(
+      LAST_TIME
+    );
+  });
+
+  it("skips a service the business no longer offers, and a provider who no longer does it", () => {
+    renderSignedIn({
+      bookAgain: [
+        {
+          providerId: JERIANN,
+          serviceId: "11111111-1111-4111-8111-111111111111",
+        },
+        // Jeriann does not offer the lash lift: the service shows, her name does not.
+        { providerId: JERIANN, serviceId: SECOND_SERVICE },
+      ],
+      signedIn: ADA,
+    });
+    const list = screen.getByRole("list", { name: "Book again" });
+    expect(within(list).getAllByRole("listitem")).toHaveLength(1);
+    expect(list).toHaveTextContent("Lash lift");
+    expect(list).not.toHaveTextContent("last time with");
+  });
+
+  it("shows nothing for a person with no history", () => {
+    renderSignedIn({ bookAgain: [], signedIn: ADA });
+    expect(
+      screen.queryByRole("heading", { name: "Book again" })
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByRole("radio")).toHaveLength(2);
   });
 });
