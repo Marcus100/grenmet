@@ -151,3 +151,12 @@ describe("draftToUpsert", () => {
     expect(draftToUpsert(draft, "draft").tiers).toEqual([]);
   });
 });
+
+describe("uncategorised listings (#810)", () => {
+  it("keeps a cleared category through edits and sends an explicit null", () => {
+    const draft = draftFromEvent({ ...sunset, category: null });
+    expect(draft.category).toBeNull();
+    expect(draftToUpsert(draft, "published")).toHaveProperty("category", null);
+    expect(draftToCard(draft).category).toBeNull();
+  });
+});

@@ -13,7 +13,7 @@ import { ShareActions } from "@/components/discovery/share-actions";
 import { TicketClaim } from "@/components/discovery/ticket-claim";
 import { setFollowing } from "@/data/actions";
 import { getEventBySlug, listEvents } from "@/data/events-api";
-import { CATEGORY_LABELS, PARISH_LABELS, priceLabel } from "@/domain/labels";
+import { categoryLabel, PARISH_LABELS, priceLabel } from "@/domain/labels";
 import { formatEventDate, formatTime } from "@/lib/datetime";
 
 type Params = Promise<{ slug: string }>;
@@ -35,7 +35,9 @@ export default async function EventPage({ params }: { params: Params }) {
   }
 
   const { group, organiser } = event;
-  const upcoming = await listEvents({ category: event.category });
+  const upcoming = await listEvents(
+    event.category ? { category: event.category } : {}
+  );
   const more = upcoming
     .filter((candidate) => candidate.id !== event.id)
     .slice(0, 3);
@@ -55,7 +57,7 @@ export default async function EventPage({ params }: { params: Params }) {
           />
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">{CATEGORY_LABELS[event.category]}</Badge>
+              <Badge variant="outline">{categoryLabel(event.category)}</Badge>
               {event.recurrence ? (
                 <Badge variant="outline">
                   <Repeat data-icon="inline-start" />
@@ -204,7 +206,9 @@ export default async function EventPage({ params }: { params: Params }) {
       {more.length > 0 ? (
         <section className="space-y-5">
           <h2 className="font-display text-heading-sm font-bold">
-            More {CATEGORY_LABELS[event.category].toLowerCase()}
+            {event.category
+              ? `More ${categoryLabel(event.category).toLowerCase()}`
+              : "More events"}
           </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {more.map((candidate) => (

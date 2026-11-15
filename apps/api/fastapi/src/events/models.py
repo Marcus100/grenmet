@@ -131,7 +131,8 @@ class Listing(EventsModel):
     title: Mapped[str] = mapped_column(Text)
     summary: Mapped[str] = mapped_column(Text, default="")
     description: Mapped[str] = mapped_column(Text, default="")
-    category: Mapped[str] = mapped_column(Text)
+    #: Null when the listing is uncategorised (#810, migration eventsnocat20261115).
+    category: Mapped[str | None] = mapped_column(Text, default=None)
     parish: Mapped[str] = mapped_column(Text)
     venue: Mapped[str] = mapped_column(Text)
     starts_at: Mapped[datetime] = mapped_column(DateTime)

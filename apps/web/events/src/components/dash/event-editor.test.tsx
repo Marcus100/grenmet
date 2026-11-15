@@ -54,4 +54,21 @@ describe("EventEditor", () => {
     });
     expect(publish).toBeEnabled();
   });
+
+  it("lets the organiser clear the category", () => {
+    render(
+      <EventEditor
+        initial={emptyDraft(new Date("2026-10-03T12:00:00-04:00"))}
+        listingId={null}
+      />
+    );
+    const select = screen.getByLabelText("Category");
+    expect(
+      within(select).getByRole("option", { name: "No category" })
+    ).toBeInTheDocument();
+    fireEvent.change(select, { target: { value: "" } });
+    expect(select).toHaveValue("");
+    const preview = screen.getByTestId("editor-preview");
+    expect(within(preview).getByText("Uncategorised")).toBeInTheDocument();
+  });
 });

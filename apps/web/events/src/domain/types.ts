@@ -216,7 +216,8 @@ export interface ActivityEntry {
 
 export interface PublicEvent {
   readonly admission: Admission;
-  readonly category: EventCategory;
+  /** Null when the organiser left the event uncategorised. */
+  readonly category: EventCategory | null;
   readonly description: string;
   /** ISO 8601, UTC. */
   readonly endsAt: string;
