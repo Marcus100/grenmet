@@ -54,8 +54,14 @@ async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
     """Generate and store a new (inactive) TOTP secret; return it for provisioning.
 
     For a privileged account a one-time code is also emailed to it. Setup is refused
-    while the enrolment is locked or the rate limits are used up."""
+    while the enrolment is locked or the rate limits are used up.
+
+    The user row lock is held from the count to the commit, through the send, so
+    parallel setup calls for one account run one after another and each sees the
+    ``enrol_code_sent`` rows of the ones before it (issue #952). A failed send rolls
+    the transaction back, which releases the lock and counts nothing."""
     from src.auth import totp
+    from src.auth.account_security import record_security
     from src.exceptions import AppException
 
     await session.refresh(user, with_for_update=True)
@@ -68,16 +74,21 @@ async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
     user.totp_secret = totp.encrypt_secret(secret)
     user.totp_enabled = False
     session.add(user)
-    code = await _issue_enrolment_code(session, user) if privileged else None
+    if not privileged:
+        await session.commit()
+        await session.refresh(user)
+        return secret
+    code = await _issue_enrolment_code(session, user)
+    try:
+        await _send_enrolment_code(email=user.email, code=code)
+    except AppException:
+        await session.rollback()
+        raise
+    # Counted only once the email went out, still under the lock: a failed send
+    # uses no try.
+    await record_security(session, user, ENROLMENT_CODE_SENT)
     await session.commit()
     await session.refresh(user)
-    if code is not None:
-        await _send_enrolment_code(email=user.email, code=code)
-        # Counted only now that the email went out: a failed send uses no try.
-        from src.auth.account_security import record_security
-
-        await record_security(session, user, ENROLMENT_CODE_SENT)
-        await session.commit()
     return secret
 
 
