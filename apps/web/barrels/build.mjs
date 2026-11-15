@@ -17,6 +17,7 @@ mkdirSync(output, { recursive: true });
 const PAGES = [
   "index.html",
   "services/index.html",
+  "products/index.html",
   "contact/index.html",
   "subscribe/status/index.html",
   // Served with status 404 by Cloudflare Pages (and Vercel) for unknown paths.
@@ -28,6 +29,7 @@ const partials = Object.fromEntries(
     readFileSync(new URL(`partials/${name}.html`, directory), "utf8").trimEnd(),
   ])
 );
+const publicUrls = [];
 for (const page of PAGES) {
   const html = readFileSync(new URL(page, directory), "utf8").replace(
     /<!-- @include ([\w-]+) -->/gu,
@@ -39,7 +41,25 @@ for (const page of PAGES) {
   const target = new URL(page, output);
   mkdirSync(new URL("./", target), { recursive: true });
   writeFileSync(target, html);
+  // Indexable pages are the ones without noindex; their canonical is the
+  // sitemap entry, so the two can never disagree.
+  if (!/<meta content="noindex" name="robots">/u.test(html)) {
+    const canonical = html.match(
+      /<link href="(https:\/\/barrels\.gd\/[^"]*)" rel="canonical">/u
+    )?.[1];
+    if (!canonical)
+      throw new Error(
+        `${page} is indexable but has no barrels.gd canonical link`
+      );
+    publicUrls.push(canonical);
+  }
 }
+writeFileSync(
+  new URL("sitemap.xml", output),
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${publicUrls
+    .map((url) => `  <url><loc>${url}</loc></url>`)
+    .join("\n")}\n</urlset>\n`
+);
 // Turnstile site key (public), the first argument: vercel.json passes
 // $NEXT_PUBLIC_TURNSTILE_SITE_KEY from the Vercel project. Empty or absent
 // builds a site with no widget and no token.
@@ -67,7 +87,10 @@ for (const module of ["analytics-policy", "google-analytics"]) {
   writeFileSync(new URL(`${module}.js`, output), stripTypeScriptTypes(source));
 }
 writeFileSync(new URL("tokens.css", output), `:root {${tokens}\n}\n`);
-writeFileSync(new URL("robots.txt", output), "User-agent: *\nAllow: /\n");
+writeFileSync(
+  new URL("robots.txt", output),
+  "User-agent: *\nAllow: /\n\nSitemap: https://barrels.gd/sitemap.xml\n"
+);
 
 // Cloudflare Pages reads response headers from `_headers` in the output. They
 // are generated from vercel.json so both hosts serve the same policy while the

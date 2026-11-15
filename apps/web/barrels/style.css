@@ -107,8 +107,7 @@ footer {
 .section {
   margin-top: calc(var(--line-height-heading-lg) * 2);
 }
-.section h2,
-.package h2 {
+.section h2 {
   margin: 0;
   font-size: var(--font-size-heading-md);
   font-weight: 600;
@@ -155,17 +154,21 @@ button:disabled {
   cursor: progress;
   opacity: 0.6;
 }
-.packages {
+/* Light panels on the dark page. Every panel sets its own dark text colour,
+   because the body text is inverse. */
+.cards {
   display: grid;
   gap: var(--line-height-body-base);
-  margin-top: calc(var(--line-height-heading-lg) * 2);
+  padding: 0;
+  margin: calc(var(--line-height-heading-lg) * 2) 0 0;
+  list-style: none;
 }
 @media (min-width: 40rem) {
-  .packages {
+  .cards {
     grid-template-columns: 1fr 1fr;
   }
 }
-.package {
+.card {
   display: grid;
   gap: var(--line-height-caption);
   align-content: start;
@@ -175,8 +178,74 @@ button:disabled {
   border: thin solid var(--brand-border);
   border-radius: calc(var(--radius) * 3);
 }
-.package p {
+.card h2,
+.card h3,
+.card h4 {
   margin: 0;
+  font-size: var(--font-size-heading-sm);
+  font-weight: 600;
+  line-height: var(--line-height-heading-sm);
+}
+.card p {
+  margin: 0;
+  color: var(--brand-text-secondary);
+}
+/* Links on a light panel keep dark text on hover and a dark focus ring:
+   the page-wide accent colour would fail contrast here. */
+.card a {
+  justify-self: start;
+  padding-inline: 0;
+  font-weight: 600;
+  color: var(--brand-text-primary);
+}
+.card a:hover {
+  color: var(--brand-text-primary);
+  text-decoration: underline;
+  background: transparent;
+}
+.card a:focus-visible {
+  outline-color: var(--brand-primary);
+}
+.status {
+  justify-self: start;
+  padding: 0 var(--line-height-caption);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  line-height: var(--line-height-heading-md);
+  border-radius: var(--line-height-heading-lg);
+}
+.status-live {
+  color: var(--brand-text-inverse);
+  background: var(--brand-primary);
+}
+.status-soon {
+  color: var(--brand-text-primary);
+  background: var(--brand-surface-muted);
+  border: thin solid var(--brand-border);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--line-height-caption);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.chips li {
+  padding: var(--line-height-caption) var(--line-height-body-base);
+  color: var(--brand-text-inverse);
+  border: thin solid var(--brand-border);
+  border-radius: var(--line-height-heading-lg);
+}
+.subhead {
+  margin: calc(var(--line-height-heading-lg) * 2) 0 0;
+  font-size: var(--font-size-heading-sm);
+  font-weight: 600;
+  line-height: var(--line-height-heading-sm);
+  color: var(--brand-accent);
+}
+.subhead + .cards {
+  margin-top: var(--line-height-body-base);
 }
 .suited {
   font-size: var(--font-size-body-sm);
@@ -200,6 +269,7 @@ button:disabled {
 .field input,
 .field textarea {
   width: 100%;
+  min-height: 44px;
   padding: var(--line-height-caption) var(--line-height-body-base);
   font: inherit;
   color: var(--brand-text-primary);
@@ -223,20 +293,28 @@ button:focus-visible {
   font-size: var(--font-size-body-sm);
   color: var(--brand-border);
 }
+/* Messages sit on the navy page: the text is white (AA), and a coloured rule
+   carries the tone. The message text itself says what happened. */
 .error {
+  padding-left: var(--line-height-caption);
   margin: 0;
   font-size: var(--font-size-body-sm);
-  color: var(--status-negative);
+  font-weight: 600;
+  color: var(--brand-text-inverse);
+  border-left: medium solid var(--status-negative);
 }
 .form-status {
   min-height: 1lh;
   margin: 0;
 }
-.form-status.success {
-  color: var(--status-positive);
+.form-status.success,
+.form-status.error {
+  padding-left: var(--line-height-caption);
+  color: var(--brand-text-inverse);
+  border-left: medium solid var(--status-positive);
 }
 .form-status.error {
-  color: var(--status-negative);
+  border-left-color: var(--status-negative);
 }
 /* Honeypot: off-screen for people, present in the DOM for bots. */
 .hp {
