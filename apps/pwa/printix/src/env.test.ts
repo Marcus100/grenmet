@@ -19,3 +19,36 @@ describe("parseEnv", () => {
     );
   });
 });
+
+describe("parseEnv API origin", () => {
+  it("is empty when unset, so the scanner refuses to check tickets", () => {
+    expect(parseEnv({}).NEXT_PUBLIC_API_URL).toBe("");
+    expect(parseEnv({ NEXT_PUBLIC_API_URL: "  " }).NEXT_PUBLIC_API_URL).toBe(
+      ""
+    );
+  });
+
+  it("keeps the origin of an https API", () => {
+    expect(
+      parseEnv({ NEXT_PUBLIC_API_URL: "https://api.example.test/api/v1" })
+        .NEXT_PUBLIC_API_URL
+    ).toBe("https://api.example.test");
+  });
+
+  it("allows plain http only on this machine", () => {
+    expect(
+      parseEnv({ NEXT_PUBLIC_API_URL: "http://localhost:8000" })
+        .NEXT_PUBLIC_API_URL
+    ).toBe("http://localhost:8000");
+    expect(
+      parseEnv({ NEXT_PUBLIC_API_URL: "http://api.example.test" })
+        .NEXT_PUBLIC_API_URL
+    ).toBe("");
+  });
+
+  it("refuses a value that is not a URL", () => {
+    expect(parseEnv({ NEXT_PUBLIC_API_URL: "api" }).NEXT_PUBLIC_API_URL).toBe(
+      ""
+    );
+  });
+});

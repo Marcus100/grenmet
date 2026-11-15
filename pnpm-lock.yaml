@@ -470,6 +470,9 @@ importers:
 
   apps/pwa/printix:
     dependencies:
+      '@barrelsgd/api-client':
+        specifier: workspace:*
+        version: link:../../../packages/api-client
       '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
@@ -492,6 +495,15 @@ importers:
       '@tailwindcss/postcss':
         specifier: 'catalog:'
         version: 4.3.5
+      '@testing-library/dom':
+        specifier: 'catalog:'
+        version: 10.4.2
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.1.0)
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
@@ -504,6 +516,9 @@ importers:
       babel-plugin-react-compiler:
         specifier: 'catalog:'
         version: 1.0.0
+      jsdom:
+        specifier: 'catalog:'
+        version: 31.0.1
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.5
