@@ -59,6 +59,27 @@ export function validateBooking(fields: BookingFields): FieldErrors {
   return errors;
 }
 
+/**
+ * The errors still worth showing after a change. A field that is now valid
+ * drops its message; a field that is still wrong keeps the message for what it
+ * holds now. Keys are never added, so a fixed field does not come back until the
+ * next submit (and focus does not jump to the summary while someone types).
+ */
+export function stillWrong(
+  errors: FieldErrors,
+  fields: BookingFields
+): FieldErrors {
+  const fresh = validateBooking(fields);
+  const kept: FieldErrors = {};
+  for (const key of Object.keys(errors) as FieldKey[]) {
+    const message = fresh[key];
+    if (message) {
+      kept[key] = message;
+    }
+  }
+  return kept;
+}
+
 /** The identity of a submission: the same value means "the same booking request". */
 export function fingerprint(
   fields: BookingFields & { marketing: boolean }
