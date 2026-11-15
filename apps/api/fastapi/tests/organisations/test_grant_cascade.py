@@ -499,3 +499,114 @@ async def test_cross_organisation_cascade_stays_inside_its_organisation(
     assert await _is_live(db_async, granted_two) is True
     assert await _is_live(db_async, shared_to_peer_two) is True
     assert await _cascade_entries(db_async, org_two) == []
+
+
+async def _offboarding_org(db: AsyncSession, name: str):
+    """An owner, an issuer ``m1`` and two downstream chains: m1 -> m2 -> m4 and
+    m1 -> m3 -> m5. Returns the owner, m1, the org and the four grants."""
+    owner = await make_user(db)
+    m1, m2, m3, m4, m5 = await _users(db, 5)
+    org = await _org(
+        db,
+        name,
+        (
+            (owner, MembershipRole.OWNER),
+            (m1, MembershipRole.MEMBER),
+            (m2, MembershipRole.MEMBER),
+            (m3, MembershipRole.MEMBER),
+            (m4, MembershipRole.MEMBER),
+            (m5, MembershipRole.MEMBER),
+        ),
+    )
+    await _grant(db, owner, org, m1, "events-team")
+    m1_to_m2 = await _grant(db, m1, org, m2, "events-team")
+    m1_to_m3 = await _grant(db, m1, org, m3, "events-team")
+    m2_to_m4 = await _grant(db, m2, org, m4, "events-team")
+    m3_to_m5 = await _grant(db, m3, org, m5, "events-team")
+    return owner, m1, org, [m1_to_m2, m1_to_m3, m2_to_m4, m3_to_m5]
+
+
+async def test_removal_is_not_refused_when_its_cascade_is_over_the_cap(
+    db_async: AsyncSession, monkeypatch
+):
+    """Issue #951: offboarding a person who issued many grants must complete. The
+    cap bounds an explicit revoke only; a removal ends the whole downstream chain in
+    one transaction, audited, and nothing is left live for the removed issuer."""
+    monkeypatch.setattr(grants, "MAX_CASCADE_GRANTS", 1)
+    owner, m1, org, issued = await _offboarding_org(db_async, "Offboard")
+    m1_row = await _membership(db_async, org.id, m1)
+
+    await apply_removal(
+        db_async,
+        org.id,
+        m1_row.id,
+        actor_id=owner.id,
+        actor_may_grant_owner=True,
+    )
+    await db_async.commit()
+
+    assert [await _is_live(db_async, g) for g in issued] == [False] * 4
+    entries = await _cascade_entries(db_async, org)
+    assert len(entries) == 2
+    assert {_field(e, "trigger") for e in entries} == {"removed"}
+    assert {_field(e, "root") for e in entries} == {m1_row.id}
+
+
+async def test_demotion_is_not_refused_when_its_cascade_is_over_the_cap(
+    db_async: AsyncSession, monkeypatch
+):
+    """Issue #951: demoting an admin whose downstream grants exceed the cap completes."""
+    monkeypatch.setattr(grants, "MAX_CASCADE_GRANTS", 1)
+    owner = await make_user(db_async)
+    admin = await make_user(db_async)
+    m1, m2, m3 = await _users(db_async, 3)
+    org = await _org(
+        db_async,
+        "Demote big",
+        (
+            (owner, MembershipRole.OWNER),
+            (admin, MembershipRole.ADMIN),
+            (m1, MembershipRole.MEMBER),
+            (m2, MembershipRole.MEMBER),
+            (m3, MembershipRole.MEMBER),
+        ),
+    )
+    admin_to_m1 = await _grant(db_async, admin, org, m1, "events-team")
+    m1_to_m2 = await _grant(db_async, m1, org, m2, "events-team")
+    m1_to_m3 = await _grant(db_async, m1, org, m3, "events-team")
+    admin_row = await _membership(db_async, org.id, admin)
+
+    await apply_role_change(
+        db_async,
+        org.id,
+        admin_row.id,
+        MembershipRole.MEMBER,
+        actor_id=owner.id,
+        actor_may_grant_owner=True,
+    )
+    await db_async.commit()
+
+    grant_rows = (admin_to_m1, m1_to_m2, m1_to_m3)
+    assert [await _is_live(db_async, g) for g in grant_rows] == [False] * 3
+
+
+async def test_a_removal_cascade_is_flushed_in_batches(
+    db_async: AsyncSession, monkeypatch
+):
+    """The cascade flushes every batch so the unit of work stays bounded. A batch of
+    one still ends every grant and writes every audit row."""
+    monkeypatch.setattr(grants, "CASCADE_FLUSH_BATCH", 1)
+    owner, m1, org, issued = await _offboarding_org(db_async, "Batched")
+    m1_row = await _membership(db_async, org.id, m1)
+
+    await apply_removal(
+        db_async,
+        org.id,
+        m1_row.id,
+        actor_id=owner.id,
+        actor_may_grant_owner=True,
+    )
+    await db_async.commit()
+
+    assert [await _is_live(db_async, g) for g in issued] == [False] * 4
+    assert len(await _cascade_entries(db_async, org)) == 2
