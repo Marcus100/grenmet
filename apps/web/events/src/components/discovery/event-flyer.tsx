@@ -1,10 +1,10 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
 import Image from "next/image";
-import { CATEGORY_LABELS } from "@/domain/labels";
+import { categoryLabel } from "@/domain/labels";
 import type { EventCategory } from "@/domain/types";
 import { dateStamp } from "@/lib/datetime";
 import { storedImageUrl } from "@/lib/stored-image";
-import { CATEGORY_STYLE } from "./category-style";
+import { categoryStyle } from "./category-style";
 
 /**
  * The event's cover: the organiser's stored image when there is one (served
@@ -23,7 +23,8 @@ export function EventFlyer({
   startsAt,
   title,
 }: {
-  category: EventCategory;
+  /** Null for an uncategorised event: a neutral panel. */
+  category: EventCategory | null;
   className?: string;
   /** Alt text for the stored cover image. */
   imageAlt?: string;
@@ -34,7 +35,7 @@ export function EventFlyer({
   startsAt: string;
   title?: string;
 }) {
-  const { icon: Icon, tone } = CATEGORY_STYLE[category];
+  const { icon: Icon, tone } = categoryStyle(category);
   const stamp = dateStamp(startsAt);
 
   const panel = (
@@ -50,7 +51,7 @@ export function EventFlyer({
         strokeWidth={1.5}
       />
       <span className="text-caption w-fit rounded-full bg-black/15 px-2.5 py-1 font-medium">
-        {CATEGORY_LABELS[category]}
+        {categoryLabel(category)}
       </span>
       <div className="flex items-end justify-between gap-3">
         {title ? (

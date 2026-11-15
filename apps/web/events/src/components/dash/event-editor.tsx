@@ -150,12 +150,17 @@ export function EventEditor({
                     onChange={(e) =>
                       update(
                         "category",
-                        CATEGORIES.find((c) => c === e.target.value) ??
-                          draft.category
+                        e.target.value === ""
+                          ? null
+                          : (CATEGORIES.find((c) => c === e.target.value) ??
+                              draft.category)
                       )
                     }
-                    value={draft.category}
+                    value={draft.category ?? ""}
                   >
+                    <NativeSelectOption value="">
+                      No category
+                    </NativeSelectOption>
                     {CATEGORIES.map((category) => (
                       <NativeSelectOption key={category} value={category}>
                         {CATEGORY_LABELS[category]}

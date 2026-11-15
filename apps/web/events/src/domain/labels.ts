@@ -38,6 +38,13 @@ export const ADMISSION_LABELS: Record<Admission, string> = {
 };
 
 export const CATEGORIES = Object.keys(CATEGORY_LABELS) as EventCategory[];
+
+/** Shown for a listing whose organiser cleared its category (#810). */
+export const UNCATEGORISED_LABEL = "Uncategorised";
+
+export function categoryLabel(category: EventCategory | null): string {
+  return category ? CATEGORY_LABELS[category] : UNCATEGORISED_LABEL;
+}
 export const PARISHES = Object.keys(PARISH_LABELS) as Parish[];
 
 export function isCategory(value: unknown): value is EventCategory {
