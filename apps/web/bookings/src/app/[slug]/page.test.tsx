@@ -10,7 +10,7 @@ vi.mock("@/env", () => ({
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: "",
   },
 }));
-vi.mock("@/lib/session", () => ({ getSession: vi.fn(() => null) }));
+vi.mock("@/lib/signed-in-visitor", () => ({ loadVisitor: vi.fn(() => null) }));
 vi.mock("@/lib/booking-api", () => ({ getStorefront: vi.fn() }));
 vi.mock("./actions", () => ({
   confirmEmailCode: { bind: vi.fn(() => vi.fn()) },

@@ -7,6 +7,7 @@ export const BOOKING_ID = "22222222-2222-4222-8222-222222222222";
 export const session = {
   accessToken: "tok",
   email: "maya@example.com",
+  fullName: "Maya",
   name: "Maya",
 };
 

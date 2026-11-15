@@ -1106,6 +1106,8 @@ export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js"
 export { bookingManualDepositCreateSchema } from "./bookingManualDepositCreateSchema.js";
 export { bookingMyBookingListSchema } from "./bookingMyBookingListSchema.js";
 export { bookingMyBookingSchema } from "./bookingMyBookingSchema.js";
+export { bookingMyChoiceSchema } from "./bookingMyChoiceSchema.js";
+export { bookingMyChoicesSchema } from "./bookingMyChoicesSchema.js";
 export { bookingMyOrganisationSchema } from "./bookingMyOrganisationSchema.js";
 export { bookingOrderSchema } from "./bookingOrderSchema.js";
 export { bookingProfilePublicSchema } from "./bookingProfilePublicSchema.js";
@@ -1346,6 +1348,18 @@ export {
   bookingsGetAvailabilityStatus404Schema,
   bookingsGetAvailabilityStatus422Schema,
 } from "./bookingsGetAvailabilitySchema.js";
+export {
+  bookingsGetMyChoicesErrorSchema,
+  bookingsGetMyChoicesPathSchema,
+  bookingsGetMyChoicesPathSlugSchema,
+  bookingsGetMyChoicesResponseSchema,
+  bookingsGetMyChoicesStatus200Schema,
+  bookingsGetMyChoicesStatus401Schema,
+  bookingsGetMyChoicesStatus403Schema,
+  bookingsGetMyChoicesStatus404Schema,
+  bookingsGetMyChoicesStatus422Schema,
+  bookingsGetMyChoicesStatus429Schema,
+} from "./bookingsGetMyChoicesSchema.js";
 export {
   bookingsGetProfileErrorSchema,
   bookingsGetProfileHeadersSchema,

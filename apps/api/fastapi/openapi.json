@@ -9545,6 +9545,102 @@
         ]
       }
     },
+    "/api/v1/bookings/me/businesses/{slug}/choices": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "What my earlier bookings suggest for my next one with a business",
+        "description": "For a signed-in person about to book: up to three services they booked with this business before (the latest per service, with the provider used last) and a phone number to prefill. Built only from bookings whose business contact is linked to the caller's account (the same rule as My bookings, ADR-0058); nothing from other customers. Accepts an account token or the bookings app session. Unknown and disabled pages answer 404.",
+        "operationId": "bookingsGetMyChoices",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingMyChoices"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Bookingsgetmychoices"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/bookings/me/bookings": {
       "get": {
         "tags": [
@@ -72284,6 +72380,65 @@
           "size"
         ],
         "title": "BookingMyBookingList"
+      },
+      "BookingMyChoice": {
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "provider_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Provider Id"
+          },
+          "last_booked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Booked At",
+            "description": "The start time of the latest such booking (when the appointment was, or is), not when it was made."
+          }
+        },
+        "type": "object",
+        "required": [
+          "service_id",
+          "provider_id",
+          "last_booked_at"
+        ],
+        "title": "BookingMyChoice",
+        "description": "A service the caller booked with this business, and the provider they had\nfor it most recently. Ids only: the page matches them to its own storefront."
+      },
+      "BookingMyChoices": {
+        "properties": {
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone",
+            "description": "The phone number this business has on record for the caller, else the one on their account; null when neither exists. When more than one contact record is linked, the most recently booked one with a number wins."
+          },
+          "recent": {
+            "items": {
+              "$ref": "#/components/schemas/BookingMyChoice"
+            },
+            "type": "array",
+            "title": "Recent",
+            "description": "Up to three distinct services, most recently booked first, each with the provider used for it last. Only pending, confirmed and completed bookings count: cancelled (which includes declined and expired), no-show and unpaid-deposit ones are left out."
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone",
+          "recent"
+        ],
+        "title": "BookingMyChoices",
+        "description": "What the caller's own earlier bookings with one business suggest for the\nnext one. Built only from bookings whose contact is linked to the caller."
       },
       "BookingMyOrganisation": {
         "properties": {

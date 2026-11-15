@@ -2,10 +2,8 @@ import type { BookingStorefront } from "@barrelsgd/api-client";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getStorefront } from "@/lib/booking-api";
-import { getSession } from "@/lib/session";
+import { loadVisitor } from "@/lib/signed-in-visitor";
 import BusinessBookingPage from "./page";
-
-const reportError = vi.hoisted(() => vi.fn());
 
 vi.mock("@/env", () => ({
   env: {
@@ -14,8 +12,7 @@ vi.mock("@/env", () => ({
   },
 }));
 vi.mock("@/lib/booking-api", () => ({ getStorefront: vi.fn() }));
-vi.mock("@/lib/report-error", () => ({ reportError }));
-vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
+vi.mock("@/lib/signed-in-visitor", () => ({ loadVisitor: vi.fn() }));
 vi.mock("./actions", () => ({
   confirmEmailCode: { bind: vi.fn(() => vi.fn()) },
   requestEmailCode: { bind: vi.fn(() => vi.fn()) },
@@ -40,8 +37,20 @@ vi.mock("next/navigation", () => ({
 // The flow itself is tested in @barrelsgd/bookings-web; here only what the
 // page hands it matters.
 vi.mock("@barrelsgd/bookings-web/components/booking-flow", () => ({
-  BookingFlow: ({ accountInvite }: { accountInvite?: { href: string } }) => (
-    <p data-testid="flow">{accountInvite ? accountInvite.href : "no invite"}</p>
+  BookingFlow: (props: {
+    accountInvite?: { href: string };
+    bookAgain?: unknown[];
+    signedIn?: { email: string; name: string; phone: string };
+  }) => (
+    <div data-testid="flow">
+      <p data-testid="invite">{props.accountInvite?.href ?? "no invite"}</p>
+      <p data-testid="signed-in">
+        {props.signedIn
+          ? `${props.signedIn.name}|${props.signedIn.email}|${props.signedIn.phone}`
+          : "guest"}
+      </p>
+      <p data-testid="again">{props.bookAgain?.length ?? 0}</p>
+    </div>
   ),
 }));
 
@@ -70,25 +79,27 @@ const params = { params: Promise.resolve({ slug: "sea-salt-spa" }) };
 
 beforeEach(() => {
   vi.mocked(getStorefront).mockReset().mockResolvedValue(storefront);
-  vi.mocked(getSession).mockReset();
-  reportError.mockReset();
+  vi.mocked(loadVisitor).mockReset();
 });
 
-describe("/[slug] account invitation", () => {
-  it("sends a guest to sign up on auth and back, signed in, to this booking page", async () => {
-    vi.mocked(getSession).mockResolvedValue(null);
+describe("/[slug] guest", () => {
+  it("gets a blank form and a sign-up link that returns them signed in to this page", async () => {
+    vi.mocked(loadVisitor).mockResolvedValue(null);
     render(await BusinessBookingPage(params));
-    const invite = new URL(screen.getByTestId("flow").textContent ?? "");
+    expect(loadVisitor).toHaveBeenCalledWith("sea-salt-spa");
+    const invite = new URL(screen.getByTestId("invite").textContent ?? "");
     expect(`${invite.origin}${invite.pathname}`).toBe(
       "https://auth.example.test/signup"
     );
     expect(invite.searchParams.get("returnTo")).toBe(
       "https://bookings.example.test/signin?returnTo=%2Fsea-salt-spa"
     );
+    expect(screen.getByTestId("signed-in")).toHaveTextContent("guest");
+    expect(screen.getByTestId("again")).toHaveTextContent("0");
   });
 
-  it("shows a guest a quiet sign-in link that returns to the same page", async () => {
-    vi.mocked(getSession).mockResolvedValue(null);
+  it("sees a quiet sign-in link that returns to the same page", async () => {
+    vi.mocked(loadVisitor).mockResolvedValue(null);
     render(await BusinessBookingPage(params));
     expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
       "href",
@@ -96,30 +107,36 @@ describe("/[slug] account invitation", () => {
     );
     expect(screen.getByText(NOT_NEEDED, { exact: false })).toBeVisible();
   });
+});
 
-  it("offers nothing to a signed-in person", async () => {
-    vi.mocked(getSession).mockResolvedValue({
-      accessToken: "token",
-      email: "ada@example.com",
-      name: "Ada",
+describe("/[slug] signed in", () => {
+  it("passes the person's own details and shortcuts, no invitation and no sign-in link", async () => {
+    vi.mocked(loadVisitor).mockResolvedValue({
+      bookAgain: [{ providerId: "p1", serviceId: "s1" }],
+      signedIn: {
+        email: "ada@example.com",
+        name: "Ada Lovelace",
+        phone: "+1 473 555 0100",
+        signOutAction: "/auth/logout",
+      },
     });
     render(await BusinessBookingPage(params));
-    expect(screen.getByTestId("flow")).toHaveTextContent("no invite");
+    expect(screen.getByTestId("invite")).toHaveTextContent("no invite");
+    expect(screen.getByTestId("signed-in")).toHaveTextContent(
+      "Ada Lovelace|ada@example.com|+1 473 555 0100"
+    );
+    expect(screen.getByTestId("again")).toHaveTextContent("1");
     expect(
       screen.queryByRole("link", { name: "Sign in" })
     ).not.toBeInTheDocument();
   });
 
-  it("treats a sign-in fault as a guest, reports it and still shows the page", async () => {
-    vi.mocked(getSession).mockRejectedValue(new Error("auth down"));
-    render(await BusinessBookingPage(params));
-    expect(screen.getByTestId("flow")).toHaveTextContent(
-      "https://auth.example.test/signup"
+  it("does not look anyone up for an unknown business", async () => {
+    vi.mocked(getStorefront).mockResolvedValue(null);
+    await expect(BusinessBookingPage(params)).rejects.toHaveProperty(
+      "message",
+      "NEXT_NOT_FOUND"
     );
-    expect(screen.getByRole("link", { name: "Sign in" })).toBeVisible();
-    expect(reportError).toHaveBeenCalledWith(
-      expect.any(Error),
-      "bookings-public-session"
-    );
+    expect(loadVisitor).not.toHaveBeenCalled();
   });
 });
