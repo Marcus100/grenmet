@@ -1239,6 +1239,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | --- | --- | --- |
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
 | `GET /api/v1/bookings/me/bookings?upcoming&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`. No manage token, notes or other customers' details |
+| `GET /api/v1/bookings/me/businesses/{slug}/choices` | Account token or the bookings app session (other apps 401); no organisation header; 60 a minute (429); unknown or switched-off slug 404 | Prefill for the signed-in person's next booking with one business, from their own linked bookings only (the My bookings rule, ADR-0058): `phone` (the number the business holds for them, else the account's, else null) and `recent` (up to three distinct services, latest first, each with `service_id`, the `provider_id` used last and `last_booked_at`, which is that booking's start time; only pending, confirmed and completed bookings count, so cancelled (declined and expired included), no-show and unpaid-deposit ones are left out). Nothing about other customers |
 | `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409, a platform reserved name 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
@@ -3184,3 +3185,26 @@ the hour to the automatic source (SURFACE), when the station is not in the
 registry, or when another observation already holds the hour. A WIS2 file is
 never queued twice, so `resend` no longer repeats a queued or sent publish. The
 request and response shapes are unchanged; the optional request body is accepted and ignored.
+
+## Printix ticket registry (ADR-0060)
+
+Two route zones, both under `/api/v1/printix/`.
+
+- **`admin/*`** (superuser with an enrolled authenticator and an MFA session, plus
+  `printix.manage`): create and close events (`POST /events`, `POST /events/{id}/close`),
+  the event summary (`GET /events/{id}/summary`), the ticket import
+  (`POST /events/{id}/tickets/import`, multipart CSV with a `number` column and an
+  optional `barcode` column; `dry_run` defaults to true and reports every problem with
+  its line; an apply with any problem writes nothing and reports `applied: false`),
+  tickets (`GET /events/{id}/tickets` with `status`, `admitted`, `page` and `size`, and
+  `total`; `POST /tickets/{id}/void` and `/unvoid`), and gate pairings
+  (`POST /events/{id}/pairings` returns the one-time `secret`; `GET /events/{id}/pairings`
+  never returns a secret; `POST /pairings/{id}/revoke`). Barcode values are never returned.
+- **`public/*`** (no account; `Authorization: Bearer <pairing secret>`, checked on every
+  call): `POST /admissions` with `{value}` and `GET /summary`. An admission answers 200 with
+  a stable `outcome`: `admitted`, `already_admitted` (with the first admission's time and
+  gate), `void`, `unknown` (also used for a value on another event) or `event_closed`.
+  A revoked pairing answers 403, an expired one 403, an unknown secret 401, and more than
+  120 scans in a rolling minute 429 with `Retry-After`.
+
+Adding an outcome code or an optional field is additive; removing one is breaking.

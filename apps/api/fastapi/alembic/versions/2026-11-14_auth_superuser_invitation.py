@@ -5,7 +5,7 @@ SHA-256 hash of each invitation token is stored. A partial unique index allows o
 open invitation per address; accepted and revoked rows fall outside it.
 
 Revision ID: superuserinvite20261114
-Revises: profileimage20261113
+Revises: printixregistry20261114
 """
 
 import sqlalchemy as sa
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "superuserinvite20261114"
-down_revision = "profileimage20261113"
+down_revision = "printixregistry20261114"
 branch_labels = None
 depends_on = None
 

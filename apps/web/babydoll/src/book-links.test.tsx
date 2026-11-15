@@ -49,4 +49,17 @@ describe("Book links", () => {
     const booking = container.querySelector('a[aria-label="Book Volume"]');
     expect(booking).toHaveAttribute("href", BOOKING_HREF);
   });
+
+  // Screen reader users are told the link leaves the page; the text is hidden
+  // from sighted visitors (sr-only), so the look does not change.
+  it("tells screen reader users that each Book link opens a new tab", () => {
+    const { container } = render(<HomePage />);
+    const cta = Array.from(container.querySelectorAll("a")).find((a) =>
+      a.textContent?.includes("Make an appointment")
+    );
+    expect(cta?.textContent).toContain("(opens in a new tab)");
+    expect(cta?.querySelector(".sr-only")?.textContent).toBe(
+      "(opens in a new tab)"
+    );
+  });
 });

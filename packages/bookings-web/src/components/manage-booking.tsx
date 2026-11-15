@@ -146,7 +146,7 @@ export function ManageBooking({
 
       {active && (
         <p>
-          <a className="btn btn-ghost" download href={calendarHref}>
+          <a className="btn" download href={calendarHref}>
             Add to calendar
           </a>
         </p>
@@ -166,7 +166,7 @@ export function ManageBooking({
             Change time
           </button>
           <button
-            className="btn btn-ghost"
+            className="btn"
             onClick={() => {
               setError(null);
               setNotice(null);
@@ -195,7 +195,7 @@ export function ManageBooking({
               {busy ? "Cancelling…" : "Yes, cancel it"}
             </button>
             <button
-              className="btn btn-ghost"
+              className="btn"
               disabled={busy}
               onClick={() => setMode("view")}
               type="button"
@@ -233,7 +233,7 @@ export function ManageBooking({
               {busy ? "Moving…" : "Move my booking"}
             </button>
             <button
-              className="btn btn-ghost"
+              className="btn"
               disabled={busy}
               onClick={() => setMode("view")}
               type="button"

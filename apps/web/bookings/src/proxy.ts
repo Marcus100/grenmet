@@ -14,6 +14,9 @@ function isProtectedPath(pathname: string): boolean {
   );
 }
 
+/** The header for any response to a request that carries the session cookie. */
+export const PRIVATE_NO_STORE = "private, no-store";
+
 /** Next's own not-found route: rendered on the server, status 404. */
 export const NOT_FOUND_PATH = "/_not-found";
 
@@ -80,6 +83,16 @@ async function missingAddress(
  * Who may see which organisation's data is decided by FastAPI on every call.
  */
 export async function proxy(request: NextRequest) {
+  const response = await route(request);
+  // A signed-in person's page holds their name, email and phone: no shared
+  // cache or back-forward cache may keep it for someone else.
+  if (request.cookies.get(env.BOOKINGS_SESSION_COOKIE_NAME)?.value) {
+    response.headers.set("Cache-Control", PRIVATE_NO_STORE);
+  }
+  return response;
+}
+
+async function route(request: NextRequest): Promise<NextResponse> {
   const { pathname, search } = request.nextUrl;
   if (!isProtectedPath(pathname)) {
     const missing = await missingAddress(request);

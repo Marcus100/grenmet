@@ -132,7 +132,7 @@ export function SlotPicker({
     <div aria-busy={loaded.state === "loading"} className="slots">
       <div className="slots-nav">
         <button
-          className="btn btn-ghost btn-small"
+          className="btn btn-small"
           disabled={!canGoBack}
           onClick={() => move(-1)}
           type="button"
@@ -143,11 +143,7 @@ export function SlotPicker({
         <span aria-live="polite" className="muted">
           {rangeLabel}
         </span>
-        <button
-          className="btn btn-ghost btn-small"
-          onClick={() => move(1)}
-          type="button"
-        >
+        <button className="btn btn-small" onClick={() => move(1)} type="button">
           Later dates
         </button>
       </div>
@@ -163,7 +159,7 @@ export function SlotPicker({
         <div className="notice notice-error" role="alert">
           <p>{loaded.message}</p>
           <button
-            className="btn btn-ghost btn-small"
+            className="btn btn-small"
             onClick={() =>
               setRequest((current) =>
                 current ? { start: current.start } : current
