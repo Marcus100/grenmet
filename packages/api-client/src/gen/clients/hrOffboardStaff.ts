@@ -11,7 +11,7 @@ import type {
 } from "../models/HrOffboardStaff.js";
 
 /**
- * @description Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
+ * @description Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation. The last active superuser cannot be offboarded (409).
  * @summary Invalidate staff credential and revoke access
  * {@link /api/v1/hr/setup/staff/:user_id/offboard}
  */

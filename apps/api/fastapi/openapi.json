@@ -1125,7 +1125,7 @@
           "users"
         ],
         "summary": "Update user by ID",
-        "description": "Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409).",
+        "description": "Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409). Deactivating the last active superuser is refused (409) too.",
         "operationId": "authUpdateUser",
         "security": [
           {
@@ -1196,7 +1196,7 @@
             }
           },
           "409": {
-            "description": "Email already exists, or removing superuser status would leave no active superuser",
+            "description": "Email already exists, or removing superuser status or deactivating the account would leave no active superuser",
             "content": {
               "application/json": {
                 "schema": {
@@ -1212,7 +1212,7 @@
           "users"
         ],
         "summary": "Delete user by ID",
-        "description": "Delete a global account by ID (superuser only).",
+        "description": "Delete a global account by ID (superuser only). The account is anonymised, not removed. The last active superuser cannot be deleted (409).",
         "operationId": "authDeleteUser",
         "security": [
           {
@@ -1264,6 +1264,16 @@
           },
           "404": {
             "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Would leave no active superuser",
             "content": {
               "application/json": {
                 "schema": {
@@ -65996,7 +66006,7 @@
           "staff-setup"
         ],
         "summary": "Invalidate staff credential and revoke access",
-        "description": "Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
+        "description": "Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation. The last active superuser cannot be offboarded (409).",
         "operationId": "hrOffboardStaff",
         "security": [
           {
@@ -66057,7 +66067,7 @@
             }
           },
           "409": {
-            "description": "Setup conflict",
+            "description": "Setup conflict, or the last active superuser (no other active superuser would remain)",
             "content": {
               "application/json": {
                 "schema": {

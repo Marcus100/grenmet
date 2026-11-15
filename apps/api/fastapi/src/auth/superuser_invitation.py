@@ -185,6 +185,40 @@ async def _notify_superusers(
 REVOKED_NOTICE_TITLE = "Superuser access removed"
 
 
+async def lock_active_superusers(session: AsyncSession) -> list[User]:
+    """Row-lock every active superuser, in id order, until the transaction ends.
+
+    Every change that could leave no active superuser takes this lock first, so two
+    such changes cannot each see the other still there. ``populate_existing`` refreshes
+    the caller's copies, so the check sees the committed state."""
+    return list(
+        (
+            await session.scalars(
+                select(User)
+                .where(User.is_superuser.is_(True), User.is_active.is_(True))
+                .order_by(User.id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            )
+        ).all()
+    )
+
+
+def require_another_active_superuser(locked: list[User], target: User) -> None:
+    """Refuse (409) when no active superuser other than ``target`` is in ``locked``."""
+    if not any(row.id != target.id for row in locked):
+        raise LastSuperuserError()
+
+
+async def guard_last_superuser(session: AsyncSession, *, target: User) -> None:
+    """Call before deactivating or anonymising ``target`` (#1481). Refuses with 409 when
+    ``target`` is the last active superuser. Any other account, or a superuser who is
+    already inactive, passes untouched. The caller makes the change and commits."""
+    locked = await lock_active_superusers(session)
+    if any(row.id == target.id for row in locked):
+        require_another_active_superuser(locked, target)
+
+
 async def demote_superuser(session: AsyncSession, *, actor: User, target: User) -> bool:
     """Remove superuser status from ``target`` (ADR-0059 rule 1). The caller has already
     checked the actor's authenticator and two-step sign-in, and commits.
@@ -195,19 +229,10 @@ async def demote_superuser(session: AsyncSession, *, actor: User, target: User) 
     told. Refused when no other active superuser would remain. The active superusers
     are locked in id order first, so two demotions cannot each see the other still
     there."""
-    locked = (
-        await session.scalars(
-            select(User)
-            .where(User.is_superuser.is_(True), User.is_active.is_(True))
-            .order_by(User.id)
-            .with_for_update()
-            .execution_options(populate_existing=True)
-        )
-    ).all()
+    locked = await lock_active_superusers(session)
     if not target.is_superuser:
         return False
-    if not any(row.id != target.id for row in locked):
-        raise LastSuperuserError()
+    require_another_active_superuser(locked, target)
     target.is_superuser = False
     session.add(target)
     audit.set_actor(session, actor.id)

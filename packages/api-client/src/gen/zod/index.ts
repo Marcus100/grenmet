@@ -439,6 +439,7 @@ export {
   authDeleteUserStatus200Schema,
   authDeleteUserStatus403Schema,
   authDeleteUserStatus404Schema,
+  authDeleteUserStatus409Schema,
   authDeleteUserStatus422Schema,
 } from "./authDeleteUserSchema.js";
 export {

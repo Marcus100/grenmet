@@ -530,10 +530,12 @@ async def offboard(session: AsyncSession, actor: User, user_id: uuid.UUID) -> No
     await require_setup_organisation(
         session, actor, await _staff_organisation_id(session, user_id)
     )
-    user.is_active = False
-    # Offboarding: the invitations this account sent stop working (ADR-0059).
+    # The last active superuser cannot be offboarded (#1481).
     from src.auth import superuser_invitation
 
+    await superuser_invitation.guard_last_superuser(session, target=user)
+    user.is_active = False
+    # Offboarding: the invitations this account sent stop working (ADR-0059).
     await superuser_invitation.close_for_inviter(session, user_id)
     credential.revoked_at = utc_now()
     employment = await employment_for(session, user_id)
