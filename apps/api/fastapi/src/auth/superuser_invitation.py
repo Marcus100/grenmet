@@ -76,17 +76,17 @@ def accept_link(token: str) -> str:
     return f"{base}{ACCEPT_PATH}#{urlencode({'token': token})}"
 
 
-async def user_by_address(session: AsyncSession, email: str) -> User | None:
-    """Case-insensitive account lookup for an address."""
-    return (
-        (
-            await session.execute(
-                select(User).where(func.lower(User.email) == normalise(email))
-            )
+async def user_by_address(
+    session: AsyncSession, email: str, *, lock: bool = False
+) -> User | None:
+    """Case-insensitive account lookup for an address. ``lock`` takes the row lock
+    and refreshes the object, for a write."""
+    statement = select(User).where(func.lower(User.email) == normalise(email))
+    if lock:
+        statement = statement.with_for_update().execution_options(
+            populate_existing=True
         )
-        .scalars()
-        .first()
-    )
+    return (await session.execute(statement)).scalars().first()
 
 
 async def _refuse_address(session: AsyncSession, email: str) -> None:
@@ -136,9 +136,13 @@ async def _active_superusers(session: AsyncSession) -> list[User]:
     )
 
 
+NOTICE_FOOTER = "This is an administration notice sent to superusers. It is not a preference-controlled email."
+
+
 def _notice(session: AsyncSession, admin: User, title: str, body: str) -> None:
-    """One email per active superuser through the outbox. The props carry both the
-    React names and the fallback names, so either renderer fills the mail."""
+    """One email to an active superuser through the outbox. The props carry both the
+    React names and the fallback names, so either renderer fills the mail. The footer
+    says this notice bypasses preferences."""
     notification_service.enqueue_email(
         session=session,
         to_email=admin.email,
@@ -150,6 +154,7 @@ def _notice(session: AsyncSession, admin: User, title: str, body: str) -> None:
             "project_name": email_settings.PROJECT_NAME,
             "title": title,
             "body": body,
+            "footer": NOTICE_FOOTER,
             "linkUrl": None,
             "link_url": None,
         },
@@ -157,7 +162,12 @@ def _notice(session: AsyncSession, admin: User, title: str, body: str) -> None:
 
 
 async def _notify_superusers(session: AsyncSession, *, title: str, body: str) -> None:
+    """Notify every active superuser who can receive mail. The placeholder first
+    superuser (its address cannot receive mail) and unverified addresses are skipped,
+    so the outbox does not bounce."""
     for admin in await _active_superusers(session):
+        if is_placeholder_email(admin.email) or admin.email_verified_at is None:
+            continue
         _notice(session, admin, title, body)
 
 
@@ -353,12 +363,15 @@ async def purge_closed_invitations(
 async def _open_invitation(
     session: AsyncSession, token: str, *, lock: bool = False
 ) -> SuperuserInvitation | None:
-    """The invitation for this token if it is still open, else None."""
+    """The invitation for this token if it is still open, else None. A locked read
+    refreshes the row, so the re-check sees what a concurrent request committed."""
     statement = select(SuperuserInvitation).where(
         SuperuserInvitation.token_hash == hash_token(token)
     )
     if lock:
-        statement = statement.with_for_update()
+        statement = statement.with_for_update().execution_options(
+            populate_existing=True
+        )
     row = (await session.execute(statement)).scalar_one_or_none()
     if (
         row is None
@@ -418,17 +431,23 @@ async def accept_invitation(
     The grant, the audit row and the notices are one commit. The account is created if
     the address has none. An existing unverified account is cleared first. A verified
     account with an authenticator must also pass it (as the emailed-code sign-in does)."""
-    invitation = await _open_invitation(session, token, lock=True)
-    if invitation is None or invitation.invited_by_user_id is None:
+    # Lock order: read unlocked, lock the inviter, lock the invitation and re-check,
+    # then lock the user before any write. Invite and offboarding use the same order.
+    candidate = await _open_invitation(session, token)
+    if candidate is None or candidate.invited_by_user_id is None:
         raise AppException(INVALID, 400)
     inviter = (
         await session.execute(
             select(User)
-            .where(User.id == invitation.invited_by_user_id)
+            .where(User.id == candidate.invited_by_user_id)
             .with_for_update()
+            .execution_options(populate_existing=True)
         )
     ).scalar_one_or_none()
     if inviter is None or not inviter.is_active or not inviter.is_superuser:
+        raise AppException(INVALID, 400)
+    invitation = await _open_invitation(session, token, lock=True)
+    if invitation is None:
         raise AppException(INVALID, 400)
     # Not consumed yet: a mistyped authenticator code must not burn the emailed code
     # (the sign-in path deletes its code only after the authenticator check passes).
@@ -439,7 +458,7 @@ async def accept_invitation(
         code=code,
         consume=False,
     )
-    user = await user_by_address(session, invitation.email)
+    user = await user_by_address(session, invitation.email, lock=True)
     retired = False
     if user is None:
         user = await app_service._create_member(

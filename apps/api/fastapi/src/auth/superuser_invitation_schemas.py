@@ -34,7 +34,8 @@ class SuperuserInvitationPublic(BaseModel):
     id: uuid.UUID
     email: str
     reason: str
-    invited_by_user_id: uuid.UUID
+    # Null once the inviter's account has been deleted (ON DELETE SET NULL).
+    invited_by_user_id: uuid.UUID | None
     created_at: UtcDateTime
     expires_at: UtcDateTime
 

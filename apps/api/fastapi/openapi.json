@@ -110549,8 +110549,15 @@
             "title": "Reason"
           },
           "invited_by_user_id": {
-            "type": "string",
-            "format": "uuid",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Invited By User Id"
           },
           "created_at": {

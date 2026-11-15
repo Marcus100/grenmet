@@ -9,7 +9,7 @@ export const superuserInvitationPublicSchema = z.object({
   id: z.uuid(),
   email: z.string(),
   reason: z.string(),
-  invited_by_user_id: z.uuid(),
+  invited_by_user_id: z.union([z.uuid(), z.null()]),
   created_at: z.iso.datetime(),
   expires_at: z.iso.datetime(),
 });

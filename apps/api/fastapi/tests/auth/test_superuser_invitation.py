@@ -20,6 +20,7 @@ from src.auth.lockout import normalised_address
 from src.auth.models import Session as LoginSession
 from src.auth.models import SuperuserInvitation, User
 from src.auth.modern_models import AuthChallenge
+from src.auth.placeholders import is_placeholder_email
 from src.auth.superuser_invitation import accept_link, hash_token
 from src.config import settings
 from src.exceptions import AppException
@@ -583,7 +584,7 @@ async def test_every_active_superuser_is_told_and_the_mail_has_no_token_or_reaso
     inviter, headers = await superuser_headers(db_async)
     await invite(async_client, headers, "notice@example.org")
     token = await mailed_token(db_async, "notice@example.org")
-    admins = {
+    mailable = {
         user.email
         for user in (
             await db_async.execute(
@@ -592,6 +593,7 @@ async def test_every_active_superuser_is_told_and_the_mail_has_no_token_or_reaso
                 )
             )
         ).scalars()
+        if user.email_verified_at is not None and not is_placeholder_email(user.email)
     }
     notices = (
         (
@@ -602,7 +604,11 @@ async def test_every_active_superuser_is_told_and_the_mail_has_no_token_or_reaso
         .scalars()
         .all()
     )
-    assert {row.to_email for row in notices} >= {inviter.email} | admins
+    # Only active, verified, non-placeholder superusers are mailed, so the placeholder
+    # and unverified ones do not bounce through the outbox.
+    recipients = {row.to_email for row in notices}
+    assert inviter.email in recipients
+    assert recipients == mailable
     for row in notices:
         rendered = json.dumps(row.props)
         assert token not in rendered
@@ -762,3 +768,64 @@ def test_sentry_event_cannot_carry_the_token() -> None:
         "breadcrumbs": {"values": [{"message": token}]},
     }
     assert token not in json.dumps(scrub_sentry_event(event, {}))
+
+
+async def test_listing_survives_a_deleted_inviter(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """The inviter reference is ON DELETE SET NULL: the list must still answer."""
+    _, headers = await superuser_headers(db_async)
+    created = (await invite(async_client, headers, "orphan@example.org")).json()
+    row = await db_async.get(SuperuserInvitation, uuid.UUID(created["id"]))
+    assert row is not None
+    row.invited_by_user_id = None
+    db_async.add(row)
+    await db_async.commit()
+    listed = await async_client.get(BASE, headers=headers)
+    assert listed.status_code == 200
+    assert listed.json()[0]["invited_by_user_id"] is None
+
+
+async def test_placeholder_and_unverified_superusers_are_not_mailed(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """A superuser whose address cannot receive mail must not bounce the outbox."""
+    inviter, headers = await superuser_headers(db_async)
+    unverified = await make_user(db_async, superuser=True, verified=False)
+    placeholder = await make_user(db_async, superuser=True)
+    placeholder.email = "deleted-abc123@example.com"
+    db_async.add(placeholder)
+    await db_async.commit()
+    await invite(async_client, headers, "quiet@example.org")
+    recipients = {
+        row.to_email
+        for row in (
+            await db_async.execute(
+                select(OutboundEmail).where(OutboundEmail.template == "notification")
+            )
+        ).scalars()
+    }
+    assert inviter.email in recipients
+    assert unverified.email not in recipients
+    assert placeholder.email not in recipients
+
+
+async def test_superuser_notice_footer_does_not_claim_preferences(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    _, headers = await superuser_headers(db_async)
+    await invite(async_client, headers, "footer@example.org")
+    rows = (
+        (
+            await db_async.execute(
+                select(OutboundEmail).where(OutboundEmail.template == "notification")
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert rows
+    for row in rows:
+        footer = row.props["footer"]
+        assert "choose which notifications" not in footer
+        assert "not a preference-controlled email" in footer

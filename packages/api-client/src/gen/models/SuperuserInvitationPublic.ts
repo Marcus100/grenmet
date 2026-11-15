@@ -12,12 +12,7 @@ export type SuperuserInvitationPublic = {
   id: string;
   email: string;
   reason: string;
-  /**
-   * @description
-   * Format: `uuid`
-   * @type string
-   */
-  invited_by_user_id: string;
+  invited_by_user_id: string | null;
   /**
    * @description
    * Format: `date-time`
