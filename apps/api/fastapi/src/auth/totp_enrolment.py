@@ -19,7 +19,8 @@ import logging
 import uuid
 from datetime import timedelta
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, text, update
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import Session as AuthSession
@@ -41,6 +42,10 @@ ENROLMENT_CODES_PER_WINDOW = 3
 ENROLMENT_CODE_WINDOW = timedelta(minutes=15)
 ENROLMENT_CODES_PER_DAY = 10
 ENROLMENT_DAY_WINDOW = timedelta(hours=24)
+# How long a setup waits for the account lock before it answers 429 (see
+# ``_lock_account_for_setup``). Postgres ``lock_not_available``.
+ENROLMENT_LOCK_WAIT = "2s"
+LOCK_NOT_AVAILABLE_SQLSTATE = "55P03"
 # Wrong codes that lock the enrolment, and for how long.
 ENROLMENT_BAD_CODE_LIMIT = 5
 ENROLMENT_LOCKOUT = timedelta(minutes=30)
@@ -54,11 +59,17 @@ async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
     """Generate and store a new (inactive) TOTP secret; return it for provisioning.
 
     For a privileged account a one-time code is also emailed to it. Setup is refused
-    while the enrolment is locked or the rate limits are used up."""
+    while the enrolment is locked or the rate limits are used up.
+
+    The user row lock is held from the count to the commit, through the send, so
+    parallel setup calls for one account run one after another and each sees the
+    ``enrol_code_sent`` rows of the ones before it (issue #952). A failed send rolls
+    the transaction back, which releases the lock and counts nothing."""
     from src.auth import totp
+    from src.auth.account_security import record_security
     from src.exceptions import AppException
 
-    await session.refresh(user, with_for_update=True)
+    await _lock_account_for_setup(session, user)
     if user.totp_enabled:
         raise AppException("Two-factor authentication is already enabled", 409)
     privileged = await _is_privileged(session, user)
@@ -68,17 +79,50 @@ async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
     user.totp_secret = totp.encrypt_secret(secret)
     user.totp_enabled = False
     session.add(user)
-    code = await _issue_enrolment_code(session, user) if privileged else None
+    if not privileged:
+        await session.commit()
+        await session.refresh(user)
+        return secret
+    code = await _issue_enrolment_code(session, user)
+    try:
+        await _send_enrolment_code(email=user.email, code=code)
+    except AppException:
+        await session.rollback()
+        raise
+    # Counted only once the email went out, still under the lock: a failed send
+    # uses no try.
+    await record_security(session, user, ENROLMENT_CODE_SENT)
     await session.commit()
     await session.refresh(user)
-    if code is not None:
-        await _send_enrolment_code(email=user.email, code=code)
-        # Counted only now that the email went out: a failed send uses no try.
-        from src.auth.account_security import record_security
-
-        await record_security(session, user, ENROLMENT_CODE_SENT)
-        await session.commit()
     return secret
+
+
+async def _lock_account_for_setup(session: AsyncSession, user: User) -> None:
+    """Lock the account row for a setup, waiting at most ``ENROLMENT_LOCK_WAIT``.
+
+    The lock is held through the emailed send (#952), so a slow or hung mail server
+    would otherwise queue every other setup, and each waiting request would hold a
+    database connection (#952 review, M1). A waiter that cannot get the lock in time
+    gets 429 and releases its connection. The timeout applies to this transaction
+    only (``is_local``)."""
+    from src.exceptions import AppException
+
+    await session.execute(
+        text("SELECT set_config('lock_timeout', :value, true)"),
+        {"value": ENROLMENT_LOCK_WAIT},
+    )
+    try:
+        await session.refresh(user, with_for_update=True)
+    except DBAPIError as error:
+        orig = error.orig
+        sqlstate = getattr(orig, "sqlstate", None) or getattr(orig, "pgcode", None)
+        if sqlstate != LOCK_NOT_AVAILABLE_SQLSTATE:
+            raise
+        await session.rollback()
+        raise AppException(
+            "A two-step verification set-up is already in progress. Try again in a minute.",
+            429,
+        ) from error
 
 
 async def enrolment_needs_email_code(*, session: AsyncSession, user: User) -> bool:

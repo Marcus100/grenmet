@@ -19,6 +19,9 @@ from src.email_config import email_settings
 
 logger = logging.getLogger(__name__)
 
+# A hung SMTP server must not hold a caller (and any lock it holds) indefinitely.
+SMTP_TIMEOUT_SECONDS = 10.0
+
 
 @dataclass
 class EmailData:
@@ -82,10 +85,16 @@ def send_email(
 
     if email_settings.SMTP_SSL:
         server: smtplib.SMTP = smtplib.SMTP_SSL(
-            email_settings.SMTP_HOST, email_settings.SMTP_PORT
+            email_settings.SMTP_HOST,
+            email_settings.SMTP_PORT,
+            timeout=SMTP_TIMEOUT_SECONDS,
         )
     else:
-        server = smtplib.SMTP(email_settings.SMTP_HOST, email_settings.SMTP_PORT)
+        server = smtplib.SMTP(
+            email_settings.SMTP_HOST,
+            email_settings.SMTP_PORT,
+            timeout=SMTP_TIMEOUT_SECONDS,
+        )
         if email_settings.SMTP_TLS:
             server.starttls()
 
