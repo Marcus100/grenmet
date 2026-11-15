@@ -7,6 +7,7 @@ import BusinessBookingPage, { generateMetadata } from "./page";
 vi.mock("@/env", () => ({
   env: {
     AUTH_APP_URL: "https://auth.example.test",
+    NEXT_PUBLIC_SITE_URL: "https://bookings.example.test",
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: "",
   },
 }));
@@ -17,11 +18,6 @@ vi.mock("./actions", () => ({
   requestEmailCode: { bind: vi.fn(() => vi.fn()) },
   loadSlots: { bind: vi.fn(() => vi.fn()) },
   submitBooking: { bind: vi.fn(() => vi.fn()) },
-}));
-vi.mock("next/headers", () => ({
-  headers: vi.fn(() =>
-    Promise.resolve(new Headers({ host: "bookings.example.test" }))
-  ),
 }));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
