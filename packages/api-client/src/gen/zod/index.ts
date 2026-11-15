@@ -10,6 +10,7 @@ export { accessRequestPublicSchema } from "./accessRequestPublicSchema.js";
 export { accessReviewDataSchema } from "./accessReviewDataSchema.js";
 export { accessStatusPublicSchema } from "./accessStatusPublicSchema.js";
 export { accountAppPublicSchema } from "./accountAppPublicSchema.js";
+export { accountEmailCodeStartSchema } from "./accountEmailCodeStartSchema.js";
 export { accountSecurityPublicSchema } from "./accountSecurityPublicSchema.js";
 export { accountSessionRequestSchema } from "./accountSessionRequestSchema.js";
 export { achievementRuleSchema } from "./achievementRuleSchema.js";
@@ -127,6 +128,7 @@ export {
   authAccountEmailCodeStartErrorSchema,
   authAccountEmailCodeStartResponseSchema,
   authAccountEmailCodeStartStatus200Schema,
+  authAccountEmailCodeStartStatus400Schema,
   authAccountEmailCodeStartStatus422Schema,
   authAccountEmailCodeStartStatus429Schema,
 } from "./authAccountEmailCodeStartSchema.js";
@@ -785,6 +787,7 @@ export {
   authRegisterUserErrorSchema,
   authRegisterUserResponseSchema,
   authRegisterUserStatus200Schema,
+  authRegisterUserStatus400Schema,
   authRegisterUserStatus422Schema,
   authRegisterUserStatus429Schema,
 } from "./authRegisterUserSchema.js";

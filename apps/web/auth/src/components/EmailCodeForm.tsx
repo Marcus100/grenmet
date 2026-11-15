@@ -1,5 +1,6 @@
 "use client";
 
+import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
 import type { Route } from "next";
 import Link from "next/link";
 import {
@@ -20,6 +21,7 @@ import {
   secondaryButtonClass,
   textLinkClass,
 } from "@/components/form-styles";
+import { env } from "@/lib/env";
 import { useHydrated } from "@/lib/use-hydrated";
 
 interface EmailCodeFormProps {
@@ -37,6 +39,10 @@ interface EmailCodeFormProps {
  *
  * "Use a different email" remounts the step, so it starts from an empty form,
  * and focus moves to the email field.
+ *
+ * With a Turnstile site key configured, every code request (the first and each
+ * "Send a new code") carries a fresh single-use token, and its button waits for
+ * the check (issue #959). Without one there is no widget and no token.
  */
 export function EmailCodeForm(props: EmailCodeFormProps) {
   const [attempt, setAttempt] = useState(0);
@@ -74,6 +80,7 @@ function EmailCodeStep({
   const codeRef = useRef<HTMLDivElement>(null);
   const resendRequested = useRef(false);
   const [notice, setNotice] = useState("");
+  const check = useTurnstileCheck();
 
   useEffect(() => {
     if (focusEmail) emailRef.current?.focus();
@@ -94,6 +101,7 @@ function EmailCodeStep({
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    if (!sent) check.attachToken(data);
     startTransition(() => {
       formAction(data);
     });
@@ -104,6 +112,7 @@ function EmailCodeStep({
     const data = new FormData();
     data.set("email", state.email);
     data.set("returnTo", returnTo ?? "");
+    check.attachToken(data);
     resendRequested.current = true;
     setNotice("");
     startTransition(() => {
@@ -111,7 +120,7 @@ function EmailCodeStep({
     });
   }
 
-  const canResend = hydrated && !pending && secondsLeft === 0;
+  const canResend = hydrated && !pending && secondsLeft === 0 && !check.waiting;
   let submitLabel = "Email me a code";
   if (sent) submitLabel = purpose === "sign-up" ? "Create account" : "Sign in";
 
@@ -167,9 +176,11 @@ function EmailCodeStep({
         </div>
       )}
 
+      <Turnstile {...check.widget} />
+
       <button
         className={primaryButtonClass}
-        disabled={pending || !hydrated}
+        disabled={pending || !hydrated || (!sent && check.waiting)}
         type="submit"
       >
         {pending ? "Please wait…" : submitLabel}
@@ -216,6 +227,26 @@ function EmailCodeStep({
       ) : null}
     </form>
   );
+}
+
+/**
+ * The Turnstile check for code requests (issue #959). Without a site key it is
+ * inert: no widget, never waiting, no token. A token is single-use, so each
+ * request that carries one asks the widget for the next.
+ */
+function useTurnstileCheck() {
+  const siteKey = env.NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY;
+  const [token, setToken] = useState<string | null>(null);
+  const [resetKey, setResetKey] = useState(0);
+  return {
+    attachToken(data: FormData) {
+      if (!(siteKey && token)) return;
+      data.set("turnstile_token", token);
+      setResetKey((count) => count + 1);
+    },
+    waiting: Boolean(siteKey) && !token,
+    widget: { onToken: setToken, resetKey, siteKey },
+  };
 }
 
 /**

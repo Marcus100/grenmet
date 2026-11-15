@@ -7,7 +7,7 @@ from src.auth import app_service
 from src.auth import modern_service as service
 from src.auth import superuser_invitation as invitations
 from src.auth.account_security import new_recovery_codes, revoke_owned_session
-from src.auth.app_schemas import AppEmailCodeStart, AppEmailCodeVerify
+from src.auth.app_schemas import AccountEmailCodeStart, AppEmailCodeVerify
 from src.auth.modern_schemas import (
     AccountSecurityPublic,
     EmailConfirm,
@@ -31,6 +31,7 @@ from src.dependencies import AccountUser, SessionDep, TokenDep
 from src.models import ApiError, Message
 from src.openapi_responses import RateLimitedBody
 from src.rate_limit import limiter, mail_limit_address
+from src.turnstile import auth_turnstile_policy, require_turnstile
 
 router = APIRouter(prefix="/auth", tags=["modern-auth"])
 
@@ -184,15 +185,17 @@ async def revoke_security_session(
     response_model=Message,
     status_code=200,
     summary="Send a Barrels account sign-in code",
-    description="Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing.",
+    description='Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing. While the API has AUTH_TURNSTILE_SECRET_KEY set, a missing or rejected Cloudflare Turnstile token (turnstile_token) is 400 "Verification failed" for every address, before any lookup.',
     responses={
+        400: {"model": ApiError, "description": "Turnstile verification failed"},
         429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
     },
 )
 @limiter.limit("5/minute")
 async def account_email_code_start(
-    *, request: Request, session: SessionDep, body: AppEmailCodeStart
+    *, request: Request, session: SessionDep, body: AccountEmailCodeStart
 ) -> Message:
+    await require_turnstile(request, body.turnstile_token, auth_turnstile_policy())
     return await app_service.account_email_code_start(
         session=session, body=body, client_ip=mail_limit_address(request)
     )

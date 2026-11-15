@@ -14,6 +14,7 @@ import { authRegisterUser } from "../clients/authRegisterUser.js";
 import type {
   AuthRegisterUserOptions,
   AuthRegisterUserStatus200,
+  AuthRegisterUserStatus400,
   AuthRegisterUserStatus422,
   AuthRegisterUserStatus429,
 } from "../models/AuthRegisterUser.js";
@@ -29,7 +30,11 @@ export function authRegisterUserMutationOptions<TContext = unknown>(
   const mutationKey = authRegisterUserMutationKey();
   return mutationOptions<
     AuthRegisterUserStatus200,
-    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
+    ResponseErrorConfig<
+      | AuthRegisterUserStatus400
+      | AuthRegisterUserStatus422
+      | AuthRegisterUserStatus429
+    >,
     AuthRegisterUserOptions,
     TContext
   >({
@@ -41,7 +46,7 @@ export function authRegisterUserMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify.
+ * @description Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify. It cannot carry a Turnstile token, so while AUTH_TURNSTILE_SECRET_KEY is set it answers 400 "Verification failed" and sends nothing.
  * @summary Password sign-up (retired)
  * {@link /api/v1/auth/users/signup}
  */
@@ -50,7 +55,9 @@ export function useAuthRegisterUser<TContext>(
     mutation?: UseMutationOptions<
       AuthRegisterUserStatus200,
       ResponseErrorConfig<
-        AuthRegisterUserStatus422 | AuthRegisterUserStatus429
+        | AuthRegisterUserStatus400
+        | AuthRegisterUserStatus422
+        | AuthRegisterUserStatus429
       >,
       AuthRegisterUserOptions,
       TContext
@@ -69,14 +76,22 @@ export function useAuthRegisterUser<TContext>(
     config
   ) as UseMutationOptions<
     AuthRegisterUserStatus200,
-    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
+    ResponseErrorConfig<
+      | AuthRegisterUserStatus400
+      | AuthRegisterUserStatus422
+      | AuthRegisterUserStatus429
+    >,
     AuthRegisterUserOptions,
     TContext
   >;
 
   return useMutation<
     AuthRegisterUserStatus200,
-    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
+    ResponseErrorConfig<
+      | AuthRegisterUserStatus400
+      | AuthRegisterUserStatus422
+      | AuthRegisterUserStatus429
+    >,
     AuthRegisterUserOptions,
     TContext
   >(
@@ -88,7 +103,11 @@ export function useAuthRegisterUser<TContext>(
     queryClient
   ) as UseMutationResult<
     AuthRegisterUserStatus200,
-    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
+    ResponseErrorConfig<
+      | AuthRegisterUserStatus400
+      | AuthRegisterUserStatus422
+      | AuthRegisterUserStatus429
+    >,
     AuthRegisterUserOptions,
     TContext
   >;
