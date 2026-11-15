@@ -3,13 +3,17 @@ Rate limiting for auth and sensitive endpoints.
 
 - Login, password-recovery, and reset-password are rate limited (e.g. 5–10/minute per IP).
 - Returns 429 Too Many Requests when the limit is exceeded.
-- Uses in-memory storage per process. For multi-instance deployments,
-  configure a shared store (e.g. Redis) via the limiter's storage backend.
+- Uses Redis (REDIS_URL) with short timeouts; checks run off the event loop, and a Redis failure falls back to per-process limits (fail open).
 """
 
+import asyncio
+import functools
 import hmac
+import inspect
 import ipaddress
 import logging
+from collections.abc import Callable
+from typing import Any, cast
 
 from fastapi import Request
 from slowapi import Limiter
@@ -165,11 +169,67 @@ def visitor_address(request: Request) -> str:
     return _bucket(str(ip))
 
 
+# Bound every Redis round trip: a hung Redis must not stall a request (#1419 does
+# the same for the other request-path clients).
+REDIS_TIMEOUT_SECONDS = 0.25
+
+
+class AsyncSafeLimiter(Limiter):
+    """slowapi limiter that never blocks the event loop.
+
+    slowapi checks the limit synchronously inside ``async def`` routes, and the
+    ``limits`` Redis client is synchronous. For coroutine routes the check runs in
+    a worker thread first; slowapi's own check is then skipped. A Redis failure
+    falls back to per-process limits (``in_memory_fallback_enabled``) and, if even
+    that fails, the request is allowed (``swallow_errors``): fail open, like
+    ``src/auth/lockout.py``.
+    """
+
+    def limit(self, *args: Any, **kwargs: Any) -> Callable[..., Any]:
+        decorate = super().limit(*args, **kwargs)
+
+        def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+            decorated: Callable[..., Any] = decorate(func)
+            if not inspect.iscoroutinefunction(func):
+                return decorated
+            positional = list(inspect.signature(func).parameters).index("request")
+
+            @functools.wraps(func)
+            async def wrapper(*a: Any, **kw: Any) -> Any:
+                request = kw.get(
+                    "request", a[positional] if len(a) > positional else None
+                )
+                if (
+                    self.enabled
+                    and isinstance(request, Request)
+                    and not getattr(request.state, "_rate_limiting_complete", False)
+                ):
+                    await asyncio.to_thread(
+                        self._check_request_limit, request, func, False
+                    )
+                    request.state._rate_limiting_complete = True
+                return await decorated(*a, **kw)
+
+            return wrapper
+
+        return decorator
+
+
 # Use a shared Redis store when REDIS_URL is configured (required for correct
 # rate limiting across multiple app instances); otherwise fall back to in-memory.
-limiter = Limiter(
+limiter = AsyncSafeLimiter(
     key_func=visitor_address,
     storage_uri=worker_settings.REDIS_URL,
+    # slowapi types the options as str, but redis-py needs numbers
+    storage_options=cast(
+        "dict[str, str]",
+        {
+            "socket_timeout": REDIS_TIMEOUT_SECONDS,
+            "socket_connect_timeout": REDIS_TIMEOUT_SECONDS,
+        },
+    ),
+    in_memory_fallback_enabled=True,
+    swallow_errors=True,
 )
 
 

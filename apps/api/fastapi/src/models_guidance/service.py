@@ -15,7 +15,7 @@ from src.organisations import service as org_service
 from src.organisations.models import PlatformOrganisation
 from src.utils.datetime import utc_now
 
-from . import extract
+from . import extract, transitions
 from .config import GuidancePoint, guidance_settings
 from .constants import (
     ATTRIBUTION,
@@ -25,7 +25,6 @@ from .constants import (
     VARIABLES,
 )
 from .exceptions import (
-    AccessRequestDecidedError,
     AccessRequestNotFoundError,
     AccessRequestPendingError,
     AlreadyEntitledError,
@@ -293,12 +292,8 @@ async def decide_access_request(
     request = await session.get(GuidanceAccessRequest, request_id, with_for_update=True)
     if request is None:
         raise AccessRequestNotFoundError()
-    if request.status != AccessRequestStatus.PENDING.value:
-        raise AccessRequestDecidedError()
     approved = decision is GuidanceDecision.APPROVE
-    request.status = (
-        AccessRequestStatus.APPROVED if approved else AccessRequestStatus.REJECTED
-    ).value
+    transitions.move_request(request, "approve" if approved else "reject")
     request.decided_by_user_id = reviewer_id
     request.decision_note = (note or "").strip() or None
     request.decided_at = utc_now()

@@ -7,5 +7,11 @@ import * as z from "zod";
 
 export const emailConfirmSchema = z.object({
   token: z.string().min(32).max(256),
-  new_password: z.string().min(12).max(128),
+  new_password: z
+    .string()
+    .min(12)
+    .max(128)
+    .describe(
+      "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
+    ),
 });

@@ -129,3 +129,9 @@ ERROR_DOCUMENT_FILE_FOR_USER_NOT_ALLOWED = (
 )
 ERROR_DOCUMENT_READ_NOT_ALLOWED = "Not allowed to read this document"
 ERROR_DOCUMENT_MANAGE_NOT_ALLOWED = "Not allowed to change or archive this document"
+
+# --- Retention (hr/retention.py) ---
+# Owner decision, 14 Nov 2026 (ADR-0058 section 7): a former employee's date of birth
+# and address are kept this many years after their employment ends, then removed.
+# Provisional until GAA confirms the period (#937). This is the only place to change it.
+FORMER_STAFF_PERSONAL_DETAILS_RETENTION_YEARS = 6

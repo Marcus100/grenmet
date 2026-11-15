@@ -15,5 +15,11 @@ export const userCreateSchema = z.object({
   last_name: z.string(),
   is_active: z.boolean().optional().default(true),
   is_superuser: z.boolean().optional().default(false),
-  password: z.string().min(8).max(128),
+  password: z
+    .string()
+    .min(8)
+    .max(128)
+    .describe(
+      "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
+    ),
 });

@@ -4,6 +4,8 @@
 
 Accepted for the test-mode core; implemented in `apps/api/fastapi/src/payments` (PF4, migration `payments20261020`). On 2026-10-20 the owner approved the provider-neutral layer plus a **Stripe test-mode** adapter. The owner also decided to use the owner's existing Stripe account registered in New Zealand on a platform (Connect-style) model where each business is a connected account that receives its own payouts. Who is merchant of record depends on the Stripe charge model, which is an open decision for the accountant and legal review. **Live mode stays off** until the items under "Open before live money" are settled.
 
+**Note, 2026-11-13 (direction under discussion; this decision is not rewritten).** Research on 13 November 2026 found that Stripe Connect cannot onboard a business in a country Stripe does not support, so the connected-account model above does not work for Grenada businesses as written. The direction the owner gave that day (issue #1372, no code yet): try both Stripe and Republic Bank's e-commerce service; each business is paid directly through its own merchant account, and Barrels charges a subscription and does not hold client funds; online payment for bookings is optional, and customers may pay in the salon. Until a new ADR or an amendment records the outcome, the test-mode core here stays as built and live mode stays off.
+
 **Consumers (2026-10-20):** Bookings deposits (B6) and Events paid ticket tiers (N4b, `events_0010`, source type `events.order`) run on this core in test mode only: pending order, held stock, intent keyed by the order, ticket issue on `events.order_paid`, hold expiry sweeper, full refund of a late payment, and `events.order_refunded` cancelling the tickets. The live gate below is unchanged.
 
 ## Context

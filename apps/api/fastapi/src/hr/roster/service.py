@@ -21,10 +21,7 @@ from src.hr.constants import (
     ERROR_CSV_NO_HEADER,
     ERROR_GRID_NOT_IMPORTABLE,
     ERROR_PUBLIC_HOLIDAY_DUPLICATE_DATE,
-    ERROR_ROSTER_PERIOD_ALREADY_CLOSED,
-    ERROR_ROSTER_PERIOD_ALREADY_PUBLISHED,
     ERROR_ROSTER_PERIOD_END_BEFORE_START,
-    ERROR_ROSTER_PERIOD_NOT_PUBLISHED,
     ERROR_SHIFT_CODE_ALREADY_EXISTS,
 )
 from src.hr.dependencies import (
@@ -43,6 +40,7 @@ from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Reques
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus
 from src.utils.datetime import utc_now
 
+from . import transitions
 from .expansion import expand_shift, validate_break
 from .grid import parse_grid, resolve_user
 from .holidays import MAX_YEAR, MIN_YEAR, PROVISIONAL_SOURCE, provisional_holidays
@@ -415,10 +413,7 @@ async def publish_roster_period(
     require_permission(current_user=current_user, permission_key="roster.manage")
     period = await get_roster_period_or_404(session=session, period_id=period_id)
     await require_roster_manage_scope(session, current_user, period.department_id)
-    if period.status == RosterPeriodStatus.PUBLISHED:
-        raise HRValidationError(ERROR_ROSTER_PERIOD_ALREADY_PUBLISHED)
-    if period.status == RosterPeriodStatus.CLOSED:
-        raise HRValidationError(ERROR_ROSTER_PERIOD_ALREADY_CLOSED)
+    transitions.require_move(period.status, "publish")
     _, rule_warnings = await rule_service.period_violations(session, period)
     override = await rule_service.enforce(
         session,
@@ -430,7 +425,7 @@ async def publish_roster_period(
         entity_id=str(period.id),
         department_id=period.department_id,
     )
-    period.status = RosterPeriodStatus.PUBLISHED
+    transitions.move_period(period, "publish")
     period.updated_at = utc_now()
     session.add(period)
     assign_result = await session.execute(
@@ -499,11 +494,7 @@ async def close_roster_period(
     require_permission(current_user=current_user, permission_key="roster.manage")
     period = await get_roster_period_or_404(session=session, period_id=period_id)
     await require_roster_manage_scope(session, current_user, period.department_id)
-    if period.status == RosterPeriodStatus.CLOSED:
-        raise HRValidationError(ERROR_ROSTER_PERIOD_ALREADY_CLOSED)
-    if period.status != RosterPeriodStatus.PUBLISHED:
-        raise HRValidationError(ERROR_ROSTER_PERIOD_NOT_PUBLISHED)
-    period.status = RosterPeriodStatus.CLOSED
+    transitions.move_period(period, "close")
     period.updated_at = utc_now()
     session.add(period)
     await _create_revision(
@@ -691,7 +682,7 @@ async def bulk_upsert_roster_assignments(
     await require_roster_manage_scope(
         session, current_user, period.department_id, permission_key
     )
-    if period.status == RosterPeriodStatus.CLOSED:
+    if period.status not in transitions.EDITABLE:
         raise HRValidationError("A closed roster cannot be edited")
     if not payload.assignments:
         return []

@@ -1,6 +1,7 @@
 """Absentee service tests — reason enum and conditional-notes rule."""
 
 import json
+import uuid
 from datetime import date
 
 import pytest
@@ -382,3 +383,26 @@ async def test_legacy_draft_times_are_revalidated_before_submission(
             payload=AbsenteeReportSubmit(),
         )
     assert report.status == RequestStatus.DRAFT
+
+
+async def test_create_rejects_unknown_replacement_user(db_async):
+    user, dept, _ = await _draft(db_async)
+    payload = _payload(user.id, dept.id, AbsenceReason.TIME_OFF)
+    payload.replacement_user_id = uuid.uuid4()
+    with pytest.raises(HRValidationError):
+        await create_absentee_report(
+            session=db_async, current_user=user, payload=payload
+        )
+
+
+async def test_update_rejects_unknown_replacement_user(db_async):
+    user, dept, report = await _draft(db_async)
+    payload = _payload(user.id, dept.id, AbsenceReason.TIME_OFF)
+    payload.replacement_user_id = uuid.uuid4()
+    with pytest.raises(HRValidationError):
+        await update_absentee_report(
+            session=db_async,
+            current_user=user,
+            absentee_report_id=report.id,
+            payload=payload,
+        )

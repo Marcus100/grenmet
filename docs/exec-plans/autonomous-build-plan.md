@@ -45,7 +45,7 @@ run **in sequence in one agent**, not in parallel.
 | 1.3 One permission list for API keys | 0029 | API-key scopes reference keys in `src/auth/permissions.py`; test fails on an unknown scope | api-engineer | New test plus existing key tests pass |
 | 1.4 Email verification for money and power | 0018 | Require a verified email before deposit payment, staff/admin role grant and payout-detail change; never for sign-in | api-engineer | Tests for each gate and for sign-in staying open |
 | 1.5 Monitoring may carry internal IDs | 0037 | Allow internal user and organisation IDs in `packages/ui/src/lib/sentry-privacy.ts` and `SAFE_TAGS` in `src/telemetry.py`; still no names, emails or bodies | web-engineer + api-engineer | Scrubber tests prove IDs pass and personal fields do not |
-| 1.6 Babydoll booking switch as a flag | 0020 | Read Babydoll's online-booking switch from a PF7 feature flag, keep `BABYDOLL_ONLINE_BOOKING` as an emergency override, default off | web-engineer | Book-link tests pass in both flag states; live site unchanged with the flag off |
+| 1.6 Babydoll booking switch as a flag | 0020 | Read Babydoll's online-booking switch from a PF7 feature flag, keep `BABYDOLL_ONLINE_BOOKING` as an emergency override, default off. Overtaken on 13 Nov 2026: the Babydoll site became static and the switch was removed with its on-site booking flow | web-engineer | Book-link tests pass in both flag states; live site unchanged with the flag off |
 
 ## Wave 2: Barrels Bookings app (after wave 1 merges)
 
@@ -106,7 +106,7 @@ From handoff §2, §4 and §6; one PR each.
 | Item | Needs |
 | --- | --- |
 | Accept ADR-0017 (SSO) | 10-minute staging sign-out check |
-| Live payments (ADR-0027) | Stripe's written answer on NZ-account payouts to Grenadian banks; accountant/legal on tax and licensing |
+| Live payments (ADR-0027) | Stripe's written answer on NZ-account payouts to Grenadian banks; accountant/legal on tax and licensing. Direction of 13 Nov 2026 (owner; issue #1372): try both Stripe and Republic Bank's e-commerce service, with each business paid directly through its own merchant account and Barrels charging a subscription |
 | Attendance import (ADR-0040) | ZKTeco model and export method (file, SDK or pull) |
 | Go-live checklist (ADR-0034) | Restore drill first run (Spaces read key), production monitors (Better Stack token) |
 | Traefik hardening #445 | Three staging secrets |

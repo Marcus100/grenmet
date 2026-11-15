@@ -11,6 +11,7 @@ export type ActivationConfirm = {
    */
   token: string;
   /**
+   * @description At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte.
    * @minLength 12
    * @maxLength 128
    * @type string

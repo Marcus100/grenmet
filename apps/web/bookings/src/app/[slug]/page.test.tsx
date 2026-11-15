@@ -63,8 +63,8 @@ describe("/[slug]", () => {
     );
     const list = screen.getByRole("region", { name: "Services" });
     expect(within(list).getByText("Deep tissue massage")).toBeVisible();
-    expect(within(list).getByText("1 hr 30 min · $25 deposit")).toBeVisible();
-    expect(within(list).getByText("$150")).toBeVisible();
+    expect(within(list).getByText("1 hr 30 min · EC$25 deposit")).toBeVisible();
+    expect(within(list).getByText("EC$150")).toBeVisible();
     expect(screen.getByText("Maya")).toBeVisible();
     expect(
       screen.getByRole("form", { name: "Book an appointment" })

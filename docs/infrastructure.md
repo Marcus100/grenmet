@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-13
+**Last updated:** 2026-11-14
 
 This guide documents the operational infrastructure implemented in this repo today. For first-time server setup see [deployment.md](deployment.md). For local development failures see [troubleshooting.md](troubleshooting.md).
 
@@ -18,9 +18,21 @@ Staging and production run as Docker Compose stacks on dedicated DigitalOcean dr
 Both core droplets are DigitalOcean `s-2vcpu-4gb` (4 GB, 2 vCPU, region `nyc1`)
 since 2026-11-12, each running Ubuntu 24.04 and Docker Engine 29.
 
+State on 2026-11-14:
+
+- **Release:** production runs v1.0.8, published from `main` on 2026-11-14 (UTC) and
+  deployed by the Production Pipeline. `dev` is ahead of it.
+- **Database schema:** `alembic check` was run on production after v1.0.8 and
+  reported no differences between the models and the migrated database (the
+  follow-up from PR #1304).
+- **SSH:** on both droplets the administrator logs in as the `deploy` user. On
+  staging that user has sudo, and root login and password login over SSH are off
+  ([host hardening runbook](operations/host-hardening.md), step 2).
+- **Restarts:** neither droplet has a reboot pending.
+
 Each stack includes:
 
-- `db`: PostgreSQL 18 (staging and production stay on 17 until each runs the upgrade in [the PostgreSQL 18 upgrade plan](operations/postgres-18-upgrade.md); the image, data mount and volume move together). The same server hosts separate databases for FastAPI (which also holds the `events` schema, ADR-0003), `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister` and the CMS (`gms_cms`).
+- `db`: PostgreSQL 18 on staging since 2026-11-14; PostgreSQL 17 on production until it runs the upgrade in [the PostgreSQL 18 upgrade plan](operations/postgres-18-upgrade.md) (the image, data mount and volume move together). The same server hosts separate databases for FastAPI (which also holds the `events` schema, ADR-0003), `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister` and the CMS (`gms_cms`).
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP publish jobs, notification and email outboxes, retention purge; see `src/worker/AGENTS.md`).
@@ -103,6 +115,21 @@ Implemented backup behavior:
 - Restores each dump into a temporary database to verify integrity.
 - Uploads each dump to DigitalOcean Spaces under `production/YYYY/MM/DD/`.
 - Keeps local dump files for `BACKUP_RETENTION_DAYS=30`.
+
+### Retention table
+
+Idea taken from wmo-raf/climweb-backup-sync (archived; its README gives daily database copies for 10 days and weekly media archives). Nothing here copies code.
+
+| Copy | Today (as implemented) | Proposed for WAL-G (not built) | Needs |
+| --- | --- | --- | --- |
+| Daily database dump, production | One per day under `production/YYYY/MM/DD/` on Spaces; the workflow does not delete old dumps, so the bucket's lifecycle rule decides | Keep 10 days | Owner approval; confirm the Spaces lifecycle rule matches |
+| Local dump files, runner | 30 days (`BACKUP_RETENTION_DAYS`) | Same | None |
+| Weekly full base backup (WAL-G) | Not built | Keep 5 weeks | WAL-G work |
+| Continuous write-ahead logs | Not built | Keep from the oldest kept base backup to now | WAL-G work |
+| Restore drill | Monthly; restores every dump into a throwaway container ([restore drill](operations/restore-drill.md)) | Also restore the oldest kept copy, so a short retention is proven to work | WAL-G work |
+
+Acceptance for #1416 is partly met: this table is written. The last row is not built.
+Retention values are a policy choice and stay proposals until the owner confirms them.
 
 Until a shorter schedule is implemented, the practical RPO is at most 24 hours for data covered by this workflow. RTO must be proven by restore drills; the internal programme target is under 2 hours, but that should not be treated as verified until a timed restore has passed.
 

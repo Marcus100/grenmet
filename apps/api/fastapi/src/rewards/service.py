@@ -27,7 +27,7 @@ from src.exceptions import NotFoundError
 from src.organisations.models import PlatformOrganisation
 from src.utils.datetime import utc_now
 
-from . import sources
+from . import sources, transitions
 from .config import rewards_settings
 from .exceptions import (
     ProgramNotFoundError,
@@ -482,7 +482,7 @@ async def confirm_pending_earn(session: AsyncSession, entry_id: uuid.UUID) -> bo
     )
     if entry is None:
         return False
-    entry.status = EntryStatus.CONFIRMED.value
+    transitions.move_entry(entry, "confirm")
     entry.settled_at = utc_now()
     await session.flush()
     return True
@@ -551,7 +551,7 @@ async def _reverse(
         settled_at=utc_now(),
     )
     session.add(reversal)
-    entry.status = EntryStatus.REVERSED.value
+    transitions.move_entry(entry, "reverse")
     entry.settled_at = entry.settled_at or utc_now()
     await session.flush()
     return reversal
@@ -678,6 +678,32 @@ async def cancel_redemption(
     return entry
 
 
+async def cancel_open_redemptions(session: AsyncSession, *, account: User) -> int:
+    """Cancel every open redemption code of an account being anonymised (ADR-0058),
+    so a code the person held cannot be confirmed for the anonymous account.
+    Returns how many were cancelled. Flushes; the caller commits.
+
+    A code that staff confirm while this runs is already spent: it is skipped, not
+    treated as a failure, so the deletion still completes."""
+    open_ids = (
+        await session.scalars(
+            select(Entry.id).where(
+                Entry.account_id == account.id,
+                Entry.kind == EntryKind.REDEEM.value,
+                Entry.status == EntryStatus.PENDING.value,
+            )
+        )
+    ).all()
+    cancelled = 0
+    for entry_id in open_ids:
+        try:
+            await cancel_redemption(session, account=account, entry_id=entry_id)
+        except RewardsConflictError:
+            continue
+        cancelled += 1
+    return cancelled
+
+
 async def confirm_redemption(
     session: AsyncSession, *, organisation_id: str, code: str, staff: User | None
 ) -> tuple[Entry, Program]:
@@ -694,11 +720,16 @@ async def confirm_redemption(
     )
     if entry is None:
         raise RedemptionNotFoundError()
+    account = await session.get(User, entry.account_id)
+    if account is None or not account.is_active:
+        # A deactivated or anonymised account cannot redeem, even when a request raced
+        # the deletion. Answered like an unknown code, so it reveals nothing.
+        raise RedemptionNotFoundError()
     if entry.status != EntryStatus.PENDING.value:
         raise RewardsConflictError("This code has already been used or cancelled")
     staff_id = staff.id if staff else None
     audit_service.set_actor(session, staff_id)
-    entry.status = EntryStatus.CONFIRMED.value
+    transitions.move_entry(entry, "confirm")
     entry.settled_at = utc_now()
     entry.settled_by_user_id = staff_id
     await session.flush()

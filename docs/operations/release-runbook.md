@@ -2,13 +2,14 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-15
+**Last updated:** 2026-11-14
 
 How a change ships from `dev` to production. Agents (Claude Code / Codex) run
 local verification, push their task branch, open a PR into `dev` and merge it
-once CI is green and the review is clean. Staging PR creation has
-standing authorization; the owner merges into `staging` (agents do not arm
-auto-merge).
+once CI is green and the review is clean. The owner decides when a
+`dev → staging` PR is opened (owner, 14 Nov 2026): agents keep landing work on
+`dev`, and open or update the promotion PR, with a recap, only when the owner
+asks. The owner merges into `staging` (agents do not arm auto-merge).
 Main merges and production publication or deployment require separate explicit
 authorization (see `AGENTS.md`).
 
@@ -55,8 +56,10 @@ run the next deploy with `FORCE_MIGRATIONS=1` on the environment, or delete
   result; review that and do the signed-in checks. Setup, hold and recovery:
   `docs/operations/staging-promotion-automation.md`. The steps below apply when
   the automation is off.
-- Once the authorized batch has been merged into `dev`, automatically
-  create or update its staging promotion PR with a recap. Reuse an open PR.
+- The owner decides when a promotion happens (owner, 14 Nov 2026). Agents do
+  not open the promotion PR on their own after merges into `dev`. When the
+  owner asks, create or update the staging promotion PR with a recap. Reuse an
+  open PR.
 - Review the entire promotion diff; exclude unrelated or unfinished work.
 - The owner merges the PR into `staging`. Agents do not merge it or arm
   auto-merge (the owner may arm it:

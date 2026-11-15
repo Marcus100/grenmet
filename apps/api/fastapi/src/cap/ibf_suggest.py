@@ -13,7 +13,7 @@ from src.auth.policy import has_permission
 from src.baseline import product_access
 from src.cap import ibf
 from src.cap.levels import GmsColour, awareness_value, severity_for
-from src.cap.models import CapHazardProfile
+from src.cap.models import CapHazardProfile, CapProfileState
 from src.cap.profile_schemas import (
     CapProfileDefinition,
     CapProfileSubtype,
@@ -48,7 +48,7 @@ async def latest_approved(
                 select(CapHazardProfile)
                 .where(
                     CapHazardProfile.key == library_key(kind),
-                    CapHazardProfile.state == "APPROVED",
+                    CapHazardProfile.state == CapProfileState.APPROVED.value,
                 )
                 .order_by(CapHazardProfile.version.desc())
                 .limit(1)

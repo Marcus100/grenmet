@@ -23,7 +23,7 @@ import {
   sourceCommit,
   treeOf,
   verifyChecks,
-} from "./promote-images.mjs";
+} from "./promotion-checks.mjs";
 
 /**
  * Whether the checked-out promotion can reuse dev's check results.

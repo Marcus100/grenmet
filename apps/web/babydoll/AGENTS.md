@@ -55,8 +55,11 @@ This site takes no bookings and has no server code: it is a static export
   `ONLINE_BOOKING_URL` in `src/data/site.ts` when it is set, else the Acuity page
   (`BOOKING_URL`). Both open in a new tab. Set `ONLINE_BOOKING_URL` to the
   studio's page on the Barrels bookings site (for example
-  `https://bookings.barrels.gd/babydoll-beauty-bar`) once that page is live; it answered
-  "not found" on 13 Nov 2026.
+  `https://bookings.barrels.gd/babydoll-beauty-bar`) once that page is live. On
+  14 Nov 2026 the bookings app is live on production but Babydoll's data is not
+  seeded there, so the page still answers "not found" (staging is seeded).
+  Switching the Book buttons is the last step of the go-live order in
+  `docs/operations/babydoll-cutover.md`.
 - **Old addresses:** `/book` redirects to the booking page and `/booking/*` to
   `/contact`, in `public/_redirects` (Cloudflare Pages) and `vercel.json`
   (until the Vercel project is gone). When the booking address changes, change
@@ -67,6 +70,10 @@ This site takes no bookings and has no server code: it is a static export
   needs a server; the export build fails on them.
 
 ## Vercel build
+
+Since 13 Nov 2026 the Vercel project's Git integration is disconnected (owner),
+so pull requests get no Vercel check. The rules below still apply to a build
+started by hand, until the site moves to Cloudflare Pages.
 
 - Vercel clones the monorepo fresh, so no workspace package is built there. A
   workspace package whose `main`, `types` or `exports` point at `dist/` (today

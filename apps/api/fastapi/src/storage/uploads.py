@@ -23,6 +23,7 @@ from src.auth import apps as auth_apps
 from src.database import async_session_factory
 from src.exceptions import AppException, NotFoundError
 from src.storage import service as storage
+from src.storage import transitions
 from src.storage.dependencies import UploadContext
 from src.storage.models import OrgUpload, UploadStatus
 from src.storage.schemas import UploadRequest
@@ -179,7 +180,7 @@ async def complete_upload(
     ):
         await run_in_threadpool(storage.storage_service.delete_object, row.object_key)
         raise UploadRejectedError("The uploaded file does not match what was requested")
-    row.status = UploadStatus.COMPLETE.value
+    transitions.move_upload(row, "complete")
     row.completed_at = utc_now()
     await session.flush()
     return row

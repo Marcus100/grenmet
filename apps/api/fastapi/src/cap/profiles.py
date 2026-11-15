@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import require_permission
-from src.cap import ibf, service
+from src.cap import ibf, service, transitions
 from src.cap.exceptions import CapStateError, CapValidationFailedError
 from src.cap.levels import (
     GmsProduct,
@@ -178,8 +178,7 @@ async def approve(
     require_permission(current_user=current_user, permission_key="cap.library.manage")
     require_permission(current_user=current_user, permission_key="cap.alert.approve")
     row = await get_row(session, profile_id)
-    if row.state != "DRAFT":
-        raise CapStateError("Only draft profiles can be approved.")
+    transitions.require_profile_move(row.state, "approve")
     if row.created_by == current_user.id:
         raise AuthorizationError(
             "A different authorised reviewer must approve this profile."
@@ -187,7 +186,7 @@ async def approve(
     errors = approval_errors(CapProfileDefinition.model_validate(row.definition))
     if errors:
         raise CapValidationFailedError(errors)
-    row.state = "APPROVED"
+    transitions.approve_profile(row)
     row.approved_by = current_user.id
     row.approved_at = utc_now()
     session.add(row)
@@ -204,7 +203,7 @@ async def create_draft(
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.create")
     row = await get_row(session, profile_id)
-    if row.state != "APPROVED":
+    if not transitions.profile_is_usable(row.state):
         raise CapStateError("Approve the profile before using it to start an alert.")
     definition = CapProfileDefinition.model_validate(row.definition)
     subtype = next((s for s in definition.subtypes if s.name == payload.subtype), None)

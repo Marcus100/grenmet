@@ -7,6 +7,7 @@ import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import type { Metadata } from "next";
 import { ApiProvider } from "@/components/providers/ApiProvider";
+import { AppToaster } from "@/components/providers/app-toaster";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { env } from "@/lib/env";
 import { fontVars } from "@/lib/fonts/registry";
@@ -79,6 +80,7 @@ export default function RootLayout({
                 <ApiProvider>{children}</ApiProvider>
               </QueryProvider>
             </MotionProvider>
+            <AppToaster />
           </PreferencesStoreProvider>
         </PostHogProvider>
       </body>

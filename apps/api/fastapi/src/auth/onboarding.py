@@ -18,6 +18,7 @@ from src.audit import service as audit
 from src.auth import (
     email_verification,
     modern_service,
+    placeholders,
     service,
     sign_in_setup,
     superuser_mfa,
@@ -87,6 +88,7 @@ async def create_account(
     session: AsyncSession, actor: User, body: ActivationAccountCreate
 ) -> User:
     require_administrator(actor)
+    placeholders.require_usable_identity(email=body.email, username=body.username)
     if await session.scalar(
         select(User.id).where(
             (User.email == body.email) | (User.username == body.username)

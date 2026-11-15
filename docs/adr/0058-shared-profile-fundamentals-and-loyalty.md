@@ -3,7 +3,28 @@
 ## Status
 
 Accepted — 2026-11-13 (issue #1373). The owner accepted all six recommended
-answers listed under "Owner answers" at the end. Nothing here is built yet.
+answers listed under "Owner answers" at the end. Slice 1 is partly built on
+`dev`; see "Progress" below.
+
+## Progress (14 November 2026)
+
+Slice 1 is partly built on `dev`. None of it is in a release yet (v1.0.8 does
+not contain it).
+
+Built:
+
+- A booking made while signed in links to the person's account (#1383).
+- `GET /api/v1/bookings/me/bookings` accepts a full account token or the account
+  app's session, and lists upcoming bookings soonest first (#1386).
+- The My bookings page in the account app (#1385).
+
+Not built:
+
+- The claim flow for past guest bookings.
+- The stamp card on bookings.
+- Member numbers and the QR pass (slice 2).
+- The account-deletion fix (issue #1375).
+- The `profiles` module.
 
 ## Context
 
@@ -166,6 +187,19 @@ people. The first user of this is the bookings product; Events comes next.
      revoke member numbers and write `forfeit` entries for unspent points.
      Ledger rows are kept under the anonymous ID for the business's accounts,
      then cut down to totals once the retention period ends.
+     **Owner decision, 14 November 2026 (issue #1375, PR #1429), per field:**
+     emergency contact name, phone and relationship, phone, gender and nationality
+     are cleared on every deletion. Date of birth and the address are kept for a
+     person who has or had an employment record, and removed for anyone else.
+     Pay, leave, attendance and employment records are kept in every case. Former
+     staff keep their date of birth and address for **6 years after employment
+     ends (provisional, pending GAA's confirmation)**; the scheduled clean-up is the
+     worker job `clear_former_staff_personal_details` (#1431); the period is the one
+     constant `FORMER_STAFF_PERSONAL_DETAILS_RETENTION_YEARS` in `src/hr/constants.py`. A person cannot delete their
+     account while any employment record has not ended: no end date, or an end date
+     today or later, whatever the record's status (so an INACTIVE record with no end
+     date blocks). Only a record whose end date has passed lets them delete it; HR
+     ends the employment first.
    - **When a business leaves:** its programmes pause, members get 30 days to
      redeem, then everything left expires. The business gets an export of its
      contacts and ledger.

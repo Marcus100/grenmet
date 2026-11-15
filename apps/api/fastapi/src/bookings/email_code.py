@@ -68,6 +68,11 @@ LOCK_TTL = 900
 SEND_LIMIT = 5
 SEND_WINDOW = 3600
 _PREFIX = "bk:ec:"
+# Per command. Longer than the 0.5 s of the fail-open request-path clients: this
+# is an authentication check that fails closed, so a briefly slow Redis should
+# still answer rather than turn a correct code into a 503 (#1421). A stalled
+# Redis still fails closed after this long on the first command.
+CODE_STORE_TIMEOUT_SECONDS = 2.0
 
 
 class CodeRateLimitedError(AppException):
@@ -114,7 +119,12 @@ class RedisCodeStore:
         if not self._url:
             raise VerificationUnavailableError
         if self._client is None:
-            self._client = Redis.from_url(self._url, decode_responses=True)
+            self._client = Redis.from_url(
+                self._url,
+                decode_responses=True,
+                socket_timeout=CODE_STORE_TIMEOUT_SECONDS,
+                socket_connect_timeout=CODE_STORE_TIMEOUT_SECONDS,
+            )
         return self._client
 
     async def _run[T](self, call: Callable[[Redis], Awaitable[T]]) -> T:

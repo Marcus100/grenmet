@@ -172,6 +172,36 @@ async def get_own_account_user(session: SessionDep, token: TokenDep) -> User:
     return user
 
 
+async def get_own_account_any_user(session: SessionDep, token: TokenDep) -> User:
+    """The caller's own account for an end customer's routes (ADR-0058).
+
+    Differs from ``get_own_account_user`` in two ways, and only for the full
+    account token. It keeps the ``AccountUser`` rules: a registration still
+    awaiting staff approval is allowed, and no privileged-MFA gate applies, so a
+    customer's own list is never refused. An account-app session takes the same
+    path as ``get_own_account_user``: only from ``OWN_ACCOUNT_APPS``, and only
+    while the person is eligible for that app. Deactivated accounts get 401 on
+    both. Every other app's token gets 401. The profile photo routes keep
+    ``get_own_account_user`` unchanged.
+    """
+    app = _token_app_claim(token)
+    if app is not None and app not in OWN_ACCOUNT_APPS:
+        raise _unauthorized("This sign-in is limited to another app")
+    user = await get_authenticated_user(
+        session,
+        _token_user_id(token, app=app),
+        allow_unapproved=True,
+        session_app=app,
+    )
+    if app is None:
+        return user
+    from src.auth.eligibility import is_eligible_for_app
+
+    if not await is_eligible_for_app(session=session, user=user, app_key=app):
+        raise _unauthorized("Sign in to this app to continue")
+    return user
+
+
 def _token_app_claim(token: str) -> str | None:
     """The ``app`` claim, or None; invalid tokens fail in ``_token_user_id``."""
     try:
@@ -231,6 +261,7 @@ async def get_authenticated_user(
 CurrentUser = Annotated[User, Depends(get_current_user)]
 AccountUser = Annotated[User, Depends(get_account_user)]
 OwnAccountUser = Annotated[User, Depends(get_own_account_user)]
+OwnAccountAnyUser = Annotated[User, Depends(get_own_account_any_user)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 

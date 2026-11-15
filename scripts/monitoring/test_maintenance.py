@@ -136,7 +136,9 @@ class MaintenanceTests(unittest.TestCase):
             with self.assertRaises(subprocess.CalledProcessError):
                 maintenance.restore("staging", "grenmet-staging")
         start = next(args for args in calls if args[:2] == ["docker", "run"])
-        self.assertEqual(start[start.index("--tmpfs") + 1].split(":")[0], "/var/lib/postgresql/data")
+        self.assertEqual(
+            start[start.index("--tmpfs") + 1].split(":")[0], "/var/lib/postgresql/data"
+        )
         self.assertIn("PGDATA=/var/lib/postgresql/data/pgdata", start)
         self.assertEqual(start[start.index("--network") + 1], "none")
         self.assertEqual(start[start.index("--memory") + 1], "1g")
@@ -350,7 +352,7 @@ class ProviderTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             betterstack.plan(config, "staging", live)
 
-    def test_declared_production_resources_start_paused_within_free_limits(self):
+    def test_declared_production_resources_are_adopted_within_free_limits(self):
         config = json.loads(
             (Path(betterstack.__file__).with_name("betterstack.json")).read_text()
         )
@@ -359,9 +361,13 @@ class ProviderTests(unittest.TestCase):
         ]
         self.assertTrue(production)
         for resource in production:
-            # New production resources carry no adopted ID and must start paused.
-            self.assertNotIn("id", resource)
-            self.assertIs(resource["settings"]["paused"], True)
+            if resource.get("deferred"):
+                # Waiting for quota: never created, so no ID, and declared paused.
+                self.assertNotIn("id", resource)
+                self.assertIs(resource["settings"]["paused"], True)
+            else:
+                # Created on 14 Nov 2026 and adopted by provider ID.
+                self.assertRegex(str(resource["id"]), r"^[0-9]+$")
             # Heartbeat URLs are credentials; they never live in the repository.
             if resource["kind"] == "heartbeats":
                 self.assertNotIn("url", resource["settings"])
@@ -369,24 +375,29 @@ class ProviderTests(unittest.TestCase):
                 self.assertTrue(resource["settings"]["url"].startswith("https://"))
                 self.assertIs(resource["settings"]["verify_ssl"], True)
                 self.assertGreater(resource["settings"]["ssl_expiration"], 0)
+        active = [r for r in production if not r.get("deferred")]
         for kind in ("monitors", "heartbeats"):
-            active = [
-                r for r in production if r["kind"] == kind and not r.get("deferred")
-            ]
-            self.assertLessEqual(len(active), config["limits"][kind])
-        # The real declaration plans cleanly once limits are verified and quota is free.
-        config["limitsVerified"] = True
-        changes = betterstack.plan(
-            config, "production", {"monitors": [], "heartbeats": []}
-        )
-        self.assertTrue(all(change["method"] == "POST" for change in changes))
-        self.assertTrue(all(change["settings"]["paused"] for change in changes))
-        self.assertEqual(
-            len(changes),
-            sum(1 for r in production if not r.get("deferred")),
-        )
-        # Until the owner verifies limits, production creation is refused.
-        config["limitsVerified"] = False
+            self.assertLessEqual(
+                len([r for r in active if r["kind"] == kind]), config["limits"][kind]
+            )
+        ids = [r["id"] for r in active]
+        self.assertEqual(len(ids), len(set(ids)))
+
+        def live_copy(resource):
+            settings = resource["settings"]
+            attributes = {k: v for k, v in settings.items() if k != "paused"}
+            attributes["paused_at"] = (
+                "2026-11-14T00:00:00Z" if settings["paused"] else None
+            )
+            return {"id": str(resource["id"]), "attributes": attributes}
+
+        live = {
+            kind: [live_copy(r) for r in active if r["kind"] == kind]
+            for kind in ("monitors", "heartbeats")
+        }
+        # An inventory that matches the declaration needs no change.
+        self.assertEqual(betterstack.plan(config, "production", live), [])
+        # A declared ID the provider does not have is refused, never recreated.
         with self.assertRaises(ValueError):
             betterstack.plan(config, "production", {"monitors": [], "heartbeats": []})
 

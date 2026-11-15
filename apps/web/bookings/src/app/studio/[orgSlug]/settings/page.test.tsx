@@ -52,7 +52,7 @@ const ADD_SERVICE = "Add service";
 const HOURS = /09:00 to 17:00/u;
 const SALT_ZONE = /Timezone: America\/Barbados/u;
 
-const TTD_LINE = /150 TTD, 25 TTD deposit/u;
+const TTD_LINE = /TTD 150, TTD 25 deposit/u;
 
 const EMPTY: BookingSettings = {
   profile: null,

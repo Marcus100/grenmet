@@ -83,15 +83,17 @@ async def test_update_password_same_as_current_raises(db_async: AsyncSession) ->
     assert exc_info.value.status_code == 400
 
 
-async def test_delete_user_removes_record(db_async: AsyncSession) -> None:
-    """delete_user removes the user from the database."""
+async def test_delete_user_anonymises_the_record(db_async: AsyncSession) -> None:
+    """delete_user keeps the row (other tables reference it) and anonymises it (ADR-0058)."""
     user = await _make_user(db_async)
     user_id = user.id
 
     await service.delete_user(session=db_async, user=user)
 
-    deleted = await db_async.get(service.User, user_id)
-    assert deleted is None
+    anonymous = await db_async.get(service.User, user_id)
+    assert anonymous is not None
+    assert anonymous.is_active is False
+    assert anonymous.email.startswith("deleted-")
 
 
 async def test_update_user_me_email_conflict_raises(db_async: AsyncSession) -> None:

@@ -89,6 +89,7 @@ export function NavDrawer({
           exit="exit"
           id="site-menu"
           initial="hidden"
+          role="dialog"
           style={{ top }}
           variants={menuSheet}
         >

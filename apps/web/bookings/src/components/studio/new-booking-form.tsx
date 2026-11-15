@@ -33,6 +33,8 @@ const SELECT = "w-full [&_select]:h-11";
 const INPUT = "h-11";
 
 export interface NewBookingFormProps {
+  /** The business currency; services do not carry one. */
+  currency: string;
   orgSlug: string;
   providers: BookingProviderPublic[];
   services: BookingServicePublic[];
@@ -43,6 +45,7 @@ export interface NewBookingFormProps {
 }
 
 export function NewBookingForm({
+  currency,
   orgSlug,
   providers,
   services,
@@ -98,7 +101,7 @@ export function NewBookingForm({
               {services.map((item) => (
                 <NativeSelectOption key={item.id} value={item.id}>
                   {item.name} ({formatDuration(item.duration_min)},{" "}
-                  {formatMoney(item.price_minor)})
+                  {formatMoney(item.price_minor, currency)})
                 </NativeSelectOption>
               ))}
             </NativeSelect>
@@ -211,7 +214,7 @@ export function NewBookingForm({
       {service && service.deposit_minor > 0 ? (
         <p className="text-muted-foreground text-sm">
           Staff bookings are confirmed without taking the{" "}
-          {formatMoney(service.deposit_minor)} deposit.
+          {formatMoney(service.deposit_minor, currency)} deposit.
         </p>
       ) : null}
       {state.status === "error" ? (

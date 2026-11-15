@@ -2,7 +2,7 @@
 
 **Status:** Superseded on 2026-11-13; kept for its production prerequisites  
 **Owner:** Barrels Grenada engineering (client decisions: Babydoll Beauty Bar owner)  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-14 (stale gap list corrected; the rest is as written on 2026-10-20)
 
 > **Superseded (owner, 13 Nov 2026).** The Babydoll site no longer hosts
 > booking: it is a static site, and `/book`, `/booking/[token]` and the
@@ -13,6 +13,17 @@
 > `apps/web/babydoll/src/data/site.ts` and the `/book` redirect in
 > `apps/web/babydoll/public/_redirects` and `vercel.json`. Sections 1d, 3.3 and
 > 3.4 no longer apply.
+>
+> **Use [babydoll-cutover.md](babydoll-cutover.md) for the current state and
+> the go-live order** (updated 14 Nov 2026). Corrections to this page, 14 Nov
+> 2026: `POST /bookings/org/bookings`, the `apps/web/bookings` app with
+> `/studio` (agenda, New booking, confirm and the other actions) and its
+> Settings page all exist and are released, so every "not built" or "does not
+> exist" below is out of date; the studio confirmed the services, prices and
+> durations, and the currency is Eastern Caribbean dollars; staging is seeded
+> and production is not. The steps in sections 3 and 3.9 that use the
+> `BABYDOLL_ONLINE_BOOKING` switch or `babydoll.barrels.gd/book` are replaced by
+> the Book-button step in the cutover checklist.
 
 This runbook moves Babydoll Beauty Bar from its Acuity booking link to Barrels
 Bookings (`babydoll.barrels.gd/book`). It is the checklist for handoff items
@@ -32,16 +43,23 @@ when marked Agent can do.
 These were checked against `origin/dev` on 2026-10-20 and change the cutover
 order:
 
-1. **Salon re-entry is blocked.** `POST /bookings/org/bookings` is not on dev
+1. **Salon re-entry is blocked.** *Resolved: the staff create route and the
+   `apps/web/bookings` studio (agenda, New booking) exist and are released.*
+   As written on 2026-10-20: `POST /bookings/org/bookings` is not on dev
    (the org routes end at `POST /org/bookings/{id}/complete`). The `apps/web/bookings`
    app (the `/studio` agenda and "New booking" form) does not exist. Until both
    land, the salon cannot re-enter upcoming appointments.
-2. **Confirmation is API-only.** The seed sets `requires_confirmation=True`, so
+2. **Confirmation is API-only.** *Resolved: staff confirm in `/studio`, and the
+   studio decided to keep confirming every booking (recorded 14 Nov 2026).*
+   As written: the seed sets `requires_confirmation=True`, so
    every public booking starts `pending`. Confirming needs
    `POST /bookings/org/bookings/{id}/confirm` with a member session or an API key.
    The owner chooses: keep confirmation (and confirm through the API until
    `/studio` exists) or set it to false in the profile before go-live.
-3. **Retiring Acuity is a code change too.** The BookBar, service menu and header
+3. **Retiring Acuity is a code change too.** *Changed: every Book link now goes
+   through `src/lib/book-link.ts`, which follows `ONLINE_BOOKING_URL`; the
+   switch and the site's `/book` page were removed.* As written: the BookBar,
+   service menu and header
    still link to `BOOKING_URL` (`https://babydollgnd.as.me`) in
    `apps/web/babydoll/src/data/site.ts` and its components. Switching
    `BABYDOLL_ONLINE_BOOKING` only changes `/book`. The links must point at `/book`
@@ -56,7 +74,9 @@ order:
 5. **Turnstile is off** in staging and production (SESSION_LOG, 2026-10-19).
    Public create is protected by the honeypot and rate limits only. Expect
    more spam in week one.
-6. **Currency is unconfirmed.** The seed stores XCD (`currency="XCD"`). The
+6. **Currency is unconfirmed.** *Resolved: the studio confirmed Eastern
+   Caribbean dollars; the bookings pages show `EC$` (#1394, on `dev`).* As
+   written: the seed stores XCD (`currency="XCD"`). The
    site shows `$`, and the SESSION_LOG lists currency as open with the client.
 7. **Two booking jobs are not in Redis telemetry.** The `JOBS` set in
    `src/operational_metrics.py` lists only four jobs. Neither
@@ -65,7 +85,8 @@ order:
    runtime signal (see 1c).
 8. **Babydoll's web app has no Sentry** (`apps/web/babydoll/AGENTS.md`, and
    `analytics-monitoring.md`). Customer-side errors surface only as failed API
-   calls.
+   calls. *Changed: the site is static and makes no API calls; the booking flow
+   runs in `apps/web/bookings`, which reports to Sentry.*
 
 ## 1. Production prerequisites
 
@@ -256,15 +277,19 @@ slots), 14 services, provider "Jeriann" with the published hours, and the
 `babydoll` public site. It grants no `payments` entitlement, so deposits stay a
 no-op even if a deposit is set.
 
-**The seed's durations are guesses.** The site publishes no durations. The
+**The seed's durations are guesses.** *Out of date: the studio confirmed the
+services, prices and durations (recorded 14 Nov 2026) and the seed carries them,
+with a 15-minute buffer after each service and an optional `--notify-email`
+(#1393, on `dev`).* As written: the site publishes no durations. The
 services and the confirmed values go in section 2. Prices in the seed are whole
 XCD and mirror `SERVICE_MENU`; currency is still open with the client (gap 6).
 
 **After the seed.** The salon maintains services, prices, hours and time off in
-`/studio/settings`. **That page is not built** (`apps/web/bookings` does not
-exist). Until it is, the owner edits through the organisation API with a
-`bookings.write` API key, or asks an agent to make the change. Creating keys is
-an organisation admin action.
+`/studio/<organisation>/settings`. *That page is built and released (time off
+per provider since v1.0.8).* As written: **that page is not built**
+(`apps/web/bookings` does not exist). Until it is, the owner edits through the
+organisation API with a `bookings.write` API key, or asks an agent to make the
+change. Creating keys is an organisation admin action.
 
 **Verify.** `GET https://api.barrels.gd/api/v1/bookings/public/babydoll-beauty-bar`
 returns the storefront (200) once seeded and 404 before (the same 404 for
@@ -302,6 +327,11 @@ the only way to confirm gap 4 in practice.
 presence check and, with the owner's go, the staging test.
 
 ## 2. Seeded services (confirm with the salon)
+
+*Out of date (14 Nov 2026): the studio has confirmed the services, prices and
+durations, and `seed.py` is the record of the confirmed values; the "Seeded min"
+column below is the 2026-10-20 guess and the empty columns were never filled in
+here.*
 
 Source: `apps/api/fastapi/src/bookings/seed.py` (`_MENU`) and
 `apps/web/babydoll/src/data/site.ts` (`SERVICE_MENU`). Minutes are the seed's

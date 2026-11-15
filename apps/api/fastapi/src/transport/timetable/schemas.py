@@ -11,6 +11,8 @@ from src.transport.models import (
     TransportTripStatus,
 )
 
+from . import transitions
+
 # Service time "HH:MM" after service-day midnight; hours run to 47 so a night
 # trip can pass 24:00 (GTFS convention).
 ServiceTime = Annotated[
@@ -135,6 +137,20 @@ class TimetableVersionSummary(BaseModel):
     updatedAt: UtcDateTime
     publishedAt: UtcDateTime | None
     tripCount: int
+    allowedActions: list[str] = Field(
+        default_factory=list,
+        description=(
+            "What this status allows: edit, publish, discard (all only while a "
+            "draft). Computed from the status alone; permissions and timetable "
+            "validation errors are still checked when the action is taken."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _fill_allowed_actions(self) -> Self:
+        # Derived, never read from the stored row or from a client.
+        self.allowedActions = transitions.allowed_actions(self.status)
+        return self
 
 
 class TimetableStopTimeView(BaseModel):

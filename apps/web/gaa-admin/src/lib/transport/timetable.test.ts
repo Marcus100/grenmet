@@ -10,6 +10,7 @@ import {
   hasBlockingIssues,
   issuesByTrip,
   moveItem,
+  versionAllows,
 } from "./timetable";
 
 const route = (id: number): TransportRoute => ({
@@ -100,5 +101,15 @@ describe("moveItem", () => {
     expect(moveItem(items, 2, -1)).toEqual(["a", "c", "b"]);
     expect(moveItem(items, 0, -1)).toBe(items);
     expect(items).toEqual(["a", "b", "c"]);
+  });
+});
+
+describe("versionAllows", () => {
+  it("offers only what the API lists for the version", () => {
+    const draft = { allowedActions: ["edit", "publish", "discard"] };
+    expect(versionAllows(draft, "edit")).toBe(true);
+    expect(versionAllows(draft, "publish")).toBe(true);
+    expect(versionAllows({ allowedActions: [] }, "edit")).toBe(false);
+    expect(versionAllows({}, "discard")).toBe(false);
   });
 });

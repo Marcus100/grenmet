@@ -205,6 +205,7 @@ export function eventLabel(
  * still awaited or show its size; the detail page shows paid and refunded.
  */
 export function agendaDepositView(booking: {
+  currency: string;
   deposit_minor: number;
   status: BookingStatus;
 }): StatusView {
@@ -212,7 +213,7 @@ export function agendaDepositView(booking: {
     return DEPOSIT_VIEW.due;
   }
   return {
-    label: `Deposit ${formatMoney(booking.deposit_minor)}`,
+    label: `Deposit ${formatMoney(booking.deposit_minor, booking.currency)}`,
     tone: "neutral",
   };
 }

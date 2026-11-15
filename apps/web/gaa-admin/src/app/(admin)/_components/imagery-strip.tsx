@@ -18,7 +18,7 @@ export function ImageryStrip({ images }: { images: WeatherImage[] }) {
           const url = getImageUrl(image.storagePath);
           return (
             <button
-              className="group bg-muted hover:ring-ring focus-visible:ring-ring/50 relative aspect-4/3 w-40 shrink-0 overflow-hidden rounded-lg border transition-all outline-none hover:ring-2 focus-visible:ring-3"
+              className="group bg-muted hover:ring-ring focus-visible:ring-ring/50 relative aspect-4/3 w-40 shrink-0 overflow-hidden rounded-lg border transition-shadow outline-none hover:ring-2 focus-visible:ring-3"
               key={image.id}
               onClick={() => setSelected(image)}
               type="button"

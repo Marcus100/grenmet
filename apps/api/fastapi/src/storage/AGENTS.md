@@ -15,4 +15,5 @@
 - Auth: `UploadMember` (`dependencies.py`) applies the `OrgContext` denial rules (`resolve_org_context`) but also accepts app-scoped tokens, because Events signs in with an `app=events` token. An app token can only upload for its own app (403). Unconfigured storage answers 503 "Uploads are not configured".
 - Reads never expose bucket URLs. `GET /storage/files/{id}` (organisation members only; other organisations and pending files are 404) returns a 5-minute presigned GET as JSON. Purposes with `public=True` (organiser logo, listing image) are also served unauthenticated by id through `GET /storage/public/{id}`: a 307 to a 5-minute presigned GET with `Cache-Control: public, max-age=120`. Other domains store only the file id and call `uploads.file_is_usable(file_id, organisation_id=…, purpose=…)` before saving it.
 - Ops: the bucket needs a CORS rule allowing `PUT` with `Content-Type` from the web origins, or browser uploads fail.
-- Tests: `tests/storage/test_uploads.py` (fake store: real signing, in-memory HEAD/DELETE).
+- The one status move (pending to complete) is declared in `transitions.py` and written through `move_upload`.
+- Tests: `tests/storage/test_uploads.py` (fake store: real signing, in-memory HEAD/DELETE), `tests/storage/test_upload_transitions.py`.

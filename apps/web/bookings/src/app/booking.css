@@ -15,6 +15,10 @@
   background: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    opacity 120ms ease-out;
 }
 .btn:focus-visible,
 .chip:has(input:focus-visible),
@@ -40,6 +44,12 @@
 }
 .muted {
   color: var(--muted-foreground);
+}
+/* A long email, name or link breaks instead of pushing past the edge. */
+.step,
+.notice,
+.summary dd {
+  overflow-wrap: anywhere;
 }
 .book-form,
 .manage {
@@ -78,6 +88,18 @@
   cursor: pointer;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 4px);
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    opacity 120ms ease-out;
+}
+.service-option:active {
+  border-color: var(--primary);
+}
+@media (hover: hover) and (pointer: fine) {
+  .service-option:hover {
+    border-color: var(--primary);
+  }
 }
 .service-option + .service-option {
   margin-top: 0.5rem;
@@ -151,9 +173,24 @@
   padding: 0 1rem;
   font-size: 0.875rem;
   font-weight: 500;
+  /* A chip is a control: holding it must not select its label. */
+  -webkit-user-select: none;
+  user-select: none;
   background: var(--secondary);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 4px);
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    opacity 120ms ease-out;
+}
+.chip:active span {
+  border-color: var(--primary);
+}
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover span {
+    border-color: var(--primary);
+  }
 }
 .chip:has(input:checked) span {
   color: var(--primary-foreground);
@@ -298,4 +335,26 @@ fieldset.notice {
 .code-actions .btn,
 .code-input {
   min-height: 44px;
+}
+/*
+  Pressed and hover feedback for buttons (chips and service rows have theirs
+  beside their own rules). The shared app-feel layer switches the browser's
+  tap highlight off, so each control shows its own pressed state. Hover is for
+  mouse pointers only: on a touch screen it would stay stuck after a tap.
+*/
+.btn:active:not(:disabled) {
+  background: var(--secondary);
+}
+.btn-solid:active:not(:disabled) {
+  background: var(--primary);
+  opacity: 0.85;
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) {
+    background: var(--secondary);
+  }
+  .btn-solid:hover:not(:disabled) {
+    background: var(--primary);
+    opacity: 0.9;
+  }
 }

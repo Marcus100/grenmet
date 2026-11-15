@@ -41,11 +41,19 @@ READ_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND}
 WRITE_ERRORS = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 
 
+def _view(contact: Contact, *, account_link: bool) -> ContactPublic:
+    """The contact as a response. ``user_id`` is the Barrels account UUID, the one
+    identity every business would otherwise share (ADR-0058), so organisation
+    responses leave it out; only the superuser view shows it."""
+    view = ContactPublic.model_validate(contact, from_attributes=True)
+    return view if account_link else view.model_copy(update={"user_id": None})
+
+
 async def _detail(session: SessionDep, contact: Contact) -> ContactDetailPublic:
     current = await service.current_consents(session, contact.id)
     return ContactDetailPublic.model_validate(
         {
-            **ContactPublic.model_validate(contact, from_attributes=True).model_dump(),
+            **_view(contact, account_link=False).model_dump(),
             "consents": [
                 ContactConsentPublic.model_validate(c, from_attributes=True)
                 for c in current.values()
@@ -54,9 +62,11 @@ async def _detail(session: SessionDep, contact: Contact) -> ContactDetailPublic:
     )
 
 
-def _page(rows: list[Contact], count: int, page: int, size: int) -> ContactListPublic:
+def _page(
+    rows: list[Contact], count: int, page: int, size: int, *, account_link: bool = False
+) -> ContactListPublic:
     return ContactListPublic(
-        data=[ContactPublic.model_validate(r, from_attributes=True) for r in rows],
+        data=[_view(r, account_link=account_link) for r in rows],
         count=count,
         page=page,
         size=size,
@@ -288,4 +298,4 @@ async def list_admin_contacts(
         include_erased=include_erased,
         pagination=pagination,
     )
-    return _page(rows, count, pagination.page, pagination.size)
+    return _page(rows, count, pagination.page, pagination.size, account_link=True)

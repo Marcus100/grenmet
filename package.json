@@ -2,10 +2,10 @@
   "name": "barrelsgd-monorepo",
   "version": "0.2.0",
   "private": true,
-  "packageManager": "pnpm@12.3.4",
+  "packageManager": "pnpm@12.18.0+sha512.9d7882d5dc82147ecfc4e062aa34834e0ad0296710a1837a1115ae012127d36b7109e321ac1598a1dd0a65597681b1e99917e12ed0d749eae91187943363beb3",
   "engines": {
     "node": ">=24",
-    "pnpm": ">=12.3.4"
+    "pnpm": ">=12.18.0"
   },
   "scripts": {
     "build": "turbo run build",
@@ -31,6 +31,7 @@
     "dev:web:elections": "turbo run dev --filter=@barrelsgd/web-elections",
     "dev:web:babydoll": "turbo run dev --filter=@barrelsgd/web-babydoll",
     "dev:web:commit": "turbo run dev --filter=@barrelsgd/web-commit",
+    "dev:pwa:printix": "turbo run dev --filter=@barrelsgd/pwa-printix",
     "dev:web:bookings": "turbo run dev --filter=@barrelsgd/web-bookings",
     "dev:web:account": "turbo run dev --filter=@barrelsgd/web-account",
     "design-system:sync": "node scripts/design-system/design-system-sync.mjs --write",
@@ -66,6 +67,7 @@
     "e2e": "node scripts/verification/e2e-if-up.mjs",
     "e2e:staging": "playwright test -c tests/staging/playwright.config.ts",
     "ui:screenshots": "node scripts/agents/ui-screenshots.mjs",
+    "guide:screenshots": "node scripts/agents/guide-screenshots.mjs",
     "test:docs": "node --test scripts/docs/*.test.mjs",
     "prepare": "husky",
     "lint": "turbo run lint",

@@ -1,8 +1,8 @@
 # Host hardening runbook
 
-**Status:** Active runbook (owner actions; nothing here has been applied yet)  
+**Status:** Active runbook (owner actions). Applied so far: step 2 on staging (the `deploy` sudo user; root and password SSH login off, checked by the owner on 2026-11-13: root refused, `deploy` accepted). This page does not record which other steps have been applied  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-14
 
 Plain, step-by-step hardening for the DigitalOcean droplets. Every step says
 **why**, gives the exact command or dashboard path, how to **verify** it, and how
@@ -19,7 +19,7 @@ such as `<OWNER_IP>`.
 | Host | Source of truth | SSH login today | Runner labels |
 | --- | --- | --- | --- |
 | Production core | [deployment guide](../deployment.md), [infrastructure](../infrastructure.md) | `deploy` (key) | `self-hosted, production, core` |
-| Staging core | same | `root` (key) | `self-hosted, staging, core` |
+| Staging core | same | `deploy` (key, with sudo); root and password login are off (checked by the owner on 2026-11-13: root refused, `deploy` accepted) | `self-hosted, staging, core` |
 | Weather host (per environment) | [`infra/weather/README.md`](../../infra/weather/README.md) | not documented | `self-hosted, <environment>, weather` |
 
 **Unverified:** the weather droplets are described as a required target in
@@ -98,11 +98,12 @@ after updates until the Compose file is fixed through a reviewed change.
 **Why:** passwords can be guessed; keys cannot in practice. Logging in as `root`
 means any slip runs with full power, and `root` is the name every attacker tries.
 
-### 2a. Staging only: create a sudo user before removing root
+### 2a. A host that only has root: create a sudo user before removing root
 
-Staging is reached as `root` today (see the [deployment guide](../deployment.md)).
-Production already uses `deploy`. Do this on staging (and on any weather host
-that only has root):
+**Done on staging** (checked by the owner on 2026-11-13: root refused, `deploy` accepted): the administrator logs in as `deploy`
+with sudo, and root login and password login are off. Production already used
+`deploy`. The steps stay here for any host that is still reached only as `root`
+(for example a new weather host):
 
 ```bash
 # Logged in as root, in your FIRST window
@@ -129,7 +130,7 @@ Only continue once both succeed. If they fail, fix it from the first window.
 **Undo:** `deluser --remove-home deploy` (as root, only if you have not yet
 disabled root login).
 
-**Unverified:** whether the staging runner or any host timer depends on `root`'s
+**Unverified for a new host:** whether its runner or any host timer depends on `root`'s
 home directory or crontab. Check before disabling root:
 
 ```bash

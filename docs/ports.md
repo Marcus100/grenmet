@@ -29,7 +29,7 @@ is allocated by category.
 | `3000–3019` | Legacy, frozen | Arrival-ordered. 3008 shop, 3016 hr, 3017 business, 3018 account, 3019 spare; **3011 was never used and is never assigned** |
 | `3020–3029` | Platform surfaces | 3020 developers, 3021 status |
 | `3030–3059` | Barrels products | 3030 salesbus POS, 3031 tickets, 3032 passport, 3033 pay, 3034 media, 3035-3041 sector products (education, automotive, delivery, bus, park, taxi, homegrown) |
-| `3060–3089` | Client-dedicated apps | 3060 gaa corporate, 3061 janitor PWA, 3062 bus PWA, 3063 gms PWA |
+| `3060–3089` | Client-dedicated apps | 3060 gaa corporate, 3061 janitor PWA, 3062 bus PWA, 3063 gms PWA, 3064 Printix scanner PWA |
 | `3090–3099` | Dev tools | 3090 UI gallery, 3091 email preview |
 | `4000–4099` | Retired (Hono API) | Never reuse |
 | `8000–8019` | Barrels Python services | 8000 FastAPI, 8010 ai-gateway |
@@ -85,6 +85,7 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | 3061 | `@barrelsgd/web-janitor` (janitor PWA) | Reserved (client) |
 | 3062 | `@barrelsgd/web-gaa-bus` (bus PWA) | Reserved (client) |
 | 3063 | `@barrelsgd/web-gms-pwa` (GMS PWA) | Reserved (client) |
+| 3064 | `@barrelsgd/pwa-printix` (Printix ticket scanner PWA, `apps/pwa/printix`) | Built, dev only; not deployed (client) |
 | 3090 | `ui-gallery` (UI gallery, dev only) | Reserved (dev tool) |
 | 3091 | `email-preview` (email preview, dev only) | Reserved (dev tool) |
 
@@ -344,6 +345,17 @@ uses a port reserved for another or retired, or when ranges overlap:
 4. `scripts/ci/release-scope.mjs` — the image's `port` (the GitHub workflow matrices read it)
 5. `apps/web/<app>/AGENTS.md` — the "Port **N**" header
 6. This file
+
+A new app host also needs one step outside the repository. The Cloudflare
+origin-secret rule lists hostnames, built from `PUBLIC_HOSTS` and `PRIVATE_HOSTS`
+in `scripts/production/cloudflare_rulesets.py` (add the host there in the same
+pull request). After the release that adds the host, re-apply the rule for each
+environment:
+`python3 scripts/production/cloudflare-origin-header.py --environment <env> --apply`
+([Cloudflare proxy runbook](operations/cloudflare-proxy.md), step 3). Without it,
+every request to the new host answers 403 once the proxy gate is on. The account
+app's host was added this way on staging on 2026-11-14; production is still to do
+(#1335).
 
 ## Auth return-host / CORS allowlists (env files — edit manually)
 
