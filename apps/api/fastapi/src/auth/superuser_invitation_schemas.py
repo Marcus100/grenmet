@@ -45,3 +45,6 @@ class SuperuserInvitationAccept(BaseModel):
 
 class SuperuserInvitationCodeVerify(SuperuserInvitationAccept):
     code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+    # Required only for an existing verified account with an authenticator enrolled
+    # (the same rule as the emailed-code sign-in).
+    totp_code: str | None = Field(default=None, max_length=64)

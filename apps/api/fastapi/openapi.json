@@ -110491,6 +110491,18 @@
             "minLength": 6,
             "pattern": "^\\d{6}$",
             "title": "Code"
+          },
+          "totp_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Code"
           }
         },
         "type": "object",

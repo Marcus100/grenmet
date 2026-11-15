@@ -12,4 +12,5 @@ export const superuserInvitationCodeVerifySchema = z.object({
     .min(6)
     .max(6)
     .regex(/^\d{6}$/),
+  totp_code: z.union([z.string().max(64), z.null()]).optional(),
 });

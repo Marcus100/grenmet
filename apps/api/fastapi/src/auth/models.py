@@ -12,7 +12,9 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
+    Index,
     String,
+    text,
 )
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -240,13 +242,23 @@ class SuperuserInvitation(Base):
     address the invitation was sent to. Accepted and revoked rows stay for audit."""
 
     __tablename__ = "superuser_invitation"
+    __table_args__ = (
+        # One open invitation per address; accepted and revoked rows fall outside it.
+        Index(
+            "superuser_invitation_open_email_uq",
+            "email",
+            unique=True,
+            postgresql_where=text("accepted_at IS NULL AND revoked_at IS NULL"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    email: Mapped[str] = mapped_column(String(320), index=True)
+    email: Mapped[str] = mapped_column(String(320))
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     reason: Mapped[str] = mapped_column(String(500))
-    invited_by_user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("user.id"), index=True
+    # Nulled if the inviter's account is ever deleted; such an invitation is then refused.
+    invited_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), index=True, nullable=True
     )
     # Naive UTC, like every other timestamp here (``utc_now``).
     expires_at: Mapped[datetime]

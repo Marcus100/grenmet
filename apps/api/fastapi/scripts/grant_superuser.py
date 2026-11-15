@@ -8,6 +8,10 @@ sign-in. Preview by default; ``--apply`` makes the change.
     uv run --frozen --package fast-back python scripts/grant_superuser.py EMAIL
     uv run --frozen --package fast-back python scripts/grant_superuser.py EMAIL --apply
 
+Refused while ANY active superuser exists. On a system that was seeded with the
+placeholder FIRST_SUPERUSER account, that placeholder must be deactivated first
+(docs/operations/privileged-mfa.md); otherwise this script stays refused by design.
+
 The account must exist, be active and have a verified email address (sign in with
 an emailed code first). The grant also clears staff approval. It writes one audit row
 with no actor, because it is an operator action taken outside any session. No token,
@@ -64,7 +68,9 @@ async def grant_first_superuser(
             "admin app instead",
         )
     user = (
-        await session.execute(select(User).where(User.email == clean).with_for_update())
+        await session.execute(
+            select(User).where(func.lower(User.email) == clean).with_for_update()
+        )
     ).scalar_one_or_none()
     if user is None:
         return GrantPlan(clean, None, False, "no account has this address")

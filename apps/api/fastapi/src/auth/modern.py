@@ -332,5 +332,9 @@ async def accept_superuser_invitation(
     *, request: Request, session: SessionDep, body: SuperuserInvitationCodeVerify
 ) -> SessionLoginResponse:
     return await invitations.accept_invitation(
-        session, request, token=body.token, code=body.code
+        session,
+        request,
+        token=body.token,
+        code=body.code,
+        totp_code=body.totp_code,
     )

@@ -197,6 +197,11 @@ async def update_user(
         await session.execute(
             delete(AuthSession).where(AuthSession.user_id == db_user.id)
         )
+    if user_data.get("is_active") is False or user_data.get("is_superuser") is False:
+        # Deactivated or demoted: the invitations this account sent stop working.
+        from src.auth import superuser_invitation
+
+        await superuser_invitation.close_for_inviter(session, db_user.id)
     if "cms_access" in user_data:
         await session.execute(
             delete(AuthSession).where(
@@ -495,6 +500,10 @@ async def delete_user(
         delete(NotificationPreference).where(NotificationPreference.user_id == user_id)
     )
     _anonymise_fields(user, token, now)
+    # An anonymised superuser's open invitations must not outlive them (ADR-0059).
+    from src.auth import superuser_invitation
+
+    await superuser_invitation.close_for_inviter(session, user_id)
     # The helpers above change the session's actor (the redemption reversal names the
     # account, and the contact link restores what it found). The deletion is the
     # actor's act, so name them again before the audit row is written.

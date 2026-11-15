@@ -531,6 +531,10 @@ async def offboard(session: AsyncSession, actor: User, user_id: uuid.UUID) -> No
         session, actor, await _staff_organisation_id(session, user_id)
     )
     user.is_active = False
+    # Offboarding: the invitations this account sent stop working (ADR-0059).
+    from src.auth import superuser_invitation
+
+    await superuser_invitation.close_for_inviter(session, user_id)
     credential.revoked_at = utc_now()
     employment = await employment_for(session, user_id)
     if employment:

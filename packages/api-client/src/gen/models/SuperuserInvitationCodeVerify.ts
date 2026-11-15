@@ -17,4 +17,5 @@ export type SuperuserInvitationCodeVerify = {
    * @type string
    */
   code: string;
+  totp_code?: string | null;
 };

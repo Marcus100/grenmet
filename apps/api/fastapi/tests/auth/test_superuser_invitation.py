@@ -9,14 +9,20 @@ import httpx
 import pyotp
 import pytest
 from cryptography.fernet import Fernet
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
 from src.auth import app_service, service, totp
+from src.auth import superuser_invitation as invitations
 from src.auth.config import auth_settings
+from src.auth.lockout import normalised_address
+from src.auth.models import Session as LoginSession
 from src.auth.models import SuperuserInvitation, User
-from src.auth.superuser_invitation import hash_token
+from src.auth.modern_models import AuthChallenge
+from src.auth.superuser_invitation import accept_link, hash_token
+from src.config import settings
+from src.exceptions import AppException
 from src.notifications.models import OutboundEmail
 from src.utils.datetime import utc_now
 from tests.factories import make_user
@@ -33,6 +39,7 @@ def encryption(monkeypatch):
     monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "disabled")
     # The emailed code is fixed so a test can enter it.
     monkeypatch.setattr(app_service, "new_code", lambda: "424242")
+    monkeypatch.setattr(settings, "FRONTEND_HOST", "https://auth.example.test")
 
 
 async def account_headers(db: AsyncSession, user: User, *, mfa: bool) -> dict[str, str]:
@@ -94,7 +101,9 @@ async def mailed_token(db: AsyncSession, email: str) -> str:
     )
     assert row is not None
     link = row.props["acceptLink"]
-    return parse_qs(urlparse(link).query)["token"][0]
+    # The token lives in the fragment, never in the query string (access logs).
+    assert "token=" not in urlparse(link).query
+    return parse_qs(urlparse(link).fragment)["token"][0]
 
 
 async def grant_rows(db: AsyncSession, user: User) -> list[AuditEntry]:
@@ -379,3 +388,377 @@ async def test_fallback_email_carries_the_link_and_escapes_the_inviter() -> None
     assert "https://auth.example.test/superuser-invite?token=abc" in html
     assert "<script>x</script>" not in html
     assert "expires in 24 hours" in html
+
+
+# --- Review fixes -----------------------------------------------------------------
+
+
+async def test_demoted_or_deactivated_inviter_voids_the_open_invitation(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    inviter, headers = await superuser_headers(db_async)
+    await invite(async_client, headers, "demoted@example.org")
+    token = await mailed_token(db_async, "demoted@example.org")
+    inviter.is_superuser = False
+    db_async.add(inviter)
+    await db_async.commit()
+    await async_client.post(f"{BASE}/code", json={"token": token})
+    response = await async_client.post(
+        f"{BASE}/accept", json={"token": token, "code": "424242"}
+    )
+    assert response.status_code == 400
+    invitee = (
+        (
+            await db_async.execute(
+                select(User).where(User.email == "demoted@example.org")
+            )
+        )
+        .scalars()
+        .first()
+    )
+    assert invitee is None
+
+
+async def test_deactivated_inviter_voids_the_open_invitation(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    inviter, headers = await superuser_headers(db_async)
+    await invite(async_client, headers, "off@example.org")
+    token = await mailed_token(db_async, "off@example.org")
+    inviter.is_active = False
+    db_async.add(inviter)
+    await db_async.commit()
+    response = await async_client.post(
+        f"{BASE}/accept", json={"token": token, "code": "424242"}
+    )
+    assert response.status_code == 400
+
+
+async def test_offboarding_closes_the_inviters_open_invitations(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    inviter, headers = await superuser_headers(db_async)
+    created = (await invite(async_client, headers, "closed@example.org")).json()
+    closed = await invitations.close_for_inviter(db_async, inviter.id)
+    await db_async.commit()
+    assert closed == 1
+    row = await db_async.get(SuperuserInvitation, uuid.UUID(created["id"]))
+    assert row is not None and row.revoked_at is not None
+
+
+class OncePerKey:
+    """Cooldown stand-in: a key is allowed once (the real one is Redis-backed)."""
+
+    def __init__(self) -> None:
+        self.seen: set[str] = set()
+
+    async def allow(self, key: str) -> bool:
+        if key in self.seen:
+            return False
+        self.seen.add(key)
+        return True
+
+
+class AlwaysAllow:
+    async def allow(self, key: str) -> bool:
+        return True
+
+
+async def test_invitation_code_has_its_own_mailbox_bucket(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A sign-in code for the address must not silence the invitation code."""
+    monkeypatch.setattr(app_service, "email_code_cooldown", OncePerKey())
+    monkeypatch.setattr(app_service, "email_code_send_limit", AlwaysAllow())
+    _, headers = await superuser_headers(db_async)
+    await invite(async_client, headers, "shared@example.org")
+    token = await mailed_token(db_async, "shared@example.org")
+    # The address's sign-in cooldown is now used up.
+    key = normalised_address("shared@example.org")
+    assert await app_service._code_request_allowed(None, key)
+    assert not await app_service._code_request_allowed(None, key)
+    await async_client.post(f"{BASE}/code", json={"token": token})
+    challenges = (
+        (
+            await db_async.execute(
+                select(AuthChallenge).where(AuthChallenge.purpose == "superuser-invite")
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert len(challenges) == 1
+
+
+async def test_squatted_account_is_fully_cleared_and_the_grant_says_so(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    _, headers = await superuser_headers(db_async)
+    await invite(async_client, headers, "squatted@example.org")
+    token = await mailed_token(db_async, "squatted@example.org")
+    squatter = await make_user(db_async, email="squatted@example.org", verified=False)
+    squatter.registration_pending = False
+    squatter.totp_enabled = True
+    squatter.totp_secret = totp.encrypt_secret(pyotp.random_base32())
+    squatter.mfa_recovery_hashes = ["abc"]
+    old_hash = squatter.hashed_password
+    db_async.add(squatter)
+    await db_async.commit()
+    old_session, _ = await service.create_session(
+        session=db_async, user=squatter, client_type="web", app_name="auth"
+    )
+    await db_async.commit()
+    await async_client.post(f"{BASE}/code", json={"token": token})
+    response = await async_client.post(
+        f"{BASE}/accept", json={"token": token, "code": "424242"}
+    )
+    assert response.status_code == 200
+    await db_async.refresh(squatter)
+    assert squatter.hashed_password != old_hash
+    assert squatter.password_setup_pending is True
+    assert squatter.totp_enabled is False and squatter.totp_secret is None
+    assert squatter.mfa_recovery_hashes == []
+    still_there = (
+        (
+            await db_async.execute(
+                select(LoginSession.id).where(LoginSession.id == old_session.id)
+            )
+        )
+        .scalars()
+        .first()
+    )
+    assert still_there is None
+    rows = await grant_rows(db_async, squatter)
+    assert len(rows) == 1
+    assert "retired_unverified" in json.dumps(rows[0].changes)
+    retired = (
+        (
+            await db_async.execute(
+                select(AuditEntry).where(
+                    AuditEntry.record_id == str(squatter.id),
+                    AuditEntry.action == "pw_retired",
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert len(retired) == 1
+
+
+async def test_verified_account_with_an_authenticator_must_give_its_code(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """Mailbox access alone must not grant the flag (the emailed-code sign-in rule)."""
+    _, headers = await superuser_headers(db_async)
+    await invite(async_client, headers, "guarded@example.org")
+    token = await mailed_token(db_async, "guarded@example.org")
+    secret = pyotp.random_base32()
+    holder = await make_user(db_async, email="guarded@example.org")
+    holder.totp_enabled = True
+    holder.totp_secret = totp.encrypt_secret(secret)
+    db_async.add(holder)
+    await db_async.commit()
+    await async_client.post(f"{BASE}/code", json={"token": token})
+    without = await async_client.post(
+        f"{BASE}/accept", json={"token": token, "code": "424242"}
+    )
+    assert without.status_code == 400
+    await db_async.refresh(holder)
+    assert holder.is_superuser is False
+    with_code = await async_client.post(
+        f"{BASE}/accept",
+        json={"token": token, "code": "424242", "totp_code": pyotp.TOTP(secret).now()},
+    )
+    assert with_code.status_code == 200
+    await db_async.refresh(holder)
+    assert holder.is_superuser is True
+
+
+async def test_every_active_superuser_is_told_and_the_mail_has_no_token_or_reason(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    inviter, headers = await superuser_headers(db_async)
+    await invite(async_client, headers, "notice@example.org")
+    token = await mailed_token(db_async, "notice@example.org")
+    admins = {
+        user.email
+        for user in (
+            await db_async.execute(
+                select(User).where(
+                    User.is_superuser.is_(True), User.is_active.is_(True)
+                )
+            )
+        ).scalars()
+    }
+    notices = (
+        (
+            await db_async.execute(
+                select(OutboundEmail).where(OutboundEmail.template == "notification")
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert {row.to_email for row in notices} >= {inviter.email} | admins
+    for row in notices:
+        rendered = json.dumps(row.props)
+        assert token not in rendered
+        assert REASON not in rendered
+
+    await async_client.post(f"{BASE}/code", json={"token": token})
+    await async_client.post(f"{BASE}/accept", json={"token": token, "code": "424242"})
+    accepted = [
+        row
+        for row in (
+            await db_async.execute(
+                select(OutboundEmail).where(OutboundEmail.template == "notification")
+            )
+        ).scalars()
+        if row.props.get("title") == "Superuser invitation accepted"
+    ]
+    assert {row.to_email for row in accepted} >= {inviter.email}
+
+
+async def test_a_new_invitation_supersedes_the_open_one_and_the_audit_says_so(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    _, headers = await superuser_headers(db_async)
+    first = (await invite(async_client, headers, "twice@example.org")).json()
+    second = (await invite(async_client, headers, "twice@example.org")).json()
+    pending = (await async_client.get(BASE, headers=headers)).json()
+    assert [row["id"] for row in pending] == [second["id"]]
+    superseded = (
+        (
+            await db_async.execute(
+                select(AuditEntry).where(
+                    AuditEntry.record_id == first["id"],
+                    AuditEntry.action == "superseded",
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert len(superseded) == 1
+
+
+async def test_inactive_account_is_refused_whatever_the_case_of_its_address(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    _, headers = await superuser_headers(db_async)
+    gone = await make_user(db_async, email="Mixed.Case@Example.org")
+    gone.is_active = False
+    db_async.add(gone)
+    await db_async.commit()
+    response = await invite(async_client, headers, "mixed.case@example.org")
+    assert response.status_code == 400
+
+
+async def test_acceptance_finds_the_existing_account_whatever_the_case(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    _, headers = await superuser_headers(db_async)
+    existing = await make_user(db_async, email="Case.User@Example.org")
+    await invite(async_client, headers, "case.user@example.org")
+    token = await mailed_token(db_async, "case.user@example.org")
+    await async_client.post(f"{BASE}/code", json={"token": token})
+    response = await async_client.post(
+        f"{BASE}/accept", json={"token": token, "code": "424242"}
+    )
+    assert response.status_code == 200
+    count = await db_async.scalar(
+        select(func.count(User.id)).where(
+            func.lower(User.email) == "case.user@example.org"
+        )
+    )
+    assert count == 1
+    await db_async.refresh(existing)
+    assert existing.is_superuser is True
+
+
+async def test_closed_invitations_are_purged_ninety_days_after_they_end(
+    db_async: AsyncSession,
+) -> None:
+    inviter = await make_user(db_async, superuser=True)
+    now = utc_now()
+    base = {
+        "reason": REASON,
+        "invited_by_user_id": inviter.id,
+        "created_at": now - timedelta(days=200),
+    }
+    db_async.add_all(
+        [
+            SuperuserInvitation(
+                id=uuid.uuid4(),
+                email="a@example.org",
+                token_hash="h-a",
+                expires_at=now - timedelta(days=190),
+                accepted_at=now - timedelta(days=100),
+                **base,
+            ),
+            SuperuserInvitation(
+                id=uuid.uuid4(),
+                email="b@example.org",
+                token_hash="h-b",
+                expires_at=now - timedelta(days=190),
+                revoked_at=now - timedelta(days=100),
+                **base,
+            ),
+            SuperuserInvitation(
+                id=uuid.uuid4(),
+                email="c@example.org",
+                token_hash="h-c",
+                expires_at=now - timedelta(days=100),
+                **base,
+            ),
+            SuperuserInvitation(
+                id=uuid.uuid4(),
+                email="d@example.org",
+                token_hash="h-d",
+                expires_at=now + timedelta(days=1),
+                revoked_at=now - timedelta(days=10),
+                **base,
+            ),
+        ]
+    )
+    await db_async.commit()
+    deleted = await invitations.purge_closed_invitations(db_async)
+    await db_async.commit()
+    assert deleted == 3
+    left = (await db_async.execute(select(SuperuserInvitation.email))).scalars().all()
+    assert left == ["d@example.org"]
+
+
+def test_accept_link_keeps_the_token_in_the_fragment(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "FRONTEND_HOST", "https://auth.example.test/")
+    assert accept_link("abc") == "https://auth.example.test/superuser-invite#token=abc"
+
+
+def test_accept_link_refuses_when_no_auth_host_is_configured(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "FRONTEND_HOST", "")
+    with pytest.raises(AppException) as refused:
+        accept_link("abc")
+    assert refused.value.status_code == 503
+
+
+def test_sentry_event_cannot_carry_the_token() -> None:
+    from src.telemetry import scrub_sentry_event
+
+    token = "t" * 43
+    event = {
+        "exception": {
+            "values": [
+                {
+                    "type": "ValueError",
+                    "stacktrace": {"frames": [{"vars": {"token": token}}]},
+                }
+            ]
+        },
+        "request": {"data": token},
+        "extra": {"token": token},
+        "breadcrumbs": {"values": [{"message": token}]},
+    }
+    assert token not in json.dumps(scrub_sentry_event(event, {}))
