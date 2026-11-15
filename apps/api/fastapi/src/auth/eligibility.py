@@ -40,13 +40,19 @@ async def request_staff_access(*, session: AsyncSession, user: User) -> User:
     return user
 
 
-def is_staff_eligible(user: User) -> bool:
-    """The staff gate ``get_authenticated_user`` applies, for staff-app handoffs."""
-    return (
-        user.is_active
-        and not user.registration_pending
-        and not (user.password_setup_pending and user.email_verified_at is None)
-    )
+def is_staff_eligible(user: User, *, superuser_only: bool = False) -> bool:
+    """The staff gate ``get_authenticated_user`` applies, for staff-app handoffs.
+
+    ``registration_pending`` (staff approval) does not block a superuser on a
+    superuser-only app such as barrels-admin (ADR-0059 rule 5). GAA and GMS staff
+    apps are unchanged."""
+    if not user.is_active or (
+        user.password_setup_pending and user.email_verified_at is None
+    ):
+        return False
+    if superuser_only and user.is_superuser:
+        return True
+    return not user.registration_pending
 
 
 async def is_eligible_for_app(

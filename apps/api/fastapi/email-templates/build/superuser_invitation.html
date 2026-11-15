@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accept your administrator invitation</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f8fc;font-family:Arial,Helvetica,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;">{{ inviterName }} invited you to be an administrator</div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f3f8fc;">
+    <tr>
+      <td align="center" style="padding:40px 12px;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background-color:#ffffff;border-radius:8px;">
+          <tr>
+            <td style="padding:32px 40px 0;">
+              <p style="color:#6b7280;font-size:13px;letter-spacing:0.04em;margin:0 0 8px;text-transform:uppercase;">{{ projectName }}</p>
+              <p style="color:#0b132b;font-size:20px;font-weight:600;line-height:1.4;margin:0;">Accept your administrator invitation</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 40px 32px;">
+              <p style="color:#4b5563;font-size:16px;line-height:1.6;margin:12px 0;">{{ inviterName }} invited you to be an administrator of {{ projectName }}. Open the link, then enter the six-digit code we email to this address. You will set up an authenticator app next.</p>
+              <p style="margin:24px 0;">
+                <a href="{{ acceptLink }}" style="background-color:#0b63ee;border-radius:8px;color:#ffffff;display:inline-block;font-size:16px;font-weight:600;padding:12px 28px;text-decoration:none;">Open invitation</a>
+              </p>
+              <hr style="border:0;border-top:1px solid #d0d5dd;margin:24px 0;">
+              <p style="color:#6b7280;font-size:14px;line-height:1.5;margin:0;">The link works once and expires in {{ validHours }} hours. If you were not expecting this, ignore this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

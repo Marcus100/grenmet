@@ -633,6 +633,35 @@ async def purge_expired_data(ctx: dict[str, Any]) -> int:
     return result.total
 
 
+@monitored(schedule="25 4 * * *", checkin_margin=30, max_runtime=60)
+async def purge_superuser_invitations(ctx: dict[str, Any]) -> int:
+    """Delete superuser invitations that ended more than 90 days ago (ADR-0059).
+
+    Accepted, revoked and expired rows go; their audit rows stay. Idempotent."""
+    from src.auth import superuser_invitation
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            deleted = await superuser_invitation.purge_closed_invitations(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "purge_superuser_invitations",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"),
+        "purge_superuser_invitations",
+        str(ctx.get("job_id", "")),
+        True,
+    )
+    return deleted
+
+
 @monitored(schedule="50 3 * * *", checkin_margin=30, max_runtime=60)
 async def clear_former_staff_personal_details(ctx: dict[str, Any]) -> int:
     """Remove date of birth and address of anonymised former staff past the retention
@@ -740,6 +769,7 @@ class WorkerSettings:
         send_daily_newsletter,
         release_social_posts,
         purge_expired_data,
+        purge_superuser_invitations,
         clear_former_staff_personal_details,
         check_nhc_failures,
         check_feed_freshness,
@@ -820,6 +850,8 @@ class WorkerSettings:
         cron(release_social_posts, run_at_startup=False),
         # Retention purge, 03:30 UTC (23:30 Grenada); idempotent and batched.
         cron(purge_expired_data, hour=3, minute=30, run_at_startup=False),
+        # Superuser invitations ended over 90 days ago, 04:25 UTC (00:25 Grenada).
+        cron(purge_superuser_invitations, hour=4, minute=25, run_at_startup=False),
         # Former staff date of birth and address, 6 years after employment ends
         # (#1431), 03:50 UTC; idempotent and batched.
         cron(

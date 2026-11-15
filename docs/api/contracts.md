@@ -709,6 +709,23 @@ Public sites registered for single sign-on (`weather`, `mbia`, `signal`, `docs`,
 handoff grants their `<key>-member` role (`app.<key>.access`) on first visit
 instead of returning 409. Events keeps the "Join" prompt.
 
+Superuser invitations (ADR-0059 rule 1). `POST /auth/superuser-invitations` (create),
+`GET /auth/superuser-invitations` (open invitations, no tokens) and
+`POST /auth/superuser-invitations/{id}/revoke` need a superuser with an enrolled
+authenticator whose session passed two-step sign-in (403 otherwise). Create takes
+`email` and `reason` (10 to 500 characters) and answers 201 without the token; the
+emailed link is valid 24 hours. Two public routes follow the link:
+`POST /auth/superuser-invitations/code` (`token`; emails a six-digit code to the
+invited address, with the email-code limits, and answers the same Message either
+way) and `POST /auth/superuser-invitations/accept` (`token`, `code`, optional `totp_code`; grants
+superuser, clears staff approval, verifies the email, writes one `superuser_granted`
+audit row and returns an account session). An existing verified account with an
+authenticator must also send `totp_code`. An unverified account is cleared first. The
+emailed link carries the token in its fragment (`#token=`), never in the query string.
+Single use; a wrong code, replay, expiry, revocation or a closed inviter is refused with
+400. Limits: five invitations per inviter per hour and
+twenty per day. Routes are additive; no existing route changes.
+
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
 
 Session login, refresh, and session-token exchange responses return the deliberately

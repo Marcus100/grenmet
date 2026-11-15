@@ -5,6 +5,7 @@ export * from "./.kubb/standardSchema.js";
 export { almanacGetAstronomy } from "./clients/almanacGetAstronomy.js";
 export { almanacGetTides } from "./clients/almanacGetTides.js";
 export { auditGetHistory } from "./clients/auditGetHistory.js";
+export { authAcceptSuperuserInvitation } from "./clients/authAcceptSuperuserInvitation.js";
 export { authAccountEmailCodeStart } from "./clients/authAccountEmailCodeStart.js";
 export { authAccountEmailCodeVerify } from "./clients/authAccountEmailCodeVerify.js";
 export { authAdminActivateAccount } from "./clients/authAdminActivateAccount.js";
@@ -27,6 +28,7 @@ export { authCreateOnboardingAccount } from "./clients/authCreateOnboardingAccou
 export { authCreatePermission } from "./clients/authCreatePermission.js";
 export { authCreateRole } from "./clients/authCreateRole.js";
 export { authCreateRoleAssignment } from "./clients/authCreateRoleAssignment.js";
+export { authCreateSuperuserInvitation } from "./clients/authCreateSuperuserInvitation.js";
 export { authCreateUser } from "./clients/authCreateUser.js";
 export { authDeleteRole } from "./clients/authDeleteRole.js";
 export { authDeleteRoleAssignment } from "./clients/authDeleteRoleAssignment.js";
@@ -59,6 +61,7 @@ export { authIssueSignInSetup } from "./clients/authIssueSignInSetup.js";
 export { authJoinAccountApp } from "./clients/authJoinAccountApp.js";
 export { authLeaveAccountApp } from "./clients/authLeaveAccountApp.js";
 export { authListAccountApps } from "./clients/authListAccountApps.js";
+export { authListSuperuserInvitations } from "./clients/authListSuperuserInvitations.js";
 export { authLoginAccessToken } from "./clients/authLoginAccessToken.js";
 export { authLoginSession } from "./clients/authLoginSession.js";
 export { authLogoutAllSessions } from "./clients/authLogoutAllSessions.js";
@@ -74,6 +77,8 @@ export { authResetPassword } from "./clients/authResetPassword.js";
 export { authRevokeActivation } from "./clients/authRevokeActivation.js";
 export { authRevokeSecuritySession } from "./clients/authRevokeSecuritySession.js";
 export { authRevokeSignInSetup } from "./clients/authRevokeSignInSetup.js";
+export { authRevokeSuperuserInvitation } from "./clients/authRevokeSuperuserInvitation.js";
+export { authSuperuserInvitationCode } from "./clients/authSuperuserInvitationCode.js";
 export { authTwofaActivate } from "./clients/authTwofaActivate.js";
 export { authTwofaDisable } from "./clients/authTwofaDisable.js";
 export { authTwofaSetup } from "./clients/authTwofaSetup.js";
@@ -793,6 +798,11 @@ export {
   useAuditGetHistory,
 } from "./hooks/useAuditGetHistory.js";
 export {
+  authAcceptSuperuserInvitationMutationKey,
+  authAcceptSuperuserInvitationMutationOptions,
+  useAuthAcceptSuperuserInvitation,
+} from "./hooks/useAuthAcceptSuperuserInvitation.js";
+export {
   authAccountEmailCodeStartMutationKey,
   authAccountEmailCodeStartMutationOptions,
   useAuthAccountEmailCodeStart,
@@ -902,6 +912,11 @@ export {
   authCreateRoleAssignmentMutationOptions,
   useAuthCreateRoleAssignment,
 } from "./hooks/useAuthCreateRoleAssignment.js";
+export {
+  authCreateSuperuserInvitationMutationKey,
+  authCreateSuperuserInvitationMutationOptions,
+  useAuthCreateSuperuserInvitation,
+} from "./hooks/useAuthCreateSuperuserInvitation.js";
 export {
   authCreateUserMutationKey,
   authCreateUserMutationOptions,
@@ -1063,6 +1078,11 @@ export {
   useAuthListAccountApps,
 } from "./hooks/useAuthListAccountApps.js";
 export {
+  authListSuperuserInvitationsQueryKey,
+  authListSuperuserInvitationsQueryOptions,
+  useAuthListSuperuserInvitations,
+} from "./hooks/useAuthListSuperuserInvitations.js";
+export {
   authLoginAccessTokenMutationKey,
   authLoginAccessTokenMutationOptions,
   useAuthLoginAccessToken,
@@ -1137,6 +1157,16 @@ export {
   authRevokeSignInSetupMutationOptions,
   useAuthRevokeSignInSetup,
 } from "./hooks/useAuthRevokeSignInSetup.js";
+export {
+  authRevokeSuperuserInvitationMutationKey,
+  authRevokeSuperuserInvitationMutationOptions,
+  useAuthRevokeSuperuserInvitation,
+} from "./hooks/useAuthRevokeSuperuserInvitation.js";
+export {
+  authSuperuserInvitationCodeMutationKey,
+  authSuperuserInvitationCodeMutationOptions,
+  useAuthSuperuserInvitationCode,
+} from "./hooks/useAuthSuperuserInvitationCode.js";
 export {
   authTwofaActivateMutationKey,
   authTwofaActivateMutationOptions,
@@ -4770,6 +4800,16 @@ export type {
   AuditGetHistoryStatus422,
 } from "./models/AuditGetHistory.js";
 export type {
+  AuthAcceptSuperuserInvitationBody,
+  AuthAcceptSuperuserInvitationOptions,
+  AuthAcceptSuperuserInvitationResponse,
+  AuthAcceptSuperuserInvitationResponses,
+  AuthAcceptSuperuserInvitationStatus200,
+  AuthAcceptSuperuserInvitationStatus400,
+  AuthAcceptSuperuserInvitationStatus422,
+  AuthAcceptSuperuserInvitationStatus429,
+} from "./models/AuthAcceptSuperuserInvitation.js";
+export type {
   AuthAccountEmailCodeStartBody,
   AuthAccountEmailCodeStartOptions,
   AuthAccountEmailCodeStartResponse,
@@ -5041,6 +5081,17 @@ export type {
   AuthCreateRoleAssignmentStatus403,
   AuthCreateRoleAssignmentStatus422,
 } from "./models/AuthCreateRoleAssignment.js";
+export type {
+  AuthCreateSuperuserInvitationBody,
+  AuthCreateSuperuserInvitationOptions,
+  AuthCreateSuperuserInvitationResponse,
+  AuthCreateSuperuserInvitationResponses,
+  AuthCreateSuperuserInvitationStatus201,
+  AuthCreateSuperuserInvitationStatus400,
+  AuthCreateSuperuserInvitationStatus403,
+  AuthCreateSuperuserInvitationStatus422,
+  AuthCreateSuperuserInvitationStatus429,
+} from "./models/AuthCreateSuperuserInvitation.js";
 export type {
   AuthCreateUserBody,
   AuthCreateUserOptions,
@@ -5358,6 +5409,14 @@ export type {
   AuthListAccountAppsStatus422,
 } from "./models/AuthListAccountApps.js";
 export type {
+  AuthListSuperuserInvitationsOptions,
+  AuthListSuperuserInvitationsResponse,
+  AuthListSuperuserInvitationsResponses,
+  AuthListSuperuserInvitationsStatus200,
+  AuthListSuperuserInvitationsStatus403,
+  AuthListSuperuserInvitationsStatus422,
+} from "./models/AuthListSuperuserInvitations.js";
+export type {
   AuthLoginAccessTokenBody,
   AuthLoginAccessTokenOptions,
   AuthLoginAccessTokenResponse,
@@ -5500,6 +5559,26 @@ export type {
   AuthRevokeSignInSetupStatus404,
   AuthRevokeSignInSetupStatus422,
 } from "./models/AuthRevokeSignInSetup.js";
+export type {
+  AuthRevokeSuperuserInvitationOptions,
+  AuthRevokeSuperuserInvitationPath,
+  AuthRevokeSuperuserInvitationResponse,
+  AuthRevokeSuperuserInvitationResponses,
+  AuthRevokeSuperuserInvitationStatus200,
+  AuthRevokeSuperuserInvitationStatus403,
+  AuthRevokeSuperuserInvitationStatus404,
+  AuthRevokeSuperuserInvitationStatus409,
+  AuthRevokeSuperuserInvitationStatus422,
+} from "./models/AuthRevokeSuperuserInvitation.js";
+export type {
+  AuthSuperuserInvitationCodeBody,
+  AuthSuperuserInvitationCodeOptions,
+  AuthSuperuserInvitationCodeResponse,
+  AuthSuperuserInvitationCodeResponses,
+  AuthSuperuserInvitationCodeStatus200,
+  AuthSuperuserInvitationCodeStatus422,
+  AuthSuperuserInvitationCodeStatus429,
+} from "./models/AuthSuperuserInvitationCode.js";
 export type {
   AuthTwofaActivateBody,
   AuthTwofaActivateOptions,
@@ -13835,6 +13914,10 @@ export type { SuggestionUpdate } from "./models/SuggestionUpdate.js";
 export type { SuggestionUpdatePropertiesStatusEnum } from "./models/SuggestionUpdatePropertiesStatusEnum.js";
 export { suggestionUpdatePropertiesStatusEnum } from "./models/SuggestionUpdatePropertiesStatusEnum.js";
 export type { SuperuserActionReason } from "./models/SuperuserActionReason.js";
+export type { SuperuserInvitationAccept } from "./models/SuperuserInvitationAccept.js";
+export type { SuperuserInvitationCodeVerify } from "./models/SuperuserInvitationCodeVerify.js";
+export type { SuperuserInvitationCreate } from "./models/SuperuserInvitationCreate.js";
+export type { SuperuserInvitationPublic } from "./models/SuperuserInvitationPublic.js";
 export type { SwapType } from "./models/SwapType.js";
 export { swapType } from "./models/SwapType.js";
 export type { SynopDecoded } from "./models/SynopDecoded.js";
@@ -15003,6 +15086,15 @@ export {
   auditGetHistoryStatus422Schema,
 } from "./zod/auditGetHistorySchema.js";
 export {
+  authAcceptSuperuserInvitationBodySchema,
+  authAcceptSuperuserInvitationErrorSchema,
+  authAcceptSuperuserInvitationResponseSchema,
+  authAcceptSuperuserInvitationStatus200Schema,
+  authAcceptSuperuserInvitationStatus400Schema,
+  authAcceptSuperuserInvitationStatus422Schema,
+  authAcceptSuperuserInvitationStatus429Schema,
+} from "./zod/authAcceptSuperuserInvitationSchema.js";
+export {
   authAccountEmailCodeStartBodySchema,
   authAccountEmailCodeStartErrorSchema,
   authAccountEmailCodeStartResponseSchema,
@@ -15266,6 +15358,16 @@ export {
   authCreateRoleStatus403Schema,
   authCreateRoleStatus422Schema,
 } from "./zod/authCreateRoleSchema.js";
+export {
+  authCreateSuperuserInvitationBodySchema,
+  authCreateSuperuserInvitationErrorSchema,
+  authCreateSuperuserInvitationResponseSchema,
+  authCreateSuperuserInvitationStatus201Schema,
+  authCreateSuperuserInvitationStatus400Schema,
+  authCreateSuperuserInvitationStatus403Schema,
+  authCreateSuperuserInvitationStatus422Schema,
+  authCreateSuperuserInvitationStatus429Schema,
+} from "./zod/authCreateSuperuserInvitationSchema.js";
 export {
   authCreateUserBodySchema,
   authCreateUserErrorSchema,
@@ -15572,6 +15674,13 @@ export {
   authListAccountAppsStatus422Schema,
 } from "./zod/authListAccountAppsSchema.js";
 export {
+  authListSuperuserInvitationsErrorSchema,
+  authListSuperuserInvitationsResponseSchema,
+  authListSuperuserInvitationsStatus200Schema,
+  authListSuperuserInvitationsStatus403Schema,
+  authListSuperuserInvitationsStatus422Schema,
+} from "./zod/authListSuperuserInvitationsSchema.js";
+export {
   authLoginAccessTokenBodySchema,
   authLoginAccessTokenErrorSchema,
   authLoginAccessTokenResponseSchema,
@@ -15703,6 +15812,25 @@ export {
   authRevokeSignInSetupStatus404Schema,
   authRevokeSignInSetupStatus422Schema,
 } from "./zod/authRevokeSignInSetupSchema.js";
+export {
+  authRevokeSuperuserInvitationErrorSchema,
+  authRevokeSuperuserInvitationPathInvitationIdSchema,
+  authRevokeSuperuserInvitationPathSchema,
+  authRevokeSuperuserInvitationResponseSchema,
+  authRevokeSuperuserInvitationStatus200Schema,
+  authRevokeSuperuserInvitationStatus403Schema,
+  authRevokeSuperuserInvitationStatus404Schema,
+  authRevokeSuperuserInvitationStatus409Schema,
+  authRevokeSuperuserInvitationStatus422Schema,
+} from "./zod/authRevokeSuperuserInvitationSchema.js";
+export {
+  authSuperuserInvitationCodeBodySchema,
+  authSuperuserInvitationCodeErrorSchema,
+  authSuperuserInvitationCodeResponseSchema,
+  authSuperuserInvitationCodeStatus200Schema,
+  authSuperuserInvitationCodeStatus422Schema,
+  authSuperuserInvitationCodeStatus429Schema,
+} from "./zod/authSuperuserInvitationCodeSchema.js";
 export {
   authTwofaActivateBodySchema,
   authTwofaActivateErrorSchema,
@@ -23992,6 +24120,10 @@ export { suggestionPublicSchema } from "./zod/suggestionPublicSchema.js";
 export { suggestionUpdatePropertiesStatusEnumSchema } from "./zod/suggestionUpdatePropertiesStatusEnumSchema.js";
 export { suggestionUpdateSchema } from "./zod/suggestionUpdateSchema.js";
 export { superuserActionReasonSchema } from "./zod/superuserActionReasonSchema.js";
+export { superuserInvitationAcceptSchema } from "./zod/superuserInvitationAcceptSchema.js";
+export { superuserInvitationCodeVerifySchema } from "./zod/superuserInvitationCodeVerifySchema.js";
+export { superuserInvitationCreateSchema } from "./zod/superuserInvitationCreateSchema.js";
+export { superuserInvitationPublicSchema } from "./zod/superuserInvitationPublicSchema.js";
 export { swapTypeSchema } from "./zod/swapTypeSchema.js";
 export { synopDecodedSchema } from "./zod/synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./zod/synopticImageGroupSchema.js";

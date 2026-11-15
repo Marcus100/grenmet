@@ -116,6 +116,16 @@ export type {
   AuditGetHistoryStatus422,
 } from "./AuditGetHistory.js";
 export type {
+  AuthAcceptSuperuserInvitationBody,
+  AuthAcceptSuperuserInvitationOptions,
+  AuthAcceptSuperuserInvitationResponse,
+  AuthAcceptSuperuserInvitationResponses,
+  AuthAcceptSuperuserInvitationStatus200,
+  AuthAcceptSuperuserInvitationStatus400,
+  AuthAcceptSuperuserInvitationStatus422,
+  AuthAcceptSuperuserInvitationStatus429,
+} from "./AuthAcceptSuperuserInvitation.js";
+export type {
   AuthAccountEmailCodeStartBody,
   AuthAccountEmailCodeStartOptions,
   AuthAccountEmailCodeStartResponse,
@@ -387,6 +397,17 @@ export type {
   AuthCreateRoleAssignmentStatus403,
   AuthCreateRoleAssignmentStatus422,
 } from "./AuthCreateRoleAssignment.js";
+export type {
+  AuthCreateSuperuserInvitationBody,
+  AuthCreateSuperuserInvitationOptions,
+  AuthCreateSuperuserInvitationResponse,
+  AuthCreateSuperuserInvitationResponses,
+  AuthCreateSuperuserInvitationStatus201,
+  AuthCreateSuperuserInvitationStatus400,
+  AuthCreateSuperuserInvitationStatus403,
+  AuthCreateSuperuserInvitationStatus422,
+  AuthCreateSuperuserInvitationStatus429,
+} from "./AuthCreateSuperuserInvitation.js";
 export type {
   AuthCreateUserBody,
   AuthCreateUserOptions,
@@ -704,6 +725,14 @@ export type {
   AuthListAccountAppsStatus422,
 } from "./AuthListAccountApps.js";
 export type {
+  AuthListSuperuserInvitationsOptions,
+  AuthListSuperuserInvitationsResponse,
+  AuthListSuperuserInvitationsResponses,
+  AuthListSuperuserInvitationsStatus200,
+  AuthListSuperuserInvitationsStatus403,
+  AuthListSuperuserInvitationsStatus422,
+} from "./AuthListSuperuserInvitations.js";
+export type {
   AuthLoginAccessTokenBody,
   AuthLoginAccessTokenOptions,
   AuthLoginAccessTokenResponse,
@@ -846,6 +875,26 @@ export type {
   AuthRevokeSignInSetupStatus404,
   AuthRevokeSignInSetupStatus422,
 } from "./AuthRevokeSignInSetup.js";
+export type {
+  AuthRevokeSuperuserInvitationOptions,
+  AuthRevokeSuperuserInvitationPath,
+  AuthRevokeSuperuserInvitationResponse,
+  AuthRevokeSuperuserInvitationResponses,
+  AuthRevokeSuperuserInvitationStatus200,
+  AuthRevokeSuperuserInvitationStatus403,
+  AuthRevokeSuperuserInvitationStatus404,
+  AuthRevokeSuperuserInvitationStatus409,
+  AuthRevokeSuperuserInvitationStatus422,
+} from "./AuthRevokeSuperuserInvitation.js";
+export type {
+  AuthSuperuserInvitationCodeBody,
+  AuthSuperuserInvitationCodeOptions,
+  AuthSuperuserInvitationCodeResponse,
+  AuthSuperuserInvitationCodeResponses,
+  AuthSuperuserInvitationCodeStatus200,
+  AuthSuperuserInvitationCodeStatus422,
+  AuthSuperuserInvitationCodeStatus429,
+} from "./AuthSuperuserInvitationCode.js";
 export type {
   AuthTwofaActivateBody,
   AuthTwofaActivateOptions,
@@ -9181,6 +9230,10 @@ export type { SuggestionUpdate } from "./SuggestionUpdate.js";
 export type { SuggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePropertiesStatusEnum.js";
 export { suggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePropertiesStatusEnum.js";
 export type { SuperuserActionReason } from "./SuperuserActionReason.js";
+export type { SuperuserInvitationAccept } from "./SuperuserInvitationAccept.js";
+export type { SuperuserInvitationCodeVerify } from "./SuperuserInvitationCodeVerify.js";
+export type { SuperuserInvitationCreate } from "./SuperuserInvitationCreate.js";
+export type { SuperuserInvitationPublic } from "./SuperuserInvitationPublic.js";
 export type { SwapType } from "./SwapType.js";
 export { swapType } from "./SwapType.js";
 export type { SynopDecoded } from "./SynopDecoded.js";
