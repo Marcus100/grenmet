@@ -14,9 +14,11 @@ import {
 } from "react";
 import type { Failure } from "../lib/booking-errors";
 import {
+  type BookingFields,
   type FieldErrors,
   type FieldKey,
   fingerprint,
+  stillWrong,
   validateBooking,
 } from "../lib/booking-form";
 import {
@@ -418,6 +420,45 @@ export function BookingFlow({
   // One key per submission: a retry of the same request replays it.
   const attempt = useRef<{ print: string; key: string } | null>(null);
 
+  // Errors come from the last submit and are kept in step with what is typed:
+  // a field that is now valid drops its message (see stillWrong), so it does not
+  // come back, and focus does not jump to the summary while someone types.
+  const fieldsNow: BookingFields = {
+    serviceId,
+    startsAt,
+    name,
+    email,
+    phone,
+    notes,
+  };
+  const reviseErrors = (change: Partial<BookingFields>) =>
+    setErrors((previous) => stillWrong(previous, { ...fieldsNow, ...change }));
+  const pickService = (id: string) => {
+    setServiceId(id);
+    setStartsAt(null);
+    reviseErrors({ serviceId: id, startsAt: null });
+  };
+  const pickStart = (value: string | null) => {
+    setStartsAt(value);
+    reviseErrors({ startsAt: value });
+  };
+  const editName = (value: string) => {
+    setName(value);
+    reviseErrors({ name: value });
+  };
+  const editEmail = (value: string) => {
+    setEmail(value);
+    reviseErrors({ email: value });
+  };
+  const editPhone = (value: string) => {
+    setPhone(value);
+    reviseErrors({ phone: value });
+  };
+  const editNotes = (value: string) => {
+    setNotes(value);
+    reviseErrors({ notes: value });
+  };
+
   const service = storefront.services.find((s) => s.id === serviceId) ?? null;
   const errorList = (Object.keys(errors) as FieldKey[]).filter(
     (key) => errors[key]
@@ -595,10 +636,7 @@ export function BookingFlow({
                 <input
                   checked={item.id === serviceId}
                   name="service"
-                  onChange={() => {
-                    setServiceId(item.id);
-                    setStartsAt(null);
-                  }}
+                  onChange={() => pickService(item.id)}
                   type="radio"
                   value={item.id}
                 />
@@ -638,7 +676,7 @@ export function BookingFlow({
           <SlotPicker
             key={service.id}
             load={(firstDay) => actions.loadSlots(service.id, firstDay)}
-            onChange={setStartsAt}
+            onChange={pickStart}
             reloadKey={reloadKey}
             timeZone={storefront.timezone}
             value={startsAt}
@@ -662,7 +700,7 @@ export function BookingFlow({
           label="Name"
           maxLength={120}
           name="name"
-          onChange={setName}
+          onChange={editName}
           required
           value={name}
         />
@@ -674,7 +712,7 @@ export function BookingFlow({
           label="Email"
           maxLength={254}
           name="email"
-          onChange={setEmail}
+          onChange={editEmail}
           required
           type="email"
           value={email}
@@ -687,7 +725,7 @@ export function BookingFlow({
           label="Phone (optional)"
           maxLength={40}
           name="phone"
-          onChange={setPhone}
+          onChange={editPhone}
           type="tel"
           value={phone}
         />
@@ -698,7 +736,7 @@ export function BookingFlow({
           maxLength={1000}
           multiline
           name="notes"
-          onChange={setNotes}
+          onChange={editNotes}
           value={notes}
         />
         <label className="check">
