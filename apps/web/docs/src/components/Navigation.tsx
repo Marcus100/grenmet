@@ -10,7 +10,7 @@ import { Button } from "@/components/Button";
 import {
   useIsInsideMobileNavigation,
   useMobileNavigationStore,
-} from "@/components/MobileNavigation";
+} from "@/components/mobile-navigation-store";
 import { useSectionStore } from "@/components/SectionProvider";
 import { Tag } from "@/components/Tag";
 import { remToPx } from "@/lib/remToPx";

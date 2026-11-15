@@ -1,0 +1,11 @@
+{
+  "screens": [
+    {
+      "id": "docs-home",
+      "app": "docs",
+      "path": "/",
+      "width": 1280,
+      "theme": "light"
+    }
+  ]
+}

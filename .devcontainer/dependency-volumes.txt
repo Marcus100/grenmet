@@ -3,6 +3,7 @@ apps/web/admin/node_modules
 apps/web/auth/node_modules
 apps/web/babydoll/node_modules
 apps/web/commit/node_modules
+apps/pwa/printix/node_modules
 apps/web/bookings/node_modules
 apps/web/account/node_modules
 apps/web/cap/node_modules
@@ -29,6 +30,7 @@ apps/web/admin/.next
 apps/web/auth/.next
 apps/web/babydoll/.next
 apps/web/commit/.next
+apps/pwa/printix/.next
 apps/web/bookings/.next
 apps/web/account/.next
 apps/web/cap/.next
