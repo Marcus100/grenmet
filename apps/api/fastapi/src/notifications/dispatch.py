@@ -183,6 +183,8 @@ async def process_due_deliveries(
 _OUTBOUND_JINJA = {
     "subscription-confirm": "subscription_confirm.html",
     "organisation-invitation": "organisation_invitation.html",
+    "superuser-invitation": "superuser_invitation.html",
+    "notification": "notification.html",
     "cap-alert": "cap_alert.html",
     "newsletter": "newsletter.html",
 }

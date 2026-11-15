@@ -290,10 +290,13 @@ async def grant_role(
     return grant
 
 
-#: Most grants one revoke or role change may end through the cascade. Above this the
-#: action is refused with 409 and nothing is ended, so one change cannot empty an
-#: organisation by accident.
+#: Most grants one explicit revoke may end through the cascade. Above this the revoke
+#: is refused with 409 and nothing is ended, so one click cannot empty an organisation
+#: by accident. Removal and demotion are not capped (issue #951): ending a person's
+#: access must always complete, so they cascade in full, flushing every
+#: ``CASCADE_FLUSH_BATCH`` ends inside their one transaction.
 MAX_CASCADE_GRANTS = 200
+CASCADE_FLUSH_BATCH = 200
 
 
 @dataclass(frozen=True)
@@ -574,8 +577,9 @@ async def end_issued_transitively(
 
     Used when a member is demoted or removed. Owners and admins are never traversed,
     neither as seeds nor as recipients: their keys come from their role and their own
-    grants stay. Each end is audited with its trigger and root. Callers hold the roster
-    lock and this function flushes."""
+    grants stay. Each end is audited with its trigger and root. The cascade is not
+    capped (#951): it flushes every ``CASCADE_FLUSH_BATCH`` ends inside the caller's
+    transaction. Callers hold the roster lock and this function flushes."""
     audit_service.set_actor(session, actor_id)
     now = utc_now()
     members_rows = await session.scalars(
@@ -603,8 +607,6 @@ async def end_issued_transitively(
                 continue
             seen_grants.add(grant.id)
             ended += 1
-            if ended > MAX_CASCADE_GRANTS:
-                raise GrantCascadeTooLargeError(MAX_CASCADE_GRANTS)
             await _end_cascaded(
                 session,
                 grant,
@@ -613,6 +615,8 @@ async def end_issued_transitively(
                 root=root,
                 grantor_membership_id=member.id,
             )
+            if ended % CASCADE_FLUSH_BATCH == 0:
+                await session.flush()
             if grant.membership_id not in seen_members:
                 seen_members.add(grant.membership_id)
                 frontier.append(grant.membership_id)
@@ -651,7 +655,7 @@ async def revoke_issued_by(
     A lapsed grant is closed at its real end, a live one now. Returns the number of
     live grants ended. ``products`` limits it to those products' roles. Direct
     grants only: the caller follows the people they granted to through
-    ``revoke_dependent_grants``."""
+    ``end_issued_transitively``."""
     audit_service.set_actor(session, actor_id)
     rows = await session.scalars(
         select(MembershipGrant)

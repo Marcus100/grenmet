@@ -7,6 +7,7 @@ import {
   depositState,
   eventLabel,
   isDay,
+  localTime,
   parseRange,
   rotatesKey,
   todayIn,
@@ -96,10 +97,14 @@ describe("booking actions", () => {
     expect(availableActions("pending_payment", true)).toEqual(["cancel"]);
     expect(availableActions("pending", false)).toEqual([
       "confirm",
+      "reschedule",
       "decline",
       "cancel",
     ]);
-    expect(availableActions("confirmed", false)).toEqual(["cancel"]);
+    expect(availableActions("confirmed", false)).toEqual([
+      "reschedule",
+      "cancel",
+    ]);
     expect(availableActions("confirmed", true)).toEqual([
       "complete",
       "no_show",
@@ -149,5 +154,13 @@ describe("idempotency key rotation", () => {
     for (const kind of ["invalid", "conflict", "forbidden", "not_found"]) {
       expect(rotatesKey(kind)).toBe(true);
     }
+  });
+});
+
+describe("localTime", () => {
+  it("reads an instant on the business's clock, in 24 hours", () => {
+    expect(localTime("2027-01-05T13:30:00Z", "America/Grenada")).toBe("09:30");
+    expect(localTime("2027-01-05T02:05:00Z", "America/Grenada")).toBe("22:05");
+    expect(localTime("2027-01-05T04:00:00Z", "America/Grenada")).toBe("00:00");
   });
 });

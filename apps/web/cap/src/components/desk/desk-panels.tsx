@@ -23,8 +23,8 @@ export function DeskRefused({ email }: { email: string }) {
     <section className="space-y-3 py-10" role="alert">
       <h1 className="text-2xl font-semibold">No access to CAP warnings</h1>
       <p className="text-muted-foreground">
-        {email} is signed in but does not hold CAP warning access. Ask a GMS
-        administrator to give you a CAP role.
+        <span>{email}</span> is signed in but does not hold CAP warning access.
+        Ask a GMS administrator to give you a CAP role.
       </p>
     </section>
   );
@@ -121,7 +121,7 @@ export function SavedAlert({ alert }: { alert: CapAlertPublic }) {
         <div>
           <dt className="text-muted-foreground font-medium">Sender · sent</dt>
           <dd>
-            {alert.sender} · {grenadaTime(alert.sent)}
+            <span>{alert.sender}</span> · {grenadaTime(alert.sent)}
           </dd>
         </div>
         <div>

@@ -15,7 +15,7 @@ import {
   PORTFOLIO,
   SERVICE_MENU,
 } from "@/data/site";
-import { bookingLink } from "@/lib/book-link";
+import { bookingLink, siteBookingLink } from "@/lib/book-link";
 
 const APPOINTMENT = /appointment/iu;
 const OLD_LISTING = /True Blue|Fresha/u;
@@ -40,7 +40,7 @@ describe("pages", () => {
   it("home links to booking, the Google review form and the new address", () => {
     render(<HomePage />);
     const booking = screen.getAllByRole("link", { name: APPOINTMENT });
-    expect(booking[0]).toHaveAttribute("href", BOOKING_URL);
+    expect(booking[0]).toHaveAttribute("href", siteBookingLink().href);
     expect(
       screen.getByRole("link", { name: "Leave a Google review" })
     ).toHaveAttribute("href", GOOGLE_REVIEW_URL);
@@ -79,7 +79,7 @@ describe("service menu", () => {
     render(<ServicesPage />);
     expect(screen.getByRole("link", { name: "Book Volume" })).toHaveAttribute(
       "href",
-      BOOKING_URL
+      siteBookingLink().href
     );
     expect(
       screen.queryByRole("link", {
@@ -125,9 +125,8 @@ describe("chrome", () => {
 
   it("the phone book bar links to booking", () => {
     render(<BookBar booking={bookingLink(null)} />);
-    expect(screen.getByRole("link", { name: "Book me" })).toHaveAttribute(
-      "href",
-      BOOKING_URL
-    );
+    expect(
+      screen.getByRole("link", { name: "Book me (opens in a new tab)" })
+    ).toHaveAttribute("href", BOOKING_URL);
   });
 });

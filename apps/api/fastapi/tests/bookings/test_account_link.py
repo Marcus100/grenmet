@@ -489,8 +489,6 @@ async def test_an_erased_contact_is_never_linked(
         contact,
         booking_email=email,
         user_id=account.id,
-        account_email=email,
-        account_email_verified=True,
     )
     assert linked is False
     assert contact.user_id is None
@@ -786,13 +784,22 @@ async def test_an_account_app_session_without_app_access_is_refused(
     _user, token = await _account_app_session(
         async_client, db_async, monkeypatch, email
     )
-    # The person no longer holds app.account.access: the eligibility check says no.
-    from src.auth import eligibility
+    # The person no longer holds app.account.access: remove the real role link that
+    # grants it (the Join's account-member role), not a stubbed eligibility check.
+    from sqlalchemy import delete
 
-    async def no_access(**_: object) -> bool:
-        return False
+    from src.auth.models import Role, UserRoleLink
 
-    monkeypatch.setattr(eligibility, "is_eligible_for_app", no_access)
+    member_role = await db_async.scalar(
+        select(Role).where(Role.name == "account-member")
+    )
+    assert member_role is not None
+    await db_async.execute(
+        delete(UserRoleLink).where(
+            UserRoleLink.user_id == _user.id, UserRoleLink.role_id == member_role.id
+        )
+    )
+    await db_async.commit()
     resp = await async_client.get(
         f"{API}/me/bookings", headers={"Authorization": f"Bearer {token}"}
     )

@@ -13,6 +13,7 @@ vi.mock("@/app/(console)/organisations/member-actions", () => {
 });
 
 const REASON_LABEL = /^Reason/u;
+const ENDS_LABEL = /^Ends/u;
 
 const row = {
   email: "ann@example.gd",
@@ -36,6 +37,20 @@ describe("member admin controls", () => {
     expect(
       screen.getByRole("form", { name: "Add member" })
     ).toBeInTheDocument();
+  });
+
+  it("puts each member address in its own element (#1365)", () => {
+    render(<MemberRowActions member={row} organisationId="org_1" />);
+    const addresses = screen.getAllByText("ann@example.gd", {
+      selector: "span",
+    });
+    expect(addresses).toHaveLength(3);
+    for (const address of addresses) {
+      expect(address.textContent).toBe("ann@example.gd");
+    }
+    expect(screen.getByText(ENDS_LABEL).textContent).toBe(
+      "Ends ann@example.gd's membership. The last owner cannot be removed."
+    );
   });
 
   it("Add myself prefills the signed-in superuser", () => {

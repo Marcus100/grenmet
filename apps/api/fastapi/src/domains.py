@@ -23,11 +23,18 @@ from typing import Any
 from src.contacts.register import DOMAIN as CONTACTS
 from src.domain_manifest import Domain, Mount, WorkerJob, resolve_function
 from src.flights.register import DOMAIN as FLIGHTS
+from src.printix.register import DOMAIN as PRINTIX
 from src.profile_images.register import DOMAIN as PROFILE_IMAGES
 from src.webhooks_out.register import DOMAIN as WEBHOOKS_OUT
 
 # Registered manifests, one line per migrated domain.
-DOMAINS: tuple[Domain, ...] = (WEBHOOKS_OUT, CONTACTS, FLIGHTS, PROFILE_IMAGES)
+DOMAINS: tuple[Domain, ...] = (
+    WEBHOOKS_OUT,
+    CONTACTS,
+    FLIGHTS,
+    PROFILE_IMAGES,
+    PRINTIX,
+)
 
 # Every router of the app, in mount order (legacy and registered alike).
 MOUNT_ORDER: tuple[str, ...] = (
@@ -103,6 +110,8 @@ MOUNT_ORDER: tuple[str, ...] = (
     "baseline.staff_setup",
     "hr.dashboard",
     "baseline.governance",
+    "printix.admin",
+    "printix.scanner",
 )
 
 

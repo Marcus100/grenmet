@@ -4,6 +4,9 @@ The attack this closes: a stolen password for a privileged account with no
 authenticator used to be enough to enrol the attacker's own authenticator.
 """
 
+import asyncio
+import time
+
 import pyotp
 import pytest
 from cryptography.fernet import Fernet
@@ -359,6 +362,69 @@ async def test_setup_is_rate_limited_per_account(async_client, db_async, monkeyp
     limited = await async_client.post(SETUP, headers=headers)
     assert limited.status_code == 429
     assert len(sent) == totp_enrolment.ENROLMENT_CODES_PER_WINDOW
+
+
+async def test_parallel_setups_share_the_window_cap(
+    async_client, db_async, monkeypatch
+):
+    """Issue #952: parallel setup calls for one account cannot all pass the count.
+
+    The send is slowed so a request that saw the lock released early would count
+    before the first request's ``enrol_code_sent`` row exists. The row lock is held
+    through the send, so the calls run one after another and exactly the window
+    cap of codes goes out."""
+    sent: list[str] = []
+
+    async def slow_send(**kwargs: str) -> None:
+        await asyncio.sleep(0.05)
+        sent.append(kwargs["code"])
+
+    monkeypatch.setattr(totp_enrolment, "_send_enrolment_code", slow_send)
+    user = await make_user(db_async, superuser=True)
+    headers = await bearer(async_client, user)
+    responses = await asyncio.gather(
+        *(async_client.post(SETUP, headers=headers) for _ in range(6))
+    )
+
+    statuses = sorted(response.status_code for response in responses)
+    cap = totp_enrolment.ENROLMENT_CODES_PER_WINDOW
+    assert statuses == [200] * cap + [429] * (6 - cap)
+    assert len(sent) == cap
+    assert await _count(db_async, user, totp_enrolment.ENROLMENT_CODE_SENT) == cap
+
+
+async def test_a_hung_send_does_not_queue_other_setups(
+    async_client, db_async, monkeypatch
+):
+    """#952 review M1: while one setup holds the account lock through a hung mail
+    send, other setups give up after the lock wait with 429 instead of queuing (and
+    holding database connections). The first setup still finishes once the send
+    returns."""
+    monkeypatch.setattr(totp_enrolment, "ENROLMENT_LOCK_WAIT", "200ms")
+    entered = asyncio.Event()
+    release = asyncio.Event()
+
+    async def hung_send(**_kwargs: str) -> None:
+        entered.set()
+        await release.wait()
+
+    monkeypatch.setattr(totp_enrolment, "_send_enrolment_code", hung_send)
+    user = await make_user(db_async, superuser=True)
+    headers = await bearer(async_client, user)
+    first = asyncio.create_task(async_client.post(SETUP, headers=headers))
+    await asyncio.wait_for(entered.wait(), timeout=5)
+
+    started = time.monotonic()
+    others = await asyncio.gather(
+        *(async_client.post(SETUP, headers=headers) for _ in range(3))
+    )
+    elapsed = time.monotonic() - started
+
+    assert [response.status_code for response in others] == [429, 429, 429]
+    assert all("already in progress" in r.json()["detail"] for r in others)
+    assert elapsed < 2.0
+    release.set()
+    assert (await first).status_code == 200
 
 
 async def test_old_codes_outside_the_window_do_not_count(async_client, db_async):

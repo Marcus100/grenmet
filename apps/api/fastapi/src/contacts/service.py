@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.audit.listener import ACTOR_KEY
+from src.auth.email_verification import is_email_verified
 from src.auth.models import User
 from src.pagination import PaginationParams
 from src.utils.datetime import utc_now
@@ -224,24 +225,36 @@ async def link_verified_account(
     *,
     booking_email: str,
     user_id: uuid.UUID,
-    account_email: str,
-    account_email_verified: bool,
 ) -> bool:
     """Link ``contact`` to the account that booked with it (ADR-0058).
 
     Only when the account's verified email is the booking's email, compared with
-    the same normalisation the email hash uses. Name and phone never link. A
-    contact that already has an account link is left alone, to this account or
-    another (no relink). The row is locked and re-read first, so a concurrent
-    booking or email change cannot race the check. Returns True when this call
+    the same normalisation the email hash uses. The account's email and verification
+    are read again here under the account's row lock, never taken from the caller:
+    a booking that loaded the payer before an email change must not link on the old
+    address (#1384). ``unlink_account`` takes the same lock first, so a link and an
+    email change cannot interleave. Name and phone never link. A contact that already
+    has an account link is left alone, to this account or another (no relink). The
+    contact row is locked and re-read after the account. Returns True when this call
     made the link.
     """
-    await session.refresh(contact, with_for_update=True)
-    if not account_email_verified or contact.erased_at is not None:
-        return False
     if contact.user_id is not None:
+        # Already linked (to this account or another): nothing to decide, so skip the
+        # account lock. Taking it here would invert the lock order that
+        # ``unlink_account`` relies on for a contact this booking already holds.
         return False
-    if normalise_email(account_email) != normalise_email(booking_email):
+    account = await session.scalar(
+        select(User)
+        .where(User.id == user_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if account is None or not is_email_verified(account):
+        return False
+    await session.refresh(contact, with_for_update=True)
+    if contact.erased_at is not None or contact.user_id is not None:
+        return False
+    if normalise_email(account.email) != normalise_email(booking_email):
         return False
     with _system_actor(session):
         contact.user_id = user_id
@@ -258,10 +271,18 @@ async def unlink_account(session: AsyncSession, user_id: uuid.UUID) -> int:
     Called when the account's email changes or the account is deleted: a link
     earned by an address the person no longer holds must not keep their past
     bookings (ADR-0058). Future bookings relink only on a new verified match.
+
+    The account row is locked first, the order ``link_verified_account`` uses, so a
+    link that is committing now either lands before this select or waits for it.
+    Contacts lock in id order, so two unlinks cannot deadlock (#1384).
     """
+    await session.execute(select(User.id).where(User.id == user_id).with_for_update())
     contacts = (
         await session.scalars(
-            select(Contact).where(Contact.user_id == user_id).with_for_update()
+            select(Contact)
+            .where(Contact.user_id == user_id)
+            .order_by(Contact.id)
+            .with_for_update()
         )
     ).all()
     with _system_actor(session):

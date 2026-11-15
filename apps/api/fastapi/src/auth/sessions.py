@@ -271,10 +271,11 @@ async def exchange_session_for_access_token(
         )
     elif is_registered(db_session.app_name):
         # Staff-app session (GAA Admin): keep the staff gate.
+        staff_app = get_app(db_session.app_name or "")
         eligible = (
             user is not None
-            and is_staff_eligible(user)
-            and get_app(db_session.app_name or "").allows(user)
+            and is_staff_eligible(user, superuser_only=staff_app.superuser_only)
+            and staff_app.allows(user)
         )
     else:
         # Account session from auth.barrels.gd: any active account. Its
@@ -332,7 +333,11 @@ async def rotate_session(
         app_name=db_session.app_name,
         user_agent=user_agent or db_session.user_agent,
         ip_address=ip_address or db_session.ip_address,
-        # Only staff-app sessions require staff approval.
+        # Only staff-app sessions require staff approval; a superuser on a
+        # superuser-only app does not (ADR-0059 rule 5).
         enforce_approval=is_registered(db_session.app_name)
-        and not is_app_scoped(db_session.app_name),
+        and not is_app_scoped(db_session.app_name)
+        and not (
+            get_app(db_session.app_name or "").superuser_only and user.is_superuser
+        ),
     )

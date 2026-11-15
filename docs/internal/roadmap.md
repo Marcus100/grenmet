@@ -14,7 +14,7 @@ This roadmap covers the implementation of the GMS Digital Services Programme, le
 
 The broader GMS service strategy and product catalogue live in [GMS Digital Service Architecture](../architecture.md). Programme governance, KPIs, and reporting structure are in the DTO Terms of Reference (private, held by the owner). Cross-system integration (SURFACE, wis2box, geonetcast, dashboards, SSO) is tracked separately in the [Systems Integration Roadmap](./integration-roadmap.md).
 
-**Current date:** May 2026 | **Next major milestone:** July 2026 end-of-period review
+**Date of this snapshot (not today's date):** May 2026 | **Milestone as planned then:** July 2026 end-of-period review (a past date; see the note at the top)
 
 ---
 

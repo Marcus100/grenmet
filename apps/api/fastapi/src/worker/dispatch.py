@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 import httpx
@@ -280,3 +280,18 @@ async def exhausted_jobs(
         .order_by(CapJobEvent.created_at)
     )
     return list(rows.all())
+
+
+# Key in ``job.result`` that records when an exhausted job was reported. Nothing
+# rewrites an exhausted job's result, so the marker stays until the job is retried.
+FAILURE_REPORTED_KEY = "failure_reported_at"
+
+
+def failure_reported(job: CapJobEvent) -> bool:
+    """True once the exhausted-job check has reported this job."""
+    return isinstance(job.result, dict) and FAILURE_REPORTED_KEY in job.result
+
+
+def mark_failure_reported(job: CapJobEvent, *, at: datetime) -> None:
+    """Record the report on the job. Leaves ``updated_at`` alone so the 7-day window holds."""
+    job.result = {**(job.result or {}), FAILURE_REPORTED_KEY: at.isoformat()}

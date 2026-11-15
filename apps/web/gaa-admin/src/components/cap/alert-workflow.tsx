@@ -581,7 +581,7 @@ function SavedAlert({ alert }: { alert: CapAlertPublic }) {
         <div>
           <dt className="font-semibold">Sender / issued</dt>
           <dd>
-            {alert.sender} / {alert.sent}
+            <span>{alert.sender}</span> / {alert.sent}
           </dd>
         </div>
         <div>

@@ -136,6 +136,8 @@ def _operation_domain(route: APIRoute) -> str:
     if "/auth/" in path:
         return "auth"
     for domain in (
+        # Before "events": Printix admin paths name an event, and must not read as Barrels Events.
+        "printix",
         "hr",
         "wxwatch",
         "wxproducts",
@@ -180,6 +182,14 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 OPENAPI_TAGS = [
+    {
+        "name": "printix-admin",
+        "description": "Printix ticket registry: events, ticket import, tickets and gate pairings (superuser with two-step sign-in).",
+    },
+    {
+        "name": "printix-scanner",
+        "description": "Printix gate scanner: admit a scanned ticket and read the live count, authenticated by a gate pairing secret.",
+    },
     {"name": "audit", "description": "Record change history."},
     {
         "name": "feature-flags",

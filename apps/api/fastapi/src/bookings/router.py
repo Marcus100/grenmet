@@ -54,6 +54,8 @@ from .schemas import (
     BookingManualDepositCreate,
     BookingMyBooking,
     BookingMyBookingList,
+    BookingMyChoice,
+    BookingMyChoices,
     BookingMyOrganisation,
     BookingProfilePublic,
     BookingProfileUpdate,
@@ -74,6 +76,7 @@ from .schemas import (
     BookingStudioCreate,
     BookingStudioDecline,
     BookingStudioDetail,
+    BookingStudioReschedule,
     BookingWorkingHoursUpdate,
     BookingWorkingPeriodPublic,
 )
@@ -111,6 +114,43 @@ async def list_my_organisations(*, session: SessionDep, user: StudioCaller) -> A
         )
         for o, role in rows
     ]
+
+
+@router.get(
+    "/me/businesses/{slug}/choices",
+    response_model=BookingMyChoices,
+    summary="What my earlier bookings suggest for my next one with a business",
+    description=(
+        "For a signed-in person about to book: up to three services they booked "
+        "with this business before (the latest per service, with the provider "
+        "used last) and a phone number to prefill. Built only from bookings "
+        "whose business contact is linked to the caller's account (the same rule "
+        "as My bookings, ADR-0058); nothing from other customers. Accepts an "
+        "account token or the bookings app session. Unknown and disabled pages "
+        "answer 404."
+    ),
+    operation_id="bookingsGetMyChoices",
+    responses={
+        **AUTHENTICATED,
+        **NOT_FOUND,
+        429: {"model": RateLimitedBody, "description": "Too many requests"},
+    },
+)
+@limiter.limit("60/minute")
+async def get_my_choices(
+    *, request: Request, session: SessionDep, user: StudioCaller, slug: str
+) -> Any:
+    _ = request  # the rate limiter reads it
+    phone, recent = await service.my_choices(session, user, slug)
+    return BookingMyChoices(
+        phone=phone,
+        recent=[
+            BookingMyChoice(
+                service_id=service_id, provider_id=provider_id, last_booked_at=when
+            )
+            for service_id, provider_id, when in recent
+        ],
+    )
 
 
 @router.get(
@@ -609,6 +649,39 @@ async def confirm_studio_booking(
 ) -> Any:
     result = await studio.confirm(
         session, org.organisation_id, booking_id, actor_user_id=org.actor_id
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/bookings/{booking_id}/reschedule",
+    response_model=BookingStudioDetail,
+    summary="Move a booking to another time",
+    description=(
+        "Moves a `pending` or `confirmed` booking to a new start with the same "
+        "provider and service, and emails the customer. Staff are not held to "
+        "opening hours, lead time or the horizon, but the time must be in the "
+        "future, on a whole minute and free (409 on a clash, 409 for any other "
+        "status, 422 for a time in the past or with seconds). The same time "
+        "again changes nothing."
+    ),
+    operation_id="bookingsRescheduleStudioBooking",
+    responses=WRITE_ERRORS,
+)
+async def reschedule_studio_booking(
+    *,
+    session: SessionDep,
+    org: BookingsOrgWrite,
+    booking_id: BookingId,
+    payload: BookingStudioReschedule,
+) -> Any:
+    result = await studio.reschedule(
+        session,
+        org.organisation_id,
+        booking_id,
+        payload.starts_at,
+        actor_user_id=org.actor_id,
     )
     await session.commit()
     return result

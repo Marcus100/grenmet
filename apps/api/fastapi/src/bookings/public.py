@@ -14,6 +14,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
+from urllib.parse import urlencode
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -21,7 +22,7 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
-from src.auth.email_verification import is_email_verified
+from src.auth.config import auth_settings
 from src.auth.models import User
 from src.contacts import service as contacts_service
 from src.contacts.models import ConsentPurpose, Contact
@@ -189,17 +190,20 @@ def record_event(
     *,
     actor_user_id: uuid.UUID | None = None,
     note: str | None = None,
-) -> None:
-    session.add(
-        BookingEvent(
-            booking_id=booking.id,
-            organisation_id=booking.organisation_id,
-            from_status=from_status.value if from_status else None,
-            to_status=to_status.value,
-            actor_user_id=actor_user_id,
-            note=note[:300] if note else None,
-        )
+) -> BookingEvent:
+    """Add a history row and return it. Its id exists at once, so a caller can
+    key an email or webhook to this one change."""
+    event = BookingEvent(
+        id=uuid.uuid4(),
+        booking_id=booking.id,
+        organisation_id=booking.organisation_id,
+        from_status=from_status.value if from_status else None,
+        to_status=to_status.value,
+        actor_user_id=actor_user_id,
+        note=note[:300] if note else None,
     )
+    session.add(event)
+    return event
 
 
 # --- turnstile -------------------------------------------------------------------------
@@ -290,6 +294,23 @@ def decoy_receipt(
     )
 
 
+def account_signup_url(slug: str) -> str:
+    """The auth app's sign-up page, returning the person signed in to the
+    business's booking page.
+
+    ``returnTo`` is the bookings app's own ``/signin?returnTo=/<slug>``: sign-up
+    on auth ends with an auth session, and that address turns it into a bookings
+    session (single sign-on) and lands on the booking page. Auth accepts the
+    bookings origin because it is on its return-host allow-list. The sign-up page
+    also offers "Sign in" to people who already have an account."""
+    back = f"/signin?{urlencode({'returnTo': f'/{slug}'})}"
+    target = f"{auth_settings.BOOKINGS_APP_URL.rstrip('/')}{back}"
+    return (
+        f"{auth_settings.AUTH_FRONTEND_URL.rstrip('/')}/signup"
+        f"?{urlencode({'returnTo': target})}"
+    )
+
+
 def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmail:
     profile = managed.profile
     return emails.BookingEmail(
@@ -303,6 +324,12 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         customer_email=managed.contact.email,
         customer_phone=managed.contact.phone,
         notes=managed.booking.notes,
+        # Only a customer with no account link is invited to create one.
+        account_invite_url=(
+            account_signup_url(profile.public_slug)
+            if managed.contact.user_id is None
+            else None
+        ),
     )
 
 
@@ -572,8 +599,6 @@ async def _create_booking(
             contact,
             booking_email=str(payload.customer_email),
             user_id=payer.id,
-            account_email=payer.email,
-            account_email_verified=is_email_verified(payer),
         )
     token, token_hash = new_manage_token()
     ends_at = starts_at + timedelta(minutes=svc.duration_min)
@@ -793,6 +818,28 @@ async def cancel_booking(
     return detail(managed, moment)
 
 
+async def move_booking(
+    session: AsyncSession, booking: Booking, svc: Service, starts_at: datetime
+) -> None:
+    """Give ``booking`` a new start (naive UTC), keeping provider and service.
+
+    The ``booking_no_overlap`` constraint is the last word: a clash (or the
+    deadlock two racing moves can end in) is a 409 and leaves the booking as it
+    was. The caller records the event and queues the mail."""
+    ends_at = starts_at + timedelta(minutes=svc.duration_min)
+    try:
+        async with session.begin_nested():
+            booking.starts_at = starts_at
+            booking.ends_at = ends_at
+            booking.blocked_from = starts_at - timedelta(minutes=svc.buffer_before_min)
+            booking.blocked_until = ends_at + timedelta(minutes=svc.buffer_after_min)
+            await session.flush()
+    except DBAPIError as error:
+        if not service.is_overlap_violation(error):
+            raise
+        raise BookingConflictError(SLOT_TAKEN) from error
+
+
 async def reschedule_booking(
     session: AsyncSession,
     token: str,
@@ -821,49 +868,40 @@ async def reschedule_booking(
     if booking.provider_id not in open_providers:
         raise BookingConflictError(SLOT_TAKEN)
 
-    previous = booking.starts_at
-    previous_ends = booking.ends_at
-    ends_at = starts_at + timedelta(minutes=svc.duration_min)
-    try:
-        async with session.begin_nested():
-            booking.starts_at = starts_at
-            booking.ends_at = ends_at
-            booking.blocked_from = starts_at - timedelta(minutes=svc.buffer_before_min)
-            booking.blocked_until = ends_at + timedelta(minutes=svc.buffer_after_min)
-            await session.flush()
-    except DBAPIError as error:
-        if not service.is_overlap_violation(error):
-            raise
-        raise BookingConflictError(SLOT_TAKEN) from error
+    previous, previous_ends = booking.starts_at, booking.ends_at
+    await move_booking(session, booking, svc, starts_at)
     current = BookingStatus(booking.status)
-    record_event(
+    event = record_event(
         session,
         booking,
         current,
         current,
         note=f"Rescheduled from {previous:%Y-%m-%dT%H:%MZ} by customer",
     )
-    stamp = f"{starts_at:%Y%m%dT%H%M}"
+    # Keyed to this move's own history row, not to the new start time: moving
+    # 10:00 to 11:00 and back to 10:00 must notify three times, and keys built
+    # from the start time would make the third collide with the first.
+    move = event.id
     await emit_webhook(
         session,
         booking,
         "booking.rescheduled",
         previous_starts_at=previous,
         previous_ends_at=previous_ends,
-        event_id=f"booking.rescheduled:{booking.id}:{stamp}",
+        event_id=f"booking.rescheduled:{booking.id}:{move}",
     )
     mail = build_mail(managed)
     await queue_customer_email(
         session,
         managed,
         emails.customer_rescheduled(mail),
-        f"booking-rescheduled:{booking.id}:{stamp}",
+        f"booking-rescheduled:{booking.id}:{move}",
     )
     await queue_studio_email(
         session,
         managed,
         emails.studio_notice(mail, event="rescheduled"),
-        f"booking-studio-rescheduled:{booking.id}:{stamp}",
+        f"booking-studio-rescheduled:{booking.id}:{move}",
     )
     await session.flush()
     return detail(managed, moment)

@@ -70,6 +70,7 @@ export default async function SecurityPage() {
             <MfaGuidance security={security} />
             <TwoStepSettings
               enabled={security.totp_enabled}
+              hasPassword={security.has_password}
               privileged={security.privileged_mfa_required}
               recoveryCodesRemaining={security.recovery_codes_remaining ?? 0}
               storageReady={security.authenticator_storage_ready ?? false}

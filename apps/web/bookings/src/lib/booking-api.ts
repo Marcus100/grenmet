@@ -11,6 +11,7 @@ import {
   type BookingEmailCodeRequest,
   type BookingEmailCodeSent,
   type BookingEmailProof,
+  type BookingMyChoices,
   type BookingPublicDetail,
   type BookingPublicReceipt,
   type BookingStorefront,
@@ -18,6 +19,7 @@ import {
   bookingsConfirmEmailCode,
   bookingsCreatePublicBooking,
   bookingsGetAvailability,
+  bookingsGetMyChoices,
   bookingsGetPublicBooking,
   bookingsGetPublicBookingIcs,
   bookingsGetStorefront,
@@ -73,6 +75,28 @@ export async function getStorefront(
   try {
     return await bookingsGetStorefront({
       ...(await options()),
+      path: { slug },
+    })
+      .unwrap()
+      .catch(redactRequest);
+  } catch (error) {
+    return nullOn404(error);
+  }
+}
+
+/**
+ * What the signed-in person's own earlier bookings with this business suggest:
+ * a phone number and up to three recent services. The bearer is their own
+ * session, so the API reads only their own history. Null for an unknown or
+ * switched-off slug.
+ */
+export async function getMyChoices(
+  slug: string,
+  accessToken: string
+): Promise<BookingMyChoices | null> {
+  try {
+    return await bookingsGetMyChoices({
+      ...(await options(accessToken)),
       path: { slug },
     })
       .unwrap()

@@ -11,6 +11,8 @@ import { BookingLink } from "@/components/booking-link";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
 import { CONTACT_LABEL } from "@/lib/booking-errors";
+import { signInPath, signUpHref } from "@/lib/sign-in-links";
+import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
 import {
   confirmEmailCode,
@@ -56,6 +58,15 @@ export default async function BusinessBookingPage({
     notFound();
   }
   const { providers, services } = storefront;
+  // A signed-in person gets their own details prefilled and shortcuts from
+  // their own earlier bookings here; a guest gets a blank form, the invitation
+  // to create an account or sign in, and a quiet sign-in link.
+  const visitor = await loadVisitor(slug);
+  const accountInvite = visitor
+    ? undefined
+    : {
+        href: signUpHref(env.AUTH_APP_URL, env.NEXT_PUBLIC_SITE_URL, slug),
+      };
 
   return (
     <div className="booking space-y-10">
@@ -67,6 +78,18 @@ export default async function BusinessBookingPage({
           Book an appointment online. Times are in{" "}
           {timeZonePlace(storefront.timezone)} time.
         </p>
+        {accountInvite && (
+          <p className="text-muted-foreground">
+            Have a Barrels account?{" "}
+            <a
+              className="text-foreground inline-flex min-h-11 items-center underline underline-offset-4"
+              href={signInPath(slug)}
+            >
+              Sign in
+            </a>{" "}
+            to have your details filled in. You do not need one to book.
+          </p>
+        )}
       </header>
 
       <section aria-labelledby="services-title" className="space-y-3">
@@ -126,15 +149,18 @@ export default async function BusinessBookingPage({
             Book online
           </h2>
           <BookingFlow
+            accountInvite={accountInvite}
             actions={{
               confirmEmailCode: confirmEmailCode.bind(null, slug),
               loadSlots: loadSlots.bind(null, slug),
               requestEmailCode: requestEmailCode.bind(null, slug),
               submitBooking: submitBooking.bind(null, slug),
             }}
+            bookAgain={visitor?.bookAgain}
             contact={{ href: `/${slug}`, label: CONTACT_LABEL }}
             ManageLink={BookingLink}
             managePath={`/${slug}/booking`}
+            signedIn={visitor?.signedIn}
             storefront={storefront}
             studioName={storefront.display_name}
             turnstileSiteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}

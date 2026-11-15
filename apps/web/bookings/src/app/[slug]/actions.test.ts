@@ -116,6 +116,7 @@ describe("submitBooking", () => {
     vi.mocked(getSession).mockResolvedValue({
       accessToken: "access-1",
       email: "ada@example.com",
+      fullName: "Ada",
       name: "Ada",
     });
     vi.mocked(createBooking).mockResolvedValue({
@@ -238,6 +239,7 @@ describe("requestEmailCode", () => {
     vi.mocked(getSession).mockResolvedValue({
       accessToken: "access-1",
       email: "ada@example.com",
+      fullName: "Ada",
       name: "Ada",
     });
     vi.mocked(requestCode).mockResolvedValue({
