@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed. Owner-approved direction 2026-10-21; slice S0 (the `binding` field and
+Accepted — 2026-11-15 by the owner (built and in use). Earlier status, kept for history: Proposed. Owner-approved direction 2026-10-21; slice S0 (the `binding` field and
 the new keys) ships with this ADR. Becomes Accepted when the owner merges it.
 
 Progress (checked against `dev` on 2026-11-14): slices S1 to S3 are built ahead of
