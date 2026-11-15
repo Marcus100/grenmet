@@ -5,7 +5,7 @@ deposit, the behaviour before this column existed) or ``full_price``. Additive:
 existing rows get ``deposit``, so nothing changes for any business.
 
 Revision ID: bookingpayment20261115
-Revises: bookingcontact20261115
+Revises: eventsnocat20261115
 """
 
 import sqlalchemy as sa
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "bookingpayment20261115"
-down_revision = "bookingcontact20261115"
+down_revision = "eventsnocat20261115"
 branch_labels = None
 depends_on = None
 
