@@ -379,7 +379,7 @@ function BookingRow({
 }) {
   return (
     <Link
-      className="border-border hover:bg-muted grid min-h-11 gap-2 rounded-lg border p-4 md:grid-cols-[13rem_1fr_auto] md:items-center"
+      className="border-border hover:bg-muted grid min-h-11 gap-2 rounded-lg border p-4 [overflow-wrap:anywhere] md:grid-cols-[13rem_1fr_auto] md:items-center"
       href={{ pathname: `/studio/${orgSlug}/bookings/${booking.id}` }}
     >
       <span className="font-semibold">

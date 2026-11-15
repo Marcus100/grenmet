@@ -122,6 +122,7 @@
 .service-name {
   font-size: 1rem;
   font-weight: 500;
+  overflow-wrap: anywhere;
 }
 .service-price {
   font-weight: 600;
@@ -159,6 +160,10 @@
 .chip {
   position: relative;
   cursor: pointer;
+}
+/* The focus ring is drawn on the label: give it the chip's rounded corners. */
+.chip:has(input:focus-visible) {
+  border-radius: calc(var(--radius) + 4px);
 }
 .chip input {
   position: absolute;
