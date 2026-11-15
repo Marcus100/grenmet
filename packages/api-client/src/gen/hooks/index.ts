@@ -674,6 +674,11 @@ export {
   useBookingsReschedulePublicBooking,
 } from "./useBookingsReschedulePublicBooking.js";
 export {
+  bookingsRescheduleStudioBookingMutationKey,
+  bookingsRescheduleStudioBookingMutationOptions,
+  useBookingsRescheduleStudioBooking,
+} from "./useBookingsRescheduleStudioBooking.js";
+export {
   bookingsUpdateProviderMutationKey,
   bookingsUpdateProviderMutationOptions,
   useBookingsUpdateProvider,

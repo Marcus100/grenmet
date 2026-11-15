@@ -1181,6 +1181,7 @@ export { bookingStudioCustomerSchema } from "./bookingStudioCustomerSchema.js";
 export { bookingStudioDeclineSchema } from "./bookingStudioDeclineSchema.js";
 export { bookingStudioDetailSchema } from "./bookingStudioDetailSchema.js";
 export { bookingStudioEventSchema } from "./bookingStudioEventSchema.js";
+export { bookingStudioRescheduleSchema } from "./bookingStudioRescheduleSchema.js";
 export {
   bookingsCancelPublicBookingBodySchema,
   bookingsCancelPublicBookingErrorSchema,
@@ -1646,6 +1647,22 @@ export {
   bookingsReschedulePublicBookingStatus409Schema,
   bookingsReschedulePublicBookingStatus422Schema,
 } from "./bookingsReschedulePublicBookingSchema.js";
+export {
+  bookingsRescheduleStudioBookingBodySchema,
+  bookingsRescheduleStudioBookingErrorSchema,
+  bookingsRescheduleStudioBookingHeadersSchema,
+  bookingsRescheduleStudioBookingHeaderXBarrelsOrganisationSchema,
+  bookingsRescheduleStudioBookingPathBookingIdSchema,
+  bookingsRescheduleStudioBookingPathSchema,
+  bookingsRescheduleStudioBookingResponseSchema,
+  bookingsRescheduleStudioBookingStatus200Schema,
+  bookingsRescheduleStudioBookingStatus400Schema,
+  bookingsRescheduleStudioBookingStatus401Schema,
+  bookingsRescheduleStudioBookingStatus403Schema,
+  bookingsRescheduleStudioBookingStatus404Schema,
+  bookingsRescheduleStudioBookingStatus409Schema,
+  bookingsRescheduleStudioBookingStatus422Schema,
+} from "./bookingsRescheduleStudioBookingSchema.js";
 export {
   bookingsUpdateProviderBodySchema,
   bookingsUpdateProviderErrorSchema,

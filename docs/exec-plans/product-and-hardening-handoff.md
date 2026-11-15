@@ -58,7 +58,9 @@ owner an account and ownership of the organisation, one real test booking, then
 switch the site's Book buttons. Current checklist:
 [babydoll-cutover.md](../operations/babydoll-cutover.md).
 
-As written on 2026-10-20: API, deposits, public flow and `babydoll.barrels.gd/book` already exist
+As written on 2026-10-20 (the `babydoll.barrels.gd/book` page and the
+`BABYDOLL_ONLINE_BOOKING` switch named here were removed on 13 Nov 2026): API,
+deposits, public flow and `babydoll.barrels.gd/book` already exist
 (`apps/api/fastapi/src/bookings/`, `apps/web/babydoll`, `BABYDOLL_ONLINE_BOOKING`
 switch). Missing:
 
@@ -92,7 +94,9 @@ switch). Missing:
      `/studio/settings`.
    - Checklist, verification commands and owner or agent split (A1.3):
      [babydoll-bookings-cutover.md](../operations/babydoll-bookings-cutover.md).
-4. **Cutover runbook**: enable `BABYDOLL_ONLINE_BOOKING`, salon re-enters
+4. **Cutover runbook** (14 Nov 2026: the `BABYDOLL_ONLINE_BOOKING` switch no
+   longer exists; the step is now to point the site's Book buttons at
+   `bookings.barrels.gd/babydoll-beauty-bar`): salon re-enters
    upcoming appointments in `/studio`, retire the Acuity link the same day,
    watch the first week's bookings and emails.
    - Runbook, week-one watch list and rollback (A1.4):
@@ -274,7 +278,7 @@ basic auth now and Cloudflare Access later.
    (`packages/theme/src/components/theme-boot.tsx`) a `nonce` prop.
 3. Edge-cached `gms`, `cap`, `events`, `cms`: non-nonce policy (cached HTML
    would replay a nonce). Payload admin may need `'unsafe-inline'`; test.
-4. `apps/web/babydoll/vercel.json`: add a CSP.
+4. `apps/web/babydoll`: a Report-Only CSP now exists in `public/_headers` and `vercel.json` (14 Nov 2026; the site is static since 13 Nov 2026). Still to do: enforce it after a clean 7-day window.
 5. Enforce per app only after 7 days, including a weekend, with no
    unexplained violations. Raise HSTS to one year after a clean week
    (separate PR; preload is an owner decision).

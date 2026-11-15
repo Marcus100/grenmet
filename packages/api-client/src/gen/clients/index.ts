@@ -133,6 +133,7 @@ export { bookingsReorderServices } from "./bookingsReorderServices.js";
 export { bookingsReplaceWorkingHours } from "./bookingsReplaceWorkingHours.js";
 export { bookingsRequestEmailCode } from "./bookingsRequestEmailCode.js";
 export { bookingsReschedulePublicBooking } from "./bookingsReschedulePublicBooking.js";
+export { bookingsRescheduleStudioBooking } from "./bookingsRescheduleStudioBooking.js";
 export { bookingsUpdateProvider } from "./bookingsUpdateProvider.js";
 export { bookingsUpdateService } from "./bookingsUpdateService.js";
 export { bookingsUpsertProfile } from "./bookingsUpsertProfile.js";
