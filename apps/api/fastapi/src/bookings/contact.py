@@ -12,8 +12,8 @@ from urllib.parse import urlsplit
 # Spaces, dots, dashes and brackets people type inside phone numbers.
 _PHONE_SEPARATORS = re.compile(r"[\s().\-]")
 #: E.164: a plus, a country code that does not start with 0, at most 15 digits.
-_E164 = re.compile(r"^\+[1-9]\d{6,14}$")
-_WHATSAPP = re.compile(r"^[1-9]\d{6,14}$")
+_E164 = re.compile(r"^\+[1-9][0-9]{6,14}$")
+_WHATSAPP = re.compile(r"^[1-9][0-9]{6,14}$")
 #: Instagram usernames: letters, digits, dots and underscores, at most 30.
 _INSTAGRAM_HANDLE = re.compile(r"^[A-Za-z0-9._]{1,30}$")
 _INSTAGRAM_HOSTS = frozenset({"instagram.com", "www.instagram.com", "m.instagram.com"})

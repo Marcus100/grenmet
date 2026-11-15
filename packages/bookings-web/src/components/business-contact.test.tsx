@@ -99,6 +99,16 @@ describe("ContactLinks and helpers", () => {
     );
   });
 
+  it("encodes the email so it cannot add mail headers", () => {
+    const [mail] = contactLinks({
+      ...NONE,
+      email: "hi@x.example?cc=evil@y.example&body=%0A",
+    });
+    expect(mail?.href).toBe(
+      "mailto:hi@x.example%3Fcc%3Devil%40y.example%26body%3D%250A"
+    );
+  });
+
   it("ends a sentence with a colon only when links follow", () => {
     expect(contactEnding(ALL)).toBe(":");
     expect(contactEnding(NONE)).toBe(" directly.");

@@ -55,7 +55,8 @@ function link(kind: ContactKind, value: string): ContactLink | null {
       return value.includes("@")
         ? {
             kind,
-            href: `mailto:${value}`,
+            // Encoded so a "?" or "%" cannot add headers (cc, body); "@" stays readable.
+            href: `mailto:${encodeURIComponent(value).replace("%40", "@")}`,
             label: `Email ${value}`,
             external: false,
           }

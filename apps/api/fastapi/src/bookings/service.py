@@ -78,6 +78,11 @@ async def get_profile(session: AsyncSession, organisation_id: str) -> BookingPro
     return profile
 
 
+CONTACT_FIELDS = frozenset(
+    {"contact_phone", "contact_whatsapp", "contact_instagram", "contact_email"}
+)
+
+
 async def upsert_profile(
     session: AsyncSession, *, organisation_id: str, payload: BookingProfileUpdate
 ) -> BookingProfile:
@@ -92,7 +97,16 @@ async def upsert_profile(
     )
     if taken is not None:
         raise BookingConflictError("That booking address is already in use")
-    values = payload.model_dump()
+    # Contact options are kept unless the request names them: a client (or a
+    # seed) that does not know them must not erase them. An explicit blank or
+    # null still clears.
+    values = payload.model_dump(
+        exclude={
+            name
+            for name in CONTACT_FIELDS
+            if name not in payload.model_fields_set and profile is not None
+        }
+    )
     if profile is None:
         profile = BookingProfile(organisation_id=organisation_id, **values)
         session.add(profile)

@@ -11,7 +11,8 @@ import httpx
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bookings import contact
+from src.bookings import contact, service
+from src.bookings.schemas import BookingProfileUpdate
 from src.organisations import service as organisation_service
 from src.organisations.models import MembershipRole
 from tests.bookings.test_public_bookings import API, _book, _slots, _studio
@@ -138,8 +139,12 @@ async def test_contacts_are_optional_and_blank_clears_them(
         key: value
         for key, value in profile.items()
         if key not in {"id", "organisation_id", "created_at", "updated_at"}
-    } | {"contact_phone": "", "contact_whatsapp": None, "contact_instagram": " "}
-    cleared.pop("contact_email")
+    } | {
+        "contact_phone": "",
+        "contact_whatsapp": None,
+        "contact_instagram": " ",
+        "contact_email": None,
+    }
     response = await async_client.put(
         f"{API}/org/profile", headers=studio.headers, json=cleared
     )
@@ -243,3 +248,47 @@ async def test_another_business_contacts_never_show(
     response = await async_client.get(f"{API}/public/{studio.slug}")
     assert response.json()["contact"] == NONE
     assert other.slug != studio.slug
+
+
+@pytest.mark.parametrize("raw", ["+1 ٤٧٣ ٤٤٠ ١٢٣٤", "+१४७३४४०१२३४"])
+def test_phone_and_whatsapp_accept_ascii_digits_only(raw: str) -> None:
+    with pytest.raises(ValueError, match="country code"):
+        contact.normalise_phone(raw)
+    with pytest.raises(ValueError, match="WhatsApp"):
+        contact.normalise_whatsapp(raw)
+
+
+async def test_a_save_without_contact_fields_keeps_them(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client, **ALL_FOUR)
+    # A client (or a seed) that does not know the contact options.
+    response = await async_client.put(
+        f"{API}/org/profile",
+        headers=studio.headers,
+        json={
+            "public_slug": studio.slug,
+            "display_name": "Renamed Studio",
+            "enabled": True,
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["display_name"] == "Renamed Studio"
+    assert {key: body[f"contact_{key}"] for key in STORED} == STORED
+
+
+async def test_the_seed_keeps_contacts_set_in_studio(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client, **ALL_FOUR)
+    await service.upsert_profile(
+        db_async,
+        organisation_id=studio.org_id,
+        payload=BookingProfileUpdate(
+            public_slug=studio.slug, display_name="Seeded again", enabled=True
+        ),
+    )
+    await db_async.commit()
+    stored = await async_client.get(f"{API}/public/{studio.slug}")
+    assert stored.json()["contact"] == STORED
