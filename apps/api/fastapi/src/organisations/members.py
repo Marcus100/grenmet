@@ -138,6 +138,25 @@ async def _get_membership(
     return membership
 
 
+async def _reread_actor(
+    session: AsyncSession, organisation_id: str, actor_membership_id: str
+) -> Membership:
+    """The acting member as the database holds it now, read after the roster lock.
+
+    The caller's ``OrgContext`` was resolved before the lock, so a concurrent demotion
+    or removal of the actor shows only here (issue #1477). Refuse unless the actor is
+    still an active owner or admin of this organisation."""
+    actor = await session.get(Membership, actor_membership_id, populate_existing=True)
+    if (
+        actor is None
+        or actor.organisation_id != organisation_id
+        or actor.status != MembershipStatus.ACTIVE.value
+        or actor.role not in _POWER_ROLES
+    ):
+        raise OrganisationRoleError()
+    return actor
+
+
 async def _ensure_not_last_owner(
     session: AsyncSession, organisation_id: str, membership: Membership
 ) -> None:
@@ -158,6 +177,26 @@ async def _ensure_not_last_owner(
         raise LastOwnerError()
 
 
+async def _actor_may_grant_owner(
+    session: AsyncSession,
+    organisation_id: str,
+    *,
+    actor_membership_id: str | None,
+    actor_may_grant_owner: bool | None,
+) -> bool:
+    """The owner rule for the acting caller, read after the roster lock.
+
+    An organisation actor is identified by ``actor_membership_id``: its row is re-read,
+    and its fresh role decides (issue #1477). The control plane has no membership and
+    passes ``actor_may_grant_owner`` instead."""
+    if actor_membership_id is not None:
+        actor = await _reread_actor(session, organisation_id, actor_membership_id)
+        return actor.role == MembershipRole.OWNER.value
+    if actor_may_grant_owner is None:
+        raise ValueError("Pass actor_membership_id or actor_may_grant_owner")
+    return actor_may_grant_owner
+
+
 async def apply_role_change(
     session: AsyncSession,
     organisation_id: str,
@@ -165,15 +204,20 @@ async def apply_role_change(
     role: MembershipRole,
     *,
     actor_id: uuid.UUID,
-    actor_may_grant_owner: bool,
+    actor_may_grant_owner: bool | None = None,
+    actor_membership_id: str | None = None,
 ) -> tuple[Membership, User]:
     """Shared by the organisation-scoped route and the audited control-plane route."""
     audit_service.set_actor(session, actor_id)
     await grants.lock_roster(session, organisation_id)
+    may_grant_owner = await _actor_may_grant_owner(
+        session,
+        organisation_id,
+        actor_membership_id=actor_membership_id,
+        actor_may_grant_owner=actor_may_grant_owner,
+    )
     membership = await _get_membership(session, organisation_id, membership_id)
-    if not actor_may_grant_owner and (
-        _is_owner(membership.role) or _is_owner(role.value)
-    ):
+    if not may_grant_owner and (_is_owner(membership.role) or _is_owner(role.value)):
         raise OrganisationRoleError()  # touching an owner, or granting owner
     user = await session.get(User, membership.user_id)
     assert user is not None
@@ -212,7 +256,7 @@ async def change_role(
         membership_id,
         role,
         actor_id=context.user.id,
-        actor_may_grant_owner=context.role == MembershipRole.OWNER,
+        actor_membership_id=context.membership.id,
     )
 
 
@@ -222,12 +266,19 @@ async def apply_removal(
     membership_id: str,
     *,
     actor_id: uuid.UUID,
-    actor_may_grant_owner: bool,
+    actor_may_grant_owner: bool | None = None,
+    actor_membership_id: str | None = None,
 ) -> Membership:
     audit_service.set_actor(session, actor_id)
     await grants.lock_roster(session, organisation_id)
+    may_grant_owner = await _actor_may_grant_owner(
+        session,
+        organisation_id,
+        actor_membership_id=actor_membership_id,
+        actor_may_grant_owner=actor_may_grant_owner,
+    )
     membership = await _get_membership(session, organisation_id, membership_id)
-    if not actor_may_grant_owner and _is_owner(membership.role):
+    if not may_grant_owner and _is_owner(membership.role):
         raise OrganisationRoleError()
     await _ensure_not_last_owner(session, organisation_id, membership)
     transitions.move_membership(membership, "remove")
@@ -382,7 +433,7 @@ async def remove_member(
         context.organisation_id,
         membership_id,
         actor_id=context.user.id,
-        actor_may_grant_owner=context.role == MembershipRole.OWNER,
+        actor_membership_id=context.membership.id,
     )
     return None
 
