@@ -114,6 +114,15 @@ export {
   auditGetHistoryStatus422Schema,
 } from "./auditGetHistorySchema.js";
 export {
+  authAcceptSuperuserInvitationBodySchema,
+  authAcceptSuperuserInvitationErrorSchema,
+  authAcceptSuperuserInvitationResponseSchema,
+  authAcceptSuperuserInvitationStatus200Schema,
+  authAcceptSuperuserInvitationStatus400Schema,
+  authAcceptSuperuserInvitationStatus422Schema,
+  authAcceptSuperuserInvitationStatus429Schema,
+} from "./authAcceptSuperuserInvitationSchema.js";
+export {
   authAccountEmailCodeStartBodySchema,
   authAccountEmailCodeStartErrorSchema,
   authAccountEmailCodeStartResponseSchema,
@@ -377,6 +386,16 @@ export {
   authCreateRoleStatus403Schema,
   authCreateRoleStatus422Schema,
 } from "./authCreateRoleSchema.js";
+export {
+  authCreateSuperuserInvitationBodySchema,
+  authCreateSuperuserInvitationErrorSchema,
+  authCreateSuperuserInvitationResponseSchema,
+  authCreateSuperuserInvitationStatus201Schema,
+  authCreateSuperuserInvitationStatus400Schema,
+  authCreateSuperuserInvitationStatus403Schema,
+  authCreateSuperuserInvitationStatus422Schema,
+  authCreateSuperuserInvitationStatus429Schema,
+} from "./authCreateSuperuserInvitationSchema.js";
 export {
   authCreateUserBodySchema,
   authCreateUserErrorSchema,
@@ -683,6 +702,13 @@ export {
   authListAccountAppsStatus422Schema,
 } from "./authListAccountAppsSchema.js";
 export {
+  authListSuperuserInvitationsErrorSchema,
+  authListSuperuserInvitationsResponseSchema,
+  authListSuperuserInvitationsStatus200Schema,
+  authListSuperuserInvitationsStatus403Schema,
+  authListSuperuserInvitationsStatus422Schema,
+} from "./authListSuperuserInvitationsSchema.js";
+export {
   authLoginAccessTokenBodySchema,
   authLoginAccessTokenErrorSchema,
   authLoginAccessTokenResponseSchema,
@@ -814,6 +840,25 @@ export {
   authRevokeSignInSetupStatus404Schema,
   authRevokeSignInSetupStatus422Schema,
 } from "./authRevokeSignInSetupSchema.js";
+export {
+  authRevokeSuperuserInvitationErrorSchema,
+  authRevokeSuperuserInvitationPathInvitationIdSchema,
+  authRevokeSuperuserInvitationPathSchema,
+  authRevokeSuperuserInvitationResponseSchema,
+  authRevokeSuperuserInvitationStatus200Schema,
+  authRevokeSuperuserInvitationStatus403Schema,
+  authRevokeSuperuserInvitationStatus404Schema,
+  authRevokeSuperuserInvitationStatus409Schema,
+  authRevokeSuperuserInvitationStatus422Schema,
+} from "./authRevokeSuperuserInvitationSchema.js";
+export {
+  authSuperuserInvitationCodeBodySchema,
+  authSuperuserInvitationCodeErrorSchema,
+  authSuperuserInvitationCodeResponseSchema,
+  authSuperuserInvitationCodeStatus200Schema,
+  authSuperuserInvitationCodeStatus422Schema,
+  authSuperuserInvitationCodeStatus429Schema,
+} from "./authSuperuserInvitationCodeSchema.js";
 export {
   authTwofaActivateBodySchema,
   authTwofaActivateErrorSchema,
@@ -8913,6 +8958,10 @@ export { suggestionPublicSchema } from "./suggestionPublicSchema.js";
 export { suggestionUpdatePropertiesStatusEnumSchema } from "./suggestionUpdatePropertiesStatusEnumSchema.js";
 export { suggestionUpdateSchema } from "./suggestionUpdateSchema.js";
 export { superuserActionReasonSchema } from "./superuserActionReasonSchema.js";
+export { superuserInvitationAcceptSchema } from "./superuserInvitationAcceptSchema.js";
+export { superuserInvitationCodeVerifySchema } from "./superuserInvitationCodeVerifySchema.js";
+export { superuserInvitationCreateSchema } from "./superuserInvitationCreateSchema.js";
+export { superuserInvitationPublicSchema } from "./superuserInvitationPublicSchema.js";
 export { swapTypeSchema } from "./swapTypeSchema.js";
 export { synopDecodedSchema } from "./synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./synopticImageGroupSchema.js";

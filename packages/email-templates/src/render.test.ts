@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { renderTemplate } from "./render";
 
+const INVITATION_EXPIRY = /expires in (<!-- -->)?24(<!-- -->)? hours/u;
+
 const base = {
   alerts: [],
   dateLabel: "28 Oct 2026",
@@ -99,5 +101,34 @@ describe("newsletter template", () => {
     await expect(
       renderTemplate("newsletter", { ...base, unsubscribeLink: "" })
     ).rejects.toThrow("newsletter requires");
+  });
+});
+
+describe("superuser invitation template", () => {
+  const invitation = {
+    acceptLink: "https://auth.example.test/superuser-invite?token=t",
+    inviterName: "Alex Example",
+    projectName: "Barrels Grenada",
+    validHours: 24,
+  };
+
+  it("carries the single-use link and the 24-hour window", async () => {
+    const { html, subject } = await renderTemplate(
+      "superuser-invitation",
+      invitation
+    );
+    expect(html).toContain("Alex Example invited you");
+    // React puts comment markers between the interpolated number and "hours".
+    expect(html).toMatch(INVITATION_EXPIRY);
+    expect(html).toContain(invitation.acceptLink.replace(/&/gu, "&amp;"));
+    expect(subject).toBe(
+      "You are invited to be an administrator of Barrels Grenada"
+    );
+  });
+
+  it("refuses to render without its link", async () => {
+    await expect(
+      renderTemplate("superuser-invitation", { ...invitation, acceptLink: "" })
+    ).rejects.toThrow("superuser-invitation requires");
   });
 });

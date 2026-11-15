@@ -5,6 +5,7 @@ from starlette.requests import Request
 
 from src.auth import app_service
 from src.auth import modern_service as service
+from src.auth import superuser_invitation as invitations
 from src.auth.account_security import new_recovery_codes, revoke_owned_session
 from src.auth.app_schemas import AppEmailCodeStart, AppEmailCodeVerify
 from src.auth.modern_schemas import (
@@ -20,7 +21,13 @@ from src.auth.modern_schemas import (
     SecurityProof,
 )
 from src.auth.schemas import SessionLoginResponse
-from src.dependencies import AccountUser, SessionDep
+from src.auth.superuser_invitation_schemas import (
+    SuperuserInvitationAccept,
+    SuperuserInvitationCodeVerify,
+    SuperuserInvitationCreate,
+    SuperuserInvitationPublic,
+)
+from src.dependencies import AccountUser, SessionDep, TokenDep
 from src.models import ApiError, Message
 from src.openapi_responses import RateLimitedBody
 from src.rate_limit import limiter, mail_limit_address
@@ -209,4 +216,121 @@ async def account_email_code_verify(
 ) -> SessionLoginResponse:
     return await app_service.account_email_code_verify(
         request=request, session=session, body=body
+    )
+
+
+@router.post(
+    "/superuser-invitations",
+    response_model=SuperuserInvitationPublic,
+    status_code=201,
+    summary="Invite a Barrels superuser",
+    description="Superuser only, with an authenticator and a two-step sign-in. Emails a single-use link that works for 24 hours. The invitee must prove the address with an emailed code. The reason (10 to 500 characters) is written to the audit log. The token is never returned.",
+    responses={
+        400: {"model": ApiError, "description": "Address cannot be invited"},
+        403: {"model": ApiError, "description": "Superuser two-step sign-in required"},
+        422: {"model": ApiError, "description": "Reason missing or too short or long"},
+        429: {"model": ApiError, "description": "Too many invitations"},
+    },
+)
+async def create_superuser_invitation(
+    *,
+    session: SessionDep,
+    current_user: AccountUser,
+    token: TokenDep,
+    body: SuperuserInvitationCreate,
+) -> SuperuserInvitationPublic:
+    await invitations.require_superuser_session(session, current_user, token=token)
+    invitation = await invitations.create_invitation(
+        session,
+        inviter=current_user,
+        email=str(body.email),
+        reason=body.reason,
+    )
+    await session.commit()
+    return SuperuserInvitationPublic.model_validate(invitation, from_attributes=True)
+
+
+@router.get(
+    "/superuser-invitations",
+    response_model=list[SuperuserInvitationPublic],
+    status_code=200,
+    summary="List open superuser invitations",
+    description="Superuser only, with a two-step sign-in. Lists invitations that are neither accepted, revoked nor expired (at most 100). Tokens are never listed.",
+    responses={
+        403: {"model": ApiError, "description": "Superuser two-step sign-in required"}
+    },
+)
+async def list_superuser_invitations(
+    *, session: SessionDep, current_user: AccountUser, token: TokenDep
+) -> list[SuperuserInvitationPublic]:
+    await invitations.require_superuser_session(session, current_user, token=token)
+    rows = await invitations.list_pending(session)
+    return [
+        SuperuserInvitationPublic.model_validate(row, from_attributes=True)
+        for row in rows
+    ]
+
+
+@router.post(
+    "/superuser-invitations/{invitation_id}/revoke",
+    response_model=SuperuserInvitationPublic,
+    status_code=200,
+    summary="Revoke a superuser invitation",
+    description="Superuser only, with a two-step sign-in. An open invitation stops working at once. Accepted, revoked and unknown invitations are refused.",
+    responses={
+        403: {"model": ApiError, "description": "Superuser two-step sign-in required"},
+        404: {"model": ApiError, "description": "Invitation not found"},
+        409: {"model": ApiError, "description": "Invitation already closed"},
+    },
+)
+async def revoke_superuser_invitation(
+    *,
+    session: SessionDep,
+    current_user: AccountUser,
+    token: TokenDep,
+    invitation_id: uuid.UUID,
+) -> SuperuserInvitationPublic:
+    await invitations.require_superuser_session(session, current_user, token=token)
+    row = await invitations.revoke_invitation(
+        session, actor=current_user, invitation_id=invitation_id
+    )
+    await session.commit()
+    return SuperuserInvitationPublic.model_validate(row, from_attributes=True)
+
+
+@router.post(
+    "/superuser-invitations/code",
+    response_model=Message,
+    status_code=200,
+    summary="Email the invitee a sign-in code",
+    description="Intentionally public: the token proves the invitation. Emails a six-digit code to the invited address, subject to the same limits as sign-in. The reply is the same whether or not the token is valid.",
+    responses={429: {"model": RateLimitedBody, "description": "Rate limit exceeded"}},
+)
+@limiter.limit("5/minute")
+async def superuser_invitation_code(
+    *, request: Request, session: SessionDep, body: SuperuserInvitationAccept
+) -> Message:
+    message = await invitations.request_code(
+        session, token=body.token, client_ip=mail_limit_address(request)
+    )
+    return Message(message=message)
+
+
+@router.post(
+    "/superuser-invitations/accept",
+    response_model=SessionLoginResponse,
+    status_code=200,
+    summary="Accept a superuser invitation",
+    description="Intentionally public: the token and the code emailed to the invited address are the proof. Grants superuser, clears the pending approval, audits the grant once and opens an account session. Single use; a wrong, expired, replayed or revoked invitation is refused with the same message.",
+    responses={
+        400: {"model": ApiError, "description": "Invitation or code not accepted"},
+        429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
+    },
+)
+@limiter.limit("10/minute")
+async def accept_superuser_invitation(
+    *, request: Request, session: SessionDep, body: SuperuserInvitationCodeVerify
+) -> SessionLoginResponse:
+    return await invitations.accept_invitation(
+        session, request, token=body.token, code=body.code
     )

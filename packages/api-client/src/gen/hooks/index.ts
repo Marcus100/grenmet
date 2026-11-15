@@ -14,6 +14,11 @@ export {
   useAuditGetHistory,
 } from "./useAuditGetHistory.js";
 export {
+  authAcceptSuperuserInvitationMutationKey,
+  authAcceptSuperuserInvitationMutationOptions,
+  useAuthAcceptSuperuserInvitation,
+} from "./useAuthAcceptSuperuserInvitation.js";
+export {
   authAccountEmailCodeStartMutationKey,
   authAccountEmailCodeStartMutationOptions,
   useAuthAccountEmailCodeStart,
@@ -123,6 +128,11 @@ export {
   authCreateRoleAssignmentMutationOptions,
   useAuthCreateRoleAssignment,
 } from "./useAuthCreateRoleAssignment.js";
+export {
+  authCreateSuperuserInvitationMutationKey,
+  authCreateSuperuserInvitationMutationOptions,
+  useAuthCreateSuperuserInvitation,
+} from "./useAuthCreateSuperuserInvitation.js";
 export {
   authCreateUserMutationKey,
   authCreateUserMutationOptions,
@@ -284,6 +294,11 @@ export {
   useAuthListAccountApps,
 } from "./useAuthListAccountApps.js";
 export {
+  authListSuperuserInvitationsQueryKey,
+  authListSuperuserInvitationsQueryOptions,
+  useAuthListSuperuserInvitations,
+} from "./useAuthListSuperuserInvitations.js";
+export {
   authLoginAccessTokenMutationKey,
   authLoginAccessTokenMutationOptions,
   useAuthLoginAccessToken,
@@ -358,6 +373,16 @@ export {
   authRevokeSignInSetupMutationOptions,
   useAuthRevokeSignInSetup,
 } from "./useAuthRevokeSignInSetup.js";
+export {
+  authRevokeSuperuserInvitationMutationKey,
+  authRevokeSuperuserInvitationMutationOptions,
+  useAuthRevokeSuperuserInvitation,
+} from "./useAuthRevokeSuperuserInvitation.js";
+export {
+  authSuperuserInvitationCodeMutationKey,
+  authSuperuserInvitationCodeMutationOptions,
+  useAuthSuperuserInvitationCode,
+} from "./useAuthSuperuserInvitationCode.js";
 export {
   authTwofaActivateMutationKey,
   authTwofaActivateMutationOptions,
