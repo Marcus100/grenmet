@@ -238,6 +238,11 @@ async def link_verified_account(
     contact row is locked and re-read after the account. Returns True when this call
     made the link.
     """
+    if contact.user_id is not None:
+        # Already linked (to this account or another): nothing to decide, so skip the
+        # account lock. Taking it here would invert the lock order that
+        # ``unlink_account`` relies on for a contact this booking already holds.
+        return False
     account = await session.scalar(
         select(User)
         .where(User.id == user_id)

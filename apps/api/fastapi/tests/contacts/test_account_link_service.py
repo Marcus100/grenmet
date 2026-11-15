@@ -94,6 +94,27 @@ async def test_a_link_follows_the_current_address_and_verification(
     assert other.user_id is None
 
 
+async def test_an_already_linked_contact_is_never_relinked(db_async: AsyncSession):
+    """A contact keeps its first link. A repeat booking, including a replay by the
+    same account, returns False without touching the link (no relink)."""
+    org_id = await _org_id(db_async)
+    email = _address("first")
+    first = await make_user(db_async, email=email)
+    contact = await service.upsert_contact(
+        db_async, org_id, email=email, source="bookings"
+    )
+    assert await service.link_verified_account(
+        db_async, contact, booking_email=email, user_id=first.id
+    )
+
+    linked = await service.link_verified_account(
+        db_async, contact, booking_email=email, user_id=first.id
+    )
+
+    assert linked is False
+    assert contact.user_id == first.id
+
+
 async def test_link_and_unlink_write_value_free_rows_with_no_actor(
     db_async: AsyncSession,
 ):
