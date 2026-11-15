@@ -19,4 +19,9 @@ export const printixImportReportSchema = z.object({
   errors_truncated: z
     .boolean()
     .describe("True when more than 100 problems were found."),
+  warnings: z
+    .array(z.string())
+    .describe(
+      "Checks that do not block the import but need the operator's attention."
+    ),
 });

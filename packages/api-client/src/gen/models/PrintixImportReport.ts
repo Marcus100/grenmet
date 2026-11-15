@@ -28,4 +28,9 @@ export type PrintixImportReport = {
    * @type boolean
    */
   errors_truncated: boolean;
+  /**
+   * @description Checks that do not block the import but need the operator's attention.
+   * @type array
+   */
+  warnings: string[];
 };

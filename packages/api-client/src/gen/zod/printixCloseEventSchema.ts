@@ -24,10 +24,6 @@ export const printixCloseEventStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
-export const printixCloseEventStatus409Schema = apiErrorSchema.describe(
-  "Stable error envelope for documented API failures."
-);
-
 export const printixCloseEventStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -39,7 +35,6 @@ export const printixCloseEventErrorSchema = z.union([
   printixCloseEventStatus401Schema,
   printixCloseEventStatus403Schema,
   printixCloseEventStatus404Schema,
-  printixCloseEventStatus409Schema,
   printixCloseEventStatus422Schema,
 ]);
 

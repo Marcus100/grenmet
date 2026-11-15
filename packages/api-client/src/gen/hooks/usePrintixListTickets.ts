@@ -18,7 +18,6 @@ import type {
   PrintixListTicketsStatus401,
   PrintixListTicketsStatus403,
   PrintixListTicketsStatus404,
-  PrintixListTicketsStatus409,
   PrintixListTicketsStatus422,
 } from "../models/PrintixListTickets.js";
 
@@ -46,7 +45,6 @@ export function printixListTicketsQueryOptions(
       | PrintixListTicketsStatus401
       | PrintixListTicketsStatus403
       | PrintixListTicketsStatus404
-      | PrintixListTicketsStatus409
       | PrintixListTicketsStatus422
     >,
     PrintixListTicketsStatus200,
@@ -66,7 +64,7 @@ export function printixListTicketsQueryOptions(
 }
 
 /**
- * @description Tickets of one event, by printed number, with optional filters. The total counts every ticket that matches. Barcode values are not returned.
+ * @description Tickets of one event, in printed-number order (digits numerically), with optional filters. The total counts every ticket that matches. Barcode values are not returned.
  * @summary List Printix tickets
  * {@link /api/v1/printix/admin/events/:event_id/tickets}
  */
@@ -94,7 +92,6 @@ export function usePrintixListTickets<
           | PrintixListTicketsStatus401
           | PrintixListTicketsStatus403
           | PrintixListTicketsStatus404
-          | PrintixListTicketsStatus409
           | PrintixListTicketsStatus422
         >,
         TData,
@@ -129,7 +126,6 @@ export function usePrintixListTickets<
       | PrintixListTicketsStatus401
       | PrintixListTicketsStatus403
       | PrintixListTicketsStatus404
-      | PrintixListTicketsStatus409
       | PrintixListTicketsStatus422
     >
   > & { queryKey: TQueryKey };

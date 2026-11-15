@@ -7621,7 +7621,6 @@ export {
   printixCloseEventStatus401Schema,
   printixCloseEventStatus403Schema,
   printixCloseEventStatus404Schema,
-  printixCloseEventStatus409Schema,
   printixCloseEventStatus422Schema,
 } from "./printixCloseEventSchema.js";
 export {
@@ -7659,7 +7658,6 @@ export {
   printixEventSummaryStatus401Schema,
   printixEventSummaryStatus403Schema,
   printixEventSummaryStatus404Schema,
-  printixEventSummaryStatus409Schema,
   printixEventSummaryStatus422Schema,
 } from "./printixEventSummarySchema.js";
 export { printixGateCountSchema } from "./printixGateCountSchema.js";
@@ -7690,7 +7688,6 @@ export {
   printixListPairingsStatus401Schema,
   printixListPairingsStatus403Schema,
   printixListPairingsStatus404Schema,
-  printixListPairingsStatus409Schema,
   printixListPairingsStatus422Schema,
 } from "./printixListPairingsSchema.js";
 export {
@@ -7707,7 +7704,6 @@ export {
   printixListTicketsStatus401Schema,
   printixListTicketsStatus403Schema,
   printixListTicketsStatus404Schema,
-  printixListTicketsStatus409Schema,
   printixListTicketsStatus422Schema,
 } from "./printixListTicketsSchema.js";
 export { printixPairingCreatedSchema } from "./printixPairingCreatedSchema.js";
@@ -7720,6 +7716,7 @@ export {
   printixPairingSummaryStatus401Schema,
   printixPairingSummaryStatus403Schema,
   printixPairingSummaryStatus422Schema,
+  printixPairingSummaryStatus429Schema,
 } from "./printixPairingSummarySchema.js";
 export {
   printixRevokePairingErrorSchema,
@@ -7730,7 +7727,6 @@ export {
   printixRevokePairingStatus401Schema,
   printixRevokePairingStatus403Schema,
   printixRevokePairingStatus404Schema,
-  printixRevokePairingStatus409Schema,
   printixRevokePairingStatus422Schema,
 } from "./printixRevokePairingSchema.js";
 export { printixScanOutcomeSchema } from "./printixScanOutcomeSchema.js";

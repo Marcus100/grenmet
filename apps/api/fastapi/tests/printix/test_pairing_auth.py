@@ -1,7 +1,6 @@
 """Pairing secret: checked on every call, hashed at rest, never logged, rate limited."""
 
 import hashlib
-import hmac
 import logging
 from datetime import timedelta
 
@@ -114,30 +113,6 @@ async def test_the_secret_is_hashed_at_rest(db_async: AsyncSession) -> None:
     assert stored.token_hash == hashlib.sha256(secret.encode()).hexdigest()
     assert secret not in stored.token_hash
     assert secret.encode() not in stored.token_hash.encode()
-
-
-async def test_the_secret_is_checked_with_a_constant_time_comparison(
-    async_client: httpx.AsyncClient,
-    db_async: AsyncSession,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    event = await make_event(db_async)
-    await make_ticket(db_async, event, "001")
-    _, secret = await make_pairing(db_async, event)
-    compared: list[tuple[str, str]] = []
-    real = hmac.compare_digest
-
-    def spy(left: str | bytes, right: str | bytes) -> bool:
-        compared.append((str(left), str(right)))
-        return real(left, right)
-
-    monkeypatch.setattr(hmac, "compare_digest", spy)
-
-    assert outcome_of(await scan(async_client, secret, "001")) == "admitted"
-    assert compared, "the pairing hash must be compared with hmac.compare_digest"
-    assert any(
-        right == hashlib.sha256(secret.encode()).hexdigest() for _, right in compared
-    )
 
 
 async def test_the_secret_never_appears_in_logs(

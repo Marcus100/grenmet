@@ -3,7 +3,7 @@
 Import paths only: ``src.database`` reads this file (see ``src/domain_manifest.py``).
 """
 
-from src.domain_manifest import Domain, Mount
+from src.domain_manifest import Domain, Mount, WorkerJob
 
 DOMAIN = Domain(
     name="printix",
@@ -13,4 +13,11 @@ DOMAIN = Domain(
     ),
     schemas=("printix",),
     model_modules=("src.printix.models",),
+    registrations=("src.printix.audit",),
+    jobs=(
+        # Nightly scan-log retention (ADR-0060): 90 days after an event closes.
+        WorkerJob(
+            "src.printix.jobs:purge_scan_log", cron={"hour": {3}, "minute": {40}}
+        ),
+    ),
 )

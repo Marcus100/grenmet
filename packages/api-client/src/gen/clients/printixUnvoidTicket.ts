@@ -11,7 +11,7 @@ import type {
 } from "../models/PrintixUnvoidTicket.js";
 
 /**
- * @description Makes a void ticket valid again. A valid ticket changes nothing.
+ * @description Makes a void ticket valid again. Refused after the event closes. A valid ticket changes nothing.
  * @summary Restore a void Printix ticket
  * {@link /api/v1/printix/admin/tickets/:ticket_id/unvoid}
  */

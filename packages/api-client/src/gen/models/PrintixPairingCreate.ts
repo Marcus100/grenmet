@@ -14,4 +14,10 @@ export type PrintixPairingCreate = {
    * @description Defaults to six hours after the event closes. At most a day after close.
    */
   expires_at?: string | null;
+  /**
+   * @description Off by default: only an exact barcode admits. On, a typed printed number admits too, under a lower cap (20 a minute).
+   * @default false
+   * @type boolean | undefined
+   */
+  allow_typed_numbers?: boolean;
 };

@@ -51,10 +51,6 @@ export const printixListTicketsStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
-export const printixListTicketsStatus409Schema = apiErrorSchema.describe(
-  "Stable error envelope for documented API failures."
-);
-
 export const printixListTicketsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -67,7 +63,6 @@ export const printixListTicketsErrorSchema = z.union([
   printixListTicketsStatus401Schema,
   printixListTicketsStatus403Schema,
   printixListTicketsStatus404Schema,
-  printixListTicketsStatus409Schema,
   printixListTicketsStatus422Schema,
 ]);
 

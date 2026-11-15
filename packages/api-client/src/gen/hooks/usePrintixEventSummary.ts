@@ -18,7 +18,6 @@ import type {
   PrintixEventSummaryStatus401,
   PrintixEventSummaryStatus403,
   PrintixEventSummaryStatus404,
-  PrintixEventSummaryStatus409,
   PrintixEventSummaryStatus422,
 } from "../models/PrintixEventSummary.js";
 
@@ -46,7 +45,6 @@ export function printixEventSummaryQueryOptions(
       | PrintixEventSummaryStatus401
       | PrintixEventSummaryStatus403
       | PrintixEventSummaryStatus404
-      | PrintixEventSummaryStatus409
       | PrintixEventSummaryStatus422
     >,
     PrintixEventSummaryStatus200,
@@ -89,7 +87,6 @@ export function usePrintixEventSummary<
           | PrintixEventSummaryStatus401
           | PrintixEventSummaryStatus403
           | PrintixEventSummaryStatus404
-          | PrintixEventSummaryStatus409
           | PrintixEventSummaryStatus422
         >,
         TData,
@@ -121,7 +118,6 @@ export function usePrintixEventSummary<
       | PrintixEventSummaryStatus401
       | PrintixEventSummaryStatus403
       | PrintixEventSummaryStatus404
-      | PrintixEventSummaryStatus409
       | PrintixEventSummaryStatus422
     >
   > & { queryKey: TQueryKey };

@@ -37,12 +37,6 @@ export type PrintixListPairingsStatus403 = ApiError;
 export type PrintixListPairingsStatus404 = ApiError;
 
 /**
- * @description Stable error envelope for documented API failures.
- * @type object
- */
-export type PrintixListPairingsStatus409 = ApiError;
-
-/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -60,7 +54,6 @@ export type PrintixListPairingsResponses = {
   "401": PrintixListPairingsStatus401;
   "403": PrintixListPairingsStatus403;
   "404": PrintixListPairingsStatus404;
-  "409": PrintixListPairingsStatus409;
   "422": PrintixListPairingsStatus422;
 };
 

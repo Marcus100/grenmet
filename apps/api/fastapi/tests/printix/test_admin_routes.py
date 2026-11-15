@@ -47,7 +47,7 @@ def event_body(**overrides: Any) -> dict[str, Any]:
     body: dict[str, Any] = {
         "name": "Boxing Day Gala",
         "event_date": "2026-12-26",
-        "closes_at": (utc_now() + timedelta(days=2)).isoformat() + "Z",
+        "closes_at": "2026-12-27T18:00:00Z",
     }
     body.update(overrides)
     return body

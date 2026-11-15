@@ -17,7 +17,6 @@ import type {
   PrintixRevokePairingStatus401,
   PrintixRevokePairingStatus403,
   PrintixRevokePairingStatus404,
-  PrintixRevokePairingStatus409,
   PrintixRevokePairingStatus422,
 } from "../models/PrintixRevokePairing.js";
 
@@ -36,7 +35,6 @@ export function printixRevokePairingMutationOptions<TContext = unknown>(
       | PrintixRevokePairingStatus401
       | PrintixRevokePairingStatus403
       | PrintixRevokePairingStatus404
-      | PrintixRevokePairingStatus409
       | PrintixRevokePairingStatus422
     >,
     PrintixRevokePairingOptions,
@@ -66,7 +64,6 @@ export function usePrintixRevokePairing<TContext>(
         | PrintixRevokePairingStatus401
         | PrintixRevokePairingStatus403
         | PrintixRevokePairingStatus404
-        | PrintixRevokePairingStatus409
         | PrintixRevokePairingStatus422
       >,
       PrintixRevokePairingOptions,
@@ -90,7 +87,6 @@ export function usePrintixRevokePairing<TContext>(
       | PrintixRevokePairingStatus401
       | PrintixRevokePairingStatus403
       | PrintixRevokePairingStatus404
-      | PrintixRevokePairingStatus409
       | PrintixRevokePairingStatus422
     >,
     PrintixRevokePairingOptions,
@@ -103,7 +99,6 @@ export function usePrintixRevokePairing<TContext>(
       | PrintixRevokePairingStatus401
       | PrintixRevokePairingStatus403
       | PrintixRevokePairingStatus404
-      | PrintixRevokePairingStatus409
       | PrintixRevokePairingStatus422
     >,
     PrintixRevokePairingOptions,
@@ -121,7 +116,6 @@ export function usePrintixRevokePairing<TContext>(
       | PrintixRevokePairingStatus401
       | PrintixRevokePairingStatus403
       | PrintixRevokePairingStatus404
-      | PrintixRevokePairingStatus409
       | PrintixRevokePairingStatus422
     >,
     PrintixRevokePairingOptions,

@@ -11,7 +11,7 @@ import type {
 } from "../models/PrintixListTickets.js";
 
 /**
- * @description Tickets of one event, by printed number, with optional filters. The total counts every ticket that matches. Barcode values are not returned.
+ * @description Tickets of one event, in printed-number order (digits numerically), with optional filters. The total counts every ticket that matches. Barcode values are not returned.
  * @summary List Printix tickets
  * {@link /api/v1/printix/admin/events/:event_id/tickets}
  */

@@ -24,10 +24,6 @@ export const printixRevokePairingStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
-export const printixRevokePairingStatus409Schema = apiErrorSchema.describe(
-  "Stable error envelope for documented API failures."
-);
-
 export const printixRevokePairingStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -40,7 +36,6 @@ export const printixRevokePairingErrorSchema = z.union([
   printixRevokePairingStatus401Schema,
   printixRevokePairingStatus403Schema,
   printixRevokePairingStatus404Schema,
-  printixRevokePairingStatus409Schema,
   printixRevokePairingStatus422Schema,
 ]);
 

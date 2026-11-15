@@ -7670,7 +7670,6 @@ export type {
   PrintixCloseEventStatus401,
   PrintixCloseEventStatus403,
   PrintixCloseEventStatus404,
-  PrintixCloseEventStatus409,
   PrintixCloseEventStatus422,
 } from "./PrintixCloseEvent.js";
 export type {
@@ -7710,7 +7709,6 @@ export type {
   PrintixEventSummaryStatus401,
   PrintixEventSummaryStatus403,
   PrintixEventSummaryStatus404,
-  PrintixEventSummaryStatus409,
   PrintixEventSummaryStatus422,
 } from "./PrintixEventSummary.js";
 export type { PrintixGateCount } from "./PrintixGateCount.js";
@@ -7740,7 +7738,6 @@ export type {
   PrintixListPairingsStatus401,
   PrintixListPairingsStatus403,
   PrintixListPairingsStatus404,
-  PrintixListPairingsStatus409,
   PrintixListPairingsStatus422,
 } from "./PrintixListPairings.js";
 export type {
@@ -7753,7 +7750,6 @@ export type {
   PrintixListTicketsStatus401,
   PrintixListTicketsStatus403,
   PrintixListTicketsStatus404,
-  PrintixListTicketsStatus409,
   PrintixListTicketsStatus422,
 } from "./PrintixListTickets.js";
 export type { PrintixPairingCreate } from "./PrintixPairingCreate.js";
@@ -7767,6 +7763,7 @@ export type {
   PrintixPairingSummaryStatus401,
   PrintixPairingSummaryStatus403,
   PrintixPairingSummaryStatus422,
+  PrintixPairingSummaryStatus429,
 } from "./PrintixPairingSummary.js";
 export type {
   PrintixRevokePairingOptions,
@@ -7777,7 +7774,6 @@ export type {
   PrintixRevokePairingStatus401,
   PrintixRevokePairingStatus403,
   PrintixRevokePairingStatus404,
-  PrintixRevokePairingStatus409,
   PrintixRevokePairingStatus422,
 } from "./PrintixRevokePairing.js";
 export type { PrintixScanOutcome } from "./PrintixScanOutcome.js";

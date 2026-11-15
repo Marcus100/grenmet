@@ -11,6 +11,7 @@ export const printixPairingCreatedSchema = z.object({
   created_at: z.iso.datetime(),
   expires_at: z.iso.datetime(),
   revoked_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  allow_typed_numbers: z.boolean().optional().default(false),
   secret: z
     .string()
     .describe(

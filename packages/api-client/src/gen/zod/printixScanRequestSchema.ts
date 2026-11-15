@@ -10,5 +10,8 @@ export const printixScanRequestSchema = z.object({
     .string()
     .min(1)
     .max(256)
-    .describe("The barcode value, or a typed printed number."),
+    .regex(/^[^\x00-\x1f\x7f]*$/)
+    .describe(
+      "The barcode value, or a typed printed number. Control characters are refused."
+    ),
 });

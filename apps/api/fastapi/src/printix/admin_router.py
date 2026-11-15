@@ -2,7 +2,8 @@
 
 Every route needs a superuser with two-step sign-in (``PrintixAdmin``). Responses
 never include a barcode value or a pairing secret, except the one creation
-response that carries the secret.
+response that carries the secret. Each write records the acting administrator in
+the audit log.
 """
 
 import uuid
@@ -32,7 +33,10 @@ from .schemas import (
 
 router = APIRouter(prefix="/printix/admin", tags=["printix-admin"])
 
-ADMIN_RESPONSES = {**AUTHENTICATED, **NOT_FOUND, **CONFLICT}
+# Each route documents only the errors it can return.
+_UNAUTHENTICATED = {**AUTHENTICATED}
+_FIND = {**AUTHENTICATED, **NOT_FOUND}
+_FIND_OR_CONFLICT = {**AUTHENTICATED, **NOT_FOUND, **CONFLICT}
 
 
 @router.post(
@@ -42,19 +46,19 @@ ADMIN_RESPONSES = {**AUTHENTICATED, **NOT_FOUND, **CONFLICT}
     summary="Create a Printix event",
     description=(
         "Creates an open event with a name, a date and the time it closes at the "
-        "gate. The close time must be in the future."
+        "gate. The close time must be in the future and not before the event date."
     ),
-    tags=["printix-admin"],
-    responses={**AUTHENTICATED},
+    responses=_UNAUTHENTICATED,
 )
 async def create_event_endpoint(
-    *, session: SessionDep, _admin: PrintixAdmin, body: PrintixEventCreate
+    *, session: SessionDep, admin: PrintixAdmin, body: PrintixEventCreate
 ) -> Any:
     event = await service.create_event(
         session,
         name=body.name,
         event_date=body.event_date,
         closes_at=service.to_naive_utc(body.closes_at),
+        actor_id=admin.id,
     )
     return service.event_public(event)
 
@@ -64,16 +68,16 @@ async def create_event_endpoint(
     response_model=PrintixEventPublic,
     summary="Close a Printix event",
     description=(
-        "Closes the event: every scan answers event_closed and no pairing or ticket "
-        "change is accepted. Closing a closed event changes nothing."
+        "Closes the event: every scan answers event_closed, no new pairing is made, "
+        "and no ticket is voided, restored or imported. Revoking a pairing stays "
+        "allowed. Closing a closed event changes nothing."
     ),
-    tags=["printix-admin"],
-    responses={**ADMIN_RESPONSES},
+    responses=_FIND,
 )
 async def close_event_endpoint(
-    *, session: SessionDep, _admin: PrintixAdmin, event_id: uuid.UUID
+    *, session: SessionDep, admin: PrintixAdmin, event_id: uuid.UUID
 ) -> Any:
-    event = await service.close_event(session, event_id)
+    event = await service.close_event(session, event_id, actor_id=admin.id)
     return service.event_public(event)
 
 
@@ -85,8 +89,7 @@ async def close_event_endpoint(
         "Issued, void, admitted and not-yet-in counts, duplicate scans refused, and "
         "admissions per gate."
     ),
-    tags=["printix-admin"],
-    responses={**ADMIN_RESPONSES},
+    responses=_FIND,
 )
 async def event_summary_endpoint(
     *, session: SessionDep, _admin: PrintixAdmin, event_id: uuid.UUID
@@ -101,12 +104,11 @@ async def event_summary_endpoint(
     description=(
         "Uploads the printer's CSV (a number column and an optional barcode column). "
         "With dry_run (the default) it only checks the file and reports every problem "
-        "with its line. Without dry_run it writes every row, or nothing when any row "
-        "has a problem. Refused for a closed event."
+        "with its line, plus warnings. Without dry_run it writes every row, or nothing "
+        "when any row has a problem. Refused for a closed event."
     ),
-    tags=["printix-admin"],
     responses={
-        **ADMIN_RESPONSES,
+        **_FIND_OR_CONFLICT,
         413: {
             "model": ApiError,
             "description": "The file is larger than the import limit",
@@ -116,7 +118,7 @@ async def event_summary_endpoint(
 async def import_tickets_endpoint(
     *,
     session: SessionDep,
-    _admin: PrintixAdmin,
+    admin: PrintixAdmin,
     event_id: uuid.UUID,
     file: Annotated[UploadFile, File(description="The printer's ticket list (CSV).")],
     dry_run: Annotated[
@@ -124,7 +126,9 @@ async def import_tickets_endpoint(
     ] = True,
 ) -> Any:
     content = await file.read(constants.MAX_IMPORT_BYTES + 1)
-    return await service.import_tickets(session, event_id, content, dry_run=dry_run)
+    return await service.import_tickets(
+        session, event_id, content, dry_run=dry_run, actor_id=admin.id
+    )
 
 
 @router.get(
@@ -132,11 +136,11 @@ async def import_tickets_endpoint(
     response_model=PrintixTicketPage,
     summary="List Printix tickets",
     description=(
-        "Tickets of one event, by printed number, with optional filters. The total "
-        "counts every ticket that matches. Barcode values are not returned."
+        "Tickets of one event, in printed-number order (digits numerically), with "
+        "optional filters. The total counts every ticket that matches. Barcode values "
+        "are not returned."
     ),
-    tags=["printix-admin"],
-    responses={**ADMIN_RESPONSES},
+    responses=_FIND,
 )
 async def list_tickets_endpoint(
     *,
@@ -168,30 +172,36 @@ async def list_tickets_endpoint(
     response_model=PrintixTicketPublic,
     summary="Void a Printix ticket",
     description=(
-        "A void ticket is refused at the gate. An admitted ticket cannot be voided. "
-        "Voiding a void ticket changes nothing."
+        "A void ticket is refused at the gate. An admitted ticket cannot be voided, "
+        "and nothing changes after the event closes. Voiding a void ticket changes "
+        "nothing."
     ),
-    tags=["printix-admin"],
-    responses={**ADMIN_RESPONSES},
+    responses=_FIND_OR_CONFLICT,
 )
 async def void_ticket_endpoint(
-    *, session: SessionDep, _admin: PrintixAdmin, ticket_id: uuid.UUID
+    *, session: SessionDep, admin: PrintixAdmin, ticket_id: uuid.UUID
 ) -> Any:
-    return await service.set_ticket_void(session, ticket_id, void=True)
+    return await service.set_ticket_void(
+        session, ticket_id, void=True, actor_id=admin.id
+    )
 
 
 @router.post(
     "/tickets/{ticket_id}/unvoid",
     response_model=PrintixTicketPublic,
     summary="Restore a void Printix ticket",
-    description="Makes a void ticket valid again. A valid ticket changes nothing.",
-    tags=["printix-admin"],
-    responses={**ADMIN_RESPONSES},
+    description=(
+        "Makes a void ticket valid again. Refused after the event closes. A valid "
+        "ticket changes nothing."
+    ),
+    responses=_FIND_OR_CONFLICT,
 )
 async def unvoid_ticket_endpoint(
-    *, session: SessionDep, _admin: PrintixAdmin, ticket_id: uuid.UUID
+    *, session: SessionDep, admin: PrintixAdmin, ticket_id: uuid.UUID
 ) -> Any:
-    return await service.set_ticket_void(session, ticket_id, void=False)
+    return await service.set_ticket_void(
+        session, ticket_id, void=False, actor_id=admin.id
+    )
 
 
 @router.post(
@@ -202,10 +212,10 @@ async def unvoid_ticket_endpoint(
     description=(
         "Creates a pairing for one gate of one event. The response carries the secret "
         "once; it is not stored and never returned again. Expiry defaults to six hours "
-        "after the event closes and may be at most a day after close."
+        "after the event closes and may be at most a day after close. Typed printed "
+        "numbers are off unless allow_typed_numbers is set."
     ),
-    tags=["printix-admin"],
-    responses={**ADMIN_RESPONSES},
+    responses=_FIND_OR_CONFLICT,
 )
 async def create_pairing_endpoint(
     *,
@@ -224,6 +234,7 @@ async def create_pairing_endpoint(
             else None
         ),
         actor_id=admin.id,
+        allow_typed_numbers=body.allow_typed_numbers,
     )
     return service.pairing_created(pairing, secret)
 
@@ -233,8 +244,7 @@ async def create_pairing_endpoint(
     response_model=list[PrintixPairingPublic],
     summary="List gate pairings",
     description="Every pairing of one event, newest first. Secrets are never returned here.",
-    tags=["printix-admin"],
-    responses={**ADMIN_RESPONSES},
+    responses=_FIND,
 )
 async def list_pairings_endpoint(
     *, session: SessionDep, _admin: PrintixAdmin, event_id: uuid.UUID
@@ -250,10 +260,9 @@ async def list_pairings_endpoint(
         "Ends a pairing at once, for a lost or stolen phone. Its next scan is refused. "
         "Revoking a revoked pairing changes nothing."
     ),
-    tags=["printix-admin"],
-    responses={**ADMIN_RESPONSES},
+    responses=_FIND,
 )
 async def revoke_pairing_endpoint(
-    *, session: SessionDep, _admin: PrintixAdmin, pairing_id: uuid.UUID
+    *, session: SessionDep, admin: PrintixAdmin, pairing_id: uuid.UUID
 ) -> Any:
-    return await service.revoke_pairing(session, pairing_id)
+    return await service.revoke_pairing(session, pairing_id, actor_id=admin.id)

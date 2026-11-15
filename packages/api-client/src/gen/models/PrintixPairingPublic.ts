@@ -24,4 +24,9 @@ export type PrintixPairingPublic = {
    */
   expires_at: string;
   revoked_at?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  allow_typed_numbers?: boolean;
 };

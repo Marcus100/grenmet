@@ -11,7 +11,7 @@ import type {
 } from "../models/PrintixPairingSummary.js";
 
 /**
- * @description The event's issued, admitted and not-yet-in counts, for the promoter's live view.
+ * @description The event's issued, admitted and not-yet-in counts, for the promoter's live view. Limited to 30 reads a minute per pairing.
  * @summary Live count for the pairing's event
  * {@link /api/v1/printix/public/summary}
  */

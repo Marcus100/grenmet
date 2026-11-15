@@ -11,7 +11,7 @@ import type {
 } from "../models/PrintixCreatePairing.js";
 
 /**
- * @description Creates a pairing for one gate of one event. The response carries the secret once; it is not stored and never returned again. Expiry defaults to six hours after the event closes and may be at most a day after close.
+ * @description Creates a pairing for one gate of one event. The response carries the secret once; it is not stored and never returned again. Expiry defaults to six hours after the event closes and may be at most a day after close. Typed printed numbers are off unless allow_typed_numbers is set.
  * @summary Create a gate pairing
  * {@link /api/v1/printix/admin/events/:event_id/pairings}
  */

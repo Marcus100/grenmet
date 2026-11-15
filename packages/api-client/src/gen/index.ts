@@ -12312,7 +12312,6 @@ export type {
   PrintixCloseEventStatus401,
   PrintixCloseEventStatus403,
   PrintixCloseEventStatus404,
-  PrintixCloseEventStatus409,
   PrintixCloseEventStatus422,
 } from "./models/PrintixCloseEvent.js";
 export type {
@@ -12352,7 +12351,6 @@ export type {
   PrintixEventSummaryStatus401,
   PrintixEventSummaryStatus403,
   PrintixEventSummaryStatus404,
-  PrintixEventSummaryStatus409,
   PrintixEventSummaryStatus422,
 } from "./models/PrintixEventSummary.js";
 export type { PrintixGateCount } from "./models/PrintixGateCount.js";
@@ -12382,7 +12380,6 @@ export type {
   PrintixListPairingsStatus401,
   PrintixListPairingsStatus403,
   PrintixListPairingsStatus404,
-  PrintixListPairingsStatus409,
   PrintixListPairingsStatus422,
 } from "./models/PrintixListPairings.js";
 export type {
@@ -12395,7 +12392,6 @@ export type {
   PrintixListTicketsStatus401,
   PrintixListTicketsStatus403,
   PrintixListTicketsStatus404,
-  PrintixListTicketsStatus409,
   PrintixListTicketsStatus422,
 } from "./models/PrintixListTickets.js";
 export type { PrintixPairingCreate } from "./models/PrintixPairingCreate.js";
@@ -12409,6 +12405,7 @@ export type {
   PrintixPairingSummaryStatus401,
   PrintixPairingSummaryStatus403,
   PrintixPairingSummaryStatus422,
+  PrintixPairingSummaryStatus429,
 } from "./models/PrintixPairingSummary.js";
 export type {
   PrintixRevokePairingOptions,
@@ -12419,7 +12416,6 @@ export type {
   PrintixRevokePairingStatus401,
   PrintixRevokePairingStatus403,
   PrintixRevokePairingStatus404,
-  PrintixRevokePairingStatus409,
   PrintixRevokePairingStatus422,
 } from "./models/PrintixRevokePairing.js";
 export type { PrintixScanOutcome } from "./models/PrintixScanOutcome.js";
@@ -22472,7 +22468,6 @@ export {
   printixCloseEventStatus401Schema,
   printixCloseEventStatus403Schema,
   printixCloseEventStatus404Schema,
-  printixCloseEventStatus409Schema,
   printixCloseEventStatus422Schema,
 } from "./zod/printixCloseEventSchema.js";
 export {
@@ -22510,7 +22505,6 @@ export {
   printixEventSummaryStatus401Schema,
   printixEventSummaryStatus403Schema,
   printixEventSummaryStatus404Schema,
-  printixEventSummaryStatus409Schema,
   printixEventSummaryStatus422Schema,
 } from "./zod/printixEventSummarySchema.js";
 export { printixGateCountSchema } from "./zod/printixGateCountSchema.js";
@@ -22541,7 +22535,6 @@ export {
   printixListPairingsStatus401Schema,
   printixListPairingsStatus403Schema,
   printixListPairingsStatus404Schema,
-  printixListPairingsStatus409Schema,
   printixListPairingsStatus422Schema,
 } from "./zod/printixListPairingsSchema.js";
 export {
@@ -22558,7 +22551,6 @@ export {
   printixListTicketsStatus401Schema,
   printixListTicketsStatus403Schema,
   printixListTicketsStatus404Schema,
-  printixListTicketsStatus409Schema,
   printixListTicketsStatus422Schema,
 } from "./zod/printixListTicketsSchema.js";
 export { printixPairingCreatedSchema } from "./zod/printixPairingCreatedSchema.js";
@@ -22571,6 +22563,7 @@ export {
   printixPairingSummaryStatus401Schema,
   printixPairingSummaryStatus403Schema,
   printixPairingSummaryStatus422Schema,
+  printixPairingSummaryStatus429Schema,
 } from "./zod/printixPairingSummarySchema.js";
 export {
   printixRevokePairingErrorSchema,
@@ -22581,7 +22574,6 @@ export {
   printixRevokePairingStatus401Schema,
   printixRevokePairingStatus403Schema,
   printixRevokePairingStatus404Schema,
-  printixRevokePairingStatus409Schema,
   printixRevokePairingStatus422Schema,
 } from "./zod/printixRevokePairingSchema.js";
 export { printixScanOutcomeSchema } from "./zod/printixScanOutcomeSchema.js";

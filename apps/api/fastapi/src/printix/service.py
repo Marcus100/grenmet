@@ -6,8 +6,12 @@ re-check its ``WHERE`` against the committed row, so exactly one phone gets a ro
 back. The loser reads the stored first admission and reports it. The same shape
 guards voiding, so a void and an admission cannot both win.
 
+Scan caps are counted under a per-pairing transaction advisory lock, so two
+concurrent scans of one pairing cannot both read a count below the cap.
+
 Times are naive UTC, like the rest of the app. Routers convert the timezone-aware
-input before calling in.
+input before calling in. Administrator writes name the acting user in the session
+(``audit.service.set_actor``), so the audit log records who did them.
 """
 
 import hashlib
@@ -18,13 +22,15 @@ import secrets
 import uuid
 from datetime import UTC, date, datetime, timedelta
 
-from sqlalchemy import func, insert, select, update
+from sqlalchemy import case, delete, func, insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.elements import ColumnElement
 
+from src.audit import service as audit_service
 from src.exceptions import AppValidationError
 from src.utils.datetime import utc_now
 
-from . import constants, csv_import
+from . import constants, csv_import, transitions
 from .constants import PrintixEventStatus, PrintixScanOutcome, PrintixTicketStatus
 from .exceptions import (
     PrintixConflict,
@@ -51,6 +57,11 @@ from .schemas import (
 logger = logging.getLogger(__name__)
 
 _SHORT_NUMBER = re.compile(rf"[0-9]{{1,{constants.SHORT_NUMBER_MAX_DIGITS}}}")
+_NO_BARCODE_WARNING = (
+    "The file has no barcode column, so each barcode defaults to its printed "
+    "number. Printed numbers are three digits and can be typed or guessed. Import "
+    "the printer's barcode values before the event."
+)
 
 
 def to_naive_utc(moment: datetime) -> datetime:
@@ -108,11 +119,13 @@ async def create_event(
     name: str,
     event_date: date,
     closes_at: datetime,
+    actor_id: uuid.UUID | None = None,
 ) -> PrintixEvent:
     """``closes_at`` is naive UTC."""
     now = utc_now()
     if closes_at <= now:
         raise AppValidationError("closes_at must be in the future")
+    audit_service.set_actor(session, actor_id)
     event = PrintixEvent(
         id=uuid.uuid4(),
         name=name,
@@ -127,10 +140,13 @@ async def create_event(
     return event
 
 
-async def close_event(session: AsyncSession, event_id: uuid.UUID) -> PrintixEvent:
+async def close_event(
+    session: AsyncSession, event_id: uuid.UUID, *, actor_id: uuid.UUID | None = None
+) -> PrintixEvent:
     event = await get_event(session, event_id)
     if event.status != PrintixEventStatus.CLOSED.value:
-        event.status = PrintixEventStatus.CLOSED.value
+        audit_service.set_actor(session, actor_id)
+        transitions.move_event(event, PrintixEventStatus.CLOSED)
         await session.commit()
         logger.info("Printix event closed", extra={"subject_id": str(event.id)})
     return event
@@ -201,6 +217,7 @@ async def import_tickets(
     content: bytes,
     *,
     dry_run: bool,
+    actor_id: uuid.UUID | None = None,
 ) -> PrintixImportReport:
     """Check the file, then (unless ``dry_run``) write every row or none.
 
@@ -225,6 +242,7 @@ async def import_tickets(
         truncated = True
         issues = issues[: constants.MAX_REPORTED_ERRORS]
     clean = not issues
+    warnings = [] if parsed.has_barcode_column else [_NO_BARCODE_WARNING]
 
     if dry_run or not clean:
         return PrintixImportReport(
@@ -234,9 +252,11 @@ async def import_tickets(
             to_add=len(parsed.rows) if clean else 0,
             errors=issues,
             errors_truncated=truncated,
+            warnings=warnings,
         )
 
     now = utc_now()
+    audit_service.set_actor(session, actor_id)
     await session.execute(
         insert(PrintixTicket),
         [
@@ -251,6 +271,17 @@ async def import_tickets(
             for row in parsed.rows
         ],
     )
+    # A bulk insert bypasses the flush listener, so the import is recorded here.
+    # Ticket values stay out of the history: only the count is written.
+    await audit_service.record_change(
+        session,
+        entity_type="printix_event",
+        entity_id=str(event.id),
+        record_type="printix_ticket_import",
+        record_id=str(event.id),
+        action="create",
+        changes={"tickets": (None, len(parsed.rows))},
+    )
     await session.commit()
     logger.info(
         "Printix tickets imported",
@@ -263,35 +294,35 @@ async def import_tickets(
         to_add=len(parsed.rows),
         errors=[],
         errors_truncated=False,
+        warnings=warnings,
     )
 
 
 async def _clashes_with_event(
     session: AsyncSession, event_id: uuid.UUID, rows: list[csv_import.ParsedRow]
 ) -> list[PrintixImportIssue]:
-    """Rows whose number or barcode is already on this event."""
+    """Rows that collide with a ticket already on this event.
+
+    A barcode lookup runs before a number lookup, so a barcode equal to an
+    existing printed number (or a number equal to an existing barcode) would
+    shadow that ticket. Both directions are refused.
+    """
     if not rows:
         return []
-    taken_numbers = set(
-        (
-            await session.scalars(
-                select(PrintixTicket.printed_number).where(
-                    PrintixTicket.event_id == event_id,
-                    PrintixTicket.printed_number.in_({row.number for row in rows}),
-                )
+    numbers = {row.number for row in rows}
+    barcodes = {row.barcode for row in rows}
+    values = numbers | barcodes
+    stored = (
+        await session.execute(
+            select(PrintixTicket.printed_number, PrintixTicket.barcode_value).where(
+                PrintixTicket.event_id == event_id,
+                PrintixTicket.printed_number.in_(values)
+                | PrintixTicket.barcode_value.in_(values),
             )
-        ).all()
-    )
-    taken_barcodes = set(
-        (
-            await session.scalars(
-                select(PrintixTicket.barcode_value).where(
-                    PrintixTicket.event_id == event_id,
-                    PrintixTicket.barcode_value.in_({row.barcode for row in rows}),
-                )
-            )
-        ).all()
-    )
+        )
+    ).all()
+    taken_numbers = {row[0] for row in stored}
+    taken_barcodes = {row[1] for row in stored}
     issues: list[PrintixImportIssue] = []
     for row in rows:
         if row.number in taken_numbers:
@@ -306,6 +337,20 @@ async def _clashes_with_event(
                 PrintixImportIssue(
                     line=row.line,
                     message="barcode is already on this event",
+                )
+            )
+        elif row.barcode in taken_numbers and row.barcode != row.number:
+            issues.append(
+                PrintixImportIssue(
+                    line=row.line,
+                    message="barcode equals the printed number of a ticket on this event",
+                )
+            )
+        elif row.number in taken_barcodes:
+            issues.append(
+                PrintixImportIssue(
+                    line=row.line,
+                    message="number equals a barcode already on this event",
                 )
             )
     return issues
@@ -330,10 +375,20 @@ async def list_tickets(
     total = int(
         await session.scalar(select(func.count(PrintixTicket.id)).where(*filters)) or 0
     )
+    all_digits = PrintixTicket.printed_number.regexp_match(r"^[0-9]+$")
+    # Digit-only numbers sort numerically (zero-padded), then anything else as text.
+    numeric_key = case(
+        (all_digits, func.lpad(PrintixTicket.printed_number, 32, "0")),
+        else_=PrintixTicket.printed_number,
+    )
     rows = await session.scalars(
         select(PrintixTicket)
         .where(*filters)
-        .order_by(PrintixTicket.printed_number, PrintixTicket.id)
+        .order_by(
+            case((all_digits, 0), else_=1),
+            numeric_key,
+            PrintixTicket.id,
+        )
         .offset((page - 1) * size)
         .limit(size)
     )
@@ -348,27 +403,27 @@ async def list_tickets(
     )
 
 
-def pairing_created(pairing: PrintixPairing, secret: str) -> PrintixPairingCreated:
-    return PrintixPairingCreated(
-        id=pairing.id,
-        gate=pairing.gate,
-        created_at=pairing.created_at,
-        expires_at=pairing.expires_at,
-        revoked_at=pairing.revoked_at,
-        secret=secret,
-    )
-
-
 async def set_ticket_void(
-    session: AsyncSession, ticket_id: uuid.UUID, *, void: bool
+    session: AsyncSession,
+    ticket_id: uuid.UUID,
+    *,
+    void: bool,
+    actor_id: uuid.UUID | None = None,
 ) -> PrintixTicket:
-    """Void or restore a ticket. An admitted ticket cannot be voided."""
+    """Void or restore a ticket. An admitted ticket cannot be voided, and nothing
+    changes once the event has closed."""
     ticket = await session.get(PrintixTicket, ticket_id)
     if ticket is None:
         raise PrintixNotFound("Ticket not found")
+    event = await get_event(session, ticket.event_id)
+    if is_closed(event, utc_now()):
+        raise PrintixConflict("This event is closed, so its tickets cannot change")
     target = PrintixTicketStatus.VOID if void else PrintixTicketStatus.VALID
     if ticket.status == target.value:
         return ticket
+    transitions.check_ticket_move(
+        ticket.status, target, admitted=ticket.admitted_at is not None
+    )
     current = PrintixTicketStatus.VALID if void else PrintixTicketStatus.VOID
     conditions = [PrintixTicket.id == ticket_id, PrintixTicket.status == current.value]
     if void:
@@ -394,6 +449,17 @@ async def set_ticket_void(
         raise PrintixConflict(
             "The ticket changed while it was being updated; try again"
         )
+    # A bulk update bypasses the flush listener, so the change is recorded here.
+    audit_service.set_actor(session, actor_id)
+    await audit_service.record_change(
+        session,
+        entity_type="printix_event",
+        entity_id=str(ticket.event_id),
+        record_type="printix_ticket",
+        record_id=str(ticket_id),
+        action="update",
+        changes={"status": (current.value, target.value)},
+    )
     await session.commit()
     refreshed = await session.get(PrintixTicket, ticket_id, populate_existing=True)
     if refreshed is None:
@@ -415,7 +481,8 @@ async def create_pairing(
     *,
     gate: str,
     expires_at: datetime | None,
-    actor_id: uuid.UUID | None,
+    actor_id: uuid.UUID | None = None,
+    allow_typed_numbers: bool = False,
 ) -> tuple[PrintixPairing, str]:
     """A new pairing and its secret. ``expires_at`` is naive UTC or None."""
     event = await get_event(session, event_id)
@@ -432,6 +499,7 @@ async def create_pairing(
                 "expires_at must be at most a day after the event closes"
             )
     secret = secrets.token_urlsafe(constants.PAIRING_SECRET_BYTES)
+    audit_service.set_actor(session, actor_id)
     pairing = PrintixPairing(
         id=uuid.uuid4(),
         event_id=event.id,
@@ -439,6 +507,7 @@ async def create_pairing(
         token_hash=hash_secret(secret),
         expires_at=expires_at,
         revoked_at=None,
+        allow_typed_numbers=allow_typed_numbers,
         created_by=actor_id,
         created_at=now,
     )
@@ -464,12 +533,13 @@ async def list_pairings(
 
 
 async def revoke_pairing(
-    session: AsyncSession, pairing_id: uuid.UUID
+    session: AsyncSession, pairing_id: uuid.UUID, *, actor_id: uuid.UUID | None = None
 ) -> PrintixPairing:
     pairing = await session.get(PrintixPairing, pairing_id)
     if pairing is None:
         raise PrintixNotFound("Pairing not found")
     if pairing.revoked_at is None:
+        audit_service.set_actor(session, actor_id)
         pairing.revoked_at = utc_now()
         await session.commit()
         logger.info("Printix pairing revoked", extra={"subject_id": str(pairing.id)})
@@ -499,11 +569,34 @@ async def authenticate_pairing(
     return pairing
 
 
+def pairing_created(pairing: PrintixPairing, secret: str) -> PrintixPairingCreated:
+    return PrintixPairingCreated(
+        id=pairing.id,
+        gate=pairing.gate,
+        created_at=pairing.created_at,
+        expires_at=pairing.expires_at,
+        revoked_at=pairing.revoked_at,
+        allow_typed_numbers=pairing.allow_typed_numbers,
+        secret=secret,
+    )
+
+
 # --- Admission --------------------------------------------------------------
 
 
-async def _scans_in_window(
-    session: AsyncSession, pairing_id: uuid.UUID, now: datetime
+async def _lock_pairing(session: AsyncSession, pairing_id: uuid.UUID) -> None:
+    """Serialise one pairing's scans until commit, so its caps are counted exactly."""
+    await session.execute(
+        text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
+        {"key": str(pairing_id)},
+    )
+
+
+async def _count_scans(
+    session: AsyncSession,
+    pairing_id: uuid.UUID,
+    now: datetime,
+    *conditions: ColumnElement[bool],
 ) -> int:
     since = now - timedelta(seconds=constants.SCAN_WINDOW_SECONDS)
     return int(
@@ -511,31 +604,45 @@ async def _scans_in_window(
             select(func.count(PrintixScanLog.id)).where(
                 PrintixScanLog.pairing_id == pairing_id,
                 PrintixScanLog.scanned_at > since,
+                *conditions,
             )
         )
         or 0
     )
 
 
-async def _find_ticket(
+def _refuse_scan(pairing: PrintixPairing, cap: str) -> PrintixRateLimited:
+    logger.warning(
+        "Printix scan cap reached: %s",
+        cap,
+        extra={"subject_id": str(pairing.id)},
+    )
+    return PrintixRateLimited()
+
+
+async def _barcode_ticket(
     session: AsyncSession, event_id: uuid.UUID, value: str
 ) -> PrintixTicket | None:
-    """Exact barcode first; then, for a short number, the printed number."""
     if not value:
         return None
-    ticket = await session.scalar(
+    ticket: PrintixTicket | None = await session.scalar(
         select(PrintixTicket).where(
             PrintixTicket.event_id == event_id,
             PrintixTicket.barcode_value == value,
         )
     )
-    if ticket is None and _SHORT_NUMBER.fullmatch(value):
-        ticket = await session.scalar(
-            select(PrintixTicket).where(
-                PrintixTicket.event_id == event_id,
-                PrintixTicket.printed_number == value,
-            )
+    return ticket
+
+
+async def _printed_number_ticket(
+    session: AsyncSession, event_id: uuid.UUID, value: str
+) -> PrintixTicket | None:
+    ticket: PrintixTicket | None = await session.scalar(
+        select(PrintixTicket).where(
+            PrintixTicket.event_id == event_id,
+            PrintixTicket.printed_number == value,
         )
+    )
     return ticket
 
 
@@ -562,22 +669,37 @@ async def _stamp_if_unadmitted(
 async def admit(
     session: AsyncSession, pairing: PrintixPairing, value: str
 ) -> PrintixScanResult:
-    """Admit a scanned value to the pairing's event, and log the outcome."""
+    """Admit a scanned value to the pairing's event, and log the outcome.
+
+    Order: take the pairing's lock; check the scan cap, then the typed-number cap;
+    look up (barcode, then printed number only for a typed attempt on a pairing
+    that allows it); refuse an unknown outcome past its cap; log and commit. A
+    refused scan is not logged, so a flood cannot fill the log.
+    """
     now = utc_now()
-    if await _scans_in_window(session, pairing.id, now) >= constants.SCANS_PER_WINDOW:
-        logger.warning(
-            "Printix scan rate limit reached", extra={"subject_id": str(pairing.id)}
-        )
-        raise PrintixRateLimited()
+    await _lock_pairing(session, pairing.id)
+    if await _count_scans(session, pairing.id, now) >= constants.SCANS_PER_WINDOW:
+        raise _refuse_scan(pairing, "scans")
 
     value = value.strip()
+    typed_attempt = pairing.allow_typed_numbers and bool(_SHORT_NUMBER.fullmatch(value))
+    if typed_attempt and (
+        await _count_scans(session, pairing.id, now, PrintixScanLog.typed.is_(True))
+        >= constants.TYPED_NUMBER_SCANS_PER_WINDOW
+    ):
+        raise _refuse_scan(pairing, "typed numbers")
+
     event = await get_event(session, pairing.event_id)
     ticket: PrintixTicket | None = None
+    typed = False
     outcome: PrintixScanOutcome
     if is_closed(event, now):
         outcome = PrintixScanOutcome.EVENT_CLOSED
     else:
-        ticket = await _find_ticket(session, event.id, value)
+        ticket = await _barcode_ticket(session, event.id, value)
+        if ticket is None and typed_attempt:
+            ticket = await _printed_number_ticket(session, event.id, value)
+            typed = True
         if ticket is None:
             outcome = PrintixScanOutcome.UNKNOWN
         elif ticket.status == PrintixTicketStatus.VOID.value:
@@ -592,6 +714,17 @@ async def admit(
             if ticket is not None and ticket.status == PrintixTicketStatus.VOID.value:
                 outcome = PrintixScanOutcome.VOID
 
+    if outcome is PrintixScanOutcome.UNKNOWN and (
+        await _count_scans(
+            session,
+            pairing.id,
+            now,
+            PrintixScanLog.outcome == PrintixScanOutcome.UNKNOWN.value,
+        )
+        >= constants.UNKNOWN_SCANS_PER_WINDOW
+    ):
+        raise _refuse_scan(pairing, "unknown")
+
     session.add(
         PrintixScanLog(
             id=uuid.uuid4(),
@@ -599,6 +732,7 @@ async def admit(
             ticket_id=ticket.id if ticket is not None else None,
             outcome=outcome.value,
             value=value[: constants.SCAN_VALUE_LOG_LENGTH],
+            typed=typed,
             scanned_at=now,
         )
     )
@@ -625,3 +759,33 @@ async def admit(
         admitted_at=stamped.admitted_at if stamped is not None else None,
         admitted_gate=stamped.admitted_gate if stamped is not None else None,
     )
+
+
+# --- Retention --------------------------------------------------------------
+
+
+async def purge_scan_log(session: AsyncSession, *, now: datetime) -> int:
+    """Delete scan-log rows of events closed more than the retention period ago.
+
+    Keyed on each event's ``closes_at``. Returns the number of rows deleted.
+    """
+    cutoff = now - timedelta(days=constants.SCAN_LOG_RETENTION_DAYS)
+    old_pairings = (
+        select(PrintixPairing.id)
+        .join(PrintixEvent, PrintixEvent.id == PrintixPairing.event_id)
+        .where(PrintixEvent.closes_at < cutoff)
+    )
+    expired = int(
+        await session.scalar(
+            select(func.count(PrintixScanLog.id)).where(
+                PrintixScanLog.pairing_id.in_(old_pairings)
+            )
+        )
+        or 0
+    )
+    await session.execute(
+        delete(PrintixScanLog).where(PrintixScanLog.pairing_id.in_(old_pairings))
+    )
+    await session.commit()
+    logger.info("Printix scan log purged", extra={"error_type": str(expired)})
+    return expired

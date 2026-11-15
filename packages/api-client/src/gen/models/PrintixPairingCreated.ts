@@ -25,6 +25,11 @@ export type PrintixPairingCreated = {
   expires_at: string;
   revoked_at?: string | null;
   /**
+   * @default false
+   * @type boolean | undefined
+   */
+  allow_typed_numbers?: boolean;
+  /**
    * @description Shown once. Put it in the pairing QR code; it is never returned again.
    * @type string
    */

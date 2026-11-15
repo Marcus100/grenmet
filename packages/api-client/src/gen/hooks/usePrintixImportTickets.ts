@@ -58,7 +58,7 @@ export function printixImportTicketsMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Uploads the printer's CSV (a number column and an optional barcode column). With dry_run (the default) it only checks the file and reports every problem with its line. Without dry_run it writes every row, or nothing when any row has a problem. Refused for a closed event.
+ * @description Uploads the printer's CSV (a number column and an optional barcode column). With dry_run (the default) it only checks the file and reports every problem with its line, plus warnings. Without dry_run it writes every row, or nothing when any row has a problem. Refused for a closed event.
  * @summary Import the printer's ticket list
  * {@link /api/v1/printix/admin/events/:event_id/tickets/import}
  */

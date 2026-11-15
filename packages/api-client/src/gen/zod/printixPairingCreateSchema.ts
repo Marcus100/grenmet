@@ -13,4 +13,11 @@ export const printixPairingCreateSchema = z.object({
     .describe(
       "Defaults to six hours after the event closes. At most a day after close."
     ),
+  allow_typed_numbers: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Off by default: only an exact barcode admits. On, a typed printed number admits too, under a lower cap (20 a minute)."
+    ),
 });

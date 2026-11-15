@@ -68,6 +68,7 @@ async def make_pairing(
     *,
     gate: str = "Gate 1",
     expires_at: datetime | None = None,
+    allow_typed_numbers: bool = False,
 ) -> tuple[PrintixPairing, str]:
     """A pairing and its one-time secret, created through the service."""
     return await service.create_pairing(
@@ -75,6 +76,7 @@ async def make_pairing(
         event.id,
         gate=gate,
         expires_at=expires_at,
+        allow_typed_numbers=allow_typed_numbers,
         actor_id=None,
     )
 

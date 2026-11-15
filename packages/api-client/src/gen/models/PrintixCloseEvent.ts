@@ -37,12 +37,6 @@ export type PrintixCloseEventStatus403 = ApiError;
 export type PrintixCloseEventStatus404 = ApiError;
 
 /**
- * @description Stable error envelope for documented API failures.
- * @type object
- */
-export type PrintixCloseEventStatus409 = ApiError;
-
-/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -60,7 +54,6 @@ export type PrintixCloseEventResponses = {
   "401": PrintixCloseEventStatus401;
   "403": PrintixCloseEventStatus403;
   "404": PrintixCloseEventStatus404;
-  "409": PrintixCloseEventStatus409;
   "422": PrintixCloseEventStatus422;
 };
 

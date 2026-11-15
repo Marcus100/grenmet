@@ -65,12 +65,6 @@ export type PrintixListTicketsStatus403 = ApiError;
 export type PrintixListTicketsStatus404 = ApiError;
 
 /**
- * @description Stable error envelope for documented API failures.
- * @type object
- */
-export type PrintixListTicketsStatus409 = ApiError;
-
-/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -88,7 +82,6 @@ export type PrintixListTicketsResponses = {
   "401": PrintixListTicketsStatus401;
   "403": PrintixListTicketsStatus403;
   "404": PrintixListTicketsStatus404;
-  "409": PrintixListTicketsStatus409;
   "422": PrintixListTicketsStatus422;
 };
 

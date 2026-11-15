@@ -59,6 +59,11 @@ class PrintixPairing(Base):
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     expires_at: Mapped[datetime]
     revoked_at: Mapped[datetime | None]
+    #: Off by default: then only an exact barcode admits. On, a typed printed number
+    #: admits too, under a much lower cap.
+    allow_typed_numbers: Mapped[bool] = mapped_column(
+        default=False, server_default=sa.false()
+    )
     #: The administrator's user id. No foreign key: accounts belong to the auth domain.
     created_by: Mapped[uuid.UUID | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
@@ -116,4 +121,6 @@ class PrintixScanLog(Base):
     ticket_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("printix.ticket.id"))
     outcome: Mapped[str] = mapped_column(String(20))
     value: Mapped[str] = mapped_column(String(constants.SCAN_VALUE_LOG_LENGTH))
+    #: True when the scan was a typed printed-number lookup (counted by its own cap).
+    typed: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
     scanned_at: Mapped[datetime] = mapped_column(default=utc_now)

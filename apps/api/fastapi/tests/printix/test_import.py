@@ -149,3 +149,56 @@ async def test_too_many_errors_are_capped_and_flagged(db_async: AsyncSession) ->
     assert len(report.errors) == constants.MAX_REPORTED_ERRORS
     assert report.errors_truncated is True
     assert report.applied is False
+
+
+async def test_a_new_barcode_equal_to_an_existing_printed_number_is_refused(
+    db_async: AsyncSession,
+) -> None:
+    """A barcode lookup wins, so this would shadow the existing ticket's number."""
+    event = await make_event(db_async)
+    await make_ticket(db_async, event, "123", barcode="PX-OLD")
+
+    report = await service.import_tickets(
+        db_async, event.id, b"number,barcode\n555,123\n", dry_run=True
+    )
+
+    assert report.applied is False
+    assert report.errors[0].line == 2
+
+
+async def test_a_new_number_equal_to_an_existing_barcode_is_refused(
+    db_async: AsyncSession,
+) -> None:
+    event = await make_event(db_async)
+    await make_ticket(db_async, event, "001", barcode="777")
+
+    report = await service.import_tickets(
+        db_async, event.id, b"number\n777\n", dry_run=True
+    )
+
+    assert report.applied is False
+    assert report.errors[0].line == 2
+
+
+async def test_a_dry_run_without_a_barcode_column_warns(db_async: AsyncSession) -> None:
+    event = await make_event(db_async)
+
+    report = await service.import_tickets(
+        db_async, event.id, b"number\n001\n", dry_run=True
+    )
+
+    assert report.applied is False
+    assert report.warnings
+    assert "barcode" in report.warnings[0]
+
+
+async def test_a_file_with_a_barcode_column_has_no_warning(
+    db_async: AsyncSession,
+) -> None:
+    event = await make_event(db_async)
+
+    report = await service.import_tickets(
+        db_async, event.id, b"number,barcode\n001,PX-001\n", dry_run=True
+    )
+
+    assert report.warnings == []

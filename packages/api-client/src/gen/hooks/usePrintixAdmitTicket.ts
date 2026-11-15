@@ -52,7 +52,7 @@ export function printixAdmitTicketMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Admits a scanned barcode value, or a typed printed number, to the pairing's event. Outcomes: admitted; already_admitted (with the first admission's time and gate); void; unknown (not a ticket for this event, whether or not it is one for another event); event_closed. Exactly one of two concurrent scans of the same ticket is admitted.
+ * @description Admits a scanned barcode value, or a typed printed number when the pairing allows typed numbers, to the pairing's event. Outcomes: admitted; already_admitted (with the first admission's time and gate); void; unknown (not a ticket for this event, whether or not it is one for another event); event_closed. Exactly one of two concurrent scans of the same ticket is admitted. Control characters are refused with 422.
  * @summary Admit a scanned ticket
  * {@link /api/v1/printix/public/admissions}
  */

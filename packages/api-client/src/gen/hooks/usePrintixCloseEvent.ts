@@ -17,7 +17,6 @@ import type {
   PrintixCloseEventStatus401,
   PrintixCloseEventStatus403,
   PrintixCloseEventStatus404,
-  PrintixCloseEventStatus409,
   PrintixCloseEventStatus422,
 } from "../models/PrintixCloseEvent.js";
 
@@ -36,7 +35,6 @@ export function printixCloseEventMutationOptions<TContext = unknown>(
       | PrintixCloseEventStatus401
       | PrintixCloseEventStatus403
       | PrintixCloseEventStatus404
-      | PrintixCloseEventStatus409
       | PrintixCloseEventStatus422
     >,
     PrintixCloseEventOptions,
@@ -54,7 +52,7 @@ export function printixCloseEventMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Closes the event: every scan answers event_closed and no pairing or ticket change is accepted. Closing a closed event changes nothing.
+ * @description Closes the event: every scan answers event_closed, no new pairing is made, and no ticket is voided, restored or imported. Revoking a pairing stays allowed. Closing a closed event changes nothing.
  * @summary Close a Printix event
  * {@link /api/v1/printix/admin/events/:event_id/close}
  */
@@ -66,7 +64,6 @@ export function usePrintixCloseEvent<TContext>(
         | PrintixCloseEventStatus401
         | PrintixCloseEventStatus403
         | PrintixCloseEventStatus404
-        | PrintixCloseEventStatus409
         | PrintixCloseEventStatus422
       >,
       PrintixCloseEventOptions,
@@ -90,7 +87,6 @@ export function usePrintixCloseEvent<TContext>(
       | PrintixCloseEventStatus401
       | PrintixCloseEventStatus403
       | PrintixCloseEventStatus404
-      | PrintixCloseEventStatus409
       | PrintixCloseEventStatus422
     >,
     PrintixCloseEventOptions,
@@ -103,7 +99,6 @@ export function usePrintixCloseEvent<TContext>(
       | PrintixCloseEventStatus401
       | PrintixCloseEventStatus403
       | PrintixCloseEventStatus404
-      | PrintixCloseEventStatus409
       | PrintixCloseEventStatus422
     >,
     PrintixCloseEventOptions,
@@ -121,7 +116,6 @@ export function usePrintixCloseEvent<TContext>(
       | PrintixCloseEventStatus401
       | PrintixCloseEventStatus403
       | PrintixCloseEventStatus404
-      | PrintixCloseEventStatus409
       | PrintixCloseEventStatus422
     >,
     PrintixCloseEventOptions,

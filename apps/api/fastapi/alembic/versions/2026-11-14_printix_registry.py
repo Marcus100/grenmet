@@ -42,6 +42,12 @@ def upgrade() -> None:
         sa.Column("token_hash", sa.String(64), nullable=False),
         sa.Column("expires_at", sa.DateTime(), nullable=False),
         sa.Column("revoked_at", sa.DateTime(), nullable=True),
+        sa.Column(
+            "allow_typed_numbers",
+            sa.Boolean(),
+            nullable=False,
+            server_default=sa.false(),
+        ),
         sa.Column("created_by", sa.Uuid(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -98,6 +104,7 @@ def upgrade() -> None:
         sa.Column("outcome", sa.String(20), nullable=False),
         sa.Column("value", sa.String(128), nullable=False),
         sa.Column("scanned_at", sa.DateTime(), nullable=False),
+        sa.Column("typed", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.ForeignKeyConstraint(
             ["pairing_id"],
             [f"{SCHEMA}.pairing.id"],

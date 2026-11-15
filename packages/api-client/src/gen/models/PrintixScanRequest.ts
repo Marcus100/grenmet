@@ -5,9 +5,10 @@
 
 export type PrintixScanRequest = {
   /**
-   * @description The barcode value, or a typed printed number.
+   * @description The barcode value, or a typed printed number. Control characters are refused.
    * @minLength 1
    * @maxLength 256
+   * @pattern ^[^\x00-\x1f\x7f]*$
    * @type string
    */
   value: string;

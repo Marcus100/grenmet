@@ -6,13 +6,21 @@ spreadsheet is accepted, and blank lines are skipped. Every problem is reported
 with its line, so the operator can fix the file and dry-run it again. The parser
 does no database work; the service checks the rows against tickets already on
 the event.
+
+A barcode may not equal another ticket's printed number: a barcode lookup wins
+over a number lookup, so the barcode would shadow that ticket. A file with no
+barcode column is accepted but flagged, because the barcode then defaults to a
+three-digit number.
 """
 
 import csv
 import io
+import re
 from dataclasses import dataclass, field
 
 from . import constants
+
+_CONTROL = re.compile(constants.CONTROL_CHARACTER_PATTERN)
 
 
 @dataclass(frozen=True)
@@ -34,6 +42,7 @@ class ParsedImport:
     errors: list[CsvIssue] = field(default_factory=list)
     row_count: int = 0
     errors_truncated: bool = False
+    has_barcode_column: bool = False
 
 
 def _fail(line: int, message: str) -> ParsedImport:
@@ -68,6 +77,8 @@ def parse_ticket_csv(content: bytes) -> ParsedImport:
         if header is None:
             return _fail(1, "The file is empty.")
         header_line = reader.line_num
+        if any(_CONTROL.search(cell) for cell in header):
+            return _fail(header_line, "The header row has a control character.")
         lowered = [name.strip().lower() for name in header]
         if "number" not in lowered:
             return _fail(header_line, "The first row needs a 'number' column.")
@@ -89,10 +100,13 @@ def parse_ticket_csv(content: bytes) -> ParsedImport:
                         )
                     ],
                     row_count=row_count,
+                    has_barcode_column=barcode_index is not None,
                 )
             number = _cell(cells, number_index)
             barcode = _cell(cells, barcode_index) or number
-            problem = _check_row(line, number, barcode, seen_numbers, seen_barcodes)
+            problem = _check_row(
+                line, cells, number, barcode, seen_numbers, seen_barcodes
+            )
             if problem is not None:
                 issues.append(problem)
             else:
@@ -106,17 +120,58 @@ def parse_ticket_csv(content: bytes) -> ParsedImport:
     if row_count == 0 and not issues:
         issues.append(CsvIssue(header_line, "The file has no ticket rows."))
 
+    rows, shadowing = _barcodes_shadowing_numbers(rows)
+    issues.extend(shadowing)
+    issues.sort(key=lambda issue: issue.line)
     truncated = len(issues) > constants.MAX_REPORTED_ERRORS
     return ParsedImport(
         rows=rows,
         errors=issues[: constants.MAX_REPORTED_ERRORS],
         row_count=row_count,
         errors_truncated=truncated,
+        has_barcode_column=barcode_index is not None,
     )
+
+
+def _barcodes_shadowing_numbers(
+    rows: list[ParsedRow],
+) -> tuple[list[ParsedRow], list[CsvIssue]]:
+    """Rows whose barcode is another row's printed number are refused."""
+    number_lines = {row.number: row.line for row in rows}
+    barcode_lines = {row.barcode: row.line for row in rows}
+    kept: list[ParsedRow] = []
+    issues: list[CsvIssue] = []
+    for row in rows:
+        other_number = number_lines.get(row.barcode)
+        other_barcode = barcode_lines.get(row.number)
+        if (
+            other_number is not None
+            and other_number != row.line
+            and row.barcode != row.number
+        ):
+            issues.append(
+                CsvIssue(
+                    row.line,
+                    f"barcode is the printed number on line {other_number}; a barcode "
+                    "must not equal another ticket's number",
+                )
+            )
+        elif other_barcode is not None and other_barcode != row.line:
+            issues.append(
+                CsvIssue(
+                    row.line,
+                    f"number is the barcode on line {other_barcode}; a barcode "
+                    "must not equal another ticket's number",
+                )
+            )
+        else:
+            kept.append(row)
+    return kept, issues
 
 
 def _check_row(
     line: int,
+    cells: list[str],
     number: str,
     barcode: str,
     seen_numbers: dict[str, int],
@@ -124,6 +179,8 @@ def _check_row(
 ) -> CsvIssue | None:
     """The first problem with a row, or None. One problem per row keeps the
     report readable: a duplicate number also repeats its defaulted barcode."""
+    if any(_CONTROL.search(cell) for cell in cells):
+        return CsvIssue(line, "a cell contains a control character")
     if not number:
         return CsvIssue(line, "number is empty")
     if len(number) > constants.PRINTED_NUMBER_MAX:

@@ -11,7 +11,7 @@ import type {
 } from "../models/PrintixVoidTicket.js";
 
 /**
- * @description A void ticket is refused at the gate. An admitted ticket cannot be voided. Voiding a void ticket changes nothing.
+ * @description A void ticket is refused at the gate. An admitted ticket cannot be voided, and nothing changes after the event closes. Voiding a void ticket changes nothing.
  * @summary Void a Printix ticket
  * {@link /api/v1/printix/admin/tickets/:ticket_id/void}
  */

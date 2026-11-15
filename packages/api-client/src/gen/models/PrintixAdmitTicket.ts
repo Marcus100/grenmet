@@ -4,6 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { PrintixScanRequest } from "./PrintixScanRequest.js";
 import type { PrintixScanResult } from "./PrintixScanResult.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -28,11 +29,7 @@ export type PrintixAdmitTicketStatus403 = ApiError;
  */
 export type PrintixAdmitTicketStatus422 = ValidationErrorResponse;
 
-/**
- * @description Stable error envelope for documented API failures.
- * @type object
- */
-export type PrintixAdmitTicketStatus429 = ApiError;
+export type PrintixAdmitTicketStatus429 = ApiError | ErrorMessage;
 
 export type PrintixAdmitTicketBody = PrintixScanRequest;
 

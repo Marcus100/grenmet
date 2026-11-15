@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { printixScanRequestSchema } from "./printixScanRequestSchema.js";
 import { printixScanResultSchema } from "./printixScanResultSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -24,9 +25,10 @@ export const printixAdmitTicketStatus422Schema =
     "Validation error envelope returned for malformed requests."
   );
 
-export const printixAdmitTicketStatus429Schema = apiErrorSchema.describe(
-  "Stable error envelope for documented API failures."
-);
+export const printixAdmitTicketStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const printixAdmitTicketResponseSchema =
   printixAdmitTicketStatus200Schema;

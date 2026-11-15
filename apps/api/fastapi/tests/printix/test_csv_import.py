@@ -89,10 +89,11 @@ def test_duplicate_barcode_in_the_file_is_refused() -> None:
     assert result.errors[0].line == 3
 
 
-def test_barcode_equal_to_another_number_is_not_a_duplicate() -> None:
+def test_a_barcode_equal_to_another_rows_number_is_refused_on_both_rows() -> None:
     result = parse_ticket_csv(b"number,barcode\n1,2\n2,3\n")
 
-    assert result.errors == []
+    assert [issue.line for issue in result.errors] == [2, 3]
+    assert result.rows == []
 
 
 def test_overlong_values_are_refused() -> None:
@@ -127,3 +128,36 @@ def test_reported_errors_are_capped() -> None:
 
     assert len(result.errors) == constants.MAX_REPORTED_ERRORS
     assert result.errors_truncated is True
+
+
+def test_a_control_character_in_a_cell_is_a_row_error_not_a_crash() -> None:
+    result = parse_ticket_csv(b"number,barcode\n1,PX\x00A\n2,B\n")
+
+    assert [issue.line for issue in result.errors] == [2]
+    assert "control character" in result.errors[0].message
+    assert [row.number for row in result.rows] == ["2"]
+
+
+def test_a_tab_inside_a_number_is_refused() -> None:
+    result = parse_ticket_csv(b"number\n1\t2\n")
+
+    assert result.rows == []
+    assert "control character" in result.errors[0].message
+
+
+def test_a_barcode_equal_to_another_rows_printed_number_is_refused() -> None:
+    result = parse_ticket_csv(b"number,barcode\n123,PX-A\n456,123\n")
+
+    assert [issue.line for issue in result.errors] == [2, 3]
+    assert "printed number on line 2" in result.errors[1].message
+
+
+def test_a_barcode_equal_to_its_own_number_is_fine() -> None:
+    result = parse_ticket_csv(b"number,barcode\n123,123\n")
+
+    assert result.errors == []
+
+
+def test_a_file_without_a_barcode_column_says_so() -> None:
+    assert parse_ticket_csv(b"number\n1\n").has_barcode_column is False
+    assert parse_ticket_csv(b"number,barcode\n1,A\n").has_barcode_column is True

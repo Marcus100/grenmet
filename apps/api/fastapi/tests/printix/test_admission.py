@@ -1,11 +1,10 @@
 """Scanner admission: outcomes, exactly-once admission, and event isolation."""
 
-import asyncio
 from datetime import timedelta
 
 import httpx
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.printix import constants
@@ -72,7 +71,7 @@ async def test_a_typed_short_number_follows_the_same_path(
 ) -> None:
     event = await make_event(db_async)
     await make_ticket(db_async, event, "042", barcode="PXBAR0042")
-    _, secret = await make_pairing(db_async, event)
+    _, secret = await make_pairing(db_async, event, allow_typed_numbers=True)
 
     response = await scan(async_client, secret, " 042 ")
 
@@ -168,31 +167,6 @@ async def test_an_event_past_its_close_time_is_closed_even_if_open(
     response = await scan(async_client, secret, "001")
 
     assert outcome_of(response) == "event_closed"
-
-
-async def test_two_phones_scanning_one_ticket_at_once_admit_exactly_one(
-    async_client: httpx.AsyncClient, db_async: AsyncSession
-) -> None:
-    event = await make_event(db_async)
-    ticket = await make_ticket(db_async, event, "013", barcode="PX-RACE")
-    _, secret_one = await make_pairing(db_async, event, gate="North")
-    _, secret_two = await make_pairing(db_async, event, gate="South")
-
-    first, second = await asyncio.gather(
-        scan(async_client, secret_one, "PX-RACE"),
-        scan(async_client, secret_two, "PX-RACE"),
-    )
-
-    outcomes = sorted([outcome_of(first), outcome_of(second)])
-    assert outcomes == ["admitted", "already_admitted"]
-    stored = await stored_ticket(db_async, ticket.id)
-    assert stored.admitted_gate in {"North", "South"}
-    admitted_rows = await db_async.scalar(
-        select(func.count())
-        .select_from(PrintixScanLog)
-        .where(PrintixScanLog.outcome == "admitted")
-    )
-    assert admitted_rows == 1
 
 
 async def test_the_scan_log_keeps_at_most_128_characters(

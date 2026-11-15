@@ -18,7 +18,6 @@ import type {
   PrintixListPairingsStatus401,
   PrintixListPairingsStatus403,
   PrintixListPairingsStatus404,
-  PrintixListPairingsStatus409,
   PrintixListPairingsStatus422,
 } from "../models/PrintixListPairings.js";
 
@@ -46,7 +45,6 @@ export function printixListPairingsQueryOptions(
       | PrintixListPairingsStatus401
       | PrintixListPairingsStatus403
       | PrintixListPairingsStatus404
-      | PrintixListPairingsStatus409
       | PrintixListPairingsStatus422
     >,
     PrintixListPairingsStatus200,
@@ -89,7 +87,6 @@ export function usePrintixListPairings<
           | PrintixListPairingsStatus401
           | PrintixListPairingsStatus403
           | PrintixListPairingsStatus404
-          | PrintixListPairingsStatus409
           | PrintixListPairingsStatus422
         >,
         TData,
@@ -121,7 +118,6 @@ export function usePrintixListPairings<
       | PrintixListPairingsStatus401
       | PrintixListPairingsStatus403
       | PrintixListPairingsStatus404
-      | PrintixListPairingsStatus409
       | PrintixListPairingsStatus422
     >
   > & { queryKey: TQueryKey };

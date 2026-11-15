@@ -28,6 +28,19 @@ SCAN_VALUE_LOG_LENGTH = 128
 #: Scans one pairing may make in a rolling window (a gate's peak pace is far below).
 SCANS_PER_WINDOW = 120
 SCAN_WINDOW_SECONDS = 60
+#: Scans that answer ``unknown``, per pairing and window. Past this the pairing is
+#: slowed; valid barcode scans are not refused by this cap.
+UNKNOWN_SCANS_PER_WINDOW = 20
+#: Typed printed-number lookups, per pairing and window, when the pairing allows them.
+TYPED_NUMBER_SCANS_PER_WINDOW = 20
+#: Summary reads per pairing per minute (Redis-backed limiter, keyed on the secret's hash).
+SUMMARY_READS_PER_MINUTE = 30
+#: Scanner requests per client address per minute (gate wifi shares one address).
+SCANNER_REQUESTS_PER_MINUTE = 600
+#: Scan-log rows are purged this many days after their event's close time.
+SCAN_LOG_RETENTION_DAYS = 90
+#: Control characters (C0 and DEL) are never part of a barcode, a number or a name.
+CONTROL_CHARACTER_PATTERN = r"[\x00-\x1f\x7f]"
 
 MAX_IMPORT_BYTES = 2 * 1024 * 1024
 MAX_IMPORT_ROWS = 20_000

@@ -4,6 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { PrintixEventSummary } from "./PrintixEventSummary.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -27,6 +28,8 @@ export type PrintixPairingSummaryStatus403 = ApiError;
  */
 export type PrintixPairingSummaryStatus422 = ValidationErrorResponse;
 
+export type PrintixPairingSummaryStatus429 = ApiError | ErrorMessage;
+
 export type PrintixPairingSummaryOptions = {
   body?: never;
   path?: never;
@@ -39,6 +42,7 @@ export type PrintixPairingSummaryResponses = {
   "401": PrintixPairingSummaryStatus401;
   "403": PrintixPairingSummaryStatus403;
   "422": PrintixPairingSummaryStatus422;
+  "429": PrintixPairingSummaryStatus429;
 };
 
 /**

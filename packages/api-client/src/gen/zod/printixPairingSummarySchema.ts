@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { printixEventSummarySchema } from "./printixEventSummarySchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -23,6 +24,11 @@ export const printixPairingSummaryStatus422Schema =
     "Validation error envelope returned for malformed requests."
   );
 
+export const printixPairingSummaryStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
+
 export const printixPairingSummaryResponseSchema =
   printixPairingSummaryStatus200Schema;
 
@@ -30,4 +36,5 @@ export const printixPairingSummaryErrorSchema = z.union([
   printixPairingSummaryStatus401Schema,
   printixPairingSummaryStatus403Schema,
   printixPairingSummaryStatus422Schema,
+  printixPairingSummaryStatus429Schema,
 ]);

@@ -11,7 +11,7 @@ import type {
 } from "../models/PrintixCreateEvent.js";
 
 /**
- * @description Creates an open event with a name, a date and the time it closes at the gate. The close time must be in the future.
+ * @description Creates an open event with a name, a date and the time it closes at the gate. The close time must be in the future and not before the event date.
  * @summary Create a Printix event
  * {@link /api/v1/printix/admin/events}
  */

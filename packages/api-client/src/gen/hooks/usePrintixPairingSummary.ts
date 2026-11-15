@@ -17,6 +17,7 @@ import type {
   PrintixPairingSummaryStatus401,
   PrintixPairingSummaryStatus403,
   PrintixPairingSummaryStatus422,
+  PrintixPairingSummaryStatus429,
 } from "../models/PrintixPairingSummary.js";
 
 export const printixPairingSummaryQueryKey = () =>
@@ -38,6 +39,7 @@ export function printixPairingSummaryQueryOptions(
       | PrintixPairingSummaryStatus401
       | PrintixPairingSummaryStatus403
       | PrintixPairingSummaryStatus422
+      | PrintixPairingSummaryStatus429
     >,
     PrintixPairingSummaryStatus200,
     typeof queryKey
@@ -54,7 +56,7 @@ export function printixPairingSummaryQueryOptions(
 }
 
 /**
- * @description The event's issued, admitted and not-yet-in counts, for the promoter's live view.
+ * @description The event's issued, admitted and not-yet-in counts, for the promoter's live view. Limited to 30 reads a minute per pairing.
  * @summary Live count for the pairing's event
  * {@link /api/v1/printix/public/summary}
  */
@@ -71,6 +73,7 @@ export function usePrintixPairingSummary<
           | PrintixPairingSummaryStatus401
           | PrintixPairingSummaryStatus403
           | PrintixPairingSummaryStatus422
+          | PrintixPairingSummaryStatus429
         >,
         TData,
         TQueryData,
@@ -99,6 +102,7 @@ export function usePrintixPairingSummary<
       | PrintixPairingSummaryStatus401
       | PrintixPairingSummaryStatus403
       | PrintixPairingSummaryStatus422
+      | PrintixPairingSummaryStatus429
     >
   > & { queryKey: TQueryKey };
 
