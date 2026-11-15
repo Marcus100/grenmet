@@ -128,16 +128,22 @@ the row-count check has no floors to enforce.
 
 Source: [privileged MFA](privileged-mfa.md). State: implemented and ready for
 staged acceptance; the deploy renderer defaults `AUTH_PRIVILEGED_MFA_MODE` to
-`disabled`, and neither GitHub environment sets the variable on 2026-10-30, so
-**nothing is enforced**. The secret `AUTH_TOTP_ENCRYPTION_KEYS` exists in staging
-only.
+`disabled`, and neither GitHub environment sets the variable (checked
+2026-11-15), so **nothing is enforced**. The secret `AUTH_TOTP_ENCRYPTION_KEYS`
+exists in staging and production (production set 2026-10-30). On 2026-11-15 a
+named production superuser on a `barrels.gd` address enrolled an authenticator
+and saved recovery codes. The configured first superuser cannot enrol: its
+address does not receive mail, and a privileged account's first authenticator
+needs an emailed code (`src/auth/totp_enrolment.py`).
 
 Missing:
 
-1. Generate the key and store `AUTH_TOTP_ENCRYPTION_KEYS` in the production
-   environment, with a separate protected backup copy.
+1. Confirm a separate protected backup copy of the production
+   `AUTH_TOTP_ENCRYPTION_KEYS` exists.
 2. Run the rollout dry run, apply and readiness check for each environment.
-3. Every privileged person enrols and saves recovery codes.
+3. A second independent superuser enrols and saves recovery codes; retire the
+   first superuser by deactivating it (not deleting it: start-up recreates it by
+   email) and rotating `FIRST_SUPERUSER_PASSWORD`.
 4. Staging acceptance with disposable accounts and recovery tested.
 5. Set the variable `AUTH_PRIVILEGED_MFA_MODE=enforce` in staging, then
    production, and redeploy.
