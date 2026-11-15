@@ -143,11 +143,25 @@ def customer_rescheduled(mail: BookingEmail) -> tuple[str, str]:
     )
 
 
-def customer_reminder(mail: BookingEmail) -> tuple[str, str]:
+def customer_reminder(mail: BookingEmail, *, confirmed: bool = True) -> tuple[str, str]:
+    """A reminder within a day of the start.
+
+    ``confirmed`` false is a request the business has not accepted yet: the
+    wording says so and promises only what happens (an email once they decide).
+    """
+    if confirmed:
+        return (
+            f"Reminder: your booking at {mail.business}",
+            f"<p>Hello {_e(mail.customer_name)},</p>"
+            f"<p>A reminder of your booking within the next day.</p>"
+            f"{_details(mail)}{_manage(mail)}",
+        )
     return (
-        f"Reminder: your booking at {mail.business}",
+        f"Reminder: your booking request at {mail.business}",
         f"<p>Hello {_e(mail.customer_name)},</p>"
-        f"<p>A reminder of your booking within the next day.</p>"
+        f"<p>A reminder of your booking request for the next day. "
+        f"{_e(mail.business)} has not confirmed it yet. "
+        f"We will email you as soon as they do.</p>"
         f"{_details(mail)}{_manage(mail)}",
     )
 

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { env } from "@/env";
+import { bookingLinkExists } from "@/lib/booking-link-exists";
 import { isBusinessSlug, isReservedSlug } from "@/lib/slug";
 import { storefrontExists } from "@/lib/storefront-exists";
 
@@ -17,49 +18,80 @@ function isProtectedPath(pathname: string): boolean {
 export const NOT_FOUND_PATH = "/_not-found";
 
 /**
- * A full page load of `/<slug>` for a business with no booking page. The page
- * would call notFound() while it renders, and Next 16 then sends an empty
- * error document that only fills in with JavaScript; answering here instead
- * gets the not-found page rendered on the server. Client navigations (the
- * `RSC` header) keep the page's own notFound(), which the browser renders. A
- * path with a dot may be a file (`/robots.txt`) and is left to the routes.
+ * An address that leads nowhere: "not-a-page" for a business with no booking
+ * page, "booking-link" for a manage link whose token the API does not know.
  */
-async function isMissingBookingPage(request: NextRequest): Promise<boolean> {
+type MissingAddress = "not-a-page" | "booking-link";
+
+/**
+ * A full page load of an address whose page would call notFound() while it
+ * renders. Next 16 then sends an empty error document that only fills in with
+ * JavaScript; answering here instead gets a page rendered on the server with
+ * status 404. Client navigations (the `RSC` header) keep the page's own
+ * answer, which the browser renders. A path with a dot may be a file
+ * (`/robots.txt`) and is left to the routes.
+ *
+ * - `/<slug>`: "not-a-page" for a business with no booking page.
+ * - `/<slug>/booking/<token>`: "not-a-page" for a business with none, and
+ *   "booking-link" for a token the API does not know (the manage page explains
+ *   that one itself, with the business's name).
+ */
+async function missingAddress(
+  request: NextRequest
+): Promise<MissingAddress | null> {
   if (
     !(request.method === "GET" || request.method === "HEAD") ||
     request.headers.has("rsc")
   ) {
-    return false;
+    return null;
   }
   const segments = request.nextUrl.pathname.split("/").filter(Boolean);
-  const [slug] = segments;
+  const [slug, booking, token] = segments;
+  if (slug === undefined || slug.includes(".") || isReservedSlug(slug)) {
+    return null;
+  }
+  const isBusinessPage = segments.length === 1;
+  const isManagePage =
+    segments.length === 3 &&
+    booking === "booking" &&
+    token !== undefined &&
+    !token.includes(".");
+  if (!(isBusinessPage || isManagePage)) {
+    return null;
+  }
   if (
-    segments.length !== 1 ||
-    slug === undefined ||
-    slug.includes(".") ||
-    isReservedSlug(slug)
+    !isBusinessSlug(slug) ||
+    (await storefrontExists(slug, request.headers)) === false
   ) {
-    return false;
+    return "not-a-page";
   }
-  if (!isBusinessSlug(slug)) {
-    return true;
+  if (isManagePage && token !== undefined) {
+    return (await bookingLinkExists(token, request.headers)) === false
+      ? "booking-link"
+      : null;
   }
-  return (await storefrontExists(slug, request.headers)) === false;
+  return null;
 }
 
 /**
  * Routing only: a missing session cookie on /studio goes to sign-in, and a
- * booking address with no business answers with the not-found page. Public
- * pages (the home page and each business's booking page) pass through. Who may
- * see which organisation's data is decided by FastAPI on every call.
+ * booking address with no business or no booking answers with status 404.
+ * Public pages (the home page and each business's booking page) pass through.
+ * Who may see which organisation's data is decided by FastAPI on every call.
  */
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   if (!isProtectedPath(pathname)) {
-    if (await isMissingBookingPage(request)) {
+    const missing = await missingAddress(request);
+    if (missing === "not-a-page") {
       return NextResponse.rewrite(new URL(NOT_FOUND_PATH, request.url), {
         status: 404,
       });
+    }
+    if (missing === "booking-link") {
+      // The manage page words a dead link itself, because it can name the
+      // business; only the status is set here.
+      return NextResponse.rewrite(request.nextUrl, { status: 404 });
     }
     return NextResponse.next();
   }
