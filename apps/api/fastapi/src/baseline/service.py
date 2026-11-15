@@ -8,6 +8,7 @@ from sqlalchemy.sql.elements import ColumnElement
 
 from src.auth import assignments as auth_assignments
 from src.auth import service as auth_service
+from src.auth.exceptions import LastSuperuserError
 from src.auth.models import Permission, Role, User, UserImage, UserRoleAssignment
 from src.auth.models import Session as LoginSession
 from src.auth.permissions import ORGANISATION_BOUND_KEYS
@@ -520,7 +521,14 @@ async def set_balance(
     await session.commit()
 
 
-async def offboard(session: AsyncSession, actor: User, user_id: uuid.UUID) -> None:
+# Shown on the HR route instead of the auth route's last-superuser text (#1491): an HR
+# manager must not learn that the target is the only superuser.
+STAFF_OFFBOARD_CONFLICT = "Offboarding conflicts with the current account state. Ask an administrator to review it."
+
+
+async def offboard(
+    session: AsyncSession, actor: User, user_id: uuid.UUID, *, token: str
+) -> None:
     if actor.id == user_id:
         raise AppException("Another administrator must offboard you", 400)
     user = await session.get(User, user_id)
@@ -530,10 +538,20 @@ async def offboard(session: AsyncSession, actor: User, user_id: uuid.UUID) -> No
     await require_setup_organisation(
         session, actor, await _staff_organisation_id(session, user_id)
     )
-    # The last active superuser cannot be offboarded (#1481).
     from src.auth import superuser_invitation
 
-    await superuser_invitation.guard_last_superuser(session, target=user)
+    if user.is_superuser:
+        # Deactivating a superuser needs what PATCH /auth/users/{id} needs: a superuser
+        # with an authenticator whose session passed two-step sign-in (#1491). Anyone
+        # else gets the same generic 403.
+        await superuser_invitation.require_superuser_session(
+            session, actor, token=token
+        )
+    try:
+        # The last active superuser cannot be offboarded (#1481).
+        await superuser_invitation.guard_last_superuser(session, target=user)
+    except LastSuperuserError as exc:
+        raise AppException(STAFF_OFFBOARD_CONFLICT, 409) from exc
     user.is_active = False
     # Offboarding: the invitations this account sent stop working (ADR-0059).
     await superuser_invitation.close_for_inviter(session, user_id)
