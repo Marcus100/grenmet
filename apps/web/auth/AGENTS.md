@@ -20,6 +20,7 @@ src/app/
   forgot-password/page.tsx
   reset-password/page.tsx
   code/page.tsx                   ← sign in with an emailed one-time code (account session)
+  superuser-invite/page.tsx       ← accept a Barrels superuser invitation: token read from the #fragment in the browser, POST body only, no-referrer (ADR-0059)
   continue/page.tsx               ← single sign-on into another app (ADR-0017): hand off, "Join <app>?", or "no access"
   organisations/page.tsx          ← account tab: my memberships (`GET /organisations/mine`)
   organisations/accept/page.tsx   ← emailed invitation link (`?token=`); a form posts the token in the body (ADR-0022)
