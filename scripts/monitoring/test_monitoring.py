@@ -21,10 +21,37 @@ class MonitoringTests(unittest.TestCase):
         self.assertEqual(event, "opened")
         state, event = transition(state, "down")
         self.assertIsNone(event)
+        for _ in range(3):
+            state, event = transition(state, "up")
+            self.assertIsNone(event)
         state, event = transition(state, "up")
         self.assertEqual(event, "recovered")
         _, event = transition(state, "up")
         self.assertIsNone(event)
+
+    def test_flapping_connection_sends_one_opening_and_no_recovery(self):
+        state, opened, recovered = None, 0, 0
+        for status in ["down", "down", "up"] * 30:
+            state, event = transition(state, status)
+            opened += event == "opened"
+            recovered += event == "recovered"
+        self.assertEqual((opened, recovered), (1, 0))
+
+    def test_half_down_window_opens_without_two_failures_in_a_row(self):
+        state, event = None, None
+        for status in ["down", "up"] * 6:
+            state, event = transition(state, status)
+        self.assertEqual(event, "opened")
+
+    def test_flapping_incident_recovers_once_the_connection_is_quiet(self):
+        state = None
+        for status in ["down", "up"] * 6:
+            state, _ = transition(state, status)
+        recovered = 0
+        for _ in range(12):
+            state, event = transition(state, "up")
+            recovered += event == "recovered"
+        self.assertEqual(recovered, 1)
 
     def test_pending_never_becomes_healthy(self):
         service = json.loads(CATALOGUE.read_text())["services"][-2]

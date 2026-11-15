@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { requiredChecks } from "./promote-images.mjs";
+import { requiredChecks } from "./promotion-checks.mjs";
 import { promotionVerified } from "./promotion-verified.mjs";
 
 const NO_MATCHING_TREE = /No dev commit has tree/u;
