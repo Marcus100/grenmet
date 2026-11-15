@@ -1,8 +1,8 @@
 # PostgreSQL 18 upgrade plan
 
-**Status:** Approved by the owner 2026-11-13. Staging first, then production with the owner present  
+**Status:** Staging runs PostgreSQL 18 since 2026-11-14. Production is still on 17 and moves with the owner present  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-13
+**Last updated:** 2026-11-14
 
 How the core database moves from PostgreSQL 17 to 18 without losing data. A database
 major version is a one-way change for the data files, so each environment moves in an
@@ -46,12 +46,44 @@ Compose project built from `docker-compose.deploy.yml` and `staging.env`:
 | Re-run against a used new volume | Refused before any change. |
 | A client connection that stays open | Stopped before the dump; the stopped services were started again. |
 
-Not checked: `pg_upgrade`, the Payload CMS against 18 (its database was empty), real
-data volumes and timings. Staging measures those.
+Not checked locally: `pg_upgrade`, the Payload CMS against 18 (its database was empty),
+real data volumes and timings. Staging measured the data size and timings on
+2026-11-14 (next section). `pg_upgrade` is still unchecked, and this page records no
+separate check of the Payload CMS on 18 beyond the run's smoke checks.
+
+## Staging run (2026-11-14)
+
+Staging moved to PostgreSQL 18 on 2026-11-14 with the **PostgreSQL major upgrade**
+workflow, run from the `staging` branch: a dry run, then the upgrade.
+
+| Measure | Result |
+| --- | --- |
+| Databases | 8, about 109 MB in total |
+| Phases | All ok |
+| Downtime | About 4 minutes from stopping the services to passing smoke checks |
+| Longest phase | reopen, 128 seconds |
+| Old 17 volume | Kept untouched for at least 14 days; removal of it and the dumps directory is tracked in [issue #1371](https://github.com/Marcus100/grenmet/issues/1371) |
+
+Three lessons from the run. Each one applies to production too:
+
+1. **The workflow file must be on the default branch first.** GitHub only offers a
+   manually run (`workflow_dispatch`) workflow once its file is on `main`. So the
+   release that carries the workflow is merged to `main` before staging can be
+   upgraded, even though the run itself is started from the `staging` branch.
+2. **The script's work folder must exist and be writable by the runner user before
+   the dry run.** The folder is `PG_UPGRADE_DIR` (default
+   `/var/backups/grenmet/pg-major-upgrade`). It had to be created by hand on staging.
+   Production needs the same before its upgrade.
+3. **No deploy for that environment between setting the two variables and running
+   the upgrade.** The new volume does not exist yet, so a deploy in that window
+   fails at the database step (see "How the switch stays safe"). Hold merges into
+   that environment's branch, and do not start a manual deploy, until the upgrade
+   has finished.
 
 ## Current state
 
-- Staging and production run plain `postgres:17` until each runs the upgrade. No
+- Staging runs plain `postgres:18` since 2026-11-14. Production runs plain
+  `postgres:17` until it runs the upgrade. No
   application database creates the PostGIS extension (ADR-0046); the only extension
   migrations create is `btree_gist`. **There is no PostGIS extension to upgrade.**
 - Development and the agent test database use `postgis/postgis:18-3.7`; CI uses the GHCR
@@ -107,13 +139,19 @@ release. A wrong ref fails that job, visibly, and nothing runs on the droplet.
 
 1. Merge the pull request into `dev` once the staging window is booked, and promote it to
    `staging` as usual. The staging deploy keeps running 17: nothing changes until the
-   variables move.
-2. In the GitHub environment (`staging` first), set:
+   variables move. The workflow can only be started once its file is also on `main`
+   (lesson 1 of the staging run), so the release that carries it is merged to `main`
+   first. Done: the workflow shipped in v1.0.8.
+2. On the droplet, make sure the work folder (`PG_UPGRADE_DIR`, default
+   `/var/backups/grenmet/pg-major-upgrade`) exists and the runner user can write to
+   it; otherwise the dry run stops with "This runner cannot write …" (lesson 2).
+   Then, in the GitHub environment (`staging` first), set:
    - `CORE_POSTGRES_IMAGE` = `postgres:18@sha256:b9f6b8ff03b62f3cfd9d9ba3fe56226a9991c79d3fb46fd46536263bf02be553`
    - `CORE_PGDATA_VOLUME` = `grenmet-staging_pgdata18` (production: `grenmet_pgdata18`)
 
    Do not create the volume; the upgrade does. Note the old `CORE_POSTGRES_IMAGE` value
-   for the rollback.
+   for the rollback. From this point until the upgrade has finished, run no deploy
+   for that environment (lesson 3).
 3. Production only: run **Database Backup** and wait for it to pass (the script refuses a
    backup older than 6 hours), and the [restore drill](restore-drill.md) with
    `postgres_image` set to the 18 image if practical. Record the backup in the release
@@ -137,7 +175,7 @@ release. A wrong ref fails that job, visibly, and nothing runs on the droplet.
 7. Run **Database Backup** at once (production); it now uses 18's `pg_dump`. Run the
    release smoke checks ([release runbook](release-runbook.md), "Verify prod").
 8. Record the phase timings and anything unexpected. Staging's timings set the
-   production window.
+   production window (staging, 2026-11-14: about 4 minutes; see "Staging run").
 9. Keep the old 17 volume, unchanged, for at least 14 days, then remove it with the
    owner's go, together with the run directory the script names at the end
    (`rm -rf /var/backups/grenmet/pg-major-upgrade/<env>-<time>`). That directory holds the
@@ -147,7 +185,7 @@ release. A wrong ref fails that job, visibly, and nothing runs on the droplet.
    soon as a run ends, whether it succeeded or failed. Tracked in
    [issue #1371](https://github.com/Marcus100/grenmet/issues/1371).
 10. Repeat steps 2 to 9 for production, from the release tag that contains this change,
-    with the owner present.
+    with the owner present. Not done yet (2026-11-14): production is still on 17.
 
 If the PostGIS extension is ever installed (not today), add `ALTER EXTENSION postgis
 UPDATE;` in each database that has it after the restore.
@@ -256,8 +294,9 @@ start on the old volume rather than initialising an empty database in it. The ag
 - New clusters have data checksums on by default (only matters for `pg_upgrade`).
 - MD5 passwords are deprecated; the images use SCRAM already.
 - `btree_gist` is 1.8 on 18 (1.7 on 17); the restore creates the new version.
-- The database drivers in use (`asyncpg`, `psycopg`) worked in the tests above; staging
-  checks the Payload CMS (`pg`) against 18.
+- The database drivers in use (`asyncpg`, `psycopg`) worked in the tests above. On
+  staging the Payload CMS (`pg`) now uses the 18 server with the rest of the stack; no
+  separate check of it is recorded here beyond the upgrade's smoke checks.
 
 ## Appendix: manual fallback
 

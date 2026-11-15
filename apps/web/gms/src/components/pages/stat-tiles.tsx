@@ -1,8 +1,4 @@
-"use client";
-
-import { motion } from "motion/react";
 import type { ReactNode } from "react";
-import { fadeUp, staggerContainer } from "@/lib/motion";
 
 export interface Stat {
   /** Text, or a `Measure` that follows the unit switch. */
@@ -12,21 +8,14 @@ export interface Stat {
   value: ReactNode;
 }
 
-/** Small figure grid — station counts, normals, totals at a glance. */
+/** Small figure grid: station counts, normals, totals. Shown at once, no scroll reveal (owner decision, #1408). */
 export function StatTiles({ stats }: { stats: readonly Stat[] }) {
   return (
-    <motion.div
-      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
-      initial="hidden"
-      variants={staggerContainer}
-      viewport={{ once: true, margin: "-40px" }}
-      whileInView="show"
-    >
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
-        <motion.div
+        <div
           className="rounded-gm-card border-gm-border bg-background flex flex-col gap-1 border p-4 lg:p-5"
           key={stat.label}
-          variants={fadeUp}
         >
           <p className="text-gm-text-muted text-label leading-label font-bold tracking-wider uppercase">
             {stat.label}
@@ -39,8 +28,8 @@ export function StatTiles({ stats }: { stats: readonly Stat[] }) {
               {stat.detail}
             </p>
           )}
-        </motion.div>
+        </div>
       ))}
-    </motion.div>
+    </div>
   );
 }

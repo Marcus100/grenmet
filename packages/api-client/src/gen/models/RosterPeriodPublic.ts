@@ -44,4 +44,9 @@ export type RosterPeriodPublic = {
    * @type string
    */
   updated_at: string;
+  /**
+   * @description What this status allows: edit, publish, close. Computed from the status alone; permissions, department scope and roster rule warnings are still checked when the action is taken.
+   * @type array | undefined
+   */
+  allowed_actions?: string[];
 };

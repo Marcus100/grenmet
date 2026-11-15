@@ -2,10 +2,13 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { motion } from "motion/react";
-import { createContext, Suspense, useContext } from "react";
-import { create } from "zustand";
+import { Suspense } from "react";
 
-import { Header } from "@/components/Header";
+import {
+  IsInsideMobileNavigationContext,
+  useIsInsideMobileNavigation,
+  useMobileNavigationStore,
+} from "@/components/mobile-navigation-store";
 import { Navigation } from "@/components/Navigation";
 
 function MenuIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -36,14 +39,14 @@ function XIcon(props: React.ComponentPropsWithoutRef<"svg">) {
   );
 }
 
-const IsInsideMobileNavigationContext = createContext(false);
-
 function MobileNavigationDialog({
   isOpen,
   close,
+  header,
 }: {
   isOpen: boolean;
   close: () => void;
+  header: React.ReactNode;
 }) {
   return (
     <Dialog.Root
@@ -63,7 +66,7 @@ function MobileNavigationDialog({
           aria-label="Navigation"
           className="group z-50 transition-[visibility] duration-500 data-ending-style:invisible lg:hidden"
         >
-          <Header className="duration-300 ease-out group-data-ending-style:opacity-0 group-data-ending-style:duration-200 group-data-ending-style:ease-in group-data-starting-style:opacity-0" />
+          {header}
 
           <motion.div
             className="fixed top-14 bottom-0 left-0 z-50 w-full overflow-y-auto bg-white px-4 pt-6 pb-4 shadow-lg ring-1 shadow-zinc-900/10 ring-zinc-900/7.5 transition-transform duration-500 ease-in-out group-data-ending-style:-translate-x-full group-data-starting-style:-translate-x-full min-[416px]:max-w-sm sm:px-6 sm:pb-10 dark:bg-zinc-900 dark:ring-zinc-800"
@@ -77,23 +80,11 @@ function MobileNavigationDialog({
   );
 }
 
-export function useIsInsideMobileNavigation() {
-  return useContext(IsInsideMobileNavigationContext);
-}
-
-export const useMobileNavigationStore = create<{
-  isOpen: boolean;
-  open: () => void;
-  close: () => void;
-  toggle: () => void;
-}>()((set) => ({
-  isOpen: false,
-  open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false }),
-  toggle: () => set((state) => ({ isOpen: !state.isOpen })),
-}));
-
-export function MobileNavigation() {
+/**
+ * `header` is the page header rendered inside the dialog. The caller passes it
+ * in so this module does not import `Header`, which imports this module.
+ */
+export function MobileNavigation({ header }: { header: React.ReactNode }) {
   const isInsideMobileNavigation = useIsInsideMobileNavigation();
   const { isOpen, toggle, close } = useMobileNavigationStore();
   const ToggleIcon = isOpen ? XIcon : MenuIcon;
@@ -111,7 +102,11 @@ export function MobileNavigation() {
       </button>
       {!isInsideMobileNavigation && (
         <Suspense fallback={null}>
-          <MobileNavigationDialog close={close} isOpen={isOpen} />
+          <MobileNavigationDialog
+            close={close}
+            header={header}
+            isOpen={isOpen}
+          />
         </Suspense>
       )}
     </IsInsideMobileNavigationContext.Provider>

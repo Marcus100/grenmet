@@ -2,16 +2,18 @@
 Global exception handlers and custom exceptions.
 """
 
+import logging
 from collections.abc import Iterable, Mapping
 from typing import Any, cast
 
 from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError as PydanticValidationError
 from sqlalchemy.exc import IntegrityError
 
 from src.models import ApiError, ValidationErrorItem, ValidationErrorResponse
+
+logger = logging.getLogger(__name__)
 
 
 class AppException(Exception):
@@ -107,14 +109,6 @@ def _validation_response(errors: Iterable[Mapping[str, Any]]) -> JSONResponse:
     )
 
 
-async def validation_exception_handler(
-    request: Request,  # noqa: ARG001
-    exc: PydanticValidationError,
-) -> JSONResponse:
-    """Handle Pydantic validation errors."""
-    return _validation_response(exc.errors())
-
-
 async def request_validation_exception_handler(
     _request: Request,
     exc: Exception,
@@ -127,11 +121,41 @@ async def request_validation_exception_handler(
     return _validation_response(cast(RequestValidationError, exc).errors())
 
 
+UNIQUE_VIOLATION_SQLSTATE = "23505"
+
+
+def _integrity_details(exc: IntegrityError) -> tuple[str | None, str | None]:
+    """Return ``(sqlstate, constraint_name)`` from the driver error, if present."""
+    orig = exc.orig
+    sqlstate = getattr(orig, "sqlstate", None) or getattr(orig, "pgcode", None)
+    diag = getattr(orig, "diag", None)
+    constraint = getattr(diag, "constraint_name", None)
+    return (
+        sqlstate if isinstance(sqlstate, str) else None,
+        constraint if isinstance(constraint, str) else None,
+    )
+
+
 async def integrity_error_handler(
     request: Request,  # noqa: ARG001
-    exc: IntegrityError,  # noqa: ARG001
+    exc: IntegrityError,
 ) -> JSONResponse:
-    """Handle database integrity errors."""
+    """Answer 409 for an unique violation nobody mapped; re-raise the rest.
+
+    Code that expects a conflict catches ``IntegrityError`` and raises a typed
+    ``AppException``. A NOT NULL, foreign key or check failure reaching here is
+    a server bug, so it is re-raised: the unhandled-exception handler answers
+    500 and Sentry records it.
+    """
+    sqlstate, constraint = _integrity_details(exc)
+    if sqlstate != UNIQUE_VIOLATION_SQLSTATE:
+        # Re-raising lets Starlette's ServerErrorMiddleware answer a logged 500.
+        raise exc
+    logger.warning(
+        "Unmapped unique violation answered as 409 constraint=%s",
+        constraint,
+        extra={"error_type": type(exc).__name__},
+    )
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={"detail": "Resource already exists or constraint violation"},

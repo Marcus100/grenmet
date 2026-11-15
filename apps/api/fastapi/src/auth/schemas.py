@@ -1,23 +1,28 @@
 import uuid
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import EmailStr, Field
 
 from src.models import BaseModel, UtcDateTime
 
 from .models import RoleAssignmentScope, Title, UserBase
+from .password_policy import PASSWORD_DESCRIPTION, BcryptSafe
 
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
-    password: str = Field(min_length=8, max_length=128)
+    password: Annotated[str, BcryptSafe] = Field(
+        min_length=8, max_length=128, description=PASSWORD_DESCRIPTION
+    )
 
 
 # Properties for user registration (public signup)
 class UserRegister(BaseModel):
     email: EmailStr
     username: str = Field(min_length=3, max_length=255)
-    password: str = Field(min_length=12, max_length=128)
+    password: Annotated[str, BcryptSafe] = Field(
+        min_length=12, max_length=128, description=PASSWORD_DESCRIPTION
+    )
     first_name: str = Field(min_length=1, max_length=100)
     middle_name: str | None = None
     last_name: str = Field(min_length=1, max_length=100)
@@ -32,7 +37,9 @@ class UserUpdate(BaseModel):
     first_name: str | None = Field(default=None, min_length=1, max_length=100)
     middle_name: str | None = Field(default=None, max_length=100)
     last_name: str | None = Field(default=None, min_length=1, max_length=100)
-    password: str | None = None
+    password: Annotated[str, BcryptSafe] | None = Field(
+        default=None, description=PASSWORD_DESCRIPTION
+    )
     is_active: bool | None = None
     is_superuser: bool | None = None
 
@@ -47,7 +54,9 @@ class UserUpdateMe(BaseModel):
 
 class UpdatePassword(BaseModel):
     current_password: str
-    new_password: str = Field(min_length=12, max_length=128)
+    new_password: Annotated[str, BcryptSafe] = Field(
+        min_length=12, max_length=128, description=PASSWORD_DESCRIPTION
+    )
 
 
 # Properties to return via API, id is always required
@@ -245,7 +254,9 @@ class SessionAccessTokenResponse(SessionAuthenticationBase):
 
 class NewPassword(BaseModel):
     token: str
-    new_password: str = Field(min_length=12, max_length=128)
+    new_password: Annotated[str, BcryptSafe] = Field(
+        min_length=12, max_length=128, description=PASSWORD_DESCRIPTION
+    )
 
 
 class UserRoleAssignmentBase(BaseModel):

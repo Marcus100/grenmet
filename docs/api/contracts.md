@@ -725,8 +725,9 @@ Implemented examples:
 | Situation | Shape |
 | --- | --- |
 | `AppException` | `{"detail":"message"}` |
-| Pydantic validation handler | `{"detail":"Validation error","errors":[...]}` |
-| Database integrity error | `{"detail":"Resource already exists or constraint violation"}` |
+| Request validation (`RequestValidationError`) | `{"errors":[{"type","loc","msg"}]}` (422) |
+| Unique violation not mapped by the code (SQLSTATE 23505) | `{"detail":"Resource already exists or constraint violation"}` (409) |
+| Any other database integrity error, or a Pydantic error raised in server code | Server error: `{"detail":"Internal Server Error"}` (500), logged and reported to Sentry |
 | FastAPI `HTTPException` | `{"detail": ...}` |
 | Rate limit exceeded (SlowAPI) | `{"error": "Rate limit exceeded: ..."}` (429) |
 | Account lockout after failed sign-ins | `{"detail": ...}` (429) |
@@ -1157,7 +1158,18 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   answer (`Idempotency-Replayed: true`), the same key with a different body is 409.
   Public booking (`/bookings/public/{slug}/bookings` and
   `/bookings/public/bookings/{token}` with `/cancel`, `/reschedule`, `/ics`) uses it; the
-  manage token is returned once and only its hash is stored. Side effects (emails,
+  manage token is returned once and only its hash is stored. A booking sent with a
+  signed-in account token links the organisation's contact to that account only when
+  the account's verified email equals the booking email (case-insensitive); name and
+  phone never link, and a contact already linked to any account is not changed
+  (ADR-0058). Changing the account's email, or deleting the account, clears every
+  link it holds. Organisation responses never show the account id, and the
+  organisation's audit history records the link with no id and no actor. Not
+  backfilled: past guest bookings join the account's list only after the person books
+  while signed in with a verified matching email, or through the claim flow (a later
+  slice). Known behaviour (owner decision pending): a guest booking made with the email
+  of an already-linked contact appears in that account's list, and so does a guest
+  record merged into a linked one. Side effects (emails,
   reminders) run through the transactional outbox (`platform.outbox`, drained by the
   worker every 30 seconds), which gives at-least-once delivery.
 - **Organisation contacts** (PF3, ADR-0028): `/contacts/org/contacts` (upsert, list,
@@ -1209,6 +1221,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | Endpoint | Authentication | Contract |
 | --- | --- | --- |
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
+| `GET /api/v1/bookings/me/bookings?upcoming&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`. No manage token, notes or other customers' details |
 | `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409, a platform reserved name 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
@@ -1366,6 +1379,10 @@ by permission keys from `src/auth/permissions.py` (`tests/auth/test_permission_r
 fails if a key used in code is missing from the catalog). Routers:
 `profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
+
+### Roster periods and their actions
+
+Every roster period (`RosterPeriodPublic`) carries `allowed_actions`: `edit` (draft or published), `publish` (draft only) and `close` (published only). It is computed from the status alone; the department scope, the roster rule warnings and the override reason are still checked when the action is taken. The duty roster reads it, so the screen and the API cannot disagree.
 
 ### Roster rules (#380)
 
@@ -1818,6 +1835,8 @@ HR form submission dates: leave, shift swap, absentee, daily status and parking 
 
 
 ### Registration approval and recovery
+
+Passwords are limited to 72 bytes of UTF-8 (the bcrypt limit; bcrypt 5 raises above it instead of truncating). Every field that sets a new password (`password` on user create, admin update and register; `new_password` on change, reset, setup, activation and email confirm) answers 422 "Password is too long: it must be at most 72 bytes" above it; accented letters and emoji use two to four bytes each. Login and verification fields are not limited this way: an over-long attempt is an ordinary failed sign-in. Accounts whose password was set earlier and exceeds 72 bytes keep working, because only the first 72 bytes were ever hashed and verification reads the same 72 bytes.
 
 Public sign-up no longer creates accounts from a password (#958). `POST /auth/users/signup` answers like `email-code/start` and sends a sign-in code; the first verified code creates a self-service `registration_pending` account. A code sign-in confirms the email (`email_verified_at`); verification never blocks sign-in with a password, joining, app access or staff approval (16 October 2026, updated 31 October 2026). `ALLOW_PUBLIC_SIGNUP` defaults to true; setting it false closes code sign-up. The first verified code for an unverified self-registered account clears any password, authenticator, recovery codes, remembered devices, external identities and API keys, revokes its sessions and audits `pw_retired`; administrator-created and admin-activated accounts are not affected. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied.
 
@@ -2661,7 +2680,7 @@ to a timetable version.
 | `GET /transport/catalogue` | signed in | Routes, shifts, stops (with routes serving them today), service calendars — reference data the staff and driver apps also need |
 | `POST /transport/routes`, `PUT /transport/routes/{route_id}` | `transport.timetable.manage` | Route numbers unique (409) |
 | `POST /transport/stops`, `PUT /transport/stops/{stop_id}` | `transport.timetable.manage` | Stop codes unique (409); latitude and longitude given together or not at all (422) |
-| `GET /transport/timetable/versions[/{version_id}]` | `transport.view` | Versions newest first with `state` (`draft`, `scheduled`, `current`, `superseded`, `discarded`); detail adds trips and validation `issues` |
+| `GET /transport/timetable/versions[/{version_id}]` | `transport.view` | Versions newest first with `state` (`draft`, `scheduled`, `current`, `superseded`, `discarded`); each version carries `allowedActions` (`edit`, `publish`, `discard`, all only while a draft; computed from the status alone, permissions and validation are still checked on the call); detail adds trips and validation `issues` |
 | `POST /transport/timetable/versions` | `transport.timetable.manage` | Starts the single draft as a copy of the version in force; 409 if a draft exists |
 | `PUT …/{version_id}`, `POST …/{version_id}/discard` | `transport.timetable.manage` | Draft only (409 otherwise) |
 | `POST/PUT/DELETE …/{version_id}/trips[/{trip_id}]` | `transport.timetable.manage` | Draft only; references checked (422); a PUT replaces the whole ordered stop list |

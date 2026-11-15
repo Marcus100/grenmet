@@ -33,4 +33,9 @@ export type TimetableVersionSummary = {
   updatedAt: string;
   publishedAt: string | null;
   tripCount: number;
+  /**
+   * @description What this status allows: edit, publish, discard (all only while a draft). Computed from the status alone; permissions and timetable validation errors are still checked when the action is taken.
+   * @type array | undefined
+   */
+  allowedActions?: string[];
 };

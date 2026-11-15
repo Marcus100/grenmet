@@ -391,7 +391,7 @@ function BookingRow({
         <span className="text-muted-foreground block text-sm">
           {booking.service_name}
           {providerName ? ` with ${providerName}` : ""}
-          {`, ${formatMoney(booking.price_minor)}`}
+          {`, ${formatMoney(booking.price_minor, booking.currency)}`}
         </span>
       </span>
       <span className="flex flex-wrap gap-2">

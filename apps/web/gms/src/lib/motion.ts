@@ -16,22 +16,6 @@ export const DURATION = {
   slow: 0.6,
 } as const;
 
-export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: DURATION.base, ease: EASE_OUT },
-  },
-};
-
-export const staggerContainer: Variants = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: 0.07, delayChildren: 0.05 },
-  },
-};
-
 /** The mobile menu: a quick fade under the header, which stays put. */
 export const menuSheet: Variants = {
   hidden: { opacity: 0 },

@@ -17,7 +17,12 @@ export const userUpdateSchema = z.object({
   first_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
   middle_name: z.union([z.string().max(100), z.null()]).optional(),
   last_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
-  password: z.union([z.string(), z.null()]).optional(),
+  password: z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
+    ),
   is_active: z.union([z.boolean(), z.null()]).optional(),
   is_superuser: z.union([z.boolean(), z.null()]).optional(),
 });

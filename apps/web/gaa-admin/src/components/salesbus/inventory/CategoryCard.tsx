@@ -11,7 +11,7 @@ export interface CategorySummary {
 export function CategoryCard({ category }: { category: CategorySummary }) {
   return (
     <Link
-      className="bg-card hover:shadow-card active:bg-muted flex min-h-16 touch-manipulation items-center gap-4 rounded-xl p-3 transition-all sm:p-4"
+      className="bg-card hover:shadow-card active:bg-muted flex min-h-16 touch-manipulation items-center gap-4 rounded-xl p-3 transition-[box-shadow,background-color] sm:p-4"
       href={`/salesbus/inventory/${encodeURIComponent(category.name)}` as Route}
     >
       <div className="bg-muted text-muted-foreground flex h-20 w-28 flex-shrink-0 items-center justify-center rounded-lg sm:h-24 sm:w-32">

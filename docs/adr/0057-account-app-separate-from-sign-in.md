@@ -4,9 +4,17 @@
 
 Accepted — 2026-11-13 (owner direction and answers of 13 November 2026): keep
 `auth.barrels.gd` for signing in, and move the pages for managing a Barrels
-account to a new app at `account.barrels.gd`. Nothing here is built yet. The
+account to a new app at `account.barrels.gd`. The
 first feature that needs it is the profile photo upload screen (#1303); the
 photo API itself is app-agnostic and ships first.
+
+**Progress (14 November 2026): partly built.** Migration step 1 shipped in
+v1.0.8: the app scaffold and the profile page with the photo upload. Steps 2 to
+5 are not built. On production the app runs with sign-in off, because
+`ACCOUNT_SSO_CLIENT_SECRET` is not set there. On staging sign-in works but stops
+at a "Join" prompt, which is wrong for an app every person should have; that and
+the production wiring are issue #1335. On `dev` the app also has a My bookings
+page (#1385, ADR-0058 slice 1).
 
 ## Context
 
@@ -101,7 +109,7 @@ One small PR each, in order:
    the UI and theme packages) on port 3018 (`docs/ports.md`), a
    Dockerfile and compose service, a Traefik route on staging, the sign-in
    return-host allowlist and CORS origins. The home page shows the profile with
-   the photo upload (#1303).
+   the photo upload (#1303). **Shipped in v1.0.8.**
 2. Move the profile view, change password, security and sessions (with
    `lib/profile.ts` and the shared `AccountLayout`), with redirects from `auth`.
 3. Move my organisations and my apps, then the organisation rewards admin.

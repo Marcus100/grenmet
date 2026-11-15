@@ -108,7 +108,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
 
       {canManageBookings(org.value.role) ? (
         <RecordDeposit
-          amountLabel={formatMoney(booking.deposit_minor)}
+          amountLabel={formatMoney(booking.deposit_minor, booking.currency)}
           bookingId={booking.id}
           due={deposit === "due"}
           orgSlug={orgSlug}
@@ -167,25 +167,34 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
             Price and deposit
           </h2>
           <dl className="space-y-1">
-            <Row label="Price" value={formatMoney(booking.price_minor)} />
+            <Row
+              label="Price"
+              value={formatMoney(booking.price_minor, booking.currency)}
+            />
             <Row
               label="Deposit asked"
               value={
                 booking.deposit_minor > 0
-                  ? formatMoney(booking.deposit_minor)
+                  ? formatMoney(booking.deposit_minor, booking.currency)
                   : "None"
               }
             />
             {booking.deposit_captured_minor > 0 ? (
               <Row
                 label="Deposit received"
-                value={formatMoney(booking.deposit_captured_minor)}
+                value={formatMoney(
+                  booking.deposit_captured_minor,
+                  booking.currency
+                )}
               />
             ) : null}
             {booking.deposit_refunded_minor > 0 ? (
               <Row
                 label="Deposit refunded"
-                value={formatMoney(booking.deposit_refunded_minor)}
+                value={formatMoney(
+                  booking.deposit_refunded_minor,
+                  booking.currency
+                )}
               />
             ) : null}
           </dl>

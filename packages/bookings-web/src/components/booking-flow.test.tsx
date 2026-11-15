@@ -28,6 +28,9 @@ const HONEYPOT_LABEL = /Leave this field empty/u;
 const SERVICE_ID = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10";
 const TUE = "2027-01-05T13:30:00Z";
 const SLOT_TAKEN = "That time has just been taken. Please choose another.";
+const ONE_HOUR_CUTOFF = /until 1 hour before your visit\./u;
+const MESSAGE_ON_INSTAGRAM = /Please message us on Instagram\./u;
+const DATE_RANGE = /^\w{3} \d{1,2} \w{3} to \w{3} \d{1,2} \w{3}$/u;
 
 const storefront: BookingStorefront = {
   slug: "test-studio",
@@ -79,13 +82,13 @@ const booking = {
   can_cancel: true,
 };
 
-function renderFlow(siteKey = "") {
+function renderFlow(siteKey = "", shown: BookingStorefront = storefront) {
   return render(
     <BookingFlow
       actions={actions}
       contact={CONTACT}
       managePath="/booking"
-      storefront={storefront}
+      storefront={shown}
       studioName={STUDIO}
       turnstileSiteKey={siteKey}
     />
@@ -355,5 +358,44 @@ describe("BookingFlow form", () => {
     expect(
       document.querySelector('script[src*="challenges.cloudflare.com"]')
     ).toBeNull();
+  });
+});
+
+describe("BookingFlow wording and announcements", () => {
+  it("names the place of the timezone, not its technical name", () => {
+    renderFlow();
+    expect(screen.getByText("Times are in Grenada time.")).toBeVisible();
+  });
+
+  it("writes a one-hour cutoff in the singular", () => {
+    renderFlow("", { ...storefront, cancel_cutoff_hours: 1 });
+    expect(screen.getByText(ONE_HOUR_CUTOFF)).toBeVisible();
+  });
+
+  it("keeps a space before the contact channel when no service is open", () => {
+    renderFlow("", { ...storefront, services: [] });
+    expect(screen.getByText(MESSAGE_ON_INSTAGRAM)).toBeVisible();
+  });
+
+  it("ties the service and time errors to their groups", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+
+    const service = screen.getByRole("group", { name: "1. Choose a service" });
+    const time = screen.getByRole("group", { name: "2. Pick a day and time" });
+    await waitFor(() => expect(service).toHaveAccessibleDescription());
+    expect(time).toHaveAccessibleDescription();
+  });
+
+  it("announces the date range when the window moves", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await user.click(screen.getByRole("radio", { name: HYBRID }));
+    await screen.findByRole("radio", { name: "9:30 am" });
+
+    expect(screen.getByText(DATE_RANGE)).toHaveAttribute("aria-live", "polite");
   });
 });

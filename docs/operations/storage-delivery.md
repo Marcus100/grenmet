@@ -62,7 +62,7 @@ Target RPO 24 hours, RTO within the next day, retention 30 days. The optional `b
 
 Download backups onto an isolated restore host. Start a compatible PostgreSQL container with a `grenmet-restore-` name and `grenmet.restore=true` label, then use `RESTORE_CONTAINER=... bash scripts/production/restore-core.sh <dump paths>`. It creates new isolated databases, restores with fatal errors, and leaves them for schema/record checks and migration-upgrade testing. Never label a production container as a restore container. Verify representative records, constraints, uploaded files and application behavior, then record timings and evidence.
 
-Do not change the deployed PostgreSQL image to PostGIS until restored copies pass extension, migration and application checks against the selected pinned PostgreSQL 17/PostGIS image. SURFACE runs its own TimescaleDB/PostGIS PostgreSQL 17 image (`timescaledb-ha`); see `VENDORED.md`.
+Do not change the deployed PostgreSQL image to PostGIS until restored copies pass extension, migration and application checks against the selected pinned PostGIS image for that environment's PostgreSQL major (staging 18 since 2026-11-14, production 17). SURFACE runs its own TimescaleDB/PostGIS PostgreSQL 17 image (`timescaledb-ha`); see `VENDORED.md`.
 
 ## Release evidence still required
 
@@ -70,7 +70,7 @@ Record fresh/repeat initialization, upgrade of isolated restored copies, deliber
 
 ## Staging inventory and first CMS rollout
 
-Operator inventory on 2026-09-06 confirmed `grenmet-staging-01` has FastAPI and four domain databases, with no CMS database. Its PostgreSQL image is `postgres:17`, its data volume is `grenmet-staging_pgdata-staging`, and its API role `app` is a superuser. Preserve that image family and volume until an isolated restored copy validates a PostGIS transition. The existing worker's ARQ heartbeat passed; its inherited HTTP probe was incorrect. The corrected Compose worker probe uses ARQ and a per-container heartbeat.
+Operator inventory on 2026-09-06 confirmed `grenmet-staging-01` has FastAPI and four domain databases, with no CMS database. Its PostgreSQL image is `postgres:17`, its data volume is `grenmet-staging_pgdata-staging`, and its API role `app` is a superuser. Preserve that image family and volume until an isolated restored copy validates a PostGIS transition. Update, 2026-11-14: staging now runs plain `postgres:18` on a new volume (the one named by `CORE_PGDATA_VOLUME`); the 17 volume above is kept untouched for at least 14 days ([PostgreSQL 18 upgrade](postgres-18-upgrade.md#staging-run-2026-11-14)). Production still runs `postgres:17`. The existing worker's ARQ heartbeat passed; its inherited HTTP probe was incorrect. The corrected Compose worker probe uses ARQ and a per-container heartbeat.
 
 CMS provisioning follows the existing database initialization and committed migration scripts. No `BOOTSTRAP_CMS` variable is needed for normal deployment. When production CMS is provisioned, enable `CMS_BACKUP_ENABLED=true` in the `production-backup` environment to include `gms_cms` in the daily dump, restore verification, upload and local retention steps. With this variable enabled, a missing CMS database fails the backup rather than silently reducing coverage. The other six databases, including eRegister, are always required.
 

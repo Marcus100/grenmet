@@ -67,6 +67,13 @@ class CapLifecycleState(str, Enum):
     CANCELLED = "CANCELLED"
 
 
+class CapProfileState(str, Enum):
+    """Stored in ``CapHazardProfile.state``. Moves: ``transitions.PROFILE_TRANSITIONS``."""
+
+    DRAFT = "DRAFT"
+    APPROVED = "APPROVED"
+
+
 class CapStatus(str, Enum):
     ACTUAL = "Actual"
     EXERCISE = "Exercise"
@@ -529,7 +536,7 @@ class CapHazardProfile(Base):
     definition: Mapped[dict[str, object]] = column(
         sa_column=sa.Column(sa.JSON, nullable=False)
     )
-    state: Mapped[str] = column(default="DRAFT", max_length=20)
+    state: Mapped[str] = column(default=CapProfileState.DRAFT.value, max_length=20)
     created_by: Mapped[uuid.UUID] = column()
     created_at: Mapped[datetime] = column(default_factory=utc_now)
     approved_by: Mapped[uuid.UUID | None] = column(default=None)

@@ -139,7 +139,10 @@ export function SlotPicker({
         >
           Earlier dates
         </button>
-        <span className="muted">{rangeLabel}</span>
+        {/* Announced when Earlier or Later dates changes the window. */}
+        <span aria-live="polite" className="muted">
+          {rangeLabel}
+        </span>
         <button
           className="btn btn-ghost btn-small"
           onClick={() => move(1)}

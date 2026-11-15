@@ -164,3 +164,45 @@ describe("Header with a streamed warning feed", () => {
     expect(screen.getAllByText("Alerts unavailable").length).toBeGreaterThan(0);
   });
 });
+
+describe("Header menu focus", () => {
+  function renderWithPage() {
+    return render(
+      <>
+        <Header
+          alerts={{ activeCount: 0, groups: [], status: "ok" }}
+          green={NO_GREEN}
+        />
+        <main>
+          <a href="/behind">Page behind the menu</a>
+        </main>
+      </>
+    );
+  }
+
+  it("names the open menu, moves focus into it and hides the page behind", () => {
+    renderWithPage();
+    fireEvent.click(screen.getByRole("button", { name: "Open navigation" }));
+
+    const menu = screen.getByRole("dialog", { name: "Site menu" });
+    expect(menu).toContainElement(document.activeElement as HTMLElement);
+    expect(screen.getByRole("main", { hidden: true })).toHaveAttribute("inert");
+  });
+
+  it("keeps Tab between the menu button and the menu, and frees the page on close", () => {
+    renderWithPage();
+    const button = screen.getByRole("button", { name: "Open navigation" });
+    fireEvent.click(button);
+
+    button.focus();
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(screen.getByRole("dialog", { name: "Site menu" })).toContainElement(
+      document.activeElement as HTMLElement
+    );
+    expect(button).not.toHaveAttribute("inert");
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(button).toHaveFocus();
+    expect(screen.getByRole("main")).not.toHaveAttribute("inert");
+  });
+});

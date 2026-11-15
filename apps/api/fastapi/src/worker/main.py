@@ -633,6 +633,33 @@ async def purge_expired_data(ctx: dict[str, Any]) -> int:
     return result.total
 
 
+@monitored(schedule="50 3 * * *", checkin_margin=30, max_runtime=60)
+async def clear_former_staff_personal_details(ctx: dict[str, Any]) -> int:
+    """Remove date of birth and address of anonymised former staff past the retention
+    period (#1431). Idempotent and batched; logs counts only."""
+    from src.database import async_session_factory
+    from src.hr import retention
+
+    async with async_session_factory() as session:
+        try:
+            cleared = await retention.clear_expired_personal_details(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "clear_former_staff_personal_details",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"),
+        "clear_former_staff_personal_details",
+        str(ctx.get("job_id", "")),
+        True,
+    )
+    return cleared
+
+
 async def fetch_marine_environment(ctx: dict[str, Any]) -> int:
     """Fetch Copernicus Marine series. No-op unless credentials are set."""
     from src.database import async_session_factory
@@ -713,6 +740,7 @@ class WorkerSettings:
         send_daily_newsletter,
         release_social_posts,
         purge_expired_data,
+        clear_former_staff_personal_details,
         check_nhc_failures,
         check_feed_freshness,
         check_alert_outbox,
@@ -792,6 +820,14 @@ class WorkerSettings:
         cron(release_social_posts, run_at_startup=False),
         # Retention purge, 03:30 UTC (23:30 Grenada); idempotent and batched.
         cron(purge_expired_data, hour=3, minute=30, run_at_startup=False),
+        # Former staff date of birth and address, 6 years after employment ends
+        # (#1431), 03:50 UTC; idempotent and batched.
+        cron(
+            clear_former_staff_personal_details,
+            hour=3,
+            minute=50,
+            run_at_startup=False,
+        ),
         # NHC job failures every 5 minutes; the 1-hour window stops repeat messages.
         cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Quiet weather image collectors, twice an hour; one message a day per source.

@@ -86,7 +86,7 @@ function SynopticImageSlot({
 
   return (
     <button
-      className="group bg-muted hover:ring-ring focus-visible:ring-ring/50 relative aspect-4/3 overflow-hidden rounded-lg border transition-all duration-200 outline-none hover:ring-2 focus-visible:ring-3"
+      className="group bg-muted hover:ring-ring focus-visible:ring-ring/50 relative aspect-4/3 overflow-hidden rounded-lg border transition-shadow duration-200 outline-none hover:ring-2 focus-visible:ring-3"
       onClick={() => onImageClick(image)}
       type="button"
     >

@@ -9,7 +9,7 @@ For infrastructure commands (Postgres, FastAPI, Docker): see the
 
 ## Prerequisites
 
-- Node.js 24+ (`engines` in `package.json`), pnpm 12.3.4 (`packageManager`)
+- Node.js 24+ (`engines` in `package.json`), pnpm 12.18.0 (`packageManager`)
 - Docker on the **host** for `pnpm start` (Postgres, Redis, FastAPI, worker)
 - A local env file in each app you run, copied from the app's
   `.env.local.example`. Agents must never write env files.
@@ -81,6 +81,19 @@ variables only through the app's typed `src/env.ts`. The full reference is
 - **Sentry** is wired through `instrumentation.ts` / `instrumentation-client.ts`
   in auth, docs, gaa-admin, gms, mbia, and signal. Do not remove these files.
 
+## User-guide screenshots
+
+`pnpm guide:screenshots --manifest scripts/agents/guide-screens.json --out apps/web/docs/src/images/guides`
+captures every screen listed in the manifest in one run. Each entry names an app,
+a path, a width, a theme and optional steps (`click`, `press`, `waitForText`).
+Start the app's dev server on the host first. Screens behind sign-in need
+`GUIDE_STORAGE_STATE=<file>`, a Playwright storage-state file from a seeded test
+account; never commit that file. Screenshots are committed to a public repository,
+so signed-in screens must come from that seeded account only, never from a real
+person's session. Add `--only <id>` to capture one screen. The
+idea comes from ADL's capture script (MIT); the manifest is JSON to avoid a new
+dependency.
+
 ## End-to-end smoke tests
 
 `gms` and `gaa-admin` have Playwright smoke tests in `apps/web/<app>/e2e/`:
@@ -119,7 +132,7 @@ rather than from this page. At the time of writing:
 | Tool | Catalog entry | Why it is pinned this way |
 | --- | --- | --- |
 | Biome | `"@biomejs/biome": "~2.6.4"` | `~` allows patch updates only; a minor release can add rules. |
-| Ultracite | `ultracite: "8.1.0"` | Exact. `biome.jsonc` extends `ultracite/biome/core`, `/react` and `/next`, so a new Ultracite version changes the rule set. Ultracite 8.1 needs Biome 2.6.2 or newer. |
+| Ultracite | `ultracite: "8.2.0"` | Exact. `biome.jsonc` extends `ultracite/biome/core`, `/react` and `/next`, so a new Ultracite version changes the rule set. Ultracite 8.1 needs Biome 2.6.2 or newer. |
 | Kubb (API client generator) | `kubb`, `@kubb/adapter-oas`, `@kubb/parser-ts` at 5.14.3; `@kubb/plugin-fetch` 5.9.2, `@kubb/plugin-react-query` 5.6.2, `@kubb/plugin-ts` 5.2.0, `@kubb/plugin-zod` 5.7.2 | Exact, so `packages/api-client/src/gen/` only changes when a version is bumped on purpose. The plugins version independently of Kubb core, so each keeps its own number. |
 
 Biome must stay at 2.6 or newer: `biome.jsonc` has a top-level `yaml` key (YAML

@@ -26,7 +26,7 @@ import Highlighter from "react-highlight-words";
 
 import { navigation } from "@/components/Navigation";
 import type { Result } from "@/mdx/search";
-import { useMobileNavigationStore } from "./MobileNavigation";
+import { useMobileNavigationStore } from "./mobile-navigation-store";
 
 type EmptyObject = Record<string, never>;
 

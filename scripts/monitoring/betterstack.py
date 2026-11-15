@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import urllib.error
 import urllib.request
 
 BASE = "https://incidents.betterstack.com/api/v2/"
@@ -31,8 +32,49 @@ def request(method, path, body=None):
             "Content-Type": "application/json",
         },
     )
-    with urllib.request.build_opener(NoRedirect()).open(req, timeout=20) as response:
-        return json.load(response)
+    try:
+        with urllib.request.build_opener(NoRedirect()).open(
+            req, timeout=20
+        ) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as error:
+        raise ProviderRefusal(method, path, error.code, refusal_reason(error)) from None
+
+
+class ProviderRefusal(ValueError):
+    """The provider answered with an error status.
+
+    Carries the status and the provider's own reason so a failed run says why.
+    A refusal body should hold only validation messages; the reason is still
+    cut short and stripped of the API token, URLs, heartbeat paths, bearer
+    values and any long opaque run.
+    """
+
+    def __init__(self, method, path, status, reason):
+        endpoint = path.split("?", 1)[0]
+        super().__init__(f"{method} {endpoint} answered HTTP {status}: {reason}")
+
+
+def refusal_reason(error):
+    try:
+        body = json.loads(error.read(4096).decode("utf-8", "replace"))
+    except (OSError, ValueError):  # fmt: skip
+        return "no readable reason"
+    errors = body.get("errors") if isinstance(body, dict) else None
+    text = json.dumps(errors) if errors else "no reason given"
+    return redact(text)[:400]
+
+
+def redact(text):
+    """Remove anything that could be a credential from provider text."""
+    token = os.environ.get("BETTERSTACK_API_TOKEN")
+    if token:
+        text = text.replace(token, "<token>")
+    text = re.sub(r"https?://\S+", "<url>", text)
+    # A heartbeat URL without its scheme, a bearer header, or any long opaque run.
+    text = re.sub(r"\S*/heartbeat/\S+", "<url>", text)
+    text = re.sub(r"(?i)\bbearer\s+\S+", "<token>", text)
+    return re.sub(r"[A-Za-z0-9_-]{20,}", "<redacted>", text)
 
 
 def plan(config, environment, live):
@@ -95,7 +137,10 @@ def plan(config, environment, live):
                 {
                     "method": "POST",
                     "path": kind,
-                    "settings": dict(settings, team_id=config["teamId"]),
+                    # No team field in the body: the provider refuses it
+                    # (HTTP 422, "misspelled some attributes"); a team token
+                    # creates in its own team, which the listing above checks.
+                    "settings": dict(settings),
                 }
             )
     for kind in ("monitors", "heartbeats"):
@@ -161,7 +206,11 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except (OSError, KeyError, ValueError):
+    except ProviderRefusal as refusal:
+        raise SystemExit(
+            f"Provider reconciliation failed: {refusal}. No credential was logged."
+        ) from None
+    except (OSError, KeyError, ValueError):  # fmt: skip
         raise SystemExit(
             "Provider reconciliation failed; check declared IDs, access and free quota. No response payload or credential was logged."
         ) from None

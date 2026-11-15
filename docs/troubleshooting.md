@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-18
+**Last updated:** 2026-11-14
 
 Common development issues and how to fix them.
 
@@ -265,6 +265,17 @@ delete just the `@pnpm/exe` blocks and keep the rest. Tracked in issue #432.
 If your issue isn't covered here, check the [Technical Overview](./technical-overview.md) for how the system fits together, or inspect the relevant app's `AGENTS.md` for app-specific context.
 
 ---
+
+### `Required uv version ... does not match the running version`
+
+The root `pyproject.toml` sets `required-version = ">=0.13.8,<0.14"` so your
+machine, CI and the Docker images use one uv line (the lockfile format follows
+the uv version). A plain `uv self update` installs the newest release, which
+may be outside the range. Install the pinned one:
+
+```bash
+uv self update 0.13.8
+```
 
 ## Cloud sessions
 

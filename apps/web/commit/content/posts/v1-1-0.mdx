@@ -1,0 +1,89 @@
+---
+title: A current toolchain, accounts that are anonymised instead of deleted, a first ticket scanner, and an API that fails open when Redis stalls
+summary: Version 1.1.0 upgrades every Python and JavaScript package, uv, pnpm and the linter to their latest releases, anonymises an account on deletion and clears former staff details after six years, moves to bcrypt 5 with a 72-byte password limit, ships the first scanner app for printed event tickets, links bookings to a person's account, and stops a slow Redis from taking requests down with it.
+date: 2026-11-15
+release: 1.1.0
+---
+
+Version 1.1.0 carries about 50 pull requests since v1.0.8, including the regular
+dependency updates. It has no database migrations, so the previous version runs
+against the same schema. It is a minor release rather than a patch because it
+changes behaviour people can notice: deleted accounts are anonymised, new
+passwords have a byte limit, and a new app appears.
+
+### Toolchain
+
+- **Everything current:** every Python and JavaScript package moved to the latest
+  release within its major version, in two reviewed pull requests. uv is 0.13.8
+  everywhere, from developer machines to the production image, with one allowed
+  version range in the root project file so an older uv refuses to run instead of
+  rewriting the lockfile. pnpm is pinned by its integrity hash. The linter moved
+  to Ultracite 8.2.0, which found and fixed an import cycle in the docs site.
+- **A leaner API image:** the production image installs only the locked packages
+  and compiles bytecode at build time, and the API now declares every package its
+  code imports directly instead of relying on them arriving indirectly.
+
+### Accounts and privacy
+
+- **Anonymised, not deleted:** deleting an account now replaces the person's name,
+  email and username with placeholders and makes the account unusable for
+  sign-in, instead of removing the row. Records other people depend on, such as
+  pay, leave, attendance and bookings history, stay intact and no longer block the
+  deletion. Staff with a current employment record are asked to contact HR.
+- **Former staff details expire:** a daily job clears the date of birth and home
+  address of an anonymised former employee six years after their employment
+  ended, and blanks the same values in the older audit history. The audit entries
+  themselves, who changed what and when, stay. The six-year period is provisional
+  until the employer confirms it.
+- **bcrypt 5:** passwords are hashed with bcrypt 5, which refuses input longer than
+  72 bytes instead of silently ignoring the rest. New passwords over 72 bytes are
+  refused with a clear message, counted in bytes so accented letters and emoji are
+  measured correctly. Existing passwords keep working exactly as before.
+
+### Bookings and the account app
+
+- **My bookings:** a booking made while signed in is linked to the person's
+  account, and the account app lists upcoming and past bookings.
+- **Prices with their currency:** every booking price shows its currency, such as
+  EC$210.
+- **Go-live settings for the first studio:** its seed carries real clean-up time
+  between appointments and a notification address passed at run time, never
+  stored in the code.
+- **A smoother booking flow:** clearer wording, better labels for screen readers
+  and touch feedback on the slot picker.
+
+### A ticket scanner
+
+- **First version of a scanning app for printed tickets:** an installable web app
+  that opens full screen on iPhone and Android, starts the camera and reads a
+  ticket's barcode. iPhone Safari has no built-in barcode decoder, so the app
+  ships its own and serves it itself, which keeps it ready to work offline. This
+  first version only shows what a barcode holds; admitting tickets comes next.
+
+### Reliability
+
+- **Redis can stall without taking requests with it:** every request-path Redis
+  client now has a timeout, the rate limiter runs off the event loop and lets
+  requests through if Redis fails, and the email-code check and the flight board
+  poll no longer abort on one slow answer.
+- **Real errors stay errors:** the API's global handlers no longer turn an
+  unexpected database or validation error inside the server into a 422 or 409,
+  which had been hiding bugs as if the client had sent bad data.
+- **Monitoring:** the production monitors are created and reported, the
+  production backup now reports to its heartbeat, an outage alert opens on the
+  share of time a site is down instead of on every blip, and staging maintenance
+  runs in its own environment.
+- **Rolling deploys on production:** each app's new copy starts beside the old one
+  and takes over only once it is healthy, so a release no longer drops requests
+  while containers restart.
+
+### Interface
+
+- **Phone menus that behave:** on the weather site and Elections, the open menu
+  takes focus, keeps Tab inside it and hides the page behind it from screen
+  readers.
+- **Less waiting between pages:** page changes no longer wait for the old page to
+  fade out, and the weather site's figures show at once instead of rising into
+  view.
+- **Smaller fixes:** readable contrast on the Barrels homepage, toast messages that
+  appear in the staff portal, and transitions that animate only what changes.

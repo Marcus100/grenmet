@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { MobileMenu } from "@/components/mobile-menu";
 
@@ -65,5 +65,46 @@ describe("MobileMenu", () => {
     fireEvent.keyDown(document, { key: "Escape" });
     expect(button).toHaveAttribute("aria-expanded", "false");
     expect(button).toHaveFocus();
+  });
+
+  it("moves focus into the menu and keeps Tab inside it and the button", () => {
+    render(
+      <>
+        <MobileMenu />
+        <main>
+          <a href="/behind">Page behind the menu</a>
+        </main>
+      </>
+    );
+    const button = screen.getByRole("button", { name: "Open menu" });
+    fireEvent.click(button);
+
+    const links = within(
+      screen.getByRole("dialog", { name: "Site menu" })
+    ).getAllByRole("link");
+    expect(links[0]).toHaveFocus();
+    expect(screen.getByRole("main", { hidden: true })).toHaveAttribute("inert");
+
+    // Shift+Tab from the first link goes back to the button, then wraps to the end.
+    button.focus();
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(links.at(-1)).toHaveFocus();
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(button).toHaveFocus();
+  });
+
+  it("gives the page back when the menu closes", () => {
+    render(
+      <>
+        <MobileMenu />
+        <main>
+          <a href="/behind">Page behind the menu</a>
+        </main>
+      </>
+    );
+    const button = screen.getByRole("button", { name: "Open menu" });
+    fireEvent.click(button);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.getByRole("main")).not.toHaveAttribute("inert");
   });
 });

@@ -100,6 +100,7 @@ const PERIOD = {
   period_start: monthStart,
   period_end: monthEnd,
   status: "DRAFT",
+  allowed_actions: ["edit", "publish"],
   created_by_user_id: "11111111-1111-4111-8111-111111111111",
   created_at: "2026-06-25T12:00:00+0000",
   updated_at: "2026-06-25T12:00:00+0000",
@@ -236,7 +237,11 @@ describe("DutyRoster (wired)", () => {
               { status: 409 }
             );
           }
-          return HttpResponse.json({ ...PERIOD, status: "PUBLISHED" });
+          return HttpResponse.json({
+            ...PERIOD,
+            status: "PUBLISHED",
+            allowed_actions: ["edit", "close"],
+          });
         }
       )
     );

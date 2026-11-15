@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 
 from redis.asyncio import Redis
 
-from src.worker.config import worker_settings
+from src.worker.config import REQUEST_REDIS_TIMEOUT_SECONDS, worker_settings
 
 from .schemas import FlightRow
 
@@ -22,7 +22,12 @@ def _get_client() -> Redis | None:
     if not worker_settings.REDIS_URL:
         return None
     if _client is None:
-        _client = Redis.from_url(worker_settings.REDIS_URL, decode_responses=True)
+        _client = Redis.from_url(
+            worker_settings.REDIS_URL,
+            decode_responses=True,
+            socket_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
+            socket_connect_timeout=REQUEST_REDIS_TIMEOUT_SECONDS,
+        )
     return _client
 
 
@@ -41,7 +46,15 @@ async def store_board(
         "fetched_at": datetime.now(UTC).isoformat(),
         "rows": [r.model_dump(mode="json") for r in rows],
     }
-    await client.set(cache_key(airport, board), json.dumps(doc), ex=ttl)
+    payload = json.dumps(doc)
+    try:
+        await client.set(cache_key(airport, board), payload, ex=ttl)
+    except Exception as exc:  # one cache fault must not abort the poll
+        logger.warning(
+            "flight cache write failed",
+            extra={"error_type": type(exc).__name__, "area": "flights"},
+        )
+        return False
     return True
 
 

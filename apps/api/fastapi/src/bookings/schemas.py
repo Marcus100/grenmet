@@ -31,6 +31,29 @@ class BookingMyOrganisation(BaseModel):
     role: MembershipRole
 
 
+# --- the signed-in person's bookings ----------------------------------------------
+
+
+class BookingMyBooking(BaseModel):
+    """One of the caller's bookings, with the business it is with. Carries no
+    manage token, notes, or other customers' details."""
+
+    id: uuid.UUID
+    status: BookingStatus
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+    service_name: str
+    business_name: str
+    business_slug: str
+
+
+class BookingMyBookingList(BaseModel):
+    data: list[BookingMyBooking]
+    count: int
+    page: int
+    size: int
+
+
 # --- profile ---------------------------------------------------------------------
 
 

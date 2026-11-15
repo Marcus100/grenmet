@@ -7,9 +7,8 @@ import {
   parseDigests,
   plan,
   promote,
-  requiredChecks,
-  sourceCommit,
 } from "./promote-images.mjs";
+import { requiredChecks, sourceCommit } from "./promotion-checks.mjs";
 import { webImages } from "./release-scope.mjs";
 
 const TREE = "1".repeat(40);

@@ -69,6 +69,11 @@ async def prepare_absentee_fields(
     for clock_time in (payload.absence_start_time, payload.absence_end_time):
         if clock_time and not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", clock_time):
             raise HRValidationError("Absence times must use HH:MM in local time")
+    if (
+        payload.replacement_user_id is not None
+        and await session.get(User, payload.replacement_user_id) is None
+    ):
+        raise HRValidationError("Choose an existing user as the replacement")
     if payload.expected_shift_code:
         shift = await session.get(ShiftCatalog, payload.expected_shift_code)
         if shift is None or shift.category != ShiftCategory.WORK:

@@ -792,7 +792,7 @@
           "users"
         ],
         "summary": "Delete current user",
-        "description": "Delete currently authenticated user account.",
+        "description": "Delete currently authenticated user account. The account is anonymised, not removed. Refused with 403 while the person is still employed: contact HR first.",
         "operationId": "authDeleteUserMe",
         "responses": {
           "200": {
@@ -816,7 +816,7 @@
             }
           },
           "403": {
-            "description": "Superuser cannot delete own account",
+            "description": "Superuser cannot delete own account, or the person is still employed (contact HR first)",
             "content": {
               "application/json": {
                 "schema": {
@@ -9543,6 +9543,129 @@
             "OAuth2PasswordBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/bookings/me/bookings": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "My bookings across businesses",
+        "description": "The signed-in person's bookings with every business. `upcoming=true` lists soonest first; `upcoming=false` and no filter list newest first. A booking is listed when its business contact is linked to the account (a signed-in booking with a verified matching email, ADR-0058). Accepts a full account token or the account app's session; other apps' tokens get 401. Page with `page` and `size`.",
+        "operationId": "bookingsListMyBookings",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "upcoming",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first.",
+              "title": "Upcoming"
+            },
+            "description": "True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingMyBookingList"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Bookingslistmybookings"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/bookings/org/profile": {
@@ -67938,7 +68061,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 12,
-            "title": "New Password"
+            "title": "New Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           }
         },
         "type": "object",
@@ -71946,6 +72070,83 @@
         ],
         "title": "BookingManualDepositCreate",
         "description": "How a deposit taken outside Stripe was paid (``method``, optional receipt\nor transfer ``reference``)."
+      },
+      "BookingMyBooking": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BookingStatus"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "service_name": {
+            "type": "string",
+            "title": "Service Name"
+          },
+          "business_name": {
+            "type": "string",
+            "title": "Business Name"
+          },
+          "business_slug": {
+            "type": "string",
+            "title": "Business Slug"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "starts_at",
+          "ends_at",
+          "service_name",
+          "business_name",
+          "business_slug"
+        ],
+        "title": "BookingMyBooking",
+        "description": "One of the caller's bookings, with the business it is with. Carries no\nmanage token, notes, or other customers' details."
+      },
+      "BookingMyBookingList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/BookingMyBooking"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size"
+        ],
+        "title": "BookingMyBookingList"
       },
       "BookingMyOrganisation": {
         "properties": {
@@ -80537,7 +80738,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 12,
-            "title": "New Password"
+            "title": "New Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           }
         },
         "type": "object",
@@ -89433,7 +89635,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 12,
-            "title": "New Password"
+            "title": "New Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           }
         },
         "type": "object",
@@ -103446,6 +103649,14 @@
             "type": "string",
             "format": "date-time",
             "title": "Updated At"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Actions",
+            "description": "What this status allows: edit, publish, close. Computed from the status alone; permissions, department scope and roster rule warnings are still checked when the action is taken."
           }
         },
         "type": "object",
@@ -114119,6 +114330,14 @@
           "tripCount": {
             "type": "integer",
             "title": "Tripcount"
+          },
+          "allowedActions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowedactions",
+            "description": "What this status allows: edit, publish, discard (all only while a draft). Computed from the status alone; permissions and timetable validation errors are still checked when the action is taken."
           }
         },
         "type": "object",
@@ -115774,7 +115993,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 12,
-            "title": "New Password"
+            "title": "New Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           }
         },
         "type": "object",
@@ -115921,7 +116141,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 8,
-            "title": "Password"
+            "title": "Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           }
         },
         "type": "object",
@@ -116176,7 +116397,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 12,
-            "title": "Password"
+            "title": "Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           },
           "first_name": {
             "type": "string",
@@ -116518,7 +116740,8 @@
                 "type": "null"
               }
             ],
-            "title": "Password"
+            "title": "Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           },
           "is_active": {
             "anyOf": [

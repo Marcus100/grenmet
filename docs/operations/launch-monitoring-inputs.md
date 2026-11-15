@@ -2,7 +2,7 @@
 
 **Status:** Active checklist; every item below is open until the owner ticks it  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-10-30
+**Last updated:** 2026-11-14
 
 Planned launch: about 10 November 2026. The five daily monitoring issues
 ([#644](https://github.com/Marcus100/grenmet/issues/644) sentry,
@@ -321,7 +321,7 @@ The issue covers `worker-jobs` and `notification-sweeps`.
 | Inputs | `MONITORING_BACKUP_KINDS` and the four `MONITORING_SPACES_*` secrets per environment (steps 3 and 5). |
 | What is counted | Each kind's `latest-success.json` marker in Spaces, checked by the same rules as `scripts/production/check-backup-age.py` (under 24 hours old, full coverage). A readable but stale or incomplete marker is a failure; an unreadable marker leaves the issue open as "needs configuration". |
 | Production backup workflow inputs | Environment `production-backup` already holds `DO_SPACES_*` and `POSTGRES_USER`. Still unset on 2026-10-30: variable `BACKUP_MARKERS_ENABLED`, and variables `WEATHER_BACKUP_ENABLED` and `SUTRON_BACKUP_ENABLED` if those backups are wanted. Variable `CMS_BACKUP_ENABLED` exists. |
-| Maintenance workflow inputs | `monitoring-maintenance.yml` (scheduled backup and weekly restore test) is off until variables `MONITORING_MAINTENANCE_ENABLED`, `MONITORING_REVISION` (a full approved commit SHA that matches the installed monitoring revision) and `MONITORING_STORAGE_VERIFIED=true` are set, and secret `BACKUP_HEARTBEAT_URL` exists in the production environment. Staging already has the secret; production does not. It must be a different heartbeat from the one `backup-database.yml` pings from the `production-backup` environment. |
+| Maintenance workflow inputs | `monitoring-maintenance.yml` (scheduled backup and weekly restore test) is off until variables `MONITORING_MAINTENANCE_ENABLED`, `MONITORING_REVISION` (a full approved commit SHA that matches the installed monitoring revision) and `MONITORING_STORAGE_VERIFIED=true` are set, and secret `BACKUP_HEARTBEAT_URL` exists in the production environment. Staging maintenance runs in the `staging-backup` environment (no branch rule, because schedules run from `main`, which the `staging` environment refuses): put the variables and the backup-storage secrets (`DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT`, `DO_SPACES_ACCESS_KEY_ID`, `DO_SPACES_SECRET_ACCESS_KEY`, `DO_SPACES_REGION`, `BACKUP_HEARTBEAT_URL`) there. Production maintenance stays in `production`, which does not have the heartbeat secret yet. It must be a different heartbeat from the one `backup-database.yml` pings from the `production-backup` environment. |
 | Alert to owner | Better Stack backup heartbeat (24 hour period, 2 hour grace) by email; #648 as a GitHub issue. |
 
 ## Optional: the WSL advisory path
@@ -352,7 +352,7 @@ owner something is down. Status on 2026-10-30 is from `gh secret list` and
 | production-backup | `BACKUP_HEARTBEAT_URL` | secret | missing (read by `backup-database.yml`) |
 | production | `WORKER_HEARTBEAT_URL` | secret | missing |
 | production | `TELEMETRY_ENABLED` | variable | missing |
-| production | `MONITORING_DEPLOY_ENABLED` | variable | missing |
+| production | `MONITORING_DEPLOY_ENABLED` | variable | missing. Do not set it before the runner user can run the monitoring install: on staging the deploy step failed with "sudo: a password is required" on 2026-11-14 and the variable was removed again ([known gap](analytics-monitoring.md#known-gap-staging-probes-and-the-monitoring-install-2026-11-14)) |
 | production | `SENTRY_CRONS_ENABLED` | variable (reaches the worker) | missing; check plan limits first |
 | production | `AUTH_TOTP_ENCRYPTION_KEYS`, `AUTH_PRIVILEGED_MFA_MODE` | secret, variable | missing; see [launch checklist](launch-checklist.md) |
 | production | `SENTRY_AUTH_TOKEN`, `SENTRY_DSN_PRODUCTION` | secrets | present |

@@ -1,11 +1,15 @@
 # Leaving Vercel: plan for the three sites
 
-**Status:** Step 1 prepared in the repo; no Cloudflare project or DNS change has been made  
+**Status:** Step 1 prepared in the repo; no Cloudflare project or DNS change has been made. Vercel's Git integration is disconnected for all three projects since 2026-11-13  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-13
+**Last updated:** 2026-11-14
 
 The owner does not plan to pay for Vercel and the free tier's build limit is
-already reached (the Vercel checks on pull requests fail with "upgrade to Pro").
+already reached (the Vercel checks on pull requests failed with "upgrade to Pro").
+On 13 Nov 2026 the owner disconnected the Git integration of the three Vercel
+projects (the Barrels homepage, Elections and Babydoll), so pull requests no
+longer get Vercel checks. The three sites keep serving from Vercel until each
+one moves.
 ADR-0036 and its 2026-10-27 amendment already say where each site goes: static
 sites to Cloudflare Pages, anything with a server to the droplets. This page turns
 that into an order of work.
@@ -60,15 +64,17 @@ until its new home is verified; only then does DNS change.
 
 - Lower the record's TTL a day ahead. Write down the current records (they are
   public: the apex `A`, the `www`, `babydoll` and `elections` `CNAME`s).
-- Preview deployments disappear with Vercel. Cloudflare Pages gives previews for
-  all three sites.
+- Preview deployments disappear with Vercel (pull requests already get none
+  since the Git integration was disconnected on 13 Nov 2026). Cloudflare Pages
+  gives previews for all three sites.
 
 ## Rollback
 
 Until the Vercel projects are deleted, rolling back is restoring the old DNS
 record. Delete the Vercel projects and their environment variables only after a
-week of clean traffic on the new host, and remove the Vercel checks from the
-pull-request required list when the last project is gone.
+week of clean traffic on the new host. Pull requests have had no Vercel checks
+since 13 Nov 2026, and `infra/github/rulesets.json` requires none, so there is
+nothing to remove from the required list.
 
 ## Cost
 

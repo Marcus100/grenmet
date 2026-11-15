@@ -7,6 +7,8 @@ from pydantic import EmailStr, Field, StringConstraints, field_validator
 from src.models import BaseModel, UtcDateTime
 from src.utils.text import clean_reason
 
+from .password_policy import PASSWORD_DESCRIPTION, BcryptSafe
+
 
 class ActivationAccountCreate(BaseModel):
     email: EmailStr
@@ -48,7 +50,9 @@ class ActivationLink(BaseModel):
 
 class ActivationConfirm(BaseModel):
     token: str = Field(min_length=32, max_length=200)
-    new_password: str = Field(min_length=12, max_length=128)
+    new_password: Annotated[str, BcryptSafe] = Field(
+        min_length=12, max_length=128, description=PASSWORD_DESCRIPTION
+    )
 
 
 class AccessBlocker(str, Enum):

@@ -60,14 +60,15 @@ async def poll_flights(
                 rows = await provider.fetch(
                     airport=airport, board=board, begin=begin, end=end
                 )
-                await cache.store_board(
+                stored = await cache.store_board(
                     airport=airport,
                     board=board,
                     source=provider.name,
                     rows=rows,
                     ttl=config.FLIGHTS_CACHE_TTL_SECONDS,
                 )
-                result[f"{airport}:{board}"] = len(rows)
+                if stored:
+                    result[f"{airport}:{board}"] = len(rows)
             except FlightProviderError:
                 logger.warning(
                     "flight poll failed", extra={"airport": airport, "board": board}

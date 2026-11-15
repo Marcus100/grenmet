@@ -1,6 +1,10 @@
+from typing import Annotated
+
 from pydantic import EmailStr, Field
 
 from src.models import BaseModel, UtcDateTime
+
+from .password_policy import PASSWORD_DESCRIPTION, BcryptSafe
 
 
 class EmailRequest(BaseModel):
@@ -9,7 +13,9 @@ class EmailRequest(BaseModel):
 
 class EmailConfirm(BaseModel):
     token: str = Field(min_length=32, max_length=256)
-    new_password: str = Field(min_length=12, max_length=128)
+    new_password: Annotated[str, BcryptSafe] = Field(
+        min_length=12, max_length=128, description=PASSWORD_DESCRIPTION
+    )
 
 
 class GoogleStart(BaseModel):

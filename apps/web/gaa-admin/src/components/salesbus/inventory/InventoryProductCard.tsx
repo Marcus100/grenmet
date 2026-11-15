@@ -14,7 +14,7 @@ export function InventoryProductCard({
 }: InventoryProductCardProps) {
   return (
     <button
-      className="from-gm-blue to-gm-navy hover:from-gm-sky hover:to-gm-blue active:from-gm-blue active:to-gm-navy flex aspect-square min-h-[100px] touch-manipulation flex-col items-center justify-center rounded-xl bg-gradient-to-b p-3 transition-all disabled:cursor-default sm:p-4"
+      className="from-gm-blue to-gm-navy hover:from-gm-sky hover:to-gm-blue active:from-gm-blue active:to-gm-navy flex aspect-square min-h-[100px] touch-manipulation flex-col items-center justify-center rounded-xl bg-gradient-to-b p-3 transition-colors disabled:cursor-default sm:p-4"
       disabled={!onClick}
       onClick={() => onClick?.(item)}
       type="button"

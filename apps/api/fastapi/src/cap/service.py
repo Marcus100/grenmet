@@ -66,6 +66,7 @@ from src.cap.models import (
     CapIntegrationStatus,
     CapLifecycleState,
     CapMessageType,
+    CapPredefinedArea,
     CapReference,
     CapResource,
     CapSnapshot,
@@ -1410,6 +1411,13 @@ async def _create_info(
             _resource_from_payload(info_id=info.id, sequence=index, payload=resource)
         )
     for index, area in enumerate(payload.areas):
+        if (
+            area.predefined_area_id is not None
+            and await session.get(CapPredefinedArea, area.predefined_area_id) is None
+        ):
+            raise CapValidationFailedError(
+                [f"Area {index + 1} refers to an unknown predefined area"]
+            )
         session.add(_area_from_payload(info_id=info.id, sequence=index, payload=area))
 
 

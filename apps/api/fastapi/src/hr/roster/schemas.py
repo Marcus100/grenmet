@@ -2,13 +2,14 @@ import uuid
 from datetime import date
 from decimal import Decimal
 from enum import Enum
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from pydantic import AfterValidator, Field, model_validator
 
 from src.models import BaseModel, UtcDateTime
 from src.utils.text import clean_reason
 
+from . import transitions
 from .models import (
     ImportStatus,
     RosterAvailability,
@@ -136,6 +137,20 @@ class RosterPeriodPublic(BaseModel):
     created_by_user_id: uuid.UUID
     created_at: UtcDateTime
     updated_at: UtcDateTime
+    allowed_actions: list[str] = Field(
+        default_factory=list,
+        description=(
+            "What this status allows: edit, publish, close. Computed from the "
+            "status alone; permissions, department scope and roster rule "
+            "warnings are still checked when the action is taken."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _fill_allowed_actions(self) -> Self:
+        # Derived, never read from the stored row or from a client.
+        self.allowed_actions = transitions.allowed_actions(self.status)
+        return self
 
 
 class RosterPeriodsPublic(BaseModel):
