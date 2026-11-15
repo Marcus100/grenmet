@@ -1,10 +1,16 @@
-import type { BookingPublicDetail } from "@barrelsgd/api-client";
+import type {
+  BookingPublicDetail,
+  BookingStorefront,
+} from "@barrelsgd/api-client";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getBooking } from "@/lib/booking-api";
+import { getBooking, getStorefront } from "@/lib/booking-api";
 import ManageBookingPage, { metadata } from "./page";
 
-vi.mock("@/lib/booking-api", () => ({ getBooking: vi.fn() }));
+vi.mock("@/lib/booking-api", () => ({
+  getBooking: vi.fn(),
+  getStorefront: vi.fn(),
+}));
 vi.mock("./actions", () => ({
   cancelMyBooking: vi.fn(),
   rescheduleMyBooking: vi.fn(),
@@ -34,12 +40,23 @@ const booking: BookingPublicDetail = {
   can_cancel: true,
 };
 
+const storefront: BookingStorefront = {
+  slug: "sea-salt-spa",
+  display_name: "Sea Salt Spa",
+  timezone: "America/Grenada",
+  currency: "XCD",
+  cancel_cutoff_hours: 24,
+  providers: [],
+  services: [],
+};
+
 const params = (slug: string, token: string) => ({
   params: Promise.resolve({ slug, token }),
 });
 
 beforeEach(() => {
   vi.mocked(getBooking).mockReset();
+  vi.mocked(getStorefront).mockReset();
 });
 
 describe("/[slug]/booking/[token]", () => {
@@ -60,11 +77,35 @@ describe("/[slug]/booking/[token]", () => {
     ).toBeVisible();
   });
 
-  it("is not found for an unknown token", async () => {
+  it("explains an unknown token and names the business", async () => {
     vi.mocked(getBooking).mockResolvedValue(null);
-    await expect(
-      ManageBookingPage(params("sea-salt-spa", "nope"))
-    ).rejects.toHaveProperty("message", "NEXT_NOT_FOUND");
+    vi.mocked(getStorefront).mockResolvedValue(storefront);
+    render(await ManageBookingPage(params("sea-salt-spa", "nope")));
+
+    expect(getStorefront).toHaveBeenCalledWith("sea-salt-spa");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "We could not find this booking"
+    );
+    expect(
+      screen.getByText("This link does not match a booking with Sea Salt Spa.")
+    ).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Book with Sea Salt Spa" })
+    ).toHaveAttribute("href", "/sea-salt-spa");
+    expect(screen.queryByText("nope")).not.toBeInTheDocument();
+  });
+
+  it("still helps when the business cannot be named", async () => {
+    vi.mocked(getBooking).mockResolvedValue(null);
+    vi.mocked(getStorefront).mockResolvedValue(null);
+    render(await ManageBookingPage(params("gone-spa", "nope")));
+
+    expect(
+      screen.getByText("This link does not match a booking.")
+    ).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Make a new booking" })
+    ).toHaveAttribute("href", "/gone-spa");
   });
 
   it("is not found for a malformed slug without calling the API", async () => {
@@ -72,6 +113,7 @@ describe("/[slug]/booking/[token]", () => {
       ManageBookingPage(params("Bad Slug", "tok-123"))
     ).rejects.toHaveProperty("message", "NEXT_NOT_FOUND");
     expect(getBooking).not.toHaveBeenCalled();
+    expect(getStorefront).not.toHaveBeenCalled();
   });
 
   it("keeps the secret token out of search and referrers", () => {
