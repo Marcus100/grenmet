@@ -2,14 +2,35 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-15
 
-Elections Grenada is an independent Vercel project in the existing monorepo.
-The Barrels holding page has its own Vercel project; operational apps retain the DigitalOcean/GitHub Actions release flow. The target
-production domain is `elections.barrels.gd`; configuration alone does not establish
-that a deployment or DNS cutover has succeeded.
+Elections Grenada is a static export (`output: "export"`) for Cloudflare Pages.
+The target production domain is `elections.barrels.gd`; configuration alone does not establish
+that a deployment or DNS cutover has succeeded. The Vercel project below is the
+legacy host until the exit plan removes it ([exit plan](../operations/vercel-exit-plan.md)).
 
-## Project settings
+## Cloudflare Pages (static export)
+
+| Setting | Value |
+| --- | --- |
+| Repository | `Marcus100/grenmet` |
+| Root directory | repository root |
+| Build command | `pnpm install --frozen-lockfile --filter '@barrelsgd/web-elections...' && pnpm --filter '@barrelsgd/web-elections^...' run --if-present build && pnpm --filter @barrelsgd/web-elections build` |
+| Build output directory | `apps/web/elections/out` |
+| `NODE_VERSION` | `24` |
+| Build variables | `NEXT_PUBLIC_SITE_URL=https://elections.barrels.gd`, `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `SENTRY_PROJECT` (the same values as the Vercel project) |
+
+`pnpm build` runs the data check, `next build`, then `scripts/pages-headers.mjs`,
+which adds the Sentry report endpoint to `out/_headers` when a DSN is set.
+`public/_headers` and `public/_redirects` are copied into `out/` by Next.js; Pages
+serves them (the `/since-2022` redirect and the security headers). Pages has no
+health route, so none is checked.
+
+Today's date (the masthead, the homepage and 2026 headlines, the timeline's today
+marker) is worked out in the browser, so a static export never shows a stale
+date and needs no rebuild schedule. See `src/lib/browser-today.ts`.
+
+## Project settings (legacy Vercel project)
 
 | Setting | Value |
 | --- | --- |

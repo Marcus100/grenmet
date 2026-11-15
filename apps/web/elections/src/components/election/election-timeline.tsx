@@ -1,5 +1,8 @@
+"use client";
+
 import type { ElectionCalendar } from "@/data/election-2026";
 import { grenadaDate } from "@/data/election-2026";
+import { useElectionNow } from "@/lib/browser-today";
 import { formatIsoDate } from "@/lib/format";
 
 const W = 320;
@@ -20,14 +23,17 @@ const SHORT = new Intl.DateTimeFormat("en-GB", {
  * the police poll and polling day on one time axis, with today marked. The
  * axis ends at polling day; the three-month legal limit no longer matters.
  * Every date also appears as text in the accessible description.
+ * Today is taken from the visitor's browser unless `now` is passed (tests);
+ * until the browser knows the date, no today marker is drawn.
  */
 export function ElectionTimeline({
   calendar,
   now,
 }: {
   calendar: ElectionCalendar;
-  now: Date;
+  now?: Date;
 }) {
+  const liveNow = useElectionNow();
   const start = calendar.dissolved ?? calendar.writs;
   if (!(start && calendar.pollingDay)) return null;
   const t0 = Date.parse(start);
@@ -85,11 +91,13 @@ export function ElectionTimeline({
       strong: true,
     },
   ];
-  const today = grenadaDate(now);
-  const showToday = today >= start && today <= calendar.pollingDay;
-  const daysToPoll = Math.round(
-    (Date.parse(calendar.pollingDay) - Date.parse(today)) / DAY
-  );
+  const current = now ?? liveNow;
+  const today = current ? grenadaDate(current) : null;
+  const showToday =
+    today !== null && today >= start && today <= calendar.pollingDay;
+  const daysToPoll = today
+    ? Math.round((Date.parse(calendar.pollingDay) - Date.parse(today)) / DAY)
+    : 0;
   const description = stops
     .map((s) => `${s.label}: ${formatIsoDate(s.iso)}`)
     .join("; ");
@@ -187,7 +195,7 @@ export function ElectionTimeline({
           </g>
         );
       })}
-      {showToday && (
+      {showToday && today && (
         <g>
           <line
             stroke="var(--el-flag-red)"

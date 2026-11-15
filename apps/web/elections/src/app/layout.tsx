@@ -5,10 +5,11 @@ import {
 } from "@barrelsgd/ui/components/ui/skip-link";
 import type { Metadata } from "next";
 import { Inter, Source_Serif_4 } from "next/font/google";
+import { ElectionStatus } from "@/components/election/election-status";
 import { MotionProvider } from "@/components/motion-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { calendarFrom, electionStatus } from "@/data/election-2026";
+import { calendarFrom } from "@/data/election-2026";
 import { campaign } from "@/data/load";
 import "./globals.css";
 import { env } from "@/lib/env";
@@ -25,9 +26,6 @@ const sourceSerif = Source_Serif_4({
   display: "swap",
 });
 
-/** The masthead status and the homepage lead follow today's date in Grenada. */
-export const revalidate = 3600;
-
 export const metadata: Metadata = {
   // Absolute base for share-preview links; set per environment at build time.
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
@@ -42,7 +40,9 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const status = electionStatus(calendarFrom(campaign), new Date());
+  // The status depends on today's date, so the browser works it out (see
+  // src/lib/browser-today.ts); the masthead shows nothing until then.
+  const status = <ElectionStatus calendar={calendarFrom(campaign)} />;
 
   return (
     <html className={`${inter.variable} ${sourceSerif.variable}`} lang="en-GB">

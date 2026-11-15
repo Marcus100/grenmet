@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack --port 3007",
-    "build": "pnpm data:check && next build",
+    "build": "pnpm data:check && next build && node scripts/pages-headers.mjs",
     "start": "next start --port 3007",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
@@ -14,7 +14,7 @@
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
     "type-check": "rm -f next-env.d.ts && rm -rf .next/dev/types && next typegen && tsc --noEmit",
-    "test": "python3 -m unittest discover -s scripts/history -p 'test_*.py' && node --test scripts/history/check.test.mjs && vitest run",
+    "test": "python3 -m unittest discover -s scripts/history -p 'test_*.py' && node --test scripts/history/check.test.mjs scripts/pages-headers.test.mjs && vitest run",
     "test:watch": "vitest",
     "data:build": "python3 scripts/history/build.py",
     "data:check": "node scripts/history/check.mjs"

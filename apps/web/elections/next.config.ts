@@ -1,5 +1,3 @@
-import { fileURLToPath } from "node:url";
-import { contentSecurityPolicyHeaders } from "@barrelsgd/ui/lib/content-security-policy";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 
@@ -8,26 +6,13 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   // Do not advertise the framework in every response.
   poweredByHeader: false,
-  output: "standalone",
-  outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
+  // A plain static site on Cloudflare Pages (out/). Nothing here may depend on
+  // the request date: "today" is worked out in the browser (src/lib/browser-today.ts).
+  // Redirects and response headers live in public/_redirects and public/_headers
+  // (scripts/pages-headers.mjs adds the Sentry report endpoint after the build).
+  output: "export",
+  images: { unoptimized: true },
   reactCompiler: true,
-  async redirects() {
-    return [
-      { source: "/since-2022", destination: "/updates", permanent: true },
-    ];
-  },
-  // CSP is Report-Only until a clean 7-day report window (docs/security.md).
-  headers() {
-    const headers = contentSecurityPolicyHeaders({
-      app: "elections",
-      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-      environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
-      isProduction: process.env.NODE_ENV === "production",
-    });
-    return Promise.resolve(
-      headers.length > 0 ? [{ source: "/:path*", headers }] : []
-    );
-  },
 };
 
 export default withSentryConfig(nextConfig, {

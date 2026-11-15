@@ -247,7 +247,7 @@
       "id": 5237470,
       "settings": {
         "pronounceable_name": "Production · Elections health",
-        "url": "https://elections.barrels.gd/api/health",
+        "url": "https://elections.barrels.gd/",
         "monitor_type": "status",
         "check_frequency": 180,
         "confirmation_period": 180,

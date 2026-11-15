@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ClosestContests } from "@/components/constituencies/closest-contests";
 import { HouseMap } from "@/components/constituencies/house-map";
 import { ConstituencySearch } from "@/components/constituency-search";
+import { ElectionStatus } from "@/components/election/election-status";
 import { ElectionTimeline } from "@/components/election/election-timeline";
 import { FlagStripe } from "@/components/flag-stripe";
 import { ElectionUpdates } from "@/components/home/election-updates";
@@ -17,12 +18,7 @@ import { Photo } from "@/components/photo";
 import { Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
 import { COVERAGE } from "@/data/coverage";
-import {
-  calendarFrom,
-  electionStatus,
-  seatOutlook,
-  updateEvents,
-} from "@/data/election-2026";
+import { calendarFrom, seatOutlook, updateEvents } from "@/data/election-2026";
 import { GUIDES } from "@/data/learning";
 import { campaign, geo, results } from "@/data/load";
 import { nationalResult } from "@/data/model";
@@ -75,7 +71,6 @@ const HERO_PHOTO: PhotoId = "parliament";
 export default function FrontPage() {
   const calendar = calendarFrom(campaign);
   const seats = seatOutlook(results, campaign);
-  const status = electionStatus(calendar, new Date());
   const result2022 = nationalResult(results, "2022");
   const crossed = seats.filter((s) => s.sitting.was);
 
@@ -147,7 +142,10 @@ export default function FrontPage() {
             {calendar.pollingDay && ` · ${weekdayDate(calendar.pollingDay)}`}
           </p>
           <h1 className="mt-2.5 text-[clamp(2rem,4.6vw,3.25rem)] leading-[1.05] font-bold tracking-[-0.022em]">
-            {status}
+            <ElectionStatus
+              calendar={calendar}
+              fallback="Grenada’s 2026 general election"
+            />
           </h1>
           <p className="text-el-ink-2 mt-3 max-w-[56ch] font-serif text-lg leading-normal">
             Fifteen constituencies choose the next House of Representatives.
@@ -210,9 +208,7 @@ export default function FrontPage() {
           coverage={COVERAGE}
           events={updateEvents(campaign)}
           graphics={{
-            "election-timeline": (
-              <ElectionTimeline calendar={calendar} now={new Date()} />
-            ),
+            "election-timeline": <ElectionTimeline calendar={calendar} />,
           }}
           hidePhoto={HERO_PHOTO}
         />

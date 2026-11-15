@@ -42,12 +42,21 @@ until its new home is verified; only then does DNS change.
      `https://barrels.gd` and `https://www.barrels.gd`), the CSP still allows
      Turnstile.
 2. **Elections.**
-   - **[agent]** Try `output: "export"` in a branch: the four `*.json` handlers
-     need `export const dynamic = "force-static"`; `api/health` goes (Pages has no
-     health route). If the build passes and the pages render the same, ship it as
-     static; if not, package it like the other droplet apps (compose service,
-     Traefik host rule, `docs/ports.md`).
-   - **[owner]** Same Pages steps as step 1, or the droplet deploy.
+   - **Done in the repo (15 Nov 2026, PR for `feat/elections-static-export`,
+     superseding #1321):** `output: "export"` builds `apps/web/elections/out`.
+     The four `*.json` handlers were already `force-static`; `api/health` is gone
+     (Pages has no health route); no `revalidate`. "Today" (the masthead, the
+     homepage headline, the 2026 headline and the timeline's today marker) is
+     worked out in the browser (`src/lib/browser-today.ts`, owner decision), so
+     the export never shows a stale date and no daily rebuild is needed.
+     `public/_headers` and `public/_redirects` carry the headers and `/since-2022`;
+     the build adds the Sentry report endpoint when a DSN is set.
+   - **[owner]** Create the Pages project (no agent action without the owner):
+     build command `pnpm install --frozen-lockfile --filter '@barrelsgd/web-elections...' && pnpm --filter '@barrelsgd/web-elections^...' run --if-present build && pnpm --filter @barrelsgd/web-elections build`,
+     output `apps/web/elections/out`, `NODE_VERSION=24`, and the build variables
+     from the Vercel project (`NEXT_PUBLIC_SITE_URL=https://elections.barrels.gd`,
+     `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `SENTRY_PROJECT`).
+     Then the custom domain and the DNS change, with the owner's go.
 3. **Babydoll** (client site; static since 13 Nov 2026, owner decision).
    - **Done in the repo:** booking routes and server code removed,
      `output: "export"` builds `apps/web/babydoll/out`, `public/_headers` and
