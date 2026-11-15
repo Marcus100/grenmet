@@ -874,34 +874,37 @@ async def reschedule_booking(
     previous, previous_ends = booking.starts_at, booking.ends_at
     await move_booking(session, booking, svc, starts_at)
     current = BookingStatus(booking.status)
-    record_event(
+    event = record_event(
         session,
         booking,
         current,
         current,
         note=f"Rescheduled from {previous:%Y-%m-%dT%H:%MZ} by customer",
     )
-    stamp = f"{starts_at:%Y%m%dT%H%M}"
+    # Keyed to this move's own history row, not to the new start time: moving
+    # 10:00 to 11:00 and back to 10:00 must notify three times, and keys built
+    # from the start time would make the third collide with the first.
+    move = event.id
     await emit_webhook(
         session,
         booking,
         "booking.rescheduled",
         previous_starts_at=previous,
         previous_ends_at=previous_ends,
-        event_id=f"booking.rescheduled:{booking.id}:{stamp}",
+        event_id=f"booking.rescheduled:{booking.id}:{move}",
     )
     mail = build_mail(managed)
     await queue_customer_email(
         session,
         managed,
         emails.customer_rescheduled(mail),
-        f"booking-rescheduled:{booking.id}:{stamp}",
+        f"booking-rescheduled:{booking.id}:{move}",
     )
     await queue_studio_email(
         session,
         managed,
         emails.studio_notice(mail, event="rescheduled"),
-        f"booking-studio-rescheduled:{booking.id}:{stamp}",
+        f"booking-studio-rescheduled:{booking.id}:{move}",
     )
     await session.flush()
     return detail(managed, moment)
