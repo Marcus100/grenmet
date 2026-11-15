@@ -12,61 +12,32 @@ date the table does not hold, so the 2027 table must be loaded before
 Owner decision, 15 November 2026: the owner runs one command in the tide tool,
 sends back the output file, and the agent loads and checks it.
 
-## 1. Owner: run the tide tool (one command)
+## 1. Owner: produce the 2027 file
 
-Run it in WSL, from the root of the private workspace that holds the tide tool
-(the folder containing `tools/tides/extend_pric_tides.py` and the v1.4 run under
-`exports/.../tides/pric/`). It extends the reviewed v1.4 model to 2027 without
-refitting, so it needs no network, no IOC key and no new observations. It takes a
-few minutes.
+The owner runs the private tide tool to extend the reviewed 2026 (v1.4) Prickly
+Bay prediction to 1 January to 31 December 2027, Grenada time (AST, UTC-4). The
+exact command lives with the tool, outside this repository, and a copy is kept in
+the main checkout's gitignored `private/tides/` folder.
 
-```bash
-uv run --project tools --frozen --group tides python tools/tides/extend_pric_tides.py \
-  --base-run exports/02-atmosphere-aviation/meteorology-and-climate/tides/pric/2026-october-december-v1.4-pric-primary \
-  --output-dir exports/02-atmosphere-aviation/meteorology-and-climate/tides/pric/2027-january-december-v1.5-pric-primary \
-  --start 2027-01-01 --stop 2027-12-31
-```
+The file must have the same columns as the 2026 file: `time_utc`
+(`YYYY-MM-DD HH:MM UTC`), `event_type` (`HIGH` or `LOW`),
+`height_m_relative_uhslc_mllw_provisional_crosswalk` (metres, provisional MLLW),
+`status` and `timing_quality`. The 2026 table ends on 31 December AST, so the two
+tables meet with no overlap and no hole. Expect about 1,400 events over 365 dates
+(roughly 3.9 a day, as in 2026).
 
-What the options mean:
+## 2. Owner: hand the file over
 
-| Option | Value | Why |
-| --- | --- | --- |
-| Station | Prickly Bay (`pric`) | The only station the tool and the API know |
-| `--start` / `--stop` | `2027-01-01` to `2027-12-31` | Dates are Grenada local time (AST, UTC-4). The 2026 table ends on 31 December AST (01:00 to 04:00 UTC on 1 January), so the two tables meet with no overlap and no hole |
-| `--base-run` | the v1.4 run | Reuses the reviewed model (68 constituents, observations to 29 September 2026). The tool checks that run's checksums first |
-| `--output-dir` | a new folder | The tool refuses an existing folder, so a repeat run needs a new name |
-
-Units and datum are fixed by the tool and match 2026: times in both UTC and AST,
-heights in metres. The loader uses the column
-`height_m_relative_uhslc_mllw_provisional_crosswalk` (provisional MLLW) and the
-`time_utc` column; the other columns are ignored.
-
-The last line printed should report about 1,400 events over 365 dates
-(roughly 3.9 a day, as in 2026: 356 events over 92 dates).
-
-If `uv` reports that the `tides` group is not installed or `--frozen` fails, run
-`uv sync --project tools --group tides` once and repeat the command.
-
-## 2. Owner: send the file back
-
-Send one file from the new output folder:
-
-```text
-pric-tides-2027-01-01-to-2027-12-31.csv
-```
-
-Copy it to the main checkout's gitignored private folder and tell the agent it is
-there:
+Copy `pric-tides-2027-01-01-to-2027-12-31.csv` to the main checkout's gitignored
+private folder and tell the agent it is there:
 
 ```bash
 mkdir -p ~/grenmet/private/tides
-cp exports/02-atmosphere-aviation/meteorology-and-climate/tides/pric/2027-january-december-v1.5-pric-primary/pric-tides-2027-01-01-to-2027-12-31.csv \
-  ~/grenmet/private/tides/
+cp /path/to/pric-tides-2027-01-01-to-2027-12-31.csv ~/grenmet/private/tides/
 ```
 
 Never commit it: the predicted values are the owner's data, the same rule as the
-2026 file (`private/` is in `.gitignore`). Keep the rest of the output folder
-(validation, model state, checksums) where it is.
+2026 file (`private/` is in `.gitignore`).
 
 ## 3. Agent: check, then load
 
@@ -103,11 +74,11 @@ only reads it.
 - Fewer than 365 AST dates, or a gap: the run was cut short; rerun into a new
   output folder.
 - A header error naming `timing_quality`: the file came from an older version of
-  the tool (before v1.4). Use `extend_pric_tides.py` as above.
+  the tool (before v1.4); rerun with the current tool.
 - The 2027 values are a prediction from a model trained on observations up to
   29 September 2026. They are provisional and not for navigation, like 2026. A
-  refit with newer observations is a separate, multi-step job (new IOC download,
-  audit, refit) and is not needed to keep the tides showing.
+  refit with newer observations is a separate, multi-step job and is not needed
+  to keep the tides showing.
 
 ## Before the next year runs out
 
