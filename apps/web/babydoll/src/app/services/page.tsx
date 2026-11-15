@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NewTabNote } from "@/components/new-tab-note";
 import { PageHead } from "@/components/sections";
 import { ServiceMenu } from "@/components/service-menu";
 import { CONSULTATION_PRICE, formatPrice } from "@/data/site";
@@ -54,6 +55,7 @@ export default function ServicesPage() {
               </span>
               <a className="btn btn-solid" {...booking}>
                 Choose a time
+                <NewTabNote />
               </a>
             </div>
           </div>

@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { bookingLinkExists } from "@/lib/booking-link-exists";
 import { storefrontExists } from "@/lib/storefront-exists";
-import { NOT_FOUND_PATH, proxy } from "@/proxy";
+import { NOT_FOUND_PATH, PRIVATE_NO_STORE, proxy } from "@/proxy";
 
 vi.mock("@/lib/storefront-exists", () => ({ storefrontExists: vi.fn() }));
 vi.mock("@/lib/booking-link-exists", () => ({ bookingLinkExists: vi.fn() }));
@@ -74,6 +74,34 @@ describe("proxy", () => {
   it("lets a request with a session cookie through to /studio", async () => {
     const response = await proxy(request("/studio", "bookings_session=abc"));
     expect(response.status).toBe(200);
+  });
+});
+
+describe("proxy: pages that carry a person's details", () => {
+  it("marks a response to a request with the session cookie private and not storable", async () => {
+    for (const path of ["/sea-salt", "/studio", "/sea-salt/booking/tok"]) {
+      const response = await proxy(request(path, "bookings_session=abc"));
+      expect(response.headers.get("cache-control"), path).toBe(
+        PRIVATE_NO_STORE
+      );
+    }
+    // Also when the proxy answers a 404 itself.
+    exists.mockResolvedValue(false);
+    const missing = await proxy(request("/gone", "bookings_session=abc"));
+    expect(missing.headers.get("cache-control")).toBe(PRIVATE_NO_STORE);
+  });
+
+  it("leaves a guest's page headers alone", async () => {
+    for (const path of ["/", "/sea-salt", "/sea-salt/booking/tok"]) {
+      const response = await proxy(request(path));
+      expect(response.headers.get("cache-control"), path).toBeNull();
+    }
+  });
+
+  it("adds nothing to the sign-in redirect of a signed-out request", async () => {
+    const response = await proxy(request("/studio"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("cache-control")).toBeNull();
   });
 });
 

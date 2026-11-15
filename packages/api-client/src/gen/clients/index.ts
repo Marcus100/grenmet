@@ -108,6 +108,7 @@ export { bookingsDeclineStudioBooking } from "./bookingsDeclineStudioBooking.js"
 export { bookingsDeleteException } from "./bookingsDeleteException.js";
 export { bookingsGetAgenda } from "./bookingsGetAgenda.js";
 export { bookingsGetAvailability } from "./bookingsGetAvailability.js";
+export { bookingsGetMyChoices } from "./bookingsGetMyChoices.js";
 export { bookingsGetProfile } from "./bookingsGetProfile.js";
 export { bookingsGetPublicBooking } from "./bookingsGetPublicBooking.js";
 export { bookingsGetPublicBookingIcs } from "./bookingsGetPublicBookingIcs.js";
