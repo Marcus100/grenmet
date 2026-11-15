@@ -83,7 +83,11 @@ export async function changeAccountPassword(
   }).unwrap();
   await clearSessionCookie();
 }
-export async function replaceRecoveryCodes(password: string, code: string) {
+/** `password` is undefined for an email-code account, which has none to confirm. */
+export async function replaceRecoveryCodes(
+  password: string | undefined,
+  code: string
+) {
   return authReplaceRecoveryCodes({
     body: { password, code },
     client: await securityClient(),

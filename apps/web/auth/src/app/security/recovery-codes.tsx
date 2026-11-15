@@ -39,8 +39,9 @@ export function RecoveryCodes({ codes }: { codes: readonly string[] }) {
         </a>
       </div>
       <p className="text-muted-foreground text-sm">
-        Keep these somewhere private. Each code works once, in place of an
-        authenticator code.
+        Write them down or save the file somewhere safe that is not on this
+        device. Each code works once, in place of an authenticator code. Anyone
+        who has a code can sign in without your phone.
       </p>
     </div>
   );

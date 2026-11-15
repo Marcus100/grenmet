@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import totp
 from src.auth.config import auth_settings
+from src.auth.lockout import login_lockout
 from src.auth.models import Session as LoginSession
 from src.auth.models import User
 from src.auth.utils import verify_password_async
@@ -74,15 +75,42 @@ async def verify_factor(session: AsyncSession, user: User, code: str) -> bool:
     return False
 
 
+def has_usable_password(user: User) -> bool:
+    """True when the account has a password it can sign in with.
+
+    Email-code accounts carry a random hash that nobody knows and sit in
+    ``password_setup_pending``; password sign-in refuses them (``login.py``). Any
+    other account has a password, so the password is required for it.
+    """
+    return not user.password_setup_pending
+
+
 async def new_recovery_codes(
-    session: AsyncSession, user: User, password: str, code: str
+    session: AsyncSession, user: User, password: str | None, code: str
 ) -> list[str]:
-    if not user.totp_enabled or not await verify_password_async(
-        password, user.hashed_password
+    """Replace the recovery codes (ADR-0059 rule 3).
+
+    A live authenticator code (or an unused recovery code) is always required. The
+    password is required only when the account has one; an email-code account has
+    nothing to check, so a value sent for it is ignored.
+    """
+    if await login_lockout.is_locked(user.email):
+        # Same lockout as sign-in (``app_service._require_totp``): a stolen email-code
+        # session must not get unlimited guesses at the authenticator code.
+        raise AppException(
+            "Account temporarily locked due to repeated failed logins", 429
+        )
+    if not user.totp_enabled:
+        raise AppException("Confirm your password and authenticator code", 400)
+    if has_usable_password(user) and (
+        not password or not await verify_password_async(password, user.hashed_password)
     ):
+        await login_lockout.record_failure(user.email)
         raise AppException("Confirm your password and authenticator code", 400)
     if not await verify_factor(session, user, code):
+        await login_lockout.record_failure(user.email)
         raise AppException("Authenticator or recovery code was not accepted", 400)
+    await login_lockout.reset(user.email)
     codes = [secrets.token_hex(12).upper() for _ in range(8)]
     user.mfa_recovery_hashes = [recovery_hash(item) for item in codes]
     await record_security(session, user, "recovery_replaced")

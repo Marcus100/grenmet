@@ -22,6 +22,7 @@ vi.mock("./qr-code", () => ({
 
 const EIGHT_LEFT = /8 unused codes left/u;
 const PRIVILEGED_DISABLE_WARNING = /Turning this off blocks those tools/u;
+const SHOWN_ONCE_NOTICE = /only time we show them/u;
 
 function typeInto(label: string, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
@@ -143,4 +144,64 @@ it("blocks new enrolment until secure storage is configured", () => {
 it("explains the privileged access consequence of turning MFA off", () => {
   render(<TwoStepSettings enabled privileged recoveryCodesRemaining={8} />);
   expect(screen.getByText(PRIVILEGED_DISABLE_WARNING)).toBeInTheDocument();
+});
+
+describe("recovery codes for an email-code account (ADR-0059 rule 3)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("asks for an authenticator code only, and sends no password", async () => {
+    vi.mocked(replaceRecoveryCodes).mockResolvedValue({
+      codes: ["CODE-ONE", "CODE-TWO"],
+    });
+    render(
+      <TwoStepSettings enabled hasPassword={false} recoveryCodesRemaining={0} />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    expect(screen.queryByLabelText("Account password")).not.toBeInTheDocument();
+    typeInto("Authenticator code", "654321");
+    fireEvent.click(screen.getByRole("button", { name: "Create new codes" }));
+    expect(await screen.findByText("CODE-ONE")).toBeInTheDocument();
+    expect(replaceRecoveryCodes).toHaveBeenCalledWith(undefined, "654321");
+  });
+
+  it("still asks for the password when the account has one", async () => {
+    vi.mocked(replaceRecoveryCodes).mockResolvedValue({ codes: ["CODE-ONE"] });
+    render(<TwoStepSettings enabled hasPassword recoveryCodesRemaining={8} />);
+    fireEvent.click(screen.getByRole("button", { name: "Re-generate" }));
+    typeInto("Account password", "secret-password");
+    typeInto("Authenticator code", "654321");
+    fireEvent.click(screen.getByRole("button", { name: "Create new codes" }));
+    await waitFor(() =>
+      expect(replaceRecoveryCodes).toHaveBeenCalledWith(
+        "secret-password",
+        "654321"
+      )
+    );
+  });
+
+  it("keeps the codes until they are confirmed saved, then drops them", async () => {
+    vi.mocked(replaceRecoveryCodes).mockResolvedValue({ codes: ["CODE-ONE"] });
+    render(
+      <TwoStepSettings enabled hasPassword={false} recoveryCodesRemaining={8} />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Re-generate" }));
+    typeInto("Authenticator code", "654321");
+    fireEvent.click(screen.getByRole("button", { name: "Create new codes" }));
+    expect(await screen.findByText("CODE-ONE")).toBeInTheDocument();
+    expect(screen.getByText(SHOWN_ONCE_NOTICE)).toBeInTheDocument();
+
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: "Escape",
+    });
+    expect(screen.getByText("CODE-ONE")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "I've saved my codes" })
+    );
+    await waitFor(() =>
+      expect(screen.queryByText("CODE-ONE")).not.toBeInTheDocument()
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Re-generate" }));
+    expect(screen.queryByText("CODE-ONE")).not.toBeInTheDocument();
+  });
 });
