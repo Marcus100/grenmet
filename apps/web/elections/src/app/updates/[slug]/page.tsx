@@ -40,8 +40,15 @@ export function generateStaticParams() {
   return COVERAGE.map(({ slug }) => ({ slug }));
 }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = coveragePost((await params).slug);
-  return post ? { title: post.title, description: post.dek } : {};
+  const { slug } = await params;
+  const post = coveragePost(slug);
+  return post
+    ? {
+        title: post.title,
+        description: post.dek,
+        alternates: { canonical: `/updates/${slug}` },
+      }
+    : {};
 }
 
 /** One coverage post: the article, any downloads, then its sources. */
@@ -65,10 +72,7 @@ export default async function UpdatePage({ params }: Props) {
         {post.graphic === "election-timeline" && (
           <figure className="border-el-ink m-0 mb-8 max-w-2xl border-y-2 py-4">
             <div className="overflow-x-auto">
-              <ElectionTimeline
-                calendar={calendarFrom(campaign)}
-                now={new Date()}
-              />
+              <ElectionTimeline calendar={calendarFrom(campaign)} />
             </div>
             <figcaption className="text-el-muted mt-2 text-sm leading-relaxed">
               Dates from the Notice of Issuance of Writs, Government Gazette No.

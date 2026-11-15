@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyFailure, detailOf } from "./booking-errors";
+import { classifyFailure, detailOf, tellsToContact } from "./booking-errors";
 
 const SLOT = "That time is no longer available. Please choose another.";
 const CUTOFF =
@@ -28,18 +28,28 @@ describe("booking-errors", () => {
     expect(classifyFailure(503, undefined, "create").code).toBe("unavailable");
   });
 
-  it("names the studio's manual channel when one is given", () => {
-    expect(classifyFailure(503, undefined, "create", "Instagram").message).toBe(
-      "Booking is unavailable right now. Please try again shortly, or message us on Instagram."
+  it("sends people to the business in words, so the page can add its links", () => {
+    const unavailable = classifyFailure(503, undefined, "create").message;
+    expect(unavailable).toBe(
+      "Booking is unavailable right now. Please try again shortly, or contact the business."
     );
-    expect(classifyFailure(503, undefined, "create").message).toBe(
-      "Booking is unavailable right now. Please try again shortly."
-    );
+    expect(tellsToContact(unavailable)).toBe(true);
+    expect(tellsToContact(CUTOFF)).toBe(true);
+    expect(
+      tellsToContact(classifyFailure(404, undefined, "cancel").message)
+    ).toBe(true);
+    expect(
+      tellsToContact(classifyFailure(409, undefined, "reschedule").message)
+    ).toBe(true);
+    expect(
+      tellsToContact(classifyFailure(429, undefined, "create").message)
+    ).toBe(false);
+    expect(tellsToContact(null)).toBe(false);
   });
 
   it("maps the emailed-code request failures", () => {
     const code = (status: number) =>
-      classifyFailure(status, undefined, "email-code", "Instagram");
+      classifyFailure(status, undefined, "email-code");
     expect(code(429).code).toBe("code_limited");
     expect(code(503).code).toBe("code_unavailable");
     expect(code(404).code).toBe("not_found");
@@ -48,7 +58,7 @@ describe("booking-errors", () => {
     const failed = code(502);
     expect(failed.code).toBe("code_send_failed");
     expect(failed.message).toContain("not yours");
-    expect(failed.message).toContain("Instagram");
+    expect(tellsToContact(failed.message)).toBe(true);
     expect(code(500).code).toBe("code_send_failed");
   });
 

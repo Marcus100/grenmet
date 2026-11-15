@@ -232,7 +232,6 @@ async def _apply_listing(
         "title",
         "summary",
         "description",
-        "category",
         "parish",
         "venue",
         "admission",
@@ -241,6 +240,9 @@ async def _apply_listing(
         "visibility",
     ):
         setattr(listing, key, getattr(body, key))
+    if "category" in body.model_fields_set:
+        # An explicit null clears it (#810); leaving it out keeps the current one.
+        listing.category = body.category
     move_listing(listing, _SAVE_ACTION[body.status])
     listing.starts_at = _naive_utc(body.starts_at)
     listing.ends_at = _naive_utc(body.ends_at)

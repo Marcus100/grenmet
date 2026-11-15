@@ -28,7 +28,7 @@ export function AccountTabs({ current }: { current: AccountTab }) {
             className={cn(
               "-mb-px border-b-2 pb-3 text-sm font-medium transition",
               tab.href === current
-                ? "text-foreground border-(--auth-accent)"
+                ? "text-foreground border-primary"
                 : "text-muted-foreground hover:text-foreground border-transparent"
             )}
             href={tab.href}

@@ -1,19 +1,21 @@
 import { BookingFlow } from "@barrelsgd/bookings-web/components/booking-flow";
+import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contact";
 import {
   formatDuration,
   formatMoney,
   timeZonePlace,
 } from "@barrelsgd/bookings-web/lib/booking-format";
+import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
-import { CONTACT_LABEL } from "@/lib/booking-errors";
 import { signInPath, signUpHref } from "@/lib/sign-in-links";
 import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
+import { storefrontJsonLd } from "@/lib/storefront-jsonld";
 import {
   confirmEmailCode,
   loadSlots,
@@ -41,10 +43,13 @@ export async function generateMetadata({
   if (!storefront) {
     return { title: "Booking page not found", robots: { index: false } };
   }
+  const title = `Book at ${storefront.display_name}`;
+  const description = `Book an appointment online with ${storefront.display_name}. Choose a service and a time.`;
   return {
-    title: `Book at ${storefront.display_name}`,
-    description: `Book an appointment online with ${storefront.display_name}. Choose a service and a time.`,
+    title,
+    description,
     alternates: { canonical: `/${slug}` },
+    openGraph: { title, description, url: `/${slug}`, type: "website" },
     robots: { index: true, follow: true },
   };
 }
@@ -70,6 +75,12 @@ export default async function BusinessBookingPage({
 
   return (
     <div className="booking space-y-10">
+      <JsonLd
+        data={storefrontJsonLd(
+          env.NEXT_PUBLIC_SITE_URL ?? "https://bookings.barrels.gd",
+          storefront
+        )}
+      />
       <header className="space-y-2">
         <h1 className="text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] font-bold tracking-tight">
           {storefront.display_name}
@@ -90,6 +101,7 @@ export default async function BusinessBookingPage({
             to have your details filled in. You do not need one to book.
           </p>
         )}
+        <ContactStrip contact={storefront.contact} />
       </header>
 
       <section aria-labelledby="services-title" className="space-y-3">
@@ -157,7 +169,6 @@ export default async function BusinessBookingPage({
               submitBooking: submitBooking.bind(null, slug),
             }}
             bookAgain={visitor?.bookAgain}
-            contact={{ href: `/${slug}`, label: CONTACT_LABEL }}
             ManageLink={BookingLink}
             managePath={`/${slug}/booking`}
             signedIn={visitor?.signedIn}

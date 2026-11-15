@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed — 2026-10-31. Pending GMS sign-off after the parallel run
+Accepted — 2026-11-15 by the owner (built and in use). Earlier status, kept for history: Proposed — 2026-10-31. Pending GMS sign-off after the parallel run
 (`docs/operations/cap-desk-acceptance.md`). Builds on ADR-0017 (single sign-on),
 ADR-0023 (approval gate) and ADR-0007 (CAP-XML, audit, feeds).
 

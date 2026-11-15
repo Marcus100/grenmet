@@ -5,7 +5,7 @@ import { signOutEverywhereAction } from "../actions";
 import { loadSecurity } from "../security/actions";
 import { SessionsList } from "./sessions-list";
 
-export const metadata: Metadata = { title: "Sessions — Grenmet Auth" };
+export const metadata: Metadata = { title: "Sessions — Barrels" };
 export const dynamic = "force-dynamic";
 
 export default async function SessionsPage() {

@@ -41,6 +41,11 @@ describe("EventFlyer", () => {
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
     expect(container.firstElementChild).toHaveClass("aspect-[4/3]");
   });
+
+  it("shows a neutral panel for an uncategorised event", () => {
+    render(<EventFlyer category={null} startsAt="2026-10-03T20:00:00Z" />);
+    expect(screen.getByText("Uncategorised")).toBeInTheDocument();
+  });
 });
 
 describe("PersonAvatar", () => {

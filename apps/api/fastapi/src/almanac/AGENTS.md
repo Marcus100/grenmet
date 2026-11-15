@@ -24,6 +24,11 @@ provisional, not for navigation** table; every tides response says so.
   (upserts the day rows, replaces the year's phases) and
   `scripts/import_tide_table.py <csv> --source-version vX` (upserts tides).
   The owner's CSV is read from its path and never copied into the repo.
+  The tide import checks the whole file first (`tides.summarize_tides`: counts,
+  AST date range, gaps over 13 hours, AST dates with no event, duplicates,
+  optional `--expect-from`/`--expect-to` coverage) and refuses a failing file
+  before connecting; `--dry-run` stops after the report. 2027 run:
+  `docs/operations/tides-2027.md`.
 - **Parsing (`tides.py`, pure):** required columns checked up front; each bad row
   raises `TideTableError` naming its line. Times must end in ` UTC`. Heights are
   taken from the `..._relative_uhslc_mllw_provisional_crosswalk` column.

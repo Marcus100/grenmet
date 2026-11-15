@@ -1,21 +1,23 @@
 import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
+import { SkipLink } from "@barrelsgd/ui/components/ui/skip-link";
 import type { Metadata } from "next";
-import { Noto_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import { env } from "@/lib/env";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const notoSans = Noto_Sans({
+// Barrels platform typeface, the same as the account app (docs/design/account.md).
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-noto-sans",
+  variable: "--font-inter",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   // Staff-only: keep it out of search engines.
   robots: { index: false, follow: false },
-  title: "Grenmet Auth",
-  description: "Shared sign-in and session management for Grenmet apps.",
+  title: "Barrels sign-in",
+  description: "Sign in to your Barrels account and the apps that use it.",
   icons: {
     icon: [
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
@@ -32,9 +34,10 @@ export default function RootLayout({
 }>) {
   return (
     // next-themes sets the theme class before hydration.
-    <html className={notoSans.variable} lang="en" suppressHydrationWarning>
+    <html className={inter.variable} lang="en" suppressHydrationWarning>
       <body>
         <PublicEnvScript />
+        <SkipLink />
         <Providers
           apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
           apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}

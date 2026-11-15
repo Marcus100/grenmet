@@ -74,8 +74,8 @@ export function PageHead({
   tint,
 }: {
   learning?: PageLearningTopic;
-  eyebrow: string;
-  title: string;
+  eyebrow: React.ReactNode;
+  title: React.ReactNode;
   deck?: React.ReactNode;
   children?: React.ReactNode;
   photo?: PhotoId;

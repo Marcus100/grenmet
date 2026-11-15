@@ -117,6 +117,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         </p>
         {editable ? (
           <ProfileForm
+            cardPaymentsAvailable={data.card_payments_available ?? false}
             orgSlug={orgSlug}
             profile={data.profile}
             suggestedName={org.value.name}
@@ -287,6 +288,22 @@ function ProfileSummary({ profile }: { profile: BookingSettings["profile"] }) {
       profile.requires_confirmation
         ? "Confirmed by hand"
         : "Booked straight away",
+    ],
+    ["Contact phone", profile.contact_phone ?? "Not set"],
+    [
+      "Contact WhatsApp",
+      profile.contact_whatsapp ? `+${profile.contact_whatsapp}` : "Not set",
+    ],
+    [
+      "Contact Instagram",
+      profile.contact_instagram ? `@${profile.contact_instagram}` : "Not set",
+    ],
+    ["Contact email", profile.contact_email ?? "Not set"],
+    [
+      "Payment when booking",
+      profile.payment_at_booking === "full_price"
+        ? "Full price by card"
+        : "Service deposit",
     ],
   ];
   return (

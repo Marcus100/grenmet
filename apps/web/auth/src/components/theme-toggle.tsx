@@ -27,7 +27,7 @@ export function ThemeToggle() {
             aria-label={label}
             aria-pressed={active}
             className={cn(
-              "text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-md transition",
+              "text-muted-foreground hover:text-foreground flex size-11 items-center justify-center rounded-md transition md:size-7",
               active && "bg-muted text-foreground"
             )}
             key={value}

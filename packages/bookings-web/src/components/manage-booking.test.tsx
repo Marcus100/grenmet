@@ -17,7 +17,15 @@ const MOVED_TIME = /6 January 2027, 9:30 am/u;
 const HYBRID = /Hybrid/u;
 const TOKEN = "secret-token-value-123";
 const CALENDAR_HREF = `/booking/${TOKEN}/ics`;
-const CONTACT = { href: "https://instagram.test/dm", label: "Instagram" };
+const NO_CONTACT = {
+  phone: null,
+  whatsapp: null,
+  instagram: null,
+  email: null,
+};
+const INSTAGRAM = /Instagram @teststudio/u;
+const PAYMENT_DUE = /Payment of EC\$225 not received yet/u;
+const DIRECTLY = /please contact the business directly\./u;
 const CUTOFF =
   "Bookings can be cancelled online up to 24 hours before they start. Please contact the studio.";
 
@@ -37,6 +45,7 @@ const booking: BookingPublicDetail = {
   currency: "XCD",
   cancel_cutoff_hours: 24,
   can_cancel: true,
+  contact: { ...NO_CONTACT, instagram: "teststudio" },
 };
 
 function renderManage(detail: BookingPublicDetail = booking) {
@@ -45,7 +54,6 @@ function renderManage(detail: BookingPublicDetail = booking) {
       actions={actions}
       booking={detail}
       calendarHref={CALENDAR_HREF}
-      contact={CONTACT}
       token={TOKEN}
     />
   );
@@ -109,9 +117,13 @@ describe("ManageBooking", () => {
     expect(
       screen.queryByRole("button", { name: "Cancel booking" })
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "message us on Instagram" })
-    ).toHaveAttribute("href", CONTACT.href);
+    // Under the refusal and in the "changes close" notice.
+    const links = screen.getAllByRole("link", { name: INSTAGRAM });
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(link).toHaveAttribute("href", "https://instagram.com/teststudio");
+      expect(link).toHaveAttribute("target", "_blank");
+    }
   });
 
   it("offers no changes inside the cutoff to begin with", () => {
@@ -120,6 +132,13 @@ describe("ManageBooking", () => {
       screen.queryByRole("button", { name: "Change time" })
     ).not.toBeInTheDocument();
     expect(screen.getByText(CHANGES_CLOSE)).toBeVisible();
+    expect(screen.getByRole("link", { name: INSTAGRAM })).toBeVisible();
+  });
+
+  it("says to contact the business directly when it set no contact", () => {
+    renderManage({ ...booking, can_cancel: false, contact: NO_CONTACT });
+    expect(screen.getByText(DIRECTLY)).toBeVisible();
+    expect(screen.queryAllByRole("link", { name: INSTAGRAM })).toHaveLength(0);
   });
 
   it("writes a one-hour cutoff in the singular", () => {
@@ -175,6 +194,64 @@ describe("ManageBooking", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Change time" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows no payment block when nothing was due at booking", () => {
+    renderManage();
+    expect(
+      screen.queryByRole("heading", { name: "Payment" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("offers Pay now while a payment is due and remembers the way back", async () => {
+    const user = userEvent.setup();
+    window.history.pushState({}, "", `/salon/booking/${TOKEN}`);
+    renderManage({
+      ...booking,
+      id: "8c7d3f0e-1111-4c53-9e0f-9d8f2b2f6c10",
+      status: "pending_payment",
+      deposit_minor: 22_500,
+      payment: {
+        status: "due",
+        amount_minor: 22_500,
+        paid_minor: 0,
+        refunded_minor: 0,
+        currency: "XCD",
+        checkout_url: "https://checkout.stripe.com/c/pay/cs_test_1",
+      },
+    });
+    expect(screen.getByText(PAYMENT_DUE)).toBeVisible();
+    const pay = screen.getByRole("link", { name: "Pay now" });
+    expect(pay).toHaveAttribute(
+      "href",
+      "https://checkout.stripe.com/c/pay/cs_test_1"
+    );
+    pay.addEventListener("click", (event) => event.preventDefault());
+    await user.click(pay);
+    expect(
+      window.sessionStorage.getItem(
+        "barrels.bookings.return.8c7d3f0e-1111-4c53-9e0f-9d8f2b2f6c10"
+      )
+    ).toBe(`/salon/booking/${TOKEN}`);
+  });
+
+  it("says when the payment was received", () => {
+    renderManage({
+      ...booking,
+      deposit_minor: 22_500,
+      payment: {
+        status: "paid",
+        amount_minor: 22_500,
+        paid_minor: 22_500,
+        refunded_minor: 0,
+        currency: "XCD",
+        checkout_url: null,
+      },
+    });
+    expect(screen.getByText("Paid EC$225. Thank you.")).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: "Pay now" })
     ).not.toBeInTheDocument();
   });
 });

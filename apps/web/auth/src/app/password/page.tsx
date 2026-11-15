@@ -5,7 +5,7 @@ import { describePasswordAge } from "@/lib/profile";
 import { loadSecurity } from "../security/actions";
 import { ChangePasswordForm } from "./change-password-form";
 
-export const metadata: Metadata = { title: "Password — Grenmet Auth" };
+export const metadata: Metadata = { title: "Password — Barrels" };
 export const dynamic = "force-dynamic";
 
 export default async function PasswordPage() {

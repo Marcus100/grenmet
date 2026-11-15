@@ -25,6 +25,7 @@ export const metadata: Metadata = {
   title: "Calendar",
   description:
     "Every upcoming event in Grenada, filtered by date, parish and category.",
+  alternates: { canonical: "/events" },
 };
 
 export default async function CalendarPage({

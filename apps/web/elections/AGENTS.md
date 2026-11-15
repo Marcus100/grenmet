@@ -1,8 +1,8 @@
 # Elections Grenada
 
 Port **3007**. Package: `@barrelsgd/web-elections`. Lane spec:
-`docs/design/elections.md`. Deployment: [Vercel guide](../../../docs/web/elections-deployment.md).
-Elections and the separate Barrels holding page use Vercel; the operational apps retain their existing DigitalOcean release pipelines.
+`docs/design/elections.md`. Deployment: [deployment guide](../../../docs/web/elections-deployment.md).
+Elections is a static export (`output: "export"`, `out/`) for Cloudflare Pages; the separate Barrels holding page and the operational apps keep their own hosting.
 
 ## Product boundary
 
@@ -46,6 +46,10 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
 - Default to Server Components. Use the `--el-*` tokens and `@barrelsgd/ui` primitives.
   Party colours are data only: never chrome, links or brand. Grenada's flag colours appear
   only together as `FlagStripe` (owner decision). DPM is its own orange (`--el-dpm`), not GULP's.
+- **Dates:** the site is static, so nothing rendered on the server may depend on today's date
+  ("today", "tomorrow", "N days", "due in"). Use the client components `ElectionStatus`,
+  `ElectionHeadline` and `ElectionTimeline` (today from `src/lib/browser-today.ts`), each with a
+  date-free fallback that is correct on any day and reads well with JavaScript off.
 - Design at 375px first. Below an `80rem` masthead container width the navigation is the hamburger
   (`mobile-menu.tsx`). Keep it working when adding pages, and add new pages to
   `src/lib/nav.ts`.

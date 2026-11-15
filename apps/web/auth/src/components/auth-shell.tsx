@@ -1,77 +1,74 @@
-import { Logo } from "@barrelsgd/gms/components/logo";
+import { MAIN_CONTENT_ID } from "@barrelsgd/ui/components/ui/skip-link";
 import {
   BARRELS_SUPPORT_EMAIL,
   BARRELS_SUPPORT_HREF,
 } from "@barrelsgd/ui/lib/support";
 import { cn } from "@barrelsgd/ui/lib/utils";
+import Link from "next/link";
 import type { ReactNode } from "react";
-import { AppDirectory, type AppId } from "@/components/app-directory";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 interface AuthShellProps {
   readonly children: ReactNode;
-  readonly greeting: string;
-  /** Account pages pass links; sign-in pages list the apps without them. */
-  readonly hrefs?: Partial<Record<AppId, string>>;
-  readonly requestedApp?: string | null;
-  /** Which side the brand panel sits on. */
-  readonly side?: "left" | "right";
-  readonly subtitle: string;
+  /**
+   * Signed-in account pages pass their app list here. Signed-out pages pass
+   * nothing: a visitor never sees the apps other organisations run.
+   */
+  readonly sidebar?: ReactNode;
   /** Account pages need a wider content column than a single form. */
   readonly wide?: boolean;
 }
 
-export function AuthShell({
-  children,
-  greeting,
-  hrefs,
-  requestedApp,
-  side = "left",
-  subtitle,
-  wide = false,
-}: AuthShellProps) {
+/** The Barrels platform frame for every page in this app (one column, phone first). */
+export function AuthShell({ children, sidebar, wide = false }: AuthShellProps) {
   return (
-    <div
-      className={cn(
-        "flex min-h-dvh",
-        side === "right" && "lg:flex-row-reverse"
-      )}
-    >
-      {/* `dark` scopes the white logo asset and dark tokens to the navy panel. */}
-      <aside
-        className="dark bg-gm-navy hidden lg:flex lg:w-1/3 lg:flex-col lg:justify-between lg:gap-10 lg:p-10 xl:p-12"
-        data-testid="brand-panel"
-      >
-        <Logo className="h-8 w-auto self-start" priority />
-        <div className="space-y-2">
-          <p className="text-gm-text-inverse text-5xl font-light">{greeting}</p>
-          <p className="text-gm-surface-muted text-xl">{subtitle}</p>
-        </div>
-        <AppDirectory hrefs={hrefs} requestedApp={requestedApp} />
-      </aside>
-
-      <main className="bg-background relative flex w-full items-center justify-center px-4 py-16 sm:px-8 lg:w-2/3">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
-        <div
-          className={cn("w-full space-y-8", wide ? "max-w-2xl" : "max-w-md")}
+    <div className="bg-background text-foreground flex min-h-dvh flex-col">
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 pt-4 sm:px-8">
+        <Link
+          className="text-primary inline-flex min-h-11 items-center text-lg font-semibold tracking-tight"
+          href="/"
         >
-          <Logo className="h-8 w-auto lg:hidden" variant="monogram" />
-          {children}
-          <p className="text-muted-foreground text-center text-sm">
-            Need help with your Barrels account? Email Barrels Grenada support
-            at{" "}
-            <a
-              className="text-foreground underline underline-offset-4"
-              href={BARRELS_SUPPORT_HREF}
-            >
-              {BARRELS_SUPPORT_EMAIL}
-            </a>
-            .
-          </p>
-        </div>
-      </main>
+          Barrels
+        </Link>
+        <ThemeToggle />
+      </header>
+
+      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-12 px-4 pb-12 sm:px-8">
+        {sidebar ? (
+          <aside
+            className="hidden w-60 shrink-0 pt-8 lg:block"
+            data-testid="app-panel"
+          >
+            {sidebar}
+          </aside>
+        ) : null}
+
+        <main
+          className="flex min-w-0 flex-1 flex-col justify-center py-8 focus:outline-none"
+          id={MAIN_CONTENT_ID}
+          tabIndex={-1}
+        >
+          <div
+            className={cn(
+              "mx-auto w-full space-y-8",
+              wide ? "max-w-2xl" : "max-w-md"
+            )}
+          >
+            {children}
+            <p className="text-muted-foreground text-center text-sm">
+              Need help with your Barrels account? Email Barrels Grenada support
+              at{" "}
+              <a
+                className="underline underline-offset-4"
+                href={BARRELS_SUPPORT_HREF}
+              >
+                {BARRELS_SUPPORT_EMAIL}
+              </a>
+              .
+            </p>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

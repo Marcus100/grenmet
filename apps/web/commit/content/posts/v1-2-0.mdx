@@ -1,0 +1,62 @@
+---
+title: Booking from the salon's own site, superusers by invitation only, and a ticket registry for the gate
+summary: Version 1.2.0 sends Babydoll's Book buttons to its new booking page, fills in a signed-in customer's details and offers Book again, lets staff move a booking and tell the customer, makes superuser status something only an invitation can grant, adds the ticket registry behind the gate scanner, and stops one failed CAP job from raising the same error every 15 minutes.
+date: 2026-11-15
+release: 1.2.0
+---
+
+Version 1.2.0 carries 24 pull requests since v1.1.0. It adds two database tables,
+one for superuser invitations and one set for the ticket registry, and removes
+nothing, so the previous version still runs against the new schema. It is a minor
+release because people will notice it: Babydoll's customers book on a new page,
+and a new way of granting superuser status replaces the old one.
+
+### Bookings
+
+- **The salon's Book buttons open its own booking page:** every Book button on the
+  Babydoll site, and the old `/book` address, now open the studio's page on
+  `bookings.barrels.gd` instead of the previous booking service. The owner booked
+  through it on production first.
+- **Signed-in customers type less:** a signed-in customer's name, email and phone
+  are filled in, and a past customer is offered Book again.
+- **An account after booking, if wanted:** a guest who books is invited to create
+  a free account afterwards. Booking never waits on it.
+- **Staff can move a booking:** staff change a booking's time in the studio and the
+  customer is told. When customers move their own booking, each move sends its own
+  notice.
+- **Nothing waits unseen:** a booking still waiting for staff to confirm it sends a
+  reminder.
+- **Fewer dead ends:** `/studio/<business>` opens the agenda, and a manage link that no
+  longer works explains why instead of showing a blank page.
+- **Small accessibility fixes** on the booking page and the Babydoll site: keyboard
+  shortcuts on tabs and the phone menu, new-tab hints, and page landmarks for
+  screen readers.
+
+### Accounts and superusers
+
+- **Four ways in, one account:** a decision record sets out how each kind of person
+  joins. Customers sign up with an email code and verify anything else later.
+  Business members are invited. Client staff join through HR onboarding. Barrels
+  superusers are invited only.
+- **Superuser by invitation only:** a superuser who has passed two-step sign-in
+  invites another by email. The invited person accepts, sets up an authenticator
+  and saves recovery codes in one visit. The general account routes can no longer
+  grant superuser status, removing it needs a two-step superuser session, every
+  change is audited, and the last superuser cannot be removed.
+- **Recovery codes without a password:** accounts that sign in with an emailed code
+  can now create recovery codes too.
+- **Safer clean-up:** removing someone from an organisation now removes every role
+  that came with it, however many there are.
+
+### Tickets
+
+- **A ticket registry for the gate:** the API now holds each event's tickets and
+  pairs gate phones with a secret that is stored only as a hash. A paired phone can
+  check a ticket and admit it once. The scanner screens that use it come in the
+  next release.
+
+### Reliability
+
+- **One failure, one alert:** a CAP alert with nothing to draw no longer fails its
+  social card; it is skipped. A delivery job that fails for good raises its error
+  once instead of every 15 minutes for a week.

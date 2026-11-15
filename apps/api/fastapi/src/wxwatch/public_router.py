@@ -30,11 +30,13 @@ router = APIRouter(prefix="/wxwatch/public", tags=["wxwatch"])
 SOURCE = "goes19"
 ATTRIBUTION = "NOAA/NESDIS GOES-19. Public domain; not a GMS product."
 SOURCE_LABEL = "NOAA/NESDIS GOES-19"
-# Cloudflare can keep serving these when the origin is down.
+# Cloudflare keeps these for about a minute and can keep serving them when the
+# origin is down (owner decision 2026-11-15, docs/operations/cloudflare-storm-cache.md).
 LATEST_CACHE = (
-    "public, max-age=60, s-maxage=120, stale-while-revalidate=600, stale-if-error=86400"
+    "public, max-age=60, s-maxage=60, stale-while-revalidate=60, stale-if-error=86400"
 )
-IMAGE_CACHE = "public, max-age=3600, s-maxage=86400, stale-if-error=86400"
+# An image id never changes its bytes, so browsers may keep it for an hour.
+IMAGE_CACHE = "public, max-age=3600, s-maxage=60, stale-if-error=86400"
 MAX_PRODUCTS = 12
 _PREFIX = re.compile(r"^\d+_")
 _SAFE_PATH = re.compile(
@@ -157,7 +159,5 @@ async def image(image_id: int, session: ImageSession) -> Response:
         )
     except storage.StorageNotConfiguredError:
         raise ObjectStorageNotConfiguredError() from None
-    # The signed link lives 60 s, so the redirect itself is cached only briefly.
-    return RedirectResponse(
-        url, status_code=307, headers={"Cache-Control": "public, max-age=30"}
-    )
+    # The signed link lives 60 s, so the redirect itself is never cached.
+    return RedirectResponse(url, status_code=307, headers={"Cache-Control": "no-store"})

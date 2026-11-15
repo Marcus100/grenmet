@@ -15,7 +15,7 @@ This IS the auth app — it does not delegate to itself. It integrates directly 
 
 ```text
 src/app/
-  page.tsx                        ← sign-in form
+  page.tsx                        ← sign-in: emailed code first; `?method=password` (or a reauth step) shows the password form
   signup/page.tsx
   forgot-password/page.tsx
   reset-password/page.tsx
@@ -42,17 +42,18 @@ src/app/
 ## Passwordless sign-up and sign-in
 
 - `/signup` and the "Continue with email" form share `EmailCodeForm`: one email, then the 6-digit code. The code creates the account on first use, verifies the email and signs the person in, then returns to `returnTo`. There is no password at sign-up and no confirm field anywhere in sign-up, activation or verify-email.
-- Password sign-in stays at `/` ("Sign in with a password instead"). Existing password accounts are unchanged.
+- Sign-in leads with the emailed code at `/` ("Email me a code"), with "Use password instead" right below it. The password form is `/?method=password`, which links back with "Email me a code instead". The code step offers "Send a new code" (after `EMAIL_CODE_RESEND_SECONDS`, 60 s, mirroring the API's per-mailbox cooldown in `lockout.py`; the API's reply carries no retry time) and "Use a different email". Existing password accounts are unchanged.
 - The optional name is asked on the account page after sign-in (`NamePrompt`, `saveNameAction`), never at sign-up. The unverified-email banner (`VerifyBanner`) is non-blocking.
 - Security shows a Password row; "Add a password" opens `/verify-email`, which sends the password-setup link (`/auth/password/setup`).
 - Verification: a code sign-in confirms the email, so passwordless sign-in IS the verification. Password accounts can still send a confirmation link.
 
 Redis (production requirement): the emailed-code send cap and login lockout count in Redis (`REDIS_URL`). Unset, both fail open and nothing is limited. Confirm production sets it before relying on these limits.
 
-Not built, Ask-first (see issues): Turnstile on the code start step (#959); passkeys (WebAuthn) after launch (#960, needs owner approval of a Python WebAuthn dependency, for example `py_webauthn`; no passkey UI until shipped).
+Turnstile on the code start step (#959): `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY`, off when empty (docs/env.md). Not built: passkeys (WebAuthn) after launch (#960, needs owner approval of a Python WebAuthn dependency, for example `py_webauthn`; no passkey UI until shipped).
 
 ## Key conventions
 
+- Look: the Barrels platform (decided 2026-11-15). Shared Barrels tokens from the generated block in `globals.css` (kept in step by `pnpm design-system:sync`), Inter, navy `primary` for the one main action. No `--gm-*` tokens. Signed-out pages never list other organisations' apps: `AuthShell` takes a `sidebar` only on signed-in account pages. Fields are 16px on phones and links keep a 44px tap target.
 - A page-level form that submits only through `onSubmit` (`SignUpForm`, `change-password-form`) disables its submit until `useHydrated()` (`src/lib/use-hydrated.ts`) is true; before hydration a native submit would be a GET that puts passwords and personal data in the URL. Keep typed values after a refusal (rules: `docs/agents/extended-rules.md`, Form patterns).
 - `AUTH_ALLOWED_RETURN_HOSTS` controls which hosts are valid redirect targets after sign-in. Never redirect to an unvalidated host — always go through `getSafeLocalReturnTo()`.
 - `buildSharedSignInUrl()` from `@barrelsgd/auth/server` is what other apps use to redirect here. Do not construct the URL manually.

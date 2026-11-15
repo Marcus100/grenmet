@@ -31,6 +31,7 @@ export async function generateMetadata({
   return {
     title: SECTION_LABELS[section],
     description: SECTION_DESCRIPTIONS[section],
+    alternates: { canonical: `/${section}` },
   };
 }
 

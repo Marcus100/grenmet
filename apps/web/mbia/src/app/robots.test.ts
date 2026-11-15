@@ -7,13 +7,16 @@ vi.mock("@/lib/env", () => ({
 import robots from "./robots";
 
 describe("robots", () => {
-  it("allows all crawlers and links the sitemap", () => {
+  it("allows the public airport pages and links the sitemap", () => {
     const result = robots();
-    expect(result.rules).toEqual({ userAgent: "*", allow: "/" });
+    expect(result.rules).toMatchObject({ userAgent: "*", allow: "/" });
     expect(result.sitemap).toBe("https://mbia.example.gd/sitemap.xml");
   });
 
-  it("never disallows anything", () => {
-    expect(JSON.stringify(robots())).not.toContain("disallow");
+  it("disallows the sign-in callbacks, the API and the runtime config", () => {
+    const disallow = (robots().rules as { disallow: string[] }).disallow;
+    expect(disallow).toEqual(
+      expect.arrayContaining(["/api/", "/auth/", "/runtime-env.js"])
+    );
   });
 });

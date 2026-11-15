@@ -7,7 +7,7 @@ export default async function Page({
 }) {
   const params = await searchParams;
   return (
-    <AuthShell greeting="Hello again" subtitle="Sign in to continue.">
+    <AuthShell>
       <AuthHeading title="Complete Google sign-in" />
       <GoogleConfirm requiresTotp={params.mfa === "1"} />
     </AuthShell>

@@ -52,6 +52,7 @@ from src.models import ApiError, Message
 from src.openapi_responses import AUTHENTICATED, RateLimitedBody
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 from src.rate_limit import limiter, mail_limit_address
+from src.turnstile import auth_turnstile_policy, require_turnstile
 
 router = APIRouter(prefix="/auth/users", tags=["users"])
 
@@ -260,14 +261,21 @@ async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
         "Retired (#958). This never creates a password account. It answers as the "
         "emailed-code start does (the same reply for every address) and sends a "
         "sign-in code, which creates the account on first use. Use "
-        "/auth/email-code/start and /auth/email-code/verify."
+        "/auth/email-code/start and /auth/email-code/verify. It cannot carry a "
+        "Turnstile token, so while AUTH_TURNSTILE_SECRET_KEY is set it answers "
+        '400 "Verification failed" and sends nothing.'
     ),
-    responses={429: {"model": RateLimitedBody, "description": "Rate limit exceeded"}},
+    responses={
+        400: {"model": ApiError, "description": "Turnstile verification failed"},
+        429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
+    },
 )
 @limiter.limit("5/minute")
 async def register_user(
     request: Request, session: SessionDep, user_in: UserRegister
 ) -> Any:
+    # No token field: otherwise this would bypass the code start's bot check.
+    await require_turnstile(request, None, auth_turnstile_policy())
     # The submitted password, names and username are discarded on purpose.
     return await app_service.account_email_code_start(
         session=session,
@@ -310,7 +318,7 @@ async def read_user_by_id(
     "/{user_id}",
     response_model=UserPublic,
     summary="Update user by ID",
-    description="Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409).",
+    description="Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409). Deactivating the last active superuser is refused (409) too.",
     responses={
         status.HTTP_200_OK: {"description": "User updated"},
         status.HTTP_403_FORBIDDEN: {
@@ -320,7 +328,7 @@ async def read_user_by_id(
         status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "User not found"},
         status.HTTP_409_CONFLICT: {
             "model": ApiError,
-            "description": "Email already exists, or removing superuser status would leave no active superuser",
+            "description": "Email already exists, or removing superuser status or deactivating the account would leave no active superuser",
         },
     },
 )
@@ -372,7 +380,7 @@ async def update_user(
 @router.delete(
     "/{user_id}",
     summary="Delete user by ID",
-    description="Delete a global account by ID (superuser only).",
+    description="Delete a global account by ID (superuser only). The account is anonymised, not removed. The last active superuser cannot be deleted (409).",
     responses={
         status.HTTP_200_OK: {"description": "User deleted"},
         status.HTTP_403_FORBIDDEN: {
@@ -380,6 +388,10 @@ async def update_user(
             "description": "Insufficient privileges or self-deletion",
         },
         status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "User not found"},
+        status.HTTP_409_CONFLICT: {
+            "model": ApiError,
+            "description": "Would leave no active superuser",
+        },
     },
 )
 async def delete_user(

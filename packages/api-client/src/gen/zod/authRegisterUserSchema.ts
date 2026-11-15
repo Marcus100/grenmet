@@ -12,6 +12,10 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const authRegisterUserStatus200Schema = messageSchema;
 
+export const authRegisterUserStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
+
 export const authRegisterUserStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -25,6 +29,7 @@ export const authRegisterUserStatus429Schema = z.union([
 export const authRegisterUserResponseSchema = authRegisterUserStatus200Schema;
 
 export const authRegisterUserErrorSchema = z.union([
+  authRegisterUserStatus400Schema,
   authRegisterUserStatus422Schema,
   authRegisterUserStatus429Schema,
 ]);

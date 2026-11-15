@@ -28,7 +28,7 @@ export type ManagedListing = {
   slug: string;
   title: string;
   summary: string;
-  category: GroupDetailPropertiesCategoryEnum;
+  category: GroupDetailPropertiesCategoryEnum | null;
   parish: GroupDetailPropertiesParishEnum;
   venue: string;
   /**

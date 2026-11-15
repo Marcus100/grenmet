@@ -89,6 +89,21 @@ def _live(now: datetime) -> list[ColumnElement[bool]]:
     ]
 
 
+def _granter_is_active(organisation_id: str) -> ColumnElement[bool]:
+    """A grant gives keys only while its granter is an active member of the organisation
+    (#1496). Rows left by a deleted or removed granter are ignored even if still live.
+    A grant with no granter (``granted_by`` NULL) is not affected."""
+    return or_(
+        MembershipGrant.granted_by.is_(None),
+        MembershipGrant.granted_by.in_(
+            select(Membership.user_id).where(
+                Membership.organisation_id == organisation_id,
+                Membership.status == MembershipStatus.ACTIVE.value,
+            )
+        ),
+    )
+
+
 async def effective_keys(
     session: AsyncSession, *, membership: Membership
 ) -> frozenset[str]:
@@ -107,6 +122,7 @@ async def effective_keys(
             MembershipGrant.membership_id == membership.id,
             MembershipGrant.organisation_id == membership.organisation_id,
             *_live(utc_now()),
+            _granter_is_active(membership.organisation_id),
         )
     )
     for role_key in role_keys.all():
@@ -621,6 +637,43 @@ async def end_issued_transitively(
                 seen_members.add(grant.membership_id)
                 frontier.append(grant.membership_id)
     await session.flush()
+    return ended
+
+
+async def end_grants_of_deleted_account(
+    session: AsyncSession, *, user_id: uuid.UUID, actor_id: uuid.UUID
+) -> int:
+    """End every live grant an anonymised account issued, in every organisation, and
+    the grants passed on from them (#1496). Each end is audited as ``revoke_cascade``
+    with trigger ``grantor_deleted``. Returns the grants ended.
+
+    Precondition: the account's memberships are already removed (the caller ends them
+    first). Owners and admins are never traversed, so an account still holding an
+    active owner or admin membership would keep its grants. Locks each organisation's
+    roster in id order and flushes; the caller owns the transaction."""
+    org_rows = await session.scalars(
+        select(MembershipGrant.organisation_id)
+        .where(MembershipGrant.granted_by == user_id, *_live(utc_now()))
+        .distinct()
+    )
+    ended = 0
+    for organisation_id in sorted(org_rows.all()):
+        await lock_roster(session, organisation_id)
+        own_rows = await session.scalars(
+            select(Membership.id).where(
+                Membership.organisation_id == organisation_id,
+                Membership.user_id == user_id,
+            )
+        )
+        for membership_id in own_rows.all():
+            ended += await end_issued_transitively(
+                session,
+                organisation_id=organisation_id,
+                seed_membership_ids=[membership_id],
+                actor_id=actor_id,
+                trigger="grantor_deleted",
+                root=membership_id,
+            )
     return ended
 
 

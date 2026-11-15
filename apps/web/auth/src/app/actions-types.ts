@@ -36,6 +36,8 @@ export const initialResetPasswordState: ResetPasswordState = {
 export interface EmailCodeState {
   email: string;
   error: string | null;
+  // Set when a code was just sent: seconds before a new one may be asked for.
+  resendAfterSeconds?: number;
   // "email": ask for an address; "code": the 6-digit code was sent;
   // "mfa": the account also needs its authenticator code.
   step: "email" | "code" | "mfa";

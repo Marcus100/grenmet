@@ -8,15 +8,60 @@ import { authApiFetch } from "@barrelsgd/auth/server";
 import { redirect } from "next/navigation";
 import type { EmailCodeState } from "@/app/actions-types";
 import { getAuthConfig } from "@/lib/auth-config";
+import { EMAIL_CODE_RESEND_SECONDS } from "@/lib/email-code";
 import { reportError } from "@/lib/report-error";
 import { getSafeReturnTo } from "@/lib/return-to";
 import { isAuthApiError, writeSessionCookie } from "@/lib/session";
 
 const MFA_REQUIRED = "Two-factor authentication code required or invalid";
+// The API's generic Turnstile refusal (src/turnstile.py), the same for every address.
+const VERIFICATION_FAILED = "Verification failed";
 
 function read(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
+}
+
+/** Ask the API to email a code; the Turnstile token goes along when the page has one. */
+async function sendCode(
+  email: string,
+  turnstileToken: string,
+  previous: EmailCodeState
+): Promise<EmailCodeState> {
+  try {
+    await authApiFetch(
+      getAuthConfig(),
+      "/auth/email-code/start",
+      messageSchema,
+      {
+        body: turnstileToken
+          ? { email, turnstile_token: turnstileToken }
+          : { email },
+        method: "POST",
+      }
+    );
+  } catch (error) {
+    if (isAuthApiError(error) && error.detail === VERIFICATION_FAILED) {
+      return {
+        email,
+        error:
+          "We couldn't confirm this request came from a person. Try again.",
+        step: previous.step,
+      };
+    }
+    reportError(error, "auth-email-code");
+    return {
+      email,
+      error: "We couldn't send a code. Try again in a moment.",
+      step: "email",
+    };
+  }
+  return {
+    email,
+    error: null,
+    resendAfterSeconds: EMAIL_CODE_RESEND_SECONDS,
+    step: "code",
+  };
 }
 
 /** Sign in to the Barrels account with an emailed code (ADR-0017). */
@@ -28,25 +73,12 @@ export async function emailCodeAction(
   const code = read(formData, "code");
   const totpCode = read(formData, "totp_code");
   const returnTo = getSafeReturnTo(read(formData, "returnTo"));
-  if (!email) return { ...previous, error: "Enter your email address." };
+  if (!email) {
+    return { email, error: "Enter your email address.", step: "email" };
+  }
 
   if (!code) {
-    try {
-      await authApiFetch(
-        getAuthConfig(),
-        "/auth/email-code/start",
-        messageSchema,
-        { body: { email }, method: "POST" }
-      );
-    } catch (error) {
-      reportError(error, "auth-email-code");
-      return {
-        email,
-        error: "We couldn't send a code. Try again in a moment.",
-        step: "email",
-      };
-    }
-    return { email, error: null, step: "code" };
+    return await sendCode(email, read(formData, "turnstile_token"), previous);
   }
 
   try {

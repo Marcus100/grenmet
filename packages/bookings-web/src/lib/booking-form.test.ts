@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fingerprint, validateBooking } from "./booking-form";
+import { fingerprint, stillWrong, validateBooking } from "./booking-form";
 
 const valid = {
   serviceId: "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10",
@@ -41,6 +41,49 @@ describe("validateBooking", () => {
     expect(errors.email).toBeDefined();
     expect(errors.phone).toBeDefined();
     expect(errors.notes).toBeDefined();
+  });
+});
+
+describe("stillWrong", () => {
+  const submitted = validateBooking({
+    ...valid,
+    serviceId: null,
+    startsAt: null,
+    name: "",
+    email: "ada@",
+  });
+
+  it("drops a message once its field is valid", () => {
+    const kept = stillWrong(submitted, {
+      ...valid,
+      serviceId: null,
+      startsAt: null,
+      name: "Ada",
+      email: "ada@example.com",
+    });
+    expect(kept).not.toHaveProperty("name");
+    expect(kept).not.toHaveProperty("email");
+    expect(Object.keys(kept).sort()).toEqual(["service", "time"]);
+  });
+
+  it("keeps a message for a field still wrong, worded for what it holds now", () => {
+    const kept = stillWrong(submitted, {
+      ...valid,
+      serviceId: null,
+      startsAt: null,
+      name: "",
+      email: "ada@exa",
+    });
+    expect(kept.email).toBe(submitted.email);
+    expect(kept.name).toBe("Enter your name.");
+  });
+
+  it("never adds a message for a field that was not in the submitted errors", () => {
+    const kept = stillWrong(
+      { name: "Enter your name." },
+      { ...valid, name: "", notes: "x".repeat(1001) }
+    );
+    expect(Object.keys(kept)).toEqual(["name"]);
   });
 });
 

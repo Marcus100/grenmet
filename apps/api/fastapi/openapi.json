@@ -1008,7 +1008,7 @@
           "users"
         ],
         "summary": "Password sign-up (retired)",
-        "description": "Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify.",
+        "description": "Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify. It cannot carry a Turnstile token, so while AUTH_TURNSTILE_SECRET_KEY is set it answers 400 \"Verification failed\" and sends nothing.",
         "operationId": "authRegisterUser",
         "requestBody": {
           "content": {
@@ -1037,6 +1037,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Turnstile verification failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -1125,7 +1135,7 @@
           "users"
         ],
         "summary": "Update user by ID",
-        "description": "Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409).",
+        "description": "Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409). Deactivating the last active superuser is refused (409) too.",
         "operationId": "authUpdateUser",
         "security": [
           {
@@ -1196,7 +1206,7 @@
             }
           },
           "409": {
-            "description": "Email already exists, or removing superuser status would leave no active superuser",
+            "description": "Email already exists, or removing superuser status or deactivating the account would leave no active superuser",
             "content": {
               "application/json": {
                 "schema": {
@@ -1212,7 +1222,7 @@
           "users"
         ],
         "summary": "Delete user by ID",
-        "description": "Delete a global account by ID (superuser only).",
+        "description": "Delete a global account by ID (superuser only). The account is anonymised, not removed. The last active superuser cannot be deleted (409).",
         "operationId": "authDeleteUser",
         "security": [
           {
@@ -1264,6 +1274,16 @@
           },
           "404": {
             "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Would leave no active superuser",
             "content": {
               "application/json": {
                 "schema": {
@@ -63595,13 +63615,13 @@
           "modern-auth"
         ],
         "summary": "Send a Barrels account sign-in code",
-        "description": "Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing.",
+        "description": "Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing. While the API has AUTH_TURNSTILE_SECRET_KEY set, a missing or rejected Cloudflare Turnstile token (turnstile_token) is 400 \"Verification failed\" for every address, before any lookup.",
         "operationId": "authAccountEmailCodeStart",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AppEmailCodeStart"
+                "$ref": "#/components/schemas/AccountEmailCodeStart"
               }
             }
           },
@@ -63624,6 +63644,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Turnstile verification failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -65996,7 +66026,7 @@
           "staff-setup"
         ],
         "summary": "Invalidate staff credential and revoke access",
-        "description": "Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
+        "description": "Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation. Offboarding a superuser needs a superuser whose session passed two-step sign-in (403 otherwise). The last active superuser cannot be offboarded (409, generic text).",
         "operationId": "hrOffboardStaff",
         "security": [
           {
@@ -66057,7 +66087,7 @@
             }
           },
           "409": {
-            "description": "Setup conflict",
+            "description": "Setup conflict, or the account cannot be offboarded in its current state",
             "content": {
               "application/json": {
                 "schema": {
@@ -69582,6 +69612,57 @@
           "can_leave"
         ],
         "title": "AccountAppPublic"
+      },
+      "AccountEmailCodeStart": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "AccountEmailCodeStart",
+        "description": "The account's code start: also carries the Turnstile token (#959)."
       },
       "AccountSecurityPublic": {
         "properties": {
@@ -73520,6 +73601,67 @@
         ],
         "title": "BookingAvailability"
       },
+      "BookingBusinessContact": {
+        "properties": {
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone",
+            "description": "E.164, for a tel: link."
+          },
+          "whatsapp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Whatsapp",
+            "description": "Digits with the country code, for https://wa.me/<digits>."
+          },
+          "instagram": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instagram",
+            "description": "Handle without @, for https://instagram.com/<handle>."
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email",
+            "description": "For a mailto: link."
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone",
+          "whatsapp",
+          "instagram",
+          "email"
+        ],
+        "title": "BookingBusinessContact",
+        "description": "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
+      },
       "BookingEmailCodeConfirm": {
         "properties": {
           "service_id": {
@@ -73936,6 +74078,72 @@
         "title": "BookingOrder",
         "description": "Ids of one kind in the order the business wants them listed."
       },
+      "BookingPaymentMode": {
+        "type": "string",
+        "enum": [
+          "deposit",
+          "full_price"
+        ],
+        "title": "BookingPaymentMode",
+        "description": "What an online booking pays when it is made (owner decision 15 Nov 2026).\n\n``deposit``: each service's own deposit (0 = nothing), the behaviour before\nthis setting existed. ``full_price``: the service price, but only while the\ncard rail (Stripe, test mode) is available; otherwise it acts as ``deposit``."
+      },
+      "BookingPaymentStatus": {
+        "type": "string",
+        "enum": [
+          "due",
+          "paid",
+          "refunded",
+          "unpaid"
+        ],
+        "title": "BookingPaymentStatus"
+      },
+      "BookingPaymentSummary": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/BookingPaymentStatus",
+            "description": "`due`: the slot is held until the payment arrives. `paid`: received (`refunded_minor` may show a partial refund). `refunded`: handed back in full. `unpaid`: the booking closed without a payment."
+          },
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor",
+            "description": "What was due at booking."
+          },
+          "paid_minor": {
+            "type": "integer",
+            "title": "Paid Minor"
+          },
+          "refunded_minor": {
+            "type": "integer",
+            "title": "Refunded Minor"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "checkout_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkout Url",
+            "description": "Hosted page to finish paying, only while `status` is `due` and the payment is online."
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "amount_minor",
+          "paid_minor",
+          "refunded_minor",
+          "currency"
+        ],
+        "title": "BookingPaymentSummary",
+        "description": "What the customer paid when booking, as they see it."
+      },
       "BookingProfilePublic": {
         "properties": {
           "public_slug": {
@@ -74024,6 +74232,64 @@
               }
             ],
             "title": "Manage Url Template"
+          },
+          "contact_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone",
+            "description": "Phone number customers can call, with its country code. Stored in E.164 form (+14734401234); blank clears it."
+          },
+          "contact_whatsapp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Whatsapp",
+            "description": "WhatsApp number with its country code. Stored as digits only (14734401234) for wa.me links; blank clears it."
+          },
+          "contact_instagram": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Instagram",
+            "description": "Instagram handle, with or without @, or an instagram.com profile address. Stored as the handle without @; blank clears it."
+          },
+          "contact_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Email",
+            "description": "Email address customers can write to; blank clears it."
+          },
+          "payment_at_booking": {
+            "$ref": "#/components/schemas/BookingPaymentMode",
+            "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
+            "default": "deposit"
           },
           "id": {
             "type": "string",
@@ -74144,6 +74410,64 @@
               }
             ],
             "title": "Manage Url Template"
+          },
+          "contact_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone",
+            "description": "Phone number customers can call, with its country code. Stored in E.164 form (+14734401234); blank clears it."
+          },
+          "contact_whatsapp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Whatsapp",
+            "description": "WhatsApp number with its country code. Stored as digits only (14734401234) for wa.me links; blank clears it."
+          },
+          "contact_instagram": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Instagram",
+            "description": "Instagram handle, with or without @, or an instagram.com profile address. Stored as the handle without @; blank clears it."
+          },
+          "contact_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Email",
+            "description": "Email address customers can write to; blank clears it."
+          },
+          "payment_at_booking": {
+            "$ref": "#/components/schemas/BookingPaymentMode",
+            "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
+            "default": "deposit"
           }
         },
         "type": "object",
@@ -74582,6 +74906,21 @@
             "type": "boolean",
             "title": "Can Cancel",
             "description": "True while the booking is active and before the cancellation cutoff."
+          },
+          "contact": {
+            "$ref": "#/components/schemas/BookingBusinessContact",
+            "description": "How to reach the business when the booking cannot be changed online."
+          },
+          "payment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingPaymentSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null when nothing was due at booking (pay at the business)."
           }
         },
         "type": "object",
@@ -74600,7 +74939,8 @@
           "deposit_minor",
           "currency",
           "cancel_cutoff_hours",
-          "can_cancel"
+          "can_cancel",
+          "contact"
         ],
         "title": "BookingPublicDetail",
         "description": "A booking as its customer sees it."
@@ -74658,7 +74998,7 @@
           "payment_required": {
             "type": "boolean",
             "title": "Payment Required",
-            "description": "True when the booking holds the slot but waits for a deposit (`status` is `pending_payment`). It is cancelled and the slot released if the deposit is not paid in time.",
+            "description": "True when the booking holds the slot but waits for a payment (a deposit or the full price; `status` is `pending_payment`). It is cancelled and the slot released if it is not paid in time.",
             "default": false
           },
           "checkout_url": {
@@ -74671,7 +75011,7 @@
               }
             ],
             "title": "Checkout Url",
-            "description": "Hosted page where the customer pays the deposit. Null when no online payment is available and the business records the payment itself."
+            "description": "Hosted page where the customer pays. Null when no online payment is available and the business records the payment itself."
           }
         },
         "type": "object",
@@ -74742,6 +75082,12 @@
           "deposit_minor": {
             "type": "integer",
             "title": "Deposit Minor"
+          },
+          "due_at_booking_minor": {
+            "type": "integer",
+            "title": "Due At Booking Minor",
+            "description": "What an online booking of this service pays when it is made: the deposit, the full price (business setting, card payments on), or 0. More than 0 means the emailed-code step comes first.",
+            "default": 0
           }
         },
         "type": "object",
@@ -75083,6 +75429,12 @@
             "type": "boolean",
             "title": "Deposits Available",
             "description": "False when the organisation lacks the `payments` entitlement: a service deposit is stored but not collected."
+          },
+          "card_payments_available": {
+            "type": "boolean",
+            "title": "Card Payments Available",
+            "description": "True when the platform takes card payments online (Stripe, test mode only). Without it `payment_at_booking: full_price` acts as `deposit`.",
+            "default": false
           }
         },
         "type": "object",
@@ -75166,6 +75518,9 @@
             "type": "integer",
             "title": "Cancel Cutoff Hours"
           },
+          "contact": {
+            "$ref": "#/components/schemas/BookingBusinessContact"
+          },
           "services": {
             "items": {
               "$ref": "#/components/schemas/BookingPublicService"
@@ -75188,6 +75543,7 @@
           "timezone",
           "currency",
           "cancel_cutoff_hours",
+          "contact",
           "services",
           "providers"
         ],
@@ -89308,7 +89664,15 @@
             "title": "Summary"
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
@@ -89525,7 +89889,15 @@
             "title": "Summary"
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
@@ -89755,7 +90127,15 @@
             "default": ""
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
@@ -89916,7 +90296,6 @@
         "required": [
           "title",
           "summary",
-          "category",
           "parish",
           "venue",
           "starts_at",
@@ -90073,7 +90452,15 @@
             "title": "Summary"
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"

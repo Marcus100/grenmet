@@ -43,7 +43,7 @@ export default async function AcceptInvitationPage({
   }
 
   return (
-    <AuthShell greeting="Barrels account" subtitle="One account, every app.">
+    <AuthShell>
       <AuthHeading title="Join an organisation">
         {token
           ? "Accept the invitation to join the organisation you were invited to."
@@ -58,14 +58,14 @@ export default async function AcceptInvitationPage({
         <form action={acceptInvitation} className="space-y-4">
           <input name="token" type="hidden" value={token} />
           <button
-            className="rounded-lg bg-(--auth-accent) px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+            className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium transition hover:opacity-90"
             type="submit"
           >
             Accept invitation
           </button>
         </form>
       ) : null}
-      <a className="text-foreground text-sm underline" href="/organisations">
+      <a className="text-sm underline" href="/organisations">
         Your organisations
       </a>
     </AuthShell>

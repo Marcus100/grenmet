@@ -25,13 +25,13 @@ export type BookingPublicReceipt = {
    */
   manage_url: string | null;
   /**
-   * @description True when the booking holds the slot but waits for a deposit (`status` is `pending_payment`). It is cancelled and the slot released if the deposit is not paid in time.
+   * @description True when the booking holds the slot but waits for a payment (a deposit or the full price; `status` is `pending_payment`). It is cancelled and the slot released if it is not paid in time.
    * @default false
    * @type boolean | undefined
    */
   payment_required?: boolean;
   /**
-   * @description Hosted page where the customer pays the deposit. Null when no online payment is available and the business records the payment itself.
+   * @description Hosted page where the customer pays. Null when no online payment is available and the business records the payment itself.
    */
   checkout_url?: string | null;
 };

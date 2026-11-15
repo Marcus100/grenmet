@@ -5,7 +5,7 @@ import { ResetPasswordForm } from "@/components/ResetPasswordForm";
 import { readQueryParam } from "@/lib/return-to";
 
 export const metadata: Metadata = {
-  title: "Reset password — Grenmet Auth",
+  title: "Reset password — Barrels",
 };
 
 interface PageProps {
@@ -17,7 +17,7 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
   const token = readQueryParam(params.token);
 
   return (
-    <AuthShell greeting="Almost there" subtitle="Choose a new password.">
+    <AuthShell>
       <AuthHeading title="Set a new password" />
 
       {token ? (
@@ -32,7 +32,7 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
             used already.
           </div>
           <Link
-            className="block text-center text-sm font-medium text-(--auth-accent) underline-offset-4 hover:underline"
+            className="block text-center text-sm font-medium underline-offset-4 hover:underline"
             href="/forgot-password"
           >
             Request a new link

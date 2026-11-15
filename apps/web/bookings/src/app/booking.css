@@ -161,6 +161,10 @@
   position: relative;
   cursor: pointer;
 }
+/* The focus ring is drawn on the label: give it the chip's rounded corners. */
+.chip:has(input:focus-visible) {
+  border-radius: calc(var(--radius) + 4px);
+}
 .chip input {
   position: absolute;
   inset: 0;
@@ -322,6 +326,55 @@
 .book-again-choice[aria-pressed="true"] {
   border-color: var(--primary);
   box-shadow: inset 0 0 0 1px var(--primary);
+}
+/*
+  The business's own contact links ("Questions? Contact us" near the top, and
+  under messages that send people to the business). Each link is a 44px tap
+  target; WhatsApp and Instagram open in a new tab, said in hidden text.
+*/
+.contact-strip {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px);
+}
+.contact-strip-title {
+  font-weight: 600;
+}
+.contact-links,
+.notice .contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.contact-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.contact-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.contact-external {
+  white-space: pre;
+}
+.contact-hint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
 /* The confirmation and the optional account invitation, stacked. */
 .book-done {

@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { env } from "@/lib/env";
 
-export const metadata: Metadata = { title: "About and terms" };
+export const metadata: Metadata = {
+  title: "About and terms",
+  description:
+    "About the Grenada weather alert hub, what the alerts mean and the terms of use.",
+  alternates: { canonical: "/about" },
+};
 
 export default function AboutPage() {
   return (

@@ -58,7 +58,7 @@ export default async function SignedOutPage({ searchParams }: PageProps) {
 
   if (everywhere || !accountSignedIn) {
     return (
-      <AuthShell greeting="Signed out" subtitle="See you soon.">
+      <AuthShell>
         <AuthHeading title="You're signed out of all apps">
           Nothing on this device is signed in to your Barrels account.
         </AuthHeading>
@@ -72,11 +72,7 @@ export default async function SignedOutPage({ searchParams }: PageProps) {
   const name = appName(requested);
   const appHref = getAppHrefs()[findRequestedApp(requested) ?? "admin"];
   return (
-    <AuthShell
-      greeting="Signed out"
-      requestedApp={requested}
-      subtitle="Your other apps are unaffected."
-    >
+    <AuthShell>
       <AuthHeading title={`You signed out of ${name}`}>
         You're still signed in to your Barrels account, so opening {name} again
         signs you straight back in. Sign out of all apps to end every session.

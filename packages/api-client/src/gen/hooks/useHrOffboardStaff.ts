@@ -48,7 +48,7 @@ export function hrOffboardStaffMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
+ * @description Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation. Offboarding a superuser needs a superuser whose session passed two-step sign-in (403 otherwise). The last active superuser cannot be offboarded (409, generic text).
  * @summary Invalidate staff credential and revoke access
  * {@link /api/v1/hr/setup/staff/:user_id/offboard}
  */

@@ -8,14 +8,15 @@
 // so a repeat is harmless (a repeated create adds a second row, which the
 // page shows). Sentry gets the error only, never the form values.
 
-import { ResponseError } from "@barrelsgd/api-client";
+import { type BookingPaymentMode, ResponseError } from "@barrelsgd/api-client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { checkContacts, contactFieldErrors } from "@/lib/business-contact";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import { parseHours, parseMoney } from "@/lib/settings-view";
-import type { ActionState } from "@/lib/studio-action-state";
+import type { ActionState, ProfileState } from "@/lib/studio-action-state";
 import {
   createException,
   createProvider,
@@ -48,6 +49,8 @@ const MANAGE_URL = /^https:\/\/[^\s]+\{token\}[^\s]*$/u;
 /** The API caps money at 100,000,000 minor units (1,000,000.00). */
 const MAX_MINOR = 100_000_000;
 const WHOLE = /^\d+$/u;
+
+const CONTACT_INVALID = "Check the highlighted contact options.";
 
 const NOT_FOUND: StudioFailure = {
   kind: "not_found",
@@ -203,6 +206,13 @@ function saved(orgSlug: string, message: string): ActionState {
   return { status: "success", message };
 }
 
+/** The payment choice; anything but full price is the deposit default. */
+function paymentAtBooking(formData: FormData): BookingPaymentMode {
+  return formData.get("paymentAtBooking") === "full_price"
+    ? "full_price"
+    : "deposit";
+}
+
 /** The minor-unit amount in a money field; empty means 0. */
 function moneyField(text: string): number | null {
   return text.trim() === "" ? 0 : parseMoney(text);
@@ -210,9 +220,9 @@ function moneyField(text: string): number | null {
 
 export async function saveProfileAction(
   orgSlug: string,
-  _previous: ActionState,
+  _previous: ProfileState,
   formData: FormData
-): Promise<ActionState> {
+): Promise<ProfileState> {
   const auth = await authorise(orgSlug);
   if (!auth.ok) {
     return auth.state;
@@ -233,6 +243,21 @@ export async function saveProfileAction(
     return invalid(parsed.error.issues[0]?.message ?? "Check the form.");
   }
   const input = parsed.data;
+  const contacts = checkContacts({
+    contactPhone: field(formData, "contactPhone"),
+    contactWhatsapp: field(formData, "contactWhatsapp"),
+    contactInstagram: field(formData, "contactInstagram"),
+    contactEmail: field(formData, "contactEmail"),
+  });
+  if (!contacts.ok) {
+    return {
+      status: "error",
+      kind: "invalid",
+      message: CONTACT_INVALID,
+      nextStep: "Fix it and press Save again.",
+      fields: contacts.fields,
+    };
+  }
   try {
     await saveProfile(auth.accessToken, auth.organisationId, {
       public_slug: input.publicSlug,
@@ -245,11 +270,20 @@ export async function saveProfileAction(
       horizon_days: input.horizonDays,
       cancel_cutoff_hours: input.cancelCutoffHours,
       requires_confirmation: formData.get("requiresConfirmation") === "on",
+      payment_at_booking: paymentAtBooking(formData),
       notify_email: input.notifyEmail || null,
       manage_url_template: input.manageUrlTemplate || null,
+      ...contacts.body,
     });
   } catch (error) {
-    return failed(orgSlug, error);
+    const state = failed(orgSlug, error);
+    const fields = ResponseError.is(error)
+      ? contactFieldErrors(error.data)
+      : undefined;
+    if (state.status !== "error" || !fields) {
+      return state;
+    }
+    return { ...state, message: CONTACT_INVALID, fields };
   }
   return saved(orgSlug, "Business profile saved.");
 }

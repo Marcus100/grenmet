@@ -3,13 +3,19 @@
  * Do not edit manually.
  */
 
+import type { AccountEmailCodeStart } from "./AccountEmailCodeStart.js";
 import type { ApiError } from "./ApiError.js";
-import type { AppEmailCodeStart } from "./AppEmailCodeStart.js";
 import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthAccountEmailCodeStartStatus200 = Message;
+
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAccountEmailCodeStartStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -19,7 +25,11 @@ export type AuthAccountEmailCodeStartStatus422 = ValidationErrorResponse;
 
 export type AuthAccountEmailCodeStartStatus429 = ApiError | ErrorMessage;
 
-export type AuthAccountEmailCodeStartBody = AppEmailCodeStart;
+/**
+ * @description The account's code start: also carries the Turnstile token (#959).
+ * @type object
+ */
+export type AuthAccountEmailCodeStartBody = AccountEmailCodeStart;
 
 export type AuthAccountEmailCodeStartOptions = {
   body: AuthAccountEmailCodeStartBody;
@@ -30,6 +40,7 @@ export type AuthAccountEmailCodeStartOptions = {
 
 export type AuthAccountEmailCodeStartResponses = {
   "200": AuthAccountEmailCodeStartStatus200;
+  "400": AuthAccountEmailCodeStartStatus400;
   "422": AuthAccountEmailCodeStartStatus422;
   "429": AuthAccountEmailCodeStartStatus429;
 };

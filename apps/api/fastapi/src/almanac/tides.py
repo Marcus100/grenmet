@@ -8,9 +8,10 @@ response.
 """
 
 import csv
-from collections.abc import Iterable
+from collections import Counter
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 
 #: Columns the parser needs. Other columns of the owner's file are ignored.
@@ -25,6 +26,15 @@ EVENT_TYPES = ("HIGH", "LOW")
 HEIGHT_QUANTUM = Decimal("0.0001")
 UTC_SUFFIX = " UTC"
 TIME_FORMAT = "%Y-%m-%d %H:%M"
+#: Grenada local time (AST, UTC-4, no daylight saving). The owner's table is
+#: built per AST date, so coverage and month counts are checked in AST.
+AST = timezone(timedelta(hours=-4), "AST")
+#: Longest normal spacing between consecutive Prickly Bay highs and lows is about
+#: 9.3 hours (2026 table). One skipped event leaves about 12.4 hours, so the
+#: limit sits between the two: a longer gap means events are missing.
+MAX_EVENT_GAP = timedelta(hours=11)
+#: The owner's flag for a weak turn less than 1 cm from its neighbour.
+NEAR_FLAT_QUALITY = "NEAR_FLAT_LT_0_01_M"
 
 
 class TideTableError(ValueError):
@@ -127,3 +137,123 @@ def _parse_height(raw: str | None, line: int) -> Decimal:
     if not height.is_finite():
         raise TideTableError(f"line {line}: height is not a number")
     return height.quantize(HEIGHT_QUANTUM)
+
+
+@dataclass(frozen=True)
+class TideGap:
+    after: datetime
+    before: datetime
+
+    @property
+    def hours(self) -> float:
+        return (self.before - self.after).total_seconds() / 3600
+
+
+@dataclass(frozen=True)
+class TideTableSummary:
+    """What a tide file holds, and whether it is safe to load. Times are naive UTC."""
+
+    count: int
+    highs: int
+    lows: int
+    first: TideRow
+    last: TideRow
+    first_date_ast: date
+    last_date_ast: date
+    per_month_ast: dict[str, int]
+    near_flat: int
+    duplicate_times: list[datetime]
+    out_of_order: int
+    gaps: list[TideGap]
+    missing_dates_ast: list[date]
+    same_type_neighbours: int
+    errors: list[str]
+
+    @property
+    def ok(self) -> bool:
+        return not self.errors
+
+
+def to_ast(value: datetime) -> datetime:
+    """Naive UTC to Grenada local time (AST)."""
+    return value.replace(tzinfo=UTC).astimezone(AST)
+
+
+def summarize_tides(
+    rows: Sequence[TideRow],
+    *,
+    expect_from: date | None = None,
+    expect_to: date | None = None,
+    max_gap: timedelta = MAX_EVENT_GAP,
+) -> TideTableSummary:
+    """Count, date range, gaps and structural problems of a parsed tide table.
+
+    ``expect_from``/``expect_to`` are AST dates the file must cover. Any error
+    (duplicate times, rows out of order, a gap longer than ``max_gap``, an AST
+    date with no event, or missing expected coverage) makes the file unsafe to
+    load. Two highs or two lows in a row are counted but are not an error: the
+    model keeps every mathematical turning point.
+    """
+    if not rows:
+        raise TideTableError("the file has no rows")
+    ordered = sorted(rows, key=lambda row: row.time_utc)
+    times = Counter(row.time_utc for row in rows)
+    duplicates = sorted(time for time, seen in times.items() if seen > 1)
+    out_of_order = sum(
+        1
+        for prev, row in zip(rows, rows[1:], strict=False)
+        if row.time_utc < prev.time_utc
+    )
+    gaps = [
+        TideGap(after=prev.time_utc, before=row.time_utc)
+        for prev, row in zip(ordered, ordered[1:], strict=False)
+        if row.time_utc - prev.time_utc > max_gap
+    ]
+    same_type = sum(
+        1
+        for prev, row in zip(ordered, ordered[1:], strict=False)
+        if row.event_type == prev.event_type
+    )
+    local_dates = {to_ast(row.time_utc).date() for row in ordered}
+    first_date = to_ast(ordered[0].time_utc).date()
+    last_date = to_ast(ordered[-1].time_utc).date()
+    missing = [
+        first_date + timedelta(days=offset)
+        for offset in range((last_date - first_date).days + 1)
+        if first_date + timedelta(days=offset) not in local_dates
+    ]
+    months = Counter(to_ast(row.time_utc).strftime("%Y-%m") for row in ordered)
+
+    errors: list[str] = []
+    if duplicates:
+        errors.append(f"{len(duplicates)} duplicate event times")
+    if out_of_order:
+        errors.append(f"{out_of_order} rows are out of time order")
+    if gaps:
+        errors.append(
+            f"{len(gaps)} gaps longer than {max_gap.total_seconds() / 3600:g} hours"
+        )
+    if missing:
+        errors.append(f"{len(missing)} AST dates have no event")
+    if expect_from is not None and first_date > expect_from:
+        errors.append(f"file starts {first_date}, expected {expect_from} or earlier")
+    if expect_to is not None and last_date < expect_to:
+        errors.append(f"file ends {last_date}, expected {expect_to} or later")
+
+    return TideTableSummary(
+        count=len(ordered),
+        highs=sum(1 for row in ordered if row.event_type == "HIGH"),
+        lows=sum(1 for row in ordered if row.event_type == "LOW"),
+        first=ordered[0],
+        last=ordered[-1],
+        first_date_ast=first_date,
+        last_date_ast=last_date,
+        per_month_ast=dict(sorted(months.items())),
+        near_flat=sum(1 for row in ordered if row.timing_quality == NEAR_FLAT_QUALITY),
+        duplicate_times=duplicates,
+        out_of_order=out_of_order,
+        gaps=gaps,
+        missing_dates_ast=missing,
+        same_type_neighbours=same_type,
+        errors=errors,
+    )
