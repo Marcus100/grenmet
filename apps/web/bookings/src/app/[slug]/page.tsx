@@ -5,12 +5,16 @@ import {
   timeZonePlace,
 } from "@barrelsgd/bookings-web/lib/booking-format";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
 import { CONTACT_LABEL } from "@/lib/booking-errors";
+import { reportError } from "@/lib/report-error";
+import { getSession } from "@/lib/session";
+import { signInPath, signUpHref } from "@/lib/sign-in-links";
 import { isBusinessSlug } from "@/lib/slug";
 import {
   confirmEmailCode,
@@ -30,6 +34,19 @@ interface BusinessPageProps {
 const loadStorefront = cache(async (slug: string) =>
   isBusinessSlug(slug) ? await getStorefront(slug) : null
 );
+
+/**
+ * Whether a Barrels account is signed in here. A sign-in fault must not stop a
+ * visitor booking, so it counts as a guest (the booking action does the same).
+ */
+async function isSignedIn(): Promise<boolean> {
+  try {
+    return (await getSession()) !== null;
+  } catch (error) {
+    reportError(error, "bookings-public-session");
+    return false;
+  }
+}
 
 export async function generateMetadata({
   params,
@@ -56,6 +73,12 @@ export default async function BusinessBookingPage({
     notFound();
   }
   const { providers, services } = storefront;
+  // Only guests are invited; a signed-in person already has an account.
+  const accountInvite = (await isSignedIn())
+    ? undefined
+    : {
+        href: signUpHref(env.AUTH_APP_URL, await headers(), slug),
+      };
 
   return (
     <div className="booking space-y-10">
@@ -67,6 +90,18 @@ export default async function BusinessBookingPage({
           Book an appointment online. Times are in{" "}
           {timeZonePlace(storefront.timezone)} time.
         </p>
+        {accountInvite && (
+          <p className="text-muted-foreground">
+            Have a Barrels account?{" "}
+            <a
+              className="text-foreground inline-flex min-h-11 items-center underline underline-offset-4"
+              href={signInPath(slug)}
+            >
+              Sign in
+            </a>
+            . You do not need one to book.
+          </p>
+        )}
       </header>
 
       <section aria-labelledby="services-title" className="space-y-3">
@@ -126,6 +161,7 @@ export default async function BusinessBookingPage({
             Book online
           </h2>
           <BookingFlow
+            accountInvite={accountInvite}
             actions={{
               confirmEmailCode: confirmEmailCode.bind(null, slug),
               loadSlots: loadSlots.bind(null, slug),

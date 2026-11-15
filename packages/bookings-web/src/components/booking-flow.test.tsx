@@ -30,6 +30,10 @@ const TUE = "2027-01-05T13:30:00Z";
 const SLOT_TAKEN = "That time has just been taken. Please choose another.";
 const ONE_HOUR_CUTOFF = /until 1 hour before your visit\./u;
 const MESSAGE_ON_INSTAGRAM = /Please message us on Instagram\./u;
+const KEEP_BOOKINGS = /Keep your bookings in one place/u;
+const MY_BOOKINGS =
+  /your bookings with them, including this one, are listed under My bookings/u;
+const NEVER_NEEDS = /Booking never needs an account/u;
 const DATE_RANGE = /^\w{3} \d{1,2} \w{3} to \w{3} \d{1,2} \w{3}$/u;
 
 const storefront: BookingStorefront = {
@@ -82,9 +86,14 @@ const booking = {
   can_cancel: true,
 };
 
-function renderFlow(siteKey = "", shown: BookingStorefront = storefront) {
+function renderFlow(
+  siteKey = "",
+  shown: BookingStorefront = storefront,
+  accountInvite?: { href: string }
+) {
   return render(
     <BookingFlow
+      accountInvite={accountInvite}
       actions={actions}
       contact={CONTACT}
       managePath="/booking"
@@ -307,6 +316,55 @@ describe("BookingFlow form", () => {
     expect(
       screen.getByRole("link", { name: "Manage my booking" })
     ).toHaveAttribute("href", "/booking/secret-token-value-123");
+  });
+
+  it("invites a guest to create an account after booking, without changing the booking", async () => {
+    const user = userEvent.setup();
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: true,
+      data: { booking, manageToken: "tok-1" },
+    });
+    renderFlow("", storefront, { href: "https://auth.example.test/signup" });
+    expect(screen.queryByText(KEEP_BOOKINGS)).not.toBeInTheDocument();
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+
+    await screen.findByRole("heading", { name: "Thank you, Ada" });
+    expect(
+      screen.getByRole("heading", { name: "Keep your bookings in one place" })
+    ).toBeVisible();
+    expect(screen.getByText(MY_BOOKINGS)).toBeVisible();
+    expect(screen.getByText(NEVER_NEEDS)).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Create an account or sign in" })
+    ).toHaveAttribute("href", "https://auth.example.test/signup");
+    // The manage link is still there and still first.
+    expect(
+      screen.getByRole("link", { name: "Manage my booking" })
+    ).toHaveAttribute("href", "/booking/tok-1");
+  });
+
+  it("shows no invitation when the host passes none (signed in)", async () => {
+    const user = userEvent.setup();
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: true,
+      data: { booking, manageToken: "tok-2" },
+    });
+    renderFlow();
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+
+    await screen.findByRole("heading", { name: "Thank you, Ada" });
+    expect(
+      screen.queryByRole("link", { name: "Create an account or sign in" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(MY_BOOKINGS)).not.toBeInTheDocument();
   });
 
   it("renders the manage link through the host's link component", async () => {
