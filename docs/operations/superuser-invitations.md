@@ -1,5 +1,11 @@
 # Superuser invitations and recovery codes (ADR-0059)
 
+**Owner:** Barrels Grenada platform engineering  
+**Last updated:** 2026-11-15
+
+**Status:** Implemented in #1466 (ADR-0059 rule 1 and rule 5); operator steps need owner review
+
+
 Moved out of `apps/api/fastapi/src/auth/AGENTS.md` to keep that file within the Codex
 byte budget. The invariants stay there; this page holds the detail, the deviations and
 the test map. Operator steps for the first superuser: `docs/operations/privileged-mfa.md`.
