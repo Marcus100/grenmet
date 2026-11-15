@@ -416,8 +416,14 @@ body {
   background: color-mix(in srgb, var(--brand-primary-accent) 20%, transparent);
 }
 
-a {
-  color: inherit;
+/* Inside a layer so utility colours win: a link styled as a button (Button, or
+   the button classes in components/form-styles.ts) keeps its variant colour.
+   An unlayered rule would beat every utility, whatever its specificity.
+   Text links carry no colour class and inherit the surrounding text colour. */
+@layer base {
+  a {
+    color: inherit;
+  }
 }
 
 button {

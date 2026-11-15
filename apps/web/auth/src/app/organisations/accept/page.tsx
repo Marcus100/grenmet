@@ -65,7 +65,7 @@ export default async function AcceptInvitationPage({
           </button>
         </form>
       ) : null}
-      <a className="text-foreground text-sm underline" href="/organisations">
+      <a className="text-sm underline" href="/organisations">
         Your organisations
       </a>
     </AuthShell>
