@@ -172,7 +172,9 @@ async def publish_social_image(
     )
     info = info_result.scalars().first()
     if info is None:
-        raise PublishError({"error": "no info block to render"})
+        # The card is decoration built from the info block; with none there is
+        # nothing to draw, so skip rather than retry and report a failure.
+        return {"skipped": True, "reason": "no info block", "kind": job.kind}
     areas = await _alert_areas(session=session, alert_id=alert.id)
     area_desc = areas[0].area_desc if areas else ""
 
