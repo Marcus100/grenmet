@@ -1,7 +1,7 @@
 // Typed environment for the Printix scanner. The only place that reads
 // `process.env`. Every value has a safe default and a bad value falls back.
 
-const DEFAULT_SITE_URL = "https://scan.printixevent.com";
+const DEFAULT_SITE_URL = "https://scan.barrels.gd";
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
 
 function originOf(value: string | undefined, fallback: string): string {

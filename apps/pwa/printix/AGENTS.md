@@ -5,8 +5,9 @@ Port **3064** (local dev only). Static export (`output: "export"`, written to
 project `printix-scanner`, direct upload of `out/` with
 `wrangler pages deploy out --project-name printix-scanner --branch main`;
 create Pages projects through the Cloudflare API, since `wrangler pages
-project create` now tries to convert the app to a Worker). Final address
-`scan.printixevent.com` waits for the client, who controls that domain. Response headers live in `public/_headers`. Lane spec:
+project create` now tries to convert the app to a Worker). Planned address
+`scan.barrels.gd` (owner decision, 15 Nov 2026); see "Address and API origin"
+below. Response headers live in `public/_headers`. Lane spec:
 `docs/design/printix.md`. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
 
 Printix is a **client's** product: security-printed event tickets with a
@@ -41,6 +42,27 @@ are placeholders until the client supplies artwork.
   on an admission. The pairing screen therefore shows "Paired" and the event.
 - Whether the pairing allows **typed numbers**. Typed entry is always shown, and
   `unknown` for a typed number may mean "typed numbers are off".
+
+## Pairing secrets: what unpairing and sharing do
+
+- **Unpairing does not revoke on the server.** "Unpair this phone" only deletes
+  the secret from this phone's `localStorage`. The server still accepts that
+  secret until an administrator revokes the pairing. A lost or stolen phone
+  stays able to check tickets until someone revokes it.
+- **A pairing link stays valid until it expires or is revoked.** A link shared
+  by chat, email or a photo works on any phone that opens it, not only the one
+  it was meant for. Treat a pairing link like a password: share it once, then
+  revoke it if it leaks.
+
+## Address and API origin
+
+- The planned scanner address is `https://scan.barrels.gd`. It is listed in
+  `BACKEND_CORS_ORIGINS` in `infra/docker/production.env`, so the production API
+  accepts calls from it.
+- `public/_headers` enforces the CSP with `connect-src 'self' https://api.barrels.gd`.
+  Calls to any other API origin are blocked by the browser. A local API on
+  `http://localhost` only works with `pnpm dev:pwa:printix`, which sends no
+  `_headers` CSP.
 
 ## Not built yet
 

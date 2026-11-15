@@ -7,7 +7,7 @@ colors:
   muted: "#9aa39d"
   green: "#7ed321"
   valid: "#2a9632"
-  stop: "#d43a45"
+  stop: "#b91c1c"
 ---
 
 # Printix Scanner

@@ -5,8 +5,8 @@ import type { Tone, Verdict } from "@/lib/scan-outcome";
 
 /*
  * Colour carries the meaning. Admitted is green with ink text (5.1:1). Refused
- * is red with paper text (4.3:1, so every line here is large and bold). Any
- * answer that is not a yes, or not an answer, is neutral and says so in words.
+ * is dark red with paper text (5.95:1, so normal text passes AA). Any answer
+ * that is not a yes, or not an answer, is neutral and says so in words.
  */
 const TONE_CLASS: Record<Tone, string> = {
   admitted: "bg-px-valid text-px-ink",

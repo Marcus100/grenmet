@@ -150,7 +150,7 @@ export function GateConsole({
           {summary?.event.name ?? "Printix Scanner"}
         </h1>
         {summary?.event.status === "closed" ? (
-          <p className="text-px-stop text-sm font-semibold">
+          <p className="text-px-paper text-sm font-semibold">
             This event has closed.
           </p>
         ) : null}

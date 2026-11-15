@@ -3,7 +3,7 @@ import { parseEnv } from "@/env";
 
 describe("parseEnv", () => {
   it("defaults to the planned scanner address", () => {
-    expect(parseEnv({}).PRINTIX_SITE_URL).toBe("https://scan.printixevent.com");
+    expect(parseEnv({}).PRINTIX_SITE_URL).toBe("https://scan.barrels.gd");
   });
 
   it("keeps only the origin of a configured URL", () => {
@@ -15,7 +15,7 @@ describe("parseEnv", () => {
 
   it("falls back on an invalid URL", () => {
     expect(parseEnv({ PRINTIX_SITE_URL: "not a url" }).PRINTIX_SITE_URL).toBe(
-      "https://scan.printixevent.com"
+      "https://scan.barrels.gd"
     );
   });
 });
