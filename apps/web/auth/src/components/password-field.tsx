@@ -24,9 +24,9 @@ interface PasswordFieldProps {
 const METER_TONES = [
   "bg-destructive",
   "bg-destructive",
-  "bg-gm-risk-amber",
-  "bg-gm-sky-ink",
-  "bg-gm-risk-green",
+  "bg-warning",
+  "bg-info",
+  "bg-success",
 ] as const;
 
 export function PasswordField({

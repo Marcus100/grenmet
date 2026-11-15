@@ -50,6 +50,7 @@ describe("emailCodeAction", () => {
     expect(sent).toEqual({
       email: "kezia@example.com",
       error: null,
+      resendAfterSeconds: 60,
       step: "code",
     });
 

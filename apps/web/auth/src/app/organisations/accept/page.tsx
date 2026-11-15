@@ -43,7 +43,7 @@ export default async function AcceptInvitationPage({
   }
 
   return (
-    <AuthShell greeting="Barrels account" subtitle="One account, every app.">
+    <AuthShell>
       <AuthHeading title="Join an organisation">
         {token
           ? "Accept the invitation to join the organisation you were invited to."

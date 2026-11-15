@@ -9,7 +9,13 @@ import {
 import { NamePrompt, VerifyBanner } from "@/components/account-notices";
 import { getAppDisplayName } from "@/components/app-directory";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
+import { EmailCodeForm } from "@/components/EmailCodeForm";
+import { OrDivider } from "@/components/or-divider";
 import { SignInForm } from "@/components/SignInForm";
+import {
+  CreateAccountLink,
+  GoogleSignInLink,
+} from "@/components/sign-in-options";
 import { StaffAccess } from "@/components/staff-access";
 import { getAppHrefs } from "@/lib/app-links";
 import { getAuthConfig } from "@/lib/auth-config";
@@ -27,6 +33,7 @@ import {
   type SessionAccessTokenResponse,
   type UserPublic,
 } from "@/lib/session";
+import { signInPath } from "@/lib/sign-in-links";
 import { loadSecurity } from "./security/actions";
 
 export const dynamic = "force-dynamic";
@@ -129,7 +136,7 @@ function AccountProfile({
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-(--auth-accent) text-xl font-semibold text-white">
+        <div className="bg-primary text-primary-foreground flex size-16 shrink-0 items-center justify-center rounded-full text-xl font-semibold">
           {getInitials(displayName, user.email)}
         </div>
         <div className="min-w-0 space-y-1.5">
@@ -231,17 +238,42 @@ export default async function Home({ searchParams }: PageProps) {
 
   const appLabel = getAppDisplayName(requestedApp);
   const notice = signedOutNotice(pageError, readQueryParam(params.session));
+  // Code first: the emailed code is the default and a password is asked for.
+  // A reauthentication step keeps the password form, as it always has.
+  const passwordMode =
+    readQueryParam(params.method) === "password" ||
+    readQueryParam(params.reauth) === "1";
+  const heading = appLabel
+    ? `Sign in to ${appLabel}`
+    : "Sign in to your account";
+
+  if (passwordMode) {
+    return (
+      <AuthShell>
+        <AuthHeading title={heading}>
+          Use your email and password, or continue with Google.
+        </AuthHeading>
+        {notice ? (
+          <div
+            className="border-border bg-muted text-foreground rounded-lg border px-4 py-3 text-sm"
+            role="status"
+          >
+            {notice}
+          </div>
+        ) : null}
+        <SignInForm
+          appName={requestedApp}
+          codeHref={signInPath("/", { app: requestedApp, returnTo })}
+          returnTo={returnTo}
+        />
+      </AuthShell>
+    );
+  }
 
   return (
-    <AuthShell
-      greeting="Hello again"
-      requestedApp={requestedApp}
-      subtitle="Sign in to continue."
-    >
-      <AuthHeading
-        title={appLabel ? `Sign in to ${appLabel}` : "Sign in to your account"}
-      >
-        Use your work email, or continue with Google.
+    <AuthShell>
+      <AuthHeading title={heading}>
+        Enter your email and we’ll send you a 6-digit code. No password needed.
       </AuthHeading>
 
       {notice ? (
@@ -253,7 +285,17 @@ export default async function Home({ searchParams }: PageProps) {
         </div>
       ) : null}
 
-      <SignInForm appName={requestedApp} returnTo={returnTo} />
+      <EmailCodeForm
+        passwordHref={signInPath("/", {
+          app: requestedApp,
+          method: "password",
+          returnTo,
+        })}
+        returnTo={returnTo}
+      />
+      <OrDivider />
+      <GoogleSignInLink returnTo={returnTo} />
+      <CreateAccountLink returnTo={returnTo} />
     </AuthShell>
   );
 }

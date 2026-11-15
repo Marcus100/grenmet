@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 export default function Page() {
   return (
-    <AuthShell greeting="Welcome" subtitle="Set up your work account.">
+    <AuthShell>
       <ActivationForm />
     </AuthShell>
   );

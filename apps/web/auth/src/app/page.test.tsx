@@ -19,6 +19,11 @@ vi.mock("@/components/SignInForm", () => ({
     <div data-testid="fresh-sign-in">{returnTo}</div>
   ),
 }));
+vi.mock("@/components/EmailCodeForm", () => ({
+  EmailCodeForm: ({ passwordHref }: { passwordHref: string | null }) => (
+    <div data-testid="code-first-sign-in">{passwordHref}</div>
+  ),
+}));
 vi.mock("@/components/account-layout", () => ({
   AccountLayout: vi.fn(),
   SettingsRow: vi.fn(),
@@ -57,4 +62,33 @@ it("shows a fresh sign-in despite an existing session when MFA reauthentication 
   expect(
     screen.getByRole("heading", { name: "Sign in to GAA Admin" })
   ).toBeInTheDocument();
+});
+
+it("leads with the emailed code and links to the password form", async () => {
+  render(
+    await Home({
+      searchParams: Promise.resolve({
+        app: "gaa-admin",
+        returnTo: "/dashboard",
+      }),
+    })
+  );
+  expect(screen.queryByTestId("fresh-sign-in")).toBeNull();
+  const code = screen.getByTestId("code-first-sign-in");
+  expect(code).toHaveTextContent(
+    "/?app=gaa-admin&method=password&returnTo=%2Fdashboard"
+  );
+});
+
+it("keeps the password form when the password method is asked for", async () => {
+  render(
+    await Home({
+      searchParams: Promise.resolve({
+        method: "password",
+        returnTo: "/dashboard",
+      }),
+    })
+  );
+  expect(screen.queryByTestId("code-first-sign-in")).toBeNull();
+  expect(screen.getByTestId("fresh-sign-in")).toHaveTextContent("/dashboard");
 });

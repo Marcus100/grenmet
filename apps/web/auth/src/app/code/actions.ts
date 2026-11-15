@@ -8,6 +8,7 @@ import { authApiFetch } from "@barrelsgd/auth/server";
 import { redirect } from "next/navigation";
 import type { EmailCodeState } from "@/app/actions-types";
 import { getAuthConfig } from "@/lib/auth-config";
+import { EMAIL_CODE_RESEND_SECONDS } from "@/lib/email-code";
 import { reportError } from "@/lib/report-error";
 import { getSafeReturnTo } from "@/lib/return-to";
 import { isAuthApiError, writeSessionCookie } from "@/lib/session";
@@ -28,7 +29,9 @@ export async function emailCodeAction(
   const code = read(formData, "code");
   const totpCode = read(formData, "totp_code");
   const returnTo = getSafeReturnTo(read(formData, "returnTo"));
-  if (!email) return { ...previous, error: "Enter your email address." };
+  if (!email) {
+    return { email, error: "Enter your email address.", step: "email" };
+  }
 
   if (!code) {
     try {
@@ -46,7 +49,12 @@ export async function emailCodeAction(
         step: "email",
       };
     }
-    return { email, error: null, step: "code" };
+    return {
+      email,
+      error: null,
+      resendAfterSeconds: EMAIL_CODE_RESEND_SECONDS,
+      step: "code",
+    };
   }
 
   try {
