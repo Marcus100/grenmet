@@ -445,6 +445,7 @@ export type {
   AuthDeleteUserStatus200,
   AuthDeleteUserStatus403,
   AuthDeleteUserStatus404,
+  AuthDeleteUserStatus409,
   AuthDeleteUserStatus422,
 } from "./AuthDeleteUser.js";
 export type {

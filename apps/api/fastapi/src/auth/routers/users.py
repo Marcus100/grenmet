@@ -310,7 +310,7 @@ async def read_user_by_id(
     "/{user_id}",
     response_model=UserPublic,
     summary="Update user by ID",
-    description="Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409).",
+    description="Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409). Deactivating the last active superuser is refused (409) too.",
     responses={
         status.HTTP_200_OK: {"description": "User updated"},
         status.HTTP_403_FORBIDDEN: {
@@ -320,7 +320,7 @@ async def read_user_by_id(
         status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "User not found"},
         status.HTTP_409_CONFLICT: {
             "model": ApiError,
-            "description": "Email already exists, or removing superuser status would leave no active superuser",
+            "description": "Email already exists, or removing superuser status or deactivating the account would leave no active superuser",
         },
     },
 )
@@ -372,7 +372,7 @@ async def update_user(
 @router.delete(
     "/{user_id}",
     summary="Delete user by ID",
-    description="Delete a global account by ID (superuser only).",
+    description="Delete a global account by ID (superuser only). The account is anonymised, not removed. The last active superuser cannot be deleted (409).",
     responses={
         status.HTTP_200_OK: {"description": "User deleted"},
         status.HTTP_403_FORBIDDEN: {
@@ -380,6 +380,10 @@ async def update_user(
             "description": "Insufficient privileges or self-deletion",
         },
         status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "User not found"},
+        status.HTTP_409_CONFLICT: {
+            "model": ApiError,
+            "description": "Would leave no active superuser",
+        },
     },
 )
 async def delete_user(

@@ -5129,6 +5129,7 @@ export type {
   AuthDeleteUserStatus200,
   AuthDeleteUserStatus403,
   AuthDeleteUserStatus404,
+  AuthDeleteUserStatus409,
   AuthDeleteUserStatus422,
 } from "./models/AuthDeleteUser.js";
 export type {
@@ -15411,6 +15412,7 @@ export {
   authDeleteUserStatus200Schema,
   authDeleteUserStatus403Schema,
   authDeleteUserStatus404Schema,
+  authDeleteUserStatus409Schema,
   authDeleteUserStatus422Schema,
 } from "./zod/authDeleteUserSchema.js";
 export {

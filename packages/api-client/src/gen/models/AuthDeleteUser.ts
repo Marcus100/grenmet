@@ -31,6 +31,12 @@ export type AuthDeleteUserStatus403 = ApiError;
 export type AuthDeleteUserStatus404 = ApiError;
 
 /**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthDeleteUserStatus409 = ApiError;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -47,6 +53,7 @@ export type AuthDeleteUserResponses = {
   "200": AuthDeleteUserStatus200;
   "403": AuthDeleteUserStatus403;
   "404": AuthDeleteUserStatus404;
+  "409": AuthDeleteUserStatus409;
   "422": AuthDeleteUserStatus422;
 };
 
