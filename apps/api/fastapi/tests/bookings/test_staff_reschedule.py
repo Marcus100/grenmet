@@ -5,14 +5,18 @@ entering a booking by hand it skips the availability engine, so only the future
 check and the no-overlap constraint apply.
 """
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 import httpx
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bookings import emails
 from src.bookings.models import BookingEvent
+from src.organisations import service as org_service
+from src.organisations.models import MembershipRole
+from src.utils.timezones import zone
 from tests.bookings.booking_day import utc_iso
 from tests.bookings.test_public_bookings import (
     API,
@@ -24,11 +28,15 @@ from tests.bookings.test_public_bookings import (
     _studio,
 )
 from tests.bookings.test_studio import _booked, _events, _key, _url
+from tests.factories import make_user
+from tests.organisations.support import headers_for
 
 
 @pytest.fixture
-def webhooks(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, dict[str, Any]]]:
-    sent: list[tuple[str, dict[str, Any]]] = []
+def webhooks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> list[tuple[str, dict[str, Any], str | None]]:
+    sent: list[tuple[str, dict[str, Any], str | None]] = []
 
     async def record(
         _session: object,
@@ -38,8 +46,7 @@ def webhooks(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, dict[str, Any]]
         *,
         event_id: str | None = None,
     ) -> int:
-        _ = event_id
-        sent.append((event_type, data))
+        sent.append((event_type, data, event_id))
         return 1
 
     monkeypatch.setattr("src.webhooks_out.service.emit_event_safely", record)
@@ -60,6 +67,18 @@ async def _move(
     )
 
 
+def _when(starts_at: datetime) -> str:
+    """How the mail words a start time, on the business's clock."""
+    return emails.BookingEmail(
+        business="",
+        customer_name="",
+        service_name="",
+        provider_name="",
+        starts_at=starts_at,
+        tz=zone("America/Grenada"),
+    ).when
+
+
 async def _moves_mail(
     db: AsyncSession, studio: Studio, booking_id: str
 ) -> list[dict[str, Any]]:
@@ -73,7 +92,7 @@ async def _moves_mail(
 async def test_staff_move_a_booking_and_the_customer_is_told(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
-    webhooks: list[tuple[str, dict[str, Any]]],
+    webhooks: list[tuple[str, dict[str, Any], str | None]],
 ) -> None:
     studio, booking_id = await _booked(db_async, async_client)
     before = await _booking_for(db_async, booking_id)
@@ -105,10 +124,14 @@ async def test_staff_move_a_booking_and_the_customer_is_told(
     [mail] = await _moves_mail(db_async, studio, booking_id)
     assert mail["subject"] == "Your booking at Babydoll Beauty Bar has a new time"
     assert "has moved your booking to a new time" in mail["html"]
+    # The body names the NEW time (on the business's clock), not the old one.
+    assert _when(moved.starts_at) in mail["html"]
+    assert _when(old_start) not in mail["html"]
+    assert "not confirmed" not in mail["html"]
     assert "please contact Babydoll Beauty Bar" in mail["html"]
     assert "href=" not in mail["html"]  # no manage link: the token is only a hash
 
-    [(kind, data)] = [w for w in webhooks if w[0] == "booking.rescheduled"]
+    [(kind, data, _)] = [w for w in webhooks if w[0] == "booking.rescheduled"]
     assert kind == "booking.rescheduled"
     assert data["previous_starts_at"] == old_start.isoformat()
     assert "customer" not in repr(data).lower()
@@ -227,3 +250,86 @@ async def test_another_organisation_cannot_move_it_and_keys_follow_their_scope(
         _url(booking_id, "/reschedule"), json={"starts_at": slots[-1]}
     )
     assert anonymous.status_code == 401
+
+
+async def test_moving_a_booking_away_and_back_notifies_every_time(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    webhooks: list[tuple[str, dict[str, Any], str | None]],
+) -> None:
+    """Keys built from the new start would make the third notification (back to
+    the first time) collide with the first and be swallowed."""
+    studio, booking_id = await _booked(db_async, async_client)
+    original = (await _booking_for(db_async, booking_id)).starts_at
+    first = original.strftime("%Y-%m-%dT%H:%M:%SZ")
+    other = (await _slots(async_client, studio))[-1]
+
+    for target in (other, first, other, first):
+        response = await _move(async_client, studio, booking_id, target)
+        assert response.status_code == 200, response.text
+
+    rows = [
+        row
+        for row in await _emails(db_async, studio.org_id)
+        if row.dedupe_key.startswith(f"booking-rescheduled-by-studio:{booking_id}")
+    ]
+    assert len(rows) == 4
+    assert len({row.dedupe_key for row in rows}) == 4
+    moved = [w for w in webhooks if w[0] == "booking.rescheduled"]
+    assert len(moved) == 4
+    assert len({w[2] for w in moved}) == 4
+    # Each key names its own history row.
+    events = await _events(db_async, booking_id)
+    last_four = {str(event.id) for event in events[-4:]}
+    assert {row.dedupe_key.rsplit(":", 1)[1] for row in rows} == last_four
+    assert {str(w[2]).rsplit(":", 1)[1] for w in moved} == last_four
+
+
+async def test_a_time_with_seconds_is_refused(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _booked(db_async, async_client)
+    late = utc_iso(23).replace(":00Z", ":30Z")
+    response = await _move(async_client, studio, booking_id, late)
+    assert response.status_code == 422, response.text
+    assert "whole minute" in response.text
+    assert await _moves_mail(db_async, studio, booking_id) == []
+
+
+async def test_a_pending_booking_mail_says_it_is_still_unconfirmed(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client, requires_confirmation=True)
+    slots = await _slots(async_client, studio)
+    created = await _book(async_client, studio, slots[0])
+    booking_id = created.json()["booking"]["id"]
+    assert created.json()["booking"]["status"] == "pending"
+    response = await _move(async_client, studio, booking_id, slots[-1])
+    assert response.status_code == 200, response.text
+
+    [mail] = await _moves_mail(db_async, studio, booking_id)
+    moved = await _booking_for(db_async, booking_id)
+    assert _when(moved.starts_at) in mail["html"]
+    assert "has not confirmed this booking yet" in mail["html"]
+    assert "as soon as they do" in mail["html"]
+
+
+async def test_a_member_cannot_move_a_booking(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, booking_id = await _booked(db_async, async_client)
+    slots = await _slots(async_client, studio)
+    member = await make_user(db_async)
+    await org_service.add_member(
+        db_async,
+        organisation_id=studio.org_id,
+        user_id=member.id,
+        role=MembershipRole.MEMBER,
+    )
+    await db_async.commit()
+    headers = headers_for(member, studio.org_id)
+    before = (await _booking_for(db_async, booking_id)).starts_at
+    response = await _move(async_client, studio, booking_id, slots[-1], headers)
+    assert response.status_code == 403, response.text
+    assert (await _booking_for(db_async, booking_id)).starts_at == before
+    assert await _moves_mail(db_async, studio, booking_id) == []

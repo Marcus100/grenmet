@@ -189,17 +189,20 @@ def record_event(
     *,
     actor_user_id: uuid.UUID | None = None,
     note: str | None = None,
-) -> None:
-    session.add(
-        BookingEvent(
-            booking_id=booking.id,
-            organisation_id=booking.organisation_id,
-            from_status=from_status.value if from_status else None,
-            to_status=to_status.value,
-            actor_user_id=actor_user_id,
-            note=note[:300] if note else None,
-        )
+) -> BookingEvent:
+    """Add a history row and return it. Its id exists at once, so a caller can
+    key an email or webhook to this one change."""
+    event = BookingEvent(
+        id=uuid.uuid4(),
+        booking_id=booking.id,
+        organisation_id=booking.organisation_id,
+        from_status=from_status.value if from_status else None,
+        to_status=to_status.value,
+        actor_user_id=actor_user_id,
+        note=note[:300] if note else None,
     )
+    session.add(event)
+    return event
 
 
 # --- turnstile -------------------------------------------------------------------------

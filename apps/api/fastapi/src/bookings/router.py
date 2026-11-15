@@ -623,8 +623,9 @@ async def confirm_studio_booking(
         "Moves a `pending` or `confirmed` booking to a new start with the same "
         "provider and service, and emails the customer. Staff are not held to "
         "opening hours, lead time or the horizon, but the time must be in the "
-        "future and free (409 on a clash, 409 for any other status, 422 for a "
-        "time in the past). The same time again changes nothing."
+        "future, on a whole minute and free (409 on a clash, 409 for any other "
+        "status, 422 for a time in the past or with seconds). The same time "
+        "again changes nothing."
     ),
     operation_id="bookingsRescheduleStudioBooking",
     responses=WRITE_ERRORS,
