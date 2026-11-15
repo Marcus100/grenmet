@@ -1,6 +1,12 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { parseManifest, runSteps } from "./guide-screenshots.mjs";
+
+const DUPLICATE = /Duplicate id 'a'/u;
+const BAD_PATH = /must start with/u;
+const ONE_STEP_KIND = /exactly one of/u;
+const NOT_A_LIST = /must be a list/u;
+const NOT_AN_OBJECT = /must be an object/u;
 
 test("accepts a minimal screen and fills defaults", () => {
   const [screen] = parseManifest({
@@ -25,31 +31,44 @@ test("rejects duplicate ids, relative paths and bad steps", () => {
           { id: "a", app: "docs", path: "/" },
         ],
       }),
-    /Duplicate id 'a'/u
+    DUPLICATE
   );
   assert.throws(
     () => parseManifest({ screens: [{ id: "b", app: "docs", path: "guide" }] }),
-    /must start with/u
+    BAD_PATH
   );
   assert.throws(
     () =>
       parseManifest({
-        screens: [{ id: "c", app: "docs", path: "/", steps: [{ click: "x", press: "Enter" }] }],
+        screens: [
+          {
+            id: "c",
+            app: "docs",
+            path: "/",
+            steps: [{ click: "x", press: "Enter" }],
+          },
+        ],
       }),
-    /exactly one of/u
+    ONE_STEP_KIND
   );
 });
 
 test("rejects empty step text and non-list steps instead of skipping them", () => {
   assert.throws(
-    () => parseManifest({ screens: [{ id: "d", app: "docs", path: "/", steps: [{ click: "" }] }] }),
-    /exactly one of/u
+    () =>
+      parseManifest({
+        screens: [{ id: "d", app: "docs", path: "/", steps: [{ click: "" }] }],
+      }),
+    ONE_STEP_KIND
   );
   assert.throws(
-    () => parseManifest({ screens: [{ id: "e", app: "docs", path: "/", steps: "Week" }] }),
-    /must be a list/u
+    () =>
+      parseManifest({
+        screens: [{ id: "e", app: "docs", path: "/", steps: "Week" }],
+      }),
+    NOT_A_LIST
   );
-  assert.throws(() => parseManifest({ screens: [null] }), /must be an object/u);
+  assert.throws(() => parseManifest({ screens: [null] }), NOT_AN_OBJECT);
 });
 
 test("runs steps in order against the page", async () => {
@@ -64,6 +83,17 @@ test("runs steps in order against the page", async () => {
     keyboard: { press: async (key) => calls.push(`press:${key}`) },
     waitForLoadState: async () => calls.push("idle"),
   };
-  await runSteps(page, [{ click: "Week" }, { press: "Escape" }, { waitForText: "Done" }]);
-  assert.deepEqual(calls, ["click:Week", "idle", "press:Escape", "idle", "wait:Done", "idle"]);
+  await runSteps(page, [
+    { click: "Week" },
+    { press: "Escape" },
+    { waitForText: "Done" },
+  ]);
+  assert.deepEqual(calls, [
+    "click:Week",
+    "idle",
+    "press:Escape",
+    "idle",
+    "wait:Done",
+    "idle",
+  ]);
 });
