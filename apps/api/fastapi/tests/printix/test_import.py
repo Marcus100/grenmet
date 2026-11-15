@@ -46,7 +46,11 @@ async def test_apply_inserts_every_row_and_defaults_barcode_to_number(
     event = await make_event(db_async)
 
     report = await service.import_tickets(
-        db_async, event.id, b"number\n001\n002\n", dry_run=False
+        db_async,
+        event.id,
+        b"number\n001\n002\n",
+        dry_run=False,
+        allow_number_as_barcode=True,
     )
 
     assert report.applied is True
@@ -105,7 +109,11 @@ async def test_same_number_on_another_event_is_fine(db_async: AsyncSession) -> N
     await make_ticket(db_async, first, "001")
 
     report = await service.import_tickets(
-        db_async, second.id, b"number\n001\n", dry_run=False
+        db_async,
+        second.id,
+        b"number\n001\n",
+        dry_run=False,
+        allow_number_as_barcode=True,
     )
 
     assert report.applied is True
@@ -202,3 +210,89 @@ async def test_a_file_with_a_barcode_column_has_no_warning(
     )
 
     assert report.warnings == []
+
+
+async def test_a_blank_barcode_refuses_the_real_import_without_the_flag(
+    db_async: AsyncSession,
+) -> None:
+    event = await make_event(db_async)
+
+    report = await service.import_tickets(
+        db_async, event.id, b"number,barcode\n001,PX-1\n002,\n", dry_run=False
+    )
+
+    assert report.applied is False
+    assert [issue.line for issue in report.errors] == [3]
+    assert "allow_number_as_barcode" in report.errors[0].message
+    assert await count_tickets(db_async, event.id) == 0
+
+
+async def test_a_blank_barcode_imports_with_the_flag(db_async: AsyncSession) -> None:
+    event = await make_event(db_async)
+
+    report = await service.import_tickets(
+        db_async,
+        event.id,
+        b"number,barcode\n001,PX-1\n002,\n",
+        dry_run=False,
+        allow_number_as_barcode=True,
+    )
+
+    assert report.applied is True
+    assert await count_tickets(db_async, event.id) == 2
+
+
+async def test_the_dry_run_warns_about_blank_barcodes_without_refusing(
+    db_async: AsyncSession,
+) -> None:
+    event = await make_event(db_async)
+
+    report = await service.import_tickets(
+        db_async, event.id, b"number,barcode\n001,PX-1\n002,\n", dry_run=True
+    )
+
+    assert report.errors == []
+    assert report.to_add == 2
+    assert any("blank barcode" in warning for warning in report.warnings)
+
+
+async def test_a_missing_barcode_column_warns_in_the_dry_run(
+    db_async: AsyncSession,
+) -> None:
+    event = await make_event(db_async)
+
+    report = await service.import_tickets(
+        db_async, event.id, b"number\n001\n", dry_run=True
+    )
+
+    assert any("no barcode column" in warning for warning in report.warnings)
+
+
+async def test_a_header_error_report_has_no_missing_column_warning(
+    db_async: AsyncSession,
+) -> None:
+    event = await make_event(db_async)
+
+    report = await service.import_tickets(
+        db_async, event.id, b"barcode\nPX-1\n", dry_run=True
+    )
+
+    assert report.errors
+    assert report.warnings == []
+
+
+async def test_a_nine_thousand_row_file_is_checked_without_a_bind_limit_error(
+    db_async: AsyncSession,
+) -> None:
+    """Above about 8,000 rows the old IN lists exceeded the driver's bind limit."""
+    event = await make_event(db_async)
+    await make_ticket(db_async, event, "99999", barcode="EXISTING")
+    body = "".join(f"{n:05d},PXB{n:06d}\n" for n in range(9000))
+    content = ("number,barcode\n" + body).encode()
+
+    report = await service.import_tickets(db_async, event.id, content, dry_run=True)
+
+    assert report.rows == 9000
+    assert report.to_add == 9000
+    assert report.applied is False
+    assert report.errors == []

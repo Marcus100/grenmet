@@ -7685,6 +7685,7 @@ export {
   printixImportTicketsErrorSchema,
   printixImportTicketsPathEventIdSchema,
   printixImportTicketsPathSchema,
+  printixImportTicketsQueryAllowNumberAsBarcodeSchema,
   printixImportTicketsQueryDryRunSchema,
   printixImportTicketsQuerySchema,
   printixImportTicketsResponseSchema,

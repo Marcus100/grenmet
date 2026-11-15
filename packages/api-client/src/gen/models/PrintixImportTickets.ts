@@ -24,6 +24,12 @@ export type PrintixImportTicketsQuery = {
    * @type boolean | undefined
    */
   dry_run?: boolean;
+  /**
+   * @description Accept rows with no barcode, whose barcode is then their three-digit printed number. Refused on a real import without this flag.
+   * @default false
+   * @type boolean | undefined
+   */
+  allow_number_as_barcode?: boolean;
 };
 
 export type PrintixImportTicketsStatus200 = PrintixImportReport;

@@ -22,7 +22,8 @@ import secrets
 import uuid
 from datetime import UTC, date, datetime, timedelta
 
-from sqlalchemy import case, delete, func, insert, select, text, update
+from sqlalchemy import any_, case, delete, func, insert, or_, select, text, update
+from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -57,10 +58,19 @@ from .schemas import (
 logger = logging.getLogger(__name__)
 
 _SHORT_NUMBER = re.compile(rf"[0-9]{{1,{constants.SHORT_NUMBER_MAX_DIGITS}}}")
-_NO_BARCODE_WARNING = (
-    "The file has no barcode column, so each barcode defaults to its printed "
-    "number. Printed numbers are three digits and can be typed or guessed. Import "
-    "the printer's barcode values before the event."
+_NO_BARCODE_COLUMN_WARNING = (
+    "The file has no barcode column, so every barcode defaults to its printed "
+    "number. Printed numbers are three digits, so a stolen pairing could walk them. "
+    "Import the printer's barcode values before the event."
+)
+_BLANK_BARCODE_WARNING = (
+    "{count} row(s) have a blank barcode, so their printed number is used as the "
+    "barcode (first on line {first}). Printed numbers are three digits. A real import "
+    "is refused unless allow_number_as_barcode is set."
+)
+_NUMBER_AS_BARCODE_REFUSAL = (
+    "This barcode is blank, so the printed number would be the barcode. Give the "
+    "barcode, or set allow_number_as_barcode to import it anyway."
 )
 
 
@@ -218,6 +228,7 @@ async def import_tickets(
     *,
     dry_run: bool,
     actor_id: uuid.UUID | None = None,
+    allow_number_as_barcode: bool = False,
 ) -> PrintixImportReport:
     """Check the file, then (unless ``dry_run``) write every row or none.
 
@@ -238,11 +249,27 @@ async def import_tickets(
     truncated = parsed.errors_truncated
     if not issues:
         issues.extend(await _clashes_with_event(session, event.id, parsed.rows))
+    if not dry_run and not allow_number_as_barcode:
+        # A barcode that defaults to a three-digit number lets a stolen pairing
+        # enumerate the event. Refused on the real import only; the dry run warns.
+        issues.extend(
+            PrintixImportIssue(line=line, message=_NUMBER_AS_BARCODE_REFUSAL)
+            for line in parsed.defaulted_lines
+        )
     if len(issues) > constants.MAX_REPORTED_ERRORS:
         truncated = True
         issues = issues[: constants.MAX_REPORTED_ERRORS]
     clean = not issues
-    warnings = [] if parsed.has_barcode_column else [_NO_BARCODE_WARNING]
+    warnings: list[str] = []
+    if parsed.header_ok and parsed.defaulted_lines:
+        if parsed.has_barcode_column:
+            warnings.append(
+                _BLANK_BARCODE_WARNING.format(
+                    count=len(parsed.defaulted_lines), first=parsed.defaulted_lines[0]
+                )
+            )
+        else:
+            warnings.append(_NO_BARCODE_COLUMN_WARNING)
 
     if dry_run or not clean:
         return PrintixImportReport(
@@ -309,15 +336,18 @@ async def _clashes_with_event(
     """
     if not rows:
         return []
-    numbers = {row.number for row in rows}
-    barcodes = {row.barcode for row in rows}
-    values = numbers | barcodes
+    # One array parameter per column, not one bind per value: a 20,000-row file
+    # would otherwise exceed the driver's bind limit.
+    values = sorted({row.number for row in rows} | {row.barcode for row in rows})
+    values_array = array(values)
     stored = (
         await session.execute(
             select(PrintixTicket.printed_number, PrintixTicket.barcode_value).where(
                 PrintixTicket.event_id == event_id,
-                PrintixTicket.printed_number.in_(values)
-                | PrintixTicket.barcode_value.in_(values),
+                or_(
+                    PrintixTicket.printed_number == any_(values_array),
+                    PrintixTicket.barcode_value == any_(values_array),
+                ),
             )
         )
     ).all()
@@ -682,13 +712,7 @@ async def admit(
         raise _refuse_scan(pairing, "scans")
 
     value = value.strip()
-    typed_attempt = pairing.allow_typed_numbers and bool(_SHORT_NUMBER.fullmatch(value))
-    if typed_attempt and (
-        await _count_scans(session, pairing.id, now, PrintixScanLog.typed.is_(True))
-        >= constants.TYPED_NUMBER_SCANS_PER_WINDOW
-    ):
-        raise _refuse_scan(pairing, "typed numbers")
-
+    may_be_typed = pairing.allow_typed_numbers and bool(_SHORT_NUMBER.fullmatch(value))
     event = await get_event(session, pairing.event_id)
     ticket: PrintixTicket | None = None
     typed = False
@@ -697,7 +721,16 @@ async def admit(
         outcome = PrintixScanOutcome.EVENT_CLOSED
     else:
         ticket = await _barcode_ticket(session, event.id, value)
-        if ticket is None and typed_attempt:
+        if ticket is None and may_be_typed:
+            # Only a fall-through to the printed number is a typed attempt, so a
+            # valid barcode is never refused by the typed cap.
+            if (
+                await _count_scans(
+                    session, pairing.id, now, PrintixScanLog.typed.is_(True)
+                )
+                >= constants.TYPED_NUMBER_SCANS_PER_WINDOW
+            ):
+                raise _refuse_scan(pairing, "typed numbers")
             ticket = await _printed_number_ticket(session, event.id, value)
             typed = True
         if ticket is None:

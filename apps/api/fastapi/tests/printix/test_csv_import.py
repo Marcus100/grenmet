@@ -161,3 +161,21 @@ def test_a_barcode_equal_to_its_own_number_is_fine() -> None:
 def test_a_file_without_a_barcode_column_says_so() -> None:
     assert parse_ticket_csv(b"number\n1\n").has_barcode_column is False
     assert parse_ticket_csv(b"number,barcode\n1,A\n").has_barcode_column is True
+
+
+def test_rows_without_a_barcode_are_marked_defaulted() -> None:
+    result = parse_ticket_csv(b"number,barcode\n1,A\n2,\n")
+
+    assert result.defaulted_lines == [3]
+    assert result.header_ok is True
+
+
+def test_every_row_is_defaulted_when_the_barcode_column_is_missing() -> None:
+    result = parse_ticket_csv(b"number\n1\n2\n")
+
+    assert result.defaulted_lines == [2, 3]
+    assert result.has_barcode_column is False
+
+
+def test_an_unusable_header_is_reported_as_such() -> None:
+    assert parse_ticket_csv(b"barcode\nA\n").header_ok is False

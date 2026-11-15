@@ -494,3 +494,58 @@ async def test_an_event_cannot_close_before_its_event_date(
     )
 
     assert response.status_code == 422
+
+
+# --- Typed cap applies only to the printed-number fall-through -----------------
+
+
+async def test_a_valid_barcode_is_not_refused_by_the_typed_cap(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(constants, "TYPED_NUMBER_SCANS_PER_WINDOW", 1)
+    event = await make_event(db_async)
+    await make_ticket(db_async, event, "777", barcode="PX-777-ONLY")
+    await make_ticket(db_async, event, "888", barcode="123456")
+    await make_ticket(db_async, event, "999", barcode="PX-999")
+    _, secret = await make_pairing(db_async, event, allow_typed_numbers=True)
+
+    typed = await scan(async_client, secret, "999")  # not a barcode: a typed attempt
+    barcode = await scan(async_client, secret, "123456")  # valid six-digit barcode
+    typed_again = await scan(async_client, secret, "777")
+
+    assert outcome_of(typed) == "admitted"
+    assert outcome_of(barcode) == "admitted"
+    assert typed_again.status_code == 429
+
+
+# --- Audit history is readable by a superuser only ----------------------------
+
+
+async def test_printix_history_is_readable_only_by_a_superuser(
+    db_async: AsyncSession,
+) -> None:
+    from src.audit import registry
+
+    check = registry.read_check("printix_event")
+    event = await make_event(db_async)
+    superuser = await make_user(db_async, superuser=True)
+    ordinary = await make_user(db_async)
+
+    assert check is not None
+    assert await check(db_async, superuser, str(event.id)) is True
+    assert await check(db_async, ordinary, str(event.id)) is False
+
+
+# --- The retention job runs and is monitored ----------------------------------
+
+
+async def test_the_purge_job_runs_and_is_a_known_job() -> None:
+    from src import operational_metrics
+    from src.printix import jobs
+
+    deleted = await jobs.purge_scan_log({})
+
+    assert isinstance(deleted, int)
+    assert "purge_scan_log" in operational_metrics.JOBS

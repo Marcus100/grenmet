@@ -100,16 +100,25 @@ Owner decisions that bind this design:
     IS NULL RETURNING`. Voiding uses the same shape, so a void and an admission
     cannot both win. Tests hold one transaction open and race a second session
     against it.
-12. **Status moves.** Every status write goes through `src/printix/transitions.py`:
-    the event moves open to closed, one way; the ticket moves valid to void and back,
-    and an admitted ticket cannot be voided. The inventory test lists both columns.
+12. **Status moves.** The moves are declared in `src/printix/transitions.py`, and
+    the guard is checked there before a write: `move_event` (open to closed, one way)
+    and `check_ticket_move` (valid to void and back; an admitted ticket cannot be
+    voided). Inserts set status in the insert, and the void and admission UPDATE
+    statements write it themselves. Their `WHERE` clauses (`status = 'valid'`,
+    `admitted_at IS NULL`) settle races, and tests hold a transaction open to prove
+    it. The inventory test lists both columns.
 13. **Ticket values.** A barcode never leaves the server in an API response (the admin
-    list omits it), and it is never written to history.
+    list omits it), and it is never written to history. A row with no barcode uses
+    its printed number as its barcode, which is three digits. A real import refuses
+    that unless the operator sets `allow_number_as_barcode`, so a stolen pairing
+    cannot walk 000 to 999 by barcode without the operator's choice.
 14. **Audit trail.** Creating an event or pairing, closing an event, revoking a
     pairing, voiding and restoring a ticket, and importing tickets are recorded with
     the acting administrator (`src/printix/audit.py` tracks the models, and the bulk
-    writes are recorded explicitly with `record_change`). History holds the
-    pairing's token hash and no barcode values. Import history holds the count only.
+    writes are recorded explicitly with `record_change`). History holds no token
+    hash and no barcode values; import history holds the count only. Printix history
+    is readable through the audit history API by superusers only
+    (`registry.register_entity`).
 15. **Logs.** Application logs and Sentry never carry a secret, a scanned value or a
     barcode. Log lines carry the outcome and the pairing or event id.
 16. **Scan-log retention.** The `scan_log` table keeps up to 128 characters of each
@@ -131,7 +140,7 @@ built in this PR.
 | --- | --- | --- | --- |
 | **Phone stolen, unlocked or unprotected** | The thief scans for the pairing's event and gate until revocation or expiry. | Revoke. Six-hour default expiry. Scan cap (120 a minute), unknown cap (20), and typed numbers off by default. Every admission logged with pairing and gate. | Until revoked, a stolen phone admits tickets for its gate by barcode. Typed numbers, if allowed on a pairing, widen this. Detection is after the fact. |
 | **QR shared by mistake** (photographed, posted, forwarded) | Anyone holding the QR can scan for that gate. | Show the QR once. One pairing per phone. Fragment-only transport in the scanner. Revoke and re-pair. | A photographed QR is as good as the phone that scans it, until revoked. |
-| **Brute force of the secret** | Guessing 256 random bits is not feasible. | 32 random bytes; implausible secrets rejected before lookup. | Flooding with bad secrets costs a hash lookup each; the per-address cap runs after auth. |
+| **Brute force of the secret** | Guessing 256 random bits is not feasible. | 32 random bytes; implausible secrets rejected before lookup. | Flooding with bad secrets costs a hash lookup each; the per-address cap runs after auth. A pairing holder can burn their own gate's caps (120 scans, 20 unknown, 20 typed a minute); revoking that pairing is the control. |
 | **Expiry** | An old pairing keeps working. | Checked on every call; default six hours after close; at most a day after close. | A late explicit expiry lengthens the window. |
 | **Revocation** | A revoked pairing keeps working. | `revoked_at` checked on every call; no cache. | Only as fast as the administrator acts. |
 | **Database read or backup leak** | Hashes and ticket barcodes are read. | Secret: SHA-256 only. Barcodes: stored plaintext (see follow-ups). | A leaked barcode list allows forged tickets until the printer's list is reissued. |

@@ -67695,6 +67695,18 @@
               "title": "Dry Run"
             },
             "description": "Check only. Writes nothing when true."
+          },
+          {
+            "name": "allow_number_as_barcode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Accept rows with no barcode, whose barcode is then their three-digit printed number. Refused on a real import without this flag.",
+              "default": false,
+              "title": "Allow Number As Barcode"
+            },
+            "description": "Accept rows with no barcode, whose barcode is then their three-digit printed number. Refused on a real import without this flag."
           }
         ],
         "requestBody": {

@@ -17,6 +17,14 @@ export const printixImportTicketsQueryDryRunSchema = z
   .default(true)
   .describe("Check only. Writes nothing when true.");
 
+export const printixImportTicketsQueryAllowNumberAsBarcodeSchema = z
+  .boolean()
+  .optional()
+  .default(false)
+  .describe(
+    "Accept rows with no barcode, whose barcode is then their three-digit printed number. Refused on a real import without this flag."
+  );
+
 export const printixImportTicketsStatus200Schema = printixImportReportSchema;
 
 export const printixImportTicketsStatus401Schema = apiErrorSchema.describe(
@@ -68,4 +76,11 @@ export const printixImportTicketsQuerySchema = z.object({
     .optional()
     .default(true)
     .describe("Check only. Writes nothing when true."),
+  allow_number_as_barcode: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Accept rows with no barcode, whose barcode is then their three-digit printed number. Refused on a real import without this flag."
+    ),
 });

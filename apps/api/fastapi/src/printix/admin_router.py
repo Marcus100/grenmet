@@ -124,10 +124,24 @@ async def import_tickets_endpoint(
     dry_run: Annotated[
         bool, Query(description="Check only. Writes nothing when true.")
     ] = True,
+    allow_number_as_barcode: Annotated[
+        bool,
+        Query(
+            description=(
+                "Accept rows with no barcode, whose barcode is then their three-digit "
+                "printed number. Refused on a real import without this flag."
+            )
+        ),
+    ] = False,
 ) -> Any:
     content = await file.read(constants.MAX_IMPORT_BYTES + 1)
     return await service.import_tickets(
-        session, event_id, content, dry_run=dry_run, actor_id=admin.id
+        session,
+        event_id,
+        content,
+        dry_run=dry_run,
+        actor_id=admin.id,
+        allow_number_as_barcode=allow_number_as_barcode,
     )
 
 

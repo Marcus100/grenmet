@@ -28,6 +28,8 @@ class ParsedRow:
     line: int
     number: str
     barcode: str
+    #: True when no barcode was given, so the printed number is also the barcode.
+    defaulted: bool = False
 
 
 @dataclass(frozen=True)
@@ -43,6 +45,10 @@ class ParsedImport:
     row_count: int = 0
     errors_truncated: bool = False
     has_barcode_column: bool = False
+    #: False when the header itself is unusable (empty, no number column, control character).
+    header_ok: bool = False
+    #: Lines of rows whose barcode defaults to the printed number (no barcode given).
+    defaulted_lines: list[int] = field(default_factory=list)
 
 
 def _fail(line: int, message: str) -> ParsedImport:
@@ -84,6 +90,7 @@ def parse_ticket_csv(content: bytes) -> ParsedImport:
             return _fail(header_line, "The first row needs a 'number' column.")
         number_index = lowered.index("number")
         barcode_index = lowered.index("barcode") if "barcode" in lowered else None
+        header_usable = True
 
         for cells in reader:
             if not any(cell.strip() for cell in cells):
@@ -101,16 +108,25 @@ def parse_ticket_csv(content: bytes) -> ParsedImport:
                     ],
                     row_count=row_count,
                     has_barcode_column=barcode_index is not None,
+                    header_ok=header_usable,
                 )
             number = _cell(cells, number_index)
-            barcode = _cell(cells, barcode_index) or number
+            given = _cell(cells, barcode_index)
+            barcode = given or number
             problem = _check_row(
                 line, cells, number, barcode, seen_numbers, seen_barcodes
             )
             if problem is not None:
                 issues.append(problem)
             else:
-                rows.append(ParsedRow(line=line, number=number, barcode=barcode))
+                rows.append(
+                    ParsedRow(
+                        line=line,
+                        number=number,
+                        barcode=barcode,
+                        defaulted=not given,
+                    )
+                )
             if number:
                 seen_numbers.setdefault(number, line)
             if barcode:
@@ -130,6 +146,8 @@ def parse_ticket_csv(content: bytes) -> ParsedImport:
         row_count=row_count,
         errors_truncated=truncated,
         has_barcode_column=barcode_index is not None,
+        header_ok=header_usable,
+        defaulted_lines=[row.line for row in rows if row.defaulted],
     )
 
 
