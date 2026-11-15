@@ -5,8 +5,9 @@ Port **3064** (local dev only). Static export (`output: "export"`, written to
 project `printix-scanner`, direct upload of `out/` with
 `wrangler pages deploy out --project-name printix-scanner --branch main`;
 create Pages projects through the Cloudflare API, since `wrangler pages
-project create` now tries to convert the app to a Worker). Final address
-`scan.printixevent.com` waits for the client, who controls that domain. Response headers live in `public/_headers`. Lane spec:
+project create` now tries to convert the app to a Worker). Planned address
+`scan.barrels.gd` (owner decision, 15 Nov 2026); see "Address and API origin"
+below. The `scan.printixevent.com` default in `src/env.ts` predates that decision. Response headers live in `public/_headers`. Lane spec:
 `docs/design/printix.md`. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
 
 Printix is a **client's** product: security-printed event tickets with a
