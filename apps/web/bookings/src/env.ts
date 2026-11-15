@@ -34,6 +34,13 @@ export const env = createEnv({
   client: {
     // Cloudflare Turnstile public site key for the booking form. Empty: no widget.
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional().default(""),
+    // This app's own public address (the deploy sets https://bookings.<domain>).
+    // Used to tell auth where to return a new account to (`lib/sign-in-links.ts`).
+    // Unset: the sign-up link carries no return target.
+    NEXT_PUBLIC_SITE_URL: z.preprocess(
+      (value) => value || undefined,
+      z.string().url().optional()
+    ),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: z
       .string()
@@ -52,6 +59,7 @@ export const env = createEnv({
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: readPublicEnv(
       "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
     ),
+    NEXT_PUBLIC_SITE_URL: readPublicEnv("NEXT_PUBLIC_SITE_URL"),
     NEXT_PUBLIC_SENTRY_DSN: readPublicEnv("NEXT_PUBLIC_SENTRY_DSN"),
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: readPublicEnv(
       "NEXT_PUBLIC_SENTRY_ENVIRONMENT"

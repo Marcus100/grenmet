@@ -232,7 +232,8 @@ unless the table says otherwise. Use `gh variable set <name> --env <environment>
 - [ ] Wait one full UTC day. The worker-jobs check reads the previous, fully
   elapsed UTC day of job counters, and needs every tracked job
   (`process_cap_jobs`, `ingest_cap_feeds`, `send_notification_emails`,
-  `run_notification_sweeps`, which runs once a day at 10:00 UTC) to have run.
+  `run_notification_sweeps`, which runs once a day at 10:00 UTC, and
+  `purge_scan_log`, which runs nightly at 03:40 UTC) to have run.
   The first complete receipt is the morning after the first full day.
 
 ### Step 7: switch the WSL auditor to runner mode

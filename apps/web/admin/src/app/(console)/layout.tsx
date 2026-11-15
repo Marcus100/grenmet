@@ -51,6 +51,12 @@ export default async function ConsoleLayout({
             </Link>
             <Link
               className="underline-offset-4 hover:underline"
+              href="/superusers"
+            >
+              Superusers
+            </Link>
+            <Link
+              className="underline-offset-4 hover:underline"
               href="/moderation"
             >
               Moderation

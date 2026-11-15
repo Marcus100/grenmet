@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 from src.baseline import balance_import, catalogue, product_access, service
 from src.baseline.dependencies import AdminUser, HrSetupUser
@@ -111,7 +111,13 @@ async def update_staff_setup(
     response_model=Message,
     summary="Invalidate staff credential and revoke access",
     status_code=200,
-    description="Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
+    description="Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation. The last active superuser cannot be offboarded (409).",
+    responses={
+        status.HTTP_409_CONFLICT: {
+            "model": ApiError,
+            "description": "Setup conflict, or the last active superuser (no other active superuser would remain)",
+        },
+    },
 )
 async def offboard_staff(
     *, session: SessionDep, current_user: HrSetupUser, user_id: uuid.UUID

@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, Request, status
 from fastapi.concurrency import run_in_threadpool
 
 from src.auth import app_service, service
+from src.auth import superuser_invitation as invitations
 from src.auth.app_schemas import AppEmailCodeStart
 from src.auth.constants import (
     ERROR_INSUFFICIENT_PRIVILEGES,
@@ -26,6 +27,7 @@ from src.auth.constants import (
     SUCCESS_PASSWORD_UPDATED,
     SUCCESS_USER_DELETED,
 )
+from src.auth.exceptions import SuperuserByInvitationError
 from src.auth.models import User
 from src.auth.schemas import (
     UpdatePassword,
@@ -39,6 +41,7 @@ from src.dependencies import (
     AccountUser,
     CurrentUser,
     SessionDep,
+    TokenDep,
     get_current_user_manager,
     is_user_manager,
 )
@@ -88,7 +91,7 @@ async def read_users(
     response_model=UserPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Create user",
-    description="Create a global account (superuser only). HR placement and app admission are separate explicit actions.",
+    description="Create a global account (superuser only). HR placement and app admission are separate explicit actions. Superuser status is never granted here (403): send a superuser invitation instead (POST /api/v1/auth/superuser-invitations).",
     responses={
         status.HTTP_201_CREATED: {"description": "User created"},
         status.HTTP_400_BAD_REQUEST: {
@@ -97,7 +100,7 @@ async def read_users(
         },
         status.HTTP_403_FORBIDDEN: {
             "model": ApiError,
-            "description": "Insufficient privileges",
+            "description": "Insufficient privileges, or is_superuser true (invitation only)",
         },
     },
 )
@@ -112,6 +115,8 @@ async def create_user(
     """
     if not current_user.is_superuser:
         raise AuthorizationError(ERROR_INSUFFICIENT_PRIVILEGES)
+    if user_in.is_superuser:
+        raise SuperuserByInvitationError()
     user = await service.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise AppException(ERROR_USER_EXISTS, 400)
@@ -305,17 +310,17 @@ async def read_user_by_id(
     "/{user_id}",
     response_model=UserPublic,
     summary="Update user by ID",
-    description="Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only.",
+    description="Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409). Deactivating the last active superuser is refused (409) too.",
     responses={
         status.HTTP_200_OK: {"description": "User updated"},
         status.HTTP_403_FORBIDDEN: {
             "model": ApiError,
-            "description": "Insufficient privileges",
+            "description": "Insufficient privileges, is_superuser true (invitation only), or removing superuser status without a superuser authenticator and two-step sign-in",
         },
         status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "User not found"},
         status.HTTP_409_CONFLICT: {
             "model": ApiError,
-            "description": "Email already exists",
+            "description": "Email already exists, or removing superuser status or deactivating the account would leave no active superuser",
         },
     },
 )
@@ -325,6 +330,7 @@ async def update_user(
     user_id: uuid.UUID,
     user_in: UserUpdate,
     current_user: Annotated[User, Depends(get_current_user_manager)],
+    token: TokenDep,
 ) -> Any:
     """
     Update a user.
@@ -351,13 +357,22 @@ async def update_user(
         )
         if existing_user and existing_user.id != user_id:
             raise AppException(ERROR_USER_EXISTS, 409)
+    if "is_superuser" in user_in.model_fields_set:
+        if user_in.is_superuser is None:
+            raise AppException("is_superuser must be true or false", 422)
+        if user_in.is_superuser:
+            raise SuperuserByInvitationError()
+        # Removing superuser status: a two-step sign-in, an audit row and notices.
+        await invitations.require_superuser_session(session, current_user, token=token)
+        await invitations.demote_superuser(session, actor=current_user, target=db_user)
+    # Commits the demotion together with the other fields, so it is one transaction.
     return await service.update_user(session=session, db_user=db_user, user_in=user_in)
 
 
 @router.delete(
     "/{user_id}",
     summary="Delete user by ID",
-    description="Delete a global account by ID (superuser only).",
+    description="Delete a global account by ID (superuser only). The account is anonymised, not removed. The last active superuser cannot be deleted (409).",
     responses={
         status.HTTP_200_OK: {"description": "User deleted"},
         status.HTTP_403_FORBIDDEN: {
@@ -365,6 +380,10 @@ async def update_user(
             "description": "Insufficient privileges or self-deletion",
         },
         status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "User not found"},
+        status.HTTP_409_CONFLICT: {
+            "model": ApiError,
+            "description": "Would leave no active superuser",
+        },
     },
 )
 async def delete_user(

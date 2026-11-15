@@ -72,6 +72,7 @@ JOBS = frozenset(
         "ingest_cap_feeds",
         "send_notification_emails",
         "run_notification_sweeps",
+        "purge_scan_log",
     }
 )
 

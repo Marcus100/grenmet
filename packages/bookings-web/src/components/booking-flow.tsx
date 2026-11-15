@@ -64,6 +64,22 @@ export interface AccountInvite {
   href: string;
 }
 
+/** A signed-in visitor's own details, prefilled and still editable. */
+export interface SignedInVisitor {
+  email: string;
+  /** The account's name; may be empty, in which case the email is shown. */
+  name: string;
+  phone: string;
+  /** Where the "Sign out" button posts to (the host's own sign-out route). */
+  signOutAction: string;
+}
+
+/** A service the signed-in visitor booked here before, and the provider used last. */
+export interface BookAgainChoice {
+  providerId: string;
+  serviceId: string;
+}
+
 export interface BookingFlowProps {
   /**
    * An invitation shown after booking to a visitor who is not signed in. Never
@@ -72,12 +88,24 @@ export interface BookingFlowProps {
   accountInvite?: AccountInvite;
   /** Server calls for slots and submission, passed in by the host app. */
   actions: BookingFlowActions;
+  /**
+   * The visitor's own earlier choices with this business, most recent first.
+   * Shown as shortcuts above the full service list, which stays. Only for a
+   * signed-in visitor; entries the business no longer offers are skipped.
+   */
+  bookAgain?: BookAgainChoice[];
   /** How people reach the studio by hand when no slot is open online. */
   contact: ContactChannel;
   /** Link used for the manage link on the confirmation. Defaults to an anchor. */
   ManageLink?: BookingLink;
   /** Path the manage link goes to; the token is appended as `/<token>`. */
   managePath: string;
+  /**
+   * Set for a signed-in visitor: the form starts with their details and says
+   * who they are booking as. Never set it from anyone else's data. Guests get a
+   * blank form.
+   */
+  signedIn?: SignedInVisitor;
   storefront: BookingStorefront;
   /** The studio's name, used in the marketing opt-in wording. */
   studioName: string;
@@ -214,6 +242,81 @@ function BookingDone({
   );
 }
 
+/** Who the booking is for, with the way out when it is the wrong person. */
+function SignedInLine({ signedIn }: { signedIn: SignedInVisitor }) {
+  return (
+    <div className="signed-in-as">
+      <span>
+        Booking as <strong>{signedIn.name || signedIn.email}</strong>. Not you?
+      </span>
+      <form action={signedIn.signOutAction} method="post">
+        <button className="link-button" type="submit">
+          Sign out
+        </button>
+      </form>
+    </div>
+  );
+}
+
+/**
+ * Shortcuts to what the visitor booked here before, above the full service
+ * list (which stays). A choice whose service the business no longer offers is
+ * skipped. The provider is shown as history ("last time with ...") only when
+ * the business has more than one, because the flow lets the business assign it.
+ */
+function BookAgain({
+  choices,
+  onChoose,
+  selected,
+  storefront,
+}: {
+  choices: BookAgainChoice[];
+  onChoose: (serviceId: string) => void;
+  selected: string | null;
+  storefront: BookingStorefront;
+}) {
+  const items = choices.flatMap((choice) => {
+    const service = storefront.services.find((s) => s.id === choice.serviceId);
+    if (!service) {
+      return [];
+    }
+    const provider = storefront.providers.find(
+      (p) => p.id === choice.providerId && p.service_ids.includes(service.id)
+    );
+    return [{ provider, service }];
+  });
+  if (items.length === 0) {
+    return null;
+  }
+  const namesProvider = storefront.providers.length > 1;
+  return (
+    <div className="book-again">
+      <h3 id="book-again-title">Book again</h3>
+      <ul aria-labelledby="book-again-title" className="book-again-list">
+        {items.map(({ provider, service }) => (
+          <li key={service.id}>
+            <button
+              aria-pressed={service.id === selected}
+              className="btn book-again-choice"
+              onClick={() => onChoose(service.id)}
+              type="button"
+            >
+              <span className="service-name">{service.name}</span>
+              <span className="muted">
+                {formatDuration(service.duration_min)} ·{" "}
+                {formatMoney(service.price_minor, storefront.currency)}
+                {namesProvider && provider
+                  ? ` · last time with ${provider.name}`
+                  : ""}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /** The id of a radio group's error line, or nothing when it has no error. */
 function groupErrorId(
   field: "service" | "time",
@@ -287,6 +390,7 @@ function TextField({
           inputMode={rest.inputMode}
           onChange={(e) => onChange(e.target.value)}
           required={rest.required}
+          spellCheck={rest.type === "email" ? false : undefined}
           type={rest.type}
         />
       )}
@@ -391,18 +495,20 @@ function CodePanel({
 export function BookingFlow({
   accountInvite,
   actions,
+  bookAgain = [],
   contact,
   managePath,
   ManageLink = PlainLink,
+  signedIn,
   studioName,
   storefront,
   turnstileSiteKey,
 }: BookingFlowProps) {
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [startsAt, setStartsAt] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [name, setName] = useState(signedIn?.name ?? "");
+  const [email, setEmail] = useState(signedIn?.email ?? "");
+  const [phone, setPhone] = useState(signedIn?.phone ?? "");
   const [notes, setNotes] = useState("");
   const [marketing, setMarketing] = useState(false);
   const [website, setWebsite] = useState("");
@@ -589,230 +695,239 @@ export function BookingFlow({
   }
 
   return (
-    <form
-      aria-label="Book an appointment"
-      className="book-form"
-      noValidate
-      onSubmit={submit}
-    >
-      {showSummary && (
-        <div
-          aria-labelledby="book-errors-title"
-          className="notice notice-error"
-          ref={summaryRef}
-          role="alert"
-          tabIndex={-1}
-        >
-          <h2 id="book-errors-title">
-            {errorList.length > 0
-              ? "Please fix the following"
-              : "We couldn't book that"}
-          </h2>
-          {errorList.length > 0 && (
-            <ul>
-              {errorList.map((key) => (
-                <li key={key}>
-                  <a href={`#${FIELD_IDS[key]}`}>{errors[key]}</a>
-                </li>
-              ))}
-            </ul>
-          )}
-          {formError && <p>{formError}</p>}
-        </div>
-      )}
-
-      <fieldset
-        aria-describedby={groupErrorId("service", errors)}
-        className="step"
-        id={FIELD_IDS.service}
+    <>
+      {signedIn && <SignedInLine signedIn={signedIn} />}
+      <form
+        aria-label="Book an appointment"
+        className="book-form"
+        noValidate
+        onSubmit={submit}
       >
-        <legend>1. Choose a service</legend>
-        <GroupError errors={errors} field="service" />
-        {byCategory(storefront.services).map(([category, list]) => (
-          <div className="service-group" key={category}>
-            <h3>{category}</h3>
-            {list.map((item) => (
-              <label className="service-option" key={item.id}>
-                <input
-                  checked={item.id === serviceId}
-                  name="service"
-                  onChange={() => pickService(item.id)}
-                  type="radio"
-                  value={item.id}
-                />
-                <span className="service-text">
-                  <span className="service-name">{item.name}</span>
-                  <span className="muted">
-                    {formatDuration(item.duration_min)}
-                    {item.description ? ` · ${item.description}` : ""}
-                  </span>
-                </span>
-                <span className="service-price">
-                  {formatMoney(item.price_minor, storefront.currency)}
-                </span>
-              </label>
-            ))}
+        {showSummary && (
+          <div
+            aria-labelledby="book-errors-title"
+            className="notice notice-error"
+            ref={summaryRef}
+            role="alert"
+            tabIndex={-1}
+          >
+            <h2 id="book-errors-title">
+              {errorList.length > 0
+                ? "Please fix the following"
+                : "We couldn't book that"}
+            </h2>
+            {errorList.length > 0 && (
+              <ul>
+                {errorList.map((key) => (
+                  <li key={key}>
+                    <a href={`#${FIELD_IDS[key]}`}>{errors[key]}</a>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {formError && <p>{formError}</p>}
           </div>
-        ))}
-        {storefront.services.length === 0 && (
-          <p className="muted">
-            No services are open for online booking yet. Please message us on{" "}
-            {contact.label}.
-          </p>
         )}
-      </fieldset>
 
-      <fieldset
-        aria-describedby={groupErrorId("time", errors)}
-        className="step"
-        id={FIELD_IDS.time}
-      >
-        <legend>2. Pick a day and time</legend>
-        <p className="muted">
-          Times are in {timeZonePlace(storefront.timezone)} time.
-        </p>
-        <GroupError errors={errors} field="time" />
-        {service ? (
-          <SlotPicker
-            key={service.id}
-            load={(firstDay) => actions.loadSlots(service.id, firstDay)}
-            onChange={pickStart}
-            reloadKey={reloadKey}
-            timeZone={storefront.timezone}
-            value={startsAt}
-          />
-        ) : (
-          <p className="muted">Choose a service to see open times.</p>
-        )}
-        {service && startsAt && (
-          <p className="chosen" role="status">
-            {service.name}: {formatDateTime(startsAt, storefront.timezone)}
-          </p>
-        )}
-      </fieldset>
-
-      <fieldset className="step">
-        <legend>3. Your details</legend>
-        <TextField
-          autoComplete="name"
-          error={errors.name}
-          id={FIELD_IDS.name}
-          label="Name"
-          maxLength={120}
-          name="name"
-          onChange={editName}
-          required
-          value={name}
-        />
-        <TextField
-          autoComplete="email"
-          error={errors.email}
-          id={FIELD_IDS.email}
-          inputMode="email"
-          label="Email"
-          maxLength={254}
-          name="email"
-          onChange={editEmail}
-          required
-          type="email"
-          value={email}
-        />
-        <TextField
-          autoComplete="tel"
-          error={errors.phone}
-          id={FIELD_IDS.phone}
-          inputMode="tel"
-          label="Phone (optional)"
-          maxLength={40}
-          name="phone"
-          onChange={editPhone}
-          type="tel"
-          value={phone}
-        />
-        <TextField
-          error={errors.notes}
-          id={FIELD_IDS.notes}
-          label="Anything we should know? (optional)"
-          maxLength={1000}
-          multiline
-          name="notes"
-          onChange={editNotes}
-          value={notes}
-        />
-        <label className="check">
-          <input
-            checked={marketing}
-            name="marketing"
-            onChange={(e) => setMarketing(e.target.checked)}
-            type="checkbox"
-          />
-          <span>
-            Send me news and offers from {studioName}. (Optional. We will always
-            email you about this booking.)
-          </span>
-        </label>
-
-        {/* Honeypot: people never see or fill it; a bot that does is dropped. */}
-        <div aria-hidden="true" className="hp">
-          <label>
-            Leave this field empty
-            <input
-              autoComplete="off"
-              name="website"
-              onChange={(e) => setWebsite(e.target.value)}
-              tabIndex={-1}
-              type="text"
-              value={website}
-            />
-          </label>
-        </div>
-
-        <Turnstile
-          onToken={setToken}
-          resetKey={resetKey}
-          siteKey={turnstileSiteKey}
-        />
-      </fieldset>
-
-      {stepOpen && (
-        <CodePanel
-          busy={emailCode.busy}
-          code={emailCode.code}
-          cooldown={emailCode.cooldown}
-          email={email}
-          error={emailCode.error}
-          notice={emailCode.notice}
-          onChangeEmail={changeEmail}
-          onCode={emailCode.setCode}
-          onResend={emailCode.resend}
-          resendBlocked={
-            emailCode.cooldown > 0 || emailCode.busy !== null || tokenMissing
-          }
-        />
-      )}
-      {isVerified && needsCode && (
-        <p className="notice notice-ok" role="status">
-          {emailCode.proof
-            ? "Your email is verified."
-            : "No email code is needed for this booking."}{" "}
-          Press Request my booking to finish.
-        </p>
-      )}
-
-      <p className="muted">
-        By appointment only. You can change or cancel online until{" "}
-        {formatHours(storefront.cancel_cutoff_hours)} before your visit.
-      </p>
-      {!stepOpen && (
-        <button
-          aria-disabled={submitting || emailCode.busy !== null}
-          className="btn btn-solid"
-          disabled={submitting || emailCode.busy !== null}
-          type="submit"
+        <fieldset
+          aria-describedby={groupErrorId("service", errors)}
+          className="step"
+          id={FIELD_IDS.service}
         >
-          {buttonLabel(submitting, emailCode.busy, needsCode && !isVerified)}
-        </button>
-      )}
-    </form>
+          <legend>1. Choose a service</legend>
+          <GroupError errors={errors} field="service" />
+          <BookAgain
+            choices={bookAgain}
+            onChoose={pickService}
+            selected={serviceId}
+            storefront={storefront}
+          />
+          {byCategory(storefront.services).map(([category, list]) => (
+            <div className="service-group" key={category}>
+              <h3>{category}</h3>
+              {list.map((item) => (
+                <label className="service-option" key={item.id}>
+                  <input
+                    checked={item.id === serviceId}
+                    name="service"
+                    onChange={() => pickService(item.id)}
+                    type="radio"
+                    value={item.id}
+                  />
+                  <span className="service-text">
+                    <span className="service-name">{item.name}</span>
+                    <span className="muted">
+                      {formatDuration(item.duration_min)}
+                      {item.description ? ` · ${item.description}` : ""}
+                    </span>
+                  </span>
+                  <span className="service-price">
+                    {formatMoney(item.price_minor, storefront.currency)}
+                  </span>
+                </label>
+              ))}
+            </div>
+          ))}
+          {storefront.services.length === 0 && (
+            <p className="muted">
+              No services are open for online booking yet. Please message us on{" "}
+              {contact.label}.
+            </p>
+          )}
+        </fieldset>
+
+        <fieldset
+          aria-describedby={groupErrorId("time", errors)}
+          className="step"
+          id={FIELD_IDS.time}
+        >
+          <legend>2. Pick a day and time</legend>
+          <p className="muted">
+            Times are in {timeZonePlace(storefront.timezone)} time.
+          </p>
+          <GroupError errors={errors} field="time" />
+          {service ? (
+            <SlotPicker
+              key={service.id}
+              load={(firstDay) => actions.loadSlots(service.id, firstDay)}
+              onChange={pickStart}
+              reloadKey={reloadKey}
+              timeZone={storefront.timezone}
+              value={startsAt}
+            />
+          ) : (
+            <p className="muted">Choose a service to see open times.</p>
+          )}
+          {service && startsAt && (
+            <p className="chosen" role="status">
+              {service.name}: {formatDateTime(startsAt, storefront.timezone)}
+            </p>
+          )}
+        </fieldset>
+
+        <fieldset className="step">
+          <legend>3. Your details</legend>
+          <TextField
+            autoComplete="name"
+            error={errors.name}
+            id={FIELD_IDS.name}
+            label="Name"
+            maxLength={120}
+            name="name"
+            onChange={editName}
+            required
+            value={name}
+          />
+          <TextField
+            autoComplete="email"
+            error={errors.email}
+            id={FIELD_IDS.email}
+            inputMode="email"
+            label="Email"
+            maxLength={254}
+            name="email"
+            onChange={editEmail}
+            required
+            type="email"
+            value={email}
+          />
+          <TextField
+            autoComplete="tel"
+            error={errors.phone}
+            id={FIELD_IDS.phone}
+            inputMode="tel"
+            label="Phone (optional)"
+            maxLength={40}
+            name="phone"
+            onChange={editPhone}
+            type="tel"
+            value={phone}
+          />
+          <TextField
+            error={errors.notes}
+            id={FIELD_IDS.notes}
+            label="Anything we should know? (optional)"
+            maxLength={1000}
+            multiline
+            name="notes"
+            onChange={editNotes}
+            value={notes}
+          />
+          <label className="check">
+            <input
+              checked={marketing}
+              name="marketing"
+              onChange={(e) => setMarketing(e.target.checked)}
+              type="checkbox"
+            />
+            <span>
+              Send me news and offers from {studioName}. (Optional. We will
+              always email you about this booking.)
+            </span>
+          </label>
+
+          {/* Honeypot: people never see or fill it; a bot that does is dropped. */}
+          <div aria-hidden="true" className="hp">
+            <label>
+              Leave this field empty
+              <input
+                autoComplete="off"
+                name="website"
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                type="text"
+                value={website}
+              />
+            </label>
+          </div>
+
+          <Turnstile
+            onToken={setToken}
+            resetKey={resetKey}
+            siteKey={turnstileSiteKey}
+          />
+        </fieldset>
+
+        {stepOpen && (
+          <CodePanel
+            busy={emailCode.busy}
+            code={emailCode.code}
+            cooldown={emailCode.cooldown}
+            email={email}
+            error={emailCode.error}
+            notice={emailCode.notice}
+            onChangeEmail={changeEmail}
+            onCode={emailCode.setCode}
+            onResend={emailCode.resend}
+            resendBlocked={
+              emailCode.cooldown > 0 || emailCode.busy !== null || tokenMissing
+            }
+          />
+        )}
+        {isVerified && needsCode && (
+          <p className="notice notice-ok" role="status">
+            {emailCode.proof
+              ? "Your email is verified."
+              : "No email code is needed for this booking."}{" "}
+            Press Request my booking to finish.
+          </p>
+        )}
+
+        <p className="muted">
+          By appointment only. You can change or cancel online until{" "}
+          {formatHours(storefront.cancel_cutoff_hours)} before your visit.
+        </p>
+        {!stepOpen && (
+          <button
+            aria-disabled={submitting || emailCode.busy !== null}
+            className="btn btn-solid"
+            disabled={submitting || emailCode.busy !== null}
+            type="submit"
+          >
+            {buttonLabel(submitting, emailCode.busy, needsCode && !isVerified)}
+          </button>
+        )}
+      </form>
+    </>
   );
 }

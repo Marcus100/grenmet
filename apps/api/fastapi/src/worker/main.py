@@ -556,15 +556,19 @@ async def check_alert_outbox(ctx: dict[str, Any]) -> int:
 
 
 async def check_cap_job_failures(ctx: dict[str, Any]) -> int:
-    """Log an error when a CAP job has failed on every attempt (nothing retries it).
+    """Log an error once per exhausted CAP job (nothing retries it).
 
-    Counts and job kinds only: no recipients, payloads or error text.
+    The error is raised only for jobs not reported before (``failure_reported_at``
+    in the job result), so a job that stays failed does not repeat it every run.
+    The return value is the current exhausted count. Counts and job kinds only: no
+    recipients, payloads or error text.
     """
     from datetime import timedelta
 
     _ = ctx  # arq passes the job context; this check needs none of it
 
     from src.database import async_session_factory
+    from src.utils.datetime import utc_now
     from src.worker import cap_failure_mail, dispatch
 
     async with async_session_factory() as session:
@@ -573,15 +577,24 @@ async def check_cap_job_failures(ctx: dict[str, Any]) -> int:
             max_attempts=worker_settings.CAP_JOB_MAX_ATTEMPTS,
             window=timedelta(days=7),
         )
-        total = len(jobs)
-        if total:
-            logger.error(
-                "CAP jobs failed on every attempt",
-                extra={"count": total, "kinds": sorted({job.kind for job in jobs})},
-            )
+        if jobs:
+            now = utc_now()
+            new_jobs = [job for job in jobs if not dispatch.failure_reported(job)]
+            if new_jobs:
+                logger.error(
+                    "CAP jobs failed on every attempt",
+                    extra={
+                        "count": len(new_jobs),
+                        "kinds": sorted({job.kind for job in new_jobs}),
+                    },
+                )
+            # Emails are deduplicated per job and recipient, so queuing for every
+            # exhausted job still reaches a recipient configured after the failure.
             await cap_failure_mail.queue_failure_emails(session=session, jobs=jobs)
+            for job in new_jobs:
+                dispatch.mark_failure_reported(job, at=now)
             await session.commit()
-    return total
+    return len(jobs)
 
 
 async def check_outbox_backlog(ctx: dict[str, Any]) -> int:
@@ -631,6 +644,35 @@ async def purge_expired_data(ctx: dict[str, Any]) -> int:
         ctx.get("redis"), "purge_expired_data", str(ctx.get("job_id", "")), True
     )
     return result.total
+
+
+@monitored(schedule="25 4 * * *", checkin_margin=30, max_runtime=60)
+async def purge_superuser_invitations(ctx: dict[str, Any]) -> int:
+    """Delete superuser invitations that ended more than 90 days ago (ADR-0059).
+
+    Accepted, revoked and expired rows go; their audit rows stay. Idempotent."""
+    from src.auth import superuser_invitation
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            deleted = await superuser_invitation.purge_closed_invitations(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "purge_superuser_invitations",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"),
+        "purge_superuser_invitations",
+        str(ctx.get("job_id", "")),
+        True,
+    )
+    return deleted
 
 
 @monitored(schedule="50 3 * * *", checkin_margin=30, max_runtime=60)
@@ -740,6 +782,7 @@ class WorkerSettings:
         send_daily_newsletter,
         release_social_posts,
         purge_expired_data,
+        purge_superuser_invitations,
         clear_former_staff_personal_details,
         check_nhc_failures,
         check_feed_freshness,
@@ -820,6 +863,8 @@ class WorkerSettings:
         cron(release_social_posts, run_at_startup=False),
         # Retention purge, 03:30 UTC (23:30 Grenada); idempotent and batched.
         cron(purge_expired_data, hour=3, minute=30, run_at_startup=False),
+        # Superuser invitations ended over 90 days ago, 04:25 UTC (00:25 Grenada).
+        cron(purge_superuser_invitations, hour=4, minute=25, run_at_startup=False),
         # Former staff date of birth and address, 6 years after employment ends
         # (#1431), 03:50 UTC; idempotent and batched.
         cron(

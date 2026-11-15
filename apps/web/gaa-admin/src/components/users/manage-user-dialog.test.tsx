@@ -45,6 +45,7 @@ const DELEGATION_EXPLANATION =
 const CLASS_SEPARATOR = /\s+/u;
 /** A grid-cols-2 that applies below md (no responsive prefix). */
 const BARE_GRID_COLS_TWO = /(^|\s)grid-cols-2(\s|$)/u;
+const SUPERUSER_NAME = /superuser/iu;
 
 const ROLES: RolePublic[] = [
   {
@@ -894,6 +895,41 @@ describe("CMS access", () => {
     expect(
       screen.queryByRole("button", { name: "Save CMS access" })
     ).toBeNull();
+  });
+});
+
+describe("superuser status", () => {
+  // ADR-0059 rule 1: superuser status is granted by invitation and removed through
+  // the API only, so the admin app offers no control that changes it.
+  it("offers no control that grants or removes superuser status", () => {
+    server.use(
+      http.get(
+        `${BASE}/api/v1/hr/employment/u-1`,
+        () => new HttpResponse(null, { status: 404 })
+      )
+    );
+    renderDialog();
+    for (const role of ["button", "checkbox", "switch", "combobox"] as const) {
+      expect(screen.queryByRole(role, { name: SUPERUSER_NAME })).toBeNull();
+    }
+  });
+
+  it("never sends is_superuser when it changes account status", async () => {
+    const bodies: unknown[] = [];
+    server.use(
+      http.get(
+        `${BASE}/api/v1/hr/employment/u-1`,
+        () => new HttpResponse(null, { status: 404 })
+      ),
+      http.patch(`${BASE}/api/v1/auth/users/u-1`, async ({ request }) => {
+        bodies.push(await request.json());
+        return HttpResponse.json(USER);
+      })
+    );
+    renderDialog();
+    fireEvent.click(screen.getByRole("button", { name: "Deactivate account" }));
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(bodies[0]).toEqual({ is_active: false });
   });
 });
 

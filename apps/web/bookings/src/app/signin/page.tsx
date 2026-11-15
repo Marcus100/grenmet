@@ -40,8 +40,9 @@ export default async function SignIn({ searchParams }: SignInPageProps) {
         The sign-in link expired or was refused. Try again, or contact Barrels
         Grenada if it keeps happening.
       </p>
+      {/* The 44 px hit area is a centred pseudo-element: the link keeps its size. */}
       <a
-        className="hover:bg-muted w-fit rounded-md border px-3 py-1.5 text-sm"
+        className="hover:bg-muted relative w-fit rounded-md border px-3 py-1.5 text-sm before:absolute before:inset-x-0 before:top-1/2 before:h-11 before:-translate-y-1/2 before:content-['']"
         href={start}
       >
         Try again

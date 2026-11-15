@@ -23,7 +23,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.auth.config import auth_settings
-from src.auth.email_verification import is_email_verified
 from src.auth.models import User
 from src.contacts import service as contacts_service
 from src.contacts.models import ConsentPurpose, Contact
@@ -600,8 +599,6 @@ async def _create_booking(
             contact,
             booking_email=str(payload.customer_email),
             user_id=payer.id,
-            account_email=payer.email,
-            account_email_verified=is_email_verified(payer),
         )
     token, token_hash = new_manage_token()
     ends_at = starts_at + timedelta(minutes=svc.duration_min)

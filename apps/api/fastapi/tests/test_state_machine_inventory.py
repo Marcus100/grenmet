@@ -127,6 +127,8 @@ INVENTORY: dict[str, Decision] = {
     ),
     "src/events/models.py:Order.status": _EVENTS,
     "src/events/models.py:Ticket.status": _EVENTS,
+    "src/printix/models.py:PrintixEvent.status": _table("src/printix/transitions.py"),
+    "src/printix/models.py:PrintixTicket.status": _table("src/printix/transitions.py"),
     "src/hr/absentee/models.py:AbsenteeReport.status": _HR_REQUEST,
     "src/hr/attendance/models.py:ClockPunch.status": _table(
         "src/hr/attendance/transitions.py"

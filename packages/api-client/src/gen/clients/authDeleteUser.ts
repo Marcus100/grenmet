@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthDeleteUser.js";
 
 /**
- * @description Delete a global account by ID (superuser only).
+ * @description Delete a global account by ID (superuser only). The account is anonymised, not removed. The last active superuser cannot be deleted (409).
  * @summary Delete user by ID
  * {@link /api/v1/auth/users/:user_id}
  */

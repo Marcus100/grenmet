@@ -114,6 +114,15 @@ export {
   auditGetHistoryStatus422Schema,
 } from "./auditGetHistorySchema.js";
 export {
+  authAcceptSuperuserInvitationBodySchema,
+  authAcceptSuperuserInvitationErrorSchema,
+  authAcceptSuperuserInvitationResponseSchema,
+  authAcceptSuperuserInvitationStatus200Schema,
+  authAcceptSuperuserInvitationStatus400Schema,
+  authAcceptSuperuserInvitationStatus422Schema,
+  authAcceptSuperuserInvitationStatus429Schema,
+} from "./authAcceptSuperuserInvitationSchema.js";
+export {
   authAccountEmailCodeStartBodySchema,
   authAccountEmailCodeStartErrorSchema,
   authAccountEmailCodeStartResponseSchema,
@@ -378,6 +387,16 @@ export {
   authCreateRoleStatus422Schema,
 } from "./authCreateRoleSchema.js";
 export {
+  authCreateSuperuserInvitationBodySchema,
+  authCreateSuperuserInvitationErrorSchema,
+  authCreateSuperuserInvitationResponseSchema,
+  authCreateSuperuserInvitationStatus201Schema,
+  authCreateSuperuserInvitationStatus400Schema,
+  authCreateSuperuserInvitationStatus403Schema,
+  authCreateSuperuserInvitationStatus422Schema,
+  authCreateSuperuserInvitationStatus429Schema,
+} from "./authCreateSuperuserInvitationSchema.js";
+export {
   authCreateUserBodySchema,
   authCreateUserErrorSchema,
   authCreateUserResponseSchema,
@@ -420,6 +439,7 @@ export {
   authDeleteUserStatus200Schema,
   authDeleteUserStatus403Schema,
   authDeleteUserStatus404Schema,
+  authDeleteUserStatus409Schema,
   authDeleteUserStatus422Schema,
 } from "./authDeleteUserSchema.js";
 export {
@@ -683,6 +703,13 @@ export {
   authListAccountAppsStatus422Schema,
 } from "./authListAccountAppsSchema.js";
 export {
+  authListSuperuserInvitationsErrorSchema,
+  authListSuperuserInvitationsResponseSchema,
+  authListSuperuserInvitationsStatus200Schema,
+  authListSuperuserInvitationsStatus403Schema,
+  authListSuperuserInvitationsStatus422Schema,
+} from "./authListSuperuserInvitationsSchema.js";
+export {
   authLoginAccessTokenBodySchema,
   authLoginAccessTokenErrorSchema,
   authLoginAccessTokenResponseSchema,
@@ -814,6 +841,25 @@ export {
   authRevokeSignInSetupStatus404Schema,
   authRevokeSignInSetupStatus422Schema,
 } from "./authRevokeSignInSetupSchema.js";
+export {
+  authRevokeSuperuserInvitationErrorSchema,
+  authRevokeSuperuserInvitationPathInvitationIdSchema,
+  authRevokeSuperuserInvitationPathSchema,
+  authRevokeSuperuserInvitationResponseSchema,
+  authRevokeSuperuserInvitationStatus200Schema,
+  authRevokeSuperuserInvitationStatus403Schema,
+  authRevokeSuperuserInvitationStatus404Schema,
+  authRevokeSuperuserInvitationStatus409Schema,
+  authRevokeSuperuserInvitationStatus422Schema,
+} from "./authRevokeSuperuserInvitationSchema.js";
+export {
+  authSuperuserInvitationCodeBodySchema,
+  authSuperuserInvitationCodeErrorSchema,
+  authSuperuserInvitationCodeResponseSchema,
+  authSuperuserInvitationCodeStatus200Schema,
+  authSuperuserInvitationCodeStatus422Schema,
+  authSuperuserInvitationCodeStatus429Schema,
+} from "./authSuperuserInvitationCodeSchema.js";
 export {
   authTwofaActivateBodySchema,
   authTwofaActivateErrorSchema,
@@ -1092,6 +1138,7 @@ export { binaryFileSchema } from "./binaryFileSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrImportTerminalPunchesSchema } from "./bodyHrImportTerminalPunchesSchema.js";
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
+export { bodyPrintixImportTicketsSchema } from "./bodyPrintixImportTicketsSchema.js";
 export { bookingAgendaDaySchema } from "./bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./bookingAgendaSchema.js";
@@ -1106,6 +1153,8 @@ export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js"
 export { bookingManualDepositCreateSchema } from "./bookingManualDepositCreateSchema.js";
 export { bookingMyBookingListSchema } from "./bookingMyBookingListSchema.js";
 export { bookingMyBookingSchema } from "./bookingMyBookingSchema.js";
+export { bookingMyChoiceSchema } from "./bookingMyChoiceSchema.js";
+export { bookingMyChoicesSchema } from "./bookingMyChoicesSchema.js";
 export { bookingMyOrganisationSchema } from "./bookingMyOrganisationSchema.js";
 export { bookingOrderSchema } from "./bookingOrderSchema.js";
 export { bookingProfilePublicSchema } from "./bookingProfilePublicSchema.js";
@@ -1346,6 +1395,18 @@ export {
   bookingsGetAvailabilityStatus404Schema,
   bookingsGetAvailabilityStatus422Schema,
 } from "./bookingsGetAvailabilitySchema.js";
+export {
+  bookingsGetMyChoicesErrorSchema,
+  bookingsGetMyChoicesPathSchema,
+  bookingsGetMyChoicesPathSlugSchema,
+  bookingsGetMyChoicesResponseSchema,
+  bookingsGetMyChoicesStatus200Schema,
+  bookingsGetMyChoicesStatus401Schema,
+  bookingsGetMyChoicesStatus403Schema,
+  bookingsGetMyChoicesStatus404Schema,
+  bookingsGetMyChoicesStatus422Schema,
+  bookingsGetMyChoicesStatus429Schema,
+} from "./bookingsGetMyChoicesSchema.js";
 export {
   bookingsGetProfileErrorSchema,
   bookingsGetProfileHeadersSchema,
@@ -7618,6 +7679,164 @@ export { postponeResultSchema } from "./postponeResultSchema.js";
 export { preferencesUnsubscribeRequestSchema } from "./preferencesUnsubscribeRequestSchema.js";
 export { principalPhasePropertiesPhaseEnumSchema } from "./principalPhasePropertiesPhaseEnumSchema.js";
 export { principalPhaseSchema } from "./principalPhaseSchema.js";
+export {
+  printixAdmitTicketBodySchema,
+  printixAdmitTicketErrorSchema,
+  printixAdmitTicketResponseSchema,
+  printixAdmitTicketStatus200Schema,
+  printixAdmitTicketStatus401Schema,
+  printixAdmitTicketStatus403Schema,
+  printixAdmitTicketStatus422Schema,
+  printixAdmitTicketStatus429Schema,
+} from "./printixAdmitTicketSchema.js";
+export {
+  printixCloseEventErrorSchema,
+  printixCloseEventPathEventIdSchema,
+  printixCloseEventPathSchema,
+  printixCloseEventResponseSchema,
+  printixCloseEventStatus200Schema,
+  printixCloseEventStatus401Schema,
+  printixCloseEventStatus403Schema,
+  printixCloseEventStatus404Schema,
+  printixCloseEventStatus422Schema,
+} from "./printixCloseEventSchema.js";
+export {
+  printixCreateEventBodySchema,
+  printixCreateEventErrorSchema,
+  printixCreateEventResponseSchema,
+  printixCreateEventStatus201Schema,
+  printixCreateEventStatus401Schema,
+  printixCreateEventStatus403Schema,
+  printixCreateEventStatus422Schema,
+} from "./printixCreateEventSchema.js";
+export {
+  printixCreatePairingBodySchema,
+  printixCreatePairingErrorSchema,
+  printixCreatePairingPathEventIdSchema,
+  printixCreatePairingPathSchema,
+  printixCreatePairingResponseSchema,
+  printixCreatePairingStatus201Schema,
+  printixCreatePairingStatus401Schema,
+  printixCreatePairingStatus403Schema,
+  printixCreatePairingStatus404Schema,
+  printixCreatePairingStatus409Schema,
+  printixCreatePairingStatus422Schema,
+} from "./printixCreatePairingSchema.js";
+export { printixEventCreateSchema } from "./printixEventCreateSchema.js";
+export { printixEventPublicSchema } from "./printixEventPublicSchema.js";
+export { printixEventStatusSchema } from "./printixEventStatusSchema.js";
+export {
+  printixEventSummaryErrorSchema,
+  printixEventSummaryPathEventIdSchema,
+  printixEventSummaryPathSchema,
+  printixEventSummaryResponseSchema,
+  printixEventSummarySchema,
+  printixEventSummaryStatus200Schema,
+  printixEventSummaryStatus401Schema,
+  printixEventSummaryStatus403Schema,
+  printixEventSummaryStatus404Schema,
+  printixEventSummaryStatus422Schema,
+} from "./printixEventSummarySchema.js";
+export { printixGateCountSchema } from "./printixGateCountSchema.js";
+export { printixImportIssueSchema } from "./printixImportIssueSchema.js";
+export { printixImportReportSchema } from "./printixImportReportSchema.js";
+export {
+  printixImportTicketsBodySchema,
+  printixImportTicketsErrorSchema,
+  printixImportTicketsPathEventIdSchema,
+  printixImportTicketsPathSchema,
+  printixImportTicketsQueryAllowNumberAsBarcodeSchema,
+  printixImportTicketsQueryDryRunSchema,
+  printixImportTicketsQuerySchema,
+  printixImportTicketsResponseSchema,
+  printixImportTicketsStatus200Schema,
+  printixImportTicketsStatus401Schema,
+  printixImportTicketsStatus403Schema,
+  printixImportTicketsStatus404Schema,
+  printixImportTicketsStatus409Schema,
+  printixImportTicketsStatus413Schema,
+  printixImportTicketsStatus422Schema,
+} from "./printixImportTicketsSchema.js";
+export {
+  printixListPairingsErrorSchema,
+  printixListPairingsPathEventIdSchema,
+  printixListPairingsPathSchema,
+  printixListPairingsResponseSchema,
+  printixListPairingsStatus200Schema,
+  printixListPairingsStatus401Schema,
+  printixListPairingsStatus403Schema,
+  printixListPairingsStatus404Schema,
+  printixListPairingsStatus422Schema,
+} from "./printixListPairingsSchema.js";
+export {
+  printixListTicketsErrorSchema,
+  printixListTicketsPathEventIdSchema,
+  printixListTicketsPathSchema,
+  printixListTicketsQueryAdmittedSchema,
+  printixListTicketsQueryPageSchema,
+  printixListTicketsQuerySchema,
+  printixListTicketsQuerySizeSchema,
+  printixListTicketsQueryStatusSchema,
+  printixListTicketsResponseSchema,
+  printixListTicketsStatus200Schema,
+  printixListTicketsStatus401Schema,
+  printixListTicketsStatus403Schema,
+  printixListTicketsStatus404Schema,
+  printixListTicketsStatus422Schema,
+} from "./printixListTicketsSchema.js";
+export { printixPairingCreatedSchema } from "./printixPairingCreatedSchema.js";
+export { printixPairingCreateSchema } from "./printixPairingCreateSchema.js";
+export { printixPairingPublicSchema } from "./printixPairingPublicSchema.js";
+export {
+  printixPairingSummaryErrorSchema,
+  printixPairingSummaryResponseSchema,
+  printixPairingSummaryStatus200Schema,
+  printixPairingSummaryStatus401Schema,
+  printixPairingSummaryStatus403Schema,
+  printixPairingSummaryStatus422Schema,
+  printixPairingSummaryStatus429Schema,
+} from "./printixPairingSummarySchema.js";
+export {
+  printixRevokePairingErrorSchema,
+  printixRevokePairingPathPairingIdSchema,
+  printixRevokePairingPathSchema,
+  printixRevokePairingResponseSchema,
+  printixRevokePairingStatus200Schema,
+  printixRevokePairingStatus401Schema,
+  printixRevokePairingStatus403Schema,
+  printixRevokePairingStatus404Schema,
+  printixRevokePairingStatus422Schema,
+} from "./printixRevokePairingSchema.js";
+export { printixScanOutcomeSchema } from "./printixScanOutcomeSchema.js";
+export { printixScanRequestSchema } from "./printixScanRequestSchema.js";
+export { printixScanResultSchema } from "./printixScanResultSchema.js";
+export { printixTicketPageSchema } from "./printixTicketPageSchema.js";
+export { printixTicketPublicSchema } from "./printixTicketPublicSchema.js";
+export { printixTicketStatusSchema } from "./printixTicketStatusSchema.js";
+export {
+  printixUnvoidTicketErrorSchema,
+  printixUnvoidTicketPathSchema,
+  printixUnvoidTicketPathTicketIdSchema,
+  printixUnvoidTicketResponseSchema,
+  printixUnvoidTicketStatus200Schema,
+  printixUnvoidTicketStatus401Schema,
+  printixUnvoidTicketStatus403Schema,
+  printixUnvoidTicketStatus404Schema,
+  printixUnvoidTicketStatus409Schema,
+  printixUnvoidTicketStatus422Schema,
+} from "./printixUnvoidTicketSchema.js";
+export {
+  printixVoidTicketErrorSchema,
+  printixVoidTicketPathSchema,
+  printixVoidTicketPathTicketIdSchema,
+  printixVoidTicketResponseSchema,
+  printixVoidTicketStatus200Schema,
+  printixVoidTicketStatus401Schema,
+  printixVoidTicketStatus403Schema,
+  printixVoidTicketStatus404Schema,
+  printixVoidTicketStatus409Schema,
+  printixVoidTicketStatus422Schema,
+} from "./printixVoidTicketSchema.js";
 export { productAccessCurrentSchema } from "./productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./productAccessPublicSchema.js";
@@ -8930,6 +9149,10 @@ export { suggestionPublicSchema } from "./suggestionPublicSchema.js";
 export { suggestionUpdatePropertiesStatusEnumSchema } from "./suggestionUpdatePropertiesStatusEnumSchema.js";
 export { suggestionUpdateSchema } from "./suggestionUpdateSchema.js";
 export { superuserActionReasonSchema } from "./superuserActionReasonSchema.js";
+export { superuserInvitationAcceptSchema } from "./superuserInvitationAcceptSchema.js";
+export { superuserInvitationCodeVerifySchema } from "./superuserInvitationCodeVerifySchema.js";
+export { superuserInvitationCreateSchema } from "./superuserInvitationCreateSchema.js";
+export { superuserInvitationPublicSchema } from "./superuserInvitationPublicSchema.js";
 export { swapTypeSchema } from "./swapTypeSchema.js";
 export { synopDecodedSchema } from "./synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./synopticImageGroupSchema.js";

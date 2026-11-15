@@ -6,13 +6,10 @@ from redis.exceptions import ConnectionError
 from src import metrics_report, operational_metrics
 
 NOW = datetime(2026, 10, 31, 4, 50, tzinfo=UTC)
-ALL_JOBS = {
-    "process_cap_jobs|completed": 8000,
-    "ingest_cap_feeds|completed": 288,
-    "send_notification_emails|completed": 2880,
-    "send_notification_emails|failed": 1,
-    "run_notification_sweeps|completed": 1,
-}
+# Derived from the tracked list, so a job added to operational_metrics.JOBS
+# is seeded here too and a "complete" day needs its key.
+TRACKED = sorted(operational_metrics.JOBS)
+ALL_JOBS = {f"{name}|completed": index + 1 for index, name in enumerate(TRACKED)}
 
 
 class FakeRedis:
@@ -64,7 +61,8 @@ async def test_complete_day_reads_only_the_previous_utc_day_jobs_key(telemetry):
 
 @pytest.mark.asyncio
 async def test_complete_day_is_partial_when_a_tracked_job_is_missing(telemetry):
-    jobs = {k: v for k, v in ALL_JOBS.items() if "run_notification_sweeps" not in k}
+    missing = f"{TRACKED[-1]}|"
+    jobs = {k: v for k, v in ALL_JOBS.items() if not k.startswith(missing)}
     telemetry(FakeRedis(jobs))
     result = await metrics_report.complete_day_report(NOW)
     assert result["completeness"] == "partial"

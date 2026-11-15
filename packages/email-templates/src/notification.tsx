@@ -17,15 +17,21 @@ import {
  */
 export interface NotificationEmailProps {
   body: string;
+  /** Replaces the default preferences sentence, for notices that bypass preferences. */
+  footer?: string | null;
   linkUrl: string | null;
   projectName: string;
   title: string;
 }
 
+const DEFAULT_FOOTER =
+  "You can choose which notifications you receive by email under Profile → Notifications. Details stay in the portal.";
+
 export function NotificationEmail({
   projectName,
   title,
   body,
+  footer,
   linkUrl,
 }: NotificationEmailProps) {
   return (
@@ -52,10 +58,7 @@ export function NotificationEmail({
 
             <Hr style={divider} />
 
-            <Text style={footer}>
-              You can choose which notifications you receive by email under
-              Profile → Notifications. Details stay in the portal.
-            </Text>
+            <Text style={footerStyle}>{footer || DEFAULT_FOOTER}</Text>
           </Section>
         </Container>
       </Body>
@@ -141,7 +144,7 @@ const divider: React.CSSProperties = {
   margin: "24px 0",
 };
 
-const footer: React.CSSProperties = {
+const footerStyle: React.CSSProperties = {
   color: "#6b7280",
   fontSize: "14px",
   lineHeight: "1.5",
