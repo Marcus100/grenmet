@@ -219,6 +219,12 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "feature_flags.manage",
         "Create, change and delete feature flags and their audience rules",
     ),
+    # Printix ticket registry (ADR-0060). Only superusers with two-step sign-in
+    # reach the routes; a role holding this key does not reach them.
+    PermissionDef(
+        "printix.manage",
+        "Printix ticket registry: events, ticket import, gate pairings (superuser with two-step sign-in only)",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),

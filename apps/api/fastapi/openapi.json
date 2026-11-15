@@ -67302,6 +67302,1128 @@
           }
         ]
       }
+    },
+    "/api/v1/printix/admin/events": {
+      "post": {
+        "tags": [
+          "printix-admin",
+          "printix-admin"
+        ],
+        "summary": "Create a Printix event",
+        "description": "Creates an open event with a name, a date and the time it closes at the gate. The close time must be in the future.",
+        "operationId": "printixCreateEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrintixEventCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixEventPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/printix/admin/events/{event_id}/close": {
+      "post": {
+        "tags": [
+          "printix-admin",
+          "printix-admin"
+        ],
+        "summary": "Close a Printix event",
+        "description": "Closes the event: every scan answers event_closed and no pairing or ticket change is accepted. Closing a closed event changes nothing.",
+        "operationId": "printixCloseEvent",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixEventPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/admin/events/{event_id}/summary": {
+      "get": {
+        "tags": [
+          "printix-admin",
+          "printix-admin"
+        ],
+        "summary": "Printix event summary",
+        "description": "Issued, void, admitted and not-yet-in counts, duplicate scans refused, and admissions per gate.",
+        "operationId": "printixEventSummary",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixEventSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/admin/events/{event_id}/tickets/import": {
+      "post": {
+        "tags": [
+          "printix-admin",
+          "printix-admin"
+        ],
+        "summary": "Import the printer's ticket list",
+        "description": "Uploads the printer's CSV (a number column and an optional barcode column). With dry_run (the default) it only checks the file and reports every problem with its line. Without dry_run it writes every row, or nothing when any row has a problem. Refused for a closed event.",
+        "operationId": "printixImportTickets",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "dry_run",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Check only. Writes nothing when true.",
+              "default": true,
+              "title": "Dry Run"
+            },
+            "description": "Check only. Writes nothing when true."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_printixImportTickets"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixImportReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The file is larger than the import limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/admin/events/{event_id}/tickets": {
+      "get": {
+        "tags": [
+          "printix-admin",
+          "printix-admin"
+        ],
+        "summary": "List Printix tickets",
+        "description": "Tickets of one event, by printed number, with optional filters. The total counts every ticket that matches. Barcode values are not returned.",
+        "operationId": "printixListTickets",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PrintixTicketStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only valid or only void tickets.",
+              "title": "Status"
+            },
+            "description": "Only valid or only void tickets."
+          },
+          {
+            "name": "admitted",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "True for admitted tickets, false for those not yet in.",
+              "title": "Admitted"
+            },
+            "description": "True for admitted tickets, false for those not yet in."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixTicketPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/admin/tickets/{ticket_id}/void": {
+      "post": {
+        "tags": [
+          "printix-admin",
+          "printix-admin"
+        ],
+        "summary": "Void a Printix ticket",
+        "description": "A void ticket is refused at the gate. An admitted ticket cannot be voided. Voiding a void ticket changes nothing.",
+        "operationId": "printixVoidTicket",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Ticket Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixTicketPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/admin/tickets/{ticket_id}/unvoid": {
+      "post": {
+        "tags": [
+          "printix-admin",
+          "printix-admin"
+        ],
+        "summary": "Restore a void Printix ticket",
+        "description": "Makes a void ticket valid again. A valid ticket changes nothing.",
+        "operationId": "printixUnvoidTicket",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Ticket Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixTicketPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/admin/events/{event_id}/pairings": {
+      "post": {
+        "tags": [
+          "printix-admin",
+          "printix-admin"
+        ],
+        "summary": "Create a gate pairing",
+        "description": "Creates a pairing for one gate of one event. The response carries the secret once; it is not stored and never returned again. Expiry defaults to six hours after the event closes and may be at most a day after close.",
+        "operationId": "printixCreatePairing",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrintixPairingCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixPairingCreated"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "printix-admin",
+          "printix-admin"
+        ],
+        "summary": "List gate pairings",
+        "description": "Every pairing of one event, newest first. Secrets are never returned here.",
+        "operationId": "printixListPairings",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PrintixPairingPublic"
+                  },
+                  "title": "Response Printixlistpairings"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/admin/pairings/{pairing_id}/revoke": {
+      "post": {
+        "tags": [
+          "printix-admin",
+          "printix-admin"
+        ],
+        "summary": "Revoke a gate pairing",
+        "description": "Ends a pairing at once, for a lost or stolen phone. Its next scan is refused. Revoking a revoked pairing changes nothing.",
+        "operationId": "printixRevokePairing",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "pairing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pairing Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixPairingPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/public/admissions": {
+      "post": {
+        "tags": [
+          "printix-scanner",
+          "printix-scanner"
+        ],
+        "summary": "Admit a scanned ticket",
+        "description": "Admits a scanned barcode value, or a typed printed number, to the pairing's event. Outcomes: admitted; already_admitted (with the first admission's time and gate); void; unknown (not a ticket for this event, whether or not it is one for another event); event_closed. Exactly one of two concurrent scans of the same ticket is admitted.",
+        "operationId": "printixAdmitTicket",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrintixScanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixScanResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The pairing secret is missing, malformed or not recognised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The pairing has been revoked or has expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "This pairing made too many scans in a minute; see Retry-After",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "PrintixPairing": []
+          }
+        ]
+      }
+    },
+    "/api/v1/printix/public/summary": {
+      "get": {
+        "tags": [
+          "printix-scanner",
+          "printix-scanner"
+        ],
+        "summary": "Live count for the pairing's event",
+        "description": "The event's issued, admitted and not-yet-in counts, for the promoter's live view.",
+        "operationId": "printixPairingSummary",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixEventSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The pairing secret is missing, malformed or not recognised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The pairing has been revoked or has expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "PrintixPairing": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -71662,6 +72784,21 @@
           "title"
         ],
         "title": "Body_hrUploadDocument"
+      },
+      "Body_printixImportTickets": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "The printer's ticket list (CSV)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_printixImportTickets"
       },
       "BookingAgenda": {
         "properties": {
@@ -97295,6 +98432,495 @@
         ],
         "title": "PrincipalPhase"
       },
+      "PrintixEventCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Event Date"
+          },
+          "closes_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Closes At",
+            "description": "When the event closes at the gate. Sent with a timezone."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "event_date",
+          "closes_at"
+        ],
+        "title": "PrintixEventCreate"
+      },
+      "PrintixEventPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Event Date"
+          },
+          "closes_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Closes At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PrintixEventStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "event_date",
+          "closes_at",
+          "status",
+          "created_at"
+        ],
+        "title": "PrintixEventPublic"
+      },
+      "PrintixEventStatus": {
+        "type": "string",
+        "enum": [
+          "open",
+          "closed"
+        ],
+        "title": "PrintixEventStatus"
+      },
+      "PrintixEventSummary": {
+        "properties": {
+          "event": {
+            "$ref": "#/components/schemas/PrintixEventPublic"
+          },
+          "issued": {
+            "type": "integer",
+            "title": "Issued",
+            "description": "Valid and void tickets imported."
+          },
+          "void": {
+            "type": "integer",
+            "title": "Void"
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted"
+          },
+          "not_yet_in": {
+            "type": "integer",
+            "title": "Not Yet In",
+            "description": "Valid tickets not yet admitted."
+          },
+          "duplicates_refused": {
+            "type": "integer",
+            "title": "Duplicates Refused",
+            "description": "Scans of an already admitted ticket, refused."
+          },
+          "admitted_by_gate": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixGateCount"
+            },
+            "type": "array",
+            "title": "Admitted By Gate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event",
+          "issued",
+          "void",
+          "admitted",
+          "not_yet_in",
+          "duplicates_refused",
+          "admitted_by_gate"
+        ],
+        "title": "PrintixEventSummary"
+      },
+      "PrintixGateCount": {
+        "properties": {
+          "gate": {
+            "type": "string",
+            "title": "Gate"
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "gate",
+          "admitted"
+        ],
+        "title": "PrintixGateCount"
+      },
+      "PrintixImportIssue": {
+        "properties": {
+          "line": {
+            "type": "integer",
+            "title": "Line",
+            "description": "Line of the uploaded file (the header is line 1)."
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line",
+          "message"
+        ],
+        "title": "PrintixImportIssue"
+      },
+      "PrintixImportReport": {
+        "properties": {
+          "dry_run": {
+            "type": "boolean",
+            "title": "Dry Run"
+          },
+          "applied": {
+            "type": "boolean",
+            "title": "Applied",
+            "description": "True only when every row was written. A file with any error writes nothing."
+          },
+          "rows": {
+            "type": "integer",
+            "title": "Rows",
+            "description": "Data rows read from the file, blank lines excluded."
+          },
+          "to_add": {
+            "type": "integer",
+            "title": "To Add",
+            "description": "Rows that a clean apply would write."
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixImportIssue"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "errors_truncated": {
+            "type": "boolean",
+            "title": "Errors Truncated",
+            "description": "True when more than 100 problems were found."
+          }
+        },
+        "type": "object",
+        "required": [
+          "dry_run",
+          "applied",
+          "rows",
+          "to_add",
+          "errors",
+          "errors_truncated"
+        ],
+        "title": "PrintixImportReport"
+      },
+      "PrintixPairingCreate": {
+        "properties": {
+          "gate": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Gate"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At",
+            "description": "Defaults to six hours after the event closes. At most a day after close."
+          }
+        },
+        "type": "object",
+        "required": [
+          "gate"
+        ],
+        "title": "PrintixPairingCreate"
+      },
+      "PrintixPairingCreated": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "gate": {
+            "type": "string",
+            "title": "Gate"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "secret": {
+            "type": "string",
+            "title": "Secret",
+            "description": "Shown once. Put it in the pairing QR code; it is never returned again."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "gate",
+          "created_at",
+          "expires_at",
+          "secret"
+        ],
+        "title": "PrintixPairingCreated"
+      },
+      "PrintixPairingPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "gate": {
+            "type": "string",
+            "title": "Gate"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "gate",
+          "created_at",
+          "expires_at"
+        ],
+        "title": "PrintixPairingPublic"
+      },
+      "PrintixScanOutcome": {
+        "type": "string",
+        "enum": [
+          "admitted",
+          "already_admitted",
+          "void",
+          "unknown",
+          "event_closed"
+        ],
+        "title": "PrintixScanOutcome",
+        "description": "Stable machine codes returned to the scanner. ``unknown`` covers both a\nvalue that is not on the event and one that is on another event, so a\npairing never learns whether another event's ticket exists."
+      },
+      "PrintixScanRequest": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Value",
+            "description": "The barcode value, or a typed printed number."
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "PrintixScanRequest"
+      },
+      "PrintixScanResult": {
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/PrintixScanOutcome"
+          },
+          "printed_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Printed Number",
+            "description": "Set when the value matched a ticket on this event."
+          },
+          "admitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted At",
+            "description": "For admitted, the time of this admission. For already_admitted, the first one."
+          },
+          "admitted_gate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted Gate",
+            "description": "The gate of the admission named in admitted_at."
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome"
+        ],
+        "title": "PrintixScanResult"
+      },
+      "PrintixTicketPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixTicketPublic"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "title": "PrintixTicketPage"
+      },
+      "PrintixTicketPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "printed_number": {
+            "type": "string",
+            "title": "Printed Number"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PrintixTicketStatus"
+          },
+          "admitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted At"
+          },
+          "admitted_gate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted Gate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "printed_number",
+          "status"
+        ],
+        "title": "PrintixTicketPublic"
+      },
+      "PrintixTicketStatus": {
+        "type": "string",
+        "enum": [
+          "valid",
+          "void"
+        ],
+        "title": "PrintixTicketStatus"
+      },
       "ProductAccessCurrent": {
         "properties": {
           "allowed_kinds": {
@@ -120013,10 +121639,24 @@
       "HTTPBearer": {
         "type": "http",
         "scheme": "bearer"
+      },
+      "PrintixPairing": {
+        "type": "apiKey",
+        "description": "The pairing secret from the pairing QR code: `Bearer <secret>`.",
+        "in": "header",
+        "name": "Authorization"
       }
     }
   },
   "tags": [
+    {
+      "name": "printix-admin",
+      "description": "Printix ticket registry: events, ticket import, tickets and gate pairings (superuser with two-step sign-in)."
+    },
+    {
+      "name": "printix-scanner",
+      "description": "Printix gate scanner: admit a scanned ticket and read the live count, authenticated by a gate pairing secret."
+    },
     {
       "name": "audit",
       "description": "Record change history."
