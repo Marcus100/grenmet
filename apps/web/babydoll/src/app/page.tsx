@@ -102,7 +102,7 @@ export default function HomePage() {
                   </ul>
                   <p>{pkg.description}</p>
                   <a
-                    aria-label={`Book ${pkg.name} (opens in a new tab)`}
+                    aria-label={`Book ${pkg.name}`}
                     className={featured ? "btn" : "btn btn-ghost"}
                     href={booking.href}
                     rel={booking.rel}

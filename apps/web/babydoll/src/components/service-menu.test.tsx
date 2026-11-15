@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ServiceMenu } from "./service-menu";
 
-const BOOK_LABEL = /^Book .+ \(opens in a new tab\)$/u;
+const BOOK_LABEL = /^Book .+$/u;
 
 const booking = {
   href: "https://example.test/book",
@@ -29,6 +29,22 @@ describe("ServiceMenu tabs", () => {
     expect(first).toHaveFocus();
   });
 
+  it("leaves browser shortcuts with Alt, Ctrl or Cmd alone", () => {
+    render(<ServiceMenu booking={booking} />);
+    const tabs = screen.getAllByRole("tab");
+    const first = tabs[0];
+    const last = tabs.at(-1);
+    if (!(first && last)) throw new Error("need tabs");
+
+    first.focus();
+    fireEvent.keyDown(first, { key: "End", ctrlKey: true });
+    fireEvent.keyDown(first, { key: "ArrowRight", altKey: true });
+    fireEvent.keyDown(first, { key: "Home", metaKey: true });
+
+    expect(first).toHaveAttribute("aria-selected", "true");
+    expect(last).toHaveAttribute("aria-selected", "false");
+  });
+
   it("still steps with the arrow keys and wraps", () => {
     render(<ServiceMenu booking={booking} />);
     const tabs = screen.getAllByRole("tab");
@@ -42,9 +58,12 @@ describe("ServiceMenu tabs", () => {
     expect(first).toHaveAttribute("aria-selected", "true");
   });
 
-  it("names each Book link as opening a new tab", () => {
-    render(<ServiceMenu booking={booking} />);
-    const links = screen.getAllByRole("link", { hidden: true });
+  it("says once that the Book links open a new tab, and keeps each label short", () => {
+    const { container } = render(<ServiceMenu booking={booking} />);
+    expect(
+      screen.getByText("Book links open the booking page in a new tab.")
+    ).toHaveClass("sr-only");
+    const links = Array.from(container.querySelectorAll("a.book-link"));
     expect(links.length).toBeGreaterThan(0);
     for (const link of links) {
       expect(link.getAttribute("aria-label")).toMatch(BOOK_LABEL);

@@ -11,6 +11,8 @@ export function ServiceMenu({ booking }: { booking: CtaLink }) {
 
   // Tabs pattern: arrows step through, Home and End jump to the ends.
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    // Alt, Ctrl and Cmd combinations belong to the browser (Alt+Left, Ctrl+Home).
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
     let next: ServiceCategory["id"] | undefined;
     if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
       const step = event.key === "ArrowRight" ? 1 : -1;
@@ -28,6 +30,8 @@ export function ServiceMenu({ booking }: { booking: CtaLink }) {
 
   return (
     <>
+      {/* One note for the whole menu: every Book link below opens a new tab. */}
+      <p className="sr-only">Book links open the booking page in a new tab.</p>
       <div aria-label="Service categories" className="chips" role="tablist">
         {SERVICE_MENU.map((category) => (
           <button
@@ -68,7 +72,7 @@ export function ServiceMenu({ booking }: { booking: CtaLink }) {
                   {service.note && <span className="note">{service.note}</span>}
                   {!service.addOn && (
                     <a
-                      aria-label={`Book ${service.name} (opens in a new tab)`}
+                      aria-label={`Book ${service.name}`}
                       className="book-link"
                       href={booking.href}
                       rel={booking.rel}

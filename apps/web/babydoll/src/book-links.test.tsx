@@ -46,9 +46,7 @@ describe("Book links", () => {
 
   it("sends each bookable service to the booking page", () => {
     const { container } = render(<ServicesPage />);
-    const booking = container.querySelector(
-      'a[aria-label="Book Volume (opens in a new tab)"]'
-    );
+    const booking = container.querySelector('a[aria-label="Book Volume"]');
     expect(booking).toHaveAttribute("href", BOOKING_HREF);
   });
 

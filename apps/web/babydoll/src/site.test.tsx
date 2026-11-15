@@ -77,9 +77,10 @@ describe("service menu", () => {
 
   it("books every service except add-ons", () => {
     render(<ServicesPage />);
-    expect(
-      screen.getByRole("link", { name: "Book Volume (opens in a new tab)" })
-    ).toHaveAttribute("href", BOOKING_URL);
+    expect(screen.getByRole("link", { name: "Book Volume" })).toHaveAttribute(
+      "href",
+      BOOKING_URL
+    );
     expect(
       screen.queryByRole("link", {
         name: "Book Deluxe brow add-on",
