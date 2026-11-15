@@ -35,6 +35,7 @@ const MY_BOOKINGS =
   /your bookings with them, including this one, are listed under My bookings/u;
 const NEVER_NEEDS = /Booking never needs an account/u;
 const DATE_RANGE = /^\w{3} \d{1,2} \w{3} to \w{3} \d{1,2} \w{3}$/u;
+const EMAIL_ERROR = /Enter a valid email address/u;
 
 const storefront: BookingStorefront = {
   slug: "test-studio",
@@ -667,5 +668,56 @@ describe("Book again", () => {
       screen.queryByRole("heading", { name: "Book again" })
     ).not.toBeInTheDocument();
     expect(screen.getAllByRole("radio")).toHaveLength(2);
+  });
+});
+
+describe("BookingFlow error messages follow the person's changes", () => {
+  const SUBMIT = "Request my booking";
+  const NAME_ERROR = "Enter your name.";
+  const TIME_ERROR = "Choose a day and time.";
+
+  it("drops a field's error once the field is valid", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await user.click(screen.getByRole("button", { name: SUBMIT }));
+    expect(await screen.findByLabelText("Name")).toHaveAttribute(
+      "aria-invalid",
+      "true"
+    );
+
+    await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+
+    expect(screen.getByLabelText("Name")).toHaveAttribute(
+      "aria-invalid",
+      "false"
+    );
+    expect(screen.queryByText(NAME_ERROR)).not.toBeInTheDocument();
+  });
+
+  it("clears the day and time error once a time is picked", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await user.click(screen.getByRole("button", { name: SUBMIT }));
+    expect((await screen.findAllByText(TIME_ERROR)).length).toBeGreaterThan(0);
+
+    await chooseSlot(user);
+
+    expect(screen.queryByText(TIME_ERROR)).not.toBeInTheDocument();
+  });
+
+  it("keeps the message while the value is still wrong", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await user.type(screen.getByLabelText("Email"), "ada@");
+    await user.click(screen.getByRole("button", { name: SUBMIT }));
+    expect((await screen.findAllByText(EMAIL_ERROR)).length).toBeGreaterThan(0);
+
+    await user.type(screen.getByLabelText("Email"), "x");
+
+    expect(screen.getByLabelText("Email")).toHaveAttribute(
+      "aria-invalid",
+      "true"
+    );
+    expect(screen.getAllByText(EMAIL_ERROR).length).toBeGreaterThan(0);
   });
 });

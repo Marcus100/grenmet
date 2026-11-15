@@ -241,9 +241,11 @@ async def _hr_admin(db: AsyncSession) -> tuple[User, dict[str, str]]:
     return admin, await account_headers(db, admin)
 
 
-async def test_hr_offboarding_refuses_the_last_superuser(
+async def test_hr_offboarding_refuses_a_superuser_for_hr_manager(
     async_client: AsyncClient, db_async: AsyncSession
 ) -> None:
+    """#1491: an HR manager (hr.setup.manage only) cannot offboard any superuser, so
+    the last-superuser guard is never reached for them. The 403 is generic."""
     await make_department(db_async, OWN_DEPT, organisation_id=OWN_ORG)
     db_async.add(
         Grade(id=OWN_GRADE, department_id=OWN_DEPT, code="OWN", label="Own", rank=1)
@@ -265,7 +267,8 @@ async def test_hr_offboarding_refuses_the_last_superuser(
         f"/api/v1/hr/setup/staff/{last.id}/offboard", headers=headers
     )
 
-    assert response.status_code == 409, response.text
+    assert response.status_code == 403, response.text
+    assert response.json()["detail"] == "Only a superuser can do this"
     await db_async.refresh(last)
     assert last.is_active is True
 

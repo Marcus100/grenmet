@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed. Owner direction 2026-10-22 (design A below). Becomes Accepted when the
+Accepted — 2026-11-15 by the owner (built and in use). Earlier status, kept for history: Proposed. Owner direction 2026-10-22 (design A below). Becomes Accepted when the
 owner merges it. Owner-merge: this PR changes `AGENTS.md` files and a security
 rule. Amends [ADR-0022](0022-platform-organisations-and-memberships.md) decision 4
 and [ADR-0044](0044-organisation-scoped-permissions-via-membership-grants.md).
