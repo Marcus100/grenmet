@@ -42,6 +42,27 @@ are placeholders until the client supplies artwork.
 - Whether the pairing allows **typed numbers**. Typed entry is always shown, and
   `unknown` for a typed number may mean "typed numbers are off".
 
+## Pairing secrets: what unpairing and sharing do
+
+- **Unpairing does not revoke on the server.** "Unpair this phone" only deletes
+  the secret from this phone's `localStorage`. The server still accepts that
+  secret until an administrator revokes the pairing. A lost or stolen phone
+  stays able to check tickets until someone revokes it.
+- **A pairing link stays valid until it expires or is revoked.** A link shared
+  by chat, email or a photo works on any phone that opens it, not only the one
+  it was meant for. Treat a pairing link like a password: share it once, then
+  revoke it if it leaks.
+
+## Address and API origin
+
+- The planned scanner address is `https://scan.barrels.gd`. It is listed in
+  `BACKEND_CORS_ORIGINS` in `infra/docker/production.env`, so the production API
+  accepts calls from it.
+- `public/_headers` enforces the CSP with `connect-src 'self' https://api.barrels.gd`.
+  Calls to any other API origin are blocked by the browser. A local API on
+  `http://localhost` only works with `pnpm dev:pwa:printix`, which sends no
+  `_headers` CSP.
+
 ## Not built yet
 
 QR generation for administrators, offline scanning, ticket types, re-entry,
