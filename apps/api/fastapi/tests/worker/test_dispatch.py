@@ -248,8 +248,10 @@ async def test_no_jobs_returns_zero(db_async: AsyncSession) -> None:
     assert handled == 0
 
 
-async def _add_published_alert(session: AsyncSession) -> CapAlert:
-    """A Public/Actual alert with one info block and a polygon area."""
+async def _add_published_alert(
+    session: AsyncSession, *, with_info: bool = True
+) -> CapAlert:
+    """A Public/Actual alert with one info block and a polygon area (no info if asked)."""
     user = await auth_service.get_user_by_email(
         session=session, email=str(settings.FIRST_SUPERUSER)
     )
@@ -264,6 +266,10 @@ async def _add_published_alert(session: AsyncSession) -> CapAlert:
     )
     session.add(alert)
     await session.flush()
+    if not with_info:
+        await session.commit()
+        await session.refresh(alert)
+        return alert
     info = CapInfo(
         alert_id=alert.id,
         event="Heavy rain",
@@ -471,6 +477,98 @@ async def test_exhausted_jobs_are_counted_and_logged(
         "count": 1,
         "kinds": ["publish.email"],
     }
+
+
+async def test_exhausted_job_is_logged_once_across_repeated_checks(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from unittest.mock import MagicMock
+
+    from src.worker import main as worker_main
+
+    job = await _add_job(db_async, "publish.email")
+    job.status = CapJobStatus.FAILED
+    job.attempts = 5
+    await db_async.commit()
+    log = MagicMock()
+    monkeypatch.setattr(worker_main, "logger", log)
+
+    # The gauge (returned count) keeps showing the current exhausted total...
+    assert await worker_main.check_cap_job_failures({}) == 1
+    assert await worker_main.check_cap_job_failures({}) == 1
+    assert await worker_main.check_cap_job_failures({}) == 1
+    # ...but the Sentry error is raised once for the job.
+    log.error.assert_called_once()
+    assert log.error.call_args.kwargs["extra"] == {
+        "count": 1,
+        "kinds": ["publish.email"],
+    }
+
+
+async def test_newly_exhausted_job_is_logged_once_and_old_ones_are_not_repeated(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from unittest.mock import MagicMock
+
+    from src.worker import main as worker_main
+
+    first = await _add_job(db_async, "publish.email")
+    first.status = CapJobStatus.FAILED
+    first.attempts = 5
+    await db_async.commit()
+    log = MagicMock()
+    monkeypatch.setattr(worker_main, "logger", log)
+    assert await worker_main.check_cap_job_failures({}) == 1
+
+    second = await _add_job(db_async, "publish.push")
+    second.status = CapJobStatus.FAILED
+    second.attempts = 5
+    await db_async.commit()
+
+    assert await worker_main.check_cap_job_failures({}) == 2
+    assert await worker_main.check_cap_job_failures({}) == 2
+    assert log.error.call_count == 2
+    assert log.error.call_args.kwargs["extra"] == {
+        "count": 1,
+        "kinds": ["publish.push"],
+    }
+
+
+async def test_social_image_without_info_block_is_skipped_not_failed(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stored: dict[str, bytes] = {}
+
+    def put_object(key: str, data: bytes, *, content_type: str) -> None:
+        _ = content_type
+        stored[key] = data
+
+    monkeypatch.setattr(storage_service, "put_object", put_object)
+    alert = await _add_published_alert(db_async, with_info=False)
+    job = CapJobEvent(
+        alert_id=alert.id,
+        kind="publish.social_image",
+        payload={"alert_id": str(alert.id)},
+    )
+    db_async.add(job)
+    await db_async.commit()
+
+    async with _client(lambda _r: httpx.Response(200)) as client:
+        await process_due_jobs(session=db_async, http_client=client)
+
+    await db_async.refresh(job)
+    assert job.status == CapJobStatus.SKIPPED, job.result
+    assert job.result == {
+        "skipped": True,
+        "reason": "no info block",
+        "kind": "publish.social_image",
+    }
+    assert stored == {}
+    assert job.attempts == 1
+    assert (
+        await exhausted_jobs(session=db_async, max_attempts=5, window=timedelta(days=7))
+        == []
+    )
 
 
 async def test_exhausted_job_emails_gms_once_with_no_personal_data(

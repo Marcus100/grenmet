@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Address, Hours } from "@/components/hours";
+import { NewTabNote } from "@/components/new-tab-note";
 import { PageHead } from "@/components/sections";
 import { INSTAGRAM_DM_URL, MAPS_URL, SOCIALS } from "@/data/site";
 import { type CtaLink, siteBookingLink } from "@/lib/book-link";
@@ -51,6 +52,7 @@ export default function ContactPage() {
               <a className="channel" key={channel.title} {...channel.link}>
                 <b>{channel.title}</b>
                 <span>{channel.detail}</span>
+                <NewTabNote />
                 <i aria-hidden="true">→</i>
               </a>
             ))}

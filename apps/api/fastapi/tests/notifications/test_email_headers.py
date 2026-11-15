@@ -60,8 +60,9 @@ def test_smtp_fallback_adds_the_list_headers(monkeypatch: pytest.MonkeyPatch) ->
     messages: list[Any] = []
 
     class FakeSMTP:
-        def __init__(self, host: str, port: int) -> None:
+        def __init__(self, host: str, port: int, timeout: float | None = None) -> None:
             self.host = host
+            assert timeout is not None  # a hung server must not block the caller
 
         def starttls(self) -> None:
             return None

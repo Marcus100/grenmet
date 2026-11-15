@@ -48,6 +48,10 @@ describe("AccountButton", () => {
     expect(notice.textContent).toContain(
       "signed in to Grenada Meteorological Service with your Barrels account"
     );
+    const address = screen.getByText("kezia@example.com", { selector: "span" });
+    expect(address.parentElement?.textContent).toContain(
+      "with your Barrels account (kezia@example.com). Not you?"
+    );
     fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
     expect(screen.queryByRole("status")).toBeNull();
   });

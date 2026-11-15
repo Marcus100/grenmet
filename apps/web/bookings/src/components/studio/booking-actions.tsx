@@ -9,6 +9,7 @@
 // usable as the desk.
 
 import type { BookingStatus } from "@barrelsgd/api-client";
+import { localDay } from "@barrelsgd/bookings-web/lib/booking-format";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -20,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@barrelsgd/ui/components/ui/alert-dialog";
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import {
@@ -37,10 +39,11 @@ import {
   confirmBookingAction,
   declineBookingAction,
   noShowBookingAction,
+  rescheduleBookingAction,
 } from "@/app/studio/[orgSlug]/bookings/[id]/actions";
 import { keepValuesOnSubmit } from "@/lib/keep-values";
 import { type ActionState, IDLE } from "@/lib/studio-action-state";
-import { availableActions } from "@/lib/studio-view";
+import { availableActions, localTime } from "@/lib/studio-view";
 
 // The design spec's minimum touch target; the touch size alone is 48 px.
 const TARGET = "min-h-11";
@@ -56,7 +59,10 @@ export interface BookingActionsProps {
   refundable: boolean;
   /** The booking's start has passed (server clock at render). */
   started: boolean;
+  /** The booking's current start (UTC ISO) and the business's IANA timezone. */
+  startsAt: string;
   status: BookingStatus;
+  timezone: string;
 }
 
 export function BookingActions({
@@ -64,7 +70,9 @@ export function BookingActions({
   orgSlug,
   refundable,
   started,
+  startsAt,
   status,
+  timezone,
 }: BookingActionsProps) {
   const [notice, setNotice] = useState<ActionState>(IDLE);
   const noticeRef = useRef<HTMLParagraphElement>(null);
@@ -93,6 +101,15 @@ export function BookingActions({
               bookingId={bookingId}
               onResult={setNotice}
               orgSlug={orgSlug}
+            />
+          ) : null}
+          {keys.includes("reschedule") ? (
+            <RescheduleDialog
+              action={rescheduleBookingAction.bind(null, orgSlug, bookingId)}
+              day={localDay(startsAt, timezone)}
+              onResult={setNotice}
+              time={localTime(startsAt, timezone)}
+              timezone={timezone}
             />
           ) : null}
           {keys.includes("complete") ? (
@@ -246,6 +263,72 @@ function FinalDialog({
       tone={tone}
       triggerLabel={submitLabel}
     />
+  );
+}
+
+/** Change the time: the customer is emailed the new one. Staff may pick any future time the provider is free. */
+function RescheduleDialog({
+  action,
+  day,
+  onResult,
+  time,
+  timezone,
+}: {
+  action: (previous: ActionState, formData: FormData) => Promise<ActionState>;
+  day: string;
+  onResult: (state: ActionState) => void;
+  time: string;
+  timezone: string;
+}) {
+  const dateId = useId();
+  const timeId = useId();
+  const hintId = useId();
+  return (
+    <DialogShell
+      action={action}
+      description="The customer is emailed the new time. The provider and service stay the same."
+      onResult={onResult}
+      submitLabel="Move booking"
+      title="Change the time of this booking?"
+      tone="default"
+      triggerLabel="Change time"
+    >
+      {() => (
+        <div className="space-y-3 text-left">
+          <div className="space-y-1">
+            <Label className="font-medium" htmlFor={dateId}>
+              New date
+            </Label>
+            <Input
+              className={TARGET}
+              defaultValue={day}
+              id={dateId}
+              name="date"
+              required
+              type="date"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="font-medium" htmlFor={timeId}>
+              New start time
+            </Label>
+            <Input
+              aria-describedby={hintId}
+              className={TARGET}
+              defaultValue={time}
+              id={timeId}
+              name="time"
+              required
+              type="time"
+            />
+            <p className="text-muted-foreground text-sm" id={hintId}>
+              On the business's clock ({timezone}). You can pick a time outside
+              opening hours; the provider cannot be double-booked.
+            </p>
+          </div>
+        </div>
+      )}
+    </DialogShell>
   );
 }
 

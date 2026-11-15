@@ -190,7 +190,7 @@ Job and sweep collectors read the previous, fully elapsed UTC day
 (`python -m src.metrics_report --complete-day`, or one `HGETALL` of that day's
 job hash on the runner). The report is `complete` only when every tracked job
 (`process_cap_jobs`, `ingest_cap_feeds`, `send_notification_emails`,
-`run_notification_sweeps`) recorded an outcome that day. A rolling "today"
+`run_notification_sweeps`, `purge_scan_log`) recorded an outcome that day. A rolling "today"
 window is never complete, because the daily sweep runs at 10:00 UTC, after the
 audit. Empty or disabled telemetry stays unknown, never zero.
 ## Security issue consolidation

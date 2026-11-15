@@ -62,11 +62,14 @@ class AccountSecurityPublic(BaseModel):
     google_linked: bool
     totp_enabled: bool
     password_changed_at: UtcDateTime | None = None
+    # False for an email-code account: the page then asks for no password.
+    has_password: bool
     sessions: list[SecuritySessionPublic]
 
 
 class SecurityProof(BaseModel):
-    password: str = Field(min_length=1, max_length=128)
+    # Required only for an account that has a password (ADR-0059 rule 3).
+    password: str | None = Field(default=None, max_length=128)
     code: str = Field(min_length=6, max_length=64)
 
 

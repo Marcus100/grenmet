@@ -42,6 +42,7 @@ export function CodeField({
           maxLength={64}
           name={name}
           required
+          spellCheck={false}
         />
       ) : (
         <InputOTP

@@ -214,7 +214,8 @@ async def _session_response(
     # Staff apps (ADR-0017) keep the staff gate and mint ordinary staff tokens.
     staff = app.scope == "staff"
     eligible = (
-        service.is_staff_eligible(user) and app.allows(user)
+        service.is_staff_eligible(user, superuser_only=app.superuser_only)
+        and app.allows(user)
         if staff
         else await service.is_eligible_for_app(
             session=session, user=user, app_key=app.key
@@ -232,7 +233,7 @@ async def _session_response(
         app_name=app.key,
         user_agent=user_agent,
         ip_address=ip_address,
-        enforce_approval=staff,
+        enforce_approval=staff and not (app.superuser_only and user.is_superuser),
         mfa_verified_at=mfa_verified_at,
         mfa_source_session=mfa_source_session,
     )
@@ -762,7 +763,7 @@ async def handoff_start(
     if app.scope == "staff":
         if not app.allows(user):
             raise AppException(f"{app.label} is for Barrels staff only.", 403)
-        if not service.is_staff_eligible(user):
+        if not service.is_staff_eligible(user, superuser_only=app.superuser_only):
             await _staff_app_request(session, user, app, join=body.join)
     elif not await service.is_eligible_for_app(
         session=session, user=user, app_key=app.key
@@ -950,7 +951,9 @@ def _can_join(app: AppDefinition) -> bool:
 
 async def _uses_app(session: AsyncSession, user: User, app: AppDefinition) -> bool:
     if app.scope == "staff":
-        return service.is_staff_eligible(user) and app.allows(user)
+        return service.is_staff_eligible(
+            user, superuser_only=app.superuser_only
+        ) and app.allows(user)
     return await service.is_eligible_for_app(
         session=session, user=user, app_key=app.key
     )

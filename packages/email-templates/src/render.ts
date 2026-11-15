@@ -14,6 +14,10 @@ import {
   SubscriptionConfirmEmail,
   type SubscriptionConfirmEmailProps,
 } from "./subscription-confirm";
+import {
+  SuperuserInvitationEmail,
+  type SuperuserInvitationEmailProps,
+} from "./superuser-invitation";
 import { WelcomeEmail, type WelcomeEmailProps } from "./welcome";
 
 export type TemplateName =
@@ -23,6 +27,7 @@ export type TemplateName =
   | "organisation-invitation"
   | "reset-password"
   | "subscription-confirm"
+  | "superuser-invitation"
   | "welcome";
 
 export interface RenderResult {
@@ -76,6 +81,18 @@ export async function renderTemplate(
       return {
         html: await render(OrganisationInvitationEmail(p)),
         subject: `You are invited to join ${p.organisationName}`,
+      };
+    }
+    case "superuser-invitation": {
+      const p = props as unknown as SuperuserInvitationEmailProps;
+      if (!(p.acceptLink && p.inviterName && p.projectName)) {
+        throw new Error(
+          "superuser-invitation requires acceptLink, inviterName and projectName"
+        );
+      }
+      return {
+        html: await render(SuperuserInvitationEmail(p)),
+        subject: `You are invited to be an administrator of ${p.projectName}`,
       };
     }
     case "reset-password": {

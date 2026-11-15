@@ -13,7 +13,14 @@ export function StaffOnly({ email }: { email?: string }) {
       <h1 className="text-2xl font-semibold">Barrels staff only</h1>
       <p className="text-muted-foreground">
         This console is for Barrels Grenada staff. Your account
-        {email ? ` (${email})` : ""} does not have access.
+        {email ? (
+          <>
+            {" ("}
+            <span>{email}</span>
+            {")"}
+          </>
+        ) : null}{" "}
+        does not have access.
       </p>
       <p className="text-muted-foreground">
         If you should have access, ask a Barrels administrator. Otherwise use

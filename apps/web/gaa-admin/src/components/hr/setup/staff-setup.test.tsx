@@ -73,6 +73,15 @@ it("explains missing grades and blocks staff saving", async () => {
     screen.getByRole("button", { name: "Save staff setup" })
   ).toBeDisabled();
 });
+
+it("puts the staff address in its own element (#1365)", async () => {
+  renderSetup();
+  fireEvent.click(await screen.findByText("Test Staff · draft"));
+  const address = screen.getByText("staff@example.com", { selector: "span" });
+  expect(address.parentElement?.textContent).toBe(
+    "staff@example.com · Email verification pending"
+  );
+});
 it("saves incomplete personnel details and separate mailbox readiness", async () => {
   const saved: unknown[] = [];
   server.use(

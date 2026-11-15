@@ -176,6 +176,17 @@ it("keeps Publish disabled until the alert is approved", async () => {
   expect(actions).toEqual([]);
 });
 
+it("puts the sender address in its own element (#1365)", async () => {
+  alert = { ...alert, sender: "meteorology@gaa.gd" };
+  show();
+  const address = await screen.findByText("meteorology@gaa.gd", {
+    selector: "span",
+  });
+  expect(address.parentElement?.textContent).toBe(
+    "meteorology@gaa.gd / 2026-09-17T12:00:00Z"
+  );
+});
+
 it("hides Emergency publish from users without the emergency permission", async () => {
   show();
   await review();

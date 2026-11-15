@@ -4,7 +4,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getStorefront } from "@/lib/booking-api";
 import BusinessBookingPage, { generateMetadata } from "./page";
 
-vi.mock("@/env", () => ({ env: { NEXT_PUBLIC_TURNSTILE_SITE_KEY: "" } }));
+vi.mock("@/env", () => ({
+  env: {
+    AUTH_APP_URL: "https://auth.example.test",
+    NEXT_PUBLIC_SITE_URL: "https://bookings.example.test",
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: "",
+  },
+}));
+vi.mock("@/lib/signed-in-visitor", () => ({ loadVisitor: vi.fn(() => null) }));
 vi.mock("@/lib/booking-api", () => ({ getStorefront: vi.fn() }));
 vi.mock("./actions", () => ({
   confirmEmailCode: { bind: vi.fn(() => vi.fn()) },

@@ -50,8 +50,8 @@ export default async function StudioPage() {
           <EmptyTitle>You are not part of a business yet</EmptyTitle>
           <EmptyDescription>
             {session.name} is signed in, but no business has added this account.
-            Ask the business owner to invite {session.email} to their Barrels
-            organisation, then refresh this page.
+            Ask the business owner to invite <span>{session.email}</span> to
+            their Barrels organisation, then refresh this page.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>

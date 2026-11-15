@@ -5,6 +5,7 @@ import hashlib
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any
 
 import httpx
 import pytest
@@ -721,6 +722,63 @@ async def test_reschedule_moves_the_booking_and_keeps_it_active(
     assert "booking-studio-rescheduled" in kinds
 
 
+async def test_moving_away_and_back_notifies_every_time(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Keys built from the new start time made the third notification (back to
+    the first time) collide with the first and be swallowed."""
+    sent: list[tuple[str, str | None]] = []
+
+    async def record(
+        _session: object,
+        _organisation_id: str,
+        event_type: str,
+        _data: dict[str, Any],
+        *,
+        event_id: str | None = None,
+    ) -> int:
+        sent.append((event_type, event_id))
+        return 1
+
+    monkeypatch.setattr("src.webhooks_out.service.emit_event_safely", record)
+    studio, receipt, slots = await _booked(db_async, async_client)
+    token = receipt["manage_token"]
+    first = receipt["booking"]["starts_at"]
+    other = next(s for s in slots if s > first)
+    for target in (other, first, other, first):
+        response = await async_client.post(
+            f"{API}/public/bookings/{token}/reschedule", json={"starts_at": target}
+        )
+        assert response.status_code == 200, response.text
+
+    booking_id = receipt["booking"]["id"]
+    rows = await _emails(db_async, studio.org_id)
+    for prefix in ("booking-rescheduled", "booking-studio-rescheduled"):
+        mine = [
+            row.dedupe_key
+            for row in rows
+            if row.dedupe_key.startswith(f"{prefix}:{booking_id}")
+        ]
+        assert len(mine) == 4
+        assert len(set(mine)) == 4
+    moved = [event_id for kind, event_id in sent if kind == "booking.rescheduled"]
+    assert len(moved) == 4
+    assert len(set(moved)) == 4
+    # Each key names its own history row.
+    events = list(
+        await db_async.scalars(
+            select(BookingEvent)
+            .where(BookingEvent.booking_id == uuid.UUID(booking_id))
+            .order_by(BookingEvent.created_at, BookingEvent.id)
+            .execution_options(populate_existing=True)
+        )
+    )
+    ids = {str(event.id) for event in events[-4:]}
+    assert {str(key).rsplit(":", 1)[1] for key in moved} == ids
+
+
 async def test_reschedule_to_a_taken_slot_or_inside_the_cutoff_is_409(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
@@ -880,6 +938,118 @@ async def test_cancelled_and_past_bookings_get_no_reminder(
         booking.starts_at + timedelta(hours=1),
     ):
         assert await reminders.enqueue_due_reminders(db_async, now=moment, **once) == 0
+    await db_async.commit()
+    assert not [
+        row
+        for row in await _emails(db_async, studio.org_id)
+        if row.dedupe_key.startswith("booking-reminder")
+    ]
+
+
+def _reminder_rows(rows: list[Outbox], booking_id: str) -> list[Outbox]:
+    return [row for row in rows if row.dedupe_key == f"booking-reminder:{booking_id}"]
+
+
+async def test_a_pending_booking_is_reminded_and_the_mail_says_it_is_unconfirmed(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, receipt, _ = await _booked(
+        db_async, async_client, requires_confirmation=True
+    )
+    assert receipt["booking"]["status"] == "pending"
+    booking = await _booking_for(db_async, receipt["booking"]["id"])
+    once = {"organisation_id": studio.org_id}
+    inside = booking.starts_at - timedelta(hours=20)
+    assert await reminders.enqueue_due_reminders(db_async, now=inside, **once) == 1
+    await db_async.commit()
+    [row] = _reminder_rows(await _emails(db_async, studio.org_id), str(booking.id))
+    assert row.payload["subject"] == (
+        "Reminder: your booking request at Babydoll Beauty Bar"
+    )
+    assert "has not confirmed it yet" in row.payload["html"]
+    assert "Classic full set" in row.payload["html"]
+    assert receipt["manage_token"] not in row.payload["html"]
+
+
+async def test_a_confirmed_booking_reminder_does_not_say_unconfirmed(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, receipt, _ = await _booked(db_async, async_client)
+    booking = await _booking_for(db_async, receipt["booking"]["id"])
+    inside = booking.starts_at - timedelta(hours=20)
+    once = {"organisation_id": studio.org_id}
+    assert await reminders.enqueue_due_reminders(db_async, now=inside, **once) == 1
+    await db_async.commit()
+    [row] = _reminder_rows(await _emails(db_async, studio.org_id), str(booking.id))
+    assert row.payload["subject"] == "Reminder: your booking at Babydoll Beauty Bar"
+    assert "not confirmed" not in row.payload["html"]
+
+
+async def test_a_reminded_pending_booking_is_not_reminded_again_once_confirmed(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, receipt, _ = await _booked(
+        db_async, async_client, requires_confirmation=True
+    )
+    booking = await _booking_for(db_async, receipt["booking"]["id"])
+    once = {"organisation_id": studio.org_id}
+    first = booking.starts_at - timedelta(hours=20)
+    assert await reminders.enqueue_due_reminders(db_async, now=first, **once) == 1
+    await db_async.commit()
+    confirm = await async_client.post(
+        f"{API}/org/bookings/{booking.id}/confirm", headers=studio.headers
+    )
+    assert confirm.status_code == 200, confirm.text
+    later = first + timedelta(hours=2)
+    assert await reminders.enqueue_due_reminders(db_async, now=later, **once) == 0
+    await db_async.commit()
+    assert (
+        len(_reminder_rows(await _emails(db_async, studio.org_id), str(booking.id)))
+        == 1
+    )
+
+
+async def test_reminders_start_exactly_24_hours_ahead_for_both_statuses(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    for confirmation in (False, True):
+        studio, receipt, _ = await _booked(
+            db_async, async_client, requires_confirmation=confirmation
+        )
+        booking = await _booking_for(db_async, receipt["booking"]["id"])
+        once = {"organisation_id": studio.org_id}
+        too_early = booking.starts_at - timedelta(hours=24, minutes=1)
+        assert (
+            await reminders.enqueue_due_reminders(db_async, now=too_early, **once) == 0
+        )
+        on_the_dot = booking.starts_at - timedelta(hours=24)
+        assert (
+            await reminders.enqueue_due_reminders(db_async, now=on_the_dot, **once) == 1
+        )
+        await db_async.commit()
+
+
+async def test_declined_and_cancelled_pending_bookings_get_no_reminder(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client, requires_confirmation=True)
+    slots = await _slots(async_client, studio)
+    first = await _book(async_client, studio, slots[0])
+    second = await _book(async_client, studio, slots[-1])
+    assert first.status_code == second.status_code == 201
+    declined, cancelled = first.json(), second.json()
+    assert declined["booking"]["status"] == cancelled["booking"]["status"] == "pending"
+    response = await async_client.post(
+        f"{API}/org/bookings/{declined['booking']['id']}/decline",
+        headers=studio.headers,
+        json={"reason": "Fully booked"},
+    )
+    assert response.status_code == 200, response.text
+    await async_client.post(f"{API}/public/bookings/{cancelled['manage_token']}/cancel")
+    booking = await _booking_for(db_async, declined["booking"]["id"])
+    inside = booking.starts_at - timedelta(hours=20)
+    once = {"organisation_id": studio.org_id}
+    assert await reminders.enqueue_due_reminders(db_async, now=inside, **once) == 0
     await db_async.commit()
     assert not [
         row

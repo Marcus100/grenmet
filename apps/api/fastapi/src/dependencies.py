@@ -34,6 +34,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.auth import superuser_mfa
+from src.auth.apps import get_app, is_registered
 from src.auth.config import auth_settings
 from src.auth.constants import (
     ERROR_INACTIVE_USER,
@@ -211,6 +212,17 @@ def _token_app_claim(token: str) -> str | None:
         return None
 
 
+def _superuser_only_app_session(user: User, session_app: str | None) -> bool:
+    """A superuser on a superuser-only app (barrels-admin) is not held by staff
+    approval (ADR-0059 rule 5). Any other app, or an account token, is unchanged."""
+    return (
+        user.is_superuser
+        and session_app is not None
+        and is_registered(session_app)
+        and get_app(session_app).superuser_only
+    )
+
+
 async def get_authenticated_user(
     session: AsyncSession,
     user_id: uuid.UUID,
@@ -238,7 +250,11 @@ async def get_authenticated_user(
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     if not user.is_active:
         raise _unauthorized(ERROR_INACTIVE_USER)
-    if user.registration_pending and not allow_unapproved:
+    if (
+        user.registration_pending
+        and not allow_unapproved
+        and not _superuser_only_app_session(user, session_app)
+    ):
         raise AuthorizationError("Your registration is awaiting administrator approval")
     if user.password_setup_pending and user.email_verified_at is None:
         raise AuthorizationError("Finish account activation before continuing")

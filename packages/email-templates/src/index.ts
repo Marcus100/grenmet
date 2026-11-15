@@ -12,5 +12,7 @@ export type { ResetPasswordEmailProps } from "./reset-password";
 export { ResetPasswordEmail } from "./reset-password";
 export type { SubscriptionConfirmEmailProps } from "./subscription-confirm";
 export { SubscriptionConfirmEmail } from "./subscription-confirm";
+export type { SuperuserInvitationEmailProps } from "./superuser-invitation";
+export { SuperuserInvitationEmail } from "./superuser-invitation";
 export type { WelcomeEmailProps } from "./welcome";
 export { WelcomeEmail } from "./welcome";

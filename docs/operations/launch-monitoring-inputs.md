@@ -2,9 +2,9 @@
 
 **Status:** Active checklist; every item below is open until the owner ticks it  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-14 (provider settings table re-checked; the rest of the page is unchanged)
 
-Planned launch: about 10 November 2026. The five daily monitoring issues
+Planned launch was about 10 November 2026 (that date has passed; the launch plan itself is in the [launch checklist](launch-checklist.md)). The five daily monitoring issues
 ([#644](https://github.com/Marcus100/grenmet/issues/644) sentry,
 [#645](https://github.com/Marcus100/grenmet/issues/645) eregister-sends,
 [#646](https://github.com/Marcus100/grenmet/issues/646) worker-jobs,
@@ -17,7 +17,7 @@ This page holds names and procedures only. Never put a value, token, URL with a
 key, database address, email address or screenshot of a secret in this
 repository, an issue or a pull request.
 
-> Statuses of GitHub secrets and variables in this page were read on 2026-10-30. They go stale quickly: the owner re-checks them (`gh secret list`, `gh variable list` per environment) before launch.
+> Statuses of GitHub secrets and variables in this page go stale quickly. The "Provider settings" table was re-read on 2026-11-14 with `gh secret list` and `gh variable list` (names only). Other statements that give 2026-10-30 are still from that date: re-check them with the same commands.
 
 ## How these issues are produced (read this first)
 
@@ -232,7 +232,8 @@ unless the table says otherwise. Use `gh variable set <name> --env <environment>
 - [ ] Wait one full UTC day. The worker-jobs check reads the previous, fully
   elapsed UTC day of job counters, and needs every tracked job
   (`process_cap_jobs`, `ingest_cap_feeds`, `send_notification_emails`,
-  `run_notification_sweeps`, which runs once a day at 10:00 UTC) to have run.
+  `run_notification_sweeps`, which runs once a day at 10:00 UTC, and
+  `purge_scan_log`, which runs nightly at 03:40 UTC) to have run.
   The first complete receipt is the morning after the first full day.
 
 ### Step 7: switch the WSL auditor to runner mode
@@ -320,7 +321,7 @@ The issue covers `worker-jobs` and `notification-sweeps`.
 | --- | --- |
 | Inputs | `MONITORING_BACKUP_KINDS` and the four `MONITORING_SPACES_*` secrets per environment (steps 3 and 5). |
 | What is counted | Each kind's `latest-success.json` marker in Spaces, checked by the same rules as `scripts/production/check-backup-age.py` (under 24 hours old, full coverage). A readable but stale or incomplete marker is a failure; an unreadable marker leaves the issue open as "needs configuration". |
-| Production backup workflow inputs | Environment `production-backup` already holds `DO_SPACES_*` and `POSTGRES_USER`. Still unset on 2026-10-30: variable `BACKUP_MARKERS_ENABLED`, and variables `WEATHER_BACKUP_ENABLED` and `SUTRON_BACKUP_ENABLED` if those backups are wanted. Variable `CMS_BACKUP_ENABLED` exists. |
+| Production backup workflow inputs | Environment `production-backup` already holds `DO_SPACES_*` and `POSTGRES_USER`. Still unset on 2026-11-14: variable `BACKUP_MARKERS_ENABLED`, and variables `WEATHER_BACKUP_ENABLED` and `SUTRON_BACKUP_ENABLED` if those backups are wanted. Variable `CMS_BACKUP_ENABLED` exists. |
 | Maintenance workflow inputs | `monitoring-maintenance.yml` (scheduled backup and weekly restore test) is off until variables `MONITORING_MAINTENANCE_ENABLED`, `MONITORING_REVISION` (a full approved commit SHA that matches the installed monitoring revision) and `MONITORING_STORAGE_VERIFIED=true` are set, and secret `BACKUP_HEARTBEAT_URL` exists in the production environment. Staging maintenance runs in the `staging-backup` environment (no branch rule, because schedules run from `main`, which the `staging` environment refuses): put the variables and the backup-storage secrets (`DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT`, `DO_SPACES_ACCESS_KEY_ID`, `DO_SPACES_SECRET_ACCESS_KEY`, `DO_SPACES_REGION`, `BACKUP_HEARTBEAT_URL`) there. Production maintenance stays in `production`, which does not have the heartbeat secret yet. It must be a different heartbeat from the one `backup-database.yml` pings from the `production-backup` environment. |
 | Alert to owner | Better Stack backup heartbeat (24 hour period, 2 hour grace) by email; #648 as a GitHub issue. |
 
@@ -342,19 +343,19 @@ path is primary. Shapes: [advisory audit](../agents/advisory-audit.md#operationa
 ## Provider settings that back the live alerts
 
 These are not read by the five audit issues but they are what actually tells the
-owner something is down. Status on 2026-10-30 is from `gh secret list` and
-`gh variable list` names only.
+owner something is down. Status on 2026-11-14 is from `gh secret list` and
+`gh variable list` names only (values never read).
 
 | Environment | Name | Kind | State |
 | --- | --- | --- | --- |
-| production | `BETTERSTACK_API_TOKEN` | secret | missing (staging has it) |
-| production | `PROBE_HEARTBEAT_URL` | secret | missing |
-| production-backup | `BACKUP_HEARTBEAT_URL` | secret | missing (read by `backup-database.yml`) |
-| production | `WORKER_HEARTBEAT_URL` | secret | missing |
-| production | `TELEMETRY_ENABLED` | variable | missing |
-| production | `MONITORING_DEPLOY_ENABLED` | variable | missing. Do not set it before the runner user can run the monitoring install: on staging the deploy step failed with "sudo: a password is required" on 2026-11-14 and the variable was removed again ([known gap](analytics-monitoring.md#known-gap-staging-probes-and-the-monitoring-install-2026-11-14)) |
-| production | `SENTRY_CRONS_ENABLED` | variable (reaches the worker) | missing; check plan limits first |
-| production | `AUTH_TOTP_ENCRYPTION_KEYS`, `AUTH_PRIVILEGED_MFA_MODE` | secret, variable | missing; see [launch checklist](launch-checklist.md) |
+| production | `BETTERSTACK_API_TOKEN` | secret | present (set 2026-11-09; was missing on 2026-10-30) |
+| production | `PROBE_HEARTBEAT_URL` | secret | present (set 2026-11-14) |
+| production-backup | `BACKUP_HEARTBEAT_URL` | secret | present (set 2026-11-14; read by `backup-database.yml`) |
+| production | `WORKER_HEARTBEAT_URL` | secret | present (set 2026-11-14) |
+| production | `TELEMETRY_ENABLED` | variable | still missing on 2026-11-14 |
+| production | `MONITORING_DEPLOY_ENABLED` | variable | still missing on 2026-11-14. Do not set it before the runner user can run the monitoring install: on staging the deploy step failed with "sudo: a password is required" on 2026-11-14 and the variable was removed again ([known gap](analytics-monitoring.md#known-gap-staging-probes-and-the-monitoring-install-2026-11-14)) |
+| production | `SENTRY_CRONS_ENABLED` | variable (reaches the worker) | still missing on 2026-11-14; check plan limits first |
+| production | `AUTH_TOTP_ENCRYPTION_KEYS`, `AUTH_PRIVILEGED_MFA_MODE` | secret, variable | the secret is present (set 2026-10-30); the variable is still missing, so nothing is enforced; see [launch checklist](launch-checklist.md) |
 | production | `SENTRY_AUTH_TOKEN`, `SENTRY_DSN_PRODUCTION` | secrets | present |
 
 Better Stack apply order, from [analytics and monitoring](analytics-monitoring.md#production-monitoring-as-code-2026-10-20):

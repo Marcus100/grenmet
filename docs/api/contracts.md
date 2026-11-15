@@ -24,7 +24,7 @@ This document must stay in sync with the code. Do not mark a gap as resolved unt
 
 ## Scoped HR account administration
 
-`GET /api/v1/auth/users` calculates rows and counts from the caller's active employer and department `user.manage` assignments; per-ID reads and profile corrections use the same boundary. Global account creation, activation, credentials, app/platform privilege changes and deletion require a superuser. Unplaced and personal accounts are excluded from departmental management.
+`GET /api/v1/auth/users` calculates rows and counts from the caller's active employer and department `user.manage` assignments; per-ID reads and profile corrections use the same boundary. Global account creation, activation, credentials, app/platform privilege changes and deletion require a superuser. `POST /api/v1/auth/users` and `PATCH /api/v1/auth/users/{user_id}` never grant superuser status: `is_superuser: true` is refused with 403 (use a superuser invitation). `is_superuser: false` needs a superuser with an authenticator and a two-step sign-in, leaves one audit row, emails the other active superusers, and is refused with 409 when it would leave no active superuser. Unplaced and personal accounts are excluded from departmental management.
 
 `GET /api/v1/auth/roles` permits scoped managers to list only canonical ordinary roles eligible for delegation. Role definition reads by ID and all definition mutations remain superuser-only. Role assignment create/update/revoke permits managers to grant `staff` with `SELF` scope to another employee in scope, bounded by canonical permissions and the issuer's active authority. Explicit managerial and special-duty appointments require a superuser.
 
@@ -709,6 +709,23 @@ Public sites registered for single sign-on (`weather`, `mbia`, `signal`, `docs`,
 handoff grants their `<key>-member` role (`app.<key>.access`) on first visit
 instead of returning 409. Events keeps the "Join" prompt.
 
+Superuser invitations (ADR-0059 rule 1). `POST /auth/superuser-invitations` (create),
+`GET /auth/superuser-invitations` (open invitations, no tokens) and
+`POST /auth/superuser-invitations/{id}/revoke` need a superuser with an enrolled
+authenticator whose session passed two-step sign-in (403 otherwise). Create takes
+`email` and `reason` (10 to 500 characters) and answers 201 without the token; the
+emailed link is valid 24 hours. Two public routes follow the link:
+`POST /auth/superuser-invitations/code` (`token`; emails a six-digit code to the
+invited address, with the email-code limits, and answers the same Message either
+way) and `POST /auth/superuser-invitations/accept` (`token`, `code`, optional `totp_code`; grants
+superuser, clears staff approval, verifies the email, writes one `superuser_granted`
+audit row and returns an account session). An existing verified account with an
+authenticator must also send `totp_code`. An unverified account is cleared first. The
+emailed link carries the token in its fragment (`#token=`), never in the query string.
+Single use; a wrong code, replay, expiry, revocation or a closed inviter is refused with
+400. Limits: five invitations per inviter per hour and
+twenty per day. Routes are additive; no existing route changes.
+
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
 
 Session login, refresh, and session-token exchange responses return the deliberately
@@ -1222,6 +1239,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | --- | --- | --- |
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
 | `GET /api/v1/bookings/me/bookings?upcoming&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`. No manage token, notes or other customers' details |
+| `GET /api/v1/bookings/me/businesses/{slug}/choices` | Account token or the bookings app session (other apps 401); no organisation header; 60 a minute (429); unknown or switched-off slug 404 | Prefill for the signed-in person's next booking with one business, from their own linked bookings only (the My bookings rule, ADR-0058): `phone` (the number the business holds for them, else the account's, else null) and `recent` (up to three distinct services, latest first, each with `service_id`, the `provider_id` used last and `last_booked_at`, which is that booking's start time; only pending, confirmed and completed bookings count, so cancelled (declined and expired included), no-show and unpaid-deposit ones are left out). Nothing about other customers |
 | `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`); slug taken by another organisation 409, a platform reserved name 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
@@ -1237,6 +1255,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | `GET /api/v1/bookings/org/bookings/{id}` | Same | Studio view with customer contact details, history and deposit state; another organisation's id 404 |
 | `POST /api/v1/bookings/org/bookings` | Admin member or API key `bookings.write`; `Idempotency-Key` required | Staff entry (phone, walk-in, re-entered appointment): `confirmed`, source `studio`, no deposit; ignores lead time, horizon and weekly hours, but an overlap is 409; provider must offer the service (422); optional customer email, emailed only with `send_confirmation` |
 | `POST /api/v1/bookings/org/bookings/{id}/confirm`, `/decline`, `/cancel`, `/no-show`, `/complete` | Admin member or API key `bookings.write` | Studio actions through the status machine; decline and cancel need a `reason`, email the customer and emit `booking.cancelled`; an illegal move 409 |
+| `POST /api/v1/bookings/org/bookings/{id}/reschedule` | Admin member or API key `bookings.write` | Staff move a `pending` or `confirmed` booking to a new `starts_at` (same provider and service): ignores hours, lead time and horizon like staff entry, but the time must be in the future and on a whole minute (422) and an overlap is 409; any other status 409; the same time is a no-op; the customer is emailed (no manage link) and `booking.rescheduled` is emitted |
 | `POST /api/v1/bookings/org/bookings/{id}/manual-deposit` | Owner or admin member only (no API key), organisation must hold `bookings` and `payments`; `Idempotency-Key` required | Records a deposit taken outside Stripe (`method` cash/bank_transfer/cheque, optional `reference`) through the payments manual rail, so `deposit_captured_minor` shows it and a `pending_payment` booking is confirmed; writes an audit entry and a history note with the actor; no deposit, closed booking, deposit already paid, an online payment in flight, or a failed or expired card payment is 409 |
 
 Overlapping active bookings for one provider are refused by the database
@@ -3166,3 +3185,26 @@ the hour to the automatic source (SURFACE), when the station is not in the
 registry, or when another observation already holds the hour. A WIS2 file is
 never queued twice, so `resend` no longer repeats a queued or sent publish. The
 request and response shapes are unchanged; the optional request body is accepted and ignored.
+
+## Printix ticket registry (ADR-0060)
+
+Two route zones, both under `/api/v1/printix/`.
+
+- **`admin/*`** (superuser with an enrolled authenticator and an MFA session, plus
+  `printix.manage`): create and close events (`POST /events`, `POST /events/{id}/close`),
+  the event summary (`GET /events/{id}/summary`), the ticket import
+  (`POST /events/{id}/tickets/import`, multipart CSV with a `number` column and an
+  optional `barcode` column; `dry_run` defaults to true and reports every problem with
+  its line; an apply with any problem writes nothing and reports `applied: false`),
+  tickets (`GET /events/{id}/tickets` with `status`, `admitted`, `page` and `size`, and
+  `total`; `POST /tickets/{id}/void` and `/unvoid`), and gate pairings
+  (`POST /events/{id}/pairings` returns the one-time `secret`; `GET /events/{id}/pairings`
+  never returns a secret; `POST /pairings/{id}/revoke`). Barcode values are never returned.
+- **`public/*`** (no account; `Authorization: Bearer <pairing secret>`, checked on every
+  call): `POST /admissions` with `{value}` and `GET /summary`. An admission answers 200 with
+  a stable `outcome`: `admitted`, `already_admitted` (with the first admission's time and
+  gate), `void`, `unknown` (also used for a value on another event) or `event_closed`.
+  A revoked pairing answers 403, an expired one 403, an unknown secret 401, and more than
+  120 scans in a rolling minute 429 with `Retry-After`.
+
+Adding an outcome code or an optional field is additive; removing one is breaking.

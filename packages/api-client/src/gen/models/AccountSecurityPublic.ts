@@ -31,5 +31,6 @@ export type AccountSecurityPublic = {
   google_linked: boolean;
   totp_enabled: boolean;
   password_changed_at?: string | null;
+  has_password: boolean;
   sessions: SecuritySessionPublic[];
 };
