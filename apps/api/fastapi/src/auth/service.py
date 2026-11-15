@@ -469,6 +469,7 @@ async def delete_user(
     from src.auth.modern_models import AuthChallenge
     from src.baseline.models import StaffCredential
     from src.notifications.models import Notification, NotificationPreference
+    from src.organisations import grants as organisation_grants
     from src.profile_images import service as profile_images
     from src.rewards import service as rewards_service
 
@@ -498,6 +499,11 @@ async def delete_user(
     await rewards_service.cancel_open_redemptions(session, account=user)
     await _end_access_links(session, user_id, now)
     await _end_organisation_access(session, user_id, now)
+    # Grants the account handed to others end too (#1496). Runs after its memberships
+    # are removed, which the cascade relies on.
+    await organisation_grants.end_grants_of_deleted_account(
+        session, user_id=user_id, actor_id=actor_id
+    )
     await _clear_hr_personal_details(session, user_id, now)
     await session.execute(
         update(StaffCredential)
