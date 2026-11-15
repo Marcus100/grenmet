@@ -102,9 +102,7 @@ export function normaliseInstagram(raw: string): Normalised {
   if (text === "") {
     return null;
   }
-  const handle = text.toLowerCase().includes("instagram.com")
-    ? handleFromAddress(text)
-    : text;
+  const handle = text.includes("/") ? handleFromAddress(text) : text;
   if (handle === undefined || handle === null) {
     return undefined;
   }

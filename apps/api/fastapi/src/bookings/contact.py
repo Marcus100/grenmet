@@ -69,8 +69,7 @@ def normalise_instagram(value: object) -> str | None:
     if text is None:
         return None
     handle = text
-    lowered = text.lower()
-    if "instagram.com" in lowered:
+    if "/" in text:
         address = text if "://" in text else f"https://{text}"
         parts = urlsplit(address)
         if (parts.hostname or "").lower() not in _INSTAGRAM_HOSTS:
