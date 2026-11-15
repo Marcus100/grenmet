@@ -32,6 +32,7 @@ from src.auth.account_security import record_security
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.exceptions import LastSuperuserError
 from src.auth.lockout import normalised_address
+from src.auth.models import Session as AuthSession
 from src.auth.models import SuperuserInvitation, User
 from src.auth.placeholders import is_placeholder_email
 from src.auth.privileged_mfa import require_mfa_session
@@ -219,22 +220,37 @@ async def guard_last_superuser(session: AsyncSession, *, target: User) -> None:
         require_another_active_superuser(locked, target)
 
 
+async def end_sessions(session: AsyncSession, user: User) -> list[str]:
+    """Delete every login session of ``user``: browser, CMS, app and account sessions.
+    Deleting the row also ends its refresh, because the secret can no longer be rotated.
+    The same mechanism as ``service.update_user`` (deactivation). Returns the ids of the
+    sessions that ended, sorted, for the audit row."""
+    ids = (
+        await session.scalars(
+            select(AuthSession.id).where(AuthSession.user_id == user.id)
+        )
+    ).all()
+    await session.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
+    return sorted(str(session_id) for session_id in ids)
+
+
 async def demote_superuser(session: AsyncSession, *, actor: User, target: User) -> bool:
     """Remove superuser status from ``target`` (ADR-0059 rule 1). The caller has already
     checked the actor's authenticator and two-step sign-in, and commits.
 
     Returns False when the target is not a superuser (nothing changes). Otherwise the
-    grant is removed, one audit row names the actor and the target, the account's open
-    invitations are closed, and every other active superuser who can receive mail is
-    told. Refused when no other active superuser would remain. The active superusers
-    are locked in id order first, so two demotions cannot each see the other still
-    there."""
+    grant is removed, the target's sessions end (#1481 part 2), one audit row names the
+    actor, the target and the ended session ids, the account's open invitations are
+    closed, and every other active superuser who can receive mail is told. Refused when
+    no other active superuser would remain. The active superusers are locked in id order
+    first, so two demotions cannot each see the other still there."""
     locked = await lock_active_superusers(session)
     if not target.is_superuser:
         return False
     require_another_active_superuser(locked, target)
     target.is_superuser = False
     session.add(target)
+    ended_sessions = await end_sessions(session, target)
     audit.set_actor(session, actor.id)
     await audit.record_change(
         session,
@@ -247,6 +263,7 @@ async def demote_superuser(session: AsyncSession, *, actor: User, target: User) 
             "actor_user_id": (None, str(actor.id)),
             "target_user_id": (None, str(target.id)),
             "is_superuser": (True, False),
+            "sessions_ended": (None, ended_sessions),
         },
     )
     await close_for_inviter(session, target.id)
