@@ -24,6 +24,9 @@ class BookingEmail:
     customer_email: str | None = None
     customer_phone: str | None = None
     notes: str | None = None
+    #: Where to create a free account (ADR-0058). Set only for a customer whose
+    #: booking is not linked to an account; the mail then invites, never insists.
+    account_invite_url: str | None = None
 
     @property
     def when(self) -> str:
@@ -49,6 +52,21 @@ def _manage(mail: BookingEmail) -> str:
     return f'<p>Need to change or cancel? <a href="{url}">Manage your booking</a>.</p>'
 
 
+def _account_invite(mail: BookingEmail) -> str:
+    """An optional invitation. It promises only what the code does: the
+    customer's bookings with this business are listed under My bookings once
+    they are signed in with the same email and book with the business."""
+    if not mail.account_invite_url:
+        return ""
+    url = _e(mail.account_invite_url)
+    return (
+        "<p>Booking never needs an account. If you would like one, it is free: "
+        f'<a href="{url}">create a Barrels account</a> with this email address. '
+        f"When you are signed in and book with {_e(mail.business)}, your bookings "
+        "with them, including this one, are listed under My bookings.</p>"
+    )
+
+
 def verification_code(*, business: str, code: str, minutes: int) -> tuple[str, str]:
     """The code that proves a visitor controls the booking email (deposit step)."""
     return (
@@ -68,7 +86,7 @@ def customer_received(mail: BookingEmail, *, confirmed: bool) -> tuple[str, str]
         lead = "We received your request. We will email you once it is confirmed."
     body = (
         f"<p>Hello {_e(mail.customer_name)},</p><p>{lead}</p>"
-        f"{_details(mail)}{_manage(mail)}"
+        f"{_details(mail)}{_manage(mail)}{_account_invite(mail)}"
     )
     return subject, body
 
@@ -90,7 +108,8 @@ def customer_confirmed(mail: BookingEmail) -> tuple[str, str]:
     return (
         f"Your booking at {mail.business} is confirmed",
         f"<p>Hello {_e(mail.customer_name)},</p>"
-        f"<p>Your booking is confirmed.</p>{_details(mail)}{_manage(mail)}",
+        f"<p>Your booking is confirmed.</p>{_details(mail)}{_manage(mail)}"
+        f"{_account_invite(mail)}",
     )
 
 

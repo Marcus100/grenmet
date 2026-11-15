@@ -21,6 +21,7 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
+from src.auth.config import auth_settings
 from src.auth.email_verification import is_email_verified
 from src.auth.models import User
 from src.contacts import service as contacts_service
@@ -290,6 +291,11 @@ def decoy_receipt(
     )
 
 
+def account_signup_url() -> str:
+    """The auth app's sign-up page, where anyone can create a free account."""
+    return f"{auth_settings.AUTH_FRONTEND_URL.rstrip('/')}/signup"
+
+
 def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmail:
     profile = managed.profile
     return emails.BookingEmail(
@@ -303,6 +309,10 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         customer_email=managed.contact.email,
         customer_phone=managed.contact.phone,
         notes=managed.booking.notes,
+        # Only a customer with no account link is invited to create one.
+        account_invite_url=(
+            account_signup_url() if managed.contact.user_id is None else None
+        ),
     )
 
 
