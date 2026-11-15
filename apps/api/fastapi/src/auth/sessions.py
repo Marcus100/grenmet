@@ -82,11 +82,13 @@ async def create_session(
     enforce_approval: bool = True,
     mfa_verified_at: datetime | None = None,
     mfa_source_session: AuthSession | None = None,
+    email_code_verified_at: datetime | None = None,
 ) -> tuple[AuthSession, str]:
     """Create and persist a new opaque session for a user.
 
     App-scoped sessions (``enforce_approval=False``) skip the staff approval
-    gate; the caller has already checked app eligibility.
+    gate; the caller has already checked app eligibility. ``email_code_verified_at``
+    is set only by an emailed-code sign-in (ADR-0059 rule 2).
     """
     if mfa_verified_at is not None or mfa_source_session is not None:
         verified_secret = user.totp_secret
@@ -118,6 +120,7 @@ async def create_session(
     db_session = AuthSession(
         **SessionCreate(
             mfa_verified_at=mfa_verified_at,
+            email_code_verified_at=email_code_verified_at,
             user_id=user.id,
             session_token=hash_session_token(session_secret),
             expires_at=now + (expires_delta or get_session_expires_delta()),
