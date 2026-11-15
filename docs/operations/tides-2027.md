@@ -32,8 +32,8 @@ Copy `pric-tides-2027-01-01-to-2027-12-31.csv` to the main checkout's gitignored
 private folder and tell the agent it is there:
 
 ```bash
-mkdir -p ~/grenmet/private/tides
-cp /path/to/pric-tides-2027-01-01-to-2027-12-31.csv ~/grenmet/private/tides/
+mkdir -p private/tides
+cp /path/to/pric-tides-2027-01-01-to-2027-12-31.csv private/tides/
 ```
 
 Never commit it: the predicted values are the owner's data, the same rule as the
@@ -51,7 +51,7 @@ only reads it.
 
    ```bash
    uv run --frozen --package fast-back python -m scripts.import_tide_table \
-     ~/grenmet/private/tides/pric-tides-2027-01-01-to-2027-12-31.csv \
+     private/tides/pric-tides-2027-01-01-to-2027-12-31.csv \
      --source-version v1.5 --expect-from 2027-01-01 --expect-to 2027-12-31 --dry-run
    ```
 

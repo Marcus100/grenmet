@@ -44,10 +44,10 @@ owner command and the load steps are in `docs/operations/tides-2027.md`.
    is not local (staging, production) is refused unless you repeat it with
    `--confirm-host <host>`. A bad row stops the import and names its line;
    nothing is written when parsing fails.
-3. Check the public route for a date in the new period:
+4. Check the public route for a date in the new period:
    `GET /api/v1/almanac/public/tides?station=pric&from=...&to=...`. Every response
    must carry the "predicted, not for navigation" note.
-4. Close issue #1200 once the new period is live.
+5. Close issue #1200 once the new period is live.
 
 ## Build a new year of sun and moon data (before 1 January)
 

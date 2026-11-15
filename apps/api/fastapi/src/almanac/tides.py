@@ -30,8 +30,9 @@ TIME_FORMAT = "%Y-%m-%d %H:%M"
 #: built per AST date, so coverage and month counts are checked in AST.
 AST = timezone(timedelta(hours=-4), "AST")
 #: Longest normal spacing between consecutive Prickly Bay highs and lows is about
-#: 9.3 hours (2026 table). A longer gap means events are missing from the file.
-MAX_EVENT_GAP = timedelta(hours=13)
+#: 9.3 hours (2026 table). One skipped event leaves about 12.4 hours, so the
+#: limit sits between the two: a longer gap means events are missing.
+MAX_EVENT_GAP = timedelta(hours=11)
 #: The owner's flag for a weak turn less than 1 cm from its neighbour.
 NEAR_FLAT_QUALITY = "NEAR_FLAT_LT_0_01_M"
 
