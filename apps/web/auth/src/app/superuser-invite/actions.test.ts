@@ -20,8 +20,10 @@ vi.mock("@/lib/session", () => ({
 }));
 
 import { superuserInviteAction } from "./actions";
+import { INITIAL_INVITE_STATE, type InviteState } from "./invite-state";
 
 const TOKEN = "t".repeat(40);
+const SENT = "A new code was sent, if the invitation is still open.";
 const SESSION = {
   session_token: "opaque-session-secret",
   session_expires_at: "2026-12-15T00:00:00Z",
@@ -37,8 +39,8 @@ function apiError(status: number, detail = "x"): Error {
   return Object.assign(new Error("api"), { status, detail });
 }
 
-const SEND = { error: null, needsTotp: false, step: "send" as const };
-const CODE = { error: null, needsTotp: false, step: "code" as const };
+const SEND: InviteState = INITIAL_INVITE_STATE;
+const CODE: InviteState = { ...INITIAL_INVITE_STATE, step: "code" };
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -51,13 +53,30 @@ describe("superuserInviteAction: send a code", () => {
       SEND,
       form({ intent: "send", token: TOKEN })
     );
-    expect(state).toEqual({ error: null, needsTotp: false, step: "code" });
+    expect(state).toEqual({
+      error: null,
+      needsTotp: false,
+      notice: SENT,
+      step: "code",
+    });
     expect(mocks.fetch).toHaveBeenCalledWith(
       expect.anything(),
       "/auth/superuser-invitations/code",
       expect.anything(),
       { body: { token: TOKEN }, method: "POST" }
     );
+  });
+
+  it("a failed new code keeps the current step and the authenticator state", async () => {
+    mocks.fetch.mockRejectedValue(new Error("boom"));
+    const state = await superuserInviteAction(
+      { ...CODE, needsTotp: true },
+      form({ intent: "send", token: TOKEN })
+    );
+    expect(state.step).toBe("code");
+    expect(state.needsTotp).toBe(true);
+    expect(state.error).toBe("We couldn't send a code. Try again in a moment.");
+    expect(state.notice).toBeNull();
   });
 
   it("refuses a malformed link without calling the API", async () => {
@@ -70,7 +89,7 @@ describe("superuserInviteAction: send a code", () => {
     expect(mocks.fetch).not.toHaveBeenCalled();
   });
 
-  it("explains a rate limit", async () => {
+  it("explains a rate limit and keeps the step", async () => {
     mocks.fetch.mockRejectedValue(apiError(429));
     const state = await superuserInviteAction(
       SEND,
@@ -82,11 +101,7 @@ describe("superuserInviteAction: send a code", () => {
 
   it("reports an unexpected failure without showing details", async () => {
     mocks.fetch.mockRejectedValue(new Error("boom"));
-    const state = await superuserInviteAction(
-      SEND,
-      form({ intent: "send", token: TOKEN })
-    );
-    expect(state.error).toBe("We couldn't send a code. Try again in a moment.");
+    await superuserInviteAction(SEND, form({ intent: "send", token: TOKEN }));
     expect(mocks.report).toHaveBeenCalledOnce();
   });
 });
@@ -98,7 +113,12 @@ describe("superuserInviteAction: accept", () => {
       CODE,
       form({ intent: "accept", token: TOKEN, code: "424242" })
     );
-    expect(state).toEqual({ error: null, needsTotp: false, step: "done" });
+    expect(state).toEqual({
+      error: null,
+      needsTotp: false,
+      notice: null,
+      step: "done",
+    });
     expect(mocks.fetch).toHaveBeenCalledWith(
       expect.anything(),
       "/auth/superuser-invitations/accept",
@@ -128,7 +148,7 @@ describe("superuserInviteAction: accept", () => {
     expect(mocks.write).not.toHaveBeenCalled();
   });
 
-  it("sends the authenticator code with the emailed code", async () => {
+  it("sends an authenticator or recovery code with the emailed code", async () => {
     mocks.fetch.mockResolvedValue(SESSION);
     const state = await superuserInviteAction(
       { ...CODE, needsTotp: true },
@@ -136,7 +156,7 @@ describe("superuserInviteAction: accept", () => {
         intent: "accept",
         token: TOKEN,
         code: "424242",
-        totp_code: "123456",
+        totp_code: "abcd-ef12-3456",
       })
     );
     expect(state.step).toBe("done");
@@ -145,10 +165,25 @@ describe("superuserInviteAction: accept", () => {
       "/auth/superuser-invitations/accept",
       expect.anything(),
       {
-        body: { token: TOKEN, code: "424242", totp_code: "123456" },
+        body: { token: TOKEN, code: "424242", totp_code: "abcd-ef12-3456" },
         method: "POST",
       }
     );
+  });
+
+  it("caps the authenticator field before calling the API", async () => {
+    const state = await superuserInviteAction(
+      { ...CODE, needsTotp: true },
+      form({
+        intent: "accept",
+        token: TOKEN,
+        code: "424242",
+        totp_code: "x".repeat(65),
+      })
+    );
+    expect(state.error).toContain("too long");
+    expect(state.needsTotp).toBe(true);
+    expect(mocks.fetch).not.toHaveBeenCalled();
   });
 
   it("refuses a wrong or ended invitation with one generic message and writes no session", async () => {

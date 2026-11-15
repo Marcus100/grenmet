@@ -5,14 +5,20 @@ export interface InviteState {
   error: string | null;
   /** The API wants the invitee's authenticator code too (an existing verified account). */
   needsTotp: boolean;
+  /** A neutral confirmation, e.g. after a new code was requested. */
+  notice: string | null;
   step: InviteStep;
 }
 
 export const INITIAL_INVITE_STATE: InviteState = {
   error: null,
+  notice: null,
   needsTotp: false,
   step: "send",
 };
+
+/** Longest value the form will send for an authenticator or recovery code. */
+export const MAX_CODE_LENGTH = 64;
 
 const TOKEN_PARAM = /(?:^#|&)token=([^&]+)/u;
 const MIN_TOKEN = 32;

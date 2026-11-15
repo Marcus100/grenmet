@@ -6,6 +6,9 @@ import { redirect } from "next/navigation";
 import { reportError } from "@/lib/report-error";
 import { requireGate } from "@/lib/staff-gate";
 import {
+  FORBIDDEN_MESSAGES,
+  forbiddenKind,
+  INVITED_NOTICE,
   type InviteFormValues,
   isInvitationId,
   parseSuperuserInvite,
@@ -16,11 +19,16 @@ import {
 } from "@/lib/superuser-invitations-api";
 
 // Validate, proxy to FastAPI (which owns the rules, the mail and the audit) and either
-// redirect with a fixed notice code or return the refusal to the form. The reason is
+// return the outcome to the form or redirect with a fixed notice code. The reason is
 // sent once and never echoed back in a URL.
 
 export interface InviteFormState {
+  /** Shown after a refusal. */
   message: string | null;
+  /** Shown after a successful invitation. */
+  notice: string | null;
+  /** Bumped on success so the fields are remounted empty. */
+  resetKey: number;
   values: InviteFormValues;
 }
 
@@ -44,11 +52,9 @@ function done(code: string): never {
   redirect(`/superusers?notice=${code}`);
 }
 
-/** A readable refusal. Fixed text only; the API's detail is not shown. */
-function refusal(status: number): string {
-  if (status === FORBIDDEN) {
-    return "Inviting a superuser needs your authenticator and a two-step sign-in. Sign out, then sign in again with your authenticator code.";
-  }
+/** A readable refusal for the invite form. Fixed text only; the API's detail is not shown. */
+function refusal(status: number, detail: string): string {
+  if (status === FORBIDDEN) return FORBIDDEN_MESSAGES[forbiddenKind(detail)];
   if (status === BAD_REQUEST) {
     return "This address cannot be invited. It may belong to an inactive or deleted account.";
   }
@@ -65,11 +71,18 @@ function refusal(status: number): string {
 }
 
 export async function inviteSuperuserAction(
-  _previous: InviteFormState,
+  previous: InviteFormState,
   formData: FormData
 ): Promise<InviteFormState> {
   const parsed = parseSuperuserInvite(formData);
-  if (!parsed.ok) return { message: parsed.message, values: parsed.values };
+  if (!parsed.ok) {
+    return {
+      ...previous,
+      message: parsed.message,
+      notice: null,
+      values: parsed.values,
+    };
+  }
 
   const token = await staffToken();
   try {
@@ -77,10 +90,21 @@ export async function inviteSuperuserAction(
   } catch (error) {
     if (!isAuthApiError(error)) throw error;
     if (error.status === UNAUTHORIZED) redirect("/signin?sign_in=expired");
+    // Refusals are expected outcomes; only a server fault is reported.
     if (error.status >= SERVER_ERROR) reportError(error, "admin-superusers");
-    return { message: refusal(error.status), values: parsed.values };
+    return {
+      ...previous,
+      message: refusal(error.status, error.detail),
+      notice: null,
+      values: parsed.values,
+    };
   }
-  return done("invited");
+  return {
+    message: null,
+    notice: INVITED_NOTICE,
+    resetKey: previous.resetKey + 1,
+    values: { email: "", reason: "" },
+  };
 }
 
 export async function revokeSuperuserInvitationAction(
@@ -96,6 +120,9 @@ export async function revokeSuperuserInvitationAction(
     if (error.status === UNAUTHORIZED) redirect("/signin?sign_in=expired");
     if (error.status === NOT_FOUND) return done("not-found");
     if (error.status === CONFLICT) return done("already-closed");
+    if (error.status === FORBIDDEN) {
+      return done(forbiddenKind(error.detail));
+    }
     reportError(error, "admin-superusers");
     return done("revoke-failed");
   }

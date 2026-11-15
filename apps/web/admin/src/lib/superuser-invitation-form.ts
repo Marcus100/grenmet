@@ -61,15 +61,33 @@ export function isInvitationId(value: string): boolean {
   return UUID.test(value);
 }
 
+/** What a 403 means: no authenticator at all, or no two-step sign-in in this session. */
+export type ForbiddenKind = "set-up-authenticator" | "sign-in-again";
+
+const NO_AUTHENTICATOR = /superuser_mfa_required|mfa_enrolment_required/u;
+
+export function forbiddenKind(detail: string): ForbiddenKind {
+  return NO_AUTHENTICATOR.test(detail)
+    ? "set-up-authenticator"
+    : "sign-in-again";
+}
+
+export const FORBIDDEN_MESSAGES: Record<ForbiddenKind, string> = {
+  "set-up-authenticator":
+    "Set up your authenticator in account security before you invite or revoke superusers.",
+  "sign-in-again":
+    "Sign in again with your authenticator code before you invite or revoke superusers.",
+};
+
 /** Fixed notice codes from the redirect. Nothing typed is ever reflected from a URL. */
 export const SUPERUSER_NOTICES: Record<string, string> = {
-  invited:
-    "Invitation sent. It works for 24 hours, and every administrator was emailed.",
   revoked: "Invitation revoked. It can no longer be accepted.",
   "revoke-failed":
     "The invitation could not be revoked. Nothing changed. Try again.",
   "already-closed": "That invitation had already ended.",
   "not-found": "That invitation no longer exists.",
+  "set-up-authenticator": FORBIDDEN_MESSAGES["set-up-authenticator"],
+  "sign-in-again": FORBIDDEN_MESSAGES["sign-in-again"],
 };
 
 export function superuserNoticeFor(code: string | undefined): string | null {
@@ -77,3 +95,7 @@ export function superuserNoticeFor(code: string | undefined): string | null {
     ? (SUPERUSER_NOTICES[code] ?? null)
     : null;
 }
+
+/** Shown after a new invitation. Only administrators with a verified address get mail. */
+export const INVITED_NOTICE =
+  "Invitation sent. It works for 24 hours. Administrators with a verified address were emailed.";

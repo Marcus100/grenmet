@@ -5,11 +5,13 @@ import {
   type FormHTMLAttributes,
   useActionState,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { CodeField } from "@/components/code-field";
 import {
   errorBoxClass,
+  noticeBoxClass,
   primaryButtonClass,
   secondaryButtonClass,
 } from "@/components/form-styles";
@@ -22,10 +24,17 @@ import {
 
 type FormAction = NonNullable<FormHTMLAttributes<HTMLFormElement>["action"]>;
 
+const HEADINGS: Record<InviteState["step"], string> = {
+  send: "Confirm your email",
+  code: "Enter your code",
+  done: "You are an administrator",
+};
+
 interface InviteBodyProps {
   action: FormAction;
   error: string | null;
   needsTotp: boolean;
+  notice: string | null;
   pending: boolean;
   step: InviteState["step"];
   token: string;
@@ -36,16 +45,50 @@ export function InviteBody({
   action,
   error,
   needsTotp,
+  notice,
   pending,
   step,
   token,
 }: InviteBodyProps) {
+  const alertRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const shownStep = useRef(step);
+
+  // Move focus to the error when one appears, and to the step heading when the
+  // step changes (the first render keeps focus where the browser put it).
+  useEffect(() => {
+    if (error) alertRef.current?.focus();
+  }, [error]);
+  useEffect(() => {
+    if (shownStep.current === step) return;
+    shownStep.current = step;
+    headingRef.current?.focus();
+  }, [step]);
+
   return (
     <div className="space-y-5">
+      <h2
+        className="text-lg font-semibold outline-none"
+        ref={headingRef}
+        tabIndex={-1}
+      >
+        {HEADINGS[step]}
+      </h2>
+
       {error ? (
-        <div className={errorBoxClass} role="alert">
+        <div
+          className={errorBoxClass}
+          ref={alertRef}
+          role="alert"
+          tabIndex={-1}
+        >
           {error}
         </div>
+      ) : null}
+      {notice ? (
+        <p className={noticeBoxClass} role="status">
+          {notice}
+        </p>
       ) : null}
 
       {step === "send" ? (
@@ -82,6 +125,7 @@ export function InviteBody({
             <CodeField id="invite_code" label="6-digit code" name="code" />
             {needsTotp ? (
               <CodeField
+                allowRecovery
                 id="invite_totp"
                 label="Authenticator code"
                 name="totp_code"
@@ -112,8 +156,8 @@ export function InviteBody({
       {step === "done" ? (
         <div className="space-y-4">
           <p className="text-foreground text-sm">
-            You are now an administrator. Step 2 of 3: set up your authenticator
-            app. The admin tools need it before they open.
+            Step 2 of 3: set up your authenticator app. The admin tools need it
+            before they open.
           </p>
           <Link className={primaryButtonClass} href="/security">
             Set up your authenticator
@@ -131,29 +175,39 @@ export function InviteBody({
 /**
  * The invitation form. The token is read from the link's fragment in the browser
  * (it never reaches the server or a referrer), then the fragment is removed from the
- * address bar. Until a token is read, the form says how to open the link.
+ * address bar. `null` means not read yet; an empty result means the link is missing.
+ *
+ * The ref guard matters: React Strict Mode runs effects twice in development, and a
+ * second read would find the fragment already removed and show the missing-link text.
  */
 export function SuperuserInviteForm() {
-  const [token, setToken] = useState<string | null>(null);
+  const [link, setLink] = useState<{ token: string | null } | null>(null);
+  const readFragment = useRef(false);
   const [state, action, pending] = useActionState(
     superuserInviteAction,
     INITIAL_INVITE_STATE
   );
 
   useEffect(() => {
-    setToken(readInviteToken(window.location.hash));
-    window.history.replaceState(
-      null,
-      "",
-      `${window.location.pathname}${window.location.search}`
-    );
+    if (readFragment.current) return;
+    readFragment.current = true;
+    const token = readInviteToken(window.location.hash);
+    setLink({ token });
+    if (window.location.hash) {
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}`
+      );
+    }
   }, []);
 
-  if (!token) {
+  if (link === null) return <p>Opening your invitation link…</p>;
+  if (!link.token) {
     return (
-      <p className="text-muted-foreground text-sm">
-        This page needs the link from your invitation email. Invitations work
-        once and end after 24 hours.
+      <p className="text-muted-foreground text-sm" role="alert">
+        This page needs the link from your invitation email. Open the complete
+        link. Invitations work once and end after 24 hours.
       </p>
     );
   }
@@ -162,9 +216,10 @@ export function SuperuserInviteForm() {
       action={action}
       error={state.error}
       needsTotp={state.needsTotp}
+      notice={state.notice}
       pending={pending}
       step={state.step}
-      token={token}
+      token={link.token}
     />
   );
 }

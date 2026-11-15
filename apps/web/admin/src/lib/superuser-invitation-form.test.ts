@@ -79,8 +79,11 @@ describe("invitation ids and notices", () => {
   });
 
   it("maps only the fixed notice codes", () => {
-    expect(superuserNoticeFor("invited")).toContain("Invitation sent");
     expect(superuserNoticeFor("revoked")).toContain("revoked");
+    expect(superuserNoticeFor("set-up-authenticator")).toContain(
+      "Set up your authenticator"
+    );
+    expect(superuserNoticeFor("invited")).toBeNull();
     expect(superuserNoticeFor("<script>")).toBeNull();
     expect(superuserNoticeFor("toString")).toBeNull();
     expect(superuserNoticeFor(undefined)).toBeNull();
