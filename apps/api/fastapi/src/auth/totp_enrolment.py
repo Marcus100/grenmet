@@ -13,13 +13,18 @@ needed:
 
 A privileged account that has no authenticator also cannot change its email address
 (``auth.service``), so the code always goes to the address the account signed in with.
+
+ADR-0059 rule 2 skips that emailed code when the request's session was opened by an
+emailed code less than ``EMAIL_PROOF_WINDOW`` ago (``email_code_verified_at``). Rule 4
+then marks that session two-step verified once the authenticator code is checked. Any
+other session keeps the emailed code and is never upgraded.
 """
 
 import logging
 import uuid
 from datetime import timedelta
 
-from sqlalchemy import func, select, text, update
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -53,12 +58,22 @@ ENROLMENT_WRONG_CODE_MESSAGE = (
     "That code is wrong or has expired. After five wrong codes you must set up "
     "two-step verification again."
 )
+# ADR-0059 rule 2: a session opened by an emailed code this recently proves the mailbox,
+# so the set-up of an authenticator on a privileged account needs no second emailed code.
+EMAIL_PROOF_WINDOW = timedelta(minutes=10)
+ENROLMENT_RESTART_MESSAGE = (
+    "Start two-step verification set-up again. Your sign-in is more than 10 minutes "
+    "old, so we need to email you a code."
+)
 
 
-async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
+async def begin_totp_setup(
+    *, session: AsyncSession, user: User, keep_session_id: uuid.UUID | None = None
+) -> str:
     """Generate and store a new (inactive) TOTP secret; return it for provisioning.
 
-    For a privileged account a one-time code is also emailed to it. Setup is refused
+    For a privileged account a one-time code is also emailed to it, unless the request's
+    session (``keep_session_id``) proves the mailbox (ADR-0059 rule 2). Setup is refused
     while the enrolment is locked or the rate limits are used up.
 
     The user row lock is held from the count to the commit, through the send, so
@@ -72,14 +87,14 @@ async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
     await _lock_account_for_setup(session, user)
     if user.totp_enabled:
         raise AppException("Two-factor authentication is already enabled", 409)
-    privileged = await _is_privileged(session, user)
-    if privileged:
+    code_needed = await _email_code_needed(session, user, keep_session_id)
+    if code_needed:
         await _ensure_may_send_code(session, user)
     secret = totp.generate_secret()
     user.totp_secret = totp.encrypt_secret(secret)
     user.totp_enabled = False
     session.add(user)
-    if not privileged:
+    if not code_needed:
         await session.commit()
         await session.refresh(user)
         return secret
@@ -125,9 +140,58 @@ async def _lock_account_for_setup(session: AsyncSession, user: User) -> None:
         ) from error
 
 
-async def enrolment_needs_email_code(*, session: AsyncSession, user: User) -> bool:
-    """True when activating this account's first authenticator needs the emailed code."""
-    return not user.totp_enabled and await _is_privileged(session, user)
+async def enrolment_needs_email_code(
+    *,
+    session: AsyncSession,
+    user: User,
+    keep_session_id: uuid.UUID | None = None,
+) -> bool:
+    """True when activating this account's first authenticator needs the emailed code.
+
+    ``keep_session_id`` is the request's session: a recent emailed-code sign-in on it
+    proves the mailbox instead (ADR-0059 rule 2). Without it the code is always needed,
+    which is what the email-change guard relies on."""
+    return await _email_code_needed(session, user, keep_session_id)
+
+
+async def _email_code_needed(
+    session: AsyncSession, user: User, keep_session_id: uuid.UUID | None
+) -> bool:
+    if user.totp_enabled or not await _is_privileged(session, user):
+        return False
+    return await _proving_session(session, user, keep_session_id) is None
+
+
+async def _proving_session(
+    session: AsyncSession, user: User, session_id: uuid.UUID | None
+) -> AuthSession | None:
+    """The request's session when it proves the mailbox for this set-up (rule 2).
+
+    It must belong to this account, be active, and have been opened by an emailed code
+    no more than ``EMAIL_PROOF_WINDOW`` ago. A password or Google session, an older
+    emailed-code session, or another account's session id gives None."""
+    if session_id is None:
+        return None
+    login_session = await session.get(AuthSession, session_id)
+    if login_session is None or login_session.user_id != user.id:
+        return None
+    now = utc_now()
+    proved_at = login_session.email_code_verified_at
+    if proved_at is None or now - proved_at > EMAIL_PROOF_WINDOW:
+        return None
+    if login_session.revoked_at is not None or login_session.expires_at <= now:
+        return None
+    return login_session
+
+
+async def _has_outstanding_code(session: AsyncSession, user: User) -> bool:
+    found = await session.scalar(
+        select(AuthChallenge.user_id).where(
+            AuthChallenge.user_id == user.id,
+            AuthChallenge.purpose == ENROLMENT_CODE_PURPOSE,
+        )
+    )
+    return found is not None
 
 
 async def ensure_email_change_allowed(*, session: AsyncSession, user: User) -> None:
@@ -160,18 +224,36 @@ async def activate_totp(
     one-time code emailed when enrolment began. A wrong or missing emailed code raises
     400 before the authenticator code is checked. A locked enrolment raises 429."""
     from src.auth import totp
+    from src.exceptions import AppException
 
     await session.refresh(user, with_for_update=True)
-    challenge = None
-    if await enrolment_needs_email_code(session=session, user=user):
+    # A privileged first authenticator needs the mailbox proven in this visit: either the
+    # request's session was opened by an emailed code less than 10 minutes ago (rule 2),
+    # or the emailed code is checked here (issue #625).
+    setup_for_privileged = not user.totp_enabled and await _is_privileged(session, user)
+    proving = (
+        await _proving_session(session, user, keep_session_id)
+        if setup_for_privileged
+        else None
+    )
+    if setup_for_privileged and proving is None:
         await _ensure_not_locked(session, user)
-        challenge = await _check_enrolment_code(session, user, email_code)
+        if not await _has_outstanding_code(session, user):
+            # The set-up skipped the emailed code while the sign-in was recent, and the
+            # sign-in has aged out since. Nothing was sent, so start again (not counted).
+            raise AppException(ENROLMENT_RESTART_MESSAGE, 400)
+        await _check_enrolment_code(session, user, email_code)
     if not user.totp_secret or not totp.verify_code(
         secret=totp.decrypt_secret(user.totp_secret), code=code
     ):
         return False
-    if challenge is not None:
-        await session.delete(challenge)
+    if setup_for_privileged:
+        await session.execute(
+            delete(AuthChallenge).where(
+                AuthChallenge.user_id == user.id,
+                AuthChallenge.purpose == ENROLMENT_CODE_PURPOSE,
+            )
+        )
         await session.flush()
     user.totp_enabled = True
     from src.auth.account_security import record_security
@@ -187,6 +269,11 @@ async def activate_totp(
         if keep_session_id is not None:
             statement = statement.where(AuthSession.id != keep_session_id)
         await session.execute(statement.values(revoked_at=utc_now()))
+        if proving is not None:
+            # ADR-0059 rule 4: the mailbox was proven in this visit and the authenticator
+            # code was just verified, so the request's session completes two-step sign-in.
+            proving.mfa_verified_at = utc_now()
+            session.add(proving)
         privileged = True
     else:
         privileged = False
