@@ -289,6 +289,13 @@ def render(config, environment):
     if sentry_crons_enabled not in {"", "true", "false"}:
         raise ValueError("SENTRY_CRONS_ENABLED must be true or false")
     values["SENTRY_CRONS_ENABLED"] = "true" if sentry_crons_enabled == "true" else "false"
+    # Daily climate newsletter digest (ADR-0052, src/worker/newsletter_digest.py).
+    # Off unless the GitHub environment variable says true, so the owner can switch
+    # it per environment without a code change.
+    newsletter_digest_enabled = environment.get("NEWSLETTER_DIGEST_ENABLED", "")
+    if newsletter_digest_enabled not in {"", "true", "false"}:
+        raise ValueError("NEWSLETTER_DIGEST_ENABLED must be true or false")
+    values["NEWSLETTER_DIGEST_ENABLED"] = "true" if newsletter_digest_enabled == "true" else "false"
     values.update(cloudflare_edge(environment, values))
     values["TELEMETRY_WORKER_HEARTBEAT_URL"] = environment.get("TELEMETRY_WORKER_HEARTBEAT_URL", "")
     heartbeat = values["TELEMETRY_WORKER_HEARTBEAT_URL"]

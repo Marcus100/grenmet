@@ -13,6 +13,8 @@ import test from "node:test";
 
 const SENTRY_CRONS_FROM_VARS =
   /^\s+SENTRY_CRONS_ENABLED: \$\{\{ vars\.SENTRY_CRONS_ENABLED \}\}$/mu;
+const NEWSLETTER_DIGEST_FROM_VARS =
+  /^\s+NEWSLETTER_DIGEST_ENABLED: \$\{\{ vars\.NEWSLETTER_DIGEST_ENABLED \}\}$/mu;
 
 // A well-formed (not real) htpasswd bcrypt line, as `htpasswd -nbB` prints it.
 const HTPASSWD_ENTRY = (user) => `${user}:$2y$05$${"a".repeat(53)}`;
@@ -197,6 +199,7 @@ test("staging and production pass integrations to the intended services", () => 
         RESEND_WEBHOOK_SECRET: "whsec_fixture",
         TELEMETRY_ENABLED: "true",
         SENTRY_CRONS_ENABLED: "true",
+        NEWSLETTER_DIGEST_ENABLED: "true",
         AUTH_PRIVILEGED_MFA_MODE: "enforce",
         AUTH_TOTP_ENCRYPTION_KEYS: JSON.stringify([
           `${Buffer.alloc(32, 3).toString("base64url")}=`,
@@ -373,6 +376,31 @@ test("staging and production pass integrations to the intended services", () => 
         model.services.worker.environment.SENTRY_CRONS_ENABLED,
         "true"
       );
+      // Daily climate newsletter (ADR-0052): the switch reaches the worker, which
+      // runs the 07:30 job, and nothing else; both read the CMS posts feed inside
+      // the network, and the list's links go to the weather site.
+      assert.equal(
+        model.services.worker.environment.NEWSLETTER_DIGEST_ENABLED,
+        "true"
+      );
+      for (const [name, service] of Object.entries(model.services)) {
+        if (name !== "worker")
+          assert.equal(
+            service.environment?.NEWSLETTER_DIGEST_ENABLED,
+            undefined,
+            name
+          );
+      }
+      for (const service of [api, model.services.worker.environment]) {
+        assert.equal(
+          service.NEWSLETTER_POSTS_FEED_URL,
+          "http://web-cms:3006/api/public/newsletter"
+        );
+        assert.equal(
+          JSON.parse(service.SUBSCRIPTIONS_SITE_URLS)["gms-newsletter"],
+          `https://weather.${baseDomain}`
+        );
+      }
       assert.equal(
         model.services.worker.environment.TELEMETRY_WORKER_HEARTBEAT_URL,
         env.TELEMETRY_WORKER_HEARTBEAT_URL
@@ -1191,6 +1219,36 @@ test("the Cloudflare switch refuses anything but true or false", () => {
 test("deploy.yml passes the Sentry crons switch from the GitHub environment", () => {
   const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
   assert.match(workflow, SENTRY_CRONS_FROM_VARS);
+});
+
+test("the newsletter digest switch renders true only for true, false when unset or empty", () => {
+  for (const [value, expected] of [
+    [undefined, "false"],
+    ["", "false"],
+    ["false", "false"],
+    ["true", "true"],
+  ]) {
+    const { result, output } = render({ NEWSLETTER_DIGEST_ENABLED: value });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(
+      GENERATED_LINE(output, "NEWSLETTER_DIGEST_ENABLED"),
+      `NEWSLETTER_DIGEST_ENABLED="${expected}"`,
+      String(value)
+    );
+  }
+});
+
+test("the newsletter digest switch refuses anything but true or false", () => {
+  for (const value of ["yes", "1", "TRUE", "on", " true"]) {
+    const { result } = render({ NEWSLETTER_DIGEST_ENABLED: value });
+    assert.notEqual(result.status, 0, value);
+    assert.ok(result.stderr.includes("NEWSLETTER_DIGEST_ENABLED"));
+  }
+});
+
+test("deploy.yml passes the newsletter digest switch from the GitHub environment", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  assert.match(workflow, NEWSLETTER_DIGEST_FROM_VARS);
 });
 
 test("deploy.yml passes the Cloudflare switch from the GitHub environment", () => {
