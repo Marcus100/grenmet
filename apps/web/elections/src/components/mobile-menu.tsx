@@ -25,7 +25,7 @@ const SUB_ROW =
  * under the masthead: the election status, then the main pages and section
  * headings as large serif rows, with each section's pages indented beneath.
  */
-export function MobileMenu({ status }: { status?: string }) {
+export function MobileMenu({ status }: { status?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [top, setTop] = useState(0);
   const button = useRef<HTMLButtonElement>(null);

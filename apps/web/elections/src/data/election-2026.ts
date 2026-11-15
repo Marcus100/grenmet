@@ -172,6 +172,23 @@ export function electionStatus(calendar: ElectionCalendar, now: Date): string {
   return "Counting and results";
 }
 
+/**
+ * The 2026 page headline. Returns null when the wording depends on today's date
+ * and `now` is not known yet (server render, JavaScript off); the caller shows a
+ * date-free fallback then.
+ */
+export function electionHeadline(
+  calendar: ElectionCalendar,
+  now: Date | null
+): string | null {
+  if (calendar.pollingDay)
+    return `Grenada votes on ${formatIsoDate(calendar.pollingDay)}`;
+  if (!now) return null;
+  if (daysUntil(calendar.announcement, now) >= 0)
+    return `Grenada’s election date is due on ${formatIsoDate(calendar.announcement)}`;
+  return "Grenada waits for its election date";
+}
+
 export interface PartyNote {
   /** Campaign source id for `text`, or "PEO" for official results. */
   source: string;
