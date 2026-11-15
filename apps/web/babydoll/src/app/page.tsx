@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { NewTabNote } from "@/components/new-tab-note";
 import { ReviewsSection, VisitSection } from "@/components/sections";
 import {
   BUSINESS,
@@ -28,6 +29,7 @@ export default function HomePage() {
             <div className="ctas">
               <a className="btn btn-solid" {...booking}>
                 Make an appointment
+                <NewTabNote />
               </a>
               <Link className="btn btn-ghost" href="/portfolio">
                 See our work
@@ -100,7 +102,7 @@ export default function HomePage() {
                   </ul>
                   <p>{pkg.description}</p>
                   <a
-                    aria-label={`Book ${pkg.name}`}
+                    aria-label={`Book ${pkg.name} (opens in a new tab)`}
                     className={featured ? "btn" : "btn btn-ghost"}
                     href={booking.href}
                     rel={booking.rel}

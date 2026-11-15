@@ -1,4 +1,5 @@
 import { Address, Hours } from "@/components/hours";
+import { NewTabNote } from "@/components/new-tab-note";
 import {
   GOOGLE_PROFILE_URL,
   GOOGLE_REVIEW_URL,
@@ -111,6 +112,7 @@ export function VisitSection() {
           <Address />
           <a className="btn" {...booking}>
             Make an appointment
+            <NewTabNote />
           </a>
         </div>
         <div>

@@ -9,11 +9,19 @@ export function ServiceMenu({ booking }: { booking: CtaLink }) {
   const [active, setActive] = useState<ServiceCategory["id"]>("lashes");
   const ids = SERVICE_MENU.map((category) => category.id);
 
+  // Tabs pattern: arrows step through, Home and End jump to the ends.
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
-    const step = event.key === "ArrowRight" ? 1 : -1;
-    const next = ids[(ids.indexOf(active) + step + ids.length) % ids.length];
+    let next: ServiceCategory["id"] | undefined;
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      const step = event.key === "ArrowRight" ? 1 : -1;
+      next = ids[(ids.indexOf(active) + step + ids.length) % ids.length];
+    } else if (event.key === "Home") {
+      next = ids[0];
+    } else if (event.key === "End") {
+      next = ids.at(-1);
+    }
     if (!next) return;
+    event.preventDefault();
     setActive(next);
     document.getElementById(`tab-${next}`)?.focus();
   };
@@ -60,7 +68,7 @@ export function ServiceMenu({ booking }: { booking: CtaLink }) {
                   {service.note && <span className="note">{service.note}</span>}
                   {!service.addOn && (
                     <a
-                      aria-label={`Book ${service.name}`}
+                      aria-label={`Book ${service.name} (opens in a new tab)`}
                       className="book-link"
                       href={booking.href}
                       rel={booking.rel}

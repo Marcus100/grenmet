@@ -1,3 +1,4 @@
+import { NewTabNote } from "@/components/new-tab-note";
 import { BUSINESS } from "@/data/site";
 import type { CtaLink } from "@/lib/book-link";
 
@@ -11,6 +12,7 @@ export function BookBar({ booking }: { booking: CtaLink }) {
       </div>
       <a className="btn btn-solid" {...booking}>
         Book me
+        <NewTabNote />
       </a>
     </section>
   );
