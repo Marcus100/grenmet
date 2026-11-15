@@ -21,22 +21,29 @@ Tides come only from the owner's table. Neither the CSV nor its values go into g
 ## Import next year's tide table (before 1 December)
 
 Reminder: issue #1200. The owner runs the Prickly Bay tide tool for the next period
-and exports a CSV in the same columns as the current file.
+and exports a CSV in the same columns as the current file. The 2027 run, the exact
+owner command and the load steps are in `docs/operations/tides-2027.md`.
 
 1. Confirm the file has the expected header (`event_type`, `time_utc`,
    `height_m_relative_uhslc_mllw_provisional_crosswalk`, `status`, `timing_quality`).
-2. Run the importer against the target database. It is safe to re-run.
+2. Dry run first. It needs no database and writes nothing: it prints the event
+   count, the first and last events in UTC and AST, events per month, and any gap
+   over 13 hours, AST date with no event or duplicate time, and exits non-zero if
+   a check fails or the file does not cover `--expect-from`/`--expect-to`.
 
    ```bash
    cd apps/api/fastapi
    uv run --frozen --package fast-back python -m scripts.import_tide_table \
-       /path/to/pric-tides-2027-01-01-to-2027-03-31.csv --source-version v2.0
+       /path/to/pric-tides-2027-01-01-to-2027-12-31.csv --source-version v1.5 \
+       --expect-from 2027-01-01 --expect-to 2027-12-31 --dry-run
    ```
 
-   The command first prints the target host and database. A host that is not
-   local (staging, production) is refused unless you repeat it with
-   `--confirm-host <host>`. It then prints the number of events. A bad row stops
-   the import and names its line; nothing is written when parsing fails.
+3. Run it again without `--dry-run` against the target database. It is safe to
+   re-run. The same checks run first and a file that fails them is refused
+   before connecting. It then prints the target host and database. A host that
+   is not local (staging, production) is refused unless you repeat it with
+   `--confirm-host <host>`. A bad row stops the import and names its line;
+   nothing is written when parsing fails.
 3. Check the public route for a date in the new period:
    `GET /api/v1/almanac/public/tides?station=pric&from=...&to=...`. Every response
    must carry the "predicted, not for navigation" note.
