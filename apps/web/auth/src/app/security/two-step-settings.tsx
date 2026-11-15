@@ -32,16 +32,25 @@ function readForm(form: HTMLFormElement, key: string): string {
   return String(new FormData(form).get(key) ?? "").trim();
 }
 
-/** Password plus a current factor; every change to two-step asks for both. */
-function ConfirmIdentityFields() {
+/**
+ * A current factor, plus the password when the account has one. Email-code
+ * accounts have no password to type, so only the code is asked for.
+ */
+function ConfirmIdentityFields({
+  withPassword = true,
+}: {
+  withPassword?: boolean;
+}) {
   return (
     <>
-      <PasswordField
-        autoComplete="current-password"
-        id="confirm_password"
-        label="Account password"
-        name="password"
-      />
+      {withPassword && (
+        <PasswordField
+          autoComplete="current-password"
+          id="confirm_password"
+          label="Account password"
+          name="password"
+        />
+      )}
       <CodeField
         allowRecovery
         id="confirm_code"
@@ -63,12 +72,26 @@ type SetupStep =
   | { kind: "codes" }
   | { kind: "done"; codes: string[] };
 
+function SaveCodesWarning() {
+  return (
+    <p
+      className="border-destructive/30 bg-destructive/5 text-foreground rounded-lg border p-3 text-sm"
+      role="note"
+    >
+      <strong className="font-medium">Save these codes offline now.</strong>{" "}
+      This is the only time we show them.
+    </p>
+  );
+}
+
 function SetupDialog({
+  hasPassword,
   onEnabled,
   onOpenChange,
   step,
   setStep,
 }: {
+  hasPassword: boolean;
   onEnabled: (codes: number) => void;
   onOpenChange: (open: boolean) => void;
   setStep: (step: SetupStep) => void;
@@ -91,7 +114,14 @@ function SetupDialog({
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={step !== null}>
+    <Dialog
+      onOpenChange={(open) => {
+        // The codes are shown once: only "I've saved my codes" may close them.
+        if (!open && step?.kind === "done") return;
+        onOpenChange(open);
+      }}
+      open={step !== null}
+    >
       <DialogContent className="sm:max-w-md">
         {step?.kind === "scan" && (
           <form
@@ -163,7 +193,7 @@ function SetupDialog({
               const form = event.currentTarget;
               run(async () => {
                 const result = await replaceRecoveryCodes(
-                  readForm(form, "password"),
+                  hasPassword ? readForm(form, "password") : undefined,
                   readForm(form, "code")
                 );
                 onEnabled(result.codes.length);
@@ -183,12 +213,14 @@ function SetupDialog({
                 {error}
               </div>
             )}
-            <PasswordField
-              autoComplete="current-password"
-              id="codes_password"
-              label="Account password"
-              name="password"
-            />
+            {hasPassword && (
+              <PasswordField
+                autoComplete="current-password"
+                id="codes_password"
+                label="Account password"
+                name="password"
+              />
+            )}
             <CodeField id="codes_code" label="New 6-digit code" name="code" />
             <div className="flex flex-col gap-2 sm:flex-row-reverse">
               <button
@@ -215,13 +247,14 @@ function SetupDialog({
               <DialogTitle>Save your recovery codes</DialogTitle>
               <DialogDescription>You won't see these again.</DialogDescription>
             </DialogHeader>
+            <SaveCodesWarning />
             <RecoveryCodes codes={step.codes} />
             <button
               className={primaryButtonClass}
               onClick={() => onOpenChange(false)}
               type="button"
             >
-              I've saved them
+              I've saved my codes
             </button>
           </div>
         )}
@@ -239,6 +272,7 @@ function ConfirmDialog({
   submitLabel,
   title,
   destructive = false,
+  withPassword = true,
 }: {
   children?: ReactNode;
   description: string;
@@ -248,6 +282,7 @@ function ConfirmDialog({
   open: boolean;
   submitLabel: string;
   title: string;
+  withPassword?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -286,7 +321,7 @@ function ConfirmDialog({
                 {error}
               </div>
             )}
-            <ConfirmIdentityFields />
+            <ConfirmIdentityFields withPassword={withPassword} />
             <button
               className={
                 destructive
@@ -307,11 +342,14 @@ function ConfirmDialog({
 
 export function TwoStepSettings({
   enabled: initiallyEnabled,
+  hasPassword = true,
   recoveryCodesRemaining,
   storageReady = true,
   privileged = false,
 }: {
   enabled: boolean;
+  /** False for an email-code account: its recovery codes need no password. */
+  hasPassword?: boolean;
   recoveryCodesRemaining: number;
   storageReady?: boolean;
   privileged?: boolean;
@@ -325,6 +363,7 @@ export function TwoStepSettings({
 
   const setupDialog = (
     <SetupDialog
+      hasPassword={hasPassword}
       onEnabled={(codes) => {
         setEnabled(true);
         setRemaining(codes);
@@ -414,7 +453,7 @@ export function TwoStepSettings({
             }}
             type="button"
           >
-            {remaining > 0 ? "Replace" : "Create"}
+            {remaining > 0 ? "Re-generate" : "Create"}
           </button>
         }
         description={
@@ -428,14 +467,22 @@ export function TwoStepSettings({
       <ConfirmDialog
         description="Confirm it's you. Your old recovery codes stop working."
         onConfirm={async (password, code) => {
-          const result = await replaceRecoveryCodes(password, code);
+          const result = await replaceRecoveryCodes(
+            hasPassword ? password : undefined,
+            code
+          );
           setNewCodes(result.codes);
           setRemaining(result.codes.length);
         }}
-        onOpenChange={(open) => setDialog(open ? "replace" : null)}
+        onOpenChange={(open) => {
+          // Shown once: the codes stay until "I've saved my codes".
+          if (!open && newCodes.length > 0) return;
+          setDialog(open ? "replace" : null);
+        }}
         open={dialog === "replace"}
         submitLabel="Create new codes"
         title="New recovery codes"
+        withPassword={hasPassword}
       >
         {newCodes.length > 0 ? (
           <div className="space-y-5">
@@ -443,13 +490,17 @@ export function TwoStepSettings({
               <DialogTitle>Save your recovery codes</DialogTitle>
               <DialogDescription>You won't see these again.</DialogDescription>
             </DialogHeader>
+            <SaveCodesWarning />
             <RecoveryCodes codes={newCodes} />
             <button
               className={primaryButtonClass}
-              onClick={() => setDialog(null)}
+              onClick={() => {
+                setNewCodes([]);
+                setDialog(null);
+              }}
               type="button"
             >
-              I've saved them
+              I've saved my codes
             </button>
           </div>
         ) : undefined}

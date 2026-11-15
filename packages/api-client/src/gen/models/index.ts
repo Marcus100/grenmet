@@ -1176,6 +1176,7 @@ export type { BookingStudioCustomer } from "./BookingStudioCustomer.js";
 export type { BookingStudioDecline } from "./BookingStudioDecline.js";
 export type { BookingStudioDetail } from "./BookingStudioDetail.js";
 export type { BookingStudioEvent } from "./BookingStudioEvent.js";
+export type { BookingStudioReschedule } from "./BookingStudioReschedule.js";
 export type {
   BookingsCancelPublicBookingBody,
   BookingsCancelPublicBookingOptions,
@@ -1611,6 +1612,21 @@ export type {
   BookingsReschedulePublicBookingStatus409,
   BookingsReschedulePublicBookingStatus422,
 } from "./BookingsReschedulePublicBooking.js";
+export type {
+  BookingsRescheduleStudioBookingBody,
+  BookingsRescheduleStudioBookingHeaders,
+  BookingsRescheduleStudioBookingOptions,
+  BookingsRescheduleStudioBookingPath,
+  BookingsRescheduleStudioBookingResponse,
+  BookingsRescheduleStudioBookingResponses,
+  BookingsRescheduleStudioBookingStatus200,
+  BookingsRescheduleStudioBookingStatus400,
+  BookingsRescheduleStudioBookingStatus401,
+  BookingsRescheduleStudioBookingStatus403,
+  BookingsRescheduleStudioBookingStatus404,
+  BookingsRescheduleStudioBookingStatus409,
+  BookingsRescheduleStudioBookingStatus422,
+} from "./BookingsRescheduleStudioBooking.js";
 export type {
   BookingsUpdateProviderBody,
   BookingsUpdateProviderHeaders,

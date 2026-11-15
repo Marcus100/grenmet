@@ -63,6 +63,19 @@ export function todayIn(
   return localDay(now, timeZone);
 }
 
+/** The wall-clock time ("HH:MM", 24 hours) of an instant on the business's clock. */
+export function localTime(instant: Date | string, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    hourCycle: "h23",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(new Date(instant));
+  const pick = (type: string) =>
+    parts.find((part) => part.type === type)?.value ?? "00";
+  return `${pick("hour")}:${pick("minute")}`;
+}
+
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/u;
 
 export function isTime(value: string | undefined): value is string {
@@ -220,6 +233,7 @@ export function agendaDepositView(booking: {
 
 export type BookingActionKey =
   | "confirm"
+  | "reschedule"
   | "decline"
   | "cancel"
   | "no_show"
@@ -245,9 +259,11 @@ export function availableActions(
     case "pending_payment":
       return ["cancel"];
     case "pending":
-      return ["confirm", "decline", "cancel"];
+      return ["confirm", "reschedule", "decline", "cancel"];
     case "confirmed":
-      return started ? ["complete", "no_show", "cancel"] : ["cancel"];
+      return started
+        ? ["complete", "no_show", "cancel"]
+        : ["reschedule", "cancel"];
     default:
       return [];
   }

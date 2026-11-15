@@ -45,6 +45,7 @@ import {
   bookingsNoShowStudioBooking,
   bookingsRecordManualDeposit,
   bookingsReplaceWorkingHours,
+  bookingsRescheduleStudioBooking,
   bookingsUpdateProvider,
   bookingsUpdateService,
   bookingsUpsertProfile,
@@ -253,6 +254,21 @@ export function confirmBooking(
   return bookingsConfirmStudioBooking(
     actionTarget(accessToken, organisationId, bookingId)
   )
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Moves a pending or confirmed booking to a new start (UTC ISO). */
+export function rescheduleBooking(
+  accessToken: string,
+  organisationId: string,
+  bookingId: string,
+  startsAt: string
+): Promise<BookingStudioDetail> {
+  return bookingsRescheduleStudioBooking({
+    ...actionTarget(accessToken, organisationId, bookingId),
+    body: { starts_at: startsAt },
+  })
     .unwrap()
     .catch(redactRequest);
 }

@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from src.auth import service
-from src.auth.account_security import verify_factor
+from src.auth.account_security import has_usable_password, verify_factor
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.lockout import (
@@ -454,6 +454,7 @@ async def account_security(
         ),
         google_linked=bool(identities),
         password_changed_at=user.password_changed_at,
+        has_password=has_usable_password(user),
         totp_enabled=user.totp_enabled,
         sessions=[
             SecuritySessionPublic(

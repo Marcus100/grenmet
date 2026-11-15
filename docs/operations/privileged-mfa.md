@@ -21,7 +21,7 @@ Privileged means an active superuser or an account with effective `user.manage` 
 
 ## Recovery acceptance and break-glass procedure
 
-A saved recovery code replaces the authenticator at sign-in and is consumed atomically. After recovery, generate replacement codes with the account password and a current authenticator or remaining recovery code. Replacement invalidates the previous set. Recovery use, replacement, enrolment and disabling are audited without codes or secrets. Codes still work when encrypted secret decryption is unavailable, allowing the owner to disable and re-enrol after the operator restores correct storage configuration.
+A saved recovery code replaces the authenticator at sign-in and is consumed atomically. After recovery, generate replacement codes with a current authenticator code or an unused recovery code, plus the account password when the account has one. An email-code account (no usable password, ADR-0059 rule 3) confirms with the authenticator alone. Replacement invalidates the previous set. Recovery use, replacement, enrolment and disabling are audited without codes or secrets. Codes still work when encrypted secret decryption is unavailable, allowing the owner to disable and re-enrol after the operator restores correct storage configuration.
 
 On a disposable staging account, prove that one saved code signs in, the same code fails on reuse, existing privileged tools become accessible, and replacement cancels old codes. Record only test identities and outcomes in the private operator evidence store. Never test destructive recovery against the currently relied-on administrator session.
 

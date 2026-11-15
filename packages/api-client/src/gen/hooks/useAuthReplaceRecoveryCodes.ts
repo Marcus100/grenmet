@@ -47,7 +47,7 @@ export function authReplaceRecoveryCodesMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Returns eight recovery codes once after confirming password and an authenticator or existing recovery code. Only hashes are stored.
+ * @description Returns eight recovery codes once after confirming an authenticator code or an unused recovery code. The password is also required when the account has one; email-code accounts send none. Only hashes are stored.
  * @summary Replace MFA recovery codes
  * {@link /api/v1/auth/users/me/security/recovery-codes}
  */
