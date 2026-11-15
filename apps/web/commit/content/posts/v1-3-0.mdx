@@ -1,0 +1,72 @@
+---
+title: A Barrels sign-in, contact buttons for every business, and the gate scanner's screens
+summary: Version 1.3.0 gives the shared sign-in its own Barrels look and leads with an emailed code, lets each business show its phone, WhatsApp, Instagram and email on the booking page, adds the Printix gate scanner's screens, moves Elections to a static site, tightens who can remove superusers and organisation access, and prepares Turnstile, the daily newsletter and Stripe test payments behind switches that stay off until they are configured.
+date: 2026-11-16
+release: 1.3.0
+---
+
+Version 1.3.0 carries the work merged after v1.2.0. Its database changes only add
+columns or relax a rule, so the previous version still runs against the new
+schema. Several features arrive switched off: they do nothing until their keys or
+settings are added, which happens on staging first.
+
+### Signing in
+
+- **A Barrels sign-in:** the shared sign-in page now has the Barrels look instead
+  of the weather service's, and no longer lists other organisations' apps to
+  people who are not signed in.
+- **Code first:** the page opens with "Email me a code", with "Use password
+  instead" right below. The code step can send a new code after a minute or
+  start again with a different email, and screen readers hear when a new code is
+  sent.
+- **Easier on phones:** fields no longer make the phone zoom in, and buttons are
+  larger to tap.
+- **Spam protection, ready:** the emailed-code step can check for bots with
+  Cloudflare Turnstile. It stays off until its keys are added.
+
+### Accounts and access
+
+- **The last superuser stays:** the last active superuser can no longer be
+  deactivated, deleted or offboarded, and HR staff cannot offboard a superuser.
+- **Removing a superuser signs them out:** every session of the removed account
+  ends at once.
+- **Access follows the person who gave it:** removing or deleting an
+  organisation admin ends the access they gave others, and access given by an
+  admin who is suspended pauses until they are reinstated. An admin demoted a
+  moment earlier can no longer still change someone else's access.
+
+### Bookings and Babydoll
+
+- **Contact options per business:** each business can add its phone, WhatsApp,
+  Instagram and email in Studio settings, and the booking page shows the ones it
+  filled in. Messages that ask customers to contact the business now show how.
+- **Design polish:** larger tap areas, clearer press and focus states, and error
+  messages that clear as soon as a field is fixed.
+- **Payments, in test mode:** a business can choose to take the full price at
+  booking, paid on Stripe's own page, once Stripe test keys are set. Without
+  them, nothing changes. Real payments come later.
+
+### Events
+
+- **No category is fine:** organisers can clear an event's category. Uncategorised
+  events still appear in all events and search.
+
+### Tickets
+
+- **Gate scanner screens:** paired phones scan tickets and show a full green
+  screen for admitted and a full red screen with the reason for refused, with a
+  live count of people in. The scanner enforces a strict security policy and will
+  live at scan.barrels.gd.
+
+### Sites
+
+- **Elections on Cloudflare:** the Elections site builds as a static site, and
+  today's date is worked out in the visitor's browser so it never goes stale.
+
+### Weather
+
+- **2027 tides:** the tide table loader can now check a file before loading it,
+  so the 2027 Prickly Bay table can be loaded safely before the current one runs
+  out.
+- **Daily newsletter, ready:** the daily climate email can be switched on per
+  environment, and its links and posts now point at the weather site.
