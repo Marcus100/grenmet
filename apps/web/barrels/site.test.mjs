@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
-import "./build.mjs";
+import { NOINDEX_ROBOTS } from "./build.mjs";
 
 const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/su;
 const PRIVACY_DIALOG = /<section[^>]*role="dialog"/su;
@@ -692,4 +692,81 @@ test("every indexable page has a title, description and its own barrels.gd canon
       `${page} canonical ${canonical}`
     );
   }
+});
+
+// Module-level patterns for the review checks below.
+const CSS_RULE = /([^{}]+)\{([^{}]*)\}/gu;
+const CLASS_SELECTOR = /\.[\w-]+/gu;
+const TYPE_SELECTOR = /(?:^|\s)[a-z][\w-]*/giu;
+const CHIPS_LIST = /<ul class="chips">([\s\S]*?)<\/ul>/u;
+const CHIP_ITEM = /<li>([^<]+)<\/li>/gu;
+const PARENTHETICAL = / \(.*\)$/u;
+
+// Specificity as classes times 10 plus type selectors (enough for these rules).
+const specificity = (selector) =>
+  (selector.match(CLASS_SELECTOR) ?? []).length * 10 +
+  (selector.match(TYPE_SELECTOR) ?? []).length;
+
+test("the live and coming-soon pills win the cascade over the panel paragraph rule", () => {
+  const css = read("style.css");
+  const rules = [...css.matchAll(CSS_RULE)].map(([, selector, body]) => ({
+    selector: selector.trim(),
+    body,
+  }));
+  const panelText = rules.find((rule) => rule.selector === ".card p");
+  assert.ok(panelText, ".card p rule exists");
+  assert.ok(panelText.body.includes("var(--brand-text-secondary)"));
+  for (const [name, colour] of [
+    [".card .status-live", "var(--brand-text-inverse)"],
+    [".card .status-soon", "var(--brand-text-primary)"],
+  ]) {
+    const pill = rules.find((rule) => rule.selector === name);
+    assert.ok(pill, `${name} rule exists`);
+    assert.ok(pill.body.includes(`color: ${colour}`), `${name} sets ${colour}`);
+    assert.ok(
+      specificity(pill.selector) > specificity(panelText.selector),
+      `${name} (${specificity(pill.selector)}) must beat .card p (${specificity(panelText.selector)})`
+    );
+  }
+});
+
+test("the same twelve services in the same order on the home chips, home JSON-LD and services page", () => {
+  const home = read("index.html");
+  const chips = [
+    ...(home.match(CHIPS_LIST)?.[1] ?? "").matchAll(CHIP_ITEM),
+  ].map(([, name]) => name);
+  const short = EXPECTED_SERVICES.map((name) =>
+    name.replace(PARENTHETICAL, "")
+  );
+  assert.deepEqual(chips, short, "home chips follow the services order");
+  const [homeGraph] = jsonLd("index.html");
+  const org = homeGraph["@graph"].find(
+    (node) => node["@id"] === "https://barrels.gd/#organization"
+  );
+  assert.deepEqual(
+    org.makesOffer.map((offer) => offer.itemOffered.name),
+    EXPECTED_SERVICES,
+    "home JSON-LD follows the services order"
+  );
+});
+
+test("the services page JSON-LD provider names and links the organisation on its own", () => {
+  const [catalog] = jsonLd("services/index.html");
+  assert.equal(catalog.provider.name, "Barrels Grenada");
+  assert.equal(catalog.provider.url, "https://barrels.gd/");
+});
+
+test("noindex is found in either attribute order and any case, and only there", () => {
+  for (const tag of [
+    '<meta content="noindex" name="robots">',
+    '<meta name="robots" content="noindex">',
+    '<meta NAME="Robots" CONTENT="NoIndex, nofollow">',
+    "<meta content='noindex' name='robots'>",
+  ])
+    assert.ok(NOINDEX_ROBOTS.test(tag), `detects ${tag}`);
+  for (const tag of [
+    '<meta name="robots" content="index, follow">',
+    '<meta name="description" content="noindex is not a robots tag">',
+  ])
+    assert.ok(!NOINDEX_ROBOTS.test(tag), `ignores ${tag}`);
 });

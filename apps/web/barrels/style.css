@@ -214,11 +214,11 @@ button:disabled {
   line-height: var(--line-height-heading-md);
   border-radius: var(--line-height-heading-lg);
 }
-.status-live {
+.card .status-live {
   color: var(--brand-text-inverse);
   background: var(--brand-primary);
 }
-.status-soon {
+.card .status-soon {
   color: var(--brand-text-primary);
   background: var(--brand-surface-muted);
   border: thin solid var(--brand-border);

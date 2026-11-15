@@ -29,6 +29,9 @@ const partials = Object.fromEntries(
     readFileSync(new URL(`partials/${name}.html`, directory), "utf8").trimEnd(),
   ])
 );
+// A robots meta tag that carries noindex, whatever the attribute order or case.
+export const NOINDEX_ROBOTS =
+  /<meta\b(?=[^>]*\bname=["']robots["'])(?=[^>]*\bcontent=["'][^"']*\bnoindex\b)[^>]*>/iu;
 const publicUrls = [];
 for (const page of PAGES) {
   const html = readFileSync(new URL(page, directory), "utf8").replace(
@@ -43,7 +46,7 @@ for (const page of PAGES) {
   writeFileSync(target, html);
   // Indexable pages are the ones without noindex; their canonical is the
   // sitemap entry, so the two can never disagree.
-  if (!/<meta content="noindex" name="robots">/u.test(html)) {
+  if (!NOINDEX_ROBOTS.test(html)) {
     const canonical = html.match(
       /<link href="(https:\/\/barrels\.gd\/[^"]*)" rel="canonical">/u
     )?.[1];
