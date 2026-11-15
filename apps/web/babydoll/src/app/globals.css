@@ -3,6 +3,10 @@
    @font-face here when the client supplies it) with Italiana standing in;
    Montserrat (secondary). Colours: logo cream and black, the booking-page
    blush, and the brand sheet's slate-teal hairline (sampled, approximate). */
+/* Native-app touch behaviour shared by the other web apps (tap flash, touch
+   action, reduced motion). Behaviour only: the colours below stay babydoll's. */
+@import "@barrelsgd/ui/styles/app-feel";
+
 :root {
   --display:
     "Adorn Story", var(--font-italiana), "Didot", "Bodoni 72", Georgia, serif;
@@ -155,19 +159,67 @@ p {
   border-radius: 999px;
   transition:
     background 0.2s,
-    color 0.2s;
+    color 0.2s,
+    transform 0.12s;
 }
 .btn-solid {
   color: var(--paper);
   background: var(--ink);
 }
-.btn-solid:hover {
-  color: var(--ink);
-  background: transparent;
+/* Hover is for mouse pointers only: on a touch screen a tap would leave it stuck. */
+@media (hover: hover) and (pointer: fine) {
+  .btn-solid:hover {
+    color: var(--ink);
+    background: transparent;
+  }
+  .btn-ghost:hover {
+    color: var(--paper);
+    background: var(--ink);
+  }
 }
-.btn-ghost:hover {
-  color: var(--paper);
-  background: var(--ink);
+/* Press feedback on touch and mouse alike. */
+.btn:active {
+  transform: scale(0.97);
+}
+.book-link:active,
+.chips button:active,
+.type-filter button:active,
+.footer-links a:active,
+.legal a:active {
+  opacity: 0.7;
+}
+
+/* Small controls get a 44 px hit area: a pseudo-element that is centred on the
+   control, so the look and the layout stay as they are. Only where there is
+   room: the footer and legal links (about 26 px tall, 4 px apart) and the
+   portfolio filter (no gap between rows) would take taps from their neighbours,
+   so they keep their size (see the note in the PR). */
+.chips button,
+.book-bar .btn {
+  position: relative;
+}
+.chips button::before,
+.book-bar .btn::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: 44px;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+/* The Book link sits at the foot of its item: its zone reaches down into the
+   item's bottom padding only, never up over the service description. */
+.book-link {
+  position: relative;
+}
+.book-link::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: max(100%, 44px);
+  height: 44px;
+  content: "";
 }
 
 /* Header */
@@ -219,8 +271,10 @@ p {
   text-decoration: none;
   border-bottom: 1px solid transparent;
 }
-.primary a:hover {
-  color: var(--ink);
+@media (hover: hover) and (pointer: fine) {
+  .primary a:hover {
+    color: var(--ink);
+  }
 }
 .primary a[aria-current="page"] {
   color: var(--ink);
@@ -532,9 +586,11 @@ section.block.flush-top {
   background: var(--paper);
   border-color: var(--paper);
 }
-.pkg:where(.feature) .btn:hover {
-  color: var(--paper);
-  background: transparent;
+@media (hover: hover) and (pointer: fine) {
+  .pkg:where(.feature) .btn:hover {
+    color: var(--paper);
+    background: transparent;
+  }
 }
 .pkg .flag {
   font-size: 0.7rem;
@@ -648,8 +704,10 @@ section.block.flush-top {
   text-decoration: none;
   border-bottom: 1px solid var(--rule);
 }
-.book-link:hover {
-  color: var(--blush-ink);
+@media (hover: hover) and (pointer: fine) {
+  .book-link:hover {
+    color: var(--blush-ink);
+  }
 }
 .menu-foot {
   display: flex;
@@ -750,8 +808,10 @@ section.block.flush-top {
   border: 0;
   transition: color 0.2s;
 }
-.type-filter button:hover {
-  color: var(--ink-soft);
+@media (hover: hover) and (pointer: fine) {
+  .type-filter button:hover {
+    color: var(--ink-soft);
+  }
 }
 .type-filter button[aria-pressed="true"] {
   color: var(--ink);
@@ -973,17 +1033,21 @@ section.block.flush-top {
   color: var(--blush-deep);
   border-color: var(--blush-deep);
 }
-.google .btn:hover {
-  color: var(--blush);
-  background: var(--blush-deep);
+@media (hover: hover) and (pointer: fine) {
+  .google .btn:hover {
+    color: var(--blush);
+    background: var(--blush-deep);
+  }
 }
 .google .btn-solid {
   color: var(--blush);
   background: var(--blush-deep);
 }
-.google .btn-solid:hover {
-  color: var(--blush-deep);
-  background: transparent;
+@media (hover: hover) and (pointer: fine) {
+  .google .btn-solid:hover {
+    color: var(--blush-deep);
+    background: transparent;
+  }
 }
 .acts {
   display: flex;
@@ -1121,8 +1185,10 @@ section.block.flush-top {
   border-radius: 20px;
   transition: border-color 0.2s;
 }
-.channel:hover {
-  border-color: var(--ink);
+@media (hover: hover) and (pointer: fine) {
+  .channel:hover {
+    border-color: var(--ink);
+  }
 }
 .channel b {
   font-family: var(--display);
@@ -1226,8 +1292,10 @@ section.block.flush-top {
 .social span:last-child {
   transition: transform 0.2s;
 }
-.social a:hover span:last-child {
-  transform: translateX(4px);
+@media (hover: hover) and (pointer: fine) {
+  .social a:hover span:last-child {
+    transform: translateX(4px);
+  }
 }
 .visit .btn {
   margin-top: 28px;
@@ -1235,9 +1303,11 @@ section.block.flush-top {
   background: var(--paper);
   border-color: var(--paper);
 }
-.visit .btn:hover {
-  color: var(--paper);
-  background: transparent;
+@media (hover: hover) and (pointer: fine) {
+  .visit .btn:hover {
+    color: var(--paper);
+    background: transparent;
+  }
 }
 @media (max-width: 900px) {
   .visit-grid {
@@ -1273,8 +1343,10 @@ section.block.flush-top {
 .footer-links a {
   text-decoration: none;
 }
-.footer-links a:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .footer-links a:hover {
+    text-decoration: underline;
+  }
 }
 .footer-address {
   margin-top: 16px;
