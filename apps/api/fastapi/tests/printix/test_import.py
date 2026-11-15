@@ -69,7 +69,11 @@ async def test_any_error_refuses_the_whole_file(db_async: AsyncSession) -> None:
     event = await make_event(db_async)
 
     report = await service.import_tickets(
-        db_async, event.id, b"number\n001\n001\n002\n", dry_run=False
+        db_async,
+        event.id,
+        b"number\n001\n001\n002\n",
+        dry_run=False,
+        allow_number_as_barcode=True,
     )
 
     assert report.applied is False
