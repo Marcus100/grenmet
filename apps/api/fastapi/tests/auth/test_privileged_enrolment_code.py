@@ -5,6 +5,7 @@ authenticator used to be enough to enrol the attacker's own authenticator.
 """
 
 import asyncio
+import time
 
 import pyotp
 import pytest
@@ -390,6 +391,40 @@ async def test_parallel_setups_share_the_window_cap(
     assert statuses == [200] * cap + [429] * (6 - cap)
     assert len(sent) == cap
     assert await _count(db_async, user, totp_enrolment.ENROLMENT_CODE_SENT) == cap
+
+
+async def test_a_hung_send_does_not_queue_other_setups(
+    async_client, db_async, monkeypatch
+):
+    """#952 review M1: while one setup holds the account lock through a hung mail
+    send, other setups give up after the lock wait with 429 instead of queuing (and
+    holding database connections). The first setup still finishes once the send
+    returns."""
+    monkeypatch.setattr(totp_enrolment, "ENROLMENT_LOCK_WAIT", "200ms")
+    entered = asyncio.Event()
+    release = asyncio.Event()
+
+    async def hung_send(**_kwargs: str) -> None:
+        entered.set()
+        await release.wait()
+
+    monkeypatch.setattr(totp_enrolment, "_send_enrolment_code", hung_send)
+    user = await make_user(db_async, superuser=True)
+    headers = await bearer(async_client, user)
+    first = asyncio.create_task(async_client.post(SETUP, headers=headers))
+    await asyncio.wait_for(entered.wait(), timeout=5)
+
+    started = time.monotonic()
+    others = await asyncio.gather(
+        *(async_client.post(SETUP, headers=headers) for _ in range(3))
+    )
+    elapsed = time.monotonic() - started
+
+    assert [response.status_code for response in others] == [429, 429, 429]
+    assert all("already in progress" in r.json()["detail"] for r in others)
+    assert elapsed < 2.0
+    release.set()
+    assert (await first).status_code == 200
 
 
 async def test_old_codes_outside_the_window_do_not_count(async_client, db_async):
