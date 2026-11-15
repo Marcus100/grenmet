@@ -46,7 +46,7 @@ export function authCreateUserMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Create a global account (superuser only). HR placement and app admission are separate explicit actions.
+ * @description Create a global account (superuser only). HR placement and app admission are separate explicit actions. Superuser status is never granted here (403): send a superuser invitation instead (POST /api/v1/auth/superuser-invitations).
  * @summary Create user
  * {@link /api/v1/auth/users}
  */
