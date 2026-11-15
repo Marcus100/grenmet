@@ -3168,3 +3168,26 @@ the hour to the automatic source (SURFACE), when the station is not in the
 registry, or when another observation already holds the hour. A WIS2 file is
 never queued twice, so `resend` no longer repeats a queued or sent publish. The
 request and response shapes are unchanged; the optional request body is accepted and ignored.
+
+## Printix ticket registry (ADR-0060)
+
+Two route zones, both under `/api/v1/printix/`.
+
+- **`admin/*`** (superuser with an enrolled authenticator and an MFA session, plus
+  `printix.manage`): create and close events (`POST /events`, `POST /events/{id}/close`),
+  the event summary (`GET /events/{id}/summary`), the ticket import
+  (`POST /events/{id}/tickets/import`, multipart CSV with a `number` column and an
+  optional `barcode` column; `dry_run` defaults to true and reports every problem with
+  its line; an apply with any problem writes nothing and reports `applied: false`),
+  tickets (`GET /events/{id}/tickets` with `status`, `admitted`, `page` and `size`, and
+  `total`; `POST /tickets/{id}/void` and `/unvoid`), and gate pairings
+  (`POST /events/{id}/pairings` returns the one-time `secret`; `GET /events/{id}/pairings`
+  never returns a secret; `POST /pairings/{id}/revoke`). Barcode values are never returned.
+- **`public/*`** (no account; `Authorization: Bearer <pairing secret>`, checked on every
+  call): `POST /admissions` with `{value}` and `GET /summary`. An admission answers 200 with
+  a stable `outcome`: `admitted`, `already_admitted` (with the first admission's time and
+  gate), `void`, `unknown` (also used for a value on another event) or `event_closed`.
+  A revoked pairing answers 403, an expired one 403, an unknown secret 401, and more than
+  120 scans in a rolling minute 429 with `Retry-After`.
+
+Adding an outcome code or an optional field is additive; removing one is breaking.

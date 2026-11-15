@@ -1,0 +1,218 @@
+"""Read the printer's ticket list (CSV) and check it before anything is written.
+
+The file needs a ``number`` column; ``barcode`` is optional and defaults to the
+number. Header names are case-insensitive, a UTF-8 byte order mark from a
+spreadsheet is accepted, and blank lines are skipped. Every problem is reported
+with its line, so the operator can fix the file and dry-run it again. The parser
+does no database work; the service checks the rows against tickets already on
+the event.
+
+A barcode may not equal another ticket's printed number: a barcode lookup wins
+over a number lookup, so the barcode would shadow that ticket. A file with no
+barcode column is accepted but flagged, because the barcode then defaults to a
+three-digit number.
+"""
+
+import csv
+import io
+import re
+from dataclasses import dataclass, field
+
+from . import constants
+
+_CONTROL = re.compile(constants.CONTROL_CHARACTER_PATTERN)
+
+
+@dataclass(frozen=True)
+class ParsedRow:
+    line: int
+    number: str
+    barcode: str
+    #: True when no barcode was given, so the printed number is also the barcode.
+    defaulted: bool = False
+
+
+@dataclass(frozen=True)
+class CsvIssue:
+    line: int
+    message: str
+
+
+@dataclass(frozen=True)
+class ParsedImport:
+    rows: list[ParsedRow] = field(default_factory=list)
+    errors: list[CsvIssue] = field(default_factory=list)
+    row_count: int = 0
+    errors_truncated: bool = False
+    has_barcode_column: bool = False
+    #: False when the header itself is unusable (empty, no number column, control character).
+    header_ok: bool = False
+    #: Lines of rows whose barcode defaults to the printed number (no barcode given).
+    defaulted_lines: list[int] = field(default_factory=list)
+
+
+def _fail(line: int, message: str) -> ParsedImport:
+    return ParsedImport(errors=[CsvIssue(line, message)])
+
+
+def _cell(row: list[str], index: int | None) -> str:
+    if index is None or index >= len(row):
+        return ""
+    return row[index].strip()
+
+
+def parse_ticket_csv(content: bytes) -> ParsedImport:
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return _fail(1, "The file is not UTF-8 text. Save it again as UTF-8 CSV.")
+
+    reader = csv.reader(io.StringIO(text))
+    rows: list[ParsedRow] = []
+    issues: list[CsvIssue] = []
+    seen_numbers: dict[str, int] = {}
+    seen_barcodes: dict[str, int] = {}
+    row_count = 0
+    header_line = 1
+    try:
+        header: list[str] | None = None
+        for cells in reader:
+            if any(cell.strip() for cell in cells):
+                header = cells
+                break
+        if header is None:
+            return _fail(1, "The file is empty.")
+        header_line = reader.line_num
+        if any(_CONTROL.search(cell) for cell in header):
+            return _fail(header_line, "The header row has a control character.")
+        lowered = [name.strip().lower() for name in header]
+        if "number" not in lowered:
+            return _fail(header_line, "The first row needs a 'number' column.")
+        number_index = lowered.index("number")
+        barcode_index = lowered.index("barcode") if "barcode" in lowered else None
+        header_usable = True
+
+        for cells in reader:
+            if not any(cell.strip() for cell in cells):
+                continue
+            line = reader.line_num
+            row_count += 1
+            if row_count > constants.MAX_IMPORT_ROWS:
+                return ParsedImport(
+                    errors=[
+                        CsvIssue(
+                            line,
+                            f"The file has more rows than the limit: at most "
+                            f"{constants.MAX_IMPORT_ROWS} ticket rows.",
+                        )
+                    ],
+                    row_count=row_count,
+                    has_barcode_column=barcode_index is not None,
+                    header_ok=header_usable,
+                )
+            number = _cell(cells, number_index)
+            given = _cell(cells, barcode_index)
+            barcode = given or number
+            problem = _check_row(
+                line, cells, number, barcode, seen_numbers, seen_barcodes
+            )
+            if problem is not None:
+                issues.append(problem)
+            else:
+                rows.append(
+                    ParsedRow(
+                        line=line,
+                        number=number,
+                        barcode=barcode,
+                        defaulted=not given,
+                    )
+                )
+            if number:
+                seen_numbers.setdefault(number, line)
+            if barcode:
+                seen_barcodes.setdefault(barcode, line)
+    except csv.Error:
+        issues.append(CsvIssue(reader.line_num, "The file is not readable CSV."))
+    if row_count == 0 and not issues:
+        issues.append(CsvIssue(header_line, "The file has no ticket rows."))
+
+    rows, shadowing = _barcodes_shadowing_numbers(rows)
+    issues.extend(shadowing)
+    issues.sort(key=lambda issue: issue.line)
+    truncated = len(issues) > constants.MAX_REPORTED_ERRORS
+    return ParsedImport(
+        rows=rows,
+        errors=issues[: constants.MAX_REPORTED_ERRORS],
+        row_count=row_count,
+        errors_truncated=truncated,
+        has_barcode_column=barcode_index is not None,
+        header_ok=header_usable,
+        defaulted_lines=[row.line for row in rows if row.defaulted],
+    )
+
+
+def _barcodes_shadowing_numbers(
+    rows: list[ParsedRow],
+) -> tuple[list[ParsedRow], list[CsvIssue]]:
+    """Rows whose barcode is another row's printed number are refused."""
+    number_lines = {row.number: row.line for row in rows}
+    barcode_lines = {row.barcode: row.line for row in rows}
+    kept: list[ParsedRow] = []
+    issues: list[CsvIssue] = []
+    for row in rows:
+        other_number = number_lines.get(row.barcode)
+        other_barcode = barcode_lines.get(row.number)
+        if (
+            other_number is not None
+            and other_number != row.line
+            and row.barcode != row.number
+        ):
+            issues.append(
+                CsvIssue(
+                    row.line,
+                    f"barcode is the printed number on line {other_number}; a barcode "
+                    "must not equal another ticket's number",
+                )
+            )
+        elif other_barcode is not None and other_barcode != row.line:
+            issues.append(
+                CsvIssue(
+                    row.line,
+                    f"number is the barcode on line {other_barcode}; a barcode "
+                    "must not equal another ticket's number",
+                )
+            )
+        else:
+            kept.append(row)
+    return kept, issues
+
+
+def _check_row(
+    line: int,
+    cells: list[str],
+    number: str,
+    barcode: str,
+    seen_numbers: dict[str, int],
+    seen_barcodes: dict[str, int],
+) -> CsvIssue | None:
+    """The first problem with a row, or None. One problem per row keeps the
+    report readable: a duplicate number also repeats its defaulted barcode."""
+    if any(_CONTROL.search(cell) for cell in cells):
+        return CsvIssue(line, "a cell contains a control character")
+    if not number:
+        return CsvIssue(line, "number is empty")
+    if len(number) > constants.PRINTED_NUMBER_MAX:
+        return CsvIssue(
+            line, f"number is longer than {constants.PRINTED_NUMBER_MAX} characters"
+        )
+    if number in seen_numbers:
+        return CsvIssue(
+            line, f"number {number} is already on line {seen_numbers[number]}"
+        )
+    if len(barcode) > constants.BARCODE_MAX:
+        return CsvIssue(
+            line, f"barcode is longer than {constants.BARCODE_MAX} characters"
+        )
+    if barcode in seen_barcodes:
+        return CsvIssue(line, f"barcode is already on line {seen_barcodes[barcode]}")
+    return None

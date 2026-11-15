@@ -604,6 +604,18 @@ export { paymentsGetBalance } from "./clients/paymentsGetBalance.js";
 export { paymentsGetIntent } from "./clients/paymentsGetIntent.js";
 export { paymentsListIntents } from "./clients/paymentsListIntents.js";
 export { paymentsRecordManualPayment } from "./clients/paymentsRecordManualPayment.js";
+export { printixAdmitTicket } from "./clients/printixAdmitTicket.js";
+export { printixCloseEvent } from "./clients/printixCloseEvent.js";
+export { printixCreateEvent } from "./clients/printixCreateEvent.js";
+export { printixCreatePairing } from "./clients/printixCreatePairing.js";
+export { printixEventSummary } from "./clients/printixEventSummary.js";
+export { printixImportTickets } from "./clients/printixImportTickets.js";
+export { printixListPairings } from "./clients/printixListPairings.js";
+export { printixListTickets } from "./clients/printixListTickets.js";
+export { printixPairingSummary } from "./clients/printixPairingSummary.js";
+export { printixRevokePairing } from "./clients/printixRevokePairing.js";
+export { printixUnvoidTicket } from "./clients/printixUnvoidTicket.js";
+export { printixVoidTicket } from "./clients/printixVoidTicket.js";
 export { profileImagesGetMine } from "./clients/profileImagesGetMine.js";
 export { profileImagesRemove } from "./clients/profileImagesRemove.js";
 export { profileImagesRemoveMine } from "./clients/profileImagesRemoveMine.js";
@@ -3776,6 +3788,66 @@ export {
   usePaymentsRecordManualPayment,
 } from "./hooks/usePaymentsRecordManualPayment.js";
 export {
+  printixAdmitTicketMutationKey,
+  printixAdmitTicketMutationOptions,
+  usePrintixAdmitTicket,
+} from "./hooks/usePrintixAdmitTicket.js";
+export {
+  printixCloseEventMutationKey,
+  printixCloseEventMutationOptions,
+  usePrintixCloseEvent,
+} from "./hooks/usePrintixCloseEvent.js";
+export {
+  printixCreateEventMutationKey,
+  printixCreateEventMutationOptions,
+  usePrintixCreateEvent,
+} from "./hooks/usePrintixCreateEvent.js";
+export {
+  printixCreatePairingMutationKey,
+  printixCreatePairingMutationOptions,
+  usePrintixCreatePairing,
+} from "./hooks/usePrintixCreatePairing.js";
+export {
+  printixEventSummaryQueryKey,
+  printixEventSummaryQueryOptions,
+  usePrintixEventSummary,
+} from "./hooks/usePrintixEventSummary.js";
+export {
+  printixImportTicketsMutationKey,
+  printixImportTicketsMutationOptions,
+  usePrintixImportTickets,
+} from "./hooks/usePrintixImportTickets.js";
+export {
+  printixListPairingsQueryKey,
+  printixListPairingsQueryOptions,
+  usePrintixListPairings,
+} from "./hooks/usePrintixListPairings.js";
+export {
+  printixListTicketsQueryKey,
+  printixListTicketsQueryOptions,
+  usePrintixListTickets,
+} from "./hooks/usePrintixListTickets.js";
+export {
+  printixPairingSummaryQueryKey,
+  printixPairingSummaryQueryOptions,
+  usePrintixPairingSummary,
+} from "./hooks/usePrintixPairingSummary.js";
+export {
+  printixRevokePairingMutationKey,
+  printixRevokePairingMutationOptions,
+  usePrintixRevokePairing,
+} from "./hooks/usePrintixRevokePairing.js";
+export {
+  printixUnvoidTicketMutationKey,
+  printixUnvoidTicketMutationOptions,
+  usePrintixUnvoidTicket,
+} from "./hooks/usePrintixUnvoidTicket.js";
+export {
+  printixVoidTicketMutationKey,
+  printixVoidTicketMutationOptions,
+  usePrintixVoidTicket,
+} from "./hooks/usePrintixVoidTicket.js";
+export {
   profileImagesGetMineQueryKey,
   profileImagesGetMineQueryOptions,
   useProfileImagesGetMine,
@@ -5711,6 +5783,7 @@ export type { BinaryFile } from "./models/BinaryFile.js";
 export type { BodyAuthLoginAccessToken } from "./models/BodyAuthLoginAccessToken.js";
 export type { BodyHrImportTerminalPunches } from "./models/BodyHrImportTerminalPunches.js";
 export type { BodyHrUploadDocument } from "./models/BodyHrUploadDocument.js";
+export type { BodyPrintixImportTickets } from "./models/BodyPrintixImportTickets.js";
 export type { BookingAgenda } from "./models/BookingAgenda.js";
 export type { BookingAgendaDay } from "./models/BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./models/BookingAgendaItem.js";
@@ -12261,6 +12334,164 @@ export type { PreferencesUnsubscribeRequest } from "./models/PreferencesUnsubscr
 export type { PrincipalPhase } from "./models/PrincipalPhase.js";
 export type { PrincipalPhasePropertiesPhaseEnum } from "./models/PrincipalPhasePropertiesPhaseEnum.js";
 export { principalPhasePropertiesPhaseEnum } from "./models/PrincipalPhasePropertiesPhaseEnum.js";
+export type {
+  PrintixAdmitTicketBody,
+  PrintixAdmitTicketOptions,
+  PrintixAdmitTicketResponse,
+  PrintixAdmitTicketResponses,
+  PrintixAdmitTicketStatus200,
+  PrintixAdmitTicketStatus401,
+  PrintixAdmitTicketStatus403,
+  PrintixAdmitTicketStatus422,
+  PrintixAdmitTicketStatus429,
+} from "./models/PrintixAdmitTicket.js";
+export type {
+  PrintixCloseEventOptions,
+  PrintixCloseEventPath,
+  PrintixCloseEventResponse,
+  PrintixCloseEventResponses,
+  PrintixCloseEventStatus200,
+  PrintixCloseEventStatus401,
+  PrintixCloseEventStatus403,
+  PrintixCloseEventStatus404,
+  PrintixCloseEventStatus422,
+} from "./models/PrintixCloseEvent.js";
+export type {
+  PrintixCreateEventBody,
+  PrintixCreateEventOptions,
+  PrintixCreateEventResponse,
+  PrintixCreateEventResponses,
+  PrintixCreateEventStatus201,
+  PrintixCreateEventStatus401,
+  PrintixCreateEventStatus403,
+  PrintixCreateEventStatus422,
+} from "./models/PrintixCreateEvent.js";
+export type {
+  PrintixCreatePairingBody,
+  PrintixCreatePairingOptions,
+  PrintixCreatePairingPath,
+  PrintixCreatePairingResponse,
+  PrintixCreatePairingResponses,
+  PrintixCreatePairingStatus201,
+  PrintixCreatePairingStatus401,
+  PrintixCreatePairingStatus403,
+  PrintixCreatePairingStatus404,
+  PrintixCreatePairingStatus409,
+  PrintixCreatePairingStatus422,
+} from "./models/PrintixCreatePairing.js";
+export type { PrintixEventCreate } from "./models/PrintixEventCreate.js";
+export type { PrintixEventPublic } from "./models/PrintixEventPublic.js";
+export type { PrintixEventStatus } from "./models/PrintixEventStatus.js";
+export { printixEventStatus } from "./models/PrintixEventStatus.js";
+export type {
+  PrintixEventSummary,
+  PrintixEventSummaryOptions,
+  PrintixEventSummaryPath,
+  PrintixEventSummaryResponse,
+  PrintixEventSummaryResponses,
+  PrintixEventSummaryStatus200,
+  PrintixEventSummaryStatus401,
+  PrintixEventSummaryStatus403,
+  PrintixEventSummaryStatus404,
+  PrintixEventSummaryStatus422,
+} from "./models/PrintixEventSummary.js";
+export type { PrintixGateCount } from "./models/PrintixGateCount.js";
+export type { PrintixImportIssue } from "./models/PrintixImportIssue.js";
+export type { PrintixImportReport } from "./models/PrintixImportReport.js";
+export type {
+  PrintixImportTicketsBody,
+  PrintixImportTicketsOptions,
+  PrintixImportTicketsPath,
+  PrintixImportTicketsQuery,
+  PrintixImportTicketsResponse,
+  PrintixImportTicketsResponses,
+  PrintixImportTicketsStatus200,
+  PrintixImportTicketsStatus401,
+  PrintixImportTicketsStatus403,
+  PrintixImportTicketsStatus404,
+  PrintixImportTicketsStatus409,
+  PrintixImportTicketsStatus413,
+  PrintixImportTicketsStatus422,
+} from "./models/PrintixImportTickets.js";
+export type {
+  PrintixListPairingsOptions,
+  PrintixListPairingsPath,
+  PrintixListPairingsResponse,
+  PrintixListPairingsResponses,
+  PrintixListPairingsStatus200,
+  PrintixListPairingsStatus401,
+  PrintixListPairingsStatus403,
+  PrintixListPairingsStatus404,
+  PrintixListPairingsStatus422,
+} from "./models/PrintixListPairings.js";
+export type {
+  PrintixListTicketsOptions,
+  PrintixListTicketsPath,
+  PrintixListTicketsQuery,
+  PrintixListTicketsResponse,
+  PrintixListTicketsResponses,
+  PrintixListTicketsStatus200,
+  PrintixListTicketsStatus401,
+  PrintixListTicketsStatus403,
+  PrintixListTicketsStatus404,
+  PrintixListTicketsStatus422,
+} from "./models/PrintixListTickets.js";
+export type { PrintixPairingCreate } from "./models/PrintixPairingCreate.js";
+export type { PrintixPairingCreated } from "./models/PrintixPairingCreated.js";
+export type { PrintixPairingPublic } from "./models/PrintixPairingPublic.js";
+export type {
+  PrintixPairingSummaryOptions,
+  PrintixPairingSummaryResponse,
+  PrintixPairingSummaryResponses,
+  PrintixPairingSummaryStatus200,
+  PrintixPairingSummaryStatus401,
+  PrintixPairingSummaryStatus403,
+  PrintixPairingSummaryStatus422,
+  PrintixPairingSummaryStatus429,
+} from "./models/PrintixPairingSummary.js";
+export type {
+  PrintixRevokePairingOptions,
+  PrintixRevokePairingPath,
+  PrintixRevokePairingResponse,
+  PrintixRevokePairingResponses,
+  PrintixRevokePairingStatus200,
+  PrintixRevokePairingStatus401,
+  PrintixRevokePairingStatus403,
+  PrintixRevokePairingStatus404,
+  PrintixRevokePairingStatus422,
+} from "./models/PrintixRevokePairing.js";
+export type { PrintixScanOutcome } from "./models/PrintixScanOutcome.js";
+export { printixScanOutcome } from "./models/PrintixScanOutcome.js";
+export type { PrintixScanRequest } from "./models/PrintixScanRequest.js";
+export type { PrintixScanResult } from "./models/PrintixScanResult.js";
+export type { PrintixTicketPage } from "./models/PrintixTicketPage.js";
+export type { PrintixTicketPublic } from "./models/PrintixTicketPublic.js";
+export type { PrintixTicketStatus } from "./models/PrintixTicketStatus.js";
+export { printixTicketStatus } from "./models/PrintixTicketStatus.js";
+export type {
+  PrintixUnvoidTicketOptions,
+  PrintixUnvoidTicketPath,
+  PrintixUnvoidTicketResponse,
+  PrintixUnvoidTicketResponses,
+  PrintixUnvoidTicketStatus200,
+  PrintixUnvoidTicketStatus401,
+  PrintixUnvoidTicketStatus403,
+  PrintixUnvoidTicketStatus404,
+  PrintixUnvoidTicketStatus409,
+  PrintixUnvoidTicketStatus422,
+} from "./models/PrintixUnvoidTicket.js";
+export type {
+  PrintixVoidTicketOptions,
+  PrintixVoidTicketPath,
+  PrintixVoidTicketResponse,
+  PrintixVoidTicketResponses,
+  PrintixVoidTicketStatus200,
+  PrintixVoidTicketStatus401,
+  PrintixVoidTicketStatus403,
+  PrintixVoidTicketStatus404,
+  PrintixVoidTicketStatus409,
+  PrintixVoidTicketStatus422,
+} from "./models/PrintixVoidTicket.js";
 export type { ProductAccessCurrent } from "./models/ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./models/ProductAccessInput.js";
 export type { ProductAccessPublic } from "./models/ProductAccessPublic.js";
@@ -15750,6 +15981,7 @@ export { binaryFileSchema } from "./zod/binaryFileSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./zod/bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrImportTerminalPunchesSchema } from "./zod/bodyHrImportTerminalPunchesSchema.js";
 export { bodyHrUploadDocumentSchema } from "./zod/bodyHrUploadDocumentSchema.js";
+export { bodyPrintixImportTicketsSchema } from "./zod/bodyPrintixImportTicketsSchema.js";
 export { bookingAgendaDaySchema } from "./zod/bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./zod/bookingAgendaSchema.js";
@@ -22290,6 +22522,164 @@ export { postponeResultSchema } from "./zod/postponeResultSchema.js";
 export { preferencesUnsubscribeRequestSchema } from "./zod/preferencesUnsubscribeRequestSchema.js";
 export { principalPhasePropertiesPhaseEnumSchema } from "./zod/principalPhasePropertiesPhaseEnumSchema.js";
 export { principalPhaseSchema } from "./zod/principalPhaseSchema.js";
+export {
+  printixAdmitTicketBodySchema,
+  printixAdmitTicketErrorSchema,
+  printixAdmitTicketResponseSchema,
+  printixAdmitTicketStatus200Schema,
+  printixAdmitTicketStatus401Schema,
+  printixAdmitTicketStatus403Schema,
+  printixAdmitTicketStatus422Schema,
+  printixAdmitTicketStatus429Schema,
+} from "./zod/printixAdmitTicketSchema.js";
+export {
+  printixCloseEventErrorSchema,
+  printixCloseEventPathEventIdSchema,
+  printixCloseEventPathSchema,
+  printixCloseEventResponseSchema,
+  printixCloseEventStatus200Schema,
+  printixCloseEventStatus401Schema,
+  printixCloseEventStatus403Schema,
+  printixCloseEventStatus404Schema,
+  printixCloseEventStatus422Schema,
+} from "./zod/printixCloseEventSchema.js";
+export {
+  printixCreateEventBodySchema,
+  printixCreateEventErrorSchema,
+  printixCreateEventResponseSchema,
+  printixCreateEventStatus201Schema,
+  printixCreateEventStatus401Schema,
+  printixCreateEventStatus403Schema,
+  printixCreateEventStatus422Schema,
+} from "./zod/printixCreateEventSchema.js";
+export {
+  printixCreatePairingBodySchema,
+  printixCreatePairingErrorSchema,
+  printixCreatePairingPathEventIdSchema,
+  printixCreatePairingPathSchema,
+  printixCreatePairingResponseSchema,
+  printixCreatePairingStatus201Schema,
+  printixCreatePairingStatus401Schema,
+  printixCreatePairingStatus403Schema,
+  printixCreatePairingStatus404Schema,
+  printixCreatePairingStatus409Schema,
+  printixCreatePairingStatus422Schema,
+} from "./zod/printixCreatePairingSchema.js";
+export { printixEventCreateSchema } from "./zod/printixEventCreateSchema.js";
+export { printixEventPublicSchema } from "./zod/printixEventPublicSchema.js";
+export { printixEventStatusSchema } from "./zod/printixEventStatusSchema.js";
+export {
+  printixEventSummaryErrorSchema,
+  printixEventSummaryPathEventIdSchema,
+  printixEventSummaryPathSchema,
+  printixEventSummaryResponseSchema,
+  printixEventSummarySchema,
+  printixEventSummaryStatus200Schema,
+  printixEventSummaryStatus401Schema,
+  printixEventSummaryStatus403Schema,
+  printixEventSummaryStatus404Schema,
+  printixEventSummaryStatus422Schema,
+} from "./zod/printixEventSummarySchema.js";
+export { printixGateCountSchema } from "./zod/printixGateCountSchema.js";
+export { printixImportIssueSchema } from "./zod/printixImportIssueSchema.js";
+export { printixImportReportSchema } from "./zod/printixImportReportSchema.js";
+export {
+  printixImportTicketsBodySchema,
+  printixImportTicketsErrorSchema,
+  printixImportTicketsPathEventIdSchema,
+  printixImportTicketsPathSchema,
+  printixImportTicketsQueryAllowNumberAsBarcodeSchema,
+  printixImportTicketsQueryDryRunSchema,
+  printixImportTicketsQuerySchema,
+  printixImportTicketsResponseSchema,
+  printixImportTicketsStatus200Schema,
+  printixImportTicketsStatus401Schema,
+  printixImportTicketsStatus403Schema,
+  printixImportTicketsStatus404Schema,
+  printixImportTicketsStatus409Schema,
+  printixImportTicketsStatus413Schema,
+  printixImportTicketsStatus422Schema,
+} from "./zod/printixImportTicketsSchema.js";
+export {
+  printixListPairingsErrorSchema,
+  printixListPairingsPathEventIdSchema,
+  printixListPairingsPathSchema,
+  printixListPairingsResponseSchema,
+  printixListPairingsStatus200Schema,
+  printixListPairingsStatus401Schema,
+  printixListPairingsStatus403Schema,
+  printixListPairingsStatus404Schema,
+  printixListPairingsStatus422Schema,
+} from "./zod/printixListPairingsSchema.js";
+export {
+  printixListTicketsErrorSchema,
+  printixListTicketsPathEventIdSchema,
+  printixListTicketsPathSchema,
+  printixListTicketsQueryAdmittedSchema,
+  printixListTicketsQueryPageSchema,
+  printixListTicketsQuerySchema,
+  printixListTicketsQuerySizeSchema,
+  printixListTicketsQueryStatusSchema,
+  printixListTicketsResponseSchema,
+  printixListTicketsStatus200Schema,
+  printixListTicketsStatus401Schema,
+  printixListTicketsStatus403Schema,
+  printixListTicketsStatus404Schema,
+  printixListTicketsStatus422Schema,
+} from "./zod/printixListTicketsSchema.js";
+export { printixPairingCreatedSchema } from "./zod/printixPairingCreatedSchema.js";
+export { printixPairingCreateSchema } from "./zod/printixPairingCreateSchema.js";
+export { printixPairingPublicSchema } from "./zod/printixPairingPublicSchema.js";
+export {
+  printixPairingSummaryErrorSchema,
+  printixPairingSummaryResponseSchema,
+  printixPairingSummaryStatus200Schema,
+  printixPairingSummaryStatus401Schema,
+  printixPairingSummaryStatus403Schema,
+  printixPairingSummaryStatus422Schema,
+  printixPairingSummaryStatus429Schema,
+} from "./zod/printixPairingSummarySchema.js";
+export {
+  printixRevokePairingErrorSchema,
+  printixRevokePairingPathPairingIdSchema,
+  printixRevokePairingPathSchema,
+  printixRevokePairingResponseSchema,
+  printixRevokePairingStatus200Schema,
+  printixRevokePairingStatus401Schema,
+  printixRevokePairingStatus403Schema,
+  printixRevokePairingStatus404Schema,
+  printixRevokePairingStatus422Schema,
+} from "./zod/printixRevokePairingSchema.js";
+export { printixScanOutcomeSchema } from "./zod/printixScanOutcomeSchema.js";
+export { printixScanRequestSchema } from "./zod/printixScanRequestSchema.js";
+export { printixScanResultSchema } from "./zod/printixScanResultSchema.js";
+export { printixTicketPageSchema } from "./zod/printixTicketPageSchema.js";
+export { printixTicketPublicSchema } from "./zod/printixTicketPublicSchema.js";
+export { printixTicketStatusSchema } from "./zod/printixTicketStatusSchema.js";
+export {
+  printixUnvoidTicketErrorSchema,
+  printixUnvoidTicketPathSchema,
+  printixUnvoidTicketPathTicketIdSchema,
+  printixUnvoidTicketResponseSchema,
+  printixUnvoidTicketStatus200Schema,
+  printixUnvoidTicketStatus401Schema,
+  printixUnvoidTicketStatus403Schema,
+  printixUnvoidTicketStatus404Schema,
+  printixUnvoidTicketStatus409Schema,
+  printixUnvoidTicketStatus422Schema,
+} from "./zod/printixUnvoidTicketSchema.js";
+export {
+  printixVoidTicketErrorSchema,
+  printixVoidTicketPathSchema,
+  printixVoidTicketPathTicketIdSchema,
+  printixVoidTicketResponseSchema,
+  printixVoidTicketStatus200Schema,
+  printixVoidTicketStatus401Schema,
+  printixVoidTicketStatus403Schema,
+  printixVoidTicketStatus404Schema,
+  printixVoidTicketStatus409Schema,
+  printixVoidTicketStatus422Schema,
+} from "./zod/printixVoidTicketSchema.js";
 export { productAccessCurrentSchema } from "./zod/productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./zod/productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./zod/productAccessPublicSchema.js";
