@@ -282,8 +282,9 @@ async def exhausted_jobs(
     return list(rows.all())
 
 
-# Key in ``job.result`` that records when an exhausted job was reported. Nothing
-# rewrites an exhausted job's result, so the marker stays until the job is retried.
+# Key in ``job.result`` that records when an exhausted job was reported. The marker
+# goes when the job is retried (``dispatch_job`` replaces the result) or retired
+# (``retire_unconfigured_channel_jobs`` sets it SKIPPED with a new result).
 FAILURE_REPORTED_KEY = "failure_reported_at"
 
 
