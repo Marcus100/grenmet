@@ -15,7 +15,12 @@ const actions: BookingFlowActions = {
   submitBooking,
 };
 const STUDIO = "Test Studio";
-const CONTACT = { href: "https://example.test/dm", label: "Instagram" };
+const NO_CONTACT = {
+  phone: null,
+  whatsapp: null,
+  instagram: null,
+  email: null,
+};
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/u;
 const NO_TIMES = /No times are open/u;
@@ -29,7 +34,10 @@ const SERVICE_ID = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10";
 const TUE = "2027-01-05T13:30:00Z";
 const SLOT_TAKEN = "That time has just been taken. Please choose another.";
 const ONE_HOUR_CUTOFF = /until 1 hour before your visit\./u;
-const MESSAGE_ON_INSTAGRAM = /Please message us on Instagram\./u;
+const CONTACT_DIRECTLY = /Please contact the business directly\./u;
+const CONTACT_COLON = /Please contact the business:/u;
+const CONTACT_LIST = /contact/iu;
+const INSTAGRAM_LINK = /Instagram @teststudio/u;
 const KEEP_BOOKINGS = /Keep your bookings in one place/u;
 const MY_BOOKINGS =
   /your bookings with them, including this one, are listed under My bookings/u;
@@ -43,6 +51,7 @@ const storefront: BookingStorefront = {
   timezone: "America/Grenada",
   currency: "XCD",
   cancel_cutoff_hours: 24,
+  contact: NO_CONTACT,
   providers: [],
   services: [
     {
@@ -85,6 +94,7 @@ const booking = {
   currency: "XCD",
   cancel_cutoff_hours: 24,
   can_cancel: true,
+  contact: NO_CONTACT,
 };
 
 function renderFlow(
@@ -96,7 +106,6 @@ function renderFlow(
     <BookingFlow
       accountInvite={accountInvite}
       actions={actions}
-      contact={CONTACT}
       managePath="/booking"
       storefront={shown}
       studioName={STUDIO}
@@ -390,7 +399,6 @@ describe("BookingFlow form", () => {
     render(
       <BookingFlow
         actions={actions}
-        contact={CONTACT}
         ManageLink={HostLink}
         managePath="/manage"
         storefront={storefront}
@@ -431,9 +439,45 @@ describe("BookingFlow wording and announcements", () => {
     expect(screen.getByText(ONE_HOUR_CUTOFF)).toBeVisible();
   });
 
-  it("keeps a space before the contact channel when no service is open", () => {
+  it("says to contact the business directly when no service is open and no contact is set", () => {
     renderFlow("", { ...storefront, services: [] });
-    expect(screen.getByText(MESSAGE_ON_INSTAGRAM)).toBeVisible();
+    expect(screen.getByText(CONTACT_DIRECTLY)).toBeVisible();
+    expect(screen.queryByRole("list", { name: CONTACT_LIST })).toBeNull();
+  });
+
+  it("links the business's contacts when no service is open", () => {
+    renderFlow("", {
+      ...storefront,
+      services: [],
+      contact: { ...NO_CONTACT, phone: "+14734401234" },
+    });
+    expect(screen.getByText(CONTACT_COLON)).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Call +14734401234" })
+    ).toHaveAttribute("href", "tel:+14734401234");
+  });
+
+  it("adds the contact links under a failure that sends people to the business", async () => {
+    const user = userEvent.setup();
+    submitBooking.mockResolvedValue({
+      ok: false,
+      code: "unavailable",
+      message:
+        "Booking is unavailable right now. Please try again shortly, or contact the business.",
+    });
+    renderFlow("", {
+      ...storefront,
+      contact: { ...NO_CONTACT, instagram: "teststudio" },
+    });
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+    const alert = await screen.findByRole("alert");
+    expect(
+      within(alert).getByRole("link", { name: INSTAGRAM_LINK })
+    ).toHaveAttribute("href", "https://instagram.com/teststudio");
   });
 
   it("ties the service and time errors to their groups", async () => {
@@ -510,7 +554,6 @@ function renderSignedIn(props: Partial<ComponentProps<typeof BookingFlow>>) {
   return render(
     <BookingFlow
       actions={actions}
-      contact={CONTACT}
       managePath="/booking"
       storefront={twoServices}
       studioName={STUDIO}

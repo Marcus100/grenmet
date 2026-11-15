@@ -6,8 +6,9 @@ import { Input } from "@barrelsgd/ui/components/ui/input";
 import { useActionState, useState } from "react";
 import { saveProfileAction } from "@/app/studio/[orgSlug]/settings/actions";
 import { TIMEZONE_SUGGESTIONS } from "@/lib/settings-view";
-import { IDLE } from "@/lib/studio-action-state";
+import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
+import { ContactOptions } from "./contact-options";
 import {
   INPUT,
   keepTyped,
@@ -26,7 +27,7 @@ export function ProfileForm({
   /** Prefills the business name for a first-time profile. */
   suggestedName: string;
 }) {
-  const [state, formAction, pending] = useActionState(
+  const [state, formAction, pending] = useActionState<ProfileState, FormData>(
     saveProfileAction.bind(null, orgSlug),
     IDLE
   );
@@ -228,6 +229,10 @@ export function ProfileForm({
           )}
         </SettingsField>
       </div>
+      <ContactOptions
+        errors={state.status === "error" ? state.fields : undefined}
+        profile={profile}
+      />
       <div className="space-y-1">
         <SettingsCheck
           defaultChecked={profile?.requires_confirmation ?? false}

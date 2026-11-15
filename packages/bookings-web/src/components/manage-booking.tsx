@@ -2,27 +2,24 @@
 
 import type { BookingPublicDetail } from "@barrelsgd/api-client";
 import { useState } from "react";
-import type { Outcome } from "../lib/booking-errors";
+import { type Outcome, tellsToContact } from "../lib/booking-errors";
 import {
   formatDateTime,
   formatHours,
   formatMoney,
 } from "../lib/booking-format";
-import type {
-  ContactChannel,
-  ManageBookingActions,
-  SlotList,
-} from "../lib/booking-types";
+import type { ManageBookingActions, SlotList } from "../lib/booking-types";
+import { contactEnding } from "../lib/business-contact";
+import { ContactLinks } from "./business-contact";
 import { SlotPicker } from "./slot-picker";
 
 export interface ManageBookingProps {
   /** Server calls for cancel, reschedule and slots, passed in by the host app. */
   actions: ManageBookingActions;
+  /** The booking, with the business's own contact options (`contact`). */
   booking: BookingPublicDetail;
   /** Where the "Add to calendar" link goes (the host serves the .ics file). */
   calendarHref: string;
-  /** How to reach the studio by hand when changes are closed online. */
-  contact: ContactChannel;
   token: string;
 }
 
@@ -46,7 +43,6 @@ export function ManageBooking({
   actions,
   booking: initial,
   calendarHref,
-  contact,
   token,
 }: ManageBookingProps) {
   const [booking, setBooking] = useState(initial);
@@ -128,20 +124,21 @@ export function ManageBooking({
         </p>
       )}
       {error && (
-        <p className="notice notice-error" role="alert">
-          {error}
-        </p>
+        <div className="notice notice-error" role="alert">
+          <p>{error}</p>
+          {tellsToContact(error) && <ContactLinks contact={booking.contact} />}
+        </div>
       )}
 
       {active && !booking.can_cancel && (
-        <p className="notice">
-          Changes close {formatHours(booking.cancel_cutoff_hours)} before your
-          appointment. To change or cancel now, please{" "}
-          <a href={contact.href} rel="noopener" target="_blank">
-            message us on {contact.label}
-          </a>
-          .
-        </p>
+        <div className="notice">
+          <p>
+            Changes close {formatHours(booking.cancel_cutoff_hours)} before your
+            appointment. To change or cancel now, please contact the business
+            {contactEnding(booking.contact)}
+          </p>
+          <ContactLinks contact={booking.contact} />
+        </div>
       )}
 
       {active && (

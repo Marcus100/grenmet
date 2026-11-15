@@ -17,7 +17,14 @@ const MOVED_TIME = /6 January 2027, 9:30 am/u;
 const HYBRID = /Hybrid/u;
 const TOKEN = "secret-token-value-123";
 const CALENDAR_HREF = `/booking/${TOKEN}/ics`;
-const CONTACT = { href: "https://instagram.test/dm", label: "Instagram" };
+const NO_CONTACT = {
+  phone: null,
+  whatsapp: null,
+  instagram: null,
+  email: null,
+};
+const INSTAGRAM = /Instagram @teststudio/u;
+const DIRECTLY = /please contact the business directly\./u;
 const CUTOFF =
   "Bookings can be cancelled online up to 24 hours before they start. Please contact the studio.";
 
@@ -37,6 +44,7 @@ const booking: BookingPublicDetail = {
   currency: "XCD",
   cancel_cutoff_hours: 24,
   can_cancel: true,
+  contact: { ...NO_CONTACT, instagram: "teststudio" },
 };
 
 function renderManage(detail: BookingPublicDetail = booking) {
@@ -45,7 +53,6 @@ function renderManage(detail: BookingPublicDetail = booking) {
       actions={actions}
       booking={detail}
       calendarHref={CALENDAR_HREF}
-      contact={CONTACT}
       token={TOKEN}
     />
   );
@@ -109,9 +116,13 @@ describe("ManageBooking", () => {
     expect(
       screen.queryByRole("button", { name: "Cancel booking" })
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "message us on Instagram" })
-    ).toHaveAttribute("href", CONTACT.href);
+    // Under the refusal and in the "changes close" notice.
+    const links = screen.getAllByRole("link", { name: INSTAGRAM });
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(link).toHaveAttribute("href", "https://instagram.com/teststudio");
+      expect(link).toHaveAttribute("target", "_blank");
+    }
   });
 
   it("offers no changes inside the cutoff to begin with", () => {
@@ -120,6 +131,13 @@ describe("ManageBooking", () => {
       screen.queryByRole("button", { name: "Change time" })
     ).not.toBeInTheDocument();
     expect(screen.getByText(CHANGES_CLOSE)).toBeVisible();
+    expect(screen.getByRole("link", { name: INSTAGRAM })).toBeVisible();
+  });
+
+  it("says to contact the business directly when it set no contact", () => {
+    renderManage({ ...booking, can_cancel: false, contact: NO_CONTACT });
+    expect(screen.getByText(DIRECTLY)).toBeVisible();
+    expect(screen.queryAllByRole("link", { name: INSTAGRAM })).toHaveLength(0);
   });
 
   it("writes a one-hour cutoff in the singular", () => {

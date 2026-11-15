@@ -51,6 +51,7 @@ const storefront: BookingStorefront = {
   timezone: "America/Grenada",
   currency: "XCD",
   cancel_cutoff_hours: 24,
+  contact: { phone: null, whatsapp: null, instagram: null, email: null },
   providers: [],
   services: [
     {

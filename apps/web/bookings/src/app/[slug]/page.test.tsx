@@ -26,6 +26,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 const SERVICE_ID = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10";
+const QUESTIONS = /Questions\? Contact us/u;
+const INSTAGRAM = /Instagram @seasaltspa/u;
 
 const storefront: BookingStorefront = {
   slug: "sea-salt-spa",
@@ -33,6 +35,7 @@ const storefront: BookingStorefront = {
   timezone: "America/Grenada",
   currency: "XCD",
   cancel_cutoff_hours: 24,
+  contact: { phone: null, whatsapp: null, instagram: null, email: null },
   providers: [
     {
       id: "a1b2c3d4-0000-4000-8000-000000000001",
@@ -76,6 +79,33 @@ describe("/[slug]", () => {
     expect(
       screen.getByRole("form", { name: "Book an appointment" })
     ).toBeVisible();
+  });
+
+  it("shows no contact strip when the business set no contact", async () => {
+    vi.mocked(getStorefront).mockResolvedValue(storefront);
+    render(await BusinessBookingPage(params("sea-salt-spa")));
+    expect(screen.queryByText(QUESTIONS)).not.toBeInTheDocument();
+  });
+
+  it("shows the business's contacts near the top", async () => {
+    vi.mocked(getStorefront).mockResolvedValue({
+      ...storefront,
+      contact: {
+        phone: "+14734401234",
+        whatsapp: null,
+        instagram: "seasaltspa",
+        email: null,
+      },
+    });
+    render(await BusinessBookingPage(params("sea-salt-spa")));
+    const strip = screen.getByRole("complementary", { name: QUESTIONS });
+    expect(
+      within(strip).getByRole("link", { name: "Call +14734401234" })
+    ).toHaveAttribute("href", "tel:+14734401234");
+    expect(
+      within(strip).getByRole("link", { name: INSTAGRAM })
+    ).toHaveAttribute("href", "https://instagram.com/seasaltspa");
+    expect(within(strip).getAllByRole("link")).toHaveLength(2);
   });
 
   it("omits the deposit label when there is no deposit", async () => {

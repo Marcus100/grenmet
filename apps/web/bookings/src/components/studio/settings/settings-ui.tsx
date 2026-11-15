@@ -13,22 +13,34 @@ export const SELECT = "w-full [&_select]:h-11";
 
 export function SettingsField({
   children,
+  error,
   hint,
   id,
   label,
 }: {
   children: (describedBy: string | undefined) => React.ReactNode;
+  /** A message for this field from the last save; the input names it too. */
+  error?: string | undefined;
   hint?: string | undefined;
   id: string;
   label: string;
 }) {
   const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
+  const describedBy =
+    [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(" ") ||
+    undefined;
   return (
     <div className="space-y-1">
       <Label className="font-medium" htmlFor={id}>
         {label}
       </Label>
-      {children(hint ? hintId : undefined)}
+      {children(describedBy)}
+      {error ? (
+        <p className="text-destructive text-sm font-medium" id={errorId}>
+          {error}
+        </p>
+      ) : null}
       {hint ? (
         <p className="text-muted-foreground text-sm" id={hintId}>
           {hint}
