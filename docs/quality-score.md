@@ -1,8 +1,8 @@
 # Quality Score
 
-**Status:** Active reference — test evidence refreshed 2026-10-18 (coverage); other grades not re-audited  
+**Status:** Active reference — test evidence refreshed 2026-10-18 (coverage); design grades for bookings, babydoll and `@barrelsgd/bookings-web` audited 2026-11-15; other grades not re-audited  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-18
+**Last updated:** 2026-11-15
 
 Tracks code and platform quality for each app, package and API domain.
 
@@ -43,6 +43,16 @@ Counts are Vitest and Playwright files, counted 2026-10-16.
 | `@barrelsgd/email-templates` | None | — | — | — |
 | `@barrelsgd/tsconfig` | — (config only) | — | — | B |
 | `@barrelsgd/cms-migrations` | — (migrations only) | — | — | — |
+
+## Design audit grades
+
+Grades come from a read-only design audit, not from tests or counts. Each surface is judged against its own lane spec in [`docs/design/`](design/) and the design skills' rules (accessibility, mobile feel, interface craft, hierarchy), never against another app. Saved reference flows (Fresha booking and agenda, GoDaddy date and time) are used for ideas only. Scale: A solid, B good with minor gaps, C functional and needs work, D stub or incomplete. The findings behind each grade are in the audit documents.
+
+| Surface | Design grade | Audited | How it was graded | Audit |
+|---|---|---|---|---|
+| bookings (public booking pages and Studio) | B | 2026-11-15 | Code read against `docs/design/bookings.md`; staging screenshots at 390 px and 1280 px (light, plus dark to confirm the light-only rule); the Studio signed-in on staging where reachable, otherwise code only. Strong on accessibility, forms and states; gaps in step layout, repeated content and a customer dead end for reaching the business. | [bookings audit](design/audits/bookings-2026-11.md) |
+| babydoll (Babydoll Beauty Bar site) | B | 2026-11-15 | Code read against `docs/design/babydoll.md`; one visit per page to the public production site at 390 px and 1280 px. Strong brand craft; gaps in the service tabs (all panels show at once), touch targets, small text, one low-contrast control and missing photography. | [babydoll audit](design/audits/babydoll-2026-11.md) |
+| `@barrelsgd/bookings-web` | B | 2026-11-15 | Component code read against the package contract and the bookings lane spec, and seen through the bookings app's stylesheet. Strong semantics and error handling; gaps in stale error text, the contact contract and unused class names. | [bookings audit](design/audits/bookings-2026-11.md) |
 
 ## FastAPI domains
 
