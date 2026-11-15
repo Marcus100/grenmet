@@ -9,7 +9,11 @@ export const bookingMyChoiceSchema = z
   .object({
     service_id: z.uuid(),
     provider_id: z.uuid(),
-    last_booked_at: z.iso.datetime(),
+    last_booked_at: z.iso
+      .datetime()
+      .describe(
+        "The start time of the latest such booking (when the appointment was, or is), not when it was made."
+      ),
   })
   .describe(
     "A service the caller booked with this business, and the provider they had\nfor it most recently. Ids only: the page matches them to its own storefront."

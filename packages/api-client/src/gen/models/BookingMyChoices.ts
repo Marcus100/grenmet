@@ -12,11 +12,11 @@ import type { BookingMyChoice } from "./BookingMyChoice.js";
  */
 export type BookingMyChoices = {
   /**
-   * @description The phone number this business has on record for the caller, else the one on their account; null when neither exists.
+   * @description The phone number this business has on record for the caller, else the one on their account; null when neither exists. When more than one contact record is linked, the most recently booked one with a number wins.
    */
   phone: string | null;
   /**
-   * @description Up to three distinct services, most recently booked first, each with the provider used for it last. Cancelled bookings are left out.
+   * @description Up to three distinct services, most recently booked first, each with the provider used for it last. Only pending, confirmed and completed bookings count: cancelled (which includes declined and expired), no-show and unpaid-deposit ones are left out.
    * @type array
    */
   recent: BookingMyChoice[];

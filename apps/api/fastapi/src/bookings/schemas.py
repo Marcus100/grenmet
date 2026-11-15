@@ -53,7 +53,12 @@ class BookingMyChoice(BaseModel):
 
     service_id: uuid.UUID
     provider_id: uuid.UUID
-    last_booked_at: UtcDateTime
+    last_booked_at: UtcDateTime = Field(
+        description=(
+            "The start time of the latest such booking (when the appointment "
+            "was, or is), not when it was made."
+        )
+    )
 
 
 class BookingMyChoices(BaseModel):
@@ -63,13 +68,17 @@ class BookingMyChoices(BaseModel):
     phone: str | None = Field(
         description=(
             "The phone number this business has on record for the caller, else "
-            "the one on their account; null when neither exists."
+            "the one on their account; null when neither exists. When more than "
+            "one contact record is linked, the most recently booked one with a "
+            "number wins."
         )
     )
     recent: list[BookingMyChoice] = Field(
         description=(
             "Up to three distinct services, most recently booked first, each with "
-            "the provider used for it last. Cancelled bookings are left out."
+            "the provider used for it last. Only pending, confirmed and "
+            "completed bookings count: cancelled (which includes declined and "
+            "expired), no-show and unpaid-deposit ones are left out."
         )
     )
 

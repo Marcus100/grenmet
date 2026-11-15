@@ -22,7 +22,8 @@ export type BookingMyChoice = {
    */
   provider_id: string;
   /**
-   * @description
+   * @description The start time of the latest such booking (when the appointment was, or is), not when it was made.
+   *
    * Format: `date-time`
    * @type string
    */

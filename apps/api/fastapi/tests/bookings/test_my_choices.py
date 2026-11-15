@@ -170,6 +170,8 @@ async def test_history_with_another_business_is_not_shown(
     await _book_in(async_client, there, ada, slot=0)
     response = await async_client.get(_url(here), headers=headers_for(ada))
     assert response.json()["recent"] == []
+    # Nor the phone number the other business holds: here there is none at all.
+    assert response.json()["phone"] is None
     elsewhere = await async_client.get(_url(there), headers=headers_for(ada))
     assert len(elsewhere.json()["recent"]) == 1
 
@@ -250,3 +252,64 @@ async def test_an_unknown_business_is_the_public_404(
         f"{API}/me/businesses/nobody-here/choices", headers=headers_for(ada)
     )
     assert response.status_code == 404
+
+
+async def test_declined_and_no_show_bookings_are_not_suggested(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """A declined request and an expired unpaid hold are both ``cancelled``; a
+    no-show is its own status. None of them says what the person wants again."""
+    studio = await _studio(db_async, async_client, requires_confirmation=True)
+    other_service = await _second_service(async_client, studio)
+    ada = await make_user(db_async, email=f"ada-{uuid.uuid4().hex[:6]}@example.com")
+    headers = headers_for(ada)
+    first = await _signed_in_book(
+        async_client, studio, headers, slot=0, customer_email=ada.email
+    )
+    second = await _book_service(
+        async_client, studio, headers, other_service, email=ada.email, slot=-1
+    )
+    assert first.status_code == second.status_code == 201
+    first_id = first.json()["booking"]["id"]
+    second_id = second.json()["booking"]["id"]
+
+    # Pending requests count: the person did ask for them.
+    pending = await async_client.get(_url(studio), headers=headers)
+    assert len(pending.json()["recent"]) == 2
+
+    declined = await async_client.post(
+        f"{API}/org/bookings/{first_id}/decline",
+        headers=studio.headers,
+        json={"reason": "Fully booked"},
+    )
+    assert declined.status_code == 200, declined.text
+    confirmed = await async_client.post(
+        f"{API}/org/bookings/{second_id}/confirm", headers=studio.headers
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    missed = await async_client.post(
+        f"{API}/org/bookings/{second_id}/no-show", headers=studio.headers
+    )
+    assert missed.status_code == 200, missed.text
+
+    response = await async_client.get(_url(studio), headers=headers)
+    assert response.json()["recent"] == []
+
+
+async def test_a_completed_booking_is_suggested(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"ada-{uuid.uuid4().hex[:6]}@example.com")
+    booked = await _signed_in_book(
+        async_client, studio, headers_for(ada), customer_email=ada.email
+    )
+    booking_id = booked.json()["booking"]["id"]
+    done = await async_client.post(
+        f"{API}/org/bookings/{booking_id}/complete", headers=studio.headers
+    )
+    assert done.status_code == 200, done.text
+    response = await async_client.get(_url(studio), headers=headers_for(ada))
+    assert [row["service_id"] for row in response.json()["recent"]] == [
+        studio.service_id
+    ]

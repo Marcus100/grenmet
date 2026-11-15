@@ -72259,7 +72259,8 @@
           "last_booked_at": {
             "type": "string",
             "format": "date-time",
-            "title": "Last Booked At"
+            "title": "Last Booked At",
+            "description": "The start time of the latest such booking (when the appointment was, or is), not when it was made."
           }
         },
         "type": "object",
@@ -72283,7 +72284,7 @@
               }
             ],
             "title": "Phone",
-            "description": "The phone number this business has on record for the caller, else the one on their account; null when neither exists."
+            "description": "The phone number this business has on record for the caller, else the one on their account; null when neither exists. When more than one contact record is linked, the most recently booked one with a number wins."
           },
           "recent": {
             "items": {
@@ -72291,7 +72292,7 @@
             },
             "type": "array",
             "title": "Recent",
-            "description": "Up to three distinct services, most recently booked first, each with the provider used for it last. Cancelled bookings are left out."
+            "description": "Up to three distinct services, most recently booked first, each with the provider used for it last. Only pending, confirmed and completed bookings count: cancelled (which includes declined and expired), no-show and unpaid-deposit ones are left out."
           }
         },
         "type": "object",
