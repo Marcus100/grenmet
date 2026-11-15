@@ -342,15 +342,8 @@ async def revoke_events_access(
     organisation_id = context.organisation_id
     audit_service.set_actor(session, context.user.id)
     await grants.lock_roster(session, organisation_id)
-    revoker = await session.get(
-        Membership, context.membership.id, populate_existing=True
-    )
-    if (
-        revoker is None
-        or revoker.organisation_id != organisation_id
-        or revoker.status != MembershipStatus.ACTIVE.value
-    ):
-        raise OrganisationRoleError()
+    # Re-read the actor after the lock: a just-demoted admin must not end grants (#1496).
+    revoker = await _reread_actor(session, organisation_id, context.membership.id)
     context = replace(context, membership=revoker)
     membership = await _get_membership(session, organisation_id, membership_id)
     if context.role != MembershipRole.OWNER and _is_owner(membership.role):

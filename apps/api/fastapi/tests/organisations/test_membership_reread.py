@@ -17,7 +17,12 @@ from src.database import async_session_factory
 from src.organisations import grants, members, service
 from src.organisations.dependencies import OrgContext
 from src.organisations.exceptions import OrganisationRoleError
-from src.organisations.models import Membership, MembershipRole, MembershipStatus
+from src.organisations.models import (
+    Membership,
+    MembershipGrant,
+    MembershipRole,
+    MembershipStatus,
+)
 from tests.factories import make_user
 from tests.organisations.support import make_org
 
@@ -192,3 +197,76 @@ async def _add_member(
 ) -> None:
     await service.add_member(db, organisation_id=org_id, user_id=user_id, role=role)
     await db.commit()
+
+
+# ── 2. Events-session removal re-reads the actor too (issue #1496) ───────────
+
+
+async def test_admin_demoted_during_lock_wait_cannot_end_events_access(
+    db_async: AsyncSession,
+):
+    """An Events-session removal names the same actor as a full removal. A just-demoted
+    admin is a plain member by the time the lock is held, so the grant stays."""
+    a, _, _, org = await _three_owners(db_async)
+    admin = await make_user(db_async)
+    await _add_member(db_async, org.id, admin.id, role=MembershipRole.ADMIN)
+    member = await make_user(db_async)
+    await _add_member(db_async, org.id, member.id)
+    await grants.grant_role(
+        db_async,
+        await _context(db_async, a, org),
+        membership_id=(await _membership(db_async, org.id, member.id)).id,
+        role_key="events-door",
+    )
+    await db_async.commit()
+    stale = await _context(db_async, admin, org)
+    target = await _membership(db_async, org.id, member.id)
+
+    async def demote_actor(holder: AsyncSession) -> None:
+        row = await _membership(holder, org.id, admin.id)
+        row.role = MembershipRole.MEMBER.value
+
+    async def attempt() -> None:
+        await members.revoke_events_access(db_async, stale, target.id)
+
+    task = await _race(org.id, demote_actor, attempt)
+    with pytest.raises(OrganisationRoleError):
+        await task
+    live = await db_async.scalar(
+        select(MembershipGrant.id).where(
+            MembershipGrant.membership_id == target.id,
+            MembershipGrant.revoked_at.is_(None),
+        )
+    )
+    assert live is not None
+
+
+async def test_admin_still_active_after_lock_wait_can_end_events_access(
+    db_async: AsyncSession,
+):
+    """Positive control: the re-read refuses a demoted actor, not every waiter."""
+    a, _, c, org = await _three_owners(db_async)
+    admin = await make_user(db_async)
+    await _add_member(db_async, org.id, admin.id, role=MembershipRole.ADMIN)
+    member = await make_user(db_async)
+    await _add_member(db_async, org.id, member.id)
+    await grants.grant_role(
+        db_async,
+        await _context(db_async, a, org),
+        membership_id=(await _membership(db_async, org.id, member.id)).id,
+        role_key="events-door",
+    )
+    await db_async.commit()
+    stale = await _context(db_async, admin, org)
+    target = await _membership(db_async, org.id, member.id)
+
+    async def unrelated(holder: AsyncSession) -> None:
+        await _membership(holder, org.id, c.id)
+
+    async def attempt():
+        return await members.revoke_events_access(db_async, stale, target.id)
+
+    task = await _race(org.id, unrelated, attempt)
+    result = await task
+    await db_async.commit()
+    assert result.grants_revoked == 1
