@@ -339,7 +339,7 @@ describe("BookingFlow form", () => {
     expect(screen.getByText(MY_BOOKINGS)).toBeVisible();
     expect(screen.getByText(NEVER_NEEDS)).toBeVisible();
     expect(
-      screen.getByRole("link", { name: "Create a free account" })
+      screen.getByRole("link", { name: "Create an account or sign in" })
     ).toHaveAttribute("href", "https://auth.example.test/signup");
     // The manage link is still there and still first.
     expect(
@@ -362,7 +362,7 @@ describe("BookingFlow form", () => {
 
     await screen.findByRole("heading", { name: "Thank you, Ada" });
     expect(
-      screen.queryByRole("link", { name: "Create a free account" })
+      screen.queryByRole("link", { name: "Create an account or sign in" })
     ).not.toBeInTheDocument();
     expect(screen.queryByText(MY_BOOKINGS)).not.toBeInTheDocument();
   });

@@ -6,10 +6,15 @@ person is signed in with that verified email and has booked with the business ag
 (that booking is what links the business's contact record to the account).
 """
 
+import html
+import re
 import uuid
 from datetime import datetime
+from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 import httpx
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.config import auth_settings
@@ -28,8 +33,12 @@ from tests.bookings.test_public_bookings import (
 from tests.factories import make_user
 from tests.organisations.support import headers_for
 
-SIGN_UP = f"{auth_settings.AUTH_FRONTEND_URL.rstrip('/')}/signup"
-INVITE = "create a Barrels account"
+INVITE = "create a Barrels account or sign in"
+
+
+def _href(slug: str) -> str:
+    """The sign-up address as it appears in a mail's href (HTML-escaped)."""
+    return html.escape(account_signup_url(slug), quote=True)
 
 
 async def _mail(db: AsyncSession, studio: Studio, booking_id: str, kind: str) -> str:
@@ -41,8 +50,40 @@ async def _mail(db: AsyncSession, studio: Studio, booking_id: str, kind: str) ->
     return str(row.payload["html"])
 
 
-def test_the_sign_up_address_is_the_auth_apps() -> None:
-    assert account_signup_url() == SIGN_UP
+def test_the_sign_up_address_returns_the_person_signed_in_to_the_booking_page() -> None:
+    address = urlsplit(account_signup_url("sea-salt-spa"))
+    auth = urlsplit(auth_settings.AUTH_FRONTEND_URL)
+    assert (address.scheme, address.netloc, address.path) == (
+        auth.scheme,
+        auth.netloc,
+        "/signup",
+    )
+    [back] = parse_qs(address.query)["returnTo"]
+    # The bookings app's own sign-in, which lands on the booking page; auth only
+    # redirects to an origin on its return-host allow-list (the bookings one is).
+    bookings = urlsplit(auth_settings.BOOKINGS_APP_URL)
+    target = urlsplit(back)
+    assert (target.scheme, target.netloc, target.path) == (
+        bookings.scheme,
+        bookings.netloc,
+        "/signin",
+    )
+    assert parse_qs(target.query) == {"returnTo": ["/sea-salt-spa"]}
+
+
+def test_the_api_and_the_web_apps_name_the_same_auth_address() -> None:
+    """The mail (AUTH_FRONTEND_URL) and the booking page (AUTH_APP_URL) must send
+    people to the same auth app. Both are set in the deploy compose file."""
+    compose = (
+        Path(__file__).parents[5] / "infra" / "docker" / "docker-compose.deploy.yml"
+    )
+    if not compose.exists():
+        pytest.skip("deploy compose file not in this checkout")
+    text = compose.read_text()
+    frontend = set(re.findall(r"^\s+AUTH_FRONTEND_URL:\s*(\S+)", text, re.M))
+    app = set(re.findall(r"^\s+AUTH_APP_URL:\s*(\S+)", text, re.M))
+    assert len(frontend) == 1, frontend
+    assert frontend == app
 
 
 def test_the_invitation_is_part_of_the_received_and_confirmed_mails_only() -> None:
@@ -84,7 +125,7 @@ async def test_a_guest_booking_mails_carry_the_invitation(
     booking_id = response.json()["booking"]["id"]
 
     received = await _mail(db_async, studio, booking_id, "booking-confirmation")
-    assert f'href="{SIGN_UP}"' in received
+    assert f'href="{_href(studio.slug)}"' in received
     assert "Booking never needs an account" in received
 
     confirm = await async_client.post(
@@ -92,7 +133,7 @@ async def test_a_guest_booking_mails_carry_the_invitation(
     )
     assert confirm.status_code == 200, confirm.text
     confirmed = await _mail(db_async, studio, booking_id, "booking-confirmed")
-    assert f'href="{SIGN_UP}"' in confirmed
+    assert f'href="{_href(studio.slug)}"' in confirmed
 
 
 async def test_a_booking_linked_to_an_account_gets_no_invitation(
@@ -107,7 +148,7 @@ async def test_a_booking_linked_to_an_account_gets_no_invitation(
     booking_id = response.json()["booking"]["id"]
     html = await _mail(db_async, studio, booking_id, "booking-confirmation")
     assert INVITE not in html
-    assert SIGN_UP not in html
+    assert "/signup" not in html
 
 
 async def test_a_signed_in_booking_under_another_email_is_still_invited(
@@ -129,7 +170,7 @@ async def test_a_signed_in_booking_under_another_email_is_still_invited(
     html = await _mail(
         db_async, studio, response.json()["booking"]["id"], "booking-confirmation"
     )
-    assert f'href="{SIGN_UP}"' in html
+    assert f'href="{_href(studio.slug)}"' in html
 
 
 async def test_an_earlier_guest_booking_appears_once_the_person_books_signed_in(

@@ -14,6 +14,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
+from urllib.parse import urlencode
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -291,9 +292,21 @@ def decoy_receipt(
     )
 
 
-def account_signup_url() -> str:
-    """The auth app's sign-up page, where anyone can create a free account."""
-    return f"{auth_settings.AUTH_FRONTEND_URL.rstrip('/')}/signup"
+def account_signup_url(slug: str) -> str:
+    """The auth app's sign-up page, returning the person signed in to the
+    business's booking page.
+
+    ``returnTo`` is the bookings app's own ``/signin?returnTo=/<slug>``: sign-up
+    on auth ends with an auth session, and that address turns it into a bookings
+    session (single sign-on) and lands on the booking page. Auth accepts the
+    bookings origin because it is on its return-host allow-list. The sign-up page
+    also offers "Sign in" to people who already have an account."""
+    back = f"/signin?{urlencode({'returnTo': f'/{slug}'})}"
+    target = f"{auth_settings.BOOKINGS_APP_URL.rstrip('/')}{back}"
+    return (
+        f"{auth_settings.AUTH_FRONTEND_URL.rstrip('/')}/signup"
+        f"?{urlencode({'returnTo': target})}"
+    )
 
 
 def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmail:
@@ -311,7 +324,9 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         notes=managed.booking.notes,
         # Only a customer with no account link is invited to create one.
         account_invite_url=(
-            account_signup_url() if managed.contact.user_id is None else None
+            account_signup_url(profile.public_slug)
+            if managed.contact.user_id is None
+            else None
         ),
     )
 

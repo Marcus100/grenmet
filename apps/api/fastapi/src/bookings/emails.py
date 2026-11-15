@@ -61,9 +61,9 @@ def _account_invite(mail: BookingEmail) -> str:
     url = _e(mail.account_invite_url)
     return (
         "<p>Booking never needs an account. If you would like one, it is free: "
-        f'<a href="{url}">create a Barrels account</a> with this email address. '
-        f"When you are signed in and book with {_e(mail.business)}, your bookings "
-        "with them, including this one, are listed under My bookings.</p>"
+        f'<a href="{url}">create a Barrels account or sign in</a> with this email '
+        f"address. When you are signed in and book with {_e(mail.business)}, your "
+        "bookings with them, including this one, are listed under My bookings.</p>"
     )
 
 

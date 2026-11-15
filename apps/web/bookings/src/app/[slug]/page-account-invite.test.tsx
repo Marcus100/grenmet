@@ -22,6 +22,16 @@ vi.mock("./actions", () => ({
   loadSlots: { bind: vi.fn(() => vi.fn()) },
   submitBooking: { bind: vi.fn(() => vi.fn()) },
 }));
+vi.mock("next/headers", () => ({
+  headers: vi.fn(() =>
+    Promise.resolve(
+      new Headers({
+        host: "bookings.example.test",
+        "x-forwarded-proto": "https",
+      })
+    )
+  ),
+}));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
@@ -55,6 +65,7 @@ const storefront: BookingStorefront = {
   ],
 };
 
+const NOT_NEEDED = /You do not need one to book/u;
 const params = { params: Promise.resolve({ slug: "sea-salt-spa" }) };
 
 beforeEach(() => {
@@ -64,12 +75,26 @@ beforeEach(() => {
 });
 
 describe("/[slug] account invitation", () => {
-  it("offers a guest the sign-up address on the auth app", async () => {
+  it("sends a guest to sign up on auth and back, signed in, to this booking page", async () => {
     vi.mocked(getSession).mockResolvedValue(null);
     render(await BusinessBookingPage(params));
-    expect(screen.getByTestId("flow")).toHaveTextContent(
+    const invite = new URL(screen.getByTestId("flow").textContent ?? "");
+    expect(`${invite.origin}${invite.pathname}`).toBe(
       "https://auth.example.test/signup"
     );
+    expect(invite.searchParams.get("returnTo")).toBe(
+      "https://bookings.example.test/signin?returnTo=%2Fsea-salt-spa"
+    );
+  });
+
+  it("shows a guest a quiet sign-in link that returns to the same page", async () => {
+    vi.mocked(getSession).mockResolvedValue(null);
+    render(await BusinessBookingPage(params));
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
+      "href",
+      "/signin?returnTo=%2Fsea-salt-spa"
+    );
+    expect(screen.getByText(NOT_NEEDED, { exact: false })).toBeVisible();
   });
 
   it("offers nothing to a signed-in person", async () => {
@@ -80,6 +105,9 @@ describe("/[slug] account invitation", () => {
     });
     render(await BusinessBookingPage(params));
     expect(screen.getByTestId("flow")).toHaveTextContent("no invite");
+    expect(
+      screen.queryByRole("link", { name: "Sign in" })
+    ).not.toBeInTheDocument();
   });
 
   it("treats a sign-in fault as a guest, reports it and still shows the page", async () => {
@@ -88,6 +116,7 @@ describe("/[slug] account invitation", () => {
     expect(screen.getByTestId("flow")).toHaveTextContent(
       "https://auth.example.test/signup"
     );
+    expect(screen.getByRole("link", { name: "Sign in" })).toBeVisible();
     expect(reportError).toHaveBeenCalledWith(
       expect.any(Error),
       "bookings-public-session"
