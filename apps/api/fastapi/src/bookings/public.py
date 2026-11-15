@@ -47,6 +47,7 @@ from .models import (
     Service,
 )
 from .schemas import (
+    BookingBusinessContact,
     BookingEmailCodeConfirm,
     BookingEmailCodeRequest,
     BookingEmailCodeSent,
@@ -262,6 +263,7 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         currency=booking.currency,
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
         can_cancel=_can_cancel(booking, profile, now),
+        contact=BookingBusinessContact(**service.business_contact(profile)),
     )
 
 
@@ -288,6 +290,7 @@ def decoy_receipt(
             currency=profile.currency,
             cancel_cutoff_hours=profile.cancel_cutoff_hours,
             can_cancel=False,
+            contact=BookingBusinessContact(**service.business_contact(profile)),
         ),
         manage_token=token,
         manage_url=manage_url(profile, token),

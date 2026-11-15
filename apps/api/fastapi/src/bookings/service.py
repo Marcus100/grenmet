@@ -78,6 +78,11 @@ async def get_profile(session: AsyncSession, organisation_id: str) -> BookingPro
     return profile
 
 
+CONTACT_FIELDS = frozenset(
+    {"contact_phone", "contact_whatsapp", "contact_instagram", "contact_email"}
+)
+
+
 async def upsert_profile(
     session: AsyncSession, *, organisation_id: str, payload: BookingProfileUpdate
 ) -> BookingProfile:
@@ -92,7 +97,16 @@ async def upsert_profile(
     )
     if taken is not None:
         raise BookingConflictError("That booking address is already in use")
-    values = payload.model_dump()
+    # Contact options are kept unless the request names them: a client (or a
+    # seed) that does not know them must not erase them. An explicit blank or
+    # null still clears.
+    values = payload.model_dump(
+        exclude={
+            name
+            for name in CONTACT_FIELDS
+            if name not in payload.model_fields_set and profile is not None
+        }
+    )
     if profile is None:
         profile = BookingProfile(organisation_id=organisation_id, **values)
         session.add(profile)
@@ -409,6 +423,16 @@ async def require_bookings_entitlement(
         raise BookingNotFoundError(what) from error
 
 
+def business_contact(profile: BookingProfile) -> dict[str, str | None]:
+    """The profile's contact options as the public pages show them."""
+    return {
+        "phone": profile.contact_phone,
+        "whatsapp": profile.contact_whatsapp,
+        "instagram": profile.contact_instagram,
+        "email": profile.contact_email,
+    }
+
+
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
     services = await list_services(session, profile.organisation_id, active_only=True)
     providers = await list_providers(session, profile.organisation_id, active_only=True)
@@ -427,6 +451,7 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         "timezone": profile.timezone,
         "currency": profile.currency,
         "cancel_cutoff_hours": profile.cancel_cutoff_hours,
+        "contact": business_contact(profile),
         "services": services,
         "providers": [p for p in public_providers if p["service_ids"]],
     }

@@ -10,6 +10,7 @@ from src.payments.schemas import ManualPaymentCreate
 from src.utils.reserved_names import is_reserved
 from src.utils.timezones import is_valid_timezone
 
+from . import contact
 from .models import BookingExceptionKind, BookingSource, BookingStatus
 
 Name = Annotated[str, Field(min_length=1, max_length=120)]
@@ -127,6 +128,55 @@ class BookingProfileUpdate(BaseModel):
         ]
         | None
     ) = None
+    contact_phone: str | None = Field(
+        default=None,
+        max_length=40,
+        description=(
+            "Phone number customers can call, with its country code. Stored in "
+            "E.164 form (+14734401234); blank clears it."
+        ),
+    )
+    contact_whatsapp: str | None = Field(
+        default=None,
+        max_length=40,
+        description=(
+            "WhatsApp number with its country code. Stored as digits only "
+            "(14734401234) for wa.me links; blank clears it."
+        ),
+    )
+    contact_instagram: str | None = Field(
+        default=None,
+        max_length=200,
+        description=(
+            "Instagram handle, with or without @, or an instagram.com profile "
+            "address. Stored as the handle without @; blank clears it."
+        ),
+    )
+    contact_email: EmailStr | None = Field(
+        default=None,
+        max_length=254,
+        description="Email address customers can write to; blank clears it.",
+    )
+
+    @field_validator("contact_phone", mode="before")
+    @classmethod
+    def _phone(cls, value: object) -> str | None:
+        return contact.normalise_phone(value)
+
+    @field_validator("contact_whatsapp", mode="before")
+    @classmethod
+    def _whatsapp(cls, value: object) -> str | None:
+        return contact.normalise_whatsapp(value)
+
+    @field_validator("contact_instagram", mode="before")
+    @classmethod
+    def _instagram(cls, value: object) -> str | None:
+        return contact.normalise_instagram(value)
+
+    @field_validator("contact_email", mode="before")
+    @classmethod
+    def _email(cls, value: object) -> str | None:
+        return contact.normalise_email(value)
 
     @field_validator("public_slug")
     @classmethod
@@ -431,6 +481,20 @@ class BookingPublicProvider(BaseModel):
     service_ids: list[uuid.UUID]
 
 
+class BookingBusinessContact(BaseModel):
+    """How a customer reaches the business by hand. Each is null when the
+    business has not set it; show only the ones that are set."""
+
+    phone: str | None = Field(description="E.164, for a tel: link.")
+    whatsapp: str | None = Field(
+        description="Digits with the country code, for https://wa.me/<digits>."
+    )
+    instagram: str | None = Field(
+        description="Handle without @, for https://instagram.com/<handle>."
+    )
+    email: str | None = Field(description="For a mailto: link.")
+
+
 class BookingStorefront(BaseModel):
     """What a client site needs to render its booking page."""
 
@@ -439,6 +503,7 @@ class BookingStorefront(BaseModel):
     timezone: str
     currency: str
     cancel_cutoff_hours: int
+    contact: BookingBusinessContact
     services: list[BookingPublicService]
     providers: list[BookingPublicProvider]
 
@@ -573,6 +638,9 @@ class BookingPublicDetail(BaseModel):
     cancel_cutoff_hours: int
     can_cancel: bool = Field(
         description="True while the booking is active and before the cancellation cutoff."
+    )
+    contact: BookingBusinessContact = Field(
+        description="How to reach the business when the booking cannot be changed online."
     )
 
 

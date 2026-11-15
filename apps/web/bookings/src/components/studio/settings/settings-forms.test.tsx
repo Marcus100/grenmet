@@ -3,7 +3,7 @@ import type {
   BookingProviderPublic,
   BookingServicePublic,
 } from "@barrelsgd/api-client";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/app/studio/[orgSlug]/settings/actions", () => ({
@@ -13,6 +13,8 @@ vi.mock("@/app/studio/[orgSlug]/settings/actions", () => ({
   saveServiceAction: vi.fn(),
 }));
 
+import { CONTACT_MESSAGES } from "@/lib/business-contact";
+import { ContactOptions } from "./contact-options";
 import { HoursForm } from "./hours-form";
 import { ProfileForm } from "./profile-form";
 import { ProviderForm } from "./provider-form";
@@ -33,6 +35,12 @@ const TUESDAY_ROW2 = /Tuesday opens, period 2/u;
 const CLOCK = /America\/Grenada/u;
 const MASSAGE = /Massage/u;
 const ADD_FIRST = /Add a service first/u;
+const CONTACT_GROUP = /Contact options for customers/u;
+const PHONE = /^Phone/u;
+const WHATSAPP = /^WhatsApp/u;
+const INSTAGRAM = /^Instagram/u;
+const EMAIL = /^Email \(optional\)/u;
+const COUNTRY_CODE = /with its country code/u;
 
 const service: BookingServicePublic = {
   id: S1,
@@ -86,6 +94,54 @@ describe("profile form", () => {
     expect(screen.getByLabelText(ADDRESS)).toHaveValue("sea-salt");
     expect(screen.getByLabelText(CUTOFF)).toHaveValue("48");
     expect(screen.getByLabelText(OPEN)).toBeChecked();
+  });
+
+  it("has four empty, optional contact options for a new profile", () => {
+    render(
+      <ProfileForm orgSlug="sea-salt" profile={null} suggestedName="Sea Salt" />
+    );
+    const group = screen.getByRole("group", { name: CONTACT_GROUP });
+    for (const label of [PHONE, WHATSAPP, INSTAGRAM, EMAIL]) {
+      const input = within(group).getByLabelText(label);
+      expect(input).toHaveValue("");
+      expect(input).not.toBeRequired();
+      expect(input).toHaveAccessibleDescription();
+    }
+  });
+
+  it("shows saved contact options the way people type them", () => {
+    const profile = {
+      id: "x",
+      organisation_id: ORG,
+      created_at: "",
+      updated_at: "",
+      public_slug: "sea-salt",
+      display_name: "Sea Salt Spa",
+      contact_phone: "+14734401234",
+      contact_whatsapp: "14734405678",
+      contact_instagram: "seasaltspa",
+      contact_email: "hello@seasalt.example",
+    } as BookingProfilePublic;
+    render(
+      <ProfileForm orgSlug="sea-salt" profile={profile} suggestedName="x" />
+    );
+    expect(screen.getByLabelText(PHONE)).toHaveValue("+14734401234");
+    expect(screen.getByLabelText(WHATSAPP)).toHaveValue("+14734405678");
+    expect(screen.getByLabelText(INSTAGRAM)).toHaveValue("@seasaltspa");
+    expect(screen.getByLabelText(EMAIL)).toHaveValue("hello@seasalt.example");
+  });
+
+  it("marks a wrong contact option and names the problem", () => {
+    render(
+      <ContactOptions
+        errors={{ contactPhone: CONTACT_MESSAGES.contactPhone }}
+        profile={null}
+      />
+    );
+    const phone = screen.getByLabelText(PHONE);
+    expect(phone).toHaveAttribute("aria-invalid", "true");
+    expect(phone).toHaveAccessibleDescription(COUNTRY_CODE);
+    expect(screen.getByLabelText(EMAIL)).not.toHaveAttribute("aria-invalid");
   });
 });
 

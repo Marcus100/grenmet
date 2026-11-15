@@ -38,6 +38,12 @@ const RESEND_NOW = /^Resend code$/u;
 const NEW_CODE = /We sent you a new code/u;
 const CONFIRM_AGAIN = /confirm your email again/u;
 const FREE_BROWS = /Free brows/u;
+const NO_CONTACT = {
+  phone: null,
+  whatsapp: null,
+  instagram: null,
+  email: null,
+};
 
 const storefront: BookingStorefront = {
   slug: "test-studio",
@@ -45,6 +51,7 @@ const storefront: BookingStorefront = {
   timezone: "America/Grenada",
   currency: "XCD",
   cancel_cutoff_hours: 24,
+  contact: NO_CONTACT,
   providers: [],
   services: [
     {
@@ -99,6 +106,7 @@ const booked: Outcome<Booked> = {
       currency: "XCD",
       cancel_cutoff_hours: 24,
       can_cancel: true,
+      contact: NO_CONTACT,
     },
   },
 };
@@ -118,7 +126,6 @@ function renderFlow(siteKey = "") {
   return render(
     <BookingFlow
       actions={actions}
-      contact={{ href: "https://example.test/dm", label: "Instagram" }}
       managePath="/booking"
       storefront={storefront}
       studioName="Test Studio"

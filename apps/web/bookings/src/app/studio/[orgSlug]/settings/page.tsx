@@ -288,6 +288,16 @@ function ProfileSummary({ profile }: { profile: BookingSettings["profile"] }) {
         ? "Confirmed by hand"
         : "Booked straight away",
     ],
+    ["Contact phone", profile.contact_phone ?? "Not set"],
+    [
+      "Contact WhatsApp",
+      profile.contact_whatsapp ? `+${profile.contact_whatsapp}` : "Not set",
+    ],
+    [
+      "Contact Instagram",
+      profile.contact_instagram ? `@${profile.contact_instagram}` : "Not set",
+    ],
+    ["Contact email", profile.contact_email ?? "Not set"],
   ];
   return (
     <dl className="grid gap-3 sm:grid-cols-2">

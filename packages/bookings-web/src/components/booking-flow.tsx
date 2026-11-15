@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type { Failure } from "../lib/booking-errors";
+import { type Failure, tellsToContact } from "../lib/booking-errors";
 import {
   type BookingFields,
   type FieldErrors,
@@ -28,11 +28,9 @@ import {
   formatMoney,
   timeZonePlace,
 } from "../lib/booking-format";
-import type {
-  Booked,
-  BookingFlowActions,
-  ContactChannel,
-} from "../lib/booking-types";
+import type { Booked, BookingFlowActions } from "../lib/booking-types";
+import { contactEnding } from "../lib/business-contact";
+import { ContactLinks } from "./business-contact";
 import { SlotPicker } from "./slot-picker";
 import { Turnstile } from "./turnstile";
 import {
@@ -94,8 +92,6 @@ export interface BookingFlowProps {
    * signed-in visitor; entries the business no longer offers are skipped.
    */
   bookAgain?: BookAgainChoice[];
-  /** How people reach the studio by hand when no slot is open online. */
-  contact: ContactChannel;
   /** Link used for the manage link on the confirmation. Defaults to an anchor. */
   ManageLink?: BookingLink;
   /** Path the manage link goes to; the token is appended as `/<token>`. */
@@ -106,6 +102,7 @@ export interface BookingFlowProps {
    * blank form.
    */
   signedIn?: SignedInVisitor;
+  /** The business's page, including its own contact options (`contact`). */
   storefront: BookingStorefront;
   /** The studio's name, used in the marketing opt-in wording. */
   studioName: string;
@@ -496,7 +493,6 @@ export function BookingFlow({
   accountInvite,
   actions,
   bookAgain = [],
-  contact,
   managePath,
   ManageLink = PlainLink,
   signedIn,
@@ -726,6 +722,9 @@ export function BookingFlow({
               </ul>
             )}
             {formError && <p>{formError}</p>}
+            {tellsToContact(formError) && (
+              <ContactLinks contact={storefront.contact} />
+            )}
           </div>
         )}
 
@@ -769,10 +768,13 @@ export function BookingFlow({
             </div>
           ))}
           {storefront.services.length === 0 && (
-            <p className="muted">
-              No services are open for online booking yet. Please message us on{" "}
-              {contact.label}.
-            </p>
+            <div className="muted">
+              <p>
+                No services are open for online booking yet. Please contact the
+                business{contactEnding(storefront.contact)}
+              </p>
+              <ContactLinks contact={storefront.contact} />
+            </div>
           )}
         </fieldset>
 

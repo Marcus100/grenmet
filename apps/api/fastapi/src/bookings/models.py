@@ -87,6 +87,13 @@ class BookingProfile(Base):
     #: Where the business's own frontend shows "manage my booking", with a
     #: ``{token}`` placeholder. Emails link here; the API never assumes a site.
     manage_url_template: Mapped[str | None] = mapped_column(String(500))
+    #: How customers reach the business by hand, shown on its public pages when
+    #: set (``contact.py`` normalises them): E.164 phone, WhatsApp digits,
+    #: Instagram handle without ``@``, email.
+    contact_phone: Mapped[str | None] = mapped_column(String(16))
+    contact_whatsapp: Mapped[str | None] = mapped_column(String(15))
+    contact_instagram: Mapped[str | None] = mapped_column(String(30))
+    contact_email: Mapped[str | None] = mapped_column(String(254))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

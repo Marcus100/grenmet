@@ -1,9 +1,9 @@
+import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contact";
 import { ManageBooking } from "@barrelsgd/bookings-web/components/manage-booking";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MissingBooking } from "@/components/missing-booking";
 import { getBooking, getStorefront } from "@/lib/booking-api";
-import { CONTACT_LABEL } from "@/lib/booking-errors";
 import { isBusinessSlug } from "@/lib/slug";
 import {
   cancelMyBooking,
@@ -43,6 +43,7 @@ export default async function ManageBookingPage({
           See your appointment, add it to your calendar, change the time or
           cancel.
         </p>
+        <ContactStrip contact={booking.contact} />
       </header>
       <ManageBooking
         actions={{
@@ -52,7 +53,6 @@ export default async function ManageBookingPage({
         }}
         booking={booking}
         calendarHref={`/${slug}/booking/${token}/ics`}
-        contact={{ href: `/${slug}`, label: CONTACT_LABEL }}
         token={token}
       />
     </div>

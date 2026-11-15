@@ -1,4 +1,6 @@
 import type { BookingStorefront } from "@barrelsgd/api-client";
+import { ContactLinks } from "@barrelsgd/bookings-web/components/business-contact";
+import { contactEnding } from "@barrelsgd/bookings-web/lib/business-contact";
 import Link from "next/link";
 
 /**
@@ -11,7 +13,7 @@ export function MissingBooking({
   business,
   slug,
 }: Readonly<{
-  business: Pick<BookingStorefront, "display_name"> | null;
+  business: Pick<BookingStorefront, "display_name" | "contact"> | null;
   slug: string;
 }>) {
   const name = business?.display_name;
@@ -37,8 +39,9 @@ export function MissingBooking({
             yours is old, make a new booking.
           </li>
           <li>
-            To change or cancel a booking, contact {name ?? "the business"}{" "}
-            directly.
+            To change or cancel a booking, contact {name ?? "the business"}
+            {contactEnding(business?.contact)}
+            <ContactLinks contact={business?.contact} />
           </li>
         </ul>
       </section>

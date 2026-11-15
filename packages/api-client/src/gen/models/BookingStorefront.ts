@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingBusinessContact } from "./BookingBusinessContact.js";
 import type { BookingPublicProvider } from "./BookingPublicProvider.js";
 import type { BookingPublicService } from "./BookingPublicService.js";
 
@@ -16,6 +17,12 @@ export type BookingStorefront = {
   timezone: string;
   currency: string;
   cancel_cutoff_hours: number;
+  /**
+   * @description How a customer reaches the business by hand. Each is null when the
+   * business has not set it; show only the ones that are set.
+   * @type object
+   */
+  contact: BookingBusinessContact;
   services: BookingPublicService[];
   providers: BookingPublicProvider[];
 };

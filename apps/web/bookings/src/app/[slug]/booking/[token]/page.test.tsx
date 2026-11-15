@@ -2,7 +2,7 @@ import type {
   BookingPublicDetail,
   BookingStorefront,
 } from "@barrelsgd/api-client";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getBooking, getStorefront } from "@/lib/booking-api";
 import ManageBookingPage, { metadata } from "./page";
@@ -22,6 +22,17 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+const NO_CONTACT = {
+  phone: null,
+  whatsapp: null,
+  instagram: null,
+  email: null,
+};
+const QUESTIONS = /Questions\? Contact us/u;
+const WHATSAPP = /WhatsApp/u;
+const CONTACT_COLON = /contact Sea Salt Spa:/u;
+const DIRECTLY = /contact the business directly\./u;
+
 const booking: BookingPublicDetail = {
   id: "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c11",
   status: "confirmed",
@@ -38,6 +49,7 @@ const booking: BookingPublicDetail = {
   currency: "XCD",
   cancel_cutoff_hours: 24,
   can_cancel: true,
+  contact: { ...NO_CONTACT, email: "hello@seasalt.example" },
 };
 
 const storefront: BookingStorefront = {
@@ -46,6 +58,7 @@ const storefront: BookingStorefront = {
   timezone: "America/Grenada",
   currency: "XCD",
   cancel_cutoff_hours: 24,
+  contact: { ...NO_CONTACT, whatsapp: "14734401234" },
   providers: [],
   services: [],
 };
@@ -75,6 +88,10 @@ describe("/[slug]/booking/[token]", () => {
     expect(
       screen.getByRole("button", { name: "Cancel booking" })
     ).toBeVisible();
+    const strip = screen.getByRole("complementary", { name: QUESTIONS });
+    expect(
+      within(strip).getByRole("link", { name: "Email hello@seasalt.example" })
+    ).toHaveAttribute("href", "mailto:hello@seasalt.example");
   });
 
   it("explains an unknown token and names the business", async () => {
@@ -93,6 +110,11 @@ describe("/[slug]/booking/[token]", () => {
       screen.getByRole("link", { name: "Book with Sea Salt Spa" })
     ).toHaveAttribute("href", "/sea-salt-spa");
     expect(screen.queryByText("nope")).not.toBeInTheDocument();
+    expect(screen.getByText(CONTACT_COLON)).toBeVisible();
+    expect(screen.getByRole("link", { name: WHATSAPP })).toHaveAttribute(
+      "href",
+      "https://wa.me/14734401234"
+    );
   });
 
   it("still helps when the business cannot be named", async () => {
@@ -106,6 +128,7 @@ describe("/[slug]/booking/[token]", () => {
     expect(
       screen.getByRole("link", { name: "Make a new booking" })
     ).toHaveAttribute("href", "/gone-spa");
+    expect(screen.getByText(DIRECTLY)).toBeVisible();
   });
 
   it("is not found for a malformed slug without calling the API", async () => {
