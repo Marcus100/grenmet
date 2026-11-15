@@ -2,10 +2,13 @@
 
 ## Status
 
-Proposed — 2026-11-15. Owner direction (15 Nov 2026): customers get a very
+Accepted — 2026-11-15. Owner direction (15 Nov 2026): customers get a very
 simple sign-up and verify whatever they want afterwards; Barrels staff get a
-stricter but still short path; follow best practice. No code before the owner
-accepts this record and a security review of the design has no open finding.
+stricter but still short path; follow best practice. The owner accepted the
+record as written, including the three answers at the end. Build in slices,
+each with its own tests and, for anything touching sign-in or permissions, a
+security review with no open finding before merge. Rules 2 and 4 relax a
+protection and ship last, behind their own review.
 
 ## Context
 
@@ -168,7 +171,7 @@ measured), phone-number sign-in, and any change to GAA or GMS staff rules.
 
 ## Owner answers
 
-Recommended answers, provisional until the owner confirms each:
+Accepted by the owner on 15 Nov 2026:
 
 1. Business owners: prompt for an authenticator now, require it when the
    business takes online payments.
