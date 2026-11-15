@@ -326,6 +326,67 @@ async def _cancel(
     return await _detail(session, managed)
 
 
+RESCHEDULABLE = (BookingStatus.PENDING, BookingStatus.CONFIRMED)
+
+
+async def reschedule(
+    session: AsyncSession,
+    organisation_id: str,
+    booking_id: uuid.UUID,
+    new_starts_at: datetime,
+    *,
+    actor_user_id: uuid.UUID | None,
+    now: datetime | None = None,
+) -> BookingStudioDetail:
+    """The business moves a pending or confirmed booking to another time, with
+    the same provider and service, and the customer is emailed.
+
+    Like entering a booking by hand, it does not consult the availability engine
+    (staff may move a booking outside the weekly hours or inside the lead
+    time); the new time must be in the future, and ``booking_no_overlap`` still
+    refuses a clash with 409. The status, token and any deposit stay as they
+    are. Moving to the time it already has changes nothing and sends nothing."""
+    moment = now or utc_now()
+    managed = await public.load_by_id(session, booking_id, organisation_id, lock=True)
+    booking, svc = managed.booking, managed.service
+    if BookingStatus(booking.status) not in RESCHEDULABLE:
+        raise BookingConflictError("Only a pending or confirmed booking can be moved")
+    starts_at = service.as_naive_utc(new_starts_at)
+    if starts_at == booking.starts_at:
+        return await _detail(session, managed)
+    if starts_at <= moment:
+        raise BookingValidationError("The new time must be in the future")
+
+    previous, previous_ends = booking.starts_at, booking.ends_at
+    await public.move_booking(session, booking, svc, starts_at)
+    current = BookingStatus(booking.status)
+    public.record_event(
+        session,
+        booking,
+        current,
+        current,
+        actor_user_id=actor_user_id,
+        note=f"Rescheduled from {previous:%Y-%m-%dT%H:%MZ} by the business",
+    )
+    stamp = f"{starts_at:%Y%m%dT%H%M}"
+    await public.emit_webhook(
+        session,
+        booking,
+        "booking.rescheduled",
+        previous_starts_at=previous,
+        previous_ends_at=previous_ends,
+        event_id=f"booking.rescheduled:{booking.id}:{stamp}",
+    )
+    await public.queue_customer_email(
+        session,
+        managed,
+        emails.customer_rescheduled_by_studio(public.build_mail(managed)),
+        f"booking-rescheduled-by-studio:{booking.id}:{stamp}",
+    )
+    await session.flush()
+    return await _detail(session, managed)
+
+
 async def no_show(
     session: AsyncSession,
     organisation_id: str,

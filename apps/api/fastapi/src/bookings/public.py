@@ -793,6 +793,28 @@ async def cancel_booking(
     return detail(managed, moment)
 
 
+async def move_booking(
+    session: AsyncSession, booking: Booking, svc: Service, starts_at: datetime
+) -> None:
+    """Give ``booking`` a new start (naive UTC), keeping provider and service.
+
+    The ``booking_no_overlap`` constraint is the last word: a clash (or the
+    deadlock two racing moves can end in) is a 409 and leaves the booking as it
+    was. The caller records the event and queues the mail."""
+    ends_at = starts_at + timedelta(minutes=svc.duration_min)
+    try:
+        async with session.begin_nested():
+            booking.starts_at = starts_at
+            booking.ends_at = ends_at
+            booking.blocked_from = starts_at - timedelta(minutes=svc.buffer_before_min)
+            booking.blocked_until = ends_at + timedelta(minutes=svc.buffer_after_min)
+            await session.flush()
+    except DBAPIError as error:
+        if not service.is_overlap_violation(error):
+            raise
+        raise BookingConflictError(SLOT_TAKEN) from error
+
+
 async def reschedule_booking(
     session: AsyncSession,
     token: str,
@@ -821,20 +843,8 @@ async def reschedule_booking(
     if booking.provider_id not in open_providers:
         raise BookingConflictError(SLOT_TAKEN)
 
-    previous = booking.starts_at
-    previous_ends = booking.ends_at
-    ends_at = starts_at + timedelta(minutes=svc.duration_min)
-    try:
-        async with session.begin_nested():
-            booking.starts_at = starts_at
-            booking.ends_at = ends_at
-            booking.blocked_from = starts_at - timedelta(minutes=svc.buffer_before_min)
-            booking.blocked_until = ends_at + timedelta(minutes=svc.buffer_after_min)
-            await session.flush()
-    except DBAPIError as error:
-        if not service.is_overlap_violation(error):
-            raise
-        raise BookingConflictError(SLOT_TAKEN) from error
+    previous, previous_ends = booking.starts_at, booking.ends_at
+    await move_booking(session, booking, svc, starts_at)
     current = BookingStatus(booking.status)
     record_event(
         session,

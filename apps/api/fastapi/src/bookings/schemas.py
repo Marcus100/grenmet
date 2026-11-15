@@ -304,6 +304,16 @@ class BookingStudioDecline(BaseModel):
     )
 
 
+class BookingStudioReschedule(BaseModel):
+    starts_at: UtcDateTime = Field(
+        description=(
+            "The new start time. Staff are not held to opening hours, lead time or "
+            "the booking horizon (as when entering a booking by hand); the time "
+            "must be in the future and free for the booking's provider."
+        )
+    )
+
+
 class BookingStudioCancel(BaseModel):
     reason: str = Field(
         min_length=1,

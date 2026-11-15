@@ -146,6 +146,7 @@ Totals: 633 paths and 761 operations.
 | POST | `/api/v1/bookings/org/bookings/{booking_id}/cancel` | org | yes | Cancel a booking as the business | `bookingsCancelStudioBooking` |
 | POST | `/api/v1/bookings/org/bookings/{booking_id}/complete` | org | yes | Mark a booking as completed | `bookingsCompleteStudioBooking` |
 | POST | `/api/v1/bookings/org/bookings/{booking_id}/confirm` | org | yes | Confirm a booking request | `bookingsConfirmStudioBooking` |
+| POST | `/api/v1/bookings/org/bookings/{booking_id}/reschedule` | org | yes | Move a booking to another time | `bookingsRescheduleStudioBooking` |
 | POST | `/api/v1/bookings/org/bookings/{booking_id}/decline` | org | yes | Decline a booking request | `bookingsDeclineStudioBooking` |
 | POST | `/api/v1/bookings/org/bookings/{booking_id}/manual-deposit` | org | yes | Record a deposit taken outside Stripe | `bookingsRecordManualDeposit` |
 | POST | `/api/v1/bookings/org/bookings/{booking_id}/no-show` | org | yes | Mark a booking as a no-show | `bookingsNoShowStudioBooking` |

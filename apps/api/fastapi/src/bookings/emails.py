@@ -124,6 +124,17 @@ def customer_rescheduled(mail: BookingEmail) -> tuple[str, str]:
     )
 
 
+def customer_rescheduled_by_studio(mail: BookingEmail) -> tuple[str, str]:
+    """The business moved a booking. No manage link: the token is only a hash."""
+    return (
+        f"Your booking at {mail.business} has a new time",
+        f"<p>Hello {_e(mail.customer_name)},</p>"
+        f"<p>{_e(mail.business)} has moved your booking to a new time.</p>"
+        f"{_details(mail)}"
+        f"<p>If this time does not suit you, please contact {_e(mail.business)}.</p>",
+    )
+
+
 def customer_reminder(mail: BookingEmail) -> tuple[str, str]:
     return (
         f"Reminder: your booking at {mail.business}",
