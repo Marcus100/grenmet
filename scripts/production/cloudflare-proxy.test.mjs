@@ -423,17 +423,18 @@ test("cache rules: default no-cache, then static assets on public hosts, then th
 const STORM_EXPRESSION = (domain) =>
   '(http.request.method eq "GET") and (' +
   `(http.host eq "weather.${domain}" and (` +
-  'http.request.uri.path eq "/alerts" or ' +
   'http.request.uri.path eq "/api/alerts/rss" or ' +
   'http.request.uri.path eq "/api/alerts/geojson" or ' +
-  'starts_with(http.request.uri.path, "/alerts/") or ' +
   'starts_with(http.request.uri.path, "/api/satellite/"))) or ' +
   `(http.host eq "api.${domain}" and (` +
   'starts_with(http.request.uri.path, "/api/cap/") or ' +
   'starts_with(http.request.uri.path, "/api/v1/wxwatch/public/")))) and not (' +
   'http.cookie contains "_session" or http.cookie contains "payload-token" or ' +
   'any(lower(http.request.headers.names[*])[*] == "authorization") or ' +
-  'any(lower(http.request.headers.names[*])[*] == "origin"))';
+  'any(lower(http.request.headers.names[*])[*] == "origin") or ' +
+  'any(lower(http.request.headers.names[*])[*] == "rsc") or ' +
+  'any(lower(http.request.headers.names[*])[*] == "next-router-prefetch") or ' +
+  'any(lower(http.request.headers.names[*])[*] == "next-router-state-tree"))';
 
 test("storm exception: exactly the public feeds, signed-out GETs only, origin decides the minute", () => {
   for (const [environment, domain] of [
@@ -457,6 +458,9 @@ test("storm exception: exactly the public feeds, signed-out GETs only, origin de
     });
     // The push sign-up (GET returns a key, POST/DELETE change data), sign-up
     // forms and staff CAP routes stay out.
+    // HTML pages are never cached by this rule (RSC and HTML share a URL).
+    assert.equal(storm.expression.includes('"/alerts"'), false);
+    assert.equal(storm.expression.includes('"/alerts/"'), false);
     for (const path of [
       "/api/alerts/push",
       "/api/alerts/subscribe",

@@ -22,7 +22,7 @@ edge copy for at most 60 seconds (`s-maxage`); tests fail if one grows.
 
 | Host | Path (GET) | Cache-Control |
 | --- | --- | --- |
-| weather | `/alerts` and `/alerts/*` (pages) | `public, max-age=60, s-maxage=60, stale-while-revalidate=60, stale-if-error=86400` |
+| weather | `/alerts` and `/alerts/*` (pages) | origin header only; **not cached by Cloudflare** (the storm rule covers feeds, not HTML pages: Next.js serves an RSC payload and an HTML page at the same URL and Cloudflare ignores `Vary`) |
 | weather | `/api/alerts/rss`, `/api/alerts/geojson` (CAP feed proxies) | same; errors are `no-store` |
 | weather | `/api/satellite/{id}` (GOES image proxy) | same; errors are `no-store` |
 | api | `/api/cap/latest-active`, `/alerts`, `/past`, `/alerts/{identifier}`, `/alerts.geojson`, `/active-map`, `/rss.xml`, `/{identifier}.xml` | `public, max-age=0, s-maxage=60, stale-if-error=86400` |
@@ -42,8 +42,7 @@ The cache rules are scripted: `scripts/production/cloudflare-cache-rules.py`
 `grenmet-<env>-storm-feeds`, runs after the "never cache" rule and makes only
 these requests eligible for cache:
 
-- `GET` on `weather.<domain>`: `/alerts` exactly, `/alerts/*`,
-  `/api/alerts/rss` and `/api/alerts/geojson` exactly, `/api/satellite/*`;
+- `GET` on `weather.<domain>`: `/api/alerts/rss` and `/api/alerts/geojson` exactly, `/api/satellite/*` (feeds only; never the `/alerts` HTML pages);
 - `GET` on `api.<domain>`: `/api/cap/*` (public feeds; the staff routes are
   `/api/v1/cap/*` and stay uncached) and `/api/v1/wxwatch/public/*`;
 - and never when the request has a session cookie (`_session`,
@@ -61,13 +60,13 @@ everything else under `/api/`, every other host, and router aliases such as
    never marked cacheable.
 2. After applying, check a path twice on production (staging's basic-auth
    header bypasses the cache):
-   `curl -sI https://weather.barrels.gd/alerts | grep -i 'cf-cache-status\|cache-control'`.
+   `curl -sI https://weather.barrels.gd/api/alerts/rss | grep -i 'cf-cache-status\|cache-control'`.
    Expect `MISS` then `HIT`, and `BYPASS` or `DYNAMIC` with
    `-H 'Cookie: weather_session=probe'`.
 
 ## Outage drill (5 minutes)
 
-1. Load `/alerts`, `/api/alerts/rss` and `/weather/satellite` so they are cached.
+1. Load `/api/alerts/rss`, `/api/alerts/geojson` and a satellite image so they are cached.
 2. Stop the web container (or block the origin). Reload the same paths: they still answer from Cloudflare (`cf-cache-status: STALE` or `HIT`).
 3. Start the origin again; the next request refreshes the copy within a minute.
 

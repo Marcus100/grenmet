@@ -161,5 +161,5 @@ async def image(image_id: int, session: ImageSession) -> Response:
         raise ObjectStorageNotConfiguredError() from None
     # The signed link lives 60 s, so the redirect itself is cached only briefly.
     return RedirectResponse(
-        url, status_code=307, headers={"Cache-Control": "public, max-age=30"}
+        url, status_code=307, headers={"Cache-Control": "no-store"}
     )

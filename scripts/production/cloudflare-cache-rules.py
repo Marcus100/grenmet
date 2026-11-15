@@ -65,11 +65,14 @@ STATIC_EXTENSIONS = (
 # apps/api/fastapi/src/cap/router.py, apps/api/fastapi/src/wxwatch/public_router.py);
 # a response without Cache-Control, an error or a no-store answer is never stored.
 STORM_PATHS = (
-    ("weather", ("/alerts", "/api/alerts/rss", "/api/alerts/geojson"), ("/alerts/", "/api/satellite/")),
+    # Feeds only, never HTML pages: Next.js serves an RSC payload and an HTML page at
+    # the same URL and Cloudflare ignores Vary, so caching /alerts could hand a
+    # payload to every visitor (review of #1514).
+    ("weather", ("/api/alerts/rss", "/api/alerts/geojson"), ("/api/satellite/",)),
     ("api", (), ("/api/cap/", "/api/v1/wxwatch/public/")),
 )
 # A request carrying any of these headers is never served from or stored in the cache.
-STORM_BYPASS_HEADERS = ("authorization", "origin")
+STORM_BYPASS_HEADERS = ("authorization", "origin", "rsc", "next-router-prefetch", "next-router-state-tree")
 
 
 def storm_expression(domain):

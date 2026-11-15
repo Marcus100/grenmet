@@ -98,8 +98,8 @@ on the droplets: leave their records exactly as they are, and leave Babydoll's
    longer; never anything signed-in, personal, or that changes data. The cache
    script's fourth rule, `grenmet-<env>-storm-feeds`, runs after the "never
    cache" rule and re-enables caching only for `GET` requests to:
-   - `weather.<domain>`: `/alerts`, `/alerts/*`, `/api/alerts/rss`,
-     `/api/alerts/geojson`, `/api/satellite/*`;
+   - `weather.<domain>`: `/api/alerts/rss`, `/api/alerts/geojson`,
+     `/api/satellite/*` (feeds only; the `/alerts` HTML pages are never cached);
    - `api.<domain>`: `/api/cap/*` (the public CAP feeds; not the staff
      `/api/v1/cap/*`) and `/api/v1/wxwatch/public/*`.
 
