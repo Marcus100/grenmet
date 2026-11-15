@@ -285,6 +285,7 @@ function TextField({
           inputMode={rest.inputMode}
           onChange={(e) => onChange(e.target.value)}
           required={rest.required}
+          spellCheck={rest.type === "email" ? false : undefined}
           type={rest.type}
         />
       )}

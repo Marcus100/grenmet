@@ -109,8 +109,9 @@ checks each value against the shared globals.
 - Public pages: one column up to `max-w-2xl`, the business header on top, the
   step content, then the footer with the credit and a link to the business's
   own contact details.
-- Studio: a left navigation (agenda, services, hours, settings) on desktop; a
-  top tab row on phones. The signed-in name sits in the header with Sign out.
+- Studio: a left navigation (Agenda, New booking, Settings) on desktop; a top
+  tab row on phones. Services and weekly hours live inside Settings, not in
+  the navigation. The signed-in name sits in the header with Sign out.
 - Spacing follows the shared scale (`spacing.unit` 4 px). Section gaps are
   `section-y` (40 px) on public pages.
 

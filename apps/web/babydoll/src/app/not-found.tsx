@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NewTabNote } from "@/components/new-tab-note";
 import { siteBookingLink } from "@/lib/book-link";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function NotFound() {
         <div className="ctas">
           <a className="btn btn-solid" {...booking}>
             Book now
+            <NewTabNote />
           </a>
           <Link className="btn btn-ghost" href="/">
             Home

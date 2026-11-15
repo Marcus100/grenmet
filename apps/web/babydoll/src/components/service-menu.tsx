@@ -9,17 +9,29 @@ export function ServiceMenu({ booking }: { booking: CtaLink }) {
   const [active, setActive] = useState<ServiceCategory["id"]>("lashes");
   const ids = SERVICE_MENU.map((category) => category.id);
 
+  // Tabs pattern: arrows step through, Home and End jump to the ends.
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
-    const step = event.key === "ArrowRight" ? 1 : -1;
-    const next = ids[(ids.indexOf(active) + step + ids.length) % ids.length];
+    // Alt, Ctrl and Cmd combinations belong to the browser (Alt+Left, Ctrl+Home).
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    let next: ServiceCategory["id"] | undefined;
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      const step = event.key === "ArrowRight" ? 1 : -1;
+      next = ids[(ids.indexOf(active) + step + ids.length) % ids.length];
+    } else if (event.key === "Home") {
+      next = ids[0];
+    } else if (event.key === "End") {
+      next = ids.at(-1);
+    }
     if (!next) return;
+    event.preventDefault();
     setActive(next);
     document.getElementById(`tab-${next}`)?.focus();
   };
 
   return (
     <>
+      {/* One note for the whole menu: every Book link below opens a new tab. */}
+      <p className="sr-only">Book links open the booking page in a new tab.</p>
       <div aria-label="Service categories" className="chips" role="tablist">
         {SERVICE_MENU.map((category) => (
           <button

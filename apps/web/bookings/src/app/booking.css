@@ -122,6 +122,7 @@
 .service-name {
   font-size: 1rem;
   font-weight: 500;
+  overflow-wrap: break-word;
 }
 .service-price {
   font-weight: 600;

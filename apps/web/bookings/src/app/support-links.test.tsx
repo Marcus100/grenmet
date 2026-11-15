@@ -33,7 +33,7 @@ describe("Barrels support address on bookings pages", () => {
   });
 
   it("links the mailbox from the error fallback next to the business contact text", () => {
-    render(<BusinessError reset={() => undefined} />);
+    render(<BusinessError retry={() => undefined} />);
     expect(screen.getByText(BUSINESS_CONTACT)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: SUPPORT })).toHaveAttribute(
       "href",
