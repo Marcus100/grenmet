@@ -189,17 +189,20 @@ def record_event(
     *,
     actor_user_id: uuid.UUID | None = None,
     note: str | None = None,
-) -> None:
-    session.add(
-        BookingEvent(
-            booking_id=booking.id,
-            organisation_id=booking.organisation_id,
-            from_status=from_status.value if from_status else None,
-            to_status=to_status.value,
-            actor_user_id=actor_user_id,
-            note=note[:300] if note else None,
-        )
+) -> BookingEvent:
+    """Add a history row and return it. Its id exists at once, so a caller can
+    key an email or webhook to this one change."""
+    event = BookingEvent(
+        id=uuid.uuid4(),
+        booking_id=booking.id,
+        organisation_id=booking.organisation_id,
+        from_status=from_status.value if from_status else None,
+        to_status=to_status.value,
+        actor_user_id=actor_user_id,
+        note=note[:300] if note else None,
     )
+    session.add(event)
+    return event
 
 
 # --- turnstile -------------------------------------------------------------------------
@@ -836,34 +839,37 @@ async def reschedule_booking(
             raise
         raise BookingConflictError(SLOT_TAKEN) from error
     current = BookingStatus(booking.status)
-    record_event(
+    event = record_event(
         session,
         booking,
         current,
         current,
         note=f"Rescheduled from {previous:%Y-%m-%dT%H:%MZ} by customer",
     )
-    stamp = f"{starts_at:%Y%m%dT%H%M}"
+    # Keyed to this move's own history row, not to the new start time: moving
+    # 10:00 to 11:00 and back to 10:00 must notify three times, and keys built
+    # from the start time would make the third collide with the first.
+    move = event.id
     await emit_webhook(
         session,
         booking,
         "booking.rescheduled",
         previous_starts_at=previous,
         previous_ends_at=previous_ends,
-        event_id=f"booking.rescheduled:{booking.id}:{stamp}",
+        event_id=f"booking.rescheduled:{booking.id}:{move}",
     )
     mail = build_mail(managed)
     await queue_customer_email(
         session,
         managed,
         emails.customer_rescheduled(mail),
-        f"booking-rescheduled:{booking.id}:{stamp}",
+        f"booking-rescheduled:{booking.id}:{move}",
     )
     await queue_studio_email(
         session,
         managed,
         emails.studio_notice(mail, event="rescheduled"),
-        f"booking-studio-rescheduled:{booking.id}:{stamp}",
+        f"booking-studio-rescheduled:{booking.id}:{move}",
     )
     await session.flush()
     return detail(managed, moment)
