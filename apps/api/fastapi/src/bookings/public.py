@@ -245,6 +245,15 @@ def _can_cancel(booking: Booking, profile: BookingProfile, now: datetime) -> boo
     )
 
 
+async def full_detail(
+    session: AsyncSession, managed: Managed, now: datetime
+) -> BookingPublicDetail:
+    """``detail`` plus what the customer paid at booking (needs the payments rows)."""
+    result = detail(managed, now)
+    result.payment = await deposit_payments.payment_summary(session, managed.booking)
+    return result
+
+
 def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
     booking, profile = managed.booking, managed.profile
     return BookingPublicDetail(
@@ -473,15 +482,13 @@ async def _upsert_customer(
 async def deposit_due(
     session: AsyncSession, profile: BookingProfile, service_id: uuid.UUID
 ) -> int:
-    """The deposit a booking of this service would owe now (0 = none)."""
+    """What a booking of this service would pay at booking now (0 = nothing)."""
     svc = await service.get_service(
         session, service_id, organisation_id=profile.organisation_id
     )
     if not svc.active:
         raise BookingNotFoundError("Service")
-    return await deposit_payments.effective_deposit(
-        session, profile.organisation_id, svc
-    )
+    return await deposit_payments.amount_due(session, profile, svc)
 
 
 def _binding(
@@ -547,9 +554,7 @@ async def create_booking(
     )
     if not svc.active:
         raise BookingNotFoundError("Service")
-    deposit = await deposit_payments.effective_deposit(
-        session, profile.organisation_id, svc
-    )
+    deposit = await deposit_payments.amount_due(session, profile, svc)
     use = email_code.ProofUse(None)
     if deposit > 0:
         email = str(payload.customer_email)
@@ -659,7 +664,10 @@ async def _create_booking(
         # No emails yet: they are queued when the deposit is paid
         # (deposits.confirm_paid), so an abandoned checkout mails nobody.
         checkout_url = await deposit_payments.start_deposit(
-            session, booking, contact.email
+            session,
+            booking,
+            contact.email,
+            title=deposit_payments.checkout_title(svc, profile, deposit),
         )
     else:
         mail = build_mail(managed, token)
@@ -678,7 +686,7 @@ async def _create_booking(
         )
     await session.flush()
     receipt = BookingPublicReceipt(
-        booking=detail(managed, moment),
+        booking=await full_detail(session, managed, moment),
         manage_token=token,
         manage_url=manage_url(profile, token),
         payment_required=initial is BookingStatus.PENDING_PAYMENT,
@@ -742,7 +750,7 @@ async def load_by_id(
 
 
 async def get_booking(session: AsyncSession, token: str) -> BookingPublicDetail:
-    return detail(await load_by_token(session, token), utc_now())
+    return await full_detail(session, await load_by_token(session, token), utc_now())
 
 
 def _require_active(booking: Booking) -> None:
@@ -770,7 +778,8 @@ async def cancel_booking(
     managed = await load_by_token(session, token, lock=True)
     booking = managed.booking
     if booking.status == BookingStatus.CANCELLED.value:
-        return detail(managed, moment)  # a repeated cancel is a no-op
+        # A repeated cancel is a no-op.
+        return await full_detail(session, managed, moment)
     _require_active(booking)
     _require_before_cutoff(managed, moment, "cancelled")
     booking.cancel_reason = reason.strip()[:300] if reason and reason.strip() else None
@@ -818,7 +827,7 @@ async def cancel_booking(
         f"booking-studio-cancelled:{booking.id}",
     )
     await session.flush()
-    return detail(managed, moment)
+    return await full_detail(session, managed, moment)
 
 
 async def move_booking(
@@ -858,7 +867,7 @@ async def reschedule_booking(
     _require_before_cutoff(managed, moment, "changed")
     starts_at = service.as_naive_utc(new_starts_at)
     if starts_at == booking.starts_at:
-        return detail(managed, moment)
+        return await full_detail(session, managed, moment)
     open_providers = await _candidate_providers(
         session,
         managed.profile,
@@ -907,7 +916,7 @@ async def reschedule_booking(
         f"booking-studio-rescheduled:{booking.id}:{move}",
     )
     await session.flush()
-    return detail(managed, moment)
+    return await full_detail(session, managed, moment)
 
 
 async def booking_ics(

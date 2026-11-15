@@ -13,4 +13,11 @@ export const bookingPublicServiceSchema = z.object({
   duration_min: z.int(),
   price_minor: z.int(),
   deposit_minor: z.int(),
+  due_at_booking_minor: z
+    .int()
+    .optional()
+    .default(0)
+    .describe(
+      "What an online booking of this service pays when it is made: the deposit, the full price (business setting, card payments on), or 0. More than 0 means the emailed-code step comes first."
+    ),
 });

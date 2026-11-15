@@ -11,6 +11,7 @@ import {
 import type { ManageBookingActions, SlotList } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
+import { PaymentStatus } from "./payment-status";
 import { SlotPicker } from "./slot-picker";
 
 export interface ManageBookingProps {
@@ -117,6 +118,9 @@ export function ManageBooking({
           <dd>{formatMoney(booking.price_minor, booking.currency)}</dd>
         </div>
       </dl>
+      {booking.payment && (
+        <PaymentStatus bookingId={booking.id} payment={booking.payment} />
+      )}
 
       {notice && (
         <p className="notice notice-ok" role="status">

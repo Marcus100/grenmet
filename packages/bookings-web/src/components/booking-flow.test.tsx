@@ -44,6 +44,7 @@ const MY_BOOKINGS =
 const NEVER_NEEDS = /Booking never needs an account/u;
 const DATE_RANGE = /^\w{3} \d{1,2} \w{3} to \w{3} \d{1,2} \w{3}$/u;
 const EMAIL_ERROR = /Enter a valid email address/u;
+const HELD_WHILE_PAYING = /Your time is held while you pay/u;
 
 const storefront: BookingStorefront = {
   slug: "test-studio",
@@ -323,6 +324,66 @@ describe("BookingFlow form", () => {
       await screen.findByRole("heading", { name: "Thank you, Ada" })
     ).toHaveFocus();
     expect(screen.getByText(WILL_CONFIRM)).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Manage my booking" })
+    ).toHaveAttribute("href", "/booking/secret-token-value-123");
+  });
+
+  it("asks for the emailed code first when the full price is due at booking", async () => {
+    const user = userEvent.setup();
+    vi.mocked(actions.requestEmailCode).mockResolvedValue({
+      ok: true,
+      data: { required: true, expiresInSeconds: 600 },
+    });
+    const fullPrice: BookingStorefront = {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        due_at_booking_minor: service.price_minor,
+      })),
+    };
+    renderFlow("", fullPrice);
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Email me a verification code" })
+    );
+    await waitFor(() => expect(actions.requestEmailCode).toHaveBeenCalled());
+    expect(submitBooking).not.toHaveBeenCalled();
+  });
+
+  it("offers Pay now on the confirmation while the payment is due", async () => {
+    const user = userEvent.setup();
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: true,
+      data: {
+        manageToken: "secret-token-value-123",
+        booking: {
+          ...booking,
+          status: "pending_payment",
+          deposit_minor: 22_500,
+          payment: {
+            status: "due",
+            amount_minor: 22_500,
+            paid_minor: 0,
+            refunded_minor: 0,
+            currency: "XCD",
+            checkout_url: "https://checkout.stripe.com/c/pay/cs_test_1",
+          },
+        },
+      },
+    });
+    renderFlow();
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+    expect(await screen.findByText(HELD_WHILE_PAYING)).toBeVisible();
+    expect(screen.getByRole("link", { name: "Pay now" })).toHaveAttribute(
+      "href",
+      "https://checkout.stripe.com/c/pay/cs_test_1"
+    );
     expect(
       screen.getByRole("link", { name: "Manage my booking" })
     ).toHaveAttribute("href", "/booking/secret-token-value-123");

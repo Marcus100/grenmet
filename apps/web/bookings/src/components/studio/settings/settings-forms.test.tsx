@@ -65,6 +65,11 @@ const provider: BookingProviderPublic = {
   service_ids: [S1],
 };
 
+const DEPOSIT_CHOICE = /Deposit set on each service/u;
+const FULL_CHOICE = /Full price, paid online by card/u;
+const NOT_SWITCHED_ON = /not switched on yet/u;
+const TEST_MODE = /test mode: no real money moves/u;
+
 describe("profile form", () => {
   it("starts from the organisation name when there is no profile", () => {
     render(
@@ -94,6 +99,41 @@ describe("profile form", () => {
     expect(screen.getByLabelText(ADDRESS)).toHaveValue("sea-salt");
     expect(screen.getByLabelText(CUTOFF)).toHaveValue("48");
     expect(screen.getByLabelText(OPEN)).toBeChecked();
+  });
+
+  it("defaults the payment choice to the service deposit and explains the card rail", () => {
+    render(
+      <ProfileForm orgSlug="sea-salt" profile={null} suggestedName="Sea Salt" />
+    );
+    const group = screen.getByRole("group", { name: "Payment when booking" });
+    expect(
+      within(group).getByRole("radio", { name: DEPOSIT_CHOICE })
+    ).toBeChecked();
+    expect(group).toHaveAccessibleDescription(NOT_SWITCHED_ON);
+  });
+
+  it("shows a saved full-price choice and the test-mode note", () => {
+    const profile = {
+      id: "x",
+      organisation_id: ORG,
+      created_at: "",
+      updated_at: "",
+      public_slug: "sea-salt",
+      display_name: "Sea Salt Spa",
+      payment_at_booking: "full_price",
+    } as BookingProfilePublic;
+    render(
+      <ProfileForm
+        cardPaymentsAvailable
+        orgSlug="sea-salt"
+        profile={profile}
+        suggestedName="x"
+      />
+    );
+    expect(screen.getByRole("radio", { name: FULL_CHOICE })).toBeChecked();
+    expect(
+      screen.getByRole("group", { name: "Payment when booking" })
+    ).toHaveAccessibleDescription(TEST_MODE);
   });
 
   it("has four empty, optional contact options for a new profile", () => {

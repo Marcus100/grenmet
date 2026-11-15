@@ -24,6 +24,7 @@ const NO_CONTACT = {
   email: null,
 };
 const INSTAGRAM = /Instagram @teststudio/u;
+const PAYMENT_DUE = /Payment of EC\$225 not received yet/u;
 const DIRECTLY = /please contact the business directly\./u;
 const CUTOFF =
   "Bookings can be cancelled online up to 24 hours before they start. Please contact the studio.";
@@ -193,6 +194,64 @@ describe("ManageBooking", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Change time" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows no payment block when nothing was due at booking", () => {
+    renderManage();
+    expect(
+      screen.queryByRole("heading", { name: "Payment" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("offers Pay now while a payment is due and remembers the way back", async () => {
+    const user = userEvent.setup();
+    window.history.pushState({}, "", `/salon/booking/${TOKEN}`);
+    renderManage({
+      ...booking,
+      id: "8c7d3f0e-1111-4c53-9e0f-9d8f2b2f6c10",
+      status: "pending_payment",
+      deposit_minor: 22_500,
+      payment: {
+        status: "due",
+        amount_minor: 22_500,
+        paid_minor: 0,
+        refunded_minor: 0,
+        currency: "XCD",
+        checkout_url: "https://checkout.stripe.com/c/pay/cs_test_1",
+      },
+    });
+    expect(screen.getByText(PAYMENT_DUE)).toBeVisible();
+    const pay = screen.getByRole("link", { name: "Pay now" });
+    expect(pay).toHaveAttribute(
+      "href",
+      "https://checkout.stripe.com/c/pay/cs_test_1"
+    );
+    pay.addEventListener("click", (event) => event.preventDefault());
+    await user.click(pay);
+    expect(
+      window.sessionStorage.getItem(
+        "barrels.bookings.return.8c7d3f0e-1111-4c53-9e0f-9d8f2b2f6c10"
+      )
+    ).toBe(`/salon/booking/${TOKEN}`);
+  });
+
+  it("says when the payment was received", () => {
+    renderManage({
+      ...booking,
+      deposit_minor: 22_500,
+      payment: {
+        status: "paid",
+        amount_minor: 22_500,
+        paid_minor: 22_500,
+        refunded_minor: 0,
+        currency: "XCD",
+        checkout_url: null,
+      },
+    });
+    expect(screen.getByText("Paid EC$225. Thank you.")).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: "Pay now" })
     ).not.toBeInTheDocument();
   });
 });

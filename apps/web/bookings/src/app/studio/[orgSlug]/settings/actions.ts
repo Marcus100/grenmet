@@ -8,7 +8,7 @@
 // so a repeat is harmless (a repeated create adds a second row, which the
 // page shows). Sentry gets the error only, never the form values.
 
-import { ResponseError } from "@barrelsgd/api-client";
+import { type BookingPaymentMode, ResponseError } from "@barrelsgd/api-client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -206,6 +206,13 @@ function saved(orgSlug: string, message: string): ActionState {
   return { status: "success", message };
 }
 
+/** The payment choice; anything but full price is the deposit default. */
+function paymentAtBooking(formData: FormData): BookingPaymentMode {
+  return formData.get("paymentAtBooking") === "full_price"
+    ? "full_price"
+    : "deposit";
+}
+
 /** The minor-unit amount in a money field; empty means 0. */
 function moneyField(text: string): number | null {
   return text.trim() === "" ? 0 : parseMoney(text);
@@ -263,6 +270,7 @@ export async function saveProfileAction(
       horizon_days: input.horizonDays,
       cancel_cutoff_hours: input.cancelCutoffHours,
       requires_confirmation: formData.get("requiresConfirmation") === "on",
+      payment_at_booking: paymentAtBooking(formData),
       notify_email: input.notifyEmail || null,
       manage_url_template: input.manageUrlTemplate || null,
       ...contacts.body,
