@@ -73530,6 +73530,67 @@
         ],
         "title": "BookingAvailability"
       },
+      "BookingBusinessContact": {
+        "properties": {
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone",
+            "description": "E.164, for a tel: link."
+          },
+          "whatsapp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Whatsapp",
+            "description": "Digits with the country code, for https://wa.me/<digits>."
+          },
+          "instagram": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instagram",
+            "description": "Handle without @, for https://instagram.com/<handle>."
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email",
+            "description": "For a mailto: link."
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone",
+          "whatsapp",
+          "instagram",
+          "email"
+        ],
+        "title": "BookingBusinessContact",
+        "description": "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
+      },
       "BookingEmailCodeConfirm": {
         "properties": {
           "service_id": {
@@ -74035,6 +74096,59 @@
             ],
             "title": "Manage Url Template"
           },
+          "contact_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone",
+            "description": "Phone number customers can call, with its country code. Stored in E.164 form (+14734401234); blank clears it."
+          },
+          "contact_whatsapp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Whatsapp",
+            "description": "WhatsApp number with its country code. Stored as digits only (14734401234) for wa.me links; blank clears it."
+          },
+          "contact_instagram": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Instagram",
+            "description": "Instagram handle, with or without @, or an instagram.com profile address. Stored as the handle without @; blank clears it."
+          },
+          "contact_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Email",
+            "description": "Email address customers can write to; blank clears it."
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -74154,6 +74268,59 @@
               }
             ],
             "title": "Manage Url Template"
+          },
+          "contact_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone",
+            "description": "Phone number customers can call, with its country code. Stored in E.164 form (+14734401234); blank clears it."
+          },
+          "contact_whatsapp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Whatsapp",
+            "description": "WhatsApp number with its country code. Stored as digits only (14734401234) for wa.me links; blank clears it."
+          },
+          "contact_instagram": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Instagram",
+            "description": "Instagram handle, with or without @, or an instagram.com profile address. Stored as the handle without @; blank clears it."
+          },
+          "contact_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Email",
+            "description": "Email address customers can write to; blank clears it."
           }
         },
         "type": "object",
@@ -74592,6 +74759,10 @@
             "type": "boolean",
             "title": "Can Cancel",
             "description": "True while the booking is active and before the cancellation cutoff."
+          },
+          "contact": {
+            "$ref": "#/components/schemas/BookingBusinessContact",
+            "description": "How to reach the business when the booking cannot be changed online."
           }
         },
         "type": "object",
@@ -74610,7 +74781,8 @@
           "deposit_minor",
           "currency",
           "cancel_cutoff_hours",
-          "can_cancel"
+          "can_cancel",
+          "contact"
         ],
         "title": "BookingPublicDetail",
         "description": "A booking as its customer sees it."
@@ -75176,6 +75348,9 @@
             "type": "integer",
             "title": "Cancel Cutoff Hours"
           },
+          "contact": {
+            "$ref": "#/components/schemas/BookingBusinessContact"
+          },
           "services": {
             "items": {
               "$ref": "#/components/schemas/BookingPublicService"
@@ -75198,6 +75373,7 @@
           "timezone",
           "currency",
           "cancel_cutoff_hours",
+          "contact",
           "services",
           "providers"
         ],

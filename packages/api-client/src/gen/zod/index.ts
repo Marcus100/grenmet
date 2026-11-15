@@ -1143,6 +1143,7 @@ export { bookingAgendaDaySchema } from "./bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
+export { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
 export { bookingEmailCodeConfirmSchema } from "./bookingEmailCodeConfirmSchema.js";
 export { bookingEmailCodeRequestSchema } from "./bookingEmailCodeRequestSchema.js";
 export { bookingEmailCodeSentSchema } from "./bookingEmailCodeSentSchema.js";

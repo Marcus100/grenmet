@@ -409,6 +409,16 @@ async def require_bookings_entitlement(
         raise BookingNotFoundError(what) from error
 
 
+def business_contact(profile: BookingProfile) -> dict[str, str | None]:
+    """The profile's contact options as the public pages show them."""
+    return {
+        "phone": profile.contact_phone,
+        "whatsapp": profile.contact_whatsapp,
+        "instagram": profile.contact_instagram,
+        "email": profile.contact_email,
+    }
+
+
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
     services = await list_services(session, profile.organisation_id, active_only=True)
     providers = await list_providers(session, profile.organisation_id, active_only=True)
@@ -427,6 +437,7 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         "timezone": profile.timezone,
         "currency": profile.currency,
         "cancel_cutoff_hours": profile.cancel_cutoff_hours,
+        "contact": business_contact(profile),
         "services": services,
         "providers": [p for p in public_providers if p["service_ids"]],
     }

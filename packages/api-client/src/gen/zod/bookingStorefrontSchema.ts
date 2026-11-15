@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
 import { bookingPublicProviderSchema } from "./bookingPublicProviderSchema.js";
 import { bookingPublicServiceSchema } from "./bookingPublicServiceSchema.js";
 
@@ -14,6 +15,9 @@ export const bookingStorefrontSchema = z
     timezone: z.string(),
     currency: z.string(),
     cancel_cutoff_hours: z.int(),
+    contact: bookingBusinessContactSchema.describe(
+      "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
+    ),
     services: z.array(bookingPublicServiceSchema),
     providers: z.array(bookingPublicProviderSchema),
   })

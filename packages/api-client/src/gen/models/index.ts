@@ -1184,6 +1184,7 @@ export type { BookingAgenda } from "./BookingAgenda.js";
 export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
+export type { BookingBusinessContact } from "./BookingBusinessContact.js";
 export type { BookingEmailCodeConfirm } from "./BookingEmailCodeConfirm.js";
 export type { BookingEmailCodeRequest } from "./BookingEmailCodeRequest.js";
 export type { BookingEmailCodeSent } from "./BookingEmailCodeSent.js";

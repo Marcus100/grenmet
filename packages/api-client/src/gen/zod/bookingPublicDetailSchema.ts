@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
 
 export const bookingPublicDetailSchema = z
@@ -27,5 +28,8 @@ export const bookingPublicDetailSchema = z
       .describe(
         "True while the booking is active and before the cancellation cutoff."
       ),
+    contact: bookingBusinessContactSchema.describe(
+      "How to reach the business when the booking cannot be changed online."
+    ),
   })
   .describe("A booking as its customer sees it.");
