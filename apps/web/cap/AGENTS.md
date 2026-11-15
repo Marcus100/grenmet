@@ -113,8 +113,13 @@ pnpm --filter @barrelsgd/web-cap test
 pnpm --filter @barrelsgd/web-cap type-check
 ```
 
-Subscriptions (email, web push) are not built; About links to the GMS "get
-alerts" page until they land.
+This app has no subscription screen: no sign-up form, no push permission
+prompt and no service worker. The About page says so and links to the GMS "get
+alerts" page. The API side exists and is not built in this app: `src/subscriptions`
+(double opt-in email lists, including `gms-alerts`) and `src/push` (browser web
+push for the same list) serve it, and the GMS app has the sign-up routes
+(`apps/web/gms/src/app/api/alerts/subscribe` and `.../push`). Adding a screen here
+means calling the same API endpoints from this app.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

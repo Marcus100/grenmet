@@ -2,7 +2,7 @@
 
 **Status:** Active checklist; evidence from the repository on 2026-10-30  
 **Owner:** Barrels Grenada engineering (decisions: repository owner)  
-**Last updated:** 2026-10-30
+**Last updated:** 2026-11-14 (restore drill section only; the rest is still the 2026-10-30 evidence)
 
 Planned launch: about 10 November 2026. This table covers the non-monitoring
 launch gaps. Monitoring inputs are in [launch monitoring inputs](launch-monitoring-inputs.md);
@@ -17,7 +17,7 @@ and flags it for the owner and a lawyer.
 | Privacy notice | Owner, with a lawyer; client sponsor for GAA and GMS sites | Partial: 4 of the public sites have a page; 3 are marked in code as drafts awaiting owner review and the gms page carries no marker | Review of all four pages (gms has never been marked for review); pages for the public apps without one (below) |
 | Terms of service | Owner, with a lawyer | Missing for the platform; one informal "terms of use" section on the CAP hub | Decision on which apps need terms; a lawyer-reviewed text |
 | Support route | Owner | Address chosen: `support@barrels.gd`, linked from auth, bookings, babydoll (Barrels credit only), cap, elections and docs (2026-10-30). gms and mbia are left to the clients | Mailbox live: `support@barrels.gd` forwards through Cloudflare Email Routing (owner set up and tested end to end, 2026-10-30). Still open: a named person or role behind it and a response target |
-| Restore drill | Engineering, owner approves the run | Built, never run against real backups | First human-timed run and its recorded result |
+| Restore drill | Engineering, owner approves the run | Done for the core backup: passed against the production backup on 4 and 9 Nov 2026 | The optional application check (`api_check`) has not been run |
 | Authenticator enforcement | Owner | Code ready; not enforced in any environment | Key, variable, enrolment and staging acceptance |
 
 ## Privacy notice
@@ -106,15 +106,23 @@ decision and are not covered by this address.
 
 ## Restore drill
 
-Source: [restore drill](restore-drill.md). State: built, **not yet run against real
-backups** (also noted in [infrastructure](../infrastructure.md#current-operational-gaps)).
+Source: [restore drill](restore-drill.md). State (updated 14 Nov 2026): the drill
+**has run against the real production backup and passed**, on 4 Nov 2026 (run
+41789991594) and on 9 Nov 2026 (run 42679143332, which closed
+[#926](https://github.com/Marcus100/grenmet/issues/926)). It now also runs monthly.
+This section said on 30 Oct 2026 that it had never run and that its key was
+missing. That is no longer true.
 
-Missing, in order: the read-only Spaces key stored as `DO_SPACES_READ_ACCESS_KEY_ID`
-and `DO_SPACES_READ_SECRET_ACCESS_KEY` in the `production-backup` environment
-(not present on 2026-10-30); a first human-timed run without the optional API
-check; saving the row-count floors file after that run; then a second run with
-`api_check`. Nothing opens an issue when the drill fails. Owner decision: when to
-run it off-peak before 10 November.
+The read-only Spaces key (`DO_SPACES_READ_ACCESS_KEY_ID` and
+`DO_SPACES_READ_SECRET_ACCESS_KEY`) was added to the `production-backup`
+environment on 3 Nov 2026 (checked with `gh secret list`, names only). A failed
+scheduled run opens an issue (see the restore drill page).
+
+Still open: the optional application check (`api_check`) has not been run, so the
+drill proves the restore, the migration match and the row counts, but not that the
+running application recovers from the restored data. Also open: the row-count
+floors file (`docs/operations/restore-drill-floors.json`) does not exist yet, so
+the row-count check has no floors to enforce.
 
 ## Authenticator enforcement
 

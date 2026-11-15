@@ -12,7 +12,7 @@ output on 2026-09-10:
 | Environment | Host | SSH account | Root disk usage shown at login |
 | --- | --- | --- | --- |
 | Staging | `grenmet-staging-01` (IP: see the DigitalOcean dashboard) | `root` in September; `deploy` with sudo now (root and password login off, checked by the owner on 2026-11-13: root refused, `deploy` accepted) | 62.1% of 47.39 GB |
-| Production | `grenmet-prod` (IP: see the DigitalOcean dashboard) | `deploy` | 96.2% of 47.39 GB (44% on 2026-10-18) |
+| Production | `grenmet-prod` (IP: see the DigitalOcean dashboard) | `deploy` | 96.2% of 47.39 GB on 2026-09-10 (September reading; 44% on 2026-10-18, see the re-check below) |
 
 **Production re-check, 2026-10-18** (owner-run, read-only commands): root disk
 44% used (21 of 48 GB, 27 GB free); the September pressure is resolved. All 14
