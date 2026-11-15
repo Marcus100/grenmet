@@ -9,6 +9,7 @@ const actions = vi.hoisted(() => ({
   confirmBookingAction: vi.fn(),
   declineBookingAction: vi.fn(),
   noShowBookingAction: vi.fn(),
+  rescheduleBookingAction: vi.fn(),
 }));
 vi.mock("@/app/studio/[orgSlug]/bookings/[id]/actions", () => actions);
 
@@ -24,7 +25,9 @@ function show(
       orgSlug="sea-salt"
       refundable={extra.refundable ?? false}
       started={extra.started ?? false}
+      startsAt="2027-01-05T13:30:00Z"
       status={status}
+      timezone="America/Grenada"
     />
   );
 }
@@ -49,12 +52,17 @@ describe("button visibility", () => {
 
   it("offers confirm, decline and cancel for a request", () => {
     show("pending");
-    expect(buttons()).toEqual(["Confirm booking", "Decline", "Cancel booking"]);
+    expect(buttons()).toEqual([
+      "Confirm booking",
+      "Change time",
+      "Decline",
+      "Cancel booking",
+    ]);
   });
 
-  it("offers only cancel for a confirmed booking that has not started", () => {
+  it("offers change time and cancel for a confirmed booking that has not started", () => {
     show("confirmed", { started: false });
-    expect(buttons()).toEqual(["Cancel booking"]);
+    expect(buttons()).toEqual(["Change time", "Cancel booking"]);
   });
 
   it("adds complete and no-show once a confirmed booking has started", () => {
@@ -304,5 +312,66 @@ describe("dialogs", () => {
         BOOKING_ID
       )
     );
+  });
+});
+
+describe("change time", () => {
+  it("opens with the booking's current day and time on the business's clock", async () => {
+    show("confirmed");
+    fireEvent.click(screen.getByRole("button", { name: "Change time" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(dialog).toHaveTextContent("The customer is emailed the new time");
+    // 13:30 UTC on 5 January is 09:30 in Grenada (UTC-4).
+    expect(screen.getByLabelText("New date")).toHaveValue("2027-01-05");
+    expect(screen.getByLabelText("New start time")).toHaveValue("09:30");
+    expect(screen.getByLabelText("New start time")).toBeRequired();
+    expect(dialog).toHaveTextContent("America/Grenada");
+    expect(actions.rescheduleBookingAction).not.toHaveBeenCalled();
+  });
+
+  it("sends the chosen date and time and announces the result", async () => {
+    actions.rescheduleBookingAction.mockResolvedValue({
+      status: "success",
+      message: "Booking moved. The customer has been emailed.",
+    });
+    show("pending");
+    fireEvent.click(screen.getByRole("button", { name: "Change time" }));
+    fireEvent.change(await screen.findByLabelText("New date"), {
+      target: { value: "2027-01-06" },
+    });
+    fireEvent.change(screen.getByLabelText("New start time"), {
+      target: { value: "10:00" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Move booking" }));
+    await waitFor(() =>
+      expect(actions.rescheduleBookingAction).toHaveBeenCalled()
+    );
+    const formData = actions.rescheduleBookingAction.mock
+      .calls[0]?.[3] as FormData;
+    expect(formData.get("date")).toBe("2027-01-06");
+    expect(formData.get("time")).toBe("10:00");
+    expect(
+      await screen.findByText("Booking moved. The customer has been emailed.")
+    ).toHaveAttribute("role", "status");
+  });
+
+  it("shows a refusal inside the dialog and keeps what was typed", async () => {
+    actions.rescheduleBookingAction.mockResolvedValue({
+      status: "error",
+      kind: "conflict",
+      message: "That time is not free, or the booking has changed.",
+      nextStep: "Choose another time.",
+    });
+    show("confirmed");
+    fireEvent.click(screen.getByRole("button", { name: "Change time" }));
+    fireEvent.change(await screen.findByLabelText("New start time"), {
+      target: { value: "11:15" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Move booking" }));
+    const refusal = await screen.findByText(
+      "That time is not free, or the booking has changed."
+    );
+    expect(refusal.closest('[role="alert"]')).not.toBeNull();
+    expect(screen.getByLabelText("New start time")).toHaveValue("11:15");
   });
 });
