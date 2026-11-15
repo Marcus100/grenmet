@@ -260,6 +260,9 @@ services:
       CMS_DISTRIBUTION_SECRET: ${CMS_DISTRIBUTION_SECRET:-}
       PAYSLIP_HMAC_KEYS: ${PAYSLIP_HMAC_KEYS:-}
       SUBSCRIPTIONS_SITE_URLS: ${SUBSCRIPTIONS_SITE_URLS:-}
+      # Posts ticked "Include in newsletter" (CMS public feed, internal network);
+      # unreachable means the digest carries no posts.
+      NEWSLETTER_POSTS_FEED_URL: http://web-cms:3006/api/public/newsletter
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: https://auth.${BASE_DOMAIN}/google/callback
@@ -392,6 +395,9 @@ services:
       META_INSTAGRAM_ACCOUNT_ID: ${META_INSTAGRAM_ACCOUNT_ID:-}
       META_PAGE_ACCESS_TOKEN: ${META_PAGE_ACCESS_TOKEN:-}
       SUBSCRIPTIONS_SITE_URLS: ${SUBSCRIPTIONS_SITE_URLS:-}
+      # Posts ticked "Include in newsletter" (CMS public feed, internal network);
+      # unreachable means the digest carries no posts.
+      NEWSLETTER_POSTS_FEED_URL: http://web-cms:3006/api/public/newsletter
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
@@ -400,6 +406,9 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
       SENTRY_CRONS_ENABLED: ${SENTRY_CRONS_ENABLED:-false}
+      # Daily climate newsletter (ADR-0052): the 07:30 job runs here. Off unless the
+      # GitHub environment variable NEWSLETTER_DIGEST_ENABLED is true (render-env.py).
+      NEWSLETTER_DIGEST_ENABLED: ${NEWSLETTER_DIGEST_ENABLED:-false}
       TELEMETRY_ENVIRONMENT: ${ENVIRONMENT}
       TELEMETRY_REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}

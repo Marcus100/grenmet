@@ -105,6 +105,8 @@ jobs:
           TELEMETRY_ENABLED: ${{ vars.TELEMETRY_ENABLED }}
           # Sentry Cron check-ins from the worker (issue #1144). Unset is off.
           SENTRY_CRONS_ENABLED: ${{ vars.SENTRY_CRONS_ENABLED }}
+          # Daily climate newsletter digest at 07:30 Grenada (ADR-0052). Unset is off.
+          NEWSLETTER_DIGEST_ENABLED: ${{ vars.NEWSLETTER_DIGEST_ENABLED }}
           TELEMETRY_WORKER_HEARTBEAT_URL: ${{ secrets.WORKER_HEARTBEAT_URL }}
           # Cloudflare proxy edge (docs/operations/cloudflare-proxy.md). Unset is off.
           CLOUDFLARE_PROXY_ENABLED: ${{ vars.CLOUDFLARE_PROXY_ENABLED }}
