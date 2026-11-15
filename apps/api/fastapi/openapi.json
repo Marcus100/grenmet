@@ -68061,7 +68061,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 12,
-            "title": "New Password"
+            "title": "New Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           }
         },
         "type": "object",
@@ -80737,7 +80738,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 12,
-            "title": "New Password"
+            "title": "New Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           }
         },
         "type": "object",
@@ -89633,7 +89635,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 12,
-            "title": "New Password"
+            "title": "New Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           }
         },
         "type": "object",
@@ -115990,7 +115993,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 12,
-            "title": "New Password"
+            "title": "New Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           }
         },
         "type": "object",
@@ -116137,7 +116141,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 8,
-            "title": "Password"
+            "title": "Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           }
         },
         "type": "object",
@@ -116392,7 +116397,8 @@
             "type": "string",
             "maxLength": 128,
             "minLength": 12,
-            "title": "Password"
+            "title": "Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           },
           "first_name": {
             "type": "string",
@@ -116734,7 +116740,8 @@
                 "type": "null"
               }
             ],
-            "title": "Password"
+            "title": "Password",
+            "description": "At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte."
           },
           "is_active": {
             "anyOf": [

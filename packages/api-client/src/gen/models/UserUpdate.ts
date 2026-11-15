@@ -18,6 +18,9 @@ export type UserUpdate = {
   first_name?: string | null;
   middle_name?: string | null;
   last_name?: string | null;
+  /**
+   * @description At most 72 bytes in UTF-8 (bcrypt limit); accented letters and emoji use more than one byte.
+   */
   password?: string | null;
   is_active?: boolean | null;
   is_superuser?: boolean | null;

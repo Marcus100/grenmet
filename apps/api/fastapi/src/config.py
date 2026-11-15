@@ -16,6 +16,7 @@ from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src import db_timeouts
+from src.auth.password_policy import BCRYPT_MAX_BYTES
 
 
 def parse_cors(v: Any) -> list[str] | str:
@@ -169,6 +170,13 @@ class Settings(BaseSettings):
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )
+
+        # bcrypt hashes at most 72 bytes; a longer first superuser password would
+        # only fail later, when init_db creates the account.
+        if len(self.FIRST_SUPERUSER_PASSWORD.encode("utf-8")) > BCRYPT_MAX_BYTES:
+            raise ValueError(
+                f"FIRST_SUPERUSER_PASSWORD must be at most {BCRYPT_MAX_BYTES} bytes"
+            )
 
         # Validate secret strength for production
         self._validate_secret_strength("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)

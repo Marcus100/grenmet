@@ -8,6 +8,7 @@ import jwt
 from fastapi.concurrency import run_in_threadpool
 
 from src.auth.config import auth_settings
+from src.auth.password_policy import BCRYPT_MAX_BYTES
 
 ALGORITHM = "HS256"
 # bcrypt cost factor — 12 is the modern recommended minimum, enforced as a
@@ -47,7 +48,9 @@ def get_password_hash(password: str) -> str:
     """Hash a plain-text password with bcrypt.
 
     Produces a ``$2b$`` hash identical in format to what passlib[bcrypt]
-    produced, so all existing stored hashes remain valid.
+    produced, so all existing stored hashes remain valid. bcrypt 5 raises
+    ``ValueError`` above 72 bytes; schemas refuse such passwords first
+    (``password_policy``), so reaching here with one is a bug, not a silent truncation.
     """
     salt = bcrypt.gensalt(rounds=_BCRYPT_ROUNDS)
     return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
@@ -60,21 +63,31 @@ def get_password_hash(password: str) -> str:
 ANONYMISED_PASSWORD_MARKER = "!anonymised"
 
 
+def _bcrypt_input(password: str) -> bytes:
+    """Encode a password the way bcrypt 4 read it: the first 72 bytes only.
+
+    bcrypt 4 truncated silently, so an account whose password was set while it
+    could exceed 72 bytes (schemas allowed 128 characters) holds a hash of just
+    those 72 bytes. bcrypt 5 raises instead, so truncate here to keep those
+    accounts signing in. New passwords over 72 bytes are refused by the schemas.
+    """
+    return password.encode("utf-8")[:BCRYPT_MAX_BYTES]
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain-text password against a stored bcrypt hash.
 
-    A stored value that is not a bcrypt hash (the anonymised marker) never matches and
-    never raises. It still spends one bcrypt check, so the answer takes as long as a
+    Never raises. Input over 72 bytes is cut to 72 bytes (see ``_bcrypt_input``). A
+    stored value that is not a bcrypt hash (the anonymised marker) never matches.
+    Every failure path still spends one bcrypt check, so the answer takes as long as a
     real check."""
+    candidate = _bcrypt_input(plain_password)
     try:
-        return bcrypt.checkpw(
-            plain_password.encode("utf-8"),
-            hashed_password.encode("utf-8"),
-        )
+        return bcrypt.checkpw(candidate, hashed_password.encode("utf-8"))
     except ValueError:
-        bcrypt.checkpw(
-            plain_password.encode("utf-8"), DUMMY_PASSWORD_HASH.encode("utf-8")
-        )
+        # A fixed input, not the caller's: if bcrypt refused the candidate itself
+        # (for example a NUL byte), the equalising check must not raise again.
+        bcrypt.checkpw(b"x", DUMMY_PASSWORD_HASH.encode("utf-8"))
         return False
 
 
