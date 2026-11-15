@@ -2,7 +2,7 @@
 
 **Status:** Ready for the owner; nothing applied. Every switch is off until the owner turns it on.  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-11-14  
+**Last updated:** 2026-11-15  
 **Issue:** #859 (the pairing documented in #544)
 
 Today every `*.barrels.gd` and `*.staging.barrels.gd` hostname resolves straight to
@@ -22,7 +22,7 @@ bucket or lets a visitor choose their own address. Do them in the order below.
 | 3 | Visitor address counted 2 hops from the right (Cloudflare, then Traefik) on the API and the web hosts that forward it (events, bookings, weather, mbia) | `render-env.py` sets `VISITOR_IP_PROXY_HOPS` | `CLOUDFLARE_PROXY_ENABLED` |
 | 4 | Only Cloudflare's ranges may reach 80/443 on the droplet | DigitalOcean Cloud Firewall, `scripts/production/cloudflare-origin-firewall.py` | Owner runs the script |
 | 5 | **Origin gate:** only *our* zone may use Cloudflare's addresses. Cloudflare adds a secret header to every request (Transform Rule); Traefik answers 403 to a Cloudflare-address connection without it, so another Cloudflare customer's Worker cannot reach the droplet and pick its own `X-Forwarded-For`. Required before production. | `scripts/production/cloudflare-origin-header.py` (Cloudflare side), `render-env.py` and the `origin-gate` router (Traefik side), secret `CLOUDFLARE_ORIGIN_SECRET` | `CLOUDFLARE_PROXY_ENABLED` plus owner runs the script |
-| 6 | Cache static assets only, and only when the origin's `Cache-Control` marks them cacheable (no header: not cached); never the API, staff hosts, signed-in requests | Cloudflare cache rules, `scripts/production/cloudflare-cache-rules.py` | Owner runs the script |
+| 6 | Cache static assets, and the public storm feeds for about a minute (decision 2), only when the origin's `Cache-Control` marks them cacheable (no header: not cached); never staff hosts, signed-in requests or any other API path | Cloudflare cache rules, `scripts/production/cloudflare-cache-rules.py` | Owner runs the script |
 
 ### What `CLOUDFLARE_PROXY_ENABLED` changes
 
@@ -92,13 +92,27 @@ on the droplets: leave their records exactly as they are, and leave Babydoll's
    `--apply` while staging is grey: it would take staging offline). Then do
    production in a quiet hour with the rollback ready. Uploading your own
    certificate is not available on the free plan.
-2. **The storm cache plan conflicts with "never cache the API".**
-   `docs/operations/cloudflare-storm-cache.md` plans to cache `/alerts`,
-   `/api/alerts/*`, `/api/satellite/*` on the weather site and
-   `/api/v1/wxwatch/public/*`, `/api/cap/*` on the API. The cache rules here
-   follow #859 (no `/api/` path and nothing on `api.*` is cached) and run after
-   any other rule, so they win. Decide whether those public feeds become a
-   reviewed exception later; until then they are not cached.
+2. **Decided 2026-11-15: public storm feeds are a reviewed exception.** Owner
+   decision: during storms Cloudflare may cache public, same-for-everyone
+   weather feeds (alerts, satellite) for about a minute, and static assets
+   longer; never anything signed-in, personal, or that changes data. The cache
+   script's fourth rule, `grenmet-<env>-storm-feeds`, runs after the "never
+   cache" rule and re-enables caching only for `GET` requests to:
+   - `weather.<domain>`: `/alerts`, `/alerts/*`, `/api/alerts/rss`,
+     `/api/alerts/geojson`, `/api/satellite/*`;
+   - `api.<domain>`: `/api/cap/*` (the public CAP feeds; not the staff
+     `/api/v1/cap/*`) and `/api/v1/wxwatch/public/*`.
+
+   It is bypassed when the request carries a session cookie (`_session`,
+   `payload-token`), an `Authorization` header (so staging, behind basic auth,
+   never caches) or an `Origin` header (cross-origin browser calls get
+   per-origin CORS headers that Cloudflare would otherwise share). Edge time
+   comes from the origin: every one of those responses sends `s-maxage=60`
+   (browsers revalidate within a minute too), and anything without
+   `Cache-Control`, every error and the signed attachment and warnings answers
+   (`no-store`) are never stored. Every other `/api/` path and everything on
+   `api.*` stays uncached. Details and the origin headers:
+   [storm cache runbook](cloudflare-storm-cache.md).
 3. **Bot Fight Mode stays off.** On the free plan it applies to the whole zone
    and would challenge machine clients: the weather collectors posting to
    `api.*`, Stripe and Resend webhooks, the deploy smoke test and uptime probes.
@@ -239,7 +253,9 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
    origin explicitly marks cacheable (edge and browser TTL "use cache-control
    header if present, bypass cache if not"): Next.js marks `/_next/static/`
    files `public, max-age=31536000, immutable`; anything without a
-   `Cache-Control` header is never stored, even with a static extension.
+   `Cache-Control` header is never stored, even with a static extension. The
+   storm rule (decision 2) works the same way for its public feeds, which send
+   `s-maxage=60`.
 5. **The day before: shorten the time to live.** DNS → each grey record for the
    droplet (the wildcard and any explicit records) → TTL **1 min**. Then, after
    the orange cloud, visitors whose resolvers remembered the droplet's address
@@ -437,6 +453,15 @@ for url in "https://api.$DOMAIN/api/v1/utils/health-check/" "https://auth.$DOMAI
   curl -s -o /dev/null -D - "${AUTH[@]}" "$url" | grep -i '^cf-cache-status' || echo '(none)'
 done
 # every line: BYPASS or DYNAMIC, never HIT
+```
+
+The only API paths that may show `HIT` are the public storm feeds (decision 2),
+and never with a cookie or `Authorization` header (production only):
+
+```bash
+curl -sI "https://api.$DOMAIN/api/cap/rss.xml" | grep -i 'cf-cache-status\|cache-control'   # MISS, then HIT; s-maxage=60
+curl -sI -H 'Cookie: gms_session=probe' "https://api.$DOMAIN/api/cap/rss.xml" | grep -i cf-cache-status   # BYPASS or DYNAMIC
+curl -sI "https://api.$DOMAIN/api/v1/cap/alerts" | grep -i cf-cache-status   # DYNAMIC or BYPASS (staff route)
 ```
 
 Static assets (production; on staging the basic-auth header makes Cloudflare
