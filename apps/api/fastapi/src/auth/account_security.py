@@ -74,11 +74,29 @@ async def verify_factor(session: AsyncSession, user: User, code: str) -> bool:
     return False
 
 
+def has_usable_password(user: User) -> bool:
+    """True when the account has a password it can sign in with.
+
+    Email-code accounts carry a random hash that nobody knows and sit in
+    ``password_setup_pending``; password sign-in refuses them (``login.py``). Any
+    other account has a password, so the password is required for it.
+    """
+    return not user.password_setup_pending
+
+
 async def new_recovery_codes(
-    session: AsyncSession, user: User, password: str, code: str
+    session: AsyncSession, user: User, password: str | None, code: str
 ) -> list[str]:
-    if not user.totp_enabled or not await verify_password_async(
-        password, user.hashed_password
+    """Replace the recovery codes (ADR-0059 rule 3).
+
+    A live authenticator code (or an unused recovery code) is always required. The
+    password is required only when the account has one; an email-code account has
+    nothing to check, so a value sent for it is ignored.
+    """
+    if not user.totp_enabled:
+        raise AppException("Confirm your password and authenticator code", 400)
+    if has_usable_password(user) and (
+        not password or not await verify_password_async(password, user.hashed_password)
     ):
         raise AppException("Confirm your password and authenticator code", 400)
     if not await verify_factor(session, user, code):
