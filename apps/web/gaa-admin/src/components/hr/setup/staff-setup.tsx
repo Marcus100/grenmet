@@ -57,7 +57,7 @@ function StaffEditor({
         {staff.name} · {staff.status}
       </summary>
       <p className="text-muted-foreground my-3 text-sm">
-        {staff.email} ·{" "}
+        <span>{staff.email}</span> ·{" "}
         {staff.email_verified ? "Email verified" : "Email verification pending"}
       </p>
       <p className="my-3 text-sm">

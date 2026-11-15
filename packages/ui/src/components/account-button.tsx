@@ -130,7 +130,7 @@ export function AccountButton({
         >
           <p className="flex-1">
             You're signed in to {appLabel} with your Barrels account (
-            {account.email}). Not you?{" "}
+            <span>{account.email}</span>). Not you?{" "}
             <button className="underline" onClick={signOut} type="button">
               Sign out
             </button>

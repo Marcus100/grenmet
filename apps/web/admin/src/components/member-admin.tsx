@@ -49,7 +49,10 @@ export function MemberRowActions({
       <details className="rounded-md border p-2">
         <summary className="min-h-11 cursor-pointer text-sm leading-[2.75rem]">
           Change role
-          <span className="sr-only"> for {member.email}</span>
+          <span className="sr-only">
+            {" for "}
+            <span>{member.email}</span>
+          </span>
         </summary>
         <form action={changeMemberRoleAction} className="mt-2 grid gap-2">
           <input name="organisation_id" type="hidden" value={organisationId} />
@@ -94,7 +97,10 @@ export function MemberRowActions({
       <details className="rounded-md border p-2">
         <summary className="min-h-11 cursor-pointer text-sm leading-[2.75rem]">
           Remove
-          <span className="sr-only"> {member.email}</span>
+          <span className="sr-only">
+            {" "}
+            <span>{member.email}</span>
+          </span>
         </summary>
         <form action={removeMemberAction} className="mt-2 grid gap-2">
           <input name="organisation_id" type="hidden" value={organisationId} />
@@ -104,8 +110,8 @@ export function MemberRowActions({
             value={member.membership_id}
           />
           <p className="text-muted-foreground text-xs">
-            Ends {member.email}&apos;s membership. The last owner cannot be
-            removed.
+            Ends <span>{member.email}</span>&apos;s membership. The last owner
+            cannot be removed.
           </p>
           <label className="grid gap-1 text-sm">
             Reason (10 to 500 characters)
