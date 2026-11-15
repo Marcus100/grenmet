@@ -28,12 +28,14 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const r = find((await params).code);
+  const { code } = await params;
+  const r = find(code);
   if (!r) return {};
   const name = partyInfo(r.code).name;
   return {
     title: name,
     description: `${name} (${r.code}) at every Grenada general election it contested: seats, votes and candidates.`,
+    alternates: { canonical: `/parties/${code}` },
   };
 }
 

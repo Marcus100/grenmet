@@ -31,7 +31,13 @@ export async function generateMetadata({
   if (!page) {
     return {};
   }
-  return { title: page.title, description: page.dek };
+  const path = `/${section}/${slug}`;
+  return {
+    title: page.title,
+    description: page.dek,
+    alternates: { canonical: path },
+    openGraph: { title: page.title, description: page.dek, url: path },
+  };
 }
 
 export default async function ContentPage({

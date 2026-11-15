@@ -1,3 +1,5 @@
+import { JsonLd } from "@barrelsgd/ui/components/json-ld";
+import { websiteJsonLd } from "@barrelsgd/ui/lib/seo";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Route } from "next";
 import Link from "next/link";
@@ -23,6 +25,7 @@ import { GUIDES } from "@/data/learning";
 import { campaign, geo, results } from "@/data/load";
 import { nationalResult } from "@/data/model";
 import type { PhotoId } from "@/data/photos";
+import { env } from "@/lib/env";
 import { formatIsoDate } from "@/lib/format";
 
 const HISTORY = [
@@ -134,6 +137,14 @@ export default function FrontPage() {
 
   return (
     <>
+      <JsonLd
+        data={websiteJsonLd({
+          name: "Elections Grenada",
+          siteUrl: env.NEXT_PUBLIC_SITE_URL,
+          description:
+            "Sourced explanations, historical results and guided statistical tools for Grenada's elections.",
+        })}
+      />
       <section className="mx-auto grid max-w-[1240px] items-start gap-x-14 gap-y-6 px-4 pt-8 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <div>
           <FlagStripe className="mb-4 h-1.5 w-16" />

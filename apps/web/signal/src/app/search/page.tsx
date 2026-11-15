@@ -3,7 +3,12 @@ import { PageIntro } from "@/components/editorial";
 import { SearchReader } from "@/components/search-reader";
 import { getBriefs, getCurrentArticles } from "@/lib/content";
 import { getSection } from "@/lib/nav";
-export const metadata = { title: "Search" };
+export const metadata = {
+  title: "Search",
+  description:
+    "Search the sourced summaries and daily editions from Grenada Signal.",
+  alternates: { canonical: "/search" },
+};
 export default function SearchPage() {
   const entries = [
     ...getCurrentArticles().map((article) => ({

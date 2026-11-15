@@ -2,7 +2,12 @@ import Link from "next/link";
 import { PageIntro } from "@/components/editorial";
 import { getCurrentArticles } from "@/lib/content";
 import { SECTIONS, SERIES } from "@/lib/nav";
-export const metadata = { title: "Topics" };
+export const metadata = {
+  title: "Topics",
+  description:
+    "Follow your curiosity: Grenada Signal stories grouped by topic.",
+  alternates: { canonical: "/topics" },
+};
 export default function TopicsPage() {
   const articles = getCurrentArticles();
   return (

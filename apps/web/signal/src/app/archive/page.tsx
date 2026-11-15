@@ -2,7 +2,11 @@ import Link from "next/link";
 import { PageIntro, StoryCard } from "@/components/editorial";
 import { getBriefs, getPublishedArticles } from "@/lib/content";
 import { formatLongDate } from "@/lib/format";
-export const metadata = { title: "Archive" };
+export const metadata = {
+  title: "Archive",
+  description: "Every Grenada Signal story in one place, newest first.",
+  alternates: { canonical: "/archive" },
+};
 export default function ArchivePage() {
   const articles = getPublishedArticles();
   return (

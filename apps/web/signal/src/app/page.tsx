@@ -1,12 +1,23 @@
+import { JsonLd } from "@barrelsgd/ui/components/json-ld";
+import { websiteJsonLd } from "@barrelsgd/ui/lib/seo";
 import { cn } from "@barrelsgd/ui/lib/utils";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArchiveInvitation, StoryCard } from "@/components/editorial";
 import { Eyebrow } from "@/components/eyebrow";
 import { LeadStories } from "@/components/lead-stories";
 import { getCurrentArticles, getLatestBrief } from "@/lib/content";
 import { COLLECTIONS, HOME_LEAD_PATHS, selectStories } from "@/lib/discovery";
+import { env } from "@/lib/env";
 import { formatLongDate } from "@/lib/format";
 import { SECTIONS } from "@/lib/nav";
+
+export const metadata: Metadata = {
+  title: "Grenada Signal: know what's going on",
+  description:
+    "Grenada news, weather and verification in five minutes: what happened, why it matters, who is affected and what to do next.",
+  alternates: { canonical: "/" },
+};
 
 export default function HomePage() {
   const brief = getLatestBrief();
@@ -21,6 +32,14 @@ export default function HomePage() {
   ]);
   return (
     <>
+      <JsonLd
+        data={websiteJsonLd({
+          name: "Grenada Signal",
+          siteUrl: env.NEXT_PUBLIC_SITE_URL,
+          description:
+            "Grenada news, weather and verification in five minutes.",
+        })}
+      />
       <div className="mx-auto max-w-7xl px-4 sm:px-8">
         {brief ? (
           <section

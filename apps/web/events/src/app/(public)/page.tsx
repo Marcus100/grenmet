@@ -1,8 +1,10 @@
+import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
+import { websiteJsonLd } from "@barrelsgd/ui/lib/seo";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { ArrowRight, Search } from "lucide-react";
-import type { Route } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { ToggleButton } from "@/components/community/toggle-button";
 import { CATEGORY_STYLE } from "@/components/discovery/category-style";
@@ -11,6 +13,14 @@ import { setMembership } from "@/data/actions";
 import { isThisWeekend, isTonight } from "@/data/discovery";
 import { listEvents, listGroups } from "@/data/events-api";
 import { CATEGORIES, CATEGORY_LABELS, PARISH_LABELS } from "@/domain/labels";
+import { env } from "@/env";
+
+export const metadata: Metadata = {
+  title: "What's on in Grenada",
+  description:
+    "Every event in Grenada, Carriacou and Petite Martinique: fetes, meetups, food, sport and culture, plus the groups behind them.",
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const now = new Date();
@@ -26,6 +36,14 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-14">
+      <JsonLd
+        data={websiteJsonLd({
+          name: "Barrels Events",
+          siteUrl: env.NEXT_PUBLIC_SITE_URL,
+          description:
+            "Events, groups and meetups across Grenada, Carriacou and Petite Martinique.",
+        })}
+      />
       <section className="grid items-center gap-8 pt-2 lg:grid-cols-[1.1fr_1fr]">
         <div className="space-y-5">
           <Badge
