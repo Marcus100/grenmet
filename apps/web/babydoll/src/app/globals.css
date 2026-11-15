@@ -189,22 +189,17 @@ p {
   opacity: 0.7;
 }
 
-/* Small controls get a 44 px hit area: a centred pseudo-element, so the look
-   and the layout stay exactly as they are. */
-.book-link,
+/* Small controls get a 44 px hit area: a pseudo-element that is centred on the
+   control, so the look and the layout stay as they are. Only where there is
+   room: the footer and legal links (about 26 px tall, 4 px apart) and the
+   portfolio filter (no gap between rows) would take taps from their neighbours,
+   so they keep their size (see the note in the PR). */
 .chips button,
-.type-filter button,
-.book-bar .btn,
-.footer-links a,
-.legal a {
+.book-bar .btn {
   position: relative;
 }
-.book-link::before,
 .chips button::before,
-.type-filter button::before,
-.book-bar .btn::before,
-.footer-links a::before,
-.legal a::before {
+.book-bar .btn::before {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -212,6 +207,19 @@ p {
   height: 44px;
   content: "";
   transform: translate(-50%, -50%);
+}
+/* The Book link sits at the foot of its item: its zone reaches down into the
+   item's bottom padding only, never up over the service description. */
+.book-link {
+  position: relative;
+}
+.book-link::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: max(100%, 44px);
+  height: 44px;
+  content: "";
 }
 
 /* Header */
