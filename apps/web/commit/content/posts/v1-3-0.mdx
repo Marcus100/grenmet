@@ -1,6 +1,6 @@
 ---
-title: A Barrels sign-in, contact buttons for every business, and the gate scanner's screens
-summary: Version 1.3.0 gives the shared sign-in its own Barrels look and leads with an emailed code, lets each business show its phone, WhatsApp, Instagram and email on the booking page, adds the Printix gate scanner's screens, moves Elections to a static site, tightens who can remove superusers and organisation access, and prepares Turnstile, the daily newsletter and Stripe test payments behind switches that stay off until they are configured.
+title: A Barrels sign-in, a new barrels.gd, and every public site ready for search
+summary: Version 1.3.0 gives the shared sign-in its own Barrels look and leads with an emailed code, relaunches barrels.gd with twelve services, makes every public site findable by search engines, lets each business show its contact options on the booking page, adds the Printix gate scanner's screens, moves Elections to a static site, tightens who can remove superusers and organisation access, and prepares Turnstile, the daily newsletter, storm caching and Stripe test payments behind switches.
 date: 2026-11-16
 release: 1.3.0
 ---
@@ -23,6 +23,9 @@ settings are added, which happens on staging first.
   larger to tap.
 - **Spam protection, ready:** the emailed-code step can check for bots with
   Cloudflare Turnstile. It stays off until its keys are added.
+- **Shorter setup for staff:** someone who has just signed in with an emailed
+  code can set up an authenticator without a second emailed code, and stays
+  signed in afterwards instead of signing out and in again.
 
 ### Accounts and access
 
@@ -60,6 +63,12 @@ settings are added, which happens on staging first.
 
 ### Sites
 
+- **A new barrels.gd:** the company site now lists twelve services, from web and
+  software to digital marketing, data analysis, training and weather data, with
+  Barrels products and examples of client work. It moved to Cloudflare.
+- **Easier to find:** every public site now has a sitemap, a robots file, link
+  previews and structured data for search engines, while account, ticket,
+  booking-management and staff pages stay out of search.
 - **Elections on Cloudflare:** the Elections site builds as a static site, and
   today's date is worked out in the visitor's browser so it never goes stale.
 
@@ -70,3 +79,6 @@ settings are added, which happens on staging first.
   out.
 - **Daily newsletter, ready:** the daily climate email can be switched on per
   environment, and its links and posts now point at the weather site.
+- **Ready for storms:** public alert and satellite feeds can be served from
+  Cloudflare for up to a minute when many people check at once. Web pages and
+  anything signed-in are never cached.
