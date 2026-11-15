@@ -7,7 +7,7 @@ export default async function Page({
 }) {
   const { token } = await searchParams;
   return (
-    <AuthShell greeting="Welcome" subtitle="Finish setting up your account.">
+    <AuthShell>
       <AuthHeading title="Verify your email">
         {token
           ? "Choose the password you'll use to sign in."

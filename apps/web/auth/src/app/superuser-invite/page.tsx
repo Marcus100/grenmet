@@ -12,10 +12,7 @@ export const metadata: Metadata = {
 
 export default function SuperuserInvitePage() {
   return (
-    <AuthShell
-      greeting="Barrels administrator"
-      subtitle="Accept your invitation."
-    >
+    <AuthShell>
       <AuthHeading title="Accept your administrator invitation">
         Confirm this address, then set up two-step sign-in.
       </AuthHeading>

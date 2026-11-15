@@ -89,10 +89,7 @@ function TrailRow({ trail }: { readonly trail: PassportTrailPublic }) {
           className="bg-muted h-2 overflow-hidden rounded-full"
           role="progressbar"
         >
-          <div
-            className="h-full bg-(--auth-accent)"
-            style={{ width: `${percent}%` }}
-          />
+          <div className="bg-primary h-full" style={{ width: `${percent}%` }} />
         </div>
         {trail.completed ? (
           <StatusBadge tone="on">Trail complete</StatusBadge>

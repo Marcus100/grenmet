@@ -67,7 +67,7 @@ export function CodeField({
       )}
       {allowRecovery ? (
         <button
-          className="text-body-sm font-medium text-(--auth-accent) underline-offset-4 hover:underline"
+          className="text-body-sm text-primary inline-flex min-h-11 items-center font-medium underline-offset-4 hover:underline md:min-h-0"
           onClick={() => setUseRecovery((recovery) => !recovery)}
           type="button"
         >

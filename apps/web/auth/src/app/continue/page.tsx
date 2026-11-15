@@ -25,7 +25,7 @@ function signInPath(request: HandoffRequest, reauth = false): Route {
 
 function Notice({ title, children }: { title: string; children: string }) {
   return (
-    <AuthShell greeting="Barrels account" subtitle="One account, every app.">
+    <AuthShell>
       <AuthHeading title={title}>{children}</AuthHeading>
       <a className="text-sm underline" href="/">
         Go to your account
@@ -62,7 +62,7 @@ export default async function ContinuePage({ searchParams }: PageProps) {
   switch (result.kind) {
     case "mfa-enrol":
       return (
-        <AuthShell greeting="Barrels account" subtitle="Secure staff access.">
+        <AuthShell>
           <AuthHeading title="Set up two-step verification">
             Privileged staff tools require an authenticator. Set it up, save
             recovery codes, then sign in again with your code.
@@ -74,7 +74,7 @@ export default async function ContinuePage({ searchParams }: PageProps) {
       );
     case "mfa-sign-in":
       return (
-        <AuthShell greeting="Barrels account" subtitle="Secure staff access.">
+        <AuthShell>
           <AuthHeading title="Confirm your two-step sign-in">
             This session was created without an authenticator challenge. Sign in
             again using your authenticator or a saved recovery code.
@@ -106,10 +106,7 @@ export default async function ContinuePage({ searchParams }: PageProps) {
       );
     case "join":
       return (
-        <AuthShell
-          greeting="Barrels account"
-          subtitle="One account, every app."
-        >
+        <AuthShell>
           <AuthHeading title={`Join ${result.label}?`}>
             {result.request
               ? `An administrator approves access to ${result.label}. Join to send your request.`
