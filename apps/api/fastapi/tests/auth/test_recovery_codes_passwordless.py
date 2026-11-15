@@ -231,3 +231,73 @@ async def test_api_recovery_codes_route_keeps_its_rate_limit(
         )
         statuses.append(response.status_code)
     assert statuses[-1] == 429
+
+
+class CountingLockout:
+    """In-memory stand-in for ``login_lockout`` (the real one needs Redis)."""
+
+    def __init__(self, max_attempts: int) -> None:
+        self.max_attempts = max_attempts
+        self.failures: dict[str, int] = {}
+
+    async def is_locked(self, identifier: str) -> bool:
+        return self.failures.get(identifier, 0) >= self.max_attempts
+
+    async def record_failure(self, identifier: str) -> None:
+        self.failures[identifier] = self.failures.get(identifier, 0) + 1
+
+    async def reset(self, identifier: str) -> None:
+        self.failures.pop(identifier, None)
+
+
+async def test_wrong_codes_lock_recovery_code_replacement(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A stolen email-code session gets only a few TOTP guesses (ADR-0059 rule 3)."""
+    lockout = CountingLockout(max_attempts=3)
+    monkeypatch.setattr(account_security, "login_lockout", lockout)
+    user, secret = await make_email_only_user(db_async)
+    for _ in range(3):
+        with pytest.raises(AppException) as refused:
+            await account_security.new_recovery_codes(db_async, user, None, "000000")
+        assert refused.value.status_code == 400
+    with pytest.raises(AppException) as locked:
+        await account_security.new_recovery_codes(
+            db_async, user, None, pyotp.TOTP(secret).now()
+        )
+    assert locked.value.status_code == 429
+    assert user.mfa_recovery_hashes == []
+
+
+async def test_successful_replacement_clears_the_failure_count(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lockout = CountingLockout(max_attempts=3)
+    monkeypatch.setattr(account_security, "login_lockout", lockout)
+    user, secret = await make_email_only_user(db_async)
+    for _ in range(2):
+        with pytest.raises(AppException):
+            await account_security.new_recovery_codes(db_async, user, None, "000000")
+    codes = await account_security.new_recovery_codes(
+        db_async, user, None, pyotp.TOTP(secret).now()
+    )
+    assert len(codes) == 8
+    assert lockout.failures.get(user.email, 0) == 0
+
+
+async def test_wrong_password_counts_as_a_failure_too(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lockout = CountingLockout(max_attempts=2)
+    monkeypatch.setattr(account_security, "login_lockout", lockout)
+    user, secret = await make_password_user(db_async)
+    for _ in range(2):
+        with pytest.raises(AppException):
+            await account_security.new_recovery_codes(
+                db_async, user, "wrong", pyotp.TOTP(secret).now()
+            )
+    with pytest.raises(AppException) as locked:
+        await account_security.new_recovery_codes(
+            db_async, user, "password123", pyotp.TOTP(secret).now()
+        )
+    assert locked.value.status_code == 429
