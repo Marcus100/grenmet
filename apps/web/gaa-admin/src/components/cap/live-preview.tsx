@@ -6,6 +6,7 @@ import type {
   GmsCataloguePublic,
   GmsColour,
 } from "@barrelsgd/api-client";
+import { EmailText } from "@barrelsgd/ui/components/email-text";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { motion } from "motion/react";
 import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
@@ -130,7 +131,7 @@ export function LivePreview({
       </div>
       <div className="border-gm-border text-gm-text-muted text-micro leading-micro border-t px-5 py-3">
         Issued by <span className="font-semibold">{senderName}</span> ·{" "}
-        {contact}
+        <EmailText text={contact} />
       </div>
     </div>
   );

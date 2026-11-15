@@ -48,7 +48,11 @@ describe("studio organisation picker", () => {
     expect(
       screen.getByText("You are not part of a business yet")
     ).toBeInTheDocument();
-    expect(screen.getByText(EMAIL)).toBeInTheDocument();
+    const address = screen.getByText(EMAIL);
+    expect(address.tagName).toBe("SPAN");
+    expect(address.parentElement?.textContent).toContain(
+      "Ask the business owner to invite maya@example.com to their Barrels"
+    );
     expect(
       screen.getByRole("link", { name: "See how Barrels Bookings works" })
     ).toHaveAttribute("href", "/");

@@ -11,6 +11,12 @@ it("refuses non-staff clearly and offers only sign-out", () => {
     screen.getByRole("heading", { name: "Barrels staff only" })
   ).toBeTruthy();
   expect(screen.getByText(EMAIL_TEXT)).toBeTruthy();
+  const address = screen.getByText("resident@example.com", {
+    selector: "span",
+  });
+  expect(address.parentElement?.textContent).toBe(
+    "This console is for Barrels Grenada staff. Your account (resident@example.com) does not have access."
+  );
   expect(screen.queryByRole("link", { name: "Organisations" })).toBeNull();
   expect(
     screen.getByRole("button", { name: "Sign out of this console" })
