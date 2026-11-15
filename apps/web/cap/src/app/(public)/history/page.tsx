@@ -12,7 +12,12 @@ import { fetchPast } from "@/lib/cap-api";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Past alerts" };
+export const metadata: Metadata = {
+  title: "Past alerts",
+  description:
+    "The public record of past weather alerts for Grenada, Carriacou and Petite Martinique.",
+  alternates: { canonical: "/history" },
+};
 
 const PAGE_SIZE = 20;
 

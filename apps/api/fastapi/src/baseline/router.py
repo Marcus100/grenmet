@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 from src.baseline import balance_import, catalogue, product_access, service
 from src.baseline.dependencies import AdminUser, HrSetupUser
@@ -24,7 +24,7 @@ from src.baseline.schemas import (
     StaffInput,
     StaffSetup,
 )
-from src.dependencies import CurrentUser, SessionDep
+from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.hr.models import Grade
 from src.models import ApiError, Message
 
@@ -111,12 +111,22 @@ async def update_staff_setup(
     response_model=Message,
     summary="Invalidate staff credential and revoke access",
     status_code=200,
-    description="Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
+    description="Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation. Offboarding a superuser needs a superuser whose session passed two-step sign-in (403 otherwise). The last active superuser cannot be offboarded (409, generic text).",
+    responses={
+        status.HTTP_409_CONFLICT: {
+            "model": ApiError,
+            "description": "Setup conflict, or the account cannot be offboarded in its current state",
+        },
+    },
 )
 async def offboard_staff(
-    *, session: SessionDep, current_user: HrSetupUser, user_id: uuid.UUID
+    *,
+    session: SessionDep,
+    current_user: HrSetupUser,
+    user_id: uuid.UUID,
+    token: TokenDep,
 ) -> Message:
-    await service.offboard(session, current_user, user_id)
+    await service.offboard(session, current_user, user_id, token=token)
     return Message(
         message="Staff access revoked. Verify linked SURFACE and wis2box accounts are disabled."
     )

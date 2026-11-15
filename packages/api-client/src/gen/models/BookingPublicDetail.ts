@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { BookingBusinessContact } from "./BookingBusinessContact.js";
+import type { BookingPaymentSummary } from "./BookingPaymentSummary.js";
 import type { BookingStatus } from "./BookingStatus.js";
 
 /**
@@ -54,4 +56,13 @@ export type BookingPublicDetail = {
    * @type boolean
    */
   can_cancel: boolean;
+  /**
+   * @description How to reach the business when the booking cannot be changed online.
+   * @type object
+   */
+  contact: BookingBusinessContact;
+  /**
+   * @description Null when nothing was due at booking (pay at the business).
+   */
+  payment?: BookingPaymentSummary | null;
 };

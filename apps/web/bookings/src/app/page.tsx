@@ -1,8 +1,19 @@
+import { JsonLd } from "@barrelsgd/ui/components/json-ld";
+import { websiteJsonLd } from "@barrelsgd/ui/lib/seo";
 import {
   BARRELS_SUPPORT_EMAIL,
   BARRELS_SUPPORT_HREF,
 } from "@barrelsgd/ui/lib/support";
+import type { Metadata } from "next";
 import Link from "next/link";
+import { env } from "@/env";
+
+export const metadata: Metadata = {
+  title: "Online appointments in Grenada",
+  description:
+    "Book an appointment online with Grenada businesses. Each business has its own booking page, with its services and times.",
+  alternates: { canonical: "/" },
+};
 
 export default function HomePage() {
   return (
@@ -10,6 +21,13 @@ export default function HomePage() {
       className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center gap-4 p-6"
       id="main-content"
     >
+      <JsonLd
+        data={websiteJsonLd({
+          name: "Barrels Bookings",
+          siteUrl: env.NEXT_PUBLIC_SITE_URL ?? "https://bookings.barrels.gd",
+          description: "Online appointments for Grenada businesses.",
+        })}
+      />
       <p className="text-muted-foreground text-sm font-medium">
         Barrels Bookings
       </p>

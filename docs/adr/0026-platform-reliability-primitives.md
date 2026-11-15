@@ -2,7 +2,7 @@
 
 ## Status
 
-Built, awaiting owner acceptance. PF2 (`src/idempotency.py`, `src/outbox.py`) is on `dev` with Bookings B3 as its first consumer; the owner approved building it on 2026-10-20 (foundations slice PF2). Consumers of the platform outbox: notifications email (`email.send`, `email.deliver`), Bookings, rewards, outbound webhooks, and Events paid orders (`events.order_paid`, `events.order_refunded`, `src/events/payment_handlers.py`). Events' own notification outbox (`src/events/outbox.py`) is still separate.
+Accepted — 2026-11-15 by the owner (built and in use). Earlier status, kept for history: Built, awaiting owner acceptance. PF2 (`src/idempotency.py`, `src/outbox.py`) is on `dev` with Bookings B3 as its first consumer; the owner approved building it on 2026-10-20 (foundations slice PF2). Consumers of the platform outbox: notifications email (`email.send`, `email.deliver`), Bookings, rewards, outbound webhooks, and Events paid orders (`events.order_paid`, `events.order_refunded`, `src/events/payment_handlers.py`). Events' own notification outbox (`src/events/outbox.py`) is still separate.
 
 ## Context
 

@@ -5,7 +5,12 @@ import { fetchActiveFeatures } from "@/lib/cap-api";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Alert map" };
+export const metadata: Metadata = {
+  title: "Alert map",
+  description:
+    "Map of active weather alerts for Grenada, Carriacou and Petite Martinique.",
+  alternates: { canonical: "/map" },
+};
 
 export default async function MapPage() {
   const now = new Date();

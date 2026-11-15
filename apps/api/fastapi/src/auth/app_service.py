@@ -210,6 +210,7 @@ async def _session_response(
     *,
     mfa_verified_at: datetime | None = None,
     mfa_source_session: LoginSession | None = None,
+    email_code_verified_at: datetime | None = None,
 ) -> SessionLoginResponse:
     # Staff apps (ADR-0017) keep the staff gate and mint ordinary staff tokens.
     staff = app.scope == "staff"
@@ -236,6 +237,7 @@ async def _session_response(
         enforce_approval=staff and not (app.superuser_only and user.is_superuser),
         mfa_verified_at=mfa_verified_at,
         mfa_source_session=mfa_source_session,
+        email_code_verified_at=email_code_verified_at,
     )
     if staff or app.key == "cms":
         from src.auth.privileged_mfa import require_privileged_mfa
@@ -456,6 +458,7 @@ async def email_code_verify(
         user,
         app,
         mfa_verified_at=utc_now() if user.totp_enabled else None,
+        email_code_verified_at=utc_now(),
     )
 
 
@@ -916,6 +919,7 @@ async def account_email_code_verify(
         ip_address=ip_address,
         enforce_approval=False,
         mfa_verified_at=utc_now() if user.totp_enabled else None,
+        email_code_verified_at=utc_now(),
     )
     if new_device:
         schedule_new_sign_in_alert(

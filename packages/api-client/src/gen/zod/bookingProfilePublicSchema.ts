@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingPaymentModeSchema } from "./bookingPaymentModeSchema.js";
 
 export const bookingProfilePublicSchema = z.object({
   public_slug: z
@@ -35,6 +36,34 @@ export const bookingProfilePublicSchema = z.object({
       z.null(),
     ])
     .optional(),
+  contact_phone: z
+    .union([z.string().max(40), z.null()])
+    .optional()
+    .describe(
+      "Phone number customers can call, with its country code. Stored in E.164 form (+14734401234); blank clears it."
+    ),
+  contact_whatsapp: z
+    .union([z.string().max(40), z.null()])
+    .optional()
+    .describe(
+      "WhatsApp number with its country code. Stored as digits only (14734401234) for wa.me links; blank clears it."
+    ),
+  contact_instagram: z
+    .union([z.string().max(200), z.null()])
+    .optional()
+    .describe(
+      "Instagram handle, with or without @, or an instagram.com profile address. Stored as the handle without @; blank clears it."
+    ),
+  contact_email: z
+    .union([z.email().max(254), z.null()])
+    .optional()
+    .describe("Email address customers can write to; blank clears it."),
+  payment_at_booking: bookingPaymentModeSchema
+    .optional()
+    .default("deposit")
+    .describe(
+      "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept."
+    ),
   id: z.uuid(),
   organisation_id: z.string(),
   created_at: z.iso.datetime(),

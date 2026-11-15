@@ -118,7 +118,7 @@ export function AppDirectory({ hrefs, requestedApp }: AppDirectoryProps) {
     <nav aria-label="Apps" className="space-y-6">
       {APP_GROUPS.map((group) => (
         <section className="space-y-2" key={group.label}>
-          <h2 className="text-gm-sky text-label font-mono tracking-widest uppercase">
+          <h2 className="text-muted-foreground text-label font-mono tracking-widest uppercase">
             {group.label}
           </h2>
           <ul className="space-y-1">
@@ -132,17 +132,17 @@ export function AppDirectory({ hrefs, requestedApp }: AppDirectoryProps) {
                     className={cn(
                       "text-body-sm flex size-9 shrink-0 items-center justify-center rounded-lg font-semibold",
                       isCurrent
-                        ? "bg-gm-lime text-gm-navy"
-                        : "text-gm-text-inverse bg-white/10"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card text-foreground border-border border"
                     )}
                   >
                     {app.monogram}
                   </span>
                   <span className="min-w-0">
-                    <span className="text-gm-text-inverse block text-sm font-medium">
+                    <span className="text-foreground block text-sm font-medium">
                       {app.name}
                     </span>
-                    <span className="text-body-sm text-gm-surface-muted block truncate">
+                    <span className="text-body-sm text-muted-foreground block truncate">
                       {app.description}
                     </span>
                   </span>
@@ -150,13 +150,13 @@ export function AppDirectory({ hrefs, requestedApp }: AppDirectoryProps) {
               );
               const rowClass = cn(
                 "flex items-center gap-3 rounded-xl p-2",
-                isCurrent && "bg-white/10 ring-1 ring-white/20"
+                isCurrent && "bg-card ring-border ring-1"
               );
               return (
                 <li aria-current={isCurrent || undefined} key={app.id}>
                   {href ? (
                     <a
-                      className={cn(rowClass, "transition hover:bg-white/10")}
+                      className={cn(rowClass, "hover:bg-card transition")}
                       href={href}
                     >
                       {body}

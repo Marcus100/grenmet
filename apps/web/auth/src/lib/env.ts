@@ -40,6 +40,9 @@ export const env = createEnv({
       .string()
       .optional()
       .default("https://us.i.posthog.com"),
+    // Cloudflare Turnstile site key for the emailed-code start step (#959).
+    // Empty: no widget. Pairs with the API's AUTH_TURNSTILE_SECRET_KEY.
+    NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY: z.string().optional().default(""),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -64,5 +67,8 @@ export const env = createEnv({
     ),
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+    NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY: readPublicEnv(
+      "NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY"
+    ),
   },
 });

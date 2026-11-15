@@ -39,7 +39,7 @@ export function QrCode({
     // Scanners need a light field in both themes, hence the page-surface token.
     <Image
       alt={label}
-      className="border-border bg-gm-surface-page size-48 rounded-lg border p-2"
+      className="border-border size-48 rounded-lg border bg-(--brand-surface-page) p-2"
       height={192}
       src={src}
       unoptimized

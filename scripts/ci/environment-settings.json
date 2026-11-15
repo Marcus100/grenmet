@@ -84,6 +84,7 @@
         "CORE_PGDATA_VOLUME": "PostgreSQL 18 data volume (docs/operations/postgres-18-upgrade.md): set on each environment at its upgrade, absent before. Move to shared once both run 18.",
         "BOOTSTRAP_CMS": "CMS bootstrap switch on staging only (issue #1146).",
         "CLOUDFLARE_PROXY_ENABLED": "Cloudflare proxy is on staging only (docs/operations/cloudflare-proxy.md); production gets it at cut-over.",
+        "NEWSLETTER_DIGEST_ENABLED": "Daily climate newsletter switch (ADR-0052, docs/env.md); off when absent. Set on staging first, then production; move to shared once both set it.",
         "NEXT_PUBLIC_GA_MEASUREMENT_ID": "No workflow or deploy script reads it; confirm and remove, or wire it (issue #1146).",
         "PAYMENTS_STRIPE_CANCEL_URL": "Payments run in Stripe test mode on staging only until production payments launch (issue #1146).",
         "PAYMENTS_STRIPE_SUCCESS_URL": "Payments run in Stripe test mode on staging only until production payments launch (issue #1146).",
@@ -107,6 +108,7 @@
       },
       "variables": {
         "CORE_PGDATA_VOLUME": "PostgreSQL 18 data volume (docs/operations/postgres-18-upgrade.md): set on each environment at its upgrade, absent before. Move to shared once both run 18.",
+        "NEWSLETTER_DIGEST_ENABLED": "Daily climate newsletter switch (ADR-0052, docs/env.md); off when absent. Set on staging first, then production; move to shared once both set it.",
         "SENTRY_CRONS_ENABLED": "Optional worker Sentry Cron check-ins (issue #1144); off when absent. Move to shared once both environments set it.",
         "WEBPUSH_VAPID_PUBLIC_KEY": "Web push public key on production only, and also set as a secret there (issue #1146)."
       }

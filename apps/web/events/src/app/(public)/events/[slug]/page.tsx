@@ -1,4 +1,6 @@
+import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { breadcrumbList } from "@barrelsgd/ui/lib/seo";
 import { BadgeCheck, Clock, MapPin, Repeat, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -13,8 +15,10 @@ import { ShareActions } from "@/components/discovery/share-actions";
 import { TicketClaim } from "@/components/discovery/ticket-claim";
 import { setFollowing } from "@/data/actions";
 import { getEventBySlug, listEvents } from "@/data/events-api";
-import { CATEGORY_LABELS, PARISH_LABELS, priceLabel } from "@/domain/labels";
+import { categoryLabel, PARISH_LABELS, priceLabel } from "@/domain/labels";
+import { env } from "@/env";
 import { formatEventDate, formatTime } from "@/lib/datetime";
+import { eventJsonLd } from "@/lib/event-jsonld";
 
 type Params = Promise<{ slug: string }>;
 
@@ -23,8 +27,23 @@ export async function generateMetadata({
 }: {
   params: Params;
 }): Promise<Metadata> {
-  const event = await getEventBySlug((await params).slug);
-  return event ? { title: event.title, description: event.summary } : {};
+  const { slug } = await params;
+  const event = await getEventBySlug(slug);
+  if (!event) {
+    return {};
+  }
+  const path = `/events/${slug}`;
+  return {
+    title: event.title,
+    description: event.summary,
+    alternates: { canonical: path },
+    openGraph: {
+      title: event.title,
+      description: event.summary,
+      url: path,
+      type: "website",
+    },
+  };
 }
 
 export default async function EventPage({ params }: { params: Params }) {
@@ -35,7 +54,17 @@ export default async function EventPage({ params }: { params: Params }) {
   }
 
   const { group, organiser } = event;
-  const upcoming = await listEvents({ category: event.category });
+  const siteUrl = env.NEXT_PUBLIC_SITE_URL;
+  const structuredData = [
+    eventJsonLd(siteUrl, event),
+    breadcrumbList(siteUrl, [
+      { name: "Events", path: "/events" },
+      { name: event.title, path: `/events/${slug}` },
+    ]),
+  ];
+  const upcoming = await listEvents(
+    event.category ? { category: event.category } : {}
+  );
   const more = upcoming
     .filter((candidate) => candidate.id !== event.id)
     .slice(0, 3);
@@ -43,6 +72,9 @@ export default async function EventPage({ params }: { params: Params }) {
 
   return (
     <div className="space-y-12">
+      {structuredData.map((data) => (
+        <JsonLd data={data} key={String(data["@type"])} />
+      ))}
       <article className="grid gap-8 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-6">
           <EventFlyer
@@ -55,7 +87,7 @@ export default async function EventPage({ params }: { params: Params }) {
           />
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">{CATEGORY_LABELS[event.category]}</Badge>
+              <Badge variant="outline">{categoryLabel(event.category)}</Badge>
               {event.recurrence ? (
                 <Badge variant="outline">
                   <Repeat data-icon="inline-start" />
@@ -204,7 +236,9 @@ export default async function EventPage({ params }: { params: Params }) {
       {more.length > 0 ? (
         <section className="space-y-5">
           <h2 className="font-display text-heading-sm font-bold">
-            More {CATEGORY_LABELS[event.category].toLowerCase()}
+            {event.category
+              ? `More ${categoryLabel(event.category).toLowerCase()}`
+              : "More events"}
           </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {more.map((candidate) => (

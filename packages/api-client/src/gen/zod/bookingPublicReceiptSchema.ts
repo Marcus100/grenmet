@@ -22,13 +22,13 @@ export const bookingPublicReceiptSchema = z
       .optional()
       .default(false)
       .describe(
-        "True when the booking holds the slot but waits for a deposit (`status` is `pending_payment`). It is cancelled and the slot released if the deposit is not paid in time."
+        "True when the booking holds the slot but waits for a payment (a deposit or the full price; `status` is `pending_payment`). It is cancelled and the slot released if it is not paid in time."
       ),
     checkout_url: z
       .union([z.string(), z.null()])
       .optional()
       .describe(
-        "Hosted page where the customer pays the deposit. Null when no online payment is available and the business records the payment itself."
+        "Hosted page where the customer pays. Null when no online payment is available and the business records the payment itself."
       ),
   })
   .describe(

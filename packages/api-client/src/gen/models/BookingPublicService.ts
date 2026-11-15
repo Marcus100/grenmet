@@ -16,4 +16,10 @@ export type BookingPublicService = {
   duration_min: number;
   price_minor: number;
   deposit_minor: number;
+  /**
+   * @description What an online booking of this service pays when it is made: the deposit, the full price (business setting, card payments on), or 0. More than 0 means the emailed-code step comes first.
+   * @default 0
+   * @type integer | undefined
+   */
+  due_at_booking_minor?: number;
 };

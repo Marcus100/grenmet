@@ -59,6 +59,11 @@ router = APIRouter(prefix="/cap", tags=["cap"])
 router.include_router(profile_router)
 router.include_router(ibf_router)
 public_router = APIRouter(prefix="/api/cap", tags=["cap-public"])
+# Public, same-for-everyone CAP feeds: Cloudflare may keep a good answer for a
+# minute and serve the last good copy while the origin fails (owner decision
+# 2026-11-15, docs/operations/cloudflare-storm-cache.md). Browsers revalidate
+# every time. Errors raise before this header is sent, so they are never stored.
+PUBLIC_FEED_CACHE = "public, max-age=0, s-maxage=60, stale-if-error=86400"
 
 
 @router.get(
@@ -783,12 +788,14 @@ async def read_public_warnings(
     summary="List active public CAP alerts",
     description="Returns currently active public CAP alerts. The response is briefly cached for public feed consumers.",
 )
-async def read_public_latest_active(*, session: SessionDep) -> Any:
+async def read_public_latest_active(*, session: SessionDep, response: Response) -> Any:
     async def _produce() -> dict[str, Any]:
         result = await service.public_latest_active(session=session)
         return _public_list_view(result).model_dump(mode="json")
 
-    return await cache.cached_json(cache.PUBLIC_LATEST_ACTIVE, 30, _produce)
+    result = await cache.cached_json(cache.PUBLIC_LATEST_ACTIVE, 30, _produce)
+    response.headers["Cache-Control"] = PUBLIC_FEED_CACHE
+    return result
 
 
 @public_router.get(
@@ -797,8 +804,12 @@ async def read_public_latest_active(*, session: SessionDep) -> Any:
     summary="List public CAP alerts",
     description="Returns all public CAP alerts available through the public feed.",
 )
-async def read_public_alerts(*, session: SessionDep) -> CapAlertListPublicView:
-    return _public_list_view(await service.public_all_alerts(session=session))
+async def read_public_alerts(
+    *, session: SessionDep, response: Response
+) -> CapAlertListPublicView:
+    result = _public_list_view(await service.public_all_alerts(session=session))
+    response.headers["Cache-Control"] = PUBLIC_FEED_CACHE
+    return result
 
 
 @public_router.get(
@@ -807,8 +818,12 @@ async def read_public_alerts(*, session: SessionDep) -> CapAlertListPublicView:
     summary="List past public CAP alerts",
     description="Returns previously published public CAP alerts from the public feed.",
 )
-async def read_public_past_alerts(*, session: SessionDep) -> CapAlertListPublicView:
-    return _public_list_view(await service.public_past_alerts(session=session))
+async def read_public_past_alerts(
+    *, session: SessionDep, response: Response
+) -> CapAlertListPublicView:
+    result = _public_list_view(await service.public_past_alerts(session=session))
+    response.headers["Cache-Control"] = PUBLIC_FEED_CACHE
+    return result
 
 
 @public_router.get(
@@ -819,11 +834,12 @@ async def read_public_past_alerts(*, session: SessionDep) -> CapAlertListPublicV
     responses={**NOT_FOUND},
 )
 async def read_public_alert(
-    *, session: SessionDep, identifier: str
+    *, session: SessionDep, response: Response, identifier: str
 ) -> CapAlertPublicView:
     alert = await service.public_alert_by_identifier(
         session=session, identifier=identifier
     )
+    response.headers["Cache-Control"] = PUBLIC_FEED_CACHE
     return CapAlertPublicView.model_validate(alert.model_dump())
 
 
@@ -850,14 +866,16 @@ async def download_public_attachment(
     summary="Get active CAP alerts as GeoJSON",
     description="Returns active Actual public CAP alerts as a GeoJSON feature collection for map clients.",
 )
-async def read_alerts_geojson(*, session: SessionDep) -> Any:
+async def read_alerts_geojson(*, session: SessionDep, response: Response) -> Any:
     async def _produce() -> dict[str, Any]:
         alerts = await service.public_latest_active(session=session)
         return alerts_to_feature_collection(
             [alert for alert in alerts.data if alert.status == CapStatus.ACTUAL]
         )
 
-    return await cache.cached_json(cache.PUBLIC_GEOJSON, 30, _produce)
+    result = await cache.cached_json(cache.PUBLIC_GEOJSON, 30, _produce)
+    response.headers["Cache-Control"] = PUBLIC_FEED_CACHE
+    return result
 
 
 @public_router.get(
@@ -865,7 +883,7 @@ async def read_alerts_geojson(*, session: SessionDep) -> Any:
     summary="Get the active CAP map",
     description="Returns the cached GeoJSON feature collection of active Actual public CAP alerts.",
 )
-async def read_active_map(*, session: SessionDep) -> dict[str, Any]:
+async def read_active_map(*, session: SessionDep, response: Response) -> dict[str, Any]:
     # Same payload as /alerts.geojson — share its 30s cache instead of
     # recomputing the FeatureCollection on every hit.
     async def _produce() -> dict[str, Any]:
@@ -875,6 +893,7 @@ async def read_active_map(*, session: SessionDep) -> dict[str, Any]:
         )
 
     result: dict[str, Any] = await cache.cached_json(cache.PUBLIC_GEOJSON, 30, _produce)
+    response.headers["Cache-Control"] = PUBLIC_FEED_CACHE
     return result
 
 
@@ -897,7 +916,11 @@ async def read_rss(*, session: SessionDep) -> Response:
         return _rss_xml(entries[:100])
 
     body = await cache.cached_text(cache.PUBLIC_RSS, 30, _produce)
-    return Response(content=body, media_type="application/rss+xml; charset=utf-8")
+    return Response(
+        content=body,
+        media_type="application/rss+xml; charset=utf-8",
+        headers={"Cache-Control": PUBLIC_FEED_CACHE},
+    )
 
 
 @public_router.get(
@@ -918,7 +941,11 @@ async def read_cap_xml(*, session: SessionDep, identifier: str) -> Response:
         return snapshot.xml
 
     body = await cache.cached_text(cache.public_xml_key(identifier), 300, _produce)
-    return Response(content=body, media_type="application/xml; charset=utf-8")
+    return Response(
+        content=body,
+        media_type="application/xml; charset=utf-8",
+        headers={"Cache-Control": PUBLIC_FEED_CACHE},
+    )
 
 
 def _rss_xml(alerts: list[CapAlertPublic]) -> str:

@@ -16,13 +16,35 @@ Backed by Barrels Bookings (`apps/api/fastapi/src/bookings`, ADR-0024).
 - `accountInvite` (`{ href }`, optional): the host passes it only to a visitor who is not signed in; after booking, the confirmation then shows "Keep your bookings in one place" with a "Create an account or sign in" link. It never blocks a booking, and its wording says only what the API does (see `apps/api/fastapi/src/bookings/AGENTS.md`, account link).
 - `signedIn` (`SignedInVisitor`: name, email, phone, `signOutAction`) and `bookAgain` (`BookAgainChoice[]`: service id and last provider id): the host passes them only for a signed-in visitor and only from that person's own data. `signedIn` prefills the (still editable) fields and shows "Booking as <name>. Not you? Sign out" as a separate POST form beside the booking form; `bookAgain` shows shortcuts above the full service list (which stays), skipping services the business no longer offers; the provider shows only as "last time with ..." when the business has more than one, because the flow does not choose providers. Guests get neither.
 - Host-specific values are props too: `managePath`, `calendarHref`,
-  `contact` (a `ContactChannel`: href and channel name), `studioName` (opt-in
-  wording), `ManageLink` (defaults to a plain anchor), `turnstileSiteKey`.
-  Nothing here names a studio or a channel.
-- Failure classification lives here (`lib/booking-errors.ts`, `classifyFailure`,
-  which takes the channel name as an argument). The host's `failureFrom` maps a
-  generated-client `ResponseError` to it; that mapper stays in the app so this
-  package does not depend on the client at runtime.
+  `studioName` (opt-in wording), `ManageLink` (defaults to a plain anchor),
+  `turnstileSiteKey`. Nothing here names a studio or a channel.
+- **Business contact options** (owner decision 15 Nov 2026) come from the API
+  data, not from props: `storefront.contact` and `booking.contact`
+  (`BookingBusinessContact`: phone, WhatsApp, Instagram, email, each null when
+  unset; set in Studio settings). `components/business-contact.tsx` has
+  `ContactStrip` ("Questions? Contact us", for near the top of a page; the host
+  places it) and `ContactLinks`; `lib/business-contact.ts` builds `tel:`,
+  `https://wa.me/<digits>`, `https://instagram.com/<handle>` and `mailto:` links
+  and drops a value that cannot make a safe link. Only filled-in options show;
+  with none, nothing renders and messages say "contact the business directly".
+  WhatsApp and Instagram open in a new tab with hidden "(opens in a new tab)"
+  text; every link is a 44px target (host CSS `.contact-link`).
+- Failure classification lives here (`lib/booking-errors.ts`, `classifyFailure`).
+  Messages that send people to the business say "contact the business"
+  (`tellsToContact` recognises them and the API's cutoff text), and the flow
+  and manage page show the contact links under them. The host's `failureFrom`
+  maps a generated-client `ResponseError` to it; that mapper stays in the app
+  so this package does not depend on the client at runtime.
+
+- **Payment at booking** (Stripe test mode, #1372): `booking.payment`
+  (`BookingPaymentSummary`) drives `components/payment-status.tsx` on the
+  confirmation and the manage page: the state in words
+  (`lib/booking-payment.ts`, `paymentLine`) and a "Pay now" link only while the
+  payment is due and the URL is https (`safeCheckoutUrl`). Before leaving for
+  the checkout it saves the manage path in sessionStorage
+  (`rememberManagePath`); the host's `/checkout/return` page reads it back
+  (`recallManagePath`, same-site paths only). The emailed-code step follows
+  `service.due_at_booking_minor` (falls back to `deposit_minor`).
 
 ## Styling
 
@@ -33,8 +55,9 @@ Backed by Barrels Bookings (`apps/api/fastapi/src/bookings`, ADR-0024).
 ## Import paths
 
 - `@barrelsgd/bookings-web/components/<name>` (`booking-flow`, `manage-booking`,
-  `slot-picker`, `turnstile`) and `@barrelsgd/bookings-web/lib/<name>`
-  (`booking-form`, `booking-format`, `booking-errors`, `booking-types`). No barrel.
+  `slot-picker`, `turnstile`, `business-contact`) and `@barrelsgd/bookings-web/lib/<name>`
+  (`booking-form`, `booking-format`, `booking-errors`, `booking-types`,
+  `business-contact`). No barrel.
 
 ## Client components
 

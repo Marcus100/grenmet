@@ -50,6 +50,7 @@ describe("emailCodeAction", () => {
     expect(sent).toEqual({
       email: "kezia@example.com",
       error: null,
+      resendAfterSeconds: 60,
       step: "code",
     });
 
@@ -102,5 +103,49 @@ describe("emailCodeAction", () => {
     );
     expect(result.error).toBe("That code is wrong or has expired.");
     expect(writeSessionCookie).not.toHaveBeenCalled();
+  });
+
+  it("passes the Turnstile token with the code request", async () => {
+    authApiFetch.mockResolvedValueOnce({ message: "sent" });
+    await emailCodeAction(
+      initialEmailCodeState,
+      form({ email: "k@example.com", turnstile_token: "tok-1" })
+    );
+    expect(authApiFetch).toHaveBeenCalledWith(
+      {},
+      "/auth/email-code/start",
+      expect.anything(),
+      {
+        body: { email: "k@example.com", turnstile_token: "tok-1" },
+        method: "POST",
+      }
+    );
+  });
+
+  it("sends no token field when the page has no widget", async () => {
+    authApiFetch.mockResolvedValueOnce({ message: "sent" });
+    await emailCodeAction(
+      initialEmailCodeState,
+      form({ email: "k@example.com" })
+    );
+    expect(authApiFetch.mock.calls[0]?.[3]).toEqual({
+      body: { email: "k@example.com" },
+      method: "POST",
+    });
+  });
+
+  it("asks for the check again when the API refuses the token", async () => {
+    authApiFetch.mockRejectedValueOnce(
+      new AuthApiError(400, "Verification failed")
+    );
+    const result = await emailCodeAction(
+      initialEmailCodeState,
+      form({ email: "k@example.com", turnstile_token: "stale" })
+    );
+    expect(result).toEqual({
+      email: "k@example.com",
+      error: "We couldn't confirm this request came from a person. Try again.",
+      step: "email",
+    });
   });
 });

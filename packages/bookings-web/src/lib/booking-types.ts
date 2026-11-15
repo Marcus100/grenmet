@@ -10,13 +10,6 @@ export interface SlotChoice {
   starts_at: string;
 }
 
-/** A way to reach the studio by hand, for when online booking cannot help. */
-export interface ContactChannel {
-  href: string;
-  /** The channel's name as a visitor knows it, e.g. "Instagram". */
-  label: string;
-}
-
 /** Open slots for a window of days, in the studio's timezone (IANA name). */
 export interface SlotList {
   slots: SlotChoice[];

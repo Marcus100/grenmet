@@ -176,6 +176,12 @@ async def update_user(
     """Update user with optional password hashing."""
     placeholders.require_usable_identity(email=user_in.email, username=user_in.username)
     user_data = user_in.model_dump(exclude_unset=True)
+    if user_data.get("is_active") is False or user_data.get("is_superuser") is False:
+        # Deactivating or demoting the last active superuser is refused (#1481). The
+        # route already runs demote_superuser for demotion; this covers direct callers.
+        from src.auth import superuser_invitation
+
+        await superuser_invitation.guard_last_superuser(session, target=db_user)
     extra_data = {}
     if "password" in user_data:
         password = user_data["password"]
@@ -463,6 +469,7 @@ async def delete_user(
     from src.auth.modern_models import AuthChallenge
     from src.baseline.models import StaffCredential
     from src.notifications.models import Notification, NotificationPreference
+    from src.organisations import grants as organisation_grants
     from src.profile_images import service as profile_images
     from src.rewards import service as rewards_service
 
@@ -470,6 +477,11 @@ async def delete_user(
         # Already done: no second pass and no second audit row.
         logger.info("User already anonymised", extra={"user_id": str(user.id)})
         return
+    # The last active superuser cannot be anonymised (#1481). The lock comes before
+    # any other write in this transaction.
+    from src.auth import superuser_invitation
+
+    await superuser_invitation.guard_last_superuser(session, target=user)
     user_id = user.id
     actor_id = (actor or user).id
     now = utc_now()
@@ -487,6 +499,11 @@ async def delete_user(
     await rewards_service.cancel_open_redemptions(session, account=user)
     await _end_access_links(session, user_id, now)
     await _end_organisation_access(session, user_id, now)
+    # Grants the account handed to others end too (#1496). Runs after its memberships
+    # are removed, which the cascade relies on.
+    await organisation_grants.end_grants_of_deleted_account(
+        session, user_id=user_id, actor_id=actor_id
+    )
     await _clear_hr_personal_details(session, user_id, now)
     await session.execute(
         update(StaffCredential)
@@ -501,8 +518,6 @@ async def delete_user(
     )
     _anonymise_fields(user, token, now)
     # An anonymised superuser's open invitations must not outlive them (ADR-0059).
-    from src.auth import superuser_invitation
-
     await superuser_invitation.close_for_inviter(session, user_id)
     # The helpers above change the session's actor (the redemption reversal names the
     # account, and the contact link restores what it found). The deletion is the

@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthUpdateUser.js";
 
 /**
- * @description Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409).
+ * @description Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only. Setting is_superuser to true is refused (403): use a superuser invitation. Setting it to false needs a superuser with an authenticator and a two-step sign-in; it is audited, the other superusers are emailed, and the last active superuser cannot be removed (409). Deactivating the last active superuser is refused (409) too.
  * @summary Update user by ID
  * {@link /api/v1/auth/users/:user_id}
  */

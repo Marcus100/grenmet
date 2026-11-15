@@ -18,7 +18,7 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
 
 - Web UI typography is lane-split by design, not one family — ratified as final v1
   policy after a full app-by-app review:
-  1. **GMS institutional** (`gms`, `auth`, `docs`, `cap`, `gmsdash`; plus brand-neutral `admin`) — Noto Sans through
+  1. **GMS institutional** (`gms`, `docs`, `cap`, `gmsdash`; plus brand-neutral `admin`) — Noto Sans through
      `--brand-font-sans`, unmodified (screen and print share one family — see commit
      `7dcfc9ff`).
   2. **Internal staff tool** (`gaa-admin`) — Inter by default, user-switchable (Geist,
@@ -37,6 +37,10 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
      Inter (body), same override pattern as `mbia`.
   4b. **`elections`** (Elections Grenada, a separate consumer brand) — Source Serif 4 +
       Inter like `signal`, with its own `--el-*` palette; see `docs/design/elections.md`.
+  4d. **`auth`** (the shared sign-in at `auth.barrels.gd`, a Barrels platform screen) —
+      the Barrels platform look decided 2026-11-15: the shared Barrels tokens and
+      Inter, like `account`; no Met Office palette or logo. The Met Office sites keep
+      their own look.
   4c. **`events`** (Barrels Events, a Barrels consumer brand) — Bricolage Grotesque
       (display) + Inter (body); see `docs/design/events.md`.
   5. **Transactional email** (`packages/email-templates`) — hardcoded

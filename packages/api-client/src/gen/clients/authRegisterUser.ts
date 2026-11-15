@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthRegisterUser.js";
 
 /**
- * @description Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify.
+ * @description Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify. It cannot carry a Turnstile token, so while AUTH_TURNSTILE_SECRET_KEY is set it answers 400 "Verification failed" and sends nothing.
  * @summary Password sign-up (retired)
  * {@link /api/v1/auth/users/signup}
  */

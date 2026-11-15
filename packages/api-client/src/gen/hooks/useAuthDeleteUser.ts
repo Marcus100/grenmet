@@ -16,6 +16,7 @@ import type {
   AuthDeleteUserStatus200,
   AuthDeleteUserStatus403,
   AuthDeleteUserStatus404,
+  AuthDeleteUserStatus409,
   AuthDeleteUserStatus422,
 } from "../models/AuthDeleteUser.js";
 
@@ -33,6 +34,7 @@ export function authDeleteUserMutationOptions<TContext = unknown>(
     ResponseErrorConfig<
       | AuthDeleteUserStatus403
       | AuthDeleteUserStatus404
+      | AuthDeleteUserStatus409
       | AuthDeleteUserStatus422
     >,
     AuthDeleteUserOptions,
@@ -46,7 +48,7 @@ export function authDeleteUserMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Delete a global account by ID (superuser only).
+ * @description Delete a global account by ID (superuser only). The account is anonymised, not removed. The last active superuser cannot be deleted (409).
  * @summary Delete user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
@@ -57,6 +59,7 @@ export function useAuthDeleteUser<TContext>(
       ResponseErrorConfig<
         | AuthDeleteUserStatus403
         | AuthDeleteUserStatus404
+        | AuthDeleteUserStatus409
         | AuthDeleteUserStatus422
       >,
       AuthDeleteUserOptions,
@@ -79,6 +82,7 @@ export function useAuthDeleteUser<TContext>(
     ResponseErrorConfig<
       | AuthDeleteUserStatus403
       | AuthDeleteUserStatus404
+      | AuthDeleteUserStatus409
       | AuthDeleteUserStatus422
     >,
     AuthDeleteUserOptions,
@@ -90,6 +94,7 @@ export function useAuthDeleteUser<TContext>(
     ResponseErrorConfig<
       | AuthDeleteUserStatus403
       | AuthDeleteUserStatus404
+      | AuthDeleteUserStatus409
       | AuthDeleteUserStatus422
     >,
     AuthDeleteUserOptions,
@@ -106,6 +111,7 @@ export function useAuthDeleteUser<TContext>(
     ResponseErrorConfig<
       | AuthDeleteUserStatus403
       | AuthDeleteUserStatus404
+      | AuthDeleteUserStatus409
       | AuthDeleteUserStatus422
     >,
     AuthDeleteUserOptions,

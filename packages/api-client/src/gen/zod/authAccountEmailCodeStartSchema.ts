@@ -4,13 +4,17 @@
  */
 
 import * as z from "zod";
+import { accountEmailCodeStartSchema } from "./accountEmailCodeStartSchema.js";
 import { apiErrorSchema } from "./apiErrorSchema.js";
-import { appEmailCodeStartSchema } from "./appEmailCodeStartSchema.js";
 import { errorMessageSchema } from "./errorMessageSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authAccountEmailCodeStartStatus200Schema = messageSchema;
+
+export const authAccountEmailCodeStartStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authAccountEmailCodeStartStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -26,8 +30,12 @@ export const authAccountEmailCodeStartResponseSchema =
   authAccountEmailCodeStartStatus200Schema;
 
 export const authAccountEmailCodeStartErrorSchema = z.union([
+  authAccountEmailCodeStartStatus400Schema,
   authAccountEmailCodeStartStatus422Schema,
   authAccountEmailCodeStartStatus429Schema,
 ]);
 
-export const authAccountEmailCodeStartBodySchema = appEmailCodeStartSchema;
+export const authAccountEmailCodeStartBodySchema =
+  accountEmailCodeStartSchema.describe(
+    "The account's code start: also carries the Turnstile token (#959)."
+  );

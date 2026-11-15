@@ -1,4 +1,6 @@
+import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import { websiteJsonLd } from "@barrelsgd/ui/lib/seo";
 import {
   Armchair,
   ArrowRight,
@@ -12,6 +14,7 @@ import Link from "next/link";
 import { FlightBoard } from "@/components/flight-board";
 import { getNews } from "@/lib/content";
 import { formatDate } from "@/lib/content-utils";
+import { env } from "@/lib/env";
 import { loadFlightData } from "@/lib/live-flights";
 import { QUICK_TASKS } from "@/lib/nav";
 
@@ -88,6 +91,14 @@ const AIRLINES = [
 function Hero() {
   return (
     <div className="bg-gaa-navy-ink relative isolate overflow-hidden">
+      <JsonLd
+        data={websiteJsonLd({
+          name: "Grenada Airports Authority",
+          siteUrl: env.NEXT_PUBLIC_SITE_URL,
+          description:
+            "Flight information and travel guidance for Maurice Bishop International Airport (GND) and Lauriston Airport (CRU).",
+        })}
+      />
       <Image
         alt="Aerial view of Maurice Bishop International Airport between the hills and the Caribbean Sea"
         className="absolute inset-0 size-full object-cover"

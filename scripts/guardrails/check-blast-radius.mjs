@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { contractDocReasons } from "./contract-doc-reasons.mjs";
 
 const usage =
-  "Usage: node scripts/guardrails/check-blast-radius.mjs --staged | --base <sha> --head <sha>";
+  "Usage: node scripts/guardrails/check-blast-radius.mjs --staged [--message-file <path>] | --base <sha> --head <sha>";
 
 const fail = (message) => {
   console.error(`Blast-radius check could not run: ${message}\n${usage}`);
@@ -14,6 +15,16 @@ const fail = (message) => {
 const parseArguments = (args) => {
   if (args.length === 1 && args[0] === "--staged") {
     return { mode: "staged" };
+  }
+  // The commit-msg hook re-runs the staged check with the drafted message, so
+  // the "API-Contract: unchanged" trailer can be honoured before CI sees it.
+  if (
+    args.length === 3 &&
+    args[0] === "--staged" &&
+    args[1] === "--message-file" &&
+    args[2]
+  ) {
+    return { messageFile: args[2], mode: "staged" };
   }
   if (
     args.length === 4 &&
@@ -633,13 +644,26 @@ sys.exit(0 if before != after and contract(trees[0], exempt) == contract(trees[1
 // regenerate. Every non-merge commit in the range that touches a triggering
 // file must declare that with the trailer "API-Contract: unchanged"; CI's
 // OpenAPI regeneration check (ci-api.yml, which fails on any diff in
-// openapi.json) still proves it. Range mode only: a staged commit has no
-// message yet. A range that edits openapi.json gets no exemption. The trailer
+// openapi.json) still proves it. A staged commit has no message at pre-commit
+// time, so pre-commit defers this one rule and the commit-msg hook re-runs the
+// staged check with the drafted message (--message-file). A change that edits
+// openapi.json gets no exemption. The trailer
 // covers the OpenAPI contract only: behaviour documented in
 // docs/api/contracts.md (permissions, status meanings) needs that file updated.
 const contractUnchangedTrailer = /^API-Contract: unchanged$/mu;
 const declaredContractUnchanged = (comparison, triggers) => {
-  if (comparison.mode !== "range" || triggers.length === 0) return false;
+  if (triggers.length === 0) return false;
+  if (comparison.mode === "staged") {
+    if (!comparison.messageFile) return false;
+    try {
+      return contractUnchangedTrailer.test(
+        readFileSync(comparison.messageFile, "utf8")
+      );
+    } catch {
+      return false;
+    }
+  }
+  if (comparison.mode !== "range") return false;
   const log = spawnSync(
     "git",
     [
@@ -840,7 +864,28 @@ if (!comparison) {
   try {
     const changes = collectChanges(comparison);
     reportConsumerValidation(changes);
-    const violations = evaluateChanges(changes, comparison);
+    let violations = evaluateChanges(changes, comparison);
+    // Pre-commit has no message yet: defer the regenerate-the-contract rule to
+    // the commit-msg hook, which can read an "API-Contract: unchanged" trailer.
+    // A missing docs/api/contracts.md edit is never deferred.
+    if (comparison.mode === "staged" && !comparison.messageFile) {
+      const deferred = violations.filter(
+        (violation) =>
+          violation.rule === "FastAPI contract companions" &&
+          // Only when openapi.json is untouched: the trailer never applies to
+          // a change that edits the committed document.
+          violation.missing.includes("apps/api/fastapi/openapi.json") &&
+          !violation.missing.includes("docs/api/contracts.md")
+      );
+      if (deferred.length > 0) {
+        violations = violations.filter(
+          (violation) => !deferred.includes(violation)
+        );
+        console.log(
+          'FastAPI contract companions: checked again with the commit message (regenerate openapi.json and the client, or add the trailer "API-Contract: unchanged" when the regenerated document is identical).'
+        );
+      }
+    }
     if (violations.length > 0) {
       reportViolations(violations);
       process.exitCode = 1;

@@ -12,6 +12,7 @@ export type { AccessRequestPublic } from "./AccessRequestPublic.js";
 export type { AccessReviewData } from "./AccessReviewData.js";
 export type { AccessStatusPublic } from "./AccessStatusPublic.js";
 export type { AccountAppPublic } from "./AccountAppPublic.js";
+export type { AccountEmailCodeStart } from "./AccountEmailCodeStart.js";
 export type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
 export type { AccountSessionRequest } from "./AccountSessionRequest.js";
 export type { AchievementRule } from "./AchievementRule.js";
@@ -131,6 +132,7 @@ export type {
   AuthAccountEmailCodeStartResponse,
   AuthAccountEmailCodeStartResponses,
   AuthAccountEmailCodeStartStatus200,
+  AuthAccountEmailCodeStartStatus400,
   AuthAccountEmailCodeStartStatus422,
   AuthAccountEmailCodeStartStatus429,
 } from "./AuthAccountEmailCodeStart.js";
@@ -445,6 +447,7 @@ export type {
   AuthDeleteUserStatus200,
   AuthDeleteUserStatus403,
   AuthDeleteUserStatus404,
+  AuthDeleteUserStatus409,
   AuthDeleteUserStatus422,
 } from "./AuthDeleteUser.js";
 export type {
@@ -816,6 +819,7 @@ export type {
   AuthRegisterUserResponse,
   AuthRegisterUserResponses,
   AuthRegisterUserStatus200,
+  AuthRegisterUserStatus400,
   AuthRegisterUserStatus422,
   AuthRegisterUserStatus429,
 } from "./AuthRegisterUser.js";
@@ -1183,6 +1187,7 @@ export type { BookingAgenda } from "./BookingAgenda.js";
 export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
+export type { BookingBusinessContact } from "./BookingBusinessContact.js";
 export type { BookingEmailCodeConfirm } from "./BookingEmailCodeConfirm.js";
 export type { BookingEmailCodeRequest } from "./BookingEmailCodeRequest.js";
 export type { BookingEmailCodeSent } from "./BookingEmailCodeSent.js";
@@ -1198,6 +1203,11 @@ export type { BookingMyChoice } from "./BookingMyChoice.js";
 export type { BookingMyChoices } from "./BookingMyChoices.js";
 export type { BookingMyOrganisation } from "./BookingMyOrganisation.js";
 export type { BookingOrder } from "./BookingOrder.js";
+export type { BookingPaymentMode } from "./BookingPaymentMode.js";
+export { bookingPaymentMode } from "./BookingPaymentMode.js";
+export type { BookingPaymentStatus } from "./BookingPaymentStatus.js";
+export { bookingPaymentStatus } from "./BookingPaymentStatus.js";
+export type { BookingPaymentSummary } from "./BookingPaymentSummary.js";
 export type { BookingProfilePublic } from "./BookingProfilePublic.js";
 export type { BookingProfileUpdate } from "./BookingProfileUpdate.js";
 export type { BookingProviderCreate } from "./BookingProviderCreate.js";

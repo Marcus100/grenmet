@@ -8,7 +8,7 @@ import { MobileMenu } from "@/components/mobile-menu";
  * Newspaper masthead: wordmark and the task-named bar when the masthead has 80rem of room, the
  * hamburger below it. `status` is the one-line state of the 2026 election.
  */
-export function SiteHeader({ status }: { status: string }) {
+export function SiteHeader({ status }: { status: React.ReactNode }) {
   return (
     <header className="border-el-ink bg-background @container/masthead sticky top-0 z-40 border-b pt-[env(safe-area-inset-top)]">
       <FlagStripe />

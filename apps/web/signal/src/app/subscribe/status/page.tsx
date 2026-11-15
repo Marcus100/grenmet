@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { PageIntro } from "@/components/editorial";
 
-export const metadata = { title: "Newsletter subscription" };
+// A one-off result page for a person's email link: never indexed.
+export const metadata = {
+  title: "Newsletter subscription",
+  robots: { index: false, follow: false },
+};
 
 const RESULTS = {
   confirmed: {

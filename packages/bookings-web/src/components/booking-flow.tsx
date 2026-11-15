@@ -12,11 +12,13 @@ import {
   useRef,
   useState,
 } from "react";
-import type { Failure } from "../lib/booking-errors";
+import { type Failure, tellsToContact } from "../lib/booking-errors";
 import {
+  type BookingFields,
   type FieldErrors,
   type FieldKey,
   fingerprint,
+  stillWrong,
   validateBooking,
 } from "../lib/booking-form";
 import {
@@ -26,11 +28,10 @@ import {
   formatMoney,
   timeZonePlace,
 } from "../lib/booking-format";
-import type {
-  Booked,
-  BookingFlowActions,
-  ContactChannel,
-} from "../lib/booking-types";
+import type { Booked, BookingFlowActions } from "../lib/booking-types";
+import { contactEnding } from "../lib/business-contact";
+import { ContactLinks } from "./business-contact";
+import { PaymentStatus } from "./payment-status";
 import { SlotPicker } from "./slot-picker";
 import { Turnstile } from "./turnstile";
 import {
@@ -92,8 +93,6 @@ export interface BookingFlowProps {
    * signed-in visitor; entries the business no longer offers are skipped.
    */
   bookAgain?: BookAgainChoice[];
-  /** How people reach the studio by hand when no slot is open online. */
-  contact: ContactChannel;
   /** Link used for the manage link on the confirmation. Defaults to an anchor. */
   ManageLink?: BookingLink;
   /** Path the manage link goes to; the token is appended as `/<token>`. */
@@ -104,6 +103,7 @@ export interface BookingFlowProps {
    * blank form.
    */
   signedIn?: SignedInVisitor;
+  /** The business's page, including its own contact options (`contact`). */
   storefront: BookingStorefront;
   /** The studio's name, used in the marketing opt-in wording. */
   studioName: string;
@@ -152,7 +152,25 @@ function statusLine(status: string): string {
   if (status === "confirmed") {
     return "Your appointment is confirmed.";
   }
+  if (status === "pending_payment") {
+    return "Your time is held while you pay. It is released if the payment does not arrive in time.";
+  }
   return "Your request is in. The studio will confirm it by email.";
+}
+
+/**
+ * Money an online booking of the service pays when it is made (a deposit, or
+ * the full price when the business takes it by card); more than 0 needs the
+ * emailed code first. Older storefront data without the field falls back to
+ * the deposit.
+ */
+function dueAtBooking(
+  service: { deposit_minor: number; due_at_booking_minor?: number } | null
+): number {
+  if (!service) {
+    return 0;
+  }
+  return service.due_at_booking_minor ?? service.deposit_minor;
 }
 
 /** Moves focus to an element when it appears (error summary, confirmation). */
@@ -205,6 +223,13 @@ function BookingDone({
             <dd>{formatMoney(booking.price_minor, currency)}</dd>
           </div>
         </dl>
+        {booking.payment && (
+          <PaymentStatus
+            bookingId={booking.id}
+            managePath={`${managePath}/${manageToken}`}
+            payment={booking.payment}
+          />
+        )}
         <p>
           <strong>Keep this link.</strong> It lets you see, change or cancel
           your booking, and it is shown only once. We also send it to your
@@ -494,7 +519,6 @@ export function BookingFlow({
   accountInvite,
   actions,
   bookAgain = [],
-  contact,
   managePath,
   ManageLink = PlainLink,
   signedIn,
@@ -524,6 +548,45 @@ export function BookingFlow({
   // One key per submission: a retry of the same request replays it.
   const attempt = useRef<{ print: string; key: string } | null>(null);
 
+  // Errors come from the last submit and are kept in step with what is typed:
+  // a field that is now valid drops its message (see stillWrong), so it does not
+  // come back, and focus does not jump to the summary while someone types.
+  const fieldsNow: BookingFields = {
+    serviceId,
+    startsAt,
+    name,
+    email,
+    phone,
+    notes,
+  };
+  const reviseErrors = (change: Partial<BookingFields>) =>
+    setErrors((previous) => stillWrong(previous, { ...fieldsNow, ...change }));
+  const pickService = (id: string) => {
+    setServiceId(id);
+    setStartsAt(null);
+    reviseErrors({ serviceId: id, startsAt: null });
+  };
+  const pickStart = (value: string | null) => {
+    setStartsAt(value);
+    reviseErrors({ startsAt: value });
+  };
+  const editName = (value: string) => {
+    setName(value);
+    reviseErrors({ name: value });
+  };
+  const editEmail = (value: string) => {
+    setEmail(value);
+    reviseErrors({ email: value });
+  };
+  const editPhone = (value: string) => {
+    setPhone(value);
+    reviseErrors({ phone: value });
+  };
+  const editNotes = (value: string) => {
+    setNotes(value);
+    reviseErrors({ notes: value });
+  };
+
   const service = storefront.services.find((s) => s.id === serviceId) ?? null;
   const errorList = (Object.keys(errors) as FieldKey[]).filter(
     (key) => errors[key]
@@ -533,7 +596,7 @@ export function BookingFlow({
   useFocusWhen(summaryRef, showSummary);
 
   const needsCode =
-    (service?.deposit_minor ?? 0) > 0 ||
+    dueAtBooking(service) > 0 ||
     (serviceId !== null && codeForced === serviceId);
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
   const emailCode = useEmailCode({
@@ -685,6 +748,9 @@ export function BookingFlow({
               </ul>
             )}
             {formError && <p>{formError}</p>}
+            {tellsToContact(formError) && (
+              <ContactLinks contact={storefront.contact} />
+            )}
           </div>
         )}
 
@@ -697,10 +763,7 @@ export function BookingFlow({
           <GroupError errors={errors} field="service" />
           <BookAgain
             choices={bookAgain}
-            onChoose={(id) => {
-              setServiceId(id);
-              setStartsAt(null);
-            }}
+            onChoose={pickService}
             selected={serviceId}
             storefront={storefront}
           />
@@ -712,10 +775,7 @@ export function BookingFlow({
                   <input
                     checked={item.id === serviceId}
                     name="service"
-                    onChange={() => {
-                      setServiceId(item.id);
-                      setStartsAt(null);
-                    }}
+                    onChange={() => pickService(item.id)}
                     type="radio"
                     value={item.id}
                   />
@@ -734,10 +794,13 @@ export function BookingFlow({
             </div>
           ))}
           {storefront.services.length === 0 && (
-            <p className="muted">
-              No services are open for online booking yet. Please message us on{" "}
-              {contact.label}.
-            </p>
+            <div className="muted">
+              <p>
+                No services are open for online booking yet. Please contact the
+                business{contactEnding(storefront.contact)}
+              </p>
+              <ContactLinks contact={storefront.contact} />
+            </div>
           )}
         </fieldset>
 
@@ -755,7 +818,7 @@ export function BookingFlow({
             <SlotPicker
               key={service.id}
               load={(firstDay) => actions.loadSlots(service.id, firstDay)}
-              onChange={setStartsAt}
+              onChange={pickStart}
               reloadKey={reloadKey}
               timeZone={storefront.timezone}
               value={startsAt}
@@ -779,7 +842,7 @@ export function BookingFlow({
             label="Name"
             maxLength={120}
             name="name"
-            onChange={setName}
+            onChange={editName}
             required
             value={name}
           />
@@ -791,7 +854,7 @@ export function BookingFlow({
             label="Email"
             maxLength={254}
             name="email"
-            onChange={setEmail}
+            onChange={editEmail}
             required
             type="email"
             value={email}
@@ -804,7 +867,7 @@ export function BookingFlow({
             label="Phone (optional)"
             maxLength={40}
             name="phone"
-            onChange={setPhone}
+            onChange={editPhone}
             type="tel"
             value={phone}
           />
@@ -815,7 +878,7 @@ export function BookingFlow({
             maxLength={1000}
             multiline
             name="notes"
-            onChange={setNotes}
+            onChange={editNotes}
             value={notes}
           />
           <label className="check">

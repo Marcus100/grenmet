@@ -33,7 +33,7 @@ export type ListingUpsert = {
    * @type string | undefined
    */
   description?: string;
-  category: GroupDetailPropertiesCategoryEnum;
+  category?: GroupDetailPropertiesCategoryEnum | null;
   parish: GroupDetailPropertiesParishEnum;
   /**
    * @minLength 2

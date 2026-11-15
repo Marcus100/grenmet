@@ -4,6 +4,7 @@ import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import { SkipLink } from "@barrelsgd/ui/components/ui/skip-link";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { env } from "@/env";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -12,14 +13,22 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for canonical links; unset means relative links only.
+  ...(env.NEXT_PUBLIC_SITE_URL
+    ? { metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL) }
+    : {}),
   title: {
     default: "Barrels Bookings",
     template: "%s | Barrels Bookings",
   },
   description:
     "Online appointment booking for Grenada businesses, by Barrels Grenada.",
-  // Skeleton only: nothing is indexed until the public booking pages ship.
-  robots: { index: false, follow: false },
+  openGraph: {
+    siteName: "Barrels Bookings",
+    locale: "en_GB",
+    type: "website",
+  },
+  twitter: { card: "summary" },
 };
 
 export default function RootLayout({

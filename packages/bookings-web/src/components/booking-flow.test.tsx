@@ -15,7 +15,12 @@ const actions: BookingFlowActions = {
   submitBooking,
 };
 const STUDIO = "Test Studio";
-const CONTACT = { href: "https://example.test/dm", label: "Instagram" };
+const NO_CONTACT = {
+  phone: null,
+  whatsapp: null,
+  instagram: null,
+  email: null,
+};
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/u;
 const NO_TIMES = /No times are open/u;
@@ -29,12 +34,17 @@ const SERVICE_ID = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10";
 const TUE = "2027-01-05T13:30:00Z";
 const SLOT_TAKEN = "That time has just been taken. Please choose another.";
 const ONE_HOUR_CUTOFF = /until 1 hour before your visit\./u;
-const MESSAGE_ON_INSTAGRAM = /Please message us on Instagram\./u;
+const CONTACT_DIRECTLY = /Please contact the business directly\./u;
+const CONTACT_COLON = /Please contact the business:/u;
+const CONTACT_LIST = /contact/iu;
+const INSTAGRAM_LINK = /Instagram @teststudio/u;
 const KEEP_BOOKINGS = /Keep your bookings in one place/u;
 const MY_BOOKINGS =
   /your bookings with them, including this one, are listed under My bookings/u;
 const NEVER_NEEDS = /Booking never needs an account/u;
 const DATE_RANGE = /^\w{3} \d{1,2} \w{3} to \w{3} \d{1,2} \w{3}$/u;
+const EMAIL_ERROR = /Enter a valid email address/u;
+const HELD_WHILE_PAYING = /Your time is held while you pay/u;
 
 const storefront: BookingStorefront = {
   slug: "test-studio",
@@ -42,6 +52,7 @@ const storefront: BookingStorefront = {
   timezone: "America/Grenada",
   currency: "XCD",
   cancel_cutoff_hours: 24,
+  contact: NO_CONTACT,
   providers: [],
   services: [
     {
@@ -84,6 +95,7 @@ const booking = {
   currency: "XCD",
   cancel_cutoff_hours: 24,
   can_cancel: true,
+  contact: NO_CONTACT,
 };
 
 function renderFlow(
@@ -95,7 +107,6 @@ function renderFlow(
     <BookingFlow
       accountInvite={accountInvite}
       actions={actions}
-      contact={CONTACT}
       managePath="/booking"
       storefront={shown}
       studioName={STUDIO}
@@ -318,6 +329,66 @@ describe("BookingFlow form", () => {
     ).toHaveAttribute("href", "/booking/secret-token-value-123");
   });
 
+  it("asks for the emailed code first when the full price is due at booking", async () => {
+    const user = userEvent.setup();
+    vi.mocked(actions.requestEmailCode).mockResolvedValue({
+      ok: true,
+      data: { required: true, expiresInSeconds: 600 },
+    });
+    const fullPrice: BookingStorefront = {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        due_at_booking_minor: service.price_minor,
+      })),
+    };
+    renderFlow("", fullPrice);
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Email me a verification code" })
+    );
+    await waitFor(() => expect(actions.requestEmailCode).toHaveBeenCalled());
+    expect(submitBooking).not.toHaveBeenCalled();
+  });
+
+  it("offers Pay now on the confirmation while the payment is due", async () => {
+    const user = userEvent.setup();
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: true,
+      data: {
+        manageToken: "secret-token-value-123",
+        booking: {
+          ...booking,
+          status: "pending_payment",
+          deposit_minor: 22_500,
+          payment: {
+            status: "due",
+            amount_minor: 22_500,
+            paid_minor: 0,
+            refunded_minor: 0,
+            currency: "XCD",
+            checkout_url: "https://checkout.stripe.com/c/pay/cs_test_1",
+          },
+        },
+      },
+    });
+    renderFlow();
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+    expect(await screen.findByText(HELD_WHILE_PAYING)).toBeVisible();
+    expect(screen.getByRole("link", { name: "Pay now" })).toHaveAttribute(
+      "href",
+      "https://checkout.stripe.com/c/pay/cs_test_1"
+    );
+    expect(
+      screen.getByRole("link", { name: "Manage my booking" })
+    ).toHaveAttribute("href", "/booking/secret-token-value-123");
+  });
+
   it("invites a guest to create an account after booking, without changing the booking", async () => {
     const user = userEvent.setup();
     vi.mocked(submitBooking).mockResolvedValue({
@@ -389,7 +460,6 @@ describe("BookingFlow form", () => {
     render(
       <BookingFlow
         actions={actions}
-        contact={CONTACT}
         ManageLink={HostLink}
         managePath="/manage"
         storefront={storefront}
@@ -430,9 +500,45 @@ describe("BookingFlow wording and announcements", () => {
     expect(screen.getByText(ONE_HOUR_CUTOFF)).toBeVisible();
   });
 
-  it("keeps a space before the contact channel when no service is open", () => {
+  it("says to contact the business directly when no service is open and no contact is set", () => {
     renderFlow("", { ...storefront, services: [] });
-    expect(screen.getByText(MESSAGE_ON_INSTAGRAM)).toBeVisible();
+    expect(screen.getByText(CONTACT_DIRECTLY)).toBeVisible();
+    expect(screen.queryByRole("list", { name: CONTACT_LIST })).toBeNull();
+  });
+
+  it("links the business's contacts when no service is open", () => {
+    renderFlow("", {
+      ...storefront,
+      services: [],
+      contact: { ...NO_CONTACT, phone: "+14734401234" },
+    });
+    expect(screen.getByText(CONTACT_COLON)).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Call +14734401234" })
+    ).toHaveAttribute("href", "tel:+14734401234");
+  });
+
+  it("adds the contact links under a failure that sends people to the business", async () => {
+    const user = userEvent.setup();
+    submitBooking.mockResolvedValue({
+      ok: false,
+      code: "unavailable",
+      message:
+        "Booking is unavailable right now. Please try again shortly, or contact the business.",
+    });
+    renderFlow("", {
+      ...storefront,
+      contact: { ...NO_CONTACT, instagram: "teststudio" },
+    });
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+    const alert = await screen.findByRole("alert");
+    expect(
+      within(alert).getByRole("link", { name: INSTAGRAM_LINK })
+    ).toHaveAttribute("href", "https://instagram.com/teststudio");
   });
 
   it("ties the service and time errors to their groups", async () => {
@@ -509,7 +615,6 @@ function renderSignedIn(props: Partial<ComponentProps<typeof BookingFlow>>) {
   return render(
     <BookingFlow
       actions={actions}
-      contact={CONTACT}
       managePath="/booking"
       storefront={twoServices}
       studioName={STUDIO}
@@ -667,5 +772,56 @@ describe("Book again", () => {
       screen.queryByRole("heading", { name: "Book again" })
     ).not.toBeInTheDocument();
     expect(screen.getAllByRole("radio")).toHaveLength(2);
+  });
+});
+
+describe("BookingFlow error messages follow the person's changes", () => {
+  const SUBMIT = "Request my booking";
+  const NAME_ERROR = "Enter your name.";
+  const TIME_ERROR = "Choose a day and time.";
+
+  it("drops a field's error once the field is valid", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await user.click(screen.getByRole("button", { name: SUBMIT }));
+    expect(await screen.findByLabelText("Name")).toHaveAttribute(
+      "aria-invalid",
+      "true"
+    );
+
+    await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+
+    expect(screen.getByLabelText("Name")).toHaveAttribute(
+      "aria-invalid",
+      "false"
+    );
+    expect(screen.queryByText(NAME_ERROR)).not.toBeInTheDocument();
+  });
+
+  it("clears the day and time error once a time is picked", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await user.click(screen.getByRole("button", { name: SUBMIT }));
+    expect((await screen.findAllByText(TIME_ERROR)).length).toBeGreaterThan(0);
+
+    await chooseSlot(user);
+
+    expect(screen.queryByText(TIME_ERROR)).not.toBeInTheDocument();
+  });
+
+  it("keeps the message while the value is still wrong", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await user.type(screen.getByLabelText("Email"), "ada@");
+    await user.click(screen.getByRole("button", { name: SUBMIT }));
+    expect((await screen.findAllByText(EMAIL_ERROR)).length).toBeGreaterThan(0);
+
+    await user.type(screen.getByLabelText("Email"), "x");
+
+    expect(screen.getByLabelText("Email")).toHaveAttribute(
+      "aria-invalid",
+      "true"
+    );
+    expect(screen.getAllByText(EMAIL_ERROR).length).toBeGreaterThan(0);
   });
 });

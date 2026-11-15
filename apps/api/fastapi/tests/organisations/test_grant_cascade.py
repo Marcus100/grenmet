@@ -19,6 +19,7 @@ from src.organisations.models import (
     MembershipGrant,
     MembershipRole,
     MembershipStatus,
+    new_grant_id,
 )
 from src.utils.datetime import utc_now
 from tests.factories import make_user
@@ -610,3 +611,50 @@ async def test_a_removal_cascade_is_flushed_in_batches(
 
     assert [await _is_live(db_async, g) for g in issued] == [False] * 4
     assert len(await _cascade_entries(db_async, org)) == 2
+
+
+async def test_unrelated_grants_do_not_count_toward_the_cascade_cap(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+):
+    """Only the revoked grant's chain counts toward ``MAX_CASCADE_GRANTS`` (issue #1496).
+    Grants with no granter and grants from unrelated chains are never candidates, so
+    with the cap at one, a revoke that ends one downstream grant still succeeds."""
+    monkeypatch.setattr(grants, "MAX_CASCADE_GRANTS", 1)
+    owner = await make_user(db_async)
+    m1, m2, u1, o1, o2, o3 = await _users(db_async, 6)
+    org = await _org(
+        db_async,
+        "Cap unrelated",
+        (
+            (owner, MembershipRole.OWNER),
+            (m1, MembershipRole.MEMBER),
+            (m2, MembershipRole.MEMBER),
+            (u1, MembershipRole.MEMBER),
+            (o1, MembershipRole.MEMBER),
+            (o2, MembershipRole.MEMBER),
+            (o3, MembershipRole.MEMBER),
+        ),
+    )
+    owner_to_m1 = await _grant(db_async, owner, org, m1, "events-team")
+    m1_to_m2 = await _grant(db_async, m1, org, m2, "events-team")
+    unrelated = await _grant(db_async, owner, org, u1, "events-till")
+    orphans = []
+    for member in (o1, o2, o3):
+        target = await _membership(db_async, org.id, member)
+        row = MembershipGrant(
+            id=new_grant_id(),
+            membership_id=target.id,
+            organisation_id=org.id,
+            role_key="events-door",
+            granted_at=utc_now(),
+        )
+        db_async.add(row)
+        orphans.append(row)
+    await db_async.commit()
+
+    await _revoke(db_async, owner, org, owner_to_m1)
+
+    assert await _is_live(db_async, owner_to_m1) is False
+    assert await _is_live(db_async, m1_to_m2) is False
+    assert await _is_live(db_async, unrelated) is True
+    assert [await _is_live(db_async, g) for g in orphans] == [True, True, True]

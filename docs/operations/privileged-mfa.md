@@ -23,6 +23,19 @@ Privileged means an active superuser or an account with effective `user.manage` 
 
 `python scripts/grant_superuser.py EMAIL` (preview; `--apply` makes the change) is the only path to a superuser without an invitation, and it is refused while any active superuser exists. On a system seeded with the placeholder `FIRST_SUPERUSER` account, that placeholder must be deactivated before the script can run, and it will not run again once a real superuser exists. Every later superuser comes from `POST /api/v1/auth/superuser-invitations`, which needs a superuser with an authenticator and a two-step sign-in. Acceptance needs the token and the emailed code, and closes when the inviter loses superuser or is offboarded. Every active superuser is emailed when an invitation is sent and when it is accepted.
 
+## Mailbox proof during set-up (ADR-0059 rules 2 and 4)
+
+The first authenticator of a privileged account needs a code emailed to the account (issue #625). It is skipped in one case only: the set-up's own session was opened by an emailed code less than 10 minutes earlier. The session records that time in `session.email_code_verified_at` (additive column, `authsessionemail20261115`). Only the account and app email-code sign-ins set it. Password, Google, handoff and rotated sessions leave it empty, so they still get the emailed code.
+
+- **Rule 2:** when the set-up's session has that recent emailed-code proof, `POST /2fa/setup` returns `email_code_required: false` and sends no code. The setup UI follows that answer. Activation then needs only the authenticator code.
+- **Rule 4:** when rule 2 held and the authenticator code is verified in the same activation, the set-up's session gets `mfa_verified_at`. The person does not sign out and in again. Every other activation leaves the session as it was. Other sessions are still revoked, as before.
+- **Window lapse:** the proof is judged at activation as well. If the sign-in has aged out after setup skipped the code, activation answers 400 "Start two-step verification set-up again" and sends nothing, and the person starts set-up again. That path is not counted as a wrong code.
+- **Never granted by proof:** another account's session id (the check is on the owner), an ended or revoked session, a password or Google session, and any ordinary (non-privileged) account, where rule 4 does not apply.
+- **Email changes are unchanged:** a privileged account with no authenticator still cannot change its email. `ensure_email_change_allowed` calls the same check without a session, so the proof never applies there.
+- **Residual risk:** a session token stolen within the 10-minute window can enrol an authenticator without a second emailed code. This is the trade the owner accepted in ADR-0059 rule 2. The stolen-password protection of #625 is unchanged.
+
+Tests: `tests/auth/test_mailbox_proof_enrolment.py` (email-code session under and over 10 minutes, password and Google sessions, a replayed sign-in code, another account's session id, a lapse between set-up and activation, a wrong authenticator code, an ordinary account, the app email-code path). Existing #625 tests: `tests/auth/test_privileged_enrolment_code.py`.
+
 ## Recovery acceptance and break-glass procedure
 
 A saved recovery code replaces the authenticator at sign-in and is consumed atomically. After recovery, generate replacement codes with a current authenticator code or an unused recovery code, plus the account password when the account has one. An email-code account (no usable password, ADR-0059 rule 3) confirms with the authenticator alone. Replacement invalidates the previous set. Recovery use, replacement, enrolment and disabling are audited without codes or secrets. Codes still work when encrypted secret decryption is unavailable, allowing the owner to disable and re-enrol after the operator restores correct storage configuration.

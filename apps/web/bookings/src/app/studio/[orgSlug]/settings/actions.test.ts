@@ -22,6 +22,7 @@ vi.mock("@/lib/studio-api", () => ({
 }));
 
 import { redirect } from "next/navigation";
+import { CONTACT_MESSAGES } from "@/lib/business-contact";
 import { getSession } from "@/lib/session";
 import {
   createException,
@@ -166,10 +167,112 @@ describe("profile", () => {
       horizon_days: 60,
       cancel_cutoff_hours: 24,
       requires_confirmation: false,
+      payment_at_booking: "deposit",
       notify_email: null,
       manage_url_template: null,
+      contact_phone: null,
+      contact_whatsapp: null,
+      contact_instagram: null,
+      contact_email: null,
     });
     expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+  });
+
+  it("saves the full-price choice and treats anything else as deposit", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, paymentAtBooking: "full_price" })
+    );
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ payment_at_booking: "full_price" })
+    );
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, paymentAtBooking: "everything" })
+    );
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ payment_at_booking: "deposit" })
+    );
+  });
+
+  it("saves the contact options in the form the public page links to", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        ...PROFILE,
+        contactPhone: "+1 (473) 440-1234",
+        contactWhatsapp: "+1 473 440 5678",
+        contactInstagram: "https://www.instagram.com/seasaltspa/",
+        contactEmail: " hello@seasalt.example ",
+      })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        contact_phone: "+14734401234",
+        contact_whatsapp: "14734405678",
+        contact_instagram: "seasaltspa",
+        contact_email: "hello@seasalt.example",
+      })
+    );
+  });
+
+  it("names each wrong contact option without calling the API", async () => {
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        ...PROFILE,
+        contactPhone: "473 440 1234",
+        contactWhatsapp: "call me",
+        contactInstagram: "https://facebook.com/seasalt",
+        contactEmail: "nope",
+      })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      kind: "invalid",
+      message: "Check the highlighted contact options.",
+      fields: {
+        contactPhone: CONTACT_MESSAGES.contactPhone,
+        contactWhatsapp: CONTACT_MESSAGES.contactWhatsapp,
+        contactInstagram: CONTACT_MESSAGES.contactInstagram,
+        contactEmail: CONTACT_MESSAGES.contactEmail,
+      },
+    });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("points at the contact option the API refused", async () => {
+    vi.mocked(saveProfile).mockRejectedValue(
+      apiError(422, {
+        detail: "Validation error",
+        errors: [
+          {
+            loc: ["body", "contact_instagram"],
+            msg: "Value error, Enter an Instagram handle",
+          },
+        ],
+      })
+    );
+    const result = await saveProfileAction(SLUG, IDLE, form(PROFILE));
+    expect(result).toMatchObject({
+      status: "error",
+      message: "Check the highlighted contact options.",
+      fields: { contactInstagram: CONTACT_MESSAGES.contactInstagram },
+    });
+    expect(reportError).not.toHaveBeenCalled();
   });
 
   it("refuses bad values without calling the API", async () => {

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CampaignTimeline } from "@/components/campaign/timeline";
 import { BallotGrid } from "@/components/election/ballot-grid";
+import { ElectionHeadline } from "@/components/election/election-headline";
+import { ElectionStatus } from "@/components/election/election-status";
 import { ElectionTimeline } from "@/components/election/election-timeline";
 import { KeyDates } from "@/components/election/key-dates";
 import { Flag } from "@/components/flag";
@@ -9,13 +11,7 @@ import { ElectionUpdates } from "@/components/home/election-updates";
 import { PageHead, Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
 import { COVERAGE } from "@/data/coverage";
-import {
-  calendarFrom,
-  daysUntil,
-  electionStatus,
-  seatOutlook,
-  updateEvents,
-} from "@/data/election-2026";
+import { calendarFrom, seatOutlook, updateEvents } from "@/data/election-2026";
 import { campaign, latestRegister, results } from "@/data/load";
 import { nationalResult } from "@/data/model";
 import { fmt, formatIsoDate, pct } from "@/lib/format";
@@ -26,20 +22,7 @@ export const metadata: Metadata = {
     "Grenada’s 2026 general election: key dates, who is standing in each seat, the latest news and the polls, with a source for everything.",
 };
 
-/** The headline follows the election: the date to come, then polling day. */
-function leadTitle(
-  announcement: string,
-  pollingDay: string | null,
-  announceIn: number
-): string {
-  if (pollingDay) return `Grenada votes on ${formatIsoDate(pollingDay)}`;
-  if (announceIn >= 0)
-    return `Grenada’s election date is due on ${formatIsoDate(announcement)}`;
-  return "Grenada waits for its election date";
-}
-
 export default function Election2026Page() {
-  const now = new Date();
   const calendar = calendarFrom(campaign);
   const seats = seatOutlook(results, campaign);
   const last = nationalResult(results, "2022");
@@ -54,13 +37,19 @@ export default function Election2026Page() {
       <div className="mx-auto grid max-w-[1240px] items-end gap-x-14 gap-y-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <PageHead
           deck="Key dates, voter information and campaign coverage for the 5 November general election."
-          eyebrow={`General election 2026 · ${electionStatus(calendar, now)}`}
+          eyebrow={
+            <ElectionStatus
+              calendar={calendar}
+              prefix="General election 2026"
+            />
+          }
           learning="election"
-          title={leadTitle(
-            calendar.announcement,
-            calendar.pollingDay,
-            daysUntil(calendar.announcement, now)
-          )}
+          title={
+            <ElectionHeadline
+              calendar={calendar}
+              fallback="Grenada’s 2026 election: key dates"
+            />
+          }
         />
         <div className="flex flex-col gap-5 px-4 sm:px-6">
           <p className="text-el-muted text-base">
@@ -120,9 +109,7 @@ export default function Election2026Page() {
             coverage={COVERAGE}
             events={[]}
             graphics={{
-              "election-timeline": (
-                <ElectionTimeline calendar={calendar} now={now} />
-              ),
+              "election-timeline": <ElectionTimeline calendar={calendar} />,
             }}
             limit={COVERAGE.length}
           />

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
-import "./build.mjs";
+import { NOINDEX_ROBOTS } from "./build.mjs";
 
 const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/su;
 const PRIVACY_DIALOG = /<section[^>]*role="dialog"/su;
@@ -16,17 +16,32 @@ const SCRIPT_SRC = /<script[^>]*src="([^"]+)"/giu;
 const STYLE_BLOCK = /<style\b/u;
 const STYLE_ATTRIBUTE = /\sstyle="/u;
 const EVENT_ATTRIBUTE = /\son[a-z]+="/iu;
-const PACKAGE_HEADING = /<h2 id="package-[\w-]+">([^<]+)<\/h2>/gu;
 const H1_TAG = /<h1>/gu;
 const CSS_VARIABLE = /var\((--[\w-]+)\)/gu;
 const NEWSLETTER_LABEL = /<label for="newsletter-email">/u;
 const GOOGLE_TAG_MANAGER = /googletagmanager/iu;
 const CLOUDFLARE_CHALLENGES = /challenges\.cloudflare\.com/iu;
 const NOT_FOUND_TITLE = /<h1>Page not found<\/h1>/u;
+const COMING_SOON_LIST =
+  /<h[23][^>]*id="(?:soon-products|soon-title)"[^>]*>Coming soon<\/h[23]>[\s\S]*?<\/ul>/u;
+const HREF_ATTRIBUTE = /href=/u;
+const BABYDOLL_NAME = /babydoll/iu;
+const CONTACT_FIELD = /"(telephone|email|address)"/u;
+const TITLE_TAG = /<title>([^<]+)<\/title>/u;
+const TITLE_TAG_PRESENT = /<title>[^<]+<\/title>/u;
+const DESCRIPTION_TAG = /<meta\s+content="([^"]+)"\s+name="description"/u;
+const DESCRIPTION_TAG_LONG =
+  /<meta\s+content="[^"]{40,}"\s+name="description"/u;
+const VAGUE_LINK = /<a[^>]*>\s*(here|click here|read more|more)\s*<\/a>/iu;
+const CARD_RULE = /\.card \{[^}]*\}/u;
+const TEXT_PRIMARY_DECL = /color: var\(--brand-text-primary\)/u;
+const PANEL_BG_DECL = /background: var\(--brand-surface-panel\)/u;
+const CANONICAL_LINK = /<link href="([^"]+)" rel="canonical">/u;
 
 const PAGES = [
   "index.html",
   "services/index.html",
+  "products/index.html",
   "contact/index.html",
   "subscribe/status/index.html",
   // Served with status 404 by Cloudflare Pages (and Vercel) for unknown paths.
@@ -112,15 +127,36 @@ test("home page says who Barrels is and keeps the client boundary accurate", () 
   assert.ok(!OVERCLAIM.test(html));
 });
 
-test("services page lists exactly the four first-catalogue packages", () => {
+const SERVICE_CARD = /<li class="card">([\s\S]*?)<\/li>/gu;
+const CARD_HEADING = /<h2>([^<]+)<\/h2>/u;
+const SUITED = /<span>Suited to:<\/span>/u;
+const EXPECTED_SERVICES = [
+  "Web and Software",
+  "Business Software (Barrels Business)",
+  "Digital Marketing and Design",
+  "Data and Business Analysis",
+  "Consulting and Digital Strategy",
+  "AI and Automation",
+  "Managed IT",
+  "Cloud and Security",
+  "Networking, Wi-Fi and CCTV",
+  "Training and Workshops (Barrels Academy)",
+  "Weather, Aviation and Climate Data",
+  "Research and Reports",
+];
+
+test("services page lists exactly the twelve services, each with a Suited to line", () => {
   const html = read("services/index.html");
-  const headings = [...html.matchAll(PACKAGE_HEADING)].map((match) => match[1]);
-  assert.deepEqual(headings, [
-    "Web and Software",
-    "Managed IT",
-    "AI and Data",
-    "Cloud and Security",
-  ]);
+  const cards = [...html.matchAll(SERVICE_CARD)].map(([, body]) => body);
+  assert.equal(cards.length, 12, "twelve service cards");
+  const headings = cards.map((body) => body.match(CARD_HEADING)?.[1]);
+  assert.deepEqual(headings, EXPECTED_SERVICES);
+  for (const body of cards)
+    assert.match(
+      body,
+      SUITED,
+      `card has a Suited to line: ${body.slice(0, 60)}`
+    );
   assert.ok(html.includes("DRAFT COPY"), "services copy is marked as draft");
   assert.ok(!OVERCLAIM.test(html));
 });
@@ -167,8 +203,11 @@ test("every described field refers to an element that exists", () => {
 test("pages keep to the CSP: no inline script, style or event handlers", () => {
   for (const page of PAGES) {
     const html = read(page);
-    for (const [, tag] of html.matchAll(SCRIPT_OPEN))
+    for (const [, tag] of html.matchAll(SCRIPT_OPEN)) {
+      // Structured data is a non-executing JSON block, so CSP does not apply to it.
+      if (tag.includes('type="application/ld+json"')) continue;
       assert.match(tag, LOCAL_SRC, `${page} inline script`);
+    }
     assert.ok(!STYLE_BLOCK.test(html), `${page} inline style block`);
     assert.ok(!STYLE_ATTRIBUTE.test(html), `${page} inline style attribute`);
     assert.ok(!EVENT_ATTRIBUTE.test(html), `${page} inline event handler`);
@@ -358,4 +397,376 @@ test("unknown paths get a real not-found page, not the homepage", () => {
   assert.match(html, NOT_FOUND_TITLE);
   assert.ok(html.includes('href="/"'), "links back to the homepage");
   assert.ok(html.includes('content="noindex"'), "kept out of search results");
+});
+
+// Product links: parsed hosts, never substring matches.
+const LIVE_PRODUCT_HOSTS = [
+  "events.barrels.gd",
+  "bookings.barrels.gd",
+  "signal.barrels.gd",
+  "elections.barrels.gd",
+];
+// Hosts that are not Barrels products: the apex, and the Babydoll client site
+// named in "Our work" (an approved client example, not a product link).
+const NON_PRODUCT_HOSTS = [
+  "barrels.gd",
+  "www.barrels.gd",
+  "babydoll.barrels.gd",
+];
+const COMING_SOON = [
+  "Barrels Business",
+  "Barrels Shop",
+  "Barrels Jobs",
+  "Barrels Education",
+];
+test("product links on the home page and products page are exactly the four live hosts", () => {
+  for (const page of ["index.html", "products/index.html"]) {
+    const html = read(page);
+    const found = hostsIn(html).filter((host) => host.endsWith(".barrels.gd"));
+    const products = found.filter((host) => !NON_PRODUCT_HOSTS.includes(host));
+    assert.deepEqual(
+      [...new Set(products)].sort(),
+      [...LIVE_PRODUCT_HOSTS].sort(),
+      page
+    );
+    for (const host of LIVE_PRODUCT_HOSTS)
+      assert.ok(
+        html.includes(`href="https://${host}/"`),
+        `${page} links ${host}`
+      );
+  }
+});
+
+test("coming-soon products are labelled and carry no links", () => {
+  for (const page of ["index.html", "products/index.html"]) {
+    const html = read(page);
+    const section = html.match(COMING_SOON_LIST)?.[0];
+    assert.ok(section, `${page} has a coming-soon list`);
+    assert.equal(
+      (section.match(/status-soon/gu) ?? []).length,
+      4,
+      `${page} four coming-soon items`
+    );
+    assert.ok(
+      !HREF_ATTRIBUTE.test(section),
+      `${page} coming-soon items have no link`
+    );
+    for (const name of COMING_SOON)
+      assert.ok(
+        section.includes(
+          `<h${page.startsWith("products") ? 3 : 4}>${name}</h${page.startsWith("products") ? 3 : 4}>`
+        ),
+        `${page} lists ${name}`
+      );
+  }
+});
+
+test("header links to the services and products pages on every page", () => {
+  for (const page of PAGES) {
+    const html = read(page);
+    assert.ok(html.includes('href="/services/"'), `${page} links services`);
+    assert.ok(html.includes('href="/products/"'), `${page} links products`);
+  }
+});
+
+test("only the home page names a client by brand (Babydoll, owner-approved)", () => {
+  for (const page of PAGES) {
+    const named = BABYDOLL_NAME.test(read(page));
+    assert.equal(named, page === "index.html", `${page} client naming`);
+  }
+  assert.ok(
+    mentionsHost(read("index.html"), "babydoll.barrels.gd"),
+    "Babydoll links to its site"
+  );
+});
+
+// Parse every JSON-LD block; a syntax error fails the test.
+const JSON_LD = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/gu;
+const jsonLd = (page) =>
+  [...read(page).matchAll(JSON_LD)].map(([, body]) => JSON.parse(body));
+
+test("structured data parses and describes the company and the twelve services", () => {
+  const [home] = jsonLd("index.html");
+  const graph = home["@graph"];
+  const org = graph.find(
+    (node) => node["@id"] === "https://barrels.gd/#organization"
+  );
+  assert.deepEqual([...org["@type"]].sort(), [
+    "Organization",
+    "ProfessionalService",
+  ]);
+  assert.equal(org.name, "Barrels Grenada");
+  assert.equal(org.url, "https://barrels.gd/");
+  assert.equal(org.areaServed.name, "Grenada");
+  // Never invent contact details: none may appear in the data.
+  const text = JSON.stringify(graph);
+  assert.ok(!CONTACT_FIELD.test(text), "no contact or address fields");
+  const [catalog] = jsonLd("services/index.html");
+  assert.equal(catalog["@type"], "OfferCatalog");
+  const names = catalog.itemListElement.map((offer) => offer.itemOffered.name);
+  assert.equal(names.length, 12);
+  assert.deepEqual(names, [...EXPECTED_SERVICES]);
+  const headings = [
+    ...read("services/index.html").matchAll(/<h2>([^<]+)<\/h2>/gu),
+  ]
+    .map(([, name]) => name)
+    .filter((name) => EXPECTED_SERVICES.includes(name));
+  assert.deepEqual(
+    names,
+    headings,
+    "structured data matches the visible service names"
+  );
+});
+
+test("titles and descriptions are unique and every page sets Open Graph and Twitter tags", () => {
+  const titles = new Set();
+  const descriptions = new Set();
+  for (const page of PAGES) {
+    const html = read(page);
+    if (html.includes('content="noindex"')) continue;
+    const title = html.match(TITLE_TAG)?.[1];
+    const description = html.match(DESCRIPTION_TAG)?.[1];
+    assert.ok(!titles.has(title), `${page} title is unique`);
+    assert.ok(!descriptions.has(description), `${page} description is unique`);
+    titles.add(title);
+    descriptions.add(description);
+    assert.ok(
+      description.length <= 170,
+      `${page} description fits a search snippet`
+    );
+    for (const tag of [
+      'property="og:title"',
+      'property="og:description"',
+      'property="og:url"',
+      'property="og:site_name"',
+      'name="twitter:card"',
+      'name="twitter:title"',
+      'name="twitter:description"',
+    ])
+      assert.ok(html.includes(tag), `${page} has ${tag}`);
+    assert.ok(!html.includes("og:image"), `${page} has no invented image`);
+  }
+});
+
+test("headings never skip a level, and links say where they go", () => {
+  for (const page of PAGES) {
+    const levels = [...read(page).matchAll(/<h([1-6])[\s>]/gu)].map(
+      ([, level]) => Number(level)
+    );
+    for (let i = 1; i < levels.length; i++)
+      assert.ok(
+        levels[i] <= levels[i - 1] + 1,
+        `${page} heading level ${levels[i]} after ${levels[i - 1]}`
+      );
+    assert.doesNotMatch(read(page), VAGUE_LINK, `${page} vague link text`);
+  }
+});
+
+test("every light panel sets its own dark text colour (known .package regression)", () => {
+  const css = read("style.css");
+  const card = css.match(CARD_RULE)?.[0];
+  assert.ok(card, ".card rule exists");
+  assert.match(card, TEXT_PRIMARY_DECL);
+  assert.match(card, PANEL_BG_DECL);
+});
+
+// WCAG 2.x contrast. Pairs are token names from tokens.css; each rule states
+// the minimum (4.5 for body-size text, 3 for large text and focus rings).
+const TOKEN_VALUE = /--([\w-]+):\s*(#[0-9a-f]{6});/giu;
+const srgbChannel = (value) => {
+  const channel = value / 255;
+  return channel <= 0.039_28
+    ? channel / 12.92
+    : ((channel + 0.055) / 1.055) ** 2.4;
+};
+const luminance = (hex) => {
+  const [r, g, b] = [1, 3, 5].map((index) =>
+    srgbChannel(Number.parseInt(hex.slice(index, index + 2), 16))
+  );
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contrast = (a, b) => {
+  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (light + 0.05) / (dark + 0.05);
+};
+
+test("text and focus pairs meet WCAG AA", () => {
+  const tokens = Object.fromEntries(
+    [...read("tokens.css").matchAll(TOKEN_VALUE)].map(([, name, value]) => [
+      name,
+      value,
+    ])
+  );
+  const pairs = [
+    ["page and lead text", "brand-text-inverse", "brand-text-primary", 4.5],
+    [
+      "eyebrow and subheading accent",
+      "brand-accent",
+      "brand-text-primary",
+      4.5,
+    ],
+    [
+      "notes, hints and location label",
+      "brand-border",
+      "brand-text-primary",
+      4.5,
+    ],
+    ["chip text", "brand-text-inverse", "brand-text-primary", 4.5],
+    ["message and error text", "brand-text-inverse", "brand-text-primary", 4.5],
+    ["button label", "brand-text-primary", "brand-text-inverse", 4.5],
+    ["button hover", "brand-text-primary", "brand-accent", 4.5],
+    ["quiet button text", "brand-text-inverse", "brand-text-primary", 4.5],
+    [
+      "panel heading and body text",
+      "brand-text-primary",
+      "brand-surface-panel",
+      4.5,
+    ],
+    [
+      "panel description and suited-to text",
+      "brand-text-secondary",
+      "brand-surface-panel",
+      4.5,
+    ],
+    ["panel link hover", "brand-text-primary", "brand-surface-panel", 4.5],
+    ["panel focus ring", "brand-primary", "brand-surface-panel", 3],
+    ["live status pill", "brand-text-inverse", "brand-primary", 4.5],
+    [
+      "coming-soon status pill",
+      "brand-text-primary",
+      "brand-surface-muted",
+      4.5,
+    ],
+    ["form field text", "brand-text-primary", "brand-surface-secondary", 4.5],
+    ["page focus ring", "brand-accent", "brand-text-primary", 3],
+    ["field invalid border", "status-negative", "brand-surface-secondary", 3],
+    ["privacy card text", "brand-text-inverse", "brand-text-primary", 4.5],
+    ["privacy open button", "brand-text-primary", "brand-surface", 4.5],
+  ];
+  for (const [label, foreground, background, minimum] of pairs) {
+    const ratio = contrast(tokens[foreground], tokens[background]);
+    assert.ok(
+      ratio >= minimum,
+      `${label}: ${foreground} on ${background} is ${ratio.toFixed(2)}:1, needs ${minimum}:1`
+    );
+  }
+  // Positive control: the contrast function separates light from dark.
+  assert.ok(contrast("#ffffff", "#111827") > 15);
+  assert.ok(
+    contrast("#cc0033", "#111827") < 4.5,
+    "red text on navy is too low for body text"
+  );
+});
+
+test("sitemap lists exactly the indexable pages and robots.txt points to it", () => {
+  const sitemap = read("sitemap.xml");
+  const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/gu)].map(
+    ([, url]) => url
+  );
+  assert.deepEqual(locs, [
+    "https://barrels.gd/",
+    "https://barrels.gd/services/",
+    "https://barrels.gd/products/",
+    "https://barrels.gd/contact/",
+  ]);
+  assert.ok(
+    !sitemap.includes("subscribe"),
+    "subscription status page is not listed"
+  );
+  assert.ok(!sitemap.includes("404"), "not-found page is not listed");
+  assert.equal(
+    read("robots.txt").includes("Sitemap: https://barrels.gd/sitemap.xml"),
+    true
+  );
+});
+
+test("every indexable page has a title, description and its own barrels.gd canonical", () => {
+  for (const page of PAGES) {
+    const html = read(page);
+    if (html.includes('content="noindex"')) continue;
+    assert.match(html, TITLE_TAG_PRESENT, `${page} title`);
+    assert.match(html, DESCRIPTION_TAG_LONG, `${page} description`);
+    const canonical = html.match(CANONICAL_LINK)?.[1];
+    assert.ok(
+      canonical?.startsWith("https://barrels.gd/"),
+      `${page} canonical ${canonical}`
+    );
+  }
+});
+
+// Module-level patterns for the review checks below.
+const CSS_RULE = /([^{}]+)\{([^{}]*)\}/gu;
+const CLASS_SELECTOR = /\.[\w-]+/gu;
+const TYPE_SELECTOR = /(?:^|\s)[a-z][\w-]*/giu;
+const CHIPS_LIST = /<ul class="chips">([\s\S]*?)<\/ul>/u;
+const CHIP_ITEM = /<li>([^<]+)<\/li>/gu;
+const PARENTHETICAL = / \(.*\)$/u;
+
+// Specificity as classes times 10 plus type selectors (enough for these rules).
+const specificity = (selector) =>
+  (selector.match(CLASS_SELECTOR) ?? []).length * 10 +
+  (selector.match(TYPE_SELECTOR) ?? []).length;
+
+test("the live and coming-soon pills win the cascade over the panel paragraph rule", () => {
+  const css = read("style.css");
+  const rules = [...css.matchAll(CSS_RULE)].map(([, selector, body]) => ({
+    selector: selector.trim(),
+    body,
+  }));
+  const panelText = rules.find((rule) => rule.selector === ".card p");
+  assert.ok(panelText, ".card p rule exists");
+  assert.ok(panelText.body.includes("var(--brand-text-secondary)"));
+  for (const [name, colour] of [
+    [".card .status-live", "var(--brand-text-inverse)"],
+    [".card .status-soon", "var(--brand-text-primary)"],
+  ]) {
+    const pill = rules.find((rule) => rule.selector === name);
+    assert.ok(pill, `${name} rule exists`);
+    assert.ok(pill.body.includes(`color: ${colour}`), `${name} sets ${colour}`);
+    assert.ok(
+      specificity(pill.selector) > specificity(panelText.selector),
+      `${name} (${specificity(pill.selector)}) must beat .card p (${specificity(panelText.selector)})`
+    );
+  }
+});
+
+test("the same twelve services in the same order on the home chips, home JSON-LD and services page", () => {
+  const home = read("index.html");
+  const chips = [
+    ...(home.match(CHIPS_LIST)?.[1] ?? "").matchAll(CHIP_ITEM),
+  ].map(([, name]) => name);
+  const short = EXPECTED_SERVICES.map((name) =>
+    name.replace(PARENTHETICAL, "")
+  );
+  assert.deepEqual(chips, short, "home chips follow the services order");
+  const [homeGraph] = jsonLd("index.html");
+  const org = homeGraph["@graph"].find(
+    (node) => node["@id"] === "https://barrels.gd/#organization"
+  );
+  assert.deepEqual(
+    org.makesOffer.map((offer) => offer.itemOffered.name),
+    EXPECTED_SERVICES,
+    "home JSON-LD follows the services order"
+  );
+});
+
+test("the services page JSON-LD provider names and links the organisation on its own", () => {
+  const [catalog] = jsonLd("services/index.html");
+  assert.equal(catalog.provider.name, "Barrels Grenada");
+  assert.equal(catalog.provider.url, "https://barrels.gd/");
+});
+
+test("noindex is found in either attribute order and any case, and only there", () => {
+  for (const tag of [
+    '<meta content="noindex" name="robots">',
+    '<meta name="robots" content="noindex">',
+    '<meta NAME="Robots" CONTENT="NoIndex, nofollow">',
+    "<meta content='noindex' name='robots'>",
+  ])
+    assert.ok(NOINDEX_ROBOTS.test(tag), `detects ${tag}`);
+  for (const tag of [
+    '<meta name="robots" content="index, follow">',
+    '<meta name="description" content="noindex is not a robots tag">',
+  ])
+    assert.ok(!NOINDEX_ROBOTS.test(tag), `ignores ${tag}`);
 });

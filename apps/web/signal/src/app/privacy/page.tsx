@@ -3,7 +3,11 @@ import { PageIntro } from "@/components/editorial";
 // OWNER REVIEW NEEDED: factual draft of what the site and API do today. The
 // owner must confirm the wording, the contact route and the retention periods
 // before this is treated as the official notice.
-export const metadata = { title: "Privacy" };
+export const metadata = {
+  title: "Privacy",
+  description: "What Grenada Signal collects, why, and how it is handled.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function PrivacyPage() {
   return (

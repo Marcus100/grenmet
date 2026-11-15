@@ -28,7 +28,7 @@ from src.pagination import PaginationParams
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
-from . import availability
+from . import availability, deposit_payments
 from .exceptions import (
     BookingConflictError,
     BookingNotFoundError,
@@ -51,6 +51,7 @@ from .schemas import (
     BookingProfileUpdate,
     BookingProviderCreate,
     BookingProviderUpdate,
+    BookingPublicService,
     BookingServiceCreate,
     BookingServiceUpdate,
     BookingWorkingHoursUpdate,
@@ -78,6 +79,14 @@ async def get_profile(session: AsyncSession, organisation_id: str) -> BookingPro
     return profile
 
 
+CONTACT_FIELDS = frozenset(
+    {"contact_phone", "contact_whatsapp", "contact_instagram", "contact_email"}
+)
+#: Profile fields an older client (or the seed) may not send; a PUT that leaves
+#: one out keeps the stored value.
+KEPT_UNLESS_NAMED = CONTACT_FIELDS | {"payment_at_booking"}
+
+
 async def upsert_profile(
     session: AsyncSession, *, organisation_id: str, payload: BookingProfileUpdate
 ) -> BookingProfile:
@@ -92,7 +101,17 @@ async def upsert_profile(
     )
     if taken is not None:
         raise BookingConflictError("That booking address is already in use")
-    values = payload.model_dump()
+    # Contact options and the payment setting are kept unless the request names
+    # them: a client (or a seed) that does not know them must not erase them. An
+    # explicit blank or null still clears a contact option.
+    values = payload.model_dump(
+        mode="json",
+        exclude={
+            name
+            for name in KEPT_UNLESS_NAMED
+            if name not in payload.model_fields_set and profile is not None
+        },
+    )
     if profile is None:
         profile = BookingProfile(organisation_id=organisation_id, **values)
         session.add(profile)
@@ -409,6 +428,16 @@ async def require_bookings_entitlement(
         raise BookingNotFoundError(what) from error
 
 
+def business_contact(profile: BookingProfile) -> dict[str, str | None]:
+    """The profile's contact options as the public pages show them."""
+    return {
+        "phone": profile.contact_phone,
+        "whatsapp": profile.contact_whatsapp,
+        "instagram": profile.contact_instagram,
+        "email": profile.contact_email,
+    }
+
+
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
     services = await list_services(session, profile.organisation_id, active_only=True)
     providers = await list_providers(session, profile.organisation_id, active_only=True)
@@ -421,13 +450,23 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         }
         for p in providers
     ]
+    due = await deposit_payments.due_by_service(session, profile, services)
     return {
         "slug": profile.public_slug,
         "display_name": profile.display_name,
         "timezone": profile.timezone,
         "currency": profile.currency,
         "cancel_cutoff_hours": profile.cancel_cutoff_hours,
-        "services": services,
+        "contact": business_contact(profile),
+        "services": [
+            {
+                **BookingPublicService.model_validate(
+                    svc, from_attributes=True
+                ).model_dump(),
+                "due_at_booking_minor": due[svc.id],
+            }
+            for svc in services
+        ],
         "providers": [p for p in public_providers if p["service_ids"]],
     }
 

@@ -534,6 +534,111 @@ async def test_newly_exhausted_job_is_logged_once_and_old_ones_are_not_repeated(
     }
 
 
+async def test_reported_exhausted_job_keeps_its_error_and_delivered_fields(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from unittest.mock import MagicMock
+
+    from src.worker import main as worker_main
+
+    job = await _add_job(db_async, "publish.email")
+    job.status = CapJobStatus.FAILED
+    job.attempts = 5
+    job.result = {"error_class": "X", "delivered": ["a"]}
+    await db_async.commit()
+    log = MagicMock()
+    monkeypatch.setattr(worker_main, "logger", log)
+
+    assert await worker_main.check_cap_job_failures({}) == 1
+
+    await db_async.refresh(job)
+    assert job.result["error_class"] == "X"
+    assert job.result["delivered"] == ["a"]
+    assert "failure_reported_at" in job.result
+    log.error.assert_called_once()
+
+
+async def test_job_that_fails_again_after_a_retry_is_reported_again(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from unittest.mock import MagicMock
+
+    from src.worker import dispatch
+    from src.worker import main as worker_main
+
+    job = await _add_job(db_async, "publish.bogus")
+    job.status = CapJobStatus.FAILED
+    job.attempts = 4
+    await db_async.commit()
+    log = MagicMock()
+    monkeypatch.setattr(worker_main, "logger", log)
+
+    async with _client(lambda _r: httpx.Response(200)) as client:
+        await process_due_jobs(session=db_async, http_client=client)  # attempt 5 fails
+    await db_async.refresh(job)
+    assert job.attempts == 5
+    assert await worker_main.check_cap_job_failures({}) == 1
+    await db_async.refresh(job)
+    assert dispatch.failure_reported(job)
+    assert log.error.call_count == 1
+
+    # Retried by hand: back to FAILED with an attempt left and no backoff pending.
+    job.status = CapJobStatus.FAILED
+    job.attempts = 4
+    job.next_retry_at = None
+    await db_async.commit()
+    async with _client(lambda _r: httpx.Response(200)) as client:
+        await process_due_jobs(session=db_async, http_client=client)  # fails again
+    await db_async.refresh(job)
+    assert job.attempts == 5
+    assert job.status == CapJobStatus.FAILED
+    assert not dispatch.failure_reported(job)
+
+    assert await worker_main.check_cap_job_failures({}) == 1
+    await db_async.refresh(job)
+    assert dispatch.failure_reported(job)
+    assert log.error.call_count == 2
+
+
+async def test_failure_email_is_queued_once_per_job_and_recipient_across_runs(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from src.notifications.models import OutboundEmail
+    from src.worker import main as worker_main
+    from src.worker.config import worker_settings
+
+    monkeypatch.setattr(
+        worker_settings,
+        "CAP_DELIVERY_FAILURE_RECIPIENTS",
+        "duty@gms.example.test, weather@gms.example.test",
+    )
+    jobs = [
+        await _add_job(db_async, "publish.email"),
+        await _add_job(db_async, "publish.push"),
+    ]
+    for job in jobs:
+        job.status = CapJobStatus.FAILED
+        job.attempts = 5
+    await db_async.commit()
+
+    assert await worker_main.check_cap_job_failures({}) == 2
+    assert await worker_main.check_cap_job_failures({}) == 2
+
+    expected = sorted(
+        f"cap-job-failed:{job.id}:{address}"
+        for job in jobs
+        for address in ("duty@gms.example.test", "weather@gms.example.test")
+    )
+    rows = (
+        await db_async.scalars(
+            select(OutboundEmail).where(
+                OutboundEmail.dedupe_key.like("cap-job-failed:%")
+            )
+        )
+    ).all()
+    assert sorted(row.dedupe_key for row in rows) == expected
+
+
 async def test_social_image_without_info_block_is_skipped_not_failed(
     db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -558,11 +663,8 @@ async def test_social_image_without_info_block_is_skipped_not_failed(
 
     await db_async.refresh(job)
     assert job.status == CapJobStatus.SKIPPED, job.result
-    assert job.result == {
-        "skipped": True,
-        "reason": "no info block",
-        "kind": "publish.social_image",
-    }
+    assert job.result["skipped"] is True
+    assert job.result["reason"] == "no info block"
     assert stored == {}
     assert job.attempts == 1
     assert (

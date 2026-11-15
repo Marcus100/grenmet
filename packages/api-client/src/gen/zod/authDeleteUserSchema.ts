@@ -20,6 +20,10 @@ export const authDeleteUserStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const authDeleteUserStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
+
 export const authDeleteUserStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -30,6 +34,7 @@ export const authDeleteUserResponseSchema = authDeleteUserStatus200Schema;
 export const authDeleteUserErrorSchema = z.union([
   authDeleteUserStatus403Schema,
   authDeleteUserStatus404Schema,
+  authDeleteUserStatus409Schema,
   authDeleteUserStatus422Schema,
 ]);
 

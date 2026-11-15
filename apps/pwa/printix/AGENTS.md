@@ -5,53 +5,80 @@ Port **3064** (local dev only). Static export (`output: "export"`, written to
 project `printix-scanner`, direct upload of `out/` with
 `wrangler pages deploy out --project-name printix-scanner --branch main`;
 create Pages projects through the Cloudflare API, since `wrangler pages
-project create` now tries to convert the app to a Worker). Final address
-`scan.printixevent.com` waits for the client, who controls that domain. Response headers live in `public/_headers`. Lane spec:
-`docs/design/printix.md`.
+project create` now tries to convert the app to a Worker). Planned address
+`scan.barrels.gd` (owner decision, 15 Nov 2026); see "Address and API origin"
+below. Response headers live in `public/_headers`. Lane spec:
+`docs/design/printix.md`. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
 
 Printix is a **client's** product: security-printed event tickets with a
 ticket scanning app for promoters. Barrels Grenada builds and runs the
 software, but Printix appears as its own product: its own name, look and
-address. Never add Barrels, GAA or GMS marks here. The Printix name and artwork
-are the client's; the icons in `public/icons/` are placeholders until the
-client supplies artwork.
+address. Never add Barrels, GAA or GMS marks here. The icons in `public/icons/`
+are placeholders until the client supplies artwork.
 
-This is a progressive web app (PWA): a website a phone installs from a link
-and runs like an app. It lives under `apps/pwa/`, the folder for installable
-phone apps.
+## What exists
 
-## What exists (week one of the Boxing Day 2026 plan)
+- **Pairing** (`src/components/gate-app.tsx`, `src/lib/pairing.ts`,
+  `src/lib/pairing-store.ts`): the pairing link `https://<origin>/#pair=<secret>`.
+  The secret is read from the fragment once (a ref guards Strict Mode), kept in
+  this origin's `localStorage` under one fixed key, and removed from the address
+  bar. Never in a URL, a log, Sentry or an analytics event.
+- **Scanning** (`gate-console.tsx`, `gate-scanner.tsx`): camera, torch, camera
+  switch, the live count, typed numbers (always reachable), no-signal state.
+- **Verdicts** (`src/lib/scan-outcome.ts`): every API outcome and HTTP status
+  maps to one tone, title, detail and sound. Admitted is green and clears itself
+  after about a second. Refused and unchecked wait for **Scan next**.
+- **API** (`src/lib/scan-api.ts`): generated client from `@barrelsgd/api-client`
+  only. The secret goes in `Authorization: Bearer` and nowhere else. Responses
+  must pass the generated Zod schema, or the answer is a failure, never a yes.
+- `src/lib/gate-feedback.ts`: sounds (started on the tap that starts the camera),
+  vibration where the phone allows it, wake lock where supported.
+- `src/lib/scan-gate.ts`: one ticket in view is submitted once.
+- `src/lib/report-error.ts`: logs the area and error class only.
 
-- `src/app/manifest.ts`: the web app manifest that makes the app installable.
-  `manifest.test.ts` checks the icon sizes and that every icon file exists.
-- `src/components/scanner.tsx`: starts the camera, reads a barcode and shows
-  its value, barcode type and length. **Nothing is sent anywhere.** Its purpose
-  is to learn what a printed Printix barcode holds.
-- `src/lib/barcode-reader.ts`: uses the browser's built-in `BarcodeDetector`
-  only when it reads every format in `TICKET_FORMATS`; otherwise the bundled
-  `barcode-detector` library (zxing, WebAssembly). iPhone Safari has no
-  built-in decoder, so iPhones always take the library path.
-- `scripts/copy-wasm.mjs` (run before `dev` and `build`) copies
-  `zxing_reader.wasm` into `public/zxing/` (gitignored). The app serves that
-  file itself; never let it load from the library's default CDN, which would
-  break offline use.
-- `src/components/install-hint.tsx`: install steps per phone, hidden once the
-  app runs from the home screen.
+## What the API does not tell the scanner
+
+- The **gate** of the pairing. The summary names the event; a gate appears only
+  on an admission. The pairing screen therefore shows "Paired" and the event.
+- Whether the pairing allows **typed numbers**. Typed entry is always shown, and
+  `unknown` for a typed number may mean "typed numbers are off".
+
+## Pairing secrets: what unpairing and sharing do
+
+- **Unpairing does not revoke on the server.** "Unpair this phone" only deletes
+  the secret from this phone's `localStorage`. The server still accepts that
+  secret until an administrator revokes the pairing. A lost or stolen phone
+  stays able to check tickets until someone revokes it.
+- **A pairing link stays valid until it expires or is revoked.** A link shared
+  by chat, email or a photo works on any phone that opens it, not only the one
+  it was meant for. Treat a pairing link like a password: share it once, then
+  revoke it if it leaks.
+
+## Address and API origin
+
+- The planned scanner address is `https://scan.barrels.gd`. It is listed in
+  `BACKEND_CORS_ORIGINS` in `infra/docker/production.env`, so the production API
+  accepts calls from it.
+- `public/_headers` enforces the CSP with `connect-src 'self' https://api.barrels.gd`.
+  Calls to any other API origin are blocked by the browser. A local API on
+  `http://localhost` only works with `pnpm dev:pwa:printix`, which sends no
+  `_headers` CSP.
 
 ## Not built yet
 
-Ticket registry and sign-in (FastAPI), admitting a ticket, the result screen,
-the service worker and offline scanning, the promoter's live count, and the
-Barrels Events connection. Backend logic goes in FastAPI, never here.
+QR generation for administrators, offline scanning, ticket types, re-entry,
+and the Barrels Events connection. Backend logic goes in FastAPI, never here.
 
 ## Rules
 
 - Everything must stay static: no server actions, no route handlers that need
   a server, no `next/image` optimisation.
-- `src/env.ts` is the only place that reads `process.env` (`PRINTIX_SITE_URL`).
-- The camera needs a secure (https) address or `localhost`. To test on a phone,
-  serve the build over https; a plain LAN address will not get the camera.
-- Barcodes of lines need good light and a steady hand: keep the typed-number
-  fallback in every later version.
+- `src/env.ts` is the only place that reads `process.env`. The API origin is
+  `NEXT_PUBLIC_API_URL`: https, or plain http on localhost only. Unset means the
+  scanner shows "not connected" and checks nothing.
+- The camera needs a secure (https) address or `localhost`.
+- Dark only (`docs/design/printix.md`). Controls at least 44 px tall. Inputs at
+  16 px or more so iPhone does not zoom.
+- Never let the pairing secret reach a log, `reportError` message or Sentry.
 - Tests: `pnpm --filter @barrelsgd/pwa-printix test`. Dev:
   `pnpm dev:pwa:printix` (host only).

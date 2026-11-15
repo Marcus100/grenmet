@@ -9,7 +9,8 @@ export default defineConfig({
     // Turbo runs two test tasks at once; half the cores each keeps them from starving each other.
     maxWorkers: "50%",
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    setupFiles: ["./src/test/setup.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
   },
   resolve: {
     alias: {

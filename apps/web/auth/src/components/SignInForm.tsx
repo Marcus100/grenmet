@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { signInAction } from "@/app/actions";
@@ -10,18 +11,27 @@ import {
   inputClass,
   labelClass,
   primaryButtonClass,
-  secondaryButtonClass,
   textLinkClass,
 } from "@/components/form-styles";
 import { OrDivider } from "@/components/or-divider";
 import { PasswordField } from "@/components/password-field";
+import {
+  CreateAccountLink,
+  GoogleSignInLink,
+} from "@/components/sign-in-options";
 
 interface SignInFormProps {
   appName: string | null;
+  /**
+   * Where "Email me a code instead" goes. Null hides the link: a reauthentication
+   * step must be met with the password.
+   */
+  codeHref: Route | null;
   returnTo: string | null;
 }
 
-export function SignInForm({ appName, returnTo }: SignInFormProps) {
+/** Password sign-in for staff who use one. The code-first form is the default. */
+export function SignInForm({ appName, codeHref, returnTo }: SignInFormProps) {
   const [state, formAction, pending] = useActionState(
     signInAction,
     initialSignInState
@@ -35,29 +45,7 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
     <div className="space-y-6">
       {needsCode ? null : (
         <>
-          {/* No prefetch: /google/start redirects to Google, and a prefetch
-              of it fails CORS and logs a console error on every visit. */}
-          <Link
-            className={secondaryButtonClass}
-            href={
-              returnTo
-                ? `/google/start?returnTo=${encodeURIComponent(returnTo)}`
-                : "/google/start"
-            }
-            prefetch={false}
-          >
-            Continue with Google
-          </Link>
-          <Link
-            className={secondaryButtonClass}
-            href={
-              returnTo
-                ? `/code?returnTo=${encodeURIComponent(returnTo)}`
-                : "/code"
-            }
-          >
-            Email me a sign-in code
-          </Link>
+          <GoogleSignInLink returnTo={returnTo} />
           <OrDivider />
         </>
       )}
@@ -80,13 +68,16 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
               Email address
             </label>
             <input
+              autoCapitalize="none"
               autoComplete="username"
               className={inputClass}
               defaultValue={state.email}
               id="email"
+              inputMode="email"
               name="email"
               placeholder="jane@example.com"
               required
+              spellCheck={false}
               type="email"
             />
           </div>
@@ -133,28 +124,22 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
         </button>
 
         {needsCode ? (
-          <a
-            className={`${textLinkClass} text-body-sm block text-center`}
-            href="/"
-          >
-            Use a different account
-          </a>
+          <p className="text-center">
+            <a className={`${textLinkClass} text-body-sm`} href="/">
+              Use a different account
+            </a>
+          </p>
+        ) : null}
+        {!needsCode && codeHref ? (
+          <p className="text-center">
+            <Link className={`${textLinkClass} text-body-sm`} href={codeHref}>
+              Email me a code instead
+            </Link>
+          </p>
         ) : null}
       </form>
 
-      <p className="text-body-sm text-muted-foreground text-center">
-        New here?{" "}
-        <Link
-          className={textLinkClass}
-          href={
-            returnTo
-              ? `/signup?returnTo=${encodeURIComponent(returnTo)}`
-              : "/signup"
-          }
-        >
-          Create an account
-        </Link>
-      </p>
+      {needsCode ? null : <CreateAccountLink returnTo={returnTo} />}
     </div>
   );
 }

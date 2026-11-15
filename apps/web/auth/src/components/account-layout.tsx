@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { signOutAction } from "@/app/actions";
 import { type AccountTab, AccountTabs } from "@/components/account-tabs";
+import { AppDirectory } from "@/components/app-directory";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
 import { getAppHrefs } from "@/lib/app-links";
 
@@ -18,12 +19,7 @@ export function AccountLayout({
   title,
 }: AccountLayoutProps) {
   return (
-    <AuthShell
-      greeting="Your account"
-      hrefs={getAppHrefs()}
-      subtitle="Jump into any of your apps."
-      wide
-    >
+    <AuthShell sidebar={<AppDirectory hrefs={getAppHrefs()} />} wide>
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4">
           <AuthHeading title={title}>{description}</AuthHeading>
@@ -102,7 +98,7 @@ export function StatusBadge({
   const tones = {
     // Kit green is too dark to read on the dark page; lime is the brand's
     // light "go" colour.
-    on: "border-gm-risk-green/30 bg-gm-risk-green/10 text-gm-risk-green dark:border-gm-lime/30 dark:bg-gm-lime/10 dark:text-gm-lime",
+    on: "border-success/30 bg-success/10 text-success dark:text-primary",
     off: "border-border bg-muted text-muted-foreground",
     neutral: "border-border text-muted-foreground",
   } as const;

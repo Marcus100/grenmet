@@ -9,9 +9,6 @@ import {
   type Failure,
 } from "@barrelsgd/bookings-web/lib/booking-errors";
 
-/** How a visitor reaches the business by hand: every tenant has its own. */
-export const CONTACT_LABEL = "the business directly";
-
 /**
  * Turns an API error into a failure. Anything that is not an API response
  * (a network fault, a bug) is rethrown so it reaches `error.tsx`, or the
@@ -19,12 +16,7 @@ export const CONTACT_LABEL = "the business directly";
  */
 export function failureFrom(error: unknown, action: BookingAction): Failure {
   if (error instanceof ResponseError) {
-    return classifyFailure(
-      error.status,
-      detailOf(error.data),
-      action,
-      CONTACT_LABEL
-    );
+    return classifyFailure(error.status, detailOf(error.data), action);
   }
   throw error;
 }

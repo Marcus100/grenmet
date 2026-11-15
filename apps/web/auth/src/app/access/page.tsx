@@ -8,7 +8,7 @@ import { requireAccount } from "@/lib/account";
 import { groupPermissions } from "@/lib/permissions";
 import { loadAccess } from "../security/actions";
 
-export const metadata: Metadata = { title: "Access — Grenmet Auth" };
+export const metadata: Metadata = { title: "Access — Barrels" };
 export const dynamic = "force-dynamic";
 
 export default async function AccessPage() {

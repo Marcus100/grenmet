@@ -12,6 +12,12 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 export type AuthRegisterUserStatus200 = Message;
 
 /**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthRegisterUserStatus400 = ApiError;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -30,6 +36,7 @@ export type AuthRegisterUserOptions = {
 
 export type AuthRegisterUserResponses = {
   "200": AuthRegisterUserStatus200;
+  "400": AuthRegisterUserStatus400;
   "422": AuthRegisterUserStatus422;
   "429": AuthRegisterUserStatus429;
 };

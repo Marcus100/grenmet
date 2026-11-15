@@ -11,7 +11,7 @@ import { reportError } from "@/lib/report-error";
 import { loadSecurity } from "./actions";
 import { TwoStepSettings } from "./two-step-settings";
 
-export const metadata: Metadata = { title: "Security — Grenmet Auth" };
+export const metadata: Metadata = { title: "Security — Barrels" };
 export const dynamic = "force-dynamic";
 
 const outlineLink =

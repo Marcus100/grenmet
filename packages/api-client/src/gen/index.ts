@@ -4696,6 +4696,7 @@ export type { AccessRequestPublic } from "./models/AccessRequestPublic.js";
 export type { AccessReviewData } from "./models/AccessReviewData.js";
 export type { AccessStatusPublic } from "./models/AccessStatusPublic.js";
 export type { AccountAppPublic } from "./models/AccountAppPublic.js";
+export type { AccountEmailCodeStart } from "./models/AccountEmailCodeStart.js";
 export type { AccountSecurityPublic } from "./models/AccountSecurityPublic.js";
 export type { AccountSessionRequest } from "./models/AccountSessionRequest.js";
 export type { AchievementRule } from "./models/AchievementRule.js";
@@ -4815,6 +4816,7 @@ export type {
   AuthAccountEmailCodeStartResponse,
   AuthAccountEmailCodeStartResponses,
   AuthAccountEmailCodeStartStatus200,
+  AuthAccountEmailCodeStartStatus400,
   AuthAccountEmailCodeStartStatus422,
   AuthAccountEmailCodeStartStatus429,
 } from "./models/AuthAccountEmailCodeStart.js";
@@ -5129,6 +5131,7 @@ export type {
   AuthDeleteUserStatus200,
   AuthDeleteUserStatus403,
   AuthDeleteUserStatus404,
+  AuthDeleteUserStatus409,
   AuthDeleteUserStatus422,
 } from "./models/AuthDeleteUser.js";
 export type {
@@ -5500,6 +5503,7 @@ export type {
   AuthRegisterUserResponse,
   AuthRegisterUserResponses,
   AuthRegisterUserStatus200,
+  AuthRegisterUserStatus400,
   AuthRegisterUserStatus422,
   AuthRegisterUserStatus429,
 } from "./models/AuthRegisterUser.js";
@@ -5867,6 +5871,7 @@ export type { BookingAgenda } from "./models/BookingAgenda.js";
 export type { BookingAgendaDay } from "./models/BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./models/BookingAgendaItem.js";
 export type { BookingAvailability } from "./models/BookingAvailability.js";
+export type { BookingBusinessContact } from "./models/BookingBusinessContact.js";
 export type { BookingEmailCodeConfirm } from "./models/BookingEmailCodeConfirm.js";
 export type { BookingEmailCodeRequest } from "./models/BookingEmailCodeRequest.js";
 export type { BookingEmailCodeSent } from "./models/BookingEmailCodeSent.js";
@@ -5882,6 +5887,11 @@ export type { BookingMyChoice } from "./models/BookingMyChoice.js";
 export type { BookingMyChoices } from "./models/BookingMyChoices.js";
 export type { BookingMyOrganisation } from "./models/BookingMyOrganisation.js";
 export type { BookingOrder } from "./models/BookingOrder.js";
+export type { BookingPaymentMode } from "./models/BookingPaymentMode.js";
+export { bookingPaymentMode } from "./models/BookingPaymentMode.js";
+export type { BookingPaymentStatus } from "./models/BookingPaymentStatus.js";
+export { bookingPaymentStatus } from "./models/BookingPaymentStatus.js";
+export type { BookingPaymentSummary } from "./models/BookingPaymentSummary.js";
 export type { BookingProfilePublic } from "./models/BookingProfilePublic.js";
 export type { BookingProfileUpdate } from "./models/BookingProfileUpdate.js";
 export type { BookingProviderCreate } from "./models/BookingProviderCreate.js";
@@ -14982,6 +14992,7 @@ export { accessRequestPublicSchema } from "./zod/accessRequestPublicSchema.js";
 export { accessReviewDataSchema } from "./zod/accessReviewDataSchema.js";
 export { accessStatusPublicSchema } from "./zod/accessStatusPublicSchema.js";
 export { accountAppPublicSchema } from "./zod/accountAppPublicSchema.js";
+export { accountEmailCodeStartSchema } from "./zod/accountEmailCodeStartSchema.js";
 export { accountSecurityPublicSchema } from "./zod/accountSecurityPublicSchema.js";
 export { accountSessionRequestSchema } from "./zod/accountSessionRequestSchema.js";
 export { achievementRuleSchema } from "./zod/achievementRuleSchema.js";
@@ -15099,6 +15110,7 @@ export {
   authAccountEmailCodeStartErrorSchema,
   authAccountEmailCodeStartResponseSchema,
   authAccountEmailCodeStartStatus200Schema,
+  authAccountEmailCodeStartStatus400Schema,
   authAccountEmailCodeStartStatus422Schema,
   authAccountEmailCodeStartStatus429Schema,
 } from "./zod/authAccountEmailCodeStartSchema.js";
@@ -15411,6 +15423,7 @@ export {
   authDeleteUserStatus200Schema,
   authDeleteUserStatus403Schema,
   authDeleteUserStatus404Schema,
+  authDeleteUserStatus409Schema,
   authDeleteUserStatus422Schema,
 } from "./zod/authDeleteUserSchema.js";
 export {
@@ -15756,6 +15769,7 @@ export {
   authRegisterUserErrorSchema,
   authRegisterUserResponseSchema,
   authRegisterUserStatus200Schema,
+  authRegisterUserStatus400Schema,
   authRegisterUserStatus422Schema,
   authRegisterUserStatus429Schema,
 } from "./zod/authRegisterUserSchema.js";
@@ -16114,6 +16128,7 @@ export { bookingAgendaDaySchema } from "./zod/bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./zod/bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./zod/bookingAvailabilitySchema.js";
+export { bookingBusinessContactSchema } from "./zod/bookingBusinessContactSchema.js";
 export { bookingEmailCodeConfirmSchema } from "./zod/bookingEmailCodeConfirmSchema.js";
 export { bookingEmailCodeRequestSchema } from "./zod/bookingEmailCodeRequestSchema.js";
 export { bookingEmailCodeSentSchema } from "./zod/bookingEmailCodeSentSchema.js";
@@ -16128,6 +16143,9 @@ export { bookingMyChoiceSchema } from "./zod/bookingMyChoiceSchema.js";
 export { bookingMyChoicesSchema } from "./zod/bookingMyChoicesSchema.js";
 export { bookingMyOrganisationSchema } from "./zod/bookingMyOrganisationSchema.js";
 export { bookingOrderSchema } from "./zod/bookingOrderSchema.js";
+export { bookingPaymentModeSchema } from "./zod/bookingPaymentModeSchema.js";
+export { bookingPaymentStatusSchema } from "./zod/bookingPaymentStatusSchema.js";
+export { bookingPaymentSummarySchema } from "./zod/bookingPaymentSummarySchema.js";
 export { bookingProfilePublicSchema } from "./zod/bookingProfilePublicSchema.js";
 export { bookingProfileUpdateSchema } from "./zod/bookingProfileUpdateSchema.js";
 export { bookingProviderCreateSchema } from "./zod/bookingProviderCreateSchema.js";

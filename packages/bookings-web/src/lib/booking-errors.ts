@@ -47,6 +47,19 @@ const CUTOFF_MARK = "hours before they start";
 /** The stable code the API puts first in the 403 for a deposit with no proof. */
 const EMAIL_UNVERIFIED_MARK = "email_verification_required";
 
+/** How a message sends people to the business; the links follow it on screen. */
+const CONTACT_PHRASE = "contact the business";
+/** Our own wording and the API's cutoff text ("Please contact the studio."). */
+const TELLS_TO_CONTACT = /contact the (business|studio)/iu;
+
+/**
+ * True when a message tells people to contact the business, so the page can
+ * show the business's contact links under it.
+ */
+export function tellsToContact(message: string | null | undefined): boolean {
+  return message ? TELLS_TO_CONTACT.test(message) : false;
+}
+
 function failure(code: FailureCode, message: string): Failure {
   return { ok: false, code, message };
 }
@@ -66,8 +79,7 @@ export function detailOf(data: unknown): string | undefined {
  */
 function classifyEmailCode(
   status: number,
-  action: "email-code" | "email-confirm",
-  contactLabel?: string
+  action: "email-code" | "email-confirm"
 ): Failure {
   if (status === 404) {
     return failure(
@@ -119,9 +131,7 @@ function classifyEmailCode(
   }
   return failure(
     "code_send_failed",
-    contactLabel
-      ? `We couldn't send the email. This may be a problem on our side, not yours. Please try again shortly, or message us on ${contactLabel}.`
-      : "We couldn't send the email. This may be a problem on our side, not yours. Please try again shortly."
+    `We couldn't send the email. This may be a problem on our side, not yours. Please try again shortly, or ${CONTACT_PHRASE}.`
   );
 }
 
@@ -145,17 +155,17 @@ function emailUnverified(
 }
 
 /**
- * Maps an API status to a message a customer can act on. `contactLabel` names
- * the studio's manual channel (e.g. "Instagram") in the unavailable message.
+ * Maps an API status to a message a customer can act on. A message that sends
+ * people to the business says so in words (`tellsToContact`); the component
+ * then shows the business's own contact links under it.
  */
 export function classifyFailure(
   status: number,
   detail: string | undefined,
-  action: BookingAction,
-  contactLabel?: string
+  action: BookingAction
 ): Failure {
   if (action === "email-code" || action === "email-confirm") {
-    return classifyEmailCode(status, action, contactLabel);
+    return classifyEmailCode(status, action);
   }
   const unverified = emailUnverified(status, detail, action);
   if (unverified) {
@@ -179,7 +189,8 @@ export function classifyFailure(
     }
     return failure(
       "conflict",
-      detail ?? "This booking can no longer be changed online."
+      detail ??
+        `This booking can no longer be changed online. Please ${CONTACT_PHRASE}.`
     );
   }
   if (status === 404) {
@@ -187,7 +198,7 @@ export function classifyFailure(
       "not_found",
       action === "create" || action === "read"
         ? "We couldn't find that. The link may have expired, or online booking is not available right now."
-        : "We couldn't find this booking. The link may have expired."
+        : `We couldn't find this booking. The link may have expired. To change or cancel it, ${CONTACT_PHRASE}.`
     );
   }
   if (status === 429) {
@@ -210,8 +221,6 @@ export function classifyFailure(
   }
   return failure(
     "unavailable",
-    contactLabel
-      ? `Booking is unavailable right now. Please try again shortly, or message us on ${contactLabel}.`
-      : "Booking is unavailable right now. Please try again shortly."
+    `Booking is unavailable right now. Please try again shortly, or ${CONTACT_PHRASE}.`
   );
 }

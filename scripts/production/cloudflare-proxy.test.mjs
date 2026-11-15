@@ -343,7 +343,7 @@ test("every app's session cookie default carries a marker the bypass rule matche
     );
 });
 
-test("cache rules: default no-cache, then static assets on public hosts, then the bypass wins", () => {
+test("cache rules: default no-cache, then static assets on public hosts, then the bypass wins, then the storm exception", () => {
   for (const [environment, domain] of [
     ["staging", "staging.barrels.gd"],
     ["production", "barrels.gd"],
@@ -355,6 +355,7 @@ test("cache rules: default no-cache, then static assets on public hosts, then th
         `grenmet-${environment}-default-no-cache`,
         `grenmet-${environment}-static-assets`,
         `grenmet-${environment}-never-cache-private`,
+        `grenmet-${environment}-storm-feeds`,
       ]
     );
     const [first, staticRule, bypass] = rules;
@@ -411,10 +412,102 @@ test("cache rules: default no-cache, then static assets on public hosts, then th
       for (const rule of rules)
         assert.equal(rule.expression.includes("staging."), false);
   }
-  // Both environments share the barrels.gd zone: 6 of the free plan's 10 rules.
+  // Both environments share the barrels.gd zone: 8 of the free plan's 10 rules.
   assert.ok(
     cacheRules("staging").length + cacheRules("production").length <= 10
   );
+});
+
+// Owner decision 2026-11-15: public, same-for-everyone storm feeds for about a
+// minute; never signed-in, personal or data-changing requests.
+const STORM_EXPRESSION = (domain) =>
+  '(http.request.method eq "GET") and (' +
+  `(http.host eq "weather.${domain}" and (` +
+  'http.request.uri.path eq "/api/alerts/rss" or ' +
+  'http.request.uri.path eq "/api/alerts/geojson" or ' +
+  'starts_with(http.request.uri.path, "/api/satellite/"))) or ' +
+  `(http.host eq "api.${domain}" and (` +
+  'starts_with(http.request.uri.path, "/api/cap/") or ' +
+  'starts_with(http.request.uri.path, "/api/v1/wxwatch/public/")))) and not (' +
+  'http.cookie contains "_session" or http.cookie contains "payload-token" or ' +
+  'any(lower(http.request.headers.names[*])[*] == "authorization") or ' +
+  'any(lower(http.request.headers.names[*])[*] == "origin") or ' +
+  'any(lower(http.request.headers.names[*])[*] == "rsc") or ' +
+  'any(lower(http.request.headers.names[*])[*] == "next-router-prefetch") or ' +
+  'any(lower(http.request.headers.names[*])[*] == "next-router-state-tree"))';
+
+test("storm exception: exactly the public feeds, signed-out GETs only, origin decides the minute", () => {
+  for (const [environment, domain] of [
+    ["staging", "staging.barrels.gd"],
+    ["production", "barrels.gd"],
+  ]) {
+    const rules = cacheRules(environment);
+    const storm = rules.at(-1);
+    assert.equal(storm.ref, `grenmet-${environment}-storm-feeds`);
+    // Last, so it is the only thing that re-enables caching after the bypass.
+    assert.equal(
+      rules.findIndex((rule) => rule.ref.endsWith("-never-cache-private")),
+      rules.length - 2
+    );
+    assert.equal(storm.expression, STORM_EXPRESSION(domain));
+    assert.deepEqual(storm.action_parameters, {
+      cache: true,
+      // The origin's s-maxage (60 s) is the edge time; no Cache-Control, no cache.
+      edge_ttl: { mode: "bypass_by_default" },
+      browser_ttl: { mode: "bypass_by_default" },
+    });
+    // The push sign-up (GET returns a key, POST/DELETE change data), sign-up
+    // forms and staff CAP routes stay out.
+    // HTML pages are never cached by this rule (RSC and HTML share a URL).
+    assert.equal(storm.expression.includes('"/alerts"'), false);
+    assert.equal(storm.expression.includes('"/alerts/"'), false);
+    for (const path of [
+      "/api/alerts/push",
+      "/api/alerts/subscribe",
+      "/api/v1/cap/",
+      "/api/newsletter",
+    ])
+      assert.equal(storm.expression.includes(`"${path}`), false, path);
+    for (const host of ["auth", "admin", "gms", "cms", "account", "cap"])
+      assert.equal(
+        storm.expression.includes(`"${host}.${domain}"`),
+        false,
+        host
+      );
+  }
+});
+
+test("the cache-rule plan names the storm exception and writes nothing", () => {
+  const result = python(
+    [
+      "-c",
+      [
+        "import importlib.util, sys",
+        "s = importlib.util.spec_from_file_location('c', sys.argv[1]); m = importlib.util.module_from_spec(s); s.loader.exec_module(m)",
+        "calls = []",
+        "def fake(method, path, token, body=None):",
+        "    calls.append(method)",
+        "    return {'result': {'rules': []}}",
+        "m._rules.call = fake",
+        "code = m.main(['--environment', 'production'])",
+        "print('CALLS', ','.join(calls))",
+        "sys.exit(code)",
+      ].join("\n"),
+      CACHE,
+    ],
+    {
+      env: {
+        PATH: process.env.PATH,
+        CLOUDFLARE_API_TOKEN: "test-token",
+        CLOUDFLARE_ZONE_ID: "0".repeat(32),
+      },
+    }
+  );
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(result.stdout.includes("add     grenmet-production-storm-feeds"));
+  assert.ok(result.stdout.includes("Dry run: nothing changed."));
+  // Plan mode reads the zone and never writes it.
+  assert.ok(result.stdout.includes("CALLS GET\n"));
 });
 
 test("the cache-rule script needs the token and zone from the environment and never echoes them", () => {

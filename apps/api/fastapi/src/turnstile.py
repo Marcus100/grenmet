@@ -14,9 +14,15 @@ work is done. Behaviour:
 A public site (``org.public_site``, ADR-0025 N2) may override this with a
 ``TurnstilePolicy``: ``inherit`` keeps the global behaviour, ``off`` skips the
 check and ``enforce`` verifies with the site's own secret (503 while unset).
+
+The emailed sign-in code start (``POST /auth/email-code/start``, issue #959)
+has its own switch: ``AUTH_TURNSTILE_SECRET_KEY`` set means enforce with that
+secret, unset means no check. ``TURNSTILE_ENABLED`` never turns it on, so the
+public forms and sign-in can be enabled separately.
 """
 
 import logging
+from dataclasses import dataclass
 from typing import Protocol
 
 import httpx
@@ -41,6 +47,9 @@ class TurnstileSettings(BaseSettings):
 
     TURNSTILE_ENABLED: bool = False
     TURNSTILE_SECRET_KEY: str | None = None
+    # Sign-in code start only; pairs with the auth app's
+    # NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY. Unset: no check.
+    AUTH_TURNSTILE_SECRET_KEY: str | None = None
 
 
 turnstile_settings = TurnstileSettings()
@@ -69,6 +78,20 @@ class SitePolicy(Protocol):
 
     @property
     def secret(self) -> str | None: ...
+
+
+@dataclass(frozen=True)
+class FixedPolicy:
+    """A policy decided by settings rather than by a public site."""
+
+    mode: str
+    secret: str | None = None
+
+
+def auth_turnstile_policy() -> FixedPolicy:
+    """The sign-in code start's policy: enforce with its secret, or off."""
+    secret = turnstile_settings.AUTH_TURNSTILE_SECRET_KEY
+    return FixedPolicy("enforce", secret) if secret else FixedPolicy("off")
 
 
 async def verify_turnstile(
