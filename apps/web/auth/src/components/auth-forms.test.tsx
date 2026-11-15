@@ -5,10 +5,12 @@ import type { Route } from "next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SignInState } from "@/app/actions-types";
 
-const { actionState, formAction } = vi.hoisted(() => ({
+const { actionState, formAction, pendingNow } = vi.hoisted(() => ({
   actionState: { current: {} as Record<string, unknown> },
   // One stable spy for the email-code action, so tests can read what was sent.
   formAction: vi.fn(),
+  // Set to true while a test simulates a send in flight.
+  pendingNow: { current: false },
 }));
 
 // Drive each form's rendered state directly; the actions are covered in
@@ -20,7 +22,7 @@ vi.mock("react", async (importOriginal) => {
     useActionState: (_action: unknown, initial: Record<string, unknown>) => [
       { ...initial, ...actionState.current },
       formAction,
-      false,
+      pendingNow.current,
     ],
   };
 });
@@ -74,6 +76,14 @@ describe("SignInForm (password)", () => {
     expect(
       screen.getByRole("link", { name: "Email me a code instead" })
     ).toHaveAttribute("href", CODE_HREF);
+  });
+
+  it("hides the emailed-code link during a reauthentication step", () => {
+    render(<SignInForm appName={null} codeHref={null} returnTo={null} />);
+    expect(
+      screen.queryByRole("link", { name: "Email me a code instead" })
+    ).toBeNull();
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
   });
 
   it("shows only the authenticator step after the MFA prompt", () => {
@@ -225,6 +235,123 @@ describe("EmailCodeForm (code first)", () => {
     expect(
       screen.queryByRole("button", { name: "Use a different email" })
     ).toBeNull();
+  });
+});
+
+describe("EmailCodeForm resend and focus", () => {
+  const sentState = {
+    email: "jane@example.com",
+    resendAfterSeconds: 60,
+    step: "code",
+  };
+
+  beforeEach(() => {
+    setState({});
+    formAction.mockClear();
+    pendingNow.current = false;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    pendingNow.current = false;
+  });
+
+  // Simulates a resend finishing: the action is pending, then settles with a
+  // fresh state object carrying the same window.
+  function completeResend(rerender: () => void) {
+    pendingNow.current = true;
+    rerender();
+    pendingNow.current = false;
+    setState(sentState);
+    rerender();
+  }
+
+  it("restarts the 60-second countdown on every resend", () => {
+    vi.useFakeTimers();
+    setState(sentState);
+    const { rerender } = render(<EmailCodeForm returnTo={null} />);
+    const rerenderForm = () => rerender(<EmailCodeForm returnTo={null} />);
+
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send a new code" }));
+    completeResend(rerenderForm);
+
+    expect(
+      screen.getByRole("button", { name: "Send a new code in 60 seconds" })
+    ).toBeDisabled();
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(
+      screen.getByRole("button", { name: "Send a new code" })
+    ).toBeEnabled();
+
+    // A second resend starts a fresh 60 seconds, not the rest of the first.
+    fireEvent.click(screen.getByRole("button", { name: "Send a new code" }));
+    completeResend(rerenderForm);
+
+    expect(
+      screen.getByRole("button", { name: "Send a new code in 60 seconds" })
+    ).toBeDisabled();
+    act(() => {
+      vi.advanceTimersByTime(59_000);
+    });
+    expect(
+      screen.getByRole("button", { name: "Send a new code in 1 second" })
+    ).toBeDisabled();
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(
+      screen.getByRole("button", { name: "Send a new code" })
+    ).toBeEnabled();
+    expect(formAction).toHaveBeenCalledTimes(2);
+  });
+
+  it("announces a new code and moves focus to the code field after a resend", () => {
+    vi.useFakeTimers();
+    setState(sentState);
+    const { rerender } = render(<EmailCodeForm returnTo={null} />);
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send a new code" }));
+    completeResend(() => rerender(<EmailCodeForm returnTo={null} />));
+
+    expect(
+      screen.getByText("New code sent. Check your email.")
+    ).toBeInTheDocument();
+    expect(document.getElementById("code")).toHaveFocus();
+  });
+
+  it("keeps the error and the focus when a resend is refused", () => {
+    vi.useFakeTimers();
+    setState(sentState);
+    const { rerender } = render(<EmailCodeForm returnTo={null} />);
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send a new code" }));
+    pendingNow.current = true;
+    rerender(<EmailCodeForm returnTo={null} />);
+    pendingNow.current = false;
+    setState({ ...sentState, error: "Try again in a moment." });
+    rerender(<EmailCodeForm returnTo={null} />);
+
+    expect(screen.queryByText("New code sent. Check your email.")).toBeNull();
+    expect(document.getElementById("code")).not.toHaveFocus();
+  });
+
+  it("moves focus to the email field after 'Use a different email'", () => {
+    setState(sentState);
+    render(<EmailCodeForm returnTo={null} />);
+    setState({});
+    fireEvent.click(
+      screen.getByRole("button", { name: "Use a different email" })
+    );
+    expect(screen.getByLabelText("Email address")).toHaveFocus();
   });
 });
 

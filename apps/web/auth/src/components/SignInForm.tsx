@@ -22,8 +22,11 @@ import {
 
 interface SignInFormProps {
   appName: string | null;
-  /** Where "Email me a code instead" goes (the code-first sign-in). */
-  codeHref: Route;
+  /**
+   * Where "Email me a code instead" goes. Null hides the link: a reauthentication
+   * step must be met with the password.
+   */
+  codeHref: Route | null;
   returnTo: string | null;
 }
 
@@ -126,13 +129,14 @@ export function SignInForm({ appName, codeHref, returnTo }: SignInFormProps) {
               Use a different account
             </a>
           </p>
-        ) : (
+        ) : null}
+        {!needsCode && codeHref ? (
           <p className="text-center">
             <Link className={`${textLinkClass} text-body-sm`} href={codeHref}>
               Email me a code instead
             </Link>
           </p>
-        )}
+        ) : null}
       </form>
 
       {needsCode ? null : <CreateAccountLink returnTo={returnTo} />}

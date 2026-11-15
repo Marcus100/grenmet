@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
 import { EmailCodeForm } from "@/components/EmailCodeForm";
-import { getSafeReturnTo, readQueryParam } from "@/lib/return-to";
+import {
+  getRequestedAppName,
+  getSafeReturnTo,
+  readQueryParam,
+} from "@/lib/return-to";
 import { signInPath } from "@/lib/sign-in-links";
 
 export const metadata: Metadata = { title: "Sign in with a code — Barrels" };
@@ -21,7 +25,7 @@ export default async function EmailCodePage({
       </AuthHeading>
       <EmailCodeForm
         passwordHref={signInPath("/", {
-          app: readQueryParam(params.app),
+          app: getRequestedAppName(readQueryParam(params.app), returnTo),
           method: "password",
           returnTo,
         })}

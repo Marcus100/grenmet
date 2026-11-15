@@ -248,6 +248,9 @@ export default async function Home({ searchParams }: PageProps) {
     : "Sign in to your account";
 
   if (passwordMode) {
+    // A reauthentication step (MFA) must be met with the password. The code
+    // route cannot satisfy it, and a code sign-in would be bounced back here.
+    const reauthenticating = readQueryParam(params.reauth) === "1";
     return (
       <AuthShell>
         <AuthHeading title={heading}>
@@ -263,7 +266,11 @@ export default async function Home({ searchParams }: PageProps) {
         ) : null}
         <SignInForm
           appName={requestedApp}
-          codeHref={signInPath("/", { app: requestedApp, returnTo })}
+          codeHref={
+            reauthenticating
+              ? null
+              : signInPath("/", { app: requestedApp, returnTo })
+          }
           returnTo={returnTo}
         />
       </AuthShell>

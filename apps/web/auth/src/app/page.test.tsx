@@ -15,8 +15,16 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 vi.mock("@/components/SignInForm", () => ({
-  SignInForm: ({ returnTo }: { returnTo: string | null }) => (
-    <div data-testid="fresh-sign-in">{returnTo}</div>
+  SignInForm: ({
+    codeHref,
+    returnTo,
+  }: {
+    codeHref: string | null;
+    returnTo: string | null;
+  }) => (
+    <div data-code-href={codeHref ?? ""} data-testid="fresh-sign-in">
+      {returnTo}
+    </div>
   ),
 }));
 vi.mock("@/components/EmailCodeForm", () => ({
@@ -77,6 +85,34 @@ it("leads with the emailed code and links to the password form", async () => {
   const code = screen.getByTestId("code-first-sign-in");
   expect(code).toHaveTextContent(
     "/?app=gaa-admin&method=password&returnTo=%2Fdashboard"
+  );
+});
+
+it("hides the emailed-code link on a reauthentication step", async () => {
+  render(
+    await Home({
+      searchParams: Promise.resolve({
+        reauth: "1",
+        returnTo: "/continue?app=gaa-admin&state=s",
+      }),
+    })
+  );
+  const form = screen.getByTestId("fresh-sign-in");
+  expect(form).toHaveAttribute("data-code-href", "");
+});
+
+it("offers the emailed-code link on a plain password request", async () => {
+  render(
+    await Home({
+      searchParams: Promise.resolve({
+        method: "password",
+        returnTo: "/dashboard",
+      }),
+    })
+  );
+  expect(screen.getByTestId("fresh-sign-in")).toHaveAttribute(
+    "data-code-href",
+    "/?returnTo=%2Fdashboard"
   );
 });
 
