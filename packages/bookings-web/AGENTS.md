@@ -36,6 +36,16 @@ Backed by Barrels Bookings (`apps/api/fastapi/src/bookings`, ADR-0024).
   maps a generated-client `ResponseError` to it; that mapper stays in the app
   so this package does not depend on the client at runtime.
 
+- **Payment at booking** (Stripe test mode, #1372): `booking.payment`
+  (`BookingPaymentSummary`) drives `components/payment-status.tsx` on the
+  confirmation and the manage page: the state in words
+  (`lib/booking-payment.ts`, `paymentLine`) and a "Pay now" link only while the
+  payment is due and the URL is https (`safeCheckoutUrl`). Before leaving for
+  the checkout it saves the manage path in sessionStorage
+  (`rememberManagePath`); the host's `/checkout/return` page reads it back
+  (`recallManagePath`, same-site paths only). The emailed-code step follows
+  `service.due_at_booking_minor` (falls back to `deposit_minor`).
+
 ## Styling
 
 - Class names only (`slots`, `btn`, `btn-solid`, `notice`, `summary`, `field`,

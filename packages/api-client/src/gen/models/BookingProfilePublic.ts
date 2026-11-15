@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { BookingPaymentMode } from "./BookingPaymentMode.js";
+
 export type BookingProfilePublic = {
   /**
    * @description Address under the bookings host. Must not be a platform reserved name such as studio, signin, auth or api (docs/ports.md); a reserved name is refused with 422.
@@ -83,6 +85,12 @@ export type BookingProfilePublic = {
    * @description Email address customers can write to; blank clears it.
    */
   contact_email?: string | null;
+  /**
+   * @description What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.
+   * @default 'deposit'
+   * @type string | undefined
+   */
+  payment_at_booking?: BookingPaymentMode;
   /**
    * @description
    * Format: `uuid`

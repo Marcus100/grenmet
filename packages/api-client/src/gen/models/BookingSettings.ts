@@ -23,4 +23,10 @@ export type BookingSettings = {
    * @type boolean
    */
   deposits_available: boolean;
+  /**
+   * @description True when the platform takes card payments online (Stripe, test mode only). Without it `payment_at_booking: full_price` acts as `deposit`.
+   * @default false
+   * @type boolean | undefined
+   */
+  card_payments_available?: boolean;
 };

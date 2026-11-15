@@ -4,6 +4,7 @@
  */
 
 import type { BookingBusinessContact } from "./BookingBusinessContact.js";
+import type { BookingPaymentSummary } from "./BookingPaymentSummary.js";
 import type { BookingStatus } from "./BookingStatus.js";
 
 /**
@@ -60,4 +61,8 @@ export type BookingPublicDetail = {
    * @type object
    */
   contact: BookingBusinessContact;
+  /**
+   * @description Null when nothing was due at booking (pay at the business).
+   */
+  payment?: BookingPaymentSummary | null;
 };

@@ -167,6 +167,7 @@ describe("profile", () => {
       horizon_days: 60,
       cancel_cutoff_hours: 24,
       requires_confirmation: false,
+      payment_at_booking: "deposit",
       notify_email: null,
       manage_url_template: null,
       contact_phone: null,
@@ -175,6 +176,30 @@ describe("profile", () => {
       contact_email: null,
     });
     expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+  });
+
+  it("saves the full-price choice and treats anything else as deposit", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, paymentAtBooking: "full_price" })
+    );
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ payment_at_booking: "full_price" })
+    );
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, paymentAtBooking: "everything" })
+    );
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ payment_at_booking: "deposit" })
+    );
   });
 
   it("saves the contact options in the form the public page links to", async () => {

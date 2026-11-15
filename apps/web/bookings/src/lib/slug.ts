@@ -9,6 +9,7 @@ export const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/u;
 export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   "api",
   "auth",
+  "checkout",
   "signin",
   "studio",
 ]);

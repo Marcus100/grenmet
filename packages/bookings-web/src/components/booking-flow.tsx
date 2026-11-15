@@ -31,6 +31,7 @@ import {
 import type { Booked, BookingFlowActions } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
+import { PaymentStatus } from "./payment-status";
 import { SlotPicker } from "./slot-picker";
 import { Turnstile } from "./turnstile";
 import {
@@ -151,7 +152,25 @@ function statusLine(status: string): string {
   if (status === "confirmed") {
     return "Your appointment is confirmed.";
   }
+  if (status === "pending_payment") {
+    return "Your time is held while you pay. It is released if the payment does not arrive in time.";
+  }
   return "Your request is in. The studio will confirm it by email.";
+}
+
+/**
+ * Money an online booking of the service pays when it is made (a deposit, or
+ * the full price when the business takes it by card); more than 0 needs the
+ * emailed code first. Older storefront data without the field falls back to
+ * the deposit.
+ */
+function dueAtBooking(
+  service: { deposit_minor: number; due_at_booking_minor?: number } | null
+): number {
+  if (!service) {
+    return 0;
+  }
+  return service.due_at_booking_minor ?? service.deposit_minor;
 }
 
 /** Moves focus to an element when it appears (error summary, confirmation). */
@@ -204,6 +223,13 @@ function BookingDone({
             <dd>{formatMoney(booking.price_minor, currency)}</dd>
           </div>
         </dl>
+        {booking.payment && (
+          <PaymentStatus
+            bookingId={booking.id}
+            managePath={`${managePath}/${manageToken}`}
+            payment={booking.payment}
+          />
+        )}
         <p>
           <strong>Keep this link.</strong> It lets you see, change or cancel
           your booking, and it is shown only once. We also send it to your
@@ -570,7 +596,7 @@ export function BookingFlow({
   useFocusWhen(summaryRef, showSummary);
 
   const needsCode =
-    (service?.deposit_minor ?? 0) > 0 ||
+    dueAtBooking(service) > 0 ||
     (serviceId !== null && codeForced === serviceId);
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
   const emailCode = useEmailCode({

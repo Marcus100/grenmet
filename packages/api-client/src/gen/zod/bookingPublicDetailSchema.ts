@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
+import { bookingPaymentSummarySchema } from "./bookingPaymentSummarySchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
 
 export const bookingPublicDetailSchema = z
@@ -31,5 +32,9 @@ export const bookingPublicDetailSchema = z
     contact: bookingBusinessContactSchema.describe(
       "How to reach the business when the booking cannot be changed online."
     ),
+    payment: z
+      .union([bookingPaymentSummarySchema, z.null()])
+      .optional()
+      .describe("Null when nothing was due at booking (pay at the business)."),
   })
   .describe("A booking as its customer sees it.");

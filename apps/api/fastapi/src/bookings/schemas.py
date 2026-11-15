@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, time
+from enum import Enum
 from typing import Annotated, Self
 
 from pydantic import EmailStr, Field, RootModel, field_validator, model_validator
@@ -11,7 +12,12 @@ from src.utils.reserved_names import is_reserved
 from src.utils.timezones import is_valid_timezone
 
 from . import contact
-from .models import BookingExceptionKind, BookingSource, BookingStatus
+from .models import (
+    BookingExceptionKind,
+    BookingPaymentMode,
+    BookingSource,
+    BookingStatus,
+)
 
 Name = Annotated[str, Field(min_length=1, max_length=120)]
 Slug = Annotated[str, Field(pattern=r"^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$")]
@@ -156,6 +162,16 @@ class BookingProfileUpdate(BaseModel):
         default=None,
         max_length=254,
         description="Email address customers can write to; blank clears it.",
+    )
+    payment_at_booking: BookingPaymentMode = Field(
+        default=BookingPaymentMode.DEPOSIT,
+        description=(
+            "What an online booking pays when it is made. `deposit`: each "
+            "service's own deposit (none when it is 0). `full_price`: the service "
+            "price by card, only while online card payments are available on the "
+            "platform; otherwise it acts as `deposit`. Left out, the stored value "
+            "is kept."
+        ),
     )
 
     @field_validator("contact_phone", mode="before")
@@ -473,6 +489,14 @@ class BookingPublicService(BaseModel):
     duration_min: int
     price_minor: int
     deposit_minor: int
+    due_at_booking_minor: int = Field(
+        default=0,
+        description=(
+            "What an online booking of this service pays when it is made: the "
+            "deposit, the full price (business setting, card payments on), or 0. "
+            "More than 0 means the emailed-code step comes first."
+        ),
+    )
 
 
 class BookingPublicProvider(BaseModel):
@@ -619,6 +643,36 @@ class BookingPublicReschedule(BaseModel):
     )
 
 
+class BookingPaymentStatus(str, Enum):
+    DUE = "due"
+    PAID = "paid"
+    REFUNDED = "refunded"
+    UNPAID = "unpaid"
+
+
+class BookingPaymentSummary(BaseModel):
+    """What the customer paid when booking, as they see it."""
+
+    status: BookingPaymentStatus = Field(
+        description=(
+            "`due`: the slot is held until the payment arrives. `paid`: received "
+            "(`refunded_minor` may show a partial refund). `refunded`: handed back "
+            "in full. `unpaid`: the booking closed without a payment."
+        )
+    )
+    amount_minor: int = Field(description="What was due at booking.")
+    paid_minor: int
+    refunded_minor: int
+    currency: str
+    checkout_url: str | None = Field(
+        default=None,
+        description=(
+            "Hosted page to finish paying, only while `status` is `due` and the "
+            "payment is online."
+        ),
+    )
+
+
 class BookingPublicDetail(BaseModel):
     """A booking as its customer sees it."""
 
@@ -642,6 +696,10 @@ class BookingPublicDetail(BaseModel):
     contact: BookingBusinessContact = Field(
         description="How to reach the business when the booking cannot be changed online."
     )
+    payment: BookingPaymentSummary | None = Field(
+        default=None,
+        description="Null when nothing was due at booking (pay at the business).",
+    )
 
 
 class BookingPublicReceipt(BaseModel):
@@ -657,16 +715,16 @@ class BookingPublicReceipt(BaseModel):
     payment_required: bool = Field(
         default=False,
         description=(
-            "True when the booking holds the slot but waits for a deposit "
-            "(`status` is `pending_payment`). It is cancelled and the slot "
-            "released if the deposit is not paid in time."
+            "True when the booking holds the slot but waits for a payment (a "
+            "deposit or the full price; `status` is `pending_payment`). It is "
+            "cancelled and the slot released if it is not paid in time."
         ),
     )
     checkout_url: str | None = Field(
         default=None,
         description=(
-            "Hosted page where the customer pays the deposit. Null when no online "
-            "payment is available and the business records the payment itself."
+            "Hosted page where the customer pays. Null when no online payment is "
+            "available and the business records the payment itself."
         ),
     )
 
@@ -704,6 +762,13 @@ class BookingSettings(BaseModel):
             "False when the organisation lacks the `payments` entitlement: a "
             "service deposit is stored but not collected."
         )
+    )
+    card_payments_available: bool = Field(
+        default=False,
+        description=(
+            "True when the platform takes card payments online (Stripe, test mode "
+            "only). Without it `payment_at_booking: full_price` acts as `deposit`."
+        ),
     )
 
 

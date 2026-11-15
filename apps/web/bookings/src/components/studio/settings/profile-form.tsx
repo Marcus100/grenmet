@@ -9,6 +9,7 @@ import { TIMEZONE_SUGGESTIONS } from "@/lib/settings-view";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
 import { ContactOptions } from "./contact-options";
+import { PaymentOption } from "./payment-option";
 import {
   INPUT,
   keepTyped,
@@ -18,10 +19,13 @@ import {
 } from "./settings-ui";
 
 export function ProfileForm({
+  cardPaymentsAvailable = false,
   orgSlug,
   profile,
   suggestedName,
 }: {
+  /** The platform takes card payments online (Stripe test mode). */
+  cardPaymentsAvailable?: boolean;
   orgSlug: string;
   profile: BookingProfilePublic | null;
   /** Prefills the business name for a first-time profile. */
@@ -231,6 +235,10 @@ export function ProfileForm({
       </div>
       <ContactOptions
         errors={state.status === "error" ? state.fields : undefined}
+        profile={profile}
+      />
+      <PaymentOption
+        cardPaymentsAvailable={cardPaymentsAvailable}
         profile={profile}
       />
       <div className="space-y-1">
