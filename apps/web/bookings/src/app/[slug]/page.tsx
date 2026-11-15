@@ -5,7 +5,6 @@ import {
   timeZonePlace,
 } from "@barrelsgd/bookings-web/lib/booking-format";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
@@ -77,7 +76,7 @@ export default async function BusinessBookingPage({
   const accountInvite = (await isSignedIn())
     ? undefined
     : {
-        href: signUpHref(env.AUTH_APP_URL, await headers(), slug),
+        href: signUpHref(env.AUTH_APP_URL, env.NEXT_PUBLIC_SITE_URL, slug),
       };
 
   return (
