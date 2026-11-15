@@ -26,7 +26,7 @@ export type ListingDetail = {
   slug: string;
   title: string;
   summary: string;
-  category: GroupDetailPropertiesCategoryEnum;
+  category: GroupDetailPropertiesCategoryEnum | null;
   parish: GroupDetailPropertiesParishEnum;
   venue: string;
   /**
