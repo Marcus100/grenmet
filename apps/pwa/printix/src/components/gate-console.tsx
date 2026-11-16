@@ -7,6 +7,7 @@ import {
 import { holdScreenAwake } from "@barrelsgd/pwa-kit/lib/wake-lock";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CountBar } from "@/components/count-bar";
+import { OfflineStatus } from "@/components/offline-status";
 import { ResultOverlay } from "@/components/result-overlay";
 import { TypedEntry } from "@/components/typed-entry";
 import {
@@ -23,6 +24,7 @@ import {
   verdictFor,
 } from "@/lib/scan-outcome";
 import { useLiveCount } from "@/lib/use-live-count";
+import { useOffline } from "@/lib/use-offline";
 
 /** The scanner's own words around the shared camera. */
 const CAMERA_TEXT = {
@@ -63,6 +65,12 @@ export function GateConsole({
   const [sound] = useState<SoundPlayer>(createSoundPlayer);
   const [gate] = useState(createScanGate);
   const { summary, link, refresh } = useLiveCount(connection, onPairingProblem);
+  const offline = useOffline(connection, onPairingProblem);
+  // The check callback reads the latest offline view without being rebuilt.
+  const offlineRef = useRef(offline);
+  useEffect(() => {
+    offlineRef.current = offline;
+  });
   // Refs, not state, so a read that arrives between two renders is not missed.
   const pending = useRef(false);
   const held = useRef(false);
@@ -107,7 +115,19 @@ export function GateConsole({
       }
       pending.current = true;
       setChecking(true);
-      const answer: ScanAnswer = await submitScan(connection, value);
+      // A phone that knows it has no signal skips the wait for a timeout.
+      const knownOffline =
+        typeof navigator !== "undefined" && navigator.onLine === false;
+      const answer: ScanAnswer = knownOffline
+        ? { kind: "no-signal" }
+        : await submitScan(connection, value);
+      const view = offlineRef.current;
+      view.markOnline(answer.kind !== "no-signal");
+      // With no signal, the saved ticket list decides (null: no usable list).
+      const local =
+        answer.kind === "no-signal"
+          ? await view.checkOffline(value, source)
+          : null;
       pending.current = false;
       setChecking(false);
       if (answer.kind === "pairing") {
@@ -117,7 +137,7 @@ export function GateConsole({
       if (answer.kind === "checked") {
         refresh();
       }
-      showVerdict(verdictFor(answer, source));
+      showVerdict(local ?? verdictFor(answer, source));
     },
     [connection, onPairingProblem, refresh, showVerdict]
   );
@@ -160,7 +180,7 @@ export function GateConsole({
           Paired
         </p>
         <h1 className="truncate text-xl font-semibold">
-          {summary?.event.name ?? "Printix Scanner"}
+          {summary?.event.name ?? offline.eventName ?? "Printix Scanner"}
         </h1>
         {summary?.event.status === "closed" ? (
           <p className="text-px-paper text-sm font-semibold">
@@ -169,7 +189,14 @@ export function GateConsole({
         ) : null}
       </header>
 
-      <div className="px-4 pb-4">
+      <div className="flex flex-col gap-4 px-4 pb-4">
+        <OfflineStatus
+          conflicts={offline.conflicts}
+          fetchedAt={offline.fetchedAt}
+          mode={offline.mode}
+          online={offline.online}
+          pending={offline.pending}
+        />
         <CountBar link={link} summary={summary} />
       </div>
 
@@ -218,9 +245,22 @@ export function GateConsole({
               Unpair this phone? It will stop checking tickets until you scan a
               new pairing code.
             </p>
+            {offline.pending > 0 ? (
+              <p className="text-px-paper text-base font-semibold">
+                {offline.pending === 1
+                  ? "1 admission made with no signal has not been sent yet and will be lost."
+                  : `${offline.pending} admissions made with no signal have not been sent yet and will be lost.`}{" "}
+                Unpair only where there is signal and nothing is waiting.
+              </p>
+            ) : null}
             <button
               className="bg-px-stop text-px-paper focus-visible:outline-px-paper min-h-14 w-full rounded-2xl text-lg font-bold hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2"
-              onClick={onUnpair}
+              onClick={() => {
+                offline
+                  .forget()
+                  .catch(() => undefined)
+                  .finally(onUnpair);
+              }}
               type="button"
             >
               Unpair this phone

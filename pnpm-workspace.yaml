@@ -61,6 +61,13 @@ catalog:
   # App-first phone apps (apps/pwa/*) build with Vite, not Next.js (owner, 16 Nov 2026).
   vite: "^8.3.3"
   "@vitejs/plugin-react": "^6.3.0"
+  # Offline opening for the phone apps (service worker and precache; owner approved 16 Nov 2026).
+  vite-plugin-pwa: "^2.0.0"
+  workbox-window: "^7.4.1"
+  # The phone's own database for offline lists and queues (owner approved 16 Nov 2026).
+  dexie: "^4.4.7"
+  # Test-only stand-in for the phone's database (owner approved 16 Nov 2026).
+  fake-indexeddb: "^6.2.8"
   typescript: "^7.0.2"
 
 

@@ -21,8 +21,10 @@
     "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/pwa-kit": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
+    "dexie": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "workbox-window": "catalog:"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",
@@ -34,10 +36,12 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "fake-indexeddb": "catalog:",
     "jsdom": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
+    "vite-plugin-pwa": "catalog:",
     "vitest": "catalog:"
   },
   "engines": {

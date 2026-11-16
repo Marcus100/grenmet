@@ -77,16 +77,47 @@ are placeholders until the client supplies artwork.
   `http://localhost` only works with `pnpm dev:pwa:printix` (or `vite preview`), which send no
   `_headers` CSP.
 
+## Offline (ADR-0060, offline amendment)
+
+- **Opening with no signal:** `vite-plugin-pwa` builds `sw.js`, which keeps
+  every built file on the phone (precache: page, scripts, styles, Inter, the
+  barcode reader's WebAssembly, icons, manifest). API calls are never cached.
+  A new version shows a "Reload" banner (`src/components/service-worker.tsx`)
+  and never reloads by itself, since a reload stops the camera. `_headers`
+  marks `/sw.js` no-cache.
+- **Ticket list** (`src/lib/use-offline.ts`, `offline-sync.ts`): downloaded
+  on start, every 5 minutes while online and on reconnect (at most one every
+  30 seconds; the server allows 4 a minute). Saved in the phone's database
+  (Dexie, `src/lib/offline-store.ts`) as keyed hashes, never barcodes.
+  Everything saved belongs to one pairing (a SHA-256 fingerprint of the
+  secret, never the secret); data for another pairing is deleted on load,
+  and unpairing deletes it all (the confirm step warns if admissions are
+  still waiting).
+- **Checking with no signal:** a live check that fails for lack of signal, or
+  takes over 5 seconds (`LIVE_CHECK_TIMEOUT_MS`), is checked against the saved
+  list (`src/lib/offline-check.ts`). The phone hashes the cleaned value with
+  Web Crypto exactly as the server does (`src/lib/offline-hash.ts`). A valid
+  ticket is admitted in green and queued with a random `client_ref`, the
+  scanned value and the phone's time; void, already admitted (here or
+  elsewhere), not on the list and event closed are refused. Typed numbers are
+  never checked offline. With no saved list, or for an event the server
+  refuses (409 `offline_not_available`), the plain no-signal answer stands.
+- **Sending:** queued admissions go to the server oldest first, up to 100 at
+  a time, every 15 seconds while online and at once on reconnect. The first
+  admission the server records wins; every other answer is kept as a
+  conflict and listed in words ("Ticket 123: also admitted at North at
+  20:14"). Deferred admissions stay queued until `retry_after_seconds`.
+- **On screen** (`src/components/offline-status.tsx`): an Online/Offline
+  badge with the number waiting to send, the saved list's download time, the
+  "not available for this event" notice, and the conflicts list.
+- Tests use `fake-indexeddb`. The whole flow was tried in headless Chromium:
+  paired, list downloaded, network cut, reload: the app opened from the
+  phone, still paired, showing Offline and the list's age.
+
 ## Not built yet
 
-QR generation for administrators, offline scanning, ticket types, re-entry,
-and the Barrels Events connection. Backend logic goes in FastAPI, never here.
-
-Offline scanning: the API side exists (`GET /printix/public/offline-tickets`,
-`POST /printix/public/offline-admissions`; ADR-0060, offline amendment). The
-app side (IndexedDB list and queue, Web Crypto HMAC, sync, online/offline and
-"waiting to sync" display, conflicts list, a service worker for loading with no
-signal) is the next change.
+QR generation for administrators, ticket types, re-entry, and the Barrels
+Events connection. Backend logic goes in FastAPI, never here.
 
 ## Rules
 
