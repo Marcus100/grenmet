@@ -255,6 +255,19 @@ async def test_code_request_is_refused_for_a_password_account(
     assert sent == []
 
 
+class _OncePerKey:
+    """Cooldown stand-in: each key is allowed once."""
+
+    def __init__(self) -> None:
+        self.seen: set[str] = set()
+
+    async def allow(self, key: str) -> bool:
+        if key in self.seen:
+            return False
+        self.seen.add(key)
+        return True
+
+
 async def test_code_requests_are_rate_limited_per_account(
     async_client, db_async, monkeypatch
 ):
@@ -263,6 +276,8 @@ async def test_code_requests_are_rate_limited_per_account(
     await db_async.commit()
     headers = await _headers(db_async, user)
     _capture_code_emails(monkeypatch)
+    # The real cooldown is Redis-backed; CI has no Redis, so use a stand-in.
+    monkeypatch.setattr(email_change_module, "email_code_cooldown", _OncePerKey())
 
     first = await async_client.post(START_CODE, headers=headers)
     second = await async_client.post(START_CODE, headers=headers)
