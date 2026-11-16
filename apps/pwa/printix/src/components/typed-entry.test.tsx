@@ -8,7 +8,7 @@ afterEach(cleanup);
 describe("TypedEntry", () => {
   it("starts in the number field, sized and set up for a numeric keypad", () => {
     render(
-      <TypedEntry checking={false} onClose={vi.fn()} onSubmit={vi.fn()} />
+      <TypedEntry checking={false} onClose={vi.fn()} onSubmit={vi.fn()} open />
     );
     const field = screen.getByLabelText("Printed number");
     expect(document.activeElement).toBe(field);
@@ -21,7 +21,7 @@ describe("TypedEntry", () => {
   it("refuses an empty number and does not send it", () => {
     const onSubmit = vi.fn();
     render(
-      <TypedEntry checking={false} onClose={vi.fn()} onSubmit={onSubmit} />
+      <TypedEntry checking={false} onClose={vi.fn()} onSubmit={onSubmit} open />
     );
     fireEvent.click(screen.getByRole("button", { name: "Check ticket" }));
     expect(screen.getByRole("alert")).toHaveTextContent(
@@ -33,7 +33,7 @@ describe("TypedEntry", () => {
   it("sends the number without surrounding spaces", () => {
     const onSubmit = vi.fn();
     render(
-      <TypedEntry checking={false} onClose={vi.fn()} onSubmit={onSubmit} />
+      <TypedEntry checking={false} onClose={vi.fn()} onSubmit={onSubmit} open />
     );
     fireEvent.change(screen.getByLabelText("Printed number"), {
       target: { value: "  042 " },
@@ -45,7 +45,7 @@ describe("TypedEntry", () => {
   it("closes on Escape and on Cancel", () => {
     const onClose = vi.fn();
     render(
-      <TypedEntry checking={false} onClose={onClose} onSubmit={vi.fn()} />
+      <TypedEntry checking={false} onClose={onClose} onSubmit={vi.fn()} open />
     );
     fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -54,7 +54,7 @@ describe("TypedEntry", () => {
 
   it("does not send a second number while a check is pending", () => {
     const onSubmit = vi.fn();
-    render(<TypedEntry checking onClose={vi.fn()} onSubmit={onSubmit} />);
+    render(<TypedEntry checking onClose={vi.fn()} onSubmit={onSubmit} open />);
     expect(screen.getByRole("button", { name: "Checking…" })).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Printed number"), {
       target: { value: "042" },
@@ -63,5 +63,17 @@ describe("TypedEntry", () => {
       screen.getByRole("dialog").querySelector("form") ?? document.body
     );
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("renders nothing while closed", () => {
+    render(
+      <TypedEntry
+        checking={false}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        open={false}
+      />
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });

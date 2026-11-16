@@ -63,6 +63,9 @@ export function GateConsole({
   const showVerdict = useCallback(
     (next: Verdict) => {
       held.current = true;
+      // The sheet may have been opened while this check was pending. Close it
+      // for good, so it does not slide back up when the result is dismissed.
+      setTypedOpen(false);
       setVerdict(next);
       const time = formatTime(new Date().toISOString());
       setLastCheck(time ? `${next.title}, ${time}` : next.title);
@@ -141,7 +144,7 @@ export function GateConsole({
   };
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="px-screen flex min-h-dvh flex-col">
       <header className="flex flex-col gap-1 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
         <p className="text-px-muted text-xs font-semibold tracking-wider uppercase">
           Paired
@@ -228,13 +231,18 @@ export function GateConsole({
       </footer>
 
       {verdict ? <ResultOverlay onDismiss={dismiss} verdict={verdict} /> : null}
-      {typedOpen ? (
+      {/*
+        A result replaces the sheet at once. A sheet still sliding away would
+        keep the result hidden from screen readers and block Scan next.
+      */}
+      {verdict ? null : (
         <TypedEntry
           checking={checking}
           onClose={closeTyped}
           onSubmit={submitTyped}
+          open={typedOpen}
         />
-      ) : null}
+      )}
     </div>
   );
 }

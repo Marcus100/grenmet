@@ -3,7 +3,7 @@ import type { PairingProblem } from "@/lib/scan-api";
 import { PAIRING_COPY } from "@/lib/scan-outcome";
 
 const PAGE =
-  "flex min-h-dvh flex-col gap-6 px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]";
+  "px-screen flex min-h-dvh flex-col gap-6 px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]";
 const BUTTON =
   "bg-px-green text-px-ink focus-visible:outline-px-paper min-h-14 hover:opacity-90 w-full rounded-2xl text-lg font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] transition-transform duration-150 ease-out motion-reduce:transition-none motion-reduce:active:scale-100";
 

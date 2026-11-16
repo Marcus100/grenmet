@@ -48,6 +48,21 @@ function checkTyped(value: string) {
   fireEvent.click(screen.getByRole("button", { name: "Check ticket" }));
 }
 
+/**
+ * The open sheet, or null. jsdom never finishes the closing animation, so a
+ * closed sheet can stay in the page (and keep the rest hidden from roles).
+ */
+function openSheet(): HTMLElement | null {
+  const sheet = screen.queryByRole("dialog");
+  return sheet?.getAttribute("data-state") === "open" ? sheet : null;
+}
+
+function tapTypeANumber() {
+  fireEvent.click(
+    screen.getByRole("button", { name: "Type a number", hidden: true })
+  );
+}
+
 beforeEach(() => {
   submitMock.mockReset();
   readMock.mockReset();
@@ -142,6 +157,50 @@ describe("checking a ticket", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Type the printed number first."
     );
+    expect(submitMock).not.toHaveBeenCalled();
+  });
+
+  it("puts focus on Scan next, not on the button behind the result", async () => {
+    answerWith({ kind: "no-signal" });
+    renderConsole();
+    checkTyped("042");
+    const next = await screen.findByRole("button", { name: "Scan next" });
+    // The closing sheet hands focus back on a timer; let it run.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(document.activeElement).toBe(next);
+  });
+
+  it("does not bring the sheet back after a result that arrived while it was open", async () => {
+    let resolveAnswer: (answer: ScanAnswer) => void = () => undefined;
+    submitMock.mockReturnValueOnce(
+      new Promise<ScanAnswer>((resolve) => {
+        resolveAnswer = resolve;
+      })
+    );
+    renderConsole();
+    checkTyped("042");
+    // Reopen the sheet while the first check is still pending.
+    tapTypeANumber();
+    expect(openSheet()).not.toBeNull();
+
+    resolveAnswer({ kind: "no-signal" });
+    fireEvent.click(await screen.findByRole("button", { name: "Scan next" }));
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("opens the sheet empty again after Cancel", async () => {
+    renderConsole();
+    fireEvent.click(screen.getByRole("button", { name: "Type a number" }));
+    fireEvent.change(screen.getByLabelText("Printed number"), {
+      target: { value: "042" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(openSheet()).toBeNull());
+
+    tapTypeANumber();
+    expect(openSheet()).not.toBeNull();
+    expect(screen.getByLabelText("Printed number")).toHaveValue("");
     expect(submitMock).not.toHaveBeenCalled();
   });
 
