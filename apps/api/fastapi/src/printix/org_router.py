@@ -17,11 +17,12 @@ bypass. Writes record the organiser as the actor. Each route has a per-user limi
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Query, UploadFile, status
+from fastapi import APIRouter, File, Query, Response, UploadFile, status
 
 from src.dependencies import SessionDep
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
+from src.organisations import grants as organisation_grants
 from src.pagination import PaginationDep
 
 from . import constants, service
@@ -33,6 +34,7 @@ from .dependencies import (
     PrintixOrgGatesReadAccess,
     PrintixOrgGatesWriteAccess,
 )
+from .exceptions import PrintixTypedNumbersNotAllowed
 from .schemas import (
     PrintixEventPage,
     PrintixEventPublic,
@@ -333,7 +335,16 @@ async def create_org_pairing_endpoint(
     context: PrintixOrgGatesWriteAccess,
     event_id: uuid.UUID,
     body: PrintixPairingCreate,
+    response: Response,
 ) -> Any:
+    # Typed printed numbers widen what a gate admits, so only an organiser may turn them on.
+    if body.allow_typed_numbers and not await organisation_grants.has_org_permission(
+        session,
+        membership=context.membership,
+        permission_key=constants.EVENTS_MANAGE_KEY,
+    ):
+        raise PrintixTypedNumbersNotAllowed()
+    response.headers["Cache-Control"] = "no-store"
     pairing, secret = await service.create_pairing(
         session,
         event_id,

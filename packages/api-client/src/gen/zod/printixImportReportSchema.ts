@@ -29,13 +29,13 @@ export const printixImportReportSchema = z.object({
     .optional()
     .default(0)
     .describe(
-      "Rows whose barcode is shorter than 12 characters. Offline scanning stays off for the event if any."
+      "Tickets on the event once this file is in (tickets already there plus this file's rows) whose barcode is shorter than 12 characters. Offline scanning stays off for the event while this is above zero."
     ),
   barcode_equals_number: z
     .int()
     .optional()
     .default(0)
     .describe(
-      "Rows whose barcode equals the printed number (including defaulted barcodes). Offline scanning stays off for the event if any."
+      "Tickets on the event once this file is in (tickets already there plus this file's rows) whose barcode equals their printed number, including barcodes defaulted from the number. Offline scanning stays off for the event while this is above zero."
     ),
 });

@@ -13,6 +13,7 @@ keys, with an enrolled authenticator and a session that passed it, every time.
 No superuser bypass.
 """
 
+import logging
 import uuid
 from collections.abc import Awaitable, Callable
 from typing import Annotated
@@ -39,6 +40,8 @@ from .models import PrintixPairing
 
 #: The app whose session organisers sign in with (``src/auth/apps.py``).
 ORGANISER_APP = "printix"
+
+logger = logging.getLogger(__name__)
 
 _pairing_header = APIKeyHeader(
     name="Authorization",
@@ -89,9 +92,16 @@ ORGANISER_WRITES_PER_MINUTE = "30/minute"
 async def _within_organiser_limit(limit: str, bucket: str, user_id: uuid.UUID) -> None:
     if not limiter.enabled:
         return
-    if not await run_in_threadpool(
-        limiter.limiter.hit, parse(limit), "printix-organiser", bucket, str(user_id)
-    ):
+    try:
+        allowed = await run_in_threadpool(
+            limiter.limiter.hit, parse(limit), "printix-organiser", bucket, str(user_id)
+        )
+    except Exception:  # the limiter's backend (Redis) is down: serve, but say so
+        logger.warning(
+            "Printix organiser rate limiter unavailable; allowing the request"
+        )
+        return
+    if not allowed:
         raise AppException(
             "Too many requests; slow down", status.HTTP_429_TOO_MANY_REQUESTS
         )

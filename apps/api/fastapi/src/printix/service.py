@@ -449,8 +449,10 @@ async def import_tickets(
         else:
             warnings.append(_NO_BARCODE_COLUMN_WARNING)
 
+    # Event-wide weak-barcode counts, taken before any write: tickets already on the
+    # event plus this file's valid rows. A second import still warns.
+    short, equal = await _event_barcode_weakness(session, event.id, parsed.rows)
     if dry_run or not clean:
-        short, equal = _barcode_weakness(parsed.rows)
         return PrintixImportReport(
             dry_run=dry_run,
             applied=False,
@@ -495,7 +497,6 @@ async def import_tickets(
         "Printix tickets imported",
         extra={"subject_id": str(event.id), "target_id": str(event.id)},
     )
-    short, equal = _barcode_weakness(parsed.rows)
     return PrintixImportReport(
         dry_run=False,
         applied=True,
@@ -507,6 +508,28 @@ async def import_tickets(
         short_barcodes=short,
         barcode_equals_number=equal,
     )
+
+
+async def _event_barcode_weakness(
+    session: AsyncSession, event_id: uuid.UUID, rows: list[csv_import.ParsedRow]
+) -> tuple[int, int]:
+    """Event-wide counts: tickets on the event (short barcodes, barcodes equal to their
+    number) plus the file's valid rows. Offline mode is off while either is above zero."""
+    short_stored = await session.scalar(
+        select(func.count(PrintixTicket.id)).where(
+            PrintixTicket.event_id == event_id,
+            func.length(PrintixTicket.barcode_value)
+            < constants.OFFLINE_MIN_BARCODE_LENGTH,
+        )
+    )
+    equal_stored = await session.scalar(
+        select(func.count(PrintixTicket.id)).where(
+            PrintixTicket.event_id == event_id,
+            PrintixTicket.barcode_value == PrintixTicket.printed_number,
+        )
+    )
+    short_file, equal_file = _barcode_weakness(rows)
+    return int(short_stored or 0) + short_file, int(equal_stored or 0) + equal_file
 
 
 def _barcode_weakness(rows: list[csv_import.ParsedRow]) -> tuple[int, int]:
@@ -630,6 +653,28 @@ async def list_tickets(
     )
 
 
+async def _ticket_for(
+    session: AsyncSession, ticket_id: uuid.UUID, *, organisation_id: str | None
+) -> PrintixTicket:
+    """The ticket, or "Ticket not found". With ``organisation_id`` the event's organisation
+    is part of the same query, so another organisation's ticket and a missing one answer
+    identically."""
+    if organisation_id is None:
+        ticket = await session.get(PrintixTicket, ticket_id)
+    else:
+        ticket = await session.scalar(
+            select(PrintixTicket)
+            .join(PrintixEvent, PrintixEvent.id == PrintixTicket.event_id)
+            .where(
+                PrintixTicket.id == ticket_id,
+                PrintixEvent.organisation_id == organisation_id,
+            )
+        )
+    if ticket is None:
+        raise PrintixNotFound("Ticket not found")
+    return ticket
+
+
 async def set_ticket_void(
     session: AsyncSession,
     ticket_id: uuid.UUID,
@@ -641,9 +686,7 @@ async def set_ticket_void(
     """Void or restore a ticket. An admitted ticket cannot be voided, and nothing
     changes once the event has closed. ``organisation_id`` (organiser routes) makes a
     ticket of another organisation's event not found."""
-    ticket = await session.get(PrintixTicket, ticket_id)
-    if ticket is None:
-        raise PrintixNotFound("Ticket not found")
+    ticket = await _ticket_for(session, ticket_id, organisation_id=organisation_id)
     event = await get_event(session, ticket.event_id, organisation_id=organisation_id)
     if is_closed(event, utc_now()):
         raise PrintixConflict("This event is closed, so its tickets cannot change")
@@ -714,11 +757,24 @@ async def create_pairing(
     allow_typed_numbers: bool = False,
     organisation_id: str | None = None,
 ) -> tuple[PrintixPairing, str]:
-    """A new pairing and its secret. ``expires_at`` is naive UTC or None."""
-    event = await get_event(session, event_id, organisation_id=organisation_id)
+    """A new pairing and its secret. ``expires_at`` is naive UTC or None. The event row
+    is locked, so two concurrent makes cannot both pass the active-code cap."""
+    event = await _event_for_update(session, event_id, organisation_id=organisation_id)
     now = utc_now()
     if is_closed(event, now):
         raise PrintixConflict("This event is closed, so no new pairings can be made")
+    active = await session.scalar(
+        select(func.count(PrintixPairing.id)).where(
+            PrintixPairing.event_id == event.id,
+            PrintixPairing.revoked_at.is_(None),
+            PrintixPairing.expires_at > now,
+        )
+    )
+    if int(active or 0) >= constants.MAX_ACTIVE_PAIRINGS_PER_EVENT:
+        raise PrintixConflict(
+            f"This event already has {constants.MAX_ACTIVE_PAIRINGS_PER_EVENT} active gate "
+            "codes. Cancel one before making another."
+        )
     if expires_at is None:
         expires_at = event.closes_at + constants.PAIRING_DEFAULT_AFTER_CLOSE
     else:
@@ -767,6 +823,26 @@ async def list_pairings(
     return list(rows.all())
 
 
+async def _pairing_for(
+    session: AsyncSession, pairing_id: uuid.UUID, *, organisation_id: str | None
+) -> PrintixPairing:
+    """The pairing, or "Pairing not found"; the organisation filter is in the same query."""
+    if organisation_id is None:
+        pairing = await session.get(PrintixPairing, pairing_id)
+    else:
+        pairing = await session.scalar(
+            select(PrintixPairing)
+            .join(PrintixEvent, PrintixEvent.id == PrintixPairing.event_id)
+            .where(
+                PrintixPairing.id == pairing_id,
+                PrintixEvent.organisation_id == organisation_id,
+            )
+        )
+    if pairing is None:
+        raise PrintixNotFound("Pairing not found")
+    return pairing
+
+
 async def revoke_pairing(
     session: AsyncSession,
     pairing_id: uuid.UUID,
@@ -774,11 +850,7 @@ async def revoke_pairing(
     actor_id: uuid.UUID | None = None,
     organisation_id: str | None = None,
 ) -> PrintixPairing:
-    pairing = await session.get(PrintixPairing, pairing_id)
-    if pairing is None:
-        raise PrintixNotFound("Pairing not found")
-    if organisation_id is not None:
-        await get_event(session, pairing.event_id, organisation_id=organisation_id)
+    pairing = await _pairing_for(session, pairing_id, organisation_id=organisation_id)
     if pairing.revoked_at is None:
         audit_service.set_actor(session, actor_id)
         pairing.revoked_at = utc_now()

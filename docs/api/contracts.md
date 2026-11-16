@@ -3247,6 +3247,15 @@ Four route zones, all under `/api/v1/printix/`.
   lead holds only the gate key. Every event, ticket and pairing is looked up through its event's
   organisation in SQL: another organisation's record, or one with no organisation, is 404.
   Writes record the organiser as the audit actor.
+  Review fixes: only an organiser (`printix.events.manage`) may set `allow_typed_numbers`
+  (a gate lead gets 403 with `PrintixTypedNumbersNotAllowed`); an event holds at most 20 active
+  gate codes (a 409 when full; a revoked or expired code frees its place); a pairing create
+  answers `Cache-Control: no-store`. An organiser-made event is dated at most a year ahead and
+  closes at most seven days after its event date (422). A ticket or pairing of another
+  organisation and a missing one answer the same 404. The read bucket is 120 a minute and the
+  write bucket 30 a minute per user; if the limiter's backend is down the request is allowed
+  (logged). The import report's weak-barcode counts are event-wide: tickets already on the event
+  plus this file's valid rows.
   `GET /admin/events` (superuser, every event) and `POST /admin/events/{id}/organisation`
   (set or clear `organisation_id`) are in the admin zone; `POST /admin/events` takes an
   optional `organisation_id`. Either call refuses an organisation that is suspended or not

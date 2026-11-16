@@ -227,6 +227,19 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   barcode equals the printed number (defaulted barcodes included). Either above zero means
   offline scanning is off for the event (rule 7). Both fields are additive on the shared
   report, so the admin import response gains them too.
+- **Review fixes (PR #1542).** Typed numbers need `printix.events.manage` (checked in the
+  router with `organisations.grants.has_org_permission`, so a gate lead gets
+  `PrintixTypedNumbersNotAllowed`, 403). `MAX_ACTIVE_PAIRINGS_PER_EVENT` (20) caps active
+  pairings per event, counted in SQL under the event row lock in `create_pairing`; the admin
+  create uses the same service function, so the admin route is capped too. Organiser-made
+  events: `event_date` at most 365 days ahead, `closes_at` at most seven days after the event
+  date (`PrintixOrgEventCreate`, dates compared as the admin schema compares them). A ticket
+  or pairing is looked up with its event's organisation in one query (`_ticket_for`,
+  `_pairing_for`), so a foreign and a missing id answer the same 404. Weak-barcode counts are
+  event-wide (`_event_barcode_weakness`, taken before any write). `create_pairing` answers
+  `Cache-Control: no-store`, on the organiser and admin routes. The organiser limiter fails
+  open: if `limiter.limiter.hit` raises, the request is allowed and a warning is logged with no
+  ids.
 - **Pairing defaults (owner, 16 Nov 2026).** Expiry six hours after the event closes, at most a
   day after; typed printed numbers off unless the request sets `allow_typed_numbers`.
 - **Migration debt:** the foreign key `event_organisation_id_fkey` was added `NOT VALID`

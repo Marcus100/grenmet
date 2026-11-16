@@ -101694,13 +101694,13 @@
           "short_barcodes": {
             "type": "integer",
             "title": "Short Barcodes",
-            "description": "Rows whose barcode is shorter than 12 characters. Offline scanning stays off for the event if any.",
+            "description": "Tickets on the event once this file is in (tickets already there plus this file's rows) whose barcode is shorter than 12 characters. Offline scanning stays off for the event while this is above zero.",
             "default": 0
           },
           "barcode_equals_number": {
             "type": "integer",
             "title": "Barcode Equals Number",
-            "description": "Rows whose barcode equals the printed number (including defaulted barcodes). Offline scanning stays off for the event if any.",
+            "description": "Tickets on the event once this file is in (tickets already there plus this file's rows) whose barcode equals their printed number, including barcodes defaulted from the number. Offline scanning stays off for the event while this is above zero.",
             "default": 0
           }
         },

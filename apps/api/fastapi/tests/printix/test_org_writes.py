@@ -13,12 +13,13 @@ from typing import Any
 
 import httpx
 import pytest
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
 from src.config import settings
 from src.organisations.models import PlatformOrganisation
+from src.printix import constants
 from src.printix.models import PrintixPairing, PrintixTicket
 from src.rate_limit import limiter
 
@@ -311,9 +312,10 @@ async def test_the_default_expiry_is_six_hours_after_close_and_typed_numbers_are
     expires = datetime.fromisoformat(made.json()["expires_at"].replace("Z", "+00:00"))
     closes = event.closes_at.replace(tzinfo=UTC, microsecond=0)
     assert expires == closes + timedelta(hours=6)
+    organiser, _ = await _pair_setup(db_async, world)
     typed = await async_client.post(
         f"{ORG}/events/{event.id}/pairings",
-        headers=headers,
+        headers=await _headers(db_async, organiser, world["org_a"]),
         json={"gate": "Gate 3", "allow_typed_numbers": True},
     )
     assert typed.json()["allow_typed_numbers"] is True
@@ -406,3 +408,334 @@ async def test_admin_routes_are_unchanged_by_the_organiser_writes(
         f"{ADMIN}/events/{created.json()['id']}/close", headers=headers
     )
     assert closed.status_code == 200
+
+
+# --- Review fixes (PR #1542) --------------------------------------------------------
+
+MAX_BYTES = constants.MAX_IMPORT_BYTES
+
+
+async def _gate_headers(db: AsyncSession, world: dict[str, Any]) -> dict[str, str]:
+    _, gate_lead = await _pair_setup(db, world)
+    return await _headers(db, gate_lead, world["org_a"])
+
+
+async def test_a_gate_lead_is_refused_on_import_and_unvoid(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    headers = await _gate_headers(db_async, world)
+    ticket = await make_ticket(
+        db_async, world["ev_a"], "001", barcode="LONGENOUGH-0001"
+    )
+    imported = await async_client.post(
+        f"{ORG}/events/{world['ev_a'].id}/tickets/import",
+        headers=headers,
+        params={"dry_run": "false"},
+        files=_csv("002,LONGENOUGH-0002"),
+    )
+    unvoided = await async_client.post(
+        f"{ORG}/tickets/{ticket.id}/unvoid", headers=headers
+    )
+    assert imported.status_code == 403
+    assert unvoided.status_code == 403
+
+
+async def test_pairing_expiry_must_be_in_the_future_and_within_a_day_of_close(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    headers = await _gate_headers(db_async, world)
+    event = world["ev_a"]
+    await db_async.refresh(event)
+    past = await async_client.post(
+        f"{ORG}/events/{event.id}/pairings",
+        headers=headers,
+        json={"gate": "G", "expires_at": "2020-01-01T00:00:00Z"},
+    )
+    far = (event.closes_at.replace(tzinfo=UTC) + timedelta(hours=25)).isoformat()
+    beyond = await async_client.post(
+        f"{ORG}/events/{event.id}/pairings",
+        headers=headers,
+        json={"gate": "G", "expires_at": far},
+    )
+    assert past.status_code == 422
+    assert beyond.status_code == 422
+
+
+async def test_a_pairing_cannot_be_made_on_a_closed_event_and_revoke_still_works(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    organiser, gate_lead = await _pair_setup(db_async, world)
+    organiser_headers = await _headers(db_async, organiser, world["org_a"])
+    gate_headers = await _headers(db_async, gate_lead, world["org_a"])
+    event_id = world["ev_a"].id
+    made = await async_client.post(
+        f"{ORG}/events/{event_id}/pairings", headers=gate_headers, json={"gate": "G"}
+    )
+    assert made.status_code == 201
+    closed = await async_client.post(
+        f"{ORG}/events/{event_id}/close", headers=organiser_headers
+    )
+    assert closed.status_code == 200
+    after = await async_client.post(
+        f"{ORG}/events/{event_id}/pairings", headers=gate_headers, json={"gate": "H"}
+    )
+    assert after.status_code == 409
+    revoked = await async_client.post(
+        f"{ORG}/pairings/{made.json()['id']}/revoke", headers=gate_headers
+    )
+    assert revoked.status_code == 200
+
+
+async def test_an_oversized_upload_is_413(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    organiser, _ = await _pair_setup(db_async, world)
+    headers = await _headers(db_async, organiser, world["org_a"])
+    response = await async_client.post(
+        f"{ORG}/events/{world['ev_a'].id}/tickets/import",
+        headers=headers,
+        params={"dry_run": "false"},
+        files={"file": ("big.csv", b"x" * (MAX_BYTES + 1), "text/csv")},
+    )
+    assert response.status_code == 413
+
+
+async def test_a_bom_and_quoted_fields_import_through_the_organiser_route(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    organiser, _ = await _pair_setup(db_async, world)
+    headers = await _headers(db_async, organiser, world["org_a"])
+    body = '﻿"number","barcode"\n"001","LONG QUOTED-0001"\n'.encode()
+    response = await async_client.post(
+        f"{ORG}/events/{world['ev_a'].id}/tickets/import",
+        headers=headers,
+        params={"dry_run": "false"},
+        files={"file": ("tickets.csv", body, "text/csv")},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["applied"] is True
+    count = await db_async.scalar(
+        select(func.count(PrintixTicket.id)).where(
+            PrintixTicket.event_id == world["ev_a"].id
+        )
+    )
+    assert count == 1
+
+
+async def test_the_read_bucket_refuses_the_hundred_and_twenty_first_read(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(limiter, "enabled", True)
+    organiser, _ = await _pair_setup(db_async, world)
+    headers = await _headers(db_async, organiser, world["org_a"])
+    statuses = []
+    for _ in range(121):
+        statuses.append(
+            (await async_client.get(f"{ORG}/events", headers=headers)).status_code
+        )
+    assert statuses[:120] == [200] * 120
+    assert statuses[120] == 429
+
+
+async def test_the_organiser_limit_fails_open_when_the_limiter_backend_is_down(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(limiter, "enabled", True)
+
+    def unavailable(*_args: object, **_kwargs: object) -> bool:
+        raise ConnectionError("redis is down")
+
+    monkeypatch.setattr(limiter.limiter, "hit", unavailable)
+    organiser, _ = await _pair_setup(db_async, world)
+    headers = await _headers(db_async, organiser, world["org_a"])
+    ticket = await make_ticket(
+        db_async, world["ev_a"], "001", barcode="LONGENOUGH-0001"
+    )
+    unvoided = await async_client.post(
+        f"{ORG}/tickets/{ticket.id}/unvoid", headers=headers
+    )
+    listed = await async_client.get(f"{ORG}/events", headers=headers)
+    assert unvoided.status_code == 200
+    assert listed.status_code == 200
+
+
+async def test_typed_numbers_need_the_organiser_key(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    organiser, gate_lead = await _pair_setup(db_async, world)
+    event_id = world["ev_a"].id
+    lead = await _headers(db_async, gate_lead, world["org_a"])
+    refused = await async_client.post(
+        f"{ORG}/events/{event_id}/pairings",
+        headers=lead,
+        json={"gate": "G", "allow_typed_numbers": True},
+    )
+    assert refused.status_code == 403
+    assert "typed printed numbers" in refused.json()["detail"]
+    org = await _headers(db_async, organiser, world["org_a"])
+    allowed = await async_client.post(
+        f"{ORG}/events/{event_id}/pairings",
+        headers=org,
+        json={"gate": "G", "allow_typed_numbers": True},
+    )
+    assert allowed.status_code == 201
+    assert allowed.json()["allow_typed_numbers"] is True
+
+
+async def test_an_event_holds_at_most_twenty_active_gate_codes(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    headers = await _gate_headers(db_async, world)
+    event_id = world["ev_a"].id
+    made = []
+    for index in range(constants.MAX_ACTIVE_PAIRINGS_PER_EVENT):
+        response = await async_client.post(
+            f"{ORG}/events/{event_id}/pairings",
+            headers=headers,
+            json={"gate": f"G{index}"},
+        )
+        assert response.status_code == 201, response.text
+        made.append(response.json()["id"])
+    full = await async_client.post(
+        f"{ORG}/events/{event_id}/pairings", headers=headers, json={"gate": "One more"}
+    )
+    assert full.status_code == 409
+    assert "20 active gate codes" in full.json()["detail"]
+    revoked = await async_client.post(
+        f"{ORG}/pairings/{made[0]}/revoke", headers=headers
+    )
+    assert revoked.status_code == 200
+    freed = await async_client.post(
+        f"{ORG}/events/{event_id}/pairings",
+        headers=headers,
+        json={"gate": "Replacement"},
+    )
+    assert freed.status_code == 201
+
+
+async def test_the_pairing_secret_response_is_not_cached(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    headers = await _gate_headers(db_async, world)
+    response = await async_client.post(
+        f"{ORG}/events/{world['ev_a'].id}/pairings", headers=headers, json={"gate": "G"}
+    )
+    assert response.status_code == 201
+    assert response.headers["cache-control"] == "no-store"
+
+
+async def test_organiser_event_dates_are_bounded(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    organiser, _ = await _pair_setup(db_async, world)
+    headers = await _headers(db_async, organiser, world["org_a"])
+    today = datetime.now(UTC).date()
+    too_far = (today + timedelta(days=366)).isoformat()
+    too_late_close = today + timedelta(days=10)
+    far = await async_client.post(
+        f"{ORG}/events",
+        headers=headers,
+        json={
+            "name": "Far",
+            "event_date": too_far,
+            "closes_at": f"{too_far}T18:00:00Z",
+        },
+    )
+    late = await async_client.post(
+        f"{ORG}/events",
+        headers=headers,
+        json={
+            "name": "Late",
+            "event_date": today.isoformat(),
+            "closes_at": f"{(too_late_close).isoformat()}T18:00:00Z",
+        },
+    )
+    assert far.status_code == 422
+    assert late.status_code == 422
+
+
+async def test_a_foreign_and_a_missing_ticket_or_pairing_answer_the_same_404(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    organiser, gate_lead = await _pair_setup(db_async, world)
+    headers = await _headers(db_async, organiser, world["org_a"])
+    gate_headers = await _headers(db_async, gate_lead, world["org_a"])
+    foreign = await make_ticket(
+        db_async, world["ev_b"], "001", barcode="LONGENOUGH-B001"
+    )
+    missing = uuid.uuid4()
+    foreign_void = await async_client.post(
+        f"{ORG}/tickets/{foreign.id}/void", headers=headers
+    )
+    missing_void = await async_client.post(
+        f"{ORG}/tickets/{missing}/void", headers=headers
+    )
+    assert foreign_void.status_code == missing_void.status_code == 404
+    assert foreign_void.json() == missing_void.json()
+    foreign_revoke = await async_client.post(
+        f"{ORG}/pairings/{uuid.uuid4()}/revoke", headers=gate_headers
+    )
+    missing_revoke = await async_client.post(
+        f"{ORG}/pairings/{missing}/revoke", headers=gate_headers
+    )
+    assert foreign_revoke.json() == missing_revoke.json()
+
+
+async def test_a_clean_dry_run_writes_nothing_and_the_real_import_writes_two(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    organiser, _ = await _pair_setup(db_async, world)
+    headers = await _headers(db_async, organiser, world["org_a"])
+    event_id = world["ev_a"].id
+    rows = _csv("001,LONGENOUGH-0001", "002,LONGENOUGH-0002")
+    dry = await async_client.post(
+        f"{ORG}/events/{event_id}/tickets/import", headers=headers, files=rows
+    )
+    assert dry.status_code == 200
+    report = dry.json()
+    assert report["to_add"] == 2
+    assert report["applied"] is False
+    tickets = await db_async.scalar(
+        select(func.count(PrintixTicket.id)).where(PrintixTicket.event_id == event_id)
+    )
+    audit_rows = await db_async.scalar(
+        select(func.count(AuditEntry.id)).where(
+            AuditEntry.record_type == "printix_ticket"
+        )
+    )
+    assert tickets == 0
+    assert audit_rows == 0
+    real = await async_client.post(
+        f"{ORG}/events/{event_id}/tickets/import",
+        headers=headers,
+        params={"dry_run": "false"},
+        files=rows,
+    )
+    assert real.json()["applied"] is True
+    tickets = await db_async.scalar(
+        select(func.count(PrintixTicket.id)).where(PrintixTicket.event_id == event_id)
+    )
+    assert tickets == 2
+
+
+async def test_the_warning_counts_tickets_already_on_the_event(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    organiser, _ = await _pair_setup(db_async, world)
+    headers = await _headers(db_async, organiser, world["org_a"])
+    event_id = world["ev_a"].id
+    await make_ticket(db_async, world["ev_a"], "009", barcode="SHORT")
+    dry = await async_client.post(
+        f"{ORG}/events/{event_id}/tickets/import",
+        headers=headers,
+        files=_csv("001,LONGENOUGH-0001"),
+    )
+    report = dry.json()
+    assert report["short_barcodes"] == 1
+    assert report["barcode_equals_number"] == 0

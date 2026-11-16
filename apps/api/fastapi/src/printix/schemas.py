@@ -5,7 +5,7 @@ credential that admits it, so it leaves the server only in an import upload.
 """
 
 import uuid
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, Field, field_validator, model_validator
@@ -51,9 +51,23 @@ class PrintixOrgEventCreate(BaseModel):
     )
 
     @model_validator(mode="after")
-    def _closes_on_or_after_the_event_date(self) -> PrintixOrgEventCreate:
+    def _within_organiser_bounds(self) -> PrintixOrgEventCreate:
+        # Dates are compared as the admin schema compares them: the date of closes_at
+        # as sent, against the event date.
         if self.closes_at.date() < self.event_date:
             raise ValueError("closes_at must not be before the event date")
+        latest_event = datetime.now(UTC).date() + timedelta(
+            days=constants.ORGANISER_EVENT_MAX_AHEAD_DAYS
+        )
+        if self.event_date > latest_event:
+            raise ValueError("event_date must be no more than a year ahead")
+        latest_close = self.event_date + timedelta(
+            days=constants.ORGANISER_CLOSE_MAX_AFTER_DATE_DAYS
+        )
+        if self.closes_at.date() > latest_close:
+            raise ValueError(
+                "closes_at must be no more than 7 days after the event date"
+            )
         return self
 
 
@@ -131,15 +145,19 @@ class PrintixImportReport(BaseModel):
     short_barcodes: int = Field(
         default=0,
         description=(
-            f"Rows whose barcode is shorter than {constants.OFFLINE_MIN_BARCODE_LENGTH} "
-            "characters. Offline scanning stays off for the event if any."
+            "Tickets on the event once this file is in (tickets already there plus this "
+            "file's rows) whose barcode is shorter than "
+            f"{constants.OFFLINE_MIN_BARCODE_LENGTH} characters. Offline scanning stays off "
+            "for the event while this is above zero."
         ),
     )
     barcode_equals_number: int = Field(
         default=0,
         description=(
-            "Rows whose barcode equals the printed number (including defaulted barcodes). "
-            "Offline scanning stays off for the event if any."
+            "Tickets on the event once this file is in (tickets already there plus this "
+            "file's rows) whose barcode equals their printed number, including barcodes "
+            "defaulted from the number. Offline scanning stays off for the event while "
+            "this is above zero."
         ),
     )
 
