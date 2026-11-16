@@ -5,10 +5,14 @@ import type {
 import { CountBar } from "@/components/count-bar";
 import type { Link } from "@/lib/use-live-count";
 import { roleLabel } from "@/organiser/choose-organisation";
+import { CloseEventSection } from "@/organiser/close-event-section";
 import { type Problem, problemMessage } from "@/organiser/errors";
 import { formatClock, formatEventDate, formatMoment } from "@/organiser/format";
+import { GateCodesSection } from "@/organiser/gate-codes-section";
+import { ImportSection } from "@/organiser/import-section";
 import type { OrganiserSession } from "@/organiser/session";
 import { ALERT } from "@/organiser/styles";
+import { TicketsSection } from "@/organiser/tickets-section";
 import { useEventSummary } from "@/organiser/use-event-summary";
 
 const number = new Intl.NumberFormat();
@@ -35,7 +39,7 @@ export function EventScreen({
   event,
   onBack,
 }: EventScreenProps) {
-  const { summary, problem, updatedAt } = useEventSummary(
+  const { summary, problem, updatedAt, reload } = useEventSummary(
     session,
     organisation.id,
     event.id
@@ -106,6 +110,41 @@ export function EventScreen({
         {updatedAt ? `Updated ${formatClock(updatedAt)}. ` : ""}Refreshes every
         10 seconds while this page is open.
       </p>
+
+      <GateCodesSection
+        closed={shown.status === "closed"}
+        eventId={event.id}
+        onChanged={reload}
+        organisation={organisation}
+        session={session}
+      />
+
+      {organisation.can_manage_events ? (
+        <>
+          <TicketsSection
+            closed={shown.status === "closed"}
+            eventId={event.id}
+            onChanged={reload}
+            organisation={organisation}
+            session={session}
+          />
+          <ImportSection
+            closed={shown.status === "closed"}
+            eventId={event.id}
+            onChanged={reload}
+            organisation={organisation}
+            session={session}
+          />
+          {shown.status === "open" ? (
+            <CloseEventSection
+              eventId={event.id}
+              onClosed={reload}
+              organisation={organisation}
+              session={session}
+            />
+          ) : null}
+        </>
+      ) : null}
     </section>
   );
 }

@@ -9,7 +9,13 @@ import { type Problem, problemMessage } from "@/organiser/errors";
 import { formatEventDate } from "@/organiser/format";
 import { EVENTS_PAGE_SIZE, listEvents } from "@/organiser/organiser-api";
 import type { OrganiserSession } from "@/organiser/session";
-import { ALERT, BUTTON_ROW, BUTTON_SECONDARY, NOTE } from "@/organiser/styles";
+import {
+  ALERT,
+  BUTTON_PRIMARY,
+  BUTTON_ROW,
+  BUTTON_SECONDARY,
+  NOTE,
+} from "@/organiser/styles";
 
 type ListState =
   | { readonly kind: "loading" }
@@ -17,6 +23,8 @@ type ListState =
   | { readonly kind: "problem"; readonly problem: Problem };
 
 interface EventsScreenProps {
+  /** Opens the create-event screen; shown to organisers only. */
+  readonly onCreate: () => void;
   readonly onOpen: (event: PrintixEventPublic) => void;
   readonly organisation: PrintixOrganiserOrganisation;
   readonly session: OrganiserSession;
@@ -26,6 +34,7 @@ interface EventsScreenProps {
 export function EventsScreen({
   session,
   organisation,
+  onCreate,
   onOpen,
 }: EventsScreenProps) {
   const [page, setPage] = useState(1);
@@ -66,13 +75,20 @@ export function EventsScreen({
 
   return (
     <section aria-labelledby="events-title" className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-semibold" id="events-title">
-          Events
-        </h2>
-        <p className="text-px-muted text-sm">
-          Your role here: {roleLabel(organisation)}.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-xl font-semibold" id="events-title">
+            Events
+          </h2>
+          <p className="text-px-muted text-sm">
+            Your role here: {roleLabel(organisation)}.
+          </p>
+        </div>
+        {organisation.can_manage_events ? (
+          <button className={BUTTON_PRIMARY} onClick={onCreate} type="button">
+            New event
+          </button>
+        ) : null}
       </div>
 
       {state.kind === "loading" ? (

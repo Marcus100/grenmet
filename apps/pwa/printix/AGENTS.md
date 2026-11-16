@@ -216,11 +216,62 @@ the gate with its pairing secret (`scan-api.ts`), the organiser with its session
   unchanged: `connect-src` names the API origin only, and there are no inline
   scripts.
 
+### Setup screens and gate codes (ADR-0060 amendment, slices 4 and 5)
+
+Organisers set up their events here, and make the gate QR codes on event night.
+Every call goes through `write-api.ts` (the organisation header on each call; the
+answer must match the generated schema), and the server is the only judge of a rule.
+
+- **Create event** (`create-event.tsx`, organisers only; a gate lead gets no button and
+  the screen refuses to open for them too). Name, event date and closing time. Times
+  are Grenada time (UTC-4 all year), sent as `2026-12-27T00:00:00-04:00`
+  (`grenadaLocalToIso`). The screen mirrors the two server rules before sending: the
+  event date is at most 365 days ahead (UTC date, as the server counts it) and the
+  closing date is at most 7 days after the event date and not before it. A server 422
+  shows its sentences in words, without pydantic's "Value error, " prefix.
+- **Event page** (`event-screen.tsx` adds the sections below after the counts).
+  Setup sections use the polled `summary.event` status, so a closed event shows as
+  closed without a reload, and `reload` (from `use-event-summary.ts`) refreshes the
+  counts after each change.
+  - **Gate codes** (both roles, `gate-codes-section.tsx`): list (gate, works until,
+    typed numbers on or off, active, expired or cancelled; never a secret). "New gate
+    code": gate name, optional "works until" (blank is the server's default of six hours
+    after close, at most a day after), and the "Allow typed numbers" switch, shown to
+    organisers only. A gate lead's 403 is still handled. Cancelling is a button plus a
+    confirm, for both roles. The 20-active-codes 409 says to cancel one first.
+  - **The QR code, shown once** (`gate-code-panel.tsx`, `qr.ts`): the link is
+    `<this origin>/#pair=<secret>`, drawn as an inline SVG (the events app's module-path
+    approach, so no image is loaded and the CSP needs no change). Full width, with the
+    gate name and "Scan this with the gate phone's camera now. It will not be shown
+    again." The secret lives only in the component's state. It is dropped by Done, by
+    leaving the event page, and by making another code. No copy, download, print or
+    share control exists anywhere. Nothing reaches storage, a URL, a log or `reportError`.
+  - **Tickets** (organisers, `tickets-section.tsx`): printed number and state, paged 50,
+    never a barcode. Void and restore each take a confirm step. An admitted ticket
+    offers no void. Closed events refuse every change, and the screen says so.
+  - **Import tickets** (organisers, `import-section.tsx`): a trial first (`dry_run=true`,
+    which writes nothing), then "Import N tickets" (`dry_run=false`) only when the trial
+    had no problems, nothing truncated and rows to add. Problems list by line. Both
+    weak-barcode counts show as "Offline checking will be off for this event: ...".
+    The file is held in component state only, never in storage, and is dropped after a
+    successful import. Over 2 MB is refused before any call; 413 and 409 have their own
+    sentences. The sample is a `data:` link, so nothing is created or stored.
+  - **Close event** (organisers, `close-event-section.tsx`): a confirm that says it
+    cannot be undone and that gate codes stop admitting people.
+- **Events list:** "New event" for organisers only (`can_manage_events`).
+- **New error kinds** (`errors.ts`): `invalid` (422 sentences), `event-closed`,
+  `gate-codes-full`, `already-admitted`, `conflict` (any other 409), `too-large` (413),
+  `typed-numbers-refused` (403). A 429 always states its wait in seconds.
+- **Tests:** `setup.test.tsx` (role gating, create, tickets, the trial-then-import
+  sequence, the weak-barcode warning, the QR shown once and gone after Done, the secret
+  kept out of storage, the URL and reported errors, cancel, each error sentence) and
+  `setup-helpers.test.ts` (the date rules, Grenada time, the warning words, the code and
+  ticket rules, the QR link and matrix).
+
 ## Not built yet
 
 QR generation for administrators, ticket types, re-entry, and the Barrels
-Events connection. Organiser writes (create event, ticket import, gate codes) are
-the next slices. Backend logic goes in FastAPI, never here.
+Events connection. Backend logic goes in FastAPI, never here.
 
 ## Rules
 
