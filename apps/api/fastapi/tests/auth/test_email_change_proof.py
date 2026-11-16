@@ -8,10 +8,11 @@ The old address is told after the change through the notifications outbox.
 
 from datetime import timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
-from src.auth import app_service, service
+from src.auth import app_service, service, totp_enrolment
 from src.auth import email_change as email_change_module
+from src.auth.models import Session as AuthSession
 from src.auth.modern_models import AuthChallenge
 from src.notifications.models import OutboundEmail
 from src.outbox import Outbox
@@ -307,3 +308,138 @@ async def test_expired_code_is_refused(async_client, db_async, monkeypatch):
     )
 
     assert response.status_code == 400
+
+
+async def test_proof_is_checked_before_the_duplicate_address_answer(
+    async_client, db_async
+):
+    """A signed-in person without proof learns nothing about other addresses."""
+    user = await make_user(db_async)
+    other = await make_user(db_async)
+    headers = await _headers(db_async, user)
+
+    missing = await async_client.patch(ME, json={"email": other.email}, headers=headers)
+    wrong = await async_client.patch(
+        ME,
+        json={"email": other.email, "current_password": "not-the-password"},
+        headers=headers,
+    )
+
+    assert missing.status_code == 400
+    assert missing.json()["detail"].startswith(PROOF_DETAIL)
+    assert wrong.status_code == 400
+    assert wrong.json()["detail"] == "Your current password is not correct."
+
+    # With the right proof the same request reaches the duplicate check.
+    proven = await async_client.patch(
+        ME,
+        json={"email": other.email, "current_password": "password123"},
+        headers=headers,
+    )
+    assert proven.status_code == 409
+
+
+async def test_sign_in_code_cannot_prove_an_email_change(async_client, db_async):
+    """A sign-in code for the account is a different purpose and is refused here.
+
+    Control: the refused change does not consume the code, which still signs in."""
+    user = await make_user(db_async)
+    user.password_setup_pending = True
+    await db_async.commit()
+    headers = await _headers(db_async, user)
+    account = app_service._account()
+    code = await app_service._issue_code(
+        db_async,
+        purpose=f"code:{account.key}",
+        target=user.email,
+        user_id=user.id,
+    )
+    await db_async.commit()
+
+    refused = await async_client.patch(
+        ME, json={"email": random_email(), "email_code": code}, headers=headers
+    )
+    assert refused.status_code == 400
+    await db_async.refresh(user)
+    assert user.password_setup_pending is True
+
+    signed_in = await async_client.post(
+        "/api/v1/auth/email-code/verify",
+        json={"email": user.email, "code": code},
+    )
+    assert signed_in.status_code == 200
+
+
+async def test_email_change_code_cannot_sign_in(async_client, db_async, monkeypatch):
+    user = await make_user(db_async)
+    user.password_setup_pending = True
+    await db_async.commit()
+    headers = await _headers(db_async, user)
+    sent = _capture_code_emails(monkeypatch)
+    await async_client.post(START_CODE, headers=headers)
+    _, code = sent[0]
+
+    response = await async_client.post(
+        "/api/v1/auth/email-code/verify",
+        json={"email": user.email, "code": code},
+    )
+
+    assert response.status_code == 400
+
+
+async def test_two_step_enrolment_code_cannot_prove_an_email_change(
+    async_client, db_async
+):
+    user = await make_user(db_async)
+    user.password_setup_pending = True
+    await db_async.commit()
+    headers = await _headers(db_async, user)
+    code = await app_service._issue_code(
+        db_async,
+        purpose=totp_enrolment.ENROLMENT_CODE_PURPOSE,
+        target=user.email,
+        user_id=user.id,
+    )
+    await db_async.commit()
+
+    response = await async_client.patch(
+        ME, json={"email": random_email(), "email_code": code}, headers=headers
+    )
+
+    assert response.status_code == 400
+    await db_async.refresh(user)
+    assert user.password_setup_pending is True
+
+
+async def test_a_change_signs_out_every_session_of_the_user(async_client, db_async):
+    user = await make_user(db_async)
+    headers = await _headers(db_async, user)
+    # An app-scoped session of the same person must end too.
+    await service.create_session(
+        session=db_async,
+        user=user,
+        client_type="web",
+        app_name="bookings",
+        enforce_approval=False,
+    )
+    await db_async.commit()
+    before = await db_async.scalar(
+        select(func.count())
+        .select_from(AuthSession)
+        .where(AuthSession.user_id == user.id)
+    )
+    assert before >= 2
+
+    response = await async_client.patch(
+        ME,
+        json={"email": random_email(), "current_password": "password123"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    after = await db_async.scalar(
+        select(func.count())
+        .select_from(AuthSession)
+        .where(AuthSession.user_id == user.id)
+    )
+    assert after == 0
