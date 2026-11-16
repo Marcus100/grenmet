@@ -26,7 +26,7 @@ from src.organisations.models import (
 from src.printix.models import PrintixEvent
 from src.utils.datetime import utc_now
 from tests.factories import make_user
-from tests.organisations.support import headers_for, make_org  # noqa: F401
+from tests.organisations.support import make_org
 
 from .support import make_event
 

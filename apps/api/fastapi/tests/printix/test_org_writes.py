@@ -24,13 +24,9 @@ from src.rate_limit import limiter
 
 from .org_support import (
     ORG,
-    _event,  # noqa: F401  (fixture dependency of world)
-    _grant,  # noqa: F401
-    _org,  # noqa: F401
     _org_header,
     _organiser,
     _sign_in,
-    make_org_member,  # noqa: F401
 )
 from .support import make_ticket, scan
 
