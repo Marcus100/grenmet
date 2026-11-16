@@ -11,8 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { API_ORIGIN, SECRET, SUMMARY } from "@/test/fixtures";
 
 const envState = vi.hoisted(() => ({
-  PRINTIX_SITE_URL: "https://scan.example.test",
-  NEXT_PUBLIC_API_URL: "https://api.example.test",
+  VITE_API_URL: "https://api.example.test",
 }));
 
 vi.mock("@/env", () => ({ env: envState }));
@@ -53,7 +52,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
-  envState.NEXT_PUBLIC_API_URL = "https://api.example.test";
+  envState.VITE_API_URL = "https://api.example.test";
 });
 
 describe("pairing link", () => {
@@ -132,7 +131,7 @@ describe("pairing link", () => {
   });
 
   it("says plainly when this build has no server address", async () => {
-    envState.NEXT_PUBLIC_API_URL = "";
+    envState.VITE_API_URL = "";
     localStorage.setItem(
       PAIRING_STORAGE_KEY,
       JSON.stringify({ secret: SECRET, savedAt: "2026-11-15T10:00:00Z" })

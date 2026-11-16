@@ -1,5 +1,3 @@
-"use client";
-
 import type { PrintixEventSummary } from "@barrelsgd/api-client";
 import { useEffect, useRef, useState } from "react";
 import {

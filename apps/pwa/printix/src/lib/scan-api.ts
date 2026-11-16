@@ -6,7 +6,6 @@ import {
   printixEventSummarySchema,
   printixPairingSummary,
   printixScanResultSchema,
-  ResponseError,
 } from "@barrelsgd/api-client";
 
 /** Why this pairing cannot check tickets: unknown secret, or revoked or expired. */
@@ -74,8 +73,30 @@ export function classifyFailure(
   return { kind: "failed" };
 }
 
+/** The parts of the API client's ResponseError the scanner reads. */
+interface HttpError extends Error {
+  readonly response: Response;
+  readonly status: number;
+}
+
+/**
+ * Matches the API client's ResponseError by name, as the client recommends:
+ * every generated client carries its own copy of the class, so `instanceof`
+ * against one copy can miss an error thrown by another.
+ */
+function isHttpError(error: unknown): error is HttpError {
+  return (
+    error instanceof Error &&
+    error.name === "ResponseError" &&
+    "status" in error &&
+    typeof error.status === "number" &&
+    "response" in error &&
+    error.response instanceof Response
+  );
+}
+
 function failureFrom(error: unknown): Failure {
-  if (error instanceof ResponseError) {
+  if (isHttpError(error)) {
     return classifyFailure(
       error.status,
       error.response.headers.get("Retry-After")

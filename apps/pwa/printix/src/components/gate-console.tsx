@@ -1,5 +1,3 @@
-"use client";
-
 import { BarcodeCamera } from "@barrelsgd/pwa-kit/components/barcode-camera";
 import {
   createSoundPlayer,

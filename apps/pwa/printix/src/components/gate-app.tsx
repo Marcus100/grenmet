@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GateConsole } from "@/components/gate-console";
 import {
@@ -102,8 +100,7 @@ export function GateApp() {
 
   const secret = phase.kind === "paired" ? phase.secret : null;
   const connection = useMemo<Connection | null>(
-    () =>
-      secret === null ? null : { origin: env.NEXT_PUBLIC_API_URL, secret },
+    () => (secret === null ? null : { origin: env.VITE_API_URL, secret }),
     [secret]
   );
 
