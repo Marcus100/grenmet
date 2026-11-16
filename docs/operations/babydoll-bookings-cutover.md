@@ -2,7 +2,7 @@
 
 **Status:** Superseded on 2026-11-13; kept for its production prerequisites  
 **Owner:** Barrels Grenada engineering (client decisions: Babydoll Beauty Bar owner)  
-**Last updated:** 2026-11-14 (stale gap list corrected; the rest is as written on 2026-10-20)
+**Last updated:** 2026-11-16 (state note for v1.3.0 added; the rest is as written on 2026-10-20)
 
 > **Superseded (owner, 13 Nov 2026).** The Babydoll site no longer hosts
 > booking: it is a static site, and `/book`, `/booking/[token]` and the
@@ -14,14 +14,20 @@
 > `apps/web/babydoll/public/_redirects` and `vercel.json`. Sections 1d, 3.3 and
 > 3.4 no longer apply.
 >
+> **State at v1.3.0 (16 Nov 2026).** Production is seeded (15 Nov 2026), the
+> Book buttons and the `/book` redirect open
+> `https://bookings.barrels.gd/babydoll-beauty-bar` since v1.2.0, and the
+> Babydoll site is served by Cloudflare Pages, so every Vercel step below is
+> history.
+>
 > **Use [babydoll-cutover.md](babydoll-cutover.md) for the current state and
-> the go-live order** (updated 14 Nov 2026). Corrections to this page, 14 Nov
+> the go-live order** (updated 16 Nov 2026). Corrections to this page, 14 Nov
 > 2026: `POST /bookings/org/bookings`, the `apps/web/bookings` app with
 > `/studio` (agenda, New booking, confirm and the other actions) and its
 > Settings page all exist and are released, so every "not built" or "does not
 > exist" below is out of date; the studio confirmed the services, prices and
 > durations, and the currency is Eastern Caribbean dollars; staging is seeded
-> and production is not. The steps in sections 3 and 3.9 that use the
+> (production was not on 14 Nov; it is since 15 Nov). The steps in sections 3 and 3.9 that use the
 > `BABYDOLL_ONLINE_BOOKING` switch or `babydoll.barrels.gd/book` are replaced by
 > the Book-button step in the cutover checklist.
 

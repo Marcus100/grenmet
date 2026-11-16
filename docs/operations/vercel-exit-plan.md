@@ -1,15 +1,22 @@
 # Leaving Vercel: plan for the three sites
 
-**Status:** Step 1 prepared in the repo; no Cloudflare project or DNS change has been made. Vercel's Git integration is disconnected for all three projects since 2026-11-13  
+**Status:** Done for serving: `barrels.gd`, `elections.barrels.gd` and `babydoll.barrels.gd` are on Cloudflare Pages since the cutover of 15 to 16 Nov 2026 (as `commit.barrels.gd` already was). Still to do: delete the Vercel projects after a week of clean traffic  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-16
+
+> **State on 16 Nov 2026 (v1.3.0).** All three sites answer from Cloudflare
+> (`curl -sI https://<host>` shows `server: cloudflare` and no `x-vercel-id`
+> header). The Vercel projects are kept for about a week as the rollback, then
+> deleted with their environment variables (see "Rollback"). The sections below
+> are kept as the record of how each site moved; read "[owner]" steps as done
+> unless a line says otherwise.
 
 The owner does not plan to pay for Vercel and the free tier's build limit is
 already reached (the Vercel checks on pull requests failed with "upgrade to Pro").
 On 13 Nov 2026 the owner disconnected the Git integration of the three Vercel
 projects (the Barrels homepage, Elections and Babydoll), so pull requests no
-longer get Vercel checks. The three sites keep serving from Vercel until each
-one moves.
+longer get Vercel checks. The three sites kept serving from Vercel until each
+one moved.
 ADR-0036 and its 2026-10-27 amendment already say where each site goes: static
 sites to Cloudflare Pages, anything with a server to the droplets. This page turns
 that into an order of work.
@@ -20,13 +27,13 @@ until its new home is verified; only then does DNS change.
 
 ## Where each site is today
 
-| Site | Host now | What it is | Target |
+| Site | Host before | What it is | Host now |
 | --- | --- | --- | --- |
 | `barrels.gd` (`apps/web/barrels`) | Vercel; apex `A` record, `www` `CNAME` | Plain static HTML built by `build.mjs`, forms post to the API | Cloudflare Pages |
-| `elections.barrels.gd` (`apps/web/elections`) | Vercel; `CNAME` | Next.js, no sign-in (#792), a few `GET` JSON route handlers, `output: "standalone"` | Cloudflare Pages if it exports statically, else the droplet |
-| `babydoll.barrels.gd` (`apps/web/babydoll`) | Vercel; explicit `CNAME` over the wildcard | Static Next.js export since 13 Nov 2026: the booking code was removed (owner), Book buttons open the studio's booking page elsewhere | Cloudflare Pages |
+| `elections.barrels.gd` (`apps/web/elections`) | Vercel; `CNAME` | Next.js static export (`output: "export"`), no sign-in (#792), four prebuilt `*.json` files | Cloudflare Pages |
+| `babydoll.barrels.gd` (`apps/web/babydoll`) | Vercel; explicit `CNAME` over the wildcard | Static Next.js export since 13 Nov 2026: the booking code was removed (owner), Book buttons open `https://bookings.barrels.gd/babydoll-beauty-bar` since v1.2.0 | Cloudflare Pages |
 
-`commit.barrels.gd` is already on Cloudflare Pages and is the working example.
+`commit.barrels.gd` was already on Cloudflare Pages and was the working example.
 
 ## Order
 
@@ -66,22 +73,25 @@ until its new home is verified; only then does DNS change.
      output `apps/web/babydoll/out`, `NODE_VERSION=24`), add the custom domain,
      then replace the explicit `babydoll` `CNAME` (ask the owner before the DNS
      change).
-   - When the studio's page on the bookings site is live, set
-     `ONLINE_BOOKING_URL` in `src/data/site.ts` and the two redirect files.
+   - Done in v1.2.0: `ONLINE_BOOKING_URL` in `src/data/site.ts` and the two
+     redirect files point at the studio's page on the bookings site.
 
 ## Before touching DNS
 
 - Lower the record's TTL a day ahead. Write down the current records (they are
   public: the apex `A`, the `www`, `babydoll` and `elections` `CNAME`s).
-- Preview deployments disappear with Vercel (pull requests already get none
+- Preview deployments disappeared with Vercel (pull requests have had none
   since the Git integration was disconnected on 13 Nov 2026). Cloudflare Pages
-  gives previews for all three sites.
+  can give previews for all three sites.
 
 ## Rollback
 
 Until the Vercel projects are deleted, rolling back is restoring the old DNS
 record. Delete the Vercel projects and their environment variables only after a
-week of clean traffic on the new host. Pull requests have had no Vercel checks
+week of clean traffic on the new host (so not before about 23 Nov 2026). After
+that, the `vercel.json` files and the notes that depend on them (the Babydoll
+and Barrels `AGENTS.md` files, `scripts/guardrails/vercel-build-dist.test.mjs`)
+can be retired in one change. Pull requests have had no Vercel checks
 since 13 Nov 2026, and `infra/github/rulesets.json` requires none, so there is
 nothing to remove from the required list.
 

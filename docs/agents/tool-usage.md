@@ -23,7 +23,7 @@ Pick the cheapest tool that answers the question, in this order:
 | Production and staging errors | Sentry plugin | Read first; change alerts or settings only on request. |
 | Analytics, flags, session replays | PostHog plugin | Read-only by default. Never copy personal data into the repo or logs. |
 | DNS, Email Routing, Access, CAA, DMARC | Cloudflare plugin | Show each change and get approval before applying. |
-| Babydoll and other Vercel-hosted sites | Vercel connector | Deploys go through it (the Vercel team has no GitHub integration). |
+| Static sites (Barrels homepage, Babydoll, Elections, Commit) | Cloudflare plugin or the Pages dashboard | Cloudflare Pages builds them from GitHub (`main` is production). The old Vercel projects no longer serve traffic. |
 | Private context | Bishop MCP (`bishop`) | Read-only; never copy results into commits (see below). |
 
 `ui:screenshots` dark captures force the `dark` class onto `<html>`. Apps

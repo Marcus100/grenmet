@@ -1,8 +1,8 @@
 # GitHub environment protection: setup checklist (#970)
 
-**Status:** Checklist; the settings below are not applied yet  
+**Status:** Partly applied. Checked through the GitHub API on 16 Nov 2026: `production` accepts only `v*` tags and has a required reviewer; `staging` accepts only the `staging` branch; `build` is limited; `staging-promotion`, `staging-monitoring` and `production-monitoring` exist. `production-backup` and the three new environments have no branch limit yet  
 **Owner:** Barrels Grenada engineering (the clicks are the repository owner's)  
-**Last updated:** 2026-11-05
+**Last updated:** 2026-11-16
 
 Deploy credentials already live in GitHub **environments**, not repository secrets.
 What is missing is a limit on which branch or tag may use each environment, and three
