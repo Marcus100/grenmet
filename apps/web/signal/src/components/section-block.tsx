@@ -22,6 +22,7 @@ export function SectionBlock({
           <Link
             className="text-signal-green hover:text-signal-green-dark text-sm font-semibold tracking-wider uppercase"
             href={action.href}
+            prefetch={false}
           >
             {action.label} →
           </Link>

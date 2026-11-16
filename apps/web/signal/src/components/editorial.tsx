@@ -57,6 +57,7 @@ export function StoryCard({
         <Link
           className="hover:text-signal-green hover:underline"
           href={`/${article.section}/${article.slug}`}
+          prefetch={false}
         >
           {article.title}
         </Link>
@@ -79,6 +80,7 @@ export function EmptyState({
       <Link
         className="text-signal-green mt-4 inline-flex min-h-11 items-center underline underline-offset-4"
         href="/topics"
+        prefetch={false}
       >
         Explore all topics →
       </Link>
@@ -109,6 +111,7 @@ export function ArchiveInvitation() {
           <Link
             className="border-signal-green text-signal-green mt-6 inline-flex min-h-11 items-center border-b-2 font-semibold"
             href="/archive"
+            prefetch={false}
           >
             Explore the archive →
           </Link>
@@ -154,6 +157,7 @@ export function ArchiveInvitation() {
               <Link
                 className="text-signal-green mt-auto inline-flex min-h-11 items-center pt-6 text-sm font-semibold underline underline-offset-4"
                 href={item.href}
+                prefetch={false}
               >
                 {item.label} →
               </Link>
