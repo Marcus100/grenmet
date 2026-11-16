@@ -30,6 +30,14 @@ system monospace face so similar characters stay distinct. Buttons are large
 control. The camera view is wider than tall, because the tickets carry a
 barcode of lines.
 
+Signal is always shown above the count: a dark "Online" pill with a green dot,
+or a light "Offline" pill with a red dot, so the change reads at arm's length.
+Next to it, "N admissions waiting to send" (offline) or "sending N" (online).
+Below, the saved ticket list's download time, or the notice that offline
+checking is not available for this event. Conflicts sit in a disclosure under
+it, in plain sentences. An admission made with no signal is the same green
+result, with a line saying it will be sent later.
+
 Motion follows how often a thing happens. The result screen appears hundreds
 of times a night, so it never animates. A screen that replaces another
 (pairing, problem, scanning) fades in over 200 ms (`.pwa-screen` from the shared phone-app kit, opacity only).

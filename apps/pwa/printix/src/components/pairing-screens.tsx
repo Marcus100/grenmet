@@ -69,9 +69,12 @@ export function ScannerNotConnected() {
 export function PairingProblemScreen({
   problem,
   onUnpair,
+  unsent = 0,
 }: {
   readonly problem: PairingProblem;
   readonly onUnpair: () => void;
+  /** Admissions made with no signal that were never sent. */
+  readonly unsent?: number;
 }) {
   const copy = PAIRING_COPY[problem];
   return (
@@ -89,6 +92,14 @@ export function PairingProblemScreen({
         </h1>
         <p className="text-2xl leading-snug font-bold">{copy.detail}</p>
       </section>
+      {unsent > 0 ? (
+        <p className="bg-px-surface text-px-paper rounded-2xl px-4 py-3 text-base font-semibold">
+          {unsent === 1
+            ? "1 admission made with no signal was never sent."
+            : `${unsent} admissions made with no signal were never sent.`}{" "}
+          Tell your supervisor before you unpair: unpairing deletes them.
+        </p>
+      ) : null}
       <p className="text-px-muted text-base">
         Unpair this phone, then scan the new pairing code your administrator
         shows.
