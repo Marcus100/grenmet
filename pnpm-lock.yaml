@@ -908,6 +908,9 @@ importers:
       '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.65.0
       '@tailwindcss/postcss':
         specifier: 'catalog:'
         version: 4.3.5

@@ -41,6 +41,7 @@ Host wiring mirrors `apps/web/babydoll`: `src/lib/booking-api.ts` (server-only, 
 - Typed env: `src/env.ts` (`docs/env.md`, section bookings). The Sentry DSN comes from the shared catalogue (`SENTRY_DSN_<APP>` in render-env).
 - Unexpected errors throw to `error.tsx` / `global-error.tsx`. A caught error that shows a fallback calls `reportError(error, "<area>")` from `src/lib/report-error.ts`.
 - Tests: `pnpm --filter @barrelsgd/web-bookings test` (jsdom, fixed values in `vitest.config.ts`).
+- Browser journey: `e2e/booking.spec.ts` (Playwright, `pnpm --filter @barrelsgd/web-bookings run test:e2e`) books a seeded Babydoll service as a guest and opens the manage link. It needs the API with the Babydoll seed (`scripts/verification/e2e-api.sh`) and runs in the `Browser journeys` workflow; a booking with a deposit (emailed code, Stripe) is not covered. See `docs/web/development.md`, Browser journeys.
 - CSP is Report-Only through `packages/ui` `APP_SOURCES.bookings` (Turnstile allowed for the booking form).
 
 ## Deployment
