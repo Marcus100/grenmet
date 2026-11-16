@@ -46,10 +46,10 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    with op.get_context().autocommit_block():
-        op.drop_index(
-            INDEX, table_name="scan_log", schema=SCHEMA, postgresql_concurrently=True
-        )
+    # Transactional on purpose: migration tests run every later downgrade inside
+    # one transaction they roll back.
+    # migration-safety: drops only the index this revision added.
+    op.execute(f'DROP INDEX IF EXISTS {SCHEMA}."{INDEX}"')
     op.drop_column("event", "closed_at", schema=SCHEMA)
     op.drop_column("scan_log", "client_ref", schema=SCHEMA)
     op.drop_column("scan_log", "offline_scanned_at", schema=SCHEMA)
