@@ -1,5 +1,3 @@
-"use client";
-
 import { Sheet } from "@barrelsgd/pwa-kit/components/sheet";
 import { type FormEvent, type RefObject, useId, useRef, useState } from "react";
 

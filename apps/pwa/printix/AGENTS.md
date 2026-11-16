@@ -1,9 +1,15 @@
 # Printix Scanner (`@barrelsgd/pwa-printix`)
 
-Port **3064** (local dev only). Static export (`output: "export"`, written to
-`out/`). Test address: `https://printix-scanner.pages.dev` (Cloudflare Pages
-project `printix-scanner`, direct upload of `out/` with
-`wrangler pages deploy out --project-name printix-scanner --branch main`;
+Port **3064** (local dev only). A React app built with Vite (app-first, no
+Next.js: owner decision, 16 Nov 2026), written to `out/` as files only.
+Entry page `index.html`, start file `src/main.tsx`, install manifest
+`public/manifest.webmanifest`, Inter shipped in `public/fonts/` (SIL Open Font
+License). Test address: `https://printix-scanner.pages.dev` (Cloudflare Pages
+project `printix-scanner`, direct upload of `out/`. Build with the API
+address, then upload: `VITE_API_URL=https://api.barrels.gd pnpm --filter
+@barrelsgd/pwa-printix build`, then from `apps/pwa/printix`
+`wrangler pages deploy out --project-name printix-scanner --branch main`. A
+build without `VITE_API_URL` shows "not connected" and checks nothing;
 create Pages projects through the Cloudflare API, since `wrangler pages
 project create` now tries to convert the app to a Worker). Planned address
 `scan.barrels.gd` (owner decision, 15 Nov 2026); see "Address and API origin"
@@ -68,7 +74,7 @@ are placeholders until the client supplies artwork.
   accepts calls from it.
 - `public/_headers` enforces the CSP with `connect-src 'self' https://api.barrels.gd`.
   Calls to any other API origin are blocked by the browser. A local API on
-  `http://localhost` only works with `pnpm dev:pwa:printix`, which sends no
+  `http://localhost` only works with `pnpm dev:pwa:printix` (or `vite preview`), which send no
   `_headers` CSP.
 
 ## Not built yet
@@ -84,11 +90,15 @@ signal) is the next change.
 
 ## Rules
 
-- Everything must stay static: no server actions, no route handlers that need
-  a server, no `next/image` optimisation.
-- `src/env.ts` is the only place that reads `process.env`. The API origin is
-  `NEXT_PUBLIC_API_URL`: https, or plain http on localhost only. Unset means the
-  scanner shows "not connected" and checks nothing.
+- Everything stays in the browser: no server code. Backend logic goes in
+  FastAPI.
+- `src/env.ts` is the only place that reads `import.meta.env`. The API origin
+  is `VITE_API_URL`, written into the bundle at build time (set it when
+  building for the test site): https, or plain http on localhost only. Unset
+  means the scanner shows "not connected" and checks nothing.
+- Server errors are recognised by the error's name (`ResponseError`), not
+  `instanceof`: the API client's index exports the class twice, and Vite's
+  bundler drops that ambiguous export.
 - The camera needs a secure (https) address or `localhost`.
 - Dark only (`docs/design/printix.md`). Controls at least 44 px tall. Inputs at
   16 px or more so iPhone does not zoom.

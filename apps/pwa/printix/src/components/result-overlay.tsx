@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef } from "react";
 import type { Tone, Verdict } from "@/lib/scan-outcome";
 

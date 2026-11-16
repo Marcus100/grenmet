@@ -33,7 +33,7 @@ Traveler, mostly for GAA and later for other companies.
   `.pwa-screen` fade for a screen that replaces another.
 - `scripts/copy-zxing-wasm.mjs` (bin `pwa-kit-copy-zxing`): copies the barcode
   reader's WebAssembly file into the calling app's `public/zxing/`. An app that
-  scans runs it before `next dev` and `next build`.
+  scans runs it before its dev server and build.
 
 ## Colours
 

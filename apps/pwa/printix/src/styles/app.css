@@ -17,7 +17,7 @@
   /* Refusal red. Paper text on it is 5.95:1 (was 4.30:1); see palette.test.ts. */
   --color-px-stop: #b91c1c;
 
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
 
   /* The shared phone-app colours (packages/pwa-kit), in Printix's look. */
   --color-pwa-background: var(--color-px-ink);
@@ -29,6 +29,15 @@
   --color-pwa-on-accent: var(--color-px-ink);
   --color-pwa-bad: var(--color-px-stop);
   --color-pwa-on-bad: var(--color-px-paper);
+}
+
+/* Inter, shipped with the app (SIL Open Font License: public/fonts). */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin-wght.woff2") format("woff2");
 }
 
 html,
