@@ -55,6 +55,9 @@ jobs:
       BOOKINGS_APP_URL: http://localhost:3015
       # Playwright serves each app's production build instead of `pnpm dev`.
       E2E_WEB_SERVER: start
+      # gaa-admin's env module requires a value; the same placeholder its
+      # Dockerfile builds with. No email is sent by these journeys.
+      RESEND_API_KEY: build-only-placeholder
       # No Turnstile site key: the booking form shows no widget. No Stripe key:
       # nothing is paid online. The web apps use their env modules' defaults
       # (API on localhost:8000, auth on localhost:3000).
