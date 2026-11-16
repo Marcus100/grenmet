@@ -27,6 +27,10 @@ regexes = [
   '''^eyJjIjoic3RvcmllcyIsImkiOiI0MiJ9\.c2lnbmF0dXJl$''',
   '''^distribution-test-secret-at-least-32-chars$''',
   '''^0123456789abcdef$''',
+  # Printix scanner test fixture: a made-up offline-list hash key
+  # (apps/pwa/printix/src/test/fixtures.ts). Real keys are random per pairing
+  # and never stored in the repository.
+  '''^5b0d3f1e8c2a4d6b9e7f1a3c5e7d9b2f$''',
 ]
 
 [[allowlists]]

@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { GateApp } from "@/components/gate-app";
+import { ServiceWorker } from "@/components/service-worker";
 import "@/styles/app.css";
 
 // The whole scanner runs in the browser; index.html holds only this root.
@@ -9,6 +10,7 @@ if (root) {
   createRoot(root).render(
     <StrictMode>
       <GateApp />
+      <ServiceWorker />
     </StrictMode>
   );
 }
