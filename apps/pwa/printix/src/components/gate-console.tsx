@@ -63,6 +63,9 @@ export function GateConsole({
   const showVerdict = useCallback(
     (next: Verdict) => {
       held.current = true;
+      // The sheet may have been opened while this check was pending. Close it
+      // for good, so it does not slide back up when the result is dismissed.
+      setTypedOpen(false);
       setVerdict(next);
       const time = formatTime(new Date().toISOString());
       setLastCheck(time ? `${next.title}, ${time}` : next.title);

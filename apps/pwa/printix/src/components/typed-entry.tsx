@@ -27,6 +27,16 @@ export function TypedEntry({
 }: TypedEntryProps) {
   const field = useRef<HTMLInputElement>(null);
   const titleId = useId();
+  // Each opening gets a fresh form, even one that starts while the sheet is
+  // still sliding away: the last number and error never carry over.
+  const [wasOpen, setWasOpen] = useState(open);
+  const [opening, setOpening] = useState(0);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setOpening(opening + 1);
+    }
+  }
 
   return (
     <Drawer.Root
@@ -55,6 +65,7 @@ export function TypedEntry({
           <TypedForm
             checking={checking}
             field={field}
+            key={opening}
             onClose={onClose}
             onSubmit={onSubmit}
           />
@@ -71,10 +82,7 @@ interface TypedFormProps {
   readonly onSubmit: (value: string) => void;
 }
 
-/**
- * The form lives inside the sheet's content, so it is created each time the
- * sheet opens: the last number and any error never carry over.
- */
+/** The sheet's form. Its parent gives it a new key on every opening. */
 function TypedForm({ checking, field, onClose, onSubmit }: TypedFormProps) {
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
