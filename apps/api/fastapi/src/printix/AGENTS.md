@@ -179,7 +179,10 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   entitlement and the 404 or 403 rules run once), then
   `privileged_mfa.require_mfa_session(..., app_key="printix")` on every call
   (`printix/dependencies.py: require_printix_organiser`). MFA runs after membership, so a
-  non-member gets the same 404 whatever their authenticator state.
+  non-member with an authenticator gets the same 404 as any other. Since ADR-0061, a
+  token whose person has no authenticator is refused by `user_for_app` first (403, body
+  `code` `authenticator_required`), before membership, so that refusal depends only on the
+  caller's own authenticator state.
 - **Self route (zone `me`):** `GET /printix/me/organisations` (`me_router.py`) lists the
   organisations where the caller is an active member, the organisation is active and
   entitled to `printix`, and the effective keys (`grants.effective_keys`, the same helper the

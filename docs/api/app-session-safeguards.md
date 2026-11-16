@@ -1,5 +1,9 @@
 # App session safeguards
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-11-16
+
 Per-app settings on `AppDefinition` (`apps/api/fastapi/src/auth/apps.py`), from
 ADR-0061. Moved here from `src/auth/AGENTS.md`, whose instruction chain is at the
 Codex byte budget.
