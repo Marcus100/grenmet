@@ -16,7 +16,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.concurrency import run_in_threadpool
 
-from src.auth import app_service, service
+from src.auth import app_service, email_change, service
 from src.auth import superuser_invitation as invitations
 from src.auth.app_schemas import AppEmailCodeStart
 from src.auth.constants import (
@@ -160,9 +160,18 @@ async def read_user_me(current_user: AccountUser) -> Any:
     description="Update profile fields for the currently authenticated user.",
     responses={
         status.HTTP_200_OK: {"description": "User updated"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Changing the email needs the current password or emailed "
+            "code (detail starts email_change_proof_required), or the proof is wrong",
+        },
         status.HTTP_409_CONFLICT: {
             "model": ApiError,
             "description": "Email already exists",
+        },
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": ApiError,
+            "description": "Too many email change attempts for this account",
         },
     },
 )
@@ -172,6 +181,33 @@ async def update_user_me(
     return await service.update_user_me(
         session=session, current_user=current_user, user_in=user_in
     )
+
+
+@router.post(
+    "/me/email-change/code",
+    response_model=Message,
+    summary="Send a code to change the email address",
+    description=(
+        "For an account with no password: email a six-digit code to the current "
+        "address. Send it back as email_code with PATCH /auth/users/me."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Code sent to the current address"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "The account signs in with a password",
+        },
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": ApiError,
+            "description": "A code was sent recently or too many were requested",
+        },
+    },
+)
+async def send_email_change_code(
+    *, session: SessionDep, current_user: CurrentUser
+) -> Any:
+    await email_change.start_code(session=session, user=current_user)
+    return Message(message=email_change.CODE_SENT_MESSAGE)
 
 
 @router.patch(

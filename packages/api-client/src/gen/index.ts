@@ -78,6 +78,7 @@ export { authRevokeActivation } from "./clients/authRevokeActivation.js";
 export { authRevokeSecuritySession } from "./clients/authRevokeSecuritySession.js";
 export { authRevokeSignInSetup } from "./clients/authRevokeSignInSetup.js";
 export { authRevokeSuperuserInvitation } from "./clients/authRevokeSuperuserInvitation.js";
+export { authSendEmailChangeCode } from "./clients/authSendEmailChangeCode.js";
 export { authSuperuserInvitationCode } from "./clients/authSuperuserInvitationCode.js";
 export { authTwofaActivate } from "./clients/authTwofaActivate.js";
 export { authTwofaDisable } from "./clients/authTwofaDisable.js";
@@ -1164,6 +1165,11 @@ export {
   authRevokeSuperuserInvitationMutationOptions,
   useAuthRevokeSuperuserInvitation,
 } from "./hooks/useAuthRevokeSuperuserInvitation.js";
+export {
+  authSendEmailChangeCodeMutationKey,
+  authSendEmailChangeCodeMutationOptions,
+  useAuthSendEmailChangeCode,
+} from "./hooks/useAuthSendEmailChangeCode.js";
 export {
   authSuperuserInvitationCodeMutationKey,
   authSuperuserInvitationCodeMutationOptions,
@@ -5587,6 +5593,15 @@ export type {
   AuthRevokeSuperuserInvitationStatus422,
 } from "./models/AuthRevokeSuperuserInvitation.js";
 export type {
+  AuthSendEmailChangeCodeOptions,
+  AuthSendEmailChangeCodeResponse,
+  AuthSendEmailChangeCodeResponses,
+  AuthSendEmailChangeCodeStatus200,
+  AuthSendEmailChangeCodeStatus400,
+  AuthSendEmailChangeCodeStatus422,
+  AuthSendEmailChangeCodeStatus429,
+} from "./models/AuthSendEmailChangeCode.js";
+export type {
   AuthSuperuserInvitationCodeBody,
   AuthSuperuserInvitationCodeOptions,
   AuthSuperuserInvitationCodeResponse,
@@ -5678,8 +5693,10 @@ export type {
   AuthUpdateUserMeResponse,
   AuthUpdateUserMeResponses,
   AuthUpdateUserMeStatus200,
+  AuthUpdateUserMeStatus400,
   AuthUpdateUserMeStatus409,
   AuthUpdateUserMeStatus422,
+  AuthUpdateUserMeStatus429,
 } from "./models/AuthUpdateUserMe.js";
 export type { AviationDraftList } from "./models/AviationDraftList.js";
 export type { AviationDraftRead } from "./models/AviationDraftRead.js";
@@ -15884,6 +15901,14 @@ export {
   authRevokeSuperuserInvitationStatus422Schema,
 } from "./zod/authRevokeSuperuserInvitationSchema.js";
 export {
+  authSendEmailChangeCodeErrorSchema,
+  authSendEmailChangeCodeResponseSchema,
+  authSendEmailChangeCodeStatus200Schema,
+  authSendEmailChangeCodeStatus400Schema,
+  authSendEmailChangeCodeStatus422Schema,
+  authSendEmailChangeCodeStatus429Schema,
+} from "./zod/authSendEmailChangeCodeSchema.js";
+export {
   authSuperuserInvitationCodeBodySchema,
   authSuperuserInvitationCodeErrorSchema,
   authSuperuserInvitationCodeResponseSchema,
@@ -15956,8 +15981,10 @@ export {
   authUpdateUserMeErrorSchema,
   authUpdateUserMeResponseSchema,
   authUpdateUserMeStatus200Schema,
+  authUpdateUserMeStatus400Schema,
   authUpdateUserMeStatus409Schema,
   authUpdateUserMeStatus422Schema,
+  authUpdateUserMeStatus429Schema,
 } from "./zod/authUpdateUserMeSchema.js";
 export {
   authUpdateUserBodySchema,

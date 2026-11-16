@@ -425,7 +425,7 @@ async def test_activated_account_that_changes_its_email_is_refused_again(
     await update_user_me(
         session=db_async,
         current_user=person,
-        user_in=UserUpdateMe(email=victim_email),
+        user_in=UserUpdateMe(email=victim_email, current_password="New-password-123!"),
     )
     assert person.email_verification_required is True
 

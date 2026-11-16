@@ -856,6 +856,14 @@ export {
   authRevokeSuperuserInvitationStatus422Schema,
 } from "./authRevokeSuperuserInvitationSchema.js";
 export {
+  authSendEmailChangeCodeErrorSchema,
+  authSendEmailChangeCodeResponseSchema,
+  authSendEmailChangeCodeStatus200Schema,
+  authSendEmailChangeCodeStatus400Schema,
+  authSendEmailChangeCodeStatus422Schema,
+  authSendEmailChangeCodeStatus429Schema,
+} from "./authSendEmailChangeCodeSchema.js";
+export {
   authSuperuserInvitationCodeBodySchema,
   authSuperuserInvitationCodeErrorSchema,
   authSuperuserInvitationCodeResponseSchema,
@@ -928,8 +936,10 @@ export {
   authUpdateUserMeErrorSchema,
   authUpdateUserMeResponseSchema,
   authUpdateUserMeStatus200Schema,
+  authUpdateUserMeStatus400Schema,
   authUpdateUserMeStatus409Schema,
   authUpdateUserMeStatus422Schema,
+  authUpdateUserMeStatus429Schema,
 } from "./authUpdateUserMeSchema.js";
 export {
   authUpdateUserBodySchema,

@@ -379,6 +379,11 @@ export {
   useAuthRevokeSuperuserInvitation,
 } from "./useAuthRevokeSuperuserInvitation.js";
 export {
+  authSendEmailChangeCodeMutationKey,
+  authSendEmailChangeCodeMutationOptions,
+  useAuthSendEmailChangeCode,
+} from "./useAuthSendEmailChangeCode.js";
+export {
   authSuperuserInvitationCodeMutationKey,
   authSuperuserInvitationCodeMutationOptions,
   useAuthSuperuserInvitationCode,

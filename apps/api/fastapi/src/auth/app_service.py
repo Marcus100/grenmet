@@ -295,20 +295,26 @@ async def _require_totp(
 _pending_code_emails: set[asyncio.Task[None]] = set()
 
 
-def _schedule_code_email(*, email: str, app_label: str, code: str) -> None:
+def _schedule_code_email(
+    *, email: str, app_label: str, code: str, subject: str = "Your sign-in code"
+) -> None:
     task = asyncio.get_running_loop().create_task(
-        _deliver_code_email(email=email, app_label=app_label, code=code)
+        _deliver_code_email(
+            email=email, app_label=app_label, code=code, subject=subject
+        )
     )
     _pending_code_emails.add(task)
     task.add_done_callback(_pending_code_emails.discard)
 
 
-async def _deliver_code_email(*, email: str, app_label: str, code: str) -> None:
+async def _deliver_code_email(
+    *, email: str, app_label: str, code: str, subject: str = "Your sign-in code"
+) -> None:
     try:
         await run_in_threadpool(
             send_email,
             email_to=email,
-            subject="Your sign-in code",
+            subject=subject,
             html_content=(
                 f"<p>Your {app_label} code is</p>"
                 f'<p style="font-size:28px;font-weight:700;letter-spacing:4px">{code}</p>'

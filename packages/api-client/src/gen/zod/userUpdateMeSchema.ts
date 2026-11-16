@@ -11,4 +11,6 @@ export const userUpdateMeSchema = z.object({
   first_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
   middle_name: z.union([z.string().max(100), z.null()]).optional(),
   last_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
+  current_password: z.union([z.string().max(256), z.null()]).optional(),
+  email_code: z.union([z.string().min(6).max(6), z.null()]).optional(),
 });

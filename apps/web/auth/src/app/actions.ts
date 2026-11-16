@@ -1,6 +1,6 @@
 "use server";
 
-import { userPublicSchema } from "@barrelsgd/api-client";
+import { messageSchema, userPublicSchema } from "@barrelsgd/api-client";
 import { authApiFetch } from "@barrelsgd/auth/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -21,6 +21,7 @@ import {
   writeSessionCookie,
 } from "@/lib/session";
 import type {
+  EmailChangeState,
   ForgotPasswordState,
   NamePromptState,
   ResetPasswordState,
@@ -264,4 +265,93 @@ export async function saveNameAction(
   }
   revalidatePath("/");
   return { error: null, saved: true };
+}
+
+const EMAIL_PROOF_PREFIX = "email_change_proof_required: ";
+
+/** Changing the sign-in email needs proof (#1535): the current password, or for an
+ * account with no password a code emailed to the current address. The server
+ * message begins with a stable code; show the reason after it. */
+function describeEmailChangeError(error: unknown): string {
+  if (!isAuthApiError(error)) return "Unable to change your email. Try again.";
+  if (error.detail.startsWith(EMAIL_PROOF_PREFIX)) {
+    return error.detail.slice(EMAIL_PROOF_PREFIX.length);
+  }
+  return error.detail;
+}
+
+/** Account with no password: email a code to the current address first. */
+export async function sendEmailChangeCodeAction(): Promise<EmailChangeState> {
+  const sessionToken = await readSessionCookie();
+  if (!sessionToken) redirect("/");
+  try {
+    const { access_token: accessToken } =
+      await exchangeSessionForAccessToken(sessionToken);
+    await authApiFetch(
+      getAuthConfig(),
+      "/auth/users/me/email-change/code",
+      messageSchema,
+      { accessToken, method: "POST" }
+    );
+  } catch (error) {
+    reportError(error, "auth-email-change-code");
+    return {
+      error: isAuthApiError(error)
+        ? error.detail
+        : "Unable to send a code. Try again.",
+      codeSent: false,
+      saved: false,
+    };
+  }
+  return { error: null, codeSent: true, saved: false };
+}
+
+/** Change the sign-in email. Send `current_password`, or `email_code` for an account
+ * with no password. Every session is signed out on success, so the browser cookie is
+ * cleared here too. */
+export async function changeEmailAction(
+  _previousState: EmailChangeState,
+  formData: FormData
+): Promise<EmailChangeState> {
+  const email = readString(formData, "email");
+  const currentPassword = readString(formData, "current_password");
+  const emailCode = readString(formData, "email_code");
+  if (!email) {
+    return {
+      error: "Enter your new email address.",
+      codeSent: false,
+      saved: false,
+    };
+  }
+  if (!(currentPassword || emailCode)) {
+    return {
+      error: "Enter your current password to change your email address.",
+      codeSent: false,
+      saved: false,
+    };
+  }
+  const body: Record<string, string> = { email };
+  if (currentPassword) body.current_password = currentPassword;
+  if (emailCode) body.email_code = emailCode;
+
+  const sessionToken = await readSessionCookie();
+  if (!sessionToken) redirect("/");
+  try {
+    const { access_token: accessToken } =
+      await exchangeSessionForAccessToken(sessionToken);
+    await authApiFetch(getAuthConfig(), "/auth/users/me", userPublicSchema, {
+      accessToken,
+      body,
+      method: "PATCH",
+    });
+  } catch (error) {
+    reportError(error, "auth-change-email");
+    return {
+      error: describeEmailChangeError(error),
+      codeSent: false,
+      saved: false,
+    };
+  }
+  await clearSessionCookie();
+  return { error: null, codeSent: false, saved: true };
 }
