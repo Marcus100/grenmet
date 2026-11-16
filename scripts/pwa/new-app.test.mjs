@@ -30,11 +30,12 @@ const VOLUME_NEXT = /^apps\/pwa\/trial\/\.next$/mu;
 const CAMERA_OFF = /camera=\(\)/u;
 const WASM_ALLOWED = /wasm-unsafe-eval/u;
 const COPIES_ZXING = /copy-zxing/u;
-const DEV_SCRIPT = /^pwa-kit-copy-zxing && next dev .*--port 3062$/u;
-const PORT_HEADER = /^Port \*\*3062\*\*/mu;
+const DEV_SCRIPT = /^pwa-kit-copy-zxing && next dev .*--port 3099$/u;
+const PORT_HEADER = /^Port \*\*3099\*\*/mu;
 const ROOT_SCRIPT =
   /"dev:pwa:trial": "turbo run dev --filter=@barrelsgd\/pwa-trial"/u;
-const PORT_ROW = /^\| 3062 \| `@barrelsgd\/pwa-trial` /mu;
+const MAP_ROW = /^\| `apps\/pwa\/<app>\/AGENTS\.md` \|.*, trial \|$/mu;
+const PORT_ROW = /^\| 3099 \| `@barrelsgd\/pwa-trial` /mu;
 const TAKEN_OVER_ROW =
   /^\| 3061 \| `@barrelsgd\/pwa-janitor` .*Built, dev only/mu;
 const ROW_IN_ORDER =
@@ -50,6 +51,7 @@ function fixture() {
   const root = mkdtempSync(join(tmpdir(), "new-pwa-"));
   for (const path of [
     "package.json",
+    "AGENTS.md",
     "docs/ports.md",
     ".devcontainer/devcontainer.json",
     ".devcontainer/dependency-volumes.txt",
@@ -64,7 +66,7 @@ const plan = (root, extra = []) =>
   readOptions([
     "trial",
     "--port",
-    "3062",
+    "3099",
     "--title",
     "Trial App",
     "--root",
@@ -74,10 +76,10 @@ const plan = (root, extra = []) =>
 
 test("refuses a bad name, a missing title or a port outside 3000-3099", () => {
   assert.throws(
-    () => readOptions(["Bus", "--port", "3062", "--title", "x"]),
+    () => readOptions(["Bus", "--port", "3099", "--title", "x"]),
     UsageError
   );
-  assert.throws(() => readOptions(["bus", "--port", "3062"]), UsageError);
+  assert.throws(() => readOptions(["bus", "--port", "3099"]), UsageError);
   assert.throws(
     () => readOptions(["bus", "--port", "8080", "--title", "x"]),
     UsageError
@@ -87,7 +89,7 @@ test("refuses a bad name, a missing title or a port outside 3000-3099", () => {
       readOptions([
         "bus",
         "--port",
-        "3062",
+        "3099",
         "--title",
         "x",
         "--accent",
@@ -145,6 +147,11 @@ test("creates the app and registers it everywhere workspaces are listed", (t) =>
     assert.equal(devcontainer.split(target).length - 1, 1, target);
   }
   assert.match(root_("docs/ports.md"), PORT_ROW);
+  assert.match(
+    root_("AGENTS.md"),
+    MAP_ROW,
+    "the root instruction map names the app"
+  );
 
   assert.throws(
     () => createApp(plan(root)),

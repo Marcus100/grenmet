@@ -42,6 +42,12 @@ describe("InstallHint", () => {
     ).toBeInTheDocument();
   });
 
+  it("still shows the steps where the browser has no matchMedia", () => {
+    Reflect.deleteProperty(window, "matchMedia");
+    render(<InstallHint title="Install" />);
+    expect(screen.getByText(ANDROID_STEPS)).toBeVisible();
+  });
+
   it("shows nothing once the app is installed", () => {
     standalone(true);
     render(<InstallHint title="Install" />);

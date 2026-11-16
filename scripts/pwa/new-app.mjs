@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from "node:child_process";
 // Creates a new phone app in apps/pwa/<name> on the shared kit
 // (packages/pwa-kit) and registers it everywhere the repository lists
 // workspaces: the root dev script, every web Dockerfile, the dev container
@@ -32,6 +33,8 @@ const HEX_PATTERN = /^#[0-9a-f]{6}$/iu;
 const PORT_ROW = /^\|\s*(\d{4,5})\s*\|/u;
 const RESERVED_STATUS = /\|\s*Reserved[^|]*\|\s*$/u;
 const DEV_PWA_SCRIPT = /^ {4}"dev:pwa:/u;
+const PWA_MAP_ROW = /^\| `apps\/pwa\/<app>\/AGENTS\.md` \|/u;
+const ROW_END = / \|$/u;
 const DOCKER_PWA_COPY = /^COPY apps\/pwa\/[a-z0-9-]+\/package\.json /u;
 const PWA_NODE_MODULES = /^apps\/pwa\/[a-z0-9-]+\/node_modules$/u;
 const PWA_NEXT_CACHE = /^apps\/pwa\/[a-z0-9-]+\/\.next$/u;
@@ -91,6 +94,8 @@ export function readOptions(argv) {
     site: new URL(site).origin,
     scanner: values.scanner,
     public: values.public,
+    /** True when writing into another folder, such as a test's copy. */
+    custom: Boolean(values.root),
     root: values.root
       ? resolve(values.root)
       : fileURLToPath(new URL("../..", import.meta.url)),
@@ -223,7 +228,6 @@ export function appFiles(plan) {
     ["src/app/manifest.test.ts", t.MANIFEST_TEST],
     ["src/components/home.tsx", fill(t.HOME, plan)],
     ["src/components/home.test.tsx", fill(t.HOME_TEST, plan)],
-    ["src/lib/report-error.ts", t.REPORT_ERROR],
     ["src/styles/app.css", fill(t.APP_CSS, plan)],
     ["src/test/setup.ts", t.TEST_SETUP],
   ];
@@ -318,6 +322,20 @@ export function registrations(plan) {
   });
 
   edit("docs/ports.md", (source) => portsWithApp(source, plan));
+
+  // The root instruction map must name every nested AGENTS.md. Only the name
+  // is added: the root file sits at the Codex instruction byte budget.
+  edit("AGENTS.md", (source) => {
+    const lines = source.split("\n");
+    const index = lines.findIndex((line) => PWA_MAP_ROW.test(line));
+    if (index < 0) {
+      throw new Error(
+        "AGENTS.md: no apps/pwa/<app> row in the instruction map"
+      );
+    }
+    lines[index] = lines[index].replace(ROW_END, `, ${name} |`);
+    return lines.join("\n");
+  });
   return edits;
 }
 
@@ -363,6 +381,18 @@ export function portsWithApp(markdown, plan) {
   return lines.join("\n");
 }
 
+/**
+ * Lays the new files out in the repository's style (a long app name can push
+ * a line past the width). Best effort: an unformatted file still works.
+ */
+function formatApp(plan) {
+  spawnSync(
+    "pnpm",
+    ["exec", "biome", "format", "--write", `apps/pwa/${plan.name}`],
+    { cwd: plan.root, stdio: "ignore" }
+  );
+}
+
 export function createApp(plan) {
   const folder = join(plan.root, "apps/pwa", plan.name);
   if (existsSync(folder)) {
@@ -388,7 +418,10 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
       `Created apps/pwa/${plan.name} (@barrelsgd/pwa-${plan.name}) on port ${plan.port}.`
     );
     console.log(`Registered it in ${changed.length} files.`);
-    console.log("Next: pnpm install, then pnpm dev:pwa:");
+    if (!plan.custom) {
+      formatApp(plan);
+    }
+    console.log(`Next: pnpm install, then pnpm dev:pwa:${plan.name}`);
   } catch (error) {
     if (error instanceof UsageError) {
       console.error(error.message);

@@ -21,9 +21,9 @@ tooling. Start with `docs/technical-overview.md`.
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Vercel) |
 | `apps/web/commit/AGENTS.md` | Commit, the Barrels engineering blog (one post per release; static Next.js on Cloudflare Pages) |
-| `apps/pwa/printix/AGENTS.md` | Printix Scanner, a client's ticket scanning app (installable phone app, static Next.js; `pnpm dev:pwa:printix`, port 3064) |
+| `apps/pwa/<app>/AGENTS.md` | Phone apps on `packages/pwa-kit` (`pnpm new:pwa`; `pnpm dev:pwa:<app>`): printix (a client's ticket scanner, 3064) |
 | `packages/bookings-web/AGENTS.md` | Public booking flow (slot picker, booking form, manage-booking, Turnstile) shared by babydoll and a future bookings app; host owns server calls |
-| `packages/<pkg>/AGENTS.md` | api-client, auth, bookings-web, email-templates, gms, theme, ui |
+| `packages/<pkg>/AGENTS.md` | api-client, auth, bookings-web, email-templates, gms, pwa-kit, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
 
 ## Commands

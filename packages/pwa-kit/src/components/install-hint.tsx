@@ -9,9 +9,12 @@ interface InstallPromptEvent extends Event {
 }
 
 function isStandalone(): boolean {
+  // Older browsers and test pages may lack matchMedia; then only iPhone's flag counts.
+  const displayMode =
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(display-mode: standalone)").matches;
   return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (navigator as { standalone?: boolean }).standalone === true
+    displayMode || (navigator as { standalone?: boolean }).standalone === true
   );
 }
 

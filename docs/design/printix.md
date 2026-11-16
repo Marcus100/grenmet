@@ -32,8 +32,8 @@ barcode of lines.
 
 Motion follows how often a thing happens. The result screen appears hundreds
 of times a night, so it never animates. A screen that replaces another
-(pairing, problem, scanning) fades in over 200 ms (`.px-screen`, opacity only).
+(pairing, problem, scanning) fades in over 200 ms (`.pwa-screen` from the shared phone-app kit, opacity only).
 The typed-number sheet is occasional: it slides up, follows the finger and can
-be dragged down to close (Vaul). Buttons press in slightly. Nothing bounces.
+be dragged down to close (the kit's sheet, built on Vaul). Buttons press in slightly. Nothing bounces.
 
 Source: `apps/pwa/printix/src/styles/app.css`.

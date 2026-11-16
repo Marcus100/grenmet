@@ -116,10 +116,12 @@ export const env = parseEnv({ SITE_URL: process.env.SITE_URL });
 export const ENV_TEST = `import { describe, expect, it } from "vitest";
 import { parseEnv } from "@/env";
 
+const SITE = "__SITE__";
+
 describe("parseEnv", () => {
   it("falls back to the app's public address", () => {
-    expect(parseEnv({}).SITE_URL).toBe("__SITE__");
-    expect(parseEnv({ SITE_URL: "not a url" }).SITE_URL).toBe("__SITE__");
+    expect(parseEnv({}).SITE_URL).toBe(SITE);
+    expect(parseEnv({ SITE_URL: "not a url" }).SITE_URL).toBe(SITE);
   });
 
   it("keeps only the origin of a given address", () => {
@@ -278,16 +280,6 @@ describe("Home", () => {
 });
 `;
 
-export const REPORT_ERROR = `/**
- * This app's error reporter (the root AGENTS.md rule: catch, show a fallback,
- * call \`reportError\`). The shared phone-app kit owns it; see its tests there.
- */
-export {
-  ERROR_REPORT_EVENT,
-  reportError,
-} from "@barrelsgd/pwa-kit/lib/report-error";
-`;
-
 export const TEST_SETUP = `import "@testing-library/jest-dom/vitest";
 `;
 
@@ -332,6 +324,9 @@ shared part. Planned public address: \`__SITE__\`.
 - Everything stays static: no server actions, no route handlers that need a
   server, no \`next/image\` optimisation. Backend logic goes in FastAPI.
 - \`src/env.ts\` is the only place that reads \`process.env\`.
+- Errors: when a screen catches an error and shows a fallback, add
+  \`src/lib/report-error.ts\` re-exporting \`reportError\` from
+  \`@barrelsgd/pwa-kit/lib/report-error\` (as \`apps/pwa/printix\` does).
 - Colours: set the \`--color-pwa-*\` names in \`src/styles/app.css\`; never
   \`--gm-*\` tokens. When the look is decided, write the lane spec
   \`docs/design/__NAME__.md\` and map it in \`scripts/docs/design-md.test.mjs\`.
