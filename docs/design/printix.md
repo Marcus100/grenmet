@@ -54,4 +54,12 @@ plain sentence in the alert colour, announced to screen readers, with focus put
 back on the field that needs fixing. Labels are always visible; placeholders
 never replace them.
 
+Organiser setup (`/organiser`, event page) adds two layout rules. Setup actions
+are inline sections on the event page, not pop-up dialogs, so a phone never stacks
+a dialog on top of a keyboard. The gate code is the one exception to the look of a
+list: a full-width panel, with the QR code on a light card (the `px-paper` colour,
+dark `px-ink` modules, so a camera reads it) and one "Done" control. A destructive
+step (void, cancel a gate code, close the event) always asks first in a sentence that
+says what happens, with a "keep it" control beside the confirm.
+
 Source: `apps/pwa/printix/src/styles/app.css`.

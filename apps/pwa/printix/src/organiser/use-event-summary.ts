@@ -1,5 +1,5 @@
 import type { PrintixEventSummary } from "@barrelsgd/api-client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Problem } from "@/organiser/errors";
 import { readEventSummary } from "@/organiser/organiser-api";
 import type { OrganiserSession } from "@/organiser/session";
@@ -13,6 +13,8 @@ export const SUMMARY_REFRESH_MS = 10_000;
 export interface SummaryView {
   /** Why the latest read failed; null after a good read. */
   readonly problem: Problem | null;
+  /** Reads the counts now (after a change such as a void or a close). */
+  readonly reload: () => void;
   /** The last counts the server confirmed, kept on screen after a failed read. */
   readonly summary: PrintixEventSummary | null;
   readonly updatedAt: Date | null;
@@ -33,11 +35,14 @@ export function useEventSummary(
   organisationId: string,
   eventId: string
 ): SummaryView {
-  const [view, setView] = useState<SummaryView>({
+  const [view, setView] = useState<Omit<SummaryView, "reload">>({
     summary: null,
     problem: null,
     updatedAt: null,
   });
+  const reloadRef = useRef<() => void>(() => undefined);
+  // Stable: callers may list it in an effect's dependencies without a loop.
+  const reload = useCallback(() => reloadRef.current(), []);
 
   useEffect(() => {
     let active = true;
@@ -100,6 +105,7 @@ export function useEventSummary(
     };
 
     document.addEventListener("visibilitychange", onVisibilityChange);
+    reloadRef.current = read;
     read();
     return () => {
       active = false;
@@ -108,5 +114,5 @@ export function useEventSummary(
     };
   }, [session, organisationId, eventId]);
 
-  return view;
+  return { ...view, reload };
 }

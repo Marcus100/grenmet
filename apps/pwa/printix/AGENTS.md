@@ -216,11 +216,82 @@ the gate with its pairing secret (`scan-api.ts`), the organiser with its session
   unchanged: `connect-src` names the API origin only, and there are no inline
   scripts.
 
+### Setup screens and gate codes (ADR-0060 amendment, slices 4 and 5)
+
+Organisers set up their events here, and make the gate QR codes on event night.
+Every call goes through `write-api.ts` (the organisation header on each call; the
+answer must match the generated schema), and the server is the only judge of a rule.
+
+- **Create event** (`create-event.tsx`, organisers only; a gate lead gets no button and
+  the screen refuses to open for them too). Name, event date and closing time. Times
+  are Grenada time (UTC-4 all year), sent as `2026-12-27T00:00:00-04:00`
+  (`grenadaLocalToIso`). The screen mirrors the two server rules before sending: the
+  event date is at most 365 days ahead (UTC date, as the server counts it) and the
+  closing date is at most 7 days after the event date and not before it. A server 422
+  shows its sentences in words, without pydantic's "Value error, " prefix.
+- **Event page** (`event-screen.tsx` adds the sections below after the counts).
+  Setup sections use the polled `summary.event` status, so a closed event shows as
+  closed without a reload, and `reload` (from `use-event-summary.ts`) refreshes the
+  counts after each change.
+  - **Gate codes** (both roles, `gate-codes-section.tsx`): list (gate, works until,
+    typed numbers on or off, active, expired or cancelled; never a secret). "New gate
+    code": gate name, optional "works until" (blank is the server's default of six hours
+    after close, at most a day after), and the "Allow typed numbers" switch, shown to
+    organisers only. A gate lead's 403 is still handled. Cancelling is a button plus a
+    confirm, for both roles. The 20-active-codes 409 says to cancel one first.
+  - **The QR code, shown once** (`gate-code-panel.tsx`, `qr.ts`): the link is
+    `<this origin>/#pair=<secret>`, drawn as an inline SVG (the events app's module-path
+    approach, so no image is loaded and the CSP needs no change). Full width, with the gate
+    name and "Scan this with the gate phone's camera now. It will not be shown again." Focus
+    moves to its heading when it appears. It shows "This code hides in N seconds." and is
+    dropped on Done, after two minutes, or as soon as the page is hidden (`visibilitychange`).
+    The secret lives only in the component's state, which the page owns; leaving the event
+    page drops it. Making a code that gets no answer adds "A code may have been made. Check
+    the list and cancel any you did not expect." No copy, download, print or share control
+    exists. Nothing reaches storage, a URL, a log or `reportError`. `pairingLink` round-trips
+    through `readPairingFragment` (tested).
+  - **Tickets** (organisers, `tickets-section.tsx`): printed number and state, paged 50,
+    never a barcode. Void and restore each take a confirm step. An admitted ticket
+    offers no void. Closed events refuse every change, and the screen says so.
+  - **Import tickets** (organisers, `import-section.tsx`): a trial first (`dry_run=true`,
+    writes nothing), then "Import N tickets" (`dry_run=false`). The trial keeps the exact
+    `File` it checked, and the import uploads that file, never whatever the picker shows
+    later. The picker is disabled while a check or import runs, and an answer for a file
+    that was replaced meanwhile is ignored. The trial is clean only when it has no
+    problems, nothing truncated, rows to add, and no warnings. The server's only warnings
+    are blank-barcode ones, and a real import refuses those (`service.import_tickets`), so
+    they block: "Every ticket needs its barcode. Ask the printer for the full list." Weak
+    barcodes never block (the real import accepts them): "Across this event, N barcodes are
+    shorter than 12 characters. Offline checking will be off for this event." A real import
+    that still writes nothing shows its problems under "The import was not written. Nothing
+    was added." The trial report does not list blank rows by line (the server gives only the
+    count and the first line); a per-line list needs a server change. The tickets list
+    remounts after a successful import, and the offline warning stays on the done step. The
+    file is held in component state only and dropped after a successful import; over 2 MB is
+    refused before any call; 413 and 409 have their own sentences.
+  - **Close event** (organisers, `close-event-section.tsx`): a confirm that says it
+    cannot be undone and that gate codes stop admitting people.
+- **Closed means closed (`event-state.ts`):** the organiser closed it, or its closing time
+  has passed. A closed event offers no void, restore, import, new gate code or close action,
+  and its unended gate codes read "Ended (event closed)" with no Cancel button.
+- **Focus and results:** a confirm step (void, restore, cancel a code, close) takes focus
+  when it opens and returns it to its opening control when it closes (`use-confirm-focus.ts`).
+  Results (imported, void, restored, cancelled, the code made, closed) are announced in one
+  polite live region on the event page.
+- **Events list:** "New event" for organisers only (`can_manage_events`).
+- **New error kinds** (`errors.ts`): `invalid` (422 sentences), `event-closed`,
+  `gate-codes-full`, `already-admitted`, `conflict` (any other 409), `too-large` (413),
+  `typed-numbers-refused` (403). A 429 always states its wait in seconds.
+- **Tests:** `setup.test.tsx` (role gating, create, tickets, the trial-then-import
+  sequence, the weak-barcode warning, the QR shown once and gone after Done, the secret
+  kept out of storage, the URL and reported errors, cancel, each error sentence) and
+  `setup-helpers.test.ts` (the date rules, Grenada time, the warning words, the code and
+  ticket rules, the QR link and matrix).
+
 ## Not built yet
 
 QR generation for administrators, ticket types, re-entry, and the Barrels
-Events connection. Organiser writes (create event, ticket import, gate codes) are
-the next slices. Backend logic goes in FastAPI, never here.
+Events connection. Backend logic goes in FastAPI, never here.
 
 ## Rules
 

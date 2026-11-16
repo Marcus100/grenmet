@@ -30,6 +30,13 @@ const MAX_RETRY_SECONDS = 3600;
 export type Problem =
   | { readonly kind: "rate-limited"; readonly retryAfterSeconds: number }
   | { readonly kind: "rejected" }
+  | { readonly kind: "invalid"; readonly messages: readonly string[] }
+  | { readonly kind: "event-closed" }
+  | { readonly kind: "gate-codes-full" }
+  | { readonly kind: "already-admitted" }
+  | { readonly kind: "conflict" }
+  | { readonly kind: "too-large" }
+  | { readonly kind: "typed-numbers-refused" }
   | { readonly kind: "email-code-wrong" }
   | { readonly kind: "authenticator-wrong" }
   | { readonly kind: "not-set-up" }
@@ -89,6 +96,35 @@ function hasName(error: unknown, names: readonly string[]): boolean {
   );
 }
 
+const VALUE_ERROR_PREFIX = /^Value error, /u;
+
+/**
+ * The plain sentences of a validation answer (422). Pydantic prefixes its
+ * messages with "Value error, "; that prefix is not for people.
+ */
+function validationMessages(data: unknown): string[] {
+  if (typeof data !== "object" || data === null) {
+    return [];
+  }
+  const messages: string[] = [];
+  if ("detail" in data && typeof data.detail === "string") {
+    messages.push(data.detail);
+  }
+  if ("errors" in data && Array.isArray(data.errors)) {
+    for (const item of data.errors) {
+      if (
+        typeof item === "object" &&
+        item !== null &&
+        "msg" in item &&
+        typeof item.msg === "string"
+      ) {
+        messages.push(item.msg.replace(VALUE_ERROR_PREFIX, ""));
+      }
+    }
+  }
+  return messages;
+}
+
 /** The body's structured `code`, when it has one. */
 function structuredCode(data: unknown): string | null {
   if (typeof data !== "object" || data === null || !("code" in data)) {
@@ -115,6 +151,20 @@ function retryAfterSeconds(error: HttpError): number {
     : DEFAULT_RETRY_SECONDS;
 }
 
+/** A 409 says which change was refused; each gets its own sentence. */
+function conflictProblem(text: string): Problem {
+  if (text.includes("active gate codes")) {
+    return { kind: "gate-codes-full" };
+  }
+  if (text.includes("is closed")) {
+    return { kind: "event-closed" };
+  }
+  if (text.includes("already admitted")) {
+    return { kind: "already-admitted" };
+  }
+  return { kind: "conflict" };
+}
+
 function httpProblem(error: HttpError): Problem {
   const text = bodyText(error.data);
   const code = structuredCode(error.data);
@@ -138,6 +188,9 @@ function httpProblem(error: HttpError): Problem {
     case 401:
       return { kind: "session-ended" };
     case 403:
+      if (text.includes("typed printed numbers")) {
+        return { kind: "typed-numbers-refused" };
+      }
       // Text fallback for a body with no structured code: the detail ends with the code.
       if (NO_AUTHENTICATOR_CODES.some((known) => text.includes(known))) {
         return { kind: "no-authenticator" };
@@ -154,8 +207,16 @@ function httpProblem(error: HttpError): Problem {
       return { kind: "forbidden" };
     case 404:
       return { kind: "not-found" };
-    case 422:
-      return { kind: "rejected" };
+    case 409:
+      return conflictProblem(text);
+    case 413:
+      return { kind: "too-large" };
+    case 422: {
+      const messages = validationMessages(error.data);
+      return messages.length > 0
+        ? { kind: "invalid", messages }
+        : { kind: "rejected" };
+    }
     case 429:
       return {
         kind: "rate-limited",
@@ -196,6 +257,20 @@ export function problemMessage(problem: Problem): string {
       return `Too many attempts. Try again in ${problem.retryAfterSeconds} ${
         problem.retryAfterSeconds === 1 ? "second" : "seconds"
       }.`;
+    case "invalid":
+      return problem.messages.join(" ");
+    case "event-closed":
+      return "This event is closed, so nothing here can change.";
+    case "gate-codes-full":
+      return "This event already has 20 active gate codes. Cancel one before making another.";
+    case "already-admitted":
+      return "This ticket was already admitted at the gate, so it cannot be voided.";
+    case "conflict":
+      return "That change could not be made. Refresh the page and try again.";
+    case "too-large":
+      return "That file is larger than 2 MB. Remove rows that are not needed and try again.";
+    case "typed-numbers-refused":
+      return "Only an organiser can allow typed numbers on a gate code. Turn that off and try again.";
     case "rejected":
       return "Check what you typed, then try again.";
     case "email-code-wrong":

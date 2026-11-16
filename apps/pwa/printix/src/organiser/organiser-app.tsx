@@ -4,6 +4,7 @@ import type {
 } from "@barrelsgd/api-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChooseOrganisation } from "@/organiser/choose-organisation";
+import { CreateEventScreen } from "@/organiser/create-event";
 import { type Problem, problemMessage } from "@/organiser/errors";
 import { EventScreen } from "@/organiser/event-screen";
 import { EventsScreen } from "@/organiser/events-screen";
@@ -19,6 +20,7 @@ import { ALERT, PAGE } from "@/organiser/styles";
 
 type View =
   | { readonly kind: "events" }
+  | { readonly kind: "create" }
   | { readonly kind: "event"; readonly event: PrintixEventPublic };
 
 type Phase =
@@ -232,6 +234,14 @@ function ConnectedOrganiser({ apiOrigin }: { readonly apiOrigin: string }) {
       />
       {view.kind === "events" ? (
         <EventsScreen
+          onCreate={() =>
+            setPhase({
+              kind: "working",
+              organisation,
+              organisations,
+              view: { kind: "create" },
+            })
+          }
           onOpen={(event) =>
             setPhase({
               kind: "working",
@@ -243,7 +253,30 @@ function ConnectedOrganiser({ apiOrigin }: { readonly apiOrigin: string }) {
           organisation={organisation}
           session={session}
         />
-      ) : (
+      ) : null}
+      {view.kind === "create" ? (
+        <CreateEventScreen
+          onCancel={() =>
+            setPhase({
+              kind: "working",
+              organisation,
+              organisations,
+              view: { kind: "events" },
+            })
+          }
+          onCreated={(event) =>
+            setPhase({
+              kind: "working",
+              organisation,
+              organisations,
+              view: { kind: "event", event },
+            })
+          }
+          organisation={organisation}
+          session={session}
+        />
+      ) : null}
+      {view.kind === "event" ? (
         <EventScreen
           event={view.event}
           onBack={() =>
@@ -257,7 +290,7 @@ function ConnectedOrganiser({ apiOrigin }: { readonly apiOrigin: string }) {
           organisation={organisation}
           session={session}
         />
-      )}
+      ) : null}
     </main>
   );
 }

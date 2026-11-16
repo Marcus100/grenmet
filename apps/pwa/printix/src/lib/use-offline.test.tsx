@@ -176,13 +176,19 @@ describe("useOffline", () => {
         admitted_gate: "Main gate",
       });
     });
-    await waitFor(async () => {
-      const verdict = await result.current.checkOffline(
-        "PX-0000000101",
-        "camera"
-      );
-      expect(verdict).toMatchObject({ title: "Already admitted" });
+    // The mark is saved in the background. Wait for it in the store itself:
+    // checking too early would admit the ticket offline and change the result.
+    const hash = OFFLINE_LIST.tickets[0]?.barcode_hash ?? "";
+    const store = makeStore();
+    await waitFor(async () =>
+      expect((await store.find(hash))?.state).toBe("admitted")
+    );
+    store.close();
+    let verdict: unknown = null;
+    await act(async () => {
+      verdict = await result.current.checkOffline("PX-0000000101", "camera");
     });
+    expect(verdict).toMatchObject({ title: "Already admitted" });
     expect(result.current.pending).toBe(0);
   });
 
