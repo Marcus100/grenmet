@@ -1889,7 +1889,7 @@ An administrator saves department/grade membership and issues the permanent staf
 
 Password recovery uses a hashed, expiring, single-use challenge. Resetting or changing a password invalidates outstanding challenges and saved sessions. Old JWT-based reset links must be replaced by requesting a new link. New and changed passwords require 12–128 characters.
 
-`POST /api/v1/auth/users/me/security/recovery-codes` requires the current password and an authenticator or existing recovery code. It returns eight new codes once, stores only their hashes and invalidates previous codes. Recovery codes can replace the authenticator code at password or Google sign-in and are consumed once. `/auth/users/me/security/2fa/disable` requires both password and a factor code, and clears recovery codes. `DELETE /api/v1/auth/users/me/security/sessions/{session_id}` revokes only a session owned by the caller; foreign or missing sessions return 404. Already-issued bearer tokens retain their configured short lifetime.
+`POST /api/v1/auth/users/me/security/recovery-codes` requires the current password and an authenticator or existing recovery code. It returns eight new codes once, stores only their hashes and invalidates previous codes. Recovery codes can replace the authenticator code at password or Google sign-in and are consumed once. `/auth/users/me/security/2fa/disable` requires both password and a factor code, and clears recovery codes. These signed-in routes are rate limited per account (not per address) and answer 429 when exceeded: `2fa/setup` 5 a minute, `2fa/activate` 10, `2fa/disable` 5, `recovery-codes` 5 and `PATCH /auth/users/me/password` 5. `DELETE /api/v1/auth/users/me/security/sessions/{session_id}` revokes only a session owned by the caller; foreign or missing sessions return 404. Already-issued bearer tokens retain their configured short lifetime.
 
 Apply Alembic migrations through `c3d5e7f9a1b2` before deploying these account controls. Configure the email provider and Google OAuth callback for the target environment before advertising those flows; application code alone does not configure providers.
 
@@ -3214,7 +3214,7 @@ request and response shapes are unchanged; the optional request body is accepted
 
 ## Printix ticket registry (ADR-0060)
 
-Two route zones, both under `/api/v1/printix/`.
+Four route zones, all under `/api/v1/printix/`.
 
 - **`admin/*`** (superuser with an enrolled authenticator and an MFA session, plus
   `printix.manage`): create and close events (`POST /events`, `POST /events/{id}/close`),
@@ -3226,6 +3226,30 @@ Two route zones, both under `/api/v1/printix/`.
   `total`; `POST /tickets/{id}/void` and `/unvoid`), and gate pairings
   (`POST /events/{id}/pairings` returns the one-time `secret`; `GET /events/{id}/pairings`
   never returns a secret; `POST /pairings/{id}/revoke`). Barcode values are never returned.
+- **`org/*`** (organiser access, ADR-0060 organiser amendment; ADR-0025 zone `org`): an
+  organisation member signed in to the `printix` app, with `X-Barrels-Organisation` set,
+  holding `printix.events.manage` or `printix.gates.manage` (either admits a read), an enrolled
+  authenticator and a session that passed it (checked on every call, whatever
+  `AUTH_PRIVILEGED_MFA_MODE` says). Read-only so far: `GET /org/events` (paginated, the
+  organisation's events only, newest date first) and `GET /org/events/{id}/summary` (the admin
+  summary). Another organisation's event, or one with no organisation, is 404. No superuser
+  bypass: a superuser without membership is 404. A non-member is 404, a member without a key
+  is 403, an account or other-app session is refused (403 and 401). The admin list
+  `GET /admin/events` (superuser, every event) and `POST /admin/events/{id}/organisation`
+  (set or clear `organisation_id`) are in the admin zone; `POST /admin/events` takes an
+  optional `organisation_id`. Either call refuses an organisation that is suspended or not
+  entitled to `printix` with 422 (`PrintixOrganisationIneligible`); an unknown event is 404
+  before any organisation is checked. Owners and admins of an entitled organisation hold both
+  organisation keys implicitly (ADR-0044), so with the `printix-member` role they can use these
+  routes. Bundle grants need `printix.team.manage` (owners and admins hold it). The event's
+  organisation foreign key has no `ON DELETE` rule: an organisation that owns events cannot be
+  deleted until they are moved or cleared. A per-user rate limit is planned with the write slices.
+- **`me/*`** (a `printix` app session that passed the authenticator; no organisation header):
+  `GET /me/organisations` lists the organisations where the person is an active member, the
+  organisation is entitled to `printix`, and they hold `printix.events.manage` or
+  `printix.gates.manage`. Each item has `id`, `name`, `can_manage_events` and `can_manage_gates`.
+  An empty list for non-members. Another app's token is 401; an account session or a session
+  without the authenticator step is 403.
 - **`public/*`** (no account; `Authorization: Bearer <pairing secret>`, checked on every
   call): `POST /admissions` with `{value}` and `GET /summary`. An admission answers 200 with
   a stable `outcome`: `admitted`, `already_admitted` (with the first admission's time and

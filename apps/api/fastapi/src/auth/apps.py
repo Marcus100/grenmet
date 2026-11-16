@@ -145,6 +145,20 @@ def _apps() -> dict[str, AppDefinition]:
         client_secret=auth_settings.CAP_SSO_CLIENT_SECRET,
         scope="staff",
     )
+    # Printix (ADR-0060 organiser amendment, ADR-0061): browser-only, no client
+    # secret. Sign-in is by emailed code, and the enrolled authenticator is the
+    # second factor. No self sign-up: a Barrels admin gives the printix-member role.
+    printix = AppDefinition(
+        key="printix",
+        label="Printix",
+        url=auth_settings.PRINTIX_APP_URL.rstrip("/"),
+        self_signup=False,
+        default_role="printix-member",
+        google_redirect_uri="",
+        methods=frozenset({"email_code"}),
+        client_secret="",
+        scope="app",
+    )
     sites = [
         AppDefinition(
             key=key,
@@ -203,7 +217,7 @@ def _apps() -> dict[str, AppDefinition]:
     ]
     return {
         app.key: app
-        for app in (events, gaa_admin, barrels_admin, cap_desk, cms, *sites)
+        for app in (events, gaa_admin, barrels_admin, cap_desk, cms, printix, *sites)
     }
 
 

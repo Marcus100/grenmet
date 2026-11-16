@@ -5,6 +5,10 @@ from enum import Enum
 
 #: Permission key every administrator route checks (``src/auth/permissions.py``).
 MANAGE_PERMISSION_KEY = "printix.manage"
+#: Organisation keys (ADR-0060 organiser amendment, ADR-0044). Held per organisation
+#: through a role bundle; never through the global role catalogue.
+EVENTS_MANAGE_KEY = "printix.events.manage"
+GATES_MANAGE_KEY = "printix.gates.manage"
 
 #: The pairing secret is ``secrets.token_urlsafe(32)``: 32 random bytes, 43 characters.
 PAIRING_SECRET_BYTES = 32

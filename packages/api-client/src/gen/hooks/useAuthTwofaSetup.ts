@@ -16,6 +16,7 @@ import type {
   AuthTwofaSetupStatus401,
   AuthTwofaSetupStatus403,
   AuthTwofaSetupStatus422,
+  AuthTwofaSetupStatus429,
 } from "../models/AuthTwofaSetup.js";
 
 export const authTwofaSetupMutationKey = () =>
@@ -33,6 +34,7 @@ export function authTwofaSetupMutationOptions<TContext = unknown>(
       | AuthTwofaSetupStatus401
       | AuthTwofaSetupStatus403
       | AuthTwofaSetupStatus422
+      | AuthTwofaSetupStatus429
     >,
     undefined,
     TContext
@@ -57,6 +59,7 @@ export function useAuthTwofaSetup<TContext>(
         | AuthTwofaSetupStatus401
         | AuthTwofaSetupStatus403
         | AuthTwofaSetupStatus422
+        | AuthTwofaSetupStatus429
       >,
       undefined,
       TContext
@@ -79,6 +82,7 @@ export function useAuthTwofaSetup<TContext>(
       | AuthTwofaSetupStatus401
       | AuthTwofaSetupStatus403
       | AuthTwofaSetupStatus422
+      | AuthTwofaSetupStatus429
     >,
     undefined,
     TContext
@@ -90,6 +94,7 @@ export function useAuthTwofaSetup<TContext>(
       | AuthTwofaSetupStatus401
       | AuthTwofaSetupStatus403
       | AuthTwofaSetupStatus422
+      | AuthTwofaSetupStatus429
     >,
     undefined,
     TContext
@@ -106,6 +111,7 @@ export function useAuthTwofaSetup<TContext>(
       | AuthTwofaSetupStatus401
       | AuthTwofaSetupStatus403
       | AuthTwofaSetupStatus422
+      | AuthTwofaSetupStatus429
     >,
     undefined,
     TContext

@@ -361,6 +361,48 @@ def require_org_permission(
     return dependency
 
 
+def require_org_any_permission(
+    permission_keys: tuple[str, ...], *, session_app: str | None = None
+) -> Callable[..., Awaitable[OrgContext]]:
+    """``require_org_permission`` for a route that any one of several keys admits.
+
+    FastAPI cannot OR two dependencies, so the keys are checked in one dependency:
+    the member passes when any key is in their effective keys. All keys must belong to
+    one product, so the entitlement and membership checks run once, as for a single
+    key. Denial is the same 403 as a single key. No superuser bypass."""
+    if not permission_keys:
+        raise ValueError("At least one organisation key is required")
+    for permission_key in permission_keys:
+        if not grants.is_product_key(permission_key):
+            raise ValueError(f"Not an organisation-bound product key: {permission_key}")
+    products = {role_bundles.product_of_key(key) for key in permission_keys}
+    if len(products) != 1:
+        raise ValueError("Every organisation key must belong to one product")
+    base = require_org_app(
+        products.pop(), MembershipRole.MEMBER, session_app=session_app
+    )
+
+    async def dependency(
+        session: SessionDep, context: Annotated[OrgContext, Depends(base)]
+    ) -> OrgContext:
+        for permission_key in permission_keys:
+            if await grants.has_org_permission(
+                session, membership=context.membership, permission_key=permission_key
+            ):
+                return context
+        logger.warning(
+            "Organisation permission denied",
+            extra={
+                "user_id": str(context.user.id),
+                "organisation_id": context.organisation_id,
+                "permission_key": ",".join(permission_keys),
+            },
+        )
+        raise OrganisationPermissionError()
+
+    return dependency
+
+
 # Staff keys whose use needs a session that passed two-step verification. The door
 # key is the exception: volunteers scan tickets without an authenticator.
 STAFF_MFA_KEYS = frozenset(EVENTS_OPS_KEYS) - {"events.ops.door"}

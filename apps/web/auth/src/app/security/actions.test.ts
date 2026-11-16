@@ -57,3 +57,24 @@ it("reports session proof separately from enrolment and uses only that session's
     mocks.client.mock.calls.map(([config]) => config.headers.Authorization)
   ).toEqual(["Bearer first-user-token", "Bearer second-user-token"]);
 });
+
+it("asks the user to wait when a security route is rate limited, and keeps the generic message otherwise", async () => {
+  const errorUse = vi.fn();
+  mocks.client.mockImplementation(() => ({
+    interceptors: { request: { use: vi.fn() }, error: { use: errorUse } },
+  }));
+  mocks.exchange.mockResolvedValueOnce({
+    access_token: "limited-user-token",
+    session: { mfa_verified_at: null },
+  });
+  await loadSecurity();
+  const handler = errorUse.mock.calls[0]?.[0] as (error: {
+    status: number;
+  }) => never;
+  expect(() => handler({ status: 429 })).toThrow(
+    "Too many attempts. Wait a minute and try again."
+  );
+  expect(() => handler({ status: 500 })).toThrow(
+    "Unable to update security settings. Check your code and try again."
+  );
+});
