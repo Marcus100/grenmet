@@ -119,6 +119,7 @@ GMS or GAA.
 | `scripts/integrations` | Barrels engineering third-party integration readiness checks (Sentry, PostHog) | Active | Confirm provider credentials and host configuration per environment before relying on integration telemetry |
 | `scripts/monitoring` | Barrels engineering availability probes and sanitized monitoring reports | Active | CI/CD-managed environment configuration; verify provider delivery before declaring coverage |
 | `scripts/perf` | Barrels engineering HTTP performance measurement | Active | Compare first and repeated requests, reject failed responses, and keep credentials out of saved results |
+| `scripts/pwa` | Barrels engineering starter for phone apps (`pnpm new:pwa`) | Active | Creates `apps/pwa/<name>` on `packages/pwa-kit` and registers it; refuses a port already built and app names that would break generated code |
 | `scripts/production` | Barrels engineering database provisioning | Active | Apply reviewed migrations and repeatable baseline seeds without overwriting recorded operational data |
 | `scripts/sutron-collector` | GMS observation operations delivered by Barrels | Active development | Prove hardware collection, durable spool, SURFACE export, monitoring, and recovery |
 | `scripts/gnc-collector` | GMS satellite imagery from the GeoNetCast receiver, delivered by Barrels | Active development | Survey the receiver, deploy the timer, and prove freshness, storage and failure alerting before operational acceptance |
