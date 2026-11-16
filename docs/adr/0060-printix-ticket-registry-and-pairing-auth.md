@@ -19,14 +19,17 @@ known. The registry must import the printer's list, and a gate must admit ticket
 on Sat 26 Dec 2026.
 
 Gate staff are promoters, not employees with accounts. The owner ruled out staff
-accounts and PINs. An administrator creates a pairing for one event and one gate;
+accounts and PINs for **gate phones**; that still holds. (Since 16 Nov 2026,
+organisers and gate leads who set up events and make gate codes do have accounts:
+see "Amendment: organiser access".) An administrator creates a pairing for one event and one gate;
 a staff phone scans the pairing QR code and may scan that event until it ends.
 
 Owner decisions that bind this design:
 
 - First version: one event, one ticket type, entry only.
 - No personal data exists on a ticket. A ticket is a number and a barcode value.
-- No Barrels marks in anything a gate or promoter sees.
+- ~~No Barrels marks in anything a gate or promoter sees.~~ Replaced 16 Nov 2026:
+  Printix keeps its own name with Barrels shown (see "Amendment: organiser access").
 
 ## Evidence
 
@@ -50,7 +53,8 @@ Owner decisions that bind this design:
 
 ## Options considered
 
-1. **Staff accounts with sign-in.** Rejected by the owner.
+1. **Staff accounts with sign-in.** Rejected by the owner for gate phones (still
+   true; organisers have accounts since the 16 Nov 2026 amendment).
 2. **A short PIN per gate.** Rejected by the owner: shared on the door, easier to
    guess or pass on than a QR.
 3. **Pairing QR (chosen).** One pairing per event and gate; a 32-byte secret shown
@@ -240,35 +244,58 @@ with an MFA session (`PrintixAdmin`). Printix's own staff must set up their even
 for 26 Dec 2026, from an organiser section of the scanner app. This widens who may
 use these actions, so it is recorded here.
 
-1. **Printix is an organisation** (kind `client`) entitled to the `printix` app.
-   `printix` is registered in `auth/apps.py` as a browser-only app with no client
-   secret, signing in as ADR-0061 describes.
+1. **Printix is an organisation** (kind `client`) entitled to the `printix` app
+   (`printix` added to the known entitlements). `printix` is registered in
+   `auth/apps.py` as a browser-only app with no client secret and **email-code
+   sign-in only** (the authenticator is the second step), signing in as ADR-0061
+   describes. Signing in to any app needs its `app.<app>.access` permission
+   (`auth/eligibility.py`): `app.printix.access` is registered and comes with
+   Printix membership the same way Events and Bookings members get theirs. The
+   existing global `printix.manage` key stays a superuser key, outside the
+   organisation keys.
 2. **Events belong to an organisation:** `printix.event.organisation_id`, nullable,
-   additive. Events created through the admin routes may have none; organisers do
-   not see an event until it has their organisation.
-3. **Organisation-scoped keys** (ADR-0044) in `auth/permissions.py`:
-   `printix.events.manage` (create, close, import the ticket list, void and
-   restore, list and read events and tickets) and `printix.gates.manage` (create,
-   list and revoke gate pairings, read the live summary). A team key for Printix to
-   add its own staff comes later.
+   additive; existing rows stay empty. The superuser admin routes accept an
+   organisation when creating an event and can set it later. Organisers do not see
+   an event (or its gate codes) until it has their organisation: to them it does
+   not exist (404).
+3. **Organisation-scoped keys** (ADR-0044) in `auth/permissions.py`, used like this:
+
+   | What | Key |
+   | --- | --- |
+   | List events, read an event and its live summary | either key |
+   | Create and close an event, import the ticket list, list tickets, void and restore | `printix.events.manage` |
+   | Make, list and cancel gate QR codes | `printix.gates.manage` |
+
+   A team key for Printix to add its own staff comes later.
 4. **Two role bundles:** `printix-organiser` (both keys) and `printix-gate-lead`
    (`printix.gates.manage` only: makes and cancels gate QR codes on event night).
 5. **Routes:** `/printix/org/...` in the `org` zone (ADR-0025), mirroring the admin
    actions through the same service functions with an organisation filter. Each
    route uses `require_org_permission(key, session_app="printix")` and always
-   requires an enrolled authenticator and a session that passed it
-   (`privileged_mfa.require_mfa_session(..., app_key="printix")`), whatever the
-   global setting: a gate pairing is a key to the gate. No superuser bypass on org
+   requires an enrolled authenticator (a 6-digit code app) and a session that
+   passed it (`privileged_mfa.require_mfa_session(..., app_key="printix")`),
+   whatever the global setting: a gate pairing is a key to the gate. Calls name
+   the organisation in the `X-Barrels-Organisation` header; the app learns it from
+   the signed-in person's memberships. No superuser bypass on org
    routes (ADR-0044). `/printix/admin/*` and `PrintixAdmin` stay as they are.
 6. **Who grants access:** a Barrels superuser creates the Printix organisation,
    turns on the `printix` entitlement and invites Printix staff with a role bundle
-   (owner, 16 Nov 2026). Invitation and authenticator setup happen once on the
-   Barrels account site.
+   (owner, 16 Nov 2026). Order for a new organiser: accept the invitation and add
+   an authenticator on the Barrels account site (`account.barrels.gd`, ADR-0057),
+   then sign in at `scan.barrels.gd`. Someone who signs in without an authenticator
+   is told to add one there first.
 7. **Sessions:** organisers sign in again when the tab closes; a session lasts at
    most 12 hours (ADR-0061).
 8. **Promoters** (the people running events who buy Printix tickets) get their own
    sign-in later; because every event carries an organisation, each promoter can
    become one without changing this design.
+9. **Gate QR codes (owner, 16 Nov 2026):** shown once on the organiser's screen and
+   scanned there by the gate phone; never printed, saved or sent as a link by the
+   app. By default a code works until 6 hours after the event closes and can be
+   cancelled in one tap. Typed printed numbers are off by default; the organiser may
+   turn them on for a gate when making its code.
+10. **Screens:** work on a laptop for setup and ticket import, and on a phone for
+    gate codes and counts on event night.
 
 Build order: (1) these records; (2) API read-only (app entry, keys, bundles,
 `organisation_id`, event list and summary on org and admin routes); (3) scanner

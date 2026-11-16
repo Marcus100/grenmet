@@ -30,12 +30,15 @@ What already exists and is reused:
   `/email-code/verify` and `/login` (`apps/api/fastapi/src/auth/app_router.py`). They
   return `SessionLoginResponse` with `session_token` and a short-lived access token
   in the body.
-- An enrolled authenticator is checked during sign-in and marks the session as
-  having passed it (`auth/app_service.py`).
-- `POST /api/v1/auth/sessions/refresh` (`auth/routers/login.py`) issues a new
-  access token for a live session. Access tokens last 15 minutes
+- An authenticator (a 6-digit code app) is checked during sign-in **only if the
+  person has one**; then the session is marked as having passed it
+  (`auth/app_service.py`). Nothing refuses a person without one at sign-in today.
+- `POST /api/v1/auth/sessions/refresh` (`auth/routers/login.py`) replaces the
+  session: it revokes the old session token and returns a new one with a fresh
+  expiry (`auth/sessions.py`, `rotate_session`), plus a new access token. Access tokens last 15 minutes
   (`auth/config.py`, `SESSION_ACCESS_TOKEN_EXPIRE_MINUTES`).
-- CORS already allows the `Authorization` header (`src/main.py`).
+- The API already accepts calls from listed web addresses with the `Authorization`
+  header and the organisation header `X-Barrels-Organisation` (`src/main.py`).
 
 ## Options considered
 
@@ -61,23 +64,28 @@ What already exists and is reused:
    may say "Sign in with your Barrels account"; Barrels branding on sign-in is
    allowed for Printix (owner, 16 Nov 2026).
 2. **Tokens:** the access token is kept **in memory only** and renewed through
-   `/auth/sessions/refresh`. The session token is kept in **`sessionStorage`**, so
-   it is gone when the tab closes. Nothing goes in `localStorage`, IndexedDB, a
+   `/auth/sessions/refresh`. The session token is kept in the browser's per-tab
+   storage (`sessionStorage`), so it is gone when the tab closes. Each refresh
+   returns a new session token that replaces the stored one; refreshes in one tab
+   run one at a time, so a lost or doubled refresh does not sign the person out. Nothing goes in `localStorage`, IndexedDB, a
    service worker cache or a URL.
 3. **Session length:** a new per-app field caps how long a session of that app may
-   last. Printix: **12 hours**, whatever the platform default. A refresh never
-   extends a session past its cap.
-4. **Authenticator:** an app may require an enrolled authenticator and a session
-   that passed it for every signed-in route. Printix requires it for every
-   organiser (owner, 16 Nov 2026).
+   last, counted from the **original sign-in**. Printix: **12 hours**. Today a
+   refresh starts a fresh 30-day session, so the original sign-in time must be
+   carried through every refresh; this changes a shared routine and is tested for
+   every app. Apps without a cap keep today's behaviour.
+4. **Authenticator:** an app may require an enrolled authenticator. A new per-app
+   setting makes **sign-in itself** refuse a person without one, with a message
+   saying where to add it, and the app's routes check it again. Printix requires
+   it for every organiser (owner, 16 Nov 2026).
 5. **Page rules:** a strict content security policy with no `'unsafe-inline'`
    scripts, no third-party scripts, `connect-src` naming only the API origin.
    Server-provided text is rendered only as text.
 6. **Sign out** revokes the session on the server, then clears memory and
    `sessionStorage`.
-7. One-time steps that need the account site (accepting an invitation, enrolling
-   an authenticator) may stay on `auth.barrels.gd` (owner accepted this for
-   Printix before December).
+7. One-time steps that need the account site (accepting an invitation, adding an
+   authenticator) stay on the Barrels account site, `account.barrels.gd`
+   (ADR-0057; owner accepted this for Printix before December).
 8. The app's address is on the API's CORS allow-list (`BACKEND_CORS_ORIGINS`).
 
 ## Consequences
@@ -92,6 +100,7 @@ What already exists and is reused:
 
 ## Follow-ups
 
-- The per-app session cap field and its tests (built with the Printix organiser
-  screen).
+- The per-app session cap, counted from the original sign-in, and its tests for
+  every app (built with the Printix organiser screen).
+- The per-app "authenticator required at sign-in" setting and its message.
 - A test that the Printix organiser pages hold no token in `localStorage`.
