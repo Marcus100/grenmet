@@ -138,10 +138,69 @@ are placeholders until the client supplies artwork.
   paired, list downloaded, network cut, reload: the app opened from the
   phone, still paired, showing Offline and the list's age.
 
+## Organiser (ADR-0060 amendment, slice 3: sign-in and read-only screens)
+
+Printix's own staff (organisers and gate leads) use the same app at
+`/organiser`. The gate scanner stays at `/`. `src/app-root.tsx` (`ScannerRoot`)
+picks the app by address (`src/organiser/routing.ts`), so only one mounts per
+page load. The two share the API client, and each sets it up before a call:
+the gate with its pairing secret (`scan-api.ts`), the organiser with its session
+(`session.ts`, `prepare` and `configureFor`).
+
+- **Routes** (`apps/api/fastapi/src/printix/AGENTS.md`, "Organiser access"):
+  `POST /auth/apps/printix/email-code/start` and `/verify` (sign-in, `sign-in.ts`),
+  `POST /auth/sessions/refresh` and `/logout`, `GET /printix/me/organisations`,
+  `GET /printix/org/events` and `GET /printix/org/events/{id}/summary` with
+  `X-Barrels-Organisation` sent per call (`organiser-api.ts`). Read-only: no
+  writes until slice 4.
+- **Sign-in** (ADR-0061): an email step, then one step with the emailed code and
+  the authenticator code together (`sign-in-screen.tsx`). Errors map to plain
+  words in `errors.ts` (`problemOf`, `problemMessage`): wrong authenticator code
+  (400 "Two-factor"), wrong or expired emailed code, not set up for Printix (403),
+  no authenticator (the stable `mfa_enrolment_required` code, on org routes until
+  sign-in refuses it), rate limit (429, its own message), no signal, and unknown
+  answers as a generic failure that is reported with `reportError`.
+- **Session rules** (`session.ts`, `OrganiserSession`):
+  - The access token is in memory only. It is renewed when it is within a minute
+    of `access_token_expires_at`, and once on a 401 (then the call is retried once).
+  - The session token is in `sessionStorage` under `printix-organiser.session`.
+    Sign-in writes nothing else there. Each refresh replaces it.
+  - Refreshes are serialised: concurrent callers share one request, and a caller
+    holding an already replaced token does not refresh again.
+  - A refresh the server refuses (401) clears the tab and returns to sign-in with
+    "Your session has ended". A refresh that fails for no signal keeps the session.
+  - Sign-out revokes the session on the server, then clears memory and
+    `sessionStorage` even if that call fails (the failure is reported).
+  - Nothing goes in `localStorage`, IndexedDB, the service worker cache or a URL.
+    `localStorage` is untouched by sign-in (a test checks this).
+  - The chosen organisation id is kept in `sessionStorage` under
+    `printix-organiser.organisation`, per tab.
+- **Screens** (`organiser-app.tsx`): choose an organisation (none: "no Printix role
+  yet"; one: opened straight away; several: a picker, with "Switch organisation"
+  afterwards), events (paged 50, with the person's role; empty state), one event
+  (`CountBar` from the scanner, plus void, refused duplicates and offline
+  conflicts). The counts refresh every 10 seconds while the tab is visible
+  (`use-event-summary.ts`, which never overlaps reads and honours Retry-After).
+- **Not connected:** with an empty `VITE_API_URL` the organiser shows "not
+  connected" and calls nothing.
+- **Offline:** the page itself opens from the phone's cache, but every organiser
+  screen needs a connection, and says so when the network fails.
+- **Files:** `src/app-root.tsx`, `src/organiser/` (`organiser-app.tsx`,
+  `sign-in-screen.tsx`, `choose-organisation.tsx`, `events-screen.tsx`,
+  `event-screen.tsx`, `header.tsx`, `use-event-summary.ts`, `session.ts`,
+  `sign-in.ts`, `organiser-api.ts`, `errors.ts`, `format.ts`, `routing.ts`,
+  `styles.ts`). Tests: `src/organiser/*.test.*`, `src/app-root.test.tsx`, and
+  `src/test/organiser-fetch.ts` (a fake `fetch` by "METHOD /path").
+- **Hosting:** `out/` must not contain a `404.html`, or Cloudflare Pages will not
+  serve `index.html` for `/organiser`. The build creates none. The CSP is
+  unchanged: `connect-src` names the API origin only, and there are no inline
+  scripts.
+
 ## Not built yet
 
 QR generation for administrators, ticket types, re-entry, and the Barrels
-Events connection. Backend logic goes in FastAPI, never here.
+Events connection. Organiser writes (create event, ticket import, gate codes) are
+the next slices. Backend logic goes in FastAPI, never here.
 
 ## Rules
 

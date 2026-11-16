@@ -44,4 +44,13 @@ of times a night, so it never animates. A screen that replaces another
 The typed-number sheet is occasional: it slides up, follows the finger and can
 be dragged down to close (the kit's sheet, built on Vaul). Buttons press in slightly. Nothing bounces.
 
+Organiser screens (`/organiser`, `apps/pwa/printix/src/organiser`) keep the same
+dark look and colours, and add two layout rules. They are laptop first: one
+column, at most about 48 rem wide, centred, so a laptop does not stretch rows
+across the screen. They also work on a phone at 375 px: every control is at least
+44 px tall, and every input is 16 px, so iPhone does not zoom. Errors are one
+plain sentence in the alert colour, announced to screen readers, with focus put
+back on the field that needs fixing. Labels are always visible; placeholders
+never replace them.
+
 Source: `apps/pwa/printix/src/styles/app.css`.
