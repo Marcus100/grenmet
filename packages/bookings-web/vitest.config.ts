@@ -9,8 +9,8 @@ export default defineConfig({
     // Turbo runs two test tasks at once; half the cores each keeps them from starving each other.
     maxWorkers: "50%",
     environment: "jsdom",
-    // json-summary feeds scripts/guardrails/check-coverage.mjs. The floors live
-    // in coverage-baseline.json and only rise; keep thresholds equal to them.
+    // Local floor for `pnpm test:coverage`. CI does not enforce it yet; when it
+    // does, the floor moves to scripts/guardrails/coverage-baseline.json.
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "json-summary"],
