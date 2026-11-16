@@ -56,6 +56,13 @@ export type OfflineSyncAnswer =
  */
 const LIVE_CHECK_TIMEOUT_MS = 5000;
 
+/**
+ * The longest the phone waits for the ticket list or a send. Without a limit
+ * one request that never answers (a half-open connection, a captive portal)
+ * would hold up every later download and send.
+ */
+const OFFLINE_REQUEST_TIMEOUT_MS = 30_000;
+
 /** Where the API is and which pairing speaks for this phone. */
 export interface Connection {
   readonly origin: string;
@@ -226,7 +233,9 @@ export async function readOfflineList(
 ): Promise<OfflineListAnswer> {
   try {
     connect(connection);
-    const { data } = await printixOfflineTickets();
+    const { data } = await printixOfflineTickets({
+      signal: AbortSignal.timeout(OFFLINE_REQUEST_TIMEOUT_MS),
+    });
     const parsed = printixOfflineListSchema.safeParse(data);
     return parsed.success
       ? { kind: "list", list: parsed.data }
@@ -248,6 +257,7 @@ export async function sendOfflineAdmissions(
     connect(connection);
     const { data } = await printixOfflineAdmissions({
       body: { admissions: [...admissions] },
+      signal: AbortSignal.timeout(OFFLINE_REQUEST_TIMEOUT_MS),
     });
     const parsed = printixOfflineSyncResultSchema.safeParse(data);
     return parsed.success

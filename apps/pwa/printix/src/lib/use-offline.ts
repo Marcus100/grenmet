@@ -242,6 +242,13 @@ export function useOffline(
       if (!(wanted() && current)) {
         return;
       }
+      // Several sends can wait in the chain behind a slow download; keep the
+      // gap between them when they finally run.
+      const earliest = Math.max(serverWaitUntil, lastSyncAt + SYNC_MIN_GAP_MS);
+      if (Date.now() < earliest) {
+        scheduleSync(earliest);
+        return;
+      }
       lastSyncAt = Date.now();
       let delay = SYNC_INTERVAL_MS;
       try {

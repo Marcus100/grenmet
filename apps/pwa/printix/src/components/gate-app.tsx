@@ -100,9 +100,13 @@ export function GateApp() {
   const unpair = useCallback(() => {
     clearPairingSecret(browserStorage());
     setPhase({ kind: "unpaired", badLink: false });
-    forgetOfflineData().catch((error: unknown) =>
-      reportError(error, "offline-storage")
-    );
+    // After the scanning screen has closed, so nothing it is still finishing
+    // can write the list back.
+    setTimeout(() => {
+      forgetOfflineData().catch((error: unknown) =>
+        reportError(error, "offline-storage")
+      );
+    }, 0);
   }, []);
 
   // A refused pairing cannot send what it admitted offline; say how many.

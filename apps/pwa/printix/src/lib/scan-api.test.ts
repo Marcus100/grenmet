@@ -3,10 +3,12 @@ import {
   classifyFailure,
   DEFAULT_RETRY_SECONDS,
   parseRetryAfter,
+  readOfflineList,
   readSummary,
+  sendOfflineAdmissions,
   submitScan,
 } from "@/lib/scan-api";
-import { API_ORIGIN, SECRET, SUMMARY } from "@/test/fixtures";
+import { API_ORIGIN, OFFLINE_LIST, SECRET, SUMMARY } from "@/test/fixtures";
 
 const connection = { origin: API_ORIGIN, secret: SECRET };
 
@@ -157,5 +159,77 @@ describe("readSummary", () => {
       kind: "rate-limited",
       retryAfterSeconds: 30,
     });
+  });
+});
+
+const ADMISSION = {
+  client_ref: "00000000-0000-4000-8000-000000000001",
+  value: "PX-0000000101",
+  scanned_at: "2026-12-26T20:01:00.000Z",
+};
+
+describe("offline calls", () => {
+  it("reads the list with a time limit and the pairing secret", async () => {
+    const fetch = stubFetch(() => jsonResponse(200, OFFLINE_LIST));
+    expect(await readOfflineList(connection)).toEqual({
+      kind: "list",
+      list: OFFLINE_LIST,
+    });
+    const request = fetch.mock.calls[0]?.[0];
+    expect(request?.url).toBe(
+      `${API_ORIGIN}/api/v1/printix/public/offline-tickets`
+    );
+    expect(request?.headers.get("authorization")).toBe(`Bearer ${SECRET}`);
+    expect(request?.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("tells a refused event apart from a failure", async () => {
+    stubFetch(() =>
+      jsonResponse(409, {
+        detail: "Offline mode is off for this event.",
+        code: "offline_not_available",
+      })
+    );
+    expect(await readOfflineList(connection)).toEqual({
+      kind: "offline-unavailable",
+    });
+    stubFetch(() =>
+      jsonResponse(409, {
+        detail: "Offline mode is off for this event.",
+        code: "offline_not_available",
+      })
+    );
+    expect(await sendOfflineAdmissions(connection, [ADMISSION])).toEqual({
+      kind: "offline-unavailable",
+    });
+    stubFetch(() => jsonResponse(409, { detail: "other", code: "other" }));
+    expect(await readOfflineList(connection)).toEqual({ kind: "failed" });
+  });
+
+  it("treats a request that timed out as no signal", async () => {
+    stubFetch(() =>
+      Promise.reject(new DOMException("timed out", "TimeoutError"))
+    );
+    expect(await sendOfflineAdmissions(connection, [ADMISSION])).toEqual({
+      kind: "no-signal",
+    });
+    stubFetch(() =>
+      Promise.reject(new DOMException("timed out", "TimeoutError"))
+    );
+    expect(await readOfflineList(connection)).toEqual({ kind: "no-signal" });
+  });
+
+  it("sends admissions with a time limit and reads the answer", async () => {
+    const fetch = stubFetch(() =>
+      jsonResponse(200, {
+        results: [{ client_ref: ADMISSION.client_ref, outcome: "admitted" }],
+        deferred: 0,
+      })
+    );
+    const answer = await sendOfflineAdmissions(connection, [ADMISSION]);
+    expect(answer.kind).toBe("synced");
+    const request = fetch.mock.calls[0]?.[0];
+    expect(await request?.json()).toEqual({ admissions: [ADMISSION] });
+    expect(request?.signal).toBeInstanceOf(AbortSignal);
   });
 });

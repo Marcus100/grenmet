@@ -96,8 +96,9 @@ are placeholders until the client supplies artwork.
 - **Checking with no signal:** a live check that fails for lack of signal, or
   takes over 5 seconds (`LIVE_CHECK_TIMEOUT_MS`), is checked against the saved
   list (`src/lib/offline-check.ts`). After such a failure, scans skip the live
-  check for 20 seconds (or until the live count reaches the server again), so
-  guests do not each wait out a timeout. The phone hashes the cleaned value with
+  check for 20 seconds (or until the next live count arrives from the server),
+  so guests do not each wait out a timeout. List downloads and sends give up
+  after 30 seconds, so one request that never answers cannot hold up the rest. The phone hashes the cleaned value with
   Web Crypto exactly as the server does (`src/lib/offline-hash.ts`). A valid
   ticket is admitted in green and queued with a random `client_ref`, the
   scanned value and the phone's time, in one database step that re-checks the

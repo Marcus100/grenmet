@@ -79,11 +79,12 @@ export function GateConsole({
   // live count's background polling ends the pause once it reaches the server.
   const liveBackoffUntil = useRef(0);
   useEffect(() => {
-    if (link === "ok") {
+    // Each fresh count from the server ends the pause: the signal is back.
+    if (link === "ok" && summary) {
       liveBackoffUntil.current = 0;
       offlineRef.current.markOnline(true);
     }
-  }, [link]);
+  }, [link, summary]);
   // Refs, not state, so a read that arrives between two renders is not missed.
   const pending = useRef(false);
   const held = useRef(false);
