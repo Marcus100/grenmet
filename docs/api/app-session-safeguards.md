@@ -45,6 +45,7 @@ and `tests/auth/test_app_handoff.py`.
   `mfa_rollout` and the sign-in-setup ceiling keep `is_privileged`, so a holder who is
   not privileged does not need an authenticator to use other apps.
 
-Switch-on for Printix (after #1536 and this change are merged): in `src/auth/apps.py`,
-add `max_session_hours=12, require_authenticator=True, privileged_members=True` to the
-`printix` `AppDefinition`.
+Printix is switched on in `src/auth/apps.py` with `max_session_hours=12,
+require_authenticator=True, privileged_members=True` (tests:
+`test_printix_*` in `tests/auth/test_app_session_safeguards.py`). Every other app keeps the
+defaults.

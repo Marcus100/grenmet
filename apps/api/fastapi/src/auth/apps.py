@@ -158,6 +158,9 @@ def _apps() -> dict[str, AppDefinition]:
         methods=frozenset({"email_code"}),
         client_secret="",
         scope="app",
+        max_session_hours=12,
+        require_authenticator=True,
+        privileged_members=True,
     )
     sites = [
         AppDefinition(

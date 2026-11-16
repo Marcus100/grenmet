@@ -398,12 +398,22 @@ async def test_default_off_app_signs_in_without_an_authenticator(
     assert row.mfa_verified_at is None
 
 
-def test_every_registered_app_defaults_to_the_unchanged_behaviour():
-    """No app opts in by default: no cap, no required authenticator, no enrolment rule."""
+def test_every_other_registered_app_defaults_to_the_unchanged_behaviour():
+    """Only Printix opts in (its switch-on is tested below); every other app keeps
+    no cap, no required authenticator and no enrolment rule."""
     for app in apps.all_apps():
+        if app.key == "printix":
+            continue
         assert app.max_session_hours is None, app.key
         assert app.require_authenticator is False, app.key
         assert app.privileged_members is False, app.key
+
+
+def test_printix_has_the_three_safeguards_switched_on():
+    printix = apps.get_app("printix")
+    assert printix.max_session_hours == 12
+    assert printix.require_authenticator is True
+    assert printix.privileged_members is True
 
 
 # --- Privileged enrolment for holders of an app (privileged_members) ----------------
@@ -678,3 +688,94 @@ async def test_a_new_address_is_refused_before_an_account_exists_and_the_code_is
         f"{BASE}/email-code/verify", json={"email": email, "code": CODE}
     )
     assert again.status_code == 403
+
+
+# --- Printix switch-on (max_session_hours=12, require_authenticator, privileged_members)
+
+PRINTIX_BASE = "/api/v1/auth/apps/printix"
+
+
+async def grant_role(db, user, role_name: str) -> None:
+    role_id = await db.scalar(select(Role.id).where(Role.name == role_name))
+    db.add(UserRoleLink(user_id=user.id, role_id=role_id))
+    await db.commit()
+
+
+async def printix_code_sign_in(client, email: str, totp_code: str | None = None):
+    await client.post(f"{PRINTIX_BASE}/email-code/start", json={"email": email})
+    body: dict[str, str] = {"email": email, "code": CODE}
+    if totp_code is not None:
+        body["totp_code"] = totp_code
+    return await client.post(f"{PRINTIX_BASE}/email-code/verify", json=body)
+
+
+@pytest.mark.usefixtures("roles")
+async def test_printix_sessions_are_capped_at_twelve_hours(
+    async_client, db_async, clock
+):
+    user = await make_user(db_async)
+    await grant_role(db_async, user, "printix-member")
+    secret = await enrol_authenticator(db_async, user)
+    signed_in = clock["at"]
+
+    response = await printix_code_sign_in(
+        async_client, user.email, totp_code=pyotp.TOTP(secret).now()
+    )
+
+    assert response.status_code == 200, response.text
+    row = await stored(db_async, response.json()["session_token"])
+    assert row.app_name == "printix"
+    assert row.signed_in_at == signed_in
+    assert row.expires_at == signed_in + timedelta(hours=12)
+
+
+@pytest.mark.usefixtures("roles")
+async def test_a_printix_member_without_an_authenticator_cannot_sign_in(
+    async_client, db_async
+):
+    user = await make_user(db_async)
+    await grant_role(db_async, user, "printix-member")
+
+    refused = await printix_code_sign_in(async_client, user.email)
+
+    assert refused.status_code == 403
+    assert refused.json()["code"] == SIGN_IN_REFUSAL
+    assert refused.json()["detail"] == (
+        "Add an authenticator on account.barrels.gd to sign in to Printix."
+    )
+    assert (
+        await db_async.scalars(
+            select(LoginSession).where(LoginSession.user_id == user.id)
+        )
+    ).all() == []
+
+
+@pytest.mark.usefixtures("roles")
+async def test_a_printix_member_follows_the_privileged_enrolment_rules(
+    db_async, monkeypatch
+):
+    sent = await _capture_enrolment_codes(monkeypatch)
+    user = await make_user(db_async)
+    await grant_role(db_async, user, "printix-member")
+    old, _ = await service.create_session(
+        session=db_async, user=user, app_name="printix"
+    )
+
+    # Sign-in enforcement is unchanged for this holder; enrolment treats them as privileged.
+    assert await privileged_mfa.is_privileged(db_async, user) is False
+    assert await privileged_mfa.is_enrolment_privileged(db_async, user) is True
+
+    secret = await service.begin_totp_setup(session=db_async, user=user)
+    assert len(sent) == 1
+    with pytest.raises(AppException, match="emailed you"):
+        await service.activate_totp(
+            session=db_async, user=user, code=pyotp.TOTP(secret).now()
+        )
+    assert await service.activate_totp(
+        session=db_async,
+        user=user,
+        code=pyotp.TOTP(secret).now(),
+        email_code=sent[0],
+    )
+    await db_async.refresh(old)
+    assert old.revoked_at is not None

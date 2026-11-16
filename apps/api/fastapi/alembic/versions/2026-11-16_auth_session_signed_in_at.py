@@ -1,7 +1,7 @@
 """auth session original sign-in time
 
 Revision ID: authsessionsignedin20261116
-Revises: printixoffline20261115
+Revises: printixorganisation20261116
 
 ADR-0061 (per-app session cap). Additive: one nullable timestamp on ``session``
 holding the original sign-in, carried through every refresh so a capped app's
@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "authsessionsignedin20261116"
-down_revision = "printixoffline20261115"
+down_revision = "printixorganisation20261116"
 branch_labels = None
 depends_on = None
 
