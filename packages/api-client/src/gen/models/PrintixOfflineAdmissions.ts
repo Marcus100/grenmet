@@ -25,7 +25,7 @@ export type PrintixOfflineAdmissionsStatus401 = ApiError;
 export type PrintixOfflineAdmissionsStatus403 = ApiError;
 
 /**
- * @description A 409 that refuses offline mode for an event whose barcodes are printed numbers.
+ * @description A 409 that refuses offline mode for an event with weak barcodes.
  * @type object
  */
 export type PrintixOfflineAdmissionsStatus409 = PrintixOfflineUnavailableBody;

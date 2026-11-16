@@ -1,6 +1,6 @@
 """Printix ticket registry: limits, outcome codes and status values (ADR-0060)."""
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 
 #: Permission key every administrator route checks (``src/auth/permissions.py``).
@@ -54,6 +54,19 @@ OFFLINE_HASH_HEX_LENGTH = 32
 #: Stable code on the 409 that refuses offline mode for an event whose barcodes are
 #: its printed numbers (the list's hashes would be reversible by trying every number).
 OFFLINE_UNAVAILABLE_CODE = "offline_not_available"
+#: Offline results that are not new admissions (already_admitted, void, event_closed,
+#: unknown) per pairing per SCAN_WINDOW_SECONDS. Past it the rest of the batch is
+#: deferred. Repeats cost a row each, so this bounds the writes one pairing can cause.
+OFFLINE_NON_ADMISSIONS_PER_WINDOW = 60
+#: A queued scan is refused when its sync arrives more than this long after the close
+#: (the earlier of closes_at and closed_at). Phones must sync within this time of close.
+OFFLINE_SYNC_GRACE_AFTER_CLOSE = timedelta(hours=12)
+#: An offline ticket's barcode must be at least this many characters. A shorter one
+#: can be recovered from its hash on the list by trying every value.
+OFFLINE_MIN_BARCODE_LENGTH = 12
+#: A phone's scanned time must fall between these bounds (UTC), or the sync is a 422.
+OFFLINE_SCANNED_AT_EARLIEST = datetime(2020, 1, 1, tzinfo=UTC)
+OFFLINE_SCANNED_AT_MAX_AHEAD = timedelta(days=1)
 
 MAX_IMPORT_BYTES = 2 * 1024 * 1024
 MAX_IMPORT_ROWS = 20_000

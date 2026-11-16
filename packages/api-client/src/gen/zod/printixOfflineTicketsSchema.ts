@@ -22,7 +22,7 @@ export const printixOfflineTicketsStatus403Schema = apiErrorSchema.describe(
 
 export const printixOfflineTicketsStatus409Schema =
   printixOfflineUnavailableBodySchema.describe(
-    "A 409 that refuses offline mode for an event whose barcodes are printed numbers."
+    "A 409 that refuses offline mode for an event with weak barcodes."
   );
 
 export const printixOfflineTicketsStatus422Schema =

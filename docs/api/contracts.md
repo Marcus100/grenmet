@@ -3238,9 +3238,13 @@ Two route zones, both under `/api/v1/printix/`.
   each a scan result plus `client_ref`), `deferred` and `retry_after_seconds`. Barcode
   only; the first admission the server records wins; any outcome other than `admitted` is
   a conflict. A scan made before the event closed counts even if it syncs after; a scan at
-  or after the close answers `event_closed`. A repeated `client_ref` returns its first
-  answer. 12 requests a minute per pairing. The summary's `offline_conflicts` counts offline
-  admissions not recorded. Both routes answer 409 with `code: offline_not_available` when any
-  barcode is its printed number (the list is then not sent); live scanning is unaffected.
+  or after the close answers `event_closed`, and a sync more than 12 hours after the close
+  is `event_closed` whatever the scan time. A repeated `client_ref` returns its first
+  answer. Answers other than `admitted` share 60 a minute per pairing; past it the rest of
+  the batch is `deferred`. `scanned_at` outside 2020-01-01 UTC to a day ahead is a 422. 12
+  requests a minute per pairing. The summary's `offline_conflicts` counts offline
+  admissions not recorded. Both routes answer 409 with `code: offline_not_available` when a
+  barcode is its printed number or shorter than 12 characters (the list is then not sent);
+  live scanning is unaffected.
 
 Adding an outcome code or an optional field is additive; removing one is breaking.

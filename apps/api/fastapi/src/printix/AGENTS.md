@@ -141,10 +141,19 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   its time is before both `closes_at` and `closed_at` (`_offline_refused_as_closed`). A
   closed event with no `closed_at` refuses every offline scan. A future phone time is
   clamped to server time, so it cannot pass the close.
-- **Printed-number barcodes.** If any ticket's `barcode_value` equals its `printed_number`
-  (no flag is stored; the row is the record), the list and the sync answer 409 with
-  `code: offline_not_available` (`PrintixOfflineUnavailable`). A sync stores nothing.
-  Online scanning is unchanged.
+- **Weak barcodes.** If any ticket's `barcode_value` equals its `printed_number`, or is
+  shorter than `OFFLINE_MIN_BARCODE_LENGTH` (12), the list and the sync answer 409 with
+  `code: offline_not_available` (`PrintixOfflineUnavailable`). No flag is stored; the rows
+  are the record. A sync stores nothing. Online scanning is unchanged. The hash key is on
+  the phone, so it only stops cross-pairing correlation.
+- **Non-admission cap.** `already_admitted`, `void`, `event_closed` and `unknown` offline
+  rows share `OFFLINE_NON_ADMISSIONS_PER_WINDOW` (60) per 60 seconds per pairing. Past it,
+  the rest of the batch is `deferred`. New admissions are never counted against it.
+- **Grace.** A sync more than `OFFLINE_SYNC_GRACE_AFTER_CLOSE` (12 h) after the close
+  instant (the earlier of `closes_at` and `closed_at`) is `event_closed`, whatever the scan
+  time.
+- **Scan time bounds.** `scanned_at` must be between 2020-01-01 UTC and a day ahead
+  (schema validator, 422). Inside those bounds the clamp still applies.
 - Summary: `duplicates_refused` is live only; `offline_conflicts` counts offline rows
   whose outcome is not `admitted`.
 - Tests: `tests/printix/test_offline.py`.

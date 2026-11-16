@@ -63,8 +63,8 @@ OFFLINE_UNAVAILABLE: ResponseMap = {
     409: {
         "model": PrintixOfflineUnavailableBody,
         "description": (
-            "Offline mode is off for this event, because its barcodes are its printed "
-            "numbers. Use the live scanner."
+            "Offline mode is off for this event, because some barcodes are its printed "
+            "numbers or shorter than twelve characters. Use the live scanner."
         ),
     },
 }
@@ -153,8 +153,10 @@ def _offline_sync_key(request: Request) -> str:
         "this pairing's hash_key, cut to 32 hex characters. States: valid, void, "
         "admitted (with the first admission's time and gate). No personal data. "
         "Refused with 409 (offline_not_available) when any barcode is its printed "
-        "number, since the hashes could then be reversed. Limited to 4 reads a minute "
-        "per pairing."
+        "number or shorter than twelve characters, since the hashes could then be "
+        "reversed. The key is known to the phone, so this stops correlation across "
+        "pairings only, not guessing weak barcodes. Limited to 4 reads a minute per "
+        "pairing."
     ),
     responses={**PAIRING_RESPONSES, **RATE_LIMITED, **OFFLINE_UNAVAILABLE},
 )
@@ -180,9 +182,12 @@ async def offline_tickets_endpoint(
         "is a conflict to show at the gate. Barcode only: a typed number is never "
         "looked up. A retried reference returns its first answer. Unknown values "
         "share the live cap of 20 a minute; past it, the rest of the batch is counted "
-        "in deferred and must be sent again later. Refused with 409 "
-        "(offline_not_available) when any barcode is its printed number. Limited to "
-        "12 requests a minute per pairing."
+        "in deferred and must be sent again later. Other answers than admitted share "
+        "a cap of 60 a minute; past it the rest is deferred. A scan synced more than "
+        "12 hours after the close is event_closed. scanned_at must be between "
+        "2020-01-01 UTC and a day ahead (else 422). Refused with 409 "
+        "(offline_not_available) when any barcode is its printed number or shorter than "
+        "twelve characters. Limited to 12 requests a minute per pairing."
     ),
     responses={**PAIRING_RESPONSES, **RATE_LIMITED, **OFFLINE_UNAVAILABLE},
 )

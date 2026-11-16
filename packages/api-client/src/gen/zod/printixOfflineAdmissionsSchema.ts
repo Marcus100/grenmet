@@ -24,7 +24,7 @@ export const printixOfflineAdmissionsStatus403Schema = apiErrorSchema.describe(
 
 export const printixOfflineAdmissionsStatus409Schema =
   printixOfflineUnavailableBodySchema.describe(
-    "A 409 that refuses offline mode for an event whose barcodes are printed numbers."
+    "A 409 that refuses offline mode for an event with weak barcodes."
   );
 
 export const printixOfflineAdmissionsStatus422Schema =

@@ -14,6 +14,4 @@ export const printixOfflineUnavailableBodySchema = z
         "Stable code. Offline mode is off for this event; use the live scanner."
       ),
   })
-  .describe(
-    "A 409 that refuses offline mode for an event whose barcodes are printed numbers."
-  );
+  .describe("A 409 that refuses offline mode for an event with weak barcodes.");

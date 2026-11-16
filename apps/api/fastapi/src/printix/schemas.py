@@ -5,10 +5,10 @@ credential that admits it, so it leaves the server only in an import upload.
 """
 
 import uuid
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import Annotated, Literal
 
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import AwareDatetime, Field, field_validator, model_validator
 
 from src.models import ApiError, BaseModel, UtcDateTime
 
@@ -215,10 +215,22 @@ class PrintixOfflineAdmission(BaseModel):
     value: ScanValue
     scanned_at: AwareDatetime = Field(
         description=(
-            "When the phone admitted the ticket offline. Kept between the pairing's "
+            "When the phone admitted the ticket offline, between 2020-01-01 UTC and a "
+            "day after the server's time (else 422). Kept between the pairing's "
             "creation and the time of the sync."
         )
     )
+
+    @field_validator("scanned_at")
+    @classmethod
+    def _within_bounds(cls, value: datetime) -> datetime:
+        # Compared, not converted: converting a year-1 time with an offset to UTC overflows.
+        latest = datetime.now(UTC) + constants.OFFLINE_SCANNED_AT_MAX_AHEAD
+        if not constants.OFFLINE_SCANNED_AT_EARLIEST <= value <= latest:
+            raise ValueError(
+                "scanned_at must be between 2020-01-01 UTC and a day ahead"
+            )
+        return value
 
 
 class PrintixOfflineSyncRequest(BaseModel):
@@ -257,7 +269,7 @@ class PrintixOfflineSyncResult(BaseModel):
 
 
 class PrintixOfflineUnavailableBody(ApiError):
-    """A 409 that refuses offline mode for an event whose barcodes are printed numbers."""
+    """A 409 that refuses offline mode for an event with weak barcodes."""
 
     code: Literal["offline_not_available"] = Field(
         description="Stable code. Offline mode is off for this event; use the live scanner."

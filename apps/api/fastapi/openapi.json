@@ -69000,7 +69000,7 @@
           "printix-scanner"
         ],
         "summary": "The event's ticket list for offline checking",
-        "description": "Every ticket on the pairing's event, so a phone can check tickets while it has no signal. Barcodes are never sent: each is an HMAC-SHA256 keyed with this pairing's hash_key, cut to 32 hex characters. States: valid, void, admitted (with the first admission's time and gate). No personal data. Refused with 409 (offline_not_available) when any barcode is its printed number, since the hashes could then be reversed. Limited to 4 reads a minute per pairing.",
+        "description": "Every ticket on the pairing's event, so a phone can check tickets while it has no signal. Barcodes are never sent: each is an HMAC-SHA256 keyed with this pairing's hash_key, cut to 32 hex characters. States: valid, void, admitted (with the first admission's time and gate). No personal data. Refused with 409 (offline_not_available) when any barcode is its printed number or shorter than twelve characters, since the hashes could then be reversed. The key is known to the phone, so this stops correlation across pairings only, not guessing weak barcodes. Limited to 4 reads a minute per pairing.",
         "operationId": "printixOfflineTickets",
         "responses": {
           "200": {
@@ -69062,7 +69062,7 @@
             }
           },
           "409": {
-            "description": "Offline mode is off for this event, because its barcodes are its printed numbers. Use the live scanner.",
+            "description": "Offline mode is off for this event, because some barcodes are its printed numbers or shorter than twelve characters. Use the live scanner.",
             "content": {
               "application/json": {
                 "schema": {
@@ -69085,7 +69085,7 @@
           "printix-scanner"
         ],
         "summary": "Sync admissions made offline",
-        "description": "Records up to 100 admissions a phone made while offline: the phone's reference, the scanned barcode value and the time. The server stays the source of truth: the first admission it records wins, and any other answer (already_admitted with the first time and gate, void, unknown, event_closed) is a conflict to show at the gate. Barcode only: a typed number is never looked up. A retried reference returns its first answer. Unknown values share the live cap of 20 a minute; past it, the rest of the batch is counted in deferred and must be sent again later. Refused with 409 (offline_not_available) when any barcode is its printed number. Limited to 12 requests a minute per pairing.",
+        "description": "Records up to 100 admissions a phone made while offline: the phone's reference, the scanned barcode value and the time. The server stays the source of truth: the first admission it records wins, and any other answer (already_admitted with the first time and gate, void, unknown, event_closed) is a conflict to show at the gate. Barcode only: a typed number is never looked up. A retried reference returns its first answer. Unknown values share the live cap of 20 a minute; past it, the rest of the batch is counted in deferred and must be sent again later. Other answers than admitted share a cap of 60 a minute; past it the rest is deferred. A scan synced more than 12 hours after the close is event_closed. scanned_at must be between 2020-01-01 UTC and a day ahead (else 422). Refused with 409 (offline_not_available) when any barcode is its printed number or shorter than twelve characters. Limited to 12 requests a minute per pairing.",
         "operationId": "printixOfflineAdmissions",
         "requestBody": {
           "content": {
@@ -69157,7 +69157,7 @@
             }
           },
           "409": {
-            "description": "Offline mode is off for this event, because its barcodes are its printed numbers. Use the live scanner.",
+            "description": "Offline mode is off for this event, because some barcodes are its printed numbers or shorter than twelve characters. Use the live scanner.",
             "content": {
               "application/json": {
                 "schema": {
@@ -99859,7 +99859,7 @@
             "type": "string",
             "format": "date-time",
             "title": "Scanned At",
-            "description": "When the phone admitted the ticket offline. Kept between the pairing's creation and the time of the sync."
+            "description": "When the phone admitted the ticket offline, between 2020-01-01 UTC and a day after the server's time (else 422). Kept between the pairing's creation and the time of the sync."
           }
         },
         "type": "object",
@@ -100087,7 +100087,7 @@
           "code"
         ],
         "title": "PrintixOfflineUnavailableBody",
-        "description": "A 409 that refuses offline mode for an event whose barcodes are printed numbers."
+        "description": "A 409 that refuses offline mode for an event with weak barcodes."
       },
       "PrintixPairingCreate": {
         "properties": {

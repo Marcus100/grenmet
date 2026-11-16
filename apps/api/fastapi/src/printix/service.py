@@ -806,6 +806,35 @@ async def admit(
     return _scan_result(outcome, ticket)
 
 
+async def _offline_cap_reached(
+    session: AsyncSession,
+    pairing_id: uuid.UUID,
+    now: datetime,
+    outcome: PrintixScanOutcome,
+) -> bool:
+    """Whether this offline item must be deferred rather than recorded.
+
+    A new admission is never throttled here. Any other answer writes a row, so the
+    offline results that are not admissions share one cap per window, and an unknown
+    also keeps to the live unknown cap. Counting uses rows written earlier in this
+    batch (each one is flushed before the next item).
+    """
+    if outcome is PrintixScanOutcome.ADMITTED:
+        return False
+    if outcome is PrintixScanOutcome.UNKNOWN and await _unknown_cap_reached(
+        session, pairing_id, now
+    ):
+        return True
+    refusals = await _count_scans(
+        session,
+        pairing_id,
+        now,
+        PrintixScanLog.offline_scanned_at.is_not(None),
+        PrintixScanLog.outcome != PrintixScanOutcome.ADMITTED.value,
+    )
+    return refusals >= constants.OFFLINE_NON_ADMISSIONS_PER_WINDOW
+
+
 def _scan_result(
     outcome: PrintixScanOutcome, ticket: PrintixTicket | None
 ) -> PrintixScanResult:
@@ -879,7 +908,7 @@ async def offline_tickets(
     be reversed by trying every number.
     """
     event = await get_event(session, pairing.event_id)
-    await _refuse_if_numbers_are_barcodes(session, pairing, event)
+    await _refuse_if_barcodes_are_weak(session, pairing, event)
     generated_at = utc_now()
     key = offline_hash_key(pairing)
     rows = await session.execute(
@@ -916,12 +945,12 @@ async def offline_tickets(
     )
 
 
-async def _refuse_if_numbers_are_barcodes(
+async def _refuse_if_barcodes_are_weak(
     session: AsyncSession, pairing: PrintixPairing, event: PrintixEvent
 ) -> None:
-    if await _barcodes_are_printed_numbers(session, event.id):
+    if await _offline_barcodes_too_weak(session, event.id):
         logger.warning(
-            "Printix offline mode refused: barcodes are printed numbers",
+            "Printix offline mode refused: weak barcodes",
             extra={"subject_id": str(pairing.id), "target_id": str(event.id)},
         )
         raise PrintixOfflineUnavailable()
@@ -934,35 +963,52 @@ def _offline_time(
     return min(max(to_naive_utc(scanned_at), pairing.created_at), now)
 
 
-def _offline_refused_as_closed(event: PrintixEvent, when: datetime) -> bool:
-    """True when an offline scan at ``when`` is at or after the event's close.
+def _close_instant(event: PrintixEvent) -> datetime:
+    """The earlier of the scheduled close and the administrator's close."""
+    if event.status == PrintixEventStatus.CLOSED.value and event.closed_at is not None:
+        return min(event.closes_at, event.closed_at)
+    return event.closes_at
 
-    The close is the earlier of the scheduled close (``closes_at``) and the
-    administrator's close (``closed_at``). A scan before it counts even if it syncs
-    after it. A closed event with no ``closed_at`` has no known close, so it refuses.
+
+def _offline_refused_as_closed(
+    event: PrintixEvent, when: datetime, now: datetime
+) -> bool:
+    """True when an offline scan is refused as ``event_closed``.
+
+    A scan at or after the close is refused, and a scan before it counts even if it
+    syncs after. A closed event with no ``closed_at`` has no known close, so it refuses.
+    A sync that arrives more than ``OFFLINE_SYNC_GRACE_AFTER_CLOSE`` after the close
+    is refused whatever its scan time, which bounds how far back a queue can reach.
     """
     if event.closes_at <= when:
         return True
-    if event.status == PrintixEventStatus.CLOSED.value:
-        return event.closed_at is None or event.closed_at <= when
-    return False
+    if event.status == PrintixEventStatus.CLOSED.value and (
+        event.closed_at is None or event.closed_at <= when
+    ):
+        return True
+    return now > _close_instant(event) + constants.OFFLINE_SYNC_GRACE_AFTER_CLOSE
 
 
-async def _barcodes_are_printed_numbers(
+async def _offline_barcodes_too_weak(
     session: AsyncSession, event_id: uuid.UUID
 ) -> bool:
-    """True when any ticket on the event has a barcode equal to its printed number.
+    """True when any ticket on the event has a barcode that offline mode cannot protect.
 
-    The registry keeps no flag for this: a barcode that defaulted to the printed
-    number (or was typed as one) is stored as equal values. Such a barcode is a
-    three-digit value, so its hash on the offline list can be reversed by trying
-    every number. One such ticket refuses offline mode for the whole event.
+    Two cases, found by a stored-row check (the registry keeps no flag):
+    a barcode equal to its printed number (a defaulted barcode, or one typed as the
+    number), which is three digits and can be reversed by trying every number; and a
+    barcode shorter than ``OFFLINE_MIN_BARCODE_LENGTH``, which can be guessed the same
+    way. One such ticket refuses offline mode for the whole event.
     """
     found = await session.scalar(
         select(PrintixTicket.id)
         .where(
             PrintixTicket.event_id == event_id,
-            PrintixTicket.barcode_value == PrintixTicket.printed_number,
+            or_(
+                PrintixTicket.barcode_value == PrintixTicket.printed_number,
+                func.char_length(PrintixTicket.barcode_value)
+                < constants.OFFLINE_MIN_BARCODE_LENGTH,
+            ),
         )
         .limit(1)
     )
@@ -975,9 +1021,10 @@ async def _offline_outcome(
     event: PrintixEvent,
     value: str,
     when: datetime,
+    now: datetime,
 ) -> tuple[PrintixScanOutcome, PrintixTicket | None]:
     """Barcode only: an offline admission never falls through to a printed number."""
-    if _offline_refused_as_closed(event, when):
+    if _offline_refused_as_closed(event, when, now):
         return PrintixScanOutcome.EVENT_CLOSED, None
     ticket = await _barcode_ticket(session, event.id, value)
     if ticket is None:
@@ -1049,7 +1096,7 @@ async def sync_offline_admissions(
     now = utc_now()
     await _lock_pairing(session, pairing.id)
     event = await get_event(session, pairing.event_id)
-    await _refuse_if_numbers_are_barcodes(session, pairing, event)
+    await _refuse_if_barcodes_are_weak(session, pairing, event)
     earlier = await _earlier_answers(
         session, pairing.id, [admission.client_ref for admission in admissions]
     )
@@ -1062,10 +1109,10 @@ async def sync_offline_admissions(
             continue
         when = _offline_time(pairing, admission.scanned_at, now)
         value = admission.value.strip()
-        outcome, ticket = await _offline_outcome(session, pairing, event, value, when)
-        if outcome is PrintixScanOutcome.UNKNOWN and await _unknown_cap_reached(
-            session, pairing.id, now
-        ):
+        outcome, ticket = await _offline_outcome(
+            session, pairing, event, value, when, now
+        )
+        if await _offline_cap_reached(session, pairing.id, now, outcome):
             deferred = len(admissions) - index
             break
         session.add(

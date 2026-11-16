@@ -11,7 +11,7 @@ import type {
 } from "../models/PrintixOfflineTickets.js";
 
 /**
- * @description Every ticket on the pairing's event, so a phone can check tickets while it has no signal. Barcodes are never sent: each is an HMAC-SHA256 keyed with this pairing's hash_key, cut to 32 hex characters. States: valid, void, admitted (with the first admission's time and gate). No personal data. Refused with 409 (offline_not_available) when any barcode is its printed number, since the hashes could then be reversed. Limited to 4 reads a minute per pairing.
+ * @description Every ticket on the pairing's event, so a phone can check tickets while it has no signal. Barcodes are never sent: each is an HMAC-SHA256 keyed with this pairing's hash_key, cut to 32 hex characters. States: valid, void, admitted (with the first admission's time and gate). No personal data. Refused with 409 (offline_not_available) when any barcode is its printed number or shorter than twelve characters, since the hashes could then be reversed. The key is known to the phone, so this stops correlation across pairings only, not guessing weak barcodes. Limited to 4 reads a minute per pairing.
  * @summary The event's ticket list for offline checking
  * {@link /api/v1/printix/public/offline-tickets}
  */

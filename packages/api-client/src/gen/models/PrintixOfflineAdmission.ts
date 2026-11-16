@@ -20,7 +20,7 @@ export type PrintixOfflineAdmission = {
    */
   value: string;
   /**
-   * @description When the phone admitted the ticket offline. Kept between the pairing's creation and the time of the sync.
+   * @description When the phone admitted the ticket offline, between 2020-01-01 UTC and a day after the server's time (else 422). Kept between the pairing's creation and the time of the sync.
    *
    * Format: `date-time`
    * @type string
