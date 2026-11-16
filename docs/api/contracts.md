@@ -3237,7 +3237,13 @@ Four route zones, all under `/api/v1/printix/`.
   is 403, an account or other-app session is refused (403 and 401). The admin list
   `GET /admin/events` (superuser, every event) and `POST /admin/events/{id}/organisation`
   (set or clear `organisation_id`) are in the admin zone; `POST /admin/events` takes an
-  optional `organisation_id`.
+  optional `organisation_id`. Either call refuses an organisation that is suspended or not
+  entitled to `printix` with 422 (`PrintixOrganisationIneligible`); an unknown event is 404
+  before any organisation is checked. Owners and admins of an entitled organisation hold both
+  organisation keys implicitly (ADR-0044), so with the `printix-member` role they can use these
+  routes. Bundle grants need `printix.team.manage` (owners and admins hold it). The event's
+  organisation foreign key has no `ON DELETE` rule: an organisation that owns events cannot be
+  deleted until they are moved or cleared. A per-user rate limit is planned with the write slices.
 - **`me/*`** (a `printix` app session that passed the authenticator; no organisation header):
   `GET /me/organisations` lists the organisations where the person is an active member, the
   organisation is entitled to `printix`, and they hold `printix.events.manage` or

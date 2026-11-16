@@ -193,6 +193,23 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   organisation id: `GET /organisations/mine` is account-only (`AccountUser`), so the
   scanner must be given the organisation id another way until a route accepts the app
   session.
+- **Who can use the organiser routes (ADR-0044).** An organisation owner or admin holds every
+  organisation key of every entitled product, so both Printix keys, implicitly. Anyone made
+  owner or admin of an entitled organisation who also holds the `printix-member` app role can
+  therefore use the organiser routes; the app role is still required.
+- **Team key.** `printix.team.manage` is the Printix team-management key (organisation-bound,
+  so `grants.product_keys` includes it, and `team.managed_products` and `_team_manage_keys` pick
+  it up). Owners and admins hold it implicitly. A bundle grant needs it: `grants.required_keys`
+  adds `printix.team.manage` to every Printix bundle. No staff bundle carries it; Barrels adds
+  staff, not this key.
+- **Ineligible target organisation.** Setting or creating an event's organisation needs an
+  active organisation entitled to `printix`; otherwise `PrintixOrganisationIneligible` (422).
+  An unknown id is 422 "Organisation not found". An unknown event is 404, checked first.
+- **Deleting an organisation.** The event foreign key has no `ON DELETE` rule, so an
+  organisation that owns events cannot be deleted until its events are moved or cleared
+  (`POST /admin/events/{id}/organisation` with null).
+- **Rate limit (planned).** A per-user rate limit on the organiser routes is planned with the
+  write slices; the read routes have none yet.
 - **Migration debt:** the foreign key `event_organisation_id_fkey` was added `NOT VALID`
   (migration `printixorganisation20261116`). A later migration must run
   `ALTER TABLE printix.event VALIDATE CONSTRAINT event_organisation_id_fkey` once the existing

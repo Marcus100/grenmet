@@ -238,6 +238,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "Printix: make, list and cancel gate QR codes and read the live summary",
         binding="organisation",
     ),
+    PermissionDef(
+        "printix.team.manage",
+        "Give organisation members Printix roles you hold yourself",
+        binding="organisation",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),

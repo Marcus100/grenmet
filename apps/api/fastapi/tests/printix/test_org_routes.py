@@ -21,6 +21,7 @@ from src.auth import service as auth_service
 from src.auth import totp
 from src.auth.config import auth_settings
 from src.auth.models import Role, User, UserRoleLink
+from src.auth.models import Session as LoginSession
 from src.auth.permissions import seed_permissions_and_roles_async
 from src.auth.utils import create_access_token
 from src.config import settings
@@ -37,7 +38,7 @@ from src.organisations.models import (
 from src.printix.models import PrintixEvent
 from src.utils.datetime import utc_now
 from tests.factories import make_user
-from tests.organisations.support import make_org
+from tests.organisations.support import headers_for, make_org
 
 from .support import ADMIN, make_event
 
@@ -583,3 +584,253 @@ async def test_a_session_without_the_authenticator_step_is_refused_on_the_me_rou
     )
     assert response.status_code == 403
     assert "Sign in again" in response.json()["detail"]
+
+
+# --- Granting the Printix bundles through the team API (blocker fix) --------------
+
+GRANTS_API = f"{settings.API_V1_STR}/organisations/org"
+
+
+async def _membership_id(
+    db: AsyncSession, org: PlatformOrganisation, user: User
+) -> str:
+    membership = await db.scalar(
+        select(Membership).where(
+            Membership.organisation_id == org.id, Membership.user_id == user.id
+        )
+    )
+    assert membership is not None
+    return membership.id
+
+
+async def test_an_owner_grants_and_revokes_the_printix_bundles_through_the_team_api(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
+    owner = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        f"Printix owned {uuid.uuid4().hex[:6]}",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("printix",),
+    )
+    member = await _app_user(db_async)
+    await make_org_member(db_async, org, member)
+    member_headers = await _sign_in(db_async, member)
+    membership_id = await _membership_id(db_async, org, member)
+    for bundle in ("printix-organiser", "printix-gate-lead"):
+        created = await async_client.post(
+            f"{GRANTS_API}/members/{membership_id}/grants",
+            headers=headers_for(owner, org.id),
+            json={"role_key": bundle},
+        )
+        assert created.status_code == 201, created.text
+        assert created.json()["role_key"] == bundle
+        grant_id = created.json()["id"]
+
+        granted = await async_client.get(
+            f"{ORG}/events", headers={**member_headers, **_org_header(org)}
+        )
+        assert granted.status_code == 200, granted.text
+
+        revoked = await async_client.post(
+            f"{GRANTS_API}/grants/{grant_id}/revoke",
+            headers=headers_for(owner, org.id),
+        )
+        assert revoked.status_code == 200, revoked.text
+        assert revoked.json()["revoked_at"] is not None
+
+        refused = await async_client.get(
+            f"{ORG}/events", headers={**member_headers, **_org_header(org)}
+        )
+        assert refused.status_code == 403
+
+
+async def test_a_plain_member_cannot_grant_a_printix_bundle(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    org = world["org_a"]
+    plain = await _app_user(db_async)
+    await make_org_member(db_async, org, plain)
+    target = await _app_user(db_async)
+    await make_org_member(db_async, org, target)
+    response = await async_client.post(
+        f"{GRANTS_API}/members/{await _membership_id(db_async, org, target)}/grants",
+        headers=headers_for(plain, org.id),
+        json={"role_key": "printix-gate-lead"},
+    )
+    assert response.status_code == 403
+
+
+# --- set_event_organisation: order and eligibility -------------------------------
+
+
+async def test_an_unknown_event_is_404_before_the_organisation_is_checked(
+    async_client: httpx.AsyncClient,
+    mfa_admin,
+) -> None:
+    _, headers = await mfa_admin()
+    response = await async_client.post(
+        f"{ADMIN}/events/{uuid.uuid4()}/organisation",
+        headers=headers,
+        json={"organisation_id": f"org_{uuid.uuid4().hex}"},
+    )
+    assert response.status_code == 404
+
+
+async def test_a_suspended_or_unentitled_organisation_cannot_own_an_event(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    mfa_admin,
+    world: dict[str, Any],
+) -> None:
+    _, headers = await mfa_admin()
+    suspended = await _org(db_async, f"Suspended {uuid.uuid4().hex[:6]}")
+    suspended.status = "suspended"
+    unentitled = await _org(db_async, f"Plain {uuid.uuid4().hex[:6]}", entitled=False)
+    await db_async.commit()
+    event_id = world["ev_none"].id
+    for target in (suspended, unentitled):
+        response = await async_client.post(
+            f"{ADMIN}/events/{event_id}/organisation",
+            headers=headers,
+            json={"organisation_id": target.id},
+        )
+        assert response.status_code == 422, response.text
+        created = await async_client.post(
+            f"{ADMIN}/events",
+            headers=headers,
+            json={
+                "name": "Refused",
+                "event_date": "2026-12-26",
+                "closes_at": "2026-12-27T18:00:00Z",
+                "organisation_id": target.id,
+            },
+        )
+        assert created.status_code == 422, created.text
+    await db_async.refresh(world["ev_none"])
+    assert world["ev_none"].organisation_id is None
+
+
+# --- Standing changes take effect at once (org and me routes) --------------------
+
+
+async def _gate_lead(db: AsyncSession, org: PlatformOrganisation) -> User:
+    return await _organiser(db, org, "printix-gate-lead")
+
+
+async def test_a_suspended_organisation_is_refused_and_not_listed(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    org = world["org_a"]
+    user = await _gate_lead(db_async, org)
+    headers = await _sign_in(db_async, user)
+    org.status = "suspended"
+    await db_async.commit()
+    listed = await async_client.get(
+        f"{ORG}/events", headers={**headers, **_org_header(org)}
+    )
+    assert listed.status_code == 403
+    mine = await async_client.get(ME, headers=headers)
+    assert mine.status_code == 200
+    assert mine.json() == []
+
+
+async def test_a_removed_membership_is_refused_and_not_listed(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    org = world["org_a"]
+    user = await _gate_lead(db_async, org)
+    headers = await _sign_in(db_async, user)
+    membership = await db_async.scalar(
+        select(Membership).where(
+            Membership.organisation_id == org.id, Membership.user_id == user.id
+        )
+    )
+    assert membership is not None
+    membership.status = "removed"
+    await db_async.commit()
+    listed = await async_client.get(
+        f"{ORG}/events", headers={**headers, **_org_header(org)}
+    )
+    assert listed.status_code == 404
+    mine = await async_client.get(ME, headers=headers)
+    assert mine.json() == []
+
+
+async def _set_grant(
+    db: AsyncSession, org: PlatformOrganisation, user: User, **changes: Any
+) -> None:
+    membership_id = await _membership_id(db, org, user)
+    grant = await db.scalar(
+        select(MembershipGrant).where(MembershipGrant.membership_id == membership_id)
+    )
+    assert grant is not None
+    for name, value in changes.items():
+        setattr(grant, name, value)
+    await db.commit()
+
+
+async def test_a_revoked_grant_is_refused_and_not_listed(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    org = world["org_a"]
+    user = await _gate_lead(db_async, org)
+    headers = await _sign_in(db_async, user)
+    await _set_grant(db_async, org, user, revoked_at=utc_now())
+    listed = await async_client.get(
+        f"{ORG}/events", headers={**headers, **_org_header(org)}
+    )
+    assert listed.status_code == 403
+    mine = await async_client.get(ME, headers=headers)
+    assert mine.json() == []
+
+
+async def test_an_expired_grant_is_refused_and_not_listed(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    org = world["org_a"]
+    user = await _gate_lead(db_async, org)
+    headers = await _sign_in(db_async, user)
+    await _set_grant(db_async, org, user, expires_at=utc_now() - timedelta(hours=1))
+    listed = await async_client.get(
+        f"{ORG}/events", headers={**headers, **_org_header(org)}
+    )
+    assert listed.status_code == 403
+    mine = await async_client.get(ME, headers=headers)
+    assert mine.json() == []
+
+
+async def test_a_revoked_session_is_refused_on_both_zones(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    org = world["org_a"]
+    user = await _gate_lead(db_async, org)
+    headers = await _sign_in(db_async, user)
+    rows = (
+        await db_async.scalars(
+            select(LoginSession).where(LoginSession.user_id == user.id)
+        )
+    ).all()
+    assert rows
+    for row in rows:
+        row.revoked_at = utc_now()
+    await db_async.commit()
+    listed = await async_client.get(
+        f"{ORG}/events", headers={**headers, **_org_header(org)}
+    )
+    assert listed.status_code == 403
+    mine = await async_client.get(ME, headers=headers)
+    assert mine.status_code == 403
