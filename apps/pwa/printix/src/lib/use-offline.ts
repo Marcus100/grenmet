@@ -1,3 +1,5 @@
+import type { PrintixScanResult } from "@barrelsgd/api-client";
+import { printixScanOutcome } from "@barrelsgd/api-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { decideOffline } from "@/lib/offline-check";
 import { createBarcodeHasher, pairingTag } from "@/lib/offline-hash";
@@ -7,10 +9,11 @@ import {
   type OfflineSnapshot,
   type OfflineStore,
 } from "@/lib/offline-store";
-import { refreshList, syncQueue } from "@/lib/offline-sync";
+import { refreshList, type SyncResult, syncQueue } from "@/lib/offline-sync";
 import { reportError } from "@/lib/report-error";
 import {
   type Connection,
+  type Failure,
   type PairingProblem,
   readOfflineList,
   sendOfflineAdmissions,
@@ -23,6 +26,8 @@ const LIST_REFRESH_MS = 5 * 60 * 1000;
 const LIST_MIN_GAP_MS = 30 * 1000;
 /** Queued admissions are sent this often while there is signal. */
 const SYNC_INTERVAL_MS = 15 * 1000;
+/** The server allows twelve syncs a minute; never send closer than this. */
+const SYNC_MIN_GAP_MS = 6 * 1000;
 
 /**
  * ready: a list is saved and offline checks work. no-list: nothing saved yet.
@@ -45,19 +50,28 @@ export interface OfflineView {
     value: string,
     source: Source
   ) => Promise<Verdict | null>;
+  /** Forgets the conflicts once staff have read them. */
+  readonly clearConflicts: () => void;
   readonly conflicts: readonly Conflict[];
   /** The event named in the saved list, for when the live count is out of reach. */
   readonly eventName: string | null;
   /** When the saved list was downloaded; null when there is none. */
   readonly fetchedAt: string | null;
-  /** Forgets everything saved, for unpairing. */
+  /** Forgets everything saved and stops saving, for unpairing. */
   readonly forget: () => Promise<void>;
+  /**
+   * Admissions made under an earlier pairing that were removed unsent. They
+   * cannot be sent with this pairing; staff must be told.
+   */
+  readonly lost: number;
   /** Tells the hook what a live check just learnt about the signal. */
   readonly markOnline: (online: boolean) => void;
   readonly mode: OfflineMode;
   readonly online: boolean;
   /** Admissions made offline that still have to be sent. */
   readonly pending: number;
+  /** Notes a live answer, so the saved list knows a ticket just went in. */
+  readonly recordLive: (value: string, result: PrintixScanResult) => void;
 }
 
 interface Options {
@@ -69,10 +83,35 @@ function startsOnline(): boolean {
   return typeof navigator === "undefined" || navigator.onLine !== false;
 }
 
+/** How long to wait after a failed request; null when the pairing is the problem. */
+function waitAfter(failure: Failure, fallback: number): number | null {
+  if (failure.kind === "pairing") {
+    return null;
+  }
+  if (failure.kind === "rate-limited") {
+    return failure.retryAfterSeconds * 1000;
+  }
+  return fallback;
+}
+
+/** The wait before the next send, from what the last one returned. */
+function syncDelay(result: SyncResult): number {
+  if (result.kind === "offline-unavailable") {
+    return SYNC_INTERVAL_MS;
+  }
+  if (result.kind !== "ok") {
+    return waitAfter(result, SYNC_INTERVAL_MS) ?? SYNC_INTERVAL_MS;
+  }
+  if (result.retryAfterMs) {
+    return result.retryAfterMs;
+  }
+  return result.snapshot.pending > 0 ? SYNC_MIN_GAP_MS : SYNC_INTERVAL_MS;
+}
+
 /**
  * Offline checking for one pairing: keeps the event's ticket list on the
  * phone, checks tickets from it with no signal, queues those admissions and
- * sends them when the signal is back. Never let anyone in from an empty or
+ * sends them when the signal is back. Never lets anyone in from an empty or
  * refused list: the caller then shows the plain no-signal answer.
  */
 export function useOffline(
@@ -84,19 +123,21 @@ export function useOffline(
   const [mode, setMode] = useState<OfflineMode>("starting");
   const [online, setOnline] = useState(startsOnline);
   const [snapshot, setSnapshot] = useState<OfflineSnapshot | null>(null);
+  const [lost, setLost] = useState(0);
   const store = useRef<OfflineStore | null>(null);
   const tag = useRef<string | null>(null);
+  const stopped = useRef(false);
   const hasher = useRef<{
     key: string;
     hash: (value: string) => Promise<string>;
   } | null>(null);
-  const lastListAt = useRef(0);
   const kick = useRef<{ list: () => void; sync: () => void }>({
     list: () => undefined,
     sync: () => undefined,
   });
   const problemRef = useRef(onPairingProblem);
   const nowRef = useRef(now);
+  const onlineRef = useRef(online);
 
   useEffect(() => {
     problemRef.current = onPairingProblem;
@@ -110,11 +151,23 @@ export function useOffline(
     let active = true;
     let listTimer: ReturnType<typeof setTimeout> | undefined;
     let syncTimer: ReturnType<typeof setTimeout> | undefined;
-    let syncing = false;
+    let lastListAt = 0;
+    let lastSyncAt = 0;
+    // Only a wait the server asked for (deferred, or rate-limited).
+    let serverWaitUntil = 0;
     let refusing = false;
+    let sendOne = false;
+    // One job at a time: a list saved while a send is settling could
+    // otherwise mark a just-sent ticket valid again.
+    let chain: Promise<unknown> = Promise.resolve();
+    const serial = (job: () => Promise<void>) => {
+      chain = chain.then(job, job);
+      return chain;
+    };
+    const wanted = () => active && !stopped.current;
 
     const show = (next: OfflineSnapshot) => {
-      if (!active) {
+      if (!wanted()) {
         return;
       }
       setSnapshot(next);
@@ -123,48 +176,47 @@ export function useOffline(
       }
     };
 
-    const handleFailure = (
-      answer: { kind: string } & Partial<{
-        problem: PairingProblem;
-        retryAfterSeconds: number;
-      }>
-    ): number | null => {
-      if (answer.kind === "pairing" && answer.problem) {
-        problemRef.current(answer.problem);
-        return null;
-      }
-      if (answer.kind === "no-signal") {
+    const noteFailure = (failure: Failure) => {
+      if (failure.kind === "pairing") {
+        problemRef.current(failure.problem);
+      } else if (failure.kind === "no-signal") {
         setOnline(false);
       }
-      if (answer.kind === "rate-limited" && answer.retryAfterSeconds) {
-        return answer.retryAfterSeconds * 1000;
-      }
-      return 0;
+    };
+
+    const scheduleList = (delay: number) => {
+      clearTimeout(listTimer);
+      listTimer = setTimeout(() => kick.current.list(), delay);
+    };
+
+    const scheduleSync = (at: number) => {
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(
+        () => kick.current.sync(),
+        Math.max(0, at - Date.now())
+      );
     };
 
     const runList = async () => {
       const current = store.current;
-      if (!(active && current && tag.current)) {
+      if (!(wanted() && current && tag.current)) {
         return;
       }
-      const elapsed = Date.now() - lastListAt.current;
+      const elapsed = Date.now() - lastListAt;
       if (elapsed < LIST_MIN_GAP_MS) {
-        clearTimeout(listTimer);
-        listTimer = setTimeout(runList, LIST_MIN_GAP_MS - elapsed);
+        scheduleList(LIST_MIN_GAP_MS - elapsed);
         return;
       }
-      lastListAt.current = Date.now();
-      let delay = LIST_REFRESH_MS;
+      lastListAt = Date.now();
+      let delay: number | null = LIST_REFRESH_MS;
       try {
         const result = await refreshList(
           current,
           () => readOfflineList(connection),
           tag.current,
-          nowRef.current
+          nowRef.current,
+          wanted
         );
-        if (!active) {
-          return;
-        }
         if (result.kind === "ok") {
           refusing = false;
           setOnline(true);
@@ -173,64 +225,73 @@ export function useOffline(
           refusing = true;
           setOnline(true);
           setMode("unavailable");
-        } else {
-          const wait = handleFailure(result);
-          if (wait === null) {
-            return;
-          }
-          delay = wait > 0 ? wait : LIST_REFRESH_MS;
+        } else if (result.kind !== "skipped") {
+          noteFailure(result);
+          delay = waitAfter(result, LIST_REFRESH_MS);
         }
       } catch (error) {
         reportError(error, "offline-list");
       }
-      clearTimeout(listTimer);
-      listTimer = setTimeout(runList, delay);
+      if (delay !== null && wanted()) {
+        scheduleList(delay);
+      }
     };
 
     const runSync = async () => {
       const current = store.current;
-      if (!(active && current) || syncing) {
+      if (!(wanted() && current)) {
         return;
       }
-      syncing = true;
+      lastSyncAt = Date.now();
       let delay = SYNC_INTERVAL_MS;
       try {
-        const result = await syncQueue(current, (admissions) =>
-          sendOfflineAdmissions(connection, admissions)
+        const result = await syncQueue(
+          current,
+          (admissions) => sendOfflineAdmissions(connection, admissions),
+          { now: nowRef.current, one: sendOne }
         );
-        if (!active) {
-          return;
-        }
         if (result.kind === "ok") {
+          sendOne = false;
           show(result.snapshot);
-          if (result.retryAfterMs) {
-            delay = result.retryAfterMs;
-          } else if (result.snapshot.pending > 0) {
-            delay = 1000;
-          }
+        } else if (result.kind === "rejected") {
+          // The server refused the whole batch: find the entry it refuses.
+          sendOne = true;
         } else if (result.kind !== "offline-unavailable") {
-          const wait = handleFailure(result);
-          if (wait === null) {
+          noteFailure(result);
+          if (result.kind === "pairing") {
             return;
           }
-          delay = wait > 0 ? wait : SYNC_INTERVAL_MS;
         }
+        delay = syncDelay(result);
+        const askedToWait =
+          result.kind === "rate-limited" ||
+          (result.kind === "ok" && result.retryAfterMs !== null);
+        serverWaitUntil = askedToWait ? Date.now() + delay : 0;
       } catch (error) {
         reportError(error, "offline-sync");
-      } finally {
-        syncing = false;
       }
-      clearTimeout(syncTimer);
-      syncTimer = setTimeout(runSync, delay);
+      if (wanted()) {
+        scheduleSync(Date.now() + Math.max(delay, SYNC_MIN_GAP_MS));
+      }
     };
 
     kick.current = {
       list: () => {
-        runList().catch(() => undefined);
+        serial(runList).catch(() => undefined);
       },
+      // Sends now if the server's limits allow, otherwise at the earliest
+      // moment they do. A retry time the server asked for is kept.
       sync: () => {
+        const earliest = Math.max(
+          serverWaitUntil,
+          lastSyncAt + SYNC_MIN_GAP_MS
+        );
+        if (Date.now() < earliest) {
+          scheduleSync(earliest);
+          return;
+        }
         clearTimeout(syncTimer);
-        runSync().catch(() => undefined);
+        serial(runSync).catch(() => undefined);
       },
     };
 
@@ -244,11 +305,24 @@ export function useOffline(
     window.addEventListener("offline", onOffline);
 
     const start = async () => {
+      let opened: OfflineStore | null = null;
       try {
-        tag.current = await pairingTag(connection.secret);
-        store.current = makeStore();
-        show(await store.current.load(tag.current));
+        const fingerprint = await pairingTag(connection.secret);
+        if (!active) {
+          return;
+        }
+        opened = makeStore();
+        const loaded = await opened.load(fingerprint);
+        if (!active) {
+          opened.close();
+          return;
+        }
+        store.current = opened;
+        tag.current = fingerprint;
+        setLost(loaded.lost);
+        show(loaded.snapshot);
       } catch (error) {
+        opened?.close();
         reportError(error, "offline-storage");
         if (active) {
           setMode("no-storage");
@@ -267,52 +341,96 @@ export function useOffline(
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
       kick.current = { list: () => undefined, sync: () => undefined };
+      const closing = store.current;
+      store.current = null;
+      tag.current = null;
+      // Close once queued jobs finish, so none writes to a closed database.
+      chain.finally(() => closing?.close()).catch(() => undefined);
     };
   }, [connection, makeStore]);
 
   const meta = snapshot?.meta ?? null;
 
+  const hashFor = useCallback(
+    (value: string): Promise<string> | null => {
+      if (!meta) {
+        return null;
+      }
+      if (hasher.current?.key !== meta.hashKey) {
+        hasher.current = {
+          key: meta.hashKey,
+          hash: createBarcodeHasher(meta.hashKey),
+        };
+      }
+      return hasher.current.hash(value);
+    },
+    [meta]
+  );
+
   const checkOffline = useCallback(
     async (value: string, source: Source): Promise<Verdict | null> => {
       const current = store.current;
-      if (!(current && meta && tag.current) || mode !== "ready") {
+      const pairing = tag.current;
+      if (!(current && meta && pairing) || mode !== "ready") {
         return null;
       }
       try {
-        if (hasher.current?.key !== meta.hashKey) {
-          hasher.current = {
-            key: meta.hashKey,
-            hash: createBarcodeHasher(meta.hashKey),
-          };
+        const hash = await hashFor(value);
+        if (hash === null || hash === undefined) {
+          return null;
         }
-        const hash = await hasher.current.hash(value);
+        const at = nowRef.current();
         const ticket = await current.find(hash);
-        const decision = decideOffline(ticket, meta, source);
-        if (decision.kind === "admit" && ticket) {
-          await current.admit({
-            clientRef: crypto.randomUUID(),
-            hash,
-            pairingTag: tag.current,
-            printedNumber: ticket.printedNumber,
-            scannedAt: nowRef.current().toISOString(),
-            value,
-          });
-          setSnapshot(await current.snapshot());
-          kick.current.sync();
+        const decision = decideOffline(ticket, meta, source, at);
+        if (decision.kind !== "admit" || !ticket) {
+          return decision.verdict;
         }
+        const admitted = await current.admit({
+          clientRef: crypto.randomUUID(),
+          hash,
+          pairingTag: pairing,
+          printedNumber: ticket.printedNumber,
+          scannedAt: at.toISOString(),
+          value,
+        });
+        if (!admitted) {
+          // Another read admitted it between the look-up and the write.
+          return decideOffline(await current.find(hash), meta, source, at)
+            .verdict;
+        }
+        setSnapshot(await current.snapshot());
+        kick.current.sync();
         return decision.verdict;
       } catch (error) {
         reportError(error, "offline-check");
         return null;
       }
     },
-    [meta, mode]
+    [hashFor, meta, mode]
   );
 
-  const onlineRef = useRef(online);
-  useEffect(() => {
-    onlineRef.current = online;
-  }, [online]);
+  const recordLive = useCallback(
+    (value: string, result: PrintixScanResult) => {
+      const current = store.current;
+      const admitted =
+        result.outcome === printixScanOutcome.admitted ||
+        result.outcome === printixScanOutcome.already_admitted;
+      const hashing = admitted ? hashFor(value) : null;
+      if (!(current && hashing)) {
+        return;
+      }
+      hashing
+        .then((hash) =>
+          current.markAdmitted(
+            hash,
+            result.admitted_at ?? nowRef.current().toISOString(),
+            result.admitted_gate ?? null
+          )
+        )
+        .catch((error: unknown) => reportError(error, "offline-live"));
+    },
+    [hashFor]
+  );
 
   const markOnline = useCallback((next: boolean) => {
     if (next && !onlineRef.current) {
@@ -322,7 +440,15 @@ export function useOffline(
     setOnline(next);
   }, []);
 
+  const clearConflicts = useCallback(() => {
+    store.current
+      ?.clearConflicts()
+      .then((next) => setSnapshot(next))
+      .catch((error: unknown) => reportError(error, "offline-storage"));
+  }, []);
+
   const forget = useCallback(async () => {
+    stopped.current = true;
     try {
       await store.current?.clear();
     } catch (error) {
@@ -332,13 +458,16 @@ export function useOffline(
 
   return {
     checkOffline,
+    clearConflicts,
     conflicts: snapshot?.conflicts ?? [],
     eventName: meta?.eventName ?? null,
     fetchedAt: meta?.fetchedAt ?? null,
     forget,
+    lost,
     markOnline,
     mode,
     online,
     pending: snapshot?.pending ?? 0,
+    recordLive,
   };
 }

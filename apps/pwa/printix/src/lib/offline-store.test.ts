@@ -3,9 +3,11 @@ import Dexie from "dexie";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   createOfflineStore,
+  forgetOfflineData,
   type ListMeta,
   type QueuedAdmission,
   type StoredTicket,
+  unsentCount,
 } from "@/lib/offline-store";
 
 let count = 0;
@@ -24,6 +26,7 @@ afterEach(async () => {
 });
 
 const meta = (tag = "tag-a"): ListMeta => ({
+  closesAt: "2026-12-27T04:00:00Z",
   eventId: "event-1",
   eventName: "Harbour Night Market",
   eventStatus: "open",
@@ -59,9 +62,8 @@ describe("offline store", () => {
   it("starts empty, then saves a list and finds tickets by hash", async () => {
     const store = freshStore();
     expect(await store.load("tag-a")).toEqual({
-      meta: null,
-      pending: 0,
-      conflicts: [],
+      lost: 0,
+      snapshot: { meta: null, pending: 0, conflicts: [] },
     });
     const snapshot = await store.replaceList(meta(), [
       ticket("a"),
@@ -132,8 +134,11 @@ describe("offline store", () => {
     await store.load("tag-a");
     await store.replaceList(meta("tag-a"), [ticket("a")]);
     await store.admit(queued("a", "2026-12-26T20:01:00.000Z"));
-    const snapshot = await store.load("tag-b");
-    expect(snapshot).toEqual({ meta: null, pending: 0, conflicts: [] });
+    const loaded = await store.load("tag-b");
+    expect(loaded).toEqual({
+      lost: 1,
+      snapshot: { meta: null, pending: 0, conflicts: [] },
+    });
     expect(await store.find("a")).toBeUndefined();
   });
 
@@ -143,7 +148,7 @@ describe("offline store", () => {
     await store.admit(queued("a", "2026-12-26T20:01:00.000Z"));
     const name = names.at(-1) ?? "";
     const reopened = createOfflineStore(name);
-    const snapshot = await reopened.load("tag-a");
+    const { snapshot } = await reopened.load("tag-a");
     expect(snapshot.pending).toBe(1);
     expect(snapshot.meta?.pairingTag).toBe("tag-a");
   });
@@ -158,5 +163,80 @@ describe("offline store", () => {
       pending: 0,
       conflicts: [],
     });
+  });
+
+  it("refuses a second offline admission of the same ticket in the same step", async () => {
+    const store = freshStore();
+    await store.replaceList(meta(), [ticket("a"), ticket("v", "void")]);
+    const [first, second] = await Promise.all([
+      store.admit(queued("a", "2026-12-26T20:01:00.000Z")),
+      store.admit({
+        ...queued("a", "2026-12-26T20:01:01.000Z"),
+        clientRef: "ref-a2",
+      }),
+    ]);
+    expect([first, second].sort()).toEqual([false, true]);
+    expect(await store.admit(queued("v", "2026-12-26T20:02:00.000Z"))).toBe(
+      false
+    );
+    expect(
+      await store.admit(queued("missing", "2026-12-26T20:02:00.000Z"))
+    ).toBe(false);
+    expect((await store.snapshot()).pending).toBe(1);
+  });
+
+  it("keeps a live admission when an older list arrives", async () => {
+    const store = freshStore();
+    await store.replaceList(meta(), [ticket("a"), ticket("b")]);
+    await store.markAdmitted("a", "2026-12-26T19:30:00Z", "Main gate");
+    // A list the server made before that admission still says "valid".
+    await store.replaceList(
+      { ...meta(), generatedAt: "2026-12-26T19:20:00Z" },
+      [ticket("a"), ticket("b")]
+    );
+    expect(await store.find("a")).toMatchObject({
+      state: "admitted",
+      admittedGate: "Main gate",
+      admittedHere: false,
+    });
+    // A list made after it is trusted as it is.
+    await store.replaceList(
+      { ...meta(), generatedAt: "2026-12-26T19:40:00Z" },
+      [ticket("a"), ticket("b")]
+    );
+    expect((await store.find("a"))?.state).toBe("valid");
+  });
+
+  it("clears read conflicts only", async () => {
+    const store = freshStore();
+    await store.replaceList(meta(), [ticket("a")]);
+    await store.admit(queued("a", "2026-12-26T20:01:00.000Z"));
+    await store.settle([
+      {
+        clientRef: "ref-x",
+        conflict: {
+          clientRef: "ref-x",
+          outcome: "void",
+          printedNumber: "X",
+          admittedAt: null,
+          admittedGate: null,
+          scannedAt: "2026-12-26T20:00:00.000Z",
+        },
+      },
+    ]);
+    const snapshot = await store.clearConflicts();
+    expect(snapshot.conflicts).toEqual([]);
+    expect(snapshot.pending).toBe(1);
+  });
+
+  it("counts and deletes saved data from a screen with no open store", async () => {
+    const store = freshStore();
+    const name = names.at(-1) ?? "";
+    await store.replaceList(meta(), [ticket("a")]);
+    await store.admit(queued("a", "2026-12-26T20:01:00.000Z"));
+    expect(await unsentCount(name)).toBe(1);
+    await forgetOfflineData(name);
+    expect(await unsentCount(name)).toBe(0);
+    expect(await store.find("a")).toBeUndefined();
   });
 });

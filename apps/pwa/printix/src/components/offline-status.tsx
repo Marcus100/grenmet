@@ -8,7 +8,10 @@ const number = new Intl.NumberFormat();
 interface OfflineStatusProps {
   readonly conflicts: readonly Conflict[];
   readonly fetchedAt: string | null;
+  /** Admissions from an earlier pairing that were removed unsent. */
+  readonly lost: number;
   readonly mode: OfflineMode;
+  readonly onClearConflicts: () => void;
   readonly online: boolean;
   readonly pending: number;
 }
@@ -47,7 +50,9 @@ function listText(mode: OfflineMode, fetchedAt: string | null): string {
 export function OfflineStatus({
   conflicts,
   fetchedAt,
+  lost,
   mode,
+  onClearConflicts,
   online,
   pending,
 }: OfflineStatusProps) {
@@ -85,6 +90,18 @@ export function OfflineStatus({
         <p className="text-px-muted text-sm">{listText(mode, fetchedAt)}</p>
       )}
 
+      {lost > 0 ? (
+        <p
+          className="bg-px-stop text-px-paper rounded-xl px-4 py-3 text-sm font-semibold"
+          role="alert"
+        >
+          {lost === 1
+            ? "1 admission made with no signal under the previous pairing was never sent."
+            : `${number.format(lost)} admissions made with no signal under the previous pairing were never sent.`}{" "}
+          Tell your supervisor.
+        </p>
+      ) : null}
+
       {conflicts.length > 0 ? (
         <details className="text-sm">
           <summary className="text-px-paper focus-visible:outline-px-paper inline-flex min-h-11 cursor-pointer items-center font-semibold focus-visible:outline-2 focus-visible:outline-offset-2">
@@ -92,13 +109,22 @@ export function OfflineStatus({
           </summary>
           <p className="text-px-muted pb-2">
             These people were let in with no signal, but the server did not
-            record the admission. Tell your supervisor.
+            record the admission. Tell your supervisor. If this phone lost
+            signal while checking a ticket, the server may already have recorded
+            it: compare the times.
           </p>
           <ul className="flex flex-col gap-1 pb-2">
             {conflicts.map((conflict) => (
               <li key={conflict.clientRef}>{conflictText(conflict)}</li>
             ))}
           </ul>
+          <button
+            className="text-px-paper focus-visible:outline-px-paper border-px-rule mb-2 min-h-11 rounded-xl border px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
+            onClick={onClearConflicts}
+            type="button"
+          >
+            Supervisor told: clear the list
+          </button>
         </details>
       ) : null}
     </section>

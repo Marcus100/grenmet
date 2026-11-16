@@ -7,6 +7,7 @@ import {
 import type { ListMeta, StoredTicket } from "@/lib/offline-store";
 
 const META: ListMeta = {
+  closesAt: "2026-12-27T04:00:00Z",
   eventId: "event-1",
   eventName: "Harbour Night Market",
   eventStatus: "open",
@@ -87,6 +88,18 @@ describe("decideOffline", () => {
       kind: "refuse",
       verdict: { title: "Event closed" },
     });
+  });
+
+  it("refuses everyone at or after the scheduled close, even if the list says open", () => {
+    const closing = new Date("2026-12-27T04:00:00Z");
+    expect(decideOffline(ticket(), META, "camera", closing)).toMatchObject({
+      kind: "refuse",
+      verdict: { title: "Event closed" },
+    });
+    expect(
+      decideOffline(ticket(), META, "camera", new Date("2026-12-27T03:59:00Z"))
+        .kind
+    ).toBe("admit");
   });
 
   it("never checks a typed number offline", () => {

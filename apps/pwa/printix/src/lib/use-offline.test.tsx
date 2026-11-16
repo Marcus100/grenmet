@@ -16,7 +16,11 @@ vi.mock("@/lib/scan-api", async (importOriginal) => {
   };
 });
 
-import { readOfflineList, sendOfflineAdmissions } from "@/lib/scan-api";
+import {
+  type OfflineListAnswer,
+  readOfflineList,
+  sendOfflineAdmissions,
+} from "@/lib/scan-api";
 
 const listMock = vi.mocked(readOfflineList);
 const sendMock = vi.mocked(sendOfflineAdmissions);
@@ -109,7 +113,10 @@ describe("useOffline", () => {
       result.current.markOnline(false);
       result.current.markOnline(true);
     });
-    await waitFor(() => expect(result.current.pending).toBe(0));
+    // Sends wait at least six seconds apart (the server allows 12 a minute).
+    await waitFor(() => expect(result.current.pending).toBe(0), {
+      timeout: 10_000,
+    });
     expect(sendMock).toHaveBeenCalledWith(connection, [
       expect.objectContaining({ value: "PX-0000000101" }),
     ]);
@@ -156,5 +163,60 @@ describe("useOffline", () => {
       pending: 0,
       conflicts: [],
     });
+  });
+
+  it("refuses a copy of a ticket this phone just admitted live", async () => {
+    const { result } = renderOffline();
+    await waitFor(() => expect(result.current.mode).toBe("ready"));
+    act(() => {
+      result.current.recordLive("PX-0000000101", {
+        outcome: "admitted",
+        printed_number: "101",
+        admitted_at: "2026-12-26T20:00:10Z",
+        admitted_gate: "Main gate",
+      });
+    });
+    await waitFor(async () => {
+      const verdict = await result.current.checkOffline(
+        "PX-0000000101",
+        "camera"
+      );
+      expect(verdict).toMatchObject({ title: "Already admitted" });
+    });
+    expect(result.current.pending).toBe(0);
+  });
+
+  it("admits a ticket only once when two reads arrive together", async () => {
+    const { result } = renderOffline();
+    await waitFor(() => expect(result.current.mode).toBe("ready"));
+    let verdicts: unknown[] = [];
+    await act(async () => {
+      verdicts = await Promise.all([
+        result.current.checkOffline("PX-0000000104", "camera"),
+        result.current.checkOffline("PX-0000000104", "camera"),
+      ]);
+    });
+    const titles = verdicts.map(
+      (verdict) => (verdict as { title: string }).title
+    );
+    expect(titles.sort()).toEqual(["Admitted", "Already admitted"]);
+    await waitFor(() => expect(result.current.pending).toBe(1));
+  });
+
+  it("stops saving once the phone is unpaired", async () => {
+    let finishList: (value: OfflineListAnswer) => void = () => undefined;
+    listMock.mockReturnValue(
+      new Promise<OfflineListAnswer>((resolve) => {
+        finishList = resolve;
+      })
+    );
+    const { result } = renderOffline();
+    await waitFor(() => expect(listMock).toHaveBeenCalled());
+    await act(async () => {
+      await result.current.forget();
+      finishList({ kind: "list", list: OFFLINE_LIST });
+    });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect((await makeStore().snapshot()).meta).toBeNull();
   });
 });

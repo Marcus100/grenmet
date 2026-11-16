@@ -6,6 +6,7 @@ import {
   ScannerNotConnected,
 } from "@/components/pairing-screens";
 import { env } from "@/env";
+import { forgetOfflineData, unsentCount } from "@/lib/offline-store";
 import { readPairingFragment } from "@/lib/pairing";
 import {
   browserStorage,
@@ -13,6 +14,7 @@ import {
   loadPairingSecret,
   savePairingSecret,
 } from "@/lib/pairing-store";
+import { reportError } from "@/lib/report-error";
 import type { Connection, PairingProblem } from "@/lib/scan-api";
 
 type Phase =
@@ -93,10 +95,35 @@ export function GateApp() {
     setPhase({ kind: "problem", problem });
   }, []);
 
+  // Every way out of a pairing also deletes what was saved for offline
+  // checking: the ticket list and any admissions that were never sent.
   const unpair = useCallback(() => {
     clearPairingSecret(browserStorage());
     setPhase({ kind: "unpaired", badLink: false });
+    forgetOfflineData().catch((error: unknown) =>
+      reportError(error, "offline-storage")
+    );
   }, []);
+
+  // A refused pairing cannot send what it admitted offline; say how many.
+  const [unsent, setUnsent] = useState(0);
+  const showingProblem = phase.kind === "problem";
+  useEffect(() => {
+    if (!showingProblem) {
+      return;
+    }
+    let active = true;
+    unsentCount()
+      .then((count) => {
+        if (active) {
+          setUnsent(count);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [showingProblem]);
 
   const secret = phase.kind === "paired" ? phase.secret : null;
   const connection = useMemo<Connection | null>(
@@ -115,7 +142,13 @@ export function GateApp() {
     return <PairingWelcome badLink={phase.badLink} />;
   }
   if (phase.kind === "problem") {
-    return <PairingProblemScreen onUnpair={unpair} problem={phase.problem} />;
+    return (
+      <PairingProblemScreen
+        onUnpair={unpair}
+        problem={phase.problem}
+        unsent={unsent}
+      />
+    );
   }
   if (!connection) {
     return null;

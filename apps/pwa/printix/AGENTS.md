@@ -95,21 +95,44 @@ are placeholders until the client supplies artwork.
   still waiting).
 - **Checking with no signal:** a live check that fails for lack of signal, or
   takes over 5 seconds (`LIVE_CHECK_TIMEOUT_MS`), is checked against the saved
-  list (`src/lib/offline-check.ts`). The phone hashes the cleaned value with
+  list (`src/lib/offline-check.ts`). After such a failure, scans skip the live
+  check for 20 seconds (or until the live count reaches the server again), so
+  guests do not each wait out a timeout. The phone hashes the cleaned value with
   Web Crypto exactly as the server does (`src/lib/offline-hash.ts`). A valid
   ticket is admitted in green and queued with a random `client_ref`, the
-  scanned value and the phone's time; void, already admitted (here or
-  elsewhere), not on the list and event closed are refused. Typed numbers are
+  scanned value and the phone's time, in one database step that re-checks the
+  ticket is still valid; void, already admitted (here or elsewhere), not on
+  the list, and event closed (by the organiser, or at or after `closes_at`)
+  are refused. Every live yes ("admitted" or "already admitted") also marks
+  the ticket on the saved list, so a copy scanned moments later with no
+  signal is refused. A fresh list never un-marks a ticket this phone saw
+  admitted after the server made that list. Typed numbers are
   never checked offline. With no saved list, or for an event the server
   refuses (409 `offline_not_available`), the plain no-signal answer stands.
 - **Sending:** queued admissions go to the server oldest first, up to 100 at
-  a time, every 15 seconds while online and at once on reconnect. The first
+  a time, every 15 seconds while online and on reconnect, never closer than 6
+  seconds (the server allows 12 a minute), and never before a wait the server
+  asked for. List downloads and sends run one at a time. Scan times are kept
+  inside what the server accepts (a wrong phone clock is sent as "now"). If
+  the server refuses a whole batch, the phone sends one at a time; an entry
+  refused on its own becomes a conflict, so it cannot block the queue. The first
   admission the server records wins; every other answer is kept as a
   conflict and listed in words ("Ticket 123: also admitted at North at
   20:14"). Deferred admissions stay queued until `retry_after_seconds`.
 - **On screen** (`src/components/offline-status.tsx`): an Online/Offline
   badge with the number waiting to send, the saved list's download time, the
-  "not available for this event" notice, and the conflicts list.
+  "not available for this event" notice, and the conflicts list (cleared with
+  "Supervisor told: clear the list"). A live timeout whose request did reach
+  the server shows as an "also admitted" conflict for the same ticket: the
+  hint under the list says to compare the times.
+- **Unsent admissions are never hidden:** the unpair confirm and the
+  pairing-problem screen say how many would be lost, every unpair path
+  deletes the saved data, and admissions left by an earlier pairing (removed
+  when a new pairing loads) are shown as "never sent".
+- **iPhone:** Safari deletes a site's stored data and cached app after about
+  7 days without use, unless the app was added to the Home Screen. Gate
+  phones must be installed to the Home Screen and opened online once in the
+  week before an event, so the list and app are fresh.
 - Tests use `fake-indexeddb`. The whole flow was tried in headless Chromium:
   paired, list downloaded, network cut, reload: the app opened from the
   phone, still paired, showing Offline and the list's age.

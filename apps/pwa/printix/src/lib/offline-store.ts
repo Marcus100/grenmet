@@ -20,6 +20,8 @@ export interface StoredTicket {
 }
 
 export interface ListMeta {
+  /** The scheduled close; no one is admitted offline at or after it. */
+  readonly closesAt: string;
   readonly eventId: string;
   readonly eventName: string;
   /** "open" or "closed", as the server said when the list was made. */
@@ -65,22 +67,49 @@ export interface OfflineSnapshot {
   readonly pending: number;
 }
 
+export interface LoadResult {
+  /**
+   * Admissions queued under another pairing that were removed unsent: the
+   * server will not take them with this pairing. Shown to staff, never hidden.
+   */
+  readonly lost: number;
+  readonly snapshot: OfflineSnapshot;
+}
+
 export interface OfflineStore {
-  /** Records an offline admission: the ticket is marked and the entry queued. */
-  admit: (entry: QueuedAdmission) => Promise<void>;
+  /**
+   * Records an offline admission: the ticket is marked and the entry queued,
+   * in one step. False, and nothing written, when the ticket is no longer
+   * valid (another read admitted it first).
+   */
+  admit: (entry: QueuedAdmission) => Promise<boolean>;
   /** Forgets everything, for example when the phone is unpaired. */
   clear: () => Promise<void>;
+  /** Forgets the conflicts once staff have read them. */
+  clearConflicts: () => Promise<OfflineSnapshot>;
+  /** Closes the database connection. */
+  close: () => void;
   find: (hash: string) => Promise<StoredTicket | undefined>;
   /**
    * What is saved for this pairing. Data saved for another pairing is removed
    * first: it must never be checked against or sent with this one.
    */
-  load: (pairingTag: string) => Promise<OfflineSnapshot>;
+  load: (pairingTag: string) => Promise<LoadResult>;
+  /**
+   * Marks a ticket the server just admitted live, so a copy scanned later with
+   * no signal is refused even before the next list arrives.
+   */
+  markAdmitted: (
+    hash: string,
+    admittedAt: string,
+    admittedGate: string | null
+  ) => Promise<void>;
   /** The oldest queued admissions, at most `limit`. */
   pending: (limit: number) => Promise<QueuedAdmission[]>;
   /**
-   * Replaces the ticket list with a fresh download. Tickets admitted here and
-   * still queued stay admitted: the server does not know about them yet.
+   * Replaces the ticket list with a fresh download. Tickets still queued stay
+   * admitted (the server does not know them yet), and so do tickets this phone
+   * saw admitted after the server made the list.
    */
   replaceList: (
     meta: ListMeta,
@@ -92,6 +121,7 @@ export interface OfflineStore {
 }
 
 const META_KEY = "list";
+const DATABASE_NAME = "printix-offline";
 
 interface MetaRow extends ListMeta {
   readonly key: string;
@@ -118,8 +148,30 @@ function withoutKey({ key: _key, ...meta }: MetaRow): ListMeta {
   return meta;
 }
 
+/** A time in milliseconds, or null for a missing or unreadable one. */
+function timeOf(iso: string | null): number | null {
+  if (!iso) {
+    return null;
+  }
+  const time = Date.parse(iso);
+  return Number.isNaN(time) ? null : time;
+}
+
+/** True when this phone knows of an admission the server's list is older than. */
+function admittedSinceList(
+  local: StoredTicket | undefined,
+  generatedAt: string
+): local is StoredTicket {
+  if (local?.state !== "admitted") {
+    return false;
+  }
+  const admitted = timeOf(local.admittedAt);
+  const generated = timeOf(generatedAt);
+  return admitted !== null && generated !== null && admitted >= generated;
+}
+
 /** The store on the phone's database. `name` is only changed by tests. */
-export function createOfflineStore(name = "printix-offline"): OfflineStore {
+export function createOfflineStore(name = DATABASE_NAME): OfflineStore {
   const db = new OfflineDatabase(name);
 
   const snapshot = async (): Promise<OfflineSnapshot> => {
@@ -144,30 +196,49 @@ export function createOfflineStore(name = "printix-offline"): OfflineStore {
   return {
     snapshot,
     clear,
+    close: () => db.close(),
 
     async load(tag) {
       const meta = await db.meta.get(META_KEY);
       const queued = await db.queue.toArray();
-      const foreign =
-        (meta && meta.pairingTag !== tag) ||
-        queued.some((entry) => entry.pairingTag !== tag);
-      if (foreign) {
+      const foreign = queued.filter((entry) => entry.pairingTag !== tag);
+      if ((meta && meta.pairingTag !== tag) || foreign.length > 0) {
         await clear();
       }
-      return snapshot();
+      return { lost: foreign.length, snapshot: await snapshot() };
     },
 
     find: (hash) => db.tickets.get(hash),
 
-    async admit(entry) {
-      await db.transaction("rw", [db.tickets, db.queue], async () => {
-        await db.tickets.update(entry.hash, {
+    admit: (entry) =>
+      db.transaction("rw", [db.tickets, db.queue], async () => {
+        const ticket = await db.tickets.get(entry.hash);
+        if (ticket?.state !== "valid") {
+          return false;
+        }
+        await db.tickets.put({
+          ...ticket,
           state: "admitted",
           admittedAt: entry.scannedAt,
           admittedGate: null,
           admittedHere: true,
         });
         await db.queue.put(entry);
+        return true;
+      }),
+
+    async markAdmitted(hash, admittedAt, admittedGate) {
+      await db.transaction("rw", [db.tickets], async () => {
+        const ticket = await db.tickets.get(hash);
+        if (ticket && ticket.state !== "admitted") {
+          await db.tickets.put({
+            ...ticket,
+            state: "admitted",
+            admittedAt,
+            admittedGate,
+            admittedHere: false,
+          });
+        }
       });
     },
 
@@ -178,17 +249,28 @@ export function createOfflineStore(name = "printix-offline"): OfflineStore {
         const queued = new Map(
           (await db.queue.toArray()).map((entry) => [entry.hash, entry])
         );
+        const existing = new Map(
+          (await db.tickets.toArray()).map((ticket) => [ticket.hash, ticket])
+        );
         const merged = tickets.map((ticket): StoredTicket => {
-          const local = queued.get(ticket.hash);
-          return local
-            ? {
-                ...ticket,
-                state: "admitted",
-                admittedAt: local.scannedAt,
-                admittedGate: null,
-                admittedHere: true,
-              }
-            : ticket;
+          const waiting = queued.get(ticket.hash);
+          if (waiting) {
+            return {
+              ...ticket,
+              state: "admitted",
+              admittedAt: waiting.scannedAt,
+              admittedGate: null,
+              admittedHere: true,
+            };
+          }
+          const local = existing.get(ticket.hash);
+          if (
+            ticket.state !== "admitted" &&
+            admittedSinceList(local, meta.generatedAt)
+          ) {
+            return { ...ticket, ...local, printedNumber: ticket.printedNumber };
+          }
+          return ticket;
         });
         await db.tickets.clear();
         await db.tickets.bulkPut(merged);
@@ -209,5 +291,33 @@ export function createOfflineStore(name = "printix-offline"): OfflineStore {
       });
       return snapshot();
     },
+
+    async clearConflicts() {
+      await db.conflicts.clear();
+      return snapshot();
+    },
   };
+}
+
+/**
+ * Deletes everything saved for offline checking, from a screen that has no
+ * open offline store (the pairing-problem screen).
+ */
+export async function forgetOfflineData(name = DATABASE_NAME): Promise<void> {
+  const store = createOfflineStore(name);
+  try {
+    await store.clear();
+  } finally {
+    store.close();
+  }
+}
+
+/** How many admissions made with no signal have not been sent. */
+export async function unsentCount(name = DATABASE_NAME): Promise<number> {
+  const store = createOfflineStore(name);
+  try {
+    return (await store.snapshot()).pending;
+  } finally {
+    store.close();
+  }
 }

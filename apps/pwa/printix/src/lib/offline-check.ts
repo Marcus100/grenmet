@@ -1,5 +1,6 @@
 import { printixScanOutcome } from "@barrelsgd/api-client";
 import type { ListMeta, StoredTicket } from "@/lib/offline-store";
+import { REFUSED_OUTCOME } from "@/lib/offline-sync";
 import {
   ADMITTED_DISMISS_MS,
   formatTime,
@@ -50,15 +51,25 @@ function alreadyHere(ticket: StoredTicket): Verdict {
   };
 }
 
+/** Closed by the organiser, or past its scheduled close (as the server rules). */
+function eventClosed(meta: ListMeta, now: Date): boolean {
+  const closes = Date.parse(meta.closesAt);
+  return (
+    meta.eventStatus === "closed" ||
+    (!Number.isNaN(closes) && now.getTime() >= closes)
+  );
+}
+
 export function decideOffline(
   ticket: StoredTicket | undefined,
   meta: ListMeta,
-  source: Source
+  source: Source,
+  now: Date = new Date()
 ): OfflineDecision {
   if (source === "typed") {
     return refuse(TYPED_OFFLINE_VERDICT);
   }
-  if (meta.eventStatus === "closed") {
+  if (eventClosed(meta, now)) {
     return refuse(
       verdictFor(
         {
@@ -150,6 +161,8 @@ export function conflictText(conflict: {
       return `${ticket}: scanned after the event closed.`;
     case printixScanOutcome.unknown:
       return `${ticket}: not recognised by the server.`;
+    case REFUSED_OUTCOME:
+      return `${ticket}: the server would not take this admission.`;
     default:
       return `${ticket}: not recorded by the server.`;
   }

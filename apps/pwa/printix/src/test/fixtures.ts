@@ -32,7 +32,8 @@ export const HASH_KEY = "5b0d3f1e8c2a4d6b9e7f1a3c5e7d9b2f";
 /**
  * An offline list. The hashes are the real HMAC of these barcodes with
  * HASH_KEY, so the phone's own hashing finds them:
- * valid "PX-0000000101", void "PX-0000000102", admitted "PX-0000000103".
+ * valid "PX-0000000101" and "PX-0000000104", void "PX-0000000102",
+ * admitted "PX-0000000103".
  */
 export const OFFLINE_LIST: PrintixOfflineList = {
   event: SUMMARY.event,
@@ -55,6 +56,11 @@ export const OFFLINE_LIST: PrintixOfflineList = {
       state: "admitted",
       admitted_at: "2026-12-26T19:14:00Z",
       admitted_gate: "North gate",
+    },
+    {
+      barcode_hash: "5f5b5596c042a142e5bfde157d07ebe6",
+      printed_number: "104",
+      state: "valid",
     },
   ],
 };

@@ -37,6 +37,9 @@ const CAMERA_TEXT = {
   video: "Camera view for reading the ticket barcode",
 } as const;
 
+/** How long scans skip the live check after one got no answer. */
+const LIVE_BACKOFF_MS = 20 * 1000;
+
 interface GateConsoleProps {
   readonly connection: Connection;
   readonly onPairingProblem: (problem: PairingProblem) => void;
@@ -71,6 +74,16 @@ export function GateConsole({
   useEffect(() => {
     offlineRef.current = offline;
   });
+  // After a live check gets no answer, the next scans go straight to the saved
+  // list for a while, so each guest does not wait out another timeout. The
+  // live count's background polling ends the pause once it reaches the server.
+  const liveBackoffUntil = useRef(0);
+  useEffect(() => {
+    if (link === "ok") {
+      liveBackoffUntil.current = 0;
+      offlineRef.current.markOnline(true);
+    }
+  }, [link]);
   // Refs, not state, so a read that arrives between two renders is not missed.
   const pending = useRef(false);
   const held = useRef(false);
@@ -115,14 +128,22 @@ export function GateConsole({
       }
       pending.current = true;
       setChecking(true);
-      // A phone that knows it has no signal skips the wait for a timeout.
-      const knownOffline =
-        typeof navigator !== "undefined" && navigator.onLine === false;
-      const answer: ScanAnswer = knownOffline
+      const view = offlineRef.current;
+      // A phone that knows it has no signal, or just timed out with a saved
+      // list to fall back on, skips the wait for another timeout.
+      const skipLive =
+        (typeof navigator !== "undefined" && navigator.onLine === false) ||
+        (view.mode === "ready" && Date.now() < liveBackoffUntil.current);
+      const answer: ScanAnswer = skipLive
         ? { kind: "no-signal" }
         : await submitScan(connection, value);
-      const view = offlineRef.current;
+      if (!skipLive && answer.kind === "no-signal") {
+        liveBackoffUntil.current = Date.now() + LIVE_BACKOFF_MS;
+      }
       view.markOnline(answer.kind !== "no-signal");
+      if (answer.kind === "checked") {
+        view.recordLive(value, answer.result);
+      }
       // With no signal, the saved ticket list decides (null: no usable list).
       const local =
         answer.kind === "no-signal"
@@ -193,7 +214,9 @@ export function GateConsole({
         <OfflineStatus
           conflicts={offline.conflicts}
           fetchedAt={offline.fetchedAt}
+          lost={offline.lost}
           mode={offline.mode}
+          onClearConflicts={offline.clearConflicts}
           online={offline.online}
           pending={offline.pending}
         />
