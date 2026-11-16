@@ -31,6 +31,12 @@ export const metadata: Metadata = {
   },
   description:
     "Every event in Grenada, Carriacou and Petite Martinique — fetes, meetups, food, sport and culture — plus the groups and people behind them.",
+  openGraph: {
+    siteName: "Barrels Events",
+    locale: "en_GB",
+    type: "website",
+  },
+  twitter: { card: "summary" },
 };
 
 export default function RootLayout({

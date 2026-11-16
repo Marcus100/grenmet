@@ -37,6 +37,18 @@ class BookingStatus(str, Enum):
     COMPLETED = "completed"
 
 
+class BookingPaymentMode(str, Enum):
+    """What an online booking pays when it is made (owner decision 15 Nov 2026).
+
+    ``deposit``: each service's own deposit (0 = nothing), the behaviour before
+    this setting existed. ``full_price``: the service price, but only while the
+    card rail (Stripe, test mode) is available; otherwise it acts as ``deposit``.
+    """
+
+    DEPOSIT = "deposit"
+    FULL_PRICE = "full_price"
+
+
 class BookingSource(str, Enum):
     ONLINE = "online"
     STUDIO = "studio"
@@ -66,6 +78,10 @@ class BookingProfile(Base):
         sa.CheckConstraint("lead_time_min >= 0", name="lead_time"),
         sa.CheckConstraint("horizon_days BETWEEN 1 AND 365", name="horizon"),
         sa.CheckConstraint("cancel_cutoff_hours >= 0", name="cancel_cutoff"),
+        sa.CheckConstraint(
+            f"payment_at_booking IN ({_values(BookingPaymentMode)})",
+            name="payment_at_booking",
+        ),
         SCHEMA,
     )
 
@@ -94,6 +110,12 @@ class BookingProfile(Base):
     contact_whatsapp: Mapped[str | None] = mapped_column(String(15))
     contact_instagram: Mapped[str | None] = mapped_column(String(30))
     contact_email: Mapped[str | None] = mapped_column(String(254))
+    #: ``BookingPaymentMode``: what an online booking pays when it is made.
+    payment_at_booking: Mapped[str] = mapped_column(
+        String(20),
+        default=BookingPaymentMode.DEPOSIT.value,
+        server_default=BookingPaymentMode.DEPOSIT.value,
+    )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

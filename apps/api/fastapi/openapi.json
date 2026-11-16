@@ -74238,6 +74238,72 @@
         "title": "BookingOrder",
         "description": "Ids of one kind in the order the business wants them listed."
       },
+      "BookingPaymentMode": {
+        "type": "string",
+        "enum": [
+          "deposit",
+          "full_price"
+        ],
+        "title": "BookingPaymentMode",
+        "description": "What an online booking pays when it is made (owner decision 15 Nov 2026).\n\n``deposit``: each service's own deposit (0 = nothing), the behaviour before\nthis setting existed. ``full_price``: the service price, but only while the\ncard rail (Stripe, test mode) is available; otherwise it acts as ``deposit``."
+      },
+      "BookingPaymentStatus": {
+        "type": "string",
+        "enum": [
+          "due",
+          "paid",
+          "refunded",
+          "unpaid"
+        ],
+        "title": "BookingPaymentStatus"
+      },
+      "BookingPaymentSummary": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/BookingPaymentStatus",
+            "description": "`due`: the slot is held until the payment arrives. `paid`: received (`refunded_minor` may show a partial refund). `refunded`: handed back in full. `unpaid`: the booking closed without a payment."
+          },
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor",
+            "description": "What was due at booking."
+          },
+          "paid_minor": {
+            "type": "integer",
+            "title": "Paid Minor"
+          },
+          "refunded_minor": {
+            "type": "integer",
+            "title": "Refunded Minor"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "checkout_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkout Url",
+            "description": "Hosted page to finish paying, only while `status` is `due` and the payment is online."
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "amount_minor",
+          "paid_minor",
+          "refunded_minor",
+          "currency"
+        ],
+        "title": "BookingPaymentSummary",
+        "description": "What the customer paid when booking, as they see it."
+      },
       "BookingProfilePublic": {
         "properties": {
           "public_slug": {
@@ -74379,6 +74445,11 @@
             ],
             "title": "Contact Email",
             "description": "Email address customers can write to; blank clears it."
+          },
+          "payment_at_booking": {
+            "$ref": "#/components/schemas/BookingPaymentMode",
+            "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
+            "default": "deposit"
           },
           "id": {
             "type": "string",
@@ -74552,6 +74623,11 @@
             ],
             "title": "Contact Email",
             "description": "Email address customers can write to; blank clears it."
+          },
+          "payment_at_booking": {
+            "$ref": "#/components/schemas/BookingPaymentMode",
+            "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
+            "default": "deposit"
           }
         },
         "type": "object",
@@ -74994,6 +75070,17 @@
           "contact": {
             "$ref": "#/components/schemas/BookingBusinessContact",
             "description": "How to reach the business when the booking cannot be changed online."
+          },
+          "payment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingPaymentSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null when nothing was due at booking (pay at the business)."
           }
         },
         "type": "object",
@@ -75071,7 +75158,7 @@
           "payment_required": {
             "type": "boolean",
             "title": "Payment Required",
-            "description": "True when the booking holds the slot but waits for a deposit (`status` is `pending_payment`). It is cancelled and the slot released if the deposit is not paid in time.",
+            "description": "True when the booking holds the slot but waits for a payment (a deposit or the full price; `status` is `pending_payment`). It is cancelled and the slot released if it is not paid in time.",
             "default": false
           },
           "checkout_url": {
@@ -75084,7 +75171,7 @@
               }
             ],
             "title": "Checkout Url",
-            "description": "Hosted page where the customer pays the deposit. Null when no online payment is available and the business records the payment itself."
+            "description": "Hosted page where the customer pays. Null when no online payment is available and the business records the payment itself."
           }
         },
         "type": "object",
@@ -75155,6 +75242,12 @@
           "deposit_minor": {
             "type": "integer",
             "title": "Deposit Minor"
+          },
+          "due_at_booking_minor": {
+            "type": "integer",
+            "title": "Due At Booking Minor",
+            "description": "What an online booking of this service pays when it is made: the deposit, the full price (business setting, card payments on), or 0. More than 0 means the emailed-code step comes first.",
+            "default": 0
           }
         },
         "type": "object",
@@ -75496,6 +75589,12 @@
             "type": "boolean",
             "title": "Deposits Available",
             "description": "False when the organisation lacks the `payments` entitlement: a service deposit is stored but not collected."
+          },
+          "card_payments_available": {
+            "type": "boolean",
+            "title": "Card Payments Available",
+            "description": "True when the platform takes card payments online (Stripe, test mode only). Without it `payment_at_booking: full_price` acts as `deposit`.",
+            "default": false
           }
         },
         "type": "object",
@@ -89725,7 +89824,15 @@
             "title": "Summary"
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
@@ -89942,7 +90049,15 @@
             "title": "Summary"
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
@@ -90172,7 +90287,15 @@
             "default": ""
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
@@ -90333,7 +90456,6 @@
         "required": [
           "title",
           "summary",
-          "category",
           "parish",
           "venue",
           "starts_at",
@@ -90490,7 +90612,15 @@
             "title": "Summary"
           },
           "category": {
-            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
           },
           "parish": {
             "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"

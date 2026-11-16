@@ -20,5 +20,12 @@ export const bookingSettingsSchema = z
       .describe(
         "False when the organisation lacks the `payments` entitlement: a service deposit is stored but not collected."
       ),
+    card_payments_available: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "True when the platform takes card payments online (Stripe, test mode only). Without it `payment_at_booking: full_price` acts as `deposit`."
+      ),
   })
   .describe("Everything the settings screen renders, in one call.");

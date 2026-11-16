@@ -2,7 +2,12 @@ import Link from "next/link";
 import { EmptyState, PageIntro } from "@/components/editorial";
 import { getBriefs } from "@/lib/content";
 import { formatLongDate } from "@/lib/format";
-export const metadata = { title: "Daily Signal" };
+export const metadata = {
+  title: "Daily Signal",
+  description:
+    "The Daily Signal: a concise Grenada briefing to start the day with the essentials.",
+  alternates: { canonical: "/briefs" },
+};
 export default function BriefsPage() {
   const briefs = getBriefs();
   return (

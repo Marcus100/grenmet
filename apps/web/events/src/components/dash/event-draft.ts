@@ -23,7 +23,8 @@ export interface TierDraft {
 export interface EventDraft {
   readonly admission: Admission;
   readonly capacity: number;
-  readonly category: EventCategory;
+  /** Null leaves the listing uncategorised; saving sends an explicit null. */
+  readonly category: EventCategory | null;
   readonly date: string;
   readonly description: string;
   readonly endTime: string;

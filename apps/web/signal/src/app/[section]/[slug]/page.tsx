@@ -1,3 +1,4 @@
+import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7,7 +8,12 @@ import { ArchiveInvitation, DemoNote } from "@/components/editorial";
 import { Eyebrow } from "@/components/eyebrow";
 import { MdxContent } from "@/components/mdx-content";
 import { StoryImage } from "@/components/story-image";
+import {
+  articleBreadcrumbJsonLd,
+  newsArticleJsonLd,
+} from "@/lib/article-jsonld";
 import { getArticle, getPublishedArticles } from "@/lib/content";
+import { env } from "@/lib/env";
 import { getSection } from "@/lib/nav";
 
 interface Props {
@@ -27,7 +33,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { section, slug } = await params;
   const article = getArticle(section, slug);
   if (!article) return {};
-  return { title: article.title, description: article.dek };
+  const path = `/${section}/${slug}`;
+  return {
+    title: article.title,
+    description: article.dek,
+    alternates: { canonical: path },
+    openGraph: {
+      title: article.title,
+      description: article.dek,
+      url: path,
+      type: "article",
+      publishedTime: article.publishedAt,
+      authors: [article.author],
+    },
+  };
 }
 
 export default async function ArticlePage({ params }: Props) {
@@ -37,9 +56,12 @@ export default async function ArticlePage({ params }: Props) {
 
   const meta = getSection(section);
   const sectionLabel = meta?.label ?? section;
+  const siteUrl = env.NEXT_PUBLIC_SITE_URL;
 
   return (
     <>
+      <JsonLd data={newsArticleJsonLd(siteUrl, article)} />
+      <JsonLd data={articleBreadcrumbJsonLd(siteUrl, article)} />
       <article className="mx-auto w-full max-w-2xl px-4 py-8">
         <Link
           className="text-signal-muted hover:text-signal-green inline-flex items-center gap-1.5 text-sm tracking-wider uppercase"

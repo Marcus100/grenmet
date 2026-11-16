@@ -19,7 +19,7 @@ from src.organisations import service as organisation_service
 from src.organisations.api_key_auth import OrgAccess, org_or_key
 from src.organisations.models import MembershipRole
 
-from . import service
+from . import deposit_payments, service
 from .exceptions import BookingNotFoundError
 from .models import BookingProfile, Provider, Service, WorkingHours
 from .schemas import (
@@ -73,6 +73,7 @@ async def load_settings(session: AsyncSession, organisation_id: str) -> dict[str
         "deposits_available": await organisation_service.is_app_enabled(
             session, organisation_id=organisation_id, app_key="payments"
         ),
+        "card_payments_available": deposit_payments.stripe_available(),
     }
 
 

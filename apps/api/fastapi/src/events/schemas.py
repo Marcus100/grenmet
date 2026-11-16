@@ -71,7 +71,8 @@ class ListingCard(BaseModel):
     slug: str
     title: str
     summary: str
-    category: Category
+    #: Null when the organiser left the listing uncategorised (#810).
+    category: Category | None
     parish: Parish
     venue: str
     starts_at: UtcDateTime
@@ -313,7 +314,10 @@ class ListingUpsert(BaseModel):
     title: str = Field(min_length=3, max_length=160)
     summary: str = Field(min_length=10, max_length=160)
     description: str = Field(default="", max_length=8000)
-    category: Category
+    #: Omit to keep the current category (none on create); send null to clear
+    #: it, leaving the listing uncategorised (no catalogue category either,
+    #: unless `category_slug` is sent too).
+    category: Category | None = None
     parish: Parish
     venue: str = Field(min_length=2, max_length=160)
     starts_at: UtcDateTime

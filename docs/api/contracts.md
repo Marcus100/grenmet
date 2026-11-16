@@ -284,6 +284,23 @@ environment endpoints and provider setup. Changes to this hidden callback's
 implementation do not alter generated client types; changing its registration,
 signature or schema exposure still invokes the contract companion gate.
 
+## Events: uncategorised listings (added 15 Nov 2026, #810)
+
+An organiser may clear a listing's category. On `POST /events/manage/listings`
+and `PUT /events/manage/listings/{listing_id}`, `category` is now optional:
+left out, it keeps the current value (none on create); an explicit `null`
+clears it and, unless `category_slug` or `subcategory_slug` is sent too, the
+catalogue category as well. Real values are still checked (422).
+
+Breaking for readers: `category` on `ListingCard`, `ListingDetail` and
+`ManagedListing` (in `GET /events/listings`, `GET /events/listings/{slug}`,
+`GET /events/groups/{slug}` upcoming, `GET /events/me/plans` and
+`GET /events/manage`) can now be `null`. The only consumer, `apps/web/events`,
+is updated in the same change and shows "Uncategorised". Uncategorised
+listings appear in unfiltered discovery and search, never match the
+`category` or `category_slug` filters and are not counted in
+`GET /events/public/categories`.
+
 ## Public flight board
 
 `GET /api/v1/flights/board?airport=TGPY&board=arrivals|departures`
@@ -1240,15 +1257,15 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
 | `GET /api/v1/bookings/me/bookings?upcoming&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`. No manage token, notes or other customers' details |
 | `GET /api/v1/bookings/me/businesses/{slug}/choices` | Account token or the bookings app session (other apps 401); no organisation header; 60 a minute (429); unknown or switched-off slug 404 | Prefill for the signed-in person's next booking with one business, from their own linked bookings only (the My bookings rule, ADR-0058): `phone` (the number the business holds for them, else the account's, else null) and `recent` (up to three distinct services, latest first, each with `service_id`, the `provider_id` used last and `last_booked_at`, which is that booking's start time; only pending, confirmed and completed bookings count, so cancelled (declined and expired included), no-show and unpaid-deposit ones are left out). Nothing about other customers |
-| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`), optional customer contact options `contact_phone` (stored E.164), `contact_whatsapp` (stored as digits), `contact_instagram` (stored as the handle; an instagram.com profile address is reduced to it), `contact_email` (blank clears; a malformed value is 422); slug taken by another organisation 409, a platform reserved name 422 |
+| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`), optional customer contact options `contact_phone` (stored E.164), `contact_whatsapp` (stored as digits), `contact_instagram` (stored as the handle; an instagram.com profile address is reduced to it), `contact_email` (blank clears; a malformed value is 422), and `payment_at_booking` (`deposit`, the default: each service's own deposit; or `full_price`: the service price by card, only while the platform has a Stripe test key and the organisation holds `payments`, otherwise it acts as `deposit`; left out, the stored value is kept); slug taken by another organisation 409, a platform reserved name 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
 | `GET/PUT /api/v1/bookings/org/providers/{id}/hours` | Same | Replace the weekly plan; overlapping periods on one day 422 |
-| `GET /api/v1/bookings/org/settings` | Member or API key `bookings.read` | Settings screen in one call: profile (null before it exists, with the contact options), services, providers with `service_ids` and `working_hours`, and `deposits_available` (false without the `payments` entitlement, where deposits are stored but not collected) |
+| `GET /api/v1/bookings/org/settings` | Member or API key `bookings.read` | Settings screen in one call: profile (null before it exists, with the contact options), services, providers with `service_ids` and `working_hours`, `deposits_available` (false without the `payments` entitlement, where deposits are stored but not collected) and `card_payments_available` (Stripe test-mode card payments are on for the platform) |
 | `PUT /api/v1/bookings/org/services/order`, `PUT /providers/order` | Admin member or API key `bookings.write` | Body `{ids}`: each `sort_order` becomes its position; a foreign or unknown id 404, duplicates or an empty list 422 |
 | `GET/POST /api/v1/bookings/org/providers/{id}/exceptions`, `DELETE /studio/exceptions/{id}` | Same | Dated `time_off` and `extra_hours` |
 | `GET /api/v1/bookings/org/bookings?starts_from&ends_before` | `X-Barrels-Organisation`, any member | Agenda of bookings overlapping the range |
-| `GET /api/v1/bookings/public/{slug}` | None (60/minute) | Storefront: active services and providers, and `contact` (`BookingBusinessContact`: `phone`, `whatsapp`, `instagram`, `email`, each null when unset); unknown or disabled 404. The manage detail (`/bookings/public/bookings/{token}`) and the create receipt's `booking` carry the same `contact` for the booking's own business |
+| `GET /api/v1/bookings/public/{slug}` | None (60/minute) | Storefront: active services (each with `due_at_booking_minor`: the deposit, the full price, or 0; above 0 the emailed-code step comes first) and providers, and `contact` (`BookingBusinessContact`: `phone`, `whatsapp`, `instagram`, `email`, each null when unset); unknown or disabled 404. The manage detail (`/bookings/public/bookings/{token}`) and the create receipt's `booking` carry the same `contact` for the booking's own business, plus `payment` (`BookingPaymentSummary`, null when nothing was due at booking: `status` `due`/`paid`/`refunded`/`unpaid`, `amount_minor`, `paid_minor`, `refunded_minor`, `currency`, and `checkout_url` only while an online payment is due). Stripe Checkout returns the customer to `<BOOKINGS_APP_URL>/checkout/return?booking=<id>&result=paid\|cancelled` |
 | `GET /api/v1/bookings/public/{slug}/availability?service_id&first_day&last_day[&provider_id]` | None (60/minute) | Open slots (UTC) with free provider ids; at most 14 local days |
 
 | `GET /api/v1/bookings/org/agenda?from_date&to_date[&provider_id&status&limit&offset]` | Member or API key `bookings.read` | Bookings grouped by local day; at most 62 days (422), paged with `limit` and `offset` |
@@ -1759,6 +1776,12 @@ these anonymous endpoints:
 | `GET /api/cap/rss.xml` | Active Actual alerts plus Actual Cancel messages published within 24 hours; exercises are excluded |
 | `GET /api/cap/{identifier}.xml` | Latest CAP XML snapshot for an identifier |
 
+Every successful answer above except `warnings` and the attachment redirect (both
+`no-store`) sends `Cache-Control: public, max-age=0, s-maxage=60, stale-if-error=86400`,
+so Cloudflare may keep it for a minute and serve the last good copy while the origin
+fails (owner decision 2026-11-15, `docs/operations/cloudflare-storm-cache.md`). Errors
+carry no cacheable header.
+
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
 `POST /alerts/{id}/publish` accepts only an `APPROVED` alert with a recorded approval, which the author may give (409 otherwise; owner decision 2026-10-23, ADR-0023 amendment). `POST /alerts/{id}/reviews` (`{"outcome": "reviewed" | "changes_requested", "note": "..."}`, permission `cap.alert.approve`) records an optional colleague review by someone other than the author (403 for the author, 409 unless the alert is Submitted or Approved); it never changes the alert's state. Asking for a review is the submit step; `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). A failed duty-supervisor notice about a schema mismatch is logged and never stops the send, publish or cancel. Editing a Submitted or Approved alert returns it to `DRAFT`.
 
@@ -2076,7 +2099,7 @@ approval state at submission, while later decisions live in the workflow.
 
 `GET /api/v1/wxwatch/metadata?day=YYYY-MM-DD` accepts the existing bearer token or session cookie and returns `{groups: [{productKey, name, synopticImages}]}`. Each group contains all eight UTC three-hour slots, with null for missing images. Selection floors observations into their three-hour bucket; GOES-19 uses the closest observation to the bucket start, other sources use the latest fetch. Date bounds are inclusive midnight to exclusive next midnight. Responses are private/no-store; missing database configuration returns 503. Raw collector metadata is not exposed.
 
-`GET /api/v1/wxwatch/public/latest?product=` (added 18 Oct 2026) is anonymous and returns `{images: [...]}`: the newest ingested GOES-19 image per product (optional `product` filter), each with `id`, `product`, `title`, `observed_at`, `image_url`, `media_type`, size, `source` and the NOAA/NESDIS public-domain attribution. Only `goes19` rows are exposed; no storage paths. An empty list means nothing has been ingested. `Cache-Control: public, max-age=60, s-maxage=120, stale-while-revalidate=600, stale-if-error=86400`; a missing database is 503. `GET /api/v1/wxwatch/public/images/{image_id}` serves that image from the local archive or as a 60-second signed redirect (404 for unknown or non-GOES ids). The GMS site proxies images at `/api/satellite/{id}`.
+`GET /api/v1/wxwatch/public/latest?product=` (added 18 Oct 2026) is anonymous and returns `{images: [...]}`: the newest ingested GOES-19 image per product (optional `product` filter), each with `id`, `product`, `title`, `observed_at`, `image_url`, `media_type`, size, `source` and the NOAA/NESDIS public-domain attribution. Only `goes19` rows are exposed; no storage paths. An empty list means nothing has been ingested. `Cache-Control: public, max-age=60, s-maxage=60, stale-while-revalidate=60, stale-if-error=86400` (images: `public, max-age=3600, s-maxage=60, stale-if-error=86400`; Cloudflare keeps either for a minute, owner decision 2026-11-15); a missing database is 503. `GET /api/v1/wxwatch/public/images/{image_id}` serves that image from the local archive or as a 60-second signed redirect (404 for unknown or non-GOES ids). The GMS site proxies images at `/api/satellite/{id}`.
 
 `GET /api/v1/wxwatch/ready` is an anonymous availability check returning 204 or 503 without image data. FastAPI uses its own `WXWATCH_DATABASE_URL`. Gaa-admin no longer connects directly to this database. FastAPI owns archive writes and migrations through `src/wxwatch/alembic.ini`. Legacy Drizzle history is verified before adoption. The collector has no SQL writer. Existing three-hour selection is retained for compatibility; product identities are source-qualified and each image reports timestamp provenance. Legacy records are explicitly `legacy_unknown`.
 

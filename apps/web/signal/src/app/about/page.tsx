@@ -1,6 +1,11 @@
 import { PageIntro } from "@/components/editorial";
 import { SubscribeForm } from "@/components/subscribe-form";
-export const metadata = { title: "About Signal" };
+export const metadata = {
+  title: "About Signal",
+  description:
+    "About Grenada Signal: clear, sourced news and explainers from Grenada for curious readers everywhere.",
+  alternates: { canonical: "/about" },
+};
 export default function AboutPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 py-10 sm:px-8">

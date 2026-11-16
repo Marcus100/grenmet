@@ -940,11 +940,79 @@ for (const [name, message, files, expected] of [
   });
 }
 
-test("declared contract: staged mode still requires companions", (t) => {
-  const { repository } = createRepository(t, { [ROUTER]: ROUTER_BEFORE });
+test("declared contract: pre-commit defers the companion rule to the commit message", (t) => {
+  const { repository } = createRepository(t, {
+    [ROUTER]: ROUTER_BEFORE,
+    "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0"}\n',
+  });
   write(repository, ROUTER, ROUTER_AFTER);
   git(repository, "add", ROUTER);
-  assert.equal(check(repository, ["--staged"]).status, 1);
+  const result = check(repository, ["--staged"]);
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /checked again with the commit message/u);
+});
+
+for (const [name, message, files, expected] of [
+  [
+    "the commit message trailer exempts a staged commit",
+    "refactor\n\nAPI-Contract: unchanged\n",
+    {},
+    0,
+  ],
+  [
+    "without the trailer the staged commit still needs companions",
+    "refactor\n",
+    {},
+    1,
+  ],
+  [
+    "the trailer is ignored when openapi.json itself is staged",
+    "refactor\n\nAPI-Contract: unchanged\n",
+    {
+      "apps/api/fastapi/openapi.json":
+        '{"openapi":"3.1.0","paths":{"/api/cap/alerts":{"get":{"operationId":"readAlerts","responses":{"200":{"description":"OK"}}}}}}\n',
+    },
+    1,
+  ],
+]) {
+  test(`declared contract (commit-msg): ${name}`, (t) => {
+    const { repository } = createRepository(t, {
+      [ROUTER]: ROUTER_BEFORE,
+      "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0"}\n',
+    });
+    write(repository, ROUTER, ROUTER_AFTER);
+    for (const [file, contents] of Object.entries(files)) {
+      write(repository, file, contents);
+    }
+    git(repository, "add", "-A");
+    write(repository, ".git/COMMIT_EDITMSG", message);
+    assert.equal(
+      check(repository, ["--staged", "--message-file", ".git/COMMIT_EDITMSG"])
+        .status,
+      expected
+    );
+  });
+}
+
+test("declared contract: a missing contract document is never deferred", (t) => {
+  const { repository } = createRepository(t, {
+    [ROUTER]: ROUTER_BEFORE,
+    "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0"}\n',
+  });
+  write(
+    repository,
+    ROUTER,
+    `${ROUTER_AFTER}@router.get("/new")\nasync def new():\n    return []\n`
+  );
+  write(
+    repository,
+    "apps/api/fastapi/openapi.json",
+    '{"openapi":"3.1.0","paths":{"/api/cap/new":{"get":{"operationId":"newRoute","security":[],"responses":{"200":{"description":"OK"}}}}}}\n'
+  );
+  write(repository, "packages/api-client/src/gen/x.ts", "export {};\n");
+  git(repository, "add", "-A");
+  const result = check(repository, ["--staged"]);
+  assert.equal(result.status, 1);
 });
 
 for (const [name, mutate] of [

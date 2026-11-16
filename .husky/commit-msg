@@ -1,0 +1,1 @@
+node scripts/guardrails/check-blast-radius.mjs --staged --message-file "$1"

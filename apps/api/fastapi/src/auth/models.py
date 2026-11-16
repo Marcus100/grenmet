@@ -221,6 +221,10 @@ class Session(Base):
     mfa_verified_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # When an emailed code opened this session (ADR-0059 rule 2). Naive UTC like
+    # expires_at and revoked_at (src.utils.datetime.utc_now). Set only by the
+    # email-code sign-in paths; password, Google and rotated sessions leave it empty.
+    email_code_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     expires_at: Mapped[datetime]
     client_type: Mapped[str] = mapped_column(String(50), default="web")
     app_name: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)

@@ -28,11 +28,13 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const person = bySlug((await params).slug);
+  const { slug } = await params;
+  const person = bySlug(slug);
   if (!person) return {};
   return {
     title: person.name,
     description: `${person.name}: ${person.races.length} race${person.races.length === 1 ? "" : "s"} for Grenada’s House of Representatives, ${person.first}–${person.last}, ${person.wins} won.`,
+    alternates: { canonical: `/candidates/${slug}` },
   };
 }
 

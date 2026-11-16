@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingPaymentModeSchema } from "./bookingPaymentModeSchema.js";
 
 export const bookingProfilePublicSchema = z.object({
   public_slug: z
@@ -57,6 +58,12 @@ export const bookingProfilePublicSchema = z.object({
     .union([z.email().max(254), z.null()])
     .optional()
     .describe("Email address customers can write to; blank clears it."),
+  payment_at_booking: bookingPaymentModeSchema
+    .optional()
+    .default("deposit")
+    .describe(
+      "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept."
+    ),
   id: z.uuid(),
   organisation_id: z.string(),
   created_at: z.iso.datetime(),

@@ -14,21 +14,38 @@ Rules (ADR-0027, ADR-0024):
   ``PAYMENTS_STRIPE_SECRET_KEY`` is an ``sk_test_`` key. Otherwise, or when Stripe
   cannot start a checkout, a manual intent is created and the studio records
   the payment (``checkout_url`` is then None).
+- ``profile.payment_at_booking == "full_price"`` charges the service price instead
+  of its deposit, but only while that card rail is available: without Stripe keys
+  the profile acts as ``deposit``, so nothing changes for anyone. The amount is
+  stored in ``booking.deposit_minor`` ("paid at booking") either way.
+- Stripe Checkout returns the customer to the bookings app's ``/checkout/return``
+  page (``return_urls`` builder below), which sends them on to their manage page.
 """
 
 import logging
 from datetime import datetime, timedelta
+from urllib.parse import urlencode
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import AppException
 from src.organisations import service as organisation_service
+from src.payments import return_urls
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
 from src.payments.config import payments_settings
-from src.payments.models import ProviderKey
+from src.payments.models import Intent, IntentStatus, ProviderKey
 
-from .models import Booking, BookingProfile, BookingStatus, Service
+from .config import bookings_settings
+from .models import (
+    Booking,
+    BookingPaymentMode,
+    BookingProfile,
+    BookingStatus,
+    Service,
+)
+from .schemas import BookingPaymentStatus, BookingPaymentSummary
 
 logger = logging.getLogger(__name__)
 
@@ -59,9 +76,88 @@ async def effective_deposit(
     return 0
 
 
-def _stripe_available() -> bool:
+def stripe_available() -> bool:
+    """True while the card rail is on: a Stripe TEST secret key is configured."""
     key = payments_settings.STRIPE_SECRET_KEY
     return bool(key and key.startswith(_TEST_KEY_PREFIX))
+
+
+def charges_full_price(profile: BookingProfile) -> bool:
+    """The business asked for the full price and the card rail is on."""
+    return (
+        profile.payment_at_booking == BookingPaymentMode.FULL_PRICE.value
+        and stripe_available()
+    )
+
+
+def due_for(svc: Service, *, full_price: bool, entitled: bool) -> int:
+    """Pure rule: what a booking of ``svc`` pays when it is made (0 = nothing)."""
+    if not entitled:
+        return 0
+    if full_price and svc.price_minor > 0:
+        return svc.price_minor
+    return max(svc.deposit_minor, 0)
+
+
+async def amount_due(
+    session: AsyncSession, profile: BookingProfile, svc: Service
+) -> int:
+    """What an online booking of ``svc`` pays when it is made (0 = nothing).
+
+    ``full_price`` charges the price only while Stripe is available and the
+    organisation holds ``payments``; otherwise the service deposit rule applies."""
+    full_price = charges_full_price(profile)
+    if (
+        profile.payment_at_booking == BookingPaymentMode.FULL_PRICE.value
+        and not full_price
+    ):
+        logger.info(
+            "full price at booking needs card payments; using the service deposit",
+            extra={"organisation_id": profile.organisation_id},
+        )
+    if full_price and svc.price_minor > 0:
+        entitled = await organisation_service.is_app_enabled(
+            session, organisation_id=profile.organisation_id, app_key="payments"
+        )
+        return due_for(svc, full_price=True, entitled=entitled)
+    return await effective_deposit(session, profile.organisation_id, svc)
+
+
+async def due_by_service(
+    session: AsyncSession, profile: BookingProfile, services: list[Service]
+) -> dict[object, int]:
+    """``amount_due`` for a whole storefront, with one entitlement query."""
+    entitled = await organisation_service.is_app_enabled(
+        session, organisation_id=profile.organisation_id, app_key="payments"
+    )
+    full_price = charges_full_price(profile)
+    return {
+        svc.id: due_for(svc, full_price=full_price, entitled=entitled)
+        for svc in services
+    }
+
+
+def checkout_title(svc: Service, profile: BookingProfile, amount_minor: int) -> str:
+    """The line the customer sees on the hosted checkout page."""
+    kind = "Deposit" if amount_minor < svc.price_minor else "Payment"
+    return f"{kind}: {svc.name}, {profile.display_name}"
+
+
+def _return_address(source_id: str | None) -> return_urls.ReturnAddress | None:
+    """Stripe sends the customer back to the bookings app's return page. Built
+    from settings and the booking id only (no request data, no open redirect)."""
+    if not source_id:
+        return None
+    base = bookings_settings.APP_URL.rstrip("/")
+
+    def url(result: str) -> str:
+        query = urlencode({"booking": source_id, "result": result})
+        return f"{base}/checkout/return?{query}"
+
+    return return_urls.ReturnAddress(url("paid"), url("cancelled"))
+
+
+return_urls.register(SOURCE_TYPE, _return_address)
 
 
 def _payload(
@@ -105,11 +201,15 @@ async def cancel_unpaid_deposit(session: AsyncSession, booking: Booking) -> bool
 
 
 async def start_deposit(
-    session: AsyncSession, booking: Booking, customer_email: str | None
+    session: AsyncSession,
+    booking: Booking,
+    customer_email: str | None,
+    *,
+    title: str | None = None,
 ) -> str | None:
     """Create the deposit intent. Returns the hosted checkout URL, or None when
     the studio must record a manual payment."""
-    if _stripe_available():
+    if stripe_available():
         try:
             async with session.begin_nested():
                 result = await payments_service.create_intent(
@@ -117,6 +217,7 @@ async def start_deposit(
                     organisation_id=booking.organisation_id,
                     actor=None,
                     payload=_payload(booking, ProviderKey.STRIPE, customer_email),
+                    checkout_title=title,
                 )
             return result.checkout_url
         except AppException:
@@ -131,6 +232,46 @@ async def start_deposit(
         payload=_payload(booking, ProviderKey.MANUAL, customer_email),
     )
     return manual.checkout_url
+
+
+async def payment_summary(
+    session: AsyncSession, booking: Booking
+) -> BookingPaymentSummary | None:
+    """The money side of a booking as its customer sees it; None when nothing
+    was due at booking. ``checkout_url`` is set only while the slot is still held
+    for an unpaid online checkout, so the customer can return to it."""
+    if booking.deposit_minor <= 0:
+        return None
+    intent = await find_deposit(session, booking)
+    paid = intent.captured_minor if intent else 0
+    refunded = intent.refunded_minor if intent else 0
+    held = booking.status == BookingStatus.PENDING_PAYMENT.value
+    checkout_url: str | None = None
+    if paid > 0:
+        status = (
+            BookingPaymentStatus.REFUNDED
+            if refunded >= paid
+            else BookingPaymentStatus.PAID
+        )
+    elif held and (
+        intent is None
+        or intent.status in (IntentStatus.REQUIRES_PAYMENT, IntentStatus.PROCESSING)
+    ):
+        status = BookingPaymentStatus.DUE
+        if intent is not None and intent.provider is ProviderKey.STRIPE:
+            checkout_url = await session.scalar(
+                select(Intent.checkout_url).where(Intent.id == intent.id)
+            )
+    else:
+        status = BookingPaymentStatus.UNPAID
+    return BookingPaymentSummary(
+        status=status,
+        amount_minor=booking.deposit_minor,
+        paid_minor=paid,
+        refunded_minor=refunded,
+        currency=booking.currency,
+        checkout_url=checkout_url,
+    )
 
 
 async def start_manual_deposit(session: AsyncSession, booking: Booking) -> None:

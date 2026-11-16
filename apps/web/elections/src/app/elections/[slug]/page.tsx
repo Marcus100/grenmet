@@ -50,7 +50,8 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const id = eventFromSlug((await params).slug);
+  const { slug } = await params;
+  const id = eventFromSlug(slug);
   const e = id ? getEvent(id) : undefined;
   if (!e) return {};
   const title =
@@ -58,6 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description: `${title} in Grenada (${e.date}): ${eventHeadline(data, e.id)}. Every constituency’s result with its source.`,
+    alternates: { canonical: `/elections/${slug}` },
   };
 }
 

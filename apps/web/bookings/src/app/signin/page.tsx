@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 export const metadata: Metadata = {
   title: "Sign in",
   description: "Sign in to Barrels Bookings with your Barrels account.",
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";

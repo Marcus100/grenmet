@@ -41,16 +41,19 @@ async def twofa_status(*, current_user: AccountUser) -> TwoFactorStatusPublic:
     responses={**AUTHENTICATED},
 )
 async def twofa_setup(
-    *, session: SessionDep, current_user: AccountUser
+    *, session: SessionDep, current_user: AccountUser, token: TokenDep
 ) -> TwoFactorSetupResponse:
-    secret = await service.begin_totp_setup(session=session, user=current_user)
+    keep_session_id = session_id_from_token(token)
+    secret = await service.begin_totp_setup(
+        session=session, user=current_user, keep_session_id=keep_session_id
+    )
     return TwoFactorSetupResponse(
         secret=secret,
         provisioning_uri=totp.provisioning_uri(
             secret=secret, account_name=current_user.email
         ),
         email_code_required=await service.enrolment_needs_email_code(
-            session=session, user=current_user
+            session=session, user=current_user, keep_session_id=keep_session_id
         ),
     )
 

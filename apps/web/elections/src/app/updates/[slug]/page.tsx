@@ -40,8 +40,15 @@ export function generateStaticParams() {
   return COVERAGE.map(({ slug }) => ({ slug }));
 }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = coveragePost((await params).slug);
-  return post ? { title: post.title, description: post.dek } : {};
+  const { slug } = await params;
+  const post = coveragePost(slug);
+  return post
+    ? {
+        title: post.title,
+        description: post.dek,
+        alternates: { canonical: `/updates/${slug}` },
+      }
+    : {};
 }
 
 /** One coverage post: the article, any downloads, then its sources. */

@@ -61,7 +61,9 @@ async def test_latest_is_anonymous_goes_only_newest_per_product(
     assert public_database is None
     response = await async_client.get("/api/v1/wxwatch/public/latest")
     assert response.status_code == 200, response.text
-    assert "s-maxage" in response.headers["cache-control"]
+    # Storm cache (owner decision 2026-11-15): a minute at the edge, at most.
+    assert "s-maxage=60," in response.headers["cache-control"]
+    assert "stale-while-revalidate=60," in response.headers["cache-control"]
     assert "stale-if-error" in response.headers["cache-control"]
     images = response.json()["images"]
     assert [image["product"] for image in images] == ["cloud.png", "ir.png"]
@@ -102,6 +104,7 @@ async def test_image_serves_local_file_or_signed_redirect(
     assert local.status_code == 200
     assert local.headers["content-type"] == "image/png"
     assert "public" in local.headers["cache-control"]
+    assert "s-maxage=60," in local.headers["cache-control"]
 
     monkeypatch.setattr(wxwatch_settings, "LOCAL_IMAGES_DIR", None)
     monkeypatch.setattr(
