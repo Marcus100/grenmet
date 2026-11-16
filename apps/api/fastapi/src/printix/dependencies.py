@@ -13,21 +13,26 @@ keys, with an enrolled authenticator and a session that passed it, every time.
 No superuser bypass.
 """
 
+import uuid
 from collections.abc import Awaitable, Callable
 from typing import Annotated
 
-from fastapi import Depends, Security
+from fastapi import Depends, Security, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials
+from limits import parse
 
 from src.auth import privileged_mfa
 from src.auth.models import User
 from src.auth.policy import require_permission
 from src.dependencies import MfaAdminUser, SessionDep, TokenDep
+from src.exceptions import AppException
 from src.organisations.dependencies import (
     OrgContext,
     require_org_any_permission,
     resolve_org_caller,
 )
+from src.rate_limit import limiter
 
 from . import constants, service
 from .models import PrintixPairing
@@ -75,8 +80,27 @@ async def require_printix_admin(admin: MfaAdminUser) -> User:
 PrintixAdmin = Annotated[User, Depends(require_printix_admin)]
 
 
+#: Per signed-in organiser, per bucket (reads, writes). Counted after the key and the
+#: authenticator checks, so a refused caller uses none of it.
+ORGANISER_READS_PER_MINUTE = "120/minute"
+ORGANISER_WRITES_PER_MINUTE = "30/minute"
+
+
+async def _within_organiser_limit(limit: str, bucket: str, user_id: uuid.UUID) -> None:
+    if not limiter.enabled:
+        return
+    if not await run_in_threadpool(
+        limiter.limiter.hit, parse(limit), "printix-organiser", bucket, str(user_id)
+    ):
+        raise AppException(
+            "Too many requests; slow down", status.HTTP_429_TOO_MANY_REQUESTS
+        )
+
+
 def require_printix_organiser(
     *permission_keys: str,
+    limit: str = ORGANISER_READS_PER_MINUTE,
+    bucket: str = "reads",
 ) -> Callable[..., Awaitable[OrgContext]]:
     """An organisation member who holds one of ``permission_keys``, signed in to the
     Printix app with a session that passed the authenticator.
@@ -84,7 +108,8 @@ def require_printix_organiser(
     Membership, role, entitlement and key are checked first (``require_org_any_permission``),
     so a non-member gets the same 404 as for an unknown organisation, before any
     authenticator check. The MFA check then runs on every call, whatever
-    ``AUTH_PRIVILEGED_MFA_MODE`` says: a gate pairing is a key to the gate."""
+    ``AUTH_PRIVILEGED_MFA_MODE`` says: a gate pairing is a key to the gate. Then the
+    caller's per-user limit for ``bucket`` (``limit``) applies."""
     permitted = require_org_any_permission(permission_keys, session_app=ORGANISER_APP)
 
     async def dependency(
@@ -95,6 +120,7 @@ def require_printix_organiser(
         await privileged_mfa.require_mfa_session(
             session, context.user, token=token, app_key=ORGANISER_APP
         )
+        await _within_organiser_limit(limit, bucket, context.user.id)
         return context
 
     return dependency
@@ -125,3 +151,46 @@ async def require_printix_app_user(session: SessionDep, token: TokenDep) -> User
 
 
 PrintixAppUser = Annotated[User, Depends(require_printix_app_user)]
+
+
+#: Organiser routes, by the one key each needs (ADR-0060 amendment, decision 3).
+PrintixOrgEventsReadAccess = Annotated[
+    OrgContext,
+    Depends(
+        require_printix_organiser(
+            constants.EVENTS_MANAGE_KEY,
+            limit=ORGANISER_READS_PER_MINUTE,
+            bucket="reads",
+        )
+    ),
+]
+PrintixOrgEventsWriteAccess = Annotated[
+    OrgContext,
+    Depends(
+        require_printix_organiser(
+            constants.EVENTS_MANAGE_KEY,
+            limit=ORGANISER_WRITES_PER_MINUTE,
+            bucket="writes",
+        )
+    ),
+]
+PrintixOrgGatesReadAccess = Annotated[
+    OrgContext,
+    Depends(
+        require_printix_organiser(
+            constants.GATES_MANAGE_KEY,
+            limit=ORGANISER_READS_PER_MINUTE,
+            bucket="reads",
+        )
+    ),
+]
+PrintixOrgGatesWriteAccess = Annotated[
+    OrgContext,
+    Depends(
+        require_printix_organiser(
+            constants.GATES_MANAGE_KEY,
+            limit=ORGANISER_WRITES_PER_MINUTE,
+            bucket="writes",
+        )
+    ),
+]

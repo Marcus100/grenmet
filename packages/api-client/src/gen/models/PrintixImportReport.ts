@@ -33,4 +33,16 @@ export type PrintixImportReport = {
    * @type array
    */
   warnings: string[];
+  /**
+   * @description Rows whose barcode is shorter than 12 characters. Offline scanning stays off for the event if any.
+   * @default 0
+   * @type integer | undefined
+   */
+  short_barcodes?: number;
+  /**
+   * @description Rows whose barcode equals the printed number (including defaulted barcodes). Offline scanning stays off for the event if any.
+   * @default 0
+   * @type integer | undefined
+   */
+  barcode_equals_number?: number;
 };

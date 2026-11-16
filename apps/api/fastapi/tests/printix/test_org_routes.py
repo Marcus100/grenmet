@@ -13,170 +13,39 @@ from typing import Any
 
 import httpx
 import pytest
-from cryptography.fernet import Fernet
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth import service as auth_service
-from src.auth import totp
-from src.auth.config import auth_settings
-from src.auth.models import Role, User, UserRoleLink
 from src.auth.models import Session as LoginSession
-from src.auth.permissions import seed_permissions_and_roles_async
-from src.auth.utils import create_access_token
+from src.auth.models import User
 from src.config import settings
 from src.organisations import entitlements, grants, role_bundles
-from src.organisations import service as org_service
 from src.organisations.dependencies import require_org_any_permission
 from src.organisations.models import (
     Membership,
     MembershipGrant,
     MembershipRole,
     PlatformOrganisation,
-    new_grant_id,
 )
-from src.printix.models import PrintixEvent
 from src.utils.datetime import utc_now
 from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
 
-from .support import ADMIN, make_event
-
-ORG = f"{settings.API_V1_STR}/printix/org"
+from .org_support import (
+    ORG,
+    _app_user,
+    _enrol,
+    _grant,
+    _ids,
+    _org,
+    _org_header,
+    _organiser,
+    _sign_in,
+    make_org_member,
+)
+from .support import ADMIN
 
 pytestmark = pytest.mark.usefixtures("db_async")
-
-
-@pytest.fixture(autouse=True)
-def _totp_keys(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        auth_settings, "AUTH_TOTP_ENCRYPTION_KEYS", [Fernet.generate_key().decode()]
-    )
-
-
-async def _enrol(db: AsyncSession, user: User) -> None:
-    user.totp_secret = totp.encrypt_secret(totp.generate_secret())
-    user.totp_enabled = True
-    await db.commit()
-
-
-async def _app_user(db: AsyncSession, *, enrolled: bool = True) -> User:
-    """An ordinary account holding the printix-member role (app.printix.access)."""
-    await seed_permissions_and_roles_async(db)
-    user = await make_user(db)
-    role = await db.scalar(select(Role).where(Role.name == "printix-member"))
-    assert role is not None
-    db.add(UserRoleLink(user_id=user.id, role_id=role.id))
-    await db.commit()
-    if enrolled:
-        await _enrol(db, user)
-    return user
-
-
-async def _grant(
-    db: AsyncSession, org: PlatformOrganisation, user: User, role_key: str
-) -> None:
-    membership = await db.scalar(
-        select(Membership).where(
-            Membership.organisation_id == org.id, Membership.user_id == user.id
-        )
-    )
-    assert membership is not None
-    db.add(
-        MembershipGrant(
-            id=new_grant_id(),
-            membership_id=membership.id,
-            organisation_id=org.id,
-            role_key=role_key,
-            granted_at=utc_now(),
-        )
-    )
-    await db.commit()
-
-
-async def _sign_in(
-    db: AsyncSession,
-    user: User,
-    *,
-    app: str | None = "printix",
-    mfa: bool = True,
-) -> dict[str, str]:
-    """A bearer for a session of ``app`` (None: the account), MFA-verified when ``mfa``."""
-    stored, _ = await auth_service.create_session(
-        session=db,
-        user=user,
-        app_name=app,
-        enforce_approval=False,
-        mfa_verified_at=utc_now() if mfa else None,
-    )
-    token = create_access_token(
-        user.id, timedelta(minutes=5), app=app, session_id=str(stored.id)
-    )
-    return {"Authorization": f"Bearer {token}"}
-
-
-async def _organiser(
-    db: AsyncSession, org: PlatformOrganisation, role_key: str | None
-) -> User:
-    """An account with app access, a plain member of ``org``, and ``role_key`` if given."""
-    user = await _app_user(db)
-    await make_org_member(db, org, user)
-    if role_key is not None:
-        await _grant(db, org, user, role_key)
-    return user
-
-
-async def make_org_member(
-    db: AsyncSession, org: PlatformOrganisation, user: User
-) -> Membership:
-    await org_service.add_member(
-        db, organisation_id=org.id, user_id=user.id, role=MembershipRole.MEMBER
-    )
-    await db.commit()
-    membership = await db.scalar(
-        select(Membership).where(
-            Membership.organisation_id == org.id, Membership.user_id == user.id
-        )
-    )
-    assert membership is not None
-    return membership
-
-
-async def _org(
-    db: AsyncSession, name: str, *, entitled: bool = True
-) -> PlatformOrganisation:
-    return await make_org(db, name, apps=("printix",) if entitled else ())
-
-
-async def _event(
-    db: AsyncSession, name: str, org: PlatformOrganisation | None
-) -> PrintixEvent:
-    event = await make_event(db, name=name)
-    event.organisation_id = org.id if org is not None else None
-    await db.commit()
-    return event
-
-
-@pytest.fixture
-async def world(db_async: AsyncSession) -> dict[str, Any]:
-    """Two organisations, one event each, and one event with no organisation."""
-    org_a = await _org(db_async, f"Printix A {uuid.uuid4().hex[:6]}")
-    org_b = await _org(db_async, f"Printix B {uuid.uuid4().hex[:6]}")
-    return {
-        "org_a": org_a,
-        "org_b": org_b,
-        "ev_a": await _event(db_async, "Gala A", org_a),
-        "ev_b": await _event(db_async, "Gala B", org_b),
-        "ev_none": await _event(db_async, "Gala none", None),
-    }
-
-
-def _org_header(org: PlatformOrganisation) -> dict[str, str]:
-    return {"X-Barrels-Organisation": org.id}
-
-
-def _ids(response: httpx.Response) -> set[str]:
-    return {item["id"] for item in response.json()["items"]}
 
 
 # --- Bundles see only their own organisation ---------------------------------

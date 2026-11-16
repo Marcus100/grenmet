@@ -130,10 +130,15 @@ async def get_event(
     return event
 
 
-async def _event_for_update(session: AsyncSession, event_id: uuid.UUID) -> PrintixEvent:
+async def _event_for_update(
+    session: AsyncSession, event_id: uuid.UUID, *, organisation_id: str | None = None
+) -> PrintixEvent:
+    filters = [PrintixEvent.id == event_id]
+    if organisation_id is not None:
+        filters.append(PrintixEvent.organisation_id == organisation_id)
     event = await session.scalar(
         select(PrintixEvent)
-        .where(PrintixEvent.id == event_id)
+        .where(*filters)
         .with_for_update()
         .execution_options(populate_existing=True)
     )
@@ -299,9 +304,13 @@ async def list_events(
 
 
 async def close_event(
-    session: AsyncSession, event_id: uuid.UUID, *, actor_id: uuid.UUID | None = None
+    session: AsyncSession,
+    event_id: uuid.UUID,
+    *,
+    actor_id: uuid.UUID | None = None,
+    organisation_id: str | None = None,
 ) -> PrintixEvent:
-    event = await get_event(session, event_id)
+    event = await get_event(session, event_id, organisation_id=organisation_id)
     if event.status != PrintixEventStatus.CLOSED.value:
         audit_service.set_actor(session, actor_id)
         transitions.move_event(event, PrintixEventStatus.CLOSED)
@@ -395,6 +404,7 @@ async def import_tickets(
     dry_run: bool,
     actor_id: uuid.UUID | None = None,
     allow_number_as_barcode: bool = False,
+    organisation_id: str | None = None,
 ) -> PrintixImportReport:
     """Check the file, then (unless ``dry_run``) write every row or none.
 
@@ -404,9 +414,11 @@ async def import_tickets(
     if len(content) > constants.MAX_IMPORT_BYTES:
         raise PrintixImportTooLarge()
     if dry_run:
-        event = await get_event(session, event_id)
+        event = await get_event(session, event_id, organisation_id=organisation_id)
     else:
-        event = await _event_for_update(session, event_id)
+        event = await _event_for_update(
+            session, event_id, organisation_id=organisation_id
+        )
     if is_closed(event, utc_now()):
         raise PrintixConflict("This event is closed, so its tickets cannot change")
 
@@ -438,6 +450,7 @@ async def import_tickets(
             warnings.append(_NO_BARCODE_COLUMN_WARNING)
 
     if dry_run or not clean:
+        short, equal = _barcode_weakness(parsed.rows)
         return PrintixImportReport(
             dry_run=dry_run,
             applied=False,
@@ -446,6 +459,8 @@ async def import_tickets(
             errors=issues,
             errors_truncated=truncated,
             warnings=warnings,
+            short_barcodes=short,
+            barcode_equals_number=equal,
         )
 
     now = utc_now()
@@ -480,6 +495,7 @@ async def import_tickets(
         "Printix tickets imported",
         extra={"subject_id": str(event.id), "target_id": str(event.id)},
     )
+    short, equal = _barcode_weakness(parsed.rows)
     return PrintixImportReport(
         dry_run=False,
         applied=True,
@@ -488,7 +504,19 @@ async def import_tickets(
         errors=[],
         errors_truncated=False,
         warnings=warnings,
+        short_barcodes=short,
+        barcode_equals_number=equal,
     )
+
+
+def _barcode_weakness(rows: list[csv_import.ParsedRow]) -> tuple[int, int]:
+    """Rows whose barcode is shorter than the offline minimum, and rows whose barcode
+    equals the printed number. Either makes offline mode unavailable (rule 7)."""
+    short = sum(
+        1 for r in rows if len(r.barcode) < constants.OFFLINE_MIN_BARCODE_LENGTH
+    )
+    equal = sum(1 for r in rows if r.barcode == r.number)
+    return short, equal
 
 
 async def _clashes_with_event(
@@ -560,7 +588,10 @@ async def list_tickets(
     admitted: bool | None,
     page: int,
     size: int,
+    organisation_id: str | None = None,
 ) -> PrintixTicketPage:
+    if organisation_id is not None:
+        await get_event(session, event_id, organisation_id=organisation_id)
     filters = [PrintixTicket.event_id == event_id]
     if status is not None:
         filters.append(PrintixTicket.status == status.value)
@@ -605,13 +636,15 @@ async def set_ticket_void(
     *,
     void: bool,
     actor_id: uuid.UUID | None = None,
+    organisation_id: str | None = None,
 ) -> PrintixTicket:
     """Void or restore a ticket. An admitted ticket cannot be voided, and nothing
-    changes once the event has closed."""
+    changes once the event has closed. ``organisation_id`` (organiser routes) makes a
+    ticket of another organisation's event not found."""
     ticket = await session.get(PrintixTicket, ticket_id)
     if ticket is None:
         raise PrintixNotFound("Ticket not found")
-    event = await get_event(session, ticket.event_id)
+    event = await get_event(session, ticket.event_id, organisation_id=organisation_id)
     if is_closed(event, utc_now()):
         raise PrintixConflict("This event is closed, so its tickets cannot change")
     target = PrintixTicketStatus.VOID if void else PrintixTicketStatus.VALID
@@ -679,9 +712,10 @@ async def create_pairing(
     expires_at: datetime | None,
     actor_id: uuid.UUID | None = None,
     allow_typed_numbers: bool = False,
+    organisation_id: str | None = None,
 ) -> tuple[PrintixPairing, str]:
     """A new pairing and its secret. ``expires_at`` is naive UTC or None."""
-    event = await get_event(session, event_id)
+    event = await get_event(session, event_id, organisation_id=organisation_id)
     now = utc_now()
     if is_closed(event, now):
         raise PrintixConflict("This event is closed, so no new pairings can be made")
@@ -717,8 +751,13 @@ async def create_pairing(
 
 
 async def list_pairings(
-    session: AsyncSession, event_id: uuid.UUID
+    session: AsyncSession,
+    event_id: uuid.UUID,
+    *,
+    organisation_id: str | None = None,
 ) -> list[PrintixPairing]:
+    if organisation_id is not None:
+        await get_event(session, event_id, organisation_id=organisation_id)
     rows = await session.scalars(
         select(PrintixPairing)
         .where(PrintixPairing.event_id == event_id)
@@ -729,11 +768,17 @@ async def list_pairings(
 
 
 async def revoke_pairing(
-    session: AsyncSession, pairing_id: uuid.UUID, *, actor_id: uuid.UUID | None = None
+    session: AsyncSession,
+    pairing_id: uuid.UUID,
+    *,
+    actor_id: uuid.UUID | None = None,
+    organisation_id: str | None = None,
 ) -> PrintixPairing:
     pairing = await session.get(PrintixPairing, pairing_id)
     if pairing is None:
         raise PrintixNotFound("Pairing not found")
+    if organisation_id is not None:
+        await get_event(session, pairing.event_id, organisation_id=organisation_id)
     if pairing.revoked_at is None:
         audit_service.set_actor(session, actor_id)
         pairing.revoked_at = utc_now()

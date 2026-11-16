@@ -41,6 +41,22 @@ class PrintixEventCreate(BaseModel):
         return self
 
 
+class PrintixOrgEventCreate(BaseModel):
+    """An organiser's new event. The organisation is the caller's, never sent."""
+
+    name: str = EventName
+    event_date: date
+    closes_at: AwareDatetime = Field(
+        description="When the event closes at the gate. Sent with a timezone."
+    )
+
+    @model_validator(mode="after")
+    def _closes_on_or_after_the_event_date(self) -> PrintixOrgEventCreate:
+        if self.closes_at.date() < self.event_date:
+            raise ValueError("closes_at must not be before the event date")
+        return self
+
+
 class PrintixEventOrganisationUpdate(BaseModel):
     organisation_id: str | None = Field(
         max_length=100,
@@ -111,6 +127,20 @@ class PrintixImportReport(BaseModel):
     )
     warnings: list[str] = Field(
         description="Checks that do not block the import but need the operator's attention."
+    )
+    short_barcodes: int = Field(
+        default=0,
+        description=(
+            f"Rows whose barcode is shorter than {constants.OFFLINE_MIN_BARCODE_LENGTH} "
+            "characters. Offline scanning stays off for the event if any."
+        ),
+    )
+    barcode_equals_number: int = Field(
+        default=0,
+        description=(
+            "Rows whose barcode equals the printed number (including defaulted barcodes). "
+            "Offline scanning stays off for the event if any."
+        ),
     )
 
 
