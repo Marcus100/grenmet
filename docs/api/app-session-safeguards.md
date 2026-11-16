@@ -1,0 +1,10 @@
+# App session safeguards
+
+Per-app settings on `AppDefinition` (`apps/api/fastapi/src/auth/apps.py`), from
+ADR-0061. Moved here from `src/auth/AGENTS.md`, whose instruction chain is at the
+Codex byte budget.
+
+All three default off, so no existing app changes. Tests: `tests/auth/test_app_session_safeguards.py`.
+- **`max_session_hours`** (session cap): `sessions.create_session` sets `expires_at = min(normal expiry, signed_in_at + cap)` for every new session of the app, and `rotate_session` carries `signed_in_at` through each refresh, refusing (401, the old session untouched) once the cap has passed. `session.signed_in_at` (nullable, migration `authsessionsignedin20261116`) is the original sign-in; NULL rows fall back to `created_at`, so no backfill. A handoff redeem counts from the handoff, not from the account session's sign-in, so a capped app session is never born expired.
+- **`require_authenticator`**: `app_service._require_app_authenticator` refuses a person with `totp_enabled` false, with 403 detail ending `(authenticator_required)` and naming account.barrels.gd. It runs after the proof of identity and before any role grant in the email-code, password, Google and phone finishers, and in `_session_response` (the backstop that covers handoff). Refusals create no session. An unknown address with a correct code gets the same refusal as a known one, because the code proves the mailbox.
+- **`privileged_members`**: holders of the app's `app.<key>.access` follow the privileged enrolment rules through `privileged_mfa.is_enrolment_privileged` (`is_privileged` or such an app). `totp_enrolment` uses only this, so the first authenticator needs an emailed code (or a session opened by an emailed code in the last 10 minutes, ADR-0059 rule 2), a successful enrolment ends the person's other sessions, and the email change is blocked until two-step is on. Sign-in enforcement (`require_privileged_mfa`), `mfa_rollout` and the sign-in-setup ceiling keep `is_privileged`, so a holder who is not privileged does not need an authenticator to use other apps.

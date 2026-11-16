@@ -113,3 +113,5 @@ What already exists and is reused:
   (`privileged_mfa.is_enrolment_privileged`). Sign-in enforcement is not widened, so
   an organiser without an authenticator can still use other apps.
 - A test that the Printix organiser pages hold no token in `localStorage`.
+
+How the three per-app settings work, in detail: `docs/api/app-session-safeguards.md`.
