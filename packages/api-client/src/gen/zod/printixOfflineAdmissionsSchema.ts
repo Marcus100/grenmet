@@ -8,6 +8,7 @@ import { apiErrorSchema } from "./apiErrorSchema.js";
 import { errorMessageSchema } from "./errorMessageSchema.js";
 import { printixOfflineSyncRequestSchema } from "./printixOfflineSyncRequestSchema.js";
 import { printixOfflineSyncResultSchema } from "./printixOfflineSyncResultSchema.js";
+import { printixOfflineUnavailableBodySchema } from "./printixOfflineUnavailableBodySchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const printixOfflineAdmissionsStatus200Schema =
@@ -20,6 +21,11 @@ export const printixOfflineAdmissionsStatus401Schema = apiErrorSchema.describe(
 export const printixOfflineAdmissionsStatus403Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
+
+export const printixOfflineAdmissionsStatus409Schema =
+  printixOfflineUnavailableBodySchema.describe(
+    "A 409 that refuses offline mode for an event whose barcodes are printed numbers."
+  );
 
 export const printixOfflineAdmissionsStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -37,6 +43,7 @@ export const printixOfflineAdmissionsResponseSchema =
 export const printixOfflineAdmissionsErrorSchema = z.union([
   printixOfflineAdmissionsStatus401Schema,
   printixOfflineAdmissionsStatus403Schema,
+  printixOfflineAdmissionsStatus409Schema,
   printixOfflineAdmissionsStatus422Schema,
   printixOfflineAdmissionsStatus429Schema,
 ]);

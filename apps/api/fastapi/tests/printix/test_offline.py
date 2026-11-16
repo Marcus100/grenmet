@@ -326,13 +326,138 @@ async def test_a_closed_event_refuses_offline_admissions(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
     event = await make_event(db_async)
-    await make_ticket(db_async, event, "001", barcode="PXBAR0001")
-    _, secret = await make_pairing(db_async, event)
+    ticket = await make_ticket(db_async, event, "001", barcode="PXBAR0001")
+    pairing, secret = await make_pairing(db_async, event)
+    pairing.created_at = utc_now() - timedelta(hours=2)
+    await db_async.commit()
     await service.close_event(db_async, event.id, actor_id=None)
 
-    (result,) = results(await sync(async_client, secret, item("PXBAR0001")))
+    # A phone clock ahead of the server is clamped to server time, which is after the close.
+    (result,) = results(
+        await sync(
+            async_client, secret, item("PXBAR0001", utc_now() + timedelta(hours=1))
+        )
+    )
 
     assert result["outcome"] == "event_closed"
+    assert (await stored(db_async, ticket.id)).admitted_at is None
+
+
+async def test_a_scan_before_the_close_counts_even_when_synced_after_it(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    event = await make_event(db_async)
+    ticket = await make_ticket(db_async, event, "001", barcode="PXBAR0001")
+    pairing, secret = await make_pairing(db_async, event, gate="North")
+    pairing.created_at = utc_now() - timedelta(hours=2)
+    await db_async.commit()
+    scanned = utc_now() - timedelta(minutes=10)
+    await service.close_event(db_async, event.id, actor_id=None)
+
+    (result,) = results(await sync(async_client, secret, item("PXBAR0001", scanned)))
+
+    assert result["outcome"] == "admitted"
+    saved = await stored(db_async, ticket.id)
+    assert saved.admitted_at is not None
+    assert abs((saved.admitted_at - scanned).total_seconds()) < 1
+
+
+async def test_the_close_is_a_strict_cutoff_for_offline_scans(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    event = await make_event(db_async)
+    await make_ticket(db_async, event, "001", barcode="PXBAR0001")
+    await make_ticket(db_async, event, "002", barcode="PXBAR0002")
+    pairing, secret = await make_pairing(db_async, event)
+    pairing.created_at = utc_now() - timedelta(hours=2)
+    closed = utc_now() - timedelta(minutes=1)
+    event.status = "closed"
+    event.closed_at = closed
+    await db_async.commit()
+
+    outcomes = [
+        r["outcome"]
+        for r in results(
+            await sync(
+                async_client,
+                secret,
+                item("PXBAR0001", closed - timedelta(seconds=1)),
+                item("PXBAR0002", closed),
+            )
+        )
+    ]
+
+    assert outcomes == ["admitted", "event_closed"]
+
+
+async def test_a_closed_event_with_no_recorded_close_refuses_offline_admissions(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """Its close time is unknown, so no offline scan can be shown to be before it."""
+    event = await make_event(db_async)
+    ticket = await make_ticket(db_async, event, "001", barcode="PXBAR0001")
+    pairing, secret = await make_pairing(db_async, event)
+    pairing.created_at = utc_now() - timedelta(hours=2)
+    event.status = "closed"
+    await db_async.commit()
+
+    (result,) = results(
+        await sync(
+            async_client, secret, item("PXBAR0001", utc_now() - timedelta(minutes=10))
+        )
+    )
+
+    assert result["outcome"] == "event_closed"
+    assert (await stored(db_async, ticket.id)).admitted_at is None
+
+
+# --- Barcodes that are printed numbers --------------------------------------
+
+
+async def test_the_list_is_refused_when_a_barcode_is_its_printed_number(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """A three-digit barcode's hash can be reversed by trying every number."""
+    event = await make_event(db_async)
+    await make_ticket(db_async, event, "001", barcode="PXBAR0001")
+    await make_ticket(db_async, event, "002")  # barcode defaults to the printed number
+    _, secret = await make_pairing(db_async, event)
+
+    response = await async_client.get(LIST, headers=bearer(secret))
+
+    assert response.status_code == 409
+    assert response.json()["code"] == "offline_not_available"
+
+
+async def test_offline_sync_is_refused_when_a_barcode_is_its_printed_number(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    event = await make_event(db_async)
+    await make_ticket(db_async, event, "001")  # barcode defaults to the printed number
+    await make_ticket(db_async, event, "002", barcode="PXBAR0002")
+    pairing, secret = await make_pairing(db_async, event)
+
+    response = await sync(async_client, secret, item("PXBAR0002"))
+
+    assert response.status_code == 409
+    assert response.json()["code"] == "offline_not_available"
+    logged = await db_async.scalar(
+        select(func.count(PrintixScanLog.id)).where(
+            PrintixScanLog.pairing_id == pairing.id
+        )
+    )
+    assert logged == 0
+
+
+async def test_live_scans_still_admit_on_such_an_event(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """The refusal is for offline use only; the online scanner is unchanged."""
+    event = await make_event(db_async)
+    await make_ticket(db_async, event, "001")
+    _, secret = await make_pairing(db_async, event)
+
+    assert outcome_of(await scan(async_client, secret, "001")) == "admitted"
 
 
 # --- Caps and limits --------------------------------------------------------

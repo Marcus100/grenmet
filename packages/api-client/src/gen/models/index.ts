@@ -7851,6 +7851,7 @@ export type {
   PrintixOfflineAdmissionsStatus200,
   PrintixOfflineAdmissionsStatus401,
   PrintixOfflineAdmissionsStatus403,
+  PrintixOfflineAdmissionsStatus409,
   PrintixOfflineAdmissionsStatus422,
   PrintixOfflineAdmissionsStatus429,
 } from "./PrintixOfflineAdmissions.js";
@@ -7867,9 +7868,11 @@ export type {
   PrintixOfflineTicketsStatus200,
   PrintixOfflineTicketsStatus401,
   PrintixOfflineTicketsStatus403,
+  PrintixOfflineTicketsStatus409,
   PrintixOfflineTicketsStatus422,
   PrintixOfflineTicketsStatus429,
 } from "./PrintixOfflineTickets.js";
+export type { PrintixOfflineUnavailableBody } from "./PrintixOfflineUnavailableBody.js";
 export type { PrintixPairingCreate } from "./PrintixPairingCreate.js";
 export type { PrintixPairingCreated } from "./PrintixPairingCreated.js";
 export type { PrintixPairingPublic } from "./PrintixPairingPublic.js";

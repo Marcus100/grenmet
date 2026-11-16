@@ -12547,6 +12547,7 @@ export type {
   PrintixOfflineAdmissionsStatus200,
   PrintixOfflineAdmissionsStatus401,
   PrintixOfflineAdmissionsStatus403,
+  PrintixOfflineAdmissionsStatus409,
   PrintixOfflineAdmissionsStatus422,
   PrintixOfflineAdmissionsStatus429,
 } from "./models/PrintixOfflineAdmissions.js";
@@ -12563,9 +12564,11 @@ export type {
   PrintixOfflineTicketsStatus200,
   PrintixOfflineTicketsStatus401,
   PrintixOfflineTicketsStatus403,
+  PrintixOfflineTicketsStatus409,
   PrintixOfflineTicketsStatus422,
   PrintixOfflineTicketsStatus429,
 } from "./models/PrintixOfflineTickets.js";
+export type { PrintixOfflineUnavailableBody } from "./models/PrintixOfflineUnavailableBody.js";
 export type { PrintixPairingCreate } from "./models/PrintixPairingCreate.js";
 export type { PrintixPairingCreated } from "./models/PrintixPairingCreated.js";
 export type { PrintixPairingPublic } from "./models/PrintixPairingPublic.js";
@@ -22823,6 +22826,7 @@ export {
   printixOfflineAdmissionsStatus200Schema,
   printixOfflineAdmissionsStatus401Schema,
   printixOfflineAdmissionsStatus403Schema,
+  printixOfflineAdmissionsStatus409Schema,
   printixOfflineAdmissionsStatus422Schema,
   printixOfflineAdmissionsStatus429Schema,
 } from "./zod/printixOfflineAdmissionsSchema.js";
@@ -22837,9 +22841,11 @@ export {
   printixOfflineTicketsStatus200Schema,
   printixOfflineTicketsStatus401Schema,
   printixOfflineTicketsStatus403Schema,
+  printixOfflineTicketsStatus409Schema,
   printixOfflineTicketsStatus422Schema,
   printixOfflineTicketsStatus429Schema,
 } from "./zod/printixOfflineTicketsSchema.js";
+export { printixOfflineUnavailableBodySchema } from "./zod/printixOfflineUnavailableBodySchema.js";
 export { printixPairingCreatedSchema } from "./zod/printixPairingCreatedSchema.js";
 export { printixPairingCreateSchema } from "./zod/printixPairingCreateSchema.js";
 export { printixPairingPublicSchema } from "./zod/printixPairingPublicSchema.js";

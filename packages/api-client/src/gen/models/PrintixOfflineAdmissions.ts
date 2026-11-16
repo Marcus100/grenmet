@@ -7,6 +7,7 @@ import type { ApiError } from "./ApiError.js";
 import type { ErrorMessage } from "./ErrorMessage.js";
 import type { PrintixOfflineSyncRequest } from "./PrintixOfflineSyncRequest.js";
 import type { PrintixOfflineSyncResult } from "./PrintixOfflineSyncResult.js";
+import type { PrintixOfflineUnavailableBody } from "./PrintixOfflineUnavailableBody.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type PrintixOfflineAdmissionsStatus200 = PrintixOfflineSyncResult;
@@ -22,6 +23,12 @@ export type PrintixOfflineAdmissionsStatus401 = ApiError;
  * @type object
  */
 export type PrintixOfflineAdmissionsStatus403 = ApiError;
+
+/**
+ * @description A 409 that refuses offline mode for an event whose barcodes are printed numbers.
+ * @type object
+ */
+export type PrintixOfflineAdmissionsStatus409 = PrintixOfflineUnavailableBody;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -44,6 +51,7 @@ export type PrintixOfflineAdmissionsResponses = {
   "200": PrintixOfflineAdmissionsStatus200;
   "401": PrintixOfflineAdmissionsStatus401;
   "403": PrintixOfflineAdmissionsStatus403;
+  "409": PrintixOfflineAdmissionsStatus409;
   "422": PrintixOfflineAdmissionsStatus422;
   "429": PrintixOfflineAdmissionsStatus429;
 };

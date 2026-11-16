@@ -164,7 +164,8 @@ in a separate change.
    hashes what it scans with the list's key, admits a `valid` ticket it has not
    admitted, refuses the rest, and queues each local admission with a reference,
    the scanned value and the phone's time. Offline checks are by barcode only; typed
-   numbers are not checked offline.
+   numbers are not checked offline. An event whose barcodes are its printed numbers
+   has no offline mode (rule 7).
 3. **Sync.** `POST /printix/public/offline-admissions` takes up to 100 queued
    admissions. Each is checked like a live scan, by barcode only, and stamped with
    the phone's time kept between the pairing's creation and the time of the sync.
@@ -173,6 +174,12 @@ in a separate change.
    first gate and time), `void`, `unknown`, `event_closed`. A scan before the close
    time is admitted even if it syncs after; an event an administrator has closed
    refuses every later sync (`event_closed`, but the scan log keeps the record).
+   **Close time (decided by the owner, 16 Nov 2026):** the close is the earlier of the
+   scheduled close time and the administrator's close, which the event records as
+   `closed_at`. An offline scan counts only if its time is strictly before both. A
+   phone time in the future is taken as server time (the existing bound), so a
+   future-dated scan after the close is refused. A closed event with no recorded
+   `closed_at` refuses every offline scan.
 4. **Retries.** Each queued admission carries the phone's reference (`client_ref`),
    unique per pairing in `scan_log`. A retried reference returns its first answer
    and is not scanned again (the idempotency follow-up, for offline sync).
@@ -185,12 +192,18 @@ in a separate change.
    per pairing.
 6. **Counts.** The summary's `duplicates_refused` counts live refusals only; a new
    `offline_conflicts` counts offline admissions the server could not record.
+7. **Barcodes that are printed numbers (decided by the owner, 16 Nov 2026).** If any
+   ticket on the event has a barcode equal to its printed number (a defaulted barcode,
+   or one typed as the number), offline mode is refused for the whole event. The list
+   and the sync answer `409` with `code: offline_not_available`, and the sync stores
+   nothing. A three-digit value's hash can be reversed by trying every number. Live
+   scanning is unchanged.
 
 Threats this adds:
 
 | Threat | What happens | Controls | Residual risk |
 | --- | --- | --- | --- |
-| **Phone stolen with the list** | The thief holds keyed hashes of every barcode on the event. | HMAC per pairing; 128-bit hashes; revocation stops new downloads. | A barcode with little entropy (for example the three-digit printed number used as a barcode) can be recovered by trying every value. Long random barcodes cannot. |
+| **Phone stolen with the list** | The thief holds keyed hashes of every barcode on the event. | HMAC per pairing; 128-bit hashes; revocation stops new downloads; events whose barcodes are printed numbers get no list (rule 7). | A barcode with little entropy that is not a printed number (a short typed value) can be recovered by trying every value. Long random barcodes cannot. |
 | **Queued values on a stolen phone** | Barcodes of tickets admitted offline but not yet synced. | Queue cleared on sync; those tickets are admitted already on the phone and refused once synced. | Until sync, a copy of such a ticket could enter at another gate. |
 | **Two gates admit the same ticket offline** | Both let someone in. | First sync wins; the second phone and the summary report a conflict. | Detected after the fact, not prevented. |
 | **Wrong phone clock** | Admission times are off. | Kept between pairing creation and sync time. | A phone clock that is wrong within that range is recorded as is. |

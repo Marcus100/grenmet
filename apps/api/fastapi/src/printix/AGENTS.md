@@ -137,6 +137,14 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   `admitted_at`. A known `client_ref` (unique per pairing) is answered from its row.
 - Offline rows are excluded from the live scan cap; unknowns share the live unknown
   cap, and past it the rest of the batch is `deferred` (not logged). 12 syncs a minute.
+- **Close time.** `move_event` records `event.closed_at`. An offline scan counts only if
+  its time is before both `closes_at` and `closed_at` (`_offline_refused_as_closed`). A
+  closed event with no `closed_at` refuses every offline scan. A future phone time is
+  clamped to server time, so it cannot pass the close.
+- **Printed-number barcodes.** If any ticket's `barcode_value` equals its `printed_number`
+  (no flag is stored; the row is the record), the list and the sync answer 409 with
+  `code: offline_not_available` (`PrintixOfflineUnavailable`). A sync stores nothing.
+  Online scanning is unchanged.
 - Summary: `duplicates_refused` is live only; `offline_conflicts` counts offline rows
   whose outcome is not `admitted`.
 - Tests: `tests/printix/test_offline.py`.

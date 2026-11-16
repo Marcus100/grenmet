@@ -51,6 +51,9 @@ OFFLINE_SYNC_REQUESTS_PER_MINUTE = 12
 OFFLINE_SYNC_BATCH_MAX = 100
 #: Hex characters kept of each HMAC-SHA256 barcode hash (128 bits).
 OFFLINE_HASH_HEX_LENGTH = 32
+#: Stable code on the 409 that refuses offline mode for an event whose barcodes are
+#: its printed numbers (the list's hashes would be reversible by trying every number).
+OFFLINE_UNAVAILABLE_CODE = "offline_not_available"
 
 MAX_IMPORT_BYTES = 2 * 1024 * 1024
 MAX_IMPORT_ROWS = 20_000

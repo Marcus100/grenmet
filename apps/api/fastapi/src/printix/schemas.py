@@ -6,11 +6,11 @@ credential that admits it, so it leaves the server only in an import upload.
 
 import uuid
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, Field, model_validator
 
-from src.models import BaseModel, UtcDateTime
+from src.models import ApiError, BaseModel, UtcDateTime
 
 from . import constants
 
@@ -254,3 +254,11 @@ class PrintixOfflineSyncResult(BaseModel):
         )
     )
     retry_after_seconds: int | None = None
+
+
+class PrintixOfflineUnavailableBody(ApiError):
+    """A 409 that refuses offline mode for an event whose barcodes are printed numbers."""
+
+    code: Literal["offline_not_available"] = Field(
+        description="Stable code. Offline mode is off for this event; use the live scanner."
+    )

@@ -35,6 +35,10 @@ class PrintixEvent(Base):
     status: Mapped[str] = mapped_column(
         String(10), default=constants.PrintixEventStatus.OPEN.value
     )
+    #: Set by the administrator's close (``transitions.move_event``). An offline scan
+    #: made before it still counts. NULL while open, and for a closed event with no
+    #: recorded close, which refuses every offline scan.
+    closed_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 

@@ -16,6 +16,7 @@ import type {
   PrintixOfflineAdmissionsStatus200,
   PrintixOfflineAdmissionsStatus401,
   PrintixOfflineAdmissionsStatus403,
+  PrintixOfflineAdmissionsStatus409,
   PrintixOfflineAdmissionsStatus422,
   PrintixOfflineAdmissionsStatus429,
 } from "../models/PrintixOfflineAdmissions.js";
@@ -34,6 +35,7 @@ export function printixOfflineAdmissionsMutationOptions<TContext = unknown>(
     ResponseErrorConfig<
       | PrintixOfflineAdmissionsStatus401
       | PrintixOfflineAdmissionsStatus403
+      | PrintixOfflineAdmissionsStatus409
       | PrintixOfflineAdmissionsStatus422
       | PrintixOfflineAdmissionsStatus429
     >,
@@ -52,7 +54,7 @@ export function printixOfflineAdmissionsMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Records up to 100 admissions a phone made while offline: the phone's reference, the scanned barcode value and the time. The server stays the source of truth: the first admission it records wins, and any other answer (already_admitted with the first time and gate, void, unknown, event_closed) is a conflict to show at the gate. Barcode only: a typed number is never looked up. A retried reference returns its first answer. Unknown values share the live cap of 20 a minute; past it, the rest of the batch is counted in deferred and must be sent again later. Limited to 12 requests a minute per pairing.
+ * @description Records up to 100 admissions a phone made while offline: the phone's reference, the scanned barcode value and the time. The server stays the source of truth: the first admission it records wins, and any other answer (already_admitted with the first time and gate, void, unknown, event_closed) is a conflict to show at the gate. Barcode only: a typed number is never looked up. A retried reference returns its first answer. Unknown values share the live cap of 20 a minute; past it, the rest of the batch is counted in deferred and must be sent again later. Refused with 409 (offline_not_available) when any barcode is its printed number. Limited to 12 requests a minute per pairing.
  * @summary Sync admissions made offline
  * {@link /api/v1/printix/public/offline-admissions}
  */
@@ -63,6 +65,7 @@ export function usePrintixOfflineAdmissions<TContext>(
       ResponseErrorConfig<
         | PrintixOfflineAdmissionsStatus401
         | PrintixOfflineAdmissionsStatus403
+        | PrintixOfflineAdmissionsStatus409
         | PrintixOfflineAdmissionsStatus422
         | PrintixOfflineAdmissionsStatus429
       >,
@@ -86,6 +89,7 @@ export function usePrintixOfflineAdmissions<TContext>(
     ResponseErrorConfig<
       | PrintixOfflineAdmissionsStatus401
       | PrintixOfflineAdmissionsStatus403
+      | PrintixOfflineAdmissionsStatus409
       | PrintixOfflineAdmissionsStatus422
       | PrintixOfflineAdmissionsStatus429
     >,
@@ -98,6 +102,7 @@ export function usePrintixOfflineAdmissions<TContext>(
     ResponseErrorConfig<
       | PrintixOfflineAdmissionsStatus401
       | PrintixOfflineAdmissionsStatus403
+      | PrintixOfflineAdmissionsStatus409
       | PrintixOfflineAdmissionsStatus422
       | PrintixOfflineAdmissionsStatus429
     >,
@@ -115,6 +120,7 @@ export function usePrintixOfflineAdmissions<TContext>(
     ResponseErrorConfig<
       | PrintixOfflineAdmissionsStatus401
       | PrintixOfflineAdmissionsStatus403
+      | PrintixOfflineAdmissionsStatus409
       | PrintixOfflineAdmissionsStatus422
       | PrintixOfflineAdmissionsStatus429
     >,

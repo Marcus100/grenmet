@@ -16,6 +16,7 @@ import type {
   PrintixOfflineTicketsStatus200,
   PrintixOfflineTicketsStatus401,
   PrintixOfflineTicketsStatus403,
+  PrintixOfflineTicketsStatus409,
   PrintixOfflineTicketsStatus422,
   PrintixOfflineTicketsStatus429,
 } from "../models/PrintixOfflineTickets.js";
@@ -38,6 +39,7 @@ export function printixOfflineTicketsQueryOptions(
     ResponseErrorConfig<
       | PrintixOfflineTicketsStatus401
       | PrintixOfflineTicketsStatus403
+      | PrintixOfflineTicketsStatus409
       | PrintixOfflineTicketsStatus422
       | PrintixOfflineTicketsStatus429
     >,
@@ -56,7 +58,7 @@ export function printixOfflineTicketsQueryOptions(
 }
 
 /**
- * @description Every ticket on the pairing's event, so a phone can check tickets while it has no signal. Barcodes are never sent: each is an HMAC-SHA256 keyed with this pairing's hash_key, cut to 32 hex characters. States: valid, void, admitted (with the first admission's time and gate). No personal data. Limited to 4 reads a minute per pairing.
+ * @description Every ticket on the pairing's event, so a phone can check tickets while it has no signal. Barcodes are never sent: each is an HMAC-SHA256 keyed with this pairing's hash_key, cut to 32 hex characters. States: valid, void, admitted (with the first admission's time and gate). No personal data. Refused with 409 (offline_not_available) when any barcode is its printed number, since the hashes could then be reversed. Limited to 4 reads a minute per pairing.
  * @summary The event's ticket list for offline checking
  * {@link /api/v1/printix/public/offline-tickets}
  */
@@ -72,6 +74,7 @@ export function usePrintixOfflineTickets<
         ResponseErrorConfig<
           | PrintixOfflineTicketsStatus401
           | PrintixOfflineTicketsStatus403
+          | PrintixOfflineTicketsStatus409
           | PrintixOfflineTicketsStatus422
           | PrintixOfflineTicketsStatus429
         >,
@@ -101,6 +104,7 @@ export function usePrintixOfflineTickets<
     ResponseErrorConfig<
       | PrintixOfflineTicketsStatus401
       | PrintixOfflineTicketsStatus403
+      | PrintixOfflineTicketsStatus409
       | PrintixOfflineTicketsStatus422
       | PrintixOfflineTicketsStatus429
     >

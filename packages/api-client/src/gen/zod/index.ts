@@ -7800,6 +7800,7 @@ export {
   printixOfflineAdmissionsStatus200Schema,
   printixOfflineAdmissionsStatus401Schema,
   printixOfflineAdmissionsStatus403Schema,
+  printixOfflineAdmissionsStatus409Schema,
   printixOfflineAdmissionsStatus422Schema,
   printixOfflineAdmissionsStatus429Schema,
 } from "./printixOfflineAdmissionsSchema.js";
@@ -7814,9 +7815,11 @@ export {
   printixOfflineTicketsStatus200Schema,
   printixOfflineTicketsStatus401Schema,
   printixOfflineTicketsStatus403Schema,
+  printixOfflineTicketsStatus409Schema,
   printixOfflineTicketsStatus422Schema,
   printixOfflineTicketsStatus429Schema,
 } from "./printixOfflineTicketsSchema.js";
+export { printixOfflineUnavailableBodySchema } from "./printixOfflineUnavailableBodySchema.js";
 export { printixPairingCreatedSchema } from "./printixPairingCreatedSchema.js";
 export { printixPairingCreateSchema } from "./printixPairingCreateSchema.js";
 export { printixPairingPublicSchema } from "./printixPairingPublicSchema.js";

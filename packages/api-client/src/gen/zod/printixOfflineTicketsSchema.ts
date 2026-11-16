@@ -7,6 +7,7 @@ import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { errorMessageSchema } from "./errorMessageSchema.js";
 import { printixOfflineListSchema } from "./printixOfflineListSchema.js";
+import { printixOfflineUnavailableBodySchema } from "./printixOfflineUnavailableBodySchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const printixOfflineTicketsStatus200Schema = printixOfflineListSchema;
@@ -18,6 +19,11 @@ export const printixOfflineTicketsStatus401Schema = apiErrorSchema.describe(
 export const printixOfflineTicketsStatus403Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
+
+export const printixOfflineTicketsStatus409Schema =
+  printixOfflineUnavailableBodySchema.describe(
+    "A 409 that refuses offline mode for an event whose barcodes are printed numbers."
+  );
 
 export const printixOfflineTicketsStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -35,6 +41,7 @@ export const printixOfflineTicketsResponseSchema =
 export const printixOfflineTicketsErrorSchema = z.union([
   printixOfflineTicketsStatus401Schema,
   printixOfflineTicketsStatus403Schema,
+  printixOfflineTicketsStatus409Schema,
   printixOfflineTicketsStatus422Schema,
   printixOfflineTicketsStatus429Schema,
 ]);

@@ -27,6 +27,7 @@ from .schemas import (
     PrintixOfflineList,
     PrintixOfflineSyncRequest,
     PrintixOfflineSyncResult,
+    PrintixOfflineUnavailableBody,
     PrintixScanRequest,
     PrintixScanResult,
 )
@@ -55,6 +56,15 @@ RATE_LIMITED: ResponseMap = {
         "description": (
             "Too many requests from this address, or too many scans from this pairing "
             "(unknown or typed-number caps); see Retry-After"
+        ),
+    },
+}
+OFFLINE_UNAVAILABLE: ResponseMap = {
+    409: {
+        "model": PrintixOfflineUnavailableBody,
+        "description": (
+            "Offline mode is off for this event, because its barcodes are its printed "
+            "numbers. Use the live scanner."
         ),
     },
 }
@@ -142,9 +152,11 @@ def _offline_sync_key(request: Request) -> str:
         "has no signal. Barcodes are never sent: each is an HMAC-SHA256 keyed with "
         "this pairing's hash_key, cut to 32 hex characters. States: valid, void, "
         "admitted (with the first admission's time and gate). No personal data. "
-        "Limited to 4 reads a minute per pairing."
+        "Refused with 409 (offline_not_available) when any barcode is its printed "
+        "number, since the hashes could then be reversed. Limited to 4 reads a minute "
+        "per pairing."
     ),
-    responses={**PAIRING_RESPONSES, **RATE_LIMITED},
+    responses={**PAIRING_RESPONSES, **RATE_LIMITED, **OFFLINE_UNAVAILABLE},
 )
 @limiter.limit(ADDRESS_LIMIT, key_func=visitor_address)
 @limiter.limit(OFFLINE_LIST_LIMIT, key_func=_offline_list_key)
@@ -168,10 +180,11 @@ async def offline_tickets_endpoint(
         "is a conflict to show at the gate. Barcode only: a typed number is never "
         "looked up. A retried reference returns its first answer. Unknown values "
         "share the live cap of 20 a minute; past it, the rest of the batch is counted "
-        "in deferred and must be sent again later. Limited to 12 requests a minute "
-        "per pairing."
+        "in deferred and must be sent again later. Refused with 409 "
+        "(offline_not_available) when any barcode is its printed number. Limited to "
+        "12 requests a minute per pairing."
     ),
-    responses={**PAIRING_RESPONSES, **RATE_LIMITED},
+    responses={**PAIRING_RESPONSES, **RATE_LIMITED, **OFFLINE_UNAVAILABLE},
 )
 @limiter.limit(ADDRESS_LIMIT, key_func=visitor_address)
 @limiter.limit(OFFLINE_SYNC_LIMIT, key_func=_offline_sync_key)
