@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "@barrelsgd/ui/styles/app-feel";
+@import "@barrelsgd/pwa-kit/styles/base";
 
 /*
  * Lane colours (docs/design/printix.md). One dark look: gate staff work at
@@ -16,6 +18,17 @@
   --color-px-stop: #b91c1c;
 
   --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  /* The shared phone-app colours (packages/pwa-kit), in Printix's look. */
+  --color-pwa-background: var(--color-px-ink);
+  --color-pwa-surface: var(--color-px-surface);
+  --color-pwa-rule: var(--color-px-rule);
+  --color-pwa-text: var(--color-px-paper);
+  --color-pwa-muted: var(--color-px-muted);
+  --color-pwa-accent: var(--color-px-green);
+  --color-pwa-on-accent: var(--color-px-ink);
+  --color-pwa-bad: var(--color-px-stop);
+  --color-pwa-on-bad: var(--color-px-paper);
 }
 
 html,
@@ -24,36 +37,4 @@ body {
   color: var(--color-px-paper);
   color-scheme: dark;
   background: var(--color-px-ink);
-}
-
-body {
-  /* A scanner is an app, not a page: no pull-to-refresh, no tap flash. */
-  overscroll-behavior: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Controls answer at once and never zoom or select like page text. */
-button,
-[role="button"],
-summary {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/*
- * A screen that replaces another (pairing, problem, scanning) fades in, so the
- * change does not read as a page load. Opacity only, so it is safe for people
- * who ask for reduced motion. The result screen never uses this: it shows
- * hundreds of times a night and must be instant.
- */
-.px-screen {
-  opacity: 1;
-  transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
-
-  @starting-style {
-    opacity: 0;
-  }
 }

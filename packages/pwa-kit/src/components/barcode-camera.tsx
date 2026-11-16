@@ -5,15 +5,15 @@ import {
   type BarcodeReader,
   browserDetector,
   createBarcodeReader,
-} from "@/lib/barcode-reader";
+} from "../lib/barcode-reader";
 import {
   CAMERA_PROBLEM_TEXT,
   type CameraProblem,
   cameraProblemFor,
-} from "@/lib/camera-problem";
-import { reportError } from "@/lib/report-error";
-import { cleanScan } from "@/lib/scan-value";
-import { loadZxingLibrary } from "@/lib/zxing-library";
+} from "../lib/camera-problem";
+import { reportError } from "../lib/report-error";
+import { cleanScan } from "../lib/scan-value";
+import { loadZxingLibrary } from "../lib/zxing-library";
 
 const SCAN_INTERVAL_MS = 200;
 
@@ -27,32 +27,62 @@ interface TorchConstraintSet extends MediaTrackConstraintSet {
   torch?: boolean;
 }
 
-const PROBLEM_TEXT: Record<Problem, string> = {
-  ...CAMERA_PROBLEM_TEXT,
+/** The words the camera shows. Each app passes its own; these are the defaults. */
+export interface BarcodeCameraText {
+  /** Shown over the camera before it starts. */
+  readonly hint: string;
+  /** Shown when the page is not on https, where browsers refuse the camera. */
+  readonly insecure: string;
+  /** Shown under the camera once it reads, after "Reading with … ." */
+  readonly privacy: string;
+  /** Names the whole camera area for screen readers. */
+  readonly region: string;
+  /** The button that starts the camera. */
+  readonly start: string;
+  /** Names the live camera picture for screen readers. */
+  readonly video: string;
+}
+
+export const DEFAULT_CAMERA_TEXT: BarcodeCameraText = {
+  hint: "Hold the barcode inside the frame. The camera is used only to read it.",
   insecure:
-    "The camera only works on a secure (https) address. Open the scanner from its https link.",
+    "The camera only works on a secure (https) address. Open the app from its https link.",
+  privacy: "Nothing is sent except the code it reads.",
+  region: "Barcode scanner",
+  start: "Start scanning",
+  video: "Camera view for reading the barcode",
 };
 
 const CONTROL =
-  "bg-px-ink/80 text-px-paper focus-visible:outline-px-paper min-h-11 rounded-full border border-px-rule px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2";
+  "bg-pwa-background/80 text-pwa-text focus-visible:outline-pwa-text min-h-11 rounded-full border border-pwa-rule px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2";
 
 function hasTorch(track: MediaStreamTrack): boolean {
   const capabilities = track.getCapabilities?.() ?? {};
   return "torch" in capabilities;
 }
 
-interface GateScannerProps {
-  /** Each barcode read, cleaned. The parent decides whether it is submitted. */
+interface BarcodeCameraProps {
+  /** Barcode formats to read; defaults to the common ticket and pass formats. */
+  readonly formats?: readonly string[];
+  /** Each barcode read, cleaned. The parent decides what it means. */
   readonly onRead: (value: string) => void;
   /** Called on the tap that starts the camera; iPhone needs it to play sounds. */
-  readonly onStart: () => void;
+  readonly onStart?: () => void;
+  readonly text?: BarcodeCameraText;
 }
 
 /**
  * The camera view: a wide viewfinder, torch and camera switch, and the decode
- * loop. It reports reads and never decides what they mean.
+ * loop. It reports reads and never decides what they mean. Android uses the
+ * phone's own barcode reader; iPhone uses the bundled one, so the app must run
+ * `pwa-kit-copy-zxing` before dev and build.
  */
-export function GateScanner({ onRead, onStart }: GateScannerProps) {
+export function BarcodeCamera({
+  formats,
+  onRead,
+  onStart,
+  text = DEFAULT_CAMERA_TEXT,
+}: BarcodeCameraProps) {
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
   const loop = useRef<Loop | null>(null);
@@ -146,6 +176,7 @@ export function GateScanner({ onRead, onStart }: GateScannerProps) {
         setTorchSupported(track ? hasTorch(track) : false);
         const reader = await createBarcodeReader({
           browser: browserDetector(),
+          formats,
           loadLibrary: loadZxingLibrary,
         });
         setDecoder(reader.source);
@@ -161,7 +192,7 @@ export function GateScanner({ onRead, onStart }: GateScannerProps) {
         setStatus("off");
       }
     },
-    [startLoop, stopStream]
+    [formats, startLoop, stopStream]
   );
 
   const flip = () => {
@@ -204,16 +235,16 @@ export function GateScanner({ onRead, onStart }: GateScannerProps) {
   }, [stopCamera, stopStream]);
 
   const begin = () => {
-    onStart();
+    onStart?.();
     startCamera(facing.current).catch(() => undefined);
   };
 
   return (
-    <section aria-label="Ticket scanner" className="flex flex-col gap-3">
+    <section aria-label={text.region} className="flex flex-col gap-3">
       {/* Wider than tall, also on a desktop: the height is capped, not the width. */}
-      <div className="bg-px-surface relative aspect-[16/10] max-h-[50dvh] w-full overflow-hidden">
+      <div className="bg-pwa-surface relative aspect-[16/10] max-h-[50dvh] w-full overflow-hidden">
         <video
-          aria-label="Camera view for reading the ticket barcode"
+          aria-label={text.video}
           className={`h-full w-full object-cover ${status === "on" ? "" : "invisible"}`}
           muted
           playsInline
@@ -223,7 +254,7 @@ export function GateScanner({ onRead, onStart }: GateScannerProps) {
           <>
             <div
               aria-hidden="true"
-              className="border-px-green pointer-events-none absolute inset-x-6 top-1/2 h-1/3 -translate-y-1/2 rounded-2xl border-2"
+              className="border-pwa-accent pointer-events-none absolute inset-x-6 top-1/2 h-1/3 -translate-y-1/2 rounded-2xl border-2"
             />
             <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2">
               <button className={CONTROL} onClick={flip} type="button">
@@ -248,18 +279,16 @@ export function GateScanner({ onRead, onStart }: GateScannerProps) {
           </>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
-            <p className="text-px-muted max-w-xs text-base">
-              {status === "starting"
-                ? "Starting the camera…"
-                : "Hold the ticket's barcode inside the green frame. The camera is used only to read it."}
+            <p className="text-pwa-muted max-w-xs text-base">
+              {status === "starting" ? "Starting the camera…" : text.hint}
             </p>
             {status === "off" ? (
               <button
-                className="bg-px-green text-px-ink focus-visible:outline-px-paper min-h-14 w-full max-w-xs rounded-2xl px-6 text-lg font-semibold transition-transform duration-150 ease-out hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
+                className="bg-pwa-accent text-pwa-on-accent focus-visible:outline-pwa-text min-h-14 w-full max-w-xs rounded-2xl px-6 text-lg font-semibold transition-transform duration-150 ease-out hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
                 onClick={begin}
                 type="button"
               >
-                Start scanning
+                {text.start}
               </button>
             ) : null}
           </div>
@@ -268,20 +297,22 @@ export function GateScanner({ onRead, onStart }: GateScannerProps) {
 
       {problem ? (
         <p
-          className="bg-px-stop text-px-paper rounded-2xl px-4 py-3 text-base font-semibold"
+          className="bg-pwa-bad text-pwa-on-bad rounded-2xl px-4 py-3 text-base font-semibold"
           role="alert"
         >
-          {PROBLEM_TEXT[problem]}
+          {problem === "insecure"
+            ? text.insecure
+            : CAMERA_PROBLEM_TEXT[problem]}
         </p>
       ) : null}
 
       {decoder ? (
-        <p className="text-px-muted text-sm">
+        <p className="text-pwa-muted text-sm">
           Reading with{" "}
           {decoder === "browser"
             ? "this phone's built-in barcode reader"
-            : "the scanner's own barcode reader"}
-          . Nothing is sent except the ticket value.
+            : "the app's own barcode reader"}
+          . {text.privacy}
         </p>
       ) : null}
     </section>

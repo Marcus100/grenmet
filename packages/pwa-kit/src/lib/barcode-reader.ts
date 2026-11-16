@@ -3,7 +3,9 @@
  * `BarcodeDetector`; iPhone Safari has none, so there the bundled library
  * (zxing, WebAssembly) does the work behind the same interface.
  */
-export const TICKET_FORMATS = [
+
+/** The formats printed on tickets, passes and boarding cards. The default. */
+export const COMMON_FORMATS = [
   "code_128",
   "code_39",
   "code_93",
@@ -37,11 +39,12 @@ export interface BarcodeReader {
 }
 
 async function browserReadsEverything(
-  ctor: BarcodeDetectorCtor
+  ctor: BarcodeDetectorCtor,
+  formats: readonly string[]
 ): Promise<boolean> {
   try {
     const supported = new Set(await ctor.getSupportedFormats?.());
-    return TICKET_FORMATS.every((format) => supported.has(format));
+    return formats.every((format) => supported.has(format));
   } catch {
     return false;
   }
@@ -54,16 +57,20 @@ export function browserDetector(): BarcodeDetectorCtor | null {
 }
 
 /**
- * The browser's own decoder when it reads every ticket format, otherwise the
- * library. A browser that reads only some formats is not trusted: a ticket it
- * cannot read would look like a bad ticket.
+ * The browser's own decoder when it reads every wanted format, otherwise the
+ * library. A browser that reads only some formats is not trusted: a code it
+ * cannot read would look like a bad ticket or pass.
  */
 export async function createBarcodeReader(options: {
   browser: BarcodeDetectorCtor | null;
+  formats?: readonly string[];
   loadLibrary: () => Promise<BarcodeDetectorCtor>;
 }): Promise<BarcodeReader> {
-  const formats = [...TICKET_FORMATS];
-  if (options.browser && (await browserReadsEverything(options.browser))) {
+  const formats = [...(options.formats ?? COMMON_FORMATS)];
+  if (
+    options.browser &&
+    (await browserReadsEverything(options.browser, formats))
+  ) {
     const detector = new options.browser({ formats });
     return { source: "browser", detect: (video) => detector.detect(video) };
   }

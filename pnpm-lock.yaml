@@ -473,12 +473,12 @@ importers:
       '@barrelsgd/api-client':
         specifier: workspace:*
         version: link:../../../packages/api-client
+      '@barrelsgd/pwa-kit':
+        specifier: workspace:*
+        version: link:../../../packages/pwa-kit
       '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
-      barcode-detector:
-        specifier: 'catalog:'
-        version: 3.2.3(@types/emscripten@1.41.6)
       next:
         specifier: 'catalog:'
         version: 16.4.6(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.0)(@types/node@26.6.6)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4)
@@ -488,9 +488,6 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.3.1(react@19.3.1)
-      vaul:
-        specifier: 'catalog:'
-        version: 1.1.2(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
     devDependencies:
       '@barrelsgd/tsconfig':
         specifier: workspace:*
@@ -2211,6 +2208,52 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
+
+  packages/pwa-kit:
+    dependencies:
+      barcode-detector:
+        specifier: 'catalog:'
+        version: 3.2.3(@types/emscripten@1.41.6)
+      vaul:
+        specifier: 'catalog:'
+        version: 1.1.2(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+    devDependencies:
+      '@barrelsgd/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@testing-library/dom':
+        specifier: 'catalog:'
+        version: 10.4.2
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.1.0)
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.6
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.3.0(@types/react@19.3.0)
+      jsdom:
+        specifier: 'catalog:'
+        version: 31.0.1
+      react:
+        specifier: 'catalog:'
+        version: 19.3.1
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.3.1(react@19.3.1)
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vitest:
+        specifier: 'catalog:'
+        version: 5.1.0(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(happy-dom@21.0.4)(jsdom@31.0.1)(msw@2.15.0(@types/node@26.6.6)(typescript@7.0.2))(vite@8.3.3(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
 
   packages/theme:
     dependencies:

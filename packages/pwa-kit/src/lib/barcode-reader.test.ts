@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   type BarcodeDetectorCtor,
+  COMMON_FORMATS,
   createBarcodeReader,
-  TICKET_FORMATS,
-} from "@/lib/barcode-reader";
+} from "./barcode-reader";
 
 function fakeDetector(
   supported: readonly string[] | Error,
@@ -25,10 +25,10 @@ function fakeDetector(
 const video = {} as HTMLVideoElement;
 
 describe("createBarcodeReader", () => {
-  it("uses the browser when it reads every ticket format", async () => {
+  it("uses the browser when it reads every common format", async () => {
     const loadLibrary = vi.fn();
     const reader = await createBarcodeReader({
-      browser: fakeDetector(TICKET_FORMATS, "from-browser"),
+      browser: fakeDetector(COMMON_FORMATS, "from-browser"),
       loadLibrary,
     });
     expect(reader.source).toBe("browser");
@@ -51,6 +51,15 @@ describe("createBarcodeReader", () => {
       loadLibrary: () => Promise.resolve(fakeDetector([], "from-library")),
     });
     expect(reader.source).toBe("library");
+  });
+
+  it("checks only the formats the app asks for", async () => {
+    const reader = await createBarcodeReader({
+      browser: fakeDetector(["qr_code"], "from-browser"),
+      formats: ["qr_code"],
+      loadLibrary: vi.fn(),
+    });
+    expect(reader.source).toBe("browser");
   });
 
   it("uses the library when the browser cannot list its formats", async () => {

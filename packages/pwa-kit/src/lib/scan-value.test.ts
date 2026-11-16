@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanScan } from "@/lib/scan-value";
+import { cleanScan } from "./scan-value";
 
 describe("cleanScan", () => {
   it("trims and keeps an ordinary value", () => {

@@ -1,16 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { CountBar } from "@/components/count-bar";
-import { GateScanner } from "@/components/gate-scanner";
-import { ResultOverlay } from "@/components/result-overlay";
-import { TypedEntry } from "@/components/typed-entry";
+import { BarcodeCamera } from "@barrelsgd/pwa-kit/components/barcode-camera";
 import {
   createSoundPlayer,
-  holdScreenAwake,
   type SoundPlayer,
   vibrate,
-} from "@/lib/gate-feedback";
+} from "@barrelsgd/pwa-kit/lib/feedback";
+import { holdScreenAwake } from "@barrelsgd/pwa-kit/lib/wake-lock";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { CountBar } from "@/components/count-bar";
+import { ResultOverlay } from "@/components/result-overlay";
+import { TypedEntry } from "@/components/typed-entry";
 import {
   type Connection,
   type PairingProblem,
@@ -25,6 +25,17 @@ import {
   verdictFor,
 } from "@/lib/scan-outcome";
 import { useLiveCount } from "@/lib/use-live-count";
+
+/** The scanner's own words around the shared camera. */
+const CAMERA_TEXT = {
+  hint: "Hold the ticket's barcode inside the green frame. The camera is used only to read it.",
+  insecure:
+    "The camera only works on a secure (https) address. Open the scanner from its https link.",
+  privacy: "Nothing is sent except the ticket value.",
+  region: "Ticket scanner",
+  start: "Start scanning",
+  video: "Camera view for reading the ticket barcode",
+} as const;
 
 interface GateConsoleProps {
   readonly connection: Connection;
@@ -70,8 +81,9 @@ export function GateConsole({
       const time = formatTime(new Date().toISOString());
       setLastCheck(time ? `${next.title}, ${time}` : next.title);
       if (next.sound) {
-        sound.play(next.sound);
-        vibrate(next.sound);
+        const signal = next.sound === "admitted" ? "success" : "failure";
+        sound.play(signal);
+        vibrate(signal);
       }
     },
     [sound]
@@ -144,7 +156,7 @@ export function GateConsole({
   };
 
   return (
-    <div className="px-screen flex min-h-dvh flex-col">
+    <div className="pwa-screen flex min-h-dvh flex-col">
       <header className="flex flex-col gap-1 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
         <p className="text-px-muted text-xs font-semibold tracking-wider uppercase">
           Paired
@@ -164,7 +176,11 @@ export function GateConsole({
       </div>
 
       <main className="flex flex-1 flex-col gap-4 px-4">
-        <GateScanner onRead={handleRead} onStart={() => sound.unlock()} />
+        <BarcodeCamera
+          onRead={handleRead}
+          onStart={() => sound.unlock()}
+          text={CAMERA_TEXT}
+        />
 
         {checking ? (
           <p

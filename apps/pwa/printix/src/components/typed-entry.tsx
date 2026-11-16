@@ -1,7 +1,7 @@
 "use client";
 
+import { Sheet } from "@barrelsgd/pwa-kit/components/sheet";
 import { type FormEvent, type RefObject, useId, useRef, useState } from "react";
-import { Drawer } from "vaul";
 
 /** The API refuses longer values; a printed number is a few characters. */
 export const TYPED_MAX_LENGTH = 32;
@@ -14,10 +14,10 @@ interface TypedEntryProps {
 }
 
 /**
- * Typing a printed number, for a ticket whose barcode will not read. A bottom
- * sheet that behaves like a phone's own: it slides up, follows the finger, and
- * a drag down, a tap outside, Escape or Cancel closes it. Focus starts in the
- * field, stays inside, and goes back to the button that opened it.
+ * Typing a printed number, for a ticket whose barcode will not read. A shared
+ * bottom sheet: it slides up, follows the finger, and a drag down, a tap
+ * outside, Escape or Cancel closes it. Focus starts in the field, stays inside,
+ * and goes back to the button that opened it. Each opening starts empty.
  */
 export function TypedEntry({
   checking,
@@ -26,52 +26,20 @@ export function TypedEntry({
   open,
 }: TypedEntryProps) {
   const field = useRef<HTMLInputElement>(null);
-  const titleId = useId();
-  // Each opening gets a fresh form, even one that starts while the sheet is
-  // still sliding away: the last number and error never carry over.
-  const [wasOpen, setWasOpen] = useState(open);
-  const [opening, setOpening] = useState(0);
-  if (open !== wasOpen) {
-    setWasOpen(open);
-    if (open) {
-      setOpening(opening + 1);
-    }
-  }
-
   return (
-    <Drawer.Root
-      onOpenChange={(next) => {
-        if (!next) {
-          onClose();
-        }
-      }}
+    <Sheet
+      initialFocus={field}
+      onClose={onClose}
       open={open}
+      title="Type the printed number"
     >
-      <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/70" />
-        <Drawer.Content
-          aria-describedby={undefined}
-          aria-labelledby={titleId}
-          className="bg-px-surface fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 flex flex-col gap-4 rounded-3xl px-5 pt-3 pb-5 outline-none"
-          onOpenAutoFocus={(event) => {
-            event.preventDefault();
-            field.current?.focus();
-          }}
-        >
-          <Drawer.Handle className="bg-px-rule! mx-auto h-1.5! w-12! rounded-full" />
-          <Drawer.Title className="text-xl font-semibold" id={titleId}>
-            Type the printed number
-          </Drawer.Title>
-          <TypedForm
-            checking={checking}
-            field={field}
-            key={opening}
-            onClose={onClose}
-            onSubmit={onSubmit}
-          />
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+      <TypedForm
+        checking={checking}
+        field={field}
+        onClose={onClose}
+        onSubmit={onSubmit}
+      />
+    </Sheet>
   );
 }
 
@@ -82,7 +50,7 @@ interface TypedFormProps {
   readonly onSubmit: (value: string) => void;
 }
 
-/** The sheet's form. Its parent gives it a new key on every opening. */
+/** The sheet's form. The sheet creates it afresh on every opening. */
 function TypedForm({ checking, field, onClose, onSubmit }: TypedFormProps) {
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);

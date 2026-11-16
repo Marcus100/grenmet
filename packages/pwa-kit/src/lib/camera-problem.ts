@@ -8,7 +8,7 @@ export const CAMERA_PROBLEM_TEXT: Record<CameraProblem, string> = {
   failed: "The camera could not be started. Close the app and open it again.",
 };
 
-/** Maps the browser's error names to something gate staff can act on. */
+/** Maps the browser's error names to something staff can act on. */
 export function cameraProblemFor(error: unknown): CameraProblem {
   const name =
     typeof error === "object" && error !== null && "name" in error

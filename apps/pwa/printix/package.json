@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/copy-wasm.mjs && next dev --turbopack --port 3064",
-    "build": "node scripts/copy-wasm.mjs && next build",
+    "dev": "pwa-kit-copy-zxing && next dev --turbopack --port 3064",
+    "build": "pwa-kit-copy-zxing && next build",
     "start": "next start --port 3064",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
@@ -19,12 +19,11 @@
   },
   "dependencies": {
     "@barrelsgd/api-client": "workspace:*",
+    "@barrelsgd/pwa-kit": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
-    "barcode-detector": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:",
-    "vaul": "catalog:"
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",

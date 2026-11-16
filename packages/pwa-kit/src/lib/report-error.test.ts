@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ERROR_REPORT_EVENT, reportError } from "@/lib/report-error";
-import { SECRET } from "@/test/fixtures";
+import { ERROR_REPORT_EVENT, reportError } from "./report-error";
+
+const SECRET = "pairing-secret-value";
 
 afterEach(() => {
   vi.restoreAllMocks();
