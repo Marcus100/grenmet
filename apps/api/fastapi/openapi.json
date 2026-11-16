@@ -63613,6 +63613,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many attempts; try again later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Authreplacerecoverycodes"
+                }
+              }
+            }
           }
         },
         "security": [

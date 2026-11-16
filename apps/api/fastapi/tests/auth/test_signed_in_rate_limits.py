@@ -134,3 +134,24 @@ async def test_password_change_is_limited_per_account(
     ]
     assert statuses[:5] == [400] * 5
     assert statuses[5] == 429
+
+
+async def test_recovery_codes_are_limited_per_account(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    alice, _ = await _with_authenticator(db_async)
+    bob, _ = await _with_authenticator(db_async)
+    body = {"password": WRONG_PASSWORD, "code": "000000"}
+    recovery = "/api/v1/auth/users/me/security/recovery-codes"
+    statuses = [
+        (
+            await async_client.post(recovery, headers=_headers(alice), json=body)
+        ).status_code
+        for _ in range(6)
+    ]
+    # Five attempts reach the route; the sixth is refused by the limit. A login
+    # lockout (also 429) may answer earlier, so only the last status is pinned.
+    assert statuses[-1] == 429
+    # Bob shares the web host's connecting address with alice but has his own bucket.
+    bob_response = await async_client.post(recovery, headers=_headers(bob), json=body)
+    assert bob_response.status_code != 429

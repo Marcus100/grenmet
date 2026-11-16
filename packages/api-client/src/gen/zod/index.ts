@@ -798,6 +798,7 @@ export {
   authReplaceRecoveryCodesStatus200Schema,
   authReplaceRecoveryCodesStatus400Schema,
   authReplaceRecoveryCodesStatus422Schema,
+  authReplaceRecoveryCodesStatus429Schema,
 } from "./authReplaceRecoveryCodesSchema.js";
 export {
   authRequestStaffAccessErrorSchema,

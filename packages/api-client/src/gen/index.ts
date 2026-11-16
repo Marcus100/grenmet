@@ -5527,6 +5527,7 @@ export type {
   AuthReplaceRecoveryCodesStatus200,
   AuthReplaceRecoveryCodesStatus400,
   AuthReplaceRecoveryCodesStatus422,
+  AuthReplaceRecoveryCodesStatus429,
 } from "./models/AuthReplaceRecoveryCodes.js";
 export type {
   AuthRequestStaffAccessOptions,
@@ -15830,6 +15831,7 @@ export {
   authReplaceRecoveryCodesStatus200Schema,
   authReplaceRecoveryCodesStatus400Schema,
   authReplaceRecoveryCodesStatus422Schema,
+  authReplaceRecoveryCodesStatus429Schema,
 } from "./zod/authReplaceRecoveryCodesSchema.js";
 export {
   authRequestStaffAccessErrorSchema,

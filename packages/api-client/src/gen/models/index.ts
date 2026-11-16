@@ -831,6 +831,7 @@ export type {
   AuthReplaceRecoveryCodesStatus200,
   AuthReplaceRecoveryCodesStatus400,
   AuthReplaceRecoveryCodesStatus422,
+  AuthReplaceRecoveryCodesStatus429,
 } from "./AuthReplaceRecoveryCodes.js";
 export type {
   AuthRequestStaffAccessOptions,

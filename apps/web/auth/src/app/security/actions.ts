@@ -18,6 +18,8 @@ import {
 } from "@/lib/session";
 
 const API_PREFIX = /\/api\/v1(?=\/|$)/u;
+// The API answers 429 when a limit on these routes is reached (one minute windows).
+const TOO_MANY_ATTEMPTS = "Too many attempts. Wait a minute and try again.";
 async function securityClient(accessToken?: string) {
   let bearerToken = accessToken;
   if (!bearerToken) {
@@ -38,7 +40,10 @@ async function securityClient(accessToken?: string) {
     url: request.url.replace(API_PREFIX, config.authApiPrefix),
     signal: AbortSignal.timeout(10_000),
   }));
-  client.interceptors.error.use(() => {
+  client.interceptors.error.use((error) => {
+    if (error.status === 429) {
+      throw new Error(TOO_MANY_ATTEMPTS);
+    }
     throw new Error(
       "Unable to update security settings. Check your code and try again."
     );
