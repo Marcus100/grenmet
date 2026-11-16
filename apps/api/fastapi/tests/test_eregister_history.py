@@ -3,9 +3,12 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from src.eregister import entries
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 from .test_eregister_validation import PAPER_ROW
 
@@ -19,7 +22,7 @@ class _Result:
     def __init__(self, rows: list[dict[str, Any]]) -> None:
         self._rows = rows
 
-    def mappings(self) -> "_Result":
+    def mappings(self) -> _Result:
         return self
 
     def all(self) -> list[dict[str, Any]]:
@@ -27,6 +30,11 @@ class _Result:
 
     def first(self) -> dict[str, Any] | None:
         return self._rows[0] if self._rows else None
+
+
+def _session(register: _Register) -> AsyncSession:
+    """The fake stands in for the session; it implements only what history_for uses."""
+    return cast("AsyncSession", register)
 
 
 class _Register:
@@ -61,7 +69,7 @@ def _body(air_temp: str) -> dict[str, Any]:
 
 async def test_both_hours_come_from_one_query() -> None:
     register = _Register({ONE_HOUR: _body("0271"), THREE_HOURS: _body("0243")})
-    found = await entries.history_for(register, STATION, OBSERVED)  # type: ignore[arg-type]
+    found = await entries.history_for(_session(register), STATION, OBSERVED)
     assert register.statements == 1
     assert {hours: book.air_temp for hours, book in found.items()} == {
         1: "0271",
@@ -71,7 +79,7 @@ async def test_both_hours_come_from_one_query() -> None:
 
 async def test_a_missing_hour_is_left_out() -> None:
     register = _Register({THREE_HOURS: _body("0243")})
-    found = await entries.history_for(register, STATION, OBSERVED)  # type: ignore[arg-type]
+    found = await entries.history_for(_session(register), STATION, OBSERVED)
     assert list(found) == [3]
 
 
@@ -82,19 +90,19 @@ async def test_other_hours_are_not_history() -> None:
             ONE_HOUR: _body("0271"),
         }
     )
-    found = await entries.history_for(register, STATION, OBSERVED)  # type: ignore[arg-type]
+    found = await entries.history_for(_session(register), STATION, OBSERVED)
     assert list(found) == [1]
 
 
 async def test_an_unreadable_body_leaves_the_other_hour_usable() -> None:
     # air_temp is at most 8 characters: this stored body cannot be read.
     register = _Register({ONE_HOUR: _body("1234567890"), THREE_HOURS: _body("0243")})
-    found = await entries.history_for(register, STATION, OBSERVED)  # type: ignore[arg-type]
+    found = await entries.history_for(_session(register), STATION, OBSERVED)
     assert list(found) == [3]
 
 
 async def test_no_register_or_station_means_no_query() -> None:
     assert await entries.history_for(None, STATION, OBSERVED) == {}
     register = _Register({ONE_HOUR: _body("0271")})
-    assert await entries.history_for(register, " ", OBSERVED) == {}  # type: ignore[arg-type]
+    assert await entries.history_for(_session(register), " ", OBSERVED) == {}
     assert register.statements == 0
