@@ -503,7 +503,14 @@ async def test_bundles_return_label_and_description(
         f"{API}/role-bundles", headers=headers_for(owner, org.id)
     )
     bundles = response.json()
-    assert len(bundles) == len(role_bundles.ROLE_BUNDLES)
+    # Only bundles of products the organisation is entitled to are listed (ADR-0044).
+    # This organisation is entitled to Events, not Printix.
+    entitled = {
+        role_key
+        for role_key, keys in role_bundles.ROLE_BUNDLES.items()
+        if role_bundles.product_of_key(next(iter(keys))) == "events"
+    }
+    assert {bundle["role_key"] for bundle in bundles} == entitled
     for bundle in bundles:
         label, description = role_bundles.BUNDLE_COPY[bundle["role_key"]]
         assert bundle["label"] == label and bundle["description"] == description

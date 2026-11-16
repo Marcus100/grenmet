@@ -183,6 +183,14 @@ SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 OPENAPI_TAGS = [
     {
+        "name": "printix-me",
+        "description": "Printix self service: the organisations the signed-in organiser may run Printix for (printix app session).",
+    },
+    {
+        "name": "printix-org",
+        "description": "Printix organiser access: read-only event list and summary for an organisation's members (printix app, authenticator session).",
+    },
+    {
         "name": "printix-admin",
         "description": "Printix ticket registry: events, ticket import, tickets and gate pairings (superuser with two-step sign-in).",
     },

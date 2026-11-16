@@ -32,4 +32,5 @@ export type PrintixEventPublic = {
    * @type string
    */
   created_at: string;
+  organisation_id?: string | null;
 };
