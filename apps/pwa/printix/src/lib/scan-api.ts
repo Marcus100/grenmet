@@ -80,9 +80,11 @@ interface HttpError extends Error {
 }
 
 /**
- * Matches the API client's ResponseError by name, as the client recommends:
- * every generated client carries its own copy of the class, so `instanceof`
- * against one copy can miss an error thrown by another.
+ * Matches the API client's ResponseError by name, as its own
+ * `ResponseError.is` does: every generated client carries its own copy of the
+ * class, so `instanceof` against one copy can miss an error thrown by another.
+ * The class itself is not imported: the client's index exports it twice, and
+ * Vite's bundler warns and drops that ambiguous export.
  */
 function isHttpError(error: unknown): error is HttpError {
   return (

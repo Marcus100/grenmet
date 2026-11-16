@@ -5,8 +5,11 @@ Next.js: owner decision, 16 Nov 2026), written to `out/` as files only.
 Entry page `index.html`, start file `src/main.tsx`, install manifest
 `public/manifest.webmanifest`, Inter shipped in `public/fonts/` (SIL Open Font
 License). Test address: `https://printix-scanner.pages.dev` (Cloudflare Pages
-project `printix-scanner`, direct upload of `out/` with
-`wrangler pages deploy out --project-name printix-scanner --branch main`;
+project `printix-scanner`, direct upload of `out/`. Build with the API
+address, then upload: `VITE_API_URL=https://api.barrels.gd pnpm --filter
+@barrelsgd/pwa-printix build`, then from `apps/pwa/printix`
+`wrangler pages deploy out --project-name printix-scanner --branch main`. A
+build without `VITE_API_URL` shows "not connected" and checks nothing;
 create Pages projects through the Cloudflare API, since `wrangler pages
 project create` now tries to convert the app to a Worker). Planned address
 `scan.barrels.gd` (owner decision, 15 Nov 2026); see "Address and API origin"
