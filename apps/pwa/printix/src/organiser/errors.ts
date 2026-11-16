@@ -8,6 +8,17 @@ import { reportError } from "@/lib/report-error";
 /** The authenticator check that every organiser route makes (privileged_mfa.py). */
 export const ENROLMENT_REQUIRED_CODE = "mfa_enrolment_required";
 
+/**
+ * The structured code the sign-in refuses a person without an authenticator
+ * with (companion API change). Preferred over text when the body has a `code`.
+ */
+export const AUTHENTICATOR_REQUIRED_CODE = "authenticator_required";
+
+const NO_AUTHENTICATOR_CODES: readonly string[] = [
+  AUTHENTICATOR_REQUIRED_CODE,
+  ENROLMENT_REQUIRED_CODE,
+];
+
 /** Used when the server gives no usable Retry-After. */
 const DEFAULT_RETRY_SECONDS = 60;
 const MAX_RETRY_SECONDS = 3600;
@@ -78,6 +89,14 @@ function hasName(error: unknown, names: readonly string[]): boolean {
   );
 }
 
+/** The body's structured `code`, when it has one. */
+function structuredCode(data: unknown): string | null {
+  if (typeof data !== "object" || data === null || !("code" in data)) {
+    return null;
+  }
+  return typeof data.code === "string" ? data.code : null;
+}
+
 /** Every string the error body could say why, joined for matching. */
 function bodyText(data: unknown): string {
   if (typeof data !== "object" || data === null) {
@@ -98,6 +117,15 @@ function retryAfterSeconds(error: HttpError): number {
 
 function httpProblem(error: HttpError): Problem {
   const text = bodyText(error.data);
+  const code = structuredCode(error.data);
+  // A structured code wins over any wording in the text.
+  if (
+    error.status === 403 &&
+    code !== null &&
+    NO_AUTHENTICATOR_CODES.includes(code)
+  ) {
+    return { kind: "no-authenticator" };
+  }
   switch (error.status) {
     case 400:
       if (text.includes("Two-factor")) {
@@ -110,7 +138,8 @@ function httpProblem(error: HttpError): Problem {
     case 401:
       return { kind: "session-ended" };
     case 403:
-      if (text.includes(ENROLMENT_REQUIRED_CODE)) {
+      // Text fallback for a body with no structured code: the detail ends with the code.
+      if (NO_AUTHENTICATOR_CODES.some((known) => text.includes(known))) {
         return { kind: "no-authenticator" };
       }
       if (text.includes("Sign in again with your authenticator")) {
@@ -164,7 +193,9 @@ export function problemOf(error: unknown): Problem {
 export function problemMessage(problem: Problem): string {
   switch (problem.kind) {
     case "rate-limited":
-      return "Too many attempts. Wait a few minutes, then try again.";
+      return `Too many attempts. Try again in ${problem.retryAfterSeconds} ${
+        problem.retryAfterSeconds === 1 ? "second" : "seconds"
+      }.`;
     case "rejected":
       return "Check what you typed, then try again.";
     case "email-code-wrong":

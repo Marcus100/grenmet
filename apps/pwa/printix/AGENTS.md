@@ -157,9 +157,11 @@ the gate with its pairing secret (`scan-api.ts`), the organiser with its session
   the authenticator code together (`sign-in-screen.tsx`). Errors map to plain
   words in `errors.ts` (`problemOf`, `problemMessage`): wrong authenticator code
   (400 "Two-factor"), wrong or expired emailed code, not set up for Printix (403),
-  no authenticator (the stable `mfa_enrolment_required` code, on org routes until
-  sign-in refuses it), rate limit (429, its own message), no signal, and unknown
-  answers as a generic failure that is reported with `reportError`.
+  no authenticator (403 with a structured `code` of `authenticator_required` or
+  `mfa_enrolment_required`, or text ending with one of those codes; a structured
+  code is preferred over text, and the code is never shown), rate limit (429,
+  "Try again in N seconds"), no signal, and unknown answers as a generic failure
+  that is reported with `reportError`.
 - **Session rules** (`session.ts`, `OrganiserSession`):
   - The access token is in memory only. It is renewed when it is within a minute
     of `access_token_expires_at`, and once on a 401 (then the call is retried once).
@@ -169,6 +171,18 @@ the gate with its pairing secret (`scan-api.ts`), the organiser with its session
     holding an already replaced token does not refresh again.
   - A refresh the server refuses (401) clears the tab and returns to sign-in with
     "Your session has ended". A refresh that fails for no signal keeps the session.
+  - **A lost refresh response signs the person out.** The server revokes the old
+    session token before it issues the new one, with no grace window. If the
+    refresh answer is lost (a timeout or a dropped connection), the phone cannot
+    recover: the next call's refresh is refused and the person signs in again.
+    The screen then says "You were signed out because the connection dropped.
+    Sign in again." (`EndReason` "dropped"). This cannot be fixed on the client.
+  - A second 401 after a successful refresh also ends the session (back to
+    sign-in), rather than leaving a screen with only "Try again".
+  - **Duplicated tabs share the session.** Browsers copy sessionStorage when a
+    tab is duplicated, so both copies hold the same session token. Refreshing one
+    makes the other's token stale, so its next refresh is refused and that copy
+    signs out. Nothing coordinates the tabs; use one tab per person.
   - Sign-out revokes the session on the server, then clears memory and
     `sessionStorage` even if that call fails (the failure is reported).
   - Nothing goes in `localStorage`, IndexedDB, the service worker cache or a URL.
@@ -180,7 +194,11 @@ the gate with its pairing secret (`scan-api.ts`), the organiser with its session
   afterwards), events (paged 50, with the person's role; empty state), one event
   (`CountBar` from the scanner, plus void, refused duplicates and offline
   conflicts). The counts refresh every 10 seconds while the tab is visible
-  (`use-event-summary.ts`, which never overlaps reads and honours Retry-After).
+  (`use-event-summary.ts`, which never overlaps reads). A rate limit sets a
+  `notBefore` time from Retry-After, which both the timer and the visibility
+  handler honour, so flipping tabs cannot exceed the limit. The event's status
+  and close time come from the polled summary, so a closing event updates.
+  Rate-limit messages state the wait in seconds from the server.
 - **Not connected:** with an empty `VITE_API_URL` the organiser shows "not
   connected" and calls nothing.
 - **Offline:** the page itself opens from the phone's cache, but every organiser

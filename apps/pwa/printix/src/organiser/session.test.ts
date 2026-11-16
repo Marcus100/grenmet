@@ -1,5 +1,9 @@
 // @vitest-environment jsdom
-import { printixListMyOrganiserOrganisations } from "@barrelsgd/api-client";
+import {
+  configureApiClient,
+  getApiClientConfig,
+  printixListMyOrganiserOrganisations,
+} from "@barrelsgd/api-client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ORGANISATION_STORAGE_KEY,
@@ -27,6 +31,12 @@ function storedValues(storage: Storage): string[] {
     { length: storage.length },
     (_, index) => storage.key(index) ?? ""
   ).map((key) => storage.getItem(key) ?? "");
+}
+
+function timeoutError(): Error {
+  const error = new Error("The operation timed out.");
+  error.name = "TimeoutError";
+  return error;
 }
 
 function authorisationOf(request: Request): string | null {
@@ -216,7 +226,7 @@ describe("refresh", () => {
     expect(countCalls(spy, REFRESH)).toBe(1);
   });
 
-  it("returns a second 401 to the caller rather than looping", async () => {
+  it("ends the session when a second 401 follows a successful refresh", async () => {
     const session = new OrganiserSession({
       origin: ORIGIN,
       storage: window.sessionStorage,
@@ -226,6 +236,8 @@ describe("refresh", () => {
         loginBody({ accessToken: "access-stale", sessionToken: OLD_SESSION })
       )
     );
+    const ended = vi.fn();
+    session.onEnded(ended);
     const spy = routeFetch({
       [ORGS]: () => json(401, { detail: "still refused" }),
       [REFRESH]: () =>
@@ -236,11 +248,41 @@ describe("refresh", () => {
     });
 
     await expect(session.call(listOrganisations)).rejects.toMatchObject({
-      name: "ResponseError",
-      status: 401,
+      name: "SessionEndedError",
     });
     expect(countCalls(spy, ORGS)).toBe(2);
     expect(countCalls(spy, REFRESH)).toBe(1);
+    expect(ended).toHaveBeenCalledWith("expired");
+    expect(session.hasSession()).toBe(false);
+    expect(window.sessionStorage.length).toBe(0);
+  });
+
+  it("a refresh answer lost to a timeout signs the person out on the next call, as dropped", async () => {
+    const session = expiredSession();
+    const reasons: string[] = [];
+    session.onEnded((reason) => reasons.push(reason));
+    let refreshes = 0;
+    routeFetch({
+      [REFRESH]: () => {
+        refreshes += 1;
+        return refreshes === 1
+          ? Promise.reject(timeoutError())
+          : json(401, { detail: "Invalid or expired session" });
+      },
+    });
+
+    // The first answer never arrives: the phone does not know what happened yet.
+    await expect(session.call(listOrganisations)).rejects.toMatchObject({
+      name: "TimeoutError",
+    });
+    expect(session.hasSession()).toBe(true);
+
+    // The server had already revoked the old token, so the next refresh is refused.
+    await expect(session.call(listOrganisations)).rejects.toMatchObject({
+      name: "SessionEndedError",
+    });
+    expect(reasons).toEqual(["dropped"]);
+    expect(session.hasSession()).toBe(false);
   });
 
   it("signs the person out when the server refuses the refresh", async () => {
@@ -373,5 +415,36 @@ describe("sign-out", () => {
 
     expect(window.sessionStorage.length).toBe(0);
     expect(session.hasSession()).toBe(false);
+  });
+});
+
+describe("the shared client is set up for the organiser only", () => {
+  it("prepare() replaces the gate's headers, so the pairing secret is never sent from organiser calls", async () => {
+    // What the gate does when it runs on the same shared client.
+    configureApiClient({
+      baseURL: "https://gate.example.test",
+      getHeaders: () => ({ Authorization: "Bearer GATE-PAIRING-SECRET" }),
+    });
+    const session = new OrganiserSession({
+      origin: ORIGIN,
+      storage: window.sessionStorage,
+    });
+    session.adopt(parseLogin(loginBody({ accessToken: "ORGANISER-ACCESS" })));
+
+    session.prepare();
+
+    const config = getApiClientConfig();
+    expect(config.baseURL).toBe(ORIGIN);
+    expect(config.getHeaders?.()).toEqual({
+      Authorization: "Bearer ORGANISER-ACCESS",
+    });
+    const spy = routeFetch({ [ORGS]: () => json(200, []) });
+    await session.call(listOrganisations);
+    const sent = spy.mock.calls[0]?.[0];
+    expect(sent?.url.startsWith(ORIGIN)).toBe(true);
+    expect(sent?.headers.get("Authorization")).toBe("Bearer ORGANISER-ACCESS");
+    expect(JSON.stringify([...(sent?.headers.entries() ?? [])])).not.toContain(
+      "GATE-PAIRING-SECRET"
+    );
   });
 });

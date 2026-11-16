@@ -53,6 +53,17 @@ export function EventsScreen({
     load();
   }, [load]);
 
+  // An empty page past the end (its events were removed since): show the last page.
+  useEffect(() => {
+    if (
+      state.kind === "list" &&
+      state.page.items.length === 0 &&
+      state.page.total > 0
+    ) {
+      setPage(Math.max(1, Math.ceil(state.page.total / EVENTS_PAGE_SIZE)));
+    }
+  }, [state]);
+
   return (
     <section aria-labelledby="events-title" className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">

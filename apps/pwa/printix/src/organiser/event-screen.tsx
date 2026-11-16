@@ -41,6 +41,8 @@ export function EventScreen({
     event.id
   );
   const link = linkOf(problem);
+  // The poll's copy of the event: a closing event updates while the page is open.
+  const shown = summary?.event ?? event;
 
   return (
     <section aria-labelledby="event-title" className="flex flex-col gap-5">
@@ -53,12 +55,12 @@ export function EventScreen({
           Back to events
         </button>
         <h2 className="text-xl font-semibold break-words" id="event-title">
-          {event.name}
+          {shown.name}
         </h2>
         <p className="text-px-muted text-sm">
-          {formatEventDate(event.event_date)} · Closes{" "}
-          {formatMoment(event.closes_at)} Grenada time ·{" "}
-          {event.status === "open" ? "Open" : "Closed"}
+          {formatEventDate(shown.event_date)} · Closes{" "}
+          {formatMoment(shown.closes_at)} Grenada time ·{" "}
+          {shown.status === "open" ? "Open" : "Closed"}
         </p>
         <p className="text-px-muted text-sm">
           Your role here: {roleLabel(organisation)}.

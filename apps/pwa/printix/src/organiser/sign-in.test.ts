@@ -296,3 +296,85 @@ describe("verifySignIn", () => {
     window.removeEventListener("pwa:error", reported);
   });
 });
+
+describe("the no-authenticator answer", () => {
+  const MESSAGE =
+    "Add an authenticator at account.barrels.gd first, then sign in here again.";
+
+  it("prefers the structured code over the text", () => {
+    expect(
+      problemOf(
+        responseError(403, {
+          code: "authenticator_required",
+          detail: "Something unrelated",
+        })
+      )
+    ).toEqual({ kind: "no-authenticator" });
+  });
+
+  it("reads the code from the end of the text when the body has no code field", () => {
+    expect(
+      problemOf(
+        responseError(403, {
+          detail: "Set up two-step verification first (authenticator_required)",
+        })
+      )
+    ).toEqual({ kind: "no-authenticator" });
+  });
+
+  it("never shows the raw code, in either form", () => {
+    expect(problemMessage({ kind: "no-authenticator" })).toBe(MESSAGE);
+    expect(problemMessage({ kind: "no-authenticator" })).not.toContain(
+      "authenticator_required"
+    );
+  });
+
+  it("is shown on sign-in when the server refuses it, with the same message", async () => {
+    routeFetch({
+      [VERIFY]: () =>
+        json(403, {
+          code: "authenticator_required",
+          detail: "Add an authenticator first.",
+        }),
+    });
+    const outcome = await verifySignIn(newSession(), {
+      email: EMAIL,
+      code: "123456",
+      totpCode: "654321",
+    });
+    expect(outcome).toEqual({
+      ok: false,
+      problem: { kind: "no-authenticator" },
+    });
+  });
+});
+
+describe("rate-limit wording", () => {
+  it("states the wait in the server's seconds", () => {
+    expect(
+      problemMessage({ kind: "rate-limited", retryAfterSeconds: 60 })
+    ).toBe("Too many attempts. Try again in 60 seconds.");
+    expect(problemMessage({ kind: "rate-limited", retryAfterSeconds: 1 })).toBe(
+      "Too many attempts. Try again in 1 second."
+    );
+  });
+});
+
+describe("a sign-in answer with an unreadable expiry", () => {
+  it("is refused rather than renewed on every call", async () => {
+    const session = newSession();
+    const body = loginBody({ sessionToken: "t".repeat(43) });
+    routeFetch({
+      [VERIFY]: () =>
+        json(200, { ...body, access_token_expires_at: "not a time" }),
+    });
+    const outcome = await verifySignIn(session, {
+      email: EMAIL,
+      code: "123456",
+      totpCode: "654321",
+    });
+    expect(outcome).toEqual({ ok: false, problem: { kind: "failed" } });
+    expect(session.hasSession()).toBe(false);
+    expect(window.sessionStorage.length).toBe(0);
+  });
+});

@@ -24,7 +24,9 @@ const isVisible = () =>
 /**
  * Reads an event's live counts now, then every 10 seconds while the page is
  * visible. A failed read keeps the last good counts and says why. A rate limit
- * waits for the server's Retry-After. Reads never overlap.
+ * sets a `notBefore` time from Retry-After, which both the timer and the
+ * visibility handler respect, so flipping tabs cannot exceed the limit. Reads
+ * never overlap.
  */
 export function useEventSummary(
   session: OrganiserSession,
@@ -40,6 +42,7 @@ export function useEventSummary(
   useEffect(() => {
     let active = true;
     let inFlight = false;
+    let notBefore = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const schedule = (delayMs: number) => {
@@ -53,6 +56,12 @@ export function useEventSummary(
 
     const read = () => {
       if (inFlight || !active) {
+        return;
+      }
+      const wait = notBefore - Date.now();
+      if (wait > 0) {
+        // The server asked for a pause: keep to it, whatever woke us.
+        schedule(wait);
         return;
       }
       inFlight = true;
@@ -75,11 +84,12 @@ export function useEventSummary(
         if (outcome.problem.kind === "session-ended") {
           return;
         }
-        schedule(
-          outcome.problem.kind === "rate-limited"
-            ? outcome.problem.retryAfterSeconds * 1000
-            : SUMMARY_REFRESH_MS
-        );
+        if (outcome.problem.kind === "rate-limited") {
+          notBefore = Date.now() + outcome.problem.retryAfterSeconds * 1000;
+          schedule(outcome.problem.retryAfterSeconds * 1000);
+          return;
+        }
+        schedule(SUMMARY_REFRESH_MS);
       });
     };
 

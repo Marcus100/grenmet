@@ -9,7 +9,11 @@ import { EventScreen } from "@/organiser/event-screen";
 import { EventsScreen } from "@/organiser/events-screen";
 import { OrganiserHeader } from "@/organiser/header";
 import { listOrganisations } from "@/organiser/organiser-api";
-import { browserSessionStorage, OrganiserSession } from "@/organiser/session";
+import {
+  browserSessionStorage,
+  type EndReason,
+  OrganiserSession,
+} from "@/organiser/session";
 import { SignInScreen } from "@/organiser/sign-in-screen";
 import { ALERT, PAGE } from "@/organiser/styles";
 
@@ -32,6 +36,12 @@ type Phase =
     };
 
 const SESSION_ENDED_NOTICE = problemMessage({ kind: "session-ended" });
+const DROPPED_NOTICE =
+  "You were signed out because the connection dropped. Sign in again.";
+
+function noticeFor(reason: EndReason): string {
+  return reason === "dropped" ? DROPPED_NOTICE : SESSION_ENDED_NOTICE;
+}
 
 interface OrganiserAppProps {
   /** The API origin (VITE_API_URL). Empty means the build is not connected. */
@@ -105,7 +115,12 @@ function ConnectedOrganiser({ apiOrigin }: { readonly apiOrigin: string }) {
     if (outcome.ok) {
       setPhase(startingPhase(session, outcome.value));
     } else if (outcome.problem.kind === "session-ended") {
-      setPhase({ kind: "signed-out", notice: SESSION_ENDED_NOTICE });
+      // The session listener has normally moved the screen already; keep its notice.
+      setPhase((current) =>
+        current.kind === "signed-out"
+          ? current
+          : { kind: "signed-out", notice: SESSION_ENDED_NOTICE }
+      );
     } else {
       setPhase({
         kind: "choosing",
@@ -129,8 +144,8 @@ function ConnectedOrganiser({ apiOrigin }: { readonly apiOrigin: string }) {
   // The server ended the session (a refresh was refused): back to sign-in.
   useEffect(
     () =>
-      session.onEnded(() =>
-        setPhase({ kind: "signed-out", notice: SESSION_ENDED_NOTICE })
+      session.onEnded((reason) =>
+        setPhase({ kind: "signed-out", notice: noticeFor(reason) })
       ),
     [session]
   );

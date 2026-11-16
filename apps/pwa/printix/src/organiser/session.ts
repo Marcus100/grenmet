@@ -47,6 +47,13 @@ export interface Person {
   readonly email: string;
 }
 
+/**
+ * Why the session ended. "dropped": a refresh answer was lost (timeout or a
+ * dropped connection), so the server may already have revoked the session.
+ * "expired": the server refused a session it had no reason to doubt.
+ */
+export type EndReason = "dropped" | "expired";
+
 interface AccessToken {
   readonly expiresAt: number;
   readonly token: string;
@@ -58,7 +65,12 @@ interface AccessToken {
  */
 export function parseLogin(data: unknown): SessionLoginResponse {
   const parsed = sessionLoginResponseSchema.safeParse(data);
-  if (!parsed.success) {
+  // An expiry the phone cannot read would look expired on every call, so it
+  // is refused here rather than renewing on every call.
+  if (
+    !parsed.success ||
+    Number.isNaN(Date.parse(parsed.data.access_token_expires_at))
+  ) {
     throw invalidResponse();
   }
   return parsed.data;
@@ -81,11 +93,13 @@ export class OrganiserSession {
   private readonly origin: string;
   private readonly storage: SessionStorageLike | null;
   private readonly now: () => number;
-  private readonly listeners = new Set<() => void>();
+  private readonly listeners = new Set<(reason: EndReason) => void>();
   private token: string | null;
   private access: AccessToken | null = null;
   private person: Person | null = null;
   private pending: Promise<void> | null = null;
+  /** Set when a refresh answer was lost; cleared on a good answer or sign-out. */
+  private refreshMayBeLost = false;
   /** Bumped on sign-out, so a refresh that finishes afterwards is discarded. */
   private epoch = 0;
 
@@ -120,8 +134,8 @@ export class OrganiserSession {
     configureFor(this.origin, this);
   }
 
-  /** Called when the session ends by the server's word (a refused refresh). */
-  onEnded(listener: () => void): () => void {
+  /** Called when the server ends the session (a refresh was refused). */
+  onEnded(listener: (reason: EndReason) => void): () => void {
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
@@ -153,6 +167,7 @@ export class OrganiserSession {
       expiresAt: Date.parse(login.access_token_expires_at),
     };
     this.person = { email: login.user.email };
+    this.refreshMayBeLost = false;
     try {
       this.storage?.setItem(SESSION_STORAGE_KEY, login.session_token);
     } catch (error) {
@@ -178,7 +193,17 @@ export class OrganiserSession {
       }
       await this.refresh(used);
       this.prepare();
-      return run();
+      try {
+        return await run();
+      } catch (retryError) {
+        // A second 401 after a successful refresh: the session is not usable.
+        // Back to sign-in, rather than a screen with only "Try again".
+        if (isUnauthorised(retryError)) {
+          this.end(this.epoch);
+          throw sessionEnded();
+        }
+        throw retryError;
+      }
     }
   }
 
@@ -217,8 +242,11 @@ export class OrganiserSession {
     if (stale !== null && this.access && this.access.token !== stale) {
       return Promise.resolve();
     }
-    const run = this.renew().finally(() => {
-      this.pending = null;
+    const run: Promise<void> = this.renew().finally(() => {
+      // Only the refresh that set `pending` may clear it.
+      if (this.pending === run) {
+        this.pending = null;
+      }
     });
     this.pending = run;
     return run;
@@ -238,6 +266,10 @@ export class OrganiserSession {
         this.end(epoch);
         throw sessionEnded();
       }
+      // The answer may have been lost after the server revoked the old token.
+      if (isLostAnswer(error)) {
+        this.refreshMayBeLost = true;
+      }
       throw error;
     }
     if (epoch !== this.epoch) {
@@ -256,10 +288,11 @@ export class OrganiserSession {
       return;
     }
     const hadSession = this.token !== null;
+    const reason: EndReason = this.refreshMayBeLost ? "dropped" : "expired";
     this.clear();
     if (hadSession) {
       for (const listener of this.listeners) {
-        listener();
+        listener(reason);
       }
     }
   }
@@ -269,6 +302,8 @@ export class OrganiserSession {
     this.token = null;
     this.access = null;
     this.person = null;
+    this.pending = null;
+    this.refreshMayBeLost = false;
     try {
       this.storage?.removeItem(SESSION_STORAGE_KEY);
       this.storage?.removeItem(ORGANISATION_STORAGE_KEY);
@@ -284,6 +319,19 @@ export class OrganiserSession {
       return null;
     }
   }
+}
+
+/** No answer, or a request the phone gave up on: the server may have acted anyway. */
+function isLostAnswer(error: unknown): boolean {
+  if (error instanceof TypeError) {
+    return true;
+  }
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error.name === "TimeoutError" || error.name === "AbortError")
+  );
 }
 
 function isUnauthorised(error: unknown): boolean {

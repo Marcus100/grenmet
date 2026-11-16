@@ -30,6 +30,7 @@ const EVENTS_SHOWN = /No events yet|Your role here/u;
 const HARBOUR_BUTTON = /Harbour Events/u;
 const NORTHERN_BUTTON = /Northern Markets/u;
 const NIGHT_MARKET_BUTTON = /Harbour Night Market/u;
+const CLOSED_LINE = /Grenada time · Closed/u;
 
 const START = "POST /api/v1/auth/apps/printix/email-code/start";
 const VERIFY = "POST /api/v1/auth/apps/printix/email-code/verify";
@@ -268,7 +269,7 @@ describe("sign-in", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send the code" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Too many attempts. Wait a few minutes, then try again."
+      "Too many attempts. Try again in 300 seconds."
     );
   });
 
@@ -500,5 +501,146 @@ describe("a reload and the session", () => {
     expect(countCalls(spy, LOGOUT)).toBe(1);
     expect(window.sessionStorage.length).toBe(0);
     expect(window.localStorage.length).toBe(0);
+  });
+});
+
+describe("review fixes: refresh loss, second 401, pages, status and pauses", () => {
+  it("a lost refresh answer leads to the dropped-connection message on the next try", async () => {
+    window.sessionStorage.setItem(SESSION_STORAGE_KEY, SESSION_TOKEN);
+    let refreshes = 0;
+    routeFetch(
+      signInRoutes({
+        [ORGS]: () => json(200, [HARBOUR, NORTHERN]),
+        [REFRESH]: () => {
+          refreshes += 1;
+          if (refreshes === 1) {
+            return Promise.reject(
+              Object.assign(new Error("timed out"), { name: "TimeoutError" })
+            );
+          }
+          return json(401, { detail: "Invalid or expired session" });
+        },
+      })
+    );
+    render(<OrganiserApp apiOrigin={ORIGIN} />);
+
+    // The first answer never arrived: the screen offers a retry.
+    fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+
+    expect(
+      await screen.findByText(
+        "You were signed out because the connection dropped. Sign in again."
+      )
+    ).toBeInTheDocument();
+    expect(window.sessionStorage.length).toBe(0);
+  });
+
+  it("a second 401 after a refresh returns to sign-in, not to a Try again screen", async () => {
+    window.sessionStorage.setItem(SESSION_STORAGE_KEY, SESSION_TOKEN);
+    routeFetch(
+      signInRoutes({
+        [ORGS]: () => json(401, { detail: "Could not validate credentials" }),
+      })
+    );
+    render(<OrganiserApp apiOrigin={ORIGIN} />);
+
+    expect(
+      await screen.findByText("Your session has ended. Sign in again.")
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+    expect(
+      screen.getByRole("heading", { name: "Printix organiser" })
+    ).toBeInTheDocument();
+  });
+
+  it("an empty page past the end goes back to the last page", async () => {
+    routeFetch(
+      signInRoutes({
+        [ORGS]: () => json(200, [HARBOUR]),
+        [EVENTS]: (request) =>
+          new URL(request.url).searchParams.get("page") === "2"
+            ? json(200, { items: [], total: 50, page: 2, size: 50 })
+            : json(200, {
+                items: [SUMMARY.event],
+                total: 51,
+                page: 1,
+                size: 50,
+              }),
+      })
+    );
+    render(<OrganiserApp apiOrigin={ORIGIN} />);
+    await signIn();
+    await screen.findByRole("button", { name: NIGHT_MARKET_BUTTON });
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(
+      await screen.findByRole("button", { name: NIGHT_MARKET_BUTTON })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Showing 1 to 50 of 51")).toBeInTheDocument();
+  });
+
+  it("takes the event's status from the polled summary, so a closing event updates", async () => {
+    routeFetch(
+      signInRoutes({
+        [ORGS]: () => json(200, [HARBOUR]),
+        [SUMMARY_ROUTE]: () =>
+          json(200, {
+            ...SUMMARY,
+            event: { ...SUMMARY.event, status: "closed" },
+          }),
+      })
+    );
+    render(<OrganiserApp apiOrigin={ORIGIN} />);
+    await signIn();
+    fireEvent.click(
+      await screen.findByRole("button", { name: NIGHT_MARKET_BUTTON })
+    );
+
+    expect(await screen.findByText(CLOSED_LINE)).toBeInTheDocument();
+  });
+
+  it("does not read again during a rate-limit pause, even when the tab is flipped", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    let visibility: DocumentVisibilityState = "visible";
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => visibility,
+    });
+    const spy = routeFetch(
+      signInRoutes({
+        [ORGS]: () => json(200, [HARBOUR]),
+        [SUMMARY_ROUTE]: () =>
+          json(429, { error: "slow down" }, { "Retry-After": "30" }),
+      })
+    );
+    try {
+      render(<OrganiserApp apiOrigin={ORIGIN} />);
+      await signIn();
+      fireEvent.click(
+        await screen.findByRole("button", { name: NIGHT_MARKET_BUTTON })
+      );
+      expect(
+        await screen.findByText("Try again in 30 seconds.", { exact: false })
+      ).toBeInTheDocument();
+      expect(countCalls(spy, SUMMARY_ROUTE)).toBe(1);
+
+      for (let flip = 0; flip < 5; flip += 1) {
+        visibility = "hidden";
+        document.dispatchEvent(new Event("visibilitychange"));
+        visibility = "visible";
+        document.dispatchEvent(new Event("visibilitychange"));
+        await vi.advanceTimersByTimeAsync(1000);
+      }
+      expect(countCalls(spy, SUMMARY_ROUTE)).toBe(1);
+
+      await vi.advanceTimersByTimeAsync(30_000);
+      await waitFor(() =>
+        expect(countCalls(spy, SUMMARY_ROUTE)).toBeGreaterThanOrEqual(2)
+      );
+    } finally {
+      // Remove the override so other tests see the real visibility state.
+      Reflect.deleteProperty(document, "visibilityState");
+    }
   });
 });
