@@ -348,9 +348,12 @@ async def test_wrong_passwords_lock_password_sign_in_too(
     assert _is_locked(sign_in)
 
 
-async def test_a_right_password_before_the_limit_clears_the_count(
+async def test_a_right_password_does_not_clear_the_count(
     async_client, db_async: AsyncSession, attempts: int
 ) -> None:
+    """The sign-in key also counts wrong authenticator codes elsewhere, so a
+    session holder who knows the password must not be able to reset it here,
+    whether the change goes through or is refused as unchanged."""
     user = await make_user(db_async)
     for _ in range(attempts - 1):
         await async_client.patch(
@@ -358,26 +361,31 @@ async def test_a_right_password_before_the_limit_clears_the_count(
             headers=_headers(user),
             json={"current_password": WRONG, "new_password": NEW},
         )
-    right = await async_client.patch(
+    unchanged = await async_client.patch(
+        PASSWORD,
+        headers=_headers(user),
+        json={"current_password": CURRENT, "new_password": CURRENT},
+    )
+    # Refused as unchanged (400), or earlier by the new-password rules (422).
+    assert unchanged.status_code in {400, 422}
+    changed = await async_client.patch(
         PASSWORD,
         headers=_headers(user),
         json={"current_password": CURRENT, "new_password": NEW},
     )
-    assert right.status_code == 200
-    # The earlier wrong guesses must not count toward a lock on the new password.
-    for _ in range(attempts - 1):
-        response = await async_client.patch(
-            PASSWORD,
-            headers=_headers(user),
-            json={"current_password": WRONG, "new_password": LATER},
-        )
-        assert response.status_code == 400
-    again = await async_client.patch(
+    assert changed.status_code == 200
+    # One more wrong guess reaches the limit: the earlier ones still count.
+    await async_client.patch(
+        PASSWORD,
+        headers=_headers(user),
+        json={"current_password": WRONG, "new_password": LATER},
+    )
+    locked = await async_client.patch(
         PASSWORD,
         headers=_headers(user),
         json={"current_password": NEW, "new_password": LATER},
     )
-    assert again.status_code == 200
+    assert _is_locked(locked)
 
 
 async def test_password_change_lock_does_not_block_another_account(

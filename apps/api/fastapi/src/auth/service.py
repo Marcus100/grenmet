@@ -284,13 +284,17 @@ async def update_password(
     A wrong current password counts toward the sign-in lockout on the account email,
     the same key password sign-in uses (as ``email_change.require_proof`` does). A
     locked account is refused before the hash is checked, so it learns nothing.
+
+    A correct password here never clears the count: that key also counts wrong
+    authenticator codes at sign-in and on recovery-code replacement, so a session
+    holder who knows the password could otherwise reset it between guesses. Only a
+    completed sign-in clears it.
     """
     if await login_lockout.is_locked(user.email):
         raise AccountLockedError()
     if not await verify_password_async(current_password, user.hashed_password):
         await login_lockout.record_failure(user.email)
         raise AppException("Incorrect password", 400)
-    await login_lockout.reset(user.email)
     if current_password == new_password:
         raise AppException("New password must be different from current password", 400)
     await set_password(session=session, user=user, new_password=new_password)
