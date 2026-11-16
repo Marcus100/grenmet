@@ -1,7 +1,7 @@
 # Babydoll Beauty Bar
 
 Port **3014**. Package: `@barrelsgd/web-babydoll`. Lane spec: `docs/design/babydoll.md`.
-Static site at `babydoll.barrels.gd` (production only, no staging). On Vercel today, moving to Cloudflare Pages.
+Static site at `babydoll.barrels.gd` (production only, no staging), on Cloudflare Pages since the cutover of 15 to 16 Nov 2026.
 
 ## Client boundary
 
@@ -22,9 +22,9 @@ Static site at `babydoll.barrels.gd` (production only, no staging). On Vercel to
 - Prices mirror the client's Acuity booking page (`babydollgnd.as.me`). Do not
   invent services, prices, course dates or credentials; training content is draft
   until the client confirms it.
-- Booking happens off this site: the Acuity link (`BOOKING_URL`), or the
-  studio's page on the Barrels bookings site once `ONLINE_BOOKING_URL` is set
-  (see "Booking"). Contact and training interest go to Instagram DM. The pages
+- Booking happens off this site, on the studio's page on the Barrels bookings
+  site (`ONLINE_BOOKING_URL`, see "Booking"); the Acuity link (`BOOKING_URL`)
+  is only the fallback. Contact and training interest go to Instagram DM. The pages
   make no API calls and use no analytics.
 - Every Book call-to-action uses `siteBookingLink()` (Server Components) or a
   `CtaLink` prop (client components) from `src/lib/book-link.ts`. Never link
@@ -46,20 +46,17 @@ Static site at `babydoll.barrels.gd` (production only, no staging). On Vercel to
 ## Booking (static site, owner 13 Nov 2026)
 
 This site takes no bookings and has no server code: it is a static export
-(`output: "export"`, built to `out/`), moving from Vercel to Cloudflare Pages
+(`output: "export"`, built to `out/`), served by Cloudflare Pages
 (`docs/operations/vercel-exit-plan.md`). The on-site booking flow (`/book`,
 `/booking/[token]`, the server actions, `src/env.ts` and the
 `@barrelsgd/bookings-web` wiring) was removed.
 
 - **Book links:** `src/lib/book-link.ts` decides where every Book CTA goes:
   `ONLINE_BOOKING_URL` in `src/data/site.ts` when it is set, else the Acuity page
-  (`BOOKING_URL`). Both open in a new tab. Set `ONLINE_BOOKING_URL` to the
-  studio's page on the Barrels bookings site (for example
-  `https://bookings.barrels.gd/babydoll-beauty-bar`) once that page is live. On
-  14 Nov 2026 the bookings app is live on production but Babydoll's data is not
-  seeded there, so the page still answers "not found" (staging is seeded).
-  Switching the Book buttons is the last step of the go-live order in
-  `docs/operations/babydoll-cutover.md`.
+  (`BOOKING_URL`). Both open in a new tab. Since v1.2.0 `ONLINE_BOOKING_URL` is
+  `https://bookings.barrels.gd/babydoll-beauty-bar`, the studio's page on the
+  Barrels bookings site (production was seeded on 15 Nov 2026). The remaining
+  go-live steps are in `docs/operations/babydoll-cutover.md`.
 - **Old addresses:** `/book` redirects to the booking page and `/booking/*` to
   `/contact`, in `public/_redirects` (Cloudflare Pages) and `vercel.json`
   (until the Vercel project is gone). When the booking address changes, change
@@ -69,11 +66,12 @@ This site takes no bookings and has no server code: it is a static export
 - Do not add a route handler, server action, `cookies()` or anything else that
   needs a server; the export build fails on them.
 
-## Vercel build
+## Vercel build (legacy)
 
-Since 13 Nov 2026 the Vercel project's Git integration is disconnected (owner),
-so pull requests get no Vercel check. The rules below still apply to a build
-started by hand, until the site moves to Cloudflare Pages.
+The site is served by Cloudflare Pages. The Vercel project is kept only as the
+rollback for about a week after the move, then deleted; its Git integration
+has been disconnected since 13 Nov 2026, so pull requests get no Vercel check.
+The rules below apply to `vercel.json` while it stays in the repo.
 
 - Vercel clones the monorepo fresh, so no workspace package is built there. A
   workspace package whose `main`, `types` or `exports` point at `dist/` (today

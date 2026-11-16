@@ -10,8 +10,8 @@
 
 This monorepo uses GitHub Actions with self-hosted runners to deploy to staging and production.
 Each environment runs on its own dedicated Digital Ocean droplet. Elections Grenada
-is the exception: it deploys independently to Vercel; see [its deployment guide](web/elections-deployment.md).
-Static sites are moving to Cloudflare Pages ([ADR-0036](adr/0036-hosting-split.md) amendment); `commit.barrels.gd` is already there.
+is the exception: it deploys independently to Cloudflare Pages; see [its deployment guide](web/elections-deployment.md).
+The static sites (Barrels homepage, Babydoll, Elections, `commit.barrels.gd`) are all on Cloudflare Pages ([ADR-0036](adr/0036-hosting-split.md) amendment), with `main` as the production branch.
 
 For operational SSH access, use the `deploy` account on both production and
 staging. On staging it has sudo, and root login and password login over SSH are
@@ -631,7 +631,7 @@ hurricane/spice hosts; no legacy redirects are installed.
 
 | App | Local port | Production | Staging |
 | --- | --- | --- | --- |
-| Barrels homepage | Static | https://barrels.gd (Vercel; www redirects here) | Vercel preview deployments |
+| Barrels homepage | Static | https://barrels.gd (Cloudflare Pages; www redirects here) | Cloudflare Pages branch previews |
 | Auth | 3000 | https://auth.barrels.gd | https://auth.staging.barrels.gd |
 | Barrels admin (staff console) | 3012 | https://admin.barrels.gd | https://admin.staging.barrels.gd |
 | GAA Admin (GMS/GAA portal) | 3001 | https://gms.barrels.gd | https://gms.staging.barrels.gd |
@@ -644,7 +644,7 @@ hurricane/spice hosts; no legacy redirects are installed.
 | GMS Dashboard | 3013 | https://gmsdash.barrels.gd | https://gmsdash.staging.barrels.gd |
 | Bookings | 3015 | https://bookings.barrels.gd | https://bookings.staging.barrels.gd |
 | Account | 3018 | https://account.barrels.gd | https://account.staging.barrels.gd |
-| Elections | 3007 | https://elections.barrels.gd (Vercel) | Vercel preview deployments |
+| Elections | 3007 | https://elections.barrels.gd (Cloudflare Pages) | Cloudflare Pages branch previews |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
 Cloudflare wildcard A records point `*.barrels.gd` to the production droplet and
