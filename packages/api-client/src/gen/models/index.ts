@@ -7843,6 +7843,38 @@ export type {
   PrintixListTicketsStatus404,
   PrintixListTicketsStatus422,
 } from "./PrintixListTickets.js";
+export type { PrintixOfflineAdmission } from "./PrintixOfflineAdmission.js";
+export type { PrintixOfflineAdmissionResult } from "./PrintixOfflineAdmissionResult.js";
+export type {
+  PrintixOfflineAdmissionsBody,
+  PrintixOfflineAdmissionsOptions,
+  PrintixOfflineAdmissionsResponse,
+  PrintixOfflineAdmissionsResponses,
+  PrintixOfflineAdmissionsStatus200,
+  PrintixOfflineAdmissionsStatus401,
+  PrintixOfflineAdmissionsStatus403,
+  PrintixOfflineAdmissionsStatus409,
+  PrintixOfflineAdmissionsStatus422,
+  PrintixOfflineAdmissionsStatus429,
+} from "./PrintixOfflineAdmissions.js";
+export type { PrintixOfflineList } from "./PrintixOfflineList.js";
+export type { PrintixOfflineSyncRequest } from "./PrintixOfflineSyncRequest.js";
+export type { PrintixOfflineSyncResult } from "./PrintixOfflineSyncResult.js";
+export type { PrintixOfflineTicket } from "./PrintixOfflineTicket.js";
+export type { PrintixOfflineTicketState } from "./PrintixOfflineTicketState.js";
+export { printixOfflineTicketState } from "./PrintixOfflineTicketState.js";
+export type {
+  PrintixOfflineTicketsOptions,
+  PrintixOfflineTicketsResponse,
+  PrintixOfflineTicketsResponses,
+  PrintixOfflineTicketsStatus200,
+  PrintixOfflineTicketsStatus401,
+  PrintixOfflineTicketsStatus403,
+  PrintixOfflineTicketsStatus409,
+  PrintixOfflineTicketsStatus422,
+  PrintixOfflineTicketsStatus429,
+} from "./PrintixOfflineTickets.js";
+export type { PrintixOfflineUnavailableBody } from "./PrintixOfflineUnavailableBody.js";
 export type { PrintixPairingCreate } from "./PrintixPairingCreate.js";
 export type { PrintixPairingCreated } from "./PrintixPairingCreated.js";
 export type { PrintixPairingPublic } from "./PrintixPairingPublic.js";

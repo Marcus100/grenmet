@@ -68993,6 +68993,186 @@
           }
         ]
       }
+    },
+    "/api/v1/printix/public/offline-tickets": {
+      "get": {
+        "tags": [
+          "printix-scanner"
+        ],
+        "summary": "The event's ticket list for offline checking",
+        "description": "Every ticket on the pairing's event, so a phone can check tickets while it has no signal. Barcodes are never sent: each is an HMAC-SHA256 keyed with this pairing's hash_key, cut to 32 hex characters. States: valid, void, admitted (with the first admission's time and gate). No personal data. Refused with 409 (offline_not_available) when any barcode is its printed number or shorter than twelve characters, since the hashes could then be reversed. The key is known to the phone, so this stops correlation across pairings only, not guessing weak barcodes. Limited to 4 reads a minute per pairing.",
+        "operationId": "printixOfflineTickets",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixOfflineList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The pairing secret is missing, malformed or not recognised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The pairing has been revoked or has expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this address, or too many scans from this pairing (unknown or typed-number caps); see Retry-After",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Printixofflinetickets"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Offline mode is off for this event, because some barcodes are its printed numbers or shorter than twelve characters. Use the live scanner.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixOfflineUnavailableBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "PrintixPairing": []
+          }
+        ]
+      }
+    },
+    "/api/v1/printix/public/offline-admissions": {
+      "post": {
+        "tags": [
+          "printix-scanner"
+        ],
+        "summary": "Sync admissions made offline",
+        "description": "Records up to 100 admissions a phone made while offline: the phone's reference, the scanned barcode value and the time. The server stays the source of truth: the first admission it records wins, and any other answer (already_admitted with the first time and gate, void, unknown, event_closed) is a conflict to show at the gate. Barcode only: a typed number is never looked up. A retried reference returns its first answer. Unknown values share the live cap of 20 a minute; past it, the rest of the batch is counted in deferred and must be sent again later. Other answers than admitted share a cap of 60 a minute; past it the rest is deferred. A scan synced more than 12 hours after the close is event_closed. scanned_at must be between 2020-01-01 UTC and a day ahead (else 422). Refused with 409 (offline_not_available) when any barcode is its printed number or shorter than twelve characters. Limited to 12 requests a minute per pairing.",
+        "operationId": "printixOfflineAdmissions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrintixOfflineSyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixOfflineSyncResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The pairing secret is missing, malformed or not recognised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The pairing has been revoked or has expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this address, or too many scans from this pairing (unknown or typed-number caps); see Retry-After",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Printixofflineadmissions"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Offline mode is off for this event, because some barcodes are its printed numbers or shorter than twelve characters. Use the live scanner.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixOfflineUnavailableBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "PrintixPairing": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -99578,7 +99758,13 @@
           "duplicates_refused": {
             "type": "integer",
             "title": "Duplicates Refused",
-            "description": "Scans of an already admitted ticket, refused."
+            "description": "Live scans of an already admitted ticket, refused."
+          },
+          "offline_conflicts": {
+            "type": "integer",
+            "title": "Offline Conflicts",
+            "description": "Offline admissions that the server could not record when the phone synced: the ticket was already admitted elsewhere, void, unknown or the event had closed. The person was let in at the gate.",
+            "default": 0
           },
           "admitted_by_gate": {
             "items": {
@@ -99690,6 +99876,256 @@
           "warnings"
         ],
         "title": "PrintixImportReport"
+      },
+      "PrintixOfflineAdmission": {
+        "properties": {
+          "client_ref": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Ref",
+            "description": "The phone's reference for this queued admission. A retry with the same reference gets the first answer back and is not scanned again."
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[^\\x00-\\x1f\\x7f]*$",
+            "title": "Value",
+            "description": "The scanned barcode value. Control characters are refused."
+          },
+          "scanned_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Scanned At",
+            "description": "When the phone admitted the ticket offline, between 2020-01-01 UTC and a day after the server's time (else 422). Kept between the pairing's creation and the time of the sync."
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_ref",
+          "value",
+          "scanned_at"
+        ],
+        "title": "PrintixOfflineAdmission"
+      },
+      "PrintixOfflineAdmissionResult": {
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/PrintixScanOutcome"
+          },
+          "printed_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Printed Number",
+            "description": "Set when the value matched a ticket on this event."
+          },
+          "admitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted At",
+            "description": "For admitted, the time of this admission. For already_admitted, the first one."
+          },
+          "admitted_gate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted Gate",
+            "description": "The gate of the admission named in admitted_at."
+          },
+          "client_ref": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Ref"
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome",
+          "client_ref"
+        ],
+        "title": "PrintixOfflineAdmissionResult"
+      },
+      "PrintixOfflineList": {
+        "properties": {
+          "event": {
+            "$ref": "#/components/schemas/PrintixEventPublic"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At",
+            "description": "When the server built this list. Admissions after it are not in it."
+          },
+          "hash_key": {
+            "type": "string",
+            "title": "Hash Key",
+            "description": "The key for barcode_hash, unique to this pairing. The phone hashes a scanned value (trimmed) with it to look the ticket up offline."
+          },
+          "tickets": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixOfflineTicket"
+            },
+            "type": "array",
+            "title": "Tickets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event",
+          "generated_at",
+          "hash_key",
+          "tickets"
+        ],
+        "title": "PrintixOfflineList"
+      },
+      "PrintixOfflineSyncRequest": {
+        "properties": {
+          "admissions": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixOfflineAdmission"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Admissions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "admissions"
+        ],
+        "title": "PrintixOfflineSyncRequest"
+      },
+      "PrintixOfflineSyncResult": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixOfflineAdmissionResult"
+            },
+            "type": "array",
+            "title": "Results",
+            "description": "One answer per admission the server handled, in the order sent. Anything other than admitted is a conflict: the person was let in offline, but the server did not record this admission."
+          },
+          "deferred": {
+            "type": "integer",
+            "title": "Deferred",
+            "description": "Admissions at the end of the batch that were not handled, because too many unknown values were sent in the last minute. Keep them and send them again after retry_after_seconds."
+          },
+          "retry_after_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry After Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "results",
+          "deferred"
+        ],
+        "title": "PrintixOfflineSyncResult"
+      },
+      "PrintixOfflineTicket": {
+        "properties": {
+          "barcode_hash": {
+            "type": "string",
+            "title": "Barcode Hash",
+            "description": "HMAC-SHA256 of the barcode value with the list's hash_key, hex, cut to 32 characters. The barcode itself is never sent."
+          },
+          "printed_number": {
+            "type": "string",
+            "title": "Printed Number"
+          },
+          "state": {
+            "$ref": "#/components/schemas/PrintixOfflineTicketState"
+          },
+          "admitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted At",
+            "description": "For admitted, the first admission's time."
+          },
+          "admitted_gate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted Gate",
+            "description": "For admitted, the first admission's gate."
+          }
+        },
+        "type": "object",
+        "required": [
+          "barcode_hash",
+          "printed_number",
+          "state"
+        ],
+        "title": "PrintixOfflineTicket"
+      },
+      "PrintixOfflineTicketState": {
+        "type": "string",
+        "enum": [
+          "valid",
+          "void",
+          "admitted"
+        ],
+        "title": "PrintixOfflineTicketState",
+        "description": "A ticket's state in the offline list: may enter, void, or already in."
+      },
+      "PrintixOfflineUnavailableBody": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "code": {
+            "type": "string",
+            "const": "offline_not_available",
+            "title": "Code",
+            "description": "Stable code. Offline mode is off for this event; use the live scanner."
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail",
+          "code"
+        ],
+        "title": "PrintixOfflineUnavailableBody",
+        "description": "A 409 that refuses offline mode for an event with weak barcodes."
       },
       "PrintixPairingCreate": {
         "properties": {

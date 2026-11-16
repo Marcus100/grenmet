@@ -3232,5 +3232,22 @@ Two route zones, both under `/api/v1/printix/`.
   gate), `void`, `unknown` (also used for a value on another event) or `event_closed`.
   A revoked pairing answers 403, an expired one 403, an unknown secret 401, and more than
   120 scans in a rolling minute 429 with `Retry-After`.
+- **Offline scanning** (same pairing auth; ADR-0060 offline amendment):
+  `GET /public/offline-tickets` returns the event and its tickets with `printed_number`,
+  `state` (`valid`, `void`, `admitted` with time and gate) and `barcode_hash` (HMAC-SHA256
+  of the barcode keyed with the list's `hash_key`, 32 hex characters); never a barcode;
+  4 reads a minute per pairing. `POST /public/offline-admissions` takes 1 to 100
+  `{client_ref, value, scanned_at}` and answers `results` (one per handled item, in order,
+  each a scan result plus `client_ref`), `deferred` and `retry_after_seconds`. Barcode
+  only; the first admission the server records wins; any outcome other than `admitted` is
+  a conflict. A scan made before the event closed counts even if it syncs after; a scan at
+  or after the close answers `event_closed`, and a sync more than 12 hours after the close
+  is `event_closed` whatever the scan time. A repeated `client_ref` returns its first
+  answer. Answers other than `admitted` share 60 a minute per pairing; past it the rest of
+  the batch is `deferred`. `scanned_at` outside 2020-01-01 UTC to a day ahead is a 422. 12
+  requests a minute per pairing. The summary's `offline_conflicts` counts offline
+  admissions not recorded. Both routes answer 409 with `code: offline_not_available` when a
+  barcode is its printed number or shorter than 12 characters (the list is then not sent);
+  live scanning is unaffected.
 
 Adding an outcome code or an optional field is additive; removing one is breaking.

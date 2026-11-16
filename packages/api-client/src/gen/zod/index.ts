@@ -7792,6 +7792,35 @@ export {
   printixListTicketsStatus404Schema,
   printixListTicketsStatus422Schema,
 } from "./printixListTicketsSchema.js";
+export { printixOfflineAdmissionResultSchema } from "./printixOfflineAdmissionResultSchema.js";
+export { printixOfflineAdmissionSchema } from "./printixOfflineAdmissionSchema.js";
+export {
+  printixOfflineAdmissionsBodySchema,
+  printixOfflineAdmissionsErrorSchema,
+  printixOfflineAdmissionsResponseSchema,
+  printixOfflineAdmissionsStatus200Schema,
+  printixOfflineAdmissionsStatus401Schema,
+  printixOfflineAdmissionsStatus403Schema,
+  printixOfflineAdmissionsStatus409Schema,
+  printixOfflineAdmissionsStatus422Schema,
+  printixOfflineAdmissionsStatus429Schema,
+} from "./printixOfflineAdmissionsSchema.js";
+export { printixOfflineListSchema } from "./printixOfflineListSchema.js";
+export { printixOfflineSyncRequestSchema } from "./printixOfflineSyncRequestSchema.js";
+export { printixOfflineSyncResultSchema } from "./printixOfflineSyncResultSchema.js";
+export { printixOfflineTicketSchema } from "./printixOfflineTicketSchema.js";
+export { printixOfflineTicketStateSchema } from "./printixOfflineTicketStateSchema.js";
+export {
+  printixOfflineTicketsErrorSchema,
+  printixOfflineTicketsResponseSchema,
+  printixOfflineTicketsStatus200Schema,
+  printixOfflineTicketsStatus401Schema,
+  printixOfflineTicketsStatus403Schema,
+  printixOfflineTicketsStatus409Schema,
+  printixOfflineTicketsStatus422Schema,
+  printixOfflineTicketsStatus429Schema,
+} from "./printixOfflineTicketsSchema.js";
+export { printixOfflineUnavailableBodySchema } from "./printixOfflineUnavailableBodySchema.js";
 export { printixPairingCreatedSchema } from "./printixPairingCreatedSchema.js";
 export { printixPairingCreateSchema } from "./printixPairingCreateSchema.js";
 export { printixPairingPublicSchema } from "./printixPairingPublicSchema.js";

@@ -36,6 +36,8 @@ count under the cap. Refused scans are not logged.
 | `unknown` outcomes per pairing (`UNKNOWN_SCANS_PER_WINDOW`) | 20 a minute | 429 for the unknown scan; valid barcodes still admit |
 | Typed printed-number lookups (`TYPED_NUMBER_SCANS_PER_WINDOW`, only when enabled) | 20 a minute | 429 for the fall-through |
 | `GET /summary` per pairing (Redis limiter, keyed on a hash of the secret) | 30 a minute | 429 |
+| `GET /offline-tickets` per pairing (Redis limiter) | 4 a minute | 429 |
+| `POST /offline-admissions` per pairing (Redis limiter) | 12 a minute | 429 |
 | Every scanner route per client address (Redis limiter, `visitor_address`) | 600 a minute | 429 |
 
 The per-address cap runs after authentication, so a flood of bad secrets still costs
@@ -123,8 +125,41 @@ columns.
 
 Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests/printix`.
 
+## Offline scanning (ADR-0060 amendment)
+
+- `GET /printix/public/offline-tickets`: the event's tickets with `barcode_hash` =
+  HMAC-SHA256(key = `offline_hash_key(pairing)`, the pairing id's hex; message = the
+  barcode), hex, 32 characters. Never the barcode. 4 reads a minute per pairing.
+- `POST /printix/public/offline-admissions`: up to 100 queued admissions (`client_ref`,
+  raw `value`, `scanned_at`). Barcode only. One transaction under the pairing's lock.
+  `scan_log.scanned_at` is server time (so caps stay honest); the phone's time, kept
+  between pairing creation and now, goes to `offline_scanned_at` and the ticket's
+  `admitted_at`. A known `client_ref` (unique per pairing) is answered from its row.
+- Offline rows are excluded from the live scan cap; unknowns share the live unknown
+  cap, and past it the rest of the batch is `deferred` (not logged). 12 syncs a minute.
+- **Close time.** `move_event` records `event.closed_at`. An offline scan counts only if
+  its time is before both `closes_at` and `closed_at` (`_offline_refused_as_closed`). A
+  closed event with no `closed_at` refuses every offline scan. A future phone time is
+  clamped to server time, so it cannot pass the close.
+- **Weak barcodes.** If any ticket's `barcode_value` equals its `printed_number`, or is
+  shorter than `OFFLINE_MIN_BARCODE_LENGTH` (12), the list and the sync answer 409 with
+  `code: offline_not_available` (`PrintixOfflineUnavailable`). No flag is stored; the rows
+  are the record. A sync stores nothing. Online scanning is unchanged. The hash key is on
+  the phone, so it only stops cross-pairing correlation.
+- **Non-admission cap.** `already_admitted`, `void`, `event_closed` and `unknown` offline
+  rows share `OFFLINE_NON_ADMISSIONS_PER_WINDOW` (60) per 60 seconds per pairing. Past it,
+  the rest of the batch is `deferred`. New admissions are never counted against it.
+- **Grace.** A sync more than `OFFLINE_SYNC_GRACE_AFTER_CLOSE` (12 h) after the close
+  instant (the earlier of `closes_at` and `closed_at`) is `event_closed`, whatever the scan
+  time.
+- **Scan time bounds.** `scanned_at` must be between 2020-01-01 UTC and a day ahead
+  (schema validator, 422). Inside those bounds the clamp still applies.
+- Summary: `duplicates_refused` is live only; `offline_conflicts` counts offline rows
+  whose outcome is not `admitted`.
+- Tests: `tests/printix/test_offline.py`.
+
 ## Not built here
 
-Scanner app changes (`apps/pwa/printix`), offline scanning, ticket types, re-entry,
+Scanner app changes (`apps/pwa/printix`, offline mode follows in its own change), ticket types, re-entry,
 and the Barrels Events connection. The CORS allow-list for the scanner origin is set
 in the deployment environment, not in this domain.
