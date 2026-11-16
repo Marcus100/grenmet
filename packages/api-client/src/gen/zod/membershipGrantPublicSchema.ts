@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { grantInactiveReasonSchema } from "./grantInactiveReasonSchema.js";
 
 export const membershipGrantPublicSchema = z
   .object({
@@ -15,6 +16,8 @@ export const membershipGrantPublicSchema = z
     granted_at: z.iso.datetime(),
     expires_at: z.union([z.iso.datetime(), z.null()]).optional(),
     revoked_at: z.union([z.iso.datetime(), z.null()]).optional(),
+    active: z.boolean().optional().default(true),
+    inactive_reason: z.union([grantInactiveReasonSchema, z.null()]).optional(),
   })
   .describe(
     "A role a member holds. Display names only; never email addresses."

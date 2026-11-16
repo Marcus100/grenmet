@@ -43,6 +43,12 @@ class MembershipStatus(str, Enum):
     REMOVED = "removed"
 
 
+class GrantInactiveReason(str, Enum):
+    """Why a listed grant gives no access. Only set when the grant is not active (#1501)."""
+
+    GRANTER_INACTIVE = "granter_inactive"
+
+
 def _values(enum: type[Enum]) -> str:
     return ", ".join(f"'{member.value}'" for member in enum)
 
