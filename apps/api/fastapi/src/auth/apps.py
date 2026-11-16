@@ -242,6 +242,38 @@ def session_cap(app_name: str | None) -> timedelta | None:
     return timedelta(hours=app.max_session_hours)
 
 
+def find_app(key: str | None) -> AppDefinition | None:
+    """The registered app with this key, or None (sessions may name no app)."""
+    return _apps().get(key) if key is not None else None
+
+
+#: Stable ``code`` in the 403 body when an app requires an authenticator (ADR-0061).
+AUTHENTICATOR_REQUIRED_CODE = "authenticator_required"
+
+
+def authenticator_required_error(
+    app: AppDefinition, *, verify_again: bool = False
+) -> AppException:
+    """403 for an app that requires an authenticator. The sentence is for people;
+    the stable code travels in the body's ``code`` field.
+
+    ``verify_again`` is the handoff case: the person has an authenticator but the
+    account session did not pass it, so they must sign in there with it again.
+    """
+    if verify_again:
+        message = (
+            f"Sign in to account.barrels.gd with your authenticator, then open "
+            f"{app.label} again."
+        )
+    else:
+        message = (
+            f"Add an authenticator on account.barrels.gd to sign in to {app.label}."
+        )
+    error = AppException(message, 403)
+    error.extra = {"code": AUTHENTICATOR_REQUIRED_CODE}
+    return error
+
+
 def get_app(key: str) -> AppDefinition:
     app = _apps().get(key)
     if app is None:

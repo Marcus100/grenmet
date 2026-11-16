@@ -20,10 +20,17 @@ import pytest
 from cryptography.fernet import Fernet
 from sqlalchemy import select
 
-from src.auth import app_service, apps, privileged_mfa, service, sessions, totp
-from src.auth import totp_enrolment
+from src.auth import (
+    app_service,
+    apps,
+    privileged_mfa,
+    service,
+    sessions,
+    totp,
+    totp_enrolment,
+)
 from src.auth.config import auth_settings
-from src.auth.models import Role, UserRoleLink
+from src.auth.models import Role, User, UserRoleLink
 from src.auth.models import Session as LoginSession
 from src.auth.permissions import seed_permissions_and_roles_async
 from src.exceptions import AppException
@@ -34,7 +41,7 @@ BASE = "/api/v1/auth/apps/events"
 REFRESH = "/api/v1/auth/sessions/refresh"
 CODE = "424242"
 CAP_HOURS = 12
-SIGN_IN_REFUSAL = "(authenticator_required)"
+SIGN_IN_REFUSAL = "authenticator_required"
 
 
 @pytest.fixture(autouse=True)
@@ -118,8 +125,9 @@ async def stored(db, token: str) -> LoginSession:
 # --- Session cap (max_session_hours) -----------------------------------------------
 
 
+@pytest.mark.usefixtures("roles")
 async def test_capped_session_expires_at_the_cap_from_sign_in(
-    async_client, db_async, roles, events_app, clock
+    async_client, db_async, events_app, clock
 ):
     events_app(max_session_hours=CAP_HOURS)
     user = await make_user(db_async)
@@ -133,8 +141,9 @@ async def test_capped_session_expires_at_the_cap_from_sign_in(
     assert row.expires_at == signed_in + timedelta(hours=CAP_HOURS)
 
 
+@pytest.mark.usefixtures("roles")
 async def test_refresh_never_extends_a_capped_session_past_its_cap(
-    async_client, db_async, roles, events_app, clock
+    async_client, db_async, events_app, clock
 ):
     events_app(max_session_hours=CAP_HOURS)
     user = await make_user(db_async)
@@ -154,16 +163,45 @@ async def test_refresh_never_extends_a_capped_session_past_its_cap(
     row = await stored(db_async, refreshed.json()["session_token"])
     assert row.expires_at == signed_in + timedelta(hours=CAP_HOURS)
 
-    # At the cap the session is over: refresh refuses and leaves nothing new behind.
+    # At the cap the session is over: refresh refuses, revokes it, and the
+    # access-token exchange gives no token from it any more.
     advance(clock, minutes=30)
-    expired = await async_client.post(
-        REFRESH, json={"session_token": refreshed.json()["session_token"]}
-    )
+    last = refreshed.json()["session_token"]
+    expired = await async_client.post(REFRESH, json={"session_token": last})
     assert expired.status_code == 401
+    assert (await stored(db_async, last)).revoked_at is not None
+    exchanged = await async_client.post(
+        "/api/v1/auth/sessions/access-token", json={"session_token": last}
+    )
+    assert exchanged.status_code == 401
 
 
+@pytest.mark.usefixtures("roles")
+async def test_a_legacy_session_past_its_cap_is_revoked_on_refresh(
+    async_client, db_async, events_app, clock
+):
+    """A row created before the cap still has its old expiry; refresh must refuse it
+    and revoke it rather than rotate it."""
+    user = await make_user(db_async)
+    token = (await code_sign_in(async_client, user.email)).json()["session_token"]
+    row = await stored(db_async, token)
+    row.signed_in_at = clock["at"] - timedelta(hours=CAP_HOURS + 1)
+    await db_async.commit()
+    events_app(max_session_hours=CAP_HOURS)
+
+    refused = await async_client.post(REFRESH, json={"session_token": token})
+
+    assert refused.status_code == 401
+    assert (await stored(db_async, token)).revoked_at is not None
+    exchanged = await async_client.post(
+        "/api/v1/auth/sessions/access-token", json={"session_token": token}
+    )
+    assert exchanged.status_code == 401
+
+
+@pytest.mark.usefixtures("roles")
 async def test_the_original_sign_in_survives_several_rotations(
-    async_client, db_async, roles, events_app, clock
+    async_client, db_async, events_app, clock
 ):
     events_app(max_session_hours=CAP_HOURS)
     user = await make_user(db_async)
@@ -180,8 +218,9 @@ async def test_the_original_sign_in_survives_several_rotations(
         assert row.expires_at == signed_in + timedelta(hours=CAP_HOURS)
 
 
+@pytest.mark.usefixtures("roles")
 async def test_password_sign_in_also_sets_the_original_sign_in_and_cap(
-    async_client, db_async, roles, events_app, clock
+    async_client, db_async, events_app, clock
 ):
     events_app(max_session_hours=CAP_HOURS)
     user = await make_user(db_async)
@@ -194,8 +233,9 @@ async def test_password_sign_in_also_sets_the_original_sign_in_and_cap(
     assert row.expires_at == signed_in + timedelta(hours=CAP_HOURS)
 
 
+@pytest.mark.usefixtures("roles")
 async def test_a_session_without_signed_in_at_falls_back_to_created_at(
-    async_client, db_async, roles, events_app, clock
+    async_client, db_async, events_app, clock
 ):
     """Rows from before the column are NULL; the refresh reads created_at instead."""
     events_app(max_session_hours=CAP_HOURS)
@@ -215,14 +255,17 @@ async def test_a_session_without_signed_in_at_falls_back_to_created_at(
     assert row.expires_at == created + timedelta(hours=CAP_HOURS)
 
 
+@pytest.mark.usefixtures("roles")
 async def test_uncapped_app_keeps_the_thirty_day_expiry_and_refresh(
-    async_client, db_async, roles, clock
+    async_client, db_async, clock
 ):
     user = await make_user(db_async)
     signed_in = clock["at"]
     token = (await code_sign_in(async_client, user.email)).json()["session_token"]
     row = await stored(db_async, token)
-    assert row.expires_at == signed_in + timedelta(days=auth_settings.SESSION_EXPIRE_DAYS)
+    assert row.expires_at == signed_in + timedelta(
+        days=auth_settings.SESSION_EXPIRE_DAYS
+    )
 
     advance(clock, days=1)
     refreshed = await async_client.post(REFRESH, json={"session_token": token})
@@ -236,8 +279,9 @@ async def test_uncapped_app_keeps_the_thirty_day_expiry_and_refresh(
 # --- Authenticator required at sign-in (require_authenticator) ----------------------
 
 
+@pytest.mark.usefixtures("roles")
 async def test_refuses_a_person_without_an_authenticator_and_creates_no_session(
-    async_client, db_async, roles, events_app
+    async_client, db_async, events_app
 ):
     events_app(require_authenticator=True)
     user = await make_user(db_async)
@@ -247,15 +291,19 @@ async def test_refuses_a_person_without_an_authenticator_and_creates_no_session(
     assert response.status_code == 403
     detail = response.json()["detail"]
     assert "account.barrels.gd" in detail
-    assert SIGN_IN_REFUSAL in detail
+    assert "(" not in detail  # the code lives in the body, not in the sentence
+    assert response.json()["code"] == SIGN_IN_REFUSAL
     rows = (
-        await db_async.scalars(select(LoginSession).where(LoginSession.user_id == user.id))
+        await db_async.scalars(
+            select(LoginSession).where(LoginSession.user_id == user.id)
+        )
     ).all()
     assert rows == []
 
 
+@pytest.mark.usefixtures("roles")
 async def test_unknown_address_gets_the_same_refusal_as_a_known_one(
-    async_client, db_async, roles, events_app
+    async_client, db_async, events_app
 ):
     """A correct code proves the mailbox, so the refusal reveals nothing new."""
     events_app(require_authenticator=True)
@@ -267,35 +315,42 @@ async def test_unknown_address_gets_the_same_refusal_as_a_known_one(
     assert known_reply.json()["detail"] == new_reply.json()["detail"]
 
 
+@pytest.mark.usefixtures("roles")
 async def test_password_sign_in_refused_without_an_authenticator_and_no_session(
-    async_client, db_async, roles, events_app
+    async_client, db_async, events_app
 ):
     events_app(require_authenticator=True)
     user = await make_user(db_async)
 
     refused = await password_sign_in(async_client, user.email)
     assert refused.status_code == 403
-    assert SIGN_IN_REFUSAL in refused.json()["detail"]
+    assert refused.json()["code"] == SIGN_IN_REFUSAL
     rows = (
-        await db_async.scalars(select(LoginSession).where(LoginSession.user_id == user.id))
+        await db_async.scalars(
+            select(LoginSession).where(LoginSession.user_id == user.id)
+        )
     ).all()
     assert rows == []
 
 
+@pytest.mark.usefixtures("roles")
 async def test_wrong_password_still_gets_the_generic_answer(
-    async_client, db_async, roles, events_app
+    async_client, db_async, events_app
 ):
     """The refusal comes only after the password is right, so a guess learns nothing."""
     events_app(require_authenticator=True)
     user = await make_user(db_async)
 
-    wrong = await password_sign_in(async_client, user.email, password="not-the-password")
+    wrong = await password_sign_in(
+        async_client, user.email, password="not-the-password"
+    )
     assert wrong.status_code == 400
     assert "Incorrect email or password" in wrong.json()["detail"]
 
 
+@pytest.mark.usefixtures("roles")
 async def test_person_with_an_authenticator_signs_in_with_mfa_stamped(
-    async_client, db_async, roles, events_app
+    async_client, db_async, events_app
 ):
     events_app(require_authenticator=True)
     user = await make_user(db_async)
@@ -310,8 +365,9 @@ async def test_person_with_an_authenticator_signs_in_with_mfa_stamped(
     assert row.mfa_verified_at is not None
 
 
+@pytest.mark.usefixtures("roles")
 async def test_password_sign_in_with_an_authenticator_stamps_mfa(
-    async_client, db_async, roles, events_app
+    async_client, db_async, events_app
 ):
     events_app(require_authenticator=True)
     user = await make_user(db_async)
@@ -329,8 +385,9 @@ async def test_password_sign_in_with_an_authenticator_stamps_mfa(
     assert row.mfa_verified_at is not None
 
 
+@pytest.mark.usefixtures("roles")
 async def test_default_off_app_signs_in_without_an_authenticator(
-    async_client, db_async, roles
+    async_client, db_async
 ):
     user = await make_user(db_async)
 
@@ -362,8 +419,9 @@ async def _capture_enrolment_codes(monkeypatch) -> list[str]:
     return sent
 
 
+@pytest.mark.usefixtures("roles")
 async def test_holder_of_an_app_with_privileged_members_needs_an_emailed_code(
-    db_async, roles, events_app, monkeypatch
+    db_async, events_app, monkeypatch
 ):
     events_app(privileged_members=True)
     sent = await _capture_enrolment_codes(monkeypatch)
@@ -388,8 +446,9 @@ async def test_holder_of_an_app_with_privileged_members_needs_an_emailed_code(
     )
 
 
+@pytest.mark.usefixtures("roles")
 async def test_enrolment_ends_the_other_sessions_of_a_holder(
-    db_async, roles, events_app, monkeypatch
+    db_async, events_app, monkeypatch
 ):
     events_app(privileged_members=True)
     sent = await _capture_enrolment_codes(monkeypatch)
@@ -415,9 +474,8 @@ async def test_enrolment_ends_the_other_sessions_of_a_holder(
         assert row.revoked_at is not None
 
 
-async def test_holder_cannot_change_email_until_two_step_is_on(
-    db_async, roles, events_app
-):
+@pytest.mark.usefixtures("roles")
+async def test_holder_cannot_change_email_until_two_step_is_on(db_async, events_app):
     events_app(privileged_members=True)
     user = await make_user(db_async)
     await grant_events_access(db_async, user)
@@ -426,9 +484,8 @@ async def test_holder_cannot_change_email_until_two_step_is_on(
         await totp_enrolment.ensure_email_change_allowed(session=db_async, user=user)
 
 
-async def test_app_with_privileged_members_off_is_unchanged(
-    db_async, roles, monkeypatch
-):
+@pytest.mark.usefixtures("roles")
+async def test_app_with_privileged_members_off_is_unchanged(db_async, monkeypatch):
     sent = await _capture_enrolment_codes(monkeypatch)
     user = await make_user(db_async)
     await grant_events_access(db_async, user)
@@ -445,3 +502,179 @@ async def test_app_with_privileged_members_off_is_unchanged(
     await db_async.refresh(other)
     assert other.revoked_at is None
     await totp_enrolment.ensure_email_change_allowed(session=db_async, user=user)
+
+
+# --- Review fixes: per-request checks, handoff, refusal order ----------------------
+
+SSO_SECRET = "handoff-test-secret"
+STATE = "state-for-the-handoff-tests-0123456789"
+
+
+async def account_session(db, user, *, signed_in_at=None, mfa_verified_at=None) -> str:
+    """An auth.barrels.gd account session, the source of a handoff."""
+    _, secret = await service.create_session(
+        session=db,
+        user=user,
+        app_name="auth",
+        signed_in_at=signed_in_at,
+        mfa_verified_at=mfa_verified_at,
+    )
+    return secret
+
+
+async def handoff_code(async_client, secret: str) -> str:
+    response = await async_client.post(
+        f"{BASE}/handoff",
+        json={"session_token": secret, "state": STATE, "join": True},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()["code"]
+
+
+async def redeem(async_client, code: str):
+    return await async_client.post(
+        f"{BASE}/handoff/redeem",
+        json={"code": code, "state": STATE, "client_secret": SSO_SECRET},
+    )
+
+
+@pytest.mark.usefixtures("roles")
+async def test_disabling_the_authenticator_refuses_refresh_and_app_routes(
+    async_client, db_async, events_app
+):
+    events_app(require_authenticator=True)
+    user = await make_user(db_async)
+    secret = await enrol_authenticator(db_async, user)
+    signed = await code_sign_in(
+        async_client, user.email, totp_code=pyotp.TOTP(secret).now()
+    )
+    assert signed.status_code == 200, signed.text
+    token = signed.json()["session_token"]
+    access = signed.json()["access_token"]
+
+    await service.disable_totp(session=db_async, user=user)
+
+    route = await async_client.get(
+        f"{BASE}/me", headers={"Authorization": f"Bearer {access}"}
+    )
+    assert route.status_code == 403
+    assert route.json()["code"] == SIGN_IN_REFUSAL
+    refused = await async_client.post(REFRESH, json={"session_token": token})
+    assert refused.status_code == 401
+    assert (await stored(db_async, token)).revoked_at is not None
+    exchanged = await async_client.post(
+        "/api/v1/auth/sessions/access-token", json={"session_token": token}
+    )
+    assert exchanged.status_code == 401
+
+
+@pytest.mark.usefixtures("roles")
+async def test_a_refused_refresh_leaves_other_apps_alone(
+    async_client, db_async, events_app
+):
+    """Only the refused app's session is revoked; the person's account session stays."""
+    events_app(require_authenticator=True)
+    user = await make_user(db_async)
+    secret = await enrol_authenticator(db_async, user)
+    account = await account_session(db_async, user, mfa_verified_at=utc_now())
+    signed = await code_sign_in(
+        async_client, user.email, totp_code=pyotp.TOTP(secret).now()
+    )
+    await service.disable_totp(session=db_async, user=user)
+
+    await async_client.post(
+        REFRESH, json={"session_token": signed.json()["session_token"]}
+    )
+
+    assert await service.get_active_session_by_secret(
+        session=db_async, session_secret=account
+    )
+
+
+@pytest.mark.usefixtures("roles")
+async def test_handoff_counts_the_cap_from_the_original_sign_in(
+    async_client, db_async, events_app, clock
+):
+    events_app(max_session_hours=CAP_HOURS, client_secret=SSO_SECRET)
+    user = await make_user(db_async)
+    original = clock["at"] - timedelta(hours=10)
+    secret = await account_session(
+        db_async, user, signed_in_at=original, mfa_verified_at=clock["at"]
+    )
+
+    redeemed = await redeem(async_client, await handoff_code(async_client, secret))
+
+    assert redeemed.status_code == 200, redeemed.text
+    row = await stored(db_async, redeemed.json()["session_token"])
+    assert row.signed_in_at == original
+    assert row.expires_at == original + timedelta(hours=CAP_HOURS)
+
+
+@pytest.mark.usefixtures("roles")
+async def test_handoff_refuses_a_capped_account_session_already_past_the_cap(
+    async_client, db_async, events_app, clock
+):
+    events_app(max_session_hours=CAP_HOURS, client_secret=SSO_SECRET)
+    user = await make_user(db_async)
+    secret = await account_session(
+        db_async,
+        user,
+        signed_in_at=clock["at"] - timedelta(hours=CAP_HOURS + 1),
+        mfa_verified_at=clock["at"],
+    )
+
+    refused = await redeem(async_client, await handoff_code(async_client, secret))
+
+    assert refused.status_code == 401
+
+
+@pytest.mark.usefixtures("roles")
+async def test_handoff_into_a_requiring_app_needs_an_authenticator_checked_at_sign_in(
+    async_client, db_async, events_app
+):
+    events_app(require_authenticator=True, client_secret=SSO_SECRET)
+    user = await make_user(db_async)
+    await enrol_authenticator(db_async, user)
+    unverified = await account_session(db_async, user)
+
+    refused = await redeem(async_client, await handoff_code(async_client, unverified))
+
+    assert refused.status_code == 403
+    assert refused.json()["code"] == SIGN_IN_REFUSAL
+    assert "Sign in to account.barrels.gd" in refused.json()["detail"]
+    assert (
+        await db_async.scalars(
+            select(LoginSession).where(
+                LoginSession.user_id == user.id, LoginSession.app_name == "events"
+            )
+        )
+    ).all() == []
+
+    verified = await account_session(db_async, user, mfa_verified_at=utc_now())
+    ok = await redeem(async_client, await handoff_code(async_client, verified))
+    assert ok.status_code == 200, ok.text
+
+
+@pytest.mark.usefixtures("roles")
+async def test_a_new_address_is_refused_before_an_account_exists_and_the_code_is_kept(
+    async_client, db_async, events_app
+):
+    events_app(require_authenticator=True)
+    email = "new-authenticator-check@example.com"
+    await async_client.post(f"{BASE}/email-code/start", json={"email": email})
+
+    first = await async_client.post(
+        f"{BASE}/email-code/verify", json={"email": email, "code": CODE}
+    )
+
+    assert first.status_code == 403
+    assert first.json()["code"] == SIGN_IN_REFUSAL
+    assert first.json()["detail"] == (
+        "Add an authenticator on account.barrels.gd to sign in to Barrels Events."
+    )
+    assert await db_async.scalar(select(User.id).where(User.email == email)) is None
+    # The code was not spent, so a second try gets the same refusal, not "wrong code".
+    again = await async_client.post(
+        f"{BASE}/email-code/verify", json={"email": email, "code": CODE}
+    )
+    assert again.status_code == 403

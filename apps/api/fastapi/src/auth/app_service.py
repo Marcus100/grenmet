@@ -36,7 +36,14 @@ from src.auth.app_schemas import (
     AppPhoneCodeStart,
     AppPhoneCodeVerify,
 )
-from src.auth.apps import AppDefinition, is_registered, registered_apps, require_method
+from src.auth.apps import (
+    AppDefinition,
+    authenticator_required_error,
+    is_registered,
+    registered_apps,
+    require_method,
+    session_cap,
+)
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.email_verification import is_admin_activated
@@ -211,6 +218,7 @@ async def _session_response(
     mfa_verified_at: datetime | None = None,
     mfa_source_session: LoginSession | None = None,
     email_code_verified_at: datetime | None = None,
+    signed_in_at: datetime | None = None,
 ) -> SessionLoginResponse:
     # Staff apps (ADR-0017) keep the staff gate and mint ordinary staff tokens.
     staff = app.scope == "staff"
@@ -240,6 +248,7 @@ async def _session_response(
         mfa_verified_at=mfa_verified_at,
         mfa_source_session=mfa_source_session,
         email_code_verified_at=email_code_verified_at,
+        signed_in_at=signed_in_at,
     )
     if staff or app.key == "cms":
         from src.auth.privileged_mfa import require_privileged_mfa
@@ -290,10 +299,6 @@ async def _require_totp(
     await login_lockout.reset(user.email)
 
 
-# Stable suffix of the 403 detail when an app requires an authenticator (ADR-0061).
-AUTHENTICATOR_REQUIRED_CODE = "authenticator_required"
-
-
 def _require_app_authenticator(app: AppDefinition, user: User) -> None:
     """Refuse a person with no enrolled authenticator, for an app that requires one.
 
@@ -302,11 +307,7 @@ def _require_app_authenticator(app: AppDefinition, user: User) -> None:
     method, so it reveals nothing the proof has not already shown.
     """
     if app.require_authenticator and not user.totp_enabled:
-        raise AppException(
-            f"Add an authenticator on account.barrels.gd before you sign in to "
-            f"{app.label} ({AUTHENTICATOR_REQUIRED_CODE})",
-            403,
-        )
+        raise authenticator_required_error(app)
 
 
 # --- Email one-time code (passwordless sign-in and sign-up) --------------------
@@ -456,6 +457,11 @@ async def email_code_verify(
     if user is None:
         if not app.self_signup:
             raise AppException("Ask the team to give you access to this app.", 403)
+        # A new address has no authenticator yet. Refusing here, before the account
+        # exists and before the code is spent, keeps a refused sign-in from leaving
+        # an account or a used code behind (ADR-0061).
+        if app.require_authenticator:
+            raise authenticator_required_error(app)
         user = await _create_member(
             session,
             email=email,
@@ -864,6 +870,14 @@ async def handoff_redeem(
         or not service.is_session_active(source)
     ):
         raise AppException(HANDOFF_EXPIRED, 400)
+    # The app session counts from the account session's original sign-in, so a
+    # handoff never restarts the cap (ADR-0061).
+    original_sign_in = source.signed_in_at or source.created_at
+    if app.require_authenticator and source.mfa_verified_at is None:
+        raise authenticator_required_error(app, verify_again=True)
+    cap = session_cap(app.key)
+    if cap is not None and utc_now() >= original_sign_in + cap:
+        raise AppException("Sign in again", 401)
     return await _session_response(
         request,
         session,
@@ -871,6 +885,7 @@ async def handoff_redeem(
         app,
         mfa_verified_at=source.mfa_verified_at,
         mfa_source_session=source,
+        signed_in_at=original_sign_in,
     )
 
 
