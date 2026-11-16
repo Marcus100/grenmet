@@ -241,23 +241,43 @@ answer must match the generated schema), and the server is the only judge of a r
     confirm, for both roles. The 20-active-codes 409 says to cancel one first.
   - **The QR code, shown once** (`gate-code-panel.tsx`, `qr.ts`): the link is
     `<this origin>/#pair=<secret>`, drawn as an inline SVG (the events app's module-path
-    approach, so no image is loaded and the CSP needs no change). Full width, with the
-    gate name and "Scan this with the gate phone's camera now. It will not be shown
-    again." The secret lives only in the component's state. It is dropped by Done, by
-    leaving the event page, and by making another code. No copy, download, print or
-    share control exists anywhere. Nothing reaches storage, a URL, a log or `reportError`.
+    approach, so no image is loaded and the CSP needs no change). Full width, with the gate
+    name and "Scan this with the gate phone's camera now. It will not be shown again." Focus
+    moves to its heading when it appears. It shows "This code hides in N seconds." and is
+    dropped on Done, after two minutes, or as soon as the page is hidden (`visibilitychange`).
+    The secret lives only in the component's state, which the page owns; leaving the event
+    page drops it. Making a code that gets no answer adds "A code may have been made. Check
+    the list and cancel any you did not expect." No copy, download, print or share control
+    exists. Nothing reaches storage, a URL, a log or `reportError`. `pairingLink` round-trips
+    through `readPairingFragment` (tested).
   - **Tickets** (organisers, `tickets-section.tsx`): printed number and state, paged 50,
     never a barcode. Void and restore each take a confirm step. An admitted ticket
     offers no void. Closed events refuse every change, and the screen says so.
   - **Import tickets** (organisers, `import-section.tsx`): a trial first (`dry_run=true`,
-    which writes nothing), then "Import N tickets" (`dry_run=false`) only when the trial
-    had no problems, nothing truncated and rows to add. Problems list by line. Both
-    weak-barcode counts show as "Offline checking will be off for this event: ...".
-    The file is held in component state only, never in storage, and is dropped after a
-    successful import. Over 2 MB is refused before any call; 413 and 409 have their own
-    sentences. The sample is a `data:` link, so nothing is created or stored.
+    writes nothing), then "Import N tickets" (`dry_run=false`). The trial keeps the exact
+    `File` it checked, and the import uploads that file, never whatever the picker shows
+    later. The picker is disabled while a check or import runs, and an answer for a file
+    that was replaced meanwhile is ignored. The trial is clean only when it has no
+    problems, nothing truncated, rows to add, and no warnings. The server's only warnings
+    are blank-barcode ones, and a real import refuses those (`service.import_tickets`), so
+    they block: "Every ticket needs its barcode. Ask the printer for the full list." Weak
+    barcodes never block (the real import accepts them): "Across this event, N barcodes are
+    shorter than 12 characters. Offline checking will be off for this event." A real import
+    that still writes nothing shows its problems under "The import was not written. Nothing
+    was added." The trial report does not list blank rows by line (the server gives only the
+    count and the first line); a per-line list needs a server change. The tickets list
+    remounts after a successful import, and the offline warning stays on the done step. The
+    file is held in component state only and dropped after a successful import; over 2 MB is
+    refused before any call; 413 and 409 have their own sentences.
   - **Close event** (organisers, `close-event-section.tsx`): a confirm that says it
     cannot be undone and that gate codes stop admitting people.
+- **Closed means closed (`event-state.ts`):** the organiser closed it, or its closing time
+  has passed. A closed event offers no void, restore, import, new gate code or close action,
+  and its unended gate codes read "Ended (event closed)" with no Cancel button.
+- **Focus and results:** a confirm step (void, restore, cancel a code, close) takes focus
+  when it opens and returns it to its opening control when it closes (`use-confirm-focus.ts`).
+  Results (imported, void, restored, cancelled, the code made, closed) are announced in one
+  polite live region on the event page.
 - **Events list:** "New event" for organisers only (`can_manage_events`).
 - **New error kinds** (`errors.ts`): `invalid` (422 sentences), `event-closed`,
   `gate-codes-full`, `already-admitted`, `conflict` (any other 409), `too-large` (413),

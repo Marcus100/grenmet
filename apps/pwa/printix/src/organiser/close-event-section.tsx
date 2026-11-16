@@ -1,12 +1,14 @@
 import type { PrintixOrganiserOrganisation } from "@barrelsgd/api-client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { type Problem, problemMessage } from "@/organiser/errors";
 import type { OrganiserSession } from "@/organiser/session";
 import { ALERT, BUTTON_PRIMARY, BUTTON_SECONDARY } from "@/organiser/styles";
+import { useConfirmFocus } from "@/organiser/use-confirm-focus";
 import { closeEvent } from "@/organiser/write-api";
 
 interface CloseEventSectionProps {
   readonly eventId: string;
+  readonly onAnnounce: (text: string) => void;
   readonly onClosed: () => void;
   readonly organisation: PrintixOrganiserOrganisation;
   readonly session: OrganiserSession;
@@ -18,10 +20,14 @@ export function CloseEventSection({
   organisation,
   eventId,
   onClosed,
+  onAnnounce,
 }: CloseEventSectionProps) {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<Problem | null>(null);
+  const openButton = useRef<HTMLButtonElement>(null);
+  const keepButton = useRef<HTMLButtonElement>(null);
+  useConfirmFocus(confirming, keepButton, openButton);
 
   async function close() {
     setBusy(true);
@@ -31,6 +37,7 @@ export function CloseEventSection({
     if (outcome.ok) {
       setConfirming(false);
       onClosed();
+      onAnnounce("The event is closed. Gate codes no longer admit people.");
     } else {
       setProblem(outcome.problem);
     }
@@ -78,6 +85,7 @@ export function CloseEventSection({
             <button
               className={BUTTON_SECONDARY}
               onClick={() => setConfirming(false)}
+              ref={keepButton}
               type="button"
             >
               Keep it open
@@ -88,6 +96,7 @@ export function CloseEventSection({
         <button
           className={BUTTON_SECONDARY}
           onClick={() => setConfirming(true)}
+          ref={openButton}
           type="button"
         >
           Close event

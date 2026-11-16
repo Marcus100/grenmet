@@ -22,6 +22,7 @@ import {
   FIELD,
   NOTE,
 } from "@/organiser/styles";
+import { useConfirmFocus } from "@/organiser/use-confirm-focus";
 import {
   cancelGateCode,
   createGateCode,
@@ -41,11 +42,25 @@ export function codeState(
     : "active";
 }
 
-const STATE_WORDS = {
-  active: "Active",
-  cancelled: "Cancelled",
-  expired: "Expired",
-} as const;
+/** The words for a code's state. A closed event ends every code that was not cancelled. */
+export function codeLabel(
+  code: PrintixPairingPublic,
+  now: Date,
+  closed: boolean
+): string {
+  const state = codeState(code, now);
+  if (state === "cancelled") {
+    return "Cancelled";
+  }
+  if (closed) {
+    return "Ended (event closed)";
+  }
+  return state === "active" ? "Active" : "Expired";
+}
+
+/** The sentence after an uncertain failure: the server may have made the code. */
+export const MAYBE_MADE_SENTENCE =
+  "A code may have been made. Check the list and cancel any you did not expect.";
 
 type ListState =
   | { readonly kind: "loading" }
@@ -55,6 +70,7 @@ type ListState =
 interface GateCodesSectionProps {
   readonly closed: boolean;
   readonly eventId: string;
+  readonly onAnnounce: (text: string) => void;
   /** Called after a change, so the event's counts are read again. */
   readonly onChanged: () => void;
   readonly organisation: PrintixOrganiserOrganisation;
@@ -72,6 +88,7 @@ export function GateCodesSection({
   eventId,
   closed,
   onChanged,
+  onAnnounce,
 }: GateCodesSectionProps) {
   const [list, setList] = useState<ListState>({ kind: "loading" });
   const [formOpen, setFormOpen] = useState(false);
@@ -104,12 +121,8 @@ export function GateCodesSection({
     load();
   }, [load]);
 
-  // Leaving the screen (unmount) drops the panel and its secret with it.
-  useEffect(() => () => setPanel(null), []);
-
-  function reload() {
-    load();
-  }
+  // Stable, so the panel's countdown is not restarted by parent re-renders.
+  const hidePanel = useCallback(() => setPanel(null), []);
 
   function showCode(created: PrintixPairingCreated) {
     setPanel({
@@ -118,8 +131,9 @@ export function GateCodesSection({
       secret: created.secret,
     });
     setFormOpen(false);
-    reload();
+    load();
     onChanged();
+    onAnnounce(`Gate code made for ${created.gate}. It is shown once.`);
   }
 
   async function cancel(code: PrintixPairingPublic) {
@@ -129,8 +143,9 @@ export function GateCodesSection({
     setBusy(false);
     setCancelling(null);
     if (outcome.ok) {
-      reload();
+      load();
       onChanged();
+      onAnnounce(`Cancelled the code for ${code.gate}.`);
     } else {
       setProblem(outcome.problem);
     }
@@ -178,7 +193,8 @@ export function GateCodesSection({
         <GateCodePanel
           expiresLabel={panel.expiresLabel}
           gate={panel.gate}
-          onDone={() => setPanel(null)}
+          onDone={hidePanel}
+          onHide={hidePanel}
           secret={panel.secret}
         />
       ) : null}
@@ -208,82 +224,122 @@ export function GateCodesSection({
       ) : null}
 
       {list.kind === "problem" ? (
-        <button className={BUTTON_SECONDARY} onClick={reload} type="button">
+        <button className={BUTTON_SECONDARY} onClick={load} type="button">
           Try again
         </button>
       ) : null}
 
       {codes.length > 0 ? (
         <ul className="flex flex-col gap-3">
-          {codes.map((code) => {
-            const state = codeState(code, now);
-            return (
-              <li
-                className="bg-px-surface border-px-rule flex flex-col gap-3 rounded-2xl border p-4"
-                key={code.id}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <p className="font-semibold break-words">{code.gate}</p>
-                    <p className="text-px-muted text-sm">
-                      {state === "active" ? "Works until" : "Ended"}{" "}
-                      {formatMoment(code.expires_at)}
-                    </p>
-                    <p className="text-px-muted text-sm">
-                      Typed numbers {code.allow_typed_numbers ? "on" : "off"}
-                    </p>
-                  </div>
-                  <p
-                    className={`text-sm font-semibold ${state === "active" ? "text-px-green" : "text-px-muted"}`}
-                  >
-                    {STATE_WORDS[state]}
-                  </p>
-                </div>
-
-                {state === "active" && cancelling !== code.id ? (
-                  <button
-                    className={BUTTON_SECONDARY}
-                    onClick={() => setCancelling(code.id)}
-                    type="button"
-                  >
-                    Cancel code
-                  </button>
-                ) : null}
-
-                {cancelling === code.id ? (
-                  <section
-                    aria-label={`Cancel the code for ${code.gate}`}
-                    className="flex flex-col gap-3"
-                  >
-                    <p className="text-base">
-                      Cancel the code for {code.gate}? The gate phone stops
-                      admitting people with it at once.
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        className={BUTTON_PRIMARY}
-                        disabled={busy}
-                        onClick={() => cancel(code)}
-                        type="button"
-                      >
-                        Yes, cancel it
-                      </button>
-                      <button
-                        className={BUTTON_SECONDARY}
-                        onClick={() => setCancelling(null)}
-                        type="button"
-                      >
-                        Keep it
-                      </button>
-                    </div>
-                  </section>
-                ) : null}
-              </li>
-            );
-          })}
+          {codes.map((code) => (
+            <GateCodeRow
+              busy={busy}
+              closed={closed}
+              code={code}
+              confirming={cancelling === code.id}
+              key={code.id}
+              now={now}
+              onAsk={() => setCancelling(code.id)}
+              onConfirm={() => cancel(code)}
+              onKeep={() => setCancelling(null)}
+            />
+          ))}
         </ul>
       ) : null}
     </section>
+  );
+}
+
+interface GateCodeRowProps {
+  readonly busy: boolean;
+  readonly closed: boolean;
+  readonly code: PrintixPairingPublic;
+  readonly confirming: boolean;
+  readonly now: Date;
+  readonly onAsk: () => void;
+  readonly onConfirm: () => void;
+  readonly onKeep: () => void;
+}
+
+/** One gate code: its gate, expiry and typed-numbers setting, with cancel and its confirm. */
+function GateCodeRow({
+  code,
+  now,
+  closed,
+  busy,
+  confirming,
+  onAsk,
+  onKeep,
+  onConfirm,
+}: GateCodeRowProps) {
+  const cancelButton = useRef<HTMLButtonElement>(null);
+  const keepButton = useRef<HTMLButtonElement>(null);
+  const label = codeLabel(code, now, closed);
+  const canCancel = codeState(code, now) === "active" && !closed;
+  useConfirmFocus(confirming && canCancel, keepButton, cancelButton);
+  return (
+    <li className="bg-px-surface border-px-rule flex flex-col gap-3 rounded-2xl border p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <p className="font-semibold break-words">{code.gate}</p>
+          <p className="text-px-muted text-sm">
+            {codeState(code, now) === "active" && !closed
+              ? "Works until"
+              : "Was valid until"}{" "}
+            {formatMoment(code.expires_at)}
+          </p>
+          <p className="text-px-muted text-sm">
+            Typed numbers {code.allow_typed_numbers ? "on" : "off"}
+          </p>
+        </div>
+        <p
+          className={`text-sm font-semibold ${label === "Active" ? "text-px-green" : "text-px-muted"}`}
+        >
+          {label}
+        </p>
+      </div>
+
+      {canCancel && !confirming ? (
+        <button
+          className={BUTTON_SECONDARY}
+          onClick={onAsk}
+          ref={cancelButton}
+          type="button"
+        >
+          Cancel code
+        </button>
+      ) : null}
+
+      {confirming && canCancel ? (
+        <section
+          aria-label={`Cancel the code for ${code.gate}`}
+          className="flex flex-col gap-3"
+        >
+          <p className="text-base">
+            Cancel the code for {code.gate}? The gate phone stops admitting
+            people with it at once.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              className={BUTTON_PRIMARY}
+              disabled={busy}
+              onClick={onConfirm}
+              type="button"
+            >
+              Yes, cancel it
+            </button>
+            <button
+              className={BUTTON_SECONDARY}
+              onClick={onKeep}
+              ref={keepButton}
+              type="button"
+            >
+              Keep it
+            </button>
+          </div>
+        </section>
+      ) : null}
+    </li>
   );
 }
 
@@ -335,6 +391,8 @@ function GateCodeForm({
   }
 
   const message = local ?? (problem ? problemMessage(problem) : null);
+  // No answer at all: the server may have made the code, so say so.
+  const uncertain = problem?.kind === "no-signal";
 
   return (
     <form
@@ -399,9 +457,12 @@ function GateCodeForm({
       ) : null}
 
       {message ? (
-        <p className={ALERT} role="alert">
-          {message}
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className={ALERT} role="alert">
+            {message}
+          </p>
+          {uncertain ? <p className={NOTE}>{MAYBE_MADE_SENTENCE}</p> : null}
+        </div>
       ) : null}
 
       <div className="flex flex-wrap gap-3">

@@ -2,11 +2,13 @@ import type {
   PrintixEventPublic,
   PrintixOrganiserOrganisation,
 } from "@barrelsgd/api-client";
+import { useCallback, useState } from "react";
 import { CountBar } from "@/components/count-bar";
 import type { Link } from "@/lib/use-live-count";
 import { roleLabel } from "@/organiser/choose-organisation";
 import { CloseEventSection } from "@/organiser/close-event-section";
 import { type Problem, problemMessage } from "@/organiser/errors";
+import { isEventClosed } from "@/organiser/event-state";
 import { formatClock, formatEventDate, formatMoment } from "@/organiser/format";
 import { GateCodesSection } from "@/organiser/gate-codes-section";
 import { ImportSection } from "@/organiser/import-section";
@@ -47,6 +49,17 @@ export function EventScreen({
   const link = linkOf(problem);
   // The poll's copy of the event: a closing event updates while the page is open.
   const shown = summary?.event ?? event;
+  // Closed by the organiser, or past its closing time: no setup action is offered.
+  const closed = isEventClosed(shown, new Date());
+  // Results for screen readers (a live region below), and a remount of the tickets
+  // list after an import so it shows the new tickets.
+  const [announcement, setAnnouncement] = useState("");
+  const [ticketsVersion, setTicketsVersion] = useState(0);
+  const onAnnounce = useCallback((text: string) => setAnnouncement(text), []);
+  const onImported = useCallback(
+    () => setTicketsVersion((count) => count + 1),
+    []
+  );
 
   return (
     <section aria-labelledby="event-title" className="flex flex-col gap-5">
@@ -111,9 +124,14 @@ export function EventScreen({
         10 seconds while this page is open.
       </p>
 
+      <div aria-live="polite" className="sr-only" role="status">
+        {announcement}
+      </div>
+
       <GateCodesSection
-        closed={shown.status === "closed"}
+        closed={closed}
         eventId={event.id}
+        onAnnounce={onAnnounce}
         onChanged={reload}
         organisation={organisation}
         session={session}
@@ -122,27 +140,34 @@ export function EventScreen({
       {organisation.can_manage_events ? (
         <>
           <TicketsSection
-            closed={shown.status === "closed"}
+            closed={closed}
             eventId={event.id}
+            key={ticketsVersion}
+            onAnnounce={onAnnounce}
             onChanged={reload}
             organisation={organisation}
             session={session}
           />
           <ImportSection
-            closed={shown.status === "closed"}
+            closed={closed}
             eventId={event.id}
-            onChanged={reload}
+            onAnnounce={onAnnounce}
+            onImported={() => {
+              onImported();
+              reload();
+            }}
             organisation={organisation}
             session={session}
           />
-          {shown.status === "open" ? (
+          {closed ? null : (
             <CloseEventSection
               eventId={event.id}
+              onAnnounce={onAnnounce}
               onClosed={reload}
               organisation={organisation}
               session={session}
             />
-          ) : null}
+          )}
         </>
       ) : null}
     </section>

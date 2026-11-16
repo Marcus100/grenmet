@@ -11,6 +11,7 @@ import {
   BUTTON_SECONDARY,
   NOTE,
 } from "@/organiser/styles";
+import { useConfirmFocus } from "@/organiser/use-confirm-focus";
 import {
   listTickets,
   restoreTicket,
@@ -64,7 +65,10 @@ interface TicketRowProps {
   readonly ticket: PrintixTicketPublic;
 }
 
-/** One ticket: its printed number and state, with its action and confirm step. */
+/**
+ * One ticket: its printed number and state, with its action and confirm step.
+ * Focus moves into the confirm when it opens, and back to the action when it closes.
+ */
 function TicketRow({
   ticket,
   action,
@@ -74,6 +78,11 @@ function TicketRow({
   onKeep,
   onConfirm,
 }: TicketRowProps) {
+  const actionButton = useRef<HTMLButtonElement>(null);
+  const keepButton = useRef<HTMLButtonElement>(null);
+  const confirmOpen = confirming && action !== "none";
+  useConfirmFocus(confirmOpen, keepButton, actionButton);
+
   const state = ticket.status === "void" ? "Void" : "Valid";
   const gate = ticket.admitted_gate ? ` at ${ticket.admitted_gate}` : "";
   const inAt = ticket.admitted_at ? ` · In${gate}` : "";
@@ -86,12 +95,17 @@ function TicketRow({
         </p>
         <p className="text-sm">{`${state}${inAt}`}</p>
         {actionable && !confirming ? (
-          <button className={BUTTON_SECONDARY} onClick={onAsk} type="button">
+          <button
+            className={BUTTON_SECONDARY}
+            onClick={onAsk}
+            ref={actionButton}
+            type="button"
+          >
             {action === "void" ? "Void ticket" : "Restore ticket"}
           </button>
         ) : null}
       </div>
-      {confirming && actionable ? (
+      {confirmOpen ? (
         <section
           aria-label={`Confirm for ticket ${ticket.printed_number}`}
           className="flex flex-col gap-3"
@@ -108,7 +122,12 @@ function TicketRow({
             >
               {CONFIRM_WORDS[action]}
             </button>
-            <button className={BUTTON_SECONDARY} onClick={onKeep} type="button">
+            <button
+              className={BUTTON_SECONDARY}
+              onClick={onKeep}
+              ref={keepButton}
+              type="button"
+            >
               Keep it as it is
             </button>
           </div>
@@ -121,6 +140,7 @@ function TicketRow({
 interface TicketsSectionProps {
   readonly closed: boolean;
   readonly eventId: string;
+  readonly onAnnounce: (text: string) => void;
   readonly onChanged: () => void;
   readonly organisation: PrintixOrganiserOrganisation;
   readonly session: OrganiserSession;
@@ -137,6 +157,7 @@ export function TicketsSection({
   eventId,
   closed,
   onChanged,
+  onAnnounce,
 }: TicketsSectionProps) {
   const [page, setPage] = useState(1);
   const [list, setList] = useState<ListState>({ kind: "loading" });
@@ -184,6 +205,11 @@ export function TicketsSection({
     if (outcome.ok) {
       load();
       onChanged();
+      onAnnounce(
+        action === "void"
+          ? `Ticket ${ticket.printed_number} is void.`
+          : `Ticket ${ticket.printed_number} is valid again.`
+      );
     } else {
       setProblem(outcome.problem);
     }

@@ -9,6 +9,14 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { addDays, utcToday } from "@/organiser/format";
 import { OrganiserApp } from "@/organiser/organiser-app";
+import { importTickets } from "@/organiser/write-api";
+
+// A pass-through spy: the real import runs, and the File it was given is recorded.
+vi.mock("@/organiser/write-api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/organiser/write-api")>();
+  return { ...actual, importTickets: vi.fn(actual.importTickets) };
+});
+
 import {
   ORGANISATION_STORAGE_KEY,
   SESSION_STORAGE_KEY,
@@ -30,6 +38,7 @@ const BARCODE_WORD = /barcode/iu;
 const TICKET_LIST_LABEL = /Ticket list/u;
 const CANNOT_UNDO = /This cannot be undone/u;
 const QR_NAME = /QR code/u;
+const FIRST_LINE_WARNING = /first on line 3/u;
 const SHARE_WORDS = /copy|download|print|share/iu;
 const CLOSED_GATE_NOTE = /Its gate codes no longer admit people/u;
 
@@ -423,7 +432,9 @@ describe("import: a trial, then the import", () => {
     });
     expect(importButton).toBeEnabled();
     fireEvent.click(importButton);
-    expect(await screen.findByText("Imported 2 tickets.")).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText("Imported 2 tickets."))[0]
+    ).toBeInTheDocument();
     expect(countCalls(spy, IMPORT)).toBe(2);
     expect(
       new URL(callsTo(spy, IMPORT)[1]?.url ?? "").searchParams.get("dry_run")
@@ -474,7 +485,7 @@ describe("import: a trial, then the import", () => {
     );
     expect(
       await screen.findByText(
-        "Offline checking will be off for this event: 2 barcodes are shorter than 12 characters and 1 is the same as the printed number."
+        "Across this event, 2 barcodes are shorter than 12 characters and 1 is the same as the printed number. Offline checking will be off for this event."
       )
     ).toBeInTheDocument();
   });
@@ -716,5 +727,355 @@ describe("gate codes", () => {
     );
     expect(await screen.findByText(CLOSED_GATE_NOTE)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "New gate code" })).toBeNull();
+  });
+});
+
+describe("review fixes: the trial's file, blank barcodes and refusals", () => {
+  // Each file carries its own ticket, so the upload's contents show which file was sent.
+  const sample = (name: string) =>
+    new File(
+      [
+        name.startsWith("first")
+          ? "number,barcode\n101,PX0000000101\n"
+          : "number,barcode\n202,PX0000000202\n",
+      ],
+      name,
+      {
+        type: "text/csv",
+      }
+    );
+
+  it("uploads exactly the file that was checked", async () => {
+    const spy = await openEvent(
+      baseRoutes(ORGANISER, {
+        [IMPORT]: (request) =>
+          new URL(request.url).searchParams.get("dry_run") === "true"
+            ? json(200, report())
+            : json(200, report({ dry_run: false, applied: true })),
+      })
+    );
+    const first = sample("first.csv");
+    fireEvent.change(screen.getByLabelText(TICKET_LIST_LABEL), {
+      target: { files: [first] },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Check the file first" })
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Import 2 tickets" })
+    );
+    await waitFor(() => expect(countCalls(spy, IMPORT)).toBe(2));
+    const calls = vi.mocked(importTickets).mock.calls;
+    const applied = calls.filter(([, , , , dryRun]) => dryRun === false);
+    expect(applied).toHaveLength(1);
+    expect(applied[0]?.[3]).toBe(first);
+  });
+
+  it("ignores a trial answer for a file that was replaced while it was being checked", async () => {
+    let answerTrial: (response: Response) => void = () => undefined;
+    const spy = await openEvent(
+      baseRoutes(ORGANISER, {
+        [IMPORT]: () =>
+          new Promise<Response>((resolve) => {
+            answerTrial = resolve;
+          }),
+      })
+    );
+    const input = screen.getByLabelText(TICKET_LIST_LABEL);
+    fireEvent.change(input, { target: { files: [sample("first.csv")] } });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Check the file first" })
+    );
+    expect(input).toBeDisabled();
+    await vi.waitFor(() => expect(countCalls(spy, IMPORT)).toBe(1));
+
+    fireEvent.change(input, { target: { files: [sample("second.csv")] } });
+    answerTrial(json(200, report()));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(
+      screen.queryByRole("button", { name: "Import 2 tickets" })
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Check the file first" })
+    ).toBeInTheDocument();
+  });
+
+  it("blocks the import while the trial has blank barcodes, and says what to do", async () => {
+    await openEvent(
+      baseRoutes(ORGANISER, {
+        [IMPORT]: () =>
+          json(
+            200,
+            report({
+              warnings: [
+                "2 row(s) have a blank barcode, so their printed number is used as the barcode (first on line 3).",
+              ],
+            })
+          ),
+      })
+    );
+    fireEvent.change(screen.getByLabelText(TICKET_LIST_LABEL), {
+      target: { files: [sample("first.csv")] },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Check the file first" })
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Every ticket needs its barcode. Ask the printer for the full list."
+    );
+    expect(screen.getByText(FIRST_LINE_WARNING)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Import 2 tickets" })
+    ).toBeDisabled();
+  });
+
+  it("shows the server's problems under a clear heading when the real import writes nothing", async () => {
+    await openEvent(
+      baseRoutes(ORGANISER, {
+        [IMPORT]: (request) =>
+          new URL(request.url).searchParams.get("dry_run") === "true"
+            ? json(200, report())
+            : json(
+                200,
+                report({
+                  dry_run: false,
+                  applied: false,
+                  to_add: 0,
+                  errors: [
+                    {
+                      line: 2,
+                      message: "barcode equals another ticket's number",
+                    },
+                  ],
+                })
+              ),
+      })
+    );
+    fireEvent.change(screen.getByLabelText(TICKET_LIST_LABEL), {
+      target: { files: [sample("first.csv")] },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Check the file first" })
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Import 2 tickets" })
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: "The import was not written. Nothing was added.",
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Line 2: barcode equals another ticket's number")
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the offline warning visible after a successful import", async () => {
+    await openEvent(
+      baseRoutes(ORGANISER, {
+        [IMPORT]: (request) =>
+          new URL(request.url).searchParams.get("dry_run") === "true"
+            ? json(200, report({ short_barcodes: 2 }))
+            : json(
+                200,
+                report({ dry_run: false, applied: true, short_barcodes: 2 })
+              ),
+      })
+    );
+    fireEvent.change(screen.getByLabelText(TICKET_LIST_LABEL), {
+      target: { files: [sample("first.csv")] },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Check the file first" })
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Import 2 tickets" })
+    );
+    expect(
+      (await screen.findAllByText("Imported 2 tickets."))[0]
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Across this event, 2 barcodes are shorter than 12 characters. Offline checking will be off for this event."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("refreshes the tickets list after a successful import", async () => {
+    let imported = false;
+    await openEvent(
+      baseRoutes(ORGANISER, {
+        [TICKETS]: () =>
+          json(
+            200,
+            imported ? TICKET_PAGE : { items: [], total: 0, page: 1, size: 50 }
+          ),
+        [IMPORT]: (request) => {
+          if (new URL(request.url).searchParams.get("dry_run") === "true") {
+            return json(200, report());
+          }
+          imported = true;
+          return json(200, report({ dry_run: false, applied: true }));
+        },
+      })
+    );
+    expect(
+      await screen.findByText(
+        "No tickets yet. Import the printer's list below."
+      )
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(TICKET_LIST_LABEL), {
+      target: { files: [sample("first.csv")] },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Check the file first" })
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Import 2 tickets" })
+    );
+    expect(await screen.findByText("101")).toBeInTheDocument();
+  });
+});
+
+describe("review fixes: a closed event, by its time as well as its status", () => {
+  it("treats an event past its closing time as closed, even if its status still says open", async () => {
+    await openEvent(
+      baseRoutes(ORGANISER, {
+        [SUMMARY_ROUTE]: () =>
+          json(200, {
+            ...SUMMARY,
+            event: { ...SUMMARY.event, closes_at: "2020-01-01T00:00:00Z" },
+          }),
+        [PAIRINGS]: () => json(200, [CODE]),
+      })
+    );
+    expect(
+      await screen.findByText("This event is closed, so tickets cannot change.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Ended (event closed)")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cancel code" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "New gate code" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Void ticket" })).toBeNull();
+    expect(
+      screen.getByText("This event is closed, so tickets cannot be imported.")
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Close event" })).toBeNull();
+  });
+});
+
+describe("review fixes: the gate QR panel", () => {
+  const CREATE_A_CODE = async () => {
+    fireEvent.click(screen.getByRole("button", { name: "New gate code" }));
+    fireEvent.change(screen.getByLabelText("Gate name"), {
+      target: { value: "North gate" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Make gate code" }));
+    await screen.findByRole("img", { name: QR_NAME });
+  };
+
+  it("moves focus to the heading when the code appears, and counts down to its hiding", async () => {
+    await openEvent(
+      baseRoutes(ORGANISER, {
+        [CREATE_PAIRING]: () => json(201, { ...CODE, secret: SECRET }),
+      })
+    );
+    await CREATE_A_CODE();
+    expect(
+      screen.getByRole("heading", { name: "Gate code for North gate" })
+    ).toHaveFocus();
+    expect(
+      screen.getByText("This code hides in 120 seconds.")
+    ).toBeInTheDocument();
+  });
+
+  it("drops the code when the page is hidden", async () => {
+    let visibility: DocumentVisibilityState = "visible";
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => visibility,
+    });
+    try {
+      await openEvent(
+        baseRoutes(ORGANISER, {
+          [CREATE_PAIRING]: () => json(201, { ...CODE, secret: SECRET }),
+        })
+      );
+      await CREATE_A_CODE();
+      visibility = "hidden";
+      document.dispatchEvent(new Event("visibilitychange"));
+      await waitFor(() =>
+        expect(screen.queryByRole("img", { name: QR_NAME })).toBeNull()
+      );
+      expect(document.body.innerHTML).not.toContain(SECRET);
+    } finally {
+      Reflect.deleteProperty(document, "visibilityState");
+    }
+  });
+
+  it("drops the code after two minutes", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      await openEvent(
+        baseRoutes(ORGANISER, {
+          [CREATE_PAIRING]: () => json(201, { ...CODE, secret: SECRET }),
+        })
+      );
+      await CREATE_A_CODE();
+      await vi.advanceTimersByTimeAsync(119_000);
+      expect(screen.getByRole("img", { name: QR_NAME })).toBeInTheDocument();
+      await vi.advanceTimersByTimeAsync(2000);
+      expect(screen.queryByRole("img", { name: QR_NAME })).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("says a code may have been made when the create gets no answer", async () => {
+    await openEvent(
+      baseRoutes(ORGANISER, {
+        [CREATE_PAIRING]: () =>
+          Promise.reject(new TypeError("Failed to fetch")),
+      })
+    );
+    fireEvent.click(screen.getByRole("button", { name: "New gate code" }));
+    fireEvent.change(screen.getByLabelText("Gate name"), {
+      target: { value: "North gate" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Make gate code" }));
+    expect(
+      await screen.findByText(
+        "A code may have been made. Check the list and cancel any you did not expect."
+      )
+    ).toBeInTheDocument();
+  });
+});
+
+describe("review fixes: focus and announcements", () => {
+  it("moves focus into a confirm when it opens, and back to its button when it closes", async () => {
+    await openEvent(baseRoutes());
+    const voidButton = await screen.findByRole("button", {
+      name: "Void ticket",
+    });
+    fireEvent.click(voidButton);
+    const keep = screen.getByRole("button", { name: "Keep it as it is" });
+    expect(keep).toHaveFocus();
+    fireEvent.click(keep);
+    expect(screen.getByRole("button", { name: "Void ticket" })).toHaveFocus();
+  });
+
+  it("announces a result in the live region", async () => {
+    await openEvent(
+      baseRoutes(ORGANISER, {
+        [VOID_101]: () =>
+          json(200, { ...TICKET_PAGE.items[0], status: "void" }),
+      })
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Void ticket" }));
+    fireEvent.click(screen.getByRole("button", { name: "Yes, void it" }));
+    expect(await screen.findByText("Ticket 101 is void.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Ticket 101 is void.").closest('[aria-live="polite"]')
+    ).not.toBeNull();
   });
 });

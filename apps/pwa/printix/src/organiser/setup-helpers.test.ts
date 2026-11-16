@@ -1,18 +1,20 @@
 import type { PrintixImportReport } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
+import { readPairingFragment } from "@/lib/pairing";
 import {
   formProblem,
   MAX_DAYS_AHEAD,
   MAX_DAYS_CLOSING_AFTER_EVENT,
 } from "@/organiser/create-event";
 import { problemMessage, problemOf } from "@/organiser/errors";
+import { isEventClosed } from "@/organiser/event-state";
 import {
   addDays,
   grenadaLocalToIso,
   localDatePart,
   utcToday,
 } from "@/organiser/format";
-import { codeState } from "@/organiser/gate-codes-section";
+import { codeLabel, codeState } from "@/organiser/gate-codes-section";
 import {
   canImport,
   MAX_IMPORT_BYTES,
@@ -114,20 +116,20 @@ describe("the ticket import rules", () => {
 
   it("warns about short barcodes in plain words", () => {
     expect(weakBarcodeWarning(report({ short_barcodes: 4 }))).toBe(
-      "Offline checking will be off for this event: 4 barcodes are shorter than 12 characters."
+      "Across this event, 4 barcodes are shorter than 12 characters. Offline checking will be off for this event."
     );
   });
 
   it("warns about barcodes equal to the printed number, and combines both", () => {
     expect(weakBarcodeWarning(report({ barcode_equals_number: 1 }))).toBe(
-      "Offline checking will be off for this event: 1 is the same as the printed number."
+      "Across this event, 1 is the same as the printed number. Offline checking will be off for this event."
     );
     expect(
       weakBarcodeWarning(
         report({ short_barcodes: 2, barcode_equals_number: 3 })
       )
     ).toBe(
-      "Offline checking will be off for this event: 2 barcodes are shorter than 12 characters and 3 are the same as the printed number."
+      "Across this event, 2 barcodes are shorter than 12 characters and 3 are the same as the printed number. Offline checking will be off for this event."
     );
   });
 
@@ -292,5 +294,55 @@ describe("the new error words", () => {
     expect(problemMessage(problem)).toBe(
       "event_date must be no more than a year ahead"
     );
+  });
+});
+
+describe("review fixes: blocking warnings, closed events and the pairing link", () => {
+  it("does not allow an import while the trial has blank-barcode warnings", () => {
+    expect(
+      canImport(
+        report({
+          warnings: [
+            "2 row(s) have a blank barcode, so their printed number is used as the barcode (first on line 3).",
+          ],
+        })
+      )
+    ).toBe(false);
+  });
+
+  it("treats an event as closed when its status says so or its closing time has passed", () => {
+    const open = { status: "open", closes_at: "2026-12-27T04:00:00Z" } as const;
+    expect(isEventClosed(open, new Date("2026-12-27T03:59:00Z"))).toBe(false);
+    expect(isEventClosed(open, new Date("2026-12-27T04:00:00Z"))).toBe(true);
+    expect(
+      isEventClosed(
+        { ...open, status: "closed" },
+        new Date("2026-12-26T00:00:00Z")
+      )
+    ).toBe(true);
+  });
+
+  it("says an ended code is ended because the event closed, unless it was cancelled", () => {
+    const code = {
+      id: "p1",
+      gate: "North",
+      created_at: "2026-12-26T10:00:00Z",
+      expires_at: "2026-12-30T00:00:00Z",
+      revoked_at: null,
+      allow_typed_numbers: false,
+    };
+    const now = new Date("2026-12-26T12:00:00Z");
+    expect(codeLabel(code, now, false)).toBe("Active");
+    expect(codeLabel(code, now, true)).toBe("Ended (event closed)");
+    expect(
+      codeLabel({ ...code, revoked_at: "2026-12-26T11:00:00Z" }, now, true)
+    ).toBe("Cancelled");
+  });
+
+  it("builds the pairing link and reads its secret back through the gate's own reader", () => {
+    const secret = "Q7_x-".repeat(9).slice(0, 43);
+    const link = pairingLink("https://scan.barrels.gd", secret);
+    const hash = new URL(link).hash;
+    expect(readPairingFragment(hash)).toEqual({ kind: "paired", secret });
   });
 });

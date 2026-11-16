@@ -1,5 +1,5 @@
 import type { PrintixEventSummary } from "@barrelsgd/api-client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Problem } from "@/organiser/errors";
 import { readEventSummary } from "@/organiser/organiser-api";
 import type { OrganiserSession } from "@/organiser/session";
@@ -41,6 +41,8 @@ export function useEventSummary(
     updatedAt: null,
   });
   const reloadRef = useRef<() => void>(() => undefined);
+  // Stable: callers may list it in an effect's dependencies without a loop.
+  const reload = useCallback(() => reloadRef.current(), []);
 
   useEffect(() => {
     let active = true;
@@ -112,5 +114,5 @@ export function useEventSummary(
     };
   }, [session, organisationId, eventId]);
 
-  return { ...view, reload: () => reloadRef.current() };
+  return { ...view, reload };
 }
