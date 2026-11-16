@@ -42,3 +42,18 @@ summary {
   user-select: none;
   -webkit-user-select: none;
 }
+
+/*
+ * A screen that replaces another (pairing, problem, scanning) fades in, so the
+ * change does not read as a page load. Opacity only, so it is safe for people
+ * who ask for reduced motion. The result screen never uses this: it shows
+ * hundreds of times a night and must be instant.
+ */
+.px-screen {
+  opacity: 1;
+  transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
+
+  @starting-style {
+    opacity: 0;
+  }
+}
