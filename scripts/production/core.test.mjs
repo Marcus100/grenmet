@@ -705,6 +705,8 @@ const GATE_BLOCKED =
 const GATE_HOW_TO = /backup-database\.yml.*backup_gate_override/su;
 const GATE_WARNING = /::warning::Backup gate \(warn\): backup is stale/u;
 const GATE_OPEN = /could NOT verify the newest backup and is passing OPEN/u;
+const GATE_UNVERIFIED =
+  /Backup gate \(enforce\) blocked the deploy before migrations: the newest backup could not be verified/u;
 const GATE_OVERRIDDEN = /Backup gate OVERRIDDEN by test: 'hotfix INC-42'/u;
 const GATE_SKIPPED =
   /Backup gate: skipped, this release has no migration services/u;
@@ -778,11 +780,31 @@ test("backup gate: skipped when the release has no migration services", () => {
   assert.match(summary, GATE_SKIPPED);
 });
 
-test("backup gate: an unreadable backup store fails open loudly, even in enforce", () => {
-  const { result, calls, summary } = gate("enforce", "unreadable");
+test("backup gate: an unreadable backup store fails open loudly in warn", () => {
+  const { result, calls, summary } = gate("warn", "unreadable");
   assert.equal(result.status, 0, result.stderr);
   assert.match(summary, GATE_OPEN);
   assert.match(summary, GATE_MISSING);
+  assert.ok(calls.includes(MIGRATED));
+});
+
+test("backup gate: enforce blocks when the backup store cannot be read", () => {
+  const { result, calls, summary } = gate("enforce", "unreadable");
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, GATE_UNVERIFIED);
+  assert.match(result.stderr, GATE_MISSING);
+  assert.match(result.stderr, GATE_HOW_TO);
+  assert.match(summary, GATE_SUMMARY_BLOCKED);
+  for (const forbidden of [MIGRATED, "cms-migrate", "up -d --no-deps"])
+    assert.equal(calls.includes(forbidden), false, forbidden);
+});
+
+test("backup gate: an override lets enforce continue past an unreadable store", () => {
+  const { result, calls, summary } = gate("enforce", "unreadable", {
+    DEPLOY_BACKUP_GATE_OVERRIDE: "hotfix INC-42",
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(summary, GATE_OVERRIDDEN);
   assert.ok(calls.includes(MIGRATED));
 });
 

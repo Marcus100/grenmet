@@ -175,8 +175,8 @@ does not use the unused `latest-success.json` markers.
 - `off`: no check; the summary says so.
 - `warn` (default): a stale backup prints a warning and writes it to the step
   summary; the deploy continues.
-- `enforce`: a verified stale or missing dump stops the deploy before any
-  migration, naming each database and its age. Nothing in the repository sets
+- `enforce`: a stale, missing or unverifiable dump stops the deploy before any
+  migration, naming each database and its age or what could not be checked. Nothing in the repository sets
   `enforce`; the owner enables it by setting the variable.
 - Override: dispatch **Deploy** with `backup_gate_override` set to a reason
   (for a hotfix with a stale backup). The deploy continues and the summary
@@ -190,9 +190,13 @@ for seven histories plus the Payload CMS, with no cheap reliable comparison in
 `core.sh`. The gate therefore checks on every deploy that has migration
 services, not only ones that change the schema.
 
-It fails open, loudly: if the runner lacks the read credentials, the `aws` CLI,
-or cannot list the bucket, the summary says exactly what could not be checked and
-the deploy continues, in every mode. The gate reads
+If the runner lacks the read credentials, the `aws` CLI, or cannot list the
+bucket, the summary says exactly what could not be checked. In `warn` the deploy
+continues (it fails open, loudly). In `enforce` an unverifiable backup blocks the
+deploy before any migration, the same as a stale one, unless
+`backup_gate_override` gives a reason. As of v1.3.0 the production deploy job
+cannot read the backup store, so set the secrets below before setting `enforce`.
+The gate reads
 `DO_SPACES_READ_ACCESS_KEY_ID` / `DO_SPACES_READ_SECRET_ACCESS_KEY`,
 `DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT` and `DO_SPACES_REGION`; the read keys
 live in the `production-backup` environment, so confirm the `production`
