@@ -7746,6 +7746,8 @@ export {
   printixCreatePairingStatus422Schema,
 } from "./printixCreatePairingSchema.js";
 export { printixEventCreateSchema } from "./printixEventCreateSchema.js";
+export { printixEventOrganisationUpdateSchema } from "./printixEventOrganisationUpdateSchema.js";
+export { printixEventPageSchema } from "./printixEventPageSchema.js";
 export { printixEventPublicSchema } from "./printixEventPublicSchema.js";
 export { printixEventStatusSchema } from "./printixEventStatusSchema.js";
 export {
@@ -7780,6 +7782,39 @@ export {
   printixImportTicketsStatus413Schema,
   printixImportTicketsStatus422Schema,
 } from "./printixImportTicketsSchema.js";
+export {
+  printixListEventsErrorSchema,
+  printixListEventsQueryPageSchema,
+  printixListEventsQuerySchema,
+  printixListEventsQuerySizeSchema,
+  printixListEventsResponseSchema,
+  printixListEventsStatus200Schema,
+  printixListEventsStatus401Schema,
+  printixListEventsStatus403Schema,
+  printixListEventsStatus422Schema,
+} from "./printixListEventsSchema.js";
+export {
+  printixListMyOrganiserOrganisationsErrorSchema,
+  printixListMyOrganiserOrganisationsResponseSchema,
+  printixListMyOrganiserOrganisationsStatus200Schema,
+  printixListMyOrganiserOrganisationsStatus401Schema,
+  printixListMyOrganiserOrganisationsStatus403Schema,
+  printixListMyOrganiserOrganisationsStatus422Schema,
+} from "./printixListMyOrganiserOrganisationsSchema.js";
+export {
+  printixListOrgEventsErrorSchema,
+  printixListOrgEventsHeadersSchema,
+  printixListOrgEventsHeaderXBarrelsOrganisationSchema,
+  printixListOrgEventsQueryPageSchema,
+  printixListOrgEventsQuerySchema,
+  printixListOrgEventsQuerySizeSchema,
+  printixListOrgEventsResponseSchema,
+  printixListOrgEventsStatus200Schema,
+  printixListOrgEventsStatus400Schema,
+  printixListOrgEventsStatus401Schema,
+  printixListOrgEventsStatus403Schema,
+  printixListOrgEventsStatus422Schema,
+} from "./printixListOrgEventsSchema.js";
 export {
   printixListPairingsErrorSchema,
   printixListPairingsPathEventIdSchema,
@@ -7836,6 +7871,21 @@ export {
   printixOfflineTicketsStatus429Schema,
 } from "./printixOfflineTicketsSchema.js";
 export { printixOfflineUnavailableBodySchema } from "./printixOfflineUnavailableBodySchema.js";
+export { printixOrganiserOrganisationSchema } from "./printixOrganiserOrganisationSchema.js";
+export {
+  printixOrgEventSummaryErrorSchema,
+  printixOrgEventSummaryHeadersSchema,
+  printixOrgEventSummaryHeaderXBarrelsOrganisationSchema,
+  printixOrgEventSummaryPathEventIdSchema,
+  printixOrgEventSummaryPathSchema,
+  printixOrgEventSummaryResponseSchema,
+  printixOrgEventSummaryStatus200Schema,
+  printixOrgEventSummaryStatus400Schema,
+  printixOrgEventSummaryStatus401Schema,
+  printixOrgEventSummaryStatus403Schema,
+  printixOrgEventSummaryStatus404Schema,
+  printixOrgEventSummaryStatus422Schema,
+} from "./printixOrgEventSummarySchema.js";
 export { printixPairingCreatedSchema } from "./printixPairingCreatedSchema.js";
 export { printixPairingCreateSchema } from "./printixPairingCreateSchema.js";
 export { printixPairingPublicSchema } from "./printixPairingPublicSchema.js";
@@ -7862,6 +7912,18 @@ export {
 export { printixScanOutcomeSchema } from "./printixScanOutcomeSchema.js";
 export { printixScanRequestSchema } from "./printixScanRequestSchema.js";
 export { printixScanResultSchema } from "./printixScanResultSchema.js";
+export {
+  printixSetEventOrganisationBodySchema,
+  printixSetEventOrganisationErrorSchema,
+  printixSetEventOrganisationPathEventIdSchema,
+  printixSetEventOrganisationPathSchema,
+  printixSetEventOrganisationResponseSchema,
+  printixSetEventOrganisationStatus200Schema,
+  printixSetEventOrganisationStatus401Schema,
+  printixSetEventOrganisationStatus403Schema,
+  printixSetEventOrganisationStatus404Schema,
+  printixSetEventOrganisationStatus422Schema,
+} from "./printixSetEventOrganisationSchema.js";
 export { printixTicketPageSchema } from "./printixTicketPageSchema.js";
 export { printixTicketPublicSchema } from "./printixTicketPublicSchema.js";
 export { printixTicketStatusSchema } from "./printixTicketStatusSchema.js";

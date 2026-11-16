@@ -3069,6 +3069,21 @@ export {
   usePrintixImportTickets,
 } from "./usePrintixImportTickets.js";
 export {
+  printixListEventsQueryKey,
+  printixListEventsQueryOptions,
+  usePrintixListEvents,
+} from "./usePrintixListEvents.js";
+export {
+  printixListMyOrganiserOrganisationsQueryKey,
+  printixListMyOrganiserOrganisationsQueryOptions,
+  usePrintixListMyOrganiserOrganisations,
+} from "./usePrintixListMyOrganiserOrganisations.js";
+export {
+  printixListOrgEventsQueryKey,
+  printixListOrgEventsQueryOptions,
+  usePrintixListOrgEvents,
+} from "./usePrintixListOrgEvents.js";
+export {
   printixListPairingsQueryKey,
   printixListPairingsQueryOptions,
   usePrintixListPairings,
@@ -3089,6 +3104,11 @@ export {
   usePrintixOfflineTickets,
 } from "./usePrintixOfflineTickets.js";
 export {
+  printixOrgEventSummaryQueryKey,
+  printixOrgEventSummaryQueryOptions,
+  usePrintixOrgEventSummary,
+} from "./usePrintixOrgEventSummary.js";
+export {
   printixPairingSummaryQueryKey,
   printixPairingSummaryQueryOptions,
   usePrintixPairingSummary,
@@ -3098,6 +3118,11 @@ export {
   printixRevokePairingMutationOptions,
   usePrintixRevokePairing,
 } from "./usePrintixRevokePairing.js";
+export {
+  printixSetEventOrganisationMutationKey,
+  printixSetEventOrganisationMutationOptions,
+  usePrintixSetEventOrganisation,
+} from "./usePrintixSetEventOrganisation.js";
 export {
   printixUnvoidTicketMutationKey,
   printixUnvoidTicketMutationOptions,

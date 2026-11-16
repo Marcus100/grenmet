@@ -23,4 +23,8 @@ export type PrintixEventCreate = {
    * @type string
    */
   closes_at: string;
+  /**
+   * @description The organisation that owns the event. Omit it for an event only administrators see; organisers see an event once it has their organisation.
+   */
+  organisation_id?: string | null;
 };

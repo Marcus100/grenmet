@@ -58,6 +58,9 @@ class AuthConfig(BaseSettings):
     # security pages, separate from sign-in. Self-service, like the sites.
     ACCOUNT_APP_URL: str = "http://localhost:3018"
     ACCOUNT_SSO_CLIENT_SECRET: str = ""
+    # Printix scanner and organiser app (ADR-0061): browser-only, no client secret,
+    # so it never takes part in single sign-on. Sign-in is from its own pages.
+    PRINTIX_APP_URL: str = "https://scan.barrels.gd"
     # One-time codes by SMS/WhatsApp. "disabled" until a provider is chosen
     # (every message costs money); "console" logs codes for local development.
     PHONE_OTP_PROVIDER: Literal["disabled", "console"] = "disabled"

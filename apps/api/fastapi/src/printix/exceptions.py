@@ -60,3 +60,12 @@ class PrintixRateLimited(AppException):
             429,
             headers={"Retry-After": str(constants.SCAN_WINDOW_SECONDS)},
         )
+
+
+class PrintixOrganisationIneligible(AppException):
+    """The organisation may not own a Printix event: suspended, or not entitled to printix."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This organisation is not active or is not entitled to Printix.", 422
+        )

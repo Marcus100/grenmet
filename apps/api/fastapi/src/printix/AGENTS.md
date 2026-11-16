@@ -160,8 +160,79 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   whose outcome is not `admitted`.
 - Tests: `tests/printix/test_offline.py`.
 
+## Organiser access (ADR-0060 organiser amendment, slice 2: read-only)
+
+- **Ownership:** `event.organisation_id` (nullable FK to `org.organisation.id`, migration
+  `printixorganisation20261116`). Existing and admin-made events stay NULL and are
+  invisible to organisers. An administrator sets it with `POST /admin/events` (optional
+  `organisation_id`) or `POST /admin/events/{id}/organisation`.
+- **App and keys:** the `printix` app is registered in `auth/apps.py` (browser-only, no
+  client secret, `email_code` only, `self_signup=False`, default role `printix-member`
+  granting `app.printix.access`). Access is by that role only: a Barrels admin grants it
+  like the other staff-granted roles, and it is not derived from membership. Organisation
+  keys `printix.events.manage` and `printix.gates.manage` are `binding="organisation"`
+  product keys; `printix.manage` stays the global admin key and is not a product key.
+  Bundles: `printix-organiser` (both), `printix-gate-lead` (gates only).
+- **Routes:** `/printix/org/*` (`org_router.py`, zone `org`). `GET /events` and
+  `GET /events/{id}/summary` accept either key, through
+  `organisations.dependencies.require_org_any_permission` (one dependency, so membership,
+  entitlement and the 404 or 403 rules run once), then
+  `privileged_mfa.require_mfa_session(..., app_key="printix")` on every call
+  (`printix/dependencies.py: require_printix_organiser`). MFA runs after membership, so a
+  non-member gets the same 404 whatever their authenticator state.
+- **Self route (zone `me`):** `GET /printix/me/organisations` (`me_router.py`) lists the
+  organisations where the caller is an active member, the organisation is active and
+  entitled to `printix`, and the effective keys (`grants.effective_keys`, the same helper the
+  org routes use) include a Printix key. Each item carries `can_manage_events` and
+  `can_manage_gates` so the screen can hide what the person cannot do. Needs a `printix`
+  app session that passed the authenticator (`require_printix_app_user`). No organisation
+  header; a non-member gets an empty list.
+- **Shared service:** `service.list_events` and `service.event_summary` take
+  `organisation_id`; `get_event` filters in SQL when it is given. The admin routes pass
+  `None`, which means no filter, and their behaviour is unchanged.
+- **Not in this slice:** writes (create, import, void, close, pairings), the per-app session
+  cap (ADR-0061, 12 hours), and any way for an app-scoped `printix` session to learn its
+  organisation id: `GET /organisations/mine` is account-only (`AccountUser`), so the
+  scanner must be given the organisation id another way until a route accepts the app
+  session.
+- **Who can use the organiser routes (ADR-0044).** An organisation owner or admin holds every
+  organisation key of every entitled product, so both Printix keys, implicitly. Anyone made
+  owner or admin of an entitled organisation who also holds the `printix-member` app role can
+  therefore use the organiser routes; the app role is still required.
+- **Team key.** `printix.team.manage` is the Printix team-management key (organisation-bound,
+  so `grants.product_keys` includes it, and `team.managed_products` and `_team_manage_keys` pick
+  it up). Owners and admins hold it implicitly. A bundle grant needs it: `grants.required_keys`
+  adds `printix.team.manage` to every Printix bundle. No staff bundle carries it; Barrels adds
+  staff, not this key.
+- **Ineligible target organisation.** Setting or creating an event's organisation needs an
+  active organisation entitled to `printix`; otherwise `PrintixOrganisationIneligible` (422).
+  An unknown id is 422 "Organisation not found". An unknown event is 404, checked first.
+- **Deleting an organisation.** The event foreign key has no `ON DELETE` rule, so an
+  organisation that owns events cannot be deleted until its events are moved or cleared
+  (`POST /admin/events/{id}/organisation` with null).
+- **Rate limit (planned).** A per-user rate limit on the organiser routes is planned with the
+  write slices; the read routes have none yet.
+- **Migration debt:** the foreign key `event_organisation_id_fkey` was added `NOT VALID`
+  (migration `printixorganisation20261116`). A later migration must run
+  `ALTER TABLE printix.event VALIDATE CONSTRAINT event_organisation_id_fkey` once the existing
+  rows are known to reference real organisations (all are NULL today).
+- **Onboarding order (first version, owner decision: Barrels adds people):** an organiser
+  gets access in this order, and each step is a separate action by a Barrels superuser or
+  the organiser:
+  1. create the Printix organisation (`org.organisation`, kind `client`);
+  2. turn on its `printix` entitlement;
+  3. invite the person with a role bundle (`printix-organiser` or `printix-gate-lead`);
+  4. grant the `printix-member` role (`app.printix.access`) to the person's account. This
+     is a separate step: the organisation invitation does not grant app access;
+  5. the person adds an authenticator on account.barrels.gd (required for every organiser route);
+  6. they sign in at scan.barrels.gd (the `printix` app, email code).
+  Steps 3 and 4 are independent; neither implies the other. Without step 4, sign-in is
+  refused with "This account can't sign in to this app." (403). Automating step 4 from the
+  invitation is a later change, not built.
+- **Tests:** `tests/printix/test_org_routes.py`.
+
 ## Not built here
 
 Scanner app changes (`apps/pwa/printix`, offline mode follows in its own change), ticket types, re-entry,
-and the Barrels Events connection. The CORS allow-list for the scanner origin is set
-in the deployment environment, not in this domain.
+the Barrels Events connection, and organiser writes (the next slices). The CORS allow-list for the
+scanner origin is set in the deployment environment, not in this domain.

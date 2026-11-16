@@ -24,6 +24,7 @@ class PrintixEvent(Base):
     __tablename__ = "event"
     __table_args__ = (
         sa.CheckConstraint("status IN ('open', 'closed')", name="status"),
+        sa.Index("event_organisation_id_idx", "organisation_id"),
         {"schema": "printix"},
     )
 
@@ -39,6 +40,12 @@ class PrintixEvent(Base):
     #: made before it still counts. NULL while open, and for a closed event with no
     #: recorded close, which refuses every offline scan.
     closed_at: Mapped[datetime | None]
+    #: The organisation that owns the event (ADR-0060 organiser amendment). NULL for
+    #: events made by an administrator without one; organisers never see those.
+    organisation_id: Mapped[str | None] = mapped_column(
+        String(100),
+        ForeignKey("org.organisation.id", name="event_organisation_id_fkey"),
+    )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
