@@ -126,11 +126,11 @@ jobs:
       - name: Migrate and seed the database
         # The API container's own prestart script (migrations, sign-in
         # catalogue, first superuser), then the Babydoll bookings seed.
-        run: scripts/verification/e2e-api.sh prepare
+        run: bash scripts/verification/e2e-api.sh prepare
 
       - name: Start the API
         run: |
-          nohup scripts/verification/e2e-api.sh serve > "$RUNNER_TEMP/api.log" 2>&1 &
+          nohup bash scripts/verification/e2e-api.sh serve > "$RUNNER_TEMP/api.log" 2>&1 &
           for attempt in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8000/api/v1/utils/ready/ >/dev/null 2>&1; then
               echo "API ready after $attempt attempt(s)"
@@ -177,25 +177,30 @@ jobs:
         if: steps.browser-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
-      # One step per app, each run even when an earlier one failed, so one run
-      # reports every broken journey. Playwright starts and stops each app.
+      - name: Stack is ready
+        id: ready
+        run: echo "The API, the builds and the browser are in place"
+
+      # One step per app, each run even when an earlier journey failed (but not
+      # when the set-up above did), so one run reports every broken journey.
+      # Playwright starts and stops each app.
       - name: Journeys - auth (sign-in)
         run: pnpm --filter @barrelsgd/web-auth run test:e2e
 
       - name: Journeys - bookings (book and manage)
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
         run: pnpm --filter @barrelsgd/web-bookings run test:e2e
 
       - name: Journeys - cap (desk caching)
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
         run: pnpm --filter @barrelsgd/web-cap run test:e2e
 
       - name: Journeys - gaa-admin (sign-in redirect)
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
         run: pnpm --filter @barrelsgd/web-gaa-admin run test:e2e
 
       - name: Journeys - gms (public pages)
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
         run: pnpm --filter @barrelsgd/web-gms run test:e2e
 
       - name: Show the API log
