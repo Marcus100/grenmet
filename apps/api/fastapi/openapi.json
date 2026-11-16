@@ -936,6 +936,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many attempts; try again later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Authupdatepasswordme"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1400,6 +1418,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many attempts; try again later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Authtwofasetup"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1457,6 +1493,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many attempts; try again later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Authtwofaactivate"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1511,6 +1565,24 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many attempts; try again later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Authtwofadisable"
                 }
               }
             }

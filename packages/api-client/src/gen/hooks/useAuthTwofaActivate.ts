@@ -16,6 +16,7 @@ import type {
   AuthTwofaActivateStatus200,
   AuthTwofaActivateStatus400,
   AuthTwofaActivateStatus422,
+  AuthTwofaActivateStatus429,
 } from "../models/AuthTwofaActivate.js";
 
 export const authTwofaActivateMutationKey = () =>
@@ -30,7 +31,9 @@ export function authTwofaActivateMutationOptions<TContext = unknown>(
   return mutationOptions<
     AuthTwofaActivateStatus200,
     ResponseErrorConfig<
-      AuthTwofaActivateStatus400 | AuthTwofaActivateStatus422
+      | AuthTwofaActivateStatus400
+      | AuthTwofaActivateStatus422
+      | AuthTwofaActivateStatus429
     >,
     AuthTwofaActivateOptions,
     TContext
@@ -56,7 +59,9 @@ export function useAuthTwofaActivate<TContext>(
     mutation?: UseMutationOptions<
       AuthTwofaActivateStatus200,
       ResponseErrorConfig<
-        AuthTwofaActivateStatus400 | AuthTwofaActivateStatus422
+        | AuthTwofaActivateStatus400
+        | AuthTwofaActivateStatus422
+        | AuthTwofaActivateStatus429
       >,
       AuthTwofaActivateOptions,
       TContext
@@ -76,7 +81,9 @@ export function useAuthTwofaActivate<TContext>(
   ) as UseMutationOptions<
     AuthTwofaActivateStatus200,
     ResponseErrorConfig<
-      AuthTwofaActivateStatus400 | AuthTwofaActivateStatus422
+      | AuthTwofaActivateStatus400
+      | AuthTwofaActivateStatus422
+      | AuthTwofaActivateStatus429
     >,
     AuthTwofaActivateOptions,
     TContext
@@ -85,7 +92,9 @@ export function useAuthTwofaActivate<TContext>(
   return useMutation<
     AuthTwofaActivateStatus200,
     ResponseErrorConfig<
-      AuthTwofaActivateStatus400 | AuthTwofaActivateStatus422
+      | AuthTwofaActivateStatus400
+      | AuthTwofaActivateStatus422
+      | AuthTwofaActivateStatus429
     >,
     AuthTwofaActivateOptions,
     TContext
@@ -99,7 +108,9 @@ export function useAuthTwofaActivate<TContext>(
   ) as UseMutationResult<
     AuthTwofaActivateStatus200,
     ResponseErrorConfig<
-      AuthTwofaActivateStatus400 | AuthTwofaActivateStatus422
+      | AuthTwofaActivateStatus400
+      | AuthTwofaActivateStatus422
+      | AuthTwofaActivateStatus429
     >,
     AuthTwofaActivateOptions,
     TContext

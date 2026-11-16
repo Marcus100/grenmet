@@ -870,6 +870,7 @@ export {
   authTwofaActivateStatus200Schema,
   authTwofaActivateStatus400Schema,
   authTwofaActivateStatus422Schema,
+  authTwofaActivateStatus429Schema,
 } from "./authTwofaActivateSchema.js";
 export {
   authTwofaDisableBodySchema,
@@ -878,6 +879,7 @@ export {
   authTwofaDisableStatus200Schema,
   authTwofaDisableStatus400Schema,
   authTwofaDisableStatus422Schema,
+  authTwofaDisableStatus429Schema,
 } from "./authTwofaDisableSchema.js";
 export {
   authTwofaSetupErrorSchema,
@@ -886,6 +888,7 @@ export {
   authTwofaSetupStatus401Schema,
   authTwofaSetupStatus403Schema,
   authTwofaSetupStatus422Schema,
+  authTwofaSetupStatus429Schema,
 } from "./authTwofaSetupSchema.js";
 export {
   authTwofaStatusErrorSchema,
@@ -902,6 +905,7 @@ export {
   authUpdatePasswordMeStatus200Schema,
   authUpdatePasswordMeStatus400Schema,
   authUpdatePasswordMeStatus422Schema,
+  authUpdatePasswordMeStatus429Schema,
 } from "./authUpdatePasswordMeSchema.js";
 export {
   authUpdateRoleAssignmentBodySchema,

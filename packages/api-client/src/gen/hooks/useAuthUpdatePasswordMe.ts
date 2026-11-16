@@ -16,6 +16,7 @@ import type {
   AuthUpdatePasswordMeStatus200,
   AuthUpdatePasswordMeStatus400,
   AuthUpdatePasswordMeStatus422,
+  AuthUpdatePasswordMeStatus429,
 } from "../models/AuthUpdatePasswordMe.js";
 
 export const authUpdatePasswordMeMutationKey = () =>
@@ -30,7 +31,9 @@ export function authUpdatePasswordMeMutationOptions<TContext = unknown>(
   return mutationOptions<
     AuthUpdatePasswordMeStatus200,
     ResponseErrorConfig<
-      AuthUpdatePasswordMeStatus400 | AuthUpdatePasswordMeStatus422
+      | AuthUpdatePasswordMeStatus400
+      | AuthUpdatePasswordMeStatus422
+      | AuthUpdatePasswordMeStatus429
     >,
     AuthUpdatePasswordMeOptions,
     TContext
@@ -56,7 +59,9 @@ export function useAuthUpdatePasswordMe<TContext>(
     mutation?: UseMutationOptions<
       AuthUpdatePasswordMeStatus200,
       ResponseErrorConfig<
-        AuthUpdatePasswordMeStatus400 | AuthUpdatePasswordMeStatus422
+        | AuthUpdatePasswordMeStatus400
+        | AuthUpdatePasswordMeStatus422
+        | AuthUpdatePasswordMeStatus429
       >,
       AuthUpdatePasswordMeOptions,
       TContext
@@ -76,7 +81,9 @@ export function useAuthUpdatePasswordMe<TContext>(
   ) as UseMutationOptions<
     AuthUpdatePasswordMeStatus200,
     ResponseErrorConfig<
-      AuthUpdatePasswordMeStatus400 | AuthUpdatePasswordMeStatus422
+      | AuthUpdatePasswordMeStatus400
+      | AuthUpdatePasswordMeStatus422
+      | AuthUpdatePasswordMeStatus429
     >,
     AuthUpdatePasswordMeOptions,
     TContext
@@ -85,7 +92,9 @@ export function useAuthUpdatePasswordMe<TContext>(
   return useMutation<
     AuthUpdatePasswordMeStatus200,
     ResponseErrorConfig<
-      AuthUpdatePasswordMeStatus400 | AuthUpdatePasswordMeStatus422
+      | AuthUpdatePasswordMeStatus400
+      | AuthUpdatePasswordMeStatus422
+      | AuthUpdatePasswordMeStatus429
     >,
     AuthUpdatePasswordMeOptions,
     TContext
@@ -99,7 +108,9 @@ export function useAuthUpdatePasswordMe<TContext>(
   ) as UseMutationResult<
     AuthUpdatePasswordMeStatus200,
     ResponseErrorConfig<
-      AuthUpdatePasswordMeStatus400 | AuthUpdatePasswordMeStatus422
+      | AuthUpdatePasswordMeStatus400
+      | AuthUpdatePasswordMeStatus422
+      | AuthUpdatePasswordMeStatus429
     >,
     AuthUpdatePasswordMeOptions,
     TContext

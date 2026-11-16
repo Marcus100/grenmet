@@ -30,6 +30,7 @@
 - Only a non-app-scoped account session may start a handoff; redeem requires the app's `client_secret`. Cookie routes (`browser.get_cookie_user`) refuse app-scoped sessions.
 - Phone code delivery stays `disabled` in production until a provider is approved (cost).
 - Rate-limited endpoints use `src.rate_limit.limiter`; keep limits on any new unauthenticated route.
+- Signed-in routes that check a password or code, or send mail, take `RateLimitedAccountUser` (`src/dependencies.py`) with `key_func=account_address`, so the limit counts the account, not the web host's shared address (2FA setup, activate and disable; password change). Tests: `tests/auth/test_signed_in_rate_limits.py`, `tests/test_rate_limit_account.py`.
 - Any new code path that changes `User.email` or deletes a user must call `contacts.service.unlink_account` (through the service, never the table), as `update_user`, `update_user_me` and account deletion do (ADR-0058, #1384).
 
 ## Sign-in setup (`sign_in_setup.py`)

@@ -47,6 +47,7 @@ from src.config import Settings, get_settings
 from src.database import async_session_factory
 from src.exceptions import AuthenticationError, AuthorizationError
 from src.models import TokenPayload
+from src.rate_limit import remember_account
 
 # OAuth2 scheme for token extraction
 # This extracts the Bearer token from the Authorization header
@@ -279,6 +280,16 @@ AccountUser = Annotated[User, Depends(get_account_user)]
 OwnAccountUser = Annotated[User, Depends(get_own_account_user)]
 OwnAccountAnyUser = Annotated[User, Depends(get_own_account_any_user)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
+
+
+async def remember_account_limit(request: Request, current_user: AccountUser) -> User:
+    """``AccountUser`` that also keys the route's rate limit on the account
+    (``rate_limit.account_address``). Use with a limiter whose key_func is that."""
+    remember_account(request, current_user.id)
+    return current_user
+
+
+RateLimitedAccountUser = Annotated[User, Depends(remember_account_limit)]
 
 
 async def get_current_active_superuser(current_user: CurrentUser) -> User:

@@ -907,6 +907,7 @@ export type {
   AuthTwofaActivateStatus200,
   AuthTwofaActivateStatus400,
   AuthTwofaActivateStatus422,
+  AuthTwofaActivateStatus429,
 } from "./AuthTwofaActivate.js";
 export type {
   AuthTwofaDisableBody,
@@ -916,6 +917,7 @@ export type {
   AuthTwofaDisableStatus200,
   AuthTwofaDisableStatus400,
   AuthTwofaDisableStatus422,
+  AuthTwofaDisableStatus429,
 } from "./AuthTwofaDisable.js";
 export type {
   AuthTwofaSetupOptions,
@@ -925,6 +927,7 @@ export type {
   AuthTwofaSetupStatus401,
   AuthTwofaSetupStatus403,
   AuthTwofaSetupStatus422,
+  AuthTwofaSetupStatus429,
 } from "./AuthTwofaSetup.js";
 export type {
   AuthTwofaStatusOptions,
@@ -943,6 +946,7 @@ export type {
   AuthUpdatePasswordMeStatus200,
   AuthUpdatePasswordMeStatus400,
   AuthUpdatePasswordMeStatus422,
+  AuthUpdatePasswordMeStatus429,
 } from "./AuthUpdatePasswordMe.js";
 export type {
   AuthUpdateRoleBody,

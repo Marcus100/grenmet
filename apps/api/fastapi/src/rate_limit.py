@@ -233,6 +233,26 @@ limiter = AsyncSafeLimiter(
 )
 
 
+def remember_account(request: Request, account_id: object) -> None:
+    """Name the signed-in account whose attempts a route's limit counts.
+
+    Called from a dependency: the limiter reads the key after dependencies have run
+    and before the route body, so the account is known in time (see ``account_address``).
+    """
+    request.state.limit_account = str(account_id)
+
+
+def account_address(request: Request) -> str:
+    """The rate-limit key for a signed-in route: one bucket per account.
+
+    Falls back to ``visitor_address`` when no account was remembered. Web hosts call
+    the API server-side, so the visitor address is shared by every user of a host;
+    keying on the account stops one person's attempts using up another's.
+    """
+    account = getattr(request.state, "limit_account", None)
+    return f"account:{account}" if account else visitor_address(request)
+
+
 def mail_limit_address(request: Request) -> str:
     """The bucket for limits on requests that send mail (email codes, setup links).
 
