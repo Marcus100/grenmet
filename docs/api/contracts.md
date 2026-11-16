@@ -3214,7 +3214,7 @@ request and response shapes are unchanged; the optional request body is accepted
 
 ## Printix ticket registry (ADR-0060)
 
-Two route zones, both under `/api/v1/printix/`.
+Three route zones, all under `/api/v1/printix/`.
 
 - **`admin/*`** (superuser with an enrolled authenticator and an MFA session, plus
   `printix.manage`): create and close events (`POST /events`, `POST /events/{id}/close`),
@@ -3226,6 +3226,18 @@ Two route zones, both under `/api/v1/printix/`.
   `total`; `POST /tickets/{id}/void` and `/unvoid`), and gate pairings
   (`POST /events/{id}/pairings` returns the one-time `secret`; `GET /events/{id}/pairings`
   never returns a secret; `POST /pairings/{id}/revoke`). Barcode values are never returned.
+- **`org/*`** (organiser access, ADR-0060 organiser amendment; ADR-0025 zone `org`): an
+  organisation member signed in to the `printix` app, with `X-Barrels-Organisation` set,
+  holding `printix.events.manage` or `printix.gates.manage` (either admits a read), an enrolled
+  authenticator and a session that passed it (checked on every call, whatever
+  `AUTH_PRIVILEGED_MFA_MODE` says). Read-only so far: `GET /org/events` (paginated, the
+  organisation's events only, newest date first) and `GET /org/events/{id}/summary` (the admin
+  summary). Another organisation's event, or one with no organisation, is 404. No superuser
+  bypass: a superuser without membership is 404. A non-member is 404, a member without a key
+  is 403, an account or other-app session is refused (403 and 401). The admin list
+  `GET /admin/events` (superuser, every event) and `POST /admin/events/{id}/organisation`
+  (set or clear `organisation_id`) are in the admin zone; `POST /admin/events` takes an
+  optional `organisation_id`.
 - **`public/*`** (no account; `Authorization: Bearer <pairing secret>`, checked on every
   call): `POST /admissions` with `{value}` and `GET /summary`. An admission answers 200 with
   a stable `outcome`: `admitted`, `already_admitted` (with the first admission's time and

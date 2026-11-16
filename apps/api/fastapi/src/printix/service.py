@@ -29,6 +29,7 @@ from sqlalchemy.sql.elements import ColumnElement
 
 from src.audit import service as audit_service
 from src.exceptions import AppValidationError
+from src.organisations import models as organisation_models
 from src.utils.datetime import utc_now
 
 from . import constants, csv_import, transitions
@@ -50,6 +51,7 @@ from .exceptions import (
 )
 from .models import PrintixEvent, PrintixPairing, PrintixScanLog, PrintixTicket
 from .schemas import (
+    PrintixEventPage,
     PrintixEventPublic,
     PrintixEventSummary,
     PrintixGateCount,
@@ -101,8 +103,24 @@ def is_closed(event: PrintixEvent, now: datetime) -> bool:
     return event.status == PrintixEventStatus.CLOSED.value or event.closes_at <= now
 
 
-async def get_event(session: AsyncSession, event_id: uuid.UUID) -> PrintixEvent:
-    event = await session.get(PrintixEvent, event_id)
+async def get_event(
+    session: AsyncSession,
+    event_id: uuid.UUID,
+    *,
+    organisation_id: str | None = None,
+) -> PrintixEvent:
+    """``organisation_id`` None (administrator routes): any event. Given (organiser
+    routes): the filter runs in SQL, so an event of another organisation, or one
+    with no organisation, is "not found" exactly like a missing id."""
+    if organisation_id is None:
+        event = await session.get(PrintixEvent, event_id)
+    else:
+        event = await session.scalar(
+            select(PrintixEvent).where(
+                PrintixEvent.id == event_id,
+                PrintixEvent.organisation_id == organisation_id,
+            )
+        )
     if event is None:
         raise PrintixNotFound("Event not found")
     return event
@@ -128,10 +146,24 @@ def event_public(event: PrintixEvent) -> PrintixEventPublic:
         closes_at=event.closes_at,
         status=PrintixEventStatus(event.status),
         created_at=event.created_at,
+        organisation_id=event.organisation_id,
     )
 
 
 # --- Events -----------------------------------------------------------------
+
+
+async def _require_organisation(
+    session: AsyncSession, organisation_id: str | None
+) -> None:
+    """An event may name only an organisation that exists (a clean 422, not a foreign-key error)."""
+    if organisation_id is None:
+        return
+    if (
+        await session.get(organisation_models.PlatformOrganisation, organisation_id)
+        is None
+    ):
+        raise AppValidationError("Organisation not found")
 
 
 async def create_event(
@@ -141,11 +173,14 @@ async def create_event(
     event_date: date,
     closes_at: datetime,
     actor_id: uuid.UUID | None = None,
+    organisation_id: str | None = None,
 ) -> PrintixEvent:
-    """``closes_at`` is naive UTC."""
+    """``closes_at`` is naive UTC. ``organisation_id`` is optional; without one only
+    administrators see the event."""
     now = utc_now()
     if closes_at <= now:
         raise AppValidationError("closes_at must be in the future")
+    await _require_organisation(session, organisation_id)
     audit_service.set_actor(session, actor_id)
     event = PrintixEvent(
         id=uuid.uuid4(),
@@ -154,11 +189,68 @@ async def create_event(
         closes_at=closes_at,
         status=PrintixEventStatus.OPEN.value,
         created_at=now,
+        organisation_id=organisation_id,
     )
     session.add(event)
     await session.commit()
     logger.info("Printix event created", extra={"subject_id": str(event.id)})
     return event
+
+
+async def set_event_organisation(
+    session: AsyncSession,
+    event_id: uuid.UUID,
+    *,
+    organisation_id: str | None,
+    actor_id: uuid.UUID | None = None,
+) -> PrintixEvent:
+    """Set or clear the organisation that owns an event (administrator only).
+    Setting the value it already has changes nothing."""
+    await _require_organisation(session, organisation_id)
+    event = await get_event(session, event_id)
+    if event.organisation_id != organisation_id:
+        audit_service.set_actor(session, actor_id)
+        event.organisation_id = organisation_id
+        await session.commit()
+        logger.info(
+            "Printix event organisation set", extra={"subject_id": str(event.id)}
+        )
+    return event
+
+
+async def list_events(
+    session: AsyncSession,
+    *,
+    organisation_id: str | None,
+    page: int,
+    size: int,
+) -> PrintixEventPage:
+    """Events, newest date first. ``organisation_id`` None lists every event
+    (administrators); given, only that organisation's events (organisers). The
+    filter and the page are both in SQL."""
+    filters = []
+    if organisation_id is not None:
+        filters.append(PrintixEvent.organisation_id == organisation_id)
+    total = int(
+        await session.scalar(select(func.count(PrintixEvent.id)).where(*filters)) or 0
+    )
+    rows = await session.scalars(
+        select(PrintixEvent)
+        .where(*filters)
+        .order_by(
+            PrintixEvent.event_date.desc(),
+            PrintixEvent.created_at.desc(),
+            PrintixEvent.id,
+        )
+        .offset((page - 1) * size)
+        .limit(size)
+    )
+    return PrintixEventPage(
+        items=[event_public(event) for event in rows.all()],
+        total=total,
+        page=page,
+        size=size,
+    )
 
 
 async def close_event(
@@ -174,9 +266,13 @@ async def close_event(
 
 
 async def event_summary(
-    session: AsyncSession, event_id: uuid.UUID
+    session: AsyncSession,
+    event_id: uuid.UUID,
+    *,
+    organisation_id: str | None = None,
 ) -> PrintixEventSummary:
-    event = await get_event(session, event_id)
+    """Summary of one event. ``organisation_id`` as for ``get_event``."""
+    event = await get_event(session, event_id, organisation_id=organisation_id)
     counts = (
         await session.execute(
             select(

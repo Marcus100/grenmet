@@ -158,8 +158,38 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   whose outcome is not `admitted`.
 - Tests: `tests/printix/test_offline.py`.
 
+## Organiser access (ADR-0060 organiser amendment, slice 2: read-only)
+
+- **Ownership:** `event.organisation_id` (nullable FK to `org.organisation.id`, migration
+  `printixorganisation20261116`). Existing and admin-made events stay NULL and are
+  invisible to organisers. An administrator sets it with `POST /admin/events` (optional
+  `organisation_id`) or `POST /admin/events/{id}/organisation`.
+- **App and keys:** the `printix` app is registered in `auth/apps.py` (browser-only, no
+  client secret, `email_code` only, `self_signup=False`, default role `printix-member`
+  granting `app.printix.access`). Access is by that role only: a Barrels admin grants it
+  like the other staff-granted roles, and it is not derived from membership. Organisation
+  keys `printix.events.manage` and `printix.gates.manage` are `binding="organisation"`
+  product keys; `printix.manage` stays the global admin key and is not a product key.
+  Bundles: `printix-organiser` (both), `printix-gate-lead` (gates only).
+- **Routes:** `/printix/org/*` (`org_router.py`, zone `org`). `GET /events` and
+  `GET /events/{id}/summary` accept either key, through
+  `organisations.dependencies.require_org_any_permission` (one dependency, so membership,
+  entitlement and the 404 or 403 rules run once), then
+  `privileged_mfa.require_mfa_session(..., app_key="printix")` on every call
+  (`printix/dependencies.py: require_printix_organiser`). MFA runs after membership, so a
+  non-member gets the same 404 whatever their authenticator state.
+- **Shared service:** `service.list_events` and `service.event_summary` take
+  `organisation_id`; `get_event` filters in SQL when it is given. The admin routes pass
+  `None`, which means no filter, and their behaviour is unchanged.
+- **Not in this slice:** writes (create, import, void, close, pairings), the per-app session
+  cap (ADR-0061, 12 hours), and any way for an app-scoped `printix` session to learn its
+  organisation id: `GET /organisations/mine` is account-only (`AccountUser`), so the
+  scanner must be given the organisation id another way until a route accepts the app
+  session.
+- **Tests:** `tests/printix/test_org_routes.py`.
+
 ## Not built here
 
 Scanner app changes (`apps/pwa/printix`, offline mode follows in its own change), ticket types, re-entry,
-and the Barrels Events connection. The CORS allow-list for the scanner origin is set
-in the deployment environment, not in this domain.
+the Barrels Events connection, and organiser writes (the next slices). The CORS allow-list for the
+scanner origin is set in the deployment environment, not in this domain.

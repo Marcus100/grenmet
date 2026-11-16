@@ -112,6 +112,7 @@ MOUNT_ORDER: tuple[str, ...] = (
     "baseline.governance",
     "printix.admin",
     "printix.scanner",
+    "printix.org",
 )
 
 

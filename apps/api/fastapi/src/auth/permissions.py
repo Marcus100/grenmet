@@ -225,6 +225,19 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "printix.manage",
         "Printix ticket registry: events, ticket import, gate pairings (superuser with two-step sign-in only)",
     ),
+    # Printix organiser access (ADR-0060 amendment). The app key lets a person sign
+    # in to the Printix app; the two organisation keys are held per organisation.
+    PermissionDef("app.printix.access", "Sign in to Printix"),
+    PermissionDef(
+        "printix.events.manage",
+        "Printix: set up events, import tickets, void and restore tickets, close events and read them",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "printix.gates.manage",
+        "Printix: make, list and cancel gate QR codes and read the live summary",
+        binding="organisation",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),
@@ -692,6 +705,11 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "gmsdash-member": (
         "GMS Dashboard member: granted on first sign-in",
         ("app.gmsdash.access",),
+    ),
+    # Printix app access. Not self-service (no sign-up): a Barrels admin grants it.
+    "printix-member": (
+        "Printix app member: sign in to Printix; organisation roles are separate",
+        ("app.printix.access",),
     ),
     "bookings-member": (
         "Barrels Bookings member: granted on first sign-in",

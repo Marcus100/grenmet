@@ -11,4 +11,10 @@ export const printixEventCreateSchema = z.object({
   closes_at: z.iso
     .datetime()
     .describe("When the event closes at the gate. Sent with a timezone."),
+  organisation_id: z
+    .union([z.string().max(100), z.null()])
+    .optional()
+    .describe(
+      "The organisation that owns the event. Omit it for an event only administrators see; organisers see an event once it has their organisation."
+    ),
 });

@@ -13,4 +13,5 @@ export const printixEventPublicSchema = z.object({
   closes_at: z.iso.datetime(),
   status: printixEventStatusSchema,
   created_at: z.iso.datetime(),
+  organisation_id: z.union([z.string(), z.null()]).optional(),
 });

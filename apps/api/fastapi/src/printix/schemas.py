@@ -25,11 +25,27 @@ class PrintixEventCreate(BaseModel):
         description="When the event closes at the gate. Sent with a timezone."
     )
 
+    organisation_id: str | None = Field(
+        default=None,
+        max_length=100,
+        description=(
+            "The organisation that owns the event. Omit it for an event only "
+            "administrators see; organisers see an event once it has their organisation."
+        ),
+    )
+
     @model_validator(mode="after")
     def _closes_on_or_after_the_event_date(self) -> PrintixEventCreate:
         if self.closes_at.date() < self.event_date:
             raise ValueError("closes_at must not be before the event date")
         return self
+
+
+class PrintixEventOrganisationUpdate(BaseModel):
+    organisation_id: str | None = Field(
+        max_length=100,
+        description="The owning organisation, or null to take the event away from every organisation.",
+    )
 
 
 class PrintixEventPublic(BaseModel):
@@ -39,6 +55,14 @@ class PrintixEventPublic(BaseModel):
     closes_at: UtcDateTime
     status: constants.PrintixEventStatus
     created_at: UtcDateTime
+    organisation_id: str | None = None
+
+
+class PrintixEventPage(BaseModel):
+    items: list[PrintixEventPublic]
+    total: int
+    page: int
+    size: int
 
 
 class PrintixTicketPublic(BaseModel):
