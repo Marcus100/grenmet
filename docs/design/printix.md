@@ -30,4 +30,10 @@ system monospace face so similar characters stay distinct. Buttons are large
 control. The camera view is wider than tall, because the tickets carry a
 barcode of lines.
 
+Motion follows how often a thing happens. The result screen appears hundreds
+of times a night, so it never animates. A screen that replaces another
+(pairing, problem, scanning) fades in over 200 ms (`.px-screen`, opacity only).
+The typed-number sheet is occasional: it slides up, follows the finger and can
+be dragged down to close (Vaul). Buttons press in slightly. Nothing bounces.
+
 Source: `apps/pwa/printix/src/styles/app.css`.

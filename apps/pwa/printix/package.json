@@ -23,7 +23,8 @@
     "barcode-detector": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "vaul": "catalog:"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",
