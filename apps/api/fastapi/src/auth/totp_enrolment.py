@@ -287,9 +287,10 @@ async def activate_totp(
 
 
 async def _is_privileged(session: AsyncSession, user: User) -> bool:
-    from src.auth.privileged_mfa import is_privileged
+    # Enrolment rules also cover holders of an app with ``privileged_members`` (ADR-0061).
+    from src.auth.privileged_mfa import is_enrolment_privileged
 
-    return await is_privileged(session, user)
+    return await is_enrolment_privileged(session, user)
 
 
 async def _count_audit(

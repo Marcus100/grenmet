@@ -179,7 +179,10 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   entitlement and the 404 or 403 rules run once), then
   `privileged_mfa.require_mfa_session(..., app_key="printix")` on every call
   (`printix/dependencies.py: require_printix_organiser`). MFA runs after membership, so a
-  non-member gets the same 404 whatever their authenticator state.
+  non-member with an authenticator gets the same 404 as any other. Since ADR-0061, a
+  token whose person has no authenticator is refused by `user_for_app` first (403, body
+  `code` `authenticator_required`), before membership, so that refusal depends only on the
+  caller's own authenticator state.
 - **Self route (zone `me`):** `GET /printix/me/organisations` (`me_router.py`) lists the
   organisations where the caller is an active member, the organisation is active and
   entitled to `printix`, and the effective keys (`grants.effective_keys`, the same helper the
@@ -190,8 +193,14 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
 - **Shared service:** `service.list_events` and `service.event_summary` take
   `organisation_id`; `get_event` filters in SQL when it is given. The admin routes pass
   `None`, which means no filter, and their behaviour is unchanged.
-- **Not in this slice:** writes (create, import, void, close, pairings), the per-app session
-  cap (ADR-0061, 12 hours), and any way for an app-scoped `printix` session to learn its
+- **Sign-in safeguards (ADR-0061): on.** The `printix` app is registered with
+  `max_session_hours=12`, `require_authenticator=True` and `privileged_members=True`, so a
+  Printix session lasts at most 12 hours from its original sign-in, a person without an
+  authenticator cannot sign in (403, body `code` `authenticator_required`), and a
+  `printix-member` holder follows the privileged enrolment rules (emailed code for the first
+  authenticator; a new enrolment ends their other sessions). Tests:
+  `tests/auth/test_app_session_safeguards.py`. Details: `docs/api/app-session-safeguards.md`.
+- **Not in this slice:** writes (create, import, void, close, pairings), and any way for an app-scoped `printix` session to learn its
   organisation id: `GET /organisations/mine` is account-only (`AccountUser`), so the
   scanner must be given the organisation id another way until a route accepts the app
   session.
