@@ -9,7 +9,7 @@ the audit log.
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Query, UploadFile, status
+from fastapi import APIRouter, File, Query, Response, UploadFile, status
 
 from src.dependencies import SessionDep
 from src.models import ApiError
@@ -284,7 +284,9 @@ async def create_pairing_endpoint(
     admin: PrintixAdmin,
     event_id: uuid.UUID,
     body: PrintixPairingCreate,
+    response: Response,
 ) -> Any:
+    response.headers["Cache-Control"] = "no-store"
     pairing, secret = await service.create_pairing(
         session,
         event_id,

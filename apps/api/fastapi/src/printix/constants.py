@@ -5,6 +5,12 @@ from enum import Enum
 
 #: Permission key every administrator route checks (``src/auth/permissions.py``).
 MANAGE_PERMISSION_KEY = "printix.manage"
+#: An event has at most this many active gate codes (pairings not revoked and not expired).
+MAX_ACTIVE_PAIRINGS_PER_EVENT = 20
+#: An organiser-made event may be dated at most this far ahead, and close at most
+#: this long after its event date (the same date comparison as the admin schema).
+ORGANISER_EVENT_MAX_AHEAD_DAYS = 365
+ORGANISER_CLOSE_MAX_AFTER_DATE_DAYS = 7
 #: Organisation keys (ADR-0060 organiser amendment, ADR-0044). Held per organisation
 #: through a role bundle; never through the global role catalogue.
 EVENTS_MANAGE_KEY = "printix.events.manage"

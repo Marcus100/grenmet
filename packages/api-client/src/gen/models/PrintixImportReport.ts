@@ -33,4 +33,16 @@ export type PrintixImportReport = {
    * @type array
    */
   warnings: string[];
+  /**
+   * @description Tickets on the event once this file is in (tickets already there plus this file's rows) whose barcode is shorter than 12 characters. Offline scanning stays off for the event while this is above zero.
+   * @default 0
+   * @type integer | undefined
+   */
+  short_barcodes?: number;
+  /**
+   * @description Tickets on the event once this file is in (tickets already there plus this file's rows) whose barcode equals their printed number, including barcodes defaulted from the number. Offline scanning stays off for the event while this is above zero.
+   * @default 0
+   * @type integer | undefined
+   */
+  barcode_equals_number?: number;
 };

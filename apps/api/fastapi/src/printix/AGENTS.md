@@ -221,6 +221,36 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   (`POST /admin/events/{id}/organisation` with null).
 - **Rate limit (planned).** A per-user rate limit on the organiser routes is planned with the
   write slices; the read routes have none yet.
+- **Writes and gate QR codes (slices 4 and 5, `org_router.py`).** Events: create, close,
+  import, list tickets, void and restore need `printix.events.manage`. Gate QR codes (a
+  pairing is the QR code; the secret is shown once) need `printix.gates.manage`, so a gate
+  lead can make and cancel them but not write events. Every route goes through
+  `require_printix_organiser`, which runs the authenticator step and then a per-user limit
+  (`ORGANISER_READS_PER_MINUTE` 120, `ORGANISER_WRITES_PER_MINUTE` 30, a Redis bucket per
+  user id; the limit is counted after the key and authenticator checks). The organisation
+  is always the caller's; the service functions take `organisation_id` and filter in SQL
+  (`get_event`, and the ticket and pairing lookups through their event). The admin routes
+  pass `None` and are unchanged.
+- **Import report.** `short_barcodes` counts rows whose barcode is under
+  `OFFLINE_MIN_BARCODE_LENGTH` (12) characters, and `barcode_equals_number` counts rows whose
+  barcode equals the printed number (defaulted barcodes included). Either above zero means
+  offline scanning is off for the event (rule 7). Both fields are additive on the shared
+  report, so the admin import response gains them too.
+- **Review fixes (PR #1542).** Typed numbers need `printix.events.manage` (checked in the
+  router with `organisations.grants.has_org_permission`, so a gate lead gets
+  `PrintixTypedNumbersNotAllowed`, 403). `MAX_ACTIVE_PAIRINGS_PER_EVENT` (20) caps active
+  pairings per event, counted in SQL under the event row lock in `create_pairing`; the admin
+  create uses the same service function, so the admin route is capped too. Organiser-made
+  events: `event_date` at most 365 days ahead, `closes_at` at most seven days after the event
+  date (`PrintixOrgEventCreate`, dates compared as the admin schema compares them). A ticket
+  or pairing is looked up with its event's organisation in one query (`_ticket_for`,
+  `_pairing_for`), so a foreign and a missing id answer the same 404. Weak-barcode counts are
+  event-wide (`_event_barcode_weakness`, taken before any write). `create_pairing` answers
+  `Cache-Control: no-store`, on the organiser and admin routes. The organiser limiter fails
+  open: if `limiter.limiter.hit` raises, the request is allowed and a warning is logged with no
+  ids.
+- **Pairing defaults (owner, 16 Nov 2026).** Expiry six hours after the event closes, at most a
+  day after; typed printed numbers off unless the request sets `allow_typed_numbers`.
 - **Migration debt:** the foreign key `event_organisation_id_fkey` was added `NOT VALID`
   (migration `printixorganisation20261116`). A later migration must run
   `ALTER TABLE printix.event VALIDATE CONSTRAINT event_organisation_id_fkey` once the existing

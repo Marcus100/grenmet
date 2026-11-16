@@ -62,6 +62,15 @@ class PrintixRateLimited(AppException):
         )
 
 
+class PrintixTypedNumbersNotAllowed(AppException):
+    """Only an organiser (printix.events.manage) may turn typed printed numbers on."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Only an organiser may turn typed printed numbers on for a gate code.", 403
+        )
+
+
 class PrintixOrganisationIneligible(AppException):
     """The organisation may not own a Printix event: suspended, or not entitled to printix."""
 

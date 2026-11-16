@@ -293,7 +293,9 @@ use these actions, so it is recorded here.
    scanned there by the gate phone; never printed, saved or sent as a link by the
    app. By default a code works until 6 hours after the event closes and can be
    cancelled in one tap. Typed printed numbers are off by default; the organiser may
-   turn them on for a gate when making its code.
+   turn them on for a gate when making its code. Only an Organiser (`printix.events.manage`)
+   may turn typed numbers on, and an event has at most 20 active gate codes (not revoked, not
+   expired); a gate lead who asks is refused.
 10. **Screens:** work on a laptop for setup and ticket import, and on a phone for
     gate codes and counts on event night.
 
