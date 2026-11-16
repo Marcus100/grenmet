@@ -372,8 +372,8 @@ phase backup-gate
 # deploy that reaches `migrations` runs `alembic upgrade head`, and there is no cheap,
 # reliable way here to tell "already at head" across seven Alembic histories plus the
 # Payload CMS, so the gate checks on any deploy that has migration services.
-# Modes: DEPLOY_BACKUP_GATE=off|warn|enforce (default warn). Only enforce blocks, and
-# only on a verified-stale backup; anything it cannot verify fails open, loudly.
+# Modes: DEPLOY_BACKUP_GATE=off|warn|enforce (default warn). Only enforce blocks: on a
+# stale backup or one it cannot verify. warn continues in both cases, loudly.
 # DEPLOY_BACKUP_GATE_OVERRIDE=<reason> lets an enforced deploy continue and is recorded.
 gate_note() {
   printf '%s\n' "$1"
