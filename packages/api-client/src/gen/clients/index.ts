@@ -74,6 +74,7 @@ export { authRevokeActivation } from "./authRevokeActivation.js";
 export { authRevokeSecuritySession } from "./authRevokeSecuritySession.js";
 export { authRevokeSignInSetup } from "./authRevokeSignInSetup.js";
 export { authRevokeSuperuserInvitation } from "./authRevokeSuperuserInvitation.js";
+export { authSendEmailChangeCode } from "./authSendEmailChangeCode.js";
 export { authSuperuserInvitationCode } from "./authSuperuserInvitationCode.js";
 export { authTwofaActivate } from "./authTwofaActivate.js";
 export { authTwofaDisable } from "./authTwofaDisable.js";

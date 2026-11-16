@@ -328,7 +328,7 @@ async def test_email_change_is_blocked_until_two_step_is_on(async_client, db_asy
     headers = await bearer(async_client, user)
     blocked = await async_client.patch(
         "/api/v1/auth/users/me",
-        json={"email": "moved@example.com"},
+        json={"email": "moved@example.com", "current_password": "password123"},
         headers=headers,
     )
     assert blocked.status_code == 403
@@ -342,7 +342,7 @@ async def test_an_ordinary_account_can_change_its_email(async_client, db_async):
     headers = await bearer(async_client, user)
     response = await async_client.patch(
         "/api/v1/auth/users/me",
-        json={"email": "moved@example.com"},
+        json={"email": "moved@example.com", "current_password": "password123"},
         headers=headers,
     )
     assert response.status_code == 200

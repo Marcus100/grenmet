@@ -9,4 +9,6 @@ export type UserUpdateMe = {
   first_name?: string | null;
   middle_name?: string | null;
   last_name?: string | null;
+  current_password?: string | null;
+  email_code?: string | null;
 };

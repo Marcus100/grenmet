@@ -43,3 +43,53 @@ class AccountLockedError(AppException):
             "Account temporarily locked due to repeated failed logins",
             status.HTTP_429_TOO_MANY_REQUESTS,
         )
+
+
+#: Stable prefix of the detail for a changed email with no proof (#1535). Clients branch
+#: on it; the readable reason follows it.
+EMAIL_CHANGE_PROOF_CODE = "email_change_proof_required"
+
+
+class EmailChangeProofRequiredError(AppException):
+    """400: changing the account email needs the current password (or, for an account
+    with no password, a code sent to the current address)."""
+
+    def __init__(self, *, by_code: bool) -> None:
+        if by_code:
+            reason = "Request a code to your current email address, then enter it"
+        else:
+            reason = "Enter your current password"
+        super().__init__(
+            f"{EMAIL_CHANGE_PROOF_CODE}: {reason} to change your email address.",
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class CurrentPasswordIncorrectError(AppException):
+    """400: the current password given to change the account email is wrong."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Your current password is not correct.", status.HTTP_400_BAD_REQUEST
+        )
+
+
+class EmailChangeUsesPasswordError(AppException):
+    """400: this account signs in with a password, so a code is not the proof."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This account signs in with a password. Enter your current password to "
+            "change your email address.",
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class EmailChangeRateLimitedError(AppException):
+    """429: too many email change attempts or code requests for this account."""
+
+    def __init__(
+        self,
+        message: str = "Too many email change attempts. Try again later.",
+    ) -> None:
+        super().__init__(message, status.HTTP_429_TOO_MANY_REQUESTS)

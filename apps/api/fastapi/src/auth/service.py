@@ -226,12 +226,27 @@ async def update_user_me(
     *, session: AsyncSession, current_user: User, user_in: UserUpdateMe
 ) -> User:
     placeholders.require_usable_identity(email=user_in.email, username=user_in.username)
+    changes_email = bool(user_in.email) and user_in.email != current_user.email
+    if changes_email:
+        # Proof comes first, so another address is not revealed without it (#1535).
+        # Lazy import: email_change imports app_service, which imports this module.
+        from src.auth import email_change
+
+        await email_change.require_proof(
+            session=session,
+            user=current_user,
+            current_password=user_in.current_password,
+            email_code=user_in.email_code,
+        )
     if user_in.email:
         existing = await get_user_by_email(session=session, email=user_in.email)
         if existing and existing.id != current_user.id:
             raise AppException("User with this email already exists", 409)
-    user_data = user_in.model_dump(exclude_unset=True)
-    if user_in.email and user_in.email != current_user.email:
+    user_data = user_in.model_dump(
+        exclude_unset=True, exclude={"current_password", "email_code"}
+    )
+    if changes_email:
+        old_email = current_user.email
         await ensure_email_change_allowed(session=session, user=current_user)
         current_user.email_verified_at = None
         current_user.email_verification_required = True
@@ -239,6 +254,7 @@ async def update_user_me(
         await session.execute(
             delete(AuthSession).where(AuthSession.user_id == current_user.id)
         )
+        email_change.notify_old_address(session, old_email=old_email)
     for key, value in user_data.items():
         setattr(current_user, key, value)
     session.add(current_user)

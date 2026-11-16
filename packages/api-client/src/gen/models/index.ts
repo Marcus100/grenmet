@@ -892,6 +892,15 @@ export type {
   AuthRevokeSuperuserInvitationStatus422,
 } from "./AuthRevokeSuperuserInvitation.js";
 export type {
+  AuthSendEmailChangeCodeOptions,
+  AuthSendEmailChangeCodeResponse,
+  AuthSendEmailChangeCodeResponses,
+  AuthSendEmailChangeCodeStatus200,
+  AuthSendEmailChangeCodeStatus400,
+  AuthSendEmailChangeCodeStatus422,
+  AuthSendEmailChangeCodeStatus429,
+} from "./AuthSendEmailChangeCode.js";
+export type {
   AuthSuperuserInvitationCodeBody,
   AuthSuperuserInvitationCodeOptions,
   AuthSuperuserInvitationCodeResponse,
@@ -987,8 +996,10 @@ export type {
   AuthUpdateUserMeResponse,
   AuthUpdateUserMeResponses,
   AuthUpdateUserMeStatus200,
+  AuthUpdateUserMeStatus400,
   AuthUpdateUserMeStatus409,
   AuthUpdateUserMeStatus422,
+  AuthUpdateUserMeStatus429,
 } from "./AuthUpdateUserMe.js";
 export type { AviationDraftList } from "./AviationDraftList.js";
 export type { AviationDraftRead } from "./AviationDraftRead.js";
