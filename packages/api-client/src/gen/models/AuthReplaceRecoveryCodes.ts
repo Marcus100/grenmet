@@ -4,6 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
 import type { SecurityProof } from "./SecurityProof.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -22,6 +23,8 @@ export type AuthReplaceRecoveryCodesStatus400 = ApiError;
  */
 export type AuthReplaceRecoveryCodesStatus422 = ValidationErrorResponse;
 
+export type AuthReplaceRecoveryCodesStatus429 = ApiError | ErrorMessage;
+
 export type AuthReplaceRecoveryCodesBody = SecurityProof;
 
 export type AuthReplaceRecoveryCodesOptions = {
@@ -35,6 +38,7 @@ export type AuthReplaceRecoveryCodesResponses = {
   "200": AuthReplaceRecoveryCodesStatus200;
   "400": AuthReplaceRecoveryCodesStatus400;
   "422": AuthReplaceRecoveryCodesStatus422;
+  "429": AuthReplaceRecoveryCodesStatus429;
 };
 
 /**

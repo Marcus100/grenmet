@@ -12,9 +12,10 @@ colors:
 
 # Printix Scanner
 
-The ticket scanning app for Printix, a client's secure event ticketing product
-(`apps/pwa/printix`). Printix appears as its own product: no Barrels, GAA or
-GMS marks, and no `--gm-*` tokens.
+The ticket scanning app for Printix, the security-printed ticket product run as
+a collaboration with Barrels Grenada (`apps/pwa/printix`). Printix keeps its own
+name and look, with Barrels shown where it helps (for example on sign-in). No GAA
+or GMS marks, and no `--gm-*` tokens.
 
 One dark look only. Gate staff work at night, a dark screen saves battery, and
 the result colours must read at arm's length. Near-black `ink` background,

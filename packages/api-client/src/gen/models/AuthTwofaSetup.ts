@@ -4,6 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { TwoFactorSetupResponse } from "./TwoFactorSetupResponse.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -27,6 +28,8 @@ export type AuthTwofaSetupStatus403 = ApiError;
  */
 export type AuthTwofaSetupStatus422 = ValidationErrorResponse;
 
+export type AuthTwofaSetupStatus429 = ApiError | ErrorMessage;
+
 export type AuthTwofaSetupOptions = {
   body?: never;
   path?: never;
@@ -39,6 +42,7 @@ export type AuthTwofaSetupResponses = {
   "401": AuthTwofaSetupStatus401;
   "403": AuthTwofaSetupStatus403;
   "422": AuthTwofaSetupStatus422;
+  "429": AuthTwofaSetupStatus429;
 };
 
 /**

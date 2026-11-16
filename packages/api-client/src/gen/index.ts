@@ -5533,6 +5533,7 @@ export type {
   AuthReplaceRecoveryCodesStatus200,
   AuthReplaceRecoveryCodesStatus400,
   AuthReplaceRecoveryCodesStatus422,
+  AuthReplaceRecoveryCodesStatus429,
 } from "./models/AuthReplaceRecoveryCodes.js";
 export type {
   AuthRequestStaffAccessOptions,
@@ -5618,6 +5619,7 @@ export type {
   AuthTwofaActivateStatus200,
   AuthTwofaActivateStatus400,
   AuthTwofaActivateStatus422,
+  AuthTwofaActivateStatus429,
 } from "./models/AuthTwofaActivate.js";
 export type {
   AuthTwofaDisableBody,
@@ -5627,6 +5629,7 @@ export type {
   AuthTwofaDisableStatus200,
   AuthTwofaDisableStatus400,
   AuthTwofaDisableStatus422,
+  AuthTwofaDisableStatus429,
 } from "./models/AuthTwofaDisable.js";
 export type {
   AuthTwofaSetupOptions,
@@ -5636,6 +5639,7 @@ export type {
   AuthTwofaSetupStatus401,
   AuthTwofaSetupStatus403,
   AuthTwofaSetupStatus422,
+  AuthTwofaSetupStatus429,
 } from "./models/AuthTwofaSetup.js";
 export type {
   AuthTwofaStatusOptions,
@@ -5654,6 +5658,7 @@ export type {
   AuthUpdatePasswordMeStatus200,
   AuthUpdatePasswordMeStatus400,
   AuthUpdatePasswordMeStatus422,
+  AuthUpdatePasswordMeStatus429,
 } from "./models/AuthUpdatePasswordMe.js";
 export type {
   AuthUpdateRoleBody,
@@ -15843,6 +15848,7 @@ export {
   authReplaceRecoveryCodesStatus200Schema,
   authReplaceRecoveryCodesStatus400Schema,
   authReplaceRecoveryCodesStatus422Schema,
+  authReplaceRecoveryCodesStatus429Schema,
 } from "./zod/authReplaceRecoveryCodesSchema.js";
 export {
   authRequestStaffAccessErrorSchema,
@@ -15923,6 +15929,7 @@ export {
   authTwofaActivateStatus200Schema,
   authTwofaActivateStatus400Schema,
   authTwofaActivateStatus422Schema,
+  authTwofaActivateStatus429Schema,
 } from "./zod/authTwofaActivateSchema.js";
 export {
   authTwofaDisableBodySchema,
@@ -15931,6 +15938,7 @@ export {
   authTwofaDisableStatus200Schema,
   authTwofaDisableStatus400Schema,
   authTwofaDisableStatus422Schema,
+  authTwofaDisableStatus429Schema,
 } from "./zod/authTwofaDisableSchema.js";
 export {
   authTwofaSetupErrorSchema,
@@ -15939,6 +15947,7 @@ export {
   authTwofaSetupStatus401Schema,
   authTwofaSetupStatus403Schema,
   authTwofaSetupStatus422Schema,
+  authTwofaSetupStatus429Schema,
 } from "./zod/authTwofaSetupSchema.js";
 export {
   authTwofaStatusErrorSchema,
@@ -15955,6 +15964,7 @@ export {
   authUpdatePasswordMeStatus200Schema,
   authUpdatePasswordMeStatus400Schema,
   authUpdatePasswordMeStatus422Schema,
+  authUpdatePasswordMeStatus429Schema,
 } from "./zod/authUpdatePasswordMeSchema.js";
 export {
   authUpdateRoleAssignmentBodySchema,

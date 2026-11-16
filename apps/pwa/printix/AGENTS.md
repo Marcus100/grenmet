@@ -16,11 +16,13 @@ project create` now tries to convert the app to a Worker). Planned address
 below. Response headers live in `public/_headers`. Lane spec:
 `docs/design/printix.md`. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
 
-Printix is a **client's** product: security-printed event tickets with a
-ticket scanning app for promoters. Barrels Grenada builds and runs the
-software, but Printix appears as its own product: its own name, look and
-address. Never add Barrels, GAA or GMS marks here. The icons in `public/icons/`
-are placeholders until the client supplies artwork.
+Printix is a collaboration and Barrels Grenada's main ticket app (owner, 16
+Nov 2026; ADR-0060 organiser amendment): security-printed event tickets and the
+gate scanner. Barrels Grenada builds and runs the software. Printix keeps its own
+name and look, **with Barrels shown** where it helps (for example "Sign in with
+your Barrels account"). Never add GAA or GMS marks or `--gm-*` tokens. Barrels
+Events keeps selling online tickets; this app does all gate scanning. The icons
+in `public/icons/` are placeholders until Printix supplies artwork.
 
 ## What exists
 
