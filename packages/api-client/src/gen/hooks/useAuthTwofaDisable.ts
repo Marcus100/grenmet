@@ -16,6 +16,7 @@ import type {
   AuthTwofaDisableStatus200,
   AuthTwofaDisableStatus400,
   AuthTwofaDisableStatus422,
+  AuthTwofaDisableStatus429,
 } from "../models/AuthTwofaDisable.js";
 
 export const authTwofaDisableMutationKey = () =>
@@ -29,7 +30,11 @@ export function authTwofaDisableMutationOptions<TContext = unknown>(
   const mutationKey = authTwofaDisableMutationKey();
   return mutationOptions<
     AuthTwofaDisableStatus200,
-    ResponseErrorConfig<AuthTwofaDisableStatus400 | AuthTwofaDisableStatus422>,
+    ResponseErrorConfig<
+      | AuthTwofaDisableStatus400
+      | AuthTwofaDisableStatus422
+      | AuthTwofaDisableStatus429
+    >,
     AuthTwofaDisableOptions,
     TContext
   >({
@@ -50,7 +55,9 @@ export function useAuthTwofaDisable<TContext>(
     mutation?: UseMutationOptions<
       AuthTwofaDisableStatus200,
       ResponseErrorConfig<
-        AuthTwofaDisableStatus400 | AuthTwofaDisableStatus422
+        | AuthTwofaDisableStatus400
+        | AuthTwofaDisableStatus422
+        | AuthTwofaDisableStatus429
       >,
       AuthTwofaDisableOptions,
       TContext
@@ -69,14 +76,22 @@ export function useAuthTwofaDisable<TContext>(
     config
   ) as UseMutationOptions<
     AuthTwofaDisableStatus200,
-    ResponseErrorConfig<AuthTwofaDisableStatus400 | AuthTwofaDisableStatus422>,
+    ResponseErrorConfig<
+      | AuthTwofaDisableStatus400
+      | AuthTwofaDisableStatus422
+      | AuthTwofaDisableStatus429
+    >,
     AuthTwofaDisableOptions,
     TContext
   >;
 
   return useMutation<
     AuthTwofaDisableStatus200,
-    ResponseErrorConfig<AuthTwofaDisableStatus400 | AuthTwofaDisableStatus422>,
+    ResponseErrorConfig<
+      | AuthTwofaDisableStatus400
+      | AuthTwofaDisableStatus422
+      | AuthTwofaDisableStatus429
+    >,
     AuthTwofaDisableOptions,
     TContext
   >(
@@ -88,7 +103,11 @@ export function useAuthTwofaDisable<TContext>(
     queryClient
   ) as UseMutationResult<
     AuthTwofaDisableStatus200,
-    ResponseErrorConfig<AuthTwofaDisableStatus400 | AuthTwofaDisableStatus422>,
+    ResponseErrorConfig<
+      | AuthTwofaDisableStatus400
+      | AuthTwofaDisableStatus422
+      | AuthTwofaDisableStatus429
+    >,
     AuthTwofaDisableOptions,
     TContext
   >;

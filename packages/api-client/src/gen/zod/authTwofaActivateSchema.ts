@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { twoFactorCodeRequestSchema } from "./twoFactorCodeRequestSchema.js";
 import { twoFactorStatusPublicSchema } from "./twoFactorStatusPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -20,11 +21,17 @@ export const authTwofaActivateStatus422Schema =
     "Validation error envelope returned for malformed requests."
   );
 
+export const authTwofaActivateStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
+
 export const authTwofaActivateResponseSchema = authTwofaActivateStatus200Schema;
 
 export const authTwofaActivateErrorSchema = z.union([
   authTwofaActivateStatus400Schema,
   authTwofaActivateStatus422Schema,
+  authTwofaActivateStatus429Schema,
 ]);
 
 export const authTwofaActivateBodySchema = twoFactorCodeRequestSchema;

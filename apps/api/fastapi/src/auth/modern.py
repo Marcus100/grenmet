@@ -27,10 +27,10 @@ from src.auth.superuser_invitation_schemas import (
     SuperuserInvitationCreate,
     SuperuserInvitationPublic,
 )
-from src.dependencies import AccountUser, SessionDep, TokenDep
+from src.dependencies import AccountUser, RateLimitedAccountUser, SessionDep, TokenDep
 from src.models import ApiError, Message
 from src.openapi_responses import RateLimitedBody
-from src.rate_limit import limiter, mail_limit_address
+from src.rate_limit import account_address, limiter, mail_limit_address
 from src.turnstile import auth_turnstile_policy, require_turnstile
 
 router = APIRouter(prefix="/auth", tags=["modern-auth"])
@@ -149,14 +149,21 @@ async def read_account_security(
     status_code=200,
     summary="Replace MFA recovery codes",
     description="Returns eight recovery codes once after confirming an authenticator code or an unused recovery code. The password is also required when the account has one; email-code accounts send none. Only hashes are stored.",
-    responses={400: {"model": ApiError, "description": "Confirmation failed"}},
+    responses={
+        400: {"model": ApiError, "description": "Confirmation failed"},
+        429: {
+            "model": RateLimitedBody,
+            "description": "Too many attempts; try again later",
+        },
+    },
 )
-@limiter.limit("5/minute")
+# Checks an authenticator code and the password: 5 a minute per account.
+@limiter.limit("5/minute", key_func=account_address)
 async def replace_recovery_codes(
     *,
     request: Request,
     session: SessionDep,
-    current_user: AccountUser,
+    current_user: RateLimitedAccountUser,
     body: SecurityProof,
 ) -> RecoveryCodesPublic:
     _ = request
