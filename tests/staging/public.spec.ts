@@ -8,7 +8,8 @@ const NOT_FOUND = /page not found/iu;
 const EMAIL = /email/iu;
 const AUTH_HOST = /auth\./u;
 
-const SIGN_IN = /sign in/iu;
+const EMAIL_CODE = /email me a code/iu;
+const USE_PASSWORD = /use password instead/iu;
 
 test.describe("public weather site", () => {
   test("the homepage shows the current weather with no errors or broken pictures", async ({
@@ -71,14 +72,15 @@ test.describe("public weather site", () => {
 });
 
 test.describe("sign-in", () => {
-  test("the sign-in page offers email and password", async ({
+  test("the sign-in page offers an emailed code and a password", async ({
     page,
     stagingDomain,
   }) => {
     const errors = watchPageErrors(page);
     await page.goto(host(stagingDomain, "auth"));
     await expect(page.getByLabel(EMAIL).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: SIGN_IN })).toBeVisible();
+    await expect(page.getByRole("button", { name: EMAIL_CODE })).toBeVisible();
+    await expect(page.getByRole("link", { name: USE_PASSWORD })).toBeVisible();
     expect(errors).toEqual([]);
   });
 
@@ -88,6 +90,6 @@ test.describe("sign-in", () => {
   }) => {
     await page.goto(host(stagingDomain, "gms"));
     await expect(page).toHaveURL(AUTH_HOST);
-    await expect(page.getByRole("button", { name: SIGN_IN })).toBeVisible();
+    await expect(page.getByRole("button", { name: EMAIL_CODE })).toBeVisible();
   });
 });
