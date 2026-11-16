@@ -50,6 +50,7 @@ function FeaturedStory({
           <Link
             className="hover:text-signal-green hover:underline"
             href={`/${article.section}/${article.slug}`}
+            prefetch={false}
           >
             {article.title}
           </Link>
@@ -105,6 +106,7 @@ export function LeadStories({ articles }: { articles: LeadArticle[] }) {
               <Link
                 className="text-signal-green inline-flex min-h-11 items-center text-sm font-semibold tracking-wide uppercase hover:underline"
                 href="/archive"
+                prefetch={false}
               >
                 All stories →
               </Link>
@@ -137,6 +139,7 @@ export function LeadStories({ articles }: { articles: LeadArticle[] }) {
                 <Link
                   className="inline-flex min-h-11 items-center gap-2 font-serif text-xl font-semibold hover:underline"
                   href={series.href}
+                  prefetch={false}
                 >
                   <Icon
                     aria-hidden="true"
