@@ -224,6 +224,8 @@ async def _session_response(
     )
     if not eligible:
         raise AppException("This account can't sign in to this app.", 403)
+    # Every method reaches a session here (handoff included), so this is the backstop.
+    _require_app_authenticator(app, user)
     user_agent = request.headers.get("user-agent")
     ip_address = request_ip(request)
     new_device = remember_device(user, user_agent)
@@ -286,6 +288,25 @@ async def _require_totp(
         await session.commit()
         raise AppException("Two-factor authentication code required or invalid", 400)
     await login_lockout.reset(user.email)
+
+
+# Stable suffix of the 403 detail when an app requires an authenticator (ADR-0061).
+AUTHENTICATOR_REQUIRED_CODE = "authenticator_required"
+
+
+def _require_app_authenticator(app: AppDefinition, user: User) -> None:
+    """Refuse a person with no enrolled authenticator, for an app that requires one.
+
+    Called after the proof of identity (code, password, Google or handoff) and before
+    any role is granted or session is created. The refusal is the same for every
+    method, so it reveals nothing the proof has not already shown.
+    """
+    if app.require_authenticator and not user.totp_enabled:
+        raise AppException(
+            f"Add an authenticator on account.barrels.gd before you sign in to "
+            f"{app.label} ({AUTHENTICATOR_REQUIRED_CODE})",
+            403,
+        )
 
 
 # --- Email one-time code (passwordless sign-in and sign-up) --------------------
@@ -451,6 +472,7 @@ async def email_code_verify(
         session.add(user)
     await record_security(session, user, "code_sign_in")
     await session.commit()
+    _require_app_authenticator(app, user)
     await ensure_member(session, user, app)
     return await _session_response(
         request,
@@ -485,6 +507,7 @@ async def password_login(
         await login_lockout.record_failure(email)
         raise AppException("Incorrect email or password", 400)
     await _require_totp(session, user, body.totp_code)
+    _require_app_authenticator(app, user)
     await login_lockout.reset(email)
     await ensure_member(session, user, app)
     return await _session_response(
@@ -592,6 +615,7 @@ async def google_finish(
     if user is None or not user.is_active or user.email != challenge.data["email"]:
         raise AppException("Account unavailable", 403)
     await _require_totp(session, user, body.totp_code)
+    _require_app_authenticator(app, user)
     identity = await session.get(
         ExternalIdentity, (challenge.data["subject"], "google")
     )
@@ -657,6 +681,7 @@ async def phone_code_verify(
         consume=False,
     )
     await _require_totp(session, user, body.totp_code)
+    _require_app_authenticator(app, user)
     await session.delete(challenge)
     await session.commit()
     await ensure_member(session, user, app)

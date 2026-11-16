@@ -40,6 +40,25 @@ async def is_privileged(session: AsyncSession, user: User) -> bool:
     return False
 
 
+async def is_enrolment_privileged(session: AsyncSession, user: User) -> bool:
+    """Privileged for authenticator enrolment only (ADR-0061).
+
+    ``is_privileged``, or holding the access of an app whose ``privileged_members``
+    is on. Used by ``totp_enrolment`` alone (emailed code, ending other sessions, the
+    email-change guard). Sign-in enforcement and the sign-in-setup ceiling keep using
+    ``is_privileged``, so an app's setting never changes who must sign in with an
+    authenticator.
+    """
+    if await is_privileged(session, user):
+        return True
+    for app in apps.all_apps():
+        if app.privileged_members and await service.is_eligible_for_app(
+            session=session, user=user, app_key=app.key
+        ):
+            return True
+    return False
+
+
 def session_id_from_token(token: str) -> uuid.UUID | None:
     """The ``sid`` claim of a bearer JWT, or None when absent or malformed.
 

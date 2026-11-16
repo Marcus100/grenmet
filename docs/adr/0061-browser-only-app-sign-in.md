@@ -101,6 +101,15 @@ What already exists and is reused:
 ## Follow-ups
 
 - The per-app session cap, counted from the original sign-in, and its tests for
-  every app (built with the Printix organiser screen).
-- The per-app "authenticator required at sign-in" setting and its message.
+  every app. Built as `AppDefinition.max_session_hours` (`auth/apps.py`); the column
+  is `session.signed_in_at`, nullable with `created_at` as the fallback (no backfill).
+  Printix is switched on in a follow-up, not in this change.
+- The per-app "authenticator required at sign-in" setting and its message. Built as
+  `AppDefinition.require_authenticator` with the code `authenticator_required`.
+  Differences from the decision: the refusal runs before any role grant, and a
+  handoff session counts its cap from the handoff, not from the account session.
+- Privileged enrolment for organisers (owner, 16 Nov 2026). Built as the per-app
+  `AppDefinition.privileged_members`, read only by enrolment
+  (`privileged_mfa.is_enrolment_privileged`). Sign-in enforcement is not widened, so
+  an organiser without an authenticator can still use other apps.
 - A test that the Printix organiser pages hold no token in `localStorage`.

@@ -170,6 +170,7 @@ class SessionBase(BaseModel):
 class SessionCreate(BaseModel):
     mfa_verified_at: UtcDateTime | None = None
     email_code_verified_at: UtcDateTime | None = None
+    signed_in_at: UtcDateTime | None = None
     user_id: uuid.UUID
     session_token: str
     expires_at: UtcDateTime
