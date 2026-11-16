@@ -372,8 +372,8 @@ phase backup-gate
 # deploy that reaches `migrations` runs `alembic upgrade head`, and there is no cheap,
 # reliable way here to tell "already at head" across seven Alembic histories plus the
 # Payload CMS, so the gate checks on any deploy that has migration services.
-# Modes: DEPLOY_BACKUP_GATE=off|warn|enforce (default warn). Only enforce blocks, and
-# only on a verified-stale backup; anything it cannot verify fails open, loudly.
+# Modes: DEPLOY_BACKUP_GATE=off|warn|enforce (default warn). Only enforce blocks: on a
+# stale backup or one it cannot verify. warn continues in both cases, loudly.
 # DEPLOY_BACKUP_GATE_OVERRIDE=<reason> lets an enforced deploy continue and is recorded.
 gate_note() {
   printf '%s\n' "$1"
@@ -414,7 +414,22 @@ else
       else
         gate_note "::warning::Backup gate (warn): backup is stale and migrations will run anyway. $gate_detail $how_to"
       fi ;;
-    *) gate_note "::warning::Backup gate could NOT verify the newest backup and is passing OPEN (mode $gate_mode): $gate_detail. Migrations will run without a verified fresh backup." ;;
+    *)
+      if [[ "$gate_mode" == enforce && -z "$gate_override" ]]; then
+        {
+          echo "### Backup gate blocked this deploy (enforce)"
+          echo "The newest backup could not be verified. No migration ran; the previous release is still serving."
+          printf '%s\n' "$gate_out" | sed 's/^/- /'
+          echo "$how_to"
+        } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+        echo "::error::Backup gate (enforce) blocked the deploy before migrations: the newest backup could not be verified." >&2
+        printf '%s\n%s\n' "$gate_out" "$how_to" >&2
+        exit 1
+      elif [[ "$gate_mode" == enforce ]]; then
+        gate_note "::warning::Backup gate OVERRIDDEN by ${GITHUB_ACTOR}: '$gate_override'. The newest backup could not be verified; migrations proceed. $gate_detail"
+      else
+        gate_note "::warning::Backup gate could NOT verify the newest backup and is passing OPEN (mode $gate_mode): $gate_detail. Migrations will run without a verified fresh backup."
+      fi ;;
   esac
   if [[ -n "$gate_override" && "$gate_mode" != enforce ]]; then
     gate_note "Backup gate override recorded by ${GITHUB_ACTOR}: '$gate_override' (mode is $gate_mode, so it changed nothing)."
