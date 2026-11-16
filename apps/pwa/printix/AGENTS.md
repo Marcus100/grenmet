@@ -23,18 +23,25 @@ are placeholders until the client supplies artwork.
   The secret is read from the fragment once (a ref guards Strict Mode), kept in
   this origin's `localStorage` under one fixed key, and removed from the address
   bar. Never in a URL, a log, Sentry or an analytics event.
-- **Scanning** (`gate-console.tsx`, `gate-scanner.tsx`): camera, torch, camera
-  switch, the live count, typed numbers (always reachable), no-signal state.
+- **Scanning** (`gate-console.tsx`): the shared barcode camera (camera, torch,
+  camera switch) with the scanner's own words, the live count, typed numbers
+  (always reachable, in the shared sheet), no-signal state.
 - **Verdicts** (`src/lib/scan-outcome.ts`): every API outcome and HTTP status
   maps to one tone, title, detail and sound. Admitted is green and clears itself
   after about a second. Refused and unchecked wait for **Scan next**.
 - **API** (`src/lib/scan-api.ts`): generated client from `@barrelsgd/api-client`
   only. The secret goes in `Authorization: Bearer` and nowhere else. Responses
   must pass the generated Zod schema, or the answer is a failure, never a yes.
-- `src/lib/gate-feedback.ts`: sounds (started on the tap that starts the camera),
-  vibration where the phone allows it, wake lock where supported.
+- Shared phone-app parts come from `packages/pwa-kit` (read its `AGENTS.md`):
+  the barcode camera and reader, sounds (started on the tap that starts the
+  camera; admitted plays the kit's success signal, refused its failure
+  signal), vibration where the phone allows it, wake lock, the install guide
+  and the bottom sheet. The kit's colours (`--color-pwa-*`) are mapped to the
+  Printix palette in `src/styles/app.css`. A change to a kit part changes
+  every phone app: run the kit's tests as well as this app's.
 - `src/lib/scan-gate.ts`: one ticket in view is submitted once.
-- `src/lib/report-error.ts`: logs the area and error class only.
+- `src/lib/report-error.ts`: re-exports the kit's reporter (a `pwa:error`
+  window event with the area and error class only).
 
 ## What the API does not tell the scanner
 

@@ -2,11 +2,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createSoundPlayer,
-  holdScreenAwake,
   TONES,
   type ToneContext,
   vibrate,
-} from "@/lib/gate-feedback";
+} from "./feedback";
 
 interface FakeNode {
   connect: (target: unknown) => void;
@@ -64,9 +63,9 @@ describe("sound player", () => {
   it("is silent and does not throw where the browser has no audio", () => {
     const player = createSoundPlayer(() => null);
     expect(() => {
-      player.play("admitted");
+      player.play("success");
       player.unlock();
-      player.play("refused");
+      player.play("failure");
     }).not.toThrow();
   });
 
@@ -87,75 +86,33 @@ describe("sound player", () => {
     expect(context.resume).toHaveBeenCalledTimes(1);
   });
 
-  it("plays the steps of each signal, admitted and refused sounding different", () => {
+  it("plays the steps of each signal, success and failure sounding different", () => {
     const { context, oscillators } = fakeContext();
     const player = createSoundPlayer(() => context as unknown as ToneContext);
     player.unlock();
-    player.play("admitted");
-    expect(oscillators).toHaveLength(TONES.admitted.length);
-    player.play("refused");
+    player.play("success");
+    expect(oscillators).toHaveLength(TONES.success.length);
+    player.play("failure");
     expect(oscillators).toHaveLength(
-      TONES.admitted.length + TONES.refused.length
+      TONES.success.length + TONES.failure.length
     );
-    const admitted = TONES.admitted.map((step) => step.frequency).join(",");
-    const refused = TONES.refused.map((step) => step.frequency).join(",");
-    expect(admitted).not.toBe(refused);
+    const success = TONES.success.map((step) => step.frequency).join(",");
+    const failure = TONES.failure.map((step) => step.frequency).join(",");
+    expect(success).not.toBe(failure);
   });
 });
 
 describe("vibrate", () => {
   it("uses the pattern for each signal where vibration exists", () => {
     const vibrateSpy = vi.fn(() => true);
-    vibrate("admitted", { vibrate: vibrateSpy });
-    vibrate("refused", { vibrate: vibrateSpy });
+    vibrate("success", { vibrate: vibrateSpy });
+    vibrate("failure", { vibrate: vibrateSpy });
     expect(vibrateSpy).toHaveBeenNthCalledWith(1, [60]);
     expect(vibrateSpy).toHaveBeenNthCalledWith(2, [250, 120, 250]);
   });
 
   it("does nothing on a phone that cannot vibrate, such as an iPhone", () => {
-    expect(() => vibrate("refused", {})).not.toThrow();
-    expect(() => vibrate("refused", undefined)).not.toThrow();
-  });
-});
-
-describe("holdScreenAwake", () => {
-  function setVisibility(value: DocumentVisibilityState) {
-    Object.defineProperty(document, "visibilityState", {
-      configurable: true,
-      get: () => value,
-    });
-  }
-
-  it("does nothing where the browser has no wake lock", () => {
-    const release = holdScreenAwake({}, document);
-    expect(() => release()).not.toThrow();
-  });
-
-  it("asks for a screen lock, asks again on return, and releases on cleanup", async () => {
-    setVisibility("visible");
-    const sentinel = { release: vi.fn(async () => undefined) };
-    const request = vi.fn(async () => sentinel as unknown as WakeLockSentinel);
-    const release = holdScreenAwake({ wakeLock: { request } }, document);
-    expect(request).toHaveBeenCalledWith("screen");
-
-    await Promise.resolve();
-    release();
-    expect(sentinel.release).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not ask for a lock while the page is hidden", () => {
-    setVisibility("hidden");
-    const request = vi.fn(async () => ({}) as unknown as WakeLockSentinel);
-    const release = holdScreenAwake({ wakeLock: { request } }, document);
-    expect(request).not.toHaveBeenCalled();
-    release();
-  });
-
-  it("survives a refused lock", async () => {
-    setVisibility("visible");
-    const request = vi.fn(() => Promise.reject(new Error("denied")));
-    const release = holdScreenAwake({ wakeLock: { request } }, document);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(() => release()).not.toThrow();
+    expect(() => vibrate("failure", {})).not.toThrow();
+    expect(() => vibrate("failure", undefined)).not.toThrow();
   });
 });

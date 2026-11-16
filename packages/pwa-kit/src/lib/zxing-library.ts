@@ -1,8 +1,9 @@
-import type { BarcodeDetectorCtor } from "@/lib/barcode-reader";
+import type { BarcodeDetectorCtor } from "./barcode-reader";
 
 /**
  * Loads the bundled decoder on demand (it is large) and points it at the
- * WebAssembly file this app serves from /zxing (scripts/copy-wasm.mjs).
+ * WebAssembly file the app serves from /zxing. Every app that scans runs
+ * `pwa-kit-copy-zxing` before dev and build to put the file there.
  */
 export async function loadZxingLibrary(): Promise<BarcodeDetectorCtor> {
   const library = await import("barcode-detector/ponyfill");

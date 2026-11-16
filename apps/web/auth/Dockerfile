@@ -44,6 +44,7 @@ COPY packages/bookings-web/package.json packages/bookings-web/
 COPY packages/cms-migrations/package.json packages/cms-migrations/
 COPY packages/email-templates/package.json packages/email-templates/
 COPY packages/gms/package.json packages/gms/
+COPY packages/pwa-kit/package.json packages/pwa-kit/
 COPY packages/theme/package.json packages/theme/
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/

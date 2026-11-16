@@ -84,6 +84,7 @@ transition:
 | `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation complete at boundaries 3-5 | Carries no brand prefix; must not depend on a brand package or select GMS branding by default |
 | `packages/theme` | Barrels platform display infrastructure | Active | Brand-neutral; product packages supply mappings |
 | `packages/bookings-web` | Barrels Bookings public booking flow (Barrels platform) | Active | Brand-neutral and framework-light: hosts pass server actions, links and class names in as props; never imports the API client at runtime or reads env |
+| `packages/pwa-kit` | Barrels platform base for the phone apps (`apps/pwa/*`) | Active; first user is the Printix scanner | Brand-neutral: colours come from each app's `--color-pwa-*` values and words are passed in; never imports the API client or reads env; static-export friendly (no server code) |
 | `packages/gms` | GMS client presentation package | Active; extracted at boundaries 4-5b | Owns the GMS logo, palette and components; may depend on shared UI/theme, never the reverse |
 | `packages/api-client` | Barrels platform generated client | Generated | Regenerate from FastAPI OpenAPI; never edit generated output manually |
 | `packages/email-templates` | Barrels platform messaging | Active | Product/client branding supplied by caller |
@@ -118,6 +119,7 @@ GMS or GAA.
 | `scripts/integrations` | Barrels engineering third-party integration readiness checks (Sentry, PostHog) | Active | Confirm provider credentials and host configuration per environment before relying on integration telemetry |
 | `scripts/monitoring` | Barrels engineering availability probes and sanitized monitoring reports | Active | CI/CD-managed environment configuration; verify provider delivery before declaring coverage |
 | `scripts/perf` | Barrels engineering HTTP performance measurement | Active | Compare first and repeated requests, reject failed responses, and keep credentials out of saved results |
+| `scripts/pwa` | Barrels engineering starter for phone apps (`pnpm new:pwa`) | Active | Creates `apps/pwa/<name>` on `packages/pwa-kit` and registers it; refuses a port already built and app names that would break generated code |
 | `scripts/production` | Barrels engineering database provisioning | Active | Apply reviewed migrations and repeatable baseline seeds without overwriting recorded operational data |
 | `scripts/sutron-collector` | GMS observation operations delivered by Barrels | Active development | Prove hardware collection, durable spool, SURFACE export, monitoring, and recovery |
 | `scripts/gnc-collector` | GMS satellite imagery from the GeoNetCast receiver, delivered by Barrels | Active development | Survey the receiver, deploy the timer, and prove freshness, storage and failure alerting before operational acceptance |

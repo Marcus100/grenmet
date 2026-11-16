@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cameraProblemFor } from "@/lib/camera-problem";
+import { cameraProblemFor } from "./camera-problem";
 
 describe("cameraProblemFor", () => {
   it("recognises a refused permission", () => {

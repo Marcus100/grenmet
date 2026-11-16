@@ -1,6 +1,6 @@
 /**
- * What the camera read, tidied before it is checked. Control characters are
- * never part of a ticket value, and the API refuses them with a 422.
+ * What the camera read, tidied before it is used. Control characters are never
+ * part of a ticket or pass value, and the API refuses them.
  */
 const MAX_LENGTH = 200;
 

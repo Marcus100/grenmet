@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { installAdvice, isIos } from "@/lib/install";
+import { installAdvice, isIos } from "./install";
 
 describe("installAdvice", () => {
   it("says nothing more once the app runs from the home screen", () => {

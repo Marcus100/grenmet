@@ -1,10 +1,11 @@
-import { reportError } from "@/lib/report-error";
+import { reportError } from "./report-error";
 
 /**
- * The two signals a gate hears and feels. Colour carries the meaning on
- * screen; sound and vibration only repeat it, and iPhones do not vibrate.
+ * The two signals a phone app plays and vibrates: a yes and a no. Colour and
+ * words carry the meaning on screen; sound and vibration only repeat it, and
+ * iPhones do not vibrate.
  */
-export type Signal = "admitted" | "refused";
+export type Signal = "success" | "failure";
 
 interface ToneStep {
   readonly durationMs: number;
@@ -13,25 +14,25 @@ interface ToneStep {
   readonly type: OscillatorType;
 }
 
-/** Admitted: two rising beeps. Refused: one low, long buzz. Never alike. */
+/** Success: two rising beeps. Failure: one low, long buzz. Never alike. */
 export const TONES: Record<Signal, readonly ToneStep[]> = {
-  admitted: [
+  success: [
     { frequency: 880, type: "sine", startMs: 0, durationMs: 120 },
     { frequency: 1320, type: "sine", startMs: 140, durationMs: 180 },
   ],
-  refused: [{ frequency: 170, type: "sawtooth", startMs: 0, durationMs: 420 }],
+  failure: [{ frequency: 170, type: "sawtooth", startMs: 0, durationMs: 420 }],
 };
 
 /** Vibration patterns in milliseconds, where the browser supports them. */
 export const VIBRATION_MS: Record<Signal, readonly number[]> = {
-  admitted: [60],
-  refused: [250, 120, 250],
+  success: [60],
+  failure: [250, 120, 250],
 };
 
 const PEAK_GAIN = 0.4;
 const RAMP_SECONDS = 0.01;
 
-/** The part of an audio context this app uses, so tests can use a fake. */
+/** The part of an audio context the player uses, so tests can use a fake. */
 export interface ToneContext {
   createGain: () => GainNode;
   createOscillator: () => OscillatorNode;
@@ -121,52 +122,4 @@ export function vibrate(
   if (nav && typeof nav.vibrate === "function") {
     nav.vibrate([...VIBRATION_MS[signal]]);
   }
-}
-
-interface WakeLockNavigator {
-  readonly wakeLock?: {
-    request: (type: "screen") => Promise<WakeLockSentinel>;
-  };
-}
-
-/**
- * Keeps the screen on while scanning, where the browser supports a wake lock.
- * Asks again when the phone comes back to the app, since the lock drops when
- * the page is hidden. Returns the function that lets the screen sleep again.
- */
-export function holdScreenAwake(
-  nav: WakeLockNavigator | undefined = globalThis.navigator,
-  doc: Document | undefined = globalThis.document
-): () => void {
-  if (!(nav?.wakeLock && doc)) {
-    return () => undefined;
-  }
-  let wanted = true;
-  let sentinel: WakeLockSentinel | null = null;
-  const acquire = async () => {
-    if (!wanted || doc.visibilityState !== "visible" || !nav.wakeLock) {
-      return;
-    }
-    try {
-      const lock = await nav.wakeLock.request("screen");
-      if (wanted) {
-        sentinel = lock;
-      } else {
-        await lock.release();
-      }
-    } catch {
-      // Refused or unsupported: the scanner still works, the screen may sleep.
-    }
-  };
-  const onVisibility = () => {
-    acquire().catch(() => undefined);
-  };
-  doc.addEventListener("visibilitychange", onVisibility);
-  onVisibility();
-  return () => {
-    wanted = false;
-    doc.removeEventListener("visibilitychange", onVisibility);
-    sentinel?.release().catch(() => undefined);
-    sentinel = null;
-  };
 }
