@@ -28,6 +28,8 @@ from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.exceptions import AccountLockedError
+from src.auth.lockout import factor_lockout
 from src.auth.models import Session as AuthSession
 from src.auth.models import (
     User,
@@ -222,10 +224,16 @@ async def activate_totp(
 
     The first authenticator of a privileged account also needs ``email_code``, the
     one-time code emailed when enrolment began. A wrong or missing emailed code raises
-    400 before the authenticator code is checked. A locked enrolment raises 429."""
+    400 before the authenticator code is checked. A locked enrolment raises 429.
+
+    A wrong authenticator code counts on ``lockout.factor_lockout`` (#1533). That key is
+    checked first, so a locked account gets 429 even with the right code, and a right
+    code clears the count."""
     from src.auth import totp
     from src.exceptions import AppException
 
+    if await factor_lockout.is_locked(str(user.id)):
+        raise AccountLockedError()
     await session.refresh(user, with_for_update=True)
     # A privileged first authenticator needs the mailbox proven in this visit: either the
     # request's session was opened by an emailed code less than 10 minutes ago (rule 2),
@@ -246,7 +254,9 @@ async def activate_totp(
     if not user.totp_secret or not totp.verify_code(
         secret=totp.decrypt_secret(user.totp_secret), code=code
     ):
+        await factor_lockout.record_failure(str(user.id))
         return False
+    await factor_lockout.reset(str(user.id))
     if setup_for_privileged:
         await session.execute(
             delete(AuthChallenge).where(
