@@ -43,6 +43,18 @@ body {
 }
 
 /*
+ * The shared touch behaviour (app-feel) covers buttons. A <summary> toggle is
+ * a control too: a long press must not select its words or open the iPhone
+ * callout.
+ */
+summary {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/*
  * A screen that replaces another fades in, so the change does not read as a
  * page load. Opacity only, so it is safe for people who ask for reduced
  * motion. Never put it on something shown many times a minute.

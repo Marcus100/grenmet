@@ -99,6 +99,29 @@ test("refuses a bad name, a missing title or a port outside 3000-3099", () => {
   );
 });
 
+test("refuses a name that would break the generated code", () => {
+  for (const title of ['GAA "Bus"', "Bus\\", "Bus {1}", "<Bus>", "Bus`"]) {
+    assert.throws(
+      () => readOptions(["bus", "--port", "3099", "--title", title]),
+      UsageError,
+      title
+    );
+  }
+  assert.throws(
+    () =>
+      readOptions([
+        "bus",
+        "--port",
+        "3099",
+        "--title",
+        "Bus",
+        "--short",
+        "B's",
+      ]),
+    UsageError
+  );
+});
+
 test("creates the app and registers it everywhere workspaces are listed", (t) => {
   const root = fixture();
   t.after(() => rmSync(root, { recursive: true, force: true }));

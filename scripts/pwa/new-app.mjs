@@ -29,6 +29,8 @@ import { crc32, deflateSync } from "node:zlib";
 import * as t from "./templates.mjs";
 
 const NAME_PATTERN = /^[a-z][a-z0-9-]{1,30}$/u;
+// The name goes into code and page text as written; these would break it.
+const UNSAFE_TEXT = /["'`\\{}<>]/u;
 const HEX_PATTERN = /^#[0-9a-f]{6}$/iu;
 const PORT_ROW = /^\|\s*(\d{4,5})\s*\|/u;
 const RESERVED_STATUS = /\|\s*Reserved[^|]*\|\s*$/u;
@@ -75,6 +77,16 @@ export function readOptions(argv) {
     throw new UsageError(
       'Give the app its name with --title, such as --title "GAA Bus".'
     );
+  }
+  for (const [flag, value] of [
+    ["--title", values.title],
+    ["--short", values.short ?? ""],
+  ]) {
+    if (UNSAFE_TEXT.test(value)) {
+      throw new UsageError(
+        `${flag} cannot contain quotes, backslashes, braces, angle brackets or backticks.`
+      );
+    }
   }
   if (!HEX_PATTERN.test(values.accent)) {
     throw new UsageError("--accent must be a colour like #1d4ed8.");
