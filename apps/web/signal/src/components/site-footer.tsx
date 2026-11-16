@@ -6,7 +6,11 @@ export function SiteFooter() {
     <footer className="border-signal-ink bg-secondary mt-12 border-t">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-8 md:grid-cols-2">
         <div>
-          <Link className="font-serif text-3xl font-semibold" href="/">
+          <Link
+            className="font-serif text-3xl font-semibold"
+            href="/"
+            prefetch={false}
+          >
             Grenada <span className="text-signal-green">Signal.</span>
           </Link>
           <p className="mt-4 max-w-md text-base leading-relaxed">
@@ -30,6 +34,7 @@ export function SiteFooter() {
               className="inline-flex min-h-11 items-center text-base hover:underline"
               href={link.href}
               key={link.href}
+              prefetch={false}
             >
               {link.label}
             </Link>

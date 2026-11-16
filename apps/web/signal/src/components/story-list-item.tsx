@@ -21,7 +21,7 @@ export function StoryListItem({
   return (
     <article className="border-signal-rule flex flex-col gap-1.5 border-b py-4 first:pt-0 last:border-b-0">
       <Eyebrow>{eyebrow}</Eyebrow>
-      <Link href={href}>
+      <Link href={href} prefetch={false}>
         <h3 className="hover:text-signal-green font-serif text-lg leading-snug font-semibold">
           {title}
         </h3>

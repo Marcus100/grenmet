@@ -1,8 +1,8 @@
 # Cloudflare proxy runbook (public sites behind Cloudflare, free plan plus Advanced Certificate Manager)
 
-**Status:** Ready for the owner; nothing applied. Every switch is off until the owner turns it on.  
+**Status:** Staging has had the `CLOUDFLARE_PROXY_ENABLED` switch on since 1 Nov 2026; production is not applied and its switch stays off until the owner turns it on.  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-11-15  
+**Last updated:** 2026-11-16  
 **Issue:** #859 (the pairing documented in #544)
 
 Today every `*.barrels.gd` and `*.staging.barrels.gd` hostname resolves straight to
@@ -68,9 +68,11 @@ So keep the window to a couple of minutes, at a quiet hour, with the
 preparation done the day before (order of work, steps 1 to 4 and the time to
 live in step 5), and do the rollback in one sitting too.
 
-**Babydoll** (`babydoll.barrels.gd`, on Vercel) and **Elections** (Vercel) are not
-on the droplets: leave their records exactly as they are, and leave Babydoll's
-`VISITOR_IP_PROXY_HOPS` on the Vercel project unchanged. The weather droplet
+**Babydoll** (`babydoll.barrels.gd`), **Elections**, the Barrels homepage and
+`commit.barrels.gd` are static sites on Cloudflare Pages since the cutover of
+15 to 16 Nov 2026 ([exit plan](vercel-exit-plan.md)), not on the droplets:
+leave their records exactly as they are. Babydoll makes no API calls any more,
+so it has no `VISITOR_IP_PROXY_HOPS` to set. The weather droplet
 (SURFACE, wis2box) is out of scope.
 
 ## Before you start: owner decisions

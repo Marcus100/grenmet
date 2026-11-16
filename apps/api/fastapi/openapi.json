@@ -86061,6 +86061,14 @@
         ],
         "title": "GrantCreate"
       },
+      "GrantInactiveReason": {
+        "type": "string",
+        "enum": [
+          "granter_inactive"
+        ],
+        "title": "GrantInactiveReason",
+        "description": "Why a listed grant gives no access. Only set when the grant is not active (#1501)."
+      },
       "GrantRevokePublic": {
         "properties": {
           "id": {
@@ -86118,6 +86126,21 @@
               }
             ],
             "title": "Revoked At"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          },
+          "inactive_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GrantInactiveReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "cascaded_revocations": {
             "type": "integer",
@@ -91435,6 +91458,21 @@
               }
             ],
             "title": "Revoked At"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          },
+          "inactive_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GrantInactiveReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -115193,6 +115231,21 @@
               }
             ],
             "title": "Expires At"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          },
+          "inactive_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GrantInactiveReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",

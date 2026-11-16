@@ -3944,6 +3944,7 @@ export { gradeInputSchema } from "./gradeInputSchema.js";
 export { gradePublicSchema } from "./gradePublicSchema.js";
 export { gradeSetupSchema } from "./gradeSetupSchema.js";
 export { grantCreateSchema } from "./grantCreateSchema.js";
+export { grantInactiveReasonSchema } from "./grantInactiveReasonSchema.js";
 export { grantRevokePublicSchema } from "./grantRevokePublicSchema.js";
 export { groupDetailPropertiesCategoryEnumSchema } from "./groupDetailPropertiesCategoryEnumSchema.js";
 export { groupDetailPropertiesJoinPolicyEnumSchema } from "./groupDetailPropertiesJoinPolicyEnumSchema.js";

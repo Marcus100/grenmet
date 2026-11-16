@@ -1139,7 +1139,10 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   a grant ends the downstream grants that lose support from an owner or admin, and the
   response's `cascaded_revocations` counts them (409 above 200 roles, nothing ended).
   Revoking a team grant can end the grants its holder issued. Member grant
-  lists show only products whose `team.manage` the caller holds. Each bundle carries a
+  lists show only products whose `team.manage` the caller holds. A grant whose giver is no
+  longer an active member is listed with `active: false` and `inactive_reason:
+  "granter_inactive"` (#1501): it gives no access while paused, and it does not lift the
+  grantor's expiry ceiling. Each bundle carries a
   human `label` and `description` (`role_bundles.BUNDLE_COPY`). `GET /team/members`
   (team managers) is the paginated roster of active members: membership id, display
   name, org role, `is_self` (the row is the caller's own) and live grants limited to

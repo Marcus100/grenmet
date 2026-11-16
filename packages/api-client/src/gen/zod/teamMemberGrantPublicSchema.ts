@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { grantInactiveReasonSchema } from "./grantInactiveReasonSchema.js";
 
 export const teamMemberGrantPublicSchema = z
   .object({
@@ -12,6 +13,8 @@ export const teamMemberGrantPublicSchema = z
     granted_by_name: z.union([z.string(), z.null()]).optional(),
     granted_at: z.iso.datetime(),
     expires_at: z.union([z.iso.datetime(), z.null()]).optional(),
+    active: z.boolean().optional().default(true),
+    inactive_reason: z.union([grantInactiveReasonSchema, z.null()]).optional(),
   })
   .describe(
     "A live role on the roster. Only products the caller manages are listed."
