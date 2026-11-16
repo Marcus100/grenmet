@@ -3,7 +3,6 @@
 from fastapi import APIRouter, Request, status
 
 from src.auth import service, totp
-from src.auth.account_security import verify_factor
 from src.auth.privileged_mfa import session_id_from_token
 from src.auth.schemas import (
     TwoFactorCodeRequest,
@@ -142,13 +141,13 @@ async def twofa_disable(
     payload: TwoFactorDisableRequest,
 ) -> TwoFactorStatusPublic:
     _ = request  # the rate limiter reads it
-    verified = await service.authenticate(
-        session=session, email=current_user.email, password=payload.password
+    # Password and factor checks, with their lockouts (#1533), live in the service.
+    await service.verify_disable_proof(
+        session=session,
+        user=current_user,
+        password=payload.password,
+        code=payload.code,
     )
-    if not verified:
-        raise AppException("Incorrect password", status.HTTP_400_BAD_REQUEST)
-    if not await verify_factor(session, current_user, payload.code):
-        raise AppException("Authenticator or recovery code was not accepted", 400)
     current_user.mfa_recovery_hashes = []
     await service.disable_totp(session=session, user=current_user)
     return TwoFactorStatusPublic(enabled=False)
