@@ -50,6 +50,7 @@ from src.auth.schemas import (
 )
 from src.auth.sessions import (
     create_session,
+    end_refused_session,
     exchange_session_for_access_token,
     get_active_session_by_secret,
     get_legacy_access_token_expires_delta,
@@ -128,6 +129,7 @@ __all__ = [
     "require_assignment_management",
     "require_user_management",
     "revoke_session",
+    "end_refused_session",
     "revoke_user_sessions",
     "rotate_session",
     "touch_session",

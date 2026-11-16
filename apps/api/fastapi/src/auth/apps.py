@@ -18,6 +18,7 @@ permissions come from the app's roles. See ADR-0016.
 """
 
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import TYPE_CHECKING, Literal
 
 from src.auth.config import auth_settings
@@ -49,6 +50,16 @@ class AppDefinition:
     scope: Scope = "app"
     #: Staff-scope apps only: also require ``is_superuser`` (Barrels control plane).
     superuser_only: bool = False
+    #: Longest a session of this app may last, counted from the original sign-in and
+    #: carried through every refresh (ADR-0061). None keeps the normal session length.
+    max_session_hours: int | None = None
+    #: Sign-in refuses a person with no enrolled authenticator (ADR-0061). A person
+    #: with one still passes the authenticator check and gets ``mfa_verified_at``.
+    require_authenticator: bool = False
+    #: Holders of this app's access are treated as privileged for authenticator
+    #: enrolment: the first authenticator needs an emailed code and a new enrolment
+    #: ends their other sessions (ADR-0061). Sign-in enforcement is unchanged.
+    privileged_members: bool = False
 
     def allows(self, user: User) -> bool:
         """Whether this app's own rule admits an otherwise staff-eligible user."""
@@ -147,6 +158,9 @@ def _apps() -> dict[str, AppDefinition]:
         methods=frozenset({"email_code"}),
         client_secret="",
         scope="app",
+        max_session_hours=12,
+        require_authenticator=True,
+        privileged_members=True,
     )
     sites = [
         AppDefinition(
@@ -233,6 +247,48 @@ def is_app_scoped(app_name: str | None) -> bool:
     """
     app = _apps().get(app_name) if app_name is not None else None
     return app is not None and app.scope == "app"
+
+
+def session_cap(app_name: str | None) -> timedelta | None:
+    """The session cap of a registered app (ADR-0061), or None when it has none."""
+    if app_name is None:
+        return None
+    app = _apps().get(app_name)
+    if app is None or app.max_session_hours is None:
+        return None
+    return timedelta(hours=app.max_session_hours)
+
+
+def find_app(key: str | None) -> AppDefinition | None:
+    """The registered app with this key, or None (sessions may name no app)."""
+    return _apps().get(key) if key is not None else None
+
+
+#: Stable ``code`` in the 403 body when an app requires an authenticator (ADR-0061).
+AUTHENTICATOR_REQUIRED_CODE = "authenticator_required"
+
+
+def authenticator_required_error(
+    app: AppDefinition, *, verify_again: bool = False
+) -> AppException:
+    """403 for an app that requires an authenticator. The sentence is for people;
+    the stable code travels in the body's ``code`` field.
+
+    ``verify_again`` is the handoff case: the person has an authenticator but the
+    account session did not pass it, so they must sign in there with it again.
+    """
+    if verify_again:
+        message = (
+            f"Sign in to account.barrels.gd with your authenticator, then open "
+            f"{app.label} again."
+        )
+    else:
+        message = (
+            f"Add an authenticator on account.barrels.gd to sign in to {app.label}."
+        )
+    error = AppException(message, 403)
+    error.extra = {"code": AUTHENTICATOR_REQUIRED_CODE}
+    return error
 
 
 def get_app(key: str) -> AppDefinition:
