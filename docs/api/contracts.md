@@ -3235,6 +3235,18 @@ Four route zones, all under `/api/v1/printix/`.
   summary). Another organisation's event, or one with no organisation, is 404. No superuser
   bypass: a superuser without membership is 404. A non-member is 404, a member without a key
   is 403, an account or other-app session is refused (403 and 401). The admin list
+  Writes (slices 4 and 5, all with the authenticator step and a per-user limit of 30 a minute;
+  reads 120 a minute): `printix.events.manage` makes `POST /org/events` (the organisation is the
+  caller's, never the body's), `POST /org/events/{id}/close`, `POST /org/events/{id}/tickets/import`
+  (multipart CSV; `dry_run` defaults to true and writes nothing; the report carries
+  `short_barcodes` (under 12 characters) and `barcode_equals_number`, for the offline warning),
+  `GET /org/events/{id}/tickets`, and `POST /org/tickets/{id}/void` and `/unvoid`.
+  `printix.gates.manage` makes gate QR codes: `POST /org/events/{id}/pairings` (201, the `secret`
+  once; expiry defaults to six hours after close; `allow_typed_numbers` defaults to false),
+  `GET /org/events/{id}/pairings` (never a secret) and `POST /org/pairings/{id}/revoke`. A gate
+  lead holds only the gate key. Every event, ticket and pairing is looked up through its event's
+  organisation in SQL: another organisation's record, or one with no organisation, is 404.
+  Writes record the organiser as the audit actor.
   `GET /admin/events` (superuser, every event) and `POST /admin/events/{id}/organisation`
   (set or clear `organisation_id`) are in the admin zone; `POST /admin/events` takes an
   optional `organisation_id`. Either call refuses an organisation that is suspended or not
