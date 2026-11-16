@@ -1,0 +1,214 @@
+# Browser journeys: real pages in a real browser against the API, on every pull
+# request into dev. The API runs from source against a Postgres service, the web
+# apps are built once and served in production mode (`next start`), and each
+# app's Playwright suite (apps/web/<app>/e2e) runs against them.
+#
+# Not a required check: making it one is the owner's step (rulesets). How to run
+# the same journeys locally: docs/web/development.md, "Browser journeys".
+
+name: Browser journeys
+
+on:
+  # No paths filter: the journeys cross the API, the shared packages and five
+  # apps, so almost any source change can break one, and a path-skipped check
+  # could never be made required without deadlocking pull requests.
+  pull_request:
+    branches:
+      - dev
+  workflow_dispatch:
+
+# A new push to the pull request cancels its superseded run.
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.14.7"
+  UV_CACHE_DIR: ~/.cache/uv
+
+jobs:
+  journeys:
+    name: Browser journeys
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Placeholder values for a throwaway database; never real credentials.
+      # scripts/verification/e2e-api.sh reads these (and has the same defaults).
+      POSTGRES_SERVER: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: changethis
+      POSTGRES_DB: app
+      REDIS_URL: redis://127.0.0.1:6379/0
+      # The account the auth sign-in journey uses (apps/web/auth/e2e).
+      FIRST_SUPERUSER: admin@example.com
+      FIRST_SUPERUSER_PASSWORD: changethis
+      SECRET_KEY: test-secret-key-min-32-characters-long
+      ENVIRONMENT: local
+      PROJECT_NAME: Barrels Grenada (browser journeys)
+      EMAILS_FROM_EMAIL: test@example.com
+      SMTP_HOST: smtp.example.invalid
+      # Manage links in the seeded booking profile point at the app under test.
+      BOOKINGS_APP_URL: http://localhost:3015
+      # Playwright serves each app's production build instead of `pnpm dev`.
+      E2E_WEB_SERVER: start
+      # No Turnstile site key: the booking form shows no widget. No Stripe key:
+      # nothing is paid online. The web apps use their env modules' defaults
+      # (API on localhost:8000, auth on localhost:3000).
+
+    services:
+      postgres:
+        # Same pinned image as ci-api.yml (mirrored: docs/operations/ci-base-images.md).
+        image: ghcr.io/marcus100/base/postgres:18@sha256:b9f6b8ff03b62f3cfd9d9ba3fe56226a9991c79d3fb46fd46536263bf02be553
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: changethis
+          POSTGRES_DB: app
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+
+      - name: Install Redis and PDF system libraries
+        # Redis comes from the runner's package archive, not a service container:
+        # the image mirror holds no Redis image and Docker Hub pulls are rate
+        # limited. The PDF libraries mirror ci-api.yml (WeasyPrint is imported at
+        # start-up). apt runs only for what is missing, with retries (#1262).
+        run: |
+          missing=()
+          for pkg in redis-server libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1; do
+            dpkg -s "$pkg" >/dev/null 2>&1 || missing+=("$pkg")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            installed=false
+            for attempt in 1 2 3; do
+              if sudo apt-get update && sudo apt-get install -y --no-install-recommends "${missing[@]}"; then
+                installed=true
+                break
+              fi
+              sleep $((attempt * 20))
+            done
+            [ "$installed" = true ]
+          fi
+          sudo systemctl start redis-server
+          for attempt in $(seq 1 15); do
+            redis-cli -u "$REDIS_URL" ping | grep -q PONG && exit 0
+            sleep 1
+          done
+          echo "Redis did not answer on $REDIS_URL" >&2
+          exit 1
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-local-path: ~/.cache/uv
+
+      - name: Install API dependencies
+        working-directory: apps/api/fastapi
+        run: uv sync --frozen --package fast-back
+
+      - name: Migrate and seed the database
+        # The API container's own prestart script (migrations, sign-in
+        # catalogue, first superuser), then the Babydoll bookings seed.
+        run: scripts/verification/e2e-api.sh prepare
+
+      - name: Start the API
+        run: |
+          nohup scripts/verification/e2e-api.sh serve > "$RUNNER_TEMP/api.log" 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/api/v1/utils/ready/ >/dev/null 2>&1; then
+              echo "API ready after $attempt attempt(s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "The API did not become ready" >&2
+          tail -n 100 "$RUNNER_TEMP/api.log" >&2
+          exit 1
+
+      - name: Setup Node.js with pnpm
+        # The build outputs of five apps would crowd the other jobs' entries out
+        # of the Actions cache, so Turborepo's task cache is not kept here.
+        uses: ./.github/actions/setup-node
+        with:
+          turbo-cache: "false"
+
+      - name: Build the web apps under test
+        run: >-
+          pnpm exec turbo run build --concurrency=2
+          --filter=@barrelsgd/web-auth
+          --filter=@barrelsgd/web-bookings
+          --filter=@barrelsgd/web-cap
+          --filter=@barrelsgd/web-gaa-admin
+          --filter=@barrelsgd/web-gms
+
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the Playwright browser
+        id: browser-cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Chromium system libraries
+        if: steps.browser-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # One step per app, each run even when an earlier one failed, so one run
+      # reports every broken journey. Playwright starts and stops each app.
+      - name: Journeys - auth (sign-in)
+        run: pnpm --filter @barrelsgd/web-auth run test:e2e
+
+      - name: Journeys - bookings (book and manage)
+        if: ${{ !cancelled() }}
+        run: pnpm --filter @barrelsgd/web-bookings run test:e2e
+
+      - name: Journeys - cap (desk caching)
+        if: ${{ !cancelled() }}
+        run: pnpm --filter @barrelsgd/web-cap run test:e2e
+
+      - name: Journeys - gaa-admin (sign-in redirect)
+        if: ${{ !cancelled() }}
+        run: pnpm --filter @barrelsgd/web-gaa-admin run test:e2e
+
+      - name: Journeys - gms (public pages)
+        if: ${{ !cancelled() }}
+        run: pnpm --filter @barrelsgd/web-gms run test:e2e
+
+      - name: Show the API log
+        if: failure()
+        run: tail -n 200 "$RUNNER_TEMP/api.log" || true
+
+      - name: Keep the reports and traces of a failed run
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-journeys-report
+          path: |
+            apps/web/*/playwright-report/
+            apps/web/*/test-results/
+          retention-days: 7
+          if-no-files-found: ignore

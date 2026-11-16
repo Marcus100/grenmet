@@ -50,6 +50,7 @@ upstream UI libraries unless our composition or custom behavior introduces risk.
 | Dev and pull-request CI | Unit/component/API/integration checks, contract drift, lint/types, required aggregate gates |
 | Docker build | Check actual runtime imports, entrypoints, assets, migration dependencies and image vulnerabilities |
 | Staging | Deployed readiness and representative authenticated workflows using owned synthetic data; verify PDF generation, storage and cross-app authentication |
+| Browser journeys (pull requests) | The `Browser journeys` workflow (`.github/workflows/e2e.yml`) runs each app's `apps/web/<app>/e2e` Playwright suite against the API started from source and production builds of auth, bookings, cap, gaa-admin and gms: password sign-in with the seeded first superuser, a guest booking and its manage link, desk caching, the staff sign-in redirect and the public weather pages. Not required yet; a booking with a deposit (emailed code, Stripe) is not covered. Running it locally: `docs/web/development.md`, Browser journeys |
 | Staging journeys | `tests/staging/` (Playwright, `pnpm e2e:staging`), run after each staging deploy by the Staging Smoke workflow: public pages on desktop and phone with no page errors or broken images, the issued-products RSS, sign-in and the staff-portal redirect, a read-only signed-in journey (needs the `STAGING_E2E_EMAIL`/`STAGING_E2E_PASSWORD` secrets, #933), and axe-core WCAG 2.1 A/AA checks on the homepage, alerts, issued forecasts and sign-in. Automation finds roughly a third of WCAG issues; keep a manual keyboard and screen-reader pass before releases |
 | Production | Safe readiness/public checks, release-linked error monitoring and operational alerts; no general mutation/fuzzing suite against live business records |
 | Scheduled operations | Restore drills, broader security checks and performance testing against designated test targets |
@@ -233,8 +234,9 @@ Further work remains:
 
 - Map every FastAPI operation, including hidden routes, to behavior and permission
   evidence; review documented unfinished workflows with domain owners.
-- Replace the auth browser suite's assumed credentials with isolated setup and
-  specific success assertions; add representative workflows across the apps.
+- Add representative browser workflows across the apps (the auth suite now signs
+  in as the seeded first superuser and asserts the signed-in page; a booking with
+  a deposit, its emailed code and Stripe checkout has no browser test).
 - Review custom theme persistence, email rendering and shared UI behavior; retain
   useful GMS/UI tests already owned by consuming apps.
 - Explicitly assign operational acceptance and CI coverage to SURFACE, wis2box,
