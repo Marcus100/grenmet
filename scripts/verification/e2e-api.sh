@@ -31,6 +31,20 @@ export PROJECT_NAME ENVIRONMENT SECRET_KEY FIRST_SUPERUSER FIRST_SUPERUSER_PASSW
   POSTGRES_SERVER POSTGRES_PORT POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB \
   REDIS_URL EMAILS_FROM_EMAIL SMTP_HOST BOOKINGS_APP_URL
 
+# `prepare` migrates and creates a superuser with a known placeholder password, so
+# it only ever runs against a database on this machine.
+case "$POSTGRES_SERVER" in
+  127.0.0.1 | localhost | ::1) ;;
+  *)
+    echo "e2e-api.sh: refusing POSTGRES_SERVER='$POSTGRES_SERVER'; only a local database (127.0.0.1, localhost) is allowed." >&2
+    exit 2
+    ;;
+esac
+if [[ "$ENVIRONMENT" != local ]]; then
+  echo "e2e-api.sh: refusing ENVIRONMENT='$ENVIRONMENT'; only 'local' is allowed." >&2
+  exit 2
+fi
+
 cd "$(dirname "$0")/../../apps/api/fastapi"
 run=(uv run --frozen --package fast-back)
 
