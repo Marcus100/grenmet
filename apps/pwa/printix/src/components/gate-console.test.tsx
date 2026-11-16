@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import "fake-indexeddb/auto";
 import {
   cleanup,
   fireEvent,
@@ -10,17 +11,30 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GateConsole } from "@/components/gate-console";
 import { type ScanAnswer, submitScan } from "@/lib/scan-api";
-import { API_ORIGIN, SECRET, SUMMARY } from "@/test/fixtures";
+import { API_ORIGIN, OFFLINE_LIST, SECRET, SUMMARY } from "@/test/fixtures";
 
 vi.mock("@/lib/scan-api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/scan-api")>();
-  return { ...actual, readSummary: vi.fn(), submitScan: vi.fn() };
+  return {
+    ...actual,
+    readOfflineList: vi.fn(),
+    readSummary: vi.fn(),
+    sendOfflineAdmissions: vi.fn(),
+    submitScan: vi.fn(),
+  };
 });
 
-import { readSummary } from "@/lib/scan-api";
+import Dexie from "dexie";
+import {
+  readOfflineList,
+  readSummary,
+  sendOfflineAdmissions,
+} from "@/lib/scan-api";
 
 const ADMITTED_NAME = /admitted/iu;
 const NOT_KEPT_TEXT = /could not keep the pairing/u;
+const LIST_FROM = /^Ticket list from /u;
+const NOT_AVAILABLE_TEXT = /Offline checking is not available for this event/u;
 const submitMock = vi.mocked(submitScan);
 const readMock = vi.mocked(readSummary);
 const connection = { origin: API_ORIGIN, secret: SECRET };
@@ -63,10 +77,17 @@ function tapTypeANumber() {
   );
 }
 
-beforeEach(() => {
+const listMock = vi.mocked(readOfflineList);
+const sendMock = vi.mocked(sendOfflineAdmissions);
+
+beforeEach(async () => {
+  await Dexie.delete("printix-offline");
   submitMock.mockReset();
   readMock.mockReset();
   readMock.mockResolvedValue({ kind: "summary", summary: SUMMARY });
+  listMock.mockReset();
+  listMock.mockResolvedValue({ kind: "list", list: OFFLINE_LIST });
+  sendMock.mockReset();
 });
 
 afterEach(() => {
@@ -98,9 +119,8 @@ describe("checking a ticket", () => {
     renderConsole();
     checkTyped("042");
 
-    const verdict = await screen.findByRole("status");
     expect(
-      within(verdict).getByRole("heading", { name: "Admitted" })
+      await screen.findByRole("heading", { name: "Admitted" })
     ).toBeInTheDocument();
     expect(submitMock).toHaveBeenCalledWith(connection, "042");
     await waitFor(
@@ -204,7 +224,7 @@ describe("checking a ticket", () => {
     expect(submitMock).not.toHaveBeenCalled();
   });
 
-  it("unpairs only after a second confirmation, and says when the pairing was not kept", () => {
+  it("unpairs only after a second confirmation, and says when the pairing was not kept", async () => {
     const onUnpair = vi.fn();
     render(
       <GateConsole
@@ -218,6 +238,41 @@ describe("checking a ticket", () => {
     fireEvent.click(screen.getByRole("button", { name: "Unpair this phone" }));
     expect(onUnpair).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Unpair this phone" }));
-    expect(onUnpair).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(onUnpair).toHaveBeenCalledTimes(1));
+  });
+});
+
+describe("offline", () => {
+  it("shows the signal and the age of the saved ticket list", async () => {
+    renderConsole();
+    expect(await screen.findByText(LIST_FROM)).toBeInTheDocument();
+    expect(screen.getByText("Online")).toBeInTheDocument();
+  });
+
+  it("does not check a typed number from the saved list with no signal", async () => {
+    answerWith({ kind: "no-signal" });
+    renderConsole();
+    await screen.findByText(LIST_FROM);
+    checkTyped("101");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "No signal: typed numbers cannot be checked"
+    );
+    expect(await screen.findByText("Offline")).toBeInTheDocument();
+  });
+
+  it("says so when the server refuses offline mode for the event", async () => {
+    listMock.mockResolvedValue({ kind: "offline-unavailable" });
+    renderConsole();
+    expect(await screen.findByText(NOT_AVAILABLE_TEXT)).toBeInTheDocument();
+  });
+
+  it("keeps the plain no-signal answer when no list has been saved", async () => {
+    listMock.mockResolvedValue({ kind: "no-signal" });
+    answerWith({ kind: "no-signal" });
+    renderConsole();
+    checkTyped("101");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "No signal: cannot check tickets"
+    );
   });
 });
