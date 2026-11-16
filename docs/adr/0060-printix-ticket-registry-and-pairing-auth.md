@@ -3,8 +3,9 @@
 ## Status
 
 Accepted. The owner chose pairing QR codes for gate staff on 15 Nov 2026. Built
-as the API side of the Printix registry (`apps/api/fastapi/src/printix/`); the
-scanner app and offline mode are later work. Revised after the security review of
+as the API side of the Printix registry (`apps/api/fastapi/src/printix/`). The
+scanner app and offline mode are built (#1529). The organiser-access amendment
+(16 Nov 2026) is accepted and not yet built. Revised after the security review of
 PR #1463 (typed numbers off by default, scan caps, log and retention rules,
 audit trail).
 
@@ -225,6 +226,54 @@ Threats this adds:
 | **Queued values on a stolen phone** | Barcodes of tickets admitted offline but not yet synced. | Queue cleared on sync; those tickets are admitted already on the phone and refused once synced. | Until sync, a copy of such a ticket could enter at another gate. |
 | **Two gates admit the same ticket offline** | Both let someone in. | First sync wins; the second phone and the summary report a conflict. | Detected after the fact, not prevented. |
 | **Wrong phone clock** | Admission times are off. | Kept between pairing creation and sync time. | A phone clock that is wrong within that range is recorded as is. |
+
+### Amendment: organiser access for Printix staff (accepted 16 Nov 2026)
+
+**Framing changed (owner, 16 Nov 2026):** Printix is a collaboration and Barrels
+Grenada's main ticket app, not only a client's product. Printix keeps its own name
+and look, **with Barrels shown** (for example "Sign in with your Barrels account").
+This replaces the rule above that no Barrels marks appear. Barrels Events keeps
+selling online tickets; Printix does all gate scanning. Address: `scan.barrels.gd`.
+
+Until now every organiser action (`/printix/admin/*`) needs a Barrels superuser
+with an MFA session (`PrintixAdmin`). Printix's own staff must set up their events
+for 26 Dec 2026, from an organiser section of the scanner app. This widens who may
+use these actions, so it is recorded here.
+
+1. **Printix is an organisation** (kind `client`) entitled to the `printix` app.
+   `printix` is registered in `auth/apps.py` as a browser-only app with no client
+   secret, signing in as ADR-0061 describes.
+2. **Events belong to an organisation:** `printix.event.organisation_id`, nullable,
+   additive. Events created through the admin routes may have none; organisers do
+   not see an event until it has their organisation.
+3. **Organisation-scoped keys** (ADR-0044) in `auth/permissions.py`:
+   `printix.events.manage` (create, close, import the ticket list, void and
+   restore, list and read events and tickets) and `printix.gates.manage` (create,
+   list and revoke gate pairings, read the live summary). A team key for Printix to
+   add its own staff comes later.
+4. **Two role bundles:** `printix-organiser` (both keys) and `printix-gate-lead`
+   (`printix.gates.manage` only: makes and cancels gate QR codes on event night).
+5. **Routes:** `/printix/org/...` in the `org` zone (ADR-0025), mirroring the admin
+   actions through the same service functions with an organisation filter. Each
+   route uses `require_org_permission(key, session_app="printix")` and always
+   requires an enrolled authenticator and a session that passed it
+   (`privileged_mfa.require_mfa_session(..., app_key="printix")`), whatever the
+   global setting: a gate pairing is a key to the gate. No superuser bypass on org
+   routes (ADR-0044). `/printix/admin/*` and `PrintixAdmin` stay as they are.
+6. **Who grants access:** a Barrels superuser creates the Printix organisation,
+   turns on the `printix` entitlement and invites Printix staff with a role bundle
+   (owner, 16 Nov 2026). Invitation and authenticator setup happen once on the
+   Barrels account site.
+7. **Sessions:** organisers sign in again when the tab closes; a session lasts at
+   most 12 hours (ADR-0061).
+8. **Promoters** (the people running events who buy Printix tickets) get their own
+   sign-in later; because every event carries an organisation, each promoter can
+   become one without changing this design.
+
+Build order: (1) these records; (2) API read-only (app entry, keys, bundles,
+`organisation_id`, event list and summary on org and admin routes); (3) scanner
+organiser sign-in and read-only screen; (4) event writes and the CSV import with a
+dry run; (5) gate QR codes. Slice 5 is what the 14 Dec rehearsal tests.
 
 ## Consequences
 
