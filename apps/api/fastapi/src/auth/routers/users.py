@@ -40,6 +40,7 @@ from src.auth.schemas import (
 from src.dependencies import (
     AccountUser,
     CurrentUser,
+    RateLimitedAccountUser,
     SessionDep,
     TokenDep,
     get_current_user_manager,
@@ -51,7 +52,7 @@ from src.exceptions import AppException, AuthorizationError, NotFoundError
 from src.models import ApiError, Message
 from src.openapi_responses import AUTHENTICATED, RateLimitedBody
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
-from src.rate_limit import limiter, mail_limit_address
+from src.rate_limit import account_address, limiter, mail_limit_address
 from src.turnstile import auth_turnstile_policy, require_turnstile
 
 router = APIRouter(prefix="/auth/users", tags=["users"])
@@ -185,11 +186,22 @@ async def update_user_me(
             "model": ApiError,
             "description": "Current password incorrect or new password unchanged",
         },
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
+            "description": "Too many attempts; try again later",
+        },
     },
 )
+# Checks the current password: 5 a minute per account, like recover and reset password.
+@limiter.limit("5/minute", key_func=account_address)
 async def update_password_me(
-    *, session: SessionDep, body: UpdatePassword, current_user: AccountUser
+    *,
+    request: Request,
+    session: SessionDep,
+    body: UpdatePassword,
+    current_user: RateLimitedAccountUser,
 ) -> Any:
+    _ = request  # the rate limiter reads it
     await service.update_password(
         session=session,
         user=current_user,

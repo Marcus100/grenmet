@@ -46,6 +46,7 @@ from .exceptions import (
     PrintixImportTooLarge,
     PrintixNotFound,
     PrintixOfflineUnavailable,
+    PrintixOrganisationIneligible,
     PrintixPairingExpired,
     PrintixPairingRevoked,
     PrintixPairingUnknown,
@@ -159,14 +160,21 @@ def event_public(event: PrintixEvent) -> PrintixEventPublic:
 async def _require_organisation(
     session: AsyncSession, organisation_id: str | None
 ) -> None:
-    """An event may name only an organisation that exists (a clean 422, not a foreign-key error)."""
+    """An event may name only an organisation that exists, is active and is entitled
+    to printix. Unknown is a 422 ("not found"); the other two are PrintixOrganisationIneligible."""
     if organisation_id is None:
         return
-    if (
-        await session.get(organisation_models.PlatformOrganisation, organisation_id)
-        is None
-    ):
+    organisation = await session.get(
+        organisation_models.PlatformOrganisation, organisation_id
+    )
+    if organisation is None:
         raise AppValidationError("Organisation not found")
+    if organisation.status != organisation_models.OrganisationStatus.ACTIVE.value:
+        raise PrintixOrganisationIneligible()
+    if "printix" not in await organisation_grants.entitled_products(
+        session, organisation_id
+    ):
+        raise PrintixOrganisationIneligible()
 
 
 async def create_event(
@@ -209,8 +217,8 @@ async def set_event_organisation(
 ) -> PrintixEvent:
     """Set or clear the organisation that owns an event (administrator only).
     Setting the value it already has changes nothing."""
-    await _require_organisation(session, organisation_id)
     event = await get_event(session, event_id)
+    await _require_organisation(session, organisation_id)
     if event.organisation_id != organisation_id:
         audit_service.set_actor(session, actor_id)
         event.organisation_id = organisation_id
