@@ -55,8 +55,6 @@
 
 `gmsdash` (GMS Dashboard, `apps/web/gmsdash`) is a self-service `app`-scope site like the others (instant Join, role `gmsdash-member`). The gate to its data is the organisation entitlement and a staff-approved access request, not the Join; see `src/models_guidance/AGENTS.md`.
 
-`printix` (Printix scanner and organiser, `PRINTIX_APP_URL`, ADR-0061) is browser-only: no client secret (so it is not in `registered_apps()`), `email_code` sign-in only, `self_signup=False`. Its access is the role `printix-member` (`app.printix.access`), granted by a Barrels admin; nothing joins it on its own and membership in an organisation does not grant it. Organiser routes check that role through `app_user`-style `user_for_app` (via `resolve_org_caller`) and the organisation keys separately (`printix/AGENTS.md`).
-
 ## Profile photos (`src/profile_images`, #1303)
 
 The photo domain has its own ADR-0031 manifest; its notes live here because the model and the table are auth's.
