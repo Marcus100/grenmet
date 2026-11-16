@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SQLAlchemySession
 
 from src.auth import placeholders
+from src.auth.account_security import verify_factor
 from src.auth.assignments import (
     audit_assignment,
     create_user_role_assignment,
@@ -27,6 +28,8 @@ from src.auth.eligibility import (
     request_staff_access,
     require_approved_account,
 )
+from src.auth.exceptions import AccountLockedError
+from src.auth.lockout import factor_lockout, login_lockout
 from src.auth.models import Session as AuthSession
 from src.auth.models import (
     User,
@@ -50,6 +53,7 @@ from src.auth.schemas import (
 )
 from src.auth.sessions import (
     create_session,
+    end_refused_session,
     exchange_session_for_access_token,
     get_active_session_by_secret,
     get_legacy_access_token_expires_delta,
@@ -128,6 +132,7 @@ __all__ = [
     "require_assignment_management",
     "require_user_management",
     "revoke_session",
+    "end_refused_session",
     "revoke_user_sessions",
     "rotate_session",
     "touch_session",
@@ -276,11 +281,50 @@ async def set_password(*, session: AsyncSession, user: User, new_password: str) 
 async def update_password(
     *, session: AsyncSession, user: User, current_password: str, new_password: str
 ) -> None:
+    """Change the password once the current one is checked (#1533).
+
+    A wrong current password counts toward the sign-in lockout on the account email,
+    the same key password sign-in uses (as ``email_change.require_proof`` does). A
+    locked account is refused before the hash is checked, so it learns nothing.
+
+    A correct password here never clears the count: that key also counts wrong
+    authenticator codes at sign-in and on recovery-code replacement, so a session
+    holder who knows the password could otherwise reset it between guesses. Only a
+    completed sign-in clears it.
+    """
+    if await login_lockout.is_locked(user.email):
+        raise AccountLockedError()
     if not await verify_password_async(current_password, user.hashed_password):
+        await login_lockout.record_failure(user.email)
         raise AppException("Incorrect password", 400)
     if current_password == new_password:
         raise AppException("New password must be different from current password", 400)
     await set_password(session=session, user=user, new_password=new_password)
+
+
+async def verify_disable_proof(
+    *, session: AsyncSession, user: User, password: str, code: str
+) -> None:
+    """Check the password and a factor code before two-step verification is turned off.
+
+    A wrong password counts on the sign-in key for the account email (shared with
+    password sign-in). A wrong authenticator or recovery code counts on the separate
+    ``lockout.factor_lockout`` key by account id, so a stolen session cannot lock the
+    owner's password sign-in by guessing codes (#1533). Both keys are checked before
+    any hash or code check, so a locked account cannot tell whether its proof was right.
+    """
+    if await login_lockout.is_locked(user.email) or await factor_lockout.is_locked(
+        str(user.id)
+    ):
+        raise AccountLockedError()
+    if not await authenticate(session=session, email=user.email, password=password):
+        await login_lockout.record_failure(user.email)
+        raise AppException("Incorrect password", 400)
+    if not await verify_factor(session, user, code):
+        await factor_lockout.record_failure(str(user.id))
+        raise AppException("Authenticator or recovery code was not accepted", 400)
+    await login_lockout.reset(user.email)
+    await factor_lockout.reset(str(user.id))
 
 
 async def _unlink_business_contacts(session: AsyncSession, user_id: uuid.UUID) -> None:

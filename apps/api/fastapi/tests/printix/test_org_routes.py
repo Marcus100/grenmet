@@ -183,8 +183,11 @@ async def test_a_user_without_an_authenticator_is_refused(
     await _grant(db_async, org, user, "printix-organiser")
     headers = {**await _sign_in(db_async, user), **_org_header(org)}
     response = await async_client.get(f"{ORG}/events", headers=headers)
+    # ADR-0061: the app refuses a token whose person has no authenticator, before the
+    # organiser membership check (user_for_app), so the stable code is the refusal.
     assert response.status_code == 403
-    assert "(mfa_enrolment_required)" in response.json()["detail"]
+    assert response.json()["code"] == "authenticator_required"
+    assert "(" not in response.json()["detail"]
 
 
 async def test_an_account_session_is_refused_on_organiser_routes(

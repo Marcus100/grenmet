@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.auth import service
+from src.auth.apps import authenticator_required_error, find_app
 from src.auth.config import auth_settings
 from src.auth.models import User
 from src.auth.utils import ALGORITHM
@@ -60,6 +61,10 @@ async def user_for_app(
         session=session, user=user, app_key=app_key
     ):
         raise _unauthorized()
+    # ADR-0061: an app that requires an authenticator refuses a person who has lost it.
+    app = find_app(app_key)
+    if app is not None and app.require_authenticator and not user.totp_enabled:
+        raise authenticator_required_error(app)
     if app_key == "cms":
         from src.auth.privileged_mfa import require_privileged_mfa
 

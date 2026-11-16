@@ -71,8 +71,9 @@ it("asks the user to wait when a security route is rate limited, and keeps the g
   const handler = errorUse.mock.calls[0]?.[0] as (error: {
     status: number;
   }) => never;
+  // A lockout lasts longer than a minute, so the copy must not promise one.
   expect(() => handler({ status: 429 })).toThrow(
-    "Too many attempts. Wait a minute and try again."
+    "Too many attempts. Wait a few minutes and try again."
   );
   expect(() => handler({ status: 500 })).toThrow(
     "Unable to update security settings. Check your code and try again."

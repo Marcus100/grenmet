@@ -225,6 +225,9 @@ class Session(Base):
     # expires_at and revoked_at (src.utils.datetime.utc_now). Set only by the
     # email-code sign-in paths; password, Google and rotated sessions leave it empty.
     email_code_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    # The original sign-in, carried through every refresh (ADR-0061). Naive UTC. NULL
+    # on rows from before the column; code falls back to created_at for those.
+    signed_in_at: Mapped[datetime | None] = mapped_column(nullable=True)
     expires_at: Mapped[datetime]
     client_type: Mapped[str] = mapped_column(String(50), default="web")
     app_name: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)

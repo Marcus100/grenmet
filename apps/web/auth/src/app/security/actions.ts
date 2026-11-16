@@ -18,8 +18,10 @@ import {
 } from "@/lib/session";
 
 const API_PREFIX = /\/api\/v1(?=\/|$)/u;
-// The API answers 429 when a limit on these routes is reached (one minute windows).
-const TOO_MANY_ATTEMPTS = "Too many attempts. Wait a minute and try again.";
+// The API answers 429 when a limit on these routes is reached: a one-minute window, or
+// the account lockout after repeated wrong codes or passwords (#1533), which lasts longer.
+const TOO_MANY_ATTEMPTS =
+  "Too many attempts. Wait a few minutes and try again.";
 async function securityClient(accessToken?: string) {
   let bearerToken = accessToken;
   if (!bearerToken) {
