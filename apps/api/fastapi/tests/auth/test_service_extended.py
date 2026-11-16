@@ -107,7 +107,7 @@ async def test_update_user_me_email_conflict_raises(db_async: AsyncSession) -> N
         await service.update_user_me(
             session=db_async,
             current_user=user,
-            user_in=UserUpdateMe(email=existing.email),
+            user_in=UserUpdateMe(email=existing.email, current_password="initialPass1"),
         )
     assert exc_info.value.status_code == 409
 
