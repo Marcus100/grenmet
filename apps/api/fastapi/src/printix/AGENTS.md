@@ -1,8 +1,10 @@
 # printix domain — agent context
 
-**Owner:** a client's product (Printix). Barrels Grenada builds and runs the software;
-Printix appears under its own name. Never add Barrels, GAA or GMS to anything a gate
-or promoter sees. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
+**Owner:** a Barrels–Printix collaboration and Barrels Grenada's main ticket app
+(owner, 16 Nov 2026). Barrels Grenada builds and runs the software; Printix keeps its
+own name, with Barrels shown. Never add GAA or GMS to anything a gate or promoter
+sees. Organiser access for Printix staff (org zone, two role bundles) is the 16 Nov
+2026 amendment of ADR-0060, not built yet. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
 
 - **Tables** live in the `printix` schema of the main database: `event`, `ticket`,
   `pairing`, `scan_log` (migration `2026-11-14_printix_registry.py`, revision
