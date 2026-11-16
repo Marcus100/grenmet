@@ -14,8 +14,10 @@ import { authUpdateUserMe } from "../clients/authUpdateUserMe.js";
 import type {
   AuthUpdateUserMeOptions,
   AuthUpdateUserMeStatus200,
+  AuthUpdateUserMeStatus400,
   AuthUpdateUserMeStatus409,
   AuthUpdateUserMeStatus422,
+  AuthUpdateUserMeStatus429,
 } from "../models/AuthUpdateUserMe.js";
 
 export const authUpdateUserMeMutationKey = () =>
@@ -29,7 +31,12 @@ export function authUpdateUserMeMutationOptions<TContext = unknown>(
   const mutationKey = authUpdateUserMeMutationKey();
   return mutationOptions<
     AuthUpdateUserMeStatus200,
-    ResponseErrorConfig<AuthUpdateUserMeStatus409 | AuthUpdateUserMeStatus422>,
+    ResponseErrorConfig<
+      | AuthUpdateUserMeStatus400
+      | AuthUpdateUserMeStatus409
+      | AuthUpdateUserMeStatus422
+      | AuthUpdateUserMeStatus429
+    >,
     AuthUpdateUserMeOptions,
     TContext
   >({
@@ -50,7 +57,10 @@ export function useAuthUpdateUserMe<TContext>(
     mutation?: UseMutationOptions<
       AuthUpdateUserMeStatus200,
       ResponseErrorConfig<
-        AuthUpdateUserMeStatus409 | AuthUpdateUserMeStatus422
+        | AuthUpdateUserMeStatus400
+        | AuthUpdateUserMeStatus409
+        | AuthUpdateUserMeStatus422
+        | AuthUpdateUserMeStatus429
       >,
       AuthUpdateUserMeOptions,
       TContext
@@ -69,14 +79,24 @@ export function useAuthUpdateUserMe<TContext>(
     config
   ) as UseMutationOptions<
     AuthUpdateUserMeStatus200,
-    ResponseErrorConfig<AuthUpdateUserMeStatus409 | AuthUpdateUserMeStatus422>,
+    ResponseErrorConfig<
+      | AuthUpdateUserMeStatus400
+      | AuthUpdateUserMeStatus409
+      | AuthUpdateUserMeStatus422
+      | AuthUpdateUserMeStatus429
+    >,
     AuthUpdateUserMeOptions,
     TContext
   >;
 
   return useMutation<
     AuthUpdateUserMeStatus200,
-    ResponseErrorConfig<AuthUpdateUserMeStatus409 | AuthUpdateUserMeStatus422>,
+    ResponseErrorConfig<
+      | AuthUpdateUserMeStatus400
+      | AuthUpdateUserMeStatus409
+      | AuthUpdateUserMeStatus422
+      | AuthUpdateUserMeStatus429
+    >,
     AuthUpdateUserMeOptions,
     TContext
   >(
@@ -88,7 +108,12 @@ export function useAuthUpdateUserMe<TContext>(
     queryClient
   ) as UseMutationResult<
     AuthUpdateUserMeStatus200,
-    ResponseErrorConfig<AuthUpdateUserMeStatus409 | AuthUpdateUserMeStatus422>,
+    ResponseErrorConfig<
+      | AuthUpdateUserMeStatus400
+      | AuthUpdateUserMeStatus409
+      | AuthUpdateUserMeStatus422
+      | AuthUpdateUserMeStatus429
+    >,
     AuthUpdateUserMeOptions,
     TContext
   >;

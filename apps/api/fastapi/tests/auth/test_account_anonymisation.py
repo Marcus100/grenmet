@@ -791,7 +791,11 @@ async def test_a_legitimate_address_and_username_are_not_refused(
     updated = await service.update_user_me(
         session=db_async,
         current_user=user,
-        user_in=UserUpdateMe(email="ada.new@example.org", username="ada-new"),
+        user_in=UserUpdateMe(
+            email="ada.new@example.org",
+            username="ada-new",
+            current_password="password123",
+        ),
     )
 
     assert updated.email == "ada.new@example.org"

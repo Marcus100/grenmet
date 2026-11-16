@@ -396,7 +396,10 @@ async def test_an_email_change_drops_the_old_link_and_its_earnings(
     await auth_service.update_user_me(
         session=db_async,
         current_user=ada,
-        user_in=UserUpdateMe(email=f"new-{uuid.uuid4().hex[:6]}@example.com"),
+        user_in=UserUpdateMe(
+            email=f"new-{uuid.uuid4().hex[:6]}@example.com",
+            current_password="password123",
+        ),
     )
     await db_async.commit()
     db_async.expire_all()
@@ -434,7 +437,9 @@ async def test_a_new_verified_address_links_a_new_contact(
     new_email = f"now-{uuid.uuid4().hex[:6]}@example.com"
     # The real email-change path: it unlinks the old contact.
     await auth_service.update_user_me(
-        session=db_async, current_user=ada, user_in=UserUpdateMe(email=new_email)
+        session=db_async,
+        current_user=ada,
+        user_in=UserUpdateMe(email=new_email, current_password="password123"),
     )
     await db_async.commit()
     ada = await db_async.get(User, ada_id)
