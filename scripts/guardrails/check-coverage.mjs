@@ -20,6 +20,7 @@ const NOISE_MARGIN = 0.5;
 const PERCENT = 100;
 const ROUND = 10;
 const WEB_PREFIX = /^web\//u;
+const PACKAGE_PREFIX = "packages/";
 const ROOT_ATTRIBUTES = /<coverage\b[^>]*>/u;
 const RATE = (name) => new RegExp(`\\b${name}="([0-9.]+)"`, "u");
 const LINE_RATE = RATE("line-rate");
@@ -83,6 +84,15 @@ export function raiseFloors(floors, measured) {
   return next;
 }
 
+// Where a target's Vitest json-summary is written: `web/<app>` is an app under
+// apps/web; `packages/<name>` is the package directory itself.
+export function summaryPath(target, base = root) {
+  const dir = target.startsWith(PACKAGE_PREFIX)
+    ? target
+    : join("apps/web", target.replace(WEB_PREFIX, ""));
+  return join(base, dir, "coverage/coverage-summary.json");
+}
+
 function readMeasurements(only) {
   const measured = {};
   const baseline = JSON.parse(readFileSync(BASELINE, "utf8"));
@@ -92,13 +102,7 @@ function readMeasurements(only) {
       if (only !== "web" && existsSync(file))
         measured.api = parseCobertura(readFileSync(file, "utf8"));
     } else {
-      const app = target.replace(WEB_PREFIX, "");
-      const file = join(
-        root,
-        "apps/web",
-        app,
-        "coverage/coverage-summary.json"
-      );
+      const file = summaryPath(target);
       if (only !== "api" && existsSync(file))
         measured[target] = parseSummary(JSON.parse(readFileSync(file, "utf8")));
     }

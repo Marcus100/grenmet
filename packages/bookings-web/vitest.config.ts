@@ -9,6 +9,13 @@ export default defineConfig({
     // Turbo runs two test tasks at once; half the cores each keeps them from starving each other.
     maxWorkers: "50%",
     environment: "jsdom",
+    // json-summary feeds scripts/guardrails/check-coverage.mjs. The floors live
+    // in coverage-baseline.json and only rise; keep thresholds equal to them.
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "json-summary"],
+      thresholds: { lines: 96.6, branches: 95.5 },
+    },
     // Testing Library registers its cleanup through the global afterEach.
     globals: true,
     setupFiles: ["./src/test/setup.ts"],

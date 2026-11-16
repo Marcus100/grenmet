@@ -44,6 +44,10 @@
     "web/signal": {
       "lines": 64,
       "branches": 55
+    },
+    "packages/bookings-web": {
+      "lines": 96.6,
+      "branches": 95.5
     }
   }
 }
