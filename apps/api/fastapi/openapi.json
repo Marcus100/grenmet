@@ -69569,6 +69569,67 @@
           }
         }
       }
+    },
+    "/api/v1/printix/me/organisations": {
+      "get": {
+        "tags": [
+          "printix-me"
+        ],
+        "summary": "List the organisations I can run Printix for",
+        "description": "The organisations where the signed-in person is an active member, the organisation is entitled to printix, and they hold printix.events.manage or printix.gates.manage. Each item says which of the two keys they hold. Needs a printix app session that passed the authenticator.",
+        "operationId": "printixListMyOrganiserOrganisations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PrintixOrganiserOrganisation"
+                  },
+                  "type": "array",
+                  "title": "Response Printixlistmyorganiserorganisations"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -100600,6 +100661,37 @@
         "title": "PrintixOfflineUnavailableBody",
         "description": "A 409 that refuses offline mode for an event with weak barcodes."
       },
+      "PrintixOrganiserOrganisation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "can_manage_events": {
+            "type": "boolean",
+            "title": "Can Manage Events",
+            "description": "Holds printix.events.manage: may set up events and read them."
+          },
+          "can_manage_gates": {
+            "type": "boolean",
+            "title": "Can Manage Gates",
+            "description": "Holds printix.gates.manage: may make gate codes and read the summary."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "can_manage_events",
+          "can_manage_gates"
+        ],
+        "title": "PrintixOrganiserOrganisation",
+        "description": "An organisation the signed-in person may run Printix organiser routes for."
+      },
       "PrintixPairingCreate": {
         "properties": {
           "gate": {
@@ -123767,6 +123859,10 @@
     }
   },
   "tags": [
+    {
+      "name": "printix-me",
+      "description": "Printix self service: the organisations the signed-in organiser may run Printix for (printix app session)."
+    },
     {
       "name": "printix-org",
       "description": "Printix organiser access: read-only event list and summary for an organisation's members (printix app, authenticator session)."

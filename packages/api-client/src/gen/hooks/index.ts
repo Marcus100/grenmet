@@ -3069,6 +3069,11 @@ export {
   usePrintixListEvents,
 } from "./usePrintixListEvents.js";
 export {
+  printixListMyOrganiserOrganisationsQueryKey,
+  printixListMyOrganiserOrganisationsQueryOptions,
+  usePrintixListMyOrganiserOrganisations,
+} from "./usePrintixListMyOrganiserOrganisations.js";
+export {
   printixListOrgEventsQueryKey,
   printixListOrgEventsQueryOptions,
   usePrintixListOrgEvents,

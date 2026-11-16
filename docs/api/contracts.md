@@ -3214,7 +3214,7 @@ request and response shapes are unchanged; the optional request body is accepted
 
 ## Printix ticket registry (ADR-0060)
 
-Three route zones, all under `/api/v1/printix/`.
+Four route zones, all under `/api/v1/printix/`.
 
 - **`admin/*`** (superuser with an enrolled authenticator and an MFA session, plus
   `printix.manage`): create and close events (`POST /events`, `POST /events/{id}/close`),
@@ -3238,6 +3238,12 @@ Three route zones, all under `/api/v1/printix/`.
   `GET /admin/events` (superuser, every event) and `POST /admin/events/{id}/organisation`
   (set or clear `organisation_id`) are in the admin zone; `POST /admin/events` takes an
   optional `organisation_id`.
+- **`me/*`** (a `printix` app session that passed the authenticator; no organisation header):
+  `GET /me/organisations` lists the organisations where the person is an active member, the
+  organisation is entitled to `printix`, and they hold `printix.events.manage` or
+  `printix.gates.manage`. Each item has `id`, `name`, `can_manage_events` and `can_manage_gates`.
+  An empty list for non-members. Another app's token is 401; an account session or a session
+  without the authenticator step is 403.
 - **`public/*`** (no account; `Authorization: Bearer <pairing secret>`, checked on every
   call): `POST /admissions` with `{value}` and `GET /summary`. An admission answers 200 with
   a stable `outcome`: `admitted`, `already_admitted` (with the first admission's time and

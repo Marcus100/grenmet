@@ -178,6 +178,13 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   `privileged_mfa.require_mfa_session(..., app_key="printix")` on every call
   (`printix/dependencies.py: require_printix_organiser`). MFA runs after membership, so a
   non-member gets the same 404 whatever their authenticator state.
+- **Self route (zone `me`):** `GET /printix/me/organisations` (`me_router.py`) lists the
+  organisations where the caller is an active member, the organisation is active and
+  entitled to `printix`, and the effective keys (`grants.effective_keys`, the same helper the
+  org routes use) include a Printix key. Each item carries `can_manage_events` and
+  `can_manage_gates` so the screen can hide what the person cannot do. Needs a `printix`
+  app session that passed the authenticator (`require_printix_app_user`). No organisation
+  header; a non-member gets an empty list.
 - **Shared service:** `service.list_events` and `service.event_summary` take
   `organisation_id`; `get_event` filters in SQL when it is given. The admin routes pass
   `None`, which means no filter, and their behaviour is unchanged.
@@ -186,6 +193,23 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   organisation id: `GET /organisations/mine` is account-only (`AccountUser`), so the
   scanner must be given the organisation id another way until a route accepts the app
   session.
+- **Migration debt:** the foreign key `event_organisation_id_fkey` was added `NOT VALID`
+  (migration `printixorganisation20261116`). A later migration must run
+  `ALTER TABLE printix.event VALIDATE CONSTRAINT event_organisation_id_fkey` once the existing
+  rows are known to reference real organisations (all are NULL today).
+- **Onboarding order (first version, owner decision: Barrels adds people):** an organiser
+  gets access in this order, and each step is a separate action by a Barrels superuser or
+  the organiser:
+  1. create the Printix organisation (`org.organisation`, kind `client`);
+  2. turn on its `printix` entitlement;
+  3. invite the person with a role bundle (`printix-organiser` or `printix-gate-lead`);
+  4. grant the `printix-member` role (`app.printix.access`) to the person's account. This
+     is a separate step: the organisation invitation does not grant app access;
+  5. the person adds an authenticator on account.barrels.gd (required for every organiser route);
+  6. they sign in at scan.barrels.gd (the `printix` app, email code).
+  Steps 3 and 4 are independent; neither implies the other. Without step 4, sign-in is
+  refused with "This account can't sign in to this app." (403). Automating step 4 from the
+  invitation is a later change, not built.
 - **Tests:** `tests/printix/test_org_routes.py`.
 
 ## Not built here

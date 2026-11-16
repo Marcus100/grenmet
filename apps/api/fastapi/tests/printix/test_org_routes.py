@@ -489,3 +489,97 @@ def test_either_key_dependency_refuses_keys_from_two_products() -> None:
         require_org_any_permission(("printix.events.manage", "events.door.scan"))
     with pytest.raises(ValueError):
         require_org_any_permission(())
+
+
+# --- Organisations I can run Printix for (zone me) ---------------------------
+
+ME = f"{settings.API_V1_STR}/printix/me/organisations"
+
+
+def _listed(response: httpx.Response) -> dict[str, dict[str, Any]]:
+    return {item["id"]: item for item in response.json()}
+
+
+async def test_a_gate_lead_sees_the_organisation_with_gates_only(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    user = await _organiser(db_async, world["org_a"], "printix-gate-lead")
+    headers = await _sign_in(db_async, user)
+    response = await async_client.get(ME, headers=headers)
+    assert response.status_code == 200
+    listed = _listed(response)
+    assert set(listed) == {world["org_a"].id}
+    assert listed[world["org_a"].id]["can_manage_events"] is False
+    assert listed[world["org_a"].id]["can_manage_gates"] is True
+    assert listed[world["org_a"].id]["name"] == world["org_a"].name
+
+
+async def test_an_organiser_sees_both_keys(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    user = await _organiser(db_async, world["org_a"], "printix-organiser")
+    headers = await _sign_in(db_async, user)
+    listed = _listed(await async_client.get(ME, headers=headers))
+    assert listed[world["org_a"].id]["can_manage_events"] is True
+    assert listed[world["org_a"].id]["can_manage_gates"] is True
+
+
+async def test_a_non_member_gets_an_empty_list(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
+    outsider = await _app_user(db_async)
+    response = await async_client.get(ME, headers=await _sign_in(db_async, outsider))
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+async def test_a_member_without_a_printix_key_is_not_listed(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    user = await _organiser(db_async, world["org_a"], None)
+    response = await async_client.get(ME, headers=await _sign_in(db_async, user))
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+async def test_an_organisation_not_entitled_to_printix_is_not_listed(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
+    org = await _org(db_async, f"No Printix {uuid.uuid4().hex[:6]}", entitled=False)
+    user = await _organiser(db_async, org, "printix-organiser")
+    response = await async_client.get(ME, headers=await _sign_in(db_async, user))
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+async def test_another_apps_token_is_refused_on_the_me_route(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    user = await _organiser(db_async, world["org_a"], "printix-organiser")
+    response = await async_client.get(
+        ME, headers=await _sign_in(db_async, user, app="events")
+    )
+    assert response.status_code == 401
+
+
+async def test_a_session_without_the_authenticator_step_is_refused_on_the_me_route(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+) -> None:
+    user = await _organiser(db_async, world["org_a"], "printix-organiser")
+    response = await async_client.get(
+        ME, headers=await _sign_in(db_async, user, mfa=False)
+    )
+    assert response.status_code == 403
+    assert "Sign in again" in response.json()["detail"]

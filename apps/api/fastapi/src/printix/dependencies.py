@@ -17,13 +17,17 @@ from collections.abc import Awaitable, Callable
 from typing import Annotated
 
 from fastapi import Depends, Security
-from fastapi.security import APIKeyHeader
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials
 
 from src.auth import privileged_mfa
 from src.auth.models import User
 from src.auth.policy import require_permission
 from src.dependencies import MfaAdminUser, SessionDep, TokenDep
-from src.organisations.dependencies import OrgContext, require_org_any_permission
+from src.organisations.dependencies import (
+    OrgContext,
+    require_org_any_permission,
+    resolve_org_caller,
+)
 
 from . import constants, service
 from .models import PrintixPairing
@@ -104,3 +108,20 @@ PrintixOrgEventReader = Annotated[
         )
     ),
 ]
+
+
+async def require_printix_app_user(session: SessionDep, token: TokenDep) -> User:
+    """The signed-in user of a ``printix`` app session that passed the authenticator.
+
+    Used by the ``me`` routes, which name no organisation. Another app's token is 401
+    (``resolve_org_caller``); an account session is refused by the authenticator check,
+    because its session belongs to no app."""
+    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+    user, _ = await resolve_org_caller(session, credentials, ORGANISER_APP)
+    await privileged_mfa.require_mfa_session(
+        session, user, token=token, app_key=ORGANISER_APP
+    )
+    return user
+
+
+PrintixAppUser = Annotated[User, Depends(require_printix_app_user)]

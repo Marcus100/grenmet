@@ -612,6 +612,7 @@ export { printixCreatePairing } from "./printixCreatePairing.js";
 export { printixEventSummary } from "./printixEventSummary.js";
 export { printixImportTickets } from "./printixImportTickets.js";
 export { printixListEvents } from "./printixListEvents.js";
+export { printixListMyOrganiserOrganisations } from "./printixListMyOrganiserOrganisations.js";
 export { printixListOrgEvents } from "./printixListOrgEvents.js";
 export { printixListPairings } from "./printixListPairings.js";
 export { printixListTickets } from "./printixListTickets.js";

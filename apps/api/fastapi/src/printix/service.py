@@ -29,7 +29,9 @@ from sqlalchemy.sql.elements import ColumnElement
 
 from src.audit import service as audit_service
 from src.exceptions import AppValidationError
+from src.organisations import grants as organisation_grants
 from src.organisations import models as organisation_models
+from src.organisations import service as organisation_service
 from src.utils.datetime import utc_now
 
 from . import constants, csv_import, transitions
@@ -62,6 +64,7 @@ from .schemas import (
     PrintixOfflineList,
     PrintixOfflineSyncResult,
     PrintixOfflineTicket,
+    PrintixOrganiserOrganisation,
     PrintixPairingCreated,
     PrintixScanResult,
     PrintixTicketPage,
@@ -216,6 +219,40 @@ async def set_event_organisation(
             "Printix event organisation set", extra={"subject_id": str(event.id)}
         )
     return event
+
+
+async def organiser_organisations(
+    session: AsyncSession, user_id: uuid.UUID
+) -> list[PrintixOrganiserOrganisation]:
+    """Organisations where ``user_id`` may use the organiser routes.
+
+    Needs an active membership, an active organisation entitled to ``printix``, and at
+    least one Printix key in the membership's effective keys (role bundle or live grant,
+    ``grants.effective_keys``). The memberships come from ``list_my_memberships``; no
+    grant logic is repeated here."""
+    result: list[PrintixOrganiserOrganisation] = []
+    for membership, organisation in await organisation_service.list_my_memberships(
+        session, user_id
+    ):
+        if organisation.status != organisation_models.OrganisationStatus.ACTIVE.value:
+            continue
+        if "printix" not in await organisation_grants.entitled_products(
+            session, organisation.id
+        ):
+            continue
+        held = await organisation_grants.effective_keys(session, membership=membership)
+        events = constants.EVENTS_MANAGE_KEY in held
+        gates = constants.GATES_MANAGE_KEY in held
+        if events or gates:
+            result.append(
+                PrintixOrganiserOrganisation(
+                    id=organisation.id,
+                    name=organisation.name,
+                    can_manage_events=events,
+                    can_manage_gates=gates,
+                )
+            )
+    return result
 
 
 async def list_events(

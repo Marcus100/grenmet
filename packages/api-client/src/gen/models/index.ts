@@ -7833,6 +7833,15 @@ export type {
   PrintixListEventsStatus422,
 } from "./PrintixListEvents.js";
 export type {
+  PrintixListMyOrganiserOrganisationsOptions,
+  PrintixListMyOrganiserOrganisationsResponse,
+  PrintixListMyOrganiserOrganisationsResponses,
+  PrintixListMyOrganiserOrganisationsStatus200,
+  PrintixListMyOrganiserOrganisationsStatus401,
+  PrintixListMyOrganiserOrganisationsStatus403,
+  PrintixListMyOrganiserOrganisationsStatus422,
+} from "./PrintixListMyOrganiserOrganisations.js";
+export type {
   PrintixListOrgEventsHeaders,
   PrintixListOrgEventsOptions,
   PrintixListOrgEventsQuery,
@@ -7899,6 +7908,7 @@ export type {
   PrintixOfflineTicketsStatus429,
 } from "./PrintixOfflineTickets.js";
 export type { PrintixOfflineUnavailableBody } from "./PrintixOfflineUnavailableBody.js";
+export type { PrintixOrganiserOrganisation } from "./PrintixOrganiserOrganisation.js";
 export type {
   PrintixOrgEventSummaryHeaders,
   PrintixOrgEventSummaryOptions,

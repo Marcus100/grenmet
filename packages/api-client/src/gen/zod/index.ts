@@ -7779,6 +7779,14 @@ export {
   printixListEventsStatus422Schema,
 } from "./printixListEventsSchema.js";
 export {
+  printixListMyOrganiserOrganisationsErrorSchema,
+  printixListMyOrganiserOrganisationsResponseSchema,
+  printixListMyOrganiserOrganisationsStatus200Schema,
+  printixListMyOrganiserOrganisationsStatus401Schema,
+  printixListMyOrganiserOrganisationsStatus403Schema,
+  printixListMyOrganiserOrganisationsStatus422Schema,
+} from "./printixListMyOrganiserOrganisationsSchema.js";
+export {
   printixListOrgEventsErrorSchema,
   printixListOrgEventsHeadersSchema,
   printixListOrgEventsHeaderXBarrelsOrganisationSchema,
@@ -7848,6 +7856,7 @@ export {
   printixOfflineTicketsStatus429Schema,
 } from "./printixOfflineTicketsSchema.js";
 export { printixOfflineUnavailableBodySchema } from "./printixOfflineUnavailableBodySchema.js";
+export { printixOrganiserOrganisationSchema } from "./printixOrganiserOrganisationSchema.js";
 export {
   printixOrgEventSummaryErrorSchema,
   printixOrgEventSummaryHeadersSchema,

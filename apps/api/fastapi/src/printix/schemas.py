@@ -58,6 +58,19 @@ class PrintixEventPublic(BaseModel):
     organisation_id: str | None = None
 
 
+class PrintixOrganiserOrganisation(BaseModel):
+    """An organisation the signed-in person may run Printix organiser routes for."""
+
+    id: str
+    name: str
+    can_manage_events: bool = Field(
+        description="Holds printix.events.manage: may set up events and read them."
+    )
+    can_manage_gates: bool = Field(
+        description="Holds printix.gates.manage: may make gate codes and read the summary."
+    )
+
+
 class PrintixEventPage(BaseModel):
     items: list[PrintixEventPublic]
     total: int

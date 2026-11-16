@@ -11,6 +11,7 @@ DOMAIN = Domain(
         Mount("printix.admin", "src.printix.admin_router:router"),
         Mount("printix.scanner", "src.printix.scanner_router:router"),
         Mount("printix.org", "src.printix.org_router:router"),
+        Mount("printix.me", "src.printix.me_router:router"),
     ),
     schemas=("printix",),
     model_modules=("src.printix.models",),
