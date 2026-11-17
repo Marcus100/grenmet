@@ -1,16 +1,15 @@
-"use client";
-
-import { useCallback, useEffect, useRef, useState } from "react";
-import { CountBar } from "@/components/count-bar";
-import { GateScanner } from "@/components/gate-scanner";
-import { ResultOverlay } from "@/components/result-overlay";
-import { TypedEntry } from "@/components/typed-entry";
+import { BarcodeCamera } from "@barrelsgd/pwa-kit/components/barcode-camera";
 import {
   createSoundPlayer,
-  holdScreenAwake,
   type SoundPlayer,
   vibrate,
-} from "@/lib/gate-feedback";
+} from "@barrelsgd/pwa-kit/lib/feedback";
+import { holdScreenAwake } from "@barrelsgd/pwa-kit/lib/wake-lock";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { CountBar } from "@/components/count-bar";
+import { OfflineStatus } from "@/components/offline-status";
+import { ResultOverlay } from "@/components/result-overlay";
+import { TypedEntry } from "@/components/typed-entry";
 import {
   type Connection,
   type PairingProblem,
@@ -25,6 +24,21 @@ import {
   verdictFor,
 } from "@/lib/scan-outcome";
 import { useLiveCount } from "@/lib/use-live-count";
+import { useOffline } from "@/lib/use-offline";
+
+/** The scanner's own words around the shared camera. */
+const CAMERA_TEXT = {
+  hint: "Hold the ticket's barcode inside the green frame. The camera is used only to read it.",
+  insecure:
+    "The camera only works on a secure (https) address. Open the scanner from its https link.",
+  privacy: "Nothing is sent except the ticket value.",
+  region: "Ticket scanner",
+  start: "Start scanning",
+  video: "Camera view for reading the ticket barcode",
+} as const;
+
+/** How long scans skip the live check after one got no answer. */
+const LIVE_BACKOFF_MS = 20 * 1000;
 
 interface GateConsoleProps {
   readonly connection: Connection;
@@ -54,6 +68,23 @@ export function GateConsole({
   const [sound] = useState<SoundPlayer>(createSoundPlayer);
   const [gate] = useState(createScanGate);
   const { summary, link, refresh } = useLiveCount(connection, onPairingProblem);
+  const offline = useOffline(connection, onPairingProblem);
+  // The check callback reads the latest offline view without being rebuilt.
+  const offlineRef = useRef(offline);
+  useEffect(() => {
+    offlineRef.current = offline;
+  });
+  // After a live check gets no answer, the next scans go straight to the saved
+  // list for a while, so each guest does not wait out another timeout. The
+  // live count's background polling ends the pause once it reaches the server.
+  const liveBackoffUntil = useRef(0);
+  useEffect(() => {
+    // Each fresh count from the server ends the pause: the signal is back.
+    if (link === "ok" && summary) {
+      liveBackoffUntil.current = 0;
+      offlineRef.current.markOnline(true);
+    }
+  }, [link, summary]);
   // Refs, not state, so a read that arrives between two renders is not missed.
   const pending = useRef(false);
   const held = useRef(false);
@@ -63,12 +94,16 @@ export function GateConsole({
   const showVerdict = useCallback(
     (next: Verdict) => {
       held.current = true;
+      // The sheet may have been opened while this check was pending. Close it
+      // for good, so it does not slide back up when the result is dismissed.
+      setTypedOpen(false);
       setVerdict(next);
       const time = formatTime(new Date().toISOString());
       setLastCheck(time ? `${next.title}, ${time}` : next.title);
       if (next.sound) {
-        sound.play(next.sound);
-        vibrate(next.sound);
+        const signal = next.sound === "admitted" ? "success" : "failure";
+        sound.play(signal);
+        vibrate(signal);
       }
     },
     [sound]
@@ -94,7 +129,27 @@ export function GateConsole({
       }
       pending.current = true;
       setChecking(true);
-      const answer: ScanAnswer = await submitScan(connection, value);
+      const view = offlineRef.current;
+      // A phone that knows it has no signal, or just timed out with a saved
+      // list to fall back on, skips the wait for another timeout.
+      const skipLive =
+        (typeof navigator !== "undefined" && navigator.onLine === false) ||
+        (view.mode === "ready" && Date.now() < liveBackoffUntil.current);
+      const answer: ScanAnswer = skipLive
+        ? { kind: "no-signal" }
+        : await submitScan(connection, value);
+      if (!skipLive && answer.kind === "no-signal") {
+        liveBackoffUntil.current = Date.now() + LIVE_BACKOFF_MS;
+      }
+      view.markOnline(answer.kind !== "no-signal");
+      if (answer.kind === "checked") {
+        view.recordLive(value, answer.result);
+      }
+      // With no signal, the saved ticket list decides (null: no usable list).
+      const local =
+        answer.kind === "no-signal"
+          ? await view.checkOffline(value, source)
+          : null;
       pending.current = false;
       setChecking(false);
       if (answer.kind === "pairing") {
@@ -104,7 +159,7 @@ export function GateConsole({
       if (answer.kind === "checked") {
         refresh();
       }
-      showVerdict(verdictFor(answer, source));
+      showVerdict(local ?? verdictFor(answer, source));
     },
     [connection, onPairingProblem, refresh, showVerdict]
   );
@@ -141,13 +196,13 @@ export function GateConsole({
   };
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="pwa-screen flex min-h-dvh flex-col">
       <header className="flex flex-col gap-1 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
         <p className="text-px-muted text-xs font-semibold tracking-wider uppercase">
           Paired
         </p>
         <h1 className="truncate text-xl font-semibold">
-          {summary?.event.name ?? "Printix Scanner"}
+          {summary?.event.name ?? offline.eventName ?? "Printix Scanner"}
         </h1>
         {summary?.event.status === "closed" ? (
           <p className="text-px-paper text-sm font-semibold">
@@ -156,12 +211,25 @@ export function GateConsole({
         ) : null}
       </header>
 
-      <div className="px-4 pb-4">
+      <div className="flex flex-col gap-4 px-4 pb-4">
+        <OfflineStatus
+          conflicts={offline.conflicts}
+          fetchedAt={offline.fetchedAt}
+          lost={offline.lost}
+          mode={offline.mode}
+          onClearConflicts={offline.clearConflicts}
+          online={offline.online}
+          pending={offline.pending}
+        />
         <CountBar link={link} summary={summary} />
       </div>
 
       <main className="flex flex-1 flex-col gap-4 px-4">
-        <GateScanner onRead={handleRead} onStart={() => sound.unlock()} />
+        <BarcodeCamera
+          onRead={handleRead}
+          onStart={() => sound.unlock()}
+          text={CAMERA_TEXT}
+        />
 
         {checking ? (
           <p
@@ -201,9 +269,22 @@ export function GateConsole({
               Unpair this phone? It will stop checking tickets until you scan a
               new pairing code.
             </p>
+            {offline.pending > 0 ? (
+              <p className="text-px-paper text-base font-semibold">
+                {offline.pending === 1
+                  ? "1 admission made with no signal has not been sent yet and will be lost."
+                  : `${offline.pending} admissions made with no signal have not been sent yet and will be lost.`}{" "}
+                Unpair only where there is signal and nothing is waiting.
+              </p>
+            ) : null}
             <button
               className="bg-px-stop text-px-paper focus-visible:outline-px-paper min-h-14 w-full rounded-2xl text-lg font-bold hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2"
-              onClick={onUnpair}
+              onClick={() => {
+                offline
+                  .forget()
+                  .catch(() => undefined)
+                  .finally(onUnpair);
+              }}
               type="button"
             >
               Unpair this phone
@@ -228,13 +309,18 @@ export function GateConsole({
       </footer>
 
       {verdict ? <ResultOverlay onDismiss={dismiss} verdict={verdict} /> : null}
-      {typedOpen ? (
+      {/*
+        A result replaces the sheet at once. A sheet still sliding away would
+        keep the result hidden from screen readers and block Scan next.
+      */}
+      {verdict ? null : (
         <TypedEntry
           checking={checking}
           onClose={closeTyped}
           onSubmit={submitTyped}
+          open={typedOpen}
         />
-      ) : null}
+      )}
     </div>
   );
 }

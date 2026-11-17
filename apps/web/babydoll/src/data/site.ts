@@ -5,12 +5,11 @@
 export const SITE_URL = "https://babydoll.barrels.gd";
 export const BOOKING_URL = "https://babydollgnd.as.me";
 /**
- * The studio's page on the Barrels bookings site. While it is null every Book
- * button opens the Acuity page above. Set it (for example
- * "https://bookings.barrels.gd/babydoll-beauty-bar") once that page is live and every
- * Book button follows. This site itself takes no bookings: it is static.
- * When you set it, also change the /book redirect in public/_redirects and
- * vercel.json, which still point at the Acuity page.
+ * The studio's page on the Barrels bookings site. Every Book button opens it
+ * (since v1.2.0). If it is ever set to null, every Book button opens the
+ * Acuity page above instead. This site itself takes no bookings: it is static.
+ * When you change it, also change the /book redirect in public/_redirects and
+ * vercel.json, which point at the same address.
  */
 export const ONLINE_BOOKING_URL: string | null =
   "https://bookings.barrels.gd/babydoll-beauty-bar";

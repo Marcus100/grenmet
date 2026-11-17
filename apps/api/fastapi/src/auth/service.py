@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SQLAlchemySession
 
 from src.auth import placeholders
+from src.auth.account_security import verify_factor
 from src.auth.assignments import (
     audit_assignment,
     create_user_role_assignment,
@@ -27,6 +28,8 @@ from src.auth.eligibility import (
     request_staff_access,
     require_approved_account,
 )
+from src.auth.exceptions import AccountLockedError
+from src.auth.lockout import factor_lockout, login_lockout
 from src.auth.models import Session as AuthSession
 from src.auth.models import (
     User,
@@ -50,6 +53,7 @@ from src.auth.schemas import (
 )
 from src.auth.sessions import (
     create_session,
+    end_refused_session,
     exchange_session_for_access_token,
     get_active_session_by_secret,
     get_legacy_access_token_expires_delta,
@@ -128,6 +132,7 @@ __all__ = [
     "require_assignment_management",
     "require_user_management",
     "revoke_session",
+    "end_refused_session",
     "revoke_user_sessions",
     "rotate_session",
     "touch_session",
@@ -224,12 +229,27 @@ async def update_user_me(
     *, session: AsyncSession, current_user: User, user_in: UserUpdateMe
 ) -> User:
     placeholders.require_usable_identity(email=user_in.email, username=user_in.username)
+    changes_email = bool(user_in.email) and user_in.email != current_user.email
+    if changes_email:
+        # Proof comes first, so another address is not revealed without it (#1535).
+        # Lazy import: email_change imports app_service, which imports this module.
+        from src.auth import email_change
+
+        await email_change.require_proof(
+            session=session,
+            user=current_user,
+            current_password=user_in.current_password,
+            email_code=user_in.email_code,
+        )
     if user_in.email:
         existing = await get_user_by_email(session=session, email=user_in.email)
         if existing and existing.id != current_user.id:
             raise AppException("User with this email already exists", 409)
-    user_data = user_in.model_dump(exclude_unset=True)
-    if user_in.email and user_in.email != current_user.email:
+    user_data = user_in.model_dump(
+        exclude_unset=True, exclude={"current_password", "email_code"}
+    )
+    if changes_email:
+        old_email = current_user.email
         await ensure_email_change_allowed(session=session, user=current_user)
         current_user.email_verified_at = None
         current_user.email_verification_required = True
@@ -237,6 +257,7 @@ async def update_user_me(
         await session.execute(
             delete(AuthSession).where(AuthSession.user_id == current_user.id)
         )
+        email_change.notify_old_address(session, old_email=old_email)
     for key, value in user_data.items():
         setattr(current_user, key, value)
     session.add(current_user)
@@ -260,11 +281,50 @@ async def set_password(*, session: AsyncSession, user: User, new_password: str) 
 async def update_password(
     *, session: AsyncSession, user: User, current_password: str, new_password: str
 ) -> None:
+    """Change the password once the current one is checked (#1533).
+
+    A wrong current password counts toward the sign-in lockout on the account email,
+    the same key password sign-in uses (as ``email_change.require_proof`` does). A
+    locked account is refused before the hash is checked, so it learns nothing.
+
+    A correct password here never clears the count: that key also counts wrong
+    authenticator codes at sign-in and on recovery-code replacement, so a session
+    holder who knows the password could otherwise reset it between guesses. Only a
+    completed sign-in clears it.
+    """
+    if await login_lockout.is_locked(user.email):
+        raise AccountLockedError()
     if not await verify_password_async(current_password, user.hashed_password):
+        await login_lockout.record_failure(user.email)
         raise AppException("Incorrect password", 400)
     if current_password == new_password:
         raise AppException("New password must be different from current password", 400)
     await set_password(session=session, user=user, new_password=new_password)
+
+
+async def verify_disable_proof(
+    *, session: AsyncSession, user: User, password: str, code: str
+) -> None:
+    """Check the password and a factor code before two-step verification is turned off.
+
+    A wrong password counts on the sign-in key for the account email (shared with
+    password sign-in). A wrong authenticator or recovery code counts on the separate
+    ``lockout.factor_lockout`` key by account id, so a stolen session cannot lock the
+    owner's password sign-in by guessing codes (#1533). Both keys are checked before
+    any hash or code check, so a locked account cannot tell whether its proof was right.
+    """
+    if await login_lockout.is_locked(user.email) or await factor_lockout.is_locked(
+        str(user.id)
+    ):
+        raise AccountLockedError()
+    if not await authenticate(session=session, email=user.email, password=password):
+        await login_lockout.record_failure(user.email)
+        raise AppException("Incorrect password", 400)
+    if not await verify_factor(session, user, code):
+        await factor_lockout.record_failure(str(user.id))
+        raise AppException("Authenticator or recovery code was not accepted", 400)
+    await login_lockout.reset(user.email)
+    await factor_lockout.reset(str(user.id))
 
 
 async def _unlink_business_contacts(session: AsyncSession, user_id: uuid.UUID) -> None:
@@ -498,6 +558,9 @@ async def delete_user(
     await revoke_access_material(session, user)
     await rewards_service.cancel_open_redemptions(session, account=user)
     await _end_access_links(session, user_id, now)
+    # Roster locks of every affected organisation first, in id order (#1501), so the
+    # membership and grant writes below never lock in the reverse order.
+    await organisation_grants.lock_affected_rosters(session, user_id)
     await _end_organisation_access(session, user_id, now)
     # Grants the account handed to others end too (#1496). Runs after its memberships
     # are removed, which the cascade relies on.

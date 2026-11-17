@@ -41,11 +41,11 @@
 
 ## Change checklist
 - New permission → add to `PERMISSIONS`, default role grants if needed, gate the UI in gaa-admin, and add a test.
-- Session/cookie behaviour → verify `packages/auth`, `apps/web/auth`, and every delegating app (root Blast-Radius table).
-- Route changes → `openapi.json`, client regen, `pnpm generate:api-routes`; `docs/api/contracts.md` when the blast-radius check asks (it always does when an operation's security or the security schemes change).
+- Session/cookie behaviour → verify `packages/auth`, `apps/web/auth` and every delegating app (root Blast-Radius table).
+- Route changes → `openapi.json`, client regen, `pnpm generate:api-routes`; `docs/api/contracts.md` when the blast-radius check asks (always when an operation's or the schemes' security changes).
 
 ## Account apps (join and leave)
-`barrels-admin` (Barrels control plane, `apps/web/admin`) is a staff-scope app with `AppDefinition.superuser_only`: staff tokens, but only active superusers pass `app.allows(user)` at handoff, session exchange/refresh, account "Join" and the account app list (non-superusers get 403 "Barrels staff only", never an access request). Tests: `tests/auth/test_app_handoff.py`.
+`barrels-admin` (Barrels control plane, `apps/web/admin`) is a staff-scope app with `AppDefinition.superuser_only`: staff tokens, but only active superusers pass `app.allows(user)` at handoff, session exchange/refresh, account "Join" and the account app list (others get 403 "Barrels staff only", never an access request). Tests: `tests/auth/test_app_handoff.py`.
 
 `app_router.account_router` (`/auth/account/apps`, `/{app}/join`, `/{app}/leave`) manages memberships for the auth.barrels.gd account session; `_account_session_user` rejects app sessions. Leaving removes only the app's default role link and ends that app's sessions (`sessions.revoke_user_app_sessions`); staff-scope apps cannot be left. Tests: `tests/auth/test_account_apps.py`.
 

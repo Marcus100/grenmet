@@ -831,6 +831,7 @@ export type {
   AuthReplaceRecoveryCodesStatus200,
   AuthReplaceRecoveryCodesStatus400,
   AuthReplaceRecoveryCodesStatus422,
+  AuthReplaceRecoveryCodesStatus429,
 } from "./AuthReplaceRecoveryCodes.js";
 export type {
   AuthRequestStaffAccessOptions,
@@ -891,6 +892,15 @@ export type {
   AuthRevokeSuperuserInvitationStatus422,
 } from "./AuthRevokeSuperuserInvitation.js";
 export type {
+  AuthSendEmailChangeCodeOptions,
+  AuthSendEmailChangeCodeResponse,
+  AuthSendEmailChangeCodeResponses,
+  AuthSendEmailChangeCodeStatus200,
+  AuthSendEmailChangeCodeStatus400,
+  AuthSendEmailChangeCodeStatus422,
+  AuthSendEmailChangeCodeStatus429,
+} from "./AuthSendEmailChangeCode.js";
+export type {
   AuthSuperuserInvitationCodeBody,
   AuthSuperuserInvitationCodeOptions,
   AuthSuperuserInvitationCodeResponse,
@@ -907,6 +917,7 @@ export type {
   AuthTwofaActivateStatus200,
   AuthTwofaActivateStatus400,
   AuthTwofaActivateStatus422,
+  AuthTwofaActivateStatus429,
 } from "./AuthTwofaActivate.js";
 export type {
   AuthTwofaDisableBody,
@@ -916,6 +927,7 @@ export type {
   AuthTwofaDisableStatus200,
   AuthTwofaDisableStatus400,
   AuthTwofaDisableStatus422,
+  AuthTwofaDisableStatus429,
 } from "./AuthTwofaDisable.js";
 export type {
   AuthTwofaSetupOptions,
@@ -925,6 +937,7 @@ export type {
   AuthTwofaSetupStatus401,
   AuthTwofaSetupStatus403,
   AuthTwofaSetupStatus422,
+  AuthTwofaSetupStatus429,
 } from "./AuthTwofaSetup.js";
 export type {
   AuthTwofaStatusOptions,
@@ -943,6 +956,7 @@ export type {
   AuthUpdatePasswordMeStatus200,
   AuthUpdatePasswordMeStatus400,
   AuthUpdatePasswordMeStatus422,
+  AuthUpdatePasswordMeStatus429,
 } from "./AuthUpdatePasswordMe.js";
 export type {
   AuthUpdateRoleBody,
@@ -982,8 +996,10 @@ export type {
   AuthUpdateUserMeResponse,
   AuthUpdateUserMeResponses,
   AuthUpdateUserMeStatus200,
+  AuthUpdateUserMeStatus400,
   AuthUpdateUserMeStatus409,
   AuthUpdateUserMeStatus422,
+  AuthUpdateUserMeStatus429,
 } from "./AuthUpdateUserMe.js";
 export type { AviationDraftList } from "./AviationDraftList.js";
 export type { AviationDraftRead } from "./AviationDraftRead.js";
@@ -1182,6 +1198,7 @@ export type { BinaryFile } from "./BinaryFile.js";
 export type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
 export type { BodyHrImportTerminalPunches } from "./BodyHrImportTerminalPunches.js";
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
+export type { BodyPrintixImportOrgTickets } from "./BodyPrintixImportOrgTickets.js";
 export type { BodyPrintixImportTickets } from "./BodyPrintixImportTickets.js";
 export type { BookingAgenda } from "./BookingAgenda.js";
 export type { BookingAgendaDay } from "./BookingAgendaDay.js";
@@ -3964,6 +3981,8 @@ export type { GradeInput } from "./GradeInput.js";
 export type { GradePublic } from "./GradePublic.js";
 export type { GradeSetup } from "./GradeSetup.js";
 export type { GrantCreate } from "./GrantCreate.js";
+export type { GrantInactiveReason } from "./GrantInactiveReason.js";
+export { grantInactiveReason } from "./GrantInactiveReason.js";
 export type { GrantRevokePublic } from "./GrantRevokePublic.js";
 export type { GroupDetail } from "./GroupDetail.js";
 export type { GroupDetailPropertiesCategoryEnum } from "./GroupDetailPropertiesCategoryEnum.js";
@@ -7762,6 +7781,19 @@ export type {
   PrintixCloseEventStatus422,
 } from "./PrintixCloseEvent.js";
 export type {
+  PrintixCloseOrgEventHeaders,
+  PrintixCloseOrgEventOptions,
+  PrintixCloseOrgEventPath,
+  PrintixCloseOrgEventResponse,
+  PrintixCloseOrgEventResponses,
+  PrintixCloseOrgEventStatus200,
+  PrintixCloseOrgEventStatus400,
+  PrintixCloseOrgEventStatus401,
+  PrintixCloseOrgEventStatus403,
+  PrintixCloseOrgEventStatus404,
+  PrintixCloseOrgEventStatus422,
+} from "./PrintixCloseOrgEvent.js";
+export type {
   PrintixCreateEventBody,
   PrintixCreateEventOptions,
   PrintixCreateEventResponse,
@@ -7771,6 +7803,33 @@ export type {
   PrintixCreateEventStatus403,
   PrintixCreateEventStatus422,
 } from "./PrintixCreateEvent.js";
+export type {
+  PrintixCreateOrgEventBody,
+  PrintixCreateOrgEventHeaders,
+  PrintixCreateOrgEventOptions,
+  PrintixCreateOrgEventResponse,
+  PrintixCreateOrgEventResponses,
+  PrintixCreateOrgEventStatus201,
+  PrintixCreateOrgEventStatus400,
+  PrintixCreateOrgEventStatus401,
+  PrintixCreateOrgEventStatus403,
+  PrintixCreateOrgEventStatus422,
+} from "./PrintixCreateOrgEvent.js";
+export type {
+  PrintixCreateOrgPairingBody,
+  PrintixCreateOrgPairingHeaders,
+  PrintixCreateOrgPairingOptions,
+  PrintixCreateOrgPairingPath,
+  PrintixCreateOrgPairingResponse,
+  PrintixCreateOrgPairingResponses,
+  PrintixCreateOrgPairingStatus201,
+  PrintixCreateOrgPairingStatus400,
+  PrintixCreateOrgPairingStatus401,
+  PrintixCreateOrgPairingStatus403,
+  PrintixCreateOrgPairingStatus404,
+  PrintixCreateOrgPairingStatus409,
+  PrintixCreateOrgPairingStatus422,
+} from "./PrintixCreateOrgPairing.js";
 export type {
   PrintixCreatePairingBody,
   PrintixCreatePairingOptions,
@@ -7785,6 +7844,8 @@ export type {
   PrintixCreatePairingStatus422,
 } from "./PrintixCreatePairing.js";
 export type { PrintixEventCreate } from "./PrintixEventCreate.js";
+export type { PrintixEventOrganisationUpdate } from "./PrintixEventOrganisationUpdate.js";
+export type { PrintixEventPage } from "./PrintixEventPage.js";
 export type { PrintixEventPublic } from "./PrintixEventPublic.js";
 export type { PrintixEventStatus } from "./PrintixEventStatus.js";
 export { printixEventStatus } from "./PrintixEventStatus.js";
@@ -7802,6 +7863,23 @@ export type {
 } from "./PrintixEventSummary.js";
 export type { PrintixGateCount } from "./PrintixGateCount.js";
 export type { PrintixImportIssue } from "./PrintixImportIssue.js";
+export type {
+  PrintixImportOrgTicketsBody,
+  PrintixImportOrgTicketsHeaders,
+  PrintixImportOrgTicketsOptions,
+  PrintixImportOrgTicketsPath,
+  PrintixImportOrgTicketsQuery,
+  PrintixImportOrgTicketsResponse,
+  PrintixImportOrgTicketsResponses,
+  PrintixImportOrgTicketsStatus200,
+  PrintixImportOrgTicketsStatus400,
+  PrintixImportOrgTicketsStatus401,
+  PrintixImportOrgTicketsStatus403,
+  PrintixImportOrgTicketsStatus404,
+  PrintixImportOrgTicketsStatus409,
+  PrintixImportOrgTicketsStatus413,
+  PrintixImportOrgTicketsStatus422,
+} from "./PrintixImportOrgTickets.js";
 export type { PrintixImportReport } from "./PrintixImportReport.js";
 export type {
   PrintixImportTicketsBody,
@@ -7818,6 +7896,64 @@ export type {
   PrintixImportTicketsStatus413,
   PrintixImportTicketsStatus422,
 } from "./PrintixImportTickets.js";
+export type {
+  PrintixListEventsOptions,
+  PrintixListEventsQuery,
+  PrintixListEventsResponse,
+  PrintixListEventsResponses,
+  PrintixListEventsStatus200,
+  PrintixListEventsStatus401,
+  PrintixListEventsStatus403,
+  PrintixListEventsStatus422,
+} from "./PrintixListEvents.js";
+export type {
+  PrintixListMyOrganiserOrganisationsOptions,
+  PrintixListMyOrganiserOrganisationsResponse,
+  PrintixListMyOrganiserOrganisationsResponses,
+  PrintixListMyOrganiserOrganisationsStatus200,
+  PrintixListMyOrganiserOrganisationsStatus401,
+  PrintixListMyOrganiserOrganisationsStatus403,
+  PrintixListMyOrganiserOrganisationsStatus422,
+} from "./PrintixListMyOrganiserOrganisations.js";
+export type {
+  PrintixListOrgEventsHeaders,
+  PrintixListOrgEventsOptions,
+  PrintixListOrgEventsQuery,
+  PrintixListOrgEventsResponse,
+  PrintixListOrgEventsResponses,
+  PrintixListOrgEventsStatus200,
+  PrintixListOrgEventsStatus400,
+  PrintixListOrgEventsStatus401,
+  PrintixListOrgEventsStatus403,
+  PrintixListOrgEventsStatus422,
+} from "./PrintixListOrgEvents.js";
+export type {
+  PrintixListOrgPairingsHeaders,
+  PrintixListOrgPairingsOptions,
+  PrintixListOrgPairingsPath,
+  PrintixListOrgPairingsResponse,
+  PrintixListOrgPairingsResponses,
+  PrintixListOrgPairingsStatus200,
+  PrintixListOrgPairingsStatus400,
+  PrintixListOrgPairingsStatus401,
+  PrintixListOrgPairingsStatus403,
+  PrintixListOrgPairingsStatus404,
+  PrintixListOrgPairingsStatus422,
+} from "./PrintixListOrgPairings.js";
+export type {
+  PrintixListOrgTicketsHeaders,
+  PrintixListOrgTicketsOptions,
+  PrintixListOrgTicketsPath,
+  PrintixListOrgTicketsQuery,
+  PrintixListOrgTicketsResponse,
+  PrintixListOrgTicketsResponses,
+  PrintixListOrgTicketsStatus200,
+  PrintixListOrgTicketsStatus400,
+  PrintixListOrgTicketsStatus401,
+  PrintixListOrgTicketsStatus403,
+  PrintixListOrgTicketsStatus404,
+  PrintixListOrgTicketsStatus422,
+} from "./PrintixListOrgTickets.js";
 export type {
   PrintixListPairingsOptions,
   PrintixListPairingsPath,
@@ -7841,6 +7977,53 @@ export type {
   PrintixListTicketsStatus404,
   PrintixListTicketsStatus422,
 } from "./PrintixListTickets.js";
+export type { PrintixOfflineAdmission } from "./PrintixOfflineAdmission.js";
+export type { PrintixOfflineAdmissionResult } from "./PrintixOfflineAdmissionResult.js";
+export type {
+  PrintixOfflineAdmissionsBody,
+  PrintixOfflineAdmissionsOptions,
+  PrintixOfflineAdmissionsResponse,
+  PrintixOfflineAdmissionsResponses,
+  PrintixOfflineAdmissionsStatus200,
+  PrintixOfflineAdmissionsStatus401,
+  PrintixOfflineAdmissionsStatus403,
+  PrintixOfflineAdmissionsStatus409,
+  PrintixOfflineAdmissionsStatus422,
+  PrintixOfflineAdmissionsStatus429,
+} from "./PrintixOfflineAdmissions.js";
+export type { PrintixOfflineList } from "./PrintixOfflineList.js";
+export type { PrintixOfflineSyncRequest } from "./PrintixOfflineSyncRequest.js";
+export type { PrintixOfflineSyncResult } from "./PrintixOfflineSyncResult.js";
+export type { PrintixOfflineTicket } from "./PrintixOfflineTicket.js";
+export type { PrintixOfflineTicketState } from "./PrintixOfflineTicketState.js";
+export { printixOfflineTicketState } from "./PrintixOfflineTicketState.js";
+export type {
+  PrintixOfflineTicketsOptions,
+  PrintixOfflineTicketsResponse,
+  PrintixOfflineTicketsResponses,
+  PrintixOfflineTicketsStatus200,
+  PrintixOfflineTicketsStatus401,
+  PrintixOfflineTicketsStatus403,
+  PrintixOfflineTicketsStatus409,
+  PrintixOfflineTicketsStatus422,
+  PrintixOfflineTicketsStatus429,
+} from "./PrintixOfflineTickets.js";
+export type { PrintixOfflineUnavailableBody } from "./PrintixOfflineUnavailableBody.js";
+export type { PrintixOrganiserOrganisation } from "./PrintixOrganiserOrganisation.js";
+export type { PrintixOrgEventCreate } from "./PrintixOrgEventCreate.js";
+export type {
+  PrintixOrgEventSummaryHeaders,
+  PrintixOrgEventSummaryOptions,
+  PrintixOrgEventSummaryPath,
+  PrintixOrgEventSummaryResponse,
+  PrintixOrgEventSummaryResponses,
+  PrintixOrgEventSummaryStatus200,
+  PrintixOrgEventSummaryStatus400,
+  PrintixOrgEventSummaryStatus401,
+  PrintixOrgEventSummaryStatus403,
+  PrintixOrgEventSummaryStatus404,
+  PrintixOrgEventSummaryStatus422,
+} from "./PrintixOrgEventSummary.js";
 export type { PrintixPairingCreate } from "./PrintixPairingCreate.js";
 export type { PrintixPairingCreated } from "./PrintixPairingCreated.js";
 export type { PrintixPairingPublic } from "./PrintixPairingPublic.js";
@@ -7854,6 +8037,19 @@ export type {
   PrintixPairingSummaryStatus422,
   PrintixPairingSummaryStatus429,
 } from "./PrintixPairingSummary.js";
+export type {
+  PrintixRevokeOrgPairingHeaders,
+  PrintixRevokeOrgPairingOptions,
+  PrintixRevokeOrgPairingPath,
+  PrintixRevokeOrgPairingResponse,
+  PrintixRevokeOrgPairingResponses,
+  PrintixRevokeOrgPairingStatus200,
+  PrintixRevokeOrgPairingStatus400,
+  PrintixRevokeOrgPairingStatus401,
+  PrintixRevokeOrgPairingStatus403,
+  PrintixRevokeOrgPairingStatus404,
+  PrintixRevokeOrgPairingStatus422,
+} from "./PrintixRevokeOrgPairing.js";
 export type {
   PrintixRevokePairingOptions,
   PrintixRevokePairingPath,
@@ -7869,10 +8065,36 @@ export type { PrintixScanOutcome } from "./PrintixScanOutcome.js";
 export { printixScanOutcome } from "./PrintixScanOutcome.js";
 export type { PrintixScanRequest } from "./PrintixScanRequest.js";
 export type { PrintixScanResult } from "./PrintixScanResult.js";
+export type {
+  PrintixSetEventOrganisationBody,
+  PrintixSetEventOrganisationOptions,
+  PrintixSetEventOrganisationPath,
+  PrintixSetEventOrganisationResponse,
+  PrintixSetEventOrganisationResponses,
+  PrintixSetEventOrganisationStatus200,
+  PrintixSetEventOrganisationStatus401,
+  PrintixSetEventOrganisationStatus403,
+  PrintixSetEventOrganisationStatus404,
+  PrintixSetEventOrganisationStatus422,
+} from "./PrintixSetEventOrganisation.js";
 export type { PrintixTicketPage } from "./PrintixTicketPage.js";
 export type { PrintixTicketPublic } from "./PrintixTicketPublic.js";
 export type { PrintixTicketStatus } from "./PrintixTicketStatus.js";
 export { printixTicketStatus } from "./PrintixTicketStatus.js";
+export type {
+  PrintixUnvoidOrgTicketHeaders,
+  PrintixUnvoidOrgTicketOptions,
+  PrintixUnvoidOrgTicketPath,
+  PrintixUnvoidOrgTicketResponse,
+  PrintixUnvoidOrgTicketResponses,
+  PrintixUnvoidOrgTicketStatus200,
+  PrintixUnvoidOrgTicketStatus400,
+  PrintixUnvoidOrgTicketStatus401,
+  PrintixUnvoidOrgTicketStatus403,
+  PrintixUnvoidOrgTicketStatus404,
+  PrintixUnvoidOrgTicketStatus409,
+  PrintixUnvoidOrgTicketStatus422,
+} from "./PrintixUnvoidOrgTicket.js";
 export type {
   PrintixUnvoidTicketOptions,
   PrintixUnvoidTicketPath,
@@ -7885,6 +8107,20 @@ export type {
   PrintixUnvoidTicketStatus409,
   PrintixUnvoidTicketStatus422,
 } from "./PrintixUnvoidTicket.js";
+export type {
+  PrintixVoidOrgTicketHeaders,
+  PrintixVoidOrgTicketOptions,
+  PrintixVoidOrgTicketPath,
+  PrintixVoidOrgTicketResponse,
+  PrintixVoidOrgTicketResponses,
+  PrintixVoidOrgTicketStatus200,
+  PrintixVoidOrgTicketStatus400,
+  PrintixVoidOrgTicketStatus401,
+  PrintixVoidOrgTicketStatus403,
+  PrintixVoidOrgTicketStatus404,
+  PrintixVoidOrgTicketStatus409,
+  PrintixVoidOrgTicketStatus422,
+} from "./PrintixVoidOrgTicket.js";
 export type {
   PrintixVoidTicketOptions,
   PrintixVoidTicketPath,

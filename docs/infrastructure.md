@@ -20,8 +20,9 @@ since 2026-11-12, each running Ubuntu 24.04 and Docker Engine 29.
 
 State on 2026-11-14:
 
-- **Release:** production runs v1.0.8, published from `main` on 2026-11-14 (UTC) and
-  deployed by the Production Pipeline. `dev` is ahead of it.
+- **Release:** production runs v1.3.0 (since 2026-11-16), published from `main` and
+  deployed by the Production Pipeline. The other points below were recorded on
+  2026-11-14.
 - **Database schema:** `alembic check` was run on production after v1.0.8 and
   reported no differences between the models and the migrated database (the
   follow-up from PR #1304).

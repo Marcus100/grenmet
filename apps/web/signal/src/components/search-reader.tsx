@@ -30,7 +30,11 @@ export function SearchReader({ entries }: { entries: SearchEntry[] }) {
       {query.trim() && !results.length ? (
         <p className="border-signal-rule border-t py-6 text-lg">
           No matches for “{query.trim()}”. Try fewer words or{" "}
-          <Link className="text-signal-green underline" href="/topics">
+          <Link
+            className="text-signal-green underline"
+            href="/topics"
+            prefetch={false}
+          >
             browse the topics
           </Link>
           .
@@ -44,6 +48,7 @@ export function SearchReader({ entries }: { entries: SearchEntry[] }) {
               <Link
                 className="hover:text-signal-green hover:underline"
                 href={entry.href}
+                prefetch={false}
               >
                 {entry.title}
               </Link>

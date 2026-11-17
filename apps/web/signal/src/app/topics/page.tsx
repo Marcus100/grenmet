@@ -35,6 +35,7 @@ export default function TopicsPage() {
                 <Link
                   className="hover:text-signal-green hover:underline"
                   href={`/${section.slug}`}
+                  prefetch={false}
                 >
                   {section.label} →
                 </Link>
@@ -60,6 +61,7 @@ export default function TopicsPage() {
                 <Link
                   className="text-signal-green hover:underline"
                   href={series.href}
+                  prefetch={false}
                 >
                   {series.label} →
                 </Link>

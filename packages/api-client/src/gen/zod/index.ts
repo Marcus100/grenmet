@@ -798,6 +798,7 @@ export {
   authReplaceRecoveryCodesStatus200Schema,
   authReplaceRecoveryCodesStatus400Schema,
   authReplaceRecoveryCodesStatus422Schema,
+  authReplaceRecoveryCodesStatus429Schema,
 } from "./authReplaceRecoveryCodesSchema.js";
 export {
   authRequestStaffAccessErrorSchema,
@@ -856,6 +857,14 @@ export {
   authRevokeSuperuserInvitationStatus422Schema,
 } from "./authRevokeSuperuserInvitationSchema.js";
 export {
+  authSendEmailChangeCodeErrorSchema,
+  authSendEmailChangeCodeResponseSchema,
+  authSendEmailChangeCodeStatus200Schema,
+  authSendEmailChangeCodeStatus400Schema,
+  authSendEmailChangeCodeStatus422Schema,
+  authSendEmailChangeCodeStatus429Schema,
+} from "./authSendEmailChangeCodeSchema.js";
+export {
   authSuperuserInvitationCodeBodySchema,
   authSuperuserInvitationCodeErrorSchema,
   authSuperuserInvitationCodeResponseSchema,
@@ -870,6 +879,7 @@ export {
   authTwofaActivateStatus200Schema,
   authTwofaActivateStatus400Schema,
   authTwofaActivateStatus422Schema,
+  authTwofaActivateStatus429Schema,
 } from "./authTwofaActivateSchema.js";
 export {
   authTwofaDisableBodySchema,
@@ -878,6 +888,7 @@ export {
   authTwofaDisableStatus200Schema,
   authTwofaDisableStatus400Schema,
   authTwofaDisableStatus422Schema,
+  authTwofaDisableStatus429Schema,
 } from "./authTwofaDisableSchema.js";
 export {
   authTwofaSetupErrorSchema,
@@ -886,6 +897,7 @@ export {
   authTwofaSetupStatus401Schema,
   authTwofaSetupStatus403Schema,
   authTwofaSetupStatus422Schema,
+  authTwofaSetupStatus429Schema,
 } from "./authTwofaSetupSchema.js";
 export {
   authTwofaStatusErrorSchema,
@@ -902,6 +914,7 @@ export {
   authUpdatePasswordMeStatus200Schema,
   authUpdatePasswordMeStatus400Schema,
   authUpdatePasswordMeStatus422Schema,
+  authUpdatePasswordMeStatus429Schema,
 } from "./authUpdatePasswordMeSchema.js";
 export {
   authUpdateRoleAssignmentBodySchema,
@@ -928,8 +941,10 @@ export {
   authUpdateUserMeErrorSchema,
   authUpdateUserMeResponseSchema,
   authUpdateUserMeStatus200Schema,
+  authUpdateUserMeStatus400Schema,
   authUpdateUserMeStatus409Schema,
   authUpdateUserMeStatus422Schema,
+  authUpdateUserMeStatus429Schema,
 } from "./authUpdateUserMeSchema.js";
 export {
   authUpdateUserBodySchema,
@@ -1141,6 +1156,7 @@ export { binaryFileSchema } from "./binaryFileSchema.js";
 export { bodyAuthLoginAccessTokenSchema } from "./bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrImportTerminalPunchesSchema } from "./bodyHrImportTerminalPunchesSchema.js";
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
+export { bodyPrintixImportOrgTicketsSchema } from "./bodyPrintixImportOrgTicketsSchema.js";
 export { bodyPrintixImportTicketsSchema } from "./bodyPrintixImportTicketsSchema.js";
 export { bookingAgendaDaySchema } from "./bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
@@ -3944,6 +3960,7 @@ export { gradeInputSchema } from "./gradeInputSchema.js";
 export { gradePublicSchema } from "./gradePublicSchema.js";
 export { gradeSetupSchema } from "./gradeSetupSchema.js";
 export { grantCreateSchema } from "./grantCreateSchema.js";
+export { grantInactiveReasonSchema } from "./grantInactiveReasonSchema.js";
 export { grantRevokePublicSchema } from "./grantRevokePublicSchema.js";
 export { groupDetailPropertiesCategoryEnumSchema } from "./groupDetailPropertiesCategoryEnumSchema.js";
 export { groupDetailPropertiesJoinPolicyEnumSchema } from "./groupDetailPropertiesJoinPolicyEnumSchema.js";
@@ -7708,6 +7725,20 @@ export {
   printixCloseEventStatus422Schema,
 } from "./printixCloseEventSchema.js";
 export {
+  printixCloseOrgEventErrorSchema,
+  printixCloseOrgEventHeadersSchema,
+  printixCloseOrgEventHeaderXBarrelsOrganisationSchema,
+  printixCloseOrgEventPathEventIdSchema,
+  printixCloseOrgEventPathSchema,
+  printixCloseOrgEventResponseSchema,
+  printixCloseOrgEventStatus200Schema,
+  printixCloseOrgEventStatus400Schema,
+  printixCloseOrgEventStatus401Schema,
+  printixCloseOrgEventStatus403Schema,
+  printixCloseOrgEventStatus404Schema,
+  printixCloseOrgEventStatus422Schema,
+} from "./printixCloseOrgEventSchema.js";
+export {
   printixCreateEventBodySchema,
   printixCreateEventErrorSchema,
   printixCreateEventResponseSchema,
@@ -7716,6 +7747,34 @@ export {
   printixCreateEventStatus403Schema,
   printixCreateEventStatus422Schema,
 } from "./printixCreateEventSchema.js";
+export {
+  printixCreateOrgEventBodySchema,
+  printixCreateOrgEventErrorSchema,
+  printixCreateOrgEventHeadersSchema,
+  printixCreateOrgEventHeaderXBarrelsOrganisationSchema,
+  printixCreateOrgEventResponseSchema,
+  printixCreateOrgEventStatus201Schema,
+  printixCreateOrgEventStatus400Schema,
+  printixCreateOrgEventStatus401Schema,
+  printixCreateOrgEventStatus403Schema,
+  printixCreateOrgEventStatus422Schema,
+} from "./printixCreateOrgEventSchema.js";
+export {
+  printixCreateOrgPairingBodySchema,
+  printixCreateOrgPairingErrorSchema,
+  printixCreateOrgPairingHeadersSchema,
+  printixCreateOrgPairingHeaderXBarrelsOrganisationSchema,
+  printixCreateOrgPairingPathEventIdSchema,
+  printixCreateOrgPairingPathSchema,
+  printixCreateOrgPairingResponseSchema,
+  printixCreateOrgPairingStatus201Schema,
+  printixCreateOrgPairingStatus400Schema,
+  printixCreateOrgPairingStatus401Schema,
+  printixCreateOrgPairingStatus403Schema,
+  printixCreateOrgPairingStatus404Schema,
+  printixCreateOrgPairingStatus409Schema,
+  printixCreateOrgPairingStatus422Schema,
+} from "./printixCreateOrgPairingSchema.js";
 export {
   printixCreatePairingBodySchema,
   printixCreatePairingErrorSchema,
@@ -7730,6 +7789,8 @@ export {
   printixCreatePairingStatus422Schema,
 } from "./printixCreatePairingSchema.js";
 export { printixEventCreateSchema } from "./printixEventCreateSchema.js";
+export { printixEventOrganisationUpdateSchema } from "./printixEventOrganisationUpdateSchema.js";
+export { printixEventPageSchema } from "./printixEventPageSchema.js";
 export { printixEventPublicSchema } from "./printixEventPublicSchema.js";
 export { printixEventStatusSchema } from "./printixEventStatusSchema.js";
 export {
@@ -7746,6 +7807,26 @@ export {
 } from "./printixEventSummarySchema.js";
 export { printixGateCountSchema } from "./printixGateCountSchema.js";
 export { printixImportIssueSchema } from "./printixImportIssueSchema.js";
+export {
+  printixImportOrgTicketsBodySchema,
+  printixImportOrgTicketsErrorSchema,
+  printixImportOrgTicketsHeadersSchema,
+  printixImportOrgTicketsHeaderXBarrelsOrganisationSchema,
+  printixImportOrgTicketsPathEventIdSchema,
+  printixImportOrgTicketsPathSchema,
+  printixImportOrgTicketsQueryAllowNumberAsBarcodeSchema,
+  printixImportOrgTicketsQueryDryRunSchema,
+  printixImportOrgTicketsQuerySchema,
+  printixImportOrgTicketsResponseSchema,
+  printixImportOrgTicketsStatus200Schema,
+  printixImportOrgTicketsStatus400Schema,
+  printixImportOrgTicketsStatus401Schema,
+  printixImportOrgTicketsStatus403Schema,
+  printixImportOrgTicketsStatus404Schema,
+  printixImportOrgTicketsStatus409Schema,
+  printixImportOrgTicketsStatus413Schema,
+  printixImportOrgTicketsStatus422Schema,
+} from "./printixImportOrgTicketsSchema.js";
 export { printixImportReportSchema } from "./printixImportReportSchema.js";
 export {
   printixImportTicketsBodySchema,
@@ -7764,6 +7845,72 @@ export {
   printixImportTicketsStatus413Schema,
   printixImportTicketsStatus422Schema,
 } from "./printixImportTicketsSchema.js";
+export {
+  printixListEventsErrorSchema,
+  printixListEventsQueryPageSchema,
+  printixListEventsQuerySchema,
+  printixListEventsQuerySizeSchema,
+  printixListEventsResponseSchema,
+  printixListEventsStatus200Schema,
+  printixListEventsStatus401Schema,
+  printixListEventsStatus403Schema,
+  printixListEventsStatus422Schema,
+} from "./printixListEventsSchema.js";
+export {
+  printixListMyOrganiserOrganisationsErrorSchema,
+  printixListMyOrganiserOrganisationsResponseSchema,
+  printixListMyOrganiserOrganisationsStatus200Schema,
+  printixListMyOrganiserOrganisationsStatus401Schema,
+  printixListMyOrganiserOrganisationsStatus403Schema,
+  printixListMyOrganiserOrganisationsStatus422Schema,
+} from "./printixListMyOrganiserOrganisationsSchema.js";
+export {
+  printixListOrgEventsErrorSchema,
+  printixListOrgEventsHeadersSchema,
+  printixListOrgEventsHeaderXBarrelsOrganisationSchema,
+  printixListOrgEventsQueryPageSchema,
+  printixListOrgEventsQuerySchema,
+  printixListOrgEventsQuerySizeSchema,
+  printixListOrgEventsResponseSchema,
+  printixListOrgEventsStatus200Schema,
+  printixListOrgEventsStatus400Schema,
+  printixListOrgEventsStatus401Schema,
+  printixListOrgEventsStatus403Schema,
+  printixListOrgEventsStatus422Schema,
+} from "./printixListOrgEventsSchema.js";
+export {
+  printixListOrgPairingsErrorSchema,
+  printixListOrgPairingsHeadersSchema,
+  printixListOrgPairingsHeaderXBarrelsOrganisationSchema,
+  printixListOrgPairingsPathEventIdSchema,
+  printixListOrgPairingsPathSchema,
+  printixListOrgPairingsResponseSchema,
+  printixListOrgPairingsStatus200Schema,
+  printixListOrgPairingsStatus400Schema,
+  printixListOrgPairingsStatus401Schema,
+  printixListOrgPairingsStatus403Schema,
+  printixListOrgPairingsStatus404Schema,
+  printixListOrgPairingsStatus422Schema,
+} from "./printixListOrgPairingsSchema.js";
+export {
+  printixListOrgTicketsErrorSchema,
+  printixListOrgTicketsHeadersSchema,
+  printixListOrgTicketsHeaderXBarrelsOrganisationSchema,
+  printixListOrgTicketsPathEventIdSchema,
+  printixListOrgTicketsPathSchema,
+  printixListOrgTicketsQueryAdmittedSchema,
+  printixListOrgTicketsQueryPageSchema,
+  printixListOrgTicketsQuerySchema,
+  printixListOrgTicketsQuerySizeSchema,
+  printixListOrgTicketsQueryStatusSchema,
+  printixListOrgTicketsResponseSchema,
+  printixListOrgTicketsStatus200Schema,
+  printixListOrgTicketsStatus400Schema,
+  printixListOrgTicketsStatus401Schema,
+  printixListOrgTicketsStatus403Schema,
+  printixListOrgTicketsStatus404Schema,
+  printixListOrgTicketsStatus422Schema,
+} from "./printixListOrgTicketsSchema.js";
 export {
   printixListPairingsErrorSchema,
   printixListPairingsPathEventIdSchema,
@@ -7791,6 +7938,51 @@ export {
   printixListTicketsStatus404Schema,
   printixListTicketsStatus422Schema,
 } from "./printixListTicketsSchema.js";
+export { printixOfflineAdmissionResultSchema } from "./printixOfflineAdmissionResultSchema.js";
+export { printixOfflineAdmissionSchema } from "./printixOfflineAdmissionSchema.js";
+export {
+  printixOfflineAdmissionsBodySchema,
+  printixOfflineAdmissionsErrorSchema,
+  printixOfflineAdmissionsResponseSchema,
+  printixOfflineAdmissionsStatus200Schema,
+  printixOfflineAdmissionsStatus401Schema,
+  printixOfflineAdmissionsStatus403Schema,
+  printixOfflineAdmissionsStatus409Schema,
+  printixOfflineAdmissionsStatus422Schema,
+  printixOfflineAdmissionsStatus429Schema,
+} from "./printixOfflineAdmissionsSchema.js";
+export { printixOfflineListSchema } from "./printixOfflineListSchema.js";
+export { printixOfflineSyncRequestSchema } from "./printixOfflineSyncRequestSchema.js";
+export { printixOfflineSyncResultSchema } from "./printixOfflineSyncResultSchema.js";
+export { printixOfflineTicketSchema } from "./printixOfflineTicketSchema.js";
+export { printixOfflineTicketStateSchema } from "./printixOfflineTicketStateSchema.js";
+export {
+  printixOfflineTicketsErrorSchema,
+  printixOfflineTicketsResponseSchema,
+  printixOfflineTicketsStatus200Schema,
+  printixOfflineTicketsStatus401Schema,
+  printixOfflineTicketsStatus403Schema,
+  printixOfflineTicketsStatus409Schema,
+  printixOfflineTicketsStatus422Schema,
+  printixOfflineTicketsStatus429Schema,
+} from "./printixOfflineTicketsSchema.js";
+export { printixOfflineUnavailableBodySchema } from "./printixOfflineUnavailableBodySchema.js";
+export { printixOrganiserOrganisationSchema } from "./printixOrganiserOrganisationSchema.js";
+export { printixOrgEventCreateSchema } from "./printixOrgEventCreateSchema.js";
+export {
+  printixOrgEventSummaryErrorSchema,
+  printixOrgEventSummaryHeadersSchema,
+  printixOrgEventSummaryHeaderXBarrelsOrganisationSchema,
+  printixOrgEventSummaryPathEventIdSchema,
+  printixOrgEventSummaryPathSchema,
+  printixOrgEventSummaryResponseSchema,
+  printixOrgEventSummaryStatus200Schema,
+  printixOrgEventSummaryStatus400Schema,
+  printixOrgEventSummaryStatus401Schema,
+  printixOrgEventSummaryStatus403Schema,
+  printixOrgEventSummaryStatus404Schema,
+  printixOrgEventSummaryStatus422Schema,
+} from "./printixOrgEventSummarySchema.js";
 export { printixPairingCreatedSchema } from "./printixPairingCreatedSchema.js";
 export { printixPairingCreateSchema } from "./printixPairingCreateSchema.js";
 export { printixPairingPublicSchema } from "./printixPairingPublicSchema.js";
@@ -7803,6 +7995,20 @@ export {
   printixPairingSummaryStatus422Schema,
   printixPairingSummaryStatus429Schema,
 } from "./printixPairingSummarySchema.js";
+export {
+  printixRevokeOrgPairingErrorSchema,
+  printixRevokeOrgPairingHeadersSchema,
+  printixRevokeOrgPairingHeaderXBarrelsOrganisationSchema,
+  printixRevokeOrgPairingPathPairingIdSchema,
+  printixRevokeOrgPairingPathSchema,
+  printixRevokeOrgPairingResponseSchema,
+  printixRevokeOrgPairingStatus200Schema,
+  printixRevokeOrgPairingStatus400Schema,
+  printixRevokeOrgPairingStatus401Schema,
+  printixRevokeOrgPairingStatus403Schema,
+  printixRevokeOrgPairingStatus404Schema,
+  printixRevokeOrgPairingStatus422Schema,
+} from "./printixRevokeOrgPairingSchema.js";
 export {
   printixRevokePairingErrorSchema,
   printixRevokePairingPathPairingIdSchema,
@@ -7817,9 +8023,36 @@ export {
 export { printixScanOutcomeSchema } from "./printixScanOutcomeSchema.js";
 export { printixScanRequestSchema } from "./printixScanRequestSchema.js";
 export { printixScanResultSchema } from "./printixScanResultSchema.js";
+export {
+  printixSetEventOrganisationBodySchema,
+  printixSetEventOrganisationErrorSchema,
+  printixSetEventOrganisationPathEventIdSchema,
+  printixSetEventOrganisationPathSchema,
+  printixSetEventOrganisationResponseSchema,
+  printixSetEventOrganisationStatus200Schema,
+  printixSetEventOrganisationStatus401Schema,
+  printixSetEventOrganisationStatus403Schema,
+  printixSetEventOrganisationStatus404Schema,
+  printixSetEventOrganisationStatus422Schema,
+} from "./printixSetEventOrganisationSchema.js";
 export { printixTicketPageSchema } from "./printixTicketPageSchema.js";
 export { printixTicketPublicSchema } from "./printixTicketPublicSchema.js";
 export { printixTicketStatusSchema } from "./printixTicketStatusSchema.js";
+export {
+  printixUnvoidOrgTicketErrorSchema,
+  printixUnvoidOrgTicketHeadersSchema,
+  printixUnvoidOrgTicketHeaderXBarrelsOrganisationSchema,
+  printixUnvoidOrgTicketPathSchema,
+  printixUnvoidOrgTicketPathTicketIdSchema,
+  printixUnvoidOrgTicketResponseSchema,
+  printixUnvoidOrgTicketStatus200Schema,
+  printixUnvoidOrgTicketStatus400Schema,
+  printixUnvoidOrgTicketStatus401Schema,
+  printixUnvoidOrgTicketStatus403Schema,
+  printixUnvoidOrgTicketStatus404Schema,
+  printixUnvoidOrgTicketStatus409Schema,
+  printixUnvoidOrgTicketStatus422Schema,
+} from "./printixUnvoidOrgTicketSchema.js";
 export {
   printixUnvoidTicketErrorSchema,
   printixUnvoidTicketPathSchema,
@@ -7832,6 +8065,21 @@ export {
   printixUnvoidTicketStatus409Schema,
   printixUnvoidTicketStatus422Schema,
 } from "./printixUnvoidTicketSchema.js";
+export {
+  printixVoidOrgTicketErrorSchema,
+  printixVoidOrgTicketHeadersSchema,
+  printixVoidOrgTicketHeaderXBarrelsOrganisationSchema,
+  printixVoidOrgTicketPathSchema,
+  printixVoidOrgTicketPathTicketIdSchema,
+  printixVoidOrgTicketResponseSchema,
+  printixVoidOrgTicketStatus200Schema,
+  printixVoidOrgTicketStatus400Schema,
+  printixVoidOrgTicketStatus401Schema,
+  printixVoidOrgTicketStatus403Schema,
+  printixVoidOrgTicketStatus404Schema,
+  printixVoidOrgTicketStatus409Schema,
+  printixVoidOrgTicketStatus422Schema,
+} from "./printixVoidOrgTicketSchema.js";
 export {
   printixVoidTicketErrorSchema,
   printixVoidTicketPathSchema,

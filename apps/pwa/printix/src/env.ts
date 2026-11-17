@@ -1,17 +1,7 @@
 // Typed environment for the Printix scanner. The only place that reads
-// `process.env`. Every value has a safe default and a bad value falls back.
+// `import.meta.env`. A missing or unsafe value falls back to empty.
 
-const DEFAULT_SITE_URL = "https://scan.barrels.gd";
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
-
-function originOf(value: string | undefined, fallback: string): string {
-  const raw = value?.trim() || fallback;
-  try {
-    return new URL(raw).origin;
-  } catch {
-    return fallback;
-  }
-}
 
 /**
  * The API origin the scanner calls with the pairing secret. Plain http is
@@ -36,23 +26,16 @@ function apiOriginOf(value: string | undefined): string {
 
 export interface PrintixEnv {
   /** Origin of the FastAPI service. Empty when not configured. */
-  readonly NEXT_PUBLIC_API_URL: string;
-  /** Public origin of the scanner, used for page metadata. */
-  readonly PRINTIX_SITE_URL: string;
+  readonly VITE_API_URL: string;
 }
 
 export function parseEnv(
   source: Record<string, string | undefined>
 ): PrintixEnv {
-  return {
-    PRINTIX_SITE_URL: originOf(source.PRINTIX_SITE_URL, DEFAULT_SITE_URL),
-    NEXT_PUBLIC_API_URL: apiOriginOf(source.NEXT_PUBLIC_API_URL),
-  };
+  return { VITE_API_URL: apiOriginOf(source.VITE_API_URL) };
 }
 
-// The literal `process.env.NEXT_PUBLIC_API_URL` reference is what lets Next
-// inline the value into the browser bundle of this static export.
+// Vite writes VITE_-prefixed values into the browser bundle at build time.
 export const env = parseEnv({
-  PRINTIX_SITE_URL: process.env.PRINTIX_SITE_URL,
-  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  VITE_API_URL: import.meta.env.VITE_API_URL,
 });

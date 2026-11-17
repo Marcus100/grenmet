@@ -1139,7 +1139,10 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   a grant ends the downstream grants that lose support from an owner or admin, and the
   response's `cascaded_revocations` counts them (409 above 200 roles, nothing ended).
   Revoking a team grant can end the grants its holder issued. Member grant
-  lists show only products whose `team.manage` the caller holds. Each bundle carries a
+  lists show only products whose `team.manage` the caller holds. A grant whose giver is no
+  longer an active member is listed with `active: false` and `inactive_reason:
+  "granter_inactive"` (#1501): it gives no access while paused, and it does not lift the
+  grantor's expiry ceiling. Each bundle carries a
   human `label` and `description` (`role_bundles.BUNDLE_COPY`). `GET /team/members`
   (team managers) is the paginated roster of active members: membership id, display
   name, org role, `is_self` (the row is the caller's own) and live grants limited to
@@ -1886,7 +1889,7 @@ An administrator saves department/grade membership and issues the permanent staf
 
 Password recovery uses a hashed, expiring, single-use challenge. Resetting or changing a password invalidates outstanding challenges and saved sessions. Old JWT-based reset links must be replaced by requesting a new link. New and changed passwords require 12–128 characters.
 
-`POST /api/v1/auth/users/me/security/recovery-codes` requires the current password and an authenticator or existing recovery code. It returns eight new codes once, stores only their hashes and invalidates previous codes. Recovery codes can replace the authenticator code at password or Google sign-in and are consumed once. `/auth/users/me/security/2fa/disable` requires both password and a factor code, and clears recovery codes. `DELETE /api/v1/auth/users/me/security/sessions/{session_id}` revokes only a session owned by the caller; foreign or missing sessions return 404. Already-issued bearer tokens retain their configured short lifetime.
+`POST /api/v1/auth/users/me/security/recovery-codes` requires the current password and an authenticator or existing recovery code. It returns eight new codes once, stores only their hashes and invalidates previous codes. Recovery codes can replace the authenticator code at password or Google sign-in and are consumed once. `/auth/users/me/security/2fa/disable` requires both password and a factor code, and clears recovery codes. These signed-in routes are rate limited per account (not per address) and answer 429 when exceeded: `2fa/setup` 5 a minute, `2fa/activate` 10, `2fa/disable` 5, `recovery-codes` 5 and `PATCH /auth/users/me/password` 5. Wrong proofs also lock per account with the sign-in thresholds (#1533): a wrong password on `2fa/disable` or `PATCH /auth/users/me/password` counts toward the sign-in lockout, and a wrong authenticator code on `2fa/activate` or `2fa/disable` counts toward its own lockout, which does not block password sign-in. While locked these routes answer 429 with `detail` "Account temporarily locked due to repeated failed logins", even for a correct proof. `DELETE /api/v1/auth/users/me/security/sessions/{session_id}` revokes only a session owned by the caller; foreign or missing sessions return 404. Already-issued bearer tokens retain their configured short lifetime.
 
 Apply Alembic migrations through `c3d5e7f9a1b2` before deploying these account controls. Configure the email provider and Google OAuth callback for the target environment before advertising those flows; application code alone does not configure providers.
 
@@ -3211,7 +3214,7 @@ request and response shapes are unchanged; the optional request body is accepted
 
 ## Printix ticket registry (ADR-0060)
 
-Two route zones, both under `/api/v1/printix/`.
+Four route zones, all under `/api/v1/printix/`.
 
 - **`admin/*`** (superuser with an enrolled authenticator and an MFA session, plus
   `printix.manage`): create and close events (`POST /events`, `POST /events/{id}/close`),
@@ -3223,11 +3226,73 @@ Two route zones, both under `/api/v1/printix/`.
   `total`; `POST /tickets/{id}/void` and `/unvoid`), and gate pairings
   (`POST /events/{id}/pairings` returns the one-time `secret`; `GET /events/{id}/pairings`
   never returns a secret; `POST /pairings/{id}/revoke`). Barcode values are never returned.
+- **`org/*`** (organiser access, ADR-0060 organiser amendment; ADR-0025 zone `org`): an
+  organisation member signed in to the `printix` app, with `X-Barrels-Organisation` set,
+  holding `printix.events.manage` or `printix.gates.manage` (either admits a read), an enrolled
+  authenticator and a session that passed it (checked on every call, whatever
+  `AUTH_PRIVILEGED_MFA_MODE` says). Read-only so far: `GET /org/events` (paginated, the
+  organisation's events only, newest date first) and `GET /org/events/{id}/summary` (the admin
+  summary). Another organisation's event, or one with no organisation, is 404. No superuser
+  bypass: a superuser without membership is 404. A non-member is 404, a member without a key
+  is 403, an account or other-app session is refused (403 and 401). The admin list
+  Writes (slices 4 and 5, all with the authenticator step and a per-user limit of 30 a minute;
+  reads 120 a minute): `printix.events.manage` makes `POST /org/events` (the organisation is the
+  caller's, never the body's), `POST /org/events/{id}/close`, `POST /org/events/{id}/tickets/import`
+  (multipart CSV; `dry_run` defaults to true and writes nothing; the report carries
+  `short_barcodes` (under 12 characters) and `barcode_equals_number`, for the offline warning),
+  `GET /org/events/{id}/tickets`, and `POST /org/tickets/{id}/void` and `/unvoid`.
+  `printix.gates.manage` makes gate QR codes: `POST /org/events/{id}/pairings` (201, the `secret`
+  once; expiry defaults to six hours after close; `allow_typed_numbers` defaults to false),
+  `GET /org/events/{id}/pairings` (never a secret) and `POST /org/pairings/{id}/revoke`. A gate
+  lead holds only the gate key. Every event, ticket and pairing is looked up through its event's
+  organisation in SQL: another organisation's record, or one with no organisation, is 404.
+  Writes record the organiser as the audit actor.
+  Review fixes: only an organiser (`printix.events.manage`) may set `allow_typed_numbers`
+  (a gate lead gets 403 with `PrintixTypedNumbersNotAllowed`); an event holds at most 20 active
+  gate codes (a 409 when full; a revoked or expired code frees its place); a pairing create
+  answers `Cache-Control: no-store`. An organiser-made event is dated at most a year ahead and
+  closes at most seven days after its event date (422). A ticket or pairing of another
+  organisation and a missing one answer the same 404. The read bucket is 120 a minute and the
+  write bucket 30 a minute per user; if the limiter's backend is down the request is allowed
+  (logged). The import report's weak-barcode counts are event-wide: tickets already on the event
+  plus this file's valid rows.
+  `GET /admin/events` (superuser, every event) and `POST /admin/events/{id}/organisation`
+  (set or clear `organisation_id`) are in the admin zone; `POST /admin/events` takes an
+  optional `organisation_id`. Either call refuses an organisation that is suspended or not
+  entitled to `printix` with 422 (`PrintixOrganisationIneligible`); an unknown event is 404
+  before any organisation is checked. Owners and admins of an entitled organisation hold both
+  organisation keys implicitly (ADR-0044), so with the `printix-member` role they can use these
+  routes. Bundle grants need `printix.team.manage` (owners and admins hold it). The event's
+  organisation foreign key has no `ON DELETE` rule: an organisation that owns events cannot be
+  deleted until they are moved or cleared. A per-user rate limit is planned with the write slices.
+- **`me/*`** (a `printix` app session that passed the authenticator; no organisation header):
+  `GET /me/organisations` lists the organisations where the person is an active member, the
+  organisation is entitled to `printix`, and they hold `printix.events.manage` or
+  `printix.gates.manage`. Each item has `id`, `name`, `can_manage_events` and `can_manage_gates`.
+  An empty list for non-members. Another app's token is 401; an account session or a session
+  without the authenticator step is 403.
 - **`public/*`** (no account; `Authorization: Bearer <pairing secret>`, checked on every
   call): `POST /admissions` with `{value}` and `GET /summary`. An admission answers 200 with
   a stable `outcome`: `admitted`, `already_admitted` (with the first admission's time and
   gate), `void`, `unknown` (also used for a value on another event) or `event_closed`.
   A revoked pairing answers 403, an expired one 403, an unknown secret 401, and more than
   120 scans in a rolling minute 429 with `Retry-After`.
+- **Offline scanning** (same pairing auth; ADR-0060 offline amendment):
+  `GET /public/offline-tickets` returns the event and its tickets with `printed_number`,
+  `state` (`valid`, `void`, `admitted` with time and gate) and `barcode_hash` (HMAC-SHA256
+  of the barcode keyed with the list's `hash_key`, 32 hex characters); never a barcode;
+  4 reads a minute per pairing. `POST /public/offline-admissions` takes 1 to 100
+  `{client_ref, value, scanned_at}` and answers `results` (one per handled item, in order,
+  each a scan result plus `client_ref`), `deferred` and `retry_after_seconds`. Barcode
+  only; the first admission the server records wins; any outcome other than `admitted` is
+  a conflict. A scan made before the event closed counts even if it syncs after; a scan at
+  or after the close answers `event_closed`, and a sync more than 12 hours after the close
+  is `event_closed` whatever the scan time. A repeated `client_ref` returns its first
+  answer. Answers other than `admitted` share 60 a minute per pairing; past it the rest of
+  the batch is `deferred`. `scanned_at` outside 2020-01-01 UTC to a day ahead is a 422. 12
+  requests a minute per pairing. The summary's `offline_conflicts` counts offline
+  admissions not recorded. Both routes answer 409 with `code: offline_not_available` when a
+  barcode is its printed number or shorter than 12 characters (the list is then not sent);
+  live scanning is unaffected.
 
 Adding an outcome code or an optional field is additive; removing one is breaking.

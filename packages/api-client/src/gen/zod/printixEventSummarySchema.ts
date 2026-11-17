@@ -17,7 +17,14 @@ export const printixEventSummarySchema = z.object({
   not_yet_in: z.int().describe("Valid tickets not yet admitted."),
   duplicates_refused: z
     .int()
-    .describe("Scans of an already admitted ticket, refused."),
+    .describe("Live scans of an already admitted ticket, refused."),
+  offline_conflicts: z
+    .int()
+    .optional()
+    .default(0)
+    .describe(
+      "Offline admissions that the server could not record when the phone synced: the ticket was already admitted elsewhere, void, unknown or the event had closed. The person was let in at the gate."
+    ),
   admitted_by_gate: z.array(printixGateCountSchema),
 });
 

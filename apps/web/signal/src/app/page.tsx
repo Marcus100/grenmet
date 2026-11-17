@@ -62,7 +62,11 @@ export default function HomePage() {
             </div>
             <div className="lg:col-span-2">
               <h2 className="font-serif text-2xl leading-snug font-semibold sm:text-3xl">
-                <Link className="hover:underline" href={`/today/${brief.date}`}>
+                <Link
+                  className="hover:underline"
+                  href={`/today/${brief.date}`}
+                  prefetch={false}
+                >
                   {brief.title}
                 </Link>
               </h2>
@@ -72,6 +76,7 @@ export default function HomePage() {
               <Link
                 className="border-signal-gold mt-5 inline-flex min-h-11 items-center border-b-2 font-semibold"
                 href={`/today/${brief.date}`}
+                prefetch={false}
               >
                 Read the briefing →
               </Link>
@@ -90,6 +95,7 @@ export default function HomePage() {
                   <Link
                     className="hover:underline"
                     href={`/collections/${collection.slug}`}
+                    prefetch={false}
                   >
                     {collection.title}
                   </Link>
@@ -101,6 +107,7 @@ export default function HomePage() {
               <Link
                 className="text-signal-green inline-flex min-h-11 items-center underline underline-offset-4"
                 href={`/collections/${collection.slug}`}
+                prefetch={false}
               >
                 Explore the collection →
               </Link>
@@ -132,6 +139,7 @@ export default function HomePage() {
                   <Link
                     className="hover:text-signal-green"
                     href={`/${section.slug}`}
+                    prefetch={false}
                   >
                     {section.label} →
                   </Link>
@@ -160,6 +168,7 @@ export default function HomePage() {
                         <Link
                           className="hover:text-signal-green hover:underline"
                           href={`/${article.section}/${article.slug}`}
+                          prefetch={false}
                         >
                           {article.title}
                         </Link>

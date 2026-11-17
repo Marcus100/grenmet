@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { GrantInactiveReason } from "./GrantInactiveReason.js";
+
 /**
  * @description The revoked grant and how many other grants the cascade ended (#527).
  * @type object
@@ -21,6 +23,12 @@ export type GrantRevokePublic = {
   granted_at: string;
   expires_at?: string | null;
   revoked_at?: string | null;
+  /**
+   * @default true
+   * @type boolean | undefined
+   */
+  active?: boolean;
+  inactive_reason?: GrantInactiveReason | null;
   /**
    * @default 0
    * @type integer | undefined

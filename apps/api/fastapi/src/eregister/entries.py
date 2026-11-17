@@ -83,35 +83,43 @@ async def history_for(
     """
     if register is None or not (station_id or "").strip():
         return {}
+    hour_of = {observed_at - timedelta(hours=hours): hours for hours in HISTORY_HOURS}
+    try:
+        # A savepoint: a failed query must not abort the caller's transaction
+        # (correct() holds a row lock and still has to write).
+        async with register.begin_nested():
+            result = await register.execute(
+                text(
+                    """
+                    SELECT DISTINCT ON (observed_at) observed_at, body
+                    FROM register_observations
+                    WHERE station_id = :station
+                      AND kind = CAST('SYNOP' AS observation_kind)
+                      AND observed_at IN :times
+                      AND state NOT IN ('rejected', 'superseded')
+                    ORDER BY observed_at, created_at DESC
+                    """
+                ).bindparams(bindparam("times", expanding=True)),
+                {
+                    "station": (station_id or "").strip(),
+                    "times": list(hour_of),
+                },
+            )
+            rows = result.mappings().all()
+    except SQLAlchemyError, OSError:
+        logger.warning("eRegister hour-to-hour history unavailable", exc_info=True)
+        return {}
     found: dict[int, SynopWorkbook] = {}
-    for hours in HISTORY_HOURS:
+    for row in rows:
+        hours = hour_of.get(row["observed_at"])
+        if hours is None:
+            continue
         try:
-            # A savepoint: a failed query must not abort the caller's transaction
-            # (correct() holds a row lock and still has to write).
-            async with register.begin_nested():
-                result = await register.execute(
-                    text(
-                        """
-                        SELECT body FROM register_observations
-                        WHERE station_id = :station
-                          AND kind = CAST('SYNOP' AS observation_kind)
-                          AND observed_at = :at
-                          AND state NOT IN ('rejected', 'superseded')
-                        ORDER BY created_at DESC LIMIT 1
-                        """
-                    ),
-                    {
-                        "station": (station_id or "").strip(),
-                        "at": observed_at - timedelta(hours=hours),
-                    },
-                )
-                row = result.mappings().first()
-            if row is not None:
-                found[hours] = encode.workbook_from_body(row["body"])
-        except SQLAlchemyError, OSError, ValueError:
-            # One unreadable hour (or a bad stored body) leaves the other hour usable.
+            found[hours] = encode.workbook_from_body(row["body"])
+        except ValueError:
+            # A bad stored body leaves out only its own hour.
             logger.warning(
-                "eRegister hour-to-hour history unavailable for -%s h",
+                "eRegister hour-to-hour history unreadable for -%s h",
                 hours,
                 exc_info=True,
             )

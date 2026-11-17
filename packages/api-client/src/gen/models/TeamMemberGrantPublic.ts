@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { GrantInactiveReason } from "./GrantInactiveReason.js";
+
 /**
  * @description A live role on the roster. Only products the caller manages are listed.
  * @type object
@@ -18,4 +20,10 @@ export type TeamMemberGrantPublic = {
    */
   granted_at: string;
   expires_at?: string | null;
+  /**
+   * @default true
+   * @type boolean | undefined
+   */
+  active?: boolean;
+  inactive_reason?: GrantInactiveReason | null;
 };

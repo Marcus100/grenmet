@@ -310,7 +310,7 @@ async def refresh_session(
     body: SessionTokenRequest,
 ) -> SessionLoginResponse:
     """Rotate an existing session and return a replacement secret plus access token."""
-    db_session = await service.get_active_session_by_secret(
+    db_session = await service.get_session_by_secret(
         session=session, session_secret=body.session_token
     )
     if not db_session:
@@ -319,6 +319,18 @@ async def refresh_session(
         )
 
     user = await service.get_user_by_id(session=session, user_id=db_session.user_id)
+    # ADR-0061: a session its app now refuses (cap passed, or authenticator gone) is
+    # revoked here, so the access-token exchange cannot keep minting from it.
+    if await service.end_refused_session(
+        session=session, db_session=db_session, user=user
+    ):
+        raise AuthenticationError(
+            ERROR_INVALID_SESSION, headers={"WWW-Authenticate": "Bearer"}
+        )
+    if not service.is_session_active(db_session):
+        raise AuthenticationError(
+            ERROR_INVALID_SESSION, headers={"WWW-Authenticate": "Bearer"}
+        )
     scoped_app = (
         db_session.app_name if apps.is_app_scoped(db_session.app_name) else None
     )

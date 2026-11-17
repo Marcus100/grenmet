@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GateConsole } from "@/components/gate-console";
 import {
@@ -8,6 +6,7 @@ import {
   ScannerNotConnected,
 } from "@/components/pairing-screens";
 import { env } from "@/env";
+import { forgetOfflineData, unsentCount } from "@/lib/offline-store";
 import { readPairingFragment } from "@/lib/pairing";
 import {
   browserStorage,
@@ -15,6 +14,7 @@ import {
   loadPairingSecret,
   savePairingSecret,
 } from "@/lib/pairing-store";
+import { reportError } from "@/lib/report-error";
 import type { Connection, PairingProblem } from "@/lib/scan-api";
 
 type Phase =
@@ -95,15 +95,43 @@ export function GateApp() {
     setPhase({ kind: "problem", problem });
   }, []);
 
+  // Every way out of a pairing also deletes what was saved for offline
+  // checking: the ticket list and any admissions that were never sent.
   const unpair = useCallback(() => {
     clearPairingSecret(browserStorage());
     setPhase({ kind: "unpaired", badLink: false });
+    // After the scanning screen has closed, so nothing it is still finishing
+    // can write the list back.
+    setTimeout(() => {
+      forgetOfflineData().catch((error: unknown) =>
+        reportError(error, "offline-storage")
+      );
+    }, 0);
   }, []);
+
+  // A refused pairing cannot send what it admitted offline; say how many.
+  const [unsent, setUnsent] = useState(0);
+  const showingProblem = phase.kind === "problem";
+  useEffect(() => {
+    if (!showingProblem) {
+      return;
+    }
+    let active = true;
+    unsentCount()
+      .then((count) => {
+        if (active) {
+          setUnsent(count);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [showingProblem]);
 
   const secret = phase.kind === "paired" ? phase.secret : null;
   const connection = useMemo<Connection | null>(
-    () =>
-      secret === null ? null : { origin: env.NEXT_PUBLIC_API_URL, secret },
+    () => (secret === null ? null : { origin: env.VITE_API_URL, secret }),
     [secret]
   );
 
@@ -118,7 +146,13 @@ export function GateApp() {
     return <PairingWelcome badLink={phase.badLink} />;
   }
   if (phase.kind === "problem") {
-    return <PairingProblemScreen onUnpair={unpair} problem={phase.problem} />;
+    return (
+      <PairingProblemScreen
+        onUnpair={unpair}
+        problem={phase.problem}
+        unsent={unsent}
+      />
+    );
   }
   if (!connection) {
     return null;

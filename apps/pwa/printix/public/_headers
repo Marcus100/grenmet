@@ -2,11 +2,16 @@
 # The camera is allowed for this site only; the barcode reader needs
 # WebAssembly. The CSP is enforced: connect-src names the production API
 # origin (docs/deployment.md, https://api.barrels.gd) and nothing else.
-# Changing the API origin means changing this line and NEXT_PUBLIC_API_URL together.
+# Changing the API origin means changing this line and VITE_API_URL together.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(self), microphone=(), geolocation=()
   Strict-Transport-Security: max-age=31536000
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self' https://api.barrels.gd; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self' https://api.barrels.gd; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'
+
+# The service worker must be checked on every visit, or phones keep an old
+# version of the scanner.
+/sw.js
+  Cache-Control: no-cache
