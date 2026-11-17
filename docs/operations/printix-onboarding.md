@@ -38,6 +38,12 @@ amendment). Everything is done from `admin.barrels.gd`; no API calls.
   their role under Members.
 - "Cannot sign in" next to a person means the account lacks the Printix sign-in role or is
   inactive. Setting any access fixes the role.
-- Removing a person from the organisation (Members) ends their organisation access at once.
-  Their sign-in role stays; set their Printix access to none first if you also want it removed.
+- **To end someone's access, set their Printix access to "No Printix access" first**, then remove
+  them from the organisation under Members if needed. Removing a member (or suspending the
+  organisation, or switching Printix off for it) ends their Printix permissions at once: the
+  organisation keys are gone anyway. Only the Printix sign-in role stays, so the person can still
+  sign in to the app but sees nothing. Setting access to none first also removes that role.
+- A sign-in role given by hand to someone with no Printix access is left alone by "No Printix
+  access"; it is removed only when this screen ends real access and none remains.
+- A suspended organisation cannot be given new access.
 - Every change appears under History on the organisation page, with your reason.

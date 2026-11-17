@@ -455,3 +455,106 @@ async def test_adding_an_existing_member_is_a_conflict(
         json={"email": user.email, "access": "organiser", "reason": REASON},
     )
     assert response.status_code == 409
+
+
+# --- Review fixes -----------------------------------------------------------------
+
+
+async def _give_role_by_hand(db: AsyncSession, user: User) -> None:
+    role = await db.scalar(select(Role).where(Role.name == "printix-member"))
+    assert role is not None
+    db.add(UserRoleLink(user_id=user.id, role_id=role.id))
+    await db.commit()
+
+
+async def test_none_leaves_a_role_given_by_hand_alone(
+    async_client: httpx.AsyncClient,
+    admin_headers: dict[str, str],
+    db_async: AsyncSession,
+) -> None:
+    org, user, membership = await _member(db_async)
+    await _give_role_by_hand(db_async, user)
+
+    response = await async_client.put(
+        _put(org.id, membership.id),
+        headers=admin_headers,
+        json={"access": "none", "reason": REASON},
+    )
+
+    assert response.status_code == 200
+    assert await _has_app_role(db_async, user)
+
+
+async def test_none_after_real_access_removes_the_role(
+    async_client: httpx.AsyncClient,
+    admin_headers: dict[str, str],
+    db_async: AsyncSession,
+) -> None:
+    org, user, membership = await _member(db_async)
+    await _give_role_by_hand(db_async, user)
+    await async_client.put(
+        _put(org.id, membership.id),
+        headers=admin_headers,
+        json={"access": "gate_lead", "reason": REASON},
+    )
+    await async_client.put(
+        _put(org.id, membership.id),
+        headers=admin_headers,
+        json={"access": "none", "reason": REASON},
+    )
+    assert not await _has_app_role(db_async, user)
+
+
+async def test_a_suspended_organisation_is_refused(
+    async_client: httpx.AsyncClient,
+    admin_headers: dict[str, str],
+    db_async: AsyncSession,
+) -> None:
+    org, user, membership = await _member(db_async)
+    org.status = "suspended"
+    await db_async.commit()
+    set_response = await async_client.put(
+        _put(org.id, membership.id),
+        headers=admin_headers,
+        json={"access": "organiser", "reason": REASON},
+    )
+    other = await make_user(db_async)
+    add_response = await async_client.post(
+        f"{BASE}/{org.id}/members",
+        headers=admin_headers,
+        json={"email": other.email, "access": "organiser", "reason": REASON},
+    )
+    assert (set_response.status_code, add_response.status_code) == (409, 409)
+    assert not await _has_app_role(db_async, user)
+    assert (
+        await db_async.scalar(
+            select(Membership.id).where(Membership.user_id == other.id)
+        )
+        is None
+    )
+
+
+async def test_a_lost_race_is_a_409(
+    async_client: httpx.AsyncClient,
+    admin_headers: dict[str, str],
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from sqlalchemy.exc import OperationalError
+
+    from src.printix import onboarding
+
+    class Deadlock(Exception):
+        sqlstate = "40P01"
+
+    async def boom(*_args: Any, **_kwargs: Any) -> None:
+        raise OperationalError("stmt", {}, Deadlock())
+
+    monkeypatch.setattr(onboarding, "set_access", boom)
+    org, _, membership = await _member(db_async)
+    response = await async_client.put(
+        _put(org.id, membership.id),
+        headers=admin_headers,
+        json={"access": "organiser", "reason": REASON},
+    )
+    assert response.status_code == 409

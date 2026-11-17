@@ -9,15 +9,17 @@ the audit log.
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Query, Response, UploadFile, status
+from fastapi import APIRouter, File, Query, Request, Response, UploadFile, status
 
 from src.auth.models import User
 from src.dependencies import SessionDep
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, CONFLICT, NOT_FOUND
 from src.organisations import members as org_members
+from src.organisations import team
 from src.organisations.models import Membership, MembershipRole
 from src.pagination import PaginationDep
+from src.rate_limit import limiter
 
 from . import constants, onboarding, service
 from .constants import PrintixTicketStatus
@@ -371,13 +373,17 @@ def _member_access(
     ),
     responses=_FIND,
 )
+@limiter.limit("30/minute")
 async def list_member_access_endpoint(
     *,
+    request: Request,
+    response: Response,
     session: SessionDep,
     _admin: PrintixAdmin,
     organisation_id: str,
     pagination: PaginationDep,
 ) -> Any:
+    _ = request, response
     entitled = await onboarding.organisation_entitled(session, organisation_id)
     rows, total = await org_members.list_members_of(
         session, organisation_id, pagination
@@ -416,30 +422,36 @@ async def list_member_access_endpoint(
     ),
     responses=_FIND_OR_CONFLICT,
 )
+@limiter.limit("30/minute")
 async def set_member_access_endpoint(
     *,
+    request: Request,
+    response: Response,
     session: SessionDep,
     admin: PrintixAdmin,
     organisation_id: str,
     membership_id: str,
     body: PrintixMemberAccessUpdate,
 ) -> Any:
-    membership, user, access, _ = await onboarding.set_access(
-        session,
-        admin,
-        organisation_id,
-        membership_id,
-        body.access,
-        reason=body.reason,
-    )
-    result = _member_access(
-        membership,
-        user,
-        access=access,
-        can_sign_in=await onboarding.sign_in_ready(session, user),
-    )
-    await session.commit()
-    return result
+    _ = request, response
+
+    async def work() -> PrintixMemberAccess:
+        membership, user, access, _ = await onboarding.set_access(
+            session,
+            admin,
+            organisation_id,
+            membership_id,
+            body.access,
+            reason=body.reason,
+        )
+        return _member_access(
+            membership,
+            user,
+            access=access,
+            can_sign_in=await onboarding.sign_in_ready(session, user),
+        )
+
+    return await team.run_and_commit(session, work())
 
 
 @router.post(
@@ -456,27 +468,33 @@ async def set_member_access_endpoint(
     ),
     responses=_FIND_OR_CONFLICT,
 )
+@limiter.limit("30/minute")
 async def add_member_endpoint(
     *,
+    request: Request,
+    response: Response,
     session: SessionDep,
     admin: PrintixAdmin,
     organisation_id: str,
     body: PrintixMemberAdd,
 ) -> Any:
-    membership, user, access, _ = await onboarding.add_member(
-        session,
-        admin,
-        organisation_id,
-        user_id=body.user_id,
-        email=body.email,
-        access=body.access,
-        reason=body.reason,
-    )
-    result = _member_access(
-        membership,
-        user,
-        access=access,
-        can_sign_in=await onboarding.sign_in_ready(session, user),
-    )
-    await session.commit()
-    return result
+    _ = request, response
+
+    async def work() -> PrintixMemberAccess:
+        membership, user, access, _ = await onboarding.add_member(
+            session,
+            admin,
+            organisation_id,
+            user_id=body.user_id,
+            email=body.email,
+            access=body.access,
+            reason=body.reason,
+        )
+        return _member_access(
+            membership,
+            user,
+            access=access,
+            can_sign_in=await onboarding.sign_in_ready(session, user),
+        )
+
+    return await team.run_and_commit(session, work())

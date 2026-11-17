@@ -39,6 +39,7 @@ from src.organisations.models import (
     MembershipGrant,
     MembershipRole,
     MembershipStatus,
+    OrganisationStatus,
     PlatformOrganisation,
     new_grant_id,
 )
@@ -78,6 +79,16 @@ async def organisation_entitled(session: AsyncSession, organisation_id: str) -> 
     if await session.get(PlatformOrganisation, organisation_id) is None:
         raise PrintixNotFound("Organisation not found")
     return APP_KEY in await grants.entitled_products(session, organisation_id)
+
+
+async def _require_active(session: AsyncSession, organisation_id: str) -> None:
+    """Giving access to a suspended organisation is refused (409)."""
+    organisation = await session.get(PlatformOrganisation, organisation_id)
+    if (
+        organisation is not None
+        and organisation.status != OrganisationStatus.ACTIVE.value
+    ):
+        raise PrintixConflict("This organisation is suspended. Reactivate it first.")
 
 
 async def live_bundles(
@@ -154,6 +165,8 @@ async def set_access(
         raise PrintixConflict(
             "Turn on Printix for this organisation first (App access on its page)."
         )
+    if access is not PrintixAccess.NONE:
+        await _require_active(session, organisation_id)
     audit_service.set_actor(session, admin.id)
     await grants.lock_roster(session, organisation_id)
     membership = await session.scalar(
@@ -187,7 +200,13 @@ async def set_access(
         new_access = access
         await _swap_bundle(session, membership, old_access, access)
 
-    role_changed = await _sync_app_role(session, user, membership, access)
+    role_changed = await _sync_app_role(
+        session,
+        user,
+        membership,
+        access,
+        ended_access=not power and old_access is not PrintixAccess.NONE,
+    )
     await _record(
         session,
         organisation_id,
@@ -249,18 +268,34 @@ async def _sync_app_role(
     user: User,
     membership: Membership,
     access: PrintixAccess,
+    *,
+    ended_access: bool,
 ) -> bool:
-    """Give ``printix-member`` for any access, take it back when none is left."""
+    """Give ``printix-member`` for any access. Take it back only when this action
+    ended the person's Printix access and none is left, so a role given by hand to
+    someone with no Printix access is left alone."""
+    # Serialise role changes for one person (the link has a composite primary key).
+    await session.execute(select(User.id).where(User.id == user.id).with_for_update())
     link = await _app_role_link(session, user.id)
     if access is not PrintixAccess.NONE:
         if link is not None:
             return False
         role_id = await session.scalar(select(Role.id).where(Role.name == APP_ROLE))
         session.add(UserRoleLink(user_id=user.id, role_id=role_id))
-        await session.flush()
+        try:
+            async with session.begin_nested():
+                await session.flush()
+        except IntegrityError:
+            raise PrintixConflict(
+                "Access changed at the same moment. Try again."
+            ) from None
         return True
-    if link is None or await _needs_app_role(
-        session, user.id, excluding_membership_id=membership.id
+    if (
+        not ended_access
+        or link is None
+        or await _needs_app_role(
+            session, user.id, excluding_membership_id=membership.id
+        )
     ):
         return False
     await session.delete(link)
@@ -324,6 +359,9 @@ async def add_member(
         raise PrintixConflict(
             "Turn on Printix for this organisation first (App access on its page)."
         )
+    await _require_active(session, organisation_id)
+    # Roster lock first, then the rows (grants.lock_roster's documented order).
+    await grants.lock_roster(session, organisation_id)
     membership, _user = await admin_members.add(
         session,
         admin,
