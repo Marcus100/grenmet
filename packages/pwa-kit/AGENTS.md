@@ -57,7 +57,7 @@ colour here. An app's stylesheet imports, in order: `tailwindcss`,
   The Printix scanner works a live gate on 26 December 2026: keep its
   behaviour unchanged unless that is the task.
 - New dependencies follow the root rules (catalog only). Owner-approved for
-  the offline work: Dexie (phone storage, in use) and Serwist (service
+  the offline work: Dexie (phone storage, used by apps/pwa/printix) and Serwist (service
   worker, not yet added).
 - Never send a secret, a scanned value or an error message to `reportError`.
 - Tests: `pnpm --filter @barrelsgd/pwa-kit test` (Vitest, jsdom per file).
