@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import totp
 from src.auth.config import auth_settings
-from src.auth.lockout import factor_lockout, login_lockout
+from src.auth.lockout import LoginLockout, factor_lockout, login_lockout
 from src.auth.models import User
 from src.auth.utils import create_access_token
 from src.rate_limit import limiter
@@ -413,3 +413,21 @@ async def test_password_change_lock_does_not_block_another_account(
         json={"current_password": CURRENT, "new_password": NEW},
     )
     assert bob_response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_record_failure_sets_the_ttl_with_the_count() -> None:
+    """The counter and its TTL are written in one transaction (never a key without a TTL)."""
+    client = FakeAsyncRedis(decode_responses=True)
+    lockout = LoginLockout(
+        redis_url=None,
+        client=client,
+        max_attempts=2,
+        lockout_seconds=60,
+        window_seconds=30,
+    )
+    assert await lockout.record_failure("a@x.test") is False
+    assert 0 < await client.ttl("login:fail:a@x.test") <= 30
+    assert await lockout.record_failure("a@x.test") is True
+    assert await lockout.record_failure("a@x.test") is False
+    assert await client.get("login:fail:a@x.test") == "3"

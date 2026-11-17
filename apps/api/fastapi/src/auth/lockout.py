@@ -77,10 +77,12 @@ class LoginLockout:
             if client is None:
                 return False
             key = self._fail_key(identifier)
-            count = await client.incr(key)
-            if count == 1:
-                await client.expire(key, self._window)
-            if count >= self._max:
+            # One MULTI transaction, as in allow(): the key is never left without a TTL.
+            async with client.pipeline(transaction=True) as pipe:
+                pipe.set(key, 0, nx=True, ex=self._window)
+                pipe.incr(key)
+                _, count = await pipe.execute()
+            if int(count) >= self._max:
                 return bool(
                     await client.set(
                         self._lock_key(identifier), "1", ex=self._lock_ttl, nx=True

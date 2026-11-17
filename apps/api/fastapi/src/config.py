@@ -111,6 +111,9 @@ class Settings(BaseSettings):
     # proxy then Traefik (docs/operations/cloudflare-proxy.md). Rate limits on
     # direct browser calls then key on the visitor, not a Cloudflare edge.
     VISITOR_IP_PROXY_HOPS: int = Field(default=1, ge=1, le=5)
+    # Requests per minute per client address across routes with no limit of their own
+    # (src/rate_limit.py); 0 turns the default limit off.
+    DEFAULT_RATE_LIMIT_PER_MINUTE: int = Field(default=300, ge=0, le=100000)
 
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str

@@ -16,8 +16,11 @@ from collections.abc import Callable
 from typing import Any, cast
 
 from fastapi import Request
-from slowapi import Limiter
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import _find_route_handler, _should_exempt
 from slowapi.util import get_remote_address
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from src.config import settings
 from src.worker.config import worker_settings
@@ -230,7 +233,74 @@ limiter = AsyncSafeLimiter(
     ),
     in_memory_fallback_enabled=True,
     swallow_errors=True,
+    # One shared budget per client address across every route without its own limit.
+    application_limits=(
+        [f"{settings.DEFAULT_RATE_LIMIT_PER_MINUTE}/minute"]
+        if settings.DEFAULT_RATE_LIMIT_PER_MINUTE > 0
+        else []
+    ),
 )
+
+# Path segments never counted against the default limit: probes, provider
+# callbacks (Stripe, Resend, payment providers) and the CMS-to-API hook.
+DEFAULT_LIMIT_EXEMPT_SEGMENTS = frozenset(
+    {"health-check", "ready", "metrics", "webhooks", "internal"}
+)
+
+
+def _default_limit_exempt(request: Request) -> bool:
+    segments = set(request.url.path.split("/"))
+    if segments & DEFAULT_LIMIT_EXEMPT_SEGMENTS:
+        return True
+    # A web host's own server-side call that names no visitor (or an /auth call, where
+    # the visitor header is ignored) would share one address across every visitor.
+    secret = _trusted_secret()
+    presented = request.headers.get(VISITOR_SECRET_HEADER)
+    if secret and presented:
+        try:
+            trusted = hmac.compare_digest(presented.encode("utf-8"), secret)
+        except UnicodeEncodeError, TypeError:
+            trusted = False
+        return trusted and _trusted_visitor_ip(request) is None
+    return False
+
+
+class DefaultRateLimitMiddleware:
+    """Applies the limiter's application limit to routes with no limit of their own.
+
+    Pure ASGI. The check runs in a worker thread (the Redis client is synchronous) and
+    fails open like the decorator. Routes with ``@limiter.limit`` or ``@limiter.exempt``,
+    unmatched paths and the paths in ``DEFAULT_LIMIT_EXEMPT_SEGMENTS`` are skipped.
+    """
+
+    def __init__(self, app: ASGIApp, *, limiter: Limiter) -> None:
+        self.app = app
+        self.limiter = limiter
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        app = scope.get("app")
+        if (
+            scope["type"] != "http"
+            or app is None
+            or not self.limiter.enabled
+            or not self.limiter._application_limits
+        ):
+            await self.app(scope, receive, send)
+            return
+        request = Request(scope, receive=receive, send=send)
+        handler = _find_route_handler(app.routes, scope)
+        if _should_exempt(self.limiter, handler) or _default_limit_exempt(request):
+            await self.app(scope, receive, send)
+            return
+        try:
+            await asyncio.to_thread(
+                self.limiter._check_request_limit, request, handler, True
+            )
+        except RateLimitExceeded as exc:
+            response = _rate_limit_exceeded_handler(request, exc)
+            await response(scope, receive, send)
+            return
+        await self.app(scope, receive, send)
 
 
 def remember_account(request: Request, account_id: object) -> None:
