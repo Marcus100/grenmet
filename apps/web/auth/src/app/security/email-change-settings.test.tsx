@@ -9,6 +9,15 @@ vi.mock("@/app/actions", () => ({
   sendEmailChangeCodeAction: vi.fn(),
 }));
 
+// jsdom has no layout: the one-time-code input calls elementFromPoint when it is
+// focused (autoFocus), so give it a stub. Not an app behaviour.
+if (!("elementFromPoint" in document)) {
+  Object.defineProperty(document, "elementFromPoint", {
+    configurable: true,
+    value: () => null,
+  });
+}
+
 const OLD_EMAIL = "old@example.com";
 const NEW_EMAIL = "new@example.com";
 
@@ -20,11 +29,22 @@ function openForm() {
   fireEvent.click(screen.getByRole("button", { name: "Change email" }));
 }
 
+function submitChange() {
+  fireEvent.click(screen.getByRole("button", { name: "Change email" }));
+}
+
 /** The FormData the change action received on its last call. */
 function submittedFields(): FormData {
   const call = vi.mocked(changeEmailAction).mock.calls.at(-1);
   if (!call) throw new Error("changeEmailAction was not called");
   return call[1];
+}
+
+function refuseChangeWith(message: string) {
+  vi.mocked(changeEmailAction).mockResolvedValue({
+    error: message,
+    codeSent: false,
+  });
 }
 
 describe("EmailChangeSettings", () => {
@@ -39,6 +59,20 @@ describe("EmailChangeSettings", () => {
 
     openForm();
     expect(screen.getByLabelText("New email address")).toBeInTheDocument();
+  });
+
+  it("keeps the change button at a 44px tap target on phones", () => {
+    render(<EmailChangeSettings currentEmail={OLD_EMAIL} hasPassword />);
+    expect(screen.getByRole("button", { name: "Change email" })).toHaveClass(
+      "min-h-11",
+      "md:min-h-0"
+    );
+  });
+
+  it("focuses the new email field when the form opens", () => {
+    render(<EmailChangeSettings currentEmail={OLD_EMAIL} hasPassword />);
+    openForm();
+    expect(screen.getByLabelText("New email address")).toHaveFocus();
   });
 
   it("tells the person the old address will be notified", () => {
@@ -56,14 +90,13 @@ describe("EmailChangeSettings", () => {
     vi.mocked(changeEmailAction).mockResolvedValue({
       error: null,
       codeSent: false,
-      saved: false,
     });
     render(<EmailChangeSettings currentEmail={OLD_EMAIL} hasPassword />);
     openForm();
 
     typeInto("New email address", NEW_EMAIL);
     typeInto("Current password", "secret-password");
-    fireEvent.click(screen.getByRole("button", { name: "Change email" }));
+    submitChange();
 
     await waitFor(() => expect(changeEmailAction).toHaveBeenCalledTimes(1));
     const fields = submittedFields();
@@ -73,54 +106,60 @@ describe("EmailChangeSettings", () => {
   });
 
   it("shows the reason the server refused the change", async () => {
-    vi.mocked(changeEmailAction).mockResolvedValue({
-      error: "That email address is already in use.",
-      codeSent: false,
-      saved: false,
-    });
+    refuseChangeWith("That email address is already in use.");
     render(<EmailChangeSettings currentEmail={OLD_EMAIL} hasPassword />);
     openForm();
     typeInto("New email address", NEW_EMAIL);
     typeInto("Current password", "wrong-password");
-    fireEvent.click(screen.getByRole("button", { name: "Change email" }));
+    submitChange();
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "That email address is already in use."
     );
-    // The typed address survives a refusal.
-    expect(screen.getByLabelText("New email address")).toHaveValue(NEW_EMAIL);
   });
 
-  it("confirms the change and asks the person to sign in again", async () => {
-    vi.mocked(changeEmailAction).mockResolvedValue({
-      error: null,
-      codeSent: false,
-      saved: true,
-    });
+  it("clears the password after a refusal but keeps the typed new address", async () => {
+    refuseChangeWith("Your current password is not correct.");
     render(<EmailChangeSettings currentEmail={OLD_EMAIL} hasPassword />);
     openForm();
     typeInto("New email address", NEW_EMAIL);
-    typeInto("Current password", "secret-password");
-    fireEvent.click(screen.getByRole("button", { name: "Change email" }));
+    typeInto("Current password", "wrong-password");
+    submitChange();
 
-    const status = await screen.findByRole("status");
-    expect(status).toHaveTextContent(`Your email address is now ${NEW_EMAIL}.`);
-    expect(status).toHaveTextContent("Every device has been signed out.");
-    expect(
-      screen.queryByRole("button", { name: "Change email" })
-    ).not.toBeInTheDocument();
+    await screen.findByRole("alert");
+    expect(screen.getByLabelText("Current password")).toHaveValue("");
+    expect(screen.getByLabelText("New email address")).toHaveValue(NEW_EMAIL);
   });
 
-  it("emails a code to the current address, then submits it without a password", async () => {
+  it("clears the emailed code after a refusal but keeps the typed new address", async () => {
     vi.mocked(sendEmailChangeCodeAction).mockResolvedValue({
       error: null,
       codeSent: true,
-      saved: false,
+    });
+    refuseChangeWith("That code is not right.");
+    render(<EmailChangeSettings currentEmail={OLD_EMAIL} hasPassword />);
+    openForm();
+    fireEvent.click(screen.getByRole("radio", { name: "Email me a code" }));
+    fireEvent.click(screen.getByRole("button", { name: "Email me a code" }));
+    await screen.findByRole("status");
+
+    typeInto("New email address", NEW_EMAIL);
+    typeInto("6-digit code", "123456");
+    submitChange();
+
+    await screen.findByRole("alert");
+    expect(screen.getByLabelText("6-digit code")).toHaveValue("");
+    expect(screen.getByLabelText("New email address")).toHaveValue(NEW_EMAIL);
+  });
+
+  it("emails a code to the current address, focuses the code, then submits it without a password", async () => {
+    vi.mocked(sendEmailChangeCodeAction).mockResolvedValue({
+      error: null,
+      codeSent: true,
     });
     vi.mocked(changeEmailAction).mockResolvedValue({
       error: null,
       codeSent: false,
-      saved: false,
     });
     render(<EmailChangeSettings currentEmail={OLD_EMAIL} hasPassword />);
     openForm();
@@ -134,10 +173,11 @@ describe("EmailChangeSettings", () => {
       )
     ).toBeInTheDocument();
     expect(sendEmailChangeCodeAction).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText("6-digit code")).toHaveFocus();
 
     typeInto("New email address", NEW_EMAIL);
     typeInto("6-digit code", "123456");
-    fireEvent.click(screen.getByRole("button", { name: "Change email" }));
+    submitChange();
 
     await waitFor(() => expect(changeEmailAction).toHaveBeenCalledTimes(1));
     const fields = submittedFields();
@@ -145,23 +185,49 @@ describe("EmailChangeSettings", () => {
     expect(fields.has("current_password")).toBe(false);
   });
 
-  it("shows the reason when a code could not be sent", async () => {
+  it("keeps the typed new address when a code could not be sent", async () => {
     vi.mocked(sendEmailChangeCodeAction).mockResolvedValue({
       error: "Too many codes. Try again later.",
       codeSent: false,
-      saved: false,
     });
     render(<EmailChangeSettings currentEmail={OLD_EMAIL} hasPassword />);
     openForm();
+    typeInto("New email address", NEW_EMAIL);
     fireEvent.click(screen.getByRole("radio", { name: "Email me a code" }));
     fireEvent.click(screen.getByRole("button", { name: "Email me a code" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Too many codes. Try again later."
     );
+    expect(screen.getByLabelText("New email address")).toHaveValue(NEW_EMAIL);
     expect(
       screen.queryByRole("button", { name: "Change email" })
     ).not.toBeInTheDocument();
+  });
+
+  it("shows one error region, the refused change, when a failed code send is also showing", async () => {
+    vi.mocked(sendEmailChangeCodeAction).mockResolvedValue({
+      error: "Too many codes. Try again later.",
+      codeSent: false,
+    });
+    refuseChangeWith("That email address is already in use.");
+    render(<EmailChangeSettings currentEmail={OLD_EMAIL} hasPassword />);
+    openForm();
+    fireEvent.click(screen.getByRole("radio", { name: "Email me a code" }));
+    fireEvent.click(screen.getByRole("button", { name: "Email me a code" }));
+    await screen.findByRole("alert");
+
+    fireEvent.click(
+      screen.getByRole("radio", { name: "Use my current password" })
+    );
+    typeInto("New email address", NEW_EMAIL);
+    typeInto("Current password", "secret-password");
+    submitChange();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "That email address is already in use."
+    );
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
   });
 
   it("uses a code only, and waits for one before offering the submit, when the account has no password", () => {

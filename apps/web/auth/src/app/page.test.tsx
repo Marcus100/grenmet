@@ -128,3 +128,24 @@ it("keeps the password form when the password method is asked for", async () => 
   expect(screen.queryByTestId("code-first-sign-in")).toBeNull();
   expect(screen.getByTestId("fresh-sign-in")).toHaveTextContent("/dashboard");
 });
+
+it("tells the person their email changed, from a fixed notice code only", async () => {
+  render(
+    await Home({
+      searchParams: Promise.resolve({ notice: "email-changed" }),
+    })
+  );
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Your email address has changed. Sign in with the new address."
+  );
+});
+
+it("shows nothing for an unknown notice code and never echoes it", async () => {
+  render(
+    await Home({
+      searchParams: Promise.resolve({ notice: "<script>alert(1)</script>" }),
+    })
+  );
+  expect(screen.queryByRole("status")).toBeNull();
+  expect(document.body.textContent).not.toContain("alert(1)");
+});

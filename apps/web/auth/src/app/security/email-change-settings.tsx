@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   type FormEvent,
   startTransition,
@@ -17,13 +16,13 @@ import {
   labelClass,
   noticeBoxClass,
   primaryButtonClass,
-  textLinkClass,
 } from "@/components/form-styles";
 import { PasswordField } from "@/components/password-field";
 import { useHydrated } from "@/lib/use-hydrated";
 
+// 44px tap target on phones; desktop keeps the compact button.
 const outlineButton =
-  "rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted disabled:opacity-50";
+  "min-h-11 rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted disabled:opacity-50 md:min-h-0";
 
 const choiceLabel =
   "text-foreground flex min-h-11 items-center gap-3 text-sm md:min-h-0";
@@ -94,28 +93,21 @@ function requestCodeLabel(sending: boolean, sent: boolean): string {
 interface CodeProofProps {
   readonly codeSent: boolean;
   readonly currentEmail: string;
-  readonly error: string | null;
   readonly hydrated: boolean;
   readonly onRequest: () => void;
   readonly sending: boolean;
 }
 
-/** The emailed-code proof: send the code, then type it in. */
+/** The emailed-code proof: send the code, then type it in. Errors show above the form. */
 function CodeProof({
   codeSent,
   currentEmail,
-  error,
   hydrated,
   onRequest,
   sending,
 }: CodeProofProps) {
   return (
     <div className="space-y-3">
-      {error ? (
-        <div className={errorBoxClass} role="alert">
-          {error}
-        </div>
-      ) : null}
       {codeSent ? (
         <p className={noticeBoxClass} role="status">
           We sent a 6-digit code to {currentEmail}. Enter it below.
@@ -130,17 +122,67 @@ function CodeProof({
         {requestCodeLabel(sending, codeSent)}
       </button>
       {codeSent ? (
-        <CodeField id="email_code" label="6-digit code" name="email_code" />
+        <CodeField
+          autoFocus
+          id="email_code"
+          label="6-digit code"
+          name="email_code"
+        />
       ) : null}
     </div>
   );
 }
 
+interface ProofFieldsProps {
+  readonly codeSent: boolean;
+  readonly currentEmail: string;
+  readonly hasPassword: boolean;
+  readonly hydrated: boolean;
+  readonly onRequest: () => void;
+  readonly proof: Proof;
+  readonly sending: boolean;
+}
+
+/** The password or emailed-code field. Remounted after a refusal, so it clears. */
+function ProofFields({
+  codeSent,
+  currentEmail,
+  hasPassword,
+  hydrated,
+  onRequest,
+  proof,
+  sending,
+}: ProofFieldsProps) {
+  if (proof === "password" && hasPassword) {
+    return (
+      <PasswordField
+        autoComplete="current-password"
+        id="email_current_password"
+        label="Current password"
+        name="current_password"
+      />
+    );
+  }
+  if (proof === "code") {
+    return (
+      <CodeProof
+        codeSent={codeSent}
+        currentEmail={currentEmail}
+        hydrated={hydrated}
+        onRequest={onRequest}
+        sending={sending}
+      />
+    );
+  }
+  return null;
+}
+
 /**
  * Change the sign-in email. The person proves it is them with the current password,
  * or with a code emailed to the current address. Submits through onSubmit and waits
- * for hydration; typed values survive a refusal. The server signs every session out
- * on success, so the success state asks the person to sign in again.
+ * for hydration. A refusal clears the password and code fields but keeps the new
+ * address. On success the action signs every session out and redirects to sign-in
+ * with a notice, so this component has no success state.
  */
 export function EmailChangeSettings({
   currentEmail,
@@ -148,7 +190,6 @@ export function EmailChangeSettings({
 }: EmailChangeSettingsProps) {
   const [open, setOpen] = useState(false);
   const [proof, setProof] = useState<Proof>(hasPassword ? "password" : "code");
-  const [submittedEmail, setSubmittedEmail] = useState("");
   const [changeState, changeAction, changing] = useActionState(
     changeEmailAction,
     initialEmailChangeState
@@ -157,12 +198,18 @@ export function EmailChangeSettings({
     sendEmailChangeCodeAction,
     initialEmailChangeState
   );
+  // A new refusal changes the key, which remounts the password and code fields empty.
+  const [seenChange, setSeenChange] = useState(changeState);
+  const [fieldsKey, setFieldsKey] = useState(0);
+  if (changeState !== seenChange) {
+    setSeenChange(changeState);
+    if (changeState.error) setFieldsKey((key) => key + 1);
+  }
   const hydrated = useHydrated();
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    setSubmittedEmail(String(data.get("email") ?? "").trim());
     startTransition(() => {
       changeAction(data);
     });
@@ -174,23 +221,8 @@ export function EmailChangeSettings({
     });
   }
 
-  if (changeState.saved) {
-    return (
-      <SettingsRow
-        description={`You sign in with ${currentEmail}.`}
-        title="Address you sign in with"
-      >
-        <p className={noticeBoxClass} role="status">
-          Your email address is now <strong>{submittedEmail}</strong>. Every
-          device has been signed out. Sign in again with the new address.{" "}
-          <Link className={textLinkClass} href="/">
-            Go to sign in
-          </Link>
-        </p>
-      </SettingsRow>
-    );
-  }
-
+  // One error region: a refused change wins over a failed code send.
+  const error = changeState.error ?? codeState.error;
   // A code can only be typed in after one was sent, so the submit waits for it.
   const canSubmit = proof === "password" || codeState.codeSent;
 
@@ -217,9 +249,9 @@ export function EmailChangeSettings({
             address.
           </p>
 
-          {changeState.error ? (
+          {error ? (
             <div className={errorBoxClass} role="alert">
-              {changeState.error}
+              {error}
             </div>
           ) : null}
 
@@ -229,6 +261,7 @@ export function EmailChangeSettings({
             </label>
             <input
               autoComplete="email"
+              autoFocus
               className={inputClass}
               id="new-email"
               maxLength={254}
@@ -245,25 +278,16 @@ export function EmailChangeSettings({
             proof={proof}
           />
 
-          {proof === "password" && hasPassword ? (
-            <PasswordField
-              autoComplete="current-password"
-              id="email_current_password"
-              label="Current password"
-              name="current_password"
-            />
-          ) : null}
-
-          {proof === "code" ? (
-            <CodeProof
-              codeSent={codeState.codeSent}
-              currentEmail={currentEmail}
-              error={codeState.error}
-              hydrated={hydrated}
-              onRequest={requestCode}
-              sending={sendingCode}
-            />
-          ) : null}
+          <ProofFields
+            codeSent={codeState.codeSent}
+            currentEmail={currentEmail}
+            hasPassword={hasPassword}
+            hydrated={hydrated}
+            key={fieldsKey}
+            onRequest={requestCode}
+            proof={proof}
+            sending={sendingCode}
+          />
 
           {canSubmit ? (
             <button
