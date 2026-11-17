@@ -15,6 +15,7 @@ from src.eregister.registry import StationNotFoundError
 from src.models import ApiError, ValidationErrorResponse
 from src.openapi_responses import AUTHENTICATED, RateLimitedBody, ResponseMap
 from src.rate_limit import limiter
+from src.utils.query_types import SqlDatetime, SqlText
 
 from . import derive, entries, metar, public, qc, registry, rules, sends, stations
 from .dependencies import PublicRegisterSession, RegisterSession
@@ -111,7 +112,7 @@ async def list_register_observations(
     session: RegisterSession,
     app_session: SessionDep,
     response: Response,
-    station_id: Annotated[str | None, Query(max_length=64)] = None,
+    station_id: Annotated[SqlText | None, Query(max_length=64)] = None,
     kind: Annotated[str | None, Query(pattern="^(SYNOP|METAR|SPECI)$")] = None,
     state: Annotated[
         str | None,
@@ -127,19 +128,19 @@ async def list_register_observations(
         ),
     ] = None,
     observed_at: Annotated[
-        datetime | None,
+        SqlDatetime | None,
         Query(
             description="Only observations for exactly this UTC time (to find the record occupying an hour)."
         ),
     ] = None,
     observed_from: Annotated[
-        datetime | None,
+        SqlDatetime | None,
         Query(
             description="Only observations at or after this UTC time (inclusive start of a range)."
         ),
     ] = None,
     observed_to: Annotated[
-        datetime | None,
+        SqlDatetime | None,
         Query(
             description="Only observations before this UTC time (exclusive end of a range)."
         ),
@@ -756,7 +757,7 @@ async def add_station(
     },
 )
 async def get_registry_station(
-    station_id: str,
+    station_id: SqlText,
     user: BrowserUser,
     session: RegisterSession,
     response: Response,
@@ -785,7 +786,7 @@ async def get_registry_station(
     responses=STATION_RESPONSES,
 )
 async def edit_station(
-    station_id: str,
+    station_id: SqlText,
     body: StationUpdate,
     user: BrowserUser,
     session: RegisterSession,
@@ -821,7 +822,7 @@ async def edit_station(
     },
 )
 async def get_station_settings(
-    station_id: str,
+    station_id: SqlText,
     user: BrowserUser,
     session: RegisterSession,
     response: Response,
@@ -850,7 +851,7 @@ async def get_station_settings(
     },
 )
 async def put_station_settings(
-    station_id: str,
+    station_id: SqlText,
     body: StationSettingsUpdate,
     user: BrowserUser,
     session: RegisterSession,

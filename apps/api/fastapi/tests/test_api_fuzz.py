@@ -9,11 +9,11 @@ derandomized with a small example budget so the suite stays deterministic.
 """
 
 import asyncio
+import os
 from collections.abc import Iterator
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
 
 import psycopg
 import pytest
@@ -85,7 +85,7 @@ def weather_databases(test_database: None) -> Iterator[None]:
     with pytest.MonkeyPatch.context() as patch:
         try:
             for domain_settings, database, ini in WEATHER_DOMAINS:
-                name = f"fuzz_{ini.parent.name}_{uuid4().hex[:12]}"
+                name = f"fuzz_{os.environ['VERIFY_RUN_ID']}_{ini.parent.name}"
                 with psycopg.connect(admin_dsn, autocommit=True) as admin:
                     admin.execute(
                         psycopg.sql.SQL("CREATE DATABASE {}").format(

@@ -8,6 +8,7 @@ from sqlalchemy import text
 from src.auth.browser import BrowserUser
 from src.exceptions import AppValidationError, NotFoundError
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND
+from src.utils.query_types import SqlText
 from src.wxwatch.exceptions import EditionNotFoundError
 
 from . import service
@@ -52,8 +53,8 @@ async def archive(
     _user: BrowserUser,
     session: ImageSession,
     response: Response,
-    source: Annotated[str | None, Query(max_length=100)] = None,
-    product: Annotated[str | None, Query(max_length=300)] = None,
+    source: Annotated[SqlText | None, Query(max_length=100)] = None,
+    product: Annotated[SqlText | None, Query(max_length=300)] = None,
     start: date | None = None,
     end: date | None = None,
     unknown_time: bool = False,

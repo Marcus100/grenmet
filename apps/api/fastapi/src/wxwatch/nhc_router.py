@@ -9,6 +9,7 @@ from fastapi import APIRouter, Query, Response
 from src.auth.browser import BrowserUser
 from src.exceptions import AuthorizationError
 from src.models import ApiError
+from src.utils.query_types import SqlText
 from src.wxproducts.dependencies import AuthorDep, ProductAuthor
 from src.wxproducts.exceptions import ProductValidationError
 
@@ -78,7 +79,7 @@ async def editions(
     session: ImageSession,
     response: Response,
     family: NhcFamily | None = None,
-    product: Annotated[str | None, Query(max_length=300)] = None,
+    product: Annotated[SqlText | None, Query(max_length=300)] = None,
     storm: Annotated[str | None, Query(pattern=r"^al\d{6}$")] = None,
     start: date | None = None,
     end: date | None = None,
