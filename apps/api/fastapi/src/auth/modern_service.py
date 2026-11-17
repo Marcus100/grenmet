@@ -18,10 +18,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from src.auth import service
-from src.auth.account_security import has_usable_password, verify_factor
+from src.auth.account_security import (
+    has_usable_password,
+    record_factor_failure,
+    verify_factor,
+)
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.lockout import (
+    factor_lockout,
     normalised_address,
     password_setup_ip_limit,
     password_setup_send_limit,
@@ -349,13 +354,19 @@ async def google_finish(
     user = await session.get(User, challenge.user_id)
     if not user or not user.is_active or user.email != challenge.data["email"]:
         raise AppException("Account unavailable", 403)
-    if user.totp_enabled and (
-        not await verify_factor(session, user, body.totp_code or "")
-    ):
-        await session.commit()
-        raise AppException(
-            "Invalid authenticator code. Start Google sign-in again.", 400
-        )
+    if user.totp_enabled:
+        if await factor_lockout.is_locked(str(user.id)):
+            raise AppException(
+                "Account temporarily locked due to repeated failed logins", 429
+            )
+        if not await verify_factor(session, user, body.totp_code or ""):
+            if body.totp_code:
+                await record_factor_failure(session, user)
+            await session.commit()
+            raise AppException(
+                "Invalid authenticator code. Start Google sign-in again.", 400
+            )
+        await factor_lockout.reset(str(user.id))
     identity = await session.get(
         ExternalIdentity, (challenge.data["subject"], "google")
     )

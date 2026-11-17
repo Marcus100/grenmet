@@ -35,12 +35,10 @@ async def record_security(session: AsyncSession, user: User, action: str) -> Non
 async def record_factor_failure(session: AsyncSession, user: User) -> None:
     """Count a wrong authenticator or recovery code on the per-account factor key.
 
-    The count never touches the password sign-in key. When this failure trips the
-    lock, an ``account_security`` audit entry ``factor_locked`` is written (#1544).
+    The count never touches the password sign-in key. Only the failure that sets
+    the lock an ``account_security`` audit entry ``factor_locked`` is written (#1544).
     """
-    key = str(user.id)
-    await factor_lockout.record_failure(key)
-    if await factor_lockout.is_locked(key):
+    if await factor_lockout.record_failure(str(user.id)):
         await record_security(session, user, "factor_locked")
         await session.commit()
 

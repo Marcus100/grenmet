@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SQLAlchemySession
 
 from src.auth import placeholders
-from src.auth.account_security import verify_factor
+from src.auth.account_security import record_factor_failure, verify_factor
 from src.auth.assignments import (
     audit_assignment,
     create_user_role_assignment,
@@ -321,7 +321,7 @@ async def verify_disable_proof(
         await login_lockout.record_failure(user.email)
         raise AppException("Incorrect password", 400)
     if not await verify_factor(session, user, code):
-        await factor_lockout.record_failure(str(user.id))
+        await record_factor_failure(session, user)
         raise AppException("Authenticator or recovery code was not accepted", 400)
     await login_lockout.reset(user.email)
     await factor_lockout.reset(str(user.id))
