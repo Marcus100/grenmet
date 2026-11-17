@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .exceptions import ProductValidationError
 from .observations import ObservationKind, ObservationRecord, normalize_legacy_row
 
 _TABLES: dict[ObservationKind, tuple[str, str, str, str]] = {
@@ -22,6 +23,15 @@ _TABLES: dict[ObservationKind, tuple[str, str, str, str]] = {
 }
 
 
+def _utc(value: datetime, name: str) -> datetime:
+    try:
+        return value.astimezone(UTC)
+    except OverflowError:
+        raise ProductValidationError(
+            [f"{name} is outside the supported range"]
+        ) from None
+
+
 async def list_observations(
     session: AsyncSession,
     *,
@@ -36,15 +46,17 @@ async def list_observations(
     raw_column = "NULL" if kind == "SYNOP" else "raw_tac"
     clauses = []
     params: dict[str, object] = {"limit": limit}
+    if station and "\x00" in station:
+        raise ProductValidationError(["station must not contain a null character"])
     if station:
         clauses.append(f"{station_column} = :station")
         params["station"] = station
     if start:
         clauses.append(f"{time_column} >= :start")
-        params["start"] = start.astimezone(UTC)
+        params["start"] = _utc(start, "start")
     if end:
         clauses.append(f"{time_column} < :end")
-        params["end"] = end.astimezone(UTC)
+        params["end"] = _utc(end, "end")
     if kind in {"METAR", "SPECI"}:
         clauses.append("report_type = :report_type")
         params["report_type"] = kind
