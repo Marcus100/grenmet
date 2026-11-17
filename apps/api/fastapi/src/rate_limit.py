@@ -16,10 +16,12 @@ from collections.abc import Callable
 from typing import Any, cast
 
 from fastapi import Request
+from limits.storage import MemoryStorage
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import _find_route_handler, _should_exempt
+from slowapi.middleware import _should_exempt
 from slowapi.util import get_remote_address
+from starlette.routing import Match
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from src.config import settings
@@ -236,70 +238,162 @@ limiter = AsyncSafeLimiter(
     # One shared budget per client address across every route without its own limit.
     application_limits=(
         [f"{settings.DEFAULT_RATE_LIMIT_PER_MINUTE}/minute"]
-        if settings.DEFAULT_RATE_LIMIT_PER_MINUTE > 0
+        if settings.DEFAULT_RATE_LIMIT_MODE != "off"
+        and settings.DEFAULT_RATE_LIMIT_PER_MINUTE > 0
         else []
     ),
 )
 
-# Path segments never counted against the default limit: probes, provider
-# callbacks (Stripe, Resend, payment providers) and the CMS-to-API hook.
-DEFAULT_LIMIT_EXEMPT_SEGMENTS = frozenset(
-    {"health-check", "ready", "metrics", "webhooks", "internal"}
+# Route path templates never counted against the default limit: probes, provider
+# callbacks (Stripe, Resend, payment providers) and the CMS-to-API hook. Matched on the
+# route that handled the request, with the API prefix removed, so a path parameter that
+# happens to read "ready" or "webhooks" never exempts anything.
+DEFAULT_LIMIT_EXEMPT_TEMPLATES = frozenset(
+    {
+        "/utils/health-check/",
+        "/utils/ready/",
+        "/wxwatch/ready",
+        "/webhooks/resend",
+        "/billing/webhooks/stripe",
+        "/payments/public/webhooks/{provider}",
+        "/content-distribution/internal/posts",
+    }
 )
+RESOLVE_CACHE_SIZE = 2048
+
+logger_default = logging.getLogger("src.rate_limit.default")
 
 
-def _default_limit_exempt(request: Request) -> bool:
-    segments = set(request.url.path.split("/"))
-    if segments & DEFAULT_LIMIT_EXEMPT_SEGMENTS:
-        return True
-    # A web host's own server-side call that names no visitor (or an /auth call, where
-    # the visitor header is ignored) would share one address across every visitor.
+async def _unmatched_endpoint() -> None:
+    """Stand-in handler so unmatched paths and 405s are counted (slowapi skips none)."""
+
+
+def _template(route_path: str) -> str:
+    prefix = settings.API_V1_STR
+    if route_path.startswith(prefix + "/"):
+        return route_path[len(prefix) :]
+    return route_path
+
+
+def _internal_network() -> ipaddress.IPv4Network | ipaddress.IPv6Network | None:
+    try:
+        return ipaddress.ip_network(settings.INTERNAL_CALLER_NETWORK, strict=False)
+    except ValueError:
+        return None
+
+
+def _is_internal_call(request: Request) -> bool:
+    """A direct call on the internal Docker network, not one that came through Traefik.
+
+    Everything from outside passes Traefik, which always adds ``X-Forwarded-For``, and
+    uvicorn trusts that header only from the compose network (``--forwarded-allow-ips``)
+    and then reports the visitor as the client. Our web containers call ``http://api:8000``
+    with no forwarding header, so uvicorn reports the container's own address. So: no
+    forwarding header of any kind, and a client address inside the compose network.
+    """
+    headers = request.headers
+    if any(name in headers for name in ("x-forwarded-for", "forwarded", "x-real-ip")):
+        return False
+    network = _internal_network()
+    if network is None or request.client is None:
+        return False
+    try:
+        address = ipaddress.ip_address(request.client.host)
+    except ValueError:
+        return False
+    return address in network
+
+
+def _presents_trusted_secret_without_visitor(request: Request) -> bool:
+    """A trusted web host's call that names no usable visitor (or hits /auth)."""
     secret = _trusted_secret()
     presented = request.headers.get(VISITOR_SECRET_HEADER)
-    if secret and presented:
-        try:
-            trusted = hmac.compare_digest(presented.encode("utf-8"), secret)
-        except UnicodeEncodeError, TypeError:
-            trusted = False
-        return trusted and _trusted_visitor_ip(request) is None
-    return False
+    if not (secret and presented):
+        return False
+    try:
+        trusted = hmac.compare_digest(presented.encode("utf-8"), secret)
+    except UnicodeEncodeError, TypeError:
+        return False
+    return trusted and _trusted_visitor_ip(request) is None
 
 
 class DefaultRateLimitMiddleware:
     """Applies the limiter's application limit to routes with no limit of their own.
 
-    Pure ASGI. The check runs in a worker thread (the Redis client is synchronous) and
-    fails open like the decorator. Routes with ``@limiter.limit`` or ``@limiter.exempt``,
-    unmatched paths and the paths in ``DEFAULT_LIMIT_EXEMPT_SEGMENTS`` are skipped.
+    Pure ASGI. ``DEFAULT_RATE_LIMIT_MODE``: ``off`` does nothing, ``log`` counts and logs
+    what would have been limited but never answers 429, ``enforce`` answers 429. With a
+    Redis store the check runs in a worker thread (the client is synchronous) and fails
+    open like the decorator; the in-memory store is checked inline. Skipped: routes with
+    ``@limiter.limit`` or ``@limiter.exempt``, the templates in
+    ``DEFAULT_LIMIT_EXEMPT_TEMPLATES``, direct calls on the internal network, and trusted
+    web-host calls that name no visitor. Unmatched paths and 405s are counted.
     """
 
     def __init__(self, app: ASGIApp, *, limiter: Limiter) -> None:
         self.app = app
         self.limiter = limiter
+        self._resolve = functools.lru_cache(maxsize=RESOLVE_CACHE_SIZE)(self._lookup)
+
+    @staticmethod
+    def _lookup(
+        app: Any, method: str, path: str
+    ) -> tuple[Callable[..., Any] | None, str]:
+        scope = {"type": "http", "method": method, "path": path, "root_path": ""}
+        for route in app.routes:
+            match, _ = route.matches(scope)
+            if match == Match.FULL and hasattr(route, "endpoint"):
+                return route.endpoint, _template(getattr(route, "path", ""))
+        return None, ""
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         app = scope.get("app")
+        mode = settings.DEFAULT_RATE_LIMIT_MODE
         if (
             scope["type"] != "http"
             or app is None
+            or mode == "off"
             or not self.limiter.enabled
             or not self.limiter._application_limits
         ):
             await self.app(scope, receive, send)
             return
         request = Request(scope, receive=receive, send=send)
-        handler = _find_route_handler(app.routes, scope)
-        if _should_exempt(self.limiter, handler) or _default_limit_exempt(request):
+        if _is_internal_call(request) or _presents_trusted_secret_without_visitor(
+            request
+        ):
             await self.app(scope, receive, send)
             return
-        try:
-            await asyncio.to_thread(
-                self.limiter._check_request_limit, request, handler, True
-            )
-        except RateLimitExceeded as exc:
-            response = _rate_limit_exceeded_handler(request, exc)
-            await response(scope, receive, send)
+        handler, template = self._resolve(app, scope["method"], scope["path"])
+        if handler is not None and (
+            template in DEFAULT_LIMIT_EXEMPT_TEMPLATES
+            or _should_exempt(self.limiter, handler)
+        ):
+            await self.app(scope, receive, send)
             return
+        endpoint = handler or _unmatched_endpoint
+        try:
+            if isinstance(self.limiter._storage, MemoryStorage):
+                self.limiter._check_request_limit(request, endpoint, True)
+            else:
+                await asyncio.to_thread(
+                    self.limiter._check_request_limit, request, endpoint, True
+                )
+        except RateLimitExceeded as exc:
+            if mode == "log":
+                kind = (
+                    "visitor"
+                    if _trusted_visitor_ip(request) is not None
+                    else "connecting"
+                )
+                logger_default.warning(
+                    "default rate limit would apply bucket_kind=%s route=%s",
+                    kind,
+                    template or "unmatched",
+                )
+            else:
+                response = _rate_limit_exceeded_handler(request, exc)
+                await response(scope, receive, send)
+                return
         await self.app(scope, receive, send)
 
 

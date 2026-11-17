@@ -763,7 +763,7 @@ Implemented examples:
 | Unique violation not mapped by the code (SQLSTATE 23505) | `{"detail":"Resource already exists or constraint violation"}` (409) |
 | Any other database integrity error, or a Pydantic error raised in server code | Server error: `{"detail":"Internal Server Error"}` (500), logged and reported to Sentry |
 | FastAPI `HTTPException` | `{"detail": ...}` |
-| Rate limit exceeded (SlowAPI) | `{"error": "Rate limit exceeded: ..."}` (429); routes without their own limit share a default of `DEFAULT_RATE_LIMIT_PER_MINUTE` (300) a minute per client address, never applied to probes, webhooks or internal hooks |
+| Rate limit exceeded (SlowAPI) | `{"error": "Rate limit exceeded: ..."}` (429); routes without their own limit share a default of `DEFAULT_RATE_LIMIT_PER_MINUTE` (1000) a minute per client address (answered only when `DEFAULT_RATE_LIMIT_MODE` is `enforce`; `log` by default), never applied to probes, webhooks or internal hooks |
 | Account lockout after failed sign-ins | `{"detail": ...}` (429) |
 | Public weather product feed (`/wxproducts/public/*`) | `{"error": "..."}` (400, 404, 503) |
 
