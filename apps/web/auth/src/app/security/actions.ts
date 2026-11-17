@@ -18,6 +18,10 @@ import {
 } from "@/lib/session";
 
 const API_PREFIX = /\/api\/v1(?=\/|$)/u;
+// The API answers 429 when a limit on these routes is reached: a one-minute window, or
+// the account lockout after repeated wrong codes or passwords (#1533), which lasts longer.
+const TOO_MANY_ATTEMPTS =
+  "Too many attempts. Wait a few minutes and try again.";
 async function securityClient(accessToken?: string) {
   let bearerToken = accessToken;
   if (!bearerToken) {
@@ -38,7 +42,10 @@ async function securityClient(accessToken?: string) {
     url: request.url.replace(API_PREFIX, config.authApiPrefix),
     signal: AbortSignal.timeout(10_000),
   }));
-  client.interceptors.error.use(() => {
+  client.interceptors.error.use((error) => {
+    if (error.status === 429) {
+      throw new Error(TOO_MANY_ATTEMPTS);
+    }
     throw new Error(
       "Unable to update security settings. Check your code and try again."
     );

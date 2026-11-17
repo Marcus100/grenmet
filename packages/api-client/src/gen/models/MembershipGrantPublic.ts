@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { GrantInactiveReason } from "./GrantInactiveReason.js";
+
 /**
  * @description A role a member holds. Display names only; never email addresses.
  * @type object
@@ -21,4 +23,10 @@ export type MembershipGrantPublic = {
   granted_at: string;
   expires_at?: string | null;
   revoked_at?: string | null;
+  /**
+   * @default true
+   * @type boolean | undefined
+   */
+  active?: boolean;
+  inactive_reason?: GrantInactiveReason | null;
 };

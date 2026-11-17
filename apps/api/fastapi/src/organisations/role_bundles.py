@@ -28,6 +28,12 @@ ROLE_BUNDLES: MappingProxyType[str, frozenset[str]] = MappingProxyType(
         ),
         "events-refunds": frozenset({"events.refunds.issue"}),
         "events-team": frozenset({"events.team.manage"}),
+        # Printix (ADR-0060 organiser amendment). The organiser sets up events; the
+        # gate lead only makes and cancels gate codes on event night.
+        "printix-organiser": frozenset(
+            {"printix.events.manage", "printix.gates.manage"}
+        ),
+        "printix-gate-lead": frozenset({"printix.gates.manage"}),
     }
 )
 
@@ -43,6 +49,14 @@ BUNDLE_COPY: MappingProxyType[str, tuple[str, str]] = MappingProxyType(
         ),
         "events-refunds": ("Refunds", "Issue refunds on ticket sales."),
         "events-team": ("Team manager", "Give and remove Events roles for others."),
+        "printix-organiser": (
+            "Organiser",
+            "Set up events, import tickets and make gate codes.",
+        ),
+        "printix-gate-lead": (
+            "Gate lead",
+            "Make and cancel gate QR codes on event night.",
+        ),
     }
 )
 

@@ -1,12 +1,18 @@
 import {
   configureApiClient,
   type PrintixEventSummary,
+  type PrintixOfflineAdmission,
+  type PrintixOfflineList,
+  type PrintixOfflineSyncResult,
   type PrintixScanResult,
   printixAdmitTicket,
   printixEventSummarySchema,
+  printixOfflineAdmissions,
+  printixOfflineListSchema,
+  printixOfflineSyncResultSchema,
+  printixOfflineTickets,
   printixPairingSummary,
   printixScanResultSchema,
-  ResponseError,
 } from "@barrelsgd/api-client";
 
 /** Why this pairing cannot check tickets: unknown secret, or revoked or expired. */
@@ -27,6 +33,35 @@ export type ScanAnswer =
 export type SummaryAnswer =
   | { readonly kind: "summary"; readonly summary: PrintixEventSummary }
   | Failure;
+
+/** The server refused offline mode for this event (its barcodes are too weak). */
+export interface OfflineUnavailable {
+  readonly kind: "offline-unavailable";
+}
+
+export type OfflineListAnswer =
+  | { readonly kind: "list"; readonly list: PrintixOfflineList }
+  | OfflineUnavailable
+  | Failure;
+
+export type OfflineSyncAnswer =
+  | { readonly kind: "synced"; readonly result: PrintixOfflineSyncResult }
+  | OfflineUnavailable
+  | Failure;
+
+/**
+ * How long a live check may take before the phone treats it as no signal and
+ * checks the ticket offline instead. A weak signal can otherwise hang a request
+ * for much longer than a queue at the gate will wait.
+ */
+const LIVE_CHECK_TIMEOUT_MS = 5000;
+
+/**
+ * The longest the phone waits for the ticket list or a send. Without a limit
+ * one request that never answers (a half-open connection, a captive portal)
+ * would hold up every later download and send.
+ */
+const OFFLINE_REQUEST_TIMEOUT_MS = 30_000;
 
 /** Where the API is and which pairing speaks for this phone. */
 export interface Connection {
@@ -74,8 +109,56 @@ export function classifyFailure(
   return { kind: "failed" };
 }
 
+/** The parts of the API client's ResponseError the scanner reads. */
+interface HttpError extends Error {
+  readonly response: Response;
+  readonly status: number;
+}
+
+/**
+ * Matches the API client's ResponseError by name, as its own
+ * `ResponseError.is` does: every generated client carries its own copy of the
+ * class, so `instanceof` against one copy can miss an error thrown by another.
+ * The class itself is not imported: the client's index exports it twice, and
+ * Vite's bundler warns and drops that ambiguous export.
+ */
+function isHttpError(error: unknown): error is HttpError {
+  return (
+    error instanceof Error &&
+    error.name === "ResponseError" &&
+    "status" in error &&
+    typeof error.status === "number" &&
+    "response" in error &&
+    error.response instanceof Response
+  );
+}
+
+function isOfflineUnavailable(error: HttpError): boolean {
+  const data = (error as { data?: unknown }).data;
+  return (
+    error.status === 409 &&
+    typeof data === "object" &&
+    data !== null &&
+    "code" in data &&
+    data.code === "offline_not_available"
+  );
+}
+
+/** A request the phone itself gave up on, such as a timed-out live check. */
+function isGivenUp(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error.name === "TimeoutError" || error.name === "AbortError")
+  );
+}
+
 function failureFrom(error: unknown): Failure {
-  if (error instanceof ResponseError) {
+  if (isGivenUp(error)) {
+    return { kind: "no-signal" };
+  }
+  if (isHttpError(error)) {
     return classifyFailure(
       error.status,
       error.response.headers.get("Retry-After")
@@ -112,7 +195,10 @@ export async function submitScan(
 ): Promise<ScanAnswer> {
   try {
     connect(connection);
-    const { data } = await printixAdmitTicket({ body: { value } });
+    const { data } = await printixAdmitTicket({
+      body: { value },
+      signal: AbortSignal.timeout(LIVE_CHECK_TIMEOUT_MS),
+    });
     const parsed = printixScanResultSchema.safeParse(data);
     return parsed.success
       ? { kind: "checked", result: parsed.data }
@@ -134,6 +220,53 @@ export async function readSummary(
       ? { kind: "summary", summary: parsed.data }
       : { kind: "failed" };
   } catch (error) {
+    return failureFrom(error);
+  }
+}
+
+/**
+ * The event's ticket list for checking with no signal: keyed hashes, never
+ * barcodes. A 409 means the event's barcodes are too weak for offline mode.
+ */
+export async function readOfflineList(
+  connection: Connection
+): Promise<OfflineListAnswer> {
+  try {
+    connect(connection);
+    const { data } = await printixOfflineTickets({
+      signal: AbortSignal.timeout(OFFLINE_REQUEST_TIMEOUT_MS),
+    });
+    const parsed = printixOfflineListSchema.safeParse(data);
+    return parsed.success
+      ? { kind: "list", list: parsed.data }
+      : { kind: "failed" };
+  } catch (error) {
+    if (isHttpError(error) && isOfflineUnavailable(error)) {
+      return { kind: "offline-unavailable" };
+    }
+    return failureFrom(error);
+  }
+}
+
+/** Sends admissions made with no signal. The server's first admission wins. */
+export async function sendOfflineAdmissions(
+  connection: Connection,
+  admissions: readonly PrintixOfflineAdmission[]
+): Promise<OfflineSyncAnswer> {
+  try {
+    connect(connection);
+    const { data } = await printixOfflineAdmissions({
+      body: { admissions: [...admissions] },
+      signal: AbortSignal.timeout(OFFLINE_REQUEST_TIMEOUT_MS),
+    });
+    const parsed = printixOfflineSyncResultSchema.safeParse(data);
+    return parsed.success
+      ? { kind: "synced", result: parsed.data }
+      : { kind: "failed" };
+  } catch (error) {
+    if (isHttpError(error) && isOfflineUnavailable(error)) {
+      return { kind: "offline-unavailable" };
+    }
     return failureFrom(error);
   }
 }

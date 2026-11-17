@@ -16,6 +16,7 @@ import type {
   AuthReplaceRecoveryCodesStatus200,
   AuthReplaceRecoveryCodesStatus400,
   AuthReplaceRecoveryCodesStatus422,
+  AuthReplaceRecoveryCodesStatus429,
 } from "../models/AuthReplaceRecoveryCodes.js";
 
 export const authReplaceRecoveryCodesMutationKey = () =>
@@ -30,7 +31,9 @@ export function authReplaceRecoveryCodesMutationOptions<TContext = unknown>(
   return mutationOptions<
     AuthReplaceRecoveryCodesStatus200,
     ResponseErrorConfig<
-      AuthReplaceRecoveryCodesStatus400 | AuthReplaceRecoveryCodesStatus422
+      | AuthReplaceRecoveryCodesStatus400
+      | AuthReplaceRecoveryCodesStatus422
+      | AuthReplaceRecoveryCodesStatus429
     >,
     AuthReplaceRecoveryCodesOptions,
     TContext
@@ -56,7 +59,9 @@ export function useAuthReplaceRecoveryCodes<TContext>(
     mutation?: UseMutationOptions<
       AuthReplaceRecoveryCodesStatus200,
       ResponseErrorConfig<
-        AuthReplaceRecoveryCodesStatus400 | AuthReplaceRecoveryCodesStatus422
+        | AuthReplaceRecoveryCodesStatus400
+        | AuthReplaceRecoveryCodesStatus422
+        | AuthReplaceRecoveryCodesStatus429
       >,
       AuthReplaceRecoveryCodesOptions,
       TContext
@@ -76,7 +81,9 @@ export function useAuthReplaceRecoveryCodes<TContext>(
   ) as UseMutationOptions<
     AuthReplaceRecoveryCodesStatus200,
     ResponseErrorConfig<
-      AuthReplaceRecoveryCodesStatus400 | AuthReplaceRecoveryCodesStatus422
+      | AuthReplaceRecoveryCodesStatus400
+      | AuthReplaceRecoveryCodesStatus422
+      | AuthReplaceRecoveryCodesStatus429
     >,
     AuthReplaceRecoveryCodesOptions,
     TContext
@@ -85,7 +92,9 @@ export function useAuthReplaceRecoveryCodes<TContext>(
   return useMutation<
     AuthReplaceRecoveryCodesStatus200,
     ResponseErrorConfig<
-      AuthReplaceRecoveryCodesStatus400 | AuthReplaceRecoveryCodesStatus422
+      | AuthReplaceRecoveryCodesStatus400
+      | AuthReplaceRecoveryCodesStatus422
+      | AuthReplaceRecoveryCodesStatus429
     >,
     AuthReplaceRecoveryCodesOptions,
     TContext
@@ -99,7 +108,9 @@ export function useAuthReplaceRecoveryCodes<TContext>(
   ) as UseMutationResult<
     AuthReplaceRecoveryCodesStatus200,
     ResponseErrorConfig<
-      AuthReplaceRecoveryCodesStatus400 | AuthReplaceRecoveryCodesStatus422
+      | AuthReplaceRecoveryCodesStatus400
+      | AuthReplaceRecoveryCodesStatus422
+      | AuthReplaceRecoveryCodesStatus429
     >,
     AuthReplaceRecoveryCodesOptions,
     TContext

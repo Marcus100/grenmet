@@ -3,7 +3,8 @@ import { expect, host, test, watchPageErrors } from "./staging";
 const AUTH_HOST = /auth\./u;
 const EMAIL = /email/iu;
 const PASSWORD = /password/iu;
-const SIGN_IN = /sign in/iu;
+const SIGN_IN = /^sign in$/iu;
+const USE_PASSWORD = /use password instead/iu;
 const PORTAL_HOST = /gms\./u;
 const ERROR_BOUNDARY = /something went wrong/iu;
 
@@ -24,6 +25,9 @@ test("a staff member signs in and reaches the products desk and the register", a
   const errors = watchPageErrors(page);
   await page.goto(host(stagingDomain, "gms"));
   await expect(page).toHaveURL(AUTH_HOST);
+  // The page opens on the emailed code; the test account signs in by password.
+  await page.getByRole("link", { name: USE_PASSWORD }).click();
+  await expect(page.getByLabel(PASSWORD).first()).toBeVisible();
   await page.getByLabel(EMAIL).first().fill(account.email);
   await page.getByLabel(PASSWORD).first().fill(account.password);
   await page.getByRole("button", { name: SIGN_IN }).click();

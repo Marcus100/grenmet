@@ -24,6 +24,7 @@ class PrintixEvent(Base):
     __tablename__ = "event"
     __table_args__ = (
         sa.CheckConstraint("status IN ('open', 'closed')", name="status"),
+        sa.Index("event_organisation_id_idx", "organisation_id"),
         {"schema": "printix"},
     )
 
@@ -34,6 +35,16 @@ class PrintixEvent(Base):
     closes_at: Mapped[datetime]
     status: Mapped[str] = mapped_column(
         String(10), default=constants.PrintixEventStatus.OPEN.value
+    )
+    #: Set by the administrator's close (``transitions.move_event``). An offline scan
+    #: made before it still counts. NULL while open, and for a closed event with no
+    #: recorded close, which refuses every offline scan.
+    closed_at: Mapped[datetime | None]
+    #: The organisation that owns the event (ADR-0060 organiser amendment). NULL for
+    #: events made by an administrator without one; organisers never see those.
+    organisation_id: Mapped[str | None] = mapped_column(
+        String(100),
+        ForeignKey("org.organisation.id", name="event_organisation_id_fkey"),
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
@@ -109,6 +120,12 @@ class PrintixScanLog(Base):
     __tablename__ = "scan_log"
     __table_args__ = (
         sa.Index("scan_log_pairing_id_scanned_at_idx", "pairing_id", "scanned_at"),
+        sa.Index(
+            "scan_log_pairing_id_client_ref_idx",
+            "pairing_id",
+            "client_ref",
+            unique=True,
+        ),
         sa.CheckConstraint(
             "outcome IN ('admitted', 'already_admitted', 'void', 'unknown', 'event_closed')",
             name="outcome",
@@ -123,4 +140,12 @@ class PrintixScanLog(Base):
     value: Mapped[str] = mapped_column(String(constants.SCAN_VALUE_LOG_LENGTH))
     #: True when the scan was a typed printed-number lookup (counted by its own cap).
     typed: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
+    #: When the server recorded the scan. For an offline admission, when it was synced,
+    #: so the rolling caps count server time and a phone's clock cannot dodge them.
     scanned_at: Mapped[datetime] = mapped_column(default=utc_now)
+    #: Set only for an admission made offline: the phone's time, kept between the
+    #: pairing's creation and the sync. ``None`` for a live scan.
+    offline_scanned_at: Mapped[datetime | None]
+    #: The phone's reference for a queued offline admission. A retried sync with the
+    #: same reference answers from this row instead of scanning again.
+    client_ref: Mapped[uuid.UUID | None]

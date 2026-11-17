@@ -7,7 +7,13 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.apps import get_app, is_app_scoped, is_registered
+from src.auth.apps import (
+    find_app,
+    get_app,
+    is_app_scoped,
+    is_registered,
+    session_cap,
+)
 from src.auth.config import auth_settings
 from src.auth.eligibility import (
     is_eligible_for_app,
@@ -83,12 +89,17 @@ async def create_session(
     mfa_verified_at: datetime | None = None,
     mfa_source_session: AuthSession | None = None,
     email_code_verified_at: datetime | None = None,
+    signed_in_at: datetime | None = None,
 ) -> tuple[AuthSession, str]:
     """Create and persist a new opaque session for a user.
 
     App-scoped sessions (``enforce_approval=False``) skip the staff approval
     gate; the caller has already checked app eligibility. ``email_code_verified_at``
     is set only by an emailed-code sign-in (ADR-0059 rule 2).
+
+    ``signed_in_at`` is the original sign-in: left out for a new sign-in (now), and
+    passed through by ``rotate_session``. An app with a session cap (ADR-0061) gets
+    ``min(normal expiry, signed_in_at + cap)``, so a capped session never outlives it.
     """
     if mfa_verified_at is not None or mfa_source_session is not None:
         verified_secret = user.totp_secret
@@ -117,13 +128,19 @@ async def create_session(
     session_secret = create_session_token()
     user.last_login_at = now
     session.add(user)
+    original_sign_in = signed_in_at or now
+    expires_at = now + (expires_delta or get_session_expires_delta())
+    cap = session_cap(app_name)
+    if cap is not None:
+        expires_at = min(expires_at, original_sign_in + cap)
     db_session = AuthSession(
         **SessionCreate(
             mfa_verified_at=mfa_verified_at,
             email_code_verified_at=email_code_verified_at,
+            signed_in_at=original_sign_in,
             user_id=user.id,
             session_token=hash_session_token(session_secret),
-            expires_at=now + (expires_delta or get_session_expires_delta()),
+            expires_at=expires_at,
             client_type=client_type,
             app_name=app_name,
             user_agent=user_agent,
@@ -252,6 +269,33 @@ async def revoke_user_app_sessions(
     return revoked
 
 
+def app_refuses(db_session: AuthSession, user: User | None) -> bool:
+    """Whether the session's app now refuses it (ADR-0061).
+
+    True when the app's cap has passed since the original sign-in, or when the app
+    requires an authenticator and this person no longer has one.
+    """
+    app = find_app(db_session.app_name)
+    if app is None:
+        return False
+    if app.max_session_hours is not None:
+        started = db_session.signed_in_at or db_session.created_at
+        if utc_now() >= started + timedelta(hours=app.max_session_hours):
+            return True
+    return app.require_authenticator and user is not None and not user.totp_enabled
+
+
+async def end_refused_session(
+    *, session: AsyncSession, db_session: AuthSession, user: User | None
+) -> bool:
+    """Revoke the session if its app refuses it now. True when it was refused."""
+    if not app_refuses(db_session, user):
+        return False
+    if db_session.revoked_at is None:
+        await revoke_session(session=session, db_session=db_session)
+    return True
+
+
 async def exchange_session_for_access_token(
     *,
     session: AsyncSession,
@@ -267,6 +311,8 @@ async def exchange_session_for_access_token(
         return None
 
     user = await get_user_by_id(session=session, user_id=db_session.user_id)
+    if await end_refused_session(session=session, db_session=db_session, user=user):
+        return None
     scoped_app = db_session.app_name if is_app_scoped(db_session.app_name) else None
     if scoped_app is not None:
         eligible = user is not None and await is_eligible_for_app(
@@ -322,17 +368,27 @@ async def rotate_session(
     user_agent: str | None = None,
     ip_address: str | None = None,
 ) -> tuple[AuthSession, str]:
-    """Rotate an active session by revoking it and minting a replacement."""
+    """Rotate an active session by revoking it and minting a replacement.
+
+    The replacement keeps the original sign-in time, so a capped app's session
+    (ADR-0061) cannot be extended by refreshing. A session its app now refuses
+    (cap passed, or authenticator gone) is revoked and refused, so no access token
+    can be minted from it afterwards.
+    """
     await session.refresh(user, with_for_update=True)
     await session.refresh(db_session)
+    if await end_refused_session(session=session, db_session=db_session, user=user):
+        raise AppException("Sign in again", 401)
     if not is_session_active(db_session):
         raise AppException("Sign in again", 401)
+    original_sign_in = db_session.signed_in_at or db_session.created_at
     await revoke_session(session=session, db_session=db_session)
     return await create_session(
         session=session,
         user=user,
         client_type=db_session.client_type,
         mfa_verified_at=db_session.mfa_verified_at,
+        signed_in_at=original_sign_in,
         app_name=db_session.app_name,
         user_agent=user_agent or db_session.user_agent,
         ip_address=ip_address or db_session.ip_address,

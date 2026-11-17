@@ -129,6 +129,19 @@ login_lockout = LoginLockout(
 )
 
 
+# Authenticator codes checked on signed-in routes (activate, disable; #1533). Its own
+# key, not the sign-in one: a stolen session that guesses codes must not lock the
+# owner's password sign-in. Keyed on the account id, so it does not move with the email.
+# The same thresholds as sign-in.
+factor_lockout = LoginLockout(
+    redis_url=worker_settings.REDIS_URL,
+    max_attempts=auth_settings.LOGIN_MAX_FAILED_ATTEMPTS,
+    lockout_seconds=auth_settings.LOGIN_LOCKOUT_SECONDS,
+    window_seconds=auth_settings.LOGIN_FAILURE_WINDOW_SECONDS,
+    prefix="factor",
+)
+
+
 def normalised_address(email: str) -> str:
     """The key for send limits: one mailbox, one key.
 

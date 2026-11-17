@@ -12,6 +12,7 @@ from pydantic import (
 from src.auth.onboarding_schemas import AdminReasonText
 from src.models import BaseModel, UtcDateTime
 from src.organisations.models import (
+    GrantInactiveReason,
     MembershipRole,
     MembershipStatus,
     OrganisationKind,
@@ -377,6 +378,10 @@ class MembershipGrantPublic(BaseModel):
     granted_at: UtcDateTime
     expires_at: UtcDateTime | None = None
     revoked_at: UtcDateTime | None = None
+    # False when the granter is no longer an active member: the grant gives no access
+    # while it is paused (#1501). Additive; true for every grant that is live.
+    active: bool = True
+    inactive_reason: GrantInactiveReason | None = None
 
 
 class GrantRevokePublic(MembershipGrantPublic):
@@ -393,6 +398,9 @@ class TeamMemberGrantPublic(BaseModel):
     granted_by_name: str | None = None  # display name; None if the giver is gone
     granted_at: UtcDateTime
     expires_at: UtcDateTime | None = None
+    # False when the giver is no longer an active member (#1501): listed, but no access.
+    active: bool = True
+    inactive_reason: GrantInactiveReason | None = None
 
 
 class TeamMemberPublic(BaseModel):

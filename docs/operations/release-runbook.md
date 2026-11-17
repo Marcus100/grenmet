@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-16
 
 How a change ships from `dev` to production. Agents (Claude Code / Codex) run
 local verification, push their task branch, open a PR into `dev` and merge it
@@ -41,6 +41,14 @@ run the next deploy with `FORCE_MIGRATIONS=1` on the environment, or delete
 - Run the `/pre-merge` check (types, lint, Docker names, env drift, API-client
   sync, Actions pinning). Fix findings before promoting.
 - `git status` clean, `dev` pushed.
+- A commit that touches a FastAPI route or schema file must also stage the
+  regenerated `openapi.json` and client. When the regenerated document is
+  identical (a pure refactor), end the commit message with the trailer
+  `API-Contract: unchanged` instead. The `commit-msg` hook
+  (`.husky/commit-msg`, `scripts/guardrails/check-blast-radius.mjs`, #1512)
+  reads the trailer, so the commit is accepted locally and not only in CI; the
+  OpenAPI regeneration check in `ci-api.yml` still proves the claim. The
+  trailer covers the OpenAPI document only, not `docs/api/contracts.md`.
 - Events lives in the main database as the `events` schema (ADR-0003), so it needs
   no separate secret or database. Verify an Events sign-in and persisted save/RSVP
   on staging. Core backup and restore acceptance require seven databases (the
@@ -104,6 +112,12 @@ run the next deploy with `FORCE_MIGRATIONS=1` on the environment, or delete
   no commits on `main` or `staging` that did not come from `dev`. The runner
   must be online or the job queues silently — check with
   `gh run list --workflow=pipeline-prod.yml --limit 1`.
+- **Approve the production deployment.** The `production` GitHub environment
+  has a required reviewer and accepts only `v*` tags, so the deploy job waits
+  in "Waiting for review" until the owner approves it (the run page, **Review
+  deployments**, tick `production`, **Approve and deploy**). Nothing reaches
+  production before that click; a run left unapproved stays pending and does
+  not deploy. Agents do not approve it.
 
 ### Release notes checklist
 
@@ -161,8 +175,8 @@ does not use the unused `latest-success.json` markers.
 - `off`: no check; the summary says so.
 - `warn` (default): a stale backup prints a warning and writes it to the step
   summary; the deploy continues.
-- `enforce`: a verified stale or missing dump stops the deploy before any
-  migration, naming each database and its age. Nothing in the repository sets
+- `enforce`: a stale, missing or unverifiable dump stops the deploy before any
+  migration, naming each database and its age or what could not be checked. Nothing in the repository sets
   `enforce`; the owner enables it by setting the variable.
 - Override: dispatch **Deploy** with `backup_gate_override` set to a reason
   (for a hotfix with a stale backup). The deploy continues and the summary
@@ -176,9 +190,13 @@ for seven histories plus the Payload CMS, with no cheap reliable comparison in
 `core.sh`. The gate therefore checks on every deploy that has migration
 services, not only ones that change the schema.
 
-It fails open, loudly: if the runner lacks the read credentials, the `aws` CLI,
-or cannot list the bucket, the summary says exactly what could not be checked and
-the deploy continues, in every mode. The gate reads
+If the runner lacks the read credentials, the `aws` CLI, or cannot list the
+bucket, the summary says exactly what could not be checked. In `warn` the deploy
+continues (it fails open, loudly). In `enforce` an unverifiable backup blocks the
+deploy before any migration, the same as a stale one, unless
+`backup_gate_override` gives a reason. As of v1.3.0 the production deploy job
+cannot read the backup store, so set the secrets below before setting `enforce`.
+The gate reads
 `DO_SPACES_READ_ACCESS_KEY_ID` / `DO_SPACES_READ_SECRET_ACCESS_KEY`,
 `DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT` and `DO_SPACES_REGION`; the read keys
 live in the `production-backup` environment, so confirm the `production`

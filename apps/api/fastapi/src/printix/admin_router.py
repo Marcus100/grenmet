@@ -9,7 +9,7 @@ the audit log.
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Query, UploadFile, status
+from fastapi import APIRouter, File, Query, Response, UploadFile, status
 
 from src.dependencies import SessionDep
 from src.models import ApiError
@@ -21,6 +21,8 @@ from .constants import PrintixTicketStatus
 from .dependencies import PrintixAdmin
 from .schemas import (
     PrintixEventCreate,
+    PrintixEventOrganisationUpdate,
+    PrintixEventPage,
     PrintixEventPublic,
     PrintixEventSummary,
     PrintixImportReport,
@@ -58,6 +60,51 @@ async def create_event_endpoint(
         name=body.name,
         event_date=body.event_date,
         closes_at=service.to_naive_utc(body.closes_at),
+        actor_id=admin.id,
+        organisation_id=body.organisation_id,
+    )
+    return service.event_public(event)
+
+
+@router.get(
+    "/events",
+    response_model=PrintixEventPage,
+    summary="List Printix events",
+    description=(
+        "Every Printix event, newest date first, whatever its organisation (including "
+        "events with none). Organisers use the organisation route instead."
+    ),
+    responses=_UNAUTHENTICATED,
+)
+async def list_events_endpoint(
+    *, session: SessionDep, _admin: PrintixAdmin, pagination: PaginationDep
+) -> Any:
+    return await service.list_events(
+        session, organisation_id=None, page=pagination.page, size=pagination.size
+    )
+
+
+@router.post(
+    "/events/{event_id}/organisation",
+    response_model=PrintixEventPublic,
+    summary="Set the organisation that owns a Printix event",
+    description=(
+        "Sets or clears (null) the organisation that owns the event. Organisers of that "
+        "organisation see the event at once; events with none are visible only here."
+    ),
+    responses=_FIND,
+)
+async def set_event_organisation_endpoint(
+    *,
+    session: SessionDep,
+    admin: PrintixAdmin,
+    event_id: uuid.UUID,
+    body: PrintixEventOrganisationUpdate,
+) -> Any:
+    event = await service.set_event_organisation(
+        session,
+        event_id,
+        organisation_id=body.organisation_id,
         actor_id=admin.id,
     )
     return service.event_public(event)
@@ -237,7 +284,9 @@ async def create_pairing_endpoint(
     admin: PrintixAdmin,
     event_id: uuid.UUID,
     body: PrintixPairingCreate,
+    response: Response,
 ) -> Any:
+    response.headers["Cache-Control"] = "no-store"
     pairing, secret = await service.create_pairing(
         session,
         event_id,

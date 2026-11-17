@@ -6,6 +6,8 @@ their conditional UPDATEs in ``service.py``; these guards refuse the moves that
 are never allowed, before any statement runs.
 """
 
+from src.utils.datetime import utc_now
+
 from .constants import PrintixEventStatus, PrintixTicketStatus
 from .exceptions import PrintixConflict
 from .models import PrintixEvent
@@ -22,13 +24,18 @@ TICKET_TRANSITIONS: dict[str, frozenset[str]] = {
 
 
 def move_event(event: PrintixEvent, target: PrintixEventStatus) -> None:
-    """Close an event. Opening a closed one is refused; closing twice is a no-op."""
+    """Close an event. Opening a closed one is refused; closing twice is a no-op.
+
+    Closing records ``closed_at``, the cutoff for offline scans. There is no reopen
+    move, so ``closed_at`` is never cleared; a reopen would have to clear it here.
+    """
     current = event.status
     if current == target.value:
         return
     if target.value not in EVENT_TRANSITIONS.get(current, frozenset()):
         raise PrintixConflict("This event cannot move to that status")
     event.status = target.value
+    event.closed_at = utc_now()
 
 
 def check_ticket_move(

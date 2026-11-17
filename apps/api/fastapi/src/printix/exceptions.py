@@ -15,6 +15,20 @@ class PrintixConflict(AppException):
         super().__init__(message, 409)
 
 
+class PrintixOfflineUnavailable(AppException):
+    """Offline mode is refused: this event's barcodes are its printed numbers."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Offline scanning is not available for this event, because some of its "
+            "barcodes are its printed numbers or shorter than twelve characters. Use "
+            "the live scanner.",
+            409,
+        )
+        #: Clients match on this code, not on the wording of the message.
+        self.extra["code"] = constants.OFFLINE_UNAVAILABLE_CODE
+
+
 class PrintixImportTooLarge(AppException):
     def __init__(self) -> None:
         super().__init__(
@@ -45,4 +59,22 @@ class PrintixRateLimited(AppException):
             "Too many scans from this pairing. Wait a minute and try again.",
             429,
             headers={"Retry-After": str(constants.SCAN_WINDOW_SECONDS)},
+        )
+
+
+class PrintixTypedNumbersNotAllowed(AppException):
+    """Only an organiser (printix.events.manage) may turn typed printed numbers on."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Only an organiser may turn typed printed numbers on for a gate code.", 403
+        )
+
+
+class PrintixOrganisationIneligible(AppException):
+    """The organisation may not own a Printix event: suspended, or not entitled to printix."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This organisation is not active or is not entitled to Printix.", 422
         )

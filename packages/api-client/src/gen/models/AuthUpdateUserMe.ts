@@ -14,6 +14,12 @@ export type AuthUpdateUserMeStatus200 = UserPublic;
  * @description Stable error envelope for documented API failures.
  * @type object
  */
+export type AuthUpdateUserMeStatus400 = ApiError;
+
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
 export type AuthUpdateUserMeStatus409 = ApiError;
 
 /**
@@ -21,6 +27,12 @@ export type AuthUpdateUserMeStatus409 = ApiError;
  * @type object
  */
 export type AuthUpdateUserMeStatus422 = ValidationErrorResponse;
+
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthUpdateUserMeStatus429 = ApiError;
 
 export type AuthUpdateUserMeBody = UserUpdateMe;
 
@@ -33,8 +45,10 @@ export type AuthUpdateUserMeOptions = {
 
 export type AuthUpdateUserMeResponses = {
   "200": AuthUpdateUserMeStatus200;
+  "400": AuthUpdateUserMeStatus400;
   "409": AuthUpdateUserMeStatus409;
   "422": AuthUpdateUserMeStatus422;
+  "429": AuthUpdateUserMeStatus429;
 };
 
 /**

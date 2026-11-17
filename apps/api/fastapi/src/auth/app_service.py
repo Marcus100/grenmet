@@ -36,7 +36,14 @@ from src.auth.app_schemas import (
     AppPhoneCodeStart,
     AppPhoneCodeVerify,
 )
-from src.auth.apps import AppDefinition, is_registered, registered_apps, require_method
+from src.auth.apps import (
+    AppDefinition,
+    authenticator_required_error,
+    is_registered,
+    registered_apps,
+    require_method,
+    session_cap,
+)
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.email_verification import is_admin_activated
@@ -211,6 +218,7 @@ async def _session_response(
     mfa_verified_at: datetime | None = None,
     mfa_source_session: LoginSession | None = None,
     email_code_verified_at: datetime | None = None,
+    signed_in_at: datetime | None = None,
 ) -> SessionLoginResponse:
     # Staff apps (ADR-0017) keep the staff gate and mint ordinary staff tokens.
     staff = app.scope == "staff"
@@ -224,6 +232,8 @@ async def _session_response(
     )
     if not eligible:
         raise AppException("This account can't sign in to this app.", 403)
+    # Every method reaches a session here (handoff included), so this is the backstop.
+    _require_app_authenticator(app, user)
     user_agent = request.headers.get("user-agent")
     ip_address = request_ip(request)
     new_device = remember_device(user, user_agent)
@@ -238,6 +248,7 @@ async def _session_response(
         mfa_verified_at=mfa_verified_at,
         mfa_source_session=mfa_source_session,
         email_code_verified_at=email_code_verified_at,
+        signed_in_at=signed_in_at,
     )
     if staff or app.key == "cms":
         from src.auth.privileged_mfa import require_privileged_mfa
@@ -288,6 +299,17 @@ async def _require_totp(
     await login_lockout.reset(user.email)
 
 
+def _require_app_authenticator(app: AppDefinition, user: User) -> None:
+    """Refuse a person with no enrolled authenticator, for an app that requires one.
+
+    Called after the proof of identity (code, password, Google or handoff) and before
+    any role is granted or session is created. The refusal is the same for every
+    method, so it reveals nothing the proof has not already shown.
+    """
+    if app.require_authenticator and not user.totp_enabled:
+        raise authenticator_required_error(app)
+
+
 # --- Email one-time code (passwordless sign-in and sign-up) --------------------
 
 
@@ -295,20 +317,26 @@ async def _require_totp(
 _pending_code_emails: set[asyncio.Task[None]] = set()
 
 
-def _schedule_code_email(*, email: str, app_label: str, code: str) -> None:
+def _schedule_code_email(
+    *, email: str, app_label: str, code: str, subject: str = "Your sign-in code"
+) -> None:
     task = asyncio.get_running_loop().create_task(
-        _deliver_code_email(email=email, app_label=app_label, code=code)
+        _deliver_code_email(
+            email=email, app_label=app_label, code=code, subject=subject
+        )
     )
     _pending_code_emails.add(task)
     task.add_done_callback(_pending_code_emails.discard)
 
 
-async def _deliver_code_email(*, email: str, app_label: str, code: str) -> None:
+async def _deliver_code_email(
+    *, email: str, app_label: str, code: str, subject: str = "Your sign-in code"
+) -> None:
     try:
         await run_in_threadpool(
             send_email,
             email_to=email,
-            subject="Your sign-in code",
+            subject=subject,
             html_content=(
                 f"<p>Your {app_label} code is</p>"
                 f'<p style="font-size:28px;font-weight:700;letter-spacing:4px">{code}</p>'
@@ -435,6 +463,11 @@ async def email_code_verify(
     if user is None:
         if not app.self_signup:
             raise AppException("Ask the team to give you access to this app.", 403)
+        # A new address has no authenticator yet. Refusing here, before the account
+        # exists and before the code is spent, keeps a refused sign-in from leaving
+        # an account or a used code behind (ADR-0061).
+        if app.require_authenticator:
+            raise authenticator_required_error(app)
         user = await _create_member(
             session,
             email=email,
@@ -451,6 +484,7 @@ async def email_code_verify(
         session.add(user)
     await record_security(session, user, "code_sign_in")
     await session.commit()
+    _require_app_authenticator(app, user)
     await ensure_member(session, user, app)
     return await _session_response(
         request,
@@ -485,6 +519,7 @@ async def password_login(
         await login_lockout.record_failure(email)
         raise AppException("Incorrect email or password", 400)
     await _require_totp(session, user, body.totp_code)
+    _require_app_authenticator(app, user)
     await login_lockout.reset(email)
     await ensure_member(session, user, app)
     return await _session_response(
@@ -592,6 +627,7 @@ async def google_finish(
     if user is None or not user.is_active or user.email != challenge.data["email"]:
         raise AppException("Account unavailable", 403)
     await _require_totp(session, user, body.totp_code)
+    _require_app_authenticator(app, user)
     identity = await session.get(
         ExternalIdentity, (challenge.data["subject"], "google")
     )
@@ -657,6 +693,7 @@ async def phone_code_verify(
         consume=False,
     )
     await _require_totp(session, user, body.totp_code)
+    _require_app_authenticator(app, user)
     await session.delete(challenge)
     await session.commit()
     await ensure_member(session, user, app)
@@ -839,6 +876,14 @@ async def handoff_redeem(
         or not service.is_session_active(source)
     ):
         raise AppException(HANDOFF_EXPIRED, 400)
+    # The app session counts from the account session's original sign-in, so a
+    # handoff never restarts the cap (ADR-0061).
+    original_sign_in = source.signed_in_at or source.created_at
+    if app.require_authenticator and source.mfa_verified_at is None:
+        raise authenticator_required_error(app, verify_again=True)
+    cap = session_cap(app.key)
+    if cap is not None and utc_now() >= original_sign_in + cap:
+        raise AppException("Sign in again", 401)
     return await _session_response(
         request,
         session,
@@ -846,6 +891,7 @@ async def handoff_redeem(
         app,
         mfa_verified_at=source.mfa_verified_at,
         mfa_source_session=source,
+        signed_in_at=original_sign_in,
     )
 
 

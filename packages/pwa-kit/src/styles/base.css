@@ -1,0 +1,69 @@
+/*
+ * The shared base for every phone app in apps/pwa. Import it after Tailwind
+ * and the shared touch behaviour in the app's own stylesheet:
+ *
+ *   @import "tailwindcss";
+ *   @import "@barrelsgd/ui/styles/app-feel";
+ *   @import "@barrelsgd/pwa-kit/styles/base";
+ *
+ * then give the colours below the app's own values in an `@theme` block.
+ * Shared parts style themselves only with these names, so each app keeps its
+ * own look: Printix stays dark green, GAA apps use GAA colours.
+ */
+
+/* Lets Tailwind see the class names used by the shared components. */
+@source "../components";
+
+@theme {
+  /* Page behind everything. */
+  --color-pwa-background: #ffffff;
+  /* Panels, sheets and the camera frame. */
+  --color-pwa-surface: #f4f4f5;
+  /* Borders and the sheet's drag handle. */
+  --color-pwa-rule: #d4d4d8;
+  /* Main text, and focus outlines. */
+  --color-pwa-text: #18181b;
+  /* Secondary text. */
+  --color-pwa-muted: #52525b;
+  /* The brand colour: main buttons, links, the scan frame. */
+  --color-pwa-accent: #1d4ed8;
+  /* Text on the accent colour. */
+  --color-pwa-on-accent: #ffffff;
+  /* Problems and refusals. */
+  --color-pwa-bad: #b91c1c;
+  /* Text on the bad colour. */
+  --color-pwa-on-bad: #ffffff;
+}
+
+body {
+  /* An installed app, not a page: no pull-to-refresh, no bounce. */
+  overscroll-behavior: none;
+  color: var(--color-pwa-text);
+  background: var(--color-pwa-background);
+}
+
+/*
+ * The shared touch behaviour (app-feel) covers buttons. A <summary> toggle is
+ * a control too: a long press must not select its words or open the iPhone
+ * callout.
+ */
+summary {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/*
+ * A screen that replaces another fades in, so the change does not read as a
+ * page load. Opacity only, so it is safe for people who ask for reduced
+ * motion. Never put it on something shown many times a minute.
+ */
+.pwa-screen {
+  opacity: 1;
+  transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
+
+  @starting-style {
+    opacity: 0;
+  }
+}

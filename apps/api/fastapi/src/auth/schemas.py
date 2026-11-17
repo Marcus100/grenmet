@@ -50,6 +50,10 @@ class UserUpdateMe(BaseModel):
     first_name: str | None = Field(default=None, min_length=1, max_length=100)
     middle_name: str | None = Field(default=None, max_length=100)
     last_name: str | None = Field(default=None, min_length=1, max_length=100)
+    # Proof for a changed email (#1535): the current password, or for an account with
+    # no password the code from POST /auth/users/me/email-change/code. Never stored.
+    current_password: str | None = Field(default=None, max_length=256)
+    email_code: str | None = Field(default=None, min_length=6, max_length=6)
 
 
 class UpdatePassword(BaseModel):
@@ -170,6 +174,7 @@ class SessionBase(BaseModel):
 class SessionCreate(BaseModel):
     mfa_verified_at: UtcDateTime | None = None
     email_code_verified_at: UtcDateTime | None = None
+    signed_in_at: UtcDateTime | None = None
     user_id: uuid.UUID
     session_token: str
     expires_at: UtcDateTime

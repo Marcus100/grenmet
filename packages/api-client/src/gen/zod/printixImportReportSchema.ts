@@ -24,4 +24,18 @@ export const printixImportReportSchema = z.object({
     .describe(
       "Checks that do not block the import but need the operator's attention."
     ),
+  short_barcodes: z
+    .int()
+    .optional()
+    .default(0)
+    .describe(
+      "Tickets on the event once this file is in (tickets already there plus this file's rows) whose barcode is shorter than 12 characters. Offline scanning stays off for the event while this is above zero."
+    ),
+  barcode_equals_number: z
+    .int()
+    .optional()
+    .default(0)
+    .describe(
+      "Tickets on the event once this file is in (tickets already there plus this file's rows) whose barcode equals their printed number, including barcodes defaulted from the number. Offline scanning stays off for the event while this is above zero."
+    ),
 });

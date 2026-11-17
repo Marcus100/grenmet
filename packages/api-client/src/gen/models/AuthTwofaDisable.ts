@@ -4,6 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { TwoFactorDisableRequest } from "./TwoFactorDisableRequest.js";
 import type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -22,6 +23,8 @@ export type AuthTwofaDisableStatus400 = ApiError;
  */
 export type AuthTwofaDisableStatus422 = ValidationErrorResponse;
 
+export type AuthTwofaDisableStatus429 = ApiError | ErrorMessage;
+
 export type AuthTwofaDisableBody = TwoFactorDisableRequest;
 
 export type AuthTwofaDisableOptions = {
@@ -35,6 +38,7 @@ export type AuthTwofaDisableResponses = {
   "200": AuthTwofaDisableStatus200;
   "400": AuthTwofaDisableStatus400;
   "422": AuthTwofaDisableStatus422;
+  "429": AuthTwofaDisableStatus429;
 };
 
 /**

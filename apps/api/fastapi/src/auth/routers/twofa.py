@@ -1,9 +1,8 @@
 """Two-factor authentication (TOTP) enrollment endpoints."""
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Request, status
 
 from src.auth import service, totp
-from src.auth.account_security import verify_factor
 from src.auth.privileged_mfa import session_id_from_token
 from src.auth.schemas import (
     TwoFactorCodeRequest,
@@ -11,12 +10,20 @@ from src.auth.schemas import (
     TwoFactorSetupResponse,
     TwoFactorStatusPublic,
 )
-from src.dependencies import AccountUser, SessionDep, TokenDep
+from src.dependencies import AccountUser, RateLimitedAccountUser, SessionDep, TokenDep
 from src.exceptions import AppException
 from src.models import ApiError
-from src.openapi_responses import AUTHENTICATED
+from src.openapi_responses import AUTHENTICATED, RateLimitedBody
+from src.rate_limit import account_address, limiter
 
 router = APIRouter(prefix="/auth/users/me/security/2fa", tags=["2fa"])
+
+#: Mail-sending and code checks, per account. Setup mails a code to privileged
+#: accounts (5 a minute, like email-code start); activation checks a code (10, like
+#: email-code verify); disable checks a password and a code (5, like recovery codes).
+SETUP_LIMIT = "5/minute"
+ACTIVATE_LIMIT = "10/minute"
+DISABLE_LIMIT = "5/minute"
 
 
 @router.get(
@@ -38,11 +45,23 @@ async def twofa_status(*, current_user: AccountUser) -> TwoFactorStatusPublic:
     "until a code is confirmed via /auth/users/me/security/2fa/activate. For a "
     "privileged account a one-time code is emailed to the account, and activation "
     "needs it as email_code (email_code_required is true).",
-    responses={**AUTHENTICATED},
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
+            "description": "Too many attempts; try again later",
+        },
+    },
 )
+@limiter.limit(SETUP_LIMIT, key_func=account_address)
 async def twofa_setup(
-    *, session: SessionDep, current_user: AccountUser, token: TokenDep
+    *,
+    request: Request,
+    session: SessionDep,
+    current_user: RateLimitedAccountUser,
+    token: TokenDep,
 ) -> TwoFactorSetupResponse:
+    _ = request  # the rate limiter reads it
     keep_session_id = session_id_from_token(token)
     secret = await service.begin_totp_setup(
         session=session, user=current_user, keep_session_id=keep_session_id
@@ -66,18 +85,25 @@ async def twofa_setup(
         status.HTTP_400_BAD_REQUEST: {
             "model": ApiError,
             "description": "Invalid or expired code",
-        }
+        },
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
+            "description": "Too many attempts; try again later",
+        },
     },
     description="Confirms a TOTP code and enables two-factor authentication for the current account. "
     "The first authenticator of a privileged account also needs email_code, the code emailed when setup began.",
 )
+@limiter.limit(ACTIVATE_LIMIT, key_func=account_address)
 async def twofa_activate(
     *,
+    request: Request,
     session: SessionDep,
-    current_user: AccountUser,
+    current_user: RateLimitedAccountUser,
     token: TokenDep,
     payload: TwoFactorCodeRequest,
 ) -> TwoFactorStatusPublic:
+    _ = request  # the rate limiter reads it
     ok = await service.activate_totp(
         session=session,
         user=current_user,
@@ -99,19 +125,29 @@ async def twofa_activate(
         status.HTTP_400_BAD_REQUEST: {
             "model": ApiError,
             "description": "Incorrect password",
-        }
+        },
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
+            "description": "Too many attempts; try again later",
+        },
     },
 )
+@limiter.limit(DISABLE_LIMIT, key_func=account_address)
 async def twofa_disable(
-    *, session: SessionDep, current_user: AccountUser, payload: TwoFactorDisableRequest
+    *,
+    request: Request,
+    session: SessionDep,
+    current_user: RateLimitedAccountUser,
+    payload: TwoFactorDisableRequest,
 ) -> TwoFactorStatusPublic:
-    verified = await service.authenticate(
-        session=session, email=current_user.email, password=payload.password
+    _ = request  # the rate limiter reads it
+    # Password and factor checks, with their lockouts (#1533), live in the service.
+    await service.verify_disable_proof(
+        session=session,
+        user=current_user,
+        password=payload.password,
+        code=payload.code,
     )
-    if not verified:
-        raise AppException("Incorrect password", status.HTTP_400_BAD_REQUEST)
-    if not await verify_factor(session, current_user, payload.code):
-        raise AppException("Authenticator or recovery code was not accepted", 400)
     current_user.mfa_recovery_hashes = []
     await service.disable_totp(session=session, user=current_user)
     return TwoFactorStatusPublic(enabled=False)

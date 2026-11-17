@@ -27,6 +27,7 @@ from src.organisations.exceptions import (
     MembershipNotFoundError,
 )
 from src.organisations.models import (
+    GrantInactiveReason,
     Membership,
     MembershipGrant,
     MembershipRole,
@@ -92,8 +93,12 @@ def _name(user: User | None) -> str | None:
     return user.full_name.strip() or "Member"
 
 
+def _inactive_reason(inactive: bool) -> GrantInactiveReason | None:
+    return GrantInactiveReason.GRANTER_INACTIVE if inactive else None
+
+
 def _public(
-    grant: MembershipGrant, member: User, granter: User | None
+    grant: MembershipGrant, member: User, granter: User | None, *, inactive: bool
 ) -> MembershipGrantPublic:
     return MembershipGrantPublic(
         id=grant.id,
@@ -104,6 +109,8 @@ def _public(
         granted_at=grant.granted_at,
         expires_at=grant.expires_at,
         revoked_at=grant.revoked_at,
+        active=not inactive,
+        inactive_reason=_inactive_reason(inactive),
     )
 
 
@@ -218,8 +225,10 @@ async def list_roster(
         membership_ids=[m.id for m, _ in rows],
         products=products,
     )
-    giver_names = await _giver_names(
-        session, [g.id for page_grants in live.values() for g in page_grants]
+    live_ids = [g.id for page_grants in live.values() for g in page_grants]
+    giver_names = await _giver_names(session, live_ids)
+    inactive = await grants.inactive_grant_ids(
+        session, organisation_id=context.organisation_id, grant_ids=live_ids
     )
     return TeamMemberListPublic(
         data=[
@@ -235,6 +244,8 @@ async def list_roster(
                         granted_by_name=giver_names.get(g.id),
                         granted_at=g.granted_at,
                         expires_at=g.expires_at,
+                        active=g.id not in inactive,
+                        inactive_reason=_inactive_reason(g.id in inactive),
                     )
                     for g in live[m.id]
                 ],
@@ -258,13 +269,14 @@ async def list_member_grants(
         membership_id=membership_id,
         products=products,
     )
-    return await _to_public(session, live)
+    return await _to_public(session, live, organisation_id=context.organisation_id)
 
 
 async def _to_public(
-    session: AsyncSession, rows: list[MembershipGrant]
+    session: AsyncSession, rows: list[MembershipGrant], *, organisation_id: str
 ) -> list[MembershipGrantPublic]:
-    """Attach display names with one query (members and grantors)."""
+    """Attach display names (one query) and whether each granter still counts as an
+    active member (one more query, #1501)."""
     if not rows:
         return []
     granter = aliased(User)
@@ -276,7 +288,10 @@ async def _to_public(
         .where(MembershipGrant.id.in_([r.id for r in rows]))
     )
     by_id = {gid: (member, by) for gid, member, by in names.all()}
-    return [_public(r, *by_id[r.id]) for r in rows]
+    inactive = await grants.inactive_grant_ids(
+        session, organisation_id=organisation_id, grant_ids=[r.id for r in rows]
+    )
+    return [_public(r, *by_id[r.id], inactive=r.id in inactive) for r in rows]
 
 
 async def list_issued(
@@ -296,7 +311,7 @@ async def list_issued(
     rows = await grants.list_issued_by(
         session, organisation_id=context.organisation_id, user_id=membership.user_id
     )
-    return await _to_public(session, rows)
+    return await _to_public(session, rows, organisation_id=context.organisation_id)
 
 
 async def grant(
@@ -315,7 +330,9 @@ async def grant(
             role_key=role_key,
             expires_at=expires_at,
         )
-    return (await _to_public(session, [row]))[0]
+    return (await _to_public(session, [row], organisation_id=context.organisation_id))[
+        0
+    ]
 
 
 async def revoke(
@@ -323,7 +340,11 @@ async def revoke(
 ) -> GrantRevokePublic:
     async with conflicts_as_409():
         result = await grants.revoke_grant_detailed(session, context, grant_id=grant_id)
-    public = (await _to_public(session, [result.grant]))[0]
+    public = (
+        await _to_public(
+            session, [result.grant], organisation_id=context.organisation_id
+        )
+    )[0]
     return GrantRevokePublic(
         **public.model_dump(), cascaded_revocations=result.cascaded
     )

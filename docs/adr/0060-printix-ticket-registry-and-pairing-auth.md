@@ -3,8 +3,9 @@
 ## Status
 
 Accepted. The owner chose pairing QR codes for gate staff on 15 Nov 2026. Built
-as the API side of the Printix registry (`apps/api/fastapi/src/printix/`); the
-scanner app and offline mode are later work. Revised after the security review of
+as the API side of the Printix registry (`apps/api/fastapi/src/printix/`). The
+scanner app and offline mode are built (#1529). The organiser-access amendment
+(16 Nov 2026) is accepted and not yet built. Revised after the security review of
 PR #1463 (typed numbers off by default, scan caps, log and retention rules,
 audit trail).
 
@@ -18,14 +19,17 @@ known. The registry must import the printer's list, and a gate must admit ticket
 on Sat 26 Dec 2026.
 
 Gate staff are promoters, not employees with accounts. The owner ruled out staff
-accounts and PINs. An administrator creates a pairing for one event and one gate;
+accounts and PINs for **gate phones**; that still holds. (Since 16 Nov 2026,
+organisers and gate leads who set up events and make gate codes do have accounts:
+see "Amendment: organiser access".) An administrator creates a pairing for one event and one gate;
 a staff phone scans the pairing QR code and may scan that event until it ends.
 
 Owner decisions that bind this design:
 
 - First version: one event, one ticket type, entry only.
 - No personal data exists on a ticket. A ticket is a number and a barcode value.
-- No Barrels marks in anything a gate or promoter sees.
+- ~~No Barrels marks in anything a gate or promoter sees.~~ Replaced 16 Nov 2026:
+  Printix keeps its own name with Barrels shown (see "Amendment: organiser access").
 
 ## Evidence
 
@@ -49,7 +53,8 @@ Owner decisions that bind this design:
 
 ## Options considered
 
-1. **Staff accounts with sign-in.** Rejected by the owner.
+1. **Staff accounts with sign-in.** Rejected by the owner for gate phones (still
+   true; organisers have accounts since the 16 Nov 2026 amendment).
 2. **A short PIN per gate.** Rejected by the owner: shared on the door, easier to
    guess or pass on than a QR.
 3. **Pairing QR (chosen).** One pairing per event and gate; a 32-byte secret shown
@@ -148,6 +153,156 @@ built in this PR.
 | **Cross-event probing** | A pairing for event A learns whether event B's ticket exists. | `unknown` for both; every lookup scoped to the pairing's event. | Barcode lookups on event A reveal which barcodes exist on A, the intended purpose. |
 | **Secret or value in logs** | The secret or a scanned value leaks into logs or Sentry. | Never logged; tests check the log text and the stored rows. | The scan log keeps values for 90 days after close (rule 16). |
 | **Admin acts without a trace** | A pairing or ticket change has no owner. | Acting administrator recorded in audit history (rule 14). | The history is only as trustworthy as the superuser account. |
+
+### Amendment: offline scanning (proposed 15 Nov 2026, owner review pending; rules 3, 5, 7 to 9 added 16 Nov 2026)
+
+Gates may lose signal on the night. The API side is built; the scanner app follows
+in a separate change.
+
+1. **Ticket list.** `GET /printix/public/offline-tickets` (pairing secret) returns the
+   pairing's event and every ticket on it: printed number, state (`valid`, `void`,
+   `admitted` with the first admission's time and gate), and a **keyed hash** of the
+   barcode: HMAC-SHA256 with a key unique to the pairing (its random id), cut to 128
+   bits. The barcode itself still never leaves the server (rule 13). No personal data.
+   Limited to 4 reads a minute per pairing, plus the address cap.
+2. **On the phone.** While online, the phone keeps the latest list. With no signal it
+   hashes what it scans with the list's key, admits a `valid` ticket it has not
+   admitted, refuses the rest, and queues each local admission with a reference,
+   the scanned value and the phone's time. Offline checks are by barcode only; typed
+   numbers are not checked offline. An event whose barcodes are its printed numbers
+   has no offline mode (rule 7).
+3. **Sync.** `POST /printix/public/offline-admissions` takes up to 100 queued
+   admissions. Each is checked like a live scan, by barcode only, and stamped with
+   the phone's time kept between the pairing's creation and the time of the sync.
+   **The server is the source of truth: the first admission it records wins.** Any
+   other answer is a conflict the phone must show: `already_admitted` (with the
+   first gate and time), `void`, `unknown`, `event_closed`. A scan before the close
+   time is admitted even if it syncs after; an event an administrator has closed
+   refuses every later sync (`event_closed`, but the scan log keeps the record).
+   **Close time (decided by the owner, 16 Nov 2026):** the close is the earlier of the
+   scheduled close time and the administrator's close, which the event records as
+   `closed_at`. An offline scan counts only if its time is strictly before both. A
+   phone time in the future is taken as server time (the existing bound), so a
+   future-dated scan after the close is refused. A closed event with no recorded
+   `closed_at` refuses every offline scan. **Grace (16 Nov 2026): phones must sync
+   within 12 hours of the gates closing.** A sync that arrives more than 12 hours
+   after the close instant is refused as `event_closed` whatever the scan time. This
+   bounds how far back a queue can reach. It does not stop a holder from dating a
+   scan to a time before the close within those 12 hours (the phone's time is not
+   trusted, and nothing the server saw bounds it).
+4. **Retries.** Each queued admission carries the phone's reference (`client_ref`),
+   unique per pairing in `scan_log`. A retried reference returns its first answer
+   and is not scanned again (the idempotency follow-up, for offline sync).
+5. **Caps.** The sync carries the raw barcode, not the hash, so holding the list does
+   not let anyone admit a ticket without its barcode. Offline rows are logged at the
+   server's time and do not count against the live scan cap (120 a minute), so a
+   phone coming back online can still scan. Unknown values share the live unknown
+   cap (20 a minute): past it, the rest of the batch is returned as `deferred`,
+   unanswered and unlogged, for the phone to send again. **Other answers than
+   `admitted` (`already_admitted`, `void`, `event_closed`, `unknown`) share one cap of
+   60 a minute per pairing (16 Nov 2026).** Each writes a row, so repeats of an admitted
+   barcode with fresh references would otherwise write about 1,200 rows a minute. Past
+   that cap the rest of the batch is `deferred`. A new admission is never counted
+   against it. 12 sync requests a minute per pairing.
+6. **Counts.** The summary's `duplicates_refused` counts live refusals only; a new
+   `offline_conflicts` counts offline admissions the server could not record.
+7. **Weak barcodes (16 Nov 2026).** If any ticket on the event has a barcode equal to
+   its printed number (a defaulted barcode, or one typed as the number), or a barcode
+   shorter than 12 characters, offline mode is refused for the whole event. The list
+   and the sync answer `409` with `code: offline_not_available`, and the sync stores
+   nothing. A short value's hash can be reversed by trying every candidate, and a
+   three-digit printed number is the worst case. Live scanning and the import rules are
+   unchanged.
+8. **Scan time bounds (16 Nov 2026).** A phone's `scanned_at` must fall between
+   2020-01-01 UTC and a day after the server's time. Anything outside is a `422`. The
+   clamp in rule 2 still applies inside those bounds.
+9. **What the hash key does and does not do.** The list's hash key is the pairing's id,
+   and the phone holds it because it hashes what it scans. The key is therefore known to
+   the phone. It only stops one pairing's list being matched against another's. It does
+   not stop anyone who holds a list from trying candidate barcodes, so rule 7 is the
+   control for weak barcodes.
+
+Threats this adds:
+
+| Threat | What happens | Controls | Residual risk |
+| --- | --- | --- | --- |
+| **Phone stolen with the list** | The thief holds keyed hashes of every barcode on the event. | HMAC per pairing, so lists cannot be matched across pairings; 128-bit hashes; revocation stops new downloads; events with a printed-number or under-12-character barcode get no list (rule 7). | The key is on the phone, so a list can be attacked by trying candidate barcodes. Barcodes of 12 characters or more are the control; shorter ones are refused. |
+| **Queued values on a stolen phone** | Barcodes of tickets admitted offline but not yet synced. | Queue cleared on sync; those tickets are admitted already on the phone and refused once synced. | Until sync, a copy of such a ticket could enter at another gate. |
+| **Two gates admit the same ticket offline** | Both let someone in. | First sync wins; the second phone and the summary report a conflict. | Detected after the fact, not prevented. |
+| **Wrong phone clock** | Admission times are off. | Kept between pairing creation and sync time. | A phone clock that is wrong within that range is recorded as is. |
+
+### Amendment: organiser access for Printix staff (accepted 16 Nov 2026)
+
+**Framing changed (owner, 16 Nov 2026):** Printix is a collaboration and Barrels
+Grenada's main ticket app, not only a client's product. Printix keeps its own name
+and look, **with Barrels shown** (for example "Sign in with your Barrels account").
+This replaces the rule above that no Barrels marks appear. Barrels Events keeps
+selling online tickets; Printix does all gate scanning. Address: `scan.barrels.gd`.
+
+Until now every organiser action (`/printix/admin/*`) needs a Barrels superuser
+with an MFA session (`PrintixAdmin`). Printix's own staff must set up their events
+for 26 Dec 2026, from an organiser section of the scanner app. This widens who may
+use these actions, so it is recorded here.
+
+1. **Printix is an organisation** (kind `client`) entitled to the `printix` app
+   (`printix` added to the known entitlements). `printix` is registered in
+   `auth/apps.py` as a browser-only app with no client secret and **email-code
+   sign-in only** (the authenticator is the second step), signing in as ADR-0061
+   describes. Signing in to any app needs its `app.<app>.access` permission
+   (`auth/eligibility.py`): `app.printix.access` is registered and comes with
+   Printix membership the same way Events and Bookings members get theirs. The
+   existing global `printix.manage` key stays a superuser key, outside the
+   organisation keys.
+2. **Events belong to an organisation:** `printix.event.organisation_id`, nullable,
+   additive; existing rows stay empty. The superuser admin routes accept an
+   organisation when creating an event and can set it later. Organisers do not see
+   an event (or its gate codes) until it has their organisation: to them it does
+   not exist (404).
+3. **Organisation-scoped keys** (ADR-0044) in `auth/permissions.py`, used like this:
+
+   | What | Key |
+   | --- | --- |
+   | List events, read an event and its live summary | either key |
+   | Create and close an event, import the ticket list, list tickets, void and restore | `printix.events.manage` |
+   | Make, list and cancel gate QR codes | `printix.gates.manage` |
+
+   A team key for Printix to add its own staff comes later.
+4. **Two role bundles:** `printix-organiser` (both keys) and `printix-gate-lead`
+   (`printix.gates.manage` only: makes and cancels gate QR codes on event night).
+5. **Routes:** `/printix/org/...` in the `org` zone (ADR-0025), mirroring the admin
+   actions through the same service functions with an organisation filter. Each
+   route uses `require_org_permission(key, session_app="printix")` and always
+   requires an enrolled authenticator (a 6-digit code app) and a session that
+   passed it (`privileged_mfa.require_mfa_session(..., app_key="printix")`),
+   whatever the global setting: a gate pairing is a key to the gate. Calls name
+   the organisation in the `X-Barrels-Organisation` header; the app learns it from
+   the signed-in person's memberships. No superuser bypass on org
+   routes (ADR-0044). `/printix/admin/*` and `PrintixAdmin` stay as they are.
+6. **Who grants access:** a Barrels superuser creates the Printix organisation,
+   turns on the `printix` entitlement and invites Printix staff with a role bundle
+   (owner, 16 Nov 2026). Order for a new organiser: accept the invitation and add
+   an authenticator on the Barrels account site (`account.barrels.gd`, ADR-0057),
+   then sign in at `scan.barrels.gd`. Someone who signs in without an authenticator
+   is told to add one there first.
+7. **Sessions:** organisers sign in again when the tab closes; a session lasts at
+   most 12 hours (ADR-0061).
+8. **Promoters** (the people running events who buy Printix tickets) get their own
+   sign-in later; because every event carries an organisation, each promoter can
+   become one without changing this design.
+9. **Gate QR codes (owner, 16 Nov 2026):** shown once on the organiser's screen and
+   scanned there by the gate phone; never printed, saved or sent as a link by the
+   app. By default a code works until 6 hours after the event closes and can be
+   cancelled in one tap. Typed printed numbers are off by default; the organiser may
+   turn them on for a gate when making its code. Only an Organiser (`printix.events.manage`)
+   may turn typed numbers on, and an event has at most 20 active gate codes (not revoked, not
+   expired); a gate lead who asks is refused.
+10. **Screens:** work on a laptop for setup and ticket import, and on a phone for
+    gate codes and counts on event night.
+
+Build order: (1) these records; (2) API read-only (app entry, keys, bundles,
+`organisation_id`, event list and summary on org and admin routes); (3) scanner
+organiser sign-in and read-only screen; (4) event writes and the CSV import with a
+dry run; (5) gate QR codes. Slice 5 is what the 14 Dec rehearsal tests.
 
 ## Consequences
 

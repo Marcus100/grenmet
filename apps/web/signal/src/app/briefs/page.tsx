@@ -37,6 +37,7 @@ export default function BriefsPage() {
                   <Link
                     className="hover:text-signal-green hover:underline"
                     href={`/today/${brief.date}`}
+                    prefetch={false}
                   >
                     {brief.title}
                   </Link>

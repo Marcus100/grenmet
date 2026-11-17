@@ -4,6 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
 import type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -22,6 +23,8 @@ export type AuthTwofaActivateStatus400 = ApiError;
  */
 export type AuthTwofaActivateStatus422 = ValidationErrorResponse;
 
+export type AuthTwofaActivateStatus429 = ApiError | ErrorMessage;
+
 export type AuthTwofaActivateBody = TwoFactorCodeRequest;
 
 export type AuthTwofaActivateOptions = {
@@ -35,6 +38,7 @@ export type AuthTwofaActivateResponses = {
   "200": AuthTwofaActivateStatus200;
   "400": AuthTwofaActivateStatus400;
   "422": AuthTwofaActivateStatus422;
+  "429": AuthTwofaActivateStatus429;
 };
 
 /**

@@ -24,6 +24,7 @@ export default function ArchivePage() {
             <Link
               className="text-signal-green inline-flex min-h-11 flex-wrap gap-x-3 text-lg underline underline-offset-4"
               href={`/today/${brief.date}`}
+              prefetch={false}
             >
               <time dateTime={brief.date}>{formatLongDate(brief.date)}</time>
               <span>{brief.title}</span>

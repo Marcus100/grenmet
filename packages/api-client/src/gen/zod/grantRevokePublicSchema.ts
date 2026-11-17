@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { grantInactiveReasonSchema } from "./grantInactiveReasonSchema.js";
 
 export const grantRevokePublicSchema = z
   .object({
@@ -15,6 +16,8 @@ export const grantRevokePublicSchema = z
     granted_at: z.iso.datetime(),
     expires_at: z.union([z.iso.datetime(), z.null()]).optional(),
     revoked_at: z.union([z.iso.datetime(), z.null()]).optional(),
+    active: z.boolean().optional().default(true),
+    inactive_reason: z.union([grantInactiveReasonSchema, z.null()]).optional(),
     cascaded_revocations: z.int().optional().default(0),
   })
   .describe(

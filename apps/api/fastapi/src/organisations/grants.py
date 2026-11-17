@@ -22,7 +22,7 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ColumnElement, false, or_, select
+from sqlalchemy import ColumnElement, false, not_, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -181,11 +181,14 @@ async def _expiry_ceiling(
     without expiry makes it permanent. The ceiling is the earliest such end."""
     if membership.role in (MembershipRole.OWNER.value, MembershipRole.ADMIN.value):
         return None
+    # A grant from a granter who is no longer active gives no keys (effective_keys), so
+    # it must not lengthen the grantor's own access either (#1501).
     rows = await session.execute(
         select(MembershipGrant.role_key, MembershipGrant.expires_at).where(
             MembershipGrant.membership_id == membership.id,
             MembershipGrant.organisation_id == membership.organisation_id,
             *_live(utc_now()),
+            _granter_is_active(membership.organisation_id),
         )
     )
     grants_held = [
@@ -216,6 +219,27 @@ async def lock_roster(session: AsyncSession, organisation_id: str) -> None:
         .order_by(Membership.id)
         .with_for_update()
     )
+
+
+async def lock_affected_rosters(session: AsyncSession, user_id: uuid.UUID) -> list[str]:
+    """Lock the roster of every organisation an account is in, or has issued a live
+    grant in, in organisation-id order (#1501). Account deletion calls this before it
+    changes the account's memberships or grants, so its locks never run in the reverse
+    order of an admin action or another deletion in the same organisations. Returns the
+    organisation ids locked. The caller owns the transaction."""
+    member_orgs = await session.scalars(
+        select(Membership.organisation_id).where(Membership.user_id == user_id)
+    )
+    granted_orgs = await session.scalars(
+        select(MembershipGrant.organisation_id).where(
+            MembershipGrant.granted_by == user_id,
+            *_live(utc_now()),
+        )
+    )
+    organisation_ids = sorted(set(member_orgs.all()) | set(granted_orgs.all()))
+    for organisation_id in organisation_ids:
+        await lock_roster(session, organisation_id)
+    return organisation_ids
 
 
 async def grant_role(
@@ -822,6 +846,24 @@ async def list_grants_for_memberships(
     for row in rows.all():
         result[row.membership_id].append(row)
     return result
+
+
+async def inactive_grant_ids(
+    session: AsyncSession, *, organisation_id: str, grant_ids: Collection[str]
+) -> set[str]:
+    """The grants among ``grant_ids`` whose granter is no longer an active member of
+    the organisation (#1501). They give no keys, so the team listings mark them
+    inactive instead of showing them as live. One query."""
+    if not grant_ids:
+        return set()
+    rows = await session.scalars(
+        select(MembershipGrant.id).where(
+            MembershipGrant.id.in_(list(grant_ids)),
+            MembershipGrant.organisation_id == organisation_id,
+            not_(_granter_is_active(organisation_id)),
+        )
+    )
+    return set(rows.all())
 
 
 async def list_grants(

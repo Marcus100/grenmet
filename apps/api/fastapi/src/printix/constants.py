@@ -1,10 +1,20 @@
 """Printix ticket registry: limits, outcome codes and status values (ADR-0060)."""
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 
 #: Permission key every administrator route checks (``src/auth/permissions.py``).
 MANAGE_PERMISSION_KEY = "printix.manage"
+#: An event has at most this many active gate codes (pairings not revoked and not expired).
+MAX_ACTIVE_PAIRINGS_PER_EVENT = 20
+#: An organiser-made event may be dated at most this far ahead, and close at most
+#: this long after its event date (the same date comparison as the admin schema).
+ORGANISER_EVENT_MAX_AHEAD_DAYS = 365
+ORGANISER_CLOSE_MAX_AFTER_DATE_DAYS = 7
+#: Organisation keys (ADR-0060 organiser amendment, ADR-0044). Held per organisation
+#: through a role bundle; never through the global role catalogue.
+EVENTS_MANAGE_KEY = "printix.events.manage"
+GATES_MANAGE_KEY = "printix.gates.manage"
 
 #: The pairing secret is ``secrets.token_urlsafe(32)``: 32 random bytes, 43 characters.
 PAIRING_SECRET_BYTES = 32
@@ -42,6 +52,32 @@ SCAN_LOG_RETENTION_DAYS = 90
 #: Control characters (C0 and DEL) are never part of a barcode, a number or a name.
 CONTROL_CHARACTER_PATTERN = r"[\x00-\x1f\x7f]"
 
+#: Offline scanning (ADR-0060, offline amendment). A phone downloads the event's
+#: ticket list as keyed hashes, at most this often per pairing per minute.
+OFFLINE_LIST_READS_PER_MINUTE = 4
+#: Sync requests of queued offline admissions, per pairing per minute.
+OFFLINE_SYNC_REQUESTS_PER_MINUTE = 12
+#: Queued admissions in one sync request.
+OFFLINE_SYNC_BATCH_MAX = 100
+#: Hex characters kept of each HMAC-SHA256 barcode hash (128 bits).
+OFFLINE_HASH_HEX_LENGTH = 32
+#: Stable code on the 409 that refuses offline mode for an event whose barcodes are
+#: its printed numbers (the list's hashes would be reversible by trying every number).
+OFFLINE_UNAVAILABLE_CODE = "offline_not_available"
+#: Offline results that are not new admissions (already_admitted, void, event_closed,
+#: unknown) per pairing per SCAN_WINDOW_SECONDS. Past it the rest of the batch is
+#: deferred. Repeats cost a row each, so this bounds the writes one pairing can cause.
+OFFLINE_NON_ADMISSIONS_PER_WINDOW = 60
+#: A queued scan is refused when its sync arrives more than this long after the close
+#: (the earlier of closes_at and closed_at). Phones must sync within this time of close.
+OFFLINE_SYNC_GRACE_AFTER_CLOSE = timedelta(hours=12)
+#: An offline ticket's barcode must be at least this many characters. A shorter one
+#: can be recovered from its hash on the list by trying every value.
+OFFLINE_MIN_BARCODE_LENGTH = 12
+#: A phone's scanned time must fall between these bounds (UTC), or the sync is a 422.
+OFFLINE_SCANNED_AT_EARLIEST = datetime(2020, 1, 1, tzinfo=UTC)
+OFFLINE_SCANNED_AT_MAX_AHEAD = timedelta(days=1)
+
 MAX_IMPORT_BYTES = 2 * 1024 * 1024
 MAX_IMPORT_ROWS = 20_000
 MAX_REPORTED_ERRORS = 100
@@ -67,3 +103,11 @@ class PrintixScanOutcome(str, Enum):
     VOID = "void"
     UNKNOWN = "unknown"
     EVENT_CLOSED = "event_closed"
+
+
+class PrintixOfflineTicketState(str, Enum):
+    """A ticket's state in the offline list: may enter, void, or already in."""
+
+    VALID = "valid"
+    VOID = "void"
+    ADMITTED = "admitted"

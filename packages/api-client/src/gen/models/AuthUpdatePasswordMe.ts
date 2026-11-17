@@ -4,6 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Message } from "./Message.js";
 import type { UpdatePassword } from "./UpdatePassword.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -22,6 +23,8 @@ export type AuthUpdatePasswordMeStatus400 = ApiError;
  */
 export type AuthUpdatePasswordMeStatus422 = ValidationErrorResponse;
 
+export type AuthUpdatePasswordMeStatus429 = ApiError | ErrorMessage;
+
 export type AuthUpdatePasswordMeBody = UpdatePassword;
 
 export type AuthUpdatePasswordMeOptions = {
@@ -35,6 +38,7 @@ export type AuthUpdatePasswordMeResponses = {
   "200": AuthUpdatePasswordMeStatus200;
   "400": AuthUpdatePasswordMeStatus400;
   "422": AuthUpdatePasswordMeStatus422;
+  "429": AuthUpdatePasswordMeStatus429;
 };
 
 /**
