@@ -406,6 +406,31 @@ async def find_by_source(
     return _public(row) if row else None
 
 
+async def find_by_idempotency_keys(
+    session: AsyncSession,
+    *,
+    organisation_ids: set[str],
+    source_type: str,
+    idempotency_keys: set[str],
+) -> dict[tuple[str, str], schemas.PaymentIntentPublic]:
+    """Many consumers' own intents in one query, keyed ``(organisation id,
+    idempotency key)``. Same totals as ``find_by_source`` with a key."""
+    if not idempotency_keys:
+        return {}
+    rows = (
+        await session.execute(
+            _intent_select().where(
+                Intent.organisation_id.in_(organisation_ids),
+                Intent.source_type == source_type,
+                Intent.idempotency_key.in_(idempotency_keys),
+            )
+        )
+    ).all()
+    return {
+        (row[0].organisation_id, row[0].idempotency_key): _public(row) for row in rows
+    }
+
+
 async def lock_intent_by_key(
     session: AsyncSession, *, organisation_id: str, idempotency_key: str
 ) -> Intent | None:
@@ -1632,9 +1657,7 @@ async def create_payout(
             or existing.currency != payload.currency
         ):
             raise PaymentsConflictError("This request id was used for another payout")
-        return schemas.PaymentLedgerEntryPublic.model_validate(
-            existing, from_attributes=True
-        )
+        return _ledger_public(existing)
     owed = (
         await session.execute(
             select(func.coalesce(func.sum(LedgerEntry.amount_minor), 0)).where(

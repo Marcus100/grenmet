@@ -23,6 +23,7 @@ Rules (ADR-0027, ADR-0024):
 """
 
 import logging
+import uuid
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
@@ -152,9 +153,12 @@ def payment_noun(booking: Booking) -> str:
     )
 
 
-def checkout_title(svc: Service, profile: BookingProfile, amount_minor: int) -> str:
-    """The line the customer sees on the hosted checkout page."""
-    kind = "Deposit" if amount_minor < svc.price_minor else "Payment"
+def checkout_title(
+    booking: Booking, svc: Service, profile: BookingProfile, amount_minor: int
+) -> str:
+    """The line the customer sees on the hosted checkout page. Deposit or payment
+    is judged against the booking's own price snapshot, like ``payment_kind``."""
+    kind = "Deposit" if amount_minor < booking.price_minor else "Payment"
     return f"{kind}: {svc.name}, {profile.display_name}"
 
 
@@ -258,19 +262,17 @@ async def start_deposit(
     return manual.checkout_url
 
 
-async def payment_summary(
-    session: AsyncSession, booking: Booking
+def _summary(
+    booking: Booking,
+    intent: payment_schemas.PaymentIntentPublic | None,
+    checkout_url: str | None,
 ) -> BookingPaymentSummary | None:
-    """The money side of a booking as its customer sees it; None when nothing
-    was due at booking. ``checkout_url`` is set only while the slot is still held
-    for an unpaid online checkout, so the customer can return to it."""
     if booking.deposit_minor <= 0:
         return None
-    intent = await find_deposit(session, booking)
     paid = intent.captured_minor if intent else 0
     refunded = intent.refunded_minor if intent else 0
     held = booking.status == BookingStatus.PENDING_PAYMENT.value
-    checkout_url: str | None = None
+    link: str | None = None
     if paid > 0:
         status = (
             BookingPaymentStatus.REFUNDED
@@ -283,9 +285,7 @@ async def payment_summary(
     ):
         status = BookingPaymentStatus.DUE
         if intent is not None and intent.provider is ProviderKey.STRIPE:
-            checkout_url = await session.scalar(
-                select(Intent.checkout_url).where(Intent.id == intent.id)
-            )
+            link = checkout_url
     else:
         status = BookingPaymentStatus.UNPAID
     return BookingPaymentSummary(
@@ -294,8 +294,67 @@ async def payment_summary(
         paid_minor=paid,
         refunded_minor=refunded,
         currency=booking.currency,
-        checkout_url=checkout_url,
+        checkout_url=link,
     )
+
+
+async def payment_summary(
+    session: AsyncSession, booking: Booking
+) -> BookingPaymentSummary | None:
+    """The money side of a booking as its customer sees it; None when nothing
+    was due at booking. ``checkout_url`` is set only while the slot is still held
+    for an unpaid online checkout, so the customer can return to it."""
+    if booking.deposit_minor <= 0:
+        return None
+    intent = await find_deposit(session, booking)
+    checkout_url: str | None = None
+    if (
+        intent is not None
+        and intent.provider is ProviderKey.STRIPE
+        and booking.status == BookingStatus.PENDING_PAYMENT.value
+    ):
+        checkout_url = await session.scalar(
+            select(Intent.checkout_url).where(Intent.id == intent.id)
+        )
+    return _summary(booking, intent, checkout_url)
+
+
+async def payment_summaries(
+    session: AsyncSession, bookings: list[Booking]
+) -> dict[uuid.UUID, BookingPaymentSummary | None]:
+    """``payment_summary`` for many bookings in two queries at most (the intents
+    with their totals, then the checkout links of the ones still due)."""
+    owing = [b for b in bookings if b.deposit_minor > 0]
+    intents = await payments_service.find_by_idempotency_keys(
+        session,
+        organisation_ids={b.organisation_id for b in owing},
+        source_type=SOURCE_TYPE,
+        idempotency_keys={intent_key(b.id) for b in owing},
+    )
+    found = {b.id: intents.get((b.organisation_id, intent_key(b.id))) for b in owing}
+    due_ids = [
+        intent.id
+        for b in owing
+        if (intent := found[b.id]) is not None
+        and intent.provider is ProviderKey.STRIPE
+        and b.status == BookingStatus.PENDING_PAYMENT.value
+    ]
+    links: dict[uuid.UUID, str | None] = {}
+    if due_ids:
+        links = dict(
+            (
+                await session.execute(
+                    select(Intent.id, Intent.checkout_url).where(Intent.id.in_(due_ids))
+                )
+            )
+            .tuples()
+            .all()
+        )
+    result: dict[uuid.UUID, BookingPaymentSummary | None] = {}
+    for b in bookings:
+        intent = found.get(b.id)
+        result[b.id] = _summary(b, intent, links.get(intent.id) if intent else None)
+    return result
 
 
 async def start_manual_deposit(session: AsyncSession, booking: Booking) -> None:

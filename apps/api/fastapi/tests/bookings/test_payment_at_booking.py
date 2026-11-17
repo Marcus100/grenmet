@@ -29,11 +29,14 @@ from tests.bookings.test_deposits import (
 from tests.bookings.test_public_bookings import (
     API,
     Studio,
+    _body,
     _book,
     _booking_for,
     _slots,
     _studio,
 )
+from tests.factories import make_user
+from tests.organisations.support import headers_for
 from tests.payments import conftest as payments_conftest
 
 import_module("src.bookings.outbox_handlers")  # registers bookings.deposit_paid
@@ -393,6 +396,113 @@ async def test_a_deposit_stays_a_deposit_for_the_studio(
         headers=studio.headers,
     )
     assert detail.json()["payment_kind"] == "deposit"
+
+
+async def test_my_bookings_carry_the_payment_and_only_the_callers(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    _ = stripe_env
+    studio = await _full_price_studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"ada-{uuid.uuid4().hex[:6]}@example.com")
+    bob = await make_user(db_async, email=f"bob-{uuid.uuid4().hex[:6]}@example.com")
+    # Read once: the commits below expire the user objects.
+    people = {
+        "ada": (ada.email, headers_for(ada), 0),
+        "bob": (bob.email, headers_for(bob), -1),
+    }
+    ids: dict[str, str] = {}
+    for name, (email, headers, slot) in people.items():
+        slots = await _slots(async_client, studio)
+        proof = await get_proof(db_async, async_client, studio, slots[slot], email)
+        response = await async_client.post(
+            f"{API}/public/{studio.slug}/bookings",
+            headers={**headers, "Idempotency-Key": uuid.uuid4().hex},
+            json=_body(studio, slots[slot], customer_email=email, email_proof=proof),
+        )
+        assert response.status_code == 201, response.text
+        ids[name] = response.json()["booking"]["id"]
+
+    async def mine(name: str) -> list[dict]:
+        resp = await async_client.get(f"{API}/me/bookings", headers=people[name][1])
+        assert resp.status_code == 200, resp.text
+        return resp.json()["data"]
+
+    (due,) = await mine("ada")
+    assert due["id"] == ids["ada"]
+    assert due["payment"]["status"] == "due"
+    assert due["payment"]["paid_minor"] == 0
+
+    await _paid_by_stripe(db_async, async_client, ids["ada"], PRICE)
+    (paid,) = await mine("ada")
+    assert paid["payment"] == {
+        "status": "paid",
+        "amount_minor": PRICE,
+        "paid_minor": PRICE,
+        "refunded_minor": 0,
+        "currency": "XCD",
+        "checkout_url": None,
+    }
+    # Bob's booking and payment never show up for Ada, and hers not for Bob.
+    (bobs,) = await mine("bob")
+    assert bobs["id"] == ids["bob"]
+    assert bobs["payment"]["status"] == "due"
+    assert ids["bob"] not in {row["id"] for row in await mine("ada")}
+
+    cancelled = await async_client.post(
+        f"{API}/org/bookings/{ids['ada']}/cancel",
+        headers=studio.headers,
+        json={"reason": "Studio closed"},
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    (refunded,) = await mine("ada")
+    assert refunded["payment"]["status"] == "refunded"
+    assert refunded["payment"]["refunded_minor"] == PRICE
+
+
+async def test_the_ledger_labels_a_booking_charge_and_leaves_others_empty(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    stripe_env: payments_conftest.StripeStub,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    _ = stripe_env
+    studio = await _full_price_studio(db_async, async_client)
+    booking_id = (await _book_with_proof(db_async, async_client, studio)).json()[
+        "booking"
+    ]["id"]
+    await _paid_by_stripe(db_async, async_client, booking_id, PRICE)
+    intent = await async_client.post(
+        f"{PAYMENTS}/org/intents",
+        headers=studio.headers,
+        json={
+            "amount_minor": 1000,
+            "currency": "XCD",
+            "provider": "manual",
+            "source_type": "custom.sale",
+            "idempotency_key": uuid.uuid4().hex,
+        },
+    )
+    assert intent.status_code == 201, intent.text
+    paid = await async_client.post(
+        f"{PAYMENTS}/org/intents/{intent.json()['intent']['id']}/manual-payments",
+        headers=studio.headers,
+        json={"method": "cash", "reference": "R-9"},
+    )
+    assert paid.status_code == 201, paid.text
+
+    ledger = await async_client.get(
+        f"{PAYMENTS}/admin/ledger?organisation_id={studio.org_id}&kind=charge",
+        headers=superuser_token_headers_async,
+    )
+    by_type = {row["source_type"]: row for row in ledger.json()["data"]}
+    booking_row = by_type["bookings.deposit"]
+    assert booking_row["source_id"] == booking_id
+    assert booking_row["description"]
+    other = by_type["custom.sale"]
+    assert other["source_id"] is None
+    assert other["description"] is None
 
 
 # --- pure helpers -------------------------------------------------------------------------

@@ -192,6 +192,9 @@ async def list_my_bookings(
     rows, total = await service.list_my_bookings(
         session, current_user.id, upcoming=upcoming, pagination=pagination
     )
+    payments = await deposit_payments.payment_summaries(
+        session, [booking for booking, *_ in rows]
+    )
     return BookingMyBookingList(
         data=[
             BookingMyBooking(
@@ -202,7 +205,7 @@ async def list_my_bookings(
                 service_name=service_name,
                 business_name=business_name,
                 business_slug=business_slug,
-                payment=await deposit_payments.payment_summary(session, booking),
+                payment=payments[booking.id],
             )
             for booking, service_name, business_name, business_slug in rows
         ],
