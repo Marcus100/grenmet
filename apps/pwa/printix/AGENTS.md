@@ -4,16 +4,15 @@ Port **3064** (local dev only). A React app built with Vite (app-first, no
 Next.js: owner decision, 16 Nov 2026), written to `out/` as files only.
 Entry page `index.html`, start file `src/main.tsx`, install manifest
 `public/manifest.webmanifest`, Inter shipped in `public/fonts/` (SIL Open Font
-License). Test address: `https://printix-scanner.pages.dev` (Cloudflare Pages
+License). Live at `https://scan.barrels.gd` (Cloudflare Pages
 project `printix-scanner`, direct upload of `out/`. Build with the API
 address, then upload: `VITE_API_URL=https://api.barrels.gd pnpm --filter
 @barrelsgd/pwa-printix build`, then from `apps/pwa/printix`
 `wrangler pages deploy out --project-name printix-scanner --branch main`. A
 build without `VITE_API_URL` shows "not connected" and checks nothing;
 create Pages projects through the Cloudflare API, since `wrangler pages
-project create` now tries to convert the app to a Worker). Planned address
-`scan.barrels.gd` (owner decision, 15 Nov 2026); see "Address and API origin"
-below. Response headers live in `public/_headers`. Lane spec:
+project create` now tries to convert the app to a Worker). See "Address and API
+origin" below. Response headers live in `public/_headers`. Lane spec:
 `docs/design/printix.md`. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
 
 Printix is a collaboration and Barrels Grenada's main ticket app (owner, 16
@@ -71,7 +70,7 @@ in `public/icons/` are placeholders until Printix supplies artwork.
 
 ## Address and API origin
 
-- The planned scanner address is `https://scan.barrels.gd`. It is listed in
+- The scanner address is `https://scan.barrels.gd`. It is listed in
   `BACKEND_CORS_ORIGINS` in `infra/docker/production.env`, so the production API
   accepts calls from it.
 - `public/_headers` enforces the CSP with `connect-src 'self' https://api.barrels.gd`.
@@ -140,7 +139,7 @@ in `public/icons/` are placeholders until Printix supplies artwork.
   paired, list downloaded, network cut, reload: the app opened from the
   phone, still paired, showing Offline and the list's age.
 
-## Organiser (ADR-0060 amendment, slice 3: sign-in and read-only screens)
+## Organiser (ADR-0060 amendment: sign-in and screens)
 
 Printix's own staff (organisers and gate leads) use the same app at
 `/organiser`. The gate scanner stays at `/`. `src/app-root.tsx` (`ScannerRoot`)
@@ -153,8 +152,8 @@ the gate with its pairing secret (`scan-api.ts`), the organiser with its session
   `POST /auth/apps/printix/email-code/start` and `/verify` (sign-in, `sign-in.ts`),
   `POST /auth/sessions/refresh` and `/logout`, `GET /printix/me/organisations`,
   `GET /printix/org/events` and `GET /printix/org/events/{id}/summary` with
-  `X-Barrels-Organisation` sent per call (`organiser-api.ts`). Read-only: no
-  writes until slice 4.
+  `X-Barrels-Organisation` sent per call (`organiser-api.ts`). The write calls
+  are in `write-api.ts` (see "Setup screens and gate codes").
 - **Sign-in** (ADR-0061): an email step, then one step with the emailed code and
   the authenticator code together (`sign-in-screen.tsx`). Errors map to plain
   words in `errors.ts` (`problemOf`, `problemMessage`): wrong authenticator code
@@ -290,8 +289,7 @@ answer must match the generated schema), and the server is the only judge of a r
 
 ## Not built yet
 
-QR generation for administrators, ticket types, re-entry, and the Barrels
-Events connection. Backend logic goes in FastAPI, never here.
+Ticket types, re-entry, and the Barrels Events connection. Backend logic goes in FastAPI, never here.
 
 ## Rules
 
