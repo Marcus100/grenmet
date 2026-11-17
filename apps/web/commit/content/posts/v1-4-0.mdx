@@ -1,0 +1,57 @@
+---
+title: Harder to break in, a scanner that works without signal, and safer deploys
+summary: Version 1.4.0 is a hardening release. Accounts lock after repeated wrong passwords or authenticator codes, changing an email needs proof, security pages are rate-limited per account, the Printix gate scanner checks tickets with no signal and gains organiser screens, and a deploy can now refuse to run when the latest backup cannot be checked.
+date: 2026-11-17
+release: 1.4.0
+---
+
+Version 1.4.0 carries the work merged after v1.3.0. Its three database changes
+only add columns, an index and a link, so the previous version still runs against
+the new schema. This release was about making what exists harder to break, with
+new features only for the Printix scanner.
+
+### Signing in and accounts
+
+- **Lockout on signed-in pages:** ten wrong passwords or authenticator codes in
+  fifteen minutes lock that check for fifteen minutes. Changing your password no
+  longer resets the count of wrong sign-in attempts.
+- **Proof to change an email:** changing the email on an account needs the
+  current password or a code sent to the current address, and the old address is
+  told about the change.
+- **Limits per account:** setting up or turning off an authenticator, changing a
+  password and replacing recovery codes are limited per account, not only per
+  network address.
+- **Rules per app:** an app can cap how long a session lasts, require an
+  authenticator and decide who may enrol. Printix uses all three: twelve hours
+  from sign-in, with an authenticator.
+- **Safer account deletion:** deleting an account now locks the rosters it
+  touches first, so a deletion and a roster change can no longer overlap. Access
+  given by someone who is no longer active pauses.
+
+### Tickets
+
+- **No signal, still scanning:** the gate scanner keeps a ticket list on the
+  phone and checks tickets with no signal, then sends its results when the signal
+  returns. The server only accepts results from before the event closed, and
+  offline mode stays off when a ticket's barcode is too easy to guess.
+- **Organiser screens:** Printix staff can sign in, create an event, try a ticket
+  list before importing it, void and restore tickets, close an event, and show a
+  gate QR code that pairs a phone. The code hides itself after two minutes.
+- **A lighter scanner:** the scanner is now a small Vite app that opens quickly
+  and works offline.
+
+### Weather
+
+- **Faster register history:** the eRegister reads the hour-to-hour history in
+  one query, and stored records are checked before they are used.
+
+### Deploys and tests
+
+- **No deploy without a backup:** in enforce mode, a production deploy stops when
+  the latest backup cannot be checked, unless someone overrides it on purpose.
+- **Tests that follow the real sign-in:** the staging journeys now follow the
+  code-first sign-in page.
+- **More tests for bookings:** the booking widget's slot picker, payment status,
+  emailed code and bot check are covered, at about 97% of lines.
+- **A lighter Signal:** the Signal home page loads less JavaScript and makes 3
+  page prefetches instead of 29.
