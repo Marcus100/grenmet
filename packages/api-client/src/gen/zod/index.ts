@@ -7703,6 +7703,20 @@ export { postponeResultSchema } from "./postponeResultSchema.js";
 export { preferencesUnsubscribeRequestSchema } from "./preferencesUnsubscribeRequestSchema.js";
 export { principalPhasePropertiesPhaseEnumSchema } from "./principalPhasePropertiesPhaseEnumSchema.js";
 export { principalPhaseSchema } from "./principalPhaseSchema.js";
+export { printixAccessSchema } from "./printixAccessSchema.js";
+export {
+  printixAddMemberBodySchema,
+  printixAddMemberErrorSchema,
+  printixAddMemberPathOrganisationIdSchema,
+  printixAddMemberPathSchema,
+  printixAddMemberResponseSchema,
+  printixAddMemberStatus201Schema,
+  printixAddMemberStatus401Schema,
+  printixAddMemberStatus403Schema,
+  printixAddMemberStatus404Schema,
+  printixAddMemberStatus409Schema,
+  printixAddMemberStatus422Schema,
+} from "./printixAddMemberSchema.js";
 export {
   printixAdmitTicketBodySchema,
   printixAdmitTicketErrorSchema,
@@ -7857,6 +7871,20 @@ export {
   printixListEventsStatus422Schema,
 } from "./printixListEventsSchema.js";
 export {
+  printixListMemberAccessErrorSchema,
+  printixListMemberAccessPathOrganisationIdSchema,
+  printixListMemberAccessPathSchema,
+  printixListMemberAccessQueryPageSchema,
+  printixListMemberAccessQuerySchema,
+  printixListMemberAccessQuerySizeSchema,
+  printixListMemberAccessResponseSchema,
+  printixListMemberAccessStatus200Schema,
+  printixListMemberAccessStatus401Schema,
+  printixListMemberAccessStatus403Schema,
+  printixListMemberAccessStatus404Schema,
+  printixListMemberAccessStatus422Schema,
+} from "./printixListMemberAccessSchema.js";
+export {
   printixListMyOrganiserOrganisationsErrorSchema,
   printixListMyOrganiserOrganisationsResponseSchema,
   printixListMyOrganiserOrganisationsStatus200Schema,
@@ -7938,6 +7966,10 @@ export {
   printixListTicketsStatus404Schema,
   printixListTicketsStatus422Schema,
 } from "./printixListTicketsSchema.js";
+export { printixMemberAccessPageSchema } from "./printixMemberAccessPageSchema.js";
+export { printixMemberAccessSchema } from "./printixMemberAccessSchema.js";
+export { printixMemberAccessUpdateSchema } from "./printixMemberAccessUpdateSchema.js";
+export { printixMemberAddSchema } from "./printixMemberAddSchema.js";
 export { printixOfflineAdmissionResultSchema } from "./printixOfflineAdmissionResultSchema.js";
 export { printixOfflineAdmissionSchema } from "./printixOfflineAdmissionSchema.js";
 export {
@@ -8035,6 +8067,20 @@ export {
   printixSetEventOrganisationStatus404Schema,
   printixSetEventOrganisationStatus422Schema,
 } from "./printixSetEventOrganisationSchema.js";
+export {
+  printixSetMemberAccessBodySchema,
+  printixSetMemberAccessErrorSchema,
+  printixSetMemberAccessPathMembershipIdSchema,
+  printixSetMemberAccessPathOrganisationIdSchema,
+  printixSetMemberAccessPathSchema,
+  printixSetMemberAccessResponseSchema,
+  printixSetMemberAccessStatus200Schema,
+  printixSetMemberAccessStatus401Schema,
+  printixSetMemberAccessStatus403Schema,
+  printixSetMemberAccessStatus404Schema,
+  printixSetMemberAccessStatus409Schema,
+  printixSetMemberAccessStatus422Schema,
+} from "./printixSetMemberAccessSchema.js";
 export { printixTicketPageSchema } from "./printixTicketPageSchema.js";
 export { printixTicketPublicSchema } from "./printixTicketPublicSchema.js";
 export { printixTicketStatusSchema } from "./printixTicketStatusSchema.js";

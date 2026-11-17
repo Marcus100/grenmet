@@ -3039,6 +3039,11 @@ export {
   usePaymentsRecordManualPayment,
 } from "./usePaymentsRecordManualPayment.js";
 export {
+  printixAddMemberMutationKey,
+  printixAddMemberMutationOptions,
+  usePrintixAddMember,
+} from "./usePrintixAddMember.js";
+export {
   printixAdmitTicketMutationKey,
   printixAdmitTicketMutationOptions,
   usePrintixAdmitTicket,
@@ -3093,6 +3098,11 @@ export {
   printixListEventsQueryOptions,
   usePrintixListEvents,
 } from "./usePrintixListEvents.js";
+export {
+  printixListMemberAccessQueryKey,
+  printixListMemberAccessQueryOptions,
+  usePrintixListMemberAccess,
+} from "./usePrintixListMemberAccess.js";
 export {
   printixListMyOrganiserOrganisationsQueryKey,
   printixListMyOrganiserOrganisationsQueryOptions,
@@ -3158,6 +3168,11 @@ export {
   printixSetEventOrganisationMutationOptions,
   usePrintixSetEventOrganisation,
 } from "./usePrintixSetEventOrganisation.js";
+export {
+  printixSetMemberAccessMutationKey,
+  printixSetMemberAccessMutationOptions,
+  usePrintixSetMemberAccess,
+} from "./usePrintixSetMemberAccess.js";
 export {
   printixUnvoidOrgTicketMutationKey,
   printixUnvoidOrgTicketMutationOptions,

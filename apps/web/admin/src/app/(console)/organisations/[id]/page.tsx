@@ -12,6 +12,7 @@ import {
   OrganisationActions,
 } from "@/components/organisation-actions";
 import { HistoryPanel, MembersPanel } from "@/components/organisation-panels";
+import { PrintixAccessSection } from "@/components/printix-section";
 import { SitesLoading } from "@/components/site-panels";
 import { SitesSection } from "@/components/sites-section";
 import { StaffOnly } from "@/components/staff-only";
@@ -151,6 +152,12 @@ export default async function OrganisationPage({
           <MemberRowActions member={row} organisationId={id} />
         )}
         rows={members.data}
+      />
+      <PrintixAccessSection
+        accessToken={gate.accessToken}
+        apps={organisation.apps}
+        noticeCode={noticeCode}
+        organisationId={id}
       />
       <HistoryPanel count={history.count} rows={history.data} />
     </>
