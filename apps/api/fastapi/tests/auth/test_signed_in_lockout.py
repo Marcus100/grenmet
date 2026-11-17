@@ -213,9 +213,16 @@ async def test_wrong_codes_lock_disable_even_with_the_right_proof(
     assert user.totp_enabled is True
 
 
-async def test_wrong_authenticator_codes_do_not_lock_password_sign_in_on_disable(
+async def test_wrong_disable_codes_spend_the_code_budget_not_the_password_counter(
     async_client, db_async: AsyncSession, attempts: int
 ) -> None:
+    """Wrong codes leave the password counter alone but spend the one code budget.
+
+    Accepted trade-off (#1544): each account has a single code budget, so wrong codes
+    on signed-in routes also pause authenticator sign-in for the lock period (15
+    minutes). A stolen session is already revocable, and password sign-in is not
+    counted.
+    """
     user, secret = await _with_authenticator(db_async)
     for _ in range(attempts):
         await async_client.post(
@@ -223,6 +230,7 @@ async def test_wrong_authenticator_codes_do_not_lock_password_sign_in_on_disable
             headers=_headers(user),
             json={"password": CURRENT, "code": _wrong_code(secret)},
         )
+    assert await login_lockout.is_locked(user.email) is False
     sign_in = await async_client.post(
         SESSIONS,
         json={
@@ -231,7 +239,7 @@ async def test_wrong_authenticator_codes_do_not_lock_password_sign_in_on_disable
             "totp_code": pyotp.TOTP(secret).now(),
         },
     )
-    assert sign_in.status_code == 200
+    assert _is_locked(sign_in)
 
 
 async def test_wrong_passwords_on_disable_lock_password_sign_in(
