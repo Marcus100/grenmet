@@ -21,6 +21,7 @@ from tests.bookings.email_code_helpers import get_proof
 from tests.bookings.test_deposits import (
     DEPOSIT,
     PAYMENTS,
+    _book_deposit,
     _deposit_studio,
     _drain,
     _intent,
@@ -327,6 +328,71 @@ async def test_the_storefront_shows_the_full_price_with_stripe(
     assert await _storefront_due(async_client, deposit_only) == DEPOSIT
     unentitled = await _full_price_studio(db_async, async_client, apps=("bookings",))
     assert await _storefront_due(async_client, unentitled) == 0
+
+
+# --- wording the studio, the account and the ledger rely on ---------------------------------
+
+
+async def _paid_by_stripe(
+    db: AsyncSession, client: httpx.AsyncClient, booking_id: str, amount: int
+) -> None:
+    intent = await _intent(db, booking_id)
+    assert intent is not None
+    body, headers = payments_conftest.signed(
+        payments_conftest.checkout_completed(intent.id, amount=amount)
+    )
+    hook = await client.post(
+        f"{PAYMENTS}/public/webhooks/stripe", content=body, headers=headers
+    )
+    assert hook.status_code == 200, hook.text
+    assert await _drain(db) == 1
+
+
+async def test_full_price_is_a_payment_for_the_studio_and_the_ledger(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    stripe_env: payments_conftest.StripeStub,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    _ = stripe_env
+    studio = await _full_price_studio(db_async, async_client)
+    receipt = (await _book_with_proof(db_async, async_client, studio)).json()
+    booking_id = receipt["booking"]["id"]
+    await _paid_by_stripe(db_async, async_client, booking_id, PRICE)
+
+    detail = await async_client.get(
+        f"{API}/org/bookings/{booking_id}", headers=studio.headers
+    )
+    assert detail.json()["payment_kind"] == "payment"
+    assert "Payment paid" in [e["note"] for e in detail.json()["events"]]
+    cancelled = await async_client.post(
+        f"{API}/org/bookings/{booking_id}/cancel",
+        headers=studio.headers,
+        json={"reason": "Studio closed"},
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    assert "Payment refunded" in [e["note"] for e in cancelled.json()["events"]]
+
+    ledger = await async_client.get(
+        f"{PAYMENTS}/admin/ledger?organisation_id={studio.org_id}&kind=charge",
+        headers=superuser_token_headers_async,
+    )
+    (charge,) = ledger.json()["data"]
+    assert charge["source_type"] == "bookings.deposit"
+    assert charge["source_id"] == booking_id
+    assert charge["description"] == "Payment: Classic full set, Babydoll Beauty Bar"
+
+
+async def test_a_deposit_stays_a_deposit_for_the_studio(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _deposit_studio(db_async, async_client)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
+    detail = await async_client.get(
+        f"{API}/org/bookings/{receipt['booking']['id']}",
+        headers=studio.headers,
+    )
+    assert detail.json()["payment_kind"] == "deposit"
 
 
 # --- pure helpers -------------------------------------------------------------------------

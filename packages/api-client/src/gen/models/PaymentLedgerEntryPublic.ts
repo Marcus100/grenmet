@@ -22,6 +22,18 @@ export type PaymentLedgerEntryPublic = {
   reference: string | null;
   note: string | null;
   /**
+   * @description What the payment was for, e.g. `bookings.deposit`.
+   */
+  source_type: string | null;
+  /**
+   * @description The id of that thing in its own domain (a booking id).
+   */
+  source_id: string | null;
+  /**
+   * @description A short label the selling domain gave the payment, such as the service and business of a booking. Null for older payments.
+   */
+  description: string | null;
+  /**
    * @description
    * Format: `date-time`
    * @type string

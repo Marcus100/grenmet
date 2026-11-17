@@ -2,6 +2,8 @@ import type { BookingPaymentSummary } from "@barrelsgd/api-client";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   paymentLine,
+  paymentReceivedHeld,
+  payNowLine,
   recallManagePath,
   rememberManagePath,
   safeCheckoutUrl,
@@ -66,5 +68,23 @@ describe("remember and recall the manage page", () => {
       rememberManagePath("b-1", path);
       expect(recallManagePath("b-1")).toBeNull();
     }
+  });
+});
+
+describe("payNowLine", () => {
+  it("says deposit, full price or nothing", () => {
+    expect(payNowLine(0, 15_000, "XCD")).toBeNull();
+    expect(payNowLine(5000, 15_000, "XCD")).toContain("deposit of EC$50");
+    expect(payNowLine(15_000, 15_000, "XCD")).toContain("full price, EC$150");
+  });
+});
+
+describe("paymentReceivedHeld", () => {
+  it("is true only for a held booking that already has money", () => {
+    const paid = { ...due, status: "paid" as const, paid_minor: 21_000 };
+    expect(paymentReceivedHeld("pending_payment", paid)).toBe(true);
+    expect(paymentReceivedHeld("pending_payment", due)).toBe(false);
+    expect(paymentReceivedHeld("confirmed", paid)).toBe(false);
+    expect(paymentReceivedHeld("pending_payment", null)).toBe(false);
   });
 });

@@ -45,7 +45,7 @@ from .models import (
     BookingStatus,
     Service,
 )
-from .schemas import BookingPaymentStatus, BookingPaymentSummary
+from .schemas import BookingPaymentKind, BookingPaymentStatus, BookingPaymentSummary
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +137,21 @@ async def due_by_service(
     }
 
 
+def payment_kind(booking: Booking) -> BookingPaymentKind:
+    """Whether what the booking asks for at booking is a part of the price (a
+    deposit) or all of it (a full payment); the studio words its screens by it."""
+    if booking.deposit_minor >= booking.price_minor:
+        return BookingPaymentKind.PAYMENT
+    return BookingPaymentKind.DEPOSIT
+
+
+def payment_noun(booking: Booking) -> str:
+    """ "Payment" or "Deposit", for notes in the booking's history."""
+    return (
+        "Payment" if payment_kind(booking) is BookingPaymentKind.PAYMENT else "Deposit"
+    )
+
+
 def checkout_title(svc: Service, profile: BookingProfile, amount_minor: int) -> str:
     """The line the customer sees on the hosted checkout page."""
     kind = "Deposit" if amount_minor < svc.price_minor else "Payment"
@@ -161,8 +176,15 @@ return_urls.register(SOURCE_TYPE, _return_address)
 
 
 def _payload(
-    booking: Booking, provider: ProviderKey, customer_email: str | None
+    booking: Booking,
+    provider: ProviderKey,
+    customer_email: str | None,
+    description: str | None = None,
 ) -> payment_schemas.PaymentIntentCreate:
+    # ``description`` is shown on the admin payments ledger (service and business).
+    metadata: dict[str, str | int | bool] = {"booking_id": str(booking.id)}
+    if description:
+        metadata["description"] = description[:200]
     return payment_schemas.PaymentIntentCreate(
         amount_minor=booking.deposit_minor,
         currency=booking.currency,
@@ -170,7 +192,7 @@ def _payload(
         source_type=SOURCE_TYPE,
         source_id=str(booking.id),
         customer_email=customer_email,
-        metadata={"booking_id": str(booking.id)},
+        metadata=metadata,
         idempotency_key=intent_key(booking.id),
     )
 
@@ -216,7 +238,9 @@ async def start_deposit(
                     session,
                     organisation_id=booking.organisation_id,
                     actor=None,
-                    payload=_payload(booking, ProviderKey.STRIPE, customer_email),
+                    payload=_payload(
+                        booking, ProviderKey.STRIPE, customer_email, title
+                    ),
                     checkout_title=title,
                 )
             return result.checkout_url
@@ -229,7 +253,7 @@ async def start_deposit(
         session,
         organisation_id=booking.organisation_id,
         actor=None,
-        payload=_payload(booking, ProviderKey.MANUAL, customer_email),
+        payload=_payload(booking, ProviderKey.MANUAL, customer_email, title),
     )
     return manual.checkout_url
 
@@ -339,14 +363,15 @@ async def settle_cancellation(
     - Otherwise ``refund`` decides (``None`` = the cutoff policy)."""
     if booking.deposit_minor <= 0:
         return None
+    noun = payment_noun(booking)
     if previous is BookingStatus.PENDING_PAYMENT:
         unpaid = await cancel_unpaid_deposit(session, booking)
         if unpaid:
-            return "Unpaid deposit cancelled"
+            return f"Unpaid {noun.lower()} cancelled"
         refund = True
     if refund is None:
         refund = refund_by_policy(booking, profile, now)
     if not refund:
-        return "Deposit kept"
+        return f"{noun} kept"
     done = await refund_deposit(session, booking, reason="Booking cancelled")
-    return "Deposit refunded" if done else "Deposit refund failed; refund it by hand"
+    return f"{noun} refunded" if done else f"{noun} refund failed; refund it by hand"

@@ -1667,7 +1667,10 @@ async def create_payout(
     return _ledger_public(entry)
 
 
-def _ledger_public(entry: LedgerEntry) -> schemas.PaymentLedgerEntryPublic:
+def _ledger_public(
+    entry: LedgerEntry, intent: Intent | None = None
+) -> schemas.PaymentLedgerEntryPublic:
+    label = intent.metadata_.get("description") if intent else None
     return schemas.PaymentLedgerEntryPublic(
         id=entry.id,
         organisation_id=entry.organisation_id,
@@ -1678,6 +1681,9 @@ def _ledger_public(entry: LedgerEntry) -> schemas.PaymentLedgerEntryPublic:
         provider=ProviderKey(entry.provider),
         reference=entry.reference,
         note=entry.note,
+        source_type=intent.source_type if intent else None,
+        source_id=intent.source_id if intent else None,
+        description=label if isinstance(label, str) else None,
         created_at=entry.created_at,
     )
 
@@ -1701,19 +1707,16 @@ async def list_ledger(
         )
     ).scalar_one()
     entries = (
-        (
-            await session.execute(
-                select(LedgerEntry)
-                .where(*conditions)
-                .order_by(LedgerEntry.created_at.desc(), LedgerEntry.id)
-                .offset(skip)
-                .limit(limit)
-            )
+        await session.execute(
+            select(LedgerEntry, Intent)
+            .outerjoin(Intent, Intent.id == LedgerEntry.intent_id)
+            .where(*conditions)
+            .order_by(LedgerEntry.created_at.desc(), LedgerEntry.id)
+            .offset(skip)
+            .limit(limit)
         )
-        .scalars()
-        .all()
-    )
-    return [_ledger_public(e) for e in entries], total
+    ).all()
+    return [_ledger_public(entry, intent) for entry, intent in entries], total
 
 
 # --- reconciliation -------------------------------------------------------------------

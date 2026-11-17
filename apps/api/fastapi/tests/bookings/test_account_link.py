@@ -42,6 +42,7 @@ ROW_KEYS = {
     "service_name",
     "business_name",
     "business_slug",
+    "payment",
 }
 
 

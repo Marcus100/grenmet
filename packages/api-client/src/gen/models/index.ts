@@ -1220,6 +1220,8 @@ export type { BookingMyChoice } from "./BookingMyChoice.js";
 export type { BookingMyChoices } from "./BookingMyChoices.js";
 export type { BookingMyOrganisation } from "./BookingMyOrganisation.js";
 export type { BookingOrder } from "./BookingOrder.js";
+export type { BookingPaymentKind } from "./BookingPaymentKind.js";
+export { bookingPaymentKind } from "./BookingPaymentKind.js";
 export type { BookingPaymentMode } from "./BookingPaymentMode.js";
 export { bookingPaymentMode } from "./BookingPaymentMode.js";
 export type { BookingPaymentStatus } from "./BookingPaymentStatus.js";

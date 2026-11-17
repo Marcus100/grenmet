@@ -57,6 +57,7 @@ function item(overrides: Partial<BookingAgendaItem> = {}): BookingAgendaItem {
     source: "online",
     price_minor: 15_000,
     deposit_minor: 2500,
+    payment_kind: "deposit",
     currency: "XCD",
     ...overrides,
   };

@@ -89,6 +89,7 @@ async def _detail(
         timezone=managed.profile.timezone,
         price_minor=booking.price_minor,
         deposit_minor=booking.deposit_minor,
+        payment_kind=deposit_payments.payment_kind(booking),
         currency=booking.currency,
         notes=booking.notes,
         cancel_reason=booking.cancel_reason,
@@ -175,6 +176,7 @@ async def agenda(
                 source=BookingSource(booking.source),
                 price_minor=booking.price_minor,
                 deposit_minor=booking.deposit_minor,
+                payment_kind=deposit_payments.payment_kind(booking),
                 currency=booking.currency,
             )
         )
@@ -658,7 +660,7 @@ async def record_manual_deposit(
         status,
         status,
         actor_user_id=actor.id,
-        note=f"Deposit recorded by hand ({payload.method.value})",
+        note=f"{deposit_payments.payment_noun(booking)} recorded by hand ({payload.method.value})",
     )
     await session.flush()
     detail = await _detail(session, managed)
