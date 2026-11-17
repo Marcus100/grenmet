@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@barrelsgd/ui": "workspace:*",
-    "@base-ui/react": "catalog:",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "lucide-react": "catalog:",

@@ -22,7 +22,6 @@
     "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
     "@barrelsgd/email-templates": "workspace:*",
-    "@barrelsgd/gms": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
