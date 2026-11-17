@@ -300,10 +300,9 @@ export async function sendEmailChangeCodeAction(): Promise<EmailChangeState> {
         ? error.detail
         : "Unable to send a code. Try again.",
       codeSent: false,
-      saved: false,
     };
   }
-  return { error: null, codeSent: true, saved: false };
+  return { error: null, codeSent: true };
 }
 
 /** Change the sign-in email. Send `current_password`, or `email_code` for an account
@@ -320,14 +319,12 @@ export async function changeEmailAction(
     return {
       error: "Enter your new email address.",
       codeSent: false,
-      saved: false,
     };
   }
   if (!(currentPassword || emailCode)) {
     return {
       error: "Enter your current password to change your email address.",
       codeSent: false,
-      saved: false,
     };
   }
   const body: Record<string, string> = { email };
@@ -349,9 +346,11 @@ export async function changeEmailAction(
     return {
       error: describeEmailChangeError(error),
       codeSent: false,
-      saved: false,
     };
   }
   await clearSessionCookie();
-  return { error: null, codeSent: false, saved: true };
+  // A cookie change inside a Server Action re-renders the page it was sent from,
+  // where requireAccount() would bounce to sign-in. Send the person there now,
+  // with a fixed notice code (never query text).
+  redirect("/?notice=email-changed");
 }

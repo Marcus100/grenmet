@@ -35,7 +35,12 @@ vi.mock("@/lib/session", () => ({
 vi.mock("@/lib/report-error", () => ({ reportError }));
 vi.mock("@/lib/auth-config", () => ({ getAuthConfig: () => ({}) }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
+// The real redirect throws; the test sees the target in the thrown message.
+vi.mock("next/navigation", () => ({
+  redirect: (url: string) => {
+    throw new Error(`NEXT_REDIRECT:${url}`);
+  },
+}));
 
 import { changeEmailAction, sendEmailChangeCodeAction } from "@/app/actions";
 import { initialEmailChangeState } from "@/app/actions-types";
@@ -76,11 +81,12 @@ describe("changeEmailAction", () => {
 
   it("sends the password with the new address and signs the browser out", async () => {
     authApiFetch.mockResolvedValue({});
-    const result = await changeEmailAction(
-      initialEmailChangeState,
-      form({ email: "new@example.com", current_password: "password123" })
-    );
-    expect(result).toEqual({ error: null, codeSent: false, saved: true });
+    await expect(
+      changeEmailAction(
+        initialEmailChangeState,
+        form({ email: "new@example.com", current_password: "password123" })
+      )
+    ).rejects.toThrow("NEXT_REDIRECT:/?notice=email-changed");
     expect(authApiFetch).toHaveBeenCalledWith(
       expect.anything(),
       "/auth/users/me",
@@ -95,10 +101,12 @@ describe("changeEmailAction", () => {
 
   it("sends the emailed code instead of a password for a code-only account", async () => {
     authApiFetch.mockResolvedValue({});
-    await changeEmailAction(
-      initialEmailChangeState,
-      form({ email: "new@example.com", email_code: "123456" })
-    );
+    await expect(
+      changeEmailAction(
+        initialEmailChangeState,
+        form({ email: "new@example.com", email_code: "123456" })
+      )
+    ).rejects.toThrow("NEXT_REDIRECT:/?notice=email-changed");
     expect(authApiFetch).toHaveBeenCalledWith(
       expect.anything(),
       "/auth/users/me",
@@ -122,7 +130,6 @@ describe("changeEmailAction", () => {
     expect(result).toEqual({
       error: "Enter your current password to change your email address.",
       codeSent: false,
-      saved: false,
     });
     expect(clearSessionCookie).not.toHaveBeenCalled();
   });
@@ -136,7 +143,6 @@ describe("changeEmailAction", () => {
       form({ email: "new@example.com", current_password: "nope" })
     );
     expect(result.error).toBe("Your current password is not correct.");
-    expect(result.saved).toBe(false);
     expect(clearSessionCookie).not.toHaveBeenCalled();
   });
 
@@ -149,7 +155,6 @@ describe("changeEmailAction", () => {
     expect(result).toEqual({
       error: "Unable to change your email. Try again.",
       codeSent: false,
-      saved: false,
     });
     expect(reportError).toHaveBeenCalled();
   });
@@ -159,7 +164,7 @@ describe("sendEmailChangeCodeAction", () => {
   it("asks the API to email a code to the current address", async () => {
     authApiFetch.mockResolvedValue({ message: "sent" });
     const result = await sendEmailChangeCodeAction();
-    expect(result).toEqual({ error: null, codeSent: true, saved: false });
+    expect(result).toEqual({ error: null, codeSent: true });
     expect(authApiFetch).toHaveBeenCalledWith(
       expect.anything(),
       "/auth/users/me/email-change/code",
@@ -176,7 +181,6 @@ describe("sendEmailChangeCodeAction", () => {
     expect(result).toEqual({
       error: "Wait a minute before asking for another code.",
       codeSent: false,
-      saved: false,
     });
   });
 });
