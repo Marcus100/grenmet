@@ -1,6 +1,7 @@
 """The default limit covers routes without their own limit and spares exempt ones."""
 
 import logging
+from typing import Any
 
 import httpx
 import pytest
@@ -244,3 +245,56 @@ async def test_log_mode_never_returns_429(
 async def test_off_mode_does_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "DEFAULT_RATE_LIMIT_MODE", "off")
     assert set(await _codes(_app(_limiter()), "GET", "/plain", LIMIT * 3)) == {200}
+
+
+@pytest.mark.asyncio
+async def test_log_mode_logs_once_a_minute_with_suppressed_count(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setattr(settings, "DEFAULT_RATE_LIMIT_MODE", "log")
+    clock = [1000.0]
+    monkeypatch.setattr("src.rate_limit.time.monotonic", lambda: clock[0])
+    app = _app(_limiter())
+    with caplog.at_level(logging.WARNING, logger="src.rate_limit.default"):
+        await _codes(app, "GET", "/plain", LIMIT + 6)  # 6 requests over the limit
+        clock[0] += 61
+        await _codes(app, "GET", "/plain", 1)
+    ours = [
+        r.getMessage() for r in caplog.records if r.name == "src.rate_limit.default"
+    ]
+    assert len(ours) == 2
+    assert ours[0].endswith("suppressed=0")
+    assert ours[1].endswith("suppressed=5")
+
+
+@pytest.mark.asyncio
+async def test_unknown_paths_do_not_walk_every_route_or_keep_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    limiter = _limiter()
+    app = _app(limiter)
+    for i in range(60):
+        app.add_api_route(f"/filler{i}/x", _filler, methods=["GET"])
+    middleware = DefaultRateLimitMiddleware(app, limiter=limiter)
+    counts = [0]
+    for route in app.routes:
+        original = route.matches
+
+        def counted(scope: Any, _original: Any = original) -> Any:
+            counts[0] += 1
+            return _original(scope)
+
+        monkeypatch.setattr(route, "matches", counted)
+    hot = middleware._resolve(app, "GET", "/plain")
+    assert hot[1] == "/plain"
+    counts[0] = 0
+    for i in range(500):
+        assert middleware._resolve(app, "GET", f"/nope-{i}/a/b") == (None, "")
+    # A miss tries only routes that start with a path parameter, never all ~70.
+    assert counts[0] <= 500 * 2
+    assert middleware._resolve(app, "GET", "/plain") == hot
+    assert middleware._resolve(app, "GET", "/items/ready")[1] == "/items/{name}"
+
+
+async def _filler() -> None:
+    return None

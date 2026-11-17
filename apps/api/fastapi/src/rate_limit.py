@@ -12,6 +12,7 @@ import hmac
 import inspect
 import ipaddress
 import logging
+import time
 from collections.abc import Callable
 from typing import Any, cast
 
@@ -259,13 +260,24 @@ DEFAULT_LIMIT_EXEMPT_TEMPLATES = frozenset(
         "/content-distribution/internal/posts",
     }
 )
-RESOLVE_CACHE_SIZE = 2048
+LOG_INTERVAL_SECONDS = 60.0
+LOG_KEYS_MAX = 512
 
 logger_default = logging.getLogger("src.rate_limit.default")
 
 
 async def _unmatched_endpoint() -> None:
     """Stand-in handler so unmatched paths and 405s are counted (slowapi skips none)."""
+
+
+def _first_segment(path: str) -> str | None:
+    """The first path segment after the API prefix, or None when it is a parameter
+    (or the path is empty): such routes are tried for every request."""
+    rest = _template(path)
+    segment = rest.lstrip("/").split("/", 1)[0]
+    if not segment or "{" in segment:
+        return None
+    return segment
 
 
 def _template(route_path: str) -> str:
@@ -332,18 +344,69 @@ class DefaultRateLimitMiddleware:
     def __init__(self, app: ASGIApp, *, limiter: Limiter) -> None:
         self.app = app
         self.limiter = limiter
-        self._resolve = functools.lru_cache(maxsize=RESOLVE_CACHE_SIZE)(self._lookup)
+        self._index: (
+            tuple[Any, int, dict[str, list[tuple[int, Any]]], list[tuple[int, Any]]]
+            | None
+        ) = None
+        # (route template, bucket kind) -> [window start, events suppressed in window]
+        self._logged: dict[tuple[str, str], list[float]] = {}
 
-    @staticmethod
-    def _lookup(
-        app: Any, method: str, path: str
+    def _routes_index(
+        self, app: Any
+    ) -> tuple[dict[str, list[tuple[int, Any]]], list[tuple[int, Any]]]:
+        """Routes grouped by first static path segment (API prefix removed).
+
+        Built once per app (and again if routes are added), so a request only tries the
+        few routes that share its first segment plus the routes that start with a path
+        parameter, not every route, and nothing is cached per request path."""
+        routes = list(app.routes)
+        index = self._index
+        if index is None or index[0] is not app or index[1] != len(routes):
+            by_segment: dict[str, list[tuple[int, Any]]] = {}
+            wild: list[tuple[int, Any]] = []
+            for position, route in enumerate(routes):
+                segment = _first_segment(getattr(route, "path", ""))
+                if segment is None:
+                    wild.append((position, route))
+                else:
+                    by_segment.setdefault(segment, []).append((position, route))
+            index = (app, len(routes), by_segment, wild)
+            self._index = index
+        return index[2], index[3]
+
+    def _resolve(
+        self, app: Any, method: str, path: str
     ) -> tuple[Callable[..., Any] | None, str]:
+        by_segment, wild = self._routes_index(app)
+        segment = _first_segment(path)
+        candidates = sorted(
+            by_segment.get(segment or "", []) + wild, key=lambda r: r[0]
+        )
         scope = {"type": "http", "method": method, "path": path, "root_path": ""}
-        for route in app.routes:
-            match, _ = route.matches(scope)
+        for _, route in candidates:
+            match, _child = route.matches(scope)
             if match == Match.FULL and hasattr(route, "endpoint"):
                 return route.endpoint, _template(getattr(route, "path", ""))
         return None, ""
+
+    def _log_would_limit(self, kind: str, template: str) -> None:
+        """One line per (route template, bucket kind) a minute, with the count skipped."""
+        key = (template, kind)
+        now = time.monotonic()
+        entry = self._logged.get(key)
+        if entry is not None and now - entry[0] < LOG_INTERVAL_SECONDS:
+            entry[1] += 1
+            return
+        suppressed = int(entry[1]) if entry is not None else 0
+        if entry is None and len(self._logged) >= LOG_KEYS_MAX:
+            self._logged.clear()
+        self._logged[key] = [now, 0]
+        logger_default.warning(
+            "default rate limit would apply bucket_kind=%s route=%s suppressed=%d",
+            kind,
+            template or "unmatched",
+            suppressed,
+        )
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         app = scope.get("app")
@@ -385,11 +448,7 @@ class DefaultRateLimitMiddleware:
                     if _trusted_visitor_ip(request) is not None
                     else "connecting"
                 )
-                logger_default.warning(
-                    "default rate limit would apply bucket_kind=%s route=%s",
-                    kind,
-                    template or "unmatched",
-                )
+                self._log_would_limit(kind, template)
             else:
                 response = _rate_limit_exceeded_handler(request, exc)
                 await response(scope, receive, send)
