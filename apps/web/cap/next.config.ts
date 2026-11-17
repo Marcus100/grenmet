@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { contentSecurityPolicyHeaders } from "@barrelsgd/ui/lib/content-security-policy";
 import type { NextConfig } from "next";
 
 // Public warning pages are rendered per request, then cached at the edge.
@@ -17,6 +18,15 @@ const EDGE_CACHE =
 // /desk/new (error #418, issue #1327). Staff pages need no scraper protection.
 const STAFF_NO_STORE = "private, no-store, no-transform";
 const STAFF_PATHS = ["/desk", "/desk/:path*", "/auth/:path*"];
+
+// CSP is Report-Only until a clean report window (docs/security.md). Outside
+// production the helper returns no headers, so the rule is left out.
+const CSP_HEADERS = contentSecurityPolicyHeaders({
+  app: "cap",
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+  isProduction: process.env.NODE_ENV === "production",
+});
 
 const nextConfig: NextConfig = {
   // Link hrefs are checked against the app's routes at build time.
@@ -49,6 +59,9 @@ const nextConfig: NextConfig = {
         { key: "X-Robots-Tag", value: "noindex, nofollow" },
       ],
     })),
+    ...(CSP_HEADERS.length > 0
+      ? [{ source: "/:path*", headers: CSP_HEADERS }]
+      : []),
   ],
 };
 

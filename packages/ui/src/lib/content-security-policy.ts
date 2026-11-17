@@ -1,6 +1,7 @@
 /**
  * Content-Security-Policy builder for the Next.js apps (Report-Only on `docs`,
- * `signal`, `bookings`, `account`, `mbia`, `elections` and `babydoll`).
+ * `signal`, `bookings`, `account`, `mbia`, `elections`, `babydoll`, `admin`,
+ * `auth`, `cap`, `cms`, `events`, `gaa-admin`, `gms` and `gmsdash`).
  *
  * Traefik already sends HSTS, nosniff, X-Frame-Options and Referrer-Policy on
  * every host, so this module only produces the CSP header (and the
@@ -21,7 +22,15 @@ export type CspApp =
   | "account"
   | "mbia"
   | "elections"
-  | "babydoll";
+  | "babydoll"
+  | "admin"
+  | "auth"
+  | "cap"
+  | "cms"
+  | "events"
+  | "gaa-admin"
+  | "gms"
+  | "gmsdash";
 
 const GA_SCRIPT = ["https://www.googletagmanager.com"] as const;
 const GA_CONNECT = [
@@ -103,6 +112,81 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
     connect: [TURNSTILE],
     img: [],
     frame: [TURNSTILE],
+  },
+  // Staff console. Sentry only (added by the builder when a DSN is set). No
+  // client-side API calls: the app reads FastAPI from the server.
+  admin: {
+    script: [],
+    connect: [],
+    img: [],
+    frame: [],
+  },
+  // Sign-in. The email-code form renders Turnstile when its site key is set.
+  // PostHogProvider is mounted without an `app`, so it never starts analytics.
+  auth: {
+    script: [TURNSTILE],
+    connect: [TURNSTILE],
+    img: [],
+    frame: [TURNSTILE],
+  },
+  // Staff warning desk and public CAP hub. No third party: the map has no tile
+  // source and its worker is a same-origin file (maplibre-gl-worker.mjs).
+  cap: {
+    script: [],
+    connect: [],
+    img: [],
+    frame: [],
+  },
+  // Payload admin. No third-party origin in the code under apps/web/cms, and
+  // the admin is same-origin. 'unsafe-eval' is not added: this change did not
+  // verify that Payload's admin bundle needs it. The Report-Only window will
+  // show an eval violation if it does, and the fix is then a reviewed change.
+  cms: {
+    script: [],
+    connect: [],
+    img: [],
+    frame: [],
+  },
+  // GA4 in production (service-catalogue `events`); no PostHog project and no
+  // Turnstile widget. Event images and avatars are same-origin /files/<id>
+  // links that redirect to object storage. That storage origin is deployment
+  // config, so it is not listed here (follow-up, as for apps/web/account).
+  events: {
+    script: [...GA_SCRIPT],
+    connect: [...GA_CONNECT],
+    img: GA_IMG,
+    frame: [],
+  },
+  // Operational console. Browser API calls use the same-origin proxy
+  // (configureApiClient baseURL ""). The map worker is same-origin. The PDF and
+  // forecast previews are iframes on blob: object URLs.
+  "gaa-admin": {
+    script: [],
+    connect: [],
+    img: [],
+    frame: ["'self'", "blob:"],
+  },
+  // GA4 in production (service-catalogue `gms`). Turnstile guards the
+  // newsletter and data-request forms. Click-to-load media embeds (YouTube
+  // no-cookie, Facebook video, SoundCloud) are the only iframes. Unoptimised
+  // images load straight from the CMS on staging (cms-images.ts), so the staging
+  // CMS media host is listed.
+  gms: {
+    script: [...GA_SCRIPT, TURNSTILE],
+    connect: [...GA_CONNECT, TURNSTILE],
+    img: [...GA_IMG, "https://cms.staging.barrels.gd"],
+    frame: [
+      "https://www.youtube-nocookie.com",
+      "https://www.facebook.com",
+      "https://w.soundcloud.com",
+    ],
+  },
+  // Public GMS dashboard, server-rendered. Sentry only.
+  gmsdash: {
+    script: [],
+    connect: [],
+    img: [],
+    frame: [],
   },
 };
 
