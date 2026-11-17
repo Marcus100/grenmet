@@ -216,6 +216,7 @@ async def test_wrong_codes_lock_disable_even_with_the_right_proof(
 async def test_wrong_authenticator_codes_do_not_lock_password_sign_in_on_disable(
     async_client, db_async: AsyncSession, attempts: int
 ) -> None:
+    """The password counter stays clear; only the shared code budget is spent (#1544)."""
     user, secret = await _with_authenticator(db_async)
     for _ in range(attempts):
         await async_client.post(
@@ -223,6 +224,7 @@ async def test_wrong_authenticator_codes_do_not_lock_password_sign_in_on_disable
             headers=_headers(user),
             json={"password": CURRENT, "code": _wrong_code(secret)},
         )
+    assert await login_lockout.is_locked(user.email) is False
     sign_in = await async_client.post(
         SESSIONS,
         json={
@@ -231,7 +233,7 @@ async def test_wrong_authenticator_codes_do_not_lock_password_sign_in_on_disable
             "totp_code": pyotp.TOTP(secret).now(),
         },
     )
-    assert sign_in.status_code == 200
+    assert _is_locked(sign_in)
 
 
 async def test_wrong_passwords_on_disable_lock_password_sign_in(
