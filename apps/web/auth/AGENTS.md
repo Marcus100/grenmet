@@ -59,7 +59,7 @@ Turnstile on the code start step (#959): `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY`, 
 - `buildSharedSignInUrl()` from `@barrelsgd/auth/server` is what other apps use to redirect here. Do not construct the URL manually.
 - The account session lives in a host-only `AUTH_SESSION_COOKIE_NAME` cookie (`auth_session`). Other apps never read it; they get their own session through `/continue` (ADR-0017). Signing out here signs out of every app.
 
-- Playwright smoke tests live in `e2e/` (`sign-in.spec.ts`); run them with `pnpm --filter @barrelsgd/web-auth test:e2e` (its config starts the dev server). The repo-wide `pnpm e2e` covers only gms and gaa-admin.
+- Playwright smoke tests live in `e2e/` (`sign-in.spec.ts`); run them with `pnpm --filter @barrelsgd/web-auth test:e2e` (its config starts the dev server). They sign in as the API's seeded first superuser (`admin@example.com`, the local placeholder password), so they need the API with its local seed; the `Browser journeys` workflow runs them on every pull request into `dev`. The repo-wide `pnpm e2e` covers only gms and gaa-admin.
 
 ## Key dependencies
 
