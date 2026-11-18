@@ -6,6 +6,7 @@ Synthetic people and amounts only (XCD cents).
 import csv
 import io
 import uuid
+from collections.abc import Callable
 from decimal import Decimal
 
 import httpx
@@ -331,7 +332,9 @@ def test_signing_key_settings_are_validated_and_never_echoed() -> None:
 
 
 async def test_pdf_limiter_backend_failure_fails_open_with_a_warning(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    patch_limiter_hit: Callable[..., None],
 ) -> None:
     from src.rate_limit import limiter
 
@@ -339,7 +342,7 @@ async def test_pdf_limiter_backend_failure_fails_open_with_a_warning(
         raise ConnectionError("limiter backend down")
 
     monkeypatch.setattr(limiter, "enabled", True)
-    monkeypatch.setattr(limiter.limiter, "hit", broken)
+    patch_limiter_hit(broken)
     payslips.logger.disabled = False
     with caplog.at_level("WARNING", logger=payslips.logger.name):
         assert await payslips.within_pdf_limit(uuid.uuid4()) is True
