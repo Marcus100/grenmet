@@ -2,11 +2,11 @@
 
 ## Status
 
-Accepted 18 Nov 2026 (owner decisions in the session that planned the
-product; agent decisions where the owner delegated; owner accepted the
-record the same day). Amends ADR-0033 for
-health records. Nothing is built. No real patient data may be stored until
-the go-live gate in decision 12 is met.
+Accepted 18 Nov 2026. The owner made the product decisions and accepted the
+record the same day; agents made the decisions the owner delegated. Amends
+ADR-0033 for health records and ADR-0043 for the `health` host. Nothing is
+built. No real patient data may be stored until the go-live gate in
+decision 12 is met.
 
 ## Context
 
@@ -143,6 +143,17 @@ These go to the owner's lawyer. A different answer changes decisions 9 and
      (ADR-0057, ADR-0058).
    - A phone app comes later as a PWA.
    - The product key is `health`.
+   - `health` is on the reserved-names list under "Ops" (`docs/ports.md`,
+     `src/utils/reserved_names.py`). Reserved names may still be used by the
+     platform itself, so build step 1 moves `health` from "Ops" to "Product
+     and client hosts", allocates the next free product port (3042) and adds
+     the host to ADR-0043's product list. `health` stays reserved, so no
+     organisation can claim it as a slug.
+   - Staff sign-in follows app-scoped sessions (ADR-0016) in a server-rendered
+     Next.js app, like the other staff apps. The required authenticator uses
+     the per-app setting from ADR-0061.
+   - The patient portal is a new "Health" section in the account app, served
+     by the `health` API domain.
 2. **Health records are an exception to ADR-0033.**
    - Each practice is the data user (controller) of its patients' records.
      Barrels is the data processor.
@@ -155,6 +166,11 @@ These go to the owner's lawyer. A different answer changes decisions 9 and
 3. **Practices own their records.**
    - A practice is an `org.organisation`. A solo doctor is a one-person
      practice.
+   - Health tables in the separate database hold the organisation, user and
+     contact IDs as plain IDs with no cross-database foreign keys
+     (ADR-0003). Membership and permission checks run in the API through the
+     existing organisation dependencies before any health query. Bookings
+     stay in the main database and refer to health charts by ID only.
    - A doctor may work in several practices and sees one combined schedule.
    - Each patient chart lives in exactly one practice.
 4. **Sharing is a consented copy.**
@@ -179,8 +195,11 @@ These go to the owner's lawyer. A different answer changes decisions 9 and
    - The patient enters it in their Barrels account to link that chart.
    - There is no automatic matching across practices.
    - A parent or guardian links a child's chart the same way.
-   - Link codes are hashed at rest, expire and can be revoked, like the
-     pairing secrets in ADR-0060.
+   - Link codes expire (14 days), are single use and can be revoked.
+   - A code is at least 10 characters from an unambiguous alphabet, about 50
+     bits. It is stored as an HMAC with a health-only key, not a bare hash,
+     so a leaked database cannot be brute-forced offline.
+   - Code entry is rate-limited per account and per code.
 7. **Portal release rules.**
    - Rules are set per practice, by record type:
      - shown at once: appointments, receipts, prescriptions, certificates,
@@ -224,8 +243,10 @@ These go to the owner's lawyer. A different answer changes decisions 9 and
       patient's 25th birthday, then archived (read-only, restricted) and
       never purged automatically. The lawyer will confirm what "archived"
       means.
-    - Account deletion in the Barrels account removes the portal link, not
-      the practice's chart (ADR-0058, section 7).
+    - Deleting a Barrels account (anonymisation, ADR-0058 section 7)
+      unlinks every chart from that account. The charts stay with their
+      practices for the retention period. Copies the patient already shared
+      stay with the receiving practices.
 12. **Go-live gate for real patients.** All of these are true first:
     - the production firewall is on
     - a restore of the health database has been tested
@@ -289,7 +310,12 @@ Forbidden:
 
 Follow-ups:
 
-- Update ADR-0033's status line to note this exception.
+- Done in this change: ADR-0033's status line notes the exception.
+- Step 1: move `health` to the product hosts (decision 1), and add the
+  `health` database to the database table in ADR-0003 with its reason
+  (legal duty, retention and risk).
+- Check `docs/security.md` and `docs/data-architecture.md` for wording that
+  says Barrels owns all data, and point it to this exception.
 - Add `health` to `entitlements.PRODUCTS` and its keys to `permissions.py`
   in build step 1.
 - Draft the data processing agreement and a one-page security summary for
