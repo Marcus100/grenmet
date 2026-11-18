@@ -2,7 +2,7 @@
 
 **Status:** Draft runbook for launch; roles to be filled by the owner  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-30
+**Last updated:** 2026-11-18
 
 A short first-response guide for the Barrels Grenada platform and its public
 apps. It deliberately links to existing text instead of repeating it:
@@ -105,5 +105,5 @@ incident cannot recur silently.
 
 - Name the roles above in the private contact sheet and print a copy.
 - Decide who watches alerts out of hours; see [launch monitoring inputs](launch-monitoring-inputs.md#how-an-alert-reaches-the-owner).
-- Practise once on staging: a rollback, and a restore (the [restore drill](restore-drill.md) has never been run).
+- Practise once on staging: a rollback, and a restore (the [restore drill](restore-drill.md) passed on 4 and 9 Nov 2026 and runs monthly).
 - Have a lawyer review the breach-notification step; this page contains no legal text.

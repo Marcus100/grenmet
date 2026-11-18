@@ -2,7 +2,7 @@
 
 **Status:** Dev implementation; staging availability pilot active, with a known gap (staging probes report gated web apps as down, 2026-11-14); production rollout pending
 **Owner:** Barrels Grenada engineering
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-18
 
 Roll out **development → staging → production**. A successful `dev` push is not
 production delivery. The owner confirmed on 2026-10-03 that all providers use free
@@ -183,8 +183,8 @@ It does not pretend that an empty production error query proves working delivery
 ## Production monitoring as code (2026-10-20)
 
 All resources live in [`scripts/monitoring/betterstack.json`](../../scripts/monitoring/betterstack.json).
-Production entries have no provider ID yet and are declared `paused: true`, so
-nothing is created or alerts until the owner applies and unpauses them.
+Production monitors and the production probe-runner and backup heartbeats are on (`paused: false`);
+the worker-poll heartbeat and the deferred monitors stay paused.
 
 | Kind | Name (`Production · …`) | Target | Check |
 | --- | --- | --- | --- |
@@ -434,7 +434,7 @@ live per-target incident/maintenance validation and 24-hour staging observation.
 
 ### Known gap: staging probes and the monitoring install (2026-11-14)
 
-Production monitoring is still not on. On staging two things are wrong:
+Production monitoring (Better Stack) is on. On staging two things are wrong:
 
 1. **The scheduled probes report every gated web app as down.** Staging web hosts
    sit behind the staging gate (basic auth). The probe sends the gate credential

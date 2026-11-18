@@ -2,7 +2,7 @@
 
 **Status:** Active runbook (owner actions; nothing here has been applied yet)  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-18
 
 Every provider account that can change the platform, in the order to secure
 them. For each: where to turn on two-factor authentication (2FA), whether you can

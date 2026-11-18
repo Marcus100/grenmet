@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-18
 
 This document explains how the Barrels Grenada codebase fits together: the
 relationships among applications, shared packages, authentication, and data.

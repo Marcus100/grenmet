@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-18
+**Last updated:** 2026-11-18
 
 This document is the human-readable reference for supported environment variables
 in the Grenmet monorepo: what each variable does, where it is supplied, and which

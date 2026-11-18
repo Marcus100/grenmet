@@ -2,7 +2,7 @@
 
 **Status:** Stage 2 (staging) done 2026-11-14. Stage 3 (production) not done; production is still on 17  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-18
 
 The operator steps and stop rules for moving the core database from PostgreSQL 17
 to 18 (issue #926 for the drill, issue #1024 item 4 for this runbook). The plan, the
@@ -101,13 +101,13 @@ upgrade. Record every phase's time from the run summary.
 
 ## Gaps
 
-- The drill has not been run against real backups on any version
+- The drill passed against real backups on 4 and 9 Nov 2026 but has not been run on PostgreSQL 18
   ([launch checklist](launch-checklist.md#restore-drill)); the read-only Spaces key is
   an owner action.
 - `pg_upgrade` is unchecked. The upgrade script has run on real data once, on staging
   (2026-11-14); no separate check of the CMS on 18 is recorded beyond that run's smoke
   checks.
-- Nothing opens an issue when the drill fails: watch the run.
+- A failed scheduled drill opens an issue; a run started by hand does not, so watch it.
 - The final dumps of each upgrade stay on the droplet until removed by hand with the old
   volume, after at least 14 days and with the owner's go
   ([issue #1371](https://github.com/Marcus100/grenmet/issues/1371)):

@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-18
 
 This guide documents the operational infrastructure implemented in this repo today. For first-time server setup see [deployment.md](deployment.md). For local development failures see [troubleshooting.md](troubleshooting.md).
 
@@ -20,7 +20,7 @@ since 2026-11-12, each running Ubuntu 24.04 and Docker Engine 29.
 
 State on 2026-11-14:
 
-- **Release:** production runs v1.3.0 (since 2026-11-16), published from `main` and
+- **Release:** production runs v1.4.0 (released 2026-11-17), published from `main` and
   deployed by the Production Pipeline. The other points below were recorded on
   2026-11-14.
 - **Database schema:** `alembic check` was run on production after v1.0.8 and
@@ -172,7 +172,7 @@ Owner hardening runbooks (step-by-step, with verify and undo for each step):
 These are not implemented as repo-level controls yet:
 
 - Centralized log storage and retention. API and worker warnings and errors go to Sentry Logs, scrubbed (`apps/api/fastapi/AGENTS.md`, Sentry Logs); the full container output (including Traefik access logs) still stays on each host for its Docker log rotation (3 × 10 MB per container) and is lost when a container is replaced.
-- External uptime monitoring and alert rules in production. Better Stack is the provider (ADR-0037): monitors and heartbeats are defined in `scripts/monitoring/betterstack.json`; only the staging probe-runner heartbeat is live, and the production ones stay paused until their secrets are set ([#1143](https://github.com/Marcus100/grenmet/issues/1143)).
+- External uptime monitoring and alert rules in production. Better Stack is the provider (ADR-0037): monitors and heartbeats are defined in `scripts/monitoring/betterstack.json`; the production monitors and the production probe-runner and backup heartbeats are on; the production worker-poll heartbeat and the deferred monitors stay paused.
 - OpenTelemetry for the FastAPI app. The vendored CAP Composer has OTEL support, but the main FastAPI app currently uses Sentry plus request logs.
 - Verified Redis-backed rate limiting in each environment. `src/rate_limit.py` uses `REDIS_URL` (set in `docker-compose.deploy.yml`); only a deployed check is missing.
 - Timed, end-to-end recovery drills proving application recovery and RTO. The backup workflow already restores each database dump into a temporary database and checks for tables. The [restore drill](operations/restore-drill.md) (ADR-0021) now restores every database into a throwaway container and checks migrations and row floors; it passed against the production backup on 2026-11-04 and end to end on 2026-11-09 ([#926](https://github.com/Marcus100/grenmet/issues/926)). It now runs monthly (the 1st, 05:30 UTC) and a failed run opens an issue. Still open: the opt-in `api_check` that starts the application, which is built but unrun.

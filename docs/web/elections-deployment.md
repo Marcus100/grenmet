@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-15
+**Last updated:** 2026-11-18
 
 Elections Grenada is a static export (`output: "export"`) for Cloudflare Pages.
 The target production domain is `elections.barrels.gd`; configuration alone does not establish

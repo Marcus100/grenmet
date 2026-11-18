@@ -2,7 +2,7 @@
 
 **Status:** Historical record  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-07-25
+**Last updated:** 2026-11-18
 
 Status of the integrated GMS FastAPI backend hardening (auth / hr / cap) and the
 remaining manual steps. Companion to `docs/fastapi-cap-audit.md`.
@@ -47,38 +47,9 @@ GAA_ADMIN_SSO_CLIENT_SECRET / CMS_SSO_CLIENT_SECRET  # single sign-on (ADR-0017)
    (cosmetic warning).
 6. **MQTT/WIS2 publishers** — intentionally out of scope (separate wis2box deployment).
 
-## Step 7 — fresh baseline squash (DESTRUCTIVE — run manually when ready)
+## Step 7 — fresh baseline squash
 
-You confirmed there is no data to migrate and a clean start is acceptable. Since the CAP
-drift is now resolved on the model side, the migration history can be squashed into one
-clean baseline. **Do this only when you're ready to wipe the dev/staging DB.**
-
-```bash
-cd apps/api/fastapi
-
-# 1. Back up first if there's anything you care about.
-# 2. Drop & recreate the schema (DESTRUCTIVE):
-docker exec grenmet-postgres psql -U postgres -d app -c \
-  "DROP SCHEMA IF EXISTS hr CASCADE; DROP SCHEMA IF EXISTS cap CASCADE; DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
-
-# 3. Remove old versions and autogenerate a single baseline:
-rm alembic/versions/*.py
-docker compose exec api uv run --frozen --package fast-back alembic revision --autogenerate -m "baseline schema"
-#    Review the generated file (enum creation, schemas hr/cap, indexes).
-docker compose exec api uv run --frozen --package fast-back alembic upgrade head
-
-# 4. Reseed:
-docker compose exec api uv run --frozen --package fast-back python scripts/initial_data.py   # superuser + permissions + roles
-docker compose exec api uv run --frozen --package fast-back alembic check                    # must report no drift
-```
-
-After the squash, regenerate the API contract and client (Ask-First gate):
-
-```bash
-docker compose exec api uv run --frozen --package fast-back python -c \
-  "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json','w'), indent=2)"
-pnpm generate:api-client
-```
+The old recipe here, which dropped the `hr`, `cap` and `public` schemas to rebuild the migration history, was removed because it destroys data in whatever database it is pointed at. Use the migration rules in `apps/api/fastapi/AGENTS.md`, and ask the owner before any destructive schema change.
 
 ## Operational lesson (worth keeping)
 

@@ -2,7 +2,7 @@
 
 **Status:** Draft — planning reference  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-09-10
+**Last updated:** 2026-11-18
 
 | Field | Detail |
 |---|---|
@@ -33,9 +33,9 @@ primaryUserDecision: >
   What weather should I expect today and tomorrow,
   and do I need to change my plans?
 
-issueSchedule: "Daily, 0600 AST and 1800 AST"
+issueSchedule: "Daily, 0700, 1200 and 1800 AST"
 validPeriod: "24 to 48 hours"
-updateFrequency: "Twice daily, or as conditions require"
+updateFrequency: "Three times daily, or as conditions require"
 trigger: "Routine"                            # Routine | Threshold | Event-driven | On-request
 
 inputData:

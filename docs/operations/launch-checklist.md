@@ -2,7 +2,7 @@
 
 **Status:** Active checklist; evidence from the repository on 2026-10-30  
 **Owner:** Barrels Grenada engineering (decisions: repository owner)  
-**Last updated:** 2026-11-14 (restore drill section only; the rest is still the 2026-10-30 evidence)
+**Last updated:** 2026-11-18 (hosting line and restore drill section only; the rest is still the 2026-10-30 evidence)
 
 Planned launch: about 10 November 2026. This table covers the non-monitoring
 launch gaps. Monitoring inputs are in [launch monitoring inputs](launch-monitoring-inputs.md);

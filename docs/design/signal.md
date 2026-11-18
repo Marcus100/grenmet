@@ -107,7 +107,7 @@ components:
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-03
+**Last updated:** 2026-11-18
 
 Agent-readable spec for `apps/web/signal`, the mobile-first civic news reader for
 Grenada Signal. [DESIGN.md format](https://github.com/google-labs-code/design.md);
