@@ -17,6 +17,7 @@ import {
   depositState,
   eventLabel,
   isUuid,
+  paymentWord,
   takesDeposit,
 } from "@/lib/studio-view";
 
@@ -72,6 +73,8 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
   }
 
   const deposit = depositState(booking);
+  const kind = booking.payment_kind;
+  const word = paymentWord(kind);
   const zone = booking.timezone;
 
   return (
@@ -88,8 +91,8 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           {formatDateTime(booking.starts_at, zone)} with {booking.provider_name}
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
-          <StatusBadge status={booking.status} />
-          <DepositBadge state={deposit} />
+          <StatusBadge kind={kind} status={booking.status} />
+          <DepositBadge kind={kind} state={deposit} />
         </div>
       </div>
 
@@ -97,6 +100,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
         <BookingActions
           bookingId={booking.id}
           orgSlug={orgSlug}
+          paymentKind={kind}
           refundable={
             booking.status !== "pending_payment" &&
             booking.deposit_captured_minor - booking.deposit_refunded_minor > 0
@@ -113,6 +117,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           amountLabel={formatMoney(booking.deposit_minor, booking.currency)}
           bookingId={booking.id}
           due={deposit === "due"}
+          kind={kind}
           orgSlug={orgSlug}
           takesDeposit={takesDeposit(booking)}
         />
@@ -166,7 +171,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           className="border-border space-y-2 rounded-lg border p-4"
         >
           <h2 className="text-lg font-semibold" id="payment-title">
-            Price and deposit
+            {kind === "payment" ? "Price and payment" : "Price and deposit"}
           </h2>
           <dl className="space-y-1">
             <Row
@@ -174,7 +179,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
               value={formatMoney(booking.price_minor, booking.currency)}
             />
             <Row
-              label="Deposit asked"
+              label={`${word} asked`}
               value={
                 booking.deposit_minor > 0
                   ? formatMoney(booking.deposit_minor, booking.currency)
@@ -183,7 +188,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
             />
             {booking.deposit_captured_minor > 0 ? (
               <Row
-                label="Deposit received"
+                label={`${word} received`}
                 value={formatMoney(
                   booking.deposit_captured_minor,
                   booking.currency
@@ -192,7 +197,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
             ) : null}
             {booking.deposit_refunded_minor > 0 ? (
               <Row
-                label="Deposit refunded"
+                label={`${word} refunded`}
                 value={formatMoney(
                   booking.deposit_refunded_minor,
                   booking.currency
@@ -238,7 +243,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
                 key={`${event.created_at}-${event.to_status}`}
               >
                 <p className="font-medium">
-                  {eventLabel(event.from_status, event.to_status)}
+                  {eventLabel(event.from_status, event.to_status, kind)}
                 </p>
                 <p className="text-muted-foreground text-sm">
                   {formatDateTime(event.created_at, zone)}

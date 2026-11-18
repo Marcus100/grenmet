@@ -23,6 +23,9 @@ const NO_CONTACT = {
 };
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/u;
+const ANY_PAY_NOW = /You pay/u;
+const PAY_FULL = /You pay the full price, EC\$/u;
+const PAY_DEPOSIT = /You pay a deposit of EC\$10 now/u;
 const NO_TIMES = /No times are open/u;
 const NOTHING_LOST = /Nothing was lost/u;
 const CHOSEN_HYBRID = /Hybrid: .*9:30 am/u;
@@ -350,6 +353,35 @@ describe("BookingFlow form", () => {
     );
     await waitFor(() => expect(actions.requestEmailCode).toHaveBeenCalled());
     expect(submitBooking).not.toHaveBeenCalled();
+  });
+
+  it("tells the customer before submitting that they pay the full price now", async () => {
+    const user = userEvent.setup();
+    const fullPrice: BookingStorefront = {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        due_at_booking_minor: service.price_minor,
+      })),
+    };
+    renderFlow("", fullPrice);
+    expect(screen.queryByText(ANY_PAY_NOW)).not.toBeInTheDocument();
+    await chooseSlot(user);
+    expect(screen.getByText(PAY_FULL)).toBeVisible();
+  });
+
+  it("tells the customer before submitting that they pay a deposit now", async () => {
+    const user = userEvent.setup();
+    const deposit: BookingStorefront = {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        due_at_booking_minor: 1000,
+      })),
+    };
+    renderFlow("", deposit);
+    await chooseSlot(user);
+    expect(screen.getByText(PAY_DEPOSIT)).toBeVisible();
   });
 
   it("offers Pay now on the confirmation while the payment is due", async () => {

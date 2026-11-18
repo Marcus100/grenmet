@@ -1,4 +1,5 @@
 import type { BookingMyBooking } from "@barrelsgd/api-client";
+import { bookingPaymentLine } from "@/lib/booking-payment";
 import { bookingStatusLabel } from "@/lib/booking-status";
 import { businessPageUrl } from "@/lib/bookings-site";
 import { LocalBookingWhen } from "./local-booking-when";
@@ -45,6 +46,11 @@ export function BookingList({
             />
           </p>
           <p className="text-sm">{bookingStatusLabel(booking.status)}</p>
+          {booking.payment ? (
+            <p className="text-muted-foreground text-sm">
+              {bookingPaymentLine(booking.payment)}
+            </p>
+          ) : null}
         </li>
       ))}
     </ul>

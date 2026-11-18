@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingPaymentKindSchema } from "./bookingPaymentKindSchema.js";
 import { bookingSourceSchema } from "./bookingSourceSchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
 
@@ -20,5 +21,8 @@ export const bookingAgendaItemSchema = z.object({
   source: bookingSourceSchema,
   price_minor: z.int(),
   deposit_minor: z.int(),
+  payment_kind: bookingPaymentKindSchema.describe(
+    '`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.'
+  ),
   currency: z.string(),
 });
