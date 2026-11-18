@@ -18,6 +18,10 @@ Existing session authorization counts; do not ask again for the same work.
 
 ## 0. Locate the owner
 
+For changes involving personal information, digital approvals, payments or official
+publications, identify the applicable law and acceptance check using the
+[Grenada ICT law guide](../grenada-ict-law.md).
+
 - Which domain owns the data? Check `docs/portfolio/repository-delivery-map.md`
   (FastAPI domains table) and the domain's `AGENTS.md`.
 - Which database? Main application DB (`alembic.ini`) or a separate domain DB
