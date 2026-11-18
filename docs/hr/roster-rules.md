@@ -3,9 +3,7 @@
 **Owner:** GAA/GMS (the rules and their values); Barrels Grenada engineering (the engine)
 **Last updated:** 2026-10-31
 **Status:** Built (issue #380). The owner confirmed the rules on 2026-10-31 and asked
-that they be enforced as fully as possible. Source references: GAA–GTAWU memorandum
-2024–2028, Articles 5, 6 and 8, from the controlled local copy cited in
-[policy-rules.md](policy-rules.md). This page holds no agreement text.
+that they be enforced as fully as possible. Source: the GAA staff union memorandum, roster and overtime articles, from the controlled copy kept privately by the owner (see [policy-rules.md](policy-rules.md)). This page holds no agreement text.
 
 ## Rules and defaults
 
@@ -21,7 +19,7 @@ limit switches that rule off.
 | 2 | Shift workers 8 h a day and 40 h a week; non-shift staff 35 h a week, Monday to Friday. Weeks run Sunday to Saturday | 8, 40, 35 | `MAX_DAILY_HOURS`, `MAX_WEEKLY_HOURS` |
 | 3 | In any 4 weekends: one full weekend (Saturday and Sunday) off, plus one other Saturday and one other Sunday off | 4 | `WEEKEND_OFF` |
 | 4 | A change to a published roster for a date less than 7 days away is warned | 7 | `SHORT_NOTICE` |
-| 5 | Overtime hours by rate band (hours only; no pay): weekday 1.5x for the first 4 h then 2x; Saturday 1.5x from 08:00 to 12:00, other hours 2x; Sunday, public holiday or rostered day off 2x for the first 8 h then 3x; after midnight at least 2x | as listed | bands on attendance and timesheets |
+| 5 | Overtime hours by rate band (hours only; no pay): rates per the agreement (private) for weekday, Saturday, Sunday, public holiday and rostered day off, with a minimum rate after midnight | as listed | bands on attendance and timesheets |
 | 6 | No minimum-rest rule | — | (the old `MIN_REST` check was removed) |
 | 7 | Coverage: each employee has a "covered by union agreement" flag, on by default. Uncovered staff are never checked and get no bands | on | `employment_record.union_covered` |
 
@@ -61,13 +59,12 @@ The engine's interpretations of the confirmed rules. Those marked "owner, 31 Oct
 - Rule 5 day kinds, in order: public holiday, Sunday, rostered day off, Saturday,
   weekday. Overtime belongs to the day its shift starts. Hours that run past midnight
   are never below the after-midnight rate; if the next day is a Sunday, holiday or day
-  off its rest-day band applies to those hours. The weekday "first 4 hours" counter is
-  per working day; the rest-day "first 8 hours" counter is per calendar day. Early
+  off its rest-day band applies to those hours. The weekday first-band counter is
+  per working day; the rest-day first-band counter is per calendar day. Early
   arrival before a morning shift is not "after midnight" (owner, 31 Oct 2026).
 - What counts as overtime: attendance before the scheduled start or after the
   scheduled end. The whole worked shift counts (less its unpaid break) on a public
-  holiday, for every worker: double for the first 8 hours, triple after (owner, 31 Oct
-  2026, Art. 6); when the published roster had a non-work code for that day (called in
+  holiday, for every worker: at the rest-day rate bands per the agreement (owner, 31 Oct 2026); when the published roster had a non-work code for that day (called in
   on a day off); and for non-shift staff on a Saturday or Sunday. A legacy timesheet
   entry's `overtime_hours` is placed right after the shift end, or from 08:00 when the
   day had no timed shift; on a public holiday the rostered shift's worked hours are
@@ -131,8 +128,7 @@ The owner answered the questions raised when the engine was first built:
 1. GMS M and E shifts (8.5 h) include a 30-minute unpaid meal break. Built as
    `shift_catalog.break_minutes`; M and E are seeded with 30.
 2. The 2 days off apply only after 3 shifts in a row (as built).
-3. On a public holiday a shift worker's whole rostered shift is overtime: double for
-   the first 8 hours, triple after (Art. 6).
+3. On a public holiday a shift worker's whole rostered shift is overtime: at the rest-day rate bands per the agreement.
 4. An exchange both employees agreed to is exempt from the 7-day notice rule.
 5. Leave on a weekend counts as that weekend off (as built).
 6. The Saturday after a Friday night shift counts as off (as built).

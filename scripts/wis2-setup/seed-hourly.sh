@@ -3,7 +3,7 @@
 # into SURFACE so the hh:05 WIS2 publish has data (soak test, ADR-0010).
 #
 # Install (host):  crontab -e
-#   1 * * * * /home/eugine/grenmet/scripts/wis2-setup/seed-hourly.sh >> /tmp/wis2-seed.log 2>&1
+#   1 * * * * <home>/grenmet/scripts/wis2-setup/seed-hourly.sh >> /tmp/wis2-seed.log 2>&1
 set -euo pipefail
 [[ "${ENVIRONMENT:-}" == local && "${ALLOW_SYNTHETIC_OBSERVATIONS:-}" == 1 ]] || { echo "Synthetic observations are disabled outside explicit local tests" >&2; exit 1; }
 : "${SURFACE_TEST_DB_NAME:?Set a dedicated database ending in _test}"

@@ -249,5 +249,5 @@ Where automation is not yet possible, manual logging is the interim method. Manu
 | [Compliance Traceability Matrix](../internal/compliance-traceability.md) | ICAO QMS compliance obligations |
 | [Warning Operations](../internal/warning-operations.md) | Audit trail that feeds verification data |
 | [Quality Score](../quality-score.md) | Code and platform quality (separate from service quality) |
-| [GMS Charter](../internal/gms-charter.md) | Success criteria and KPI targets |
+| GMS Charter (kept privately by the owner) | Success criteria and KPI targets |
 | DTO Terms of Reference (private, held by the owner) | Programme KPIs |

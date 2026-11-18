@@ -360,7 +360,7 @@ only. This is where a failure shows instead. Nothing here adds a new monitor.
    production monitors. Keep production certificate failures from the
    [domain investigation](domain-configuration.md) open until rechecked/fixed.
 
-Alerts go to the owner-authorized `euginegnd@gmail.com`. The application remains
+Alerts go to the the owner's private mailbox. The application remains
 usable with optional collection disabled. Rollback removes provider mappings;
 rebuild browser bundles through the same release gates.
 

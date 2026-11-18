@@ -33,15 +33,11 @@ foreign key to it.
 
 ### Why a name map rather than initial matching
 
-A person's roster initial is not necessarily their official one. Two GMS staff
-are written under a different given name every month:
+A person's roster initial is not necessarily their official one. A few staff are
+written under a different given name every month, so the roster print differs from
+the personnel record and the account name (examples are kept in the private notes).
 
-| Roster prints | Personnel record | Account |
-|---|---|---|
-| `J. Charles` | Jude Andre Charles | `acharles` |
-| `K. Bedeau` | Kenrick Dieonne Bedeau | `dbedeau` |
-
-Matching on first-initial + surname silently fails on both, and would pick the
+Matching on first-initial + surname silently fails for these staff, and would pick the
 wrong person entirely if two staff ever shared an initial and surname.
 
 ## Validation
