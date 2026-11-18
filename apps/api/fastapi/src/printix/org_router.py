@@ -18,16 +18,18 @@ import uuid
 from typing import Annotated, Any
 
 from fastapi import APIRouter, File, Query, Response, UploadFile, status
+from fastapi.responses import StreamingResponse
 
 from src.dependencies import SessionDep
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations import grants as organisation_grants
-from src.pagination import PaginationDep
+from src.pagination import MAX_PAGE, PaginationDep
 
-from . import constants, service
+from . import analytics, constants, service
 from .constants import PrintixTicketStatus
 from .dependencies import (
+    PrintixOrgEventExporter,
     PrintixOrgEventReader,
     PrintixOrgEventsReadAccess,
     PrintixOrgEventsWriteAccess,
@@ -36,6 +38,7 @@ from .dependencies import (
 )
 from .exceptions import PrintixTypedNumbersNotAllowed
 from .schemas import (
+    PrintixEventAnalytics,
     PrintixEventPage,
     PrintixEventPublic,
     PrintixEventSummary,
@@ -44,6 +47,7 @@ from .schemas import (
     PrintixPairingCreate,
     PrintixPairingCreated,
     PrintixPairingPublic,
+    PrintixScanPage,
     PrintixTicketPage,
     PrintixTicketPublic,
 )
@@ -109,6 +113,107 @@ async def org_event_summary_endpoint(
 ) -> Any:
     return await service.event_summary(
         session, event_id, organisation_id=context.organisation_id
+    )
+
+
+@router.get(
+    "/events/{event_id}/analytics",
+    response_model=PrintixEventAnalytics,
+    summary="Live analytics and report for my organisation's event",
+    description=(
+        "Arrivals per five minutes, the entry rate over the last ten minutes, the "
+        "busiest periods, each gate's admitted and refused scans, typed share and last "
+        "scan time, refusals by reason, offline syncs and conflicts, totals and the "
+        "no-show rate. Times follow America/Grenada. No barcode is ever returned. "
+        "Needs printix.events.manage or printix.gates.manage. Another organisation's "
+        "event, or one with none, is 404."
+    ),
+    responses=_FIND,
+)
+async def org_event_analytics_endpoint(
+    *,
+    session: SessionDep,
+    context: PrintixOrgEventReader,
+    event_id: uuid.UUID,
+    response: Response,
+) -> Any:
+    response.headers["Cache-Control"] = "no-store"
+    return await analytics.event_analytics(
+        session, event_id, organisation_id=context.organisation_id
+    )
+
+
+@router.get(
+    "/events/{event_id}/scans",
+    response_model=PrintixScanPage,
+    summary="Recent scans of my organisation's event",
+    description=(
+        "Scans of one event, newest first, 20 a page by default and at most 100. Each "
+        "has the time, gate, printed number (empty when no ticket matched), outcome, "
+        "whether it was typed and whether it was synced late. The scanned barcode is "
+        "never returned. Needs printix.events.manage or printix.gates.manage."
+    ),
+    responses=_FIND,
+)
+async def list_org_scans_endpoint(
+    *,
+    session: SessionDep,
+    context: PrintixOrgEventReader,
+    event_id: uuid.UUID,
+    response: Response,
+    page: Annotated[
+        int, Query(ge=1, le=MAX_PAGE, description="Page number (1-indexed)")
+    ] = 1,
+    size: Annotated[int, Query(ge=1, le=100, description="Scans per page")] = 20,
+) -> Any:
+    response.headers["Cache-Control"] = "no-store"
+    return await analytics.list_scans(
+        session,
+        event_id,
+        page=page,
+        size=size,
+        organisation_id=context.organisation_id,
+    )
+
+
+@router.get(
+    "/events/{event_id}/scans/export",
+    response_class=StreamingResponse,
+    summary="Download the scan log of my organisation's event as CSV",
+    description=(
+        "Every scan, oldest first: time (Grenada clock), gate, printed number, outcome, "
+        "entry (scanned or typed) and offline. Printed numbers only, never barcodes. "
+        "Cells that start with =, +, - or @ get a leading apostrophe. Streamed, "
+        "Cache-Control no-store, at most six downloads a minute. Needs "
+        "printix.events.manage or printix.gates.manage."
+    ),
+    responses={
+        **_FIND,
+        200: {
+            "description": "The scan log",
+            "content": {"text/csv": {"schema": {"type": "string"}}},
+        },
+    },
+)
+async def export_org_scans_endpoint(
+    *,
+    session: SessionDep,
+    context: PrintixOrgEventExporter,
+    event_id: uuid.UUID,
+) -> StreamingResponse:
+    event = await service.get_event(
+        session, event_id, organisation_id=context.organisation_id
+    )
+    return StreamingResponse(
+        analytics.stream_scans_csv(session, event.id),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": (
+                f'attachment; filename="{analytics.export_filename(event.id, event.event_date)}"'
+            ),
+        },
     )
 
 

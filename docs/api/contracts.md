@@ -3258,6 +3258,15 @@ Four route zones, all under `/api/v1/printix/`.
   lead holds only the gate key. Every event, ticket and pairing is looked up through its event's
   organisation in SQL: another organisation's record, or one with no organisation, is 404.
   Writes record the organiser as the audit actor.
+  Dashboard reads (#1555; either key, reads limit, `Cache-Control: no-store`, never a barcode):
+  `GET /org/events/{id}/analytics` (arrivals per five minutes on the America/Grenada clock, entry
+  rate over the last ten minutes, busiest five and fifteen minutes, per-gate admitted, refused,
+  typed share and last scan time with one entry per gate phone, refusals by reason, offline
+  syncs and conflicts, totals and no-show rate), `GET /org/events/{id}/scans` (newest first,
+  `page`, `size` 1 to 100, default 20; each item has time, gate, printed number or null, outcome,
+  typed, offline) and `GET /org/events/{id}/scans/export` (`text/csv` stream of every scan,
+  oldest first, printed numbers only, cells that start with `=`, `+`, `-` or `@` get a leading
+  apostrophe; its own limit of 6 a minute).
   Review fixes: only an organiser (`printix.events.manage`) may set `allow_typed_numbers`
   (a gate lead gets 403 with `PrintixTypedNumbersNotAllowed`); an event holds at most 20 active
   gate codes (a 409 when full; a revoked or expired code frees its place); a pairing create

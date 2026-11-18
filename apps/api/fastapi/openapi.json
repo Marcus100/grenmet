@@ -70141,6 +70141,355 @@
         }
       }
     },
+    "/api/v1/printix/org/events/{event_id}/analytics": {
+      "get": {
+        "tags": [
+          "printix-org"
+        ],
+        "summary": "Live analytics and report for my organisation's event",
+        "description": "Arrivals per five minutes, the entry rate over the last ten minutes, the busiest periods, each gate's admitted and refused scans, typed share and last scan time, refusals by reason, offline syncs and conflicts, totals and the no-show rate. Times follow America/Grenada. No barcode is ever returned. Needs printix.events.manage or printix.gates.manage. Another organisation's event, or one with none, is 404.",
+        "operationId": "printixOrgEventAnalytics",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the printix app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the printix app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixEventAnalytics"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/org/events/{event_id}/scans": {
+      "get": {
+        "tags": [
+          "printix-org"
+        ],
+        "summary": "Recent scans of my organisation's event",
+        "description": "Scans of one event, newest first, 20 a page by default and at most 100. Each has the time, gate, printed number (empty when no ticket matched), outcome, whether it was typed and whether it was synced late. The scanned barcode is never returned. Needs printix.events.manage or printix.gates.manage.",
+        "operationId": "printixListOrgScans",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Scans per page",
+              "default": 20,
+              "title": "Size"
+            },
+            "description": "Scans per page"
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the printix app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the printix app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixScanPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/org/events/{event_id}/scans/export": {
+      "get": {
+        "tags": [
+          "printix-org"
+        ],
+        "summary": "Download the scan log of my organisation's event as CSV",
+        "description": "Every scan, oldest first: time (Grenada clock), gate, printed number, outcome, entry (scanned or typed) and offline. Printed numbers only, never barcodes. Cells that start with =, +, - or @ get a leading apostrophe. Streamed, Cache-Control no-store, at most six downloads a minute. Needs printix.events.manage or printix.gates.manage.",
+        "operationId": "printixExportOrgScans",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the printix app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the printix app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The scan log",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/printix/org/events/{event_id}/tickets": {
       "get": {
         "tags": [
@@ -101791,6 +102140,193 @@
         ],
         "title": "PrintixAccess"
       },
+      "PrintixArrivalBucket": {
+        "properties": {
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At",
+            "description": "Start of a five-minute period, on the Grenada clock (quarter-hour aligned)."
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted",
+            "description": "People let in during these five minutes."
+          }
+        },
+        "type": "object",
+        "required": [
+          "starts_at",
+          "admitted"
+        ],
+        "title": "PrintixArrivalBucket"
+      },
+      "PrintixBusyPeriod": {
+        "properties": {
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "minutes": {
+            "type": "integer",
+            "title": "Minutes",
+            "description": "Length of the period: 5 or 15."
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "starts_at",
+          "minutes",
+          "admitted"
+        ],
+        "title": "PrintixBusyPeriod"
+      },
+      "PrintixEventAnalytics": {
+        "properties": {
+          "event": {
+            "$ref": "#/components/schemas/PrintixEventPublic"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "description": "The clock all buckets follow: America/Grenada."
+          },
+          "issued": {
+            "type": "integer",
+            "title": "Issued"
+          },
+          "void": {
+            "type": "integer",
+            "title": "Void"
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted"
+          },
+          "not_yet_in": {
+            "type": "integer",
+            "title": "Not Yet In",
+            "description": "Valid tickets not yet admitted."
+          },
+          "no_show_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "No Show Rate",
+            "description": "Valid tickets never admitted divided by valid tickets, 0 to 1. While the event is open it is the share not in yet. Empty when there are no valid tickets."
+          },
+          "first_admission_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Admission At"
+          },
+          "last_admission_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Admission At"
+          },
+          "admitted_last_10_minutes": {
+            "type": "integer",
+            "title": "Admitted Last 10 Minutes"
+          },
+          "entry_rate_per_minute": {
+            "type": "number",
+            "title": "Entry Rate Per Minute",
+            "description": "Admissions in the last ten minutes divided by ten."
+          },
+          "arrivals": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixArrivalBucket"
+            },
+            "type": "array",
+            "title": "Arrivals",
+            "description": "Admissions per five minutes from the first admission, empty periods included, at most the latest 288 (24 hours)."
+          },
+          "busiest_5_minutes": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PrintixBusyPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "busiest_15_minutes": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PrintixBusyPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "gates": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixGateAnalytics"
+            },
+            "type": "array",
+            "title": "Gates"
+          },
+          "refusals": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixRefusalCount"
+            },
+            "type": "array",
+            "title": "Refusals"
+          },
+          "offline": {
+            "$ref": "#/components/schemas/PrintixOfflineAnalytics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event",
+          "generated_at",
+          "timezone",
+          "issued",
+          "void",
+          "admitted",
+          "not_yet_in",
+          "admitted_last_10_minutes",
+          "entry_rate_per_minute",
+          "arrivals",
+          "gates",
+          "refusals",
+          "offline"
+        ],
+        "title": "PrintixEventAnalytics"
+      },
       "PrintixEventCreate": {
         "properties": {
           "name": {
@@ -101999,6 +102535,87 @@
         ],
         "title": "PrintixEventSummary"
       },
+      "PrintixGateAnalytics": {
+        "properties": {
+          "gate": {
+            "type": "string",
+            "title": "Gate"
+          },
+          "admitted": {
+            "type": "integer",
+            "title": "Admitted"
+          },
+          "refused": {
+            "type": "integer",
+            "title": "Refused",
+            "description": "Scans that did not admit anyone."
+          },
+          "scans": {
+            "type": "integer",
+            "title": "Scans",
+            "description": "Admitted plus refused."
+          },
+          "typed_scans": {
+            "type": "integer",
+            "title": "Typed Scans",
+            "description": "Scans made by typing a printed number."
+          },
+          "typed_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typed Share",
+            "description": "Typed scans divided by scans, 0 to 1. Empty when the gate has no scans."
+          },
+          "admitted_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admitted Share",
+            "description": "This gate's share of everyone let in, 0 to 1. Empty when nobody is in."
+          },
+          "last_scan_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Scan At",
+            "description": "The most recent scan of any phone at this gate."
+          },
+          "phones": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixGatePhone"
+            },
+            "type": "array",
+            "title": "Phones"
+          }
+        },
+        "type": "object",
+        "required": [
+          "gate",
+          "admitted",
+          "refused",
+          "scans",
+          "typed_scans",
+          "phones"
+        ],
+        "title": "PrintixGateAnalytics"
+      },
       "PrintixGateCount": {
         "properties": {
           "gate": {
@@ -102016,6 +102633,40 @@
           "admitted"
         ],
         "title": "PrintixGateCount"
+      },
+      "PrintixGatePhone": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "The gate code (pairing) this phone scans with."
+          },
+          "last_scan_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Scan At",
+            "description": "When this phone last scanned at the gate (the phone's own time for a scan made offline). Empty if it has never scanned."
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "description": "True while its gate code is neither cancelled nor past its expiry."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "active"
+        ],
+        "title": "PrintixGatePhone"
       },
       "PrintixImportIssue": {
         "properties": {
@@ -102338,6 +102989,38 @@
           "client_ref"
         ],
         "title": "PrintixOfflineAdmissionResult"
+      },
+      "PrintixOfflineAnalytics": {
+        "properties": {
+          "synced_late": {
+            "type": "integer",
+            "title": "Synced Late",
+            "description": "Admissions made without a connection and sent to the server later."
+          },
+          "conflicts": {
+            "type": "integer",
+            "title": "Conflicts",
+            "description": "Offline scans the server could not record as an admission: the ticket was already in, void, unknown or the event had closed."
+          },
+          "longest_delay_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longest Delay Seconds",
+            "description": "The longest wait between an offline admission and its sync."
+          }
+        },
+        "type": "object",
+        "required": [
+          "synced_late",
+          "conflicts"
+        ],
+        "title": "PrintixOfflineAnalytics"
       },
       "PrintixOfflineList": {
         "properties": {
@@ -102699,6 +103382,78 @@
         ],
         "title": "PrintixPairingPublic"
       },
+      "PrintixRefusalCount": {
+        "properties": {
+          "reason": {
+            "$ref": "#/components/schemas/PrintixRefusalCountPropertiesReasonEnum"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason",
+          "count"
+        ],
+        "title": "PrintixRefusalCount"
+      },
+      "PrintixScanItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "The scan's own id, for listing. Not the barcode."
+          },
+          "scanned_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Scanned At",
+            "description": "When the scan happened at the gate (the phone's time for an offline scan)."
+          },
+          "gate": {
+            "type": "string",
+            "title": "Gate"
+          },
+          "printed_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Printed Number",
+            "description": "Empty when the value matched no ticket. The scanned barcode is never returned."
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/PrintixScanOutcome"
+          },
+          "typed": {
+            "type": "boolean",
+            "title": "Typed",
+            "description": "True when a printed number was typed, not scanned."
+          },
+          "offline": {
+            "type": "boolean",
+            "title": "Offline",
+            "description": "True when the scan was made offline and synced later."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "scanned_at",
+          "gate",
+          "outcome",
+          "typed",
+          "offline"
+        ],
+        "title": "PrintixScanItem"
+      },
       "PrintixScanOutcome": {
         "type": "string",
         "enum": [
@@ -102710,6 +103465,37 @@
         ],
         "title": "PrintixScanOutcome",
         "description": "Stable machine codes returned to the scanner. ``unknown`` covers both a\nvalue that is not on the event and one that is on another event, so a\npairing never learns whether another event's ticket exists."
+      },
+      "PrintixScanPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixScanItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "title": "PrintixScanPage"
       },
       "PrintixScanRequest": {
         "properties": {
@@ -125392,6 +126178,16 @@
           "full",
           "last_quarter"
         ]
+      },
+      "PrintixRefusalCountPropertiesReasonEnum": {
+        "type": "string",
+        "enum": [
+          "already_admitted",
+          "void",
+          "unknown",
+          "event_closed"
+        ],
+        "description": "unknown also covers a barcode from another event and a typed number that is switched off for the gate: the scanner never tells them apart."
       },
       "ProfilePublicPropertiesConnectionStateEnum": {
         "type": "string",
