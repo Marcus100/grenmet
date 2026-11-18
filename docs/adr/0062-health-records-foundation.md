@@ -4,8 +4,9 @@
 
 Accepted 18 Nov 2026. The owner made the product decisions and accepted the
 record the same day; agents made the decisions the owner delegated. Amends
-ADR-0033 for health records and ADR-0043 for the `health` host. Nothing is
-built. No real patient data may be stored until the go-live gate in
+ADR-0033 for health records and ADR-0043 for the `health` host. Amended the
+same day at the owner's request to include health insurance companies
+(decision 15). Nothing is built. No real patient data may be stored until the go-live gate in
 decision 12 is met.
 
 ## Context
@@ -18,8 +19,10 @@ medicine practice, and an ear, nose and throat practice. The owner wants a
 connected private-clinic network: each patient has a primary doctor,
 referrals move through the system, patients may also see other doctors on
 their own, and one patient portal shows a patient their records from every
-clinic, within the law. The aim is fewer paper forms and less manual office
-work.
+clinic, within the law. The owner also wants health insurance companies on
+the network, so a clinic can check a patient's cover and send claims without
+paper forms, phone calls or faxes. The aim is fewer paper forms and less
+manual office work.
 
 Medical records are the most sensitive data Barrels would hold. Several
 existing decisions do not fit them as written:
@@ -31,6 +34,9 @@ existing decisions do not fit them as written:
   a record.
 - `worker/retention.py` purges data; medical records must be kept for years
   and then archived.
+- Insurers are a third kind of party. They are neither the clinic nor the
+  patient, and the Act lets them receive health data only with the
+  patient's consent or a directly related purpose (s.9).
 - `bookings` has no locations, no walk-in queue and no way for one doctor
   to work at several organisations without clashes.
 
@@ -94,9 +100,12 @@ Uncertainty:
 - What "archived" means in s.117.
 - Whether outpatient clinics need a licence.
 - Whether pharmacies accept printed prescriptions with a verification code.
+- What each insurer needs on a claim, and whether insurers will accept
+  electronic claims and pay against them (ask each insurer during the
+  pilot).
 
-These go to the owner's lawyer. A different answer changes decisions 9 and
-12, not the data model.
+The legal questions go to the owner's lawyer. A different answer changes
+decisions 9, 12 and 15, not the data model.
 
 ## Options considered
 
@@ -133,6 +142,15 @@ These go to the owner's lawyer. A different answer changes decisions 9 and
    - (c) An off-the-shelf FHIR server.
 
    (c) adds an unfamiliar service to run. **Chosen: (b).**
+6. **How insurers take part**
+   - (a) Paper only: the clinic prints a claim form.
+   - (b) Insurers on the network: their own organisation and screens, with
+     cover checks and claims sent as a consented copy.
+   - (c) Insurers get read access to charts.
+
+   (c) breaks the practice-owns-the-record rule and gives an insurer far
+   more than it needs. (a) keeps today's office work. **Chosen: (b)**, with
+   printed claims as the fallback for insurers not yet on the network.
 
 ## Decision
 
@@ -280,10 +298,54 @@ These go to the owner's lawyer. A different answer changes decisions 9 and
     5. Sharing and referrals.
     6. Portal with release rules.
 
+    7. Insurers: insurer organisations, patient cover, cover checks and
+       pre-approval.
+    8. Claims and remittances, linked to patient billing.
+
     Then pilot features: certificates and prescriptions (printed, with a
     verification code), patient billing, lab and ultrasound reports,
     long-term care and specialist templates. Each step is its own issue and
     PR, labelled `risk:high` with a security review.
+
+15. **Health insurance companies.**
+    - An insurer is an `org.organisation` with the `health` product and its
+      own role bundle (claims officer, medical reviewer, insurer manager),
+      working on `health.barrels.gd` under its own slug. All insurer staff
+      must use an authenticator app.
+    - The practice records a patient's cover on the chart: insurer, plan,
+      member number and policy holder. Member numbers are encrypted like
+      other identity numbers.
+    - **Cover check.** Reception can ask the insurer whether a member is
+      covered on a date. The answer is yes, no or "ask us", with an optional
+      plan summary. It sends only name, date of birth and member number.
+    - **Pre-approval.** A doctor can send a request for a planned procedure
+      or test with only the parts needed. The insurer approves, refuses or
+      asks for more, and every step is recorded.
+    - **Claims.** A claim is a consented copy (decision 4) of a visit's
+      billing lines: services with codes, diagnosis codes (ICD-10) and
+      amounts. Clinical notes are never sent. A medical reviewer may ask for
+      a specific document; the practice decides and sends it as another
+      logged share.
+    - **Consent.** The patient signs consent for claims to that insurer,
+      once per cover and revocable, recorded as a `Consent` with its scope.
+      A patient can see in the portal every claim and document sent to their
+      insurer.
+    - The insurer is the data user (controller) of the copies it receives,
+      under its own data processing agreement with Barrels. The data rules
+      in decision 2 apply to insurers as they do to practices.
+    - **Payments.** The insurer records each claim's outcome (paid, part
+      paid, refused, with a reason) and its remittance. Patient billing
+      shows the insurer's share and the patient's share. Money moves
+      outside the platform for now; paying through `payments` (ADR-0027)
+      is a later decision.
+    - Insurers never search patients, never see charts and never see which
+      other practices a patient uses. An insurer sees only claims and
+      requests sent to it.
+    - Claims follow FHIR R4 `Coverage`, `CoverageEligibilityRequest`,
+      `CoverageEligibilityResponse`, `Claim` and `ClaimResponse`, so an
+      insurer's own system can connect later through an API key (org zone).
+    - Insurers that are not on the network get a printed claim (WeasyPrint)
+      from the same data.
 
 ## Consequences
 
@@ -293,6 +355,7 @@ Easier:
 - Passing a client's or regulator's privacy questions.
 - Plugging into a future national system (FHIR R4).
 - Meeting Grenada's Act on the day it starts.
+- Checking cover and sending claims without paper forms or phone calls.
 
 Harder:
 
@@ -301,6 +364,8 @@ Harder:
   uses names, IDs and dates.
 - Every share and every view writes a log row.
 - Every clinical PR needs a security review.
+- Each insurer needs its own agreement and onboarding, and claim fields may
+  differ per insurer.
 
 Forbidden:
 
@@ -310,6 +375,8 @@ Forbidden:
 - Barrels staff reading clinical data outside a practice-given grant.
 - Clinical data in error tracking, logs or analytics.
 - Purging charts within the retention period.
+- Insurer access to charts, patient search by insurers, or claims sent
+  without the patient's consent.
 
 Follow-ups:
 
@@ -322,4 +389,6 @@ Follow-ups:
 - Add `health` to `entitlements.PRODUCTS` and its keys to `permissions.py`
   in build step 1.
 - Draft the data processing agreement and a one-page security summary for
-  clinics (owner and lawyer).
+  clinics (owner and lawyer), and an insurer agreement covering claim data.
+- Ask the pilot clinics which insurers their patients use most, and those
+  insurers what a claim must contain.
