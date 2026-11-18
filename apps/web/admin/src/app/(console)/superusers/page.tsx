@@ -23,7 +23,7 @@ export default async function SuperusersPage({
   return (
     <>
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Superusers</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Superusers</h1>
         <p className="text-muted-foreground">
           Invite another Barrels administrator by email. They confirm with a
           code sent to that address, then set up an authenticator. Invitations

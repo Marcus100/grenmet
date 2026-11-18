@@ -1,4 +1,9 @@
-import type { Metadata } from "next";
+import { Card } from "@barrelsgd/ui/components/ui/card";
+import { ArrowRight } from "lucide-react";
+import type { Metadata, Route } from "next";
+import Link from "next/link";
+import { CONSOLE_NAV } from "@/components/console-nav";
+import { PageHeader } from "@/components/page-header";
 import { StaffOnly } from "@/components/staff-only";
 import { StatusCard } from "@/components/status-card";
 import { listOrganisations } from "@/lib/api";
@@ -53,26 +58,49 @@ export default async function OverviewPage() {
 
   return (
     <>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Overview</h1>
-        <p className="text-muted-foreground">
-          Platform health, read from the API. Nothing here changes anything.
-        </p>
-      </div>
+      <PageHeader
+        description="Platform health, read from the API. Nothing here changes anything."
+        title="Overview"
+      />
       <section
         aria-label="Status"
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
       >
         {cards.map((card) => (
           <StatusCard card={card} key={card.id} />
         ))}
       </section>
-      <section className="space-y-1 rounded-lg border border-dashed p-4">
-        <h2 className="font-medium">Verification and app entitlements</h2>
-        <p className="text-muted-foreground text-sm">
-          Not built yet. Reviewing organisation verification and switching apps
-          on or off per organisation arrive in the next slice (C2).
-        </p>
+      <section aria-labelledby="shortcuts-heading" className="space-y-3">
+        <h2 className="text-sm font-medium" id="shortcuts-heading">
+          Go to
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {CONSOLE_NAV.flatMap((group) => group.items)
+            .filter((item) => item.href !== "/")
+            .map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  className="focus-visible:ring-ring rounded-xl outline-none focus-visible:ring-2"
+                  href={item.href as Route}
+                  key={item.href}
+                >
+                  <Card className="hover:border-primary/40 h-full flex-row items-center gap-3 px-4 py-4 transition-colors">
+                    <div className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-lg border">
+                      <Icon aria-hidden="true" className="size-4" />
+                    </div>
+                    <span className="flex-1 text-sm font-medium">
+                      {item.title}
+                    </span>
+                    <ArrowRight
+                      aria-hidden="true"
+                      className="text-muted-foreground size-4"
+                    />
+                  </Card>
+                </Link>
+              );
+            })}
+        </div>
       </section>
     </>
   );

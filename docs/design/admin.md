@@ -24,9 +24,15 @@ modules, GMS tokens or client branding.
   (shadcn semantics such as `bg-background`, `text-muted-foreground`, `border`).
   The app defines no colours of its own, so dark mode and any future preset
   re-skin it for free. New tokens need approval.
-- **Layout:** one header (product name, Overview, Organisations, signed-in
-  email, Sign out) over a single `max-w-6xl` column. Dense tables, 16px gutters,
-  usable at phone width.
+- **Layout:** the GMS portal shell (`apps/web/gaa-admin`), rebuilt from shared
+  primitives only: a collapsible inset sidebar (`@barrelsgd/ui` sidebar) with
+  the product name, grouped navigation (Platform, Billing, Settings; lucide
+  icons; the current page marked `aria-current`) and the signed-in user with
+  Sign out in the footer; a slim top bar with the sidebar toggle; content in a
+  padded full-width area. Navigation lives in `src/components/console-nav.ts`.
+  Page titles use `PageHeader`; Overview shows status tiles (icon chip, large
+  value, written status) and shortcut cards. Dense tables, usable at phone
+  width (the sidebar becomes a sheet).
 - **Status:** every status is written out (OK, Problem, Unknown) next to a
   badge; colour is never the only signal. A status the API cannot report is
   `Unknown`, never a made-up green.
