@@ -22,12 +22,14 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ColumnElement, false, not_, or_, select
+from sqlalchemy import ColumnElement, false, func, not_, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
+from src.auth.models import User
 from src.auth.permissions import ORGANISATION_BOUND_KEYS
+from src.exceptions import AppException
 from src.organisations import api_key_scopes, role_bundles
 from src.organisations.exceptions import (
     GrantCascadeTooLargeError,
@@ -222,9 +224,46 @@ async def lock_roster(session: AsyncSession, organisation_id: str) -> None:
     )
 
 
-async def _affected_organisation_ids(
-    session: AsyncSession, user_id: uuid.UUID
-) -> set[str]:
+async def lock_user(
+    session: AsyncSession, user_id: uuid.UUID, *, refuse_deleted: bool = True
+) -> User:
+    """Serialise on the ACCOUNT before any roster lock (#1523). Account deletion and
+    every path that creates or reactivates a membership for a person take this first,
+    so a membership can never appear between the deletion's read of the person's
+    organisations and its roster locks (a roster lock is a row lock: it cannot stop a
+    concurrent INSERT, but this lock can). A transaction-scoped advisory lock keyed on
+    the user id, so it does not block unrelated writes to the user row; re-taking it in
+    the same transaction is a no-op. Lock order everywhere: user, then rosters in id
+    order, then rows. Returns the user refreshed after the lock; refuses an account
+    that was anonymised while this call waited, unless ``refuse_deleted`` is false
+    (account deletion itself, which treats a finished deletion as done)."""
+    from src.auth.service import is_anonymised
+
+    await session.execute(
+        select(
+            func.pg_advisory_xact_lock(
+                func.hashtextextended(f"org-membership-user:{user_id}", 0)
+            )
+        )
+    )
+    user = await session.scalar(
+        select(User).where(User.id == user_id).execution_options(populate_existing=True)
+    )
+    if user is None:
+        raise AppException("User not found", 404)
+    if refuse_deleted and is_anonymised(user):
+        raise AppException("This account has been deleted", 409)
+    return user
+
+
+async def lock_affected_rosters(session: AsyncSession, user_id: uuid.UUID) -> list[str]:
+    """Lock the roster of every organisation an account is in, or has issued a live
+    grant in, in organisation-id order (#1501). Account deletion calls this before it
+    changes the account's memberships or grants, so its locks never run in the reverse
+    order of an admin action or another deletion in the same organisations. The caller
+    holds ``lock_user`` first (#1523), so no membership can be created for the account
+    meanwhile and one read and one sorted pass are enough. Returns the organisation ids
+    locked. The caller owns the transaction."""
     member_orgs = await session.scalars(
         select(Membership.organisation_id).where(Membership.user_id == user_id)
     )
@@ -234,28 +273,10 @@ async def _affected_organisation_ids(
             *_live(utc_now()),
         )
     )
-    return set(member_orgs.all()) | set(granted_orgs.all())
-
-
-async def lock_affected_rosters(session: AsyncSession, user_id: uuid.UUID) -> list[str]:
-    """Lock the roster of every organisation an account is in, or has issued a live
-    grant in, in organisation-id order (#1501). Account deletion calls this before it
-    changes the account's memberships or grants, so its locks never run in the reverse
-    order of an admin action or another deletion in the same organisations. The set is
-    read before the locks are held, so it is read again after each round and any
-    organisation that appeared meanwhile (an invitation accepted or a member added just
-    now) is locked too, until the set is stable (#1523). Newly found rosters are locked
-    in id order among themselves; every path that creates a membership takes the roster
-    lock first, so the late locks cannot deadlock. Returns the organisation ids locked,
-    in id order. The caller owns the transaction."""
-    locked: set[str] = set()
-    while True:
-        pending = sorted(await _affected_organisation_ids(session, user_id) - locked)
-        if not pending:
-            return sorted(locked)
-        for organisation_id in pending:
-            await lock_roster(session, organisation_id)
-        locked.update(pending)
+    organisation_ids = sorted(set(member_orgs.all()) | set(granted_orgs.all()))
+    for organisation_id in organisation_ids:
+        await lock_roster(session, organisation_id)
+    return organisation_ids
 
 
 async def grant_role(

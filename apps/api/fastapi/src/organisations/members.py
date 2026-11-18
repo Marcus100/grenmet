@@ -556,10 +556,11 @@ async def accept_invitation(
 ) -> tuple[Membership, PlatformOrganisation]:
     """Redeem a token for the signed-in user whose email it was sent to."""
     token_hash = hash_token(token.strip())
-    # Roster lock first, then the rows (grants.lock_roster's documented order): the
-    # organisation is read unlocked, its roster locked, and only then the invitation and
-    # membership rows. A concurrent account deletion that already holds the roster lock
-    # then queues this accept instead of missing the membership it creates (#1523).
+    # Lock order: the account, then the roster, then the rows (#1523). The account lock
+    # makes a concurrent deletion of this account either finish first (this accept is
+    # then refused, and the user is refreshed below) or wait for this accept to commit
+    # (its read of the account's organisations then sees the membership).
+    user = await grants.lock_user(session, user.id)
     organisation_id = await session.scalar(
         select(Invitation.organisation_id).where(Invitation.token_hash == token_hash)
     )

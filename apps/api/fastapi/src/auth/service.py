@@ -534,6 +534,11 @@ async def delete_user(
     from src.profile_images import service as profile_images
     from src.rewards import service as rewards_service
 
+    # The account lock is first (#1523): every path that creates or reactivates a
+    # membership for this person takes it before its roster lock, so after it is held
+    # the read of the person's organisations below is stable. The user is refreshed so
+    # a deletion that ran while this one waited is seen and not repeated.
+    await organisation_grants.lock_user(session, user.id, refuse_deleted=False)
     if is_anonymised(user):
         # Already done: no second pass and no second audit row.
         logger.info("User already anonymised", extra={"user_id": str(user.id)})
