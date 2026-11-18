@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { BookingList } from "./booking-list";
 
 const BASE = "https://bookings.barrels.gd";
+const PAYMENT_LINE = /Paid|refunded|Payment of/u;
 const TEN_TO_ELEVEN = /10:00 am to 11:00 am/u;
 
 function booking(
@@ -35,6 +36,35 @@ describe("BookingList", () => {
     expect(within(row).getByText("Bridal makeup")).toBeInTheDocument();
     expect(within(row).getByText("Confirmed")).toBeInTheDocument();
     expect(within(row).getByText(TEN_TO_ELEVEN)).toBeInTheDocument();
+  });
+
+  it("shows what was paid and refunded for a booking that had a payment", () => {
+    const payment = {
+      status: "paid" as const,
+      amount_minor: 1500,
+      paid_minor: 1500,
+      refunded_minor: 0,
+      currency: "XCD",
+      checkout_url: null,
+    };
+    render(
+      <BookingList
+        bookings={[
+          booking({ id: "a", payment }),
+          booking({
+            id: "b",
+            payment: { ...payment, status: "refunded", refunded_minor: 1500 },
+          }),
+          booking({ id: "c" }),
+        ]}
+        bookingsBaseUrl={BASE}
+        emptyBody="Appear here."
+        emptyTitle="None"
+      />
+    );
+    expect(screen.getByText("Paid EC$15")).toBeInTheDocument();
+    expect(screen.getByText("Payment of EC$15 refunded")).toBeInTheDocument();
+    expect(screen.queryAllByText(PAYMENT_LINE)).toHaveLength(2);
   });
 
   it("links each business to its page on the bookings site and nowhere else", () => {

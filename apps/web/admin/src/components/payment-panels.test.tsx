@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   BalancesPanel,
   LedgerPanel,
+  ledgerReference,
   PayoutConfirm,
   PayoutForm,
   ReconciliationPanel,
@@ -41,6 +42,9 @@ const entry: PaymentLedgerEntryPublic = {
   provider: "manual",
   reference: "TT-1",
   note: null,
+  source_type: null,
+  source_id: null,
+  description: null,
   created_at: "2026-10-18T12:00:00Z",
 };
 const report: PaymentReconciliationPublic = {
@@ -210,5 +214,31 @@ describe("section states", () => {
     expect(screen.getByRole("alert").textContent).toContain(
       "could not be loaded"
     );
+  });
+});
+
+describe("ledgerReference", () => {
+  it("prefers the label the selling domain gave, then reference or note", () => {
+    const charge = { ...entry, reference: null, kind: "charge" as const };
+    expect(
+      ledgerReference({
+        ...charge,
+        description: "Payment: Classic full set, Babydoll Beauty Bar",
+      })
+    ).toBe("Payment: Classic full set, Babydoll Beauty Bar");
+    expect(ledgerReference(entry)).toBe("TT-1");
+    expect(ledgerReference({ ...charge, note: "cash" })).toBe("cash");
+  });
+
+  it("names what an older charge was for when it has no label", () => {
+    expect(
+      ledgerReference({
+        ...entry,
+        reference: null,
+        source_type: "bookings.deposit",
+        source_id: "b-1",
+      })
+    ).toBe("Booking b-1");
+    expect(ledgerReference({ ...entry, reference: null })).toBe("None");
   });
 });

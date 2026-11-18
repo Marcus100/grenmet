@@ -8,6 +8,7 @@ import {
   formatHours,
   formatMoney,
 } from "../lib/booking-format";
+import { paymentReceivedHeld } from "../lib/booking-payment";
 import type { ManageBookingActions, SlotList } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
@@ -97,7 +98,9 @@ export function ManageBooking({
       <h2>
         {booking.service_name}{" "}
         <span className={`status status-${booking.status}`}>
-          {STATUS_TEXT[booking.status] ?? booking.status}
+          {paymentReceivedHeld(booking.status, booking.payment)
+            ? "Payment received, confirming your booking"
+            : (STATUS_TEXT[booking.status] ?? booking.status)}
         </span>
       </h2>
       <dl className="summary">

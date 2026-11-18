@@ -7,7 +7,9 @@
         ".claude/hooks/*.mjs",
         ".devcontainer/*.mjs",
         "apps/web/barrels/*.mjs"
-      ]
+      ],
+      "ignoreDependencies": ["pg", "next"],
+      "ignoreBinaries": ["uv", "psql"]
     },
     "apps/web/*": {
       "entry": [
@@ -15,6 +17,31 @@
         "content-collections.ts",
         "scripts/**/*.{mjs,ts}"
       ]
+    },
+    "apps/web/auth": {
+      "entry": ["{src/,}env.ts"],
+      "ignoreDependencies": ["posthog-node"]
+    },
+    "apps/web/gaa-admin": {
+      "entry": ["{src/,}env.ts", "scripts/**/*.{mjs,ts}"],
+      "ignoreDependencies": ["pmtiles"]
+    },
+    "apps/web/mbia": {
+      "entry": ["{src/,}env.ts", "content-collections.ts"],
+      "ignoreDependencies": ["content-collections"]
+    },
+    "apps/web/signal": {
+      "entry": ["{src/,}env.ts", "content-collections.ts"],
+      "ignoreDependencies": ["content-collections"]
+    },
+    "apps/web/cms": {
+      "payload": false,
+      "entry": [
+        "{src/,}env.ts",
+        "scripts/**/*.{mjs,ts}",
+        "src/payload.config.ts"
+      ],
+      "ignoreBinaries": ["pg_dump"]
     },
     "apps/pwa/*": {
       "entry": ["{src/,}env.ts", "scripts/**/*.{mjs,ts}"]
@@ -25,10 +52,27 @@
         "content-collections.ts",
         "scripts/**/*.{mjs,ts}",
         "src/content/**/*.mdx"
-      ]
+      ],
+      "ignoreDependencies": ["content-collections", "sharp"]
     },
     "packages/*": {
       "entry": ["keys.ts", "kubb.config.ts"]
+    },
+    "packages/cms-migrations": {
+      "ignoreDependencies": [
+        "payload",
+        "@payloadcms/db-postgres",
+        "@payloadcms/email-resend",
+        "@payloadcms/richtext-lexical",
+        "@barrelsgd/api-client",
+        "@t3-oss/env-nextjs",
+        "graphql",
+        "pg",
+        "zod"
+      ]
+    },
+    "packages/ui": {
+      "ignoreDependencies": ["tailwindcss"]
     }
   },
   "ignore": [
@@ -36,5 +80,13 @@
     "surface/**",
     "apps/web/gms/public/sw.js",
     "apps/web/gmsdash/src/lib/report-error.ts"
-  ]
+  ],
+  "ignoreUnresolved": [
+    "./analytics-policy.js",
+    "./google-analytics.js",
+    "./turnstile-config.mjs"
+  ],
+  "ignoreIssues": {
+    "pnpm-workspace.yaml": ["catalog"]
+  }
 }

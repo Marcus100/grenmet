@@ -23,6 +23,7 @@ Rules (ADR-0027, ADR-0024):
 """
 
 import logging
+import uuid
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
@@ -45,7 +46,7 @@ from .models import (
     BookingStatus,
     Service,
 )
-from .schemas import BookingPaymentStatus, BookingPaymentSummary
+from .schemas import BookingPaymentKind, BookingPaymentStatus, BookingPaymentSummary
 
 logger = logging.getLogger(__name__)
 
@@ -137,9 +138,27 @@ async def due_by_service(
     }
 
 
-def checkout_title(svc: Service, profile: BookingProfile, amount_minor: int) -> str:
-    """The line the customer sees on the hosted checkout page."""
-    kind = "Deposit" if amount_minor < svc.price_minor else "Payment"
+def payment_kind(booking: Booking) -> BookingPaymentKind:
+    """Whether what the booking asks for at booking is a part of the price (a
+    deposit) or all of it (a full payment); the studio words its screens by it."""
+    if booking.deposit_minor >= booking.price_minor:
+        return BookingPaymentKind.PAYMENT
+    return BookingPaymentKind.DEPOSIT
+
+
+def payment_noun(booking: Booking) -> str:
+    """ "Payment" or "Deposit", for notes in the booking's history."""
+    return (
+        "Payment" if payment_kind(booking) is BookingPaymentKind.PAYMENT else "Deposit"
+    )
+
+
+def checkout_title(
+    booking: Booking, svc: Service, profile: BookingProfile, amount_minor: int
+) -> str:
+    """The line the customer sees on the hosted checkout page. Deposit or payment
+    is judged against the booking's own price snapshot, like ``payment_kind``."""
+    kind = "Deposit" if amount_minor < booking.price_minor else "Payment"
     return f"{kind}: {svc.name}, {profile.display_name}"
 
 
@@ -161,8 +180,15 @@ return_urls.register(SOURCE_TYPE, _return_address)
 
 
 def _payload(
-    booking: Booking, provider: ProviderKey, customer_email: str | None
+    booking: Booking,
+    provider: ProviderKey,
+    customer_email: str | None,
+    description: str | None = None,
 ) -> payment_schemas.PaymentIntentCreate:
+    # ``description`` is shown on the admin payments ledger (service and business).
+    metadata: dict[str, str | int | bool] = {"booking_id": str(booking.id)}
+    if description:
+        metadata["description"] = description[:200]
     return payment_schemas.PaymentIntentCreate(
         amount_minor=booking.deposit_minor,
         currency=booking.currency,
@@ -170,7 +196,7 @@ def _payload(
         source_type=SOURCE_TYPE,
         source_id=str(booking.id),
         customer_email=customer_email,
-        metadata={"booking_id": str(booking.id)},
+        metadata=metadata,
         idempotency_key=intent_key(booking.id),
     )
 
@@ -216,7 +242,9 @@ async def start_deposit(
                     session,
                     organisation_id=booking.organisation_id,
                     actor=None,
-                    payload=_payload(booking, ProviderKey.STRIPE, customer_email),
+                    payload=_payload(
+                        booking, ProviderKey.STRIPE, customer_email, title
+                    ),
                     checkout_title=title,
                 )
             return result.checkout_url
@@ -229,24 +257,22 @@ async def start_deposit(
         session,
         organisation_id=booking.organisation_id,
         actor=None,
-        payload=_payload(booking, ProviderKey.MANUAL, customer_email),
+        payload=_payload(booking, ProviderKey.MANUAL, customer_email, title),
     )
     return manual.checkout_url
 
 
-async def payment_summary(
-    session: AsyncSession, booking: Booking
+def _summary(
+    booking: Booking,
+    intent: payment_schemas.PaymentIntentPublic | None,
+    checkout_url: str | None,
 ) -> BookingPaymentSummary | None:
-    """The money side of a booking as its customer sees it; None when nothing
-    was due at booking. ``checkout_url`` is set only while the slot is still held
-    for an unpaid online checkout, so the customer can return to it."""
     if booking.deposit_minor <= 0:
         return None
-    intent = await find_deposit(session, booking)
     paid = intent.captured_minor if intent else 0
     refunded = intent.refunded_minor if intent else 0
     held = booking.status == BookingStatus.PENDING_PAYMENT.value
-    checkout_url: str | None = None
+    link: str | None = None
     if paid > 0:
         status = (
             BookingPaymentStatus.REFUNDED
@@ -259,9 +285,7 @@ async def payment_summary(
     ):
         status = BookingPaymentStatus.DUE
         if intent is not None and intent.provider is ProviderKey.STRIPE:
-            checkout_url = await session.scalar(
-                select(Intent.checkout_url).where(Intent.id == intent.id)
-            )
+            link = checkout_url
     else:
         status = BookingPaymentStatus.UNPAID
     return BookingPaymentSummary(
@@ -270,8 +294,67 @@ async def payment_summary(
         paid_minor=paid,
         refunded_minor=refunded,
         currency=booking.currency,
-        checkout_url=checkout_url,
+        checkout_url=link,
     )
+
+
+async def payment_summary(
+    session: AsyncSession, booking: Booking
+) -> BookingPaymentSummary | None:
+    """The money side of a booking as its customer sees it; None when nothing
+    was due at booking. ``checkout_url`` is set only while the slot is still held
+    for an unpaid online checkout, so the customer can return to it."""
+    if booking.deposit_minor <= 0:
+        return None
+    intent = await find_deposit(session, booking)
+    checkout_url: str | None = None
+    if (
+        intent is not None
+        and intent.provider is ProviderKey.STRIPE
+        and booking.status == BookingStatus.PENDING_PAYMENT.value
+    ):
+        checkout_url = await session.scalar(
+            select(Intent.checkout_url).where(Intent.id == intent.id)
+        )
+    return _summary(booking, intent, checkout_url)
+
+
+async def payment_summaries(
+    session: AsyncSession, bookings: list[Booking]
+) -> dict[uuid.UUID, BookingPaymentSummary | None]:
+    """``payment_summary`` for many bookings in two queries at most (the intents
+    with their totals, then the checkout links of the ones still due)."""
+    owing = [b for b in bookings if b.deposit_minor > 0]
+    intents = await payments_service.find_by_idempotency_keys(
+        session,
+        organisation_ids={b.organisation_id for b in owing},
+        source_type=SOURCE_TYPE,
+        idempotency_keys={intent_key(b.id) for b in owing},
+    )
+    found = {b.id: intents.get((b.organisation_id, intent_key(b.id))) for b in owing}
+    due_ids = [
+        intent.id
+        for b in owing
+        if (intent := found[b.id]) is not None
+        and intent.provider is ProviderKey.STRIPE
+        and b.status == BookingStatus.PENDING_PAYMENT.value
+    ]
+    links: dict[uuid.UUID, str | None] = {}
+    if due_ids:
+        links = dict(
+            (
+                await session.execute(
+                    select(Intent.id, Intent.checkout_url).where(Intent.id.in_(due_ids))
+                )
+            )
+            .tuples()
+            .all()
+        )
+    result: dict[uuid.UUID, BookingPaymentSummary | None] = {}
+    for b in bookings:
+        intent = found.get(b.id)
+        result[b.id] = _summary(b, intent, links.get(intent.id) if intent else None)
+    return result
 
 
 async def start_manual_deposit(session: AsyncSession, booking: Booking) -> None:
@@ -339,14 +422,15 @@ async def settle_cancellation(
     - Otherwise ``refund`` decides (``None`` = the cutoff policy)."""
     if booking.deposit_minor <= 0:
         return None
+    noun = payment_noun(booking)
     if previous is BookingStatus.PENDING_PAYMENT:
         unpaid = await cancel_unpaid_deposit(session, booking)
         if unpaid:
-            return "Unpaid deposit cancelled"
+            return f"Unpaid {noun.lower()} cancelled"
         refund = True
     if refund is None:
         refund = refund_by_policy(booking, profile, now)
     if not refund:
-        return "Deposit kept"
+        return f"{noun} kept"
     done = await refund_deposit(session, booking, reason="Booking cancelled")
-    return "Deposit refunded" if done else "Deposit refund failed; refund it by hand"
+    return f"{noun} refunded" if done else f"{noun} refund failed; refund it by hand"

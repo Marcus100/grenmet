@@ -40,14 +40,13 @@ ADR-0008, ADR-0009, `apps/web/gaa-admin/AGENTS.md` (`/hr` routes), `docs/hr/`.
 
 ## Payroll (`payroll/`)
 **Owner:** Barrels Grenada engineering, for GAA. HrPlus stays GAA's payroll of
-record; this module produces **input quantities** for it and a reconciliation
-trail. It is slice 1 of the payroll plan; gross pay, deductions, payslips, bank
-files and cutover are later slices that need their own approval.
+record; this module produces **input quantities**, gross pay, deductions and
+payslips for it, and a reconciliation trail.
 
 ### Invariants
-- **Quantities only.** No rate, amount, tax, NIS number or bank detail is stored,
-  logged or exported. Adding any of them is a separately approved slice with its
-  own permission keys (`hr.payroll.rates.manage`, `hr.payroll.read.amounts`).
+- **No NIS number or bank account is stored,** logged or exported. Rates, amounts
+  and tax live in the dated tables below, behind their own permission keys
+  (`hr.payroll.rates.manage`, `hr.payroll.read.amounts`).
 - **Pay items are organisation data.** Rules live in `pay_item.params`, never in
   code. GAA's items are loaded once by `catalogue.py` (BaselineStep marker
   `payroll:gaa-pay-items:v1`), all PROVISIONAL with a memorandum reference; every

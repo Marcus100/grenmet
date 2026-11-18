@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingPaymentSummarySchema } from "./bookingPaymentSummarySchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
 
 export const bookingMyBookingSchema = z
@@ -15,6 +16,12 @@ export const bookingMyBookingSchema = z
     service_name: z.string(),
     business_name: z.string(),
     business_slug: z.string(),
+    payment: z
+      .union([bookingPaymentSummarySchema, z.null()])
+      .optional()
+      .describe(
+        "What was paid when booking; null when nothing was due at booking (pay at the business)."
+      ),
   })
   .describe(
     "One of the caller's bookings, with the business it is with. Carries no\nmanage token, notes, or other customers' details."

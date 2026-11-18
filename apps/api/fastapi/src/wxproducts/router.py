@@ -12,6 +12,7 @@ from starlette.concurrency import run_in_threadpool
 
 from src.exceptions import NotFoundError
 from src.utils.pdf_response import pdf_response
+from src.utils.query_types import SqlDatetime, SqlText
 
 from . import (
     advisories,
@@ -97,9 +98,9 @@ async def load_observations(
     session: AuthoringSessionDep,
     response: Response,
     kind: ObservationKind,
-    station: Annotated[str | None, Query(min_length=1, max_length=32)] = None,
-    start: datetime | None = None,
-    end: datetime | None = None,
+    station: Annotated[SqlText | None, Query(min_length=1, max_length=32)] = None,
+    start: SqlDatetime | None = None,
+    end: SqlDatetime | None = None,
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
 ) -> ObservationList:
     response.headers.update(NO_STORE)

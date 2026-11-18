@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingPaymentKind } from "./BookingPaymentKind.js";
 import type { BookingSource } from "./BookingSource.js";
 import type { BookingStatus } from "./BookingStatus.js";
 import type { BookingStudioCustomer } from "./BookingStudioCustomer.js";
@@ -51,6 +52,11 @@ export type BookingStudioDetail = {
   timezone: string;
   price_minor: number;
   deposit_minor: number;
+  /**
+   * @description `deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.
+   * @type string
+   */
+  payment_kind: BookingPaymentKind;
   currency: string;
   notes: string | null;
   cancel_reason: string | null;

@@ -406,6 +406,31 @@ async def find_by_source(
     return _public(row) if row else None
 
 
+async def find_by_idempotency_keys(
+    session: AsyncSession,
+    *,
+    organisation_ids: set[str],
+    source_type: str,
+    idempotency_keys: set[str],
+) -> dict[tuple[str, str], schemas.PaymentIntentPublic]:
+    """Many consumers' own intents in one query, keyed ``(organisation id,
+    idempotency key)``. Same totals as ``find_by_source`` with a key."""
+    if not idempotency_keys:
+        return {}
+    rows = (
+        await session.execute(
+            _intent_select().where(
+                Intent.organisation_id.in_(organisation_ids),
+                Intent.source_type == source_type,
+                Intent.idempotency_key.in_(idempotency_keys),
+            )
+        )
+    ).all()
+    return {
+        (row[0].organisation_id, row[0].idempotency_key): _public(row) for row in rows
+    }
+
+
 async def lock_intent_by_key(
     session: AsyncSession, *, organisation_id: str, idempotency_key: str
 ) -> Intent | None:
@@ -1632,9 +1657,7 @@ async def create_payout(
             or existing.currency != payload.currency
         ):
             raise PaymentsConflictError("This request id was used for another payout")
-        return schemas.PaymentLedgerEntryPublic.model_validate(
-            existing, from_attributes=True
-        )
+        return _ledger_public(existing)
     owed = (
         await session.execute(
             select(func.coalesce(func.sum(LedgerEntry.amount_minor), 0)).where(
@@ -1667,7 +1690,10 @@ async def create_payout(
     return _ledger_public(entry)
 
 
-def _ledger_public(entry: LedgerEntry) -> schemas.PaymentLedgerEntryPublic:
+def _ledger_public(
+    entry: LedgerEntry, intent: Intent | None = None
+) -> schemas.PaymentLedgerEntryPublic:
+    label = intent.metadata_.get("description") if intent else None
     return schemas.PaymentLedgerEntryPublic(
         id=entry.id,
         organisation_id=entry.organisation_id,
@@ -1678,6 +1704,9 @@ def _ledger_public(entry: LedgerEntry) -> schemas.PaymentLedgerEntryPublic:
         provider=ProviderKey(entry.provider),
         reference=entry.reference,
         note=entry.note,
+        source_type=intent.source_type if intent else None,
+        source_id=intent.source_id if intent else None,
+        description=label if isinstance(label, str) else None,
         created_at=entry.created_at,
     )
 
@@ -1701,19 +1730,16 @@ async def list_ledger(
         )
     ).scalar_one()
     entries = (
-        (
-            await session.execute(
-                select(LedgerEntry)
-                .where(*conditions)
-                .order_by(LedgerEntry.created_at.desc(), LedgerEntry.id)
-                .offset(skip)
-                .limit(limit)
-            )
+        await session.execute(
+            select(LedgerEntry, Intent)
+            .outerjoin(Intent, Intent.id == LedgerEntry.intent_id)
+            .where(*conditions)
+            .order_by(LedgerEntry.created_at.desc(), LedgerEntry.id)
+            .offset(skip)
+            .limit(limit)
         )
-        .scalars()
-        .all()
-    )
-    return [_ledger_public(e) for e in entries], total
+    ).all()
+    return [_ledger_public(entry, intent) for entry, intent in entries], total
 
 
 # --- reconciliation -------------------------------------------------------------------

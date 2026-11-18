@@ -667,7 +667,7 @@ async def _create_booking(
             session,
             booking,
             contact.email,
-            title=deposit_payments.checkout_title(svc, profile, deposit),
+            title=deposit_payments.checkout_title(booking, svc, profile, deposit),
         )
     else:
         mail = build_mail(managed, token)

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingPaymentSummary } from "./BookingPaymentSummary.js";
 import type { BookingStatus } from "./BookingStatus.js";
 
 /**
@@ -33,4 +34,8 @@ export type BookingMyBooking = {
   service_name: string;
   business_name: string;
   business_slug: string;
+  /**
+   * @description What was paid when booking; null when nothing was due at booking (pay at the business).
+   */
+  payment?: BookingPaymentSummary | null;
 };

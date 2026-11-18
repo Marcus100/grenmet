@@ -152,6 +152,18 @@ class PaymentLedgerEntryPublic(BaseModel):
     provider: ProviderKey
     reference: str | None
     note: str | None
+    source_type: str | None = Field(
+        description="What the payment was for, e.g. `bookings.deposit`."
+    )
+    source_id: str | None = Field(
+        description="The id of that thing in its own domain (a booking id)."
+    )
+    description: str | None = Field(
+        description=(
+            "A short label the selling domain gave the payment, such as the "
+            "service and business of a booking. Null for older payments."
+        )
+    )
     created_at: UtcDateTime
 
 
