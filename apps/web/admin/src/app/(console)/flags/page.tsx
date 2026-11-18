@@ -27,7 +27,7 @@ export default async function FlagsPage({
   return (
     <>
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Feature flags</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Feature flags</h1>
         <p className="text-muted-foreground">
           Runtime switches with a recorded success metric. Needs the
           feature_flags.manage permission.
