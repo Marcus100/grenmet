@@ -7786,6 +7786,8 @@ export type {
   PrintixAdmitTicketStatus422,
   PrintixAdmitTicketStatus429,
 } from "./PrintixAdmitTicket.js";
+export type { PrintixArrivalBucket } from "./PrintixArrivalBucket.js";
+export type { PrintixBusyPeriod } from "./PrintixBusyPeriod.js";
 export type {
   PrintixCloseEventOptions,
   PrintixCloseEventPath,
@@ -7860,6 +7862,7 @@ export type {
   PrintixCreatePairingStatus409,
   PrintixCreatePairingStatus422,
 } from "./PrintixCreatePairing.js";
+export type { PrintixEventAnalytics } from "./PrintixEventAnalytics.js";
 export type { PrintixEventCreate } from "./PrintixEventCreate.js";
 export type { PrintixEventOrganisationUpdate } from "./PrintixEventOrganisationUpdate.js";
 export type { PrintixEventPage } from "./PrintixEventPage.js";
@@ -7878,7 +7881,23 @@ export type {
   PrintixEventSummaryStatus404,
   PrintixEventSummaryStatus422,
 } from "./PrintixEventSummary.js";
+export type {
+  PrintixExportOrgScansHeaders,
+  PrintixExportOrgScansOptions,
+  PrintixExportOrgScansPath,
+  PrintixExportOrgScansResponse,
+  PrintixExportOrgScansResponses,
+  PrintixExportOrgScansStatus200,
+  PrintixExportOrgScansStatus400,
+  PrintixExportOrgScansStatus401,
+  PrintixExportOrgScansStatus403,
+  PrintixExportOrgScansStatus404,
+  PrintixExportOrgScansStatus413,
+  PrintixExportOrgScansStatus422,
+} from "./PrintixExportOrgScans.js";
+export type { PrintixGateAnalytics } from "./PrintixGateAnalytics.js";
 export type { PrintixGateCount } from "./PrintixGateCount.js";
+export type { PrintixGatePhone } from "./PrintixGatePhone.js";
 export type { PrintixImportIssue } from "./PrintixImportIssue.js";
 export type {
   PrintixImportOrgTicketsBody,
@@ -7970,6 +7989,20 @@ export type {
   PrintixListOrgPairingsStatus422,
 } from "./PrintixListOrgPairings.js";
 export type {
+  PrintixListOrgScansHeaders,
+  PrintixListOrgScansOptions,
+  PrintixListOrgScansPath,
+  PrintixListOrgScansQuery,
+  PrintixListOrgScansResponse,
+  PrintixListOrgScansResponses,
+  PrintixListOrgScansStatus200,
+  PrintixListOrgScansStatus400,
+  PrintixListOrgScansStatus401,
+  PrintixListOrgScansStatus403,
+  PrintixListOrgScansStatus404,
+  PrintixListOrgScansStatus422,
+} from "./PrintixListOrgScans.js";
+export type {
   PrintixListOrgTicketsHeaders,
   PrintixListOrgTicketsOptions,
   PrintixListOrgTicketsPath,
@@ -8024,6 +8057,7 @@ export type {
   PrintixOfflineAdmissionsStatus422,
   PrintixOfflineAdmissionsStatus429,
 } from "./PrintixOfflineAdmissions.js";
+export type { PrintixOfflineAnalytics } from "./PrintixOfflineAnalytics.js";
 export type { PrintixOfflineList } from "./PrintixOfflineList.js";
 export type { PrintixOfflineSyncRequest } from "./PrintixOfflineSyncRequest.js";
 export type { PrintixOfflineSyncResult } from "./PrintixOfflineSyncResult.js";
@@ -8043,6 +8077,19 @@ export type {
 } from "./PrintixOfflineTickets.js";
 export type { PrintixOfflineUnavailableBody } from "./PrintixOfflineUnavailableBody.js";
 export type { PrintixOrganiserOrganisation } from "./PrintixOrganiserOrganisation.js";
+export type {
+  PrintixOrgEventAnalyticsHeaders,
+  PrintixOrgEventAnalyticsOptions,
+  PrintixOrgEventAnalyticsPath,
+  PrintixOrgEventAnalyticsResponse,
+  PrintixOrgEventAnalyticsResponses,
+  PrintixOrgEventAnalyticsStatus200,
+  PrintixOrgEventAnalyticsStatus400,
+  PrintixOrgEventAnalyticsStatus401,
+  PrintixOrgEventAnalyticsStatus403,
+  PrintixOrgEventAnalyticsStatus404,
+  PrintixOrgEventAnalyticsStatus422,
+} from "./PrintixOrgEventAnalytics.js";
 export type { PrintixOrgEventCreate } from "./PrintixOrgEventCreate.js";
 export type {
   PrintixOrgEventSummaryHeaders,
@@ -8070,6 +8117,9 @@ export type {
   PrintixPairingSummaryStatus422,
   PrintixPairingSummaryStatus429,
 } from "./PrintixPairingSummary.js";
+export type { PrintixRefusalCount } from "./PrintixRefusalCount.js";
+export type { PrintixRefusalCountPropertiesReasonEnum } from "./PrintixRefusalCountPropertiesReasonEnum.js";
+export { printixRefusalCountPropertiesReasonEnum } from "./PrintixRefusalCountPropertiesReasonEnum.js";
 export type {
   PrintixRevokeOrgPairingHeaders,
   PrintixRevokeOrgPairingOptions,
@@ -8094,8 +8144,10 @@ export type {
   PrintixRevokePairingStatus404,
   PrintixRevokePairingStatus422,
 } from "./PrintixRevokePairing.js";
+export type { PrintixScanItem } from "./PrintixScanItem.js";
 export type { PrintixScanOutcome } from "./PrintixScanOutcome.js";
 export { printixScanOutcome } from "./PrintixScanOutcome.js";
+export type { PrintixScanPage } from "./PrintixScanPage.js";
 export type { PrintixScanRequest } from "./PrintixScanRequest.js";
 export type { PrintixScanResult } from "./PrintixScanResult.js";
 export type {

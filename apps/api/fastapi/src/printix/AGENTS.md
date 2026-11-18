@@ -279,6 +279,27 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   Tests: `tests/printix/test_app_role_release.py`.
 - **Tests:** `tests/printix/test_org_routes.py`.
 
+## Organiser dashboard (#1555, `analytics.py`)
+
+- **Routes (zone `org`, either Printix key, the reader limit; `Cache-Control: no-store`):**
+  `GET /org/events/{id}/analytics` (arrivals per five minutes, entry rate over ten minutes, busiest
+  five and fifteen minutes, per gate and per phone, refusals by reason, offline, totals, no-show
+  rate), `GET /org/events/{id}/scans` (newest first, `size` at most 100) and
+  `GET /org/events/{id}/scans/export` (CSV stream, its own `exports` bucket of 6 a minute).
+  Another organisation's event is 404 before any query runs.
+  The export has a 60 s statement timeout, refuses events over 200,000 scans (413) and ends with
+  `# end,<rows> rows`; the screen treats a file without it as cut short and saves the file without that line (plain CSV). The scans page reads each
+  gate phone's newest rows from `scan_log_pairing_id_happened_at_idx` (migration
+  `printixscanlogorder20261118`) through a lateral subquery.
+- **Rules:** aggregates are SQL (four queries for analytics, one pass for the CSV with `yield_per`).
+  Buckets use `date_bin` on the Grenada clock; a gate phone's last scan is the phone's own time
+  for an offline scan. Arrivals count `ticket.admitted_at` (the truth); gates and refusals count
+  `scan_log`. The arrivals list is zero-filled and cut to the latest 288 periods. A scan shows
+  its ticket's `printed_number`, never `scan_log.value`: do not add that column to any
+  response or CSV. CSV cells starting (after any spaces) `=`, `+`, `-`, `@`, tab or return get a leading `'`.
+  Typed-off scans are never logged, so they cannot be counted; "unknown" also covers another
+  event's barcode. Tests: `tests/printix/test_org_analytics.py`.
+
 ## Not built here
 
 Ticket types, re-entry and the Barrels Events connection. The CORS allow-list for the

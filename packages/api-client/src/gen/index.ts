@@ -7643,6 +7643,8 @@ export type {
   PrintixAdmitTicketStatus422,
   PrintixAdmitTicketStatus429,
 } from "./models/PrintixAdmitTicket.js";
+export type { PrintixArrivalBucket } from "./models/PrintixArrivalBucket.js";
+export type { PrintixBusyPeriod } from "./models/PrintixBusyPeriod.js";
 export type {
   PrintixCloseEventOptions,
   PrintixCloseEventPath,
@@ -7717,6 +7719,7 @@ export type {
   PrintixCreatePairingStatus409,
   PrintixCreatePairingStatus422,
 } from "./models/PrintixCreatePairing.js";
+export type { PrintixEventAnalytics } from "./models/PrintixEventAnalytics.js";
 export type { PrintixEventCreate } from "./models/PrintixEventCreate.js";
 export type { PrintixEventOrganisationUpdate } from "./models/PrintixEventOrganisationUpdate.js";
 export type { PrintixEventPage } from "./models/PrintixEventPage.js";
@@ -7734,7 +7737,23 @@ export type {
   PrintixEventSummaryStatus404,
   PrintixEventSummaryStatus422,
 } from "./models/PrintixEventSummary.js";
+export type {
+  PrintixExportOrgScansHeaders,
+  PrintixExportOrgScansOptions,
+  PrintixExportOrgScansPath,
+  PrintixExportOrgScansResponse,
+  PrintixExportOrgScansResponses,
+  PrintixExportOrgScansStatus200,
+  PrintixExportOrgScansStatus400,
+  PrintixExportOrgScansStatus401,
+  PrintixExportOrgScansStatus403,
+  PrintixExportOrgScansStatus404,
+  PrintixExportOrgScansStatus413,
+  PrintixExportOrgScansStatus422,
+} from "./models/PrintixExportOrgScans.js";
+export type { PrintixGateAnalytics } from "./models/PrintixGateAnalytics.js";
 export type { PrintixGateCount } from "./models/PrintixGateCount.js";
+export type { PrintixGatePhone } from "./models/PrintixGatePhone.js";
 export type { PrintixImportIssue } from "./models/PrintixImportIssue.js";
 export type {
   PrintixImportOrgTicketsBody,
@@ -7826,6 +7845,20 @@ export type {
   PrintixListOrgPairingsStatus422,
 } from "./models/PrintixListOrgPairings.js";
 export type {
+  PrintixListOrgScansHeaders,
+  PrintixListOrgScansOptions,
+  PrintixListOrgScansPath,
+  PrintixListOrgScansQuery,
+  PrintixListOrgScansResponse,
+  PrintixListOrgScansResponses,
+  PrintixListOrgScansStatus200,
+  PrintixListOrgScansStatus400,
+  PrintixListOrgScansStatus401,
+  PrintixListOrgScansStatus403,
+  PrintixListOrgScansStatus404,
+  PrintixListOrgScansStatus422,
+} from "./models/PrintixListOrgScans.js";
+export type {
   PrintixListOrgTicketsHeaders,
   PrintixListOrgTicketsOptions,
   PrintixListOrgTicketsPath,
@@ -7880,6 +7913,7 @@ export type {
   PrintixOfflineAdmissionsStatus422,
   PrintixOfflineAdmissionsStatus429,
 } from "./models/PrintixOfflineAdmissions.js";
+export type { PrintixOfflineAnalytics } from "./models/PrintixOfflineAnalytics.js";
 export type { PrintixOfflineList } from "./models/PrintixOfflineList.js";
 export type { PrintixOfflineSyncRequest } from "./models/PrintixOfflineSyncRequest.js";
 export type { PrintixOfflineSyncResult } from "./models/PrintixOfflineSyncResult.js";
@@ -7897,6 +7931,19 @@ export type {
   PrintixOfflineTicketsStatus429,
 } from "./models/PrintixOfflineTickets.js";
 export type { PrintixOfflineUnavailableBody } from "./models/PrintixOfflineUnavailableBody.js";
+export type {
+  PrintixOrgEventAnalyticsHeaders,
+  PrintixOrgEventAnalyticsOptions,
+  PrintixOrgEventAnalyticsPath,
+  PrintixOrgEventAnalyticsResponse,
+  PrintixOrgEventAnalyticsResponses,
+  PrintixOrgEventAnalyticsStatus200,
+  PrintixOrgEventAnalyticsStatus400,
+  PrintixOrgEventAnalyticsStatus401,
+  PrintixOrgEventAnalyticsStatus403,
+  PrintixOrgEventAnalyticsStatus404,
+  PrintixOrgEventAnalyticsStatus422,
+} from "./models/PrintixOrgEventAnalytics.js";
 export type { PrintixOrgEventCreate } from "./models/PrintixOrgEventCreate.js";
 export type {
   PrintixOrgEventSummaryHeaders,
@@ -7925,6 +7972,8 @@ export type {
   PrintixPairingSummaryStatus422,
   PrintixPairingSummaryStatus429,
 } from "./models/PrintixPairingSummary.js";
+export type { PrintixRefusalCount } from "./models/PrintixRefusalCount.js";
+export type { PrintixRefusalCountPropertiesReasonEnum } from "./models/PrintixRefusalCountPropertiesReasonEnum.js";
 export type {
   PrintixRevokeOrgPairingHeaders,
   PrintixRevokeOrgPairingOptions,
@@ -7949,7 +7998,9 @@ export type {
   PrintixRevokePairingStatus404,
   PrintixRevokePairingStatus422,
 } from "./models/PrintixRevokePairing.js";
+export type { PrintixScanItem } from "./models/PrintixScanItem.js";
 export type { PrintixScanOutcome } from "./models/PrintixScanOutcome.js";
+export type { PrintixScanPage } from "./models/PrintixScanPage.js";
 export type { PrintixScanRequest } from "./models/PrintixScanRequest.js";
 export type { PrintixScanResult } from "./models/PrintixScanResult.js";
 export type {
@@ -10970,6 +11021,7 @@ export { printixCreateOrgEvent } from "./clients/printixCreateOrgEvent.js";
 export { printixCreateOrgPairing } from "./clients/printixCreateOrgPairing.js";
 export { printixCreatePairing } from "./clients/printixCreatePairing.js";
 export { printixEventSummary } from "./clients/printixEventSummary.js";
+export { printixExportOrgScans } from "./clients/printixExportOrgScans.js";
 export { printixImportOrgTickets } from "./clients/printixImportOrgTickets.js";
 export { printixImportTickets } from "./clients/printixImportTickets.js";
 export { printixListEvents } from "./clients/printixListEvents.js";
@@ -10977,11 +11029,13 @@ export { printixListMemberAccess } from "./clients/printixListMemberAccess.js";
 export { printixListMyOrganiserOrganisations } from "./clients/printixListMyOrganiserOrganisations.js";
 export { printixListOrgEvents } from "./clients/printixListOrgEvents.js";
 export { printixListOrgPairings } from "./clients/printixListOrgPairings.js";
+export { printixListOrgScans } from "./clients/printixListOrgScans.js";
 export { printixListOrgTickets } from "./clients/printixListOrgTickets.js";
 export { printixListPairings } from "./clients/printixListPairings.js";
 export { printixListTickets } from "./clients/printixListTickets.js";
 export { printixOfflineAdmissions } from "./clients/printixOfflineAdmissions.js";
 export { printixOfflineTickets } from "./clients/printixOfflineTickets.js";
+export { printixOrgEventAnalytics } from "./clients/printixOrgEventAnalytics.js";
 export { printixOrgEventSummary } from "./clients/printixOrgEventSummary.js";
 export { printixPairingSummary } from "./clients/printixPairingSummary.js";
 export { printixRevokeOrgPairing } from "./clients/printixRevokeOrgPairing.js";
@@ -14239,6 +14293,11 @@ export {
   usePrintixEventSummary,
 } from "./hooks/usePrintixEventSummary.js";
 export {
+  printixExportOrgScansQueryKey,
+  printixExportOrgScansQueryOptions,
+  usePrintixExportOrgScans,
+} from "./hooks/usePrintixExportOrgScans.js";
+export {
   printixImportOrgTicketsMutationKey,
   printixImportOrgTicketsMutationOptions,
   usePrintixImportOrgTickets,
@@ -14274,6 +14333,11 @@ export {
   usePrintixListOrgPairings,
 } from "./hooks/usePrintixListOrgPairings.js";
 export {
+  printixListOrgScansQueryKey,
+  printixListOrgScansQueryOptions,
+  usePrintixListOrgScans,
+} from "./hooks/usePrintixListOrgScans.js";
+export {
   printixListOrgTicketsQueryKey,
   printixListOrgTicketsQueryOptions,
   usePrintixListOrgTickets,
@@ -14298,6 +14362,11 @@ export {
   printixOfflineTicketsQueryOptions,
   usePrintixOfflineTickets,
 } from "./hooks/usePrintixOfflineTickets.js";
+export {
+  printixOrgEventAnalyticsQueryKey,
+  printixOrgEventAnalyticsQueryOptions,
+  usePrintixOrgEventAnalytics,
+} from "./hooks/usePrintixOrgEventAnalytics.js";
 export {
   printixOrgEventSummaryQueryKey,
   printixOrgEventSummaryQueryOptions,
@@ -15302,6 +15371,7 @@ export { principalPhasePropertiesPhaseEnum } from "./models/PrincipalPhaseProper
 export { printixAccess } from "./models/PrintixAccess.js";
 export { printixEventStatus } from "./models/PrintixEventStatus.js";
 export { printixOfflineTicketState } from "./models/PrintixOfflineTicketState.js";
+export { printixRefusalCountPropertiesReasonEnum } from "./models/PrintixRefusalCountPropertiesReasonEnum.js";
 export { printixScanOutcome } from "./models/PrintixScanOutcome.js";
 export { printixTicketStatus } from "./models/PrintixTicketStatus.js";
 export { profAppointmentType } from "./models/ProfAppointmentType.js";
@@ -23112,6 +23182,8 @@ export {
   printixAdmitTicketStatus422Schema,
   printixAdmitTicketStatus429Schema,
 } from "./zod/printixAdmitTicketSchema.js";
+export { printixArrivalBucketSchema } from "./zod/printixArrivalBucketSchema.js";
+export { printixBusyPeriodSchema } from "./zod/printixBusyPeriodSchema.js";
 export {
   printixCloseEventErrorSchema,
   printixCloseEventPathEventIdSchema,
@@ -23187,6 +23259,7 @@ export {
   printixCreatePairingStatus409Schema,
   printixCreatePairingStatus422Schema,
 } from "./zod/printixCreatePairingSchema.js";
+export { printixEventAnalyticsSchema } from "./zod/printixEventAnalyticsSchema.js";
 export { printixEventCreateSchema } from "./zod/printixEventCreateSchema.js";
 export { printixEventOrganisationUpdateSchema } from "./zod/printixEventOrganisationUpdateSchema.js";
 export { printixEventPageSchema } from "./zod/printixEventPageSchema.js";
@@ -23204,7 +23277,24 @@ export {
   printixEventSummaryStatus404Schema,
   printixEventSummaryStatus422Schema,
 } from "./zod/printixEventSummarySchema.js";
+export {
+  printixExportOrgScansErrorSchema,
+  printixExportOrgScansHeaderXBarrelsOrganisationSchema,
+  printixExportOrgScansHeadersSchema,
+  printixExportOrgScansPathEventIdSchema,
+  printixExportOrgScansPathSchema,
+  printixExportOrgScansResponseSchema,
+  printixExportOrgScansStatus200Schema,
+  printixExportOrgScansStatus400Schema,
+  printixExportOrgScansStatus401Schema,
+  printixExportOrgScansStatus403Schema,
+  printixExportOrgScansStatus404Schema,
+  printixExportOrgScansStatus413Schema,
+  printixExportOrgScansStatus422Schema,
+} from "./zod/printixExportOrgScansSchema.js";
+export { printixGateAnalyticsSchema } from "./zod/printixGateAnalyticsSchema.js";
 export { printixGateCountSchema } from "./zod/printixGateCountSchema.js";
+export { printixGatePhoneSchema } from "./zod/printixGatePhoneSchema.js";
 export { printixImportIssueSchema } from "./zod/printixImportIssueSchema.js";
 export {
   printixImportOrgTicketsBodySchema,
@@ -23306,6 +23396,23 @@ export {
   printixListOrgPairingsStatus422Schema,
 } from "./zod/printixListOrgPairingsSchema.js";
 export {
+  printixListOrgScansErrorSchema,
+  printixListOrgScansHeaderXBarrelsOrganisationSchema,
+  printixListOrgScansHeadersSchema,
+  printixListOrgScansPathEventIdSchema,
+  printixListOrgScansPathSchema,
+  printixListOrgScansQueryPageSchema,
+  printixListOrgScansQuerySchema,
+  printixListOrgScansQuerySizeSchema,
+  printixListOrgScansResponseSchema,
+  printixListOrgScansStatus200Schema,
+  printixListOrgScansStatus400Schema,
+  printixListOrgScansStatus401Schema,
+  printixListOrgScansStatus403Schema,
+  printixListOrgScansStatus404Schema,
+  printixListOrgScansStatus422Schema,
+} from "./zod/printixListOrgScansSchema.js";
+export {
   printixListOrgTicketsErrorSchema,
   printixListOrgTicketsHeaderXBarrelsOrganisationSchema,
   printixListOrgTicketsHeadersSchema,
@@ -23368,6 +23475,7 @@ export {
   printixOfflineAdmissionsStatus422Schema,
   printixOfflineAdmissionsStatus429Schema,
 } from "./zod/printixOfflineAdmissionsSchema.js";
+export { printixOfflineAnalyticsSchema } from "./zod/printixOfflineAnalyticsSchema.js";
 export { printixOfflineListSchema } from "./zod/printixOfflineListSchema.js";
 export { printixOfflineSyncRequestSchema } from "./zod/printixOfflineSyncRequestSchema.js";
 export { printixOfflineSyncResultSchema } from "./zod/printixOfflineSyncResultSchema.js";
@@ -23384,6 +23492,20 @@ export {
   printixOfflineTicketsStatus429Schema,
 } from "./zod/printixOfflineTicketsSchema.js";
 export { printixOfflineUnavailableBodySchema } from "./zod/printixOfflineUnavailableBodySchema.js";
+export {
+  printixOrgEventAnalyticsErrorSchema,
+  printixOrgEventAnalyticsHeaderXBarrelsOrganisationSchema,
+  printixOrgEventAnalyticsHeadersSchema,
+  printixOrgEventAnalyticsPathEventIdSchema,
+  printixOrgEventAnalyticsPathSchema,
+  printixOrgEventAnalyticsResponseSchema,
+  printixOrgEventAnalyticsStatus200Schema,
+  printixOrgEventAnalyticsStatus400Schema,
+  printixOrgEventAnalyticsStatus401Schema,
+  printixOrgEventAnalyticsStatus403Schema,
+  printixOrgEventAnalyticsStatus404Schema,
+  printixOrgEventAnalyticsStatus422Schema,
+} from "./zod/printixOrgEventAnalyticsSchema.js";
 export { printixOrgEventCreateSchema } from "./zod/printixOrgEventCreateSchema.js";
 export {
   printixOrgEventSummaryErrorSchema,
@@ -23412,6 +23534,8 @@ export {
   printixPairingSummaryStatus422Schema,
   printixPairingSummaryStatus429Schema,
 } from "./zod/printixPairingSummarySchema.js";
+export { printixRefusalCountPropertiesReasonEnumSchema } from "./zod/printixRefusalCountPropertiesReasonEnumSchema.js";
+export { printixRefusalCountSchema } from "./zod/printixRefusalCountSchema.js";
 export {
   printixRevokeOrgPairingErrorSchema,
   printixRevokeOrgPairingHeaderXBarrelsOrganisationSchema,
@@ -23437,7 +23561,9 @@ export {
   printixRevokePairingStatus404Schema,
   printixRevokePairingStatus422Schema,
 } from "./zod/printixRevokePairingSchema.js";
+export { printixScanItemSchema } from "./zod/printixScanItemSchema.js";
 export { printixScanOutcomeSchema } from "./zod/printixScanOutcomeSchema.js";
+export { printixScanPageSchema } from "./zod/printixScanPageSchema.js";
 export { printixScanRequestSchema } from "./zod/printixScanRequestSchema.js";
 export { printixScanResultSchema } from "./zod/printixScanResultSchema.js";
 export {
