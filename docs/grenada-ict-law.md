@@ -1,6 +1,10 @@
 # Grenada ICT law for feature development
 
-**Reviewed 18 November 2026 · Maintainer: Barrels Grenada engineering**
+**Status:** Active reference
+
+**Owner:** Barrels Grenada engineering
+
+**Last updated:** 2026-11-18
 
 Use this guide when a feature changes what Grenmet collects, who may see it, what a user agrees to, who receives money, or who can issue an official product. It covers Grenadian laws relevant to the platform and its GAA/GMS work. A new country, regulated activity or client mandate needs its own scope review.
 
