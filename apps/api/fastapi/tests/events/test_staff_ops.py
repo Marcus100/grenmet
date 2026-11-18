@@ -26,6 +26,7 @@ from src.auth.models import (
 )
 from src.auth.permissions import seed_permissions_and_roles_async
 from src.auth.utils import create_access_token
+from src.config import settings
 from src.events import org_router
 from src.events.models import Activity, Listing, Organiser
 from src.organisations.dependencies import STAFF_KEY_PAIRS
@@ -521,6 +522,8 @@ async def test_staff_writes_are_rate_limited_per_user_but_members_are_not(
         return False
 
     monkeypatch.setattr(limiter, "enabled", True)
+    # These count the staff limit only; the default limit has its own tests.
+    monkeypatch.setattr(settings, "DEFAULT_RATE_LIMIT_MODE", "off")
     monkeypatch.setattr(limiter.limiter, "hit", hit)
     body = {"refund": "none"}
     async with await _desk() as client:
@@ -770,6 +773,8 @@ async def test_staff_reads_are_rate_limited_per_user(
         return False
 
     monkeypatch.setattr(limiter, "enabled", True)
+    # These count the staff limit only; the default limit has its own tests.
+    monkeypatch.setattr(settings, "DEFAULT_RATE_LIMIT_MODE", "off")
     monkeypatch.setattr(limiter.limiter, "hit", hit)
     from tests.organisations.support import headers_for
 

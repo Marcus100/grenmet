@@ -1,6 +1,7 @@
 """The default limit covers routes without their own limit and spares exempt ones."""
 
 import logging
+from collections.abc import Iterator
 from typing import Any
 
 import httpx
@@ -18,6 +19,30 @@ from src.rate_limit import (
 
 LIMIT = 3
 SECRET = "web-tier-shared-secret-for-tests-0123456789"
+
+
+class _Collect(logging.Handler):
+    def __init__(self) -> None:
+        super().__init__(logging.WARNING)
+        self.messages: list[str] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.messages.append(record.getMessage())
+
+
+@pytest.fixture
+def default_log(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[str]]:
+    """Messages from the default-limit logger, whatever other tests did to logging config."""
+    log = logging.getLogger("src.rate_limit.default")
+    handler = _Collect()
+    monkeypatch.setattr(log, "disabled", False)
+    monkeypatch.setattr(log, "level", logging.WARNING)
+    monkeypatch.setattr(logging.root.manager, "disable", 0)
+    log.addHandler(handler)
+    try:
+        yield handler.messages
+    finally:
+        log.removeHandler(handler)
 
 
 @pytest.fixture(autouse=True)
@@ -227,15 +252,12 @@ async def test_proxied_or_outside_call_never_looks_internal(
 
 @pytest.mark.asyncio
 async def test_log_mode_never_returns_429(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+    monkeypatch: pytest.MonkeyPatch, default_log: list[str]
 ) -> None:
     monkeypatch.setattr(settings, "DEFAULT_RATE_LIMIT_MODE", "log")
-    with caplog.at_level(logging.WARNING, logger="src.rate_limit.default"):
-        codes = await _codes(_app(_limiter()), "GET", "/plain", LIMIT + 3)
+    codes = await _codes(_app(_limiter()), "GET", "/plain", LIMIT + 3)
     assert set(codes) == {200}
-    ours = [
-        r.getMessage() for r in caplog.records if r.name == "src.rate_limit.default"
-    ]
+    ours = default_log
     assert ours
     assert all("bucket_kind=connecting route=/plain" in m for m in ours)
     assert all("203.0.113.9" not in m for m in ours)
@@ -249,19 +271,16 @@ async def test_off_mode_does_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.mark.asyncio
 async def test_log_mode_logs_once_a_minute_with_suppressed_count(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+    monkeypatch: pytest.MonkeyPatch, default_log: list[str]
 ) -> None:
     monkeypatch.setattr(settings, "DEFAULT_RATE_LIMIT_MODE", "log")
     clock = [1000.0]
     monkeypatch.setattr("src.rate_limit.time.monotonic", lambda: clock[0])
     app = _app(_limiter())
-    with caplog.at_level(logging.WARNING, logger="src.rate_limit.default"):
-        await _codes(app, "GET", "/plain", LIMIT + 6)  # 6 requests over the limit
-        clock[0] += 61
-        await _codes(app, "GET", "/plain", 1)
-    ours = [
-        r.getMessage() for r in caplog.records if r.name == "src.rate_limit.default"
-    ]
+    await _codes(app, "GET", "/plain", LIMIT + 6)  # 6 requests over the limit
+    clock[0] += 61
+    await _codes(app, "GET", "/plain", 1)
+    ours = default_log
     assert len(ours) == 2
     assert ours[0].endswith("suppressed=0")
     assert ours[1].endswith("suppressed=5")
