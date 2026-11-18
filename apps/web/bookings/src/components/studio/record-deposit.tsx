@@ -1,6 +1,6 @@
 "use client";
 
-// "Record deposit received" for owners and admins: the customer paid the
+// "Record {word.toLowerCase()} received" for owners and admins: the customer paid the
 // deposit by hand (cash, bank transfer, cheque). The dialog is the confirm
 // step and shows the booking's own deposit; the amount is read-only text and is
 // never sent, the API uses the booking's deposit. The idempotency key lives
@@ -37,7 +37,7 @@ import {
 import { recordDepositAction } from "@/app/studio/[orgSlug]/bookings/[id]/actions";
 import { keepValuesOnSubmit } from "@/lib/keep-values";
 import { type ActionState, IDLE } from "@/lib/studio-action-state";
-import { rotatesKey } from "@/lib/studio-view";
+import { type PaymentKind, paymentWord, rotatesKey } from "@/lib/studio-view";
 
 const TARGET = "min-h-11";
 
@@ -58,6 +58,8 @@ export interface RecordDepositProps {
   bookingId: string;
   /** The deposit is still awaited (the page decides from the booking). */
   due: boolean;
+  /** Whether the booking asks for a deposit or the full payment. */
+  kind?: PaymentKind;
   orgSlug: string;
   /** The booking asks for a deposit and is not closed. */
   takesDeposit: boolean;
@@ -69,7 +71,9 @@ export function RecordDeposit({
   due,
   orgSlug,
   takesDeposit,
+  kind,
 }: RecordDepositProps) {
+  const word = paymentWord(kind);
   const [open, setOpen] = useState(false);
   const [opened, setOpened] = useState(0);
   const [notice, setNotice] = useState<ActionState>(IDLE);
@@ -114,7 +118,7 @@ export function RecordDeposit({
   return (
     <section aria-labelledby="deposit-title" className="space-y-3">
       <h2 className="text-lg font-semibold" id="deposit-title">
-        Deposit
+        {word}
       </h2>
       {canRecord ? (
         <AlertDialog
@@ -142,6 +146,7 @@ export function RecordDeposit({
               key={opened}
               onResult={result}
               orgSlug={orgSlug}
+              word={word}
             />
           </AlertDialogContent>
         </AlertDialog>
@@ -180,12 +185,14 @@ function DepositForm({
   idempotencyKey,
   onResult,
   orgSlug,
+  word,
 }: {
   amountLabel: string;
   bookingId: string;
   idempotencyKey: string;
   onResult: (state: ActionState) => void;
   orgSlug: string;
+  word: string;
 }) {
   const [state, formAction, pending] = useActionState(
     recordDepositAction.bind(null, orgSlug, bookingId),
@@ -209,14 +216,16 @@ function DepositForm({
     <form className="grid gap-4" onSubmit={keepValuesOnSubmit(formAction)}>
       <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
       <AlertDialogHeader>
-        <AlertDialogTitle>Record the deposit as received?</AlertDialogTitle>
+        <AlertDialogTitle>
+          Record the {word.toLowerCase()} as received?
+        </AlertDialogTitle>
         <AlertDialogDescription>
-          This marks the deposit as paid and confirms a booking that was waiting
-          for it. It cannot be undone here.
+          This marks the {word.toLowerCase()} as paid and confirms a booking
+          that was waiting for it. It cannot be undone here.
         </AlertDialogDescription>
       </AlertDialogHeader>
       <p className="border-border bg-muted rounded-lg border p-3 font-semibold">
-        Deposit received: {amountLabel}
+        {word} received: {amountLabel}
       </p>
       <div className="space-y-1 text-left">
         <Label className="font-medium" htmlFor={methodId}>
@@ -273,7 +282,7 @@ function DepositForm({
           size="touch"
           type="submit"
         >
-          {pending ? "Saving..." : "Record deposit"}
+          {pending ? "Saving..." : `Record ${word.toLowerCase()}`}
         </Button>
       </AlertDialogFooter>
     </form>

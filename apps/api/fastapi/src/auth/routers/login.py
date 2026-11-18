@@ -18,7 +18,7 @@ from sqlalchemy import delete
 from starlette.requests import Request
 
 from src.auth import apps, modern_service, service
-from src.auth.account_security import verify_factor
+from src.auth.account_security import record_factor_failure, verify_factor
 from src.auth.constants import (
     ERROR_INACTIVE_USER,
     ERROR_INCORRECT_CREDENTIALS,
@@ -34,7 +34,7 @@ from src.auth.constants import (
 from src.auth.dependencies import get_current_active_superuser
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.exceptions import AccountLockedError, PasswordSetupPendingError
-from src.auth.lockout import login_lockout
+from src.auth.lockout import factor_lockout, login_lockout
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge
 from src.auth.modern_schemas import EmailRequest
@@ -220,12 +220,16 @@ async def login_session(
     # checked by staff routes and the staff-app handoff, not at sign-in.
     if user.password_setup_pending:
         raise PasswordSetupPendingError()
-    if user.totp_enabled and not await verify_factor(
-        session, user, body.totp_code or ""
-    ):
-        if body.totp_code:
-            await login_lockout.record_failure(body.email)
-        raise AppException("Two-factor authentication code required or invalid", 400)
+    if user.totp_enabled:
+        if await factor_lockout.is_locked(str(user.id)):
+            raise AccountLockedError()
+        if not await verify_factor(session, user, body.totp_code or ""):
+            if body.totp_code:
+                await record_factor_failure(session, user)
+            raise AppException(
+                "Two-factor authentication code required or invalid", 400
+            )
+        await factor_lockout.reset(str(user.id))
     await login_lockout.reset(body.email)
 
     user_agent, ip_address = _request_metadata(request)

@@ -2,8 +2,7 @@
 
 ## Status
 
-Accepted (2026-10-22, owner); rules that reference ADR-0050 are conditional on
-ADR-0050 being accepted. Owner direction: launch with events **and**
+Accepted (2026-10-22, owner); ADR-0050 is accepted, so the rules that reference it apply. Owner direction: launch with events **and**
 bookable experiences. Nothing in this ADR is built. Read with [ADR-0046](0046-barrels-events-catalogue-model.md) (catalogue
 model) and [ADR-0048](0048-catalogue-provenance-and-curation.md). Builds on
 [ADR-0024](0024-bookings-domain.md), [ADR-0027](0027-payments-core-and-providers.md),

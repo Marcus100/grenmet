@@ -143,9 +143,9 @@ The GMS digital system maintains public trust through:
 
 | Contact | Role | Purpose |
 |---|---|---|
-| DTO (Eugine Whint) | Primary incident lead | All incidents |
-| Manager, ISDS (Kurt Williams) | Infrastructure escalation | P1/P2 infrastructure events |
-| Manager, Meteorology (Gerard Tamar) | Programme Sponsor | P1 events requiring management decision |
+| DTO (Digital Transformation Officer) | Primary incident lead | All incidents |
+| Manager, ISDS | Infrastructure escalation | P1/P2 infrastructure events |
+| Manager, Meteorology | Programme Sponsor | P1 events requiring management decision |
 | Director of Operations | Formal escalation | P1 events with public safety or legal exposure |
 
 ---
@@ -204,5 +204,5 @@ Drill results are documented and reviewed. Failures result in SOP or control upd
 | [Security Baseline](../security.md) | Engineering-level implementation details |
 | [SOP Index](./sop-index.md) | SOP-SYS-001 system outage procedure |
 | [Data Architecture](../data-architecture.md) | Backup architecture and database isolation |
-| [GMS Charter](../internal/gms-charter.md) | Cybersecurity risk register |
+| GMS Charter (kept privately by the owner) | Cybersecurity risk register |
 | [Infrastructure](../infrastructure.md) | Infrastructure operations and backup commands |

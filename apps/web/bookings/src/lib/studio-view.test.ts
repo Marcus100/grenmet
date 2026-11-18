@@ -5,11 +5,13 @@ import {
   canManageBookings,
   daysIn,
   depositState,
+  depositView,
   eventLabel,
   isDay,
   localTime,
   parseRange,
   rotatesKey,
+  statusView,
   todayIn,
   weekStart,
   zonedToUtcIso,
@@ -83,6 +85,29 @@ describe("deposit state", () => {
         status: "confirmed",
       }).label
     ).toBe("Deposit EC$25");
+  });
+});
+
+describe("deposit or payment wording", () => {
+  it("says Payment when the booking asked for the full price", () => {
+    expect(statusView("pending_payment").label).toBe("Awaiting deposit");
+    expect(statusView("pending_payment", "payment").label).toBe(
+      "Awaiting payment"
+    );
+    expect(depositView("paid", "payment").label).toBe("Payment paid");
+    expect(depositView("refunded", "payment").label).toBe("Payment refunded");
+    expect(depositView("refunded").label).toBe("Deposit refunded");
+    expect(eventLabel("pending_payment", "confirmed", "payment")).toBe(
+      "Awaiting payment to Confirmed"
+    );
+    expect(
+      agendaDepositView({
+        currency: "XCD",
+        deposit_minor: 2500,
+        payment_kind: "payment",
+        status: "confirmed",
+      }).label
+    ).toBe("Payment EC$25");
   });
 });
 

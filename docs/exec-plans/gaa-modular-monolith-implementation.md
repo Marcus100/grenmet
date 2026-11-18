@@ -168,7 +168,7 @@ Show forecasts, warnings and available observations, with source/issue/validity/
 
 ## References and next implementation step
 
-Use the [source and capability register](../portfolio/gaa-source-and-capability-register.md), [PIMU/service-desk plan](gaa-admin-pimu-service-desk.md), [staff-platform ADR](../adr/0009-gaa-staff-platform.md), and [portfolio index](../portfolio/README.md).
+Use the source and capability register (kept privately by the owner), [PIMU/service-desk plan](gaa-admin-pimu-service-desk.md), [staff-platform ADR](../adr/0009-gaa-staff-platform.md), and [portfolio index](../portfolio/README.md).
 
 The next implementation proposal is M0/M1: inventory one existing private journey, design its FastAPI browser-session path and produce a precise file scope with acceptance tests. This planning task does not authorise application edits, database resets, deployments or external messages.
 

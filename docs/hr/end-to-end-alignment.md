@@ -2,7 +2,7 @@
 
 **Status:** Active implementation and verification plan, 2026-09-28. GAA is the  
 **Owner:** Barrels Grenada engineering, for GAA/GMS  
-**Last updated:** 2026-09-28
+**Last updated:** 2026-11-18
 client organisation; GMS is its meteorological department. This plan records
 user instructions and verified code gaps, not institutional policy approval or
 deployed behaviour. It supplements [ADR-0009](../adr/0009-gaa-staff-platform.md)
@@ -82,8 +82,8 @@ hours or an absence label: unresolved rules remain in [the policy register](poli
 Sequencing for what comes next is in the [HR product roadmap](product-roadmap.md).
 
 The hardware presence-token proposal in ADR-0009 is future work. Manual arrival
-and departure is the current requested first step; no device integration or
-automatic payroll is claimed by this plan.
+and departure was the first step. Terminal punch import (ADR-0040) and payroll
+(`src/hr/payroll`: gross pay, deductions and payslips) are built; this plan does not describe them.
 
 ## Parallel delivery coordination
 

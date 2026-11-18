@@ -18,7 +18,7 @@ from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.exceptions import AppException
 from src.hr.models import Organisation as HrOrganisation
-from src.organisations import entitlements
+from src.organisations import entitlements, grants
 from src.organisations.exceptions import (
     OrganisationAppNotEntitledError,
     OrganisationNotFoundError,
@@ -38,6 +38,7 @@ from src.organisations.models import (
     new_membership_id,
     new_organisation_id,
 )
+from src.printix import app_role as printix_app_role
 from src.utils.datetime import utc_now
 from src.utils.reserved_names import is_reserved
 from src.utils.text import clean_reason
@@ -235,6 +236,12 @@ async def set_app_enabled(
 ) -> OrganisationApp:
     if not entitlements.is_known(app_key):
         raise AppException("Unknown app", 404)
+    switching_printix_off = not enabled and app_key == printix_app_role.APP_KEY
+    printix_holders: set[uuid.UUID] = set()
+    if switching_printix_off:
+        # Roster lock first, then the rows (grants.lock_roster's documented order).
+        await grants.lock_roster(session, organisation_id)
+        printix_holders = await printix_app_role.holders_of(session, organisation_id)
     row = await session.get(OrganisationApp, (organisation_id, app_key))
     if row is None:
         row = OrganisationApp(
@@ -244,6 +251,10 @@ async def set_app_enabled(
     else:
         row.enabled = enabled
     await session.flush()
+    if switching_printix_off:
+        # No organisation keys left from here: drop the sign-in role of anyone whose
+        # last Printix access this was (#1564).
+        await printix_app_role.release_lost(session, organisation_id, printix_holders)
     if enabled:
         for bundled in entitlements.BUNDLED_WITH.get(app_key, ()):
             await _ensure_enabled(session, organisation_id, bundled)

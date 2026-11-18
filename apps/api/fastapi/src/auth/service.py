@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SQLAlchemySession
 
 from src.auth import placeholders
-from src.auth.account_security import verify_factor
+from src.auth.account_security import record_factor_failure, verify_factor
 from src.auth.assignments import (
     audit_assignment,
     create_user_role_assignment,
@@ -321,7 +321,7 @@ async def verify_disable_proof(
         await login_lockout.record_failure(user.email)
         raise AppException("Incorrect password", 400)
     if not await verify_factor(session, user, code):
-        await factor_lockout.record_failure(str(user.id))
+        await record_factor_failure(session, user)
         raise AppException("Authenticator or recovery code was not accepted", 400)
     await login_lockout.reset(user.email)
     await factor_lockout.reset(str(user.id))
@@ -530,6 +530,7 @@ async def delete_user(
     from src.baseline.models import StaffCredential
     from src.notifications.models import Notification, NotificationPreference
     from src.organisations import grants as organisation_grants
+    from src.printix import app_role as printix_app_role
     from src.profile_images import service as profile_images
     from src.rewards import service as rewards_service
 
@@ -537,6 +538,13 @@ async def delete_user(
         # Already done: no second pass and no second audit row.
         logger.info("User already anonymised", extra={"user_id": str(user.id)})
         return
+    # Roster locks of every affected organisation come first, in id order (#1501,
+    # #1564): the documented order is roster, then the rows. Account deletion changes
+    # the person's role links and sessions, which an administrator's access change
+    # (roster lock, then user row, then role link and sessions) locks in that order.
+    locked_organisations = await organisation_grants.lock_affected_rosters(
+        session, user.id
+    )
     # The last active superuser cannot be anonymised (#1481). The lock comes before
     # any other write in this transaction.
     from src.auth import superuser_invitation
@@ -558,15 +566,22 @@ async def delete_user(
     await revoke_access_material(session, user)
     await rewards_service.cancel_open_redemptions(session, account=user)
     await _end_access_links(session, user_id, now)
-    # Roster locks of every affected organisation first, in id order (#1501), so the
-    # membership and grant writes below never lock in the reverse order.
-    await organisation_grants.lock_affected_rosters(session, user_id)
+    # Who holds Printix access in those organisations now: the deletion ends grants
+    # the account issued, which can end a recipient's last access (#1564).
+    printix_holders: dict[str, set[uuid.UUID]] = {
+        organisation_id: await printix_app_role.holders_of(session, organisation_id)
+        for organisation_id in locked_organisations
+    }
     await _end_organisation_access(session, user_id, now)
     # Grants the account handed to others end too (#1496). Runs after its memberships
     # are removed, which the cascade relies on.
     await organisation_grants.end_grants_of_deleted_account(
         session, user_id=user_id, actor_id=actor_id
     )
+    for organisation_id, before in printix_holders.items():
+        await printix_app_role.release_lost(
+            session, organisation_id, before - {user_id}
+        )
     await _clear_hr_personal_details(session, user_id, now)
     await session.execute(
         update(StaffCredential)

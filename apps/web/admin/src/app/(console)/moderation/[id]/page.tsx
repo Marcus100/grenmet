@@ -67,7 +67,9 @@ export default async function ModerationCasePage({
         </Link>
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">{verification.name}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {verification.name}
+        </h1>
         <StatusBadge status={verification.verification_status} />
       </div>
 

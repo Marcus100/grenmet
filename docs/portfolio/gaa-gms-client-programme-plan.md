@@ -205,7 +205,7 @@ Pilot each new workflow with its relevant MBIA team, then expand to Lauriston.
 This amends universal Meteorology-first rollout for cleaning/transport; existing
 HR/GMS pilots remain valid. Separate personal/work accounts, explicit app grants
 and restricted sensitive cases are confirmed planning requirements, not deployed
-behaviour or institutional UAT. The [source register](gaa-source-and-capability-register.md)
+behaviour or institutional UAT. The source register (kept privately by the owner)
 tracks new evidence and conflicts; unresolved rules block only dependent work.
 
 ### Outcome and boundary

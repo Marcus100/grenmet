@@ -185,11 +185,16 @@ function AccountProfile({
 
 function signedOutNotice(
   pageError: string | null,
-  sessionParam: string | null
+  sessionParam: string | null,
+  noticeParam: string | null
 ): string | null {
   if (pageError) return pageError;
   if (sessionParam === "expired") {
     return "Your session expired. Sign in again to continue.";
+  }
+  // Fixed codes only: an unknown notice shows nothing, and no query text is echoed.
+  if (noticeParam === "email-changed") {
+    return "Your email address has changed. Sign in with the new address.";
   }
   return null;
 }
@@ -237,7 +242,11 @@ export default async function Home({ searchParams }: PageProps) {
   }
 
   const appLabel = getAppDisplayName(requestedApp);
-  const notice = signedOutNotice(pageError, readQueryParam(params.session));
+  const notice = signedOutNotice(
+    pageError,
+    readQueryParam(params.session),
+    readQueryParam(params.notice)
+  );
   // Code first: the emailed code is the default and a password is asked for.
   // A reauthentication step keeps the password form, as it always has.
   const passwordMode =

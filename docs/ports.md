@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-21
+**Last updated:** 2026-11-18
 
 Canonical port map for the monorepo. **This file is the single source of truth** —
 when a port changes, update it here first, then propagate to the locations listed
@@ -17,7 +17,7 @@ under "Where each port lives" below.
 - Each web app uses **one port across local dev and its container** (no
   dev/prod skew).
 - Decision record: [ADR-0043](./adr/0043-hostnames-tenancy-and-port-allocation.md)
-  (Proposed). `scripts/ci/check-ports.mjs` enforces the tables below.
+  (Accepted). `scripts/ci/check-ports.mjs` enforces the tables below.
 
 ## Port ranges
 
@@ -26,7 +26,7 @@ is allocated by category.
 
 | Range | Category | Notes |
 | --- | --- | --- |
-| `3000–3019` | Legacy, frozen | Arrival-ordered. 3008 shop, 3016 hr, 3017 business, 3018 account, 3019 spare; **3011 was never used and is never assigned** |
+| `3000–3019` | Legacy, frozen | Arrival-ordered. 3008 shop, 3016 hr, 3017 business, 3018 account, 3019 commit; **3011 was never used and is never assigned** |
 | `3020–3029` | Platform surfaces | 3020 developers, 3021 status |
 | `3030–3059` | Barrels products | 3030 salesbus POS, 3031 tickets, 3032 passport, 3033 pay, 3034 media, 3035-3041 sector products (education, automotive, delivery, bus, park, taxi, homegrown) |
 | `3060–3089` | Client-dedicated apps | 3060 gaa corporate, 3061 janitor PWA, 3062 bus PWA, 3063 gms PWA, 3064 Printix scanner PWA |
@@ -85,7 +85,7 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | 3061 | `@barrelsgd/web-janitor` (janitor PWA) | Reserved (client) |
 | 3062 | `@barrelsgd/web-gaa-bus` (bus PWA) | Reserved (client) |
 | 3063 | `@barrelsgd/web-gms-pwa` (GMS PWA) | Reserved (client) |
-| 3064 | `@barrelsgd/pwa-printix` (Printix ticket scanner PWA, `apps/pwa/printix`) | Built, dev only; not deployed (client) |
+| 3064 | `@barrelsgd/pwa-printix` (Printix ticket scanner PWA, `apps/pwa/printix`) | Live at `scan.barrels.gd` (client) |
 | 3090 | `ui-gallery` (UI gallery, dev only) | Reserved (dev tool) |
 | 3091 | `email-preview` (email preview, dev only) | Reserved (dev tool) |
 
@@ -151,8 +151,7 @@ Admin host move (owner decision 2026-10-21): `admin.<domain>` is the Barrels
 staff / superuser console (`apps/web/admin`, port 3012) and `gms.<domain>` is the
 GMS/GAA staff portal (`apps/web/gaa-admin`, port 3001). `gms.*` is the portal's
 hostname only: `apps/web/gms` stays the public weather site at `weather.*`, and
-old links to the former public `gms.*` site now land on the portal sign-in. The
-move reaches production when this change is promoted to `main`
+old links to the former public `gms.*` site now land on the portal sign-in. The host move is done on staging and production
 (`docs/deployment.md`, "Admin host move"). Compose service names follow the
 release scope: `web-admin` is the console, `web-gmsadmin` is the portal.
 
@@ -160,33 +159,29 @@ The table above is what Compose routes today. `scripts/ci/check-ports.mjs`
 fails when its hostnames disagree with the ``Host(`<label>.${BASE_DOMAIN}`)``
 rules in `infra/docker/docker-compose.deploy.yml`.
 
-### Hosted on Vercel (production only, no staging)
+### Hosted on Cloudflare Pages (production only, no staging)
+
+Static sites (ADR-0036 amendment, 2026-10-27). The homepage, Elections and Babydoll moved from Vercel on 15 and 16 November 2026. Each host needs its own DNS
+record pointing at Pages, overriding the DigitalOcean wildcard.
 
 | Site | Production |
 | --- | --- |
 | Barrels company homepage (`apps/web/barrels`) | `barrels.gd` (`www.barrels.gd` redirects) |
 | elections (`apps/web/elections`, dev port 3007) | `elections.barrels.gd` |
 | babydoll (`apps/web/babydoll`, dev port 3014; Babydoll Beauty Bar client site) | `babydoll.barrels.gd` (explicit DNS record; overrides the DigitalOcean wildcard) |
+| commit (`apps/web/commit`, dev port 3019; Barrels engineering blog) | `commit.barrels.gd` |
 
-### Hosted on Cloudflare Pages (production only, no staging)
-
-Static sites (ADR-0036 amendment, 2026-10-27). Each host needs its own DNS
-record pointing at Pages, overriding the DigitalOcean wildcard.
-
-| Site | Production |
-| --- | --- |
-| commit (`apps/web/commit`, dev port 3019; Barrels engineering blog) | `commit.barrels.gd` (planned; not deployed yet) |
+The Printix scanner (`apps/pwa/printix`, dev port 3064) is also on Cloudflare Pages, as the `printix-scanner` project, at the address given in `apps/pwa/printix/AGENTS.md`.
 
 ### Planned host changes and new hosts
 
 Decisions of 2026-10-21 (ADR-0043). Nothing in this table is routed yet unless
-the Status says so. Another branch is doing the staging hostname cutover; this
-file records the target, not the live state.
+the Status says so.
 
 | Hostname | For | Port | Status |
 | --- | --- | --- | --- |
-| `admin.barrels.gd` | Barrels staff and superuser console (`apps/web/admin`) | 3012 | Planned: cutover in progress. Today `admin.*` still routes to gaa-admin |
-| `gms.barrels.gd` | Met office staff portal (today's gaa-admin) | 3001 | Planned: cutover in progress. Today the portal is `gmsadmin.*`. Old `gms.*` links meant the retired public weather site (now `weather.*`); the name is reassigned to the staff portal |
+| `admin.barrels.gd` | Barrels staff and superuser console (`apps/web/admin`) | 3012 | Live: the Barrels console (`apps/web/admin`) |
+| `gms.barrels.gd` | Met office staff portal (today's gaa-admin) | 3001 | Live: the GMS/GAA staff portal (`apps/web/gaa-admin`). Old `gms.*` links meant the retired public weather site (now `weather.*`) |
 | `hr.barrels.gd` | Barrels HR: separate multi-organisation app, organisation in the path (`hr.barrels.gd/<orgSlug>/...`) | 3016 | Planned, not built (stays in gaa-admin until then) |
 | `shop.barrels.gd` | Shopkeeping: the merchant-facing shop and stores app | 3008 | Reserved |
 | `education.barrels.gd` | Sector product (Education cluster) | 3035 | Reserved; building is gated on validated demand |

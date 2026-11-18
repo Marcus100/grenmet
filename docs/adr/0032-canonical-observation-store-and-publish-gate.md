@@ -2,9 +2,9 @@
 
 ## Status
 
-Accepted by the owner 2026-10-20. Builds on ADR-0010; does not supersede it.
+Accepted by the owner 2026-10-20; built. The per-station-hour gate is `src/eregister/gate.py` and the observation store is in the eRegister database (`src/eregister/migrations`). Builds on ADR-0010; does not supersede it.
 
-eRegister must not publish to WIS2 again until the per-station-hour gate exists.
+eRegister must not publish to WIS2 again until the per-station-hour gate exists (it now does).
 
 ## Context
 

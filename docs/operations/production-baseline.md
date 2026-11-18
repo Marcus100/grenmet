@@ -38,7 +38,7 @@ The organisation-boundary migration (`2026-09-10_hr_organisation_boundary`) refu
 
 ## Accounts and employee setup
 
-- Intended administrators: `ewhint@weather.gd` and `admin@weather.gd`. The generic administrator receives no employee credential.
+- Intended administrators: the owner's named superuser account and the generic `admin` account. The generic administrator receives no employee credential.
 - The 21 confirmed GMS staff have department membership, grade and permanent GAA Digital ID. Personnel fields can remain null while awaiting verification. Existing accounts keep their passwords and verification settings during seeding.
 - HR Setup → Staff baseline edits staff membership, verified employee number, employment type, start date, supervisor, mailbox readiness, and audited opening leave balances. Grade edits do not silently change role assignments.
 - `/profile` shows the employee record and pending fields. Personal/contact information remains editable; authoritative employment details are administrator-managed.

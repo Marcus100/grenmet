@@ -16,7 +16,7 @@
 
 - **Account link (ADR-0058):** `link_verified_account` (signed-in booking only; locks the account row and re-reads its email and verification, then the contact row; erased contacts never link; #1384) and `unlink_account(user_id)` (clears every link of one account; called by auth on an email change and on account deletion, through the service, never the table). The link is never shown to businesses: `user_id` is excluded from the audit registry and from organisation responses (`contacts/router.py` `_view`); link and unlink write value-free `link_account` / `unlink_account` rows under the organisation's history, with no actor (`_system_actor`). Public bookings clear the audit actor so a signed-in payer's name never appears in the business's history.
 - **Not backfilled:** existing contacts are not linked. Past guest bookings appear in the account's list only after the person books while signed in with a verified matching email, or through the claim flow (a later slice).
-- **Known behaviour (owner decision pending):** a guest booking made with an email whose contact is already linked to an account appears in that account's list. A merge that folds a guest record into a linked one does the same.
+- **Known behaviour (owner decision, accepted):** a guest booking made with an email whose contact is already linked to an account appears in that account's list. A merge that folds a guest record into a linked one does the same.
 
 ## Tests
 `tests/contacts/test_contacts.py` (service rules, routes, roles, cross-organisation denial, entitlement, audit) and `tests/contacts/test_contacts_migration.py`. Account link, unlink, privacy and merge: `tests/bookings/test_account_link.py`.

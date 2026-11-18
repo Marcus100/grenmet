@@ -48,6 +48,7 @@ from src.organisations.models import (
     OrganisationApp,
     new_grant_id,
 )
+from src.printix import app_role as printix_app_role
 from src.utils.datetime import utc_now
 
 if TYPE_CHECKING:
@@ -491,6 +492,9 @@ async def revoke_grant_detailed(
     refused: the revoker's membership is re-read after the roster lock."""
     audit_service.set_actor(session, context.user.id)
     await lock_roster(session, context.organisation_id)
+    printix_holders = await printix_app_role.holders_of(
+        session, context.organisation_id
+    )
     revoker = await session.get(
         Membership, context.membership.id, populate_existing=True
     )
@@ -559,6 +563,9 @@ async def revoke_grant_detailed(
                 grantor_membership_id=_grantor_membership(members, victim),
             )
         await session.flush()
+    # A revoked Printix bundle (or one that fell with it) may be someone's last
+    # Printix access: the sign-in role goes with it (#1564).
+    await printix_app_role.release_lost(session, organisation_id, printix_holders)
     logger.info(
         "organisation grant revoked",
         extra={"organisation_id": organisation_id, "cascaded": len(victims)},

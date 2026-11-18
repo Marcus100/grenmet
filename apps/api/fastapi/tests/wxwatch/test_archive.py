@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+import pytest
 from sqlalchemy import text
 
 from src.auth.browser import get_browser_or_token_user
@@ -83,5 +84,27 @@ async def test_archive_filters_pagination_unknown_and_history(
         assert (
             await async_client.get(f"{url}/{uuid4()}/retrievals")
         ).status_code == 404
+    finally:
+        app.dependency_overrides.pop(get_browser_or_token_user, None)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "/api/v1/wxwatch/archive?source=a%00b",
+        "/api/v1/wxwatch/archive?product=a%00b",
+        "/api/v1/wxwatch/nhc/editions?product=a%00b",
+    ],
+)
+async def test_free_text_filters_refuse_a_null_character(
+    async_client, image_database, url
+):
+    """PostgreSQL text cannot hold NUL; the filter is refused with 422, not a 500."""
+    assert image_database is None
+    app.dependency_overrides[get_browser_or_token_user] = lambda: User(
+        email="staff@example.test"
+    )
+    try:
+        assert (await async_client.get(url)).status_code == 422
     finally:
         app.dependency_overrides.pop(get_browser_or_token_user, None)

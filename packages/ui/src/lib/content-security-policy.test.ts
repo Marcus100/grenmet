@@ -314,3 +314,149 @@ describe("Report-Only headers for the static apps", () => {
     }
   );
 });
+
+// The eight apps that had no CSP before. Each row is the app's expected extras,
+// written out by hand so a change to APP_SOURCES fails here and must be
+// reviewed. A new CspApp needs its own row; nothing enforces that at compile time.
+interface Extras {
+  connect: string;
+  frame: string;
+  img: string;
+  script: string;
+}
+
+const NO_EXTRAS: Extras = { script: "", connect: "", img: "", frame: "" };
+
+const NEW_APP_EXTRAS: Record<
+  "admin" | "auth" | "cap" | "cms" | "events" | "gaa-admin" | "gms" | "gmsdash",
+  Extras
+> = {
+  admin: NO_EXTRAS,
+  auth: { script: TURNSTILE, connect: TURNSTILE, img: "", frame: TURNSTILE },
+  cap: NO_EXTRAS,
+  cms: NO_EXTRAS,
+  events: {
+    script: GA_SCRIPT,
+    connect: GA_CONNECT,
+    img: GA_IMG,
+    frame: "",
+  },
+  "gaa-admin": { ...NO_EXTRAS, frame: "'self' blob:" },
+  gms: {
+    script: `${GA_SCRIPT} ${TURNSTILE}`,
+    connect: `${GA_CONNECT} ${TURNSTILE}`,
+    img: `${GA_IMG} https://cms.staging.barrels.gd`,
+    frame:
+      "https://www.youtube-nocookie.com https://www.facebook.com https://w.soundcloud.com",
+  },
+  gmsdash: NO_EXTRAS,
+};
+
+/** Serialises the shared shape with one app's extras, the way the builder does. */
+function policyWith(extras: Extras, sentry: boolean): string {
+  const add = (base: string, extra: string) =>
+    extra ? `${base} ${extra}` : base;
+  return [
+    "default-src 'self'",
+    add("script-src 'self' 'unsafe-inline'", extras.script),
+    "style-src 'self' 'unsafe-inline'",
+    add("img-src 'self' data: blob:", extras.img),
+    "font-src 'self'",
+    add(
+      add("connect-src 'self'", extras.connect),
+      sentry ? SENTRY_CONNECT : ""
+    ),
+    `frame-src ${extras.frame || "'none'"}`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'self'",
+    "worker-src 'self'",
+    ...(sentry ? SENTRY_REPORTING : []),
+  ].join("; ");
+}
+
+describe("Report-Only policies for admin, auth, cap, cms, events, gaa-admin, gms and gmsdash", () => {
+  it.each(Object.keys(NEW_APP_EXTRAS) as (keyof typeof NEW_APP_EXTRAS)[])(
+    "%s serialises its exact policy with and without reporting",
+    (app) => {
+      expect(
+        buildContentSecurityPolicy({ app, dsn: DSN, environment: "production" })
+      ).toBe(policyWith(NEW_APP_EXTRAS[app], true));
+      expect(buildContentSecurityPolicy({ app })).toBe(
+        policyWith(NEW_APP_EXTRAS[app], false)
+      );
+    }
+  );
+
+  it.each(Object.keys(NEW_APP_EXTRAS) as (keyof typeof NEW_APP_EXTRAS)[])(
+    "%s sends only Report-Only in production and never an enforcing CSP",
+    (app) => {
+      const headers = contentSecurityPolicyHeaders({
+        app,
+        dsn: DSN,
+        environment: "production",
+        isProduction: true,
+      });
+      expect(headers.map((h) => h.key)).toEqual([
+        "Content-Security-Policy-Report-Only",
+        "Reporting-Endpoints",
+      ]);
+      expect(headers[0]?.value).toBe(policyWith(NEW_APP_EXTRAS[app], true));
+    }
+  );
+
+  it.each(Object.keys(NEW_APP_EXTRAS) as (keyof typeof NEW_APP_EXTRAS)[])(
+    "%s emits no header outside production",
+    (app) => {
+      expect(
+        contentSecurityPolicyHeaders({ app, dsn: DSN, isProduction: false })
+      ).toEqual([]);
+    }
+  );
+
+  it.each(Object.keys(NEW_APP_EXTRAS) as (keyof typeof NEW_APP_EXTRAS)[])(
+    "%s has no unsafe-eval and no duplicate directives",
+    (app) => {
+      const policy = buildContentSecurityPolicy({ app, dsn: DSN });
+      const names = policy.split("; ").map((d) => d.split(" ")[0]);
+      expect(new Set(names).size).toBe(names.length);
+      expect(policy).not.toContain("unsafe-eval");
+    }
+  );
+
+  it("gaa-admin allows its own and blob: PDF frames only", () => {
+    expect(buildContentSecurityPolicy({ app: "gaa-admin" })).toContain(
+      "frame-src 'self' blob:;"
+    );
+  });
+
+  it("gms allows the three click-to-load embeds and the staging CMS image host", () => {
+    const policy = buildContentSecurityPolicy({ app: "gms" });
+    expect(policy).toContain(
+      "frame-src https://www.youtube-nocookie.com https://www.facebook.com https://w.soundcloud.com;"
+    );
+    expect(policy).toContain(
+      "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://cms.staging.barrels.gd;"
+    );
+  });
+
+  it("apps without third-party origins keep the shared baseline only", () => {
+    for (const app of ["admin", "cap", "cms", "gmsdash"] as const) {
+      expect(buildContentSecurityPolicy({ app })).toBe(
+        [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline'",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: blob:",
+          "font-src 'self'",
+          "connect-src 'self'",
+          "frame-src 'none'",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "frame-ancestors 'self'",
+          "worker-src 'self'",
+        ].join("; ")
+      );
+    }
+  });
+});

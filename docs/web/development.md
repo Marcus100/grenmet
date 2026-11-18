@@ -120,9 +120,51 @@ timeout allows for.
 
 Playwright needs the browser build that matches its version. If a run says the
 browser is missing, run `pnpm exec playwright install chromium` once from an app
-directory; it downloads into `~/.cache/ms-playwright`, outside the repository. The
-`auth` app's older suite needs real sign-in credentials and is not part of
-`pnpm e2e`.
+directory; it downloads into `~/.cache/ms-playwright`, outside the repository. The `auth`, `cap` and
+`bookings` suites are not part of `pnpm e2e`; they run in the browser journeys
+below.
+
+## Browser journeys (CI)
+
+The `Browser journeys` workflow (`.github/workflows/e2e.yml`) runs on every pull
+request into `dev`. It starts the API from source against a Postgres service and
+a local Redis, runs the migrations and seeds, builds five apps once, serves each
+in production mode (`next start`) and runs its Playwright suite:
+
+| App | Spec | What it proves |
+| --- | --- | --- |
+| auth | `e2e/sign-in.spec.ts` | The emailed code is offered first; the seeded first superuser signs in with a password and sees their profile; a wrong password is refused; `returnTo` is followed. |
+| bookings | `e2e/booking.spec.ts` | A guest opens the seeded Babydoll page, picks a service and the first open time, enters details, requests the booking, and the manage link shows it. |
+| cap | `e2e/desk-cache.spec.ts` | Desk and sign-in responses are never cached; the desk proxy refuses what is outside its allow-list. |
+| gaa-admin | `e2e/auth-redirect.spec.ts` | A signed-out visit goes to sign-in and keeps its path. |
+| gms | `e2e/smoke.spec.ts` | The public pages render; missing pages answer 404 from the server. |
+
+Not covered: a booking that takes a deposit. The emailed booking code exists only
+when a deposit is due, and a deposit needs the payments entitlement and Stripe, so
+that path (code, checkout, payment) has no browser test. The seeded Babydoll
+services take no deposit. Turnstile is off (no site key).
+
+The seed is the repository's own: the API prestart script (first superuser
+`admin@example.com`, placeholder password `changethis`) and
+`python -m src.bookings.seed`. Reports and traces of a failed run are kept as the
+`browser-journeys-report` artifact for seven days. The check is not required.
+
+To run one journey locally, give the API its own database so the seed does not
+touch the one you develop against, then let Playwright start the app:
+
+```bash
+# once: create an empty database named grenmet_e2e on your local Postgres
+export POSTGRES_PORT=5433 POSTGRES_DB=grenmet_e2e   # where that database is
+scripts/verification/e2e-api.sh prepare             # migrate and seed
+scripts/verification/e2e-api.sh serve               # API on :8000, leave running
+
+# in another terminal
+pnpm --filter @barrelsgd/web-bookings run test:e2e  # starts `pnpm dev` itself
+```
+
+`E2E_WEB_SERVER=start` makes Playwright serve the production build instead, as CI
+does; run `pnpm exec turbo run build --filter=@barrelsgd/web-bookings` first. On a
+machine with little memory, build and run one app at a time.
 
 ## Pinned lint and client-generator versions
 

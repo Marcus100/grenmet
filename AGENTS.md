@@ -16,13 +16,13 @@ tooling. Start with `docs/technical-overview.md`.
 | Path | Covers |
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
-| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, almanac, push, rewards, bookings, webhooks_out, contacts, payments, feature_flags, content_distribution) |
+| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, almanac, push, rewards, bookings, webhooks_out, contacts, payments, feature_flags, content_distribution, printix) |
 | `apps/web/<app>/AGENTS.md` | account, admin, auth, bookings, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
-| `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Vercel) |
+| `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Cloudflare Pages) |
 | `apps/web/commit/AGENTS.md` | Commit, the Barrels engineering blog (one post per release; static Next.js on Cloudflare Pages) |
-| `apps/pwa/<app>/AGENTS.md` | Phone apps on `packages/pwa-kit` (`pnpm new:pwa`; script `dev:pwa:<app>`): printix (a client's ticket scanner, 3064) |
-| `packages/bookings-web/AGENTS.md` | Public booking flow (slot picker, booking form, manage-booking, Turnstile) shared by babydoll and a future bookings app; host owns server calls |
+| `apps/pwa/<app>/AGENTS.md` | Phone apps on `packages/pwa-kit` (`pnpm new:pwa`; script `dev:pwa:<app>`): printix (the Printix ticket scanner, a Barrels collaboration, 3064) |
+| `packages/bookings-web/AGENTS.md` | Public booking flow (slot picker, booking form, manage-booking, Turnstile) used by the bookings app; host owns server calls |
 | `packages/<pkg>/AGENTS.md` | api-client, auth, bookings-web, email-templates, gms, pwa-kit, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
 
@@ -111,7 +111,7 @@ Backend (details in `apps/api/fastapi/AGENTS.md`):
 - No sync network calls in `async def`; background work goes to the ARQ worker.
 - geonetcast runs devcontainer-first; never `uv sync --package geonetcast` on the host.
 
-Design: read the lane spec `docs/design/<lane>.md` before building UI; style only with `--gm-*` tokens, Tailwind aliases or shadcn semantics; new tokens need approval. Figma is not linked; never ask for a Figma URL. Details, CI/CD and telemetry rules: `docs/agents/extended-rules.md`.
+Design: read the lane spec `docs/design/<lane>.md` before building UI; each app styles with its own lane's tokens, Tailwind aliases or shadcn semantics (`--gm-*` for the GMS/GAA lanes); new tokens need approval. Figma is not linked; never ask for a Figma URL. Details, CI/CD and telemetry rules: `docs/agents/extended-rules.md`.
 
 ## Where to Look
 

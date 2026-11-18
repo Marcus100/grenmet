@@ -763,7 +763,7 @@ Implemented examples:
 | Unique violation not mapped by the code (SQLSTATE 23505) | `{"detail":"Resource already exists or constraint violation"}` (409) |
 | Any other database integrity error, or a Pydantic error raised in server code | Server error: `{"detail":"Internal Server Error"}` (500), logged and reported to Sentry |
 | FastAPI `HTTPException` | `{"detail": ...}` |
-| Rate limit exceeded (SlowAPI) | `{"error": "Rate limit exceeded: ..."}` (429) |
+| Rate limit exceeded (SlowAPI) | `{"error": "Rate limit exceeded: ..."}` (429); routes without their own limit share a default of `DEFAULT_RATE_LIMIT_PER_MINUTE` (1000) a minute per client address (answered only when `DEFAULT_RATE_LIMIT_MODE` is `enforce`; `log` by default), never applied to probes, webhooks or internal hooks |
 | Account lockout after failed sign-ins | `{"detail": ...}` (429) |
 | Public weather product feed (`/wxproducts/public/*`) | `{"error": "..."}` (400, 404, 503) |
 
@@ -1187,7 +1187,7 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   signed provider callbacks at
   `POST /payments/public/webhooks/{provider}` (idempotent through the ledger, hidden
   from OpenAPI); superuser reconciliation, ledger, balances and payouts under
-  `/payments/admin/...`, including `reconciliation.csv`. The ledger is append-only. A payout
+  `/payments/admin/...` (each ledger entry also carries `source_type`, `source_id` and a `description` label, null for older payments), including `reconciliation.csv`. The ledger is append-only. A payout
   needs a client-generated `request_id`: repeating it returns the first entry (no double
   payout), and reusing it for different details is 409.
 - **Reliability and public booking** (PF2, ADR-0026): writes that create things accept
@@ -1204,7 +1204,7 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   organisation's audit history records the link with no id and no actor. Not
   backfilled: past guest bookings join the account's list only after the person books
   while signed in with a verified matching email, or through the claim flow (a later
-  slice). Known behaviour (owner decision pending): a guest booking made with the email
+  slice). Known behaviour (owner decision, accepted): a guest booking made with the email
   of an already-linked contact appears in that account's list, and so does a guest
   record merged into a linked one. Side effects (emails,
   reminders) run through the transactional outbox (`platform.outbox`, drained by the
@@ -1258,7 +1258,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | Endpoint | Authentication | Contract |
 | --- | --- | --- |
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
-| `GET /api/v1/bookings/me/bookings?upcoming&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`. No manage token, notes or other customers' details |
+| `GET /api/v1/bookings/me/bookings?upcoming&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`, `payment` (`BookingPaymentSummary`, null when nothing was due at booking). No manage token, notes or other customers' details |
 | `GET /api/v1/bookings/me/businesses/{slug}/choices` | Account token or the bookings app session (other apps 401); no organisation header; 60 a minute (429); unknown or switched-off slug 404 | Prefill for the signed-in person's next booking with one business, from their own linked bookings only (the My bookings rule, ADR-0058): `phone` (the number the business holds for them, else the account's, else null) and `recent` (up to three distinct services, latest first, each with `service_id`, the `provider_id` used last and `last_booked_at`, which is that booking's start time; only pending, confirmed and completed bookings count, so cancelled (declined and expired included), no-show and unpaid-deposit ones are left out). Nothing about other customers |
 | `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`), optional customer contact options `contact_phone` (stored E.164), `contact_whatsapp` (stored as digits), `contact_instagram` (stored as the handle; an instagram.com profile address is reduced to it), `contact_email` (blank clears; a malformed value is 422), and `payment_at_booking` (`deposit`, the default: each service's own deposit; or `full_price`: the service price by card, only while the platform has a Stripe test key and the organisation holds `payments`, otherwise it acts as `deposit`; left out, the stored value is kept); slug taken by another organisation 409, a platform reserved name 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
@@ -1272,7 +1272,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | `GET /api/v1/bookings/public/{slug}/availability?service_id&first_day&last_day[&provider_id]` | None (60/minute) | Open slots (UTC) with free provider ids; at most 14 local days |
 
 | `GET /api/v1/bookings/org/agenda?from_date&to_date[&provider_id&status&limit&offset]` | Member or API key `bookings.read` | Bookings grouped by local day; at most 62 days (422), paged with `limit` and `offset` |
-| `GET /api/v1/bookings/org/bookings/{id}` | Same | Studio view with customer contact details, history and deposit state; another organisation's id 404 |
+| `GET /api/v1/bookings/org/bookings/{id}` | Same | Studio view with customer contact details, history and deposit state (`payment_kind`: `deposit` or `payment`, the latter when the booking asked for the full price; the agenda items carry it too; history notes follow it: "Payment paid", "Payment refunded"); another organisation's id 404 |
 | `POST /api/v1/bookings/org/bookings` | Admin member or API key `bookings.write`; `Idempotency-Key` required | Staff entry (phone, walk-in, re-entered appointment): `confirmed`, source `studio`, no deposit; ignores lead time, horizon and weekly hours, but an overlap is 409; provider must offer the service (422); optional customer email, emailed only with `send_confirmation` |
 | `POST /api/v1/bookings/org/bookings/{id}/confirm`, `/decline`, `/cancel`, `/no-show`, `/complete` | Admin member or API key `bookings.write` | Studio actions through the status machine; decline and cancel need a `reason`, email the customer and emit `booking.cancelled`; an illegal move 409 |
 | `POST /api/v1/bookings/org/bookings/{id}/reschedule` | Admin member or API key `bookings.write` | Staff move a `pending` or `confirmed` booking to a new `starts_at` (same provider and service): ignores hours, lead time and horizon like staff entry, but the time must be in the future and on a whole minute (422) and an overlap is 409; any other status 409; the same time is a no-op; the customer is emailed (no manage link) and `booking.rescheduled` is emitted |
@@ -3226,6 +3226,17 @@ Four route zones, all under `/api/v1/printix/`.
   `total`; `POST /tickets/{id}/void` and `/unvoid`), and gate pairings
   (`POST /events/{id}/pairings` returns the one-time `secret`; `GET /events/{id}/pairings`
   never returns a secret; `POST /pairings/{id}/revoke`). Barcode values are never returned.
+  Onboarding (added 17 Nov 2026, #1554), same gate, all audited with a required `reason`
+  (10 to 500 characters): `GET /organisations/{id}/members` lists active members with `access`
+  (`none`, `gate_lead`, `organiser`), `full_access` (owner or admin) and `can_sign_in`, plus
+  `entitled`; `PUT /organisations/{id}/members/{membership_id}/access` with `{access, reason}`
+  sets the member's Printix bundle and gives or removes the `printix-member` sign-in role in one
+  transaction (removed only when no other Printix access remains, ending their Printix sessions;
+  owners and admins take no bundle, any value gives them sign-in only and `none` is 409);
+  `POST /organisations/{id}/members` with `{email|user_id, access, reason}` adds an existing
+  account as a member with that access. 409 when the organisation lacks `printix` or the person
+  is already a member; 404 when there is no account for the email. Superuser-made grants have no
+  granter (`granted_by` NULL). Guide: `docs/operations/printix-onboarding.md`.
 - **`org/*`** (organiser access, ADR-0060 organiser amendment; ADR-0025 zone `org`): an
   organisation member signed in to the `printix` app, with `X-Barrels-Organisation` set,
   holding `printix.events.manage` or `printix.gates.manage` (either admits a read), an enrolled
@@ -3247,6 +3258,15 @@ Four route zones, all under `/api/v1/printix/`.
   lead holds only the gate key. Every event, ticket and pairing is looked up through its event's
   organisation in SQL: another organisation's record, or one with no organisation, is 404.
   Writes record the organiser as the audit actor.
+  Dashboard reads (#1555; either key, reads limit, `Cache-Control: no-store`, never a barcode):
+  `GET /org/events/{id}/analytics` (arrivals per five minutes on the America/Grenada clock, entry
+  rate over the last ten minutes, busiest five and fifteen minutes, per-gate admitted, refused,
+  typed share and last scan time with one entry per gate phone, refusals by reason, offline
+  syncs and conflicts, totals and no-show rate), `GET /org/events/{id}/scans` (newest first,
+  `page`, `size` 1 to 100, default 20; each item has time, gate, printed number or null, outcome,
+  typed, offline) and `GET /org/events/{id}/scans/export` (`text/csv` stream of every scan,
+  oldest first, printed numbers only, cells that start with `=`, `+`, `-` or `@` get a leading
+  apostrophe, also after leading spaces; ends with the line `# end,<rows> rows` (a completeness check: the organiser screen verifies it and saves the file without it); 60 s database timeout; 413 above 200,000 scans; its own limit of 6 a minute).
   Review fixes: only an organiser (`printix.events.manage`) may set `allow_typed_numbers`
   (a gate lead gets 403 with `PrintixTypedNumbersNotAllowed`); an event holds at most 20 active
   gate codes (a 409 when full; a revoked or expired code frees its place); a pairing create

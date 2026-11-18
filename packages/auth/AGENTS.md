@@ -55,9 +55,9 @@ The client-side `signOut()` and `signOutEverywhere()` functions POST to these ro
 | App | Auth model | Key server functions |
 |---|---|---|
 | `auth` | Owns sign-in | `createSession`, `writeSessionCookie`, `buildSharedSignInUrl` |
-| `admin-gms` | Deep integration | `readSessionCookie`, `exchangeSessionForAccessToken`, `authApiFetch` |
-| `wxwatch`, `hr`, `docs`, `gms` | Delegates to auth | `readSessionCookie`, `buildSharedSignInUrl` |
-| `wxproducts`, `salesbus` | No auth | — |
+| `account`, `admin`, `bookings`, `cap`, `events`, `gaa-admin`, `gmsdash` | Deep integration | `readSessionCookie`, `exchangeSessionForAccessToken`, `authApiFetch` |
+| `cms`, `docs`, `mbia`, `signal` | Delegates to auth | `startAppSignIn`, `signOutResponse` |
+| `babydoll`, `barrels`, `commit`, `elections` | No auth | — |
 
 ## Anti-patterns
 

@@ -5,7 +5,7 @@
 Accepted — 2026-11-15 by the owner (built and in use). Earlier status, kept for history: Proposed — 2026-10-23; implemented on `dev` and staging 2026-10-26 (green-only alerts, Raise to
 warning, tracked tropical systems). The 05:00 marine forecast followed on `dev` as kind
 `marine-forecast` (PRs #1029 and #1053); the separate `marine-alert` kind
-below is not built. Awaiting the owner's acceptance. Amends the bulletin-linkage practice of ADR-0013 (the link
+below is not built. Amends the bulletin-linkage practice of ADR-0013 (the link
 becomes a button that pre-fills a CAP draft). ADR-0023 (CAP approval) is unchanged.
 
 ## Context

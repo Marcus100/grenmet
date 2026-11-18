@@ -62,4 +62,12 @@ dark `px-ink` modules, so a camera reads it) and one "Done" control. A destructi
 step (void, cancel a gate code, close the event) always asks first in a sentence that
 says what happens, with a "keep it" control beside the confirm.
 
+Organiser dashboard (event page, "Live at the gates" and "After the event"): the same
+one column and surface cards. Every part is always shown; a part with nothing to count says so
+in one sentence. The arrivals chart is plain SVG bars in `green`, the busiest bar in `paper`,
+with a sentence beside it and a table behind a disclosure, so it never depends on colour or
+sight. `stop` is not used on the dashboard: a quiet gate phone is a bold sentence ("has not
+scanned for 25 minutes. Check it."), because `stop` belongs to refusal results. Times are
+Grenada time and "ago" is measured from the server's clock.
+
 Source: `apps/pwa/printix/src/styles/app.css`.

@@ -183,12 +183,12 @@ export function parseRetiredHosts(markdown) {
   return hosts;
 }
 
-/** Labels in the planned-hosts and Vercel tables. */
+/** Labels in the planned-hosts and Cloudflare Pages tables. */
 function parsePlannedHosts(markdown) {
   const labels = [];
   const tables = [
     ["### Planned host changes and new hosts", 0],
-    ["### Hosted on Vercel", 1],
+    ["### Hosted on Cloudflare Pages", 1],
   ];
   for (const [heading, column] of tables) {
     for (const cells of tableRows(markdown, heading).slice(1)) {

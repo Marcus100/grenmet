@@ -87,6 +87,8 @@ PrintixAdmin = Annotated[User, Depends(require_printix_admin)]
 #: authenticator checks, so a refused caller uses none of it.
 ORGANISER_READS_PER_MINUTE = "120/minute"
 ORGANISER_WRITES_PER_MINUTE = "30/minute"
+#: The scan-log CSV export reads every scan of an event, so it has a bucket of its own.
+ORGANISER_EXPORTS_PER_MINUTE = "6/minute"
 
 
 async def _within_organiser_limit(limit: str, bucket: str, user_id: uuid.UUID) -> None:
@@ -141,6 +143,18 @@ PrintixOrgEventReader = Annotated[
     Depends(
         require_printix_organiser(
             constants.EVENTS_MANAGE_KEY, constants.GATES_MANAGE_KEY
+        )
+    ),
+]
+
+PrintixOrgEventExporter = Annotated[
+    OrgContext,
+    Depends(
+        require_printix_organiser(
+            constants.EVENTS_MANAGE_KEY,
+            constants.GATES_MANAGE_KEY,
+            limit=ORGANISER_EXPORTS_PER_MINUTE,
+            bucket="exports",
         )
     ),
 ]

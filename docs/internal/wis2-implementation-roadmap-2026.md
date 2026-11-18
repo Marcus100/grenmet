@@ -9,7 +9,7 @@
 
 ## Purpose and authority
 
-The [WIS 2.0 Complementary Training Workshop implementation report](./reports/wis2-workshop-2-implementation-report-2026.pdf)
+The WIS 2.0 Complementary Training Workshop implementation report (kept privately by the owner)
 sets the local strategic direction: establish resilient national WIS 2.0
 publishing and consumption capabilities without assuming sustained project time
 from an understaffed operational team.
@@ -245,7 +245,7 @@ details in this evidence or in repository documents.
 
 ## Sources
 
-- [WIS 2.0 Complementary Training Workshop implementation report](./reports/wis2-workshop-2-implementation-report-2026.pdf),
+- WIS 2.0 Complementary Training Workshop implementation report (kept privately by the owner),
   prepared for GMS in June 2026.
 - [WMO guidance on transition from GTS/WIS1 to WIS2](https://community.wmo.int/site/knowledge-hub/programmes-and-initiatives/wmo-information-system-wis/guidance-transition-from-gtswis1-wis2).
 - [WMO WIS2 overview](https://community.wmo.int/site/knowledge-hub/programmes-and-initiatives/wmo-information-system-wis/wis2-overview).

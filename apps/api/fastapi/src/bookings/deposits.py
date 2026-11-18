@@ -56,7 +56,12 @@ async def confirm_paid(
         if profile.requires_confirmation
         else BookingStatus.CONFIRMED
     )
-    await public.transition(session, booking, target, note="Deposit paid")
+    await public.transition(
+        session,
+        booking,
+        target,
+        note=f"{deposit_payments.payment_noun(booking)} paid",
+    )
     mail = public.build_mail(managed)
     confirmed = target is BookingStatus.CONFIRMED
     await public.queue_customer_email(
@@ -111,12 +116,13 @@ async def expire_unpaid(
         unpaid = await deposit_payments.cancel_unpaid_deposit(session, booking)
         if not unpaid:
             continue
-        booking.cancel_reason = "Deposit not paid in time"
+        noun = deposit_payments.payment_noun(booking)
+        booking.cancel_reason = f"{noun} not paid in time"
         await public.transition(
             session,
             booking,
             BookingStatus.CANCELLED,
-            note="Deposit not paid in time; slot released",
+            note=f"{noun} not paid in time; slot released",
             now=moment,
         )
         await public.emit_webhook(

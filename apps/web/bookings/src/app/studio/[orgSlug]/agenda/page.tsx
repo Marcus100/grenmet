@@ -397,7 +397,7 @@ function BookingRow({
         </span>
       </span>
       <span className="flex flex-wrap gap-2">
-        <StatusBadge status={booking.status} />
+        <StatusBadge kind={booking.payment_kind} status={booking.status} />
         {booking.deposit_minor > 0 ? (
           <DepositBadge view={agendaDepositView(booking)} />
         ) : null}

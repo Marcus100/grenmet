@@ -230,6 +230,7 @@ async def activate_totp(
     checked first, so a locked account gets 429 even with the right code, and a right
     code clears the count."""
     from src.auth import totp
+    from src.auth.account_security import record_factor_failure
     from src.exceptions import AppException
 
     if await factor_lockout.is_locked(str(user.id)):
@@ -254,7 +255,7 @@ async def activate_totp(
     if not user.totp_secret or not totp.verify_code(
         secret=totp.decrypt_secret(user.totp_secret), code=code
     ):
-        await factor_lockout.record_failure(str(user.id))
+        await record_factor_failure(session, user)
         return False
     await factor_lockout.reset(str(user.id))
     if setup_for_privileged:

@@ -2,7 +2,7 @@
 
 **Status:** Active checklist; evidence from the repository on 2026-10-30  
 **Owner:** Barrels Grenada engineering (decisions: repository owner)  
-**Last updated:** 2026-11-14 (restore drill section only; the rest is still the 2026-10-30 evidence)
+**Last updated:** 2026-11-18 (hosting line and restore drill section only; the rest is still the 2026-10-30 evidence)
 
 Planned launch: about 10 November 2026. This table covers the non-monitoring
 launch gaps. Monitoring inputs are in [launch monitoring inputs](launch-monitoring-inputs.md);
@@ -40,7 +40,7 @@ have **no privacy notice page**:
 | --- | --- |
 | auth (Barrels ID) | Collects accounts, email addresses and sessions; open registration |
 | bookings | Collects customer names, contact details and booking history for businesses |
-| babydoll (client site, Vercel) | Booking links and contact; analytics consent applies |
+| babydoll (client site, Cloudflare Pages) | Booking links and contact; analytics consent applies |
 | cap (public alert hub) | Probably collects little; confirm whether any personal data or analytics are used |
 | elections | Public site with a register page; confirm what, if anything, it collects |
 | docs | Has a feedback route; confirm what it stores |

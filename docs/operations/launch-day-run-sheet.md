@@ -2,7 +2,7 @@
 
 **Status:** Draft for the owner (issue #927). Names, numbers and times are filled in privately  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-02
+**Last updated:** 2026-11-18
 
 One page for the production release. Roles only: the owner keeps real names and
 phone numbers in the private contact sheet described in the
@@ -15,7 +15,7 @@ publish a release without the owner's explicit go.
 
 | Check | Where | Done |
 | --- | --- | --- |
-| Restore drill has passed on real backups, time recorded | [restore drill](restore-drill.md), [launch checklist](launch-checklist.md#restore-drill) | open (not yet run) |
+| Restore drill has passed on real backups, time recorded | [restore drill](restore-drill.md), [launch checklist](launch-checklist.md#restore-drill) | done: passed on 4 and 9 Nov 2026 |
 | Build-once pipeline merged and its first staging deploy verified (`/runtime-env.js`, Sentry, Turnstile) | [release runbook](release-runbook.md#build-once-promote-by-digest) | lands with PR #1026, #1020, #1025 |
 | GitHub environment `build` exists with `SENTRY_AUTH_TOKEN`, `SENTRY_DSN_PRODUCTION` | release runbook | owner |
 | Staging deployed the exact tree that will be released | `gh run list --workflow=pipeline-staging.yml --limit 1` | |

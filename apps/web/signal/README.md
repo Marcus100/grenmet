@@ -8,7 +8,7 @@ green and gold. Desktop columns become a single reading sequence on phones.
 
 The owner requested the reader first and the dedicated Signal CMS last.
 This version uses the existing seven MDX documents as clearly labelled design
-samples. All pages are excluded from indexing. No new reporting, email
+samples. Pages are indexed by search engines (owner decision, 16 Nov 2026); only the subscription status page is `noindex`. No new reporting, email
 collection, CMS, credentials, database or deployment is included.
 
 ```bash
@@ -45,7 +45,7 @@ Sixteen attributed summaries and a 3 October 2026 briefing now drive the homepag
 current topics, guides and local search. The October collection replaces the
 weather collection on the homepage; existing URLs and June fixtures remain.
 `reviewStatus: editorial-preview` distinguishes researched drafts awaiting human
-review from `sample` fixtures. `draft: false` only enables display in this noindex
+review from `sample` fixtures. `draft: false` only enables display in this
 preview; it is not editorial approval. Attribution names the original source,
 not an invented author of a Signal article. Images retain their archive labels
 and licences in `public/images/CREDITS.md`.

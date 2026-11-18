@@ -10,7 +10,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { OrganiserApp } from "@/organiser/organiser-app";
 import { SESSION_STORAGE_KEY } from "@/organiser/session";
-import { SUMMARY } from "@/test/fixtures";
+import { ANALYTICS, SCANS, SUMMARY } from "@/test/fixtures";
 import {
   countCalls,
   json,
@@ -40,6 +40,8 @@ const ORGS = "GET /api/v1/printix/me/organisations";
 const EVENTS = "GET /api/v1/printix/org/events";
 const EVENT_ID = SUMMARY.event.id;
 const SUMMARY_ROUTE = `GET /api/v1/printix/org/events/${EVENT_ID}/summary`;
+const ANALYTICS_ROUTE = `GET /api/v1/printix/org/events/${EVENT_ID}/analytics`;
+const SCANS_ROUTE = `GET /api/v1/printix/org/events/${EVENT_ID}/scans`;
 
 const EMAIL = "organiser@example.test";
 const SESSION_TOKEN = "u".repeat(43);
@@ -81,6 +83,8 @@ function signInRoutes(overrides: Routes = {}): Routes {
     [ORGS]: () => json(200, [HARBOUR, NORTHERN]),
     [EVENTS]: () => json(200, ONE_EVENT_PAGE),
     [SUMMARY_ROUTE]: () => json(200, SUMMARY),
+    [ANALYTICS_ROUTE]: () => json(200, ANALYTICS),
+    [SCANS_ROUTE]: () => json(200, SCANS),
     [REFRESH]: () =>
       json(
         200,

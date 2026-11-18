@@ -2,7 +2,7 @@
 
 **Owner:** Barrels Grenada engineering  
 **Status:** Active reference  
-**Last updated:** 2026-10-06
+**Last updated:** 2026-11-18
 
 **Last reviewed:** 2026-10-05
 
@@ -149,7 +149,7 @@ Use the [release runbook](release-runbook.md). Merge/deployment requires explici
 owner authorisation. First verify staging login, Events, email, uploads and error
 reporting, plus absence of browser analytics. Then follow the documented production
 promotion process and verify the seven public GA4 destinations after consent.
-Barrels and Elections have independent Vercel deployment/configuration surfaces;
+Barrels and Elections have independent Cloudflare Pages deployment/configuration surfaces;
 the core Docker workflow does not certify them.
 
 Payments, bot challenges, messaging providers and additional data APIs remain

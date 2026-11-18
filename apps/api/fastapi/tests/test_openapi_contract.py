@@ -285,6 +285,8 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "download_payslip_pdf",
         "export_bank_csv",
         "export_gl_csv",
+        # Printix organiser scan list: a streamed CSV download (printed numbers only).
+        "export_org_scans_endpoint",
         # A booking's iCalendar file (text/calendar).
         "get_public_booking_ics",
     }

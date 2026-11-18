@@ -2,7 +2,7 @@
 
 ## Status
 
-Approval gate: [ADR-0013](0013-cap-alert-self-publish-and-bulletin-linkage.md)
+Accepted; approval gate superseded by ADR-0023. Approval gate: [ADR-0013](0013-cap-alert-self-publish-and-bulletin-linkage.md)
 dropped the mandatory Submitted/Approved gate, and
 [ADR-0023](0023-cap-approval-before-publish.md) restored it on 2026-10-18: a
 different person must approve a CAP alert before it is published. ADR-0023 is

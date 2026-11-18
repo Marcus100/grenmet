@@ -3,8 +3,8 @@
 **Owner:** a Barrels–Printix collaboration and Barrels Grenada's main ticket app
 (owner, 16 Nov 2026). Barrels Grenada builds and runs the software; Printix keeps its
 own name, with Barrels shown. Never add GAA or GMS to anything a gate or promoter
-sees. Organiser access for Printix staff (org zone, two role bundles) is the 16 Nov
-2026 amendment of ADR-0060, not built yet. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
+sees. Organiser access for Printix staff (org zone, two role bundles) is the
+amendment of ADR-0060, built. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
 
 - **Tables** live in the `printix` schema of the main database: `event`, `ticket`,
   `pairing`, `scan_log` (migration `2026-11-14_printix_registry.py`, revision
@@ -12,7 +12,7 @@ sees. Organiser access for Printix staff (org zone, two role bundles) is the 16 
   `Ticket` and `Event` already exist elsewhere on the shared declarative base.
 - **No personal data.** A ticket is a printed number and a barcode value. `pairing`
   keeps only `sha256(secret)`; `created_by` is an auth user id with no foreign key.
-- **Two route zones (ADR-0025):**
+- **Four route zones (ADR-0025), the first two here, `org` and `me` under "Organiser access":**
   - `/printix/admin/*` (zone `admin`): superuser with an enrolled authenticator and
     an MFA session (`PrintixAdmin` = `MfaAdminUser` + `printix.manage`).
   - `/printix/public/*` (zone `public`): no account. The pairing secret is sent as
@@ -160,7 +160,7 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   whose outcome is not `admitted`.
 - Tests: `tests/printix/test_offline.py`.
 
-## Organiser access (ADR-0060 organiser amendment, slice 2: read-only)
+## Organiser access (ADR-0060 organiser amendment)
 
 - **Ownership:** `event.organisation_id` (nullable FK to `org.organisation.id`, migration
   `printixorganisation20261116`). Existing and admin-made events stay NULL and are
@@ -200,10 +200,6 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   `printix-member` holder follows the privileged enrolment rules (emailed code for the first
   authenticator; a new enrolment ends their other sessions). Tests:
   `tests/auth/test_app_session_safeguards.py`. Details: `docs/api/app-session-safeguards.md`.
-- **Not in this slice:** writes (create, import, void, close, pairings), and any way for an app-scoped `printix` session to learn its
-  organisation id: `GET /organisations/mine` is account-only (`AccountUser`), so the
-  scanner must be given the organisation id another way until a route accepts the app
-  session.
 - **Who can use the organiser routes (ADR-0044).** An organisation owner or admin holds every
   organisation key of every entitled product, so both Printix keys, implicitly. Anyone made
   owner or admin of an entitled organisation who also holds the `printix-member` app role can
@@ -219,9 +215,7 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
 - **Deleting an organisation.** The event foreign key has no `ON DELETE` rule, so an
   organisation that owns events cannot be deleted until its events are moved or cleared
   (`POST /admin/events/{id}/organisation` with null).
-- **Rate limit (planned).** A per-user rate limit on the organiser routes is planned with the
-  write slices; the read routes have none yet.
-- **Writes and gate QR codes (slices 4 and 5, `org_router.py`).** Events: create, close,
+- **Writes and gate QR codes (`org_router.py`).** Events: create, close,
   import, list tickets, void and restore need `printix.events.manage`. Gate QR codes (a
   pairing is the QR code; the secret is shown once) need `printix.gates.manage`, so a gate
   lead can make and cancel them but not write events. Every route goes through
@@ -265,13 +259,48 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
      is a separate step: the organisation invitation does not grant app access;
   5. the person adds an authenticator on account.barrels.gd (required for every organiser route);
   6. they sign in at scan.barrels.gd (the `printix` app, email code).
-  Steps 3 and 4 are independent; neither implies the other. Without step 4, sign-in is
-  refused with "This account can't sign in to this app." (403). Automating step 4 from the
-  invitation is a later change, not built.
+  Steps 3 and 4 are one action now (`onboarding.py`, #1554): `PUT
+  /admin/organisations/{id}/members/{membership_id}/access` and `POST
+  /admin/organisations/{id}/members` (admin zone, `PrintixAdmin`, reason, audited) set the
+  bundle and give or remove `printix-member` in one transaction. The grant has `granted_by` NULL
+  (a non-member superuser's grant would otherwise count as inactive, `grants._granter_is_active`);
+  `printix-member` goes only when no other Printix access remains. An email with no account is
+  404 (no new invitation flow). Screen: admin `organisations/[id]` "Printix access". Guide:
+  `docs/operations/printix-onboarding.md`. Tests: `tests/printix/test_onboarding.py`.
+  **Sign-in role release (#1564, `app_role.py`):** a leaf module (models only) shared by this
+  domain and `organisations`, so neither imports the other's services. When a change ended a
+  person's last Printix access (owner/admin or live bundle in an entitled organisation), the
+  role goes and their `printix` sessions end: `members.apply_removal` (also the Barrels admin
+  removal), `members.apply_role_change` on demotion, `grants.revoke_grant_detailed` (org-zone
+  revoke and its cascade) and `service.set_app_enabled(printix, off)`. Each takes
+  `holders_of(org)` after the roster lock and calls `release_lost` at the end. A role given by
+  hand to someone who held no access is left alone. Lapsed (expired) bundles are not swept.
+  The members list uses one batch sign-in check (`auth.eligibility.eligible_user_ids_for_app`).
+  Tests: `tests/printix/test_app_role_release.py`.
 - **Tests:** `tests/printix/test_org_routes.py`.
+
+## Organiser dashboard (#1555, `analytics.py`)
+
+- **Routes (zone `org`, either Printix key, the reader limit; `Cache-Control: no-store`):**
+  `GET /org/events/{id}/analytics` (arrivals per five minutes, entry rate over ten minutes, busiest
+  five and fifteen minutes, per gate and per phone, refusals by reason, offline, totals, no-show
+  rate), `GET /org/events/{id}/scans` (newest first, `size` at most 100) and
+  `GET /org/events/{id}/scans/export` (CSV stream, its own `exports` bucket of 6 a minute).
+  Another organisation's event is 404 before any query runs.
+  The export has a 60 s statement timeout, refuses events over 200,000 scans (413) and ends with
+  `# end,<rows> rows`; the screen treats a file without it as cut short and saves the file without that line (plain CSV). The scans page reads each
+  gate phone's newest rows from `scan_log_pairing_id_happened_at_idx` (migration
+  `printixscanlogorder20261118`) through a lateral subquery.
+- **Rules:** aggregates are SQL (four queries for analytics, one pass for the CSV with `yield_per`).
+  Buckets use `date_bin` on the Grenada clock; a gate phone's last scan is the phone's own time
+  for an offline scan. Arrivals count `ticket.admitted_at` (the truth); gates and refusals count
+  `scan_log`. The arrivals list is zero-filled and cut to the latest 288 periods. A scan shows
+  its ticket's `printed_number`, never `scan_log.value`: do not add that column to any
+  response or CSV. CSV cells starting (after any spaces) `=`, `+`, `-`, `@`, tab or return get a leading `'`.
+  Typed-off scans are never logged, so they cannot be counted; "unknown" also covers another
+  event's barcode. Tests: `tests/printix/test_org_analytics.py`.
 
 ## Not built here
 
-Scanner app changes (`apps/pwa/printix`, offline mode follows in its own change), ticket types, re-entry,
-the Barrels Events connection, and organiser writes (the next slices). The CORS allow-list for the
+Ticket types, re-entry and the Barrels Events connection. The CORS allow-list for the
 scanner origin is set in the deployment environment, not in this domain.

@@ -149,3 +149,14 @@ class PrintixScanLog(Base):
     #: The phone's reference for a queued offline admission. A retried sync with the
     #: same reference answers from this row instead of scanning again.
     client_ref: Mapped[uuid.UUID | None]
+
+
+#: "This phone's scans, newest first" by when they happened at the gate (the phone's
+#: own time for an offline scan). One ascending index serves the newest-first reads
+#: by scanning backwards. Declared here, after the class, because it names columns.
+sa.Index(
+    "scan_log_pairing_id_happened_at_idx",
+    PrintixScanLog.pairing_id,
+    sa.func.coalesce(PrintixScanLog.offline_scanned_at, PrintixScanLog.scanned_at),
+    PrintixScanLog.id,
+)

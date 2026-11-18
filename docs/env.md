@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-18
+**Last updated:** 2026-11-18
 
 This document is the human-readable reference for supported environment variables
 in the Grenmet monorepo: what each variable does, where it is supplied, and which
@@ -42,7 +42,7 @@ and eight public settings are read when the app runs, not when the image is buil
   change reaches browsers within a minute of the redeploy.
 - **Proxies.** An app whose proxy guards every path (admin, bookings, gmsdash,
   gaa-admin) must let `/runtime-env.js` through.
-- **Exceptions.** Elections (Vercel) is not part of the shared images and keeps
+- **Exceptions.** Elections (Cloudflare Pages) is not part of the shared images and keeps
   build-time settings. PostHog keys (`NEXT_PUBLIC_POSTHOG_*`) are still build-time.
   `scripts/guardrails/runtime-env.test.mjs` lists the apps that must serve the
   script and the one exception.
@@ -221,6 +221,9 @@ the API image and the local source mount contain the same migration assets.
 | `CAP_DELIVERY_FAILURE_RECIPIENTS` | Worker. Comma-separated GMS addresses emailed (through the notifications outbox) when a warning delivery job (email, push, webhooks, PDF and so on) has failed on every attempt. One email per failed job and address, deduplicated by job id; it names the warning headline, channel, attempts and error class only. Empty (default): no email; the worker still logs an error that Sentry captures. |
 | `TRUSTED_WEB_SECRET` | Shared secret (at least 32 characters, `openssl rand -base64 32`) that Next.js web hosts send with `X-Visitor-IP` and `X-Visitor-Secret` so rate limits (`src/rate_limit.py`) key on the real visitor, not the web server. Empty or shorter than 32 characters (a startup warning is logged, never the value) ignores both headers and keys on the connecting address, as does a wrong or missing secret, a non-ASCII value, and every `/auth` route, so a spoofed header changes nothing. IPv6 visitors key on their /64; IPv4-mapped IPv6 maps to IPv4. Set the same value for the API, `apps/web/bookings`, `apps/web/events`, `apps/web/gms` and `apps/web/mbia` (mbia: the contact form; gms: the weather site's email and browser alert sign-ups; without it every visitor shares one bucket of 5 email and 10 push sign-ups a minute); a web-side value under 32 characters fails the bookings, Babydoll, Events, gms and mbia env validation. The owner sets it on web-gms. Deploys (`render-env.py`, `deploy.yml`, `docker-compose.deploy.yml`) require it for staging and production, at least 32 characters, different from `SECRET_KEY` and every `*_SSO_CLIENT_SECRET`, and pass it to `api`, `web-events`, `web-gms`, `web-mbia` and `web-bookings` only. Events forwards the pair on its server-side API calls (`apps/web/events/src/lib/api.ts`) but never on `/auth/email-code/*`, which the API ignores it on anyway. |
 | `VISITOR_IP_PROXY_HOPS` | The API, `apps/web/bookings`, `apps/web/events`, `apps/web/gms` and `apps/web/mbia` (whole number 1 to 5, anything else fails startup; default 1). Number of reverse proxies in front of the server that append to `x-forwarded-for` (1: the right-most entry, as written by a Traefik that does not trust its peer). Behind Cloudflare and a Traefik that trusts it (`trustedIPs`), 2. The visitor is counted from the right; leading entries are visitor-controlled and ignored, and `x-real-ip` is not used. On the API it sets the address that rate limits fall back to (`src/rate_limit.py` `connecting_address`; at 1 that is uvicorn's address, unchanged). Deploys set it from `CLOUDFLARE_PROXY_ENABLED` (`render-env.py`) for `api`, `web-events`, `web-gms`, `web-mbia` and `web-bookings`; Babydoll's is set on its Vercel project. |
+| `DEFAULT_RATE_LIMIT_PER_MINUTE` | The API (whole number, default 1000; 0 turns it off). Requests a minute per client address, shared across every route that has no `@limiter.limit` of its own (`src/rate_limit.py` `DefaultRateLimitMiddleware`); 1000 leaves room for a venue where many people share one Wi-Fi address. Never counted: the health and readiness probes, the Stripe, Resend and payment-provider webhooks and the CMS hook (matched by route template), a direct call from our own containers on the compose network (no forwarding header), and a trusted web host's call that names no visitor. Unmatched paths and 405s are counted. Redis down: per-process counting, then allowed (fail open). |
+| `DEFAULT_RATE_LIMIT_MODE` | The API (`log`, `enforce` or `off`; default `log`). `log` counts and logs `default rate limit would apply bucket_kind=... route=... suppressed=N` (at most once a minute per route and bucket kind; `N` counts the lines skipped) but never answers 429; `enforce` answers 429; `off` disables it. Read the logs, then switch to `enforce`. |
+| `INTERNAL_CALLER_NETWORK` | The API (CIDR, default `172.31.250.0/24`). The compose `grenmet` network; keep it equal to the subnet in `infra/docker/docker-compose.deploy.yml` and uvicorn's `--forwarded-allow-ips`. |
 | `FLIGHTS_OPENSKY_ENABLED` | Feature flag, default `false`. When `true` the worker polls OpenSky every 30 minutes and `GET /api/v1/flights/board` serves the Redis-cached rows. Research use only: commercial use needs a written OpenSky licence (owner decision pending). Needs `REDIS_URL` |
 | `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | Optional OpenSky OAuth2 client credentials (free account). Unset: anonymous access with a very small daily quota. Set in the environment secret store, never in a committed file |
 | `COPERNICUSMARINE_SERVICE_USERNAME`, `COPERNICUSMARINE_SERVICE_PASSWORD` | Copernicus Marine free account (secrets). Both set enables the worker fetch (every 6 h) and `GET /api/v1/environment/marine`; unset: `available: false`, never sample data |
@@ -234,7 +237,7 @@ the API image and the local source mount contain the same migration assets.
 | `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY` | GitHub environment **variable** (staging and production, optional); `web-auth` only, read at run time. Its Cloudflare widget must list the auth host (`auth.barrels.gd`, and the staging auth host) |
 | `EMAIL_HASH_PEPPER` | GitHub environment **secret** (staging and production); API, worker and prestart containers. Must be set before deploying the release that hashes email addresses |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (mbia, signal, docs, gms) | GitHub environment **variable**; `deploy.yml` passes it to the web containers, which read it at run time (see "Public settings at run time" below). Public by design. Changing it needs a redeploy, not a rebuild |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (barrels.gd) | Vercel project environment variable; `apps/web/barrels/vercel.json` passes it to `build.mjs` as an argument, which writes `dist/turnstile-config.mjs` |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (barrels.gd) | Cloudflare Pages build variable; the Pages build command passes it to `build.mjs` as an argument, which writes `dist/turnstile-config.mjs` |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd","gms-alerts":"https://weather.barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173","gms-alerts":"http://localhost:3003"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
 | `WEBPUSH_VAPID_PUBLIC_KEY`, `WEBPUSH_VAPID_PRIVATE_KEY`, `WEBPUSH_CONTACT` | Browser push for published CAP alerts (GMS Get alerts page). Generate the pair with `python -m src.push.cli generate-vapid` (prints only; never writes a file). `WEBPUSH_CONTACT` is a `mailto:` or `https:` URL sent to push services. Push is off, and `GET /api/v1/push/vapid-public-key` answers `enabled: false`, until all three are set. Also `WEBPUSH_MAX_FAILURES` (default 10): failures before a subscription is dropped |
@@ -291,7 +294,7 @@ FastAPI settings but are not application settings themselves.
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Optional PostHog project key |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog ingest host |
-| `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY` | Optional Cloudflare Turnstile site key for the emailed-code start step (sign-in and sign-up). Empty: no widget and no token (fine while the API has no `AUTH_TURNSTILE_SECRET_KEY`). Set: "Email me a code" and "Send a new code" wait for the check and send a fresh token each time. The password sign-in is unchanged. The auth app sends no Content-Security-Policy header, so no CSP change is needed |
+| `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY` | Optional Cloudflare Turnstile site key for the emailed-code start step (sign-in and sign-up). Empty: no widget and no token (fine while the API has no `AUTH_TURNSTILE_SECRET_KEY`). Set: "Email me a code" and "Send a new code" wait for the check and send a fresh token each time. The password sign-in is unchanged. The auth app sends a Report-Only Content-Security-Policy that allows Turnstile, so no CSP change is needed |
 | `BARRELS_ADMIN_APP_URL` | Optional Barrels staff console URL for the account-page app links and the signed-out "sign in again" link |
 | `ADMIN_APP_URL` | Optional GAA Admin (GMS/GAA portal, `gms.*`) URL for the account-page app links and the "Edit in GAA Admin" profile button |
 | `MBIA_APP_URL` | Optional airport website URL for the account-page app links |
@@ -344,7 +347,7 @@ weather.gd go-live plan is historical context, not an active allowlist recipe.
 Each site signs in with the Barrels account through auth.barrels.gd (ADR-0017)
 and keeps its own host-only session cookie. "Sign in" appears only when the
 site's secret is set; the same value must be set for the API. Elections
-(Vercel) has no sign-in and is not listed here.
+(Cloudflare Pages) has no sign-in and is not listed here.
 
 | Site | Registry key | Secret | Cookie (default) |
 |---|---|---|---|

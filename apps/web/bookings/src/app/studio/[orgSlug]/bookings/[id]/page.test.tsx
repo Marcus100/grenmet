@@ -75,6 +75,7 @@ function detail(
     timezone: "America/Grenada",
     price_minor: 15_000,
     deposit_minor: 2500,
+    payment_kind: "deposit",
     currency: "XCD",
     notes: "Allergic to lavender",
     cancel_reason: null,
@@ -180,6 +181,24 @@ describe("studio booking detail", () => {
     expect(
       screen.getByText(label, { selector: "[data-slot=badge]" })
     ).toBeInTheDocument();
+  });
+
+  it("says Payment instead of Deposit when the booking asked for the full price", async () => {
+    vi.mocked(getBooking).mockResolvedValue(
+      detail({
+        payment_kind: "payment",
+        deposit_captured_minor: 2500,
+        deposit_refunded_minor: 2500,
+      })
+    );
+    render(await StudioBookingPage(props()));
+    expect(
+      screen.getByText("Payment refunded", { selector: "[data-slot=badge]" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Payment asked")).toBeInTheDocument();
+    expect(screen.getByText("Payment received")).toBeInTheDocument();
+    expect(screen.queryByText("Deposit asked")).not.toBeInTheDocument();
+    expect(screen.queryByText("Deposit refunded")).not.toBeInTheDocument();
   });
 
   it("is a 404 for an unknown booking", async () => {

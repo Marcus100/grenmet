@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-18
 
 > Current releases use `docker-compose.deploy.yml` and the canonical domain table
 > at the end of this guide. The per-environment `docker-compose.prod.yml` and
@@ -359,8 +359,8 @@ Verify login, return URLs, and any data-backed pages you changed.
 
 1. Open a PR from `staging` to `main`; wait for checks and merge on GitHub.
 2. Go to **Releases → Draft a new release**.
-3. Choose a new, increasing `vX.Y.Z` tag (e.g. `v1.0.9`; v1.0.8 was published on 2026-11-14) targeting `main` and publish the release.
-4. Watch **Production Pipeline** build all images at that tag and deploy them.
+3. Choose a new, increasing `vX.Y.Z` tag (the latest is `v1.4.0`, published on 2026-11-17) targeting `main` and publish the release.
+4. Watch **Production Pipeline** promote the images staging built and tested for that tree and deploy them.
 5. Verify the production domains and API readiness as above.
 
 The production runner needs label `production`, its own GitHub environment
@@ -648,10 +648,10 @@ hurricane/spice hosts; no legacy redirects are installed.
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
 Cloudflare wildcard A records point `*.barrels.gd` to the production droplet and
-`*.staging.barrels.gd` to the staging droplet (IPs: see the DigitalOcean dashboard). The DNS configuration supplied on 2026-09-06 uses DNS-only mode;
-Traefik obtains host certificates through the existing ACME challenge. Moving the
-droplet hostnames behind Cloudflare's proxy is one planned change (issue #859):
-see the [Cloudflare proxy runbook](operations/cloudflare-proxy.md).
+`*.staging.barrels.gd` to the staging droplet (IPs: see the DigitalOcean dashboard). Staging has been behind the Cloudflare proxy since 1 Nov 2026 and production since 17 Nov 2026
+(`CLOUDFLARE_PROXY_ENABLED=true`); the origin firewall step is still to do.
+Traefik obtains host certificates through the existing ACME challenge. See the
+[Cloudflare proxy runbook](operations/cloudflare-proxy.md).
 
 Roll out staging first and verify every app health endpoint, login return URLs,
 and API CORS. Promote through main and a new release after staging succeeds.

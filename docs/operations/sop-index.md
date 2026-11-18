@@ -2,7 +2,7 @@
 
 **Status:** Active reference — individual SOPs in draft  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-09-10
+**Last updated:** 2026-11-18
 
 | Field | Detail |
 |---|---|
@@ -177,7 +177,7 @@ How often this SOP is reviewed and by whom.
 Defines the standard procedure for issuing any public weather warning through the GMS digital system.
 
 ### 2. Scope
-All Advisory, Watch, Warning, and Extreme level products issued by GMS. Applies to all hazard types. Does not cover aviation aerodrome warnings (see SOP-AV-005).
+All CAP warnings issued by GMS (products Outlook, Watch and Warning, plus the marine Small Craft Advisory; colours green, yellow, orange and red, `cap/levels.py`). GMS alerts are green only and yellow or above is a CAP warning (ADR-0051). Applies to all hazard types. Does not cover aviation aerodrome warnings (see SOP-AV-005).
 
 ### 3. Roles
 - **Duty Forecaster:** Drafts the warning using the CAP alert tool in gaa-admin.

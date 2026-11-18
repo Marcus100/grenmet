@@ -446,40 +446,12 @@
     "pageTitle": "Appendix A: List of Emergency Personnel",
     "sections": [
       {
-        "id": "meteorologists-and-forecasters",
-        "title": "Meteorologists and forecasters"
+        "id": "who-is-on-the-list",
+        "title": "Who is on the list"
       },
       {
-        "id": "duty-managers",
-        "title": "Duty managers"
-      },
-      {
-        "id": "management",
-        "title": "Management"
-      },
-      {
-        "id": "maintenance-contacts",
-        "title": "Maintenance contacts"
-      },
-      {
-        "id": "stores",
-        "title": "Stores"
-      },
-      {
-        "id": "ais",
-        "title": "AIS"
-      },
-      {
-        "id": "carriacou",
-        "title": "Carriacou"
-      },
-      {
-        "id": "security-supervisors",
-        "title": "Security supervisors"
-      },
-      {
-        "id": "notes",
-        "title": "Notes"
+        "id": "keeping-the-list-current",
+        "title": "Keeping the list current"
       }
     ]
   },
