@@ -85,7 +85,8 @@ def weather_databases(test_database: None) -> Iterator[None]:
     with pytest.MonkeyPatch.context() as patch:
         try:
             for domain_settings, database, ini in WEATHER_DOMAINS:
-                name = f"fuzz_{os.environ['VERIFY_RUN_ID']}_{ini.parent.name}"
+                worker = os.environ.get("PYTEST_XDIST_WORKER", "main")
+                name = f"fuzz_{os.environ['VERIFY_RUN_ID']}_{worker}_{ini.parent.name}"
                 with psycopg.connect(admin_dsn, autocommit=True) as admin:
                     admin.execute(
                         psycopg.sql.SQL("CREATE DATABASE {}").format(
