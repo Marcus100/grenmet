@@ -26,7 +26,7 @@ from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.exceptions import AppException
 from src.notifications import service as notification_service
-from src.organisations import members, service, transitions
+from src.organisations import grants, members, service, transitions
 from src.organisations.exceptions import AlreadyMemberError, OrganisationNotFoundError
 from src.organisations.models import (
     Invitation,
@@ -127,6 +127,8 @@ async def add(
 ) -> tuple[Membership, User]:
     superuser_mfa.require_superuser_mfa(actor)
     await _organisation(session, organisation_id)
+    # Roster lock first, then the membership row (#1523).
+    await grants.lock_roster(session, organisation_id)
     user = await _target(session, user_id=user_id, email=email)
     audit_service.set_actor(session, actor.id)
     existing = await session.scalar(

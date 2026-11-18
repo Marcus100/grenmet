@@ -21,9 +21,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import service as auth_service
 from src.auth.models import User
 from src.database import async_session_factory
-from src.organisations import grants, service
+from src.organisations import admin_members, grants, members, service
 from src.organisations.dependencies import OrgContext
 from src.organisations.models import (
+    Invitation,
     Membership,
     MembershipGrant,
     MembershipRole,
@@ -301,3 +302,165 @@ async def test_roster_locks_come_before_access_material_and_role_links(
 
     assert events.index(f"lock:{org.id}") < events.index("access_material")
     assert events.index(f"lock:{org.id}") < events.index("links")
+
+
+# Issue #1523: every path that creates or locks a membership row takes the roster
+# lock first, and deletion reads its affected set again once the locks are held.
+
+
+async def _invitation_for(db: AsyncSession, org, email: str, token: str):
+    from datetime import timedelta
+
+    from src.organisations.members import new_invitation_id
+    from src.organisations.members import hash_token
+    from src.utils.datetime import utc_now
+
+    db.add(
+        Invitation(
+            id=new_invitation_id(),
+            organisation_id=org.id,
+            email=email,
+            role=MembershipRole.MEMBER.value,
+            token_hash=hash_token(token),
+            expires_at=utc_now() + timedelta(days=1),
+        )
+    )
+    await db.commit()
+
+
+async def test_accepting_an_invitation_waits_for_the_roster_lock(
+    db_async: AsyncSession,
+):
+    owner = await make_user(db_async)
+    joiner = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Accept lock order",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("events",),
+    )
+    await _invitation_for(db_async, org, joiner.email.lower(), "token-1523-accept")
+    org_id, joiner_id = org.id, joiner.id
+
+    async def accept() -> None:
+        async with async_session_factory() as session:
+            user = await session.get(User, joiner_id)
+            assert user is not None
+            await members.accept_invitation(session, user, "token-1523-accept")
+            await session.commit()
+
+    holder = async_session_factory()
+    task = None
+    try:
+        await grants.lock_roster(holder, org_id)
+        task = asyncio.create_task(accept())
+        await asyncio.sleep(0.3)
+        assert not task.done(), "accepting must wait for the roster lock"
+        await holder.commit()
+    finally:
+        await holder.close()
+    await asyncio.wait_for(task, timeout=DELETE_TIMEOUT_SECONDS)
+
+    row = await _membership(db_async, org_id, joiner_id)
+    assert row.status == MembershipStatus.ACTIVE.value
+
+
+async def test_admin_add_waits_for_the_roster_lock(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(
+        admin_members.superuser_mfa, "require_superuser_mfa", lambda _u: None
+    )
+    owner = await make_user(db_async)
+    admin = await make_user(db_async, superuser=True)
+    added = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Admin add lock order",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("events",),
+    )
+    org_id, admin_id, added_id = org.id, admin.id, added.id
+
+    async def add() -> None:
+        async with async_session_factory() as session:
+            actor = await session.get(User, admin_id)
+            assert actor is not None
+            await admin_members.add(
+                session,
+                actor,
+                org_id,
+                user_id=added_id,
+                email=None,
+                role=MembershipRole.MEMBER,
+                reason="lock order",
+            )
+            await session.commit()
+
+    holder = async_session_factory()
+    task = None
+    try:
+        await grants.lock_roster(holder, org_id)
+        task = asyncio.create_task(add())
+        await asyncio.sleep(0.3)
+        assert not task.done(), "the add must wait for the roster lock"
+        await holder.commit()
+    finally:
+        await holder.close()
+    await asyncio.wait_for(task, timeout=DELETE_TIMEOUT_SECONDS)
+
+    row = await _membership(db_async, org_id, added_id)
+    assert row.status == MembershipStatus.ACTIVE.value
+
+
+async def test_deletion_cleans_up_a_membership_created_just_before_the_locks(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+):
+    """The affected set is read, then a membership appears (another session commits it),
+    then the locks are taken: the organisation is found by the re-read, locked, and the
+    membership ends with the account."""
+    owner = await make_user(db_async)
+    leaving = await make_user(db_async)
+    org_a = await make_org(
+        db_async,
+        "Late membership A",
+        members=((owner, MembershipRole.OWNER), (leaving, MembershipRole.MEMBER)),
+        apps=("events",),
+    )
+    org_b = await make_org(
+        db_async,
+        "Late membership B",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("events",),
+    )
+    leaving_id, org_a_id, org_b_id = leaving.id, org_a.id, org_b.id
+
+    real_lock = grants.lock_roster
+    locked: list[str] = []
+    joined = False
+
+    async def spy_lock(session: AsyncSession, organisation_id: str) -> None:
+        nonlocal joined
+        if not joined:
+            joined = True  # a concurrent accept commits before the first lock is held
+            async with async_session_factory() as other:
+                await service.add_member(
+                    other,
+                    organisation_id=org_b_id,
+                    user_id=leaving_id,
+                    role=MembershipRole.MEMBER,
+                )
+                await other.commit()
+        locked.append(organisation_id)
+        await real_lock(session, organisation_id)
+
+    monkeypatch.setattr(grants, "lock_roster", spy_lock)
+    user = await db_async.get(User, leaving_id)
+    assert user is not None
+    await auth_service.delete_user(session=db_async, user=user)
+    await db_async.commit()
+
+    assert set(locked) == {org_a_id, org_b_id}
+    for org_id in (org_a_id, org_b_id):
+        row = await _membership(db_async, org_id, leaving_id)
+        assert row.status == MembershipStatus.REMOVED.value

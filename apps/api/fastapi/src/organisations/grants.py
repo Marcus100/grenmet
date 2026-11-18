@@ -222,12 +222,9 @@ async def lock_roster(session: AsyncSession, organisation_id: str) -> None:
     )
 
 
-async def lock_affected_rosters(session: AsyncSession, user_id: uuid.UUID) -> list[str]:
-    """Lock the roster of every organisation an account is in, or has issued a live
-    grant in, in organisation-id order (#1501). Account deletion calls this before it
-    changes the account's memberships or grants, so its locks never run in the reverse
-    order of an admin action or another deletion in the same organisations. Returns the
-    organisation ids locked. The caller owns the transaction."""
+async def _affected_organisation_ids(
+    session: AsyncSession, user_id: uuid.UUID
+) -> set[str]:
     member_orgs = await session.scalars(
         select(Membership.organisation_id).where(Membership.user_id == user_id)
     )
@@ -237,10 +234,28 @@ async def lock_affected_rosters(session: AsyncSession, user_id: uuid.UUID) -> li
             *_live(utc_now()),
         )
     )
-    organisation_ids = sorted(set(member_orgs.all()) | set(granted_orgs.all()))
-    for organisation_id in organisation_ids:
-        await lock_roster(session, organisation_id)
-    return organisation_ids
+    return set(member_orgs.all()) | set(granted_orgs.all())
+
+
+async def lock_affected_rosters(session: AsyncSession, user_id: uuid.UUID) -> list[str]:
+    """Lock the roster of every organisation an account is in, or has issued a live
+    grant in, in organisation-id order (#1501). Account deletion calls this before it
+    changes the account's memberships or grants, so its locks never run in the reverse
+    order of an admin action or another deletion in the same organisations. The set is
+    read before the locks are held, so it is read again after each round and any
+    organisation that appeared meanwhile (an invitation accepted or a member added just
+    now) is locked too, until the set is stable (#1523). Newly found rosters are locked
+    in id order among themselves; every path that creates a membership takes the roster
+    lock first, so the late locks cannot deadlock. Returns the organisation ids locked,
+    in id order. The caller owns the transaction."""
+    locked: set[str] = set()
+    while True:
+        pending = sorted(await _affected_organisation_ids(session, user_id) - locked)
+        if not pending:
+            return sorted(locked)
+        for organisation_id in pending:
+            await lock_roster(session, organisation_id)
+        locked.update(pending)
 
 
 async def grant_role(
