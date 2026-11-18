@@ -2,7 +2,9 @@
 # The camera is allowed for this site only; the barcode reader needs
 # WebAssembly. The CSP is enforced: connect-src names the production API
 # origin (docs/deployment.md, https://api.barrels.gd) and nothing else.
-# Changing the API origin means changing this line and VITE_API_URL together.
+# The build rewrites that one origin in out/_headers from VITE_API_URL
+# (src/headers/csp-headers.ts), so a staging build calls the staging API and this
+# file keeps allowing production only.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
