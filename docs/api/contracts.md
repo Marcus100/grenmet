@@ -1204,7 +1204,7 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   organisation's audit history records the link with no id and no actor. Not
   backfilled: past guest bookings join the account's list only after the person books
   while signed in with a verified matching email, or through the claim flow (a later
-  slice). Known behaviour (owner decision pending): a guest booking made with the email
+  slice). Known behaviour (owner decision, accepted): a guest booking made with the email
   of an already-linked contact appears in that account's list, and so does a guest
   record merged into a linked one. Side effects (emails,
   reminders) run through the transactional outbox (`platform.outbox`, drained by the

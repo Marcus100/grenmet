@@ -4,7 +4,7 @@ Port **3015**, host `bookings.${BASE_DOMAIN}` (`bookings.barrels.gd` in producti
 
 ## Status: public booking flow and staff studio live
 
-State on 14 Nov 2026: the app is live on production (deployed before v1.0.8). Babydoll Beauty Bar, the pilot tenant, is seeded on staging, where a test booking made on the public page appeared as pending in the Studio agenda and was confirmed; it is **not** seeded on production yet, so `/babydoll-beauty-bar` answers "not found" there. Time off per provider is in v1.0.8. On `dev`, not released: prices show with the currency (`EC$210`, #1394). Go-live order: `docs/operations/babydoll-cutover.md`.
+The app is live on production. Go-live order: `docs/operations/babydoll-cutover.md`.
 
 `/[slug]` is the public booking flow for any business: storefront (name, services with duration, price and deposit label, providers), then the shared `@barrelsgd/bookings-web` flow (service, time, details, confirm), then `/[slug]/booking/[token]` to view, reschedule or cancel (plus `/ics` for the calendar file). The staff studio (`/studio`) is sign-in-guarded and built (see Studio below).
 
@@ -46,7 +46,7 @@ Host wiring mirrors `apps/web/babydoll`: `src/lib/booking-api.ts` (server-only, 
 
 ## Deployment
 
-Compose service `web-bookings` with its own Traefik router and certificate (`bookings.${BASE_DOMAIN}`), release scope in `scripts/ci/release-scope.mjs`, service-catalogue entry in `packages/ui/src/lib/service-catalogue.json`, monitor in `scripts/monitoring/betterstack.json` (paused, deferred). `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is inlined at build time, so the Dockerfile/build workflow needs it as a build arg before the widget shows in production (not wired yet). Needs a DNS record for `bookings.*` and the GitHub secret `BOOKINGS_SSO_CLIENT_SECRET` (optional: empty keeps sign-in off).
+Compose service `web-bookings` with its own Traefik router and certificate (`bookings.${BASE_DOMAIN}`), release scope in `scripts/ci/release-scope.mjs`, service-catalogue entry in `packages/ui/src/lib/service-catalogue.json`, monitor in `scripts/monitoring/betterstack.json` (paused, deferred). `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is passed to the container at run time (`infra/docker/docker-compose.deploy.yml`) and read through `readPublicEnv`. Needs a DNS record for `bookings.*` and the GitHub secret `BOOKINGS_SSO_CLIENT_SECRET` (optional: empty keeps sign-in off).
 
 <!-- BEGIN:nextjs-agent-rules -->
 
