@@ -2,7 +2,7 @@
 
 Port **3004**. Grenada Signal is a free English-language, Grenada-rooted news
 and entertainment publication for a broad local, diaspora, Caribbean and
-international audience. Light mode; no reader account or subscription.
+international audience. Light mode; readers may sign in and subscribe.
 
 ## Delivery order
 - **Frontend first:** finish and review the reader design before implementing the dedicated Signal CMS; the owner explicitly deferred CMS work.

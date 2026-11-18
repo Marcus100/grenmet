@@ -164,6 +164,17 @@ export interface StatusView {
   tone: BadgeTone;
 }
 
+/**
+ * Whether a booking asks for a part of the price (`deposit`) or all of it
+ * (`payment`). The API decides (`payment_kind`); screens only word it.
+ */
+export type PaymentKind = "deposit" | "payment";
+
+/** "Deposit" or "Payment", for labels. */
+export function paymentWord(kind: PaymentKind = "deposit"): string {
+  return kind === "payment" ? "Payment" : "Deposit";
+}
+
 const STATUS_VIEW: Record<BookingStatus, StatusView> = {
   pending_payment: { label: "Awaiting deposit", tone: "warning" },
   pending: { label: "Pending", tone: "warning" },
@@ -173,7 +184,16 @@ const STATUS_VIEW: Record<BookingStatus, StatusView> = {
   completed: { label: "Completed", tone: "info" },
 };
 
-export function statusView(status: BookingStatus): StatusView {
+export function statusView(
+  status: BookingStatus,
+  kind: PaymentKind = "deposit"
+): StatusView {
+  if (status === "pending_payment") {
+    return {
+      ...STATUS_VIEW[status],
+      label: `Awaiting ${paymentWord(kind).toLowerCase()}`,
+    };
+  }
   return STATUS_VIEW[status];
 }
 
@@ -200,17 +220,31 @@ const DEPOSIT_VIEW: Record<DepositState, StatusView> = {
   refunded: { label: "Deposit refunded", tone: "info" },
 };
 
-export function depositView(state: DepositState): StatusView {
-  return DEPOSIT_VIEW[state];
+export function depositView(
+  state: DepositState,
+  kind: PaymentKind = "deposit"
+): StatusView {
+  const view = DEPOSIT_VIEW[state];
+  return kind === "payment"
+    ? {
+        ...view,
+        label: view.label
+          .replace("Deposit", "Payment")
+          .replace("deposit", "payment"),
+      }
+    : view;
 }
 
 /** One timeline line: "Pending to Confirmed", or "Created as Pending". */
 export function eventLabel(
   from: BookingStatus | null,
-  to: BookingStatus
+  to: BookingStatus,
+  kind: PaymentKind = "deposit"
 ): string {
-  const next = STATUS_VIEW[to].label;
-  return from ? `${STATUS_VIEW[from].label} to ${next}` : `Created as ${next}`;
+  const next = statusView(to, kind).label;
+  return from
+    ? `${statusView(from, kind).label} to ${next}`
+    : `Created as ${next}`;
 }
 
 /**
@@ -220,13 +254,15 @@ export function eventLabel(
 export function agendaDepositView(booking: {
   currency: string;
   deposit_minor: number;
+  payment_kind?: PaymentKind;
   status: BookingStatus;
 }): StatusView {
+  const kind = booking.payment_kind ?? "deposit";
   if (booking.status === "pending_payment") {
-    return DEPOSIT_VIEW.due;
+    return depositView("due", kind);
   }
   return {
-    label: `Deposit ${formatMoney(booking.deposit_minor, booking.currency)}`,
+    label: `${paymentWord(kind)} ${formatMoney(booking.deposit_minor, booking.currency)}`,
     tone: "neutral",
   };
 }

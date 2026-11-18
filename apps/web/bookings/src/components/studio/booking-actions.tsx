@@ -43,7 +43,12 @@ import {
 } from "@/app/studio/[orgSlug]/bookings/[id]/actions";
 import { keepValuesOnSubmit } from "@/lib/keep-values";
 import { type ActionState, IDLE } from "@/lib/studio-action-state";
-import { availableActions, localTime } from "@/lib/studio-view";
+import {
+  availableActions,
+  localTime,
+  type PaymentKind,
+  paymentWord,
+} from "@/lib/studio-view";
 
 // The design spec's minimum touch target; the touch size alone is 48 px.
 const TARGET = "min-h-11";
@@ -51,6 +56,8 @@ const TARGET = "min-h-11";
 export interface BookingActionsProps {
   bookingId: string;
   orgSlug: string;
+  /** Whether the booking asked for a deposit or the full payment (wording). */
+  paymentKind?: PaymentKind;
   /**
    * A captured deposit is still held: offer the refund choice on cancel and
    * mention the full refund on decline. False while a deposit is awaited
@@ -69,6 +76,7 @@ export function BookingActions({
   bookingId,
   orgSlug,
   refundable,
+  paymentKind,
   started,
   startsAt,
   status,
@@ -135,7 +143,9 @@ export function BookingActions({
             <ReasonDialog
               action={declineBookingAction.bind(null, orgSlug, bookingId)}
               description={`The customer is emailed your reason and the time is released.${
-                refundable ? " Any deposit is refunded in full." : ""
+                refundable
+                  ? ` Any ${paymentWord(paymentKind).toLowerCase()} is refunded in full.`
+                  : ""
               }`}
               onResult={setNotice}
               submitLabel="Decline request"
@@ -152,6 +162,7 @@ export function BookingActions({
               submitLabel="Cancel booking"
               title="Cancel this booking?"
               triggerLabel="Cancel booking"
+              word={paymentWord(paymentKind)}
             />
           ) : null}
         </div>
@@ -332,11 +343,13 @@ function RescheduleDialog({
   );
 }
 
-const REFUND_CHOICES = [
-  { value: "policy", label: "Follow the business policy" },
-  { value: "refund", label: "Refund the deposit" },
-  { value: "keep", label: "Keep the deposit" },
-] as const;
+function refundChoices(word: string) {
+  return [
+    { value: "policy", label: "Follow the business policy" },
+    { value: "refund", label: `Refund the ${word.toLowerCase()}` },
+    { value: "keep", label: `Keep the ${word.toLowerCase()}` },
+  ] as const;
+}
 
 /** Decline or cancel: a required reason, and the deposit choice when one is held. */
 function ReasonDialog({
@@ -347,6 +360,7 @@ function ReasonDialog({
   submitLabel,
   title,
   triggerLabel,
+  word = "Deposit",
 }: {
   action: (previous: ActionState, formData: FormData) => Promise<ActionState>;
   description: string;
@@ -355,6 +369,7 @@ function ReasonDialog({
   submitLabel: string;
   title: string;
   triggerLabel: string;
+  word?: string;
 }) {
   const reasonId = useId();
   const hintId = useId();
@@ -393,8 +408,8 @@ function ReasonDialog({
               aria-describedby={policyHintId}
               className="space-y-1 border-0 p-0"
             >
-              <legend className="text-sm font-medium">Deposit</legend>
-              {REFUND_CHOICES.map((choice) => (
+              <legend className="text-sm font-medium">{word}</legend>
+              {refundChoices(word).map((choice) => (
                 <Label
                   className={`${TARGET} items-center gap-3`}
                   key={choice.value}

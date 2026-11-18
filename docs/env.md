@@ -294,7 +294,7 @@ FastAPI settings but are not application settings themselves.
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Optional PostHog project key |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog ingest host |
-| `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY` | Optional Cloudflare Turnstile site key for the emailed-code start step (sign-in and sign-up). Empty: no widget and no token (fine while the API has no `AUTH_TURNSTILE_SECRET_KEY`). Set: "Email me a code" and "Send a new code" wait for the check and send a fresh token each time. The password sign-in is unchanged. The auth app sends no Content-Security-Policy header, so no CSP change is needed |
+| `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY` | Optional Cloudflare Turnstile site key for the emailed-code start step (sign-in and sign-up). Empty: no widget and no token (fine while the API has no `AUTH_TURNSTILE_SECRET_KEY`). Set: "Email me a code" and "Send a new code" wait for the check and send a fresh token each time. The password sign-in is unchanged. The auth app sends a Report-Only Content-Security-Policy that allows Turnstile, so no CSP change is needed |
 | `BARRELS_ADMIN_APP_URL` | Optional Barrels staff console URL for the account-page app links and the signed-out "sign in again" link |
 | `ADMIN_APP_URL` | Optional GAA Admin (GMS/GAA portal, `gms.*`) URL for the account-page app links and the "Edit in GAA Admin" profile button |
 | `MBIA_APP_URL` | Optional airport website URL for the account-page app links |

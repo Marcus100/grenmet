@@ -1,30 +1,42 @@
 """Property-based API fuzzing generated from the OpenAPI contract (Schemathesis).
 
 Every read-only (GET) operation is called with generated parameters as the
-superuser and must never crash (5xx). 503 is allowed: domains with their own
-database (wxwatch, wxproducts, eregister, janitorial, transport) answer
-503 by design when that database is not configured. Hypothesis runs
+superuser and must never crash (5xx). The weather domains (wxwatch, wxproducts,
+eregister) run against real, freshly migrated databases so their handlers are
+exercised. 503 is allowed: janitorial and transport have their own databases and
+answer 503 by design when that database is not configured. Hypothesis runs
 derandomized with a small example budget so the suite stays deterministic.
 """
 
 import asyncio
+import os
 from collections.abc import Iterator
 from datetime import timedelta
+from pathlib import Path
+from typing import Any
 
+import psycopg
 import pytest
 import schemathesis
+from alembic.config import Config
 from hypothesis import HealthCheck, settings
 from schemathesis.python import asgi
+from sqlalchemy import create_engine
+from sqlalchemy.engine import make_url
 
+from alembic import command
 from src.auth import service as auth_service
 from src.auth.utils import create_access_token
 from src.config import settings as app_settings
 from src.database import async_session_factory, init_db_async
+from src.eregister import database as eregister_database
 from src.eregister.config import eregister_settings
 from src.janitorial.config import janitorial_settings
 from src.main import app
 from src.transport.config import transport_settings
+from src.wxproducts import database as wxproducts_database
 from src.wxproducts.config import wxproducts_settings
+from src.wxwatch import database as wxwatch_database
 from src.wxwatch.config import wxwatch_settings
 
 # Skipped by default (pyproject addopts); run with `pytest -m fuzz`.
@@ -36,26 +48,84 @@ schema = schemathesis.openapi.from_dict(app.openapi())
 schema.app = app
 read_only = schema.include(method="GET")
 
-# Domain databases are configured per domain (WXPRODUCTS_DATABASE_URL, ...) and
-# .env.local can point them at Compose hosts such as grenmet-postgres, which do
-# not resolve outside Compose. They also bypass the suite's per-run test database
-# (tests/conftest.py). Leave them unset, as CI does, so those routes answer 503 by
-# design. The main database stays on the suite's POSTGRES_* settings.
-DOMAIN_DATABASE_SETTINGS = (
-    eregister_settings,
-    janitorial_settings,
-    transport_settings,
-    wxproducts_settings,
-    wxwatch_settings,
+ROOT = Path(__file__).resolve().parents[1]
+
+# Domains whose database stays unset: their routes answer 503 by design.
+UNCONFIGURED = (janitorial_settings, transport_settings)
+# Weather domains get a real migrated database each (see weather_databases).
+WEATHER_DOMAINS: tuple[tuple[Any, Any, Path], ...] = (
+    (eregister_settings, eregister_database, ROOT / "src/eregister/alembic.ini"),
+    (wxproducts_settings, wxproducts_database, ROOT / "src/wxproducts/alembic.ini"),
+    (wxwatch_settings, wxwatch_database, ROOT / "src/wxwatch/alembic.ini"),
 )
 
 
 @pytest.fixture(scope="module", autouse=True)
 def unconfigured_domain_databases() -> Iterator[None]:
+    # .env.local can point domain databases at Compose hosts that do not resolve
+    # outside Compose, and they bypass the suite's per-run test database.
     with pytest.MonkeyPatch.context() as patch:
-        for domain_settings in DOMAIN_DATABASE_SETTINGS:
+        for domain_settings in UNCONFIGURED:
             patch.setattr(domain_settings, "DATABASE_URL", None)
         yield
+
+
+@pytest.fixture(scope="module", autouse=True)
+def weather_databases(test_database: None) -> Iterator[None]:
+    """Give eregister, wxproducts and wxwatch a throwaway migrated database each.
+
+    The databases are created next to the suite's own test database (same server,
+    credentials) and dropped afterwards, so nothing outside the run is touched.
+    """
+    assert test_database is None
+    base = make_url(str(app_settings.SQLALCHEMY_DATABASE_URI))
+    admin_url = base.set(database="postgres", drivername="postgresql")
+    admin_dsn = admin_url.render_as_string(hide_password=False)
+    created: list[str] = []
+    with pytest.MonkeyPatch.context() as patch:
+        try:
+            for domain_settings, database, ini in WEATHER_DOMAINS:
+                worker = os.environ.get("PYTEST_XDIST_WORKER", "main")
+                name = f"fuzz_{os.environ['VERIFY_RUN_ID']}_{worker}_{ini.parent.name}"
+                with psycopg.connect(admin_dsn, autocommit=True) as admin:
+                    admin.execute(
+                        psycopg.sql.SQL("CREATE DATABASE {}").format(
+                            psycopg.sql.Identifier(name)
+                        )
+                    )
+                created.append(name)
+                url = base.set(database=name)
+                engine = create_engine(url.set(drivername="postgresql+psycopg"))
+                config = Config(str(ini))
+                config.attributes["expected_database"] = name
+                try:
+                    with engine.begin() as connection:
+                        config.attributes["connection"] = connection
+                        command.upgrade(config, "head")
+                finally:
+                    engine.dispose()
+                patch.setattr(
+                    domain_settings,
+                    "DATABASE_URL",
+                    url.set(drivername="postgresql").render_as_string(
+                        hide_password=False
+                    ),
+                )
+                patch.setattr(database, "_engine", None)
+            yield
+        finally:
+            for _, database, _ in WEATHER_DOMAINS:
+                engine = database._engine
+                if engine is not None:
+                    asyncio.run(engine.dispose())
+                    database._engine = None
+            with psycopg.connect(admin_dsn, autocommit=True) as admin:
+                for name in created:
+                    admin.execute(
+                        psycopg.sql.SQL(
+                            "DROP DATABASE IF EXISTS {} WITH (FORCE)"
+                        ).format(psycopg.sql.Identifier(name))
+                    )
 
 
 @pytest.fixture(scope="module")

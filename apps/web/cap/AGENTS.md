@@ -38,8 +38,8 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
   show (other info blocks, parameters, resources, references are never sent).
   The area picker restores parishes, one circle or one polygon only when it
   would rebuild the same area; anything else is kept as saved. Admin screens
-  (settings, areas, feeds, import, audit) are still in GAA Admin, whose desk
-  keeps working during the parallel run
+  (settings, areas, feeds, import, audit) are under `/desk`; GAA Admin's
+  desk keeps working during the parallel run
   (`docs/operations/cap-desk-acceptance.md`).
 - **Hazard profiles (`/desk/profiles`).** Parity with GAA Admin's editor for
   one slice: save a new draft version (`POST /cap/hazard-profiles/{key}/versions`,
