@@ -69175,6 +69175,315 @@
         }
       }
     },
+    "/api/v1/printix/admin/organisations/{organisation_id}/members": {
+      "get": {
+        "tags": [
+          "printix-admin"
+        ],
+        "summary": "List an organisation's members with their Printix access",
+        "description": "Active members of any organisation, each with the Printix bundle they hold (none, gate lead or organiser), whether they hold it through an owner or admin role, and whether their account can sign in to Printix now.",
+        "operationId": "printixListMemberAccess",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixMemberAccessPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "printix-admin"
+        ],
+        "summary": "Add a person to a Printix organisation (audited)",
+        "description": "Adds an existing account (by user id or email) to the organisation as a plain member and gives them gate_lead or organiser access plus the printix-member sign-in role, in one step. An email with no account is refused with 404: the person creates a Barrels account first. 409 when already a member (use the access route) or when the organisation does not have Printix turned on.",
+        "operationId": "printixAddMember",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrintixMemberAdd"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixMemberAccess"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/printix/admin/organisations/{organisation_id}/members/{membership_id}/access": {
+      "put": {
+        "tags": [
+          "printix-admin"
+        ],
+        "summary": "Set a member's Printix access (audited)",
+        "description": "Sets the member's Printix access to none, gate_lead or organiser, replacing any other Printix bundle, and gives or removes the printix-member sign-in role in the same step. The role is removed only when the person has no other Printix access, and their Printix sessions end with it. Owners and admins hold every Printix permission already: any value but none only gives them the sign-in role, and none is refused. The organisation needs Printix turned on. A reason is required and recorded with the actor and target.",
+        "operationId": "printixSetMemberAccess",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "membership_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Membership Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrintixMemberAccessUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintixMemberAccess"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/printix/public/admissions": {
       "post": {
         "tags": [
@@ -101473,6 +101782,15 @@
         ],
         "title": "PrincipalPhase"
       },
+      "PrintixAccess": {
+        "type": "string",
+        "enum": [
+          "none",
+          "gate_lead",
+          "organiser"
+        ],
+        "title": "PrintixAccess"
+      },
       "PrintixEventCreate": {
         "properties": {
           "name": {
@@ -101783,6 +102101,157 @@
           "warnings"
         ],
         "title": "PrintixImportReport"
+      },
+      "PrintixMemberAccess": {
+        "properties": {
+          "membership_id": {
+            "type": "string",
+            "title": "Membership Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/MembershipRole"
+          },
+          "access": {
+            "$ref": "#/components/schemas/PrintixAccess",
+            "description": "The Printix bundle the member holds: none, gate_lead or organiser. Owners and admins hold every Printix permission through their role and show none here; see full_access."
+          },
+          "full_access": {
+            "type": "boolean",
+            "title": "Full Access",
+            "description": "True for owners and admins, who need no Printix bundle."
+          },
+          "can_sign_in": {
+            "type": "boolean",
+            "title": "Can Sign In",
+            "description": "True when the account may sign in to the Printix app now."
+          }
+        },
+        "type": "object",
+        "required": [
+          "membership_id",
+          "user_id",
+          "email",
+          "full_name",
+          "role",
+          "access",
+          "full_access",
+          "can_sign_in"
+        ],
+        "title": "PrintixMemberAccess",
+        "description": "One member of an organisation and what they can do in Printix."
+      },
+      "PrintixMemberAccessPage": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PrintixMemberAccess"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          },
+          "entitled": {
+            "type": "boolean",
+            "title": "Entitled",
+            "description": "Whether the organisation has the Printix app turned on."
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size",
+          "entitled"
+        ],
+        "title": "PrintixMemberAccessPage"
+      },
+      "PrintixMemberAccessUpdate": {
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/PrintixAccess"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access",
+          "reason"
+        ],
+        "title": "PrintixMemberAccessUpdate"
+      },
+      "PrintixMemberAdd": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "access": {
+            "$ref": "#/components/schemas/PrintixAccess"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access",
+          "reason"
+        ],
+        "title": "PrintixMemberAdd",
+        "description": "Add an existing account to the organisation with a Printix access."
       },
       "PrintixOfflineAdmission": {
         "properties": {

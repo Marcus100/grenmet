@@ -259,9 +259,14 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
      is a separate step: the organisation invitation does not grant app access;
   5. the person adds an authenticator on account.barrels.gd (required for every organiser route);
   6. they sign in at scan.barrels.gd (the `printix` app, email code).
-  Steps 3 and 4 are independent; neither implies the other. Without step 4, sign-in is
-  refused with "This account can't sign in to this app." (403). Automating step 4 from the
-  invitation is a later change, not built.
+  Steps 3 and 4 are one action now (`onboarding.py`, #1554): `PUT
+  /admin/organisations/{id}/members/{membership_id}/access` and `POST
+  /admin/organisations/{id}/members` (admin zone, `PrintixAdmin`, reason, audited) set the
+  bundle and give or remove `printix-member` in one transaction. The grant has `granted_by` NULL
+  (a non-member superuser's grant would otherwise count as inactive, `grants._granter_is_active`);
+  `printix-member` goes only when no other Printix access remains. An email with no account is
+  404 (no new invitation flow). Screen: admin `organisations/[id]` "Printix access". Guide:
+  `docs/operations/printix-onboarding.md`. Tests: `tests/printix/test_onboarding.py`.
 - **Tests:** `tests/printix/test_org_routes.py`.
 
 ## Not built here

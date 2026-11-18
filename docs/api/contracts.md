@@ -3226,6 +3226,17 @@ Four route zones, all under `/api/v1/printix/`.
   `total`; `POST /tickets/{id}/void` and `/unvoid`), and gate pairings
   (`POST /events/{id}/pairings` returns the one-time `secret`; `GET /events/{id}/pairings`
   never returns a secret; `POST /pairings/{id}/revoke`). Barcode values are never returned.
+  Onboarding (added 17 Nov 2026, #1554), same gate, all audited with a required `reason`
+  (10 to 500 characters): `GET /organisations/{id}/members` lists active members with `access`
+  (`none`, `gate_lead`, `organiser`), `full_access` (owner or admin) and `can_sign_in`, plus
+  `entitled`; `PUT /organisations/{id}/members/{membership_id}/access` with `{access, reason}`
+  sets the member's Printix bundle and gives or removes the `printix-member` sign-in role in one
+  transaction (removed only when no other Printix access remains, ending their Printix sessions;
+  owners and admins take no bundle, any value gives them sign-in only and `none` is 409);
+  `POST /organisations/{id}/members` with `{email|user_id, access, reason}` adds an existing
+  account as a member with that access. 409 when the organisation lacks `printix` or the person
+  is already a member; 404 when there is no account for the email. Superuser-made grants have no
+  granter (`granted_by` NULL). Guide: `docs/operations/printix-onboarding.md`.
 - **`org/*`** (organiser access, ADR-0060 organiser amendment; ADR-0025 zone `org`): an
   organisation member signed in to the `printix` app, with `X-Barrels-Organisation` set,
   holding `printix.events.manage` or `printix.gates.manage` (either admits a read), an enrolled

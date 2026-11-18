@@ -7760,6 +7760,21 @@ export type { PreferencesUnsubscribeRequest } from "./PreferencesUnsubscribeRequ
 export type { PrincipalPhase } from "./PrincipalPhase.js";
 export type { PrincipalPhasePropertiesPhaseEnum } from "./PrincipalPhasePropertiesPhaseEnum.js";
 export { principalPhasePropertiesPhaseEnum } from "./PrincipalPhasePropertiesPhaseEnum.js";
+export type { PrintixAccess } from "./PrintixAccess.js";
+export { printixAccess } from "./PrintixAccess.js";
+export type {
+  PrintixAddMemberBody,
+  PrintixAddMemberOptions,
+  PrintixAddMemberPath,
+  PrintixAddMemberResponse,
+  PrintixAddMemberResponses,
+  PrintixAddMemberStatus201,
+  PrintixAddMemberStatus401,
+  PrintixAddMemberStatus403,
+  PrintixAddMemberStatus404,
+  PrintixAddMemberStatus409,
+  PrintixAddMemberStatus422,
+} from "./PrintixAddMember.js";
 export type {
   PrintixAdmitTicketBody,
   PrintixAdmitTicketOptions,
@@ -7909,6 +7924,18 @@ export type {
   PrintixListEventsStatus422,
 } from "./PrintixListEvents.js";
 export type {
+  PrintixListMemberAccessOptions,
+  PrintixListMemberAccessPath,
+  PrintixListMemberAccessQuery,
+  PrintixListMemberAccessResponse,
+  PrintixListMemberAccessResponses,
+  PrintixListMemberAccessStatus200,
+  PrintixListMemberAccessStatus401,
+  PrintixListMemberAccessStatus403,
+  PrintixListMemberAccessStatus404,
+  PrintixListMemberAccessStatus422,
+} from "./PrintixListMemberAccess.js";
+export type {
   PrintixListMyOrganiserOrganisationsOptions,
   PrintixListMyOrganiserOrganisationsResponse,
   PrintixListMyOrganiserOrganisationsResponses,
@@ -7979,6 +8006,10 @@ export type {
   PrintixListTicketsStatus404,
   PrintixListTicketsStatus422,
 } from "./PrintixListTickets.js";
+export type { PrintixMemberAccess } from "./PrintixMemberAccess.js";
+export type { PrintixMemberAccessPage } from "./PrintixMemberAccessPage.js";
+export type { PrintixMemberAccessUpdate } from "./PrintixMemberAccessUpdate.js";
+export type { PrintixMemberAdd } from "./PrintixMemberAdd.js";
 export type { PrintixOfflineAdmission } from "./PrintixOfflineAdmission.js";
 export type { PrintixOfflineAdmissionResult } from "./PrintixOfflineAdmissionResult.js";
 export type {
@@ -8079,6 +8110,19 @@ export type {
   PrintixSetEventOrganisationStatus404,
   PrintixSetEventOrganisationStatus422,
 } from "./PrintixSetEventOrganisation.js";
+export type {
+  PrintixSetMemberAccessBody,
+  PrintixSetMemberAccessOptions,
+  PrintixSetMemberAccessPath,
+  PrintixSetMemberAccessResponse,
+  PrintixSetMemberAccessResponses,
+  PrintixSetMemberAccessStatus200,
+  PrintixSetMemberAccessStatus401,
+  PrintixSetMemberAccessStatus403,
+  PrintixSetMemberAccessStatus404,
+  PrintixSetMemberAccessStatus409,
+  PrintixSetMemberAccessStatus422,
+} from "./PrintixSetMemberAccess.js";
 export type { PrintixTicketPage } from "./PrintixTicketPage.js";
 export type { PrintixTicketPublic } from "./PrintixTicketPublic.js";
 export type { PrintixTicketStatus } from "./PrintixTicketStatus.js";

@@ -6,13 +6,16 @@ credential that admits it, so it leaves the server only in an import upload.
 
 import uuid
 from datetime import UTC, date, datetime, timedelta
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
-from pydantic import AwareDatetime, Field, field_validator, model_validator
+from pydantic import AwareDatetime, EmailStr, Field, field_validator, model_validator
 
+from src.auth.onboarding_schemas import AdminReasonText
 from src.models import ApiError, BaseModel, UtcDateTime
+from src.organisations.models import MembershipRole
 
 from . import constants
+from .onboarding import PrintixAccess
 
 EventName = Field(min_length=1, max_length=constants.EVENT_NAME_MAX_LENGTH)
 Gate = Field(min_length=1, max_length=constants.GATE_MAX_LENGTH)
@@ -359,3 +362,56 @@ class PrintixOfflineUnavailableBody(ApiError):
     code: Literal["offline_not_available"] = Field(
         description="Stable code. Offline mode is off for this event; use the live scanner."
     )
+
+
+class PrintixMemberAccess(BaseModel):
+    """One member of an organisation and what they can do in Printix."""
+
+    membership_id: str
+    user_id: uuid.UUID
+    email: str
+    full_name: str
+    role: MembershipRole
+    access: PrintixAccess = Field(
+        description=(
+            "The Printix bundle the member holds: none, gate_lead or organiser. "
+            "Owners and admins hold every Printix permission through their role and "
+            "show none here; see full_access."
+        )
+    )
+    full_access: bool = Field(
+        description="True for owners and admins, who need no Printix bundle."
+    )
+    can_sign_in: bool = Field(
+        description="True when the account may sign in to the Printix app now."
+    )
+
+
+class PrintixMemberAccessPage(BaseModel):
+    data: list[PrintixMemberAccess]
+    count: int
+    page: int
+    size: int
+    entitled: bool = Field(
+        description="Whether the organisation has the Printix app turned on."
+    )
+
+
+class PrintixMemberAccessUpdate(BaseModel):
+    access: PrintixAccess
+    reason: AdminReasonText
+
+
+class PrintixMemberAdd(BaseModel):
+    """Add an existing account to the organisation with a Printix access."""
+
+    user_id: uuid.UUID | None = None
+    email: EmailStr | None = None
+    access: PrintixAccess
+    reason: AdminReasonText
+
+    @model_validator(mode="after")
+    def _exactly_one_target(self) -> Self:
+        if (self.user_id is None) == (self.email is None):
+            raise ValueError("give exactly one of user_id or email")
+        return self
