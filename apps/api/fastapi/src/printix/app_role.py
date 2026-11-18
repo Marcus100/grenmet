@@ -21,6 +21,7 @@ from collections.abc import Collection
 from sqlalchemy import ColumnElement, exists, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth import eligibility
 from src.auth.models import Role, User, UserRoleLink
 from src.auth.models import Session as LoginSession
 from src.exceptions import AppException
@@ -88,14 +89,34 @@ async def holders_of(session: AsyncSession, organisation_id: str) -> set[uuid.UU
     return set(rows.all())
 
 
-async def release_lost(session: AsyncSession, candidates: Collection[uuid.UUID]) -> int:
-    """Take ``printix-member`` (and live Printix sessions) from every candidate who no
-    longer holds Printix access anywhere. Returns how many people lost the role."""
+async def release_lost(
+    session: AsyncSession, organisation_id: str, holders_before: Collection[uuid.UUID]
+) -> int:
+    """After a change in ``organisation_id``: take ``printix-member`` from everyone who
+    held access there before (``holders_of``) and does not now, and holds none
+    elsewhere. Unrelated holders are neither locked nor queried. Returns how many
+    people lost the role."""
+    lost = set(holders_before) - await holders_of(session, organisation_id)
+    return await release_users(session, lost)
+
+
+async def release_users(session: AsyncSession, user_ids: Collection[uuid.UUID]) -> int:
+    """``drop_role_if_unneeded`` for each person in id order (one role-id lookup)."""
+    if not user_ids:
+        return 0
+    role_id = await _role_id(session)
     removed = 0
-    for user_id in sorted(candidates):
-        if await drop_role_if_unneeded(session, user_id):
+    for user_id in sorted(user_ids):
+        if await drop_role_if_unneeded(session, user_id, role_id=role_id):
             removed += 1
     return removed
+
+
+async def _role_id(session: AsyncSession) -> uuid.UUID:
+    role_id = await session.scalar(select(Role.id).where(Role.name == APP_ROLE))
+    if role_id is None:
+        raise AppException("App roles are not seeded yet", 503)
+    return role_id
 
 
 async def app_role_link(
@@ -107,24 +128,38 @@ async def app_role_link(
     return await session.get(UserRoleLink, (user_id, role_id))
 
 
-async def drop_role_if_unneeded(session: AsyncSession, user_id: uuid.UUID) -> bool:
-    """Remove the role and end the person's Printix sessions when they hold no Printix
-    access. Serialised per person (the link has a composite primary key)."""
+async def drop_role_if_unneeded(
+    session: AsyncSession, user_id: uuid.UUID, *, role_id: uuid.UUID | None = None
+) -> bool:
+    """Remove the role when the person holds no Printix access. Their Printix sessions
+    end only if they can no longer sign in to Printix by another route (superuser, or
+    ``app.printix.access`` through a role assignment). Serialised per person (the link
+    has a composite primary key). Returns whether the role was removed."""
     await session.execute(select(User.id).where(User.id == user_id).with_for_update())
-    link = await app_role_link(session, user_id)
+    link = await session.get(
+        UserRoleLink, (user_id, role_id or await _role_id(session))
+    )
     if link is None or await holds_access(session, user_id):
         return False
     await session.delete(link)
-    now = utc_now()
-    await session.execute(
-        update(LoginSession)
-        .where(
-            LoginSession.user_id == user_id,
-            LoginSession.app_name == APP_KEY,
-            LoginSession.revoked_at.is_(None),
-        )
-        .values(revoked_at=now, updated_at=now)
-    )
     await session.flush()
+    user = await session.get(User, user_id)
+    still_eligible = user is not None and user.id in (
+        await eligibility.eligible_user_ids_for_app(
+            session=session, users=[user], app_key=APP_KEY
+        )
+    )
+    if not still_eligible:
+        now = utc_now()
+        await session.execute(
+            update(LoginSession)
+            .where(
+                LoginSession.user_id == user_id,
+                LoginSession.app_name == APP_KEY,
+                LoginSession.revoked_at.is_(None),
+            )
+            .values(revoked_at=now, updated_at=now)
+        )
+        await session.flush()
     logger.info("printix sign-in role removed", extra={"user_id": str(user_id)})
     return True

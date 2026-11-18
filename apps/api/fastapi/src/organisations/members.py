@@ -244,7 +244,9 @@ async def apply_role_change(
                 root=membership.id,
             )
             # Whoever lost their last Printix access loses the sign-in role (#1564).
-            await printix_app_role.release_lost(session, printix_holders)
+            await printix_app_role.release_lost(
+                session, organisation_id, printix_holders
+            )
     return membership, user
 
 
@@ -324,7 +326,7 @@ async def apply_removal(
     )
     # The removed person and anyone their grants supported may have lost their last
     # Printix access; the sign-in role goes with it (#1564).
-    await printix_app_role.release_lost(session, printix_holders)
+    await printix_app_role.release_lost(session, organisation_id, printix_holders)
     return membership
 
 

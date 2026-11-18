@@ -530,6 +530,7 @@ async def delete_user(
     from src.baseline.models import StaffCredential
     from src.notifications.models import Notification, NotificationPreference
     from src.organisations import grants as organisation_grants
+    from src.printix import app_role as printix_app_role
     from src.profile_images import service as profile_images
     from src.rewards import service as rewards_service
 
@@ -541,7 +542,9 @@ async def delete_user(
     # #1564): the documented order is roster, then the rows. Account deletion changes
     # the person's role links and sessions, which an administrator's access change
     # (roster lock, then user row, then role link and sessions) locks in that order.
-    await organisation_grants.lock_affected_rosters(session, user.id)
+    locked_organisations = await organisation_grants.lock_affected_rosters(
+        session, user.id
+    )
     # The last active superuser cannot be anonymised (#1481). The lock comes before
     # any other write in this transaction.
     from src.auth import superuser_invitation
@@ -563,12 +566,22 @@ async def delete_user(
     await revoke_access_material(session, user)
     await rewards_service.cancel_open_redemptions(session, account=user)
     await _end_access_links(session, user_id, now)
+    # Who holds Printix access in those organisations now: the deletion ends grants
+    # the account issued, which can end a recipient's last access (#1564).
+    printix_holders: dict[str, set[uuid.UUID]] = {
+        organisation_id: await printix_app_role.holders_of(session, organisation_id)
+        for organisation_id in locked_organisations
+    }
     await _end_organisation_access(session, user_id, now)
     # Grants the account handed to others end too (#1496). Runs after its memberships
     # are removed, which the cascade relies on.
     await organisation_grants.end_grants_of_deleted_account(
         session, user_id=user_id, actor_id=actor_id
     )
+    for organisation_id, before in printix_holders.items():
+        await printix_app_role.release_lost(
+            session, organisation_id, before - {user_id}
+        )
     await _clear_hr_personal_details(session, user_id, now)
     await session.execute(
         update(StaffCredential)

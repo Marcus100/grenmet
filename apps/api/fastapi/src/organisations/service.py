@@ -254,7 +254,7 @@ async def set_app_enabled(
     if switching_printix_off:
         # No organisation keys left from here: drop the sign-in role of anyone whose
         # last Printix access this was (#1564).
-        await printix_app_role.release_lost(session, printix_holders)
+        await printix_app_role.release_lost(session, organisation_id, printix_holders)
     if enabled:
         for bundled in entitlements.BUNDLED_WITH.get(app_key, ()):
             await _ensure_enabled(session, organisation_id, bundled)

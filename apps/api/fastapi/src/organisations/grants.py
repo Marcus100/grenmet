@@ -565,7 +565,7 @@ async def revoke_grant_detailed(
         await session.flush()
     # A revoked Printix bundle (or one that fell with it) may be someone's last
     # Printix access: the sign-in role goes with it (#1564).
-    await printix_app_role.release_lost(session, printix_holders)
+    await printix_app_role.release_lost(session, organisation_id, printix_holders)
     logger.info(
         "organisation grant revoked",
         extra={"organisation_id": organisation_id, "cascaded": len(victims)},
