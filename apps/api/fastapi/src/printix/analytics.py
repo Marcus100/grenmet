@@ -53,7 +53,7 @@ REFUSAL_REASONS: tuple[
 #: One download holds at most this many scans, and the database may spend this long on it.
 EXPORT_MAX_ROWS = 200_000
 EXPORT_TIMEOUT_MS = 60_000
-#: The last line of a complete export: "# end,<rows> rows". The screen checks it.
+#: The last line of a complete export: "# end,<rows> rows". The organiser screen checks it, then saves the file without it.
 END_MARKER_PREFIX = "# end,"
 EXPORT_COLUMNS = ("time", "gate", "printed_number", "outcome", "entry", "offline")
 _FORMULA_LEADERS = ("=", "+", "-", "@", "\t", "\r")

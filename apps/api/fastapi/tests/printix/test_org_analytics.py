@@ -13,6 +13,7 @@ from typing import Any
 
 import httpx
 import pytest
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.printix import analytics as analytics_module
@@ -553,3 +554,51 @@ async def test_the_page_reads_the_newest_scans_of_every_gate_phone(
     times = [item["scanned_at"] for item in pages]
     assert len(pages) == 12 and len({item["id"] for item in pages}) == 12
     assert times == sorted(times, reverse=True)
+
+
+async def test_the_scans_page_matches_a_plain_ordered_offset_query(
+    db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    """Tied times on two gate phones, live and offline rows, every page and one past the end."""
+    event = world["ev_a"]
+    phone_a, _ = await make_pairing(db_async, event, gate="Gate A")
+    phone_b, _ = await make_pairing(db_async, event, gate="Gate B")
+    base = utc_now().replace(microsecond=0) - timedelta(hours=2)
+    for step in range(9):
+        at = base + timedelta(minutes=step // 2)  # neighbours tie within a phone too
+        for phone in (phone_a, phone_b):
+            await _log(db_async, phone, "unknown", at)
+    for phone in (phone_a, phone_b):
+        for minute in range(3):
+            # Synced an hour later, but made at a time that ties with a live scan.
+            await _log(
+                db_async,
+                phone,
+                "unknown",
+                base + timedelta(hours=1),
+                offline_at=base + timedelta(minutes=minute),
+            )
+    happened = func.coalesce(
+        PrintixScanLog.offline_scanned_at, PrintixScanLog.scanned_at
+    )
+    size = 7
+    for page in (1, 2, 3, 4, 5):
+        expected = (
+            await db_async.scalars(
+                select(PrintixScanLog.id)
+                .join(PrintixPairing, PrintixPairing.id == PrintixScanLog.pairing_id)
+                .where(PrintixPairing.event_id == event.id)
+                .order_by(happened.desc(), PrintixScanLog.id.desc())
+                .offset((page - 1) * size)
+                .limit(size)
+            )
+        ).all()
+        result = await analytics_module.list_scans(
+            db_async, event.id, page=page, size=size
+        )
+        assert [item.id for item in result.items] == list(expected), page
+        assert result.total == 24
+    last = await analytics_module.list_scans(db_async, event.id, page=4, size=size)
+    assert len(last.items) == 3
+    beyond = await analytics_module.list_scans(db_async, event.id, page=5, size=size)
+    assert beyond.items == []

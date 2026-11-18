@@ -41,9 +41,9 @@ const SHOWING_LATEST = /Showing the latest 3 of 132 scans/u;
 const NOT_FINAL = /for now and change until the event closes/u;
 const NO_SCANS = /No scans yet\./u;
 
-const CSV =
-  "time,gate,printed_number,outcome,entry,offline\r\n2026-12-26T19:01:00-04:00,Main gate,205,admitted,scanned,no\r\n# end,1 rows\r\n";
-
+const CSV_SAVED =
+  "time,gate,printed_number,outcome,entry,offline\r\n2026-12-26T19:01:00-04:00,Main gate,205,admitted,scanned,no\r\n";
+const CSV = `${CSV_SAVED}# end,1 rows\r\n`;
 function session() {
   const value = new OrganiserSession({ origin: ORIGIN, storage: null });
   value.adopt(parseLogin(loginBody({})));
@@ -330,7 +330,8 @@ describe("the scan list download", () => {
 
     expect(names).toEqual(["printix-scans-2026-12-26.csv"]);
     expect(saved).toHaveLength(1);
-    expect(await saved[0]?.text()).toBe(CSV);
+    // The saved file is plain CSV: the server's closing line is a check, not data.
+    expect(await saved[0]?.text()).toBe(CSV_SAVED);
     // The address is kept for a while, so an older browser can finish the download.
     expect(revoked).not.toHaveBeenCalled();
     await new Promise((resolve) => setTimeout(resolve, 0));

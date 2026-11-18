@@ -278,7 +278,7 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   `GET /org/events/{id}/scans/export` (CSV stream, its own `exports` bucket of 6 a minute).
   Another organisation's event is 404 before any query runs.
   The export has a 60 s statement timeout, refuses events over 200,000 scans (413) and ends with
-  `# end,<rows> rows`; the screen treats a file without it as cut short. The scans page reads each
+  `# end,<rows> rows`; the screen treats a file without it as cut short and saves the file without that line (plain CSV). The scans page reads each
   gate phone's newest rows from `scan_log_pairing_id_happened_at_idx` (migration
   `printixscanlogorder20261118`) through a lateral subquery.
 - **Rules:** aggregates are SQL (four queries for analytics, one pass for the CSV with `yield_per`).

@@ -93,21 +93,51 @@ export async function readDashboard(
 
 const END_LINE = /^# end,(\d+) rows$/u;
 
+/** Starts of the records of a CSV text. A line break inside quotes does not end one. */
+function recordStarts(text: string): number[] {
+  const starts = [0];
+  let quoted = false;
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    if (char === '"') {
+      quoted = !quoted;
+    } else if (!quoted && char === "\r" && text[index + 1] === "\n") {
+      starts.push(index + 2);
+      index += 1;
+    }
+  }
+  return starts;
+}
+
 /**
- * True when the text is a whole scan list: a header, then rows, then the server's
- * last line "# end,<rows> rows" with the same number of rows. A list cut short by an
- * error on the server has no such line, or counts differently.
+ * The scan list without the server's closing line, or null if the list is not whole.
+ * Whole means: a header, rows, then the last record "# end,<rows> rows" with the same
+ * number of rows, and the text ends after it. A list cut short by an error on the
+ * server has no such record, or counts differently. Records are read with the quotes
+ * in mind, so a cell holding a line break counts once. The closing line is a check
+ * for this screen only: the saved file is plain CSV without it.
  */
+export function finishScanList(text: string): string | null {
+  if (!text.endsWith("\r\n")) {
+    return null;
+  }
+  const starts = recordStarts(text);
+  // The text ends with a line break, so the last start is the empty record after it.
+  const records = starts.length - 1;
+  const lastStart = starts[records - 1];
+  if (lastStart === undefined || records < 2) {
+    return null;
+  }
+  const match = END_LINE.exec(text.slice(lastStart, -2));
+  if (!match || Number(match[1]) !== records - 2) {
+    return null;
+  }
+  return text.slice(0, lastStart);
+}
+
+/** True when `finishScanList` accepts the text. */
 export function isCompleteScanList(text: string): boolean {
-  const lines = text.split("\r\n");
-  if (lines.at(-1) === "") {
-    lines.pop();
-  }
-  const match = END_LINE.exec(lines.at(-1) ?? "");
-  if (!match || lines.length < 2) {
-    return false;
-  }
-  return Number(match[1]) === lines.length - 2;
+  return finishScanList(text) !== null;
 }
 
 /** The scan list as spreadsheet text (printed numbers only), to save as a file. */
@@ -128,10 +158,11 @@ export async function downloadScanList(
     if (typeof text !== "string") {
       throw new Error("The scan list was not text.");
     }
-    if (!isCompleteScanList(text)) {
+    const clean = finishScanList(text);
+    if (clean === null) {
       return { ok: false, problem: { kind: "download-stopped" } };
     }
-    return { ok: true, value: text };
+    return { ok: true, value: clean };
   } catch (error) {
     const outcome = failed<string>(error, "organiser-scan-list");
     if (!outcome.ok && outcome.problem.kind === "too-large") {

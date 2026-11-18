@@ -3266,7 +3266,7 @@ Four route zones, all under `/api/v1/printix/`.
   `page`, `size` 1 to 100, default 20; each item has time, gate, printed number or null, outcome,
   typed, offline) and `GET /org/events/{id}/scans/export` (`text/csv` stream of every scan,
   oldest first, printed numbers only, cells that start with `=`, `+`, `-` or `@` get a leading
-  apostrophe, also after leading spaces; ends with the line `# end,<rows> rows`; 60 s database timeout; 413 above 200,000 scans; its own limit of 6 a minute).
+  apostrophe, also after leading spaces; ends with the line `# end,<rows> rows` (a completeness check: the organiser screen verifies it and saves the file without it); 60 s database timeout; 413 above 200,000 scans; its own limit of 6 a minute).
   Review fixes: only an organiser (`printix.events.manage`) may set `allow_typed_numbers`
   (a gate lead gets 403 with `PrintixTypedNumbersNotAllowed`); an event holds at most 20 active
   gate codes (a 409 when full; a revoked or expired code frees its place); a pairing create
