@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { reportError } from "@/lib/report-error";
-import { PDF_PREVIEW_FALLBACK } from "@/lib/wxproducts/pdf-preview-error";
+import {
+  ANSWER_PROBLEM,
+  PDF_PREVIEW_FALLBACK,
+  pdfPreviewServerError,
+} from "@/lib/wxproducts/pdf-preview-error";
 import {
   downloadProductPdfAction,
   FIELDS_PROBLEM,
@@ -157,7 +161,7 @@ it("shows the API's own reason when a PDF preview is refused (4xx)", async () =>
   });
   expect(reportError).not.toHaveBeenCalled();
 });
-it("keeps the generic message and reports a server error", async () => {
+it("says the server could not render the PDF, with its status, and reports it", async () => {
   fetcher
     .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
     .mockResolvedValueOnce(
@@ -165,8 +169,22 @@ it("keeps the generic message and reports a server error", async () => {
     );
   expect(await previewProductPdfAction(pdfInput)).toEqual({
     ok: false,
-    error: PDF_PREVIEW_FALLBACK,
+    error: pdfPreviewServerError(500),
   });
+  expect(reportError).toHaveBeenCalledTimes(1);
+});
+it("says a reply in the wrong shape is not a connection problem", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(Response.json({ unexpected: true }));
+  expect(
+    await previewProductAction({
+      kind: "morning",
+      values: {},
+      expectedRevision: 0,
+      changeSummary: "",
+    })
+  ).toEqual({ ok: false, error: ANSWER_PROBLEM });
   expect(reportError).toHaveBeenCalledTimes(1);
 });
 it("keeps the generic message and reports a network failure", async () => {

@@ -175,7 +175,7 @@ function ForecastLink({ today }: { today: TodayLink }) {
       {WEATHER_CONDITION_LABEL[today.sky]}
       {figure.value != null && (
         <>
-          , {figure.word} <Temperature value={figure.value} />
+          , {figure.word} <Temperature showUnit value={figure.value} />
         </>
       )}{" "}
       <span aria-hidden="true">→</span>
@@ -331,7 +331,7 @@ export function DayCard({
         day.low !== null && (
           <>
             <span aria-hidden="true">▼ </span>
-            <Temperature value={day.low} />
+            <Temperature showUnit value={day.low} />
             <span className="sr-only"> lowest</span>
           </>
         )
@@ -350,12 +350,12 @@ export function DayCard({
       temperature={
         tonight ? (
           <>
-            <Temperature value={day.low} />
+            <Temperature showUnit value={day.low} />
             <span className="sr-only"> lowest tonight</span>
           </>
         ) : (
           <>
-            <Temperature value={day.high} />
+            <Temperature showUnit value={day.high} />
             {day.high !== null && <span className="sr-only"> highest</span>}
           </>
         )

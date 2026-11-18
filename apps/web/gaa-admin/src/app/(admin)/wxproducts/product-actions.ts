@@ -16,8 +16,10 @@ import {
   storedProductSchema,
 } from "@/lib/wxproducts/api-schemas";
 import {
+  ANSWER_PROBLEM,
   PDF_PREVIEW_FALLBACK,
   pdfPreviewRefusal,
+  pdfPreviewServerError,
 } from "@/lib/wxproducts/pdf-preview-error";
 import { productInputSchema } from "@/lib/wxproducts/product-input";
 
@@ -185,6 +187,13 @@ export async function loadProductHistoryAction(id: string) {
 export const FIELDS_PROBLEM =
   "Check the product fields: one or more values are not in the expected format.";
 
+function validateFailure(error: unknown): string {
+  if (error instanceof ProductApiError) return error.message;
+  // The server answered, but not in the shape the client expects: not a connection problem.
+  if (error instanceof z.ZodError) return ANSWER_PROBLEM;
+  return "Could not validate. Check your session and connection, then try again.";
+}
+
 export async function previewProductAction(raw: unknown) {
   const parsed = productPreviewInputSchema.safeParse(raw);
   if (!parsed.success) {
@@ -214,10 +223,7 @@ export async function previewProductAction(raw: unknown) {
     reportError(error, "wxproducts");
     return {
       ok: false as const,
-      error:
-        error instanceof ProductApiError
-          ? error.message
-          : "Could not validate. Check your session and connection, then try again.",
+      error: validateFailure(error),
     };
   }
 }
@@ -262,7 +268,14 @@ export async function previewProductPdfAction(
         await response.json().catch(() => null)
       );
       if (refusal) return { ok: false as const, error: refusal };
-      throw new ProductApiError("Preview unavailable", response.status);
+      reportError(
+        new ProductApiError("Preview unavailable", response.status),
+        "wxproducts"
+      );
+      return {
+        ok: false as const,
+        error: pdfPreviewServerError(response.status),
+      };
     }
     return {
       ok: true as const,
