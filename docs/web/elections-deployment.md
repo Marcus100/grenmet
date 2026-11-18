@@ -18,7 +18,7 @@ legacy host until the exit plan removes it ([exit plan](../operations/vercel-exi
 | Build command | `pnpm install --frozen-lockfile --filter '@barrelsgd/web-elections...' && pnpm --filter '@barrelsgd/web-elections^...' run --if-present build && pnpm --filter @barrelsgd/web-elections build` |
 | Build output directory | `apps/web/elections/out` |
 | `NODE_VERSION` | `24` |
-| Build variables | `NEXT_PUBLIC_SITE_URL=https://elections.barrels.gd`, `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `SENTRY_PROJECT` (the same values as the Vercel project) |
+| Build variables | `NEXT_PUBLIC_SITE_URL=https://elections.barrels.gd`, `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `SENTRY_PROJECT` (the same values the Vercel project used) |
 
 `pnpm build` runs the data check, `next build`, then `scripts/pages-headers.mjs`,
 which adds the Sentry report endpoint to `out/_headers` when a DSN is set.
@@ -84,7 +84,7 @@ workspace manifests. Shared packages and lockfiles retain the existing checks.
 ## Error reporting
 
 Use an Elections-specific Sentry project and DSN. There is no fallback to the
-other apps' staging project. Configure these in Vercel's project settings:
+other apps' staging project. Configure these in the Cloudflare Pages project's build variables:
 
 | Variable | Purpose |
 | --- | --- |
@@ -102,15 +102,15 @@ backend credentials or other apps' environment files into this project.
 
 1. Build a preview and check `/`, `/2026`, `/results`, `/sources`, `/api/health`,
    `/atlas-data.json`, and a CSV download.
-2. Add `elections.barrels.gd` to this Vercel project.
-3. In the existing Cloudflare zone, add an explicit `elections` CNAME using the
-   exact target Vercel supplies. Resolve conflicting records for this hostname;
+2. Add `elections.barrels.gd` as a custom domain of the Cloudflare Pages project.
+3. In the existing Cloudflare zone, the `elections` record points at the Pages
+   project. Resolve conflicting records for this hostname;
    retain the existing wildcard, other application records and nameservers.
-4. Wait for Vercel's domain and TLS verification, then verify the custom domain.
+4. Wait for Cloudflare's domain and TLS verification, then verify the custom domain.
 5. Record the deployed commit, preview/production URLs and verification result.
 
 No changes to the DigitalOcean Compose services or release image inventory are
-needed. Rollbacks use the Elections project's previous Vercel deployment.
+needed. Rollbacks use the Elections project's previous Cloudflare Pages deployment.
 
 References: [Vercel monorepos](https://vercel.com/docs/monorepos),
 [Corepack build configuration](https://vercel.com/docs/builds/configure-a-build),

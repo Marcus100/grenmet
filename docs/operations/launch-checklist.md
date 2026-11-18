@@ -40,7 +40,7 @@ have **no privacy notice page**:
 | --- | --- |
 | auth (Barrels ID) | Collects accounts, email addresses and sessions; open registration |
 | bookings | Collects customer names, contact details and booking history for businesses |
-| babydoll (client site, Vercel) | Booking links and contact; analytics consent applies |
+| babydoll (client site, Cloudflare Pages) | Booking links and contact; analytics consent applies |
 | cap (public alert hub) | Probably collects little; confirm whether any personal data or analytics are used |
 | elections | Public site with a register page; confirm what, if anything, it collects |
 | docs | Has a feedback route; confirm what it stores |

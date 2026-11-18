@@ -29,9 +29,9 @@ stream, record its `G-…` ID and exact origin under the production environment
 in `packages/ui/src/lib/service-catalogue.json`, and verify account access and
 retention settings before setting the corresponding verification flags and
 `status: configured`. Do not copy the Weather staging ID to other sites or to
-production. Unassigned Vercel previews remain disabled. Build and deploy the
+production. Build and deploy the
 affected app after changing the catalogue; Barrels and Elections deploy through
-their independent Vercel projects.
+their Cloudflare Pages projects.
 
 Verify a consented visit in Google Analytics Realtime before recording delivery
 evidence. Test a fresh browser: no Google requests before consent, one page view
@@ -77,9 +77,9 @@ Missing staging credentials never select production credentials. Personal/NISA
 repositories do not inherit these secrets. Development remains opt-in through local
 SDK configuration. The static homepage has no JavaScript runtime; it retains build
 checks and external uptime rather than adding an error SDK solely for static text.
-Elections is hosted separately on Vercel and requires the existing SDK's public DSN,
-environment, project and source-map token in its Vercel project settings; GitHub
-secrets do not automatically reach Vercel. Catalogue configuration does not prove
+Elections is hosted separately on Cloudflare Pages and requires the existing SDK's public DSN,
+environment, project and source-map token in its Pages build variables; GitHub
+secrets do not automatically reach Cloudflare Pages. Catalogue configuration does not prove
 live delivery. Browser/server/worker and source-map acceptance remain pending.
 GA4 mappings are configured for the seven public production origins; PostHog mappings remain empty and disabled. Source-map upload and
 browser/server releases use `NEXT_PUBLIC_RELEASE` (the build commit).
@@ -134,7 +134,7 @@ so it uses the destination site's stream. Unassigned previews, API endpoints,
 Auth, GAA Admin and CMS have no browser GA4. Availability and Sentry cover those
 operational services. Personal and NISA sites remain outside this repository.
 Deploy the rebuilt Docker sites through staging and production; deploy Barrels
-and Elections through their separate Vercel projects before claiming activation.
+and Elections through their separate Cloudflare Pages projects before claiming activation.
 
 ## Operational collection
 
@@ -204,7 +204,7 @@ heartbeat only, and `limitsVerified` is true. `deferred: true`
 resources are validated but never created; remove the flag when a slot frees up.
 `apps/web/admin` (Barrels control plane) is deployed with the 2026-10-21 admin host move and has no
 monitor yet (the staff-portal monitor now probes `gms.barrels.gd`). Babydoll
-(`babydoll.barrels.gd`, Vercel client site, no Sentry) is in the service
+(`babydoll.barrels.gd`, Cloudflare Pages client site, no Sentry) is in the service
 catalogue and covered by the probe runner only.
 
 **Apply:** after checking the Better Stack plan, set `"limitsVerified": true`,
@@ -349,7 +349,7 @@ only. This is where a failure shows instead. Nothing here adds a new monitor.
    after withdrawal. PostHog activation remains a separate optional decision.
 3. Use the owner-approved shared Sentry projects with matching environment secrets.
    Verify browser/server/worker delivery and exact-release source maps; configure
-   Elections in Vercel separately. Stay within the free error quota; no upgrade
+   Elections in Cloudflare Pages separately. Stay within the free error quota; no upgrade
    or replay/performance collection is authorized.
 4. Provide an existing SSH session/agent for the staging host, or have the host
    operator install the runner/settings above. Confirm a real complete backup and

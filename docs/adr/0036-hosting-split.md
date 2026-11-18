@@ -1,4 +1,4 @@
-# ADR-0036: Hosting split between Vercel and the droplets
+# ADR-0036: Hosting split between static hosting and the droplets
 
 ## Status
 
@@ -14,6 +14,8 @@ Accepted (owner decision, 2026-10-20).
 - New static sites start on Pages: `apps/web/commit` (`commit.barrels.gd`) is
   the first. The homepage and Elections follow; Babydoll needs an adapter for
   its server actions, so it stays on Vercel until that is decided.
+- **Done (15 and 16 November 2026):** the Barrels homepage, Elections and Babydoll
+  moved to Cloudflare Pages, so all static sites are on Pages (`docs/deployment.md`).
 - **Elections dropped Barrels sign-in** (#792), so it now meets rule 2.
 - Read "Vercel" in rules 1, 3 and 4 as "static hosting (Cloudflare Pages, or
   Vercel for sites not yet moved)".

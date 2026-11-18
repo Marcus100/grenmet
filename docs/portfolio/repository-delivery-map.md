@@ -3,7 +3,7 @@
 **Status:** Authoritative repository coverage map  
 **Effective:** 2026-08-16  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-18
 
 ## Purpose
 
@@ -45,13 +45,13 @@ retain their own purpose; the Barrels admin control plane remains distinct.
 | Repository surface | Primary classification and owner | Lifecycle | Planning destination |
 | --- | --- | --- | --- |
 | `apps/web/auth` | Barrels platform identity | Active | Product-aware shared sign-in with application-scoped access |
-| `apps/web/admin` | Barrels control plane (superuser-only; status, organisations; no GMS or GAA modules) | Built (C1); deployed at `admin.<domain>` with the 2026-10-21 admin host move (staging first) | `admin.barrels.gd` after the GAA portal moves to `gms.barrels.gd`; never merges with the client portal |
+| `apps/web/admin` | Barrels control plane (superuser-only; status, organisations; no GMS or GAA modules) | Built (C1); deployed at `admin.<domain>` with the 2026-10-21 admin host move (staging first) | `admin.barrels.gd` (the GAA portal is at `gms.barrels.gd`); never merges with the client portal |
 | `apps/web/cap` | GMS-branded public CAP alert hub (active alerts, map, history, feeds); built and operated by Barrels for GMS | Built, deploy wired (compose + release scope), awaiting DNS for `cap.barrels.gd` | Public alert hub first; sign-in CAP authoring moves here from `apps/web/gaa-admin` later |
 | `apps/web/gmsdash` | GMS Dashboard: GMS client service giving organisations raw ECMWF/NOAA model point meteograms (not an official forecast); access by organisation entitlement approved by GMS | Built, deploy wired (compose + release scope), awaiting DNS for `gmsdash.barrels.gd` and `GMSDASH_SSO_CLIENT_SECRET` | Premium GMS products for external users; more products join later |
-| `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Vercel site at barrels.gd |
-| `apps/web/babydoll` | Client website for Babydoll Beauty Bar (lash, brow and skin studio); built by Barrels, client owns its name, logo and content | Live (static) at `babydoll.barrels.gd`; pilot tenant for Barrels Bookings | Static Next.js export on Vercel, moving to Cloudflare Pages; takes no bookings since 2026-11-13 (Book buttons open the studio's page on `apps/web/bookings` after the cutover; the studio screens are in that app); the client's own domain `babydollbeautybar.com` later |
-| `apps/pwa/printix` | Printix Scanner: gate scanning for Printix, a collaboration and Barrels Grenada's main ticket app (security-printed tickets; also scans Barrels Events tickets); built and run by Barrels, Printix name with Barrels shown | In build for a first event on 26 December 2026; scanner, offline mode and organiser screens built; live at scan.barrels.gd (ADR-0060 amendment, ADR-0061) | Installable phone app (React built with Vite, files only); target `scan.barrels.gd` (owner decision 15 Nov 2026); ticket registry and sign-in to follow in FastAPI |
-| `apps/web/commit` | Commit, the Barrels Grenada engineering blog: one post per release, starting with 1.0.0 | Built; not yet deployed (target `commit.barrels.gd`) | Static Next.js export on Cloudflare Pages (ADR-0036 amendment); posts are MDX in `content/posts/` |
+| `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Cloudflare Pages site at barrels.gd |
+| `apps/web/babydoll` | Client website for Babydoll Beauty Bar (lash, brow and skin studio); built by Barrels, client owns its name, logo and content | Live (static) at `babydoll.barrels.gd`; pilot tenant for Barrels Bookings | Static Next.js export on Cloudflare Pages; takes no bookings since 2026-11-13 (Book buttons open the studio's page on `apps/web/bookings` after the cutover; the studio screens are in that app); the client's own domain `babydollbeautybar.com` later |
+| `apps/pwa/printix` | Printix Scanner: gate scanning for Printix, a collaboration and Barrels Grenada's main ticket app (security-printed tickets; also scans Barrels Events tickets); built and run by Barrels, Printix name with Barrels shown | Live at scan.barrels.gd for a first event on 26 December 2026; scanner, offline mode, organiser screens and staff onboarding built (ADR-0060 amendment, ADR-0061) | Installable phone app (React built with Vite, files only) on Cloudflare Pages at `scan.barrels.gd` |
+| `apps/web/commit` | Commit, the Barrels Grenada engineering blog: one post per release, starting with 1.0.0 | Live on Cloudflare Pages at `commit.barrels.gd` | Static Next.js export on Cloudflare Pages (ADR-0036 amendment); posts are MDX in `content/posts/` |
 | `apps/web/gaa-admin` | GAA staff portal with GMS and GAA modules | Active; renamed at transition boundary 7 | `apps/web/gaa-admin`; GMS pilot followed by GAA department rollout |
 | `apps/web/gms` | GMS public weather service | Active foundation; renamed at transition boundary 6 | `apps/web/gms`; forecasts, observations, warnings, and public products |
 | `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |

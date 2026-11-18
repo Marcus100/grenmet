@@ -2,10 +2,9 @@
 
 ## Status
 
-Accepted (2026-10-22, owner); rules that reference ADR-0050 are conditional on
-ADR-0050 being accepted. Owner decisions of 2026-10-22 are recorded below as inputs, and the
-owner's answers on `booking_mode` are folded into Decision 1. Nothing in this
-ADR is built. Companion ADRs: [0047](0047-experiences-reuse-events-ticketing-through-occurrences.md)
+Accepted (2026-10-22, owner); ADR-0050 is accepted, so the rules that reference it apply. Owner decisions of 2026-10-22 are recorded below as inputs, and the
+owner's answers on `booking_mode` are folded into Decision 1. Partly built: the taxonomy table, its
+revision and the listing classification fields (`apps/api/fastapi/src/events/AGENTS.md`). Companion ADRs: [0047](0047-experiences-reuse-events-ticketing-through-occurrences.md)
 (experiences and occurrences) and [0048](0048-catalogue-provenance-and-curation.md)
 (provenance and curation). ADR-0049 is reserved for a later services marketplace
 and is not written.

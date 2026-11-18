@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — 2026-10-10.
+Accepted — 2026-10-10. Amended by ADR-0053 (shared remote cache).
 
 ## Context
 

@@ -3,15 +3,14 @@
 ## Status
 
 Accepted — 2026-11-15 by the owner (built and in use). Earlier status, kept for history: Proposed. Owner-approved direction 2026-10-21; slice S0 (the `binding` field and
-the new keys) ships with this ADR. Becomes Accepted when the owner merges it.
+the new keys) ships with this ADR.
 
 Progress (checked against `dev` on 2026-11-14): slices S1 to S3 are built ahead of
 acceptance: the `membership_grant` table, role bundles and resolver
 (`src/organisations/grants.py`, `role_bundles.py`), Events enforcement
 (`src/events/org_router.py`), and the team routes and page
 (`src/organisations/team.py`, `apps/web/events/src/app/dash/team`). S4 (Bookings
-enforcement) and S5 are not built. The status stays Proposed until the owner
-accepts it.
+enforcement) and S5 are not built.
 
 ## Context
 

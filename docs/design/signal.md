@@ -210,8 +210,8 @@ integration phase and must never substitute demo content for a failed feed.
 Keep the skip link first, one h1 per page, meaningful section labels, visible
 keyboard focus and wrapping navigation. Main actions are at least 44px tall.
 Verify 320px and desktop widths, 200% text enlargement, original article and edition
-URLs, empty topics, no-image stories, local search and sample notices. Site-wide
-`noindex, nofollow` remains until actual publication is authorised.
+URLs, empty topics, no-image stories, local search and sample notices. Signal is indexed
+by search engines (owner decision, 16 Nov 2026); only the subscription status page is `noindex`.
 
 ### Image provenance
 
@@ -231,7 +231,7 @@ Daily Signal links to the sourced summaries. “October in Grenada” selects
 SoundLeap, conservation and film; its first two stories appear on the homepage.
 Legacy weather collection URLs remain available. No human byline is invented:
 source credits identify original reporting, while editorial-preview notices
-state that Signal human review is pending. Keep noindex until publication review.
+state that Signal human review is pending.
 
 Homepage topic cards exclude the five feature/latest selections and the two collection cards. Each topic has a distinct lead; further stories use compact headlines. October previews cover all seven topics, with explicitly dated scam-awareness coverage rather than manufactured rumours.
 
@@ -243,6 +243,6 @@ Owner refinement: omit story source/date lines from discovery cards and Latest. 
 
 The Latest stays text-only per the owner’s final clarification. Keep photography on the lead and other discovery sections.
 
-Remove the header editorial-preview banner per owner request; article-level review notices and noindex remain. More from Signal includes Daily Signal, Parish Pulse, Check D Ting and Opportunities.
+Remove the header editorial-preview banner per owner request; article-level review notices remain. More from Signal includes Daily Signal, Parish Pulse, Check D Ting and Opportunities.
 
 The closing archive invitation is a full Keep reading section: an introduction and archive link alongside three pathways to past editions, guides and topics. It uses the existing secondary background and gold rule.

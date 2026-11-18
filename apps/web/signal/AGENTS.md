@@ -6,7 +6,7 @@ international audience. Light mode; readers may sign in and subscribe.
 
 ## Delivery order
 - **Frontend first:** finish and review the reader design before implementing the dedicated Signal CMS; the owner explicitly deferred CMS work.
-- **Demo material:** the original fixtures remain at their URLs and in the archive. The homepage uses sixteen source-attributed editorial previews awaiting human review; keep notices and site-wide noindex.
+- **Demo material:** the original fixtures remain at their URLs and in the archive. The homepage uses sixteen source-attributed editorial previews awaiting human review; keep notices. The site is indexed (owner decision, 16 Nov 2026); only `subscribe/status` is `noindex`.
 
 ## Reader
 - **Human authorship:** every published story has a human author. AI assists internal editorial work; it is not a byline or a separate public content category.

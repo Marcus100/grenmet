@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted 2026-10-20; implementation pending. The `contacts` domain exists (foundations slice PF3, `src/contacts`). The change below, which makes it the single home for personal data, is not built yet.
+Accepted 2026-10-20; built for bookings. The `contacts` domain exists (foundations slice PF3, `src/contacts`) and `bookings.customer` links to it by `contact_id` (`src/bookings/models.py`). No other domain is linked yet (`billing.customer`, event attendees, rewards members).
 
 ## Context
 
