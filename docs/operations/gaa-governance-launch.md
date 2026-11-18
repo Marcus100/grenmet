@@ -42,8 +42,8 @@ Confirm the current preview before applying: these figures describe the inspecte
 CLI alternative, from `apps/api/fastapi` with the target environment already configured:
 
 ```bash
-uv run --frozen --package fast-back python scripts/seed_gaa_organisation.py --environment staging --actor ewhint
-uv run --frozen --package fast-back python scripts/seed_gaa_organisation.py --environment staging --actor ewhint --apply
+uv run --frozen --package fast-back python scripts/seed_gaa_organisation.py --environment staging --actor <superuser-username>
+uv run --frozen --package fast-back python scripts/seed_gaa_organisation.py --environment staging --actor <superuser-username> --apply
 ```
 
 The first command previews only. Choose `local`, `staging` or `production` to match the configured environment; a mismatch fails. Use an existing active administrator as actor. This CLI imports organisation structure only, not people or role assignments.

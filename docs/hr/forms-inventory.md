@@ -5,9 +5,7 @@
 **Last updated:** 2026-09-28
 
 Source-of-truth mapping from the Grenada Airports Authority (GAA) paper HR forms to the FastAPI
-`src/hr` data models. The supplied originals for this review are in
-`temp-files/gaaforms/`; the earlier external collection is
-`OneDrive/bishop/raw/03-software-data/grenmet/hr`. A modeled field alone does not
+`src/hr` data models. The supplied originals for this review are held privately by the owner; the earlier external collection is in the owner's private notes. A modeled field alone does not
 prove the editor, stored snapshot or PDF preserves it; verify the complete
 journey using [the alignment plan](end-to-end-alignment.md).
 

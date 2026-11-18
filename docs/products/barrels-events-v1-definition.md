@@ -24,18 +24,14 @@ members, and resident suggestions stay review-before-publish. Design lane:
 
 ## Evidence base and its limits
 
-Written from a private research vault survey (2026-08-28): one organiser's
-2016–2026 archive plus a Grenadian press corpus. Three limits carry into every
+Written from private research notes kept by the owner (2026-08-28): one organiser's multi-year archive plus local press coverage. Three limits carry into every
 section below and must not be lost:
 
 - **Phase 0 discovery never ran.** Zero external organiser interviews, zero
   attendee interviews.
-- **Both pilot candidates are related parties.** Feel Free Promotions is
-  classified in Barrels' own controls page as a "related-party/captive launch
-  customer". A Barrels-produced Spicemas 2027 event is in-house too. Neither
+- **Both pilot candidates are related parties.** The first pilot organiser is classified in Barrels' own controls page as a related-party launch customer. A Barrels-produced event is in-house too. Neither
   demonstrates that an independent organiser will switch.
-- **Go2Fete is the incumbent** across at least seven unrelated organisers
-  (2023–2026), and sponsors several of them. Why organisers would leave it is
+- **An incumbent ticketing platform** serves at least seven unrelated organisers (2023–2026), and sponsors several of them. Why organisers would leave it is
   **unknown** — none has been asked.
 
 ## 1. Problem statement
@@ -43,9 +39,7 @@ section below and must not be lost:
 Grenadian ticketed events sell through **several channels at once** and
 reconcile them by hand.
 
-Observed: Colours Explosion 2023 sold at "Marian, St. George's, Grand Anse,
-Woburn, and Go2Fete"; the 2024 edition "tracked door and Go2Fete sections"
-separately. Across roughly 750 lines of the current event's operational
+Observed: a recent large event sold through several physical outlets plus the incumbent platform, and the following edition tracked door and platform sections separately. Across roughly 750 lines of the current event's operational
 checklist there is no mention of QR codes, scanning, or ticketing software —
 the tools are a whiteboard bracket, printed lists, and "cash boxes per station
 (bar, food, bingo cards)".
@@ -55,10 +49,7 @@ Two consequences the organiser absorbs today:
 - **No single answer to "how many are sold, and how many are in?"** until after
   the event, if ever. Attendance for the best-documented event in the archive
   "is not directly confirmed".
-- **Reconciliation must survive an unreliable card rail.** ECCB commissioned an
-  independent audit after Republic Bank posted delayed e-commerce and POS
-  transactions dating to 2022, affecting ~12,112 customers across five ECCU
-  countries; duplicate charges at two IGA terminals followed six weeks later.
+- **Reconciliation must survive an unreliable card rail.** A regional bank incident involving delayed e-commerce and POS postings, followed by duplicate terminal charges, is documented in the owner's private notes.
   Delayed and duplicated postings are lived local experience here, not a
   theoretical edge case.
 
@@ -118,8 +109,7 @@ work — paper lists and whiteboards are the current system, not a failure state
 [`docs/grenada-streaming-events-brief.md:134`](../grenada-streaming-events-brief.md)
 ("offline scanner from day one"), a document self-labelled *brainstorm / early
 product definition — nothing here is built yet*. It hardened into a *Next* exit
-gate with no intervening measurement: the vault records no venue connectivity
-test, no door-throughput figure, and no gate outage. The costly part of offline
+gate with no intervening measurement: the research notes record no venue connectivity test, no door-throughput figure, and no gate outage. The costly part of offline
 is not caching but double-admission across devices that cannot see each other —
 real conflict-resolution work, currently justified by nothing.
 
@@ -151,7 +141,7 @@ From [the product page](https://republicgrenada.com/commercial/republic-epay),
 | Accepts | "Any Visa/MasterCard branded Credit Card"; "International Visa Debit Card – currently supported by certain Banks' cards" |
 | Settlement to merchant account | "within two to three business days" |
 | Fees | "Merchant Credit Card Commission Rate (subject to confirmation upon assessment)" plus gateway processing fees by package — **no rates published** |
-| Onboarding | Merchant Services Application Form → `rbgdbusinesscentre@rfhl.com` or a branch; "as little as four (4) working days" |
+| Onboarding | Merchant Services Application Form → the provider's business centre or a branch; "as little as four (4) working days" |
 | Included | 3D Secure, chargeback management, recurring billing, customised reporting |
 
 **Not stated anywhere on that page: any API, webhooks, developer documentation,
@@ -167,10 +157,7 @@ either — XCD is assumed for Grenada but unconfirmed.
    exists to eliminate. Whether a webhook or a server-to-server verification
    call exists is the single most important unknown in this document.
 2. **The reconciliation surface is now aimed at a documented failure mode, not
-   a generic one.** Republic Bank is the same institution whose rails posted
-   delayed e-commerce and POS transactions dating to 2022 (~12,112 ECCU
-   customers, ECCB-commissioned audit) and double-charged two IGA terminals six
-   weeks later. Building settlement to expose unmatched and duplicated postings
+   a generic one.** The likely provider's own rails have a documented history of delayed and duplicated postings (details in the owner's private notes). Building settlement to expose unmatched and duplicated postings
    is a direct requirement against the chosen provider's own history.
 3. **Two-to-three-day settlement plus outlet cash** means organiser payout
    timing must be modelled explicitly; money is not available at event close.
@@ -241,5 +228,5 @@ Offline scanning (see §3). Bar, food, and vendor cash (see §1).
 4. Does the Payment System and Services Act require a licence for this model?
 5. Does Grenadian law impose a mandatory refund window?
 6. Connectivity at Marian Playing Field — one measurement, October.
-7. Why would an organiser leave Go2Fete? Unanswered; needs a real interview.
+7. Why would an organiser leave the incumbent platform? Unanswered; needs a real interview.
 8. What platform fee is tolerable? No basis for a number yet.

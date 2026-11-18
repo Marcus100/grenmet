@@ -29,7 +29,7 @@ confirmation before their dependent implementation begins.
 ### PIMU memorandum
 
 The supplied image, `temp-files/stores.png`, contains an all-employee memorandum
-dated 11 September 2026 from Dr. Jamiilah Linton-Anane, Human Resources Director.
+dated 11 September 2026 from the GAA Human Resources Director.
 It renames the Stores Department to the **Procurement and Inventory Management
 Unit (PIMU)**, effective immediately. All departments must use the new name in
 correspondence, forms, records, and other relevant documentation.
@@ -45,28 +45,28 @@ Its seven stated responsibilities are:
 7. Compliance and audit support: retain documentation, follow procurement and
    customs requirements, and support audits.
 
-The [HR announcement email](https://mail.google.com/mail/#all/1a091458526ed313)
+The HR announcement email (kept privately by the owner)
 corroborates the name, immediate effect, and documentation requirements. The memo
 does not establish spending thresholds, approver assignments, approval stages,
 stock valuation rules, or service-level targets. Do not infer those policies.
 
 ### Existing requisition example
 
-The [forwarded requisition thread](https://mail.google.com/mail/#all/1a08c734791e54b5)
+A forwarded requisition thread (kept privately by the owner)
 provides a real example of the current workflow:
 
 | Date | Recorded event |
 | --- | --- |
-| 8 September 2026 | MET submitted ticket SDR202601170 for maintenance supplies and protective equipment, with quantities and specifications. |
+| 8 September 2026 | MET submitted a service-desk ticket for maintenance supplies and protective equipment, with quantities and specifications. |
 | 9 September 2026 | Quotations were updated, followed by ticket acknowledgement. |
-| 10 September 2026 | Purchase order 20260427 was reported as created. |
+| 10 September 2026 | A purchase order was reported as created. |
 
 This demonstrates line items, quotation revisions, acknowledgement, conversation
 history, and a purchase-order reference. It does **not** establish approval,
 receipt, issue, invoice settlement, or delivery completion. The quotation PDFs
 were linked from an internal osTicket host; their contents were not read or
 archived. Email evidence is contextual input, not an imported production record.
-Private Gmail links require access and are not a durable migration archive.
+The private mail threads require access and are not a durable migration archive.
 
 ### osTicket research
 
