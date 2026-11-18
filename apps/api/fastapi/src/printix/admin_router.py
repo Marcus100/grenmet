@@ -9,14 +9,19 @@ the audit log.
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Query, Response, UploadFile, status
+from fastapi import APIRouter, File, Query, Request, Response, UploadFile, status
 
+from src.auth.models import User
 from src.dependencies import SessionDep
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, CONFLICT, NOT_FOUND
+from src.organisations import members as org_members
+from src.organisations import team
+from src.organisations.models import Membership, MembershipRole
 from src.pagination import PaginationDep
+from src.rate_limit import limiter
 
-from . import constants, service
+from . import constants, onboarding, service
 from .constants import PrintixTicketStatus
 from .dependencies import PrintixAdmin
 from .schemas import (
@@ -26,6 +31,10 @@ from .schemas import (
     PrintixEventPublic,
     PrintixEventSummary,
     PrintixImportReport,
+    PrintixMemberAccess,
+    PrintixMemberAccessPage,
+    PrintixMemberAccessUpdate,
+    PrintixMemberAdd,
     PrintixPairingCreate,
     PrintixPairingCreated,
     PrintixPairingPublic,
@@ -329,3 +338,164 @@ async def revoke_pairing_endpoint(
     *, session: SessionDep, admin: PrintixAdmin, pairing_id: uuid.UUID
 ) -> Any:
     return await service.revoke_pairing(session, pairing_id, actor_id=admin.id)
+
+
+# --- Organiser and gate-lead onboarding ----------------------------------------
+
+
+def _member_access(
+    membership: Membership,
+    user: User,
+    *,
+    access: onboarding.PrintixAccess,
+    can_sign_in: bool,
+) -> PrintixMemberAccess:
+    return PrintixMemberAccess(
+        membership_id=membership.id,
+        user_id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        role=MembershipRole(membership.role),
+        access=access,
+        full_access=membership.role in onboarding.POWER_ROLES,
+        can_sign_in=can_sign_in,
+    )
+
+
+@router.get(
+    "/organisations/{organisation_id}/members",
+    response_model=PrintixMemberAccessPage,
+    summary="List an organisation's members with their Printix access",
+    description=(
+        "Active members of any organisation, each with the Printix bundle they hold "
+        "(none, gate lead or organiser), whether they hold it through an owner or "
+        "admin role, and whether their account can sign in to Printix now."
+    ),
+    responses=_FIND,
+)
+@limiter.limit("30/minute")
+async def list_member_access_endpoint(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    _admin: PrintixAdmin,
+    organisation_id: str,
+    pagination: PaginationDep,
+) -> Any:
+    _ = request, response
+    entitled = await onboarding.organisation_entitled(session, organisation_id)
+    rows, total = await org_members.list_members_of(
+        session, organisation_id, pagination
+    )
+    bundles = await onboarding.live_bundles(session, [m.id for m, _ in rows])
+    ready = await onboarding.sign_in_ready_ids(session, [u for _, u in rows])
+    data = [
+        _member_access(
+            m,
+            u,
+            access=onboarding.access_of(bundles.get(m.id, set())),
+            can_sign_in=u.id in ready,
+        )
+        for m, u in rows
+    ]
+    return PrintixMemberAccessPage(
+        data=data,
+        count=total,
+        page=pagination.page,
+        size=pagination.size,
+        entitled=entitled,
+    )
+
+
+@router.put(
+    "/organisations/{organisation_id}/members/{membership_id}/access",
+    response_model=PrintixMemberAccess,
+    summary="Set a member's Printix access (audited)",
+    description=(
+        "Sets the member's Printix access to none, gate_lead or organiser, replacing "
+        "any other Printix bundle, and gives or removes the printix-member sign-in role "
+        "in the same step. The role is removed only when the person has no other Printix "
+        "access, and their Printix sessions end with it. Owners and admins hold every "
+        "Printix permission already: any value but none only gives them the sign-in "
+        "role, and none is refused. The organisation needs Printix turned on. A reason "
+        "is required and recorded with the actor and target."
+    ),
+    responses=_FIND_OR_CONFLICT,
+)
+@limiter.limit("30/minute")
+async def set_member_access_endpoint(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    admin: PrintixAdmin,
+    organisation_id: str,
+    membership_id: str,
+    body: PrintixMemberAccessUpdate,
+) -> Any:
+    _ = request, response
+
+    async def work() -> PrintixMemberAccess:
+        membership, user, access, _ = await onboarding.set_access(
+            session,
+            admin,
+            organisation_id,
+            membership_id,
+            body.access,
+            reason=body.reason,
+        )
+        return _member_access(
+            membership,
+            user,
+            access=access,
+            can_sign_in=await onboarding.sign_in_ready(session, user),
+        )
+
+    return await team.run_and_commit(session, work())
+
+
+@router.post(
+    "/organisations/{organisation_id}/members",
+    response_model=PrintixMemberAccess,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a person to a Printix organisation (audited)",
+    description=(
+        "Adds an existing account (by user id or email) to the organisation as a plain "
+        "member and gives them gate_lead or organiser access plus the printix-member "
+        "sign-in role, in one step. An email with no account is refused with 404: the "
+        "person creates a Barrels account first. 409 when already a member (use the "
+        "access route) or when the organisation does not have Printix turned on."
+    ),
+    responses=_FIND_OR_CONFLICT,
+)
+@limiter.limit("30/minute")
+async def add_member_endpoint(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    admin: PrintixAdmin,
+    organisation_id: str,
+    body: PrintixMemberAdd,
+) -> Any:
+    _ = request, response
+
+    async def work() -> PrintixMemberAccess:
+        membership, user, access, _ = await onboarding.add_member(
+            session,
+            admin,
+            organisation_id,
+            user_id=body.user_id,
+            email=body.email,
+            access=body.access,
+            reason=body.reason,
+        )
+        return _member_access(
+            membership,
+            user,
+            access=access,
+            can_sign_in=await onboarding.sign_in_ready(session, user),
+        )
+
+    return await team.run_and_commit(session, work())

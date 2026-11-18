@@ -17,6 +17,12 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
   validate with `src/lib/organisation-form.ts`, proxy to FastAPI and redirect with
   a fixed `?notice=` code. Disclosures are native `<details>`; no client state.
   Never fake data.
+- **Printix access (#1554).** When the organisation has `printix` on, the detail page shows
+  "Printix access" (`components/printix-access.tsx`): each member's level (none, gate lead,
+  organiser), sign-in state, a save form and "Add person to Printix". Server actions in
+  `organisations/printix-actions.ts` proxy `/printix/admin/organisations/...`
+  (`lib/printix-form.ts` for validation and notice codes). Guide:
+  `docs/operations/printix-onboarding.md`.
 - **Moderation (organiser verification).** `/moderation` (queue with
   Pending/Approved/Rejected tabs, paginated) and `/moderation/[id]` (case,
   owners, history), linked from the console nav. Reads and decisions proxy

@@ -2,7 +2,7 @@
 
 **Status:** Proposed roadmap, revised 2026-10-16. Direction and sequencing are Barrels' proposal; GAA has not accepted them.  
 **Owner:** Barrels Grenada engineering, for GAA/GMS  
-**Last updated:** 2026-10-16
+**Last updated:** 2026-11-18
 
 GAA is the client and the proving ground for a Barrels HR and staff platform.
 GMS is GAA's meteorological department and the first pilot. The platform is meant
@@ -25,21 +25,20 @@ slice-by-slice evidence.
 
 **Also built since 2026-10-15:** the roster rules engine (#380; a break needs a
 supervisor's recorded reason, see [roster rules](roster-rules.md)); a token-based
-phone clock-in; and a CSV import of opening leave balances.
+phone clock-in; import of the time-clock terminal's punches from a file export (ADR-0040); payroll (gross pay, deductions and payslips, in `src/hr/payroll`); and a CSV import of opening leave balances.
 
 **Not found in the docs or the model list** (code not exhaustively read): skills or
-competency gating on the roster; ingestion of the existing time-clock terminal's
-punches; overtime approval; open-shift claiming; onboarding and separation
+competency gating on the roster; overtime approval; open-shift claiming; onboarding and separation
 checklists; position or establishment control; performance or appraisal features;
-recruitment; payroll; a mobile-first staff view; and reporting beyond the dashboard
+recruitment; a mobile-first staff view; and reporting beyond the dashboard
 and `/hr/reports`.
 
-**What GAA runs today.** GAA's HR and payroll system is HrPlus (a Trinidad and
-Tobago product, run on GAA's network by HR and Accounts Payroll). It issues payslips,
+**What GAA runs today.** GAA runs an existing HR and payroll system (details kept
+privately by the owner), operated by HR and Accounts Payroll. It issues payslips,
 leave confirmations, overtime acceptance and tax certificates. Staff clock in on a
 wall-mounted fingerprint and keypad terminal and carry proximity fobs. How the
-terminal's punches reach HrPlus, and HrPlus's export formats, are not yet known.
-Nothing here has been verified against HrPlus itself.
+terminal's punches reach the current HR system, and the current system's export formats, are not yet known.
+Nothing here has been verified against the current HR system itself.
 
 **Programme focus:** the
 [client programme plan](../portfolio/gaa-gms-client-programme-plan.md) puts staff
@@ -74,10 +73,10 @@ agreed by GAA**:
 - **Our system becomes the official record** for leave, overtime and hours worked,
   starting with the GMS pilot.
 - **GMS is the only pilot** until it is accepted.
-- **Long term, it replaces HrPlus**, with payroll last.
+- **Long term, it replaces the current HR system**, with payroll last.
 
-This is a large change for a client that already pays staff through HrPlus. Until GAA
-HR and Accounts Payroll agree in writing, treat it as a proposal and keep HrPlus
+This is a large change for a client that already pays staff through the current HR system. Until GAA
+HR and Accounts Payroll agree in writing, treat it as a proposal and keep the current HR system
 authoritative for anything that affects pay. Two official records for the same fact
 would be worse than either alone, so each fact needs exactly one owner at every
 stage:
@@ -85,12 +84,12 @@ stage:
 | Fact | Owner during pilot | Owner after cutover |
 | --- | --- | --- |
 | Leave balances and requests | Our system for GMS staff, once HR signs the opening balances | Our system |
-| Attendance (arrival and departure) | The terminal feeds HrPlus; ours ingests the same punches | Our system |
-| Overtime approval | HrPlus | Our system, after the rule engine is trusted |
-| Payslips, tax and payroll | HrPlus | HrPlus until a payroll phase is agreed |
+| Attendance (arrival and departure) | The terminal feeds the current HR system; ours ingests the same punches | Our system |
+| Overtime approval | the current HR system | Our system, after the rule engine is trusted |
+| Payslips, tax and payroll | the current HR system | the current HR system until a payroll phase is agreed |
 
 A cutover needs three things first: GAA HR's written agreement, signed opening
-balances, and a reconciliation report showing our figures match HrPlus for a full
+balances, and a reconciliation report showing our figures match the current HR system for a full
 pay period.
 
 ## Roadmap
@@ -98,11 +97,11 @@ pay period.
 ### Phase 0: prove what exists and settle ownership (now)
 
 - Get GAA HR's agreement, in writing, on the direction above and on the fact owners.
-- Obtain HR's opening balances (an anonymised Excel export from HrPlus) and load
+- Obtain HR's opening balances (an anonymised Excel export from the current HR system) and load
   them with the balance import; the "HR decision pending" rows now hold provisional defaults (2026-10-18) in
   [policy rules](policy-rules.md).
-- Find out who owns HrPlus (HR, Accounts Payroll or IT), the terminal model, whether
-  it is networked, and how its punches reach HrPlus.
+- Find out who owns the current HR system (HR, Accounts Payroll or IT), the terminal model, whether
+  it is networked, and how its punches reach the current HR system.
 - Run host-browser acceptance on leave, absentee, exchange, attendance and
   timesheet, daily status and parking, using [operator acceptance](operator-acceptance.md).
 - Fix the 5 failing tests in `components/hr/hr-pdf-preview.test.tsx` (jsdom
@@ -132,7 +131,7 @@ for agreed exchanges); see [roster rules](roster-rules.md).
 The earlier plan assumed we would capture punches ourselves. GAA already has a
 terminal, so the job is to ingest its punches into the existing attendance record.
 
-- Start with a file import (USB or HrPlus export) that maps a terminal user ID or
+- Start with a file import (USB or the current HR system export) that maps a terminal user ID or
   card number to an employee and matches each punch to the rostered shift. Anything
   unmatched goes to a review list; nothing is auto-approved or invented.
 - Read live from the device only if it is networked, and only after approval of any
@@ -140,9 +139,9 @@ terminal, so the job is to ingest its punches into the existing attendance recor
 - Check the device clock; a wrong device date makes every punch wrong.
 - Keep the token-based phone clock-in as a secondary route for places without a
   terminal.
-- Add a reconciliation report comparing our hours with HrPlus for the same period.
+- Add a reconciliation report comparing our hours with the current HR system for the same period.
 
-Exit: one pay period of GMS punches matches HrPlus after review, and hours are
+Exit: one pay period of GMS punches matches the current HR system after review, and hours are
 counted once across D, M/E and N reports.
 
 ### Phase 3: lifecycle, starting with probation
@@ -155,13 +154,13 @@ counted once across D, M/E and N reports.
 
 ### Phase 4: leave and overtime as the official record for GMS
 
-- Leave reconciliation report against HrPlus (format-agnostic comparison).
-- Overtime requests, approval and notices, replacing HrPlus's overtime feature for
+- Leave reconciliation report against the current HR system (format-agnostic comparison).
+- Overtime requests, approval and notices, replacing the current system's overtime feature for
   GMS once the rule engine has run clean for a period.
-- Export for HrPlus to take in whatever format its import accepts, so payroll keeps
+- Export for the current HR system to take in whatever format its import accepts, so payroll keeps
   running while HR moves over.
 
-Exit: a full pay period where HrPlus and our system agree and HR approves the
+Exit: a full pay period where the current HR system and our system agree and HR approves the
 cutover for GMS.
 
 ### Phase 5: competency and qualification layer (held)
@@ -194,10 +193,10 @@ rostering eligibility do not. Needed for ATS before it joins the pilot.
 
 1. Will GAA HR and Accounts Payroll agree in writing to our system being the official
    record for GMS leave, attendance and overtime, and to what cutover test?
-2. Who owns HrPlus and the terminal, and who can approve an export or a connection?
-3. How do the terminal's punches reach HrPlus today, and in what formats can HrPlus
+2. Who owns the current HR system and the terminal, and who can approve an export or a connection?
+3. How do the terminal's punches reach the current HR system today, and in what formats can the current HR system
    export leave, overtime and punches?
-4. What does HrPlus apply on its own (grace periods, overtime thresholds, break
+4. What does the current HR system apply on its own (grace periods, overtime thresholds, break
    deductions)? Our rules must match or deliberately replace them.
 5. Written rest, hours and overtime terms, and the maternity eligibility and
    sick-leave rules in [policy rules](policy-rules.md).

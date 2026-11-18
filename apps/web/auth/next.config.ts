@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { contentSecurityPolicyHeaders } from "@barrelsgd/ui/lib/content-security-policy";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 
@@ -10,12 +11,21 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "standalone",
   async headers() {
-    // The invitation page is reached from an emailed link; send no referrer from it.
+    // CSP is Report-Only until a clean report window (docs/security.md). Outside
+    // production the helper returns no headers, so the rule is left out.
+    const csp = contentSecurityPolicyHeaders({
+      app: "auth",
+      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+      environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+      isProduction: process.env.NODE_ENV === "production",
+    });
     return [
+      // The invitation page is reached from an emailed link; send no referrer from it.
       {
         source: "/superuser-invite",
         headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
       },
+      ...(csp.length > 0 ? [{ source: "/:path*", headers: csp }] : []),
     ];
   },
   ...(process.env.NODE_ENV === "production" && {

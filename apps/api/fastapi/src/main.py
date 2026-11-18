@@ -94,7 +94,7 @@ from src.organisations.dependencies import ORGANISATION_HEADER
 from src.organisations.router import router as organisations_router
 from src.payments.router import router as payments_router
 from src.push.router import router as push_router
-from src.rate_limit import limiter
+from src.rate_limit import DefaultRateLimitMiddleware, limiter
 from src.request_context import (
     REQUEST_ID_HEADER,
     bind_request_id,
@@ -498,6 +498,9 @@ async def unhandled_exception_handler(request: Request, _exc: Exception) -> Resp
 
 
 app.add_exception_handler(Exception, unhandled_exception_handler)
+
+# Innermost, so a 429 still gets CORS headers and is logged.
+app.add_middleware(DefaultRateLimitMiddleware, limiter=limiter)
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:

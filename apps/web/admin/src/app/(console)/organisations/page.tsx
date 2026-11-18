@@ -67,7 +67,9 @@ export default async function OrganisationsPage({
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Organisations</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Organisations
+          </h1>
           <p className="text-muted-foreground">
             Every organisation on the platform.
           </p>

@@ -165,7 +165,7 @@ export function LedgerPanel({
                 <TableCell>{row.kind}</TableCell>
                 <TableCell>{row.provider}</TableCell>
                 <TableCell className="break-all">
-                  {row.reference ?? row.note ?? "None"}
+                  {ledgerReference(row)}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {formatXcd(row.amount_minor, row.currency)}
@@ -195,6 +195,36 @@ export function LedgerPanel({
       </nav>
     </section>
   );
+}
+
+const SOURCE_LABEL: Record<string, string> = {
+  "bookings.deposit": "Booking",
+  "events.order": "Event order",
+};
+
+/**
+ * What a ledger row is about: the label the selling domain gave the payment
+ * (service and business), else the reference or note, else what it was for and
+ * its id (for a charge made before payments carried a label).
+ */
+export function ledgerReference(row: {
+  description?: string | null;
+  note: string | null;
+  reference: string | null;
+  source_id?: string | null;
+  source_type?: string | null;
+}): string {
+  if (row.description) {
+    return row.description;
+  }
+  if (row.reference ?? row.note) {
+    return row.reference ?? row.note ?? "";
+  }
+  if (row.source_type && row.source_id) {
+    const label = SOURCE_LABEL[row.source_type] ?? row.source_type;
+    return `${label} ${row.source_id}`;
+  }
+  return "None";
 }
 
 export function ReconciliationForm({

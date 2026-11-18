@@ -101,8 +101,6 @@ src/app/
   `docs/operations/cloudflare-proxy.md`, step 3). The Better Stack monitor and
   DNS are production-only steps too.
 - Sign-in should not stop at a "Join" prompt for this app (#1335).
-- Release state: the scaffold and the profile photo page are in v1.0.8; My
-  bookings is on `dev` only (#1385).
 
 ## Tests
 

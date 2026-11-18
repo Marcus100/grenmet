@@ -10,9 +10,13 @@ import {
   type PlatformMemberAdd,
   type PlatformMemberRemove,
   type PlatformMemberRoleUpdate,
+  type PrintixMemberAccessUpdate,
+  type PrintixMemberAdd,
   type PublicSiteCreate,
   type PublicSiteUpdate,
   paginatedResponseAuditEntryPublicSchema,
+  printixMemberAccessPageSchema,
+  printixMemberAccessSchema,
   publicSiteAdminSchema,
   publicSiteListPublicSchema,
 } from "@barrelsgd/api-client";
@@ -257,5 +261,48 @@ export async function removeOrganisationMember(
     getAuthConfig(),
     `${membersPath(organisationId)}/${encodeURIComponent(membershipId)}`,
     { accessToken, method: "DELETE", body }
+  );
+}
+
+function printixPath(organisationId: string): string {
+  return `/printix/admin/organisations/${encodeURIComponent(organisationId)}/members`;
+}
+
+/** Superuser-only roster of any organisation with each member's Printix access. */
+export function listPrintixAccess(accessToken: string, organisationId: string) {
+  return authApiFetch(
+    getAuthConfig(),
+    `${printixPath(organisationId)}?size=${MEMBERS_PAGE_SIZE}`,
+    printixMemberAccessPageSchema,
+    { accessToken }
+  );
+}
+
+/** Superuser-only, audited `PUT /printix/admin/organisations/{id}/members/{membership}/access`. */
+export function setPrintixAccess(
+  accessToken: string,
+  organisationId: string,
+  membershipId: string,
+  body: PrintixMemberAccessUpdate
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    `${printixPath(organisationId)}/${encodeURIComponent(membershipId)}/access`,
+    printixMemberAccessSchema,
+    { accessToken, method: "PUT", body }
+  );
+}
+
+/** Superuser-only, audited `POST /printix/admin/organisations/{id}/members`. */
+export function addPrintixMember(
+  accessToken: string,
+  organisationId: string,
+  body: PrintixMemberAdd
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    printixPath(organisationId),
+    printixMemberAccessSchema,
+    { accessToken, method: "POST", body }
   );
 }

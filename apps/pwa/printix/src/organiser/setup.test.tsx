@@ -21,7 +21,7 @@ import {
   ORGANISATION_STORAGE_KEY,
   SESSION_STORAGE_KEY,
 } from "@/organiser/session";
-import { SUMMARY } from "@/test/fixtures";
+import { ANALYTICS, SCANS, SUMMARY } from "@/test/fixtures";
 import {
   countCalls,
   json,
@@ -61,6 +61,8 @@ const REFRESH = "POST /api/v1/auth/sessions/refresh";
 const ORGS = "GET /api/v1/printix/me/organisations";
 const EVENTS = `GET ${BASE}/events`;
 const SUMMARY_ROUTE = `GET ${BASE}/events/${EVENT_ID}/summary`;
+const ANALYTICS_ROUTE = `GET ${BASE}/events/${EVENT_ID}/analytics`;
+const SCANS_ROUTE = `GET ${BASE}/events/${EVENT_ID}/scans`;
 const PAIRINGS = `GET ${BASE}/events/${EVENT_ID}/pairings`;
 const CREATE_PAIRING = `POST ${BASE}/events/${EVENT_ID}/pairings`;
 const TICKETS = `GET ${BASE}/events/${EVENT_ID}/tickets`;
@@ -128,6 +130,8 @@ function baseRoutes(org = ORGANISER, overrides: Routes = {}): Routes {
     [ORGS]: () => json(200, [org]),
     [EVENTS]: () => json(200, EVENT_PAGE),
     [SUMMARY_ROUTE]: () => json(200, SUMMARY),
+    [ANALYTICS_ROUTE]: () => json(200, ANALYTICS),
+    [SCANS_ROUTE]: () => json(200, SCANS),
     [PAIRINGS]: () => json(200, []),
     [TICKETS]: () => json(200, TICKET_PAGE),
     ...overrides,

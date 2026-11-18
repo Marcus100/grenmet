@@ -1,9 +1,19 @@
 import { fileURLToPath } from "node:url";
+import { contentSecurityPolicyHeaders } from "@barrelsgd/ui/lib/content-security-policy";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 import { plannedRewrites } from "./src/lib/planned-routes";
 import { routeMoveRedirects } from "./src/lib/route-moves";
 import { STORM_CACHE_CONTROL } from "./src/lib/storm-cache";
+
+// CSP is Report-Only until a clean report window (docs/security.md). Outside
+// production the helper returns no headers, so the rule is left out.
+const CSP_HEADERS = contentSecurityPolicyHeaders({
+  app: "gms",
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+  isProduction: process.env.NODE_ENV === "production",
+});
 
 const nextConfig: NextConfig = {
   // Link hrefs are checked against the app's routes at build time.
@@ -31,6 +41,9 @@ const nextConfig: NextConfig = {
         { key: "X-Robots-Tag", value: "noindex, nofollow" },
       ],
     },
+    ...(CSP_HEADERS.length > 0
+      ? [{ source: "/:path*", headers: CSP_HEADERS }]
+      : []),
   ],
   images: {
     remotePatterns: [

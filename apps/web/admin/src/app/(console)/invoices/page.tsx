@@ -58,7 +58,7 @@ export default async function InvoicesPage({
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Invoices</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Invoices</h1>
           <p className="text-muted-foreground">
             Barrels invoices to its service-line clients, in XCD.
           </p>

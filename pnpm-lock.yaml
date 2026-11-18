@@ -613,9 +613,6 @@ importers:
       '@testing-library/react':
         specifier: 'catalog:'
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@testing-library/user-event':
-        specifier: 'catalog:'
-        version: 14.6.10(@testing-library/dom@10.4.2)
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
@@ -731,9 +728,6 @@ importers:
       '@barrelsgd/email-templates':
         specifier: workspace:*
         version: link:../../../packages/email-templates
-      '@barrelsgd/gms':
-        specifier: workspace:*
-        version: link:../../../packages/gms
       '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
@@ -914,6 +908,9 @@ importers:
       '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.65.0
       '@tailwindcss/postcss':
         specifier: 'catalog:'
         version: 4.3.5
@@ -1104,12 +1101,6 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.3.1(react@19.3.1)
-      react-markdown:
-        specifier: 'catalog:'
-        version: 10.1.0(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1)
-      remark-gfm:
-        specifier: 'catalog:'
-        version: 4.0.1(supports-color@8.1.1)
       zod:
         specifier: 'catalog:'
         version: 4.6.7
@@ -1244,9 +1235,6 @@ importers:
       '@tailwindcss/typography':
         specifier: 'catalog:'
         version: 0.5.20(tailwindcss@4.3.5)
-      '@types/react-highlight-words':
-        specifier: ^0.20.1
-        version: 0.20.1
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
@@ -1338,9 +1326,6 @@ importers:
       '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
-      '@base-ui/react':
-        specifier: 'catalog:'
-        version: 1.9.0(@date-fns/tz@1.5.0)(@types/react@19.3.0)(date-fns@4.4.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@sentry/nextjs':
         specifier: 'catalog:'
         version: 11.12.0(next@16.4.6(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.0)(@types/node@26.6.6)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4))(react@19.3.1)(vite@8.3.3(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.77.4)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(webpack@5.111.1(csso@5.0.5)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)(sharp@0.35.5(@types/node@26.6.6))(svgo@3.3.5))
@@ -1526,9 +1511,6 @@ importers:
       '@turf/boolean-point-in-polygon':
         specifier: 'catalog:'
         version: 7.4.0
-      class-variance-authority:
-        specifier: 'catalog:'
-        version: 0.7.1
       date-fns:
         specifier: ^4.4.0
         version: 4.4.0
@@ -1553,9 +1535,6 @@ importers:
       react:
         specifier: 'catalog:'
         version: 19.3.1
-      react-day-picker:
-        specifier: 'catalog:'
-        version: 10.0.2(@types/react@19.3.0)(react@19.3.1)
       react-dom:
         specifier: 'catalog:'
         version: 19.3.1(react@19.3.1)
@@ -1565,9 +1544,6 @@ importers:
       react-map-gl:
         specifier: 'catalog:'
         version: 8.1.3(maplibre-gl@6.18.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      recharts:
-        specifier: 'catalog:'
-        version: 3.10.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react-is@17.0.2)(react@19.3.1)(redux@5.0.1)
       server-only:
         specifier: 'catalog:'
         version: 0.0.1
@@ -1659,9 +1635,6 @@ importers:
       '@barrelsgd/api-client':
         specifier: workspace:*
         version: link:../../../packages/api-client
-      '@barrelsgd/auth':
-        specifier: workspace:*
-        version: link:../../../packages/auth
       '@barrelsgd/gms':
         specifier: workspace:*
         version: link:../../../packages/gms
@@ -1680,9 +1653,6 @@ importers:
       '@t3-oss/env-nextjs':
         specifier: 'catalog:'
         version: 0.13.11(typescript@7.0.2)(valibot@1.5.0(typescript@7.0.2))(zod@4.6.7)
-      class-variance-authority:
-        specifier: 'catalog:'
-        version: 0.7.1
       lucide-react:
         specifier: 'catalog:'
         version: 1.72.0(@types/react@19.3.0)(react@19.3.1)
@@ -1783,9 +1753,6 @@ importers:
       '@t3-oss/env-nextjs':
         specifier: 'catalog:'
         version: 0.13.11(typescript@7.0.2)(valibot@1.5.0(typescript@7.0.2))(zod@4.6.7)
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.72.0(@types/react@19.3.0)(react@19.3.1)
       next:
         specifier: 'catalog:'
         version: 16.4.6(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.0)(@types/node@26.6.6)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4)
@@ -6090,9 +6057,6 @@ packages:
     resolution: {integrity: sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==}
     peerDependencies:
       '@types/react': ^19.3.0
-
-  '@types/react-highlight-words@0.20.1':
-    resolution: {integrity: sha512-EgF6RaoibBurIhxk3X3d5xL0uMqjD7KtShvZ8S+d7/o6xZ+mQ4rct1a2E49vWA9r63OzrHCIyghqvQHASb/ERw==}
 
   '@types/react-transition-group@4.4.12':
     resolution: {integrity: sha512-8TV6R3h2j7a91c+1DXdJi3Syo69zzIZbz7Lg5tORM5LEJG7X/E6a1V3drRyBRZq7/utz7A+c4OgYLiLcYGHG6w==}
@@ -15021,10 +14985,6 @@ snapshots:
       '@types/node': 26.6.6
 
   '@types/react-dom@19.3.0(@types/react@19.3.0)':
-    dependencies:
-      '@types/react': 19.3.0
-
-  '@types/react-highlight-words@0.20.1':
     dependencies:
       '@types/react': 19.3.0
 

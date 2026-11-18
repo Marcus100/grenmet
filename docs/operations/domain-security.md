@@ -2,7 +2,7 @@
 
 **Status:** Active runbook (owner actions; nothing here has been applied yet)  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-18
 
 One checklist for `barrels.gd`, `weather.gd` and `eugine.me`. Each step says
 **why**, what to click or type, how to **verify** and how to **undo**. Items
@@ -88,44 +88,16 @@ opinion: [dnsviz.net](https://dnsviz.net).
 disable DNSSEC in Cloudflare. Doing it the other way round takes the domain
 offline for validating resolvers.
 
-## 4. Replace wildcard records with explicit ones
+## 4. Keep the wildcard records
 
-**Why:** `*.barrels.gd` points every made-up name (for example
-`anything.barrels.gd`) at the production droplet, and `*.staging.barrels.gd`
-does the same for staging. A wildcard makes typos, forgotten services and
-look-alike phishing hosts resolve to real servers, and new Vercel sites silently
-fall through to DigitalOcean.
-
-1. List the hosts that must exist. Use the URLs table at the end of the
-   [deployment guide](../deployment.md) plus Vercel hosts (`barrels.gd`, `www`,
-   `babydoll.barrels.gd` when created) and mail records (section 6).
-2. In Cloudflare → **DNS → Records**, add one **A** record per host, pointing at
-   the same target the wildcard uses today, **DNS only** (grey cloud), TTL Auto.
-   Do this for production names and for each `<name>.staging` name.
-3. **Verify every name** before deleting anything:
-
-   ```bash
-   for h in api auth admin docs gms signal mbia events cap gmsdash bookings cms traefik adminer; do
-     printf '%-10s ' "$h"; dig +short "$h.barrels.gd" @1.1.1.1
-   done
-   ```
-
-   Repeat with `"$h.staging.barrels.gd"`. **Unverified:** the host list above is
-   illustrative; build yours from the deployment guide.
-4. Delete the `*.barrels.gd` and `*.staging.barrels.gd` records.
-5. **Verify** a made-up name no longer resolves and real sites still work:
-
-   ```bash
-   dig +short does-not-exist-123.barrels.gd @1.1.1.1    # empty answer
-   curl -fsS https://api.barrels.gd/api/v1/utils/health-check/
-   curl -fsS https://api.staging.barrels.gd/api/v1/utils/health-check/
-   ```
-
-**Undo:** re-add the wildcard A record (same target, DNS only). It takes effect
-within the record's TTL.
-
-From now on, adding a new subdomain means adding its DNS record in the same
-change.
+**Do not delete `*.barrels.gd` or `*.staging.barrels.gd`.** Production and staging
+depend on them: the Cloudflare proxy runs on those records and its advanced
+certificate covers both names (see the
+[Cloudflare proxy runbook](cloudflare-proxy.md)). The earlier advice here, to
+replace the wildcards with one explicit record per host, was removed because
+deleting them takes down every host without its own record. A host that needs its
+own DNS target, such as a Cloudflare Pages site, gets an explicit record that
+overrides the wildcard.
 
 ## 5. CAA records (which certificate authorities may issue)
 
@@ -134,7 +106,7 @@ for your domain unless it is on your list. It blocks mis-issued certificates.
 
 | Domain | Who issues today | Records to add |
 | --- | --- | --- |
-| `barrels.gd` | Traefik (Let's Encrypt) on DigitalOcean; Vercel for the homepage | `0 issue "letsencrypt.org"` |
+| `barrels.gd` | Traefik (Let's Encrypt) on DigitalOcean; Cloudflare Pages for the homepage | `0 issue "letsencrypt.org"` |
 | `eugine.me` | Vercel | `0 issue "letsencrypt.org"` |
 | `weather.gd` | Traefik (Let's Encrypt) | `0 issue "letsencrypt.org"` |
 

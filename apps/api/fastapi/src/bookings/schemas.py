@@ -52,6 +52,13 @@ class BookingMyBooking(BaseModel):
     service_name: str
     business_name: str
     business_slug: str
+    payment: BookingPaymentSummary | None = Field(
+        default=None,
+        description=(
+            "What was paid when booking; null when nothing was due at booking "
+            "(pay at the business)."
+        ),
+    )
 
 
 class BookingMyChoice(BaseModel):
@@ -355,6 +362,18 @@ class BookingExceptionPublic(BaseModel):
 # --- organisation agenda -----------------------------------------------------------
 
 
+class BookingPaymentKind(str, Enum):
+    DEPOSIT = "deposit"
+    PAYMENT = "payment"
+
+
+_PAYMENT_KIND_DESCRIPTION = (
+    "`deposit` when the booking asks for part of the price at booking, `payment` "
+    'when it asks for all of it (full-price mode). Studio screens say "Deposit" '
+    'or "Payment" by it.'
+)
+
+
 class BookingAgendaItem(BaseModel):
     id: uuid.UUID
     provider_id: uuid.UUID
@@ -368,6 +387,7 @@ class BookingAgendaItem(BaseModel):
     source: BookingSource
     price_minor: int
     deposit_minor: int
+    payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
 
 
@@ -465,6 +485,7 @@ class BookingStudioDetail(BaseModel):
     timezone: str
     price_minor: int
     deposit_minor: int
+    payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
     notes: str | None
     cancel_reason: str | None
@@ -671,6 +692,9 @@ class BookingPaymentSummary(BaseModel):
             "payment is online."
         ),
     )
+
+
+BookingMyBooking.model_rebuild()
 
 
 class BookingPublicDetail(BaseModel):

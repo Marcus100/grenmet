@@ -40,7 +40,9 @@ export default async function CustomersPage({
       <Link className="text-sm underline" href="/invoices">
         All invoices
       </Link>
-      <h1 className="text-2xl font-semibold">Billing customers</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">
+        Billing customers
+      </h1>
       <p className="text-muted-foreground">
         A customer is a platform organisation that Barrels invoices.
       </p>

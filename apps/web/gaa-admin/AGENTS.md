@@ -20,7 +20,7 @@ Port **3001**. The heaviest app in the monorepo.
 
 ## Auth
 
-Uses `@barrelsgd/auth/server` directly — not a redirect-delegating app.
+Uses `@barrelsgd/auth/server` directly; sign-in goes through auth.barrels.gd.
 
 - Session management: `src/lib/server-session.ts`
 - Auth helpers: `src/lib/auth.ts`, `src/lib/auth-config.ts`, `src/lib/auth-redirect.ts`
@@ -40,14 +40,13 @@ Consumes FastAPI HR + Auth endpoints via `@barrelsgd/api-client`. Initialised in
 src/app/
   (admin)/           ← main authenticated layout (AppSidebar + AppHeader)
     page.tsx         ← GMS operations dashboard (live panels in `_components/`)
-    cap/ hr/ roster/ salesbus/ wxwatch/ wxproducts/   ← consolidated GMS routes
+    cap/ climate/ hr/ hr-setup/ it-tickets/ resources/ roles/ roster/ salesbus/ users/ wxwatch/ wxproducts/   ← GMS routes
     janitor/         ← janitorial admin portal: overview, areas (+[id], labels), shifts, staff, setup; `?site=GND|CRU`; field work is a separate PWA
     bus/             ← staff-bus admin portal (overview, timetable versions + draft editor, stops map); FastAPI `/api/v1/transport/*`; drivers and staff use separate apps
     (others-pages)/  ← calendar (department calendar: events + roster + holidays), profile
     coming-soon/     ← placeholder page for target-IA nav items with no page yet
   (full-width-pages)/
-    (auth)/          ← signin, signup (full-width, no sidebar)
-    (error-pages)/   ← 404
+    (auth)/          ← signin (full-width, no sidebar)
 ```
 
 The UI font is user-selectable via `@barrelsgd/theme`'s font switcher (registry in

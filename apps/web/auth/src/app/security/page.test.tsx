@@ -6,11 +6,19 @@ const mocks = vi.hoisted(() => ({
   security: vi.fn(),
   report: vi.fn(),
   settings: vi.fn((_props: { storageReady?: boolean }) => null),
+  email: vi.fn(
+    (_props: { currentEmail: string; hasPassword: boolean }) => null
+  ),
 }));
-vi.mock("@/lib/account", () => ({ requireAccount: vi.fn() }));
+vi.mock("@/lib/account", () => ({
+  requireAccount: async () => ({ user: { email: "signed-in@example.com" } }),
+}));
 vi.mock("./actions", () => ({ loadSecurity: mocks.security }));
 vi.mock("@/lib/report-error", () => ({ reportError: mocks.report }));
 vi.mock("./two-step-settings", () => ({ TwoStepSettings: mocks.settings }));
+vi.mock("./email-change-settings", () => ({
+  EmailChangeSettings: mocks.email,
+}));
 vi.mock("@/components/account-layout", () => ({
   AccountLayout: ({ children }: { children: React.ReactNode }) => (
     <main>{children}</main>
@@ -62,4 +70,19 @@ it("reports unavailable security details while keeping setup hidden", async () =
   );
   expect(mocks.report).toHaveBeenCalledWith(error, "auth/security");
   expect(mocks.settings).not.toHaveBeenCalled();
+});
+
+it("offers the email change form with the signed-in address and password choice", async () => {
+  mocks.security.mockResolvedValue({
+    totp_enabled: false,
+    privileged_mfa_required: false,
+    authenticator_storage_ready: true,
+    has_password: true,
+    email_verified: true,
+  });
+  render(await SecurityPage());
+  expect(mocks.email.mock.calls[0]?.[0]).toMatchObject({
+    currentEmail: "signed-in@example.com",
+    hasPassword: true,
+  });
 });

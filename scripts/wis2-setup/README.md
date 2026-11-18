@@ -31,12 +31,12 @@ Also here (CLI path — no webapp needed):
 
 ```bash
 # 1. Copy the artifacts into the wis2box datadir (owned by uid 1001 → sudo)
-sudo cp ~/grenmet/scripts/wis2-setup/Surface-RA-IV-100.json ~/wis2box-data/mappings/
-sudo cp ~/grenmet/scripts/wis2-setup/metadata-synop-gd-metservice.yml ~/wis2box-data/metadata/discovery/
-sudo cp ~/grenmet/scripts/wis2-setup/station_list_gd.csv ~/wis2box-data/metadata/station/
+sudo cp <home>/grenmet/scripts/wis2-setup/Surface-RA-IV-100.json <home>/wis2box-data/mappings/
+sudo cp <home>/grenmet/scripts/wis2-setup/metadata-synop-gd-metservice.yml <home>/wis2box-data/metadata/discovery/
+sudo cp <home>/grenmet/scripts/wis2-setup/station_list_gd.csv <home>/wis2box-data/metadata/station/
 
 # 2. Publish dataset + stations from inside the management container
-cd ~/grenmet/wis2box
+cd <home>/grenmet/wis2box
 python3 wis2box-ctl.py login
 
 wis2box auth add-token --path processes/wis2box    # save output privately (webapp editors need it later)
@@ -47,7 +47,7 @@ wis2box metadata station publish-collection \
 exit
 
 # 3. Dry-run ingest (or ask the agent to run it from the devcontainer)
-~/grenmet/scripts/wis2-setup/dryrun-upload.sh
+<home>/grenmet/scripts/wis2-setup/dryrun-upload.sh
 docker logs wis2box-management --tail 30           # expect csv2bufr success
 ```
 
@@ -83,7 +83,7 @@ cron seeds synthetic hour-varying values with zero host dependencies:
 Install on the host (`crontab -e`):
 
 ```bash
-1 * * * * /home/eugine/grenmet/scripts/wis2-setup/seed-hourly.sh >> /tmp/wis2-seed.log 2>&1
+1 * * * * <home>/grenmet/scripts/wis2-setup/seed-hourly.sh >> /tmp/wis2-seed.log 2>&1
 ```
 
 Soak pass criteria (24 h, see runbook): ≥22/24 hourly successes in

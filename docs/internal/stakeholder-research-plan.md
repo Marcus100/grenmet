@@ -309,7 +309,7 @@ This register feeds directly into the product content standards and disseminatio
 
 | Document | Relationship |
 |---|---|
-| [GMS Charter](./gms-charter.md) | Stakeholder adoption as a success criterion |
+| GMS Charter (kept privately by the owner) | Stakeholder adoption as a success criterion |
 | [Service Catalogue](./service-catalogue.md) | Services mapped to stakeholder groups |
 | [Product Catalogue](./product-catalogue.md) | Products designed around primary user decisions |
 | [Warning and IBF Framework](../operations/warning-ibf-framework.md) | Warning thresholds and impact language informed by this research |

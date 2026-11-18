@@ -22,7 +22,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from src.auth import modern_service, otp, placeholders, service
-from src.auth.account_security import record_security, verify_factor
+from src.auth.account_security import (
+    record_factor_failure,
+    record_security,
+    verify_factor,
+)
 from src.auth.app_schemas import (
     AccountAppPublic,
     AppEmailCodeStart,
@@ -51,6 +55,7 @@ from src.auth.lockout import (
     email_code_cooldown,
     email_code_ip_limit,
     email_code_send_limit,
+    factor_lockout,
     login_lockout,
     normalised_address,
 )
@@ -287,16 +292,18 @@ async def _require_totp(
 ) -> None:
     if not user.totp_enabled:
         return
-    if await login_lockout.is_locked(user.email):
+    if await login_lockout.is_locked(user.email) or await factor_lockout.is_locked(
+        str(user.id)
+    ):
         raise AppException(
             "Account temporarily locked due to repeated failed logins", 429
         )
     if not await verify_factor(session, user, totp_code or ""):
         if totp_code:
-            await login_lockout.record_failure(user.email)
+            await record_factor_failure(session, user)
         await session.commit()
         raise AppException("Two-factor authentication code required or invalid", 400)
-    await login_lockout.reset(user.email)
+    await factor_lockout.reset(str(user.id))
 
 
 def _require_app_authenticator(app: AppDefinition, user: User) -> None:

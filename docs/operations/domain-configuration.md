@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-05
+**Last updated:** 2026-11-18
 
 Initially checked 2 October 2026; HTTPS rechecked 5 October 2026. Cloudflare hosts DNS for `barrels.gd` and
 `eugine.me`. This document records live settings, not a request to redeploy the
@@ -11,8 +11,8 @@ DigitalOcean applications.
 ## Completed
 
 - Both zones: Full (strict) SSL, minimum TLS 1.2, Always Use HTTPS enabled.
-  All web records remain DNS-only, so these proxy settings do not currently
-  affect requests to Vercel or DigitalOcean. HSTS preload was not enabled.
+  Production has been behind the Cloudflare proxy since 17 November 2026
+  (`CLOUDFLARE_PROXY_ENABLED=true`); the origin firewall step is still to do. HSTS preload was not enabled.
 - DNSSEC signing enabled on both zones, pending registrar DS publication.
 - Removed obsolete apex NS records `ns1.onlydomains.com`, `ns2.onlydomains.com`,
   and `ns3.onlydomains.com` from the Cloudflare `barrels.gd` zone after public
@@ -54,16 +54,7 @@ both zones become Active after the registrar publishes their DS records.
 
 ## Deployment work still needed
 
-- Babydoll Beauty Bar (`apps/web/babydoll`, Next.js) needs a new Vercel project
-  with root `apps/web/babydoll` and the custom domain `babydoll.barrels.gd`, plus
-  an explicit Cloudflare DNS record for that host (CNAME to Vercel, DNS only) so
-  it does not fall through the DigitalOcean wildcard.
-- `barrels-grenada` and `elections-grenada` are manual Vercel deployments. Commit
-  and push their reviewed files, then promote through the repository's normal
-  branch flow before connecting production Git builds to `main`. Their app
-  directories were absent from `origin/main` at review time. Root directories
-  are `apps/web/barrels` and `apps/web/elections`, respectively. Keep shared
-  source access enabled. Existing `eugineme` and `nisnisa` Git links are unchanged.
+- The Barrels homepage, Elections and Babydoll moved to Cloudflare Pages on 15 and 16 November 2026 (see the [Vercel exit plan](vercel-exit-plan.md)); the old Vercel projects no longer serve them.
 - Configure Elections-specific Sentry credentials as described in the
   [deployment guide](../web/elections-deployment.md). No credentials were copied
   between applications or environments.

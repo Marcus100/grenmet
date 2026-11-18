@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — 2026-10-18 by the project owner. Accepts the tenancy part of
+Accepted — 2026-10-18 by the project owner. Decision 4 is amended by [ADR-0050](0050-barrels-staff-operations-access-to-organisations.md). Accepts the tenancy part of
 [ADR-0014](0014-barrels-platform-core-direction.md) (decision 2). Workspaces and
 the AI, Knowledge and Automate parts of ADR-0014 remain Proposed. Build plan:
 [Barrels foundations plan](../exec-plans/barrels-foundations-plan.md).

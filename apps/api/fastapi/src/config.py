@@ -111,6 +111,14 @@ class Settings(BaseSettings):
     # proxy then Traefik (docs/operations/cloudflare-proxy.md). Rate limits on
     # direct browser calls then key on the visitor, not a Cloudflare edge.
     VISITOR_IP_PROXY_HOPS: int = Field(default=1, ge=1, le=5)
+    # Requests per minute per client address across routes with no limit of their own
+    # (src/rate_limit.py); 0 turns the default limit off.
+    DEFAULT_RATE_LIMIT_PER_MINUTE: int = Field(default=1000, ge=0, le=100000)
+    # log: count and log what would be limited, never answer 429; enforce: answer 429.
+    DEFAULT_RATE_LIMIT_MODE: Literal["log", "enforce", "off"] = "log"
+    # Compose network of our own containers; a direct call from it (no forwarding
+    # header) is never default-limited. Must match infra/docker/docker-compose.deploy.yml.
+    INTERNAL_CALLER_NETWORK: str = "172.31.250.0/24"
 
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str

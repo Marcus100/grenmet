@@ -2,7 +2,7 @@
 
 **Status:** Active runbook (owner actions; nothing here has been applied yet)  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-18
 
 Every provider account that can change the platform, in the order to secure
 them. For each: where to turn on two-factor authentication (2FA), whether you can
@@ -41,7 +41,7 @@ Secure the accounts that can reset others first.
 | 4 | Cloudflare | DNS for `barrels.gd` and `eugine.me`; 2FA was **off** on 5 October 2026 |
 | 5 | GitHub | Code, workflows, deployment secrets |
 | 6 | DigitalOcean | Servers, firewalls, backups |
-| 7 | Vercel | Homepage and Elections deployments |
+| 7 | Vercel | Remote build cache (ADR-0053); the homepage and Elections moved to Cloudflare Pages |
 | 8 | Sentry | Error data, which can contain user details |
 | 9 | Resend | Can send email as `barrels.gd` |
 | 10 | Better Stack | Uptime monitoring and alerts |

@@ -68,21 +68,29 @@ class LoginLockout:
             logger.warning("Login lockout check failed; allowing login", exc_info=True)
             return False
 
-    async def record_failure(self, identifier: str) -> None:
+    async def record_failure(self, identifier: str) -> bool:
+        """Count one failure; True only when this call just set the lock."""
         if not self._enabled:
-            return
+            return False
         try:
             client = await self._get_client()
             if client is None:
-                return
+                return False
             key = self._fail_key(identifier)
-            count = await client.incr(key)
-            if count == 1:
-                await client.expire(key, self._window)
-            if count >= self._max:
-                await client.set(self._lock_key(identifier), "1", ex=self._lock_ttl)
+            # One MULTI transaction, as in allow(): the key is never left without a TTL.
+            async with client.pipeline(transaction=True) as pipe:
+                pipe.set(key, 0, nx=True, ex=self._window)
+                pipe.incr(key)
+                _, count = await pipe.execute()
+            if int(count) >= self._max:
+                return bool(
+                    await client.set(
+                        self._lock_key(identifier), "1", ex=self._lock_ttl, nx=True
+                    )
+                )
         except Exception:  # noqa: BLE001 - fail open
             logger.warning("Login lockout record failed", exc_info=True)
+        return False
 
     async def allow(self, identifier: str) -> bool:
         """Count one attempt and say whether it is within the limit.

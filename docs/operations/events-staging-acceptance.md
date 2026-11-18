@@ -2,7 +2,7 @@
 
 **Status:** Draft checklist; nothing here has been run  
 **Owner:** Barrels Grenada engineering (the staging owner runs it)  
-**Last updated:** 2026-10-22
+**Last updated:** 2026-11-18
 
 A hands-on runbook for the owner to bring Barrels Events up on **staging** and
 prove it works, end to end, with Stripe in **test mode**. It follows the format
@@ -79,10 +79,9 @@ passed by `deploy.yml`, so they stay at the defaults. UNVERIFIED: confirm.
 | `auth.staging.barrels.gd` | Shared sign-in (staff SSO), `FRONTEND_HOST` | `staging.env` |
 | `admin.staging.barrels.gd` | Barrels staff console (moderation, payments, entitlements) | [deployment.md](../deployment.md) hostname section |
 
-Cloudflare: the repo says `*.staging.barrels.gd` points at the staging droplet
-in **DNS-only** mode ([deployment.md](../deployment.md)). Keep these hosts DNS
-only: Traefik issues Let's Encrypt certificates on first request, and a proxied
-(orange cloud) record can break that handshake. If you ever proxy
+Cloudflare: `*.staging.barrels.gd` points at the staging droplet and has been
+proxied (orange cloud) since 1 Nov 2026 ([Cloudflare proxy runbook](cloudflare-proxy.md)).
+Certificates renew over the HTTP challenge through Cloudflare. For
 `api.staging`, allow Stripe's webhook traffic through any WAF or bot rule and
 keep the request body unmodified (the signature covers the raw body). Whether
 the live Cloudflare zone matches is **UNVERIFIED: confirm** (not visible from

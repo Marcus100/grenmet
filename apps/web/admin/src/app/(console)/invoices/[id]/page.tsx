@@ -59,7 +59,7 @@ export default async function InvoicePage({
         All invoices
       </Link>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-2xl font-semibold tracking-tight">
           {invoice.number ?? "Draft invoice"}
         </h1>
         <StatusBadge status={invoice.status} />

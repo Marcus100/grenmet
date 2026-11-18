@@ -9,6 +9,7 @@ import {
 import { requireAccount } from "@/lib/account";
 import { reportError } from "@/lib/report-error";
 import { loadSecurity } from "./actions";
+import { EmailChangeSettings } from "./email-change-settings";
 import { TwoStepSettings } from "./two-step-settings";
 
 export const metadata: Metadata = { title: "Security — Barrels" };
@@ -52,7 +53,7 @@ function MfaGuidance({
 }
 
 export default async function SecurityPage() {
-  await requireAccount();
+  const account = await requireAccount();
   const security = await loadSecurity().catch((error: unknown) => {
     reportError(error, "auth/security");
     return null;
@@ -145,6 +146,13 @@ export default async function SecurityPage() {
                 <StatusBadge tone="off">Not connected</StatusBadge>
               )}
             </SettingsRow>
+          </SettingsSection>
+
+          <SettingsSection title="Email address">
+            <EmailChangeSettings
+              currentEmail={account.user.email}
+              hasPassword={security.has_password}
+            />
           </SettingsSection>
         </div>
       ) : (

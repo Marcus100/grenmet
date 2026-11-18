@@ -21,13 +21,13 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0013](0013-cap-alert-self-publish-and-bulletin-linkage.md) | Self-publish CAP alerts and link them to their source bulletin (supersedes 0007) | Accepted; decisions 1–2 superseded by 0023 |
 | [0014](0014-barrels-platform-core-direction.md) | Evolve the FastAPI modular monolith into Barrels Core | Proposed (tenancy accepted in 0022) |
 | [0015](0015-retire-hono-python-backend.md) | Retire the Hono API; backend logic is Python (CMS excepted) | Accepted |
-| [0016](0016-app-scoped-accounts-and-sessions.md) | App-scoped accounts and sessions: shared accounts, per-app sign-in, cookie and access | Accepted, amended by 0017 and 2026-10-21 (app tokens on organisation routes) |
+| [0016](0016-app-scoped-accounts-and-sessions.md) | App-scoped accounts and sessions: shared accounts, per-app sign-in, cookie and access | Accepted, amended by 0017, 0061 and 2026-10-21 (app tokens on organisation routes) |
 | [0017](0017-single-sign-on-handoff.md) | Single sign-on handoff between app-scoped sessions | Accepted 2026-11-15 |
 | [0018](0018-modular-access-and-onboarding.md) | Modular access and administrator-mediated staff onboarding | Accepted direction |
-| [0019](0019-workspace-toolchain-baseline.md) | Workspace toolchain baseline | Accepted |
+| [0019](0019-workspace-toolchain-baseline.md) | Workspace toolchain baseline | Accepted, amended by 0053 |
 | [0020](0020-feature-flags-with-success-metrics.md) | Feature flags with success metrics (`src/feature_flags`, PF7, admin Flags page) | Accepted, built |
-| [0021](0021-timed-recovery-drill.md) | Monthly timed recovery drill | Accepted, built (not yet run) |
-| [0022](0022-platform-organisations-and-memberships.md) | Platform organisations and memberships (bridge A, workspaces deferred) | Accepted |
+| [0021](0021-timed-recovery-drill.md) | Monthly timed recovery drill | Accepted, built; drill passed 2026-11-04 and 2026-11-09, runs monthly |
+| [0022](0022-platform-organisations-and-memberships.md) | Platform organisations and memberships (bridge A, workspaces deferred) | Accepted; decision 4 amended by 0050 |
 | [0023](0023-cap-approval-before-publish.md) | CAP needs approval by a different person before publish; audited emergency publish for the duty supervisor (supersedes ADR-0013 decisions 1-2) | Accepted |
 | [0024](0024-bookings-domain.md) | Barrels Bookings, a shared organisation-scoped appointments domain (clean-room port of Easy!Appointments' model; deposits via the payment adapter) | Accepted; decision 6 superseded by 0027 |
 | [0025](0025-api-conventions.md) | API conventions — frontend-agnostic, audience zones (`public`/`me`/`org`/`admin`), unique schema names, shared helpers; enforced by `test_api_conventions.py` | Accepted |
@@ -37,21 +37,21 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0029](0029-organisation-api-keys-and-webhooks.md) | Organisation API keys with permission scopes and signed outbound webhooks (PF5, PF6) | Accepted 2026-11-15 |
 | [0030](0030-rewards-earn-sources-and-gamification.md) | Generic rewards earn sources, Passport, achievements, check-in streaks; opt-in leaderboards, challenges and gated stamp gifting (PF8–PF11) | Accepted, built (API, plus the organisation rewards admin page in `apps/web/auth`) |
 | [0031](0031-self-registering-api-domains.md) | Per-domain manifests and one ordered list replace edits to four shared API files | Approved; steps 1–5 built (in v1.0.8), step 6 not started |
-| [0032](0032-canonical-observation-store-and-publish-gate.md) | Canonical observation store in the eregister database, with a per-station-hour WIS2 publish gate | Accepted, not built |
-| [0033](0033-data-ownership.md) | Barrels Grenada owns the data on its platforms | Accepted |
+| [0032](0032-canonical-observation-store-and-publish-gate.md) | Canonical observation store in the eregister database, with a per-station-hour WIS2 publish gate | Accepted, built |
+| [0033](0033-data-ownership.md) | Barrels Grenada owns the data on its platforms | Accepted; health records excepted by 0062 |
 | [0034](0034-go-live-checklist.md) | A simple go-live checklist: backups with a verified restore, and monitoring | Accepted |
 | [0035](0035-secrets-management.md) | Secrets: one source per environment, restricted payment keys, yearly rotation, named owners | Accepted |
-| [0036](0036-hosting-split.md) | Static client sites on Vercel; everything with sign-in or data on the droplets | Accepted |
+| [0036](0036-hosting-split.md) | Static sites on Cloudflare Pages; everything with sign-in or data on the droplets | Accepted |
 | [0037](0037-monitoring-vendors.md) | Monitoring vendors receive technical data and internal IDs, never personal data | Accepted |
 | [0038](0038-background-jobs.md) | ARQ on Redis is the only background-job runner | Accepted |
 | [0039](0039-gaa-staff-platform.md) | GAA staff platform (replaces 0009) | Accepted |
 | [0040](0040-staff-attendance.md) | Staff attendance: terminal punches and supervisor-approved phone punches | Accepted; partly built |
 | [0041](0041-agent-autonomy.md) | What unattended AI agents may and may not do | Accepted, amended by 0042 |
 | [0042](0042-agents-merge-into-dev.md) | Agents merge their own green, reviewed PRs into dev; the owner keeps staging, main and the files that limit agents | Accepted |
-| [0043](0043-hostnames-tenancy-and-port-allocation.md) | Hostnames, tenancy and port allocation: one brand domain, single-level hosts, tenants as organisation-slug paths, port ranges by category | Proposed |
+| [0043](0043-hostnames-tenancy-and-port-allocation.md) | Hostnames, tenancy and port allocation: one brand domain, single-level hosts, tenants as organisation-slug paths, port ranges by category | Accepted |
 | [0044](0044-organisation-scoped-permissions-via-membership-grants.md) | Organisation-scoped permissions via membership grants: `binding` on permission keys, product role bundles, grants on the membership | Accepted 2026-11-15 |
 | [0045](0045-analytics-external-free-tools-first-party-deferred.md) | Analytics stays on free external tools (GA4 behind consent, PostHog wired but off); first-party analytics design deferred | Accepted |
-| [0046](0046-barrels-events-catalogue-model.md) | Barrels Events catalogue model: listing types and classification fields, adopted taxonomy as reference data, occurrences as the unit of time and inventory, venues, organiser storefront, Postgres full-text (plus `pg_trgm` if the pre-check passes) and bounding-box geography (no PostGIS) | Accepted |
+| [0046](0046-barrels-events-catalogue-model.md) | Barrels Events catalogue model: listing types and classification fields, adopted taxonomy as reference data, occurrences as the unit of time and inventory, venues, organiser storefront, Postgres full-text (plus `pg_trgm` if the pre-check passes) and bounding-box geography (no PostGIS) | Accepted, partly built |
 | [0047](0047-experiences-reuse-events-ticketing-through-occurrences.md) | Experiences reuse Events ticketing through occurrences (inventory per tier and occurrence, shared-pool capacity, in-house recurrence generator); Bookings stays for appointments | Accepted |
 | [0048](0048-catalogue-provenance-and-curation.md) | Catalogue provenance and curation: hand-curated seed under unclaimed organiser profiles with source links, no scraping, image-rights and personal-data rules, claim flow, `events.catalogue.curate`, hide/unhide policy | Accepted |
 | [0050](0050-barrels-staff-operations-access-to-organisations.md) | Barrels staff operations access to organisations: global `events.ops.*` keys and staff roles, accepted on Events org-zone routes only through one explicit dependency, with MFA, logging and a "Barrels staff" audit capacity | Accepted 2026-11-15 |
@@ -64,8 +64,9 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0057](0057-account-app-separate-from-sign-in.md) | `auth.barrels.gd` keeps only the sign-in flows; a new `account.barrels.gd` app (port 3018) holds profile and photo, security, sessions, organisations, apps, tickets and rewards | Accepted, partly built: step 1 (scaffold and profile photo page) in v1.0.8; sign-in off on production until its secret is set (#1335); steps 2–5 not built |
 | [0058](0058-shared-profile-fundamentals-and-loyalty.md) | One account per person plus each business's own customer record; a per-business member number and short-lived QR code; points and loyalty run per business on the add-only rewards ledger; account deletion becomes anonymisation | Accepted, partly built: slice 1 on `dev` has the account link on signed-in bookings, the My bookings API and page; claim flow, stamp card, member numbers and QR pass, the deletion fix (#1375) and `profiles` not built |
 | [0059](0059-sign-up-paths-by-kind-of-user.md) | Four ways into one Barrels account: customers self sign-up with an emailed code and verify later; business members and Barrels superusers join by invitation; superusers finish authenticator and recovery codes in one visit; GAA and GMS staff keep HR onboarding | Accepted 15 Nov 2026; built in reviewed slices, rules 2 and 4 last |
-| [0060](0060-printix-ticket-registry-and-pairing-auth.md) | Printix ticket registry in the API: printed-number and barcode import, admission once per ticket, and gate access by a pairing QR code (32-byte secret, hashed at rest, expiry and revocation) instead of staff accounts or PINs; amended 16 Nov 2026 for offline scanning and for Printix staff as organisation-scoped organisers | Accepted; API, scanner app and offline mode built; organiser access not built |
-| [0061](0061-browser-only-app-sign-in.md) | Browser-only apps sign in from their own pages: access token in memory, session in `sessionStorage`, per-app session cap (Printix 12 h), required authenticator, strict content security policy | Accepted 16 Nov 2026, not built |
+| [0060](0060-printix-ticket-registry-and-pairing-auth.md) | Printix ticket registry in the API: printed-number and barcode import, admission once per ticket, and gate access by a pairing QR code (32-byte secret, hashed at rest, expiry and revocation) instead of staff accounts or PINs; amended 16 Nov 2026 for offline scanning and for Printix staff as organisation-scoped organisers | Accepted; API, scanner app, offline mode, organiser screens and staff onboarding built |
+| [0061](0061-browser-only-app-sign-in.md) | Browser-only apps sign in from their own pages: access token in memory, session in `sessionStorage`, per-app session cap (Printix 12 h), required authenticator, strict content security policy | Accepted 16 Nov 2026, partly built |
+| [0062](0062-health-records-foundation.md) | Barrels Health records foundation: practices own their charts (exception to 0033, Barrels is processor), consented copies for sharing, patient linking by clinic-issued code on the Barrels ID, portal release rules, separate encrypted health database, view log, 7-year-then-archive retention, FHIR R4-shaped tables, go-live gate for real patients | Accepted 18 Nov 2026, not built |
 
 ## Template
 

@@ -63,13 +63,9 @@ export interface EmailChangeState {
   // Set after a code was emailed to the current address (an account with no password).
   codeSent: boolean;
   error: string | null;
-  // Set after the address changed. The server signs every session out, so the page
-  // asks the person to sign in again with the new address.
-  saved: boolean;
 }
 
 export const initialEmailChangeState: EmailChangeState = {
   error: null,
   codeSent: false,
-  saved: false,
 };

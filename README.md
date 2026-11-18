@@ -19,7 +19,7 @@ barrelsgd/
 │   └── web/
 │       ├── gaa-admin/          # Current GAA staff portal; GMS pilot plus GAA-wide modules
 │       ├── auth/               # Shared staff sign-in/sign-up interface
-│       ├── babydoll/           # Babydoll Beauty Bar client website (Next.js on Vercel)
+│       ├── babydoll/           # Babydoll Beauty Bar client website (Next.js, Cloudflare Pages)
 │       ├── account/            # Barrels account: a person's profile and photo (account.barrels.gd)
 │       ├── bookings/           # Barrels Bookings: public booking pages and studio (skeleton)
 │       ├── barrels/            # Static Barrels Grenada company homepage

@@ -85,13 +85,13 @@ ADR-0002 (shared auth session), `packages/auth/AGENTS.md`, `apps/web/auth/AGENTS
 
 **Owner/admin membership and the exempt list.** `organisations.service.add_member` requires a verified email for OWNER and ADMIN (the events organiser request goes through it), unless the caller passes `skip_email_check=True`. Exempt caller (administrator-mediated, ADR-0018): `events.service.create_organiser` in `src/events/service/organiser_admin.py` (admin-created organisers and the demo seed). The self-service `request_organiser` checks `require_verified_email` itself, so it stays gated. Tests and fixtures use verified users.
 
-**The deposit gate is advisory until a host forwards the session.** `optional_account` treats a missing, invalid, app-scoped or activation-pending token as a guest, and the public booking site sends no bearer today, so nothing is refused in production yet.
+**The deposit gate reads the session a host forwards.** `optional_account` treats a missing, invalid, app-scoped or activation-pending token as a guest; the public booking site sends the signed-in visitor's bearer.
 
 **Role editors.** `PermissionDef` has no hidden or key-only flag, so the ten API-key `<product>.<read|write>` keys show as grantable in the staff Permission table although granting them does nothing. Follow-up.
 
 **Administrator-activated accounts are exempt.** The staff-role gate (`create_user_role_assignment`) and the owner/admin membership gates (`add_member`, `accept_invitation`, `change_role`) use `require_verified_or_admin_activated`: a verified email, or an `account_activation`/`activated` audit entry for the account. Only `onboarding.confirm_activation` writes that entry, and only for a link issued by an active superuser, so no schema change is needed. Self-registered accounts never have it and stay gated. The deposit gate and the self-service `request_organiser` stay strict. The exemption lapses when the account's email changes: `is_admin_activated` also requires `email_verification_required` to be false, which `confirm_activation` clears and both email-change paths in `auth.service` set again.
 
-## Staff operations keys (ADR-0050, Proposed)
+## Staff operations keys (ADR-0050)
 `events.ops.door|till|refunds|settlement|listings` are `binding="global"` staff keys held through `events-staff-*` roles. They are accepted only by `require_org_permission_or_staff` on Events org-zone routes, which resolves them through `effective_roles` (honours `user_role_assignment.effective_to`) and never through `has_permission` or `has_effective_permission` (those imply every global key for a superuser, and `has_permission` ignores expiry). MFA uses `privileged_mfa.require_mfa_session(..., app_key="events")` directly, whatever `AUTH_PRIVILEGED_MFA_MODE` says. Open gap: role assignments need an `hr.organisation` and employment, so event-night helpers with an end date are unresolved (ADR-0050 decision 8). Staff have no `events.team.manage` counterpart.
 
 ## Privileged MFA default

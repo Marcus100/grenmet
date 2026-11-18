@@ -40,7 +40,7 @@ payroll, timesheet expansion or workforce forecasting in this tranche.
    A draft prepared earlier must retain its actual evidence cutoff.
 5. September 29: staff walkthrough and release-candidate review of an exact
    revision. Only necessary fixes enter afterwards, with affected re-verification.
-6. September 30: Eugine deploys accepted scope and records post-deployment
+6. September 30: the owner deploys accepted scope and records post-deployment
    outcomes. Agent performs no commit, push, merge or deployment.
 7. After launch: dated adoption/progress report and prioritised remaining backlog;
    release Clean and Quality only after acceptance.
@@ -52,7 +52,7 @@ These references preserve their existing acceptance criteria and E extensions.
 Access-control failure, unsafe publication, data loss or failed essential
 recovery blocks the affected release. Missing mandatory WIS2 or aviation
 validation evidence requires an explicit hold/reduced-release decision by
-Eugine. Receiver testing is pursued separately and never inferred from files.
+the owner. Receiver testing is pursued separately and never inferred from files.
 No owner is invented and no date converts unverified work into acceptance.
 
 ## Reviewable engineering gates

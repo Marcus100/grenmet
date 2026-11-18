@@ -6,13 +6,16 @@ credential that admits it, so it leaves the server only in an import upload.
 
 import uuid
 from datetime import UTC, date, datetime, timedelta
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
-from pydantic import AwareDatetime, Field, field_validator, model_validator
+from pydantic import AwareDatetime, EmailStr, Field, field_validator, model_validator
 
+from src.auth.onboarding_schemas import AdminReasonText
 from src.models import ApiError, BaseModel, UtcDateTime
+from src.organisations.models import MembershipRole
 
 from . import constants
+from .onboarding import PrintixAccess
 
 EventName = Field(min_length=1, max_length=constants.EVENT_NAME_MAX_LENGTH)
 Gate = Field(min_length=1, max_length=constants.GATE_MAX_LENGTH)
@@ -359,3 +362,194 @@ class PrintixOfflineUnavailableBody(ApiError):
     code: Literal["offline_not_available"] = Field(
         description="Stable code. Offline mode is off for this event; use the live scanner."
     )
+
+
+class PrintixMemberAccess(BaseModel):
+    """One member of an organisation and what they can do in Printix."""
+
+    membership_id: str
+    user_id: uuid.UUID
+    email: str
+    full_name: str
+    role: MembershipRole
+    access: PrintixAccess = Field(
+        description=(
+            "The Printix bundle the member holds: none, gate_lead or organiser. "
+            "Owners and admins hold every Printix permission through their role and "
+            "show none here; see full_access."
+        )
+    )
+    full_access: bool = Field(
+        description="True for owners and admins, who need no Printix bundle."
+    )
+    can_sign_in: bool = Field(
+        description="True when the account may sign in to the Printix app now."
+    )
+
+
+class PrintixMemberAccessPage(BaseModel):
+    data: list[PrintixMemberAccess]
+    count: int
+    page: int
+    size: int
+    entitled: bool = Field(
+        description="Whether the organisation has the Printix app turned on."
+    )
+
+
+class PrintixMemberAccessUpdate(BaseModel):
+    access: PrintixAccess
+    reason: AdminReasonText
+
+
+class PrintixMemberAdd(BaseModel):
+    """Add an existing account to the organisation with a Printix access."""
+
+    user_id: uuid.UUID | None = None
+    email: EmailStr | None = None
+    access: PrintixAccess
+    reason: AdminReasonText
+
+    @model_validator(mode="after")
+    def _exactly_one_target(self) -> Self:
+        if (self.user_id is None) == (self.email is None):
+            raise ValueError("give exactly one of user_id or email")
+        return self
+
+
+# --- Organiser dashboard (live analytics and the after-event report) ----------------
+
+
+class PrintixArrivalBucket(BaseModel):
+    starts_at: UtcDateTime = Field(
+        description="Start of a five-minute period, on the Grenada clock (quarter-hour aligned)."
+    )
+    admitted: int = Field(description="People let in during these five minutes.")
+
+
+class PrintixBusyPeriod(BaseModel):
+    starts_at: UtcDateTime
+    minutes: int = Field(description="Length of the period: 5 or 15.")
+    admitted: int
+
+
+class PrintixGatePhone(BaseModel):
+    id: uuid.UUID = Field(description="The gate code (pairing) this phone scans with.")
+    last_scan_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "When this phone last scanned at the gate (the phone's own time for a "
+            "scan made offline). Empty if it has never scanned."
+        ),
+    )
+    active: bool = Field(
+        description="True while its gate code is neither cancelled nor past its expiry."
+    )
+
+
+class PrintixGateAnalytics(BaseModel):
+    gate: str
+    admitted: int
+    refused: int = Field(description="Scans that did not admit anyone.")
+    scans: int = Field(description="Admitted plus refused.")
+    typed_scans: int = Field(description="Scans made by typing a printed number.")
+    typed_share: float | None = Field(
+        default=None,
+        description="Typed scans divided by scans, 0 to 1. Empty when the gate has no scans.",
+    )
+    admitted_share: float | None = Field(
+        default=None,
+        description="This gate's share of everyone let in, 0 to 1. Empty when nobody is in.",
+    )
+    last_scan_at: UtcDateTime | None = Field(
+        default=None, description="The most recent scan of any phone at this gate."
+    )
+    phones: list[PrintixGatePhone]
+
+
+class PrintixRefusalCount(BaseModel):
+    reason: Literal["already_admitted", "void", "unknown", "event_closed"] = Field(
+        description=(
+            "unknown also covers a barcode from another event and a typed number "
+            "that is switched off for the gate: the scanner never tells them apart."
+        )
+    )
+    count: int
+
+
+class PrintixOfflineAnalytics(BaseModel):
+    synced_late: int = Field(
+        description="Admissions made without a connection and sent to the server later."
+    )
+    conflicts: int = Field(
+        description=(
+            "Offline scans the server could not record as an admission: the ticket was "
+            "already in, void, unknown or the event had closed."
+        )
+    )
+    longest_delay_seconds: int | None = Field(
+        default=None,
+        description="The longest wait between an offline admission and its sync.",
+    )
+
+
+class PrintixEventAnalytics(BaseModel):
+    event: PrintixEventPublic
+    generated_at: UtcDateTime
+    timezone: str = Field(description="The clock all buckets follow: America/Grenada.")
+    issued: int
+    void: int
+    admitted: int
+    not_yet_in: int = Field(description="Valid tickets not yet admitted.")
+    no_show_rate: float | None = Field(
+        default=None,
+        description=(
+            "Valid tickets never admitted divided by valid tickets, 0 to 1. While the "
+            "event is open it is the share not in yet. Empty when there are no valid tickets."
+        ),
+    )
+    first_admission_at: UtcDateTime | None = None
+    last_admission_at: UtcDateTime | None = None
+    admitted_last_10_minutes: int
+    entry_rate_per_minute: float = Field(
+        description="Admissions in the last ten minutes divided by ten."
+    )
+    arrivals: list[PrintixArrivalBucket] = Field(
+        description=(
+            "Admissions per five minutes from the first admission, empty periods "
+            "included, at most the latest 288 (24 hours)."
+        )
+    )
+    busiest_5_minutes: PrintixBusyPeriod | None = None
+    busiest_15_minutes: PrintixBusyPeriod | None = None
+    gates: list[PrintixGateAnalytics]
+    refusals: list[PrintixRefusalCount]
+    offline: PrintixOfflineAnalytics
+
+
+class PrintixScanItem(BaseModel):
+    id: uuid.UUID = Field(
+        description="The scan's own id, for listing. Not the barcode."
+    )
+    scanned_at: UtcDateTime = Field(
+        description="When the scan happened at the gate (the phone's time for an offline scan)."
+    )
+    gate: str
+    printed_number: str | None = Field(
+        default=None,
+        description="Empty when the value matched no ticket. The scanned barcode is never returned.",
+    )
+    outcome: constants.PrintixScanOutcome
+    typed: bool = Field(
+        description="True when a printed number was typed, not scanned."
+    )
+    offline: bool = Field(
+        description="True when the scan was made offline and synced later."
+    )
+
+
+class PrintixScanPage(BaseModel):
+    items: list[PrintixScanItem]
+    total: int
+    page: int
+    size: int

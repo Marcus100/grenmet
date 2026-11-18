@@ -1,5 +1,8 @@
 """Who may use which app, staff access and effective permissions."""
 
+import uuid
+
+from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import (
@@ -79,6 +82,104 @@ async def is_eligible_for_app(
     return any(
         permission.key == key for role in roles for permission in role.permissions
     )
+
+
+async def eligible_user_ids_for_app(
+    *, session: AsyncSession, users: list[User], app_key: str
+) -> set[uuid.UUID]:
+    """``is_eligible_for_app`` for many accounts with a fixed number of queries.
+
+    Same rules as the one-account form: the account gate, superusers, CMS access, then
+    ``app.<key>.access`` through live assignments plus plain role links (skipped once
+    the person has employment records and none is live)."""
+    from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
+    from src.auth.models import (
+        Permission,
+        Role,
+        RolePermissionLink,
+        UserRoleAssignment,
+        UserRoleLink,
+    )
+    from src.auth.policy import active_assignments_of
+    from src.hr.models import EmploymentRecord, live_employment_clause
+    from src.utils.timezones import local_today
+
+    open_users = [
+        u
+        for u in users
+        if u.is_active
+        and not (u.password_setup_pending and u.email_verified_at is None)
+    ]
+    eligible = {u.id for u in open_users if u.is_superuser}
+    rest = [u for u in open_users if not u.is_superuser]
+    if app_key == "cms":
+        return eligible | {
+            u.id for u in rest if u.cms_access in {"writer", "publisher"}
+        }
+    if not rest:
+        return eligible
+    rest_ids = [u.id for u in rest]
+    key = f"app.{app_key}.access"
+    carrying = set(
+        (
+            await session.scalars(
+                select(RolePermissionLink.role_id)
+                .join(Permission, Permission.id == RolePermissionLink.permission_id)
+                .where(Permission.key == key)
+            )
+        ).all()
+    )
+    if not carrying:
+        return eligible
+    for assignment in await active_assignments_of(session=session, user_ids=rest_ids):
+        if assignment.role_id in carrying:
+            eligible.add(assignment.user_id)
+    pending = [uid for uid in rest_ids if uid not in eligible]
+    if not pending:
+        return eligible
+    linked = set(
+        (
+            await session.scalars(
+                select(UserRoleLink.user_id)
+                .join(Role, Role.id == UserRoleLink.role_id)
+                .where(
+                    UserRoleLink.user_id.in_(pending),
+                    UserRoleLink.role_id.in_(carrying),
+                    Role.name.not_in(DEPARTMENT_AUTHORITY_ROLES),
+                    ~exists(
+                        select(UserRoleAssignment.id).where(
+                            UserRoleAssignment.user_id == UserRoleLink.user_id,
+                            UserRoleAssignment.role_id == UserRoleLink.role_id,
+                        )
+                    ),
+                )
+            )
+        ).all()
+    )
+    if not linked:
+        return eligible
+    has_record = set(
+        (
+            await session.scalars(
+                select(EmploymentRecord.user_id).where(
+                    EmploymentRecord.user_id.in_(linked)
+                )
+            )
+        ).all()
+    )
+    has_live = set(
+        (
+            await session.scalars(
+                select(EmploymentRecord.user_id).where(
+                    EmploymentRecord.user_id.in_(linked),
+                    live_employment_clause(local_today()),
+                )
+            )
+        ).all()
+    )
+    return eligible | {
+        uid for uid in linked if not (uid in has_record and uid not in has_live)
+    }
 
 
 def require_approved_account(user: User) -> None:

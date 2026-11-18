@@ -234,7 +234,7 @@ async def test_api_recovery_codes_route_keeps_its_rate_limit(
 
 
 class CountingLockout:
-    """In-memory stand-in for ``login_lockout`` (the real one needs Redis)."""
+    """In-memory stand-in for ``factor_lockout`` (the real one needs Redis)."""
 
     def __init__(self, max_attempts: int) -> None:
         self.max_attempts = max_attempts
@@ -255,7 +255,7 @@ async def test_wrong_codes_lock_recovery_code_replacement(
 ) -> None:
     """A stolen email-code session gets only a few TOTP guesses (ADR-0059 rule 3)."""
     lockout = CountingLockout(max_attempts=3)
-    monkeypatch.setattr(account_security, "login_lockout", lockout)
+    monkeypatch.setattr(account_security, "factor_lockout", lockout)
     user, secret = await make_email_only_user(db_async)
     for _ in range(3):
         with pytest.raises(AppException) as refused:
@@ -273,7 +273,7 @@ async def test_successful_replacement_clears_the_failure_count(
     db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     lockout = CountingLockout(max_attempts=3)
-    monkeypatch.setattr(account_security, "login_lockout", lockout)
+    monkeypatch.setattr(account_security, "factor_lockout", lockout)
     user, secret = await make_email_only_user(db_async)
     for _ in range(2):
         with pytest.raises(AppException):
