@@ -23,6 +23,33 @@ export function paymentLine(payment: BookingPaymentSummary): string {
   }
 }
 
+/**
+ * Said before the customer submits: they pay now, and how much. A due amount
+ * below the price is a deposit (the rest is paid at the business); otherwise it
+ * is the full price. Empty when nothing is paid online at booking.
+ */
+export function payNowLine(
+  dueMinor: number,
+  priceMinor: number,
+  currency: string
+): string | null {
+  if (dueMinor <= 0) {
+    return null;
+  }
+  const due = formatMoney(dueMinor, currency);
+  return dueMinor < priceMinor
+    ? `You pay a deposit of ${due} now to hold this booking. The rest is paid at the business.`
+    : `You pay the full price, ${due}, now to hold this booking.`;
+}
+
+/** The status text for a held booking: paid but not yet confirmed says so. */
+export function paymentReceivedHeld(
+  status: string,
+  payment: BookingPaymentSummary | null | undefined
+): boolean {
+  return status === "pending_payment" && (payment?.paid_minor ?? 0) > 0;
+}
+
 /** The checkout address, only when it is a plain https link. */
 export function safeCheckoutUrl(
   payment: BookingPaymentSummary | null | undefined

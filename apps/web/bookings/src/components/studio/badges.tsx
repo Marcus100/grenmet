@@ -4,6 +4,7 @@ import {
   type BadgeTone,
   type DepositState,
   depositView,
+  type PaymentKind,
   type StatusView,
   statusView,
 } from "@/lib/studio-view";
@@ -19,8 +20,14 @@ const VARIANT = {
 // Status is always a word as well as a colour (docs/design/bookings.md).
 const BADGE_SIZE = "h-6 px-2.5 text-xs";
 
-export function StatusBadge({ status }: { status: BookingStatus }) {
-  const view = statusView(status);
+export function StatusBadge({
+  kind,
+  status,
+}: {
+  kind?: PaymentKind;
+  status: BookingStatus;
+}) {
+  const view = statusView(status, kind);
   return (
     <Badge className={BADGE_SIZE} variant={VARIANT[view.tone]}>
       {view.label}
@@ -29,9 +36,11 @@ export function StatusBadge({ status }: { status: BookingStatus }) {
 }
 
 export function DepositBadge({
+  kind,
   state,
-  view = depositView(state ?? "none"),
+  view = depositView(state ?? "none", kind),
 }: {
+  kind?: PaymentKind;
   state?: DepositState;
   view?: StatusView;
 }) {

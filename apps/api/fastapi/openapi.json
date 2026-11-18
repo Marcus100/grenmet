@@ -75790,6 +75790,10 @@
             "type": "integer",
             "title": "Deposit Minor"
           },
+          "payment_kind": {
+            "$ref": "#/components/schemas/BookingPaymentKind",
+            "description": "`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say \"Deposit\" or \"Payment\" by it."
+          },
           "currency": {
             "type": "string",
             "title": "Currency"
@@ -75809,6 +75813,7 @@
           "source",
           "price_minor",
           "deposit_minor",
+          "payment_kind",
           "currency"
         ],
         "title": "BookingAgendaItem"
@@ -76164,6 +76169,17 @@
           "business_slug": {
             "type": "string",
             "title": "Business Slug"
+          },
+          "payment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingPaymentSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What was paid when booking; null when nothing was due at booking (pay at the business)."
           }
         },
         "type": "object",
@@ -76316,6 +76332,14 @@
         ],
         "title": "BookingOrder",
         "description": "Ids of one kind in the order the business wants them listed."
+      },
+      "BookingPaymentKind": {
+        "type": "string",
+        "enum": [
+          "deposit",
+          "payment"
+        ],
+        "title": "BookingPaymentKind"
       },
       "BookingPaymentMode": {
         "type": "string",
@@ -78009,6 +78033,10 @@
             "type": "integer",
             "title": "Deposit Minor"
           },
+          "payment_kind": {
+            "$ref": "#/components/schemas/BookingPaymentKind",
+            "description": "`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say \"Deposit\" or \"Payment\" by it."
+          },
           "currency": {
             "type": "string",
             "title": "Currency"
@@ -78096,6 +78124,7 @@
           "timezone",
           "price_minor",
           "deposit_minor",
+          "payment_kind",
           "currency",
           "notes",
           "cancel_reason",
@@ -100503,6 +100532,42 @@
             ],
             "title": "Note"
           },
+          "source_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Type",
+            "description": "What the payment was for, e.g. `bookings.deposit`."
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id",
+            "description": "The id of that thing in its own domain (a booking id)."
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "A short label the selling domain gave the payment, such as the service and business of a booking. Null for older payments."
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -100520,6 +100585,9 @@
           "provider",
           "reference",
           "note",
+          "source_type",
+          "source_id",
+          "description",
           "created_at"
         ],
         "title": "PaymentLedgerEntryPublic"

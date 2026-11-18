@@ -28,6 +28,7 @@ import {
   formatMoney,
   timeZonePlace,
 } from "../lib/booking-format";
+import { payNowLine } from "../lib/booking-payment";
 import type { Booked, BookingFlowActions } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
@@ -598,6 +599,13 @@ export function BookingFlow({
   const needsCode =
     dueAtBooking(service) > 0 ||
     (serviceId !== null && codeForced === serviceId);
+  const payNow = service
+    ? payNowLine(
+        dueAtBooking(service),
+        service.price_minor,
+        storefront.currency
+      )
+    : null;
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
   const emailCode = useEmailCode({
     actions,
@@ -785,6 +793,13 @@ export function BookingFlow({
                       {formatDuration(item.duration_min)}
                       {item.description ? ` · ${item.description}` : ""}
                     </span>
+                    {dueAtBooking(item) > 0 && (
+                      <span className="muted">
+                        {dueAtBooking(item) < item.price_minor
+                          ? `Deposit ${formatMoney(dueAtBooking(item), storefront.currency)} paid now`
+                          : "Paid now"}
+                      </span>
+                    )}
                   </span>
                   <span className="service-price">
                     {formatMoney(item.price_minor, storefront.currency)}
@@ -941,6 +956,11 @@ export function BookingFlow({
           </p>
         )}
 
+        {service && payNow && (
+          <p className="notice payment-notice" role="status">
+            {payNow}
+          </p>
+        )}
         <p className="muted">
           By appointment only. You can change or cancel online until{" "}
           {formatHours(storefront.cancel_cutoff_hours)} before your visit.

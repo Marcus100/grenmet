@@ -307,3 +307,22 @@ def test_time_marks_do_not_turn_a_nil_report_into_data() -> None:
         SynopWorkbook.model_validate({**identification, **marks})
     )
     assert decoded.is_nil_report is True
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "/api/v1/eregister/observations?station_id=a%00b",
+        "/api/v1/eregister/stations/a%00b",
+        "/api/v1/eregister/stations/a%00b/settings",
+        "/api/v1/eregister/observations?observed_at=0001-01-01T00:00:00%2B00:01",
+        "/api/v1/eregister/observations?observed_from=0001-01-01T00:00:00%2B00:01",
+        "/api/v1/eregister/observations?observed_to=9999-12-31T23:59:59-00:01",
+    ],
+)
+async def test_unrepresentable_filters_are_refused_not_server_errors(
+    staff_client: httpx.AsyncClient, url: str
+) -> None:
+    """A NUL character or an instant outside the database range is a client error."""
+    response = await staff_client.get(url)
+    assert 400 <= response.status_code < 500, response.text

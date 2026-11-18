@@ -236,6 +236,26 @@ describe("ManageBooking", () => {
     ).toBe(`/salon/booking/${TOKEN}`);
   });
 
+  it("says the payment arrived while the booking is still being confirmed", () => {
+    renderManage({
+      ...booking,
+      status: "pending_payment",
+      deposit_minor: 22_500,
+      payment: {
+        status: "paid",
+        amount_minor: 22_500,
+        paid_minor: 22_500,
+        refunded_minor: 0,
+        currency: "XCD",
+        checkout_url: null,
+      },
+    });
+    expect(
+      screen.getByText("Payment received, confirming your booking")
+    ).toBeVisible();
+    expect(screen.queryByText("Waiting for payment")).not.toBeInTheDocument();
+  });
+
   it("says when the payment was received", () => {
     renderManage({
       ...booking,

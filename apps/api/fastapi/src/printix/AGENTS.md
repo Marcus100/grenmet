@@ -3,8 +3,8 @@
 **Owner:** a Barrels–Printix collaboration and Barrels Grenada's main ticket app
 (owner, 16 Nov 2026). Barrels Grenada builds and runs the software; Printix keeps its
 own name, with Barrels shown. Never add GAA or GMS to anything a gate or promoter
-sees. Organiser access for Printix staff (org zone, two role bundles) is the 16 Nov
-2026 amendment of ADR-0060, not built yet. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
+sees. Organiser access for Printix staff (org zone, two role bundles) is the
+amendment of ADR-0060, built. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
 
 - **Tables** live in the `printix` schema of the main database: `event`, `ticket`,
   `pairing`, `scan_log` (migration `2026-11-14_printix_registry.py`, revision
@@ -12,7 +12,7 @@ sees. Organiser access for Printix staff (org zone, two role bundles) is the 16 
   `Ticket` and `Event` already exist elsewhere on the shared declarative base.
 - **No personal data.** A ticket is a printed number and a barcode value. `pairing`
   keeps only `sha256(secret)`; `created_by` is an auth user id with no foreign key.
-- **Two route zones (ADR-0025):**
+- **Four route zones (ADR-0025), the first two here, `org` and `me` under "Organiser access":**
   - `/printix/admin/*` (zone `admin`): superuser with an enrolled authenticator and
     an MFA session (`PrintixAdmin` = `MfaAdminUser` + `printix.manage`).
   - `/printix/public/*` (zone `public`): no account. The pairing secret is sent as
@@ -160,7 +160,7 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   whose outcome is not `admitted`.
 - Tests: `tests/printix/test_offline.py`.
 
-## Organiser access (ADR-0060 organiser amendment, slice 2: read-only)
+## Organiser access (ADR-0060 organiser amendment)
 
 - **Ownership:** `event.organisation_id` (nullable FK to `org.organisation.id`, migration
   `printixorganisation20261116`). Existing and admin-made events stay NULL and are
@@ -200,10 +200,6 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   `printix-member` holder follows the privileged enrolment rules (emailed code for the first
   authenticator; a new enrolment ends their other sessions). Tests:
   `tests/auth/test_app_session_safeguards.py`. Details: `docs/api/app-session-safeguards.md`.
-- **Not in this slice:** writes (create, import, void, close, pairings), and any way for an app-scoped `printix` session to learn its
-  organisation id: `GET /organisations/mine` is account-only (`AccountUser`), so the
-  scanner must be given the organisation id another way until a route accepts the app
-  session.
 - **Who can use the organiser routes (ADR-0044).** An organisation owner or admin holds every
   organisation key of every entitled product, so both Printix keys, implicitly. Anyone made
   owner or admin of an entitled organisation who also holds the `printix-member` app role can
@@ -219,9 +215,7 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
 - **Deleting an organisation.** The event foreign key has no `ON DELETE` rule, so an
   organisation that owns events cannot be deleted until its events are moved or cleared
   (`POST /admin/events/{id}/organisation` with null).
-- **Rate limit (planned).** A per-user rate limit on the organiser routes is planned with the
-  write slices; the read routes have none yet.
-- **Writes and gate QR codes (slices 4 and 5, `org_router.py`).** Events: create, close,
+- **Writes and gate QR codes (`org_router.py`).** Events: create, close,
   import, list tickets, void and restore need `printix.events.manage`. Gate QR codes (a
   pairing is the QR code; the secret is shown once) need `printix.gates.manage`, so a gate
   lead can make and cancel them but not write events. Every route goes through
@@ -277,6 +271,5 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
 
 ## Not built here
 
-Scanner app changes (`apps/pwa/printix`, offline mode follows in its own change), ticket types, re-entry,
-the Barrels Events connection, and organiser writes (the next slices). The CORS allow-list for the
+Ticket types, re-entry and the Barrels Events connection. The CORS allow-list for the
 scanner origin is set in the deployment environment, not in this domain.

@@ -14,14 +14,6 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 
 Never import from `@barrelsgd/ui` directly — only from `@barrelsgd/ui/components/ui/<name>` or `@barrelsgd/ui/lib/<name>`.
 
-## Build requirement
-
-`@barrelsgd/ui` must be built before apps can consume it. If you see `Cannot find module '@barrelsgd/ui/...'`, run:
-
-```bash
-turbo run build --filter=@barrelsgd/ui
-```
-
 ## Adding a component
 
 1. Add `packages/ui/src/components/ui/<name>.tsx`

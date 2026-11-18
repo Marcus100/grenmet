@@ -1,6 +1,10 @@
 # Printix onboarding: organisers and gate leads
 
-For a Barrels administrator (superuser). Owner: Barrels Grenada. Use it to give Printix's
+**Status:** Active guide  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-11-17
+
+For a Barrels administrator (superuser). Use it to give Printix's
 own staff access to the organiser screens at `scan.barrels.gd/organiser` (ADR-0060 organiser
 amendment). Everything is done from `admin.barrels.gd`; no API calls.
 

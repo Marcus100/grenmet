@@ -17,5 +17,16 @@ export const paymentLedgerEntryPublicSchema = z.object({
   provider: providerKeySchema,
   reference: z.union([z.string(), z.null()]),
   note: z.union([z.string(), z.null()]),
+  source_type: z
+    .union([z.string(), z.null()])
+    .describe("What the payment was for, e.g. `bookings.deposit`."),
+  source_id: z
+    .union([z.string(), z.null()])
+    .describe("The id of that thing in its own domain (a booking id)."),
+  description: z
+    .union([z.string(), z.null()])
+    .describe(
+      "A short label the selling domain gave the payment, such as the service and business of a booking. Null for older payments."
+    ),
   created_at: z.iso.datetime(),
 });

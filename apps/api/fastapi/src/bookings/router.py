@@ -39,7 +39,7 @@ from src.pagination import PaginationDep
 from src.rate_limit import limiter
 from src.turnstile import require_turnstile
 
-from . import public, service, studio
+from . import deposit_payments, public, service, studio
 from .models import BookingStatus
 from .schemas import (
     BookingAgenda,
@@ -192,6 +192,9 @@ async def list_my_bookings(
     rows, total = await service.list_my_bookings(
         session, current_user.id, upcoming=upcoming, pagination=pagination
     )
+    payments = await deposit_payments.payment_summaries(
+        session, [booking for booking, *_ in rows]
+    )
     return BookingMyBookingList(
         data=[
             BookingMyBooking(
@@ -202,6 +205,7 @@ async def list_my_bookings(
                 service_name=service_name,
                 business_name=business_name,
                 business_slug=business_slug,
+                payment=payments[booking.id],
             )
             for booking, service_name, business_name, business_slug in rows
         ],

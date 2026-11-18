@@ -84,6 +84,41 @@ async def test_synop_observations_use_adopted_schema(weather_sessions):
             )
 
 
+@pytest.mark.parametrize("bound", ["start", "end"])
+@pytest.mark.parametrize(
+    "value", ["0001-01-01T00:00:00+00:01", "9999-12-31T23:59:59-00:01"]
+)
+async def test_observations_reject_times_outside_the_utc_range(
+    async_client: httpx.AsyncClient, weather_sessions, actor, bound, value
+):
+    """A bound that cannot be expressed in UTC is a 422, never a server error."""
+    assert weather_sessions is not None
+    app.dependency_overrides[get_browser_or_token_user] = lambda: actor
+    try:
+        response = await async_client.get(
+            "/api/v1/wxproducts/observations", params={"kind": "METAR", bound: value}
+        )
+    finally:
+        app.dependency_overrides.pop(get_browser_or_token_user, None)
+    assert response.status_code == 422
+
+
+async def test_observations_reject_a_station_with_a_null_character(
+    async_client: httpx.AsyncClient, weather_sessions, actor
+):
+    """PostgreSQL text cannot hold NUL; the route answers 422 instead of failing."""
+    assert weather_sessions is not None
+    app.dependency_overrides[get_browser_or_token_user] = lambda: actor
+    try:
+        response = await async_client.get(
+            "/api/v1/wxproducts/observations",
+            params={"kind": "METAR", "station": "MK\x00PG"},
+        )
+    finally:
+        app.dependency_overrides.pop(get_browser_or_token_user, None)
+    assert response.status_code == 422
+
+
 def current_input(**changes) -> ProductWrite:
     values = complete("marine")
     now = datetime.now(validation.GRENADA)

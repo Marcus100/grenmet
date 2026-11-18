@@ -1177,6 +1177,7 @@ export { bookingMyChoiceSchema } from "./bookingMyChoiceSchema.js";
 export { bookingMyChoicesSchema } from "./bookingMyChoicesSchema.js";
 export { bookingMyOrganisationSchema } from "./bookingMyOrganisationSchema.js";
 export { bookingOrderSchema } from "./bookingOrderSchema.js";
+export { bookingPaymentKindSchema } from "./bookingPaymentKindSchema.js";
 export { bookingPaymentModeSchema } from "./bookingPaymentModeSchema.js";
 export { bookingPaymentStatusSchema } from "./bookingPaymentStatusSchema.js";
 export { bookingPaymentSummarySchema } from "./bookingPaymentSummarySchema.js";
