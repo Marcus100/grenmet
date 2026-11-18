@@ -256,6 +256,9 @@ These go to the owner's lawyer. A different answer changes decisions 9 and
     - the data processing agreement is signed
     - the lawyer has answered the confidentiality, archive, clinic-licence
       and printed-prescription questions
+    - the repository is private, moved into the Barrels GitHub organisation
+      on a paid plan with code scanning and secret push protection (the
+      repository stays public until then: it never holds patient data)
 
     Until then, only synthetic patients are used, on all environments.
 13. **Standards.**
