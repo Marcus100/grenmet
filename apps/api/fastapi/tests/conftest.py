@@ -403,6 +403,22 @@ def disable_rate_limiting() -> Generator[None]:
 
 
 @pytest.fixture
+def patch_limiter_hit(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
+    """Replace ``limiter.limiter.hit`` on the Redis-backed and the in-memory fallback
+    limiter. slowapi's ``limiter`` property returns one or the other depending on
+    ``_storage_dead``, which other tests and the default-limit middleware can flip, so
+    patching only the current one is order dependent."""
+
+    def patch(hit: Callable[..., object]) -> None:
+        for name in ("_limiter", "_fallback_limiter"):
+            target = getattr(limiter, name, None)
+            if target is not None:
+                monkeypatch.setattr(target, "hit", hit)
+
+    return patch
+
+
+@pytest.fixture
 async def db_async(test_database: None) -> AsyncGenerator[AsyncSession]:
     """Async database session on a freshly cleared and seeded database.
 

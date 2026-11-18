@@ -10,6 +10,8 @@ Use this guide when a feature changes what Grenmet collects, who may see it, wha
 
 The engineering actions below are ways to implement or investigate the law. A numbered Act establishes enactment. Where a start date, amendment or sector approval affects a decision, record the operative provision and Gazette order in the feature record. The Ministry directs readers to the Government Printery for the authoritative text. [Laws of Grenada](https://www.laws.gov.gd/)
 
+This guide is an engineering aid, not legal advice. Confirm with counsel before relying on a section, a start date or a deadline.
+
 ## Personal information and system access
 
 | Instrument and scope | What to do in Grenmet |
@@ -19,6 +21,12 @@ The engineering actions below are ways to implement or investigate the law. A nu
 | **Interception of Communication Act, No. 22 of 2013**, amended by No. 1 of 2014. Parliament lists commencement order SRO 29 of 2014. Relevant to capturing communications in transit and responding to lawful demands. [Act](https://grenadaparliament.gd/ova_doc/acts-2013/) · [Amendment](https://grenadaparliament.gd/ova_doc/acts-2014/) · [Order](https://grenadaparliament.gd/ova_doc/sros-2014/) | Use message IDs, timestamps and delivery results for routine debugging. Before enabling content capture, identify the authority, people permitted access and deletion date. Route interception requests to the designated legal contact and restrict the request record. |
 
 For a financial investigation, the **Proceeds of Crime Act, No. 6 of 2012**, section 53, addresses production orders, including computer-held material. The **Budapest Convention on Cybercrime** entered into force for Grenada on 1 August 2024 and provides a framework for international cooperation. If a provider receives a preservation or disclosure request, record its authority, scope and expiry, preserve the specified records, and have the responsible legal contact validate any release. [2012 Act](https://grenadaparliament.gd/ova_doc/acts-2012/) · [Council of Europe treaty register](https://www.coe.int/en/web/conventions/full-list?module=signatures-by-treaty&treatynum=185)
+
+## Health records
+
+| Instrument and scope | What to do in Grenmet |
+| --- | --- |
+| **Data Protection Act, No. 1 of 2023, section 21.** Health data is sensitive personal data: process it with written consent or for medical purposes by a health professional or someone with an equivalent duty of confidentiality. Commencement is unverified (see above); Barrels Health builds to this standard regardless. **Health Practitioners Act, section 117:** keep practitioner records for 7 years after the last entry, then archive them. **Public Health Act, section 39:** doctors notify listed diseases without delay. | Follow [ADR-0062](adr/0062-health-records-foundation.md): practice-owned charts, consented copies for sharing and insurer claims, a log of every chart view, archive instead of purge, and no real patient data before its go-live gate. |
 
 ## Digital forms, evidence and commerce
 

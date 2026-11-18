@@ -13,7 +13,7 @@ build without `VITE_API_URL` shows "not connected" and checks nothing;
 create Pages projects through the Cloudflare API, since `wrangler pages
 project create` now tries to convert the app to a Worker). See "Address and API
 origin" below. Response headers live in `public/_headers`. Lane spec:
-`docs/design/printix.md`. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
+`docs/design/printix.md`. Rehearsal and event-day steps: `docs/operations/printix-rehearsal-checklist.md`. Decision record: `docs/adr/0060-printix-ticket-registry-and-pairing-auth.md`.
 
 Printix is a collaboration and Barrels Grenada's main ticket app (owner, 16
 Nov 2026; ADR-0060 organiser amendment): security-printed event tickets and the
@@ -74,9 +74,24 @@ in `public/icons/` are placeholders until Printix supplies artwork.
   `BACKEND_CORS_ORIGINS` in `infra/docker/production.env`, so the production API
   accepts calls from it.
 - `public/_headers` enforces the CSP with `connect-src 'self' https://api.barrels.gd`.
-  Calls to any other API origin are blocked by the browser. A local API on
+  Calls to any other API origin are blocked by the browser. The build rewrites that one origin
+  in `out/_headers` from an https `VITE_API_URL` (`src/headers/csp-headers.ts`, run by
+  `vite.config.ts`; tested), so the committed file stays production-only. A local API on
   `http://localhost` only works with `pnpm dev:pwa:printix` (or `vite preview`), which send no
   `_headers` CSP.
+- **Staging copy** (`https://scan.staging.barrels.gd`, planned; no project, DNS record or
+  deploy exists yet). The origin is already in `BACKEND_CORS_ORIGINS`
+  (`infra/docker/staging.env`) and the API's `PRINTIX_APP_URL` is `https://scan.${BASE_DOMAIN}`
+  (`docker-compose.deploy.yml`). Steps, run only after the owner approves the DNS record:
+  1. Create Pages project `printix-scanner-staging` through the Cloudflare API (production
+     branch `main`).
+  2. `VITE_API_URL=https://api.staging.barrels.gd pnpm --filter @barrelsgd/pwa-printix build`,
+     then check `out/_headers` names `https://api.staging.barrels.gd` and not `api.barrels.gd`.
+  3. From `apps/pwa/printix`: `wrangler pages deploy out --project-name printix-scanner-staging
+     --branch main`. Add custom domain `scan.staging.barrels.gd` to the project.
+  4. The one DNS record the owner must approve: CNAME `scan.staging` to
+     `printix-scanner-staging.pages.dev`, proxied.
+  Never upload a staging build to `printix-scanner` (production).
 
 ## Offline (ADR-0060, offline amendment)
 

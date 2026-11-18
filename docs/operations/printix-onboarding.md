@@ -51,3 +51,5 @@ amendment). Everything is done from `admin.barrels.gd`; no API calls.
   access"; it is removed only when this screen ends real access and none remains.
 - A suspended organisation cannot be given new access.
 - Every change appears under History on the organisation page, with your reason.
+
+For the rehearsal and event day, use [printix-rehearsal-checklist.md](printix-rehearsal-checklist.md).
