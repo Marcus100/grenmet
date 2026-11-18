@@ -6,6 +6,7 @@ Events org-zone routes. Money, MFA, suspension, entitlement, expiry, capacity in
 history, e-mail visibility and rate limits are covered here."""
 
 import uuid
+from collections.abc import Callable
 from datetime import timedelta
 
 import httpx
@@ -511,6 +512,7 @@ async def test_staff_writes_are_rate_limited_per_user_but_members_are_not(
     db_async: AsyncSession,
     events_db: SessionFactory,
     monkeypatch: pytest.MonkeyPatch,
+    patch_limiter_hit: Callable[..., None],
 ) -> None:
     shop = await _shop_with_events(db_async, events_db)
     order_id, _ = await _pending(db_async, shop)
@@ -524,7 +526,7 @@ async def test_staff_writes_are_rate_limited_per_user_but_members_are_not(
     monkeypatch.setattr(limiter, "enabled", True)
     # These count the staff limit only; the default limit has its own tests.
     monkeypatch.setattr(settings, "DEFAULT_RATE_LIMIT_MODE", "off")
-    monkeypatch.setattr(limiter.limiter, "hit", hit)
+    patch_limiter_hit(hit)
     body = {"refund": "none"}
     async with await _desk() as client:
         staff = await client.post(
@@ -763,6 +765,7 @@ async def test_staff_reads_are_rate_limited_per_user(
     db_async: AsyncSession,
     events_db: SessionFactory,
     monkeypatch: pytest.MonkeyPatch,
+    patch_limiter_hit: Callable[..., None],
 ) -> None:
     shop = await _shop_with_events(db_async, events_db)
     user, headers = await _staff(db_async, "events-staff-manager")
@@ -775,7 +778,7 @@ async def test_staff_reads_are_rate_limited_per_user(
     monkeypatch.setattr(limiter, "enabled", True)
     # These count the staff limit only; the default limit has its own tests.
     monkeypatch.setattr(settings, "DEFAULT_RATE_LIMIT_MODE", "off")
-    monkeypatch.setattr(limiter.limiter, "hit", hit)
+    patch_limiter_hit(hit)
     from tests.organisations.support import headers_for
 
     async with await _desk() as client:
