@@ -173,6 +173,40 @@ it("says the server could not render the PDF, with its status, and reports it", 
   });
   expect(reportError).toHaveBeenCalledTimes(1);
 });
+it("tells the person their session ended on a 401 with no reason", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(new Response("", { status: 401 }));
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: "Your session has ended. Sign in again.",
+  });
+});
+it("uses neutral wording for a 413 with no reason", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(new Response("", { status: 413 }));
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: "The preview could not be shown (error 413). Try again.",
+  });
+});
+it("uses neutral wording when a 200 is not a PDF", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(new Response("<html>", { status: 200 }));
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: "The preview could not be shown (error 200). Try again.",
+  });
+});
+it("says a wrong-shaped session reply is not a connection problem (PDF)", async () => {
+  fetcher.mockResolvedValueOnce(Response.json({ nope: true }));
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: ANSWER_PROBLEM,
+  });
+});
 it("says a reply in the wrong shape is not a connection problem", async () => {
   fetcher
     .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))

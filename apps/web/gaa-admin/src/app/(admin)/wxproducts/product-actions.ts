@@ -18,8 +18,8 @@ import {
 import {
   ANSWER_PROBLEM,
   PDF_PREVIEW_FALLBACK,
+  pdfPreviewFailure,
   pdfPreviewRefusal,
-  pdfPreviewServerError,
 } from "@/lib/wxproducts/pdf-preview-error";
 import { productInputSchema } from "@/lib/wxproducts/product-input";
 
@@ -274,7 +274,7 @@ export async function previewProductPdfAction(
       );
       return {
         ok: false as const,
-        error: pdfPreviewServerError(response.status),
+        error: pdfPreviewFailure(response.status),
       };
     }
     return {
@@ -286,6 +286,8 @@ export async function previewProductPdfAction(
   } catch (error) {
     if (signal?.aborted) return { ok: false as const, aborted: true as const };
     reportError(error, "wxproducts");
+    if (error instanceof z.ZodError)
+      return { ok: false as const, error: ANSWER_PROBLEM };
     return { ok: false as const, error: PDF_PREVIEW_FALLBACK };
   }
 }

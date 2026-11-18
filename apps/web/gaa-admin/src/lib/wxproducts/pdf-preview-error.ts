@@ -9,6 +9,14 @@ export function pdfPreviewServerError(status: number): string {
   return `The server could not render the PDF (error ${status}). Try again in a minute; if it keeps happening, tell the Barrels team.`;
 }
 
+/** Wording for a PDF preview that failed with this status and no API reason. */
+export function pdfPreviewFailure(status: number): string {
+  if (status >= 500) return pdfPreviewServerError(status);
+  if (status === 401 || status === 403)
+    return "Your session has ended. Sign in again.";
+  return `The preview could not be shown (error ${status}). Try again.`;
+}
+
 /** Shown when the server's answer is not in the shape this page expects. */
 export const ANSWER_PROBLEM =
   "The server's answer was not in the expected format. Try again; if it keeps happening, tell the Barrels team.";

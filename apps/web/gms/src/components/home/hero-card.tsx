@@ -100,7 +100,7 @@ function HeroCard({
       <p className="text-body-sm text-gm-text-inverse/80 leading-body-sm font-bold">
         {label}
       </p>
-      <div className="flex items-center gap-3.5 lg:gap-5">
+      <div className="flex flex-wrap items-center justify-center gap-x-3.5 gap-y-0.5 lg:gap-x-5">
         <span className="text-body-lg leading-body-lg min-w-12 text-right font-bold tabular-nums">
           {left}
         </span>
