@@ -26,6 +26,14 @@ ERROR_PERMISSION_DENIED = "Insufficient permission for this operation"
 async def _active_assignments(
     *, session: AsyncSession, user_id: uuid.UUID
 ) -> list[UserRoleAssignment]:
+    return await active_assignments_of(session=session, user_ids=[user_id])
+
+
+async def active_assignments_of(
+    *, session: AsyncSession, user_ids: list[uuid.UUID]
+) -> list[UserRoleAssignment]:
+    """Live assignments of several accounts in one query (same gate as
+    ``_active_assignments``, which is the one-account form)."""
     now = utc_now()
     from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
     from src.hr.models import EmploymentRecord, live_employment_clause
@@ -67,7 +75,7 @@ async def _active_assignments(
     ) & UserRoleAssignment.user_id.in_(select(User.id).where(User.is_active.is_(True)))
     result = await session.execute(
         select(UserRoleAssignment).where(
-            UserRoleAssignment.user_id == user_id,
+            UserRoleAssignment.user_id.in_(user_ids),
             (
                 UserRoleAssignment.role_id.in_(
                     select(Role.id).where(Role.name == STAFF_ROLE)

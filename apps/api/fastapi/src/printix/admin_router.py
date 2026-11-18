@@ -389,12 +389,13 @@ async def list_member_access_endpoint(
         session, organisation_id, pagination
     )
     bundles = await onboarding.live_bundles(session, [m.id for m, _ in rows])
+    ready = await onboarding.sign_in_ready_ids(session, [u for _, u in rows])
     data = [
         _member_access(
             m,
             u,
             access=onboarding.access_of(bundles.get(m.id, set())),
-            can_sign_in=await onboarding.sign_in_ready(session, u),
+            can_sign_in=u.id in ready,
         )
         for m, u in rows
     ]

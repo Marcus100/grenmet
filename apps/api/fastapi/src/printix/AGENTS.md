@@ -267,6 +267,16 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   `printix-member` goes only when no other Printix access remains. An email with no account is
   404 (no new invitation flow). Screen: admin `organisations/[id]` "Printix access". Guide:
   `docs/operations/printix-onboarding.md`. Tests: `tests/printix/test_onboarding.py`.
+  **Sign-in role release (#1564, `app_role.py`):** a leaf module (models only) shared by this
+  domain and `organisations`, so neither imports the other's services. When a change ended a
+  person's last Printix access (owner/admin or live bundle in an entitled organisation), the
+  role goes and their `printix` sessions end: `members.apply_removal` (also the Barrels admin
+  removal), `members.apply_role_change` on demotion, `grants.revoke_grant_detailed` (org-zone
+  revoke and its cascade) and `service.set_app_enabled(printix, off)`. Each takes
+  `holders_of(org)` after the roster lock and calls `release_lost` at the end. A role given by
+  hand to someone who held no access is left alone. Lapsed (expired) bundles are not swept.
+  The members list uses one batch sign-in check (`auth.eligibility.eligible_user_ids_for_app`).
+  Tests: `tests/printix/test_app_role_release.py`.
 - **Tests:** `tests/printix/test_org_routes.py`.
 
 ## Not built here

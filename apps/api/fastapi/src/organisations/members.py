@@ -51,6 +51,7 @@ from src.organisations.models import (
     new_membership_id,
 )
 from src.pagination import PaginationParams
+from src.printix import app_role as printix_app_role
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
@@ -210,6 +211,7 @@ async def apply_role_change(
     """Shared by the organisation-scoped route and the audited control-plane route."""
     audit_service.set_actor(session, actor_id)
     await grants.lock_roster(session, organisation_id)
+    printix_holders = await printix_app_role.holders_of(session, organisation_id)
     may_grant_owner = await _actor_may_grant_owner(
         session,
         organisation_id,
@@ -241,6 +243,8 @@ async def apply_role_change(
                 trigger="demoted",
                 root=membership.id,
             )
+            # Whoever lost their last Printix access loses the sign-in role (#1564).
+            await printix_app_role.release_lost(session, printix_holders)
     return membership, user
 
 
@@ -271,6 +275,7 @@ async def apply_removal(
 ) -> Membership:
     audit_service.set_actor(session, actor_id)
     await grants.lock_roster(session, organisation_id)
+    printix_holders = await printix_app_role.holders_of(session, organisation_id)
     may_grant_owner = await _actor_may_grant_owner(
         session,
         organisation_id,
@@ -317,6 +322,9 @@ async def apply_removal(
         trigger="removed",
         root=membership.id,
     )
+    # The removed person and anyone their grants supported may have lost their last
+    # Printix access; the sign-in role goes with it (#1564).
+    await printix_app_role.release_lost(session, printix_holders)
     return membership
 
 

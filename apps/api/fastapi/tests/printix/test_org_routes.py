@@ -488,6 +488,13 @@ async def test_an_owner_grants_and_revokes_the_printix_bundles_through_the_team_
     )
     member = await _app_user(db_async)
     await make_org_member(db_async, org, member)
+    # Access in another organisation keeps the sign-in role, so the revoked bundle is
+    # refused at the organisation (403) and not at sign-in (401, #1564).
+    other = await make_org(
+        db_async, f"Printix other {uuid.uuid4().hex[:6]}", apps=("printix",)
+    )
+    await make_org_member(db_async, other, member)
+    await _grant(db_async, other, member, "printix-gate-lead")
     member_headers = await _sign_in(db_async, member)
     membership_id = await _membership_id(db_async, org, member)
     for bundle in ("printix-organiser", "printix-gate-lead"):

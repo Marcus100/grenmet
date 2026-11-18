@@ -537,6 +537,11 @@ async def delete_user(
         # Already done: no second pass and no second audit row.
         logger.info("User already anonymised", extra={"user_id": str(user.id)})
         return
+    # Roster locks of every affected organisation come first, in id order (#1501,
+    # #1564): the documented order is roster, then the rows. Account deletion changes
+    # the person's role links and sessions, which an administrator's access change
+    # (roster lock, then user row, then role link and sessions) locks in that order.
+    await organisation_grants.lock_affected_rosters(session, user.id)
     # The last active superuser cannot be anonymised (#1481). The lock comes before
     # any other write in this transaction.
     from src.auth import superuser_invitation
@@ -558,9 +563,6 @@ async def delete_user(
     await revoke_access_material(session, user)
     await rewards_service.cancel_open_redemptions(session, account=user)
     await _end_access_links(session, user_id, now)
-    # Roster locks of every affected organisation first, in id order (#1501), so the
-    # membership and grant writes below never lock in the reverse order.
-    await organisation_grants.lock_affected_rosters(session, user_id)
     await _end_organisation_access(session, user_id, now)
     # Grants the account handed to others end too (#1496). Runs after its memberships
     # are removed, which the cascade relies on.
