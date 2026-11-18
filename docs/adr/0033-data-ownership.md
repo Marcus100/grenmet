@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (owner decision, 2026-10-20). Health records are proposed as an exception in ADR-0062: each practice is the data user and Barrels the processor.
+Accepted (owner decision, 2026-10-20). Health records are an exception under ADR-0062 (accepted 18 Nov 2026): each practice is the data user and Barrels the processor.
 
 ## Context
 

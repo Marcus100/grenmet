@@ -2,8 +2,9 @@
 
 ## Status
 
-Proposed 18 Nov 2026 (owner decisions in the session that planned the
-product; agent decisions where the owner delegated). Amends ADR-0033 for
+Accepted 18 Nov 2026 (owner decisions in the session that planned the
+product; agent decisions where the owner delegated; owner accepted the
+record the same day). Amends ADR-0033 for
 health records. Nothing is built. No real patient data may be stored until
 the go-live gate in decision 12 is met.
 
