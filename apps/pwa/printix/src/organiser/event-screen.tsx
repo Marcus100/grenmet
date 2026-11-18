@@ -5,6 +5,7 @@ import type {
 import { useCallback, useState } from "react";
 import { CountBar } from "@/components/count-bar";
 import type { Link } from "@/lib/use-live-count";
+import { AnalyticsSection } from "@/organiser/analytics-section";
 import { roleLabel } from "@/organiser/choose-organisation";
 import { CloseEventSection } from "@/organiser/close-event-section";
 import { type Problem, problemMessage } from "@/organiser/errors";
@@ -127,6 +128,13 @@ export function EventScreen({
       <div aria-live="polite" className="sr-only" role="status">
         {announcement}
       </div>
+
+      <AnalyticsSection
+        eventId={event.id}
+        onAnnounce={onAnnounce}
+        organisationId={organisation.id}
+        session={session}
+      />
 
       <GateCodesSection
         closed={closed}

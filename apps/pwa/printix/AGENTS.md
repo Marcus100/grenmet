@@ -200,6 +200,14 @@ the gate with its pairing secret (`scan-api.ts`), the organiser with its session
   handler honour, so flipping tabs cannot exceed the limit. The event's status
   and close time come from the polled summary, so a closing event updates.
   Rate-limit messages state the wait in seconds from the server.
+- **Dashboard (#1555):** the event screen shows `analytics-section.tsx`: pace figures,
+  `arrivals-chart.tsx` (plain SVG bars, no charting package; a text summary and a table of every
+  period beside it), `gates-panel.tsx` (a phone with no scan for 15 minutes in an open event is
+  flagged), `refusals-panel.tsx`, `recent-scans.tsx` (latest 20) and `report-panel.tsx` (totals,
+  no-shows, busiest 15 minutes, gate shares, the scan list download). It reads analytics and
+  scans together through `use-polled-read.ts` every 10 seconds (the same hook runs the summary).
+  The download is a bearer-authenticated read saved as a Blob, so no barcode and no token is in
+  a link. "Now" is always the server's `generated_at`. Wording lives in `analytics-format.ts`.
 - **Not connected:** with an empty `VITE_API_URL` the organiser shows "not
   connected" and calls nothing.
 - **Offline:** the page itself opens from the phone's cache, but every organiser

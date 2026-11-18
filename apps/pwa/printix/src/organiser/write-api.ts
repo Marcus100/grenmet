@@ -44,7 +44,7 @@ interface Parser<T> {
 }
 
 /** Runs one call inside the session, then checks its answer against the schema. */
-async function settle<T>(
+export async function settle<T>(
   session: OrganiserSession,
   area: string,
   request: () => Promise<{ readonly data: unknown }>,
