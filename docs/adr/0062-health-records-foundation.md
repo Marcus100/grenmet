@@ -6,8 +6,8 @@ Accepted 18 Nov 2026. The owner made the product decisions and accepted the
 record the same day; agents made the decisions the owner delegated. Amends
 ADR-0033 for health records and ADR-0043 for the `health` host. Amended the
 same day at the owner's request to include health insurance companies
-(decision 15). Nothing is built. No real patient data may be stored until the go-live gate in
-decision 12 is met.
+(decision 15). Nothing is built. No real patient data may be stored until
+the go-live gate in decision 12 is met.
 
 ## Context
 
@@ -182,6 +182,8 @@ decisions 9, 12 and 15, not the data model.
    - Every practice signs a data processing agreement before real patient
      data is stored.
 3. **Practices own their records.**
+   - Each `health` organisation has a kind: practice or insurer (decision
+     15). Only a practice holds charts.
    - A practice is an `org.organisation`. A solo doctor is a one-person
      practice.
    - Health tables in the separate database hold the organisation, user and
@@ -196,7 +198,8 @@ decisions 9, 12 and 15, not the data model.
      records, for example a summary, allergies, medicines or results.
    - Every share records the sender, the receiver, the time, the parts sent
      and its legal basis: patient consent, or an emergency with a reason.
-   - The receiving practice owns its copy.
+   - The receiving party (a practice, or an insurer under decision 15) owns
+     its copy.
    - A patient can share their own record with a practice from the portal;
      the patient's request is the consent.
    - There is no live access into another practice's records.
@@ -272,6 +275,8 @@ decisions 9, 12 and 15, not the data model.
       at any time they are open)
     - a security review of the health domain is clean
     - the data processing agreement is signed
+    - for insurer features only: that insurer's agreement is signed and it
+      has confirmed what a claim must contain
     - the lawyer has answered the confidentiality, archive, clinic-licence
       and printed-prescription questions
     - the repository is private, moved into the Barrels GitHub organisation
@@ -297,13 +302,13 @@ decisions 9, 12 and 15, not the data model.
        clash check.
     5. Sharing and referrals.
     6. Portal with release rules.
-
-    7. Insurers: insurer organisations, patient cover, cover checks and
-       pre-approval.
-    8. Claims and remittances, linked to patient billing.
+    7. Patient billing (visit billing lines and receipts).
+    8. Insurers: insurer organisations, patient cover and consent, cover
+       checks and pre-approval.
+    9. Claims and remittances on the billing lines from step 7.
 
     Then pilot features: certificates and prescriptions (printed, with a
-    verification code), patient billing, lab and ultrasound reports,
+    verification code), lab and ultrasound reports,
     long-term care and specialist templates. Each step is its own issue and
     PR, labelled `risk:high` with a security review.
 
@@ -311,10 +316,15 @@ decisions 9, 12 and 15, not the data model.
     - An insurer is an `org.organisation` with the `health` product and its
       own role bundle (claims officer, medical reviewer, insurer manager),
       working on `health.barrels.gd` under its own slug. All insurer staff
-      must use an authenticator app.
+      must use an authenticator app. Insurer bundles never hold the clinical
+      permission keys from decision 9.
     - The practice records a patient's cover on the chart: insurer, plan,
       member number and policy holder. Member numbers are encrypted like
       other identity numbers.
+    - **Consent first.** When cover is added to a chart, the patient signs
+      consent for that insurer, recorded as a `Consent` with its scope (cover
+      checks, pre-approval and claims). It lasts for that cover and the
+      patient can withdraw it. Nothing goes to an insurer without it.
     - **Cover check.** Reception can ask the insurer whether a member is
       covered on a date. The answer is yes, no or "ask us", with an optional
       plan summary. It sends only name, date of birth and member number.
@@ -326,9 +336,7 @@ decisions 9, 12 and 15, not the data model.
       amounts. Clinical notes are never sent. A medical reviewer may ask for
       a specific document; the practice decides and sends it as another
       logged share.
-    - **Consent.** The patient signs consent for claims to that insurer,
-      once per cover and revocable, recorded as a `Consent` with its scope.
-      A patient can see in the portal every claim and document sent to their
+    - A patient can see in the portal every claim and document sent to their
       insurer.
     - The insurer is the data user (controller) of the copies it receives,
       under its own data processing agreement with Barrels. The data rules
@@ -386,6 +394,8 @@ Follow-ups:
   (legal duty, retention and risk).
 - Check `docs/security.md` and `docs/data-architecture.md` for wording that
   says Barrels owns all data, and point it to this exception.
+- Add the organisation kind (practice or insurer) in build step 1, so
+  insurer roles can never be given clinical keys.
 - Add `health` to `entitlements.PRODUCTS` and its keys to `permissions.py`
   in build step 1.
 - Draft the data processing agreement and a one-page security summary for
