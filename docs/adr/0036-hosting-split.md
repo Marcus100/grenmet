@@ -13,7 +13,7 @@ Accepted (owner decision, 2026-10-20).
   everything that needs a server (rule 2 below is unchanged).
 - New static sites start on Pages: `apps/web/commit` (`commit.barrels.gd`) is
   the first. The homepage and Elections follow; Babydoll needs an adapter for
-  its server actions, so it stays on Vercel until that is decided.
+  its server actions, so it stayed on Vercel until that was decided (since resolved: see the next point).
 - **Done (15 and 16 November 2026):** the Barrels homepage, Elections and Babydoll
   moved to Cloudflare Pages, so all static sites are on Pages (`docs/deployment.md`).
 - **Elections dropped Barrels sign-in** (#792), so it now meets rule 2.

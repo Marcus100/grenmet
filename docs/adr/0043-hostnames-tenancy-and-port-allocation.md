@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. Owner-approved direction 2026-10-21; this ADR was phase P0 (docs and
+Accepted (merged in #498). Owner-approved direction 2026-10-21; this ADR was phase P0 (docs and
 checks only, no runtime change). Built: `docs/ports.md` is the live source and
 `scripts/ci/check-ports.mjs` enforces it.
 

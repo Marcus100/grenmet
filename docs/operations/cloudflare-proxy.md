@@ -2,7 +2,7 @@
 
 **Status:** Staging has had the `CLOUDFLARE_PROXY_ENABLED` switch on since 1 Nov 2026; production has had it on since 17 Nov 2026; the origin firewall step (4) is still to do.  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-11-18
+**Last updated:** 2026-11-18  
 **Issue:** #859 (the pairing documented in #544)
 
 Before the proxy was switched on (staging 1 Nov 2026, production 17 Nov 2026), every `*.barrels.gd` and `*.staging.barrels.gd` hostname resolved straight to
