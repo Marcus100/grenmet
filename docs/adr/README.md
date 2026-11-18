@@ -38,7 +38,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0030](0030-rewards-earn-sources-and-gamification.md) | Generic rewards earn sources, Passport, achievements, check-in streaks; opt-in leaderboards, challenges and gated stamp gifting (PF8–PF11) | Accepted, built (API, plus the organisation rewards admin page in `apps/web/auth`) |
 | [0031](0031-self-registering-api-domains.md) | Per-domain manifests and one ordered list replace edits to four shared API files | Approved; steps 1–5 built (in v1.0.8), step 6 not started |
 | [0032](0032-canonical-observation-store-and-publish-gate.md) | Canonical observation store in the eregister database, with a per-station-hour WIS2 publish gate | Accepted, built |
-| [0033](0033-data-ownership.md) | Barrels Grenada owns the data on its platforms | Accepted |
+| [0033](0033-data-ownership.md) | Barrels Grenada owns the data on its platforms | Accepted; health records excepted by 0062 |
 | [0034](0034-go-live-checklist.md) | A simple go-live checklist: backups with a verified restore, and monitoring | Accepted |
 | [0035](0035-secrets-management.md) | Secrets: one source per environment, restricted payment keys, yearly rotation, named owners | Accepted |
 | [0036](0036-hosting-split.md) | Static sites on Cloudflare Pages; everything with sign-in or data on the droplets | Accepted |
@@ -66,6 +66,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0059](0059-sign-up-paths-by-kind-of-user.md) | Four ways into one Barrels account: customers self sign-up with an emailed code and verify later; business members and Barrels superusers join by invitation; superusers finish authenticator and recovery codes in one visit; GAA and GMS staff keep HR onboarding | Accepted 15 Nov 2026; built in reviewed slices, rules 2 and 4 last |
 | [0060](0060-printix-ticket-registry-and-pairing-auth.md) | Printix ticket registry in the API: printed-number and barcode import, admission once per ticket, and gate access by a pairing QR code (32-byte secret, hashed at rest, expiry and revocation) instead of staff accounts or PINs; amended 16 Nov 2026 for offline scanning and for Printix staff as organisation-scoped organisers | Accepted; API, scanner app, offline mode, organiser screens and staff onboarding built |
 | [0061](0061-browser-only-app-sign-in.md) | Browser-only apps sign in from their own pages: access token in memory, session in `sessionStorage`, per-app session cap (Printix 12 h), required authenticator, strict content security policy | Accepted 16 Nov 2026, partly built |
+| [0062](0062-health-records-foundation.md) | Barrels Health records foundation: practices own their charts (exception to 0033, Barrels is processor), consented copies for sharing, patient linking by clinic-issued code on the Barrels ID, portal release rules, separate encrypted health database, view log, 7-year-then-archive retention, FHIR R4-shaped tables, go-live gate for real patients | Accepted 18 Nov 2026, not built |
 
 ## Template
 
