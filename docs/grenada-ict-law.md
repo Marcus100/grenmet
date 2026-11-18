@@ -26,7 +26,7 @@ For a financial investigation, the **Proceeds of Crime Act, No. 6 of 2012**, sec
 
 | Instrument and scope | What to do in Grenmet |
 | --- | --- |
-| **Data Protection Act, No. 1 of 2023, section 21.** Health data is sensitive personal data: process it with written consent or for medical purposes by a health professional or someone with an equivalent duty of confidentiality. Commencement is unverified (see above); Barrels Health builds to this standard regardless. **Health Practitioners Act, section 117:** keep practitioner records for 7 years after the last entry, then archive them. **Public Health Act, section 39:** doctors notify listed diseases without delay. | Follow ADR-0062 (`docs/adr/0062-health-records-foundation.md`): practice-owned charts, consented copies for sharing and insurer claims, a log of every chart view, archive instead of purge, and no real patient data before its go-live gate. |
+| **Data Protection Act, No. 1 of 2023, section 21.** Health data is sensitive personal data: process it with written consent or for medical purposes by a health professional or someone with an equivalent duty of confidentiality. Commencement is unverified (see above); Barrels Health builds to this standard regardless. **Health Practitioners Act, section 117:** keep practitioner records for 7 years after the last entry, then archive them. **Public Health Act, section 39:** doctors notify listed diseases without delay. | Follow [ADR-0062](adr/0062-health-records-foundation.md): practice-owned charts, consented copies for sharing and insurer claims, a log of every chart view, archive instead of purge, and no real patient data before its go-live gate. |
 
 ## Digital forms, evidence and commerce
 
