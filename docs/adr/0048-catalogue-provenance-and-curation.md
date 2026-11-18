@@ -2,8 +2,7 @@
 
 ## Status
 
-Accepted (2026-10-22, owner); rules that reference ADR-0050 are conditional on
-ADR-0050 being accepted. Owner direction: the launch catalogue is
+Accepted (2026-10-22, owner); ADR-0050 is accepted, so the rules that reference it apply. Owner direction: the launch catalogue is
 organiser-submitted plus a hand-curated seed with source links; no scraping.
 The owner also allowed outbound ticket links and settled the `booking_mode`
 values (Decision 6). Nothing in this ADR is built. The legal points below are

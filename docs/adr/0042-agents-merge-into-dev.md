@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (owner decision, 2026-10-20). Amends [ADR-0041](0041-agent-autonomy.md). Implemented by PR #461, which an owner must merge.
+Accepted (owner decision, 2026-10-20). Amends [ADR-0041](0041-agent-autonomy.md). Implemented by PR #461.
 
 ## Context
 

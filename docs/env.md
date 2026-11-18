@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-18
+**Last updated:** 2026-11-18
 
 This document is the human-readable reference for supported environment variables
 in the Grenmet monorepo: what each variable does, where it is supplied, and which
@@ -42,7 +42,7 @@ and eight public settings are read when the app runs, not when the image is buil
   change reaches browsers within a minute of the redeploy.
 - **Proxies.** An app whose proxy guards every path (admin, bookings, gmsdash,
   gaa-admin) must let `/runtime-env.js` through.
-- **Exceptions.** Elections (Vercel) is not part of the shared images and keeps
+- **Exceptions.** Elections (Cloudflare Pages) is not part of the shared images and keeps
   build-time settings. PostHog keys (`NEXT_PUBLIC_POSTHOG_*`) are still build-time.
   `scripts/guardrails/runtime-env.test.mjs` lists the apps that must serve the
   script and the one exception.
@@ -237,7 +237,7 @@ the API image and the local source mount contain the same migration assets.
 | `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY` | GitHub environment **variable** (staging and production, optional); `web-auth` only, read at run time. Its Cloudflare widget must list the auth host (`auth.barrels.gd`, and the staging auth host) |
 | `EMAIL_HASH_PEPPER` | GitHub environment **secret** (staging and production); API, worker and prestart containers. Must be set before deploying the release that hashes email addresses |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (mbia, signal, docs, gms) | GitHub environment **variable**; `deploy.yml` passes it to the web containers, which read it at run time (see "Public settings at run time" below). Public by design. Changing it needs a redeploy, not a rebuild |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (barrels.gd) | Vercel project environment variable; `apps/web/barrels/vercel.json` passes it to `build.mjs` as an argument, which writes `dist/turnstile-config.mjs` |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (barrels.gd) | Cloudflare Pages build variable; the Pages build command passes it to `build.mjs` as an argument, which writes `dist/turnstile-config.mjs` |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd","gms-alerts":"https://weather.barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173","gms-alerts":"http://localhost:3003"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
 | `WEBPUSH_VAPID_PUBLIC_KEY`, `WEBPUSH_VAPID_PRIVATE_KEY`, `WEBPUSH_CONTACT` | Browser push for published CAP alerts (GMS Get alerts page). Generate the pair with `python -m src.push.cli generate-vapid` (prints only; never writes a file). `WEBPUSH_CONTACT` is a `mailto:` or `https:` URL sent to push services. Push is off, and `GET /api/v1/push/vapid-public-key` answers `enabled: false`, until all three are set. Also `WEBPUSH_MAX_FAILURES` (default 10): failures before a subscription is dropped |
@@ -347,7 +347,7 @@ weather.gd go-live plan is historical context, not an active allowlist recipe.
 Each site signs in with the Barrels account through auth.barrels.gd (ADR-0017)
 and keeps its own host-only session cookie. "Sign in" appears only when the
 site's secret is set; the same value must be set for the API. Elections
-(Vercel) has no sign-in and is not listed here.
+(Cloudflare Pages) has no sign-in and is not listed here.
 
 | Site | Registry key | Secret | Cookie (default) |
 |---|---|---|---|

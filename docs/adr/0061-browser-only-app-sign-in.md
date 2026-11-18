@@ -5,7 +5,9 @@
 Accepted 16 Nov 2026 (owner decisions in the session that designed the Printix
 organiser screen). Amends ADR-0016 (app-scoped accounts and sessions) for apps
 that have no server part. First user: the Printix organiser screen in
-`apps/pwa/printix`.
+`apps/pwa/printix`. Partly built: the per-app session cap and authenticator
+requirement are in `apps/api/fastapi/src/auth/apps.py`, and the app keeps its
+session in `sessionStorage` (`apps/pwa/printix/src/organiser/session.ts`).
 
 ## Context
 

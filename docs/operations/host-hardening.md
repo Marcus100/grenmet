@@ -2,7 +2,7 @@
 
 **Status:** Active runbook (owner actions). Applied so far: step 2 on staging (the `deploy` sudo user; root and password SSH login off, checked by the owner on 2026-11-13: root refused, `deploy` accepted). This page does not record which other steps have been applied  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-18
 
 Plain, step-by-step hardening for the DigitalOcean droplets. Every step says
 **why**, gives the exact command or dashboard path, how to **verify** it, and how
@@ -256,9 +256,9 @@ runner pulls images, talks to GitHub, sends mail and backs up to Spaces. A
 firewall with **no** outbound rules blocks all outbound traffic and will break
 deployments.
 
-### Later: allow 80/443 only from Cloudflare
+### To do: allow 80/443 only from Cloudflare
 
-Only after every web DNS record on the droplet is switched to **Proxied** (orange
+Production has been behind the Cloudflare proxy since 17 Nov 2026. Once every web DNS record on the droplet is **Proxied** (orange
 cloud) in Cloudflare, limit 80 and 443 to Cloudflare's published ranges with
 `scripts/production/cloudflare-origin-firewall.py` (plan by default, `--apply` to
 change, `--restore-open` to undo). **Why:** stops people bypassing Cloudflare by

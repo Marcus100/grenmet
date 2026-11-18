@@ -3,7 +3,7 @@
 **Status:** In progress
 **Started:** 2026-05-31
 **Owner:** Eugine Whint  
-**Last updated:** 2026-08-19
+**Last updated:** 2026-11-18
 
 ## Goal
 
@@ -27,7 +27,7 @@ one source of truth, and new apps start with the full system.
 
 - Using Base UI primitives (not Radix) — already in place, no change
 - shadcn-style component pattern — copy-owned, not a runtime dependency
-- Figma MCP used for design-to-code sync — do not bypass for manual edits
+- Design tooling is decoupled from Figma (ADR-0012); there is no Figma sync, and Figma is not linked
 
 ## Progress
 
@@ -40,4 +40,4 @@ one source of truth, and new apps start with the full system.
 
 - Add new per-app component implementations that duplicate `@barrelsgd/ui`
 - Change token values without updating `docs/design-system.md`
-- Skip the Figma sync step when adding new components
+- Look for a Figma file or sync step: none exists (ADR-0012)

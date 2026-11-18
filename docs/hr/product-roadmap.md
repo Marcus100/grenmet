@@ -2,7 +2,7 @@
 
 **Status:** Proposed roadmap, revised 2026-10-16. Direction and sequencing are Barrels' proposal; GAA has not accepted them.  
 **Owner:** Barrels Grenada engineering, for GAA/GMS  
-**Last updated:** 2026-10-16
+**Last updated:** 2026-11-18
 
 GAA is the client and the proving ground for a Barrels HR and staff platform.
 GMS is GAA's meteorological department and the first pilot. The platform is meant
@@ -25,13 +25,12 @@ slice-by-slice evidence.
 
 **Also built since 2026-10-15:** the roster rules engine (#380; a break needs a
 supervisor's recorded reason, see [roster rules](roster-rules.md)); a token-based
-phone clock-in; and a CSV import of opening leave balances.
+phone clock-in; import of the time-clock terminal's punches from a file export (ADR-0040); payroll (gross pay, deductions and payslips, in `src/hr/payroll`); and a CSV import of opening leave balances.
 
 **Not found in the docs or the model list** (code not exhaustively read): skills or
-competency gating on the roster; ingestion of the existing time-clock terminal's
-punches; overtime approval; open-shift claiming; onboarding and separation
+competency gating on the roster; overtime approval; open-shift claiming; onboarding and separation
 checklists; position or establishment control; performance or appraisal features;
-recruitment; payroll; a mobile-first staff view; and reporting beyond the dashboard
+recruitment; a mobile-first staff view; and reporting beyond the dashboard
 and `/hr/reports`.
 
 **What GAA runs today.** GAA runs an existing HR and payroll system (details kept

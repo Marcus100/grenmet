@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-28
+**Last updated:** 2026-11-18
 
 GAA staff record their own actual arrival, departure and break duration against a
 published roster assignment. This is an attendance record, not evidence inferred
@@ -38,8 +38,8 @@ govern recording. Department reads require scoped `timesheet.read.department`;
 record review allows the employee, a scoped reader/approver, or a named approver.
 No public access or new permission grant is added. Token-based clock-in (NFC tag or
 QR poster, see [contracts](../api/contracts.md#clock-in)) submits into this same
-attendance journey; manual entry remains the fallback and no device integration is
-included. A static token accepts the risk of a photographed tag (ADR-0009); rotate a
+attendance journey; manual entry remains the fallback. Terminal punches are imported from a file
+export (ADR-0040, `attendance/terminal_service.py`). A static token accepts the risk of a photographed tag (ADR-0009); rotate a
 clock point when its tag is lost or copied.
 
 The additive migration follows the daily-status `UNCONFIRMED` migration. Apply the
