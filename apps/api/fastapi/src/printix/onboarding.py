@@ -22,14 +22,14 @@ Functions flush; the router commits.
 import uuid
 from enum import StrEnum
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
+from src.auth import eligibility as auth_eligibility
 from src.auth import service as auth_service
 from src.auth.models import Role, User, UserRoleLink
-from src.auth.models import Session as LoginSession
 from src.auth.superuser_mfa import require_superuser_mfa
 from src.exceptions import AppException
 from src.organisations import admin_members, grants
@@ -45,12 +45,13 @@ from src.organisations.models import (
 )
 from src.utils.datetime import utc_now
 
+from . import app_role
 from .exceptions import PrintixConflict, PrintixNotFound
 
-APP_KEY = "printix"
-APP_ROLE = "printix-member"
+APP_KEY = app_role.APP_KEY
+APP_ROLE = app_role.APP_ROLE
 RECORD_TYPE = "platform_organisation_member"
-POWER_ROLES = (MembershipRole.OWNER.value, MembershipRole.ADMIN.value)
+POWER_ROLES = app_role.POWER_ROLES
 
 
 class PrintixAccess(StrEnum):
@@ -112,42 +113,6 @@ async def live_bundles(
     return found
 
 
-async def _app_role_link(
-    session: AsyncSession, user_id: uuid.UUID
-) -> UserRoleLink | None:
-    role_id = await session.scalar(select(Role.id).where(Role.name == APP_ROLE))
-    if role_id is None:
-        raise AppException("App roles are not seeded yet", 503)
-    return await session.get(UserRoleLink, (user_id, role_id))
-
-
-async def _needs_app_role(
-    session: AsyncSession, user_id: uuid.UUID, *, excluding_membership_id: str
-) -> bool:
-    """Whether the person still has Printix access apart from ``excluding``."""
-    others = (
-        await session.scalars(
-            select(Membership).where(
-                Membership.user_id == user_id,
-                Membership.status == MembershipStatus.ACTIVE.value,
-                Membership.id != excluding_membership_id,
-            )
-        )
-    ).all()
-    if not others:
-        return False
-    live = await live_bundles(session, [m.id for m in others])
-    entitled = {
-        m.organisation_id
-        for m in others
-        if APP_KEY in await grants.entitled_products(session, m.organisation_id)
-    }
-    return any(
-        m.organisation_id in entitled and (m.role in POWER_ROLES or m.id in live)
-        for m in others
-    )
-
-
 async def set_access(
     session: AsyncSession,
     admin: User,
@@ -185,6 +150,7 @@ async def set_access(
     if user is None or not user.is_active:
         raise AppException("Inactive accounts cannot be given access", 409)
 
+    held_before = await app_role.holds_access(session, user.id)
     old_access = access_of(
         (await live_bundles(session, [membership.id])).get(membership.id, set())
     )
@@ -200,13 +166,7 @@ async def set_access(
         new_access = access
         await _swap_bundle(session, membership, old_access, access)
 
-    role_changed = await _sync_app_role(
-        session,
-        user,
-        membership,
-        access,
-        ended_access=not power and old_access is not PrintixAccess.NONE,
-    )
+    role_changed = await _sync_app_role(session, user, access, held_before=held_before)
     await _record(
         session,
         organisation_id,
@@ -266,49 +226,26 @@ async def _swap_bundle(
 async def _sync_app_role(
     session: AsyncSession,
     user: User,
-    membership: Membership,
     access: PrintixAccess,
     *,
-    ended_access: bool,
+    held_before: bool,
 ) -> bool:
     """Give ``printix-member`` for any access. Take it back only when this action
-    ended the person's Printix access and none is left, so a role given by hand to
-    someone with no Printix access is left alone."""
+    ended the person's Printix access and none is left (``app_role``), so a role given
+    by hand to someone with no Printix access is left alone."""
+    if access is PrintixAccess.NONE:
+        return held_before and await app_role.drop_role_if_unneeded(session, user.id)
     # Serialise role changes for one person (the link has a composite primary key).
     await session.execute(select(User.id).where(User.id == user.id).with_for_update())
-    link = await _app_role_link(session, user.id)
-    if access is not PrintixAccess.NONE:
-        if link is not None:
-            return False
-        role_id = await session.scalar(select(Role.id).where(Role.name == APP_ROLE))
-        session.add(UserRoleLink(user_id=user.id, role_id=role_id))
-        try:
-            async with session.begin_nested():
-                await session.flush()
-        except IntegrityError:
-            raise PrintixConflict(
-                "Access changed at the same moment. Try again."
-            ) from None
-        return True
-    if (
-        not ended_access
-        or link is None
-        or await _needs_app_role(
-            session, user.id, excluding_membership_id=membership.id
-        )
-    ):
+    if await app_role.app_role_link(session, user.id) is not None:
         return False
-    await session.delete(link)
-    await session.execute(
-        update(LoginSession)
-        .where(
-            LoginSession.user_id == user.id,
-            LoginSession.app_name == APP_KEY,
-            LoginSession.revoked_at.is_(None),
-        )
-        .values(revoked_at=utc_now(), updated_at=utc_now())
-    )
-    await session.flush()
+    role_id = await session.scalar(select(Role.id).where(Role.name == APP_ROLE))
+    session.add(UserRoleLink(user_id=user.id, role_id=role_id))
+    try:
+        async with session.begin_nested():
+            await session.flush()
+    except IntegrityError:
+        raise PrintixConflict("Access changed at the same moment. Try again.") from None
     return True
 
 
@@ -353,6 +290,7 @@ async def add_member(
 
     One transaction: if the access cannot be set (organisation not entitled), the
     membership is not added either. An email with no account is refused (404)."""
+    require_superuser_mfa(admin)
     if access is PrintixAccess.NONE:
         raise AppException("Choose gate lead or organiser", 422)
     if not await organisation_entitled(session, organisation_id):
@@ -380,4 +318,12 @@ async def sign_in_ready(session: AsyncSession, user: User) -> bool:
     """Whether the account can sign in to Printix now (superusers always can)."""
     return await auth_service.is_eligible_for_app(
         session=session, user=user, app_key=APP_KEY
+    )
+
+
+async def sign_in_ready_ids(session: AsyncSession, users: list[User]) -> set[uuid.UUID]:
+    """The accounts among ``users`` that can sign in to Printix now, with a fixed number
+    of queries however many rows a page holds."""
+    return await auth_eligibility.eligible_user_ids_for_app(
+        session=session, users=users, app_key=APP_KEY
     )

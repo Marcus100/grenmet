@@ -257,3 +257,47 @@ async def test_deletion_waits_for_a_roster_change_in_the_same_organisation(
         MembershipRole.ADMIN.value
     )
     assert await _live_grants_issued_by(db_async, leaving_id) == []
+
+
+async def test_roster_locks_come_before_access_material_and_role_links(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+):
+    """The documented order is roster, then rows (#1564): the person's sessions and role
+    links change only after every roster lock is held, so an administrator's access
+    change (roster lock, then user row, role link and sessions) cannot deadlock with it."""
+    from src.auth import app_service
+
+    owner = await make_user(db_async)
+    leaving = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Lock order first",
+        members=((owner, MembershipRole.OWNER), (leaving, MembershipRole.MEMBER)),
+        apps=("events",),
+    )
+    events: list[str] = []
+    real_lock = grants.lock_roster
+    real_access = app_service.revoke_access_material
+    real_links = auth_service._end_access_links
+
+    async def spy_lock(session: AsyncSession, organisation_id: str) -> None:
+        events.append(f"lock:{organisation_id}")
+        await real_lock(session, organisation_id)
+
+    async def spy_access(session, user):
+        events.append("access_material")
+        return await real_access(session, user)
+
+    async def spy_links(session, user_id, now):
+        events.append("links")
+        await real_links(session, user_id, now)
+
+    monkeypatch.setattr(grants, "lock_roster", spy_lock)
+    monkeypatch.setattr(app_service, "revoke_access_material", spy_access)
+    monkeypatch.setattr(auth_service, "_end_access_links", spy_links)
+
+    await auth_service.delete_user(session=db_async, user=leaving)
+    await db_async.commit()
+
+    assert events.index(f"lock:{org.id}") < events.index("access_material")
+    assert events.index(f"lock:{org.id}") < events.index("links")
