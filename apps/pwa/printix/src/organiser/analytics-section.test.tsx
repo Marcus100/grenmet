@@ -41,7 +41,8 @@ const SHOWING_LATEST = /Showing the latest 3 of 132 scans/u;
 const NOT_FINAL = /for now and change until the event closes/u;
 const NO_SCANS = /No scans yet\./u;
 
-const CSV = "time,gate,printed_number,outcome,entry,offline\r\n";
+const CSV =
+  "time,gate,printed_number,outcome,entry,offline\r\n2026-12-26T19:01:00-04:00,Main gate,205,admitted,scanned,no\r\n# end,1 rows\r\n";
 
 function session() {
   const value = new OrganiserSession({ origin: ORIGIN, storage: null });
@@ -330,7 +331,9 @@ describe("the scan list download", () => {
     expect(names).toEqual(["printix-scans-2026-12-26.csv"]);
     expect(saved).toHaveLength(1);
     expect(await saved[0]?.text()).toBe(CSV);
-    expect(revoked).toHaveBeenCalledWith("blob:scan-list");
+    // The address is kept for a while, so an older browser can finish the download.
+    expect(revoked).not.toHaveBeenCalled();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(announced).toHaveBeenCalledWith(
       "The scan list was saved to this device."
     );
@@ -339,6 +342,72 @@ describe("the scan list download", () => {
       .find((call) => new URL(call.url).pathname.endsWith("/scans/export"));
     expect(request?.headers.get("X-Barrels-Organisation")).toBe(ORGANISATION);
     click.mockRestore();
+  });
+
+  it("keeps the address for 10 seconds, then lets it go", async () => {
+    routeFetch(
+      routes({ [EXPORT_ROUTE]: () => new Response(CSV, { status: 200 }) })
+    );
+    const revoked = vi.fn();
+    Object.assign(URL, {
+      createObjectURL: () => "blob:scan-list",
+      revokeObjectURL: revoked,
+    });
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      open();
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Save the scan list" })
+      );
+      await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
+      await vi.advanceTimersByTimeAsync(9000);
+      expect(revoked).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(revoked).toHaveBeenCalledWith("blob:scan-list");
+    } finally {
+      vi.useRealTimers();
+      click.mockRestore();
+    }
+  });
+
+  it("does not save a list that was cut short, and says so", async () => {
+    routeFetch(
+      routes({
+        [EXPORT_ROUTE]: () =>
+          new Response(
+            "time,gate,printed_number,outcome,entry,offline\r\n2026-12-26T19:01:00-04:00,Main gate,205,admitted,scanned,no\r\n",
+            { status: 200 }
+          ),
+      })
+    );
+    const created = vi.fn(() => "blob:never");
+    Object.assign(URL, { createObjectURL: created, revokeObjectURL: vi.fn() });
+    open();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Save the scan list" })
+    );
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("The download stopped early");
+    expect(created).not.toHaveBeenCalled();
+  });
+
+  it("explains an event with too many scans for one download", async () => {
+    routeFetch(
+      routes({
+        [EXPORT_ROUTE]: () =>
+          json(413, { detail: "This event has 300000 scans" }),
+      })
+    );
+    open();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Save the scan list" })
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "more scans than one download can hold"
+    );
   });
 
   it("explains a refused download and leaves the page as it was", async () => {

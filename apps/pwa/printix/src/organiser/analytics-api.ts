@@ -91,6 +91,25 @@ export async function readDashboard(
   };
 }
 
+const END_LINE = /^# end,(\d+) rows$/u;
+
+/**
+ * True when the text is a whole scan list: a header, then rows, then the server's
+ * last line "# end,<rows> rows" with the same number of rows. A list cut short by an
+ * error on the server has no such line, or counts differently.
+ */
+export function isCompleteScanList(text: string): boolean {
+  const lines = text.split("\r\n");
+  if (lines.at(-1) === "") {
+    lines.pop();
+  }
+  const match = END_LINE.exec(lines.at(-1) ?? "");
+  if (!match || lines.length < 2) {
+    return false;
+  }
+  return Number(match[1]) === lines.length - 2;
+}
+
 /** The scan list as spreadsheet text (printed numbers only), to save as a file. */
 export async function downloadScanList(
   session: OrganiserSession,
@@ -109,8 +128,15 @@ export async function downloadScanList(
     if (typeof text !== "string") {
       throw new Error("The scan list was not text.");
     }
+    if (!isCompleteScanList(text)) {
+      return { ok: false, problem: { kind: "download-stopped" } };
+    }
     return { ok: true, value: text };
   } catch (error) {
-    return failed(error, "organiser-scan-list");
+    const outcome = failed<string>(error, "organiser-scan-list");
+    if (!outcome.ok && outcome.problem.kind === "too-large") {
+      return { ok: false, problem: { kind: "export-too-large" } };
+    }
+    return outcome;
   }
 }

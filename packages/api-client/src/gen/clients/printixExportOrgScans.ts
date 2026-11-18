@@ -11,7 +11,7 @@ import type {
 } from "../models/PrintixExportOrgScans.js";
 
 /**
- * @description Every scan, oldest first: time (Grenada clock), gate, printed number, outcome, entry (scanned or typed) and offline. Printed numbers only, never barcodes. Cells that start with =, +, - or @ get a leading apostrophe. Streamed, Cache-Control no-store, at most six downloads a minute. Needs printix.events.manage or printix.gates.manage.
+ * @description Every scan, oldest first: time (Grenada clock), gate, printed number, outcome, entry (scanned or typed) and offline. Printed numbers only, never barcodes. Cells that start with =, +, - or @ (also after spaces) get a leading apostrophe. The last line is `# end,<rows> rows`: a file without it was cut short. Streamed, Cache-Control no-store, at most six downloads a minute. Needs printix.events.manage or printix.gates.manage.
  * @summary Download the scan log of my organisation's event as CSV
  * {@link /api/v1/printix/org/events/:event_id/scans/export}
  */

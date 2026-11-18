@@ -7892,6 +7892,7 @@ export type {
   PrintixExportOrgScansStatus401,
   PrintixExportOrgScansStatus403,
   PrintixExportOrgScansStatus404,
+  PrintixExportOrgScansStatus413,
   PrintixExportOrgScansStatus422,
 } from "./PrintixExportOrgScans.js";
 export type { PrintixGateAnalytics } from "./PrintixGateAnalytics.js";

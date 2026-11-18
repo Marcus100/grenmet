@@ -20,6 +20,8 @@ interface ReportPanelProps {
   readonly session: OrganiserSession;
 }
 
+const REVOKE_AFTER_MS = 10_000;
+
 /** Saves text as a file on this device. */
 function saveText(text: string, fileName: string): void {
   const url = URL.createObjectURL(
@@ -31,7 +33,8 @@ function saveText(text: string, fileName: string): void {
   document.body.append(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  // Not at once: some older browsers lose the download if the address goes first.
+  setTimeout(() => URL.revokeObjectURL(url), REVOKE_AFTER_MS);
 }
 
 /** The after-event report: totals, who did not come, the busiest times, each gate's share. */

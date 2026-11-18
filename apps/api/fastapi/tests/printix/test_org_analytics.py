@@ -15,6 +15,8 @@ import httpx
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.printix import analytics as analytics_module
+from src.printix.analytics import csv_cell
 from src.printix.models import PrintixEvent, PrintixPairing, PrintixScanLog
 from src.rate_limit import limiter
 from src.utils.datetime import utc_now
@@ -354,7 +356,8 @@ async def test_the_csv_has_printed_numbers_only_and_neutralises_formulas(
     assert "UNKNOWN-BARCODE" not in response.text
     rows = list(csv.reader(io.StringIO(response.text)))
     assert rows[0] == ["time", "gate", "printed_number", "outcome", "entry", "offline"]
-    body = rows[1:]
+    assert rows[-1] == ["# end", "6 rows"]
+    body = rows[1:-1]
     assert len(body) == 6
     assert [row[2] for row in body[:5]] == ["'=1+1", "'+5", "'-7", "'@SUM", "042"]
     assert {row[1] for row in body} == {"'=HYPERLINK(1)"}
@@ -372,7 +375,8 @@ async def test_the_csv_streams_an_empty_log_as_a_header_row(
     headers = await _headers(db_async, world["org_a"])
     response = await _get(async_client, world["ev_a"], "scans/export", headers)
     assert response.status_code == 200
-    assert response.text.strip() == "time,gate,printed_number,outcome,entry,offline"
+    lines = response.text.strip().splitlines()
+    assert lines == ["time,gate,printed_number,outcome,entry,offline", "# end,0 rows"]
 
 
 # --- Access ------------------------------------------------------------------------
@@ -496,3 +500,56 @@ async def test_closed_events_stay_readable(
     headers = await _headers(db_async, world["org_a"])
     for route in ROUTES:
         assert (await _get(async_client, event, route, headers)).status_code == 200
+
+
+async def test_the_csv_also_neutralises_formulas_hidden_behind_spaces(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    event = world["ev_a"]
+    pairing, _ = await make_pairing(db_async, event, gate="  =cmd|' /C calc'!A0")
+    ticket = await make_ticket(db_async, event, " @SUM(1)", f"{SECRET_PREFIX}9-0000")
+    await _admit(db_async, pairing, ticket, utc_now() - timedelta(minutes=1))
+    headers = await _headers(db_async, world["org_a"])
+    response = await _get(async_client, event, "scans/export", headers)
+    row = list(csv.reader(io.StringIO(response.text)))[1]
+    assert row[1].startswith("'")
+    assert row[2] == "' @SUM(1)"
+
+
+def test_csv_cell_handles_every_leader_and_leaves_plain_text_alone() -> None:
+    for value in ("=1", "+1", "-1", "@a", "\tx", "\rx", " =1", "\n+1", "\u00a0@x"):
+        assert csv_cell(value).startswith("'"), value
+    for plain in ("Gate 1", "042", "a=b", "", None, " plain"):
+        assert not csv_cell(plain).startswith("'"), plain
+
+
+async def test_an_event_with_too_many_scans_is_refused_with_a_clear_message(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    world: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    await _seed(db_async, world["ev_a"])
+    monkeypatch.setattr(analytics_module, "EXPORT_MAX_ROWS", 5)
+    headers = await _headers(db_async, world["org_a"])
+    response = await _get(async_client, world["ev_a"], "scans/export", headers)
+    assert response.status_code == 413
+    assert "more than the 5" in response.json()["detail"]
+
+
+async def test_the_page_reads_the_newest_scans_of_every_gate_phone(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, world: dict[str, Any]
+) -> None:
+    await _seed(db_async, world["ev_a"])
+    headers = await _headers(db_async, world["org_a"])
+    pages = []
+    for number in (1, 2, 3):
+        body = (
+            await _get(
+                async_client, world["ev_a"], f"scans?size=5&page={number}", headers
+            )
+        ).json()
+        pages.extend(body["items"])
+    times = [item["scanned_at"] for item in pages]
+    assert len(pages) == 12 and len({item["id"] for item in pages}) == 12
+    assert times == sorted(times, reverse=True)

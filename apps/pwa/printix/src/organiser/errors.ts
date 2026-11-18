@@ -36,6 +36,8 @@ export type Problem =
   | { readonly kind: "already-admitted" }
   | { readonly kind: "conflict" }
   | { readonly kind: "too-large" }
+  | { readonly kind: "download-stopped" }
+  | { readonly kind: "export-too-large" }
   | { readonly kind: "typed-numbers-refused" }
   | { readonly kind: "email-code-wrong" }
   | { readonly kind: "authenticator-wrong" }
@@ -269,6 +271,10 @@ export function problemMessage(problem: Problem): string {
       return "That change could not be made. Refresh the page and try again.";
     case "too-large":
       return "That file is larger than 2 MB. Remove rows that are not needed and try again.";
+    case "download-stopped":
+      return "The download stopped early, so the file is not complete and was not saved. Try again.";
+    case "export-too-large":
+      return "This event has more scans than one download can hold. Ask Barrels for a full export.";
     case "typed-numbers-refused":
       return "Only an organiser can allow typed numbers on a gate code. Turn that off and try again.";
     case "rejected":

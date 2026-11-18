@@ -7835,6 +7835,7 @@ export {
   printixExportOrgScansStatus401Schema,
   printixExportOrgScansStatus403Schema,
   printixExportOrgScansStatus404Schema,
+  printixExportOrgScansStatus413Schema,
   printixExportOrgScansStatus422Schema,
 } from "./printixExportOrgScansSchema.js";
 export { printixGateAnalyticsSchema } from "./printixGateAnalyticsSchema.js";

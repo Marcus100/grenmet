@@ -7748,6 +7748,7 @@ export type {
   PrintixExportOrgScansStatus401,
   PrintixExportOrgScansStatus403,
   PrintixExportOrgScansStatus404,
+  PrintixExportOrgScansStatus413,
   PrintixExportOrgScansStatus422,
 } from "./models/PrintixExportOrgScans.js";
 export type { PrintixGateAnalytics } from "./models/PrintixGateAnalytics.js";
@@ -23288,6 +23289,7 @@ export {
   printixExportOrgScansStatus401Schema,
   printixExportOrgScansStatus403Schema,
   printixExportOrgScansStatus404Schema,
+  printixExportOrgScansStatus413Schema,
   printixExportOrgScansStatus422Schema,
 } from "./zod/printixExportOrgScansSchema.js";
 export { printixGateAnalyticsSchema } from "./zod/printixGateAnalyticsSchema.js";

@@ -49,6 +49,12 @@ export type PrintixExportOrgScansStatus403 = ApiError;
 export type PrintixExportOrgScansStatus404 = ApiError;
 
 /**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PrintixExportOrgScansStatus413 = ApiError;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -67,6 +73,7 @@ export type PrintixExportOrgScansResponses = {
   "401": PrintixExportOrgScansStatus401;
   "403": PrintixExportOrgScansStatus403;
   "404": PrintixExportOrgScansStatus404;
+  "413": PrintixExportOrgScansStatus413;
   "422": PrintixExportOrgScansStatus422;
 };
 

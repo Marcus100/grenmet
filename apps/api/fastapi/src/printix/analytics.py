@@ -16,9 +16,10 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
-from sqlalchemy import ColumnElement, Select, func, literal_column, select
+from sqlalchemy import ColumnElement, Select, func, literal_column, select, text, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.exceptions import AppException
 from src.utils.datetime import utc_now
 from src.utils.timezones import DEFAULT_TIMEZONE, GRENADA
 
@@ -49,6 +50,11 @@ EXPORT_BATCH = 500
 REFUSAL_REASONS: tuple[
     Literal["already_admitted", "void", "unknown", "event_closed"], ...
 ] = ("already_admitted", "void", "unknown", "event_closed")
+#: One download holds at most this many scans, and the database may spend this long on it.
+EXPORT_MAX_ROWS = 200_000
+EXPORT_TIMEOUT_MS = 60_000
+#: The last line of a complete export: "# end,<rows> rows". The screen checks it.
+END_MARKER_PREFIX = "# end,"
 EXPORT_COLUMNS = ("time", "gate", "printed_number", "outcome", "entry", "offline")
 _FORMULA_LEADERS = ("=", "+", "-", "@", "\t", "\r")
 
@@ -311,6 +317,47 @@ def _scans_select(event_id: uuid.UUID) -> Select[Any]:
     )
 
 
+def _page_select(event_id: uuid.UUID, page: int, size: int) -> Select[Any]:
+    """One page, newest first, read per gate phone from the (pairing, time) index.
+
+    For each of the event's pairings (at most a few dozen) a lateral subquery takes
+    that phone's newest ``page * size`` scans straight from
+    ``scan_log_pairing_id_happened_at_idx``; the outer query merges those few rows and
+    cuts the page. No scan outside the first pages is read or sorted."""
+    newest = (
+        select(
+            PrintixScanLog.id.label("id"),
+            _HAPPENED_AT.label("happened_at"),
+            PrintixScanLog.ticket_id.label("ticket_id"),
+            PrintixScanLog.outcome.label("outcome"),
+            PrintixScanLog.typed.label("typed"),
+            PrintixScanLog.offline_scanned_at.is_not(None).label("offline"),
+        )
+        .where(PrintixScanLog.pairing_id == PrintixPairing.id)
+        .order_by(_HAPPENED_AT.desc(), PrintixScanLog.id.desc())
+        .limit(page * size)
+        .lateral("newest")
+    )
+    return (
+        select(
+            newest.c.id,
+            newest.c.happened_at,
+            PrintixPairing.gate,
+            PrintixTicket.printed_number,
+            newest.c.outcome,
+            newest.c.typed,
+            newest.c.offline,
+        )
+        .select_from(PrintixPairing)
+        .join(newest, true())
+        .outerjoin(PrintixTicket, PrintixTicket.id == newest.c.ticket_id)
+        .where(PrintixPairing.event_id == event_id)
+        .order_by(newest.c.happened_at.desc(), newest.c.id.desc())
+        .offset((page - 1) * size)
+        .limit(size)
+    )
+
+
 async def list_scans(
     session: AsyncSession,
     event_id: uuid.UUID,
@@ -329,11 +376,7 @@ async def list_scans(
         )
         or 0
     )
-    rows = (
-        await session.execute(
-            _scans_select(event.id).offset((page - 1) * size).limit(size)
-        )
-    ).all()
+    rows = (await session.execute(_page_select(event.id, page, size))).all()
     return PrintixScanPage(
         items=[
             PrintixScanItem(
@@ -356,8 +399,11 @@ async def list_scans(
 def csv_cell(value: object) -> str:
     """Text for one CSV cell. A cell a spreadsheet could read as a formula gets a
     leading apostrophe, so a ticket number or a gate name cannot run anything."""
-    text = "" if value is None else str(value)
-    return f"'{text}" if text.startswith(_FORMULA_LEADERS) else text
+    cell = "" if value is None else str(value)
+    # Spreadsheets skip leading spaces before reading a formula, so look past them.
+    if cell.startswith(_FORMULA_LEADERS) or cell.lstrip().startswith(_FORMULA_LEADERS):
+        return f"'{cell}"
+    return cell
 
 
 def _csv_chunk(rows: list[tuple[object, ...]]) -> str:
@@ -372,6 +418,35 @@ def export_filename(event_id: uuid.UUID, event_date: object) -> str:
     return f"printix-scans-{event_date}-{str(event_id)[:8]}.csv"
 
 
+async def prepare_export(session: AsyncSession, event_id: uuid.UUID) -> int:
+    """Before the first byte: bound the export's database time and count its rows.
+
+    ``SET LOCAL`` lasts for this request's transaction only. An event with more scans
+    than ``EXPORT_MAX_ROWS`` is refused with a clear message, so no one waits on (or
+    receives) a file that could not be finished."""
+    await session.execute(text(f"SET LOCAL statement_timeout = {EXPORT_TIMEOUT_MS}"))
+    total = int(
+        await session.scalar(
+            select(func.count(PrintixScanLog.id))
+            .join(PrintixPairing, PrintixPairing.id == PrintixScanLog.pairing_id)
+            .where(PrintixPairing.event_id == event_id)
+        )
+        or 0
+    )
+    if total > EXPORT_MAX_ROWS:
+        raise AppException(
+            f"This event has {total} scans, more than the {EXPORT_MAX_ROWS} one "
+            "download can hold. Ask Barrels for a full export.",
+            413,
+        )
+    return total
+
+
+def end_marker(rows: int) -> str:
+    """The last line of a complete export. A file without it was cut short."""
+    return f"{END_MARKER_PREFIX}{rows} rows\r\n"
+
+
 async def stream_scans_csv(
     session: AsyncSession, event_id: uuid.UUID
 ) -> AsyncIterator[str]:
@@ -381,6 +456,7 @@ async def stream_scans_csv(
     entry (scanned or typed) and offline (yes when synced late). The caller checks
     the event first, so a missing or foreign event is refused before any byte."""
     yield _csv_chunk([EXPORT_COLUMNS])
+    written = 0
     statement = (
         _scans_select(event_id)
         .order_by(None)
@@ -389,6 +465,7 @@ async def stream_scans_csv(
     )
     result = await session.stream(statement)
     async for partition in result.partitions(EXPORT_BATCH):
+        written += len(partition)
         yield _csv_chunk(
             [
                 (
@@ -404,3 +481,4 @@ async def stream_scans_csv(
                 for _, happened, gate, printed, outcome, typed, offline in partition
             ]
         )
+    yield end_marker(written)
