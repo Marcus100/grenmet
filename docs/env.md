@@ -638,10 +638,11 @@ The active deployment uses three layers:
 1. `infra/docker/staging.env` or `infra/docker/production.env` supplies committed,
    non-secret topology such as domains, database names, image coordinates,
    volume names, and router suffixes.
-2. `.github/workflows/deploy.yml` writes a temporary `.env.secrets` from GitHub
-   environment secrets and derives database URLs and image tags.
-3. `infra/docker/docker-compose.deploy.yml` consumes both files. The workflow
-   deletes `.env.secrets` in its cleanup step.
+2. `scripts/production/render-env.py` (run by `scripts/production/core.sh` during
+   the deploy) writes `runtime/.env.local` on the host from the GitHub
+   environment secrets and variables, and derives database URLs and image tags.
+3. `infra/docker/docker-compose.deploy.yml` consumes both files; the later
+   `runtime/.env.local` wins.
 
 | Layer | Representative variables |
 |---|---|
@@ -700,7 +701,7 @@ environments.
 
 ## CI/CD (GitHub Actions)
 
-GitHub environment secrets are written only to the temporary `.env.secrets`
+GitHub environment secrets are written only to the host's `runtime/.env.local`
 described above. Never commit populated `.env`, `.env.local`, `.env.secrets`, or
 `.env.*.local` files.
 
