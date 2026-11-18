@@ -164,6 +164,7 @@ GMS or GAA.
 | `docs/portfolio` | Authoritative portfolio planning system | Active | Reconcile company priorities, client outcomes, and repository coverage |
 | `docs/agents` | Agent-facing engineering guidance | Active reference | Keep consistent with root guardrails and executable checks |
 | `docs/hr` | GAA staff-platform design evidence | Active/reference | Subordinate to the GAA client programme and productization gate |
+| `docs/grenada-ict-law.md` | Grenadian ICT legislation | Active | Identify applicable laws, confirm commencement and record feature acceptance checks |
 | `docs/architecture.md`, `docs/data-architecture.md`, and `docs/technical-overview.md` | Architecture system of record | Active | Describe current boundaries and approved direction |
 | `docs/deployment.md`, `docs/infrastructure.md`, `docs/staging-prep.md`, and `docs/weather-gd-golive.md` | Delivery and cutover references | Active | Require environment owner and release authorization |
 | `docs/design`, `docs/design-system.md`, `docs/design-workflow.md`, and `docs/env.md` | Cross-cutting engineering references | Active | Preserve brand and configuration boundaries |
