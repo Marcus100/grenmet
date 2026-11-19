@@ -110,7 +110,7 @@ async def _refund_now(
         refund_id=refund_id,
     )
     await order_fulfilment.apply_refund(
-        db, organisation_id=organisation_id, order_id=order.id
+        db, organisation_id=organisation_id, order_id=order.id, refund_id=refund.id
     )
     return refund.amount_minor
 
