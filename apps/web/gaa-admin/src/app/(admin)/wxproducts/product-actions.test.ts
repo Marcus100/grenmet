@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { reportError } from "@/lib/report-error";
-import { PDF_PREVIEW_FALLBACK } from "@/lib/wxproducts/pdf-preview-error";
+import {
+  ANSWER_PROBLEM,
+  PDF_PREVIEW_FALLBACK,
+  pdfPreviewServerError,
+} from "@/lib/wxproducts/pdf-preview-error";
 import {
   downloadProductPdfAction,
   FIELDS_PROBLEM,
@@ -157,7 +161,7 @@ it("shows the API's own reason when a PDF preview is refused (4xx)", async () =>
   });
   expect(reportError).not.toHaveBeenCalled();
 });
-it("keeps the generic message and reports a server error", async () => {
+it("says the server could not render the PDF, with its status, and reports it", async () => {
   fetcher
     .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
     .mockResolvedValueOnce(
@@ -165,8 +169,56 @@ it("keeps the generic message and reports a server error", async () => {
     );
   expect(await previewProductPdfAction(pdfInput)).toEqual({
     ok: false,
-    error: PDF_PREVIEW_FALLBACK,
+    error: pdfPreviewServerError(500),
   });
+  expect(reportError).toHaveBeenCalledTimes(1);
+});
+it("tells the person their session ended on a 401 with no reason", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(new Response("", { status: 401 }));
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: "Your session has ended. Sign in again.",
+  });
+});
+it("uses neutral wording for a 413 with no reason", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(new Response("", { status: 413 }));
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: "The preview could not be shown (error 413). Try again.",
+  });
+});
+it("uses neutral wording when a 200 is not a PDF", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(new Response("<html>", { status: 200 }));
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: "The preview could not be shown (error 200). Try again.",
+  });
+});
+it("says a wrong-shaped session reply is not a connection problem (PDF)", async () => {
+  fetcher.mockResolvedValueOnce(Response.json({ nope: true }));
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: ANSWER_PROBLEM,
+  });
+});
+it("says a reply in the wrong shape is not a connection problem", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(Response.json({ unexpected: true }));
+  expect(
+    await previewProductAction({
+      kind: "morning",
+      values: {},
+      expectedRevision: 0,
+      changeSummary: "",
+    })
+  ).toEqual({ ok: false, error: ANSWER_PROBLEM });
   expect(reportError).toHaveBeenCalledTimes(1);
 });
 it("keeps the generic message and reports a network failure", async () => {
