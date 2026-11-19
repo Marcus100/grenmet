@@ -37,6 +37,8 @@ const GA_CONNECT = [
   "https://www.google-analytics.com",
   "https://region1.google-analytics.com",
   "https://www.googletagmanager.com",
+  // GA4 measurement hits (`/g/collect`) moved to this host.
+  "https://www.google.com",
 ] as const;
 const GA_IMG = [
   "https://www.google-analytics.com",
@@ -44,6 +46,10 @@ const GA_IMG = [
 ] as const;
 const PROJECT_ID = /^\d+$/u;
 const TURNSTILE = "https://challenges.cloudflare.com";
+// Cloudflare Web Analytics: the edge injects this beacon into every site it
+// serves, so it is part of the shared baseline for all apps.
+const CLOUDFLARE_INSIGHTS_SCRIPT = "https://static.cloudflareinsights.com";
+const CLOUDFLARE_INSIGHTS_CONNECT = "https://cloudflareinsights.com";
 
 interface AppSources {
   connect: readonly string[];
@@ -259,12 +265,18 @@ export function buildContentSecurityPolicy({
   const sentry = sentryReporting(dsn, environment);
   const directives: Record<string, readonly string[]> = {
     "default-src": ["'self'"],
-    "script-src": ["'self'", "'unsafe-inline'", ...extra.script],
+    "script-src": [
+      "'self'",
+      "'unsafe-inline'",
+      CLOUDFLARE_INSIGHTS_SCRIPT,
+      ...extra.script,
+    ],
     "style-src": ["'self'", "'unsafe-inline'"],
     "img-src": ["'self'", "data:", "blob:", ...extra.img],
     "font-src": ["'self'"],
     "connect-src": [
       "'self'",
+      CLOUDFLARE_INSIGHTS_CONNECT,
       ...extra.connect,
       ...(sentry ? [sentry.ingestOrigin] : []),
     ],
