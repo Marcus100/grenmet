@@ -1,8 +1,9 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { type ActionResult, SIGN_IN_REQUIRED } from "@/data/action-result";
+import { goToSignIn } from "@/lib/navigation";
 import { reportError } from "@/lib/report-error";
 
 /** Returned in place of a result when the action itself threw (network, crash). */
@@ -21,7 +22,6 @@ const GENERIC = "Something went wrong. Try again shortly.";
  * have landed) and always clears `pending`.
  */
 export function useMemberAction(thrownMessage: string = GENERIC) {
-  const router = useRouter();
   const pathname = usePathname();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -37,7 +37,7 @@ export function useMemberAction(thrownMessage: string = GENERIC) {
         return result;
       }
       if (result.error === SIGN_IN_REQUIRED) {
-        router.push(`/sign-in?returnTo=${encodeURIComponent(pathname)}`);
+        goToSignIn(pathname);
       } else {
         setError(result.error);
       }
