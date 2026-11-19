@@ -298,8 +298,7 @@ async def add_member(
             "Turn on Printix for this organisation first (App access on its page)."
         )
     await _require_active(session, organisation_id)
-    # Roster lock first, then the rows (grants.lock_roster's documented order).
-    await grants.lock_roster(session, organisation_id)
+    # ``admin_members.add`` takes the account lock, then the roster lock (#1523).
     membership, _user = await admin_members.add(
         session,
         admin,

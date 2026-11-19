@@ -21,9 +21,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import service as auth_service
 from src.auth.models import User
 from src.database import async_session_factory
-from src.organisations import grants, service
+from src.exceptions import AppException
+from src.organisations import admin_members, grants, members, service
 from src.organisations.dependencies import OrgContext
 from src.organisations.models import (
+    Invitation,
     Membership,
     MembershipGrant,
     MembershipRole,
@@ -301,3 +303,485 @@ async def test_roster_locks_come_before_access_material_and_role_links(
 
     assert events.index(f"lock:{org.id}") < events.index("access_material")
     assert events.index(f"lock:{org.id}") < events.index("links")
+
+
+# Issue #1523: every path that creates or locks a membership row takes the roster
+# lock first, and deletion reads its affected set again once the locks are held.
+
+
+async def _invitation_for(db: AsyncSession, org, email: str, token: str):
+    from datetime import timedelta
+
+    from src.organisations.members import hash_token, new_invitation_id
+    from src.utils.datetime import utc_now
+
+    db.add(
+        Invitation(
+            id=new_invitation_id(),
+            organisation_id=org.id,
+            email=email,
+            role=MembershipRole.MEMBER.value,
+            token_hash=hash_token(token),
+            expires_at=utc_now() + timedelta(days=1),
+        )
+    )
+    await db.commit()
+
+
+async def test_accepting_an_invitation_waits_for_the_roster_lock(
+    db_async: AsyncSession,
+):
+    owner = await make_user(db_async)
+    joiner = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Accept lock order",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("events",),
+    )
+    await _invitation_for(db_async, org, joiner.email.lower(), "token-1523-accept")
+    org_id, joiner_id = org.id, joiner.id
+
+    async def accept() -> None:
+        async with async_session_factory() as session:
+            user = await session.get(User, joiner_id)
+            assert user is not None
+            await members.accept_invitation(session, user, "token-1523-accept")
+            await session.commit()
+
+    holder = async_session_factory()
+    task = None
+    try:
+        await grants.lock_roster(holder, org_id)
+        task = asyncio.create_task(accept())
+        await asyncio.sleep(0.3)
+        assert not task.done(), "accepting must wait for the roster lock"
+        await holder.commit()
+    finally:
+        await holder.close()
+    await asyncio.wait_for(task, timeout=DELETE_TIMEOUT_SECONDS)
+
+    row = await _membership(db_async, org_id, joiner_id)
+    assert row.status == MembershipStatus.ACTIVE.value
+
+
+async def test_admin_add_waits_for_the_roster_lock(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(
+        admin_members.superuser_mfa, "require_superuser_mfa", lambda _u: None
+    )
+    owner = await make_user(db_async)
+    admin = await make_user(db_async, superuser=True)
+    added = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Admin add lock order",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("events",),
+    )
+    org_id, admin_id, added_id = org.id, admin.id, added.id
+
+    async def add() -> None:
+        async with async_session_factory() as session:
+            actor = await session.get(User, admin_id)
+            assert actor is not None
+            await admin_members.add(
+                session,
+                actor,
+                org_id,
+                user_id=added_id,
+                email=None,
+                role=MembershipRole.MEMBER,
+                reason="lock order",
+            )
+            await session.commit()
+
+    holder = async_session_factory()
+    task = None
+    try:
+        await grants.lock_roster(holder, org_id)
+        task = asyncio.create_task(add())
+        await asyncio.sleep(0.3)
+        assert not task.done(), "the add must wait for the roster lock"
+        await holder.commit()
+    finally:
+        await holder.close()
+    await asyncio.wait_for(task, timeout=DELETE_TIMEOUT_SECONDS)
+
+    row = await _membership(db_async, org_id, added_id)
+    assert row.status == MembershipStatus.ACTIVE.value
+
+
+async def _wait_blocked(task: asyncio.Task) -> None:
+    await asyncio.sleep(0.4)
+    assert not task.done(), "must wait for the account lock"
+
+
+@pytest.mark.parametrize("reactivation", [False, True])
+async def test_deletion_sees_an_in_flight_uncommitted_accept(
+    db_async: AsyncSession, reactivation: bool
+):
+    """An accept has inserted (or reactivated) a membership in an organisation the
+    account was not active in, uncommitted. The deletion starts meanwhile: the account
+    lock makes it wait, then its read sees the committed membership and ends it. Row
+    locks alone would not: a lock cannot stop an INSERT the deletion cannot see."""
+    owner = await make_user(db_async)
+    leaving = await make_user(db_async)
+    org_a = await make_org(
+        db_async,
+        "In flight A",
+        members=((owner, MembershipRole.OWNER), (leaving, MembershipRole.MEMBER)),
+        apps=("events",),
+    )
+    org_b = await make_org(
+        db_async,
+        "In flight B",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("events",),
+    )
+    if reactivation:
+        await service.add_member(
+            db_async,
+            organisation_id=org_b.id,
+            user_id=leaving.id,
+            role=MembershipRole.MEMBER,
+            status=MembershipStatus.REMOVED,
+        )
+    await _invitation_for(db_async, org_b, leaving.email.lower(), "token-1523-flight")
+    leaving_id, org_a_id, org_b_id = leaving.id, org_a.id, org_b.id
+
+    accepting = async_session_factory()
+    task = None
+    try:
+        user = await accepting.get(User, leaving_id)
+        assert user is not None
+        await members.accept_invitation(accepting, user, "token-1523-flight")
+        task = asyncio.create_task(_delete_account(leaving_id))
+        await _wait_blocked(task)
+        await accepting.commit()
+    finally:
+        await accepting.close()
+    await asyncio.wait_for(task, timeout=DELETE_TIMEOUT_SECONDS)
+
+    for org_id in (org_a_id, org_b_id):
+        row = await _membership(db_async, org_id, leaving_id)
+        assert row.status == MembershipStatus.REMOVED.value
+
+
+@pytest.mark.parametrize("reactivation", [False, True])
+async def test_an_accept_queued_behind_a_deletion_is_refused(
+    db_async: AsyncSession, reactivation: bool
+):
+    """The deletion holds the account lock; an accept queued behind it continues with a
+    refreshed account, sees it anonymised and fails: no membership is created or
+    reactivated on the deleted account."""
+    owner = await make_user(db_async)
+    leaving = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Queued accept",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("events",),
+    )
+    if reactivation:
+        await service.add_member(
+            db_async,
+            organisation_id=org.id,
+            user_id=leaving.id,
+            role=MembershipRole.MEMBER,
+            status=MembershipStatus.REMOVED,
+        )
+    email = leaving.email.lower()
+    await _invitation_for(db_async, org, email, "token-1523-queued")
+    leaving_id, org_id = leaving.id, org.id
+
+    async def accept() -> None:
+        async with async_session_factory() as session:
+            user = await session.get(
+                User, leaving_id
+            )  # loaded before the deletion ends
+            assert user is not None
+            await asyncio.sleep(0.4)
+            await members.accept_invitation(session, user, "token-1523-queued")
+            await session.commit()
+
+    deleting = async_session_factory()
+    task = None
+    try:
+        user = await deleting.get(User, leaving_id)
+        assert user is not None
+        task = asyncio.create_task(accept())
+        await auth_service.delete_user(session=deleting, user=user)
+        await asyncio.sleep(0.8)  # the accept is now waiting on the account lock
+        await deleting.commit()
+    finally:
+        await deleting.close()
+    with pytest.raises(AppException):
+        await asyncio.wait_for(task, timeout=DELETE_TIMEOUT_SECONDS)
+
+    rows = (
+        (
+            await db_async.execute(
+                select(Membership)
+                .where(
+                    Membership.organisation_id == org_id,
+                    Membership.user_id == leaving_id,
+                )
+                .execution_options(populate_existing=True)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert all(row.status != MembershipStatus.ACTIVE.value for row in rows)
+
+
+async def test_create_organiser_takes_the_account_lock_and_is_refused_after_deletion(
+    db_async: AsyncSession,
+):
+    """``create_organiser`` inserts an owner membership through ``add_member``, which
+    takes the account lock: it waits for a transaction holding it, and once the account
+    is deleted it is refused instead of leaving an active owner on an anonymised
+    account."""
+    from src.events.service.organiser_admin import create_organiser
+
+    creator = await make_user(db_async)
+    doomed = await make_user(db_async)
+    creator_id, doomed_id = creator.id, doomed.id
+
+    async def create(user_id, name: str) -> None:
+        async with async_session_factory() as session:
+            user = await session.get(User, user_id)
+            assert user is not None
+            await create_organiser(session, user, name=name)
+            await session.commit()
+
+    holder = async_session_factory()
+    task = None
+    try:
+        await grants.lock_user(holder, creator_id)
+        task = asyncio.create_task(create(creator_id, "Race Crew 1523 a"))
+        await _wait_blocked(task)
+        await holder.commit()
+    finally:
+        await holder.close()
+    await asyncio.wait_for(task, timeout=DELETE_TIMEOUT_SECONDS)
+
+    await _delete_account(doomed_id)
+    with pytest.raises(AppException):
+        await create(doomed_id, "Race Crew 1523 b")
+    active = (
+        (
+            await db_async.execute(
+                select(Membership).where(
+                    Membership.user_id == doomed_id,
+                    Membership.status == MembershipStatus.ACTIVE.value,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert active == []
+
+
+async def test_two_deletions_sharing_organisations_do_not_deadlock(
+    db_async: AsyncSession,
+):
+    """Both accounts are in the same three organisations; each deletion takes its own
+    account lock, then the rosters in id order, one pass: they finish. (No member joins
+    meanwhile; late members are covered by the in-flight tests above.)"""
+    first = await make_user(db_async)
+    second = await make_user(db_async)
+    owner = await make_user(db_async)
+    orgs = [
+        await make_org(
+            db_async,
+            f"Shared {n}",
+            members=(
+                (owner, MembershipRole.OWNER),
+                (first, MembershipRole.MEMBER),
+                (second, MembershipRole.MEMBER),
+            ),
+            apps=("events",),
+        )
+        for n in range(3)
+    ]
+    ids = (first.id, second.id)
+    await asyncio.wait_for(
+        asyncio.gather(*(_delete_account(i) for i in ids)),
+        timeout=DELETE_TIMEOUT_SECONDS,
+    )
+    for org in orgs:
+        for uid in ids:
+            row = await _membership(db_async, org.id, uid)
+            assert row.status == MembershipStatus.REMOVED.value
+
+
+async def _delete_while_holding_the_account_lock(holder: AsyncSession, user_id) -> None:
+    user = await holder.get(User, user_id)
+    assert user is not None
+    await auth_service.delete_user(session=holder, user=user)  # commits
+
+
+async def test_admin_add_in_flight_is_seen_by_a_deletion(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+):
+    """Admin add has inserted a membership, uncommitted; the deletion waits for the
+    account lock, then ends that membership."""
+    monkeypatch.setattr(
+        admin_members.superuser_mfa, "require_superuser_mfa", lambda _u: None
+    )
+    owner = await make_user(db_async)
+    admin = await make_user(db_async, superuser=True)
+    leaving = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Add in flight",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("events",),
+    )
+    org_id, admin_id, leaving_id = org.id, admin.id, leaving.id
+
+    adding = async_session_factory()
+    task = None
+    try:
+        actor = await adding.get(User, admin_id)
+        assert actor is not None
+        await admin_members.add(
+            adding,
+            actor,
+            org_id,
+            user_id=leaving_id,
+            email=None,
+            role=MembershipRole.MEMBER,
+            reason="race",
+        )
+        task = asyncio.create_task(_delete_account(leaving_id))
+        await _wait_blocked(task)
+        await adding.commit()
+    finally:
+        await adding.close()
+    await asyncio.wait_for(task, timeout=DELETE_TIMEOUT_SECONDS)
+
+    row = await _membership(db_async, org_id, leaving_id)
+    assert row.status == MembershipStatus.REMOVED.value
+
+
+async def test_admin_add_queued_behind_a_deletion_is_refused_with_409(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+):
+    """The deletion holds the account lock; admin add read the target while it was still
+    active, waits, then is refused by the lock's refreshed check."""
+    monkeypatch.setattr(
+        admin_members.superuser_mfa, "require_superuser_mfa", lambda _u: None
+    )
+    owner = await make_user(db_async)
+    admin = await make_user(db_async, superuser=True)
+    leaving = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Add queued",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("events",),
+    )
+    org_id, admin_id, leaving_id = org.id, admin.id, leaving.id
+
+    async def add() -> None:
+        async with async_session_factory() as session:
+            actor = await session.get(User, admin_id)
+            assert actor is not None
+            await admin_members.add(
+                session,
+                actor,
+                org_id,
+                user_id=leaving_id,
+                email=None,
+                role=MembershipRole.MEMBER,
+                reason="race",
+            )
+            await session.commit()
+
+    holder = async_session_factory()
+    task = None
+    try:
+        await grants.lock_user(holder, leaving_id)
+        task = asyncio.create_task(add())
+        await _wait_blocked(task)
+        await _delete_while_holding_the_account_lock(holder, leaving_id)
+    finally:
+        await holder.close()
+    with pytest.raises(AppException) as refused:
+        await asyncio.wait_for(task, timeout=DELETE_TIMEOUT_SECONDS)
+    assert refused.value.status_code == 409
+    assert (
+        await db_async.execute(
+            select(Membership).where(
+                Membership.organisation_id == org_id,
+                Membership.user_id == leaving_id,
+            )
+        )
+    ).scalar_one_or_none() is None
+
+
+async def test_add_member_refuses_an_unknown_and_a_deleted_account(
+    db_async: AsyncSession,
+):
+    import uuid
+
+    owner = await make_user(db_async)
+    gone = await make_user(db_async)
+    org = await make_org(
+        db_async, "Add member refusals", members=((owner, MembershipRole.OWNER),)
+    )
+    await _delete_account(gone.id)
+
+    with pytest.raises(AppException) as unknown:
+        await service.add_member(
+            db_async,
+            organisation_id=org.id,
+            user_id=uuid.uuid4(),
+            role=MembershipRole.MEMBER,
+        )
+    assert unknown.value.status_code == 404
+    with pytest.raises(AppException) as deleted:
+        await service.add_member(
+            db_async,
+            organisation_id=org.id,
+            user_id=gone.id,
+            role=MembershipRole.MEMBER,
+        )
+    assert deleted.value.status_code == 409
+
+
+async def test_admin_add_returns_404_when_the_target_vanishes_before_the_lock(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+):
+    import uuid
+
+    monkeypatch.setattr(
+        admin_members.superuser_mfa, "require_superuser_mfa", lambda _u: None
+    )
+    admin = await make_user(db_async, superuser=True)
+    owner = await make_user(db_async)
+    org = await make_org(
+        db_async, "Add vanished", members=((owner, MembershipRole.OWNER),)
+    )
+    ghost = User(id=uuid.uuid4(), email="ghost@example.com", is_active=True)
+
+    async def fake_target(*_args: object, **_kwargs: object) -> User:
+        return ghost
+
+    monkeypatch.setattr(admin_members, "_target", fake_target)
+    with pytest.raises(AppException) as refused:
+        await admin_members.add(
+            db_async,
+            admin,
+            org.id,
+            user_id=None,
+            email="ghost@example.com",
+            role=MembershipRole.MEMBER,
+            reason="race",
+        )
+    assert refused.value.status_code == 404
