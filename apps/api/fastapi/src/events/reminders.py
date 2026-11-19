@@ -1,10 +1,13 @@
 """24-hour event reminders (hourly job ``enqueue_event_reminders``).
 
-Holders of a valid ticket for a published event that
-starts in ``[now + 23h, now + 24h)`` get one reminder email on the platform outbox.
-The window is one cron interval wide, so each event falls in exactly one hourly
-run. The dedupe key ``events-reminder:<listing id>:<user id>:<start timestamp>``
-makes a rerun queue nothing, while an event moved to a new time reminds again.
+Holders of a valid ticket for a published event that starts within the next 24
+hours (``now < starts_at <= now + 24h``) get one reminder email on the platform
+outbox. The window is deliberately wider than one cron interval: a late or skipped
+run, or an event published or booked less than a day before it starts, is still
+caught by the next run. The dedupe key
+``events-reminder:<listing id>:<user id>:<start timestamp>`` makes every later run
+queue nothing for the same event time, while an event moved to a new time
+reminds again.
 
 Cancelled events are not published, so they are skipped; a postponed event is a
 published one with a new ``starts_at`` and is reminded for the new time. Refunded
@@ -21,6 +24,7 @@ TODO(ADR-0047): listings will get occurrences; this query then moves from
 ``Listing.starts_at`` to the occurrence start and keys on the occurrence id.
 """
 
+import logging
 import uuid
 from datetime import datetime, timedelta
 
@@ -36,10 +40,11 @@ from src.utils.datetime import utc_now
 from . import emails
 from .models import Listing, Ticket
 
-WINDOW_START = timedelta(hours=23)
-WINDOW_END = timedelta(hours=24)
+HORIZON = timedelta(hours=24)
 PAGE_SIZE = 500
 MAX_PAGES = 20
+
+logger = logging.getLogger(__name__)
 
 
 def reminder_key(listing_id: uuid.UUID, user_id: uuid.UUID, starts_at: datetime) -> str:
@@ -49,7 +54,7 @@ def reminder_key(listing_id: uuid.UUID, user_id: uuid.UUID, starts_at: datetime)
 async def enqueue_due_reminders(
     db: AsyncSession, *, now: datetime | None = None
 ) -> int:
-    """Queue reminders for events starting in [now+23h, now+24h). The caller commits.
+    """Queue reminders for events starting in (now, now+24h]. The caller commits.
 
     Returns how many reminders were newly queued."""
     moment = now or utc_now()
@@ -65,8 +70,8 @@ async def enqueue_due_reminders(
         .join(User, User.id == audience.c.user_id)
         .where(
             Listing.status == "published",
-            Listing.starts_at >= moment + WINDOW_START,
-            Listing.starts_at < moment + WINDOW_END,
+            Listing.starts_at > moment,
+            Listing.starts_at <= moment + HORIZON,
             User.is_active.is_(True),
             User.email.is_not(None),
         )
@@ -76,7 +81,7 @@ async def enqueue_due_reminders(
     tickets_url = f"{auth_settings.EVENTS_APP_URL.rstrip('/')}/me/tickets"
     queued = 0
     after: tuple[uuid.UUID, uuid.UUID] | None = None
-    for _ in range(MAX_PAGES):
+    for page in range(MAX_PAGES):
         query = base
         if after is not None:
             query = query.where(
@@ -105,6 +110,12 @@ async def enqueue_due_reminders(
                 queued += 1
         if len(rows) < PAGE_SIZE:
             break
+        if page == MAX_PAGES - 1:
+            logger.warning(
+                "event reminders stopped at the paging cap (%s rows); the rest "
+                "are queued by the next hourly run",
+                PAGE_SIZE * MAX_PAGES,
+            )
         last_listing, last_user = rows[-1]
         after = (last_listing.id, last_user.id)
     return queued

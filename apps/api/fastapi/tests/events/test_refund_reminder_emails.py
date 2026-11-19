@@ -4,12 +4,14 @@ Nothing is sent: the emails are rows on the platform outbox (topic ``email.send`
 """
 
 import uuid
+from typing import Any
 from datetime import datetime, timedelta
 
 import pytest
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.models import User
 from src.events import emails, reminders
 from src.events.models import Listing, Rsvp, Ticket
 from src.notifications.config import notification_settings
@@ -29,6 +31,7 @@ from tests.events.test_paid_orders import (
     _tickets,
     make_user,
 )
+from tests.events.test_paid_orders import sent_emails  # noqa: F401  (fixture)
 
 NOW = datetime.fromisoformat("2026-10-22T12:00:00")
 
@@ -114,6 +117,34 @@ async def test_a_partial_refund_says_the_tickets_stay_valid(
     # A second partial refund is its own receipt (a different refund id).
     await _refund(db_async, shop, order_id, PRICE)
     assert len(await _emails(db_async, "events-order-refunded:")) == 2
+
+
+@pytest.mark.asyncio
+async def test_only_the_refund_that_completes_the_order_says_whole_order(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop(db_async, events_db)
+    order_id = await _paid_order(db_async, shop, 2)
+    intent = await _intent(db_async, order_id)
+    assert intent is not None
+    for _ in range(2):  # two half refunds, both recorded before the outbox drains
+        await payments_service.refund_intent(
+            db_async,
+            organisation_id=shop.organisation_id,
+            intent_id=intent.id,
+            actor=None,
+            payload=payment_schemas.PaymentRefundCreate(
+                amount_minor=PRICE, reason="Buyer asked"
+            ),
+        )
+        await db_async.commit()
+    await _drain(db_async)
+    rows = await _emails(db_async, "events-order-refunded:")
+    assert len(rows) == 2
+    wording = sorted("whole order" in r.payload["html"] for r in rows)
+    assert wording == [False, True]
+    assert sum("partial refund" in r.payload["html"] for r in rows) == 1
+    assert {t.status for t in await _tickets(events_db, order_id)} == {"refunded"}
 
 
 @pytest.mark.asyncio
@@ -237,22 +268,47 @@ async def _run(db: AsyncSession, now: datetime = NOW) -> int:
 
 
 @pytest.mark.asyncio
-async def test_the_window_is_23_to_24_hours_ahead(
+async def test_the_window_is_everything_starting_in_the_next_24_hours(
     db_async: AsyncSession, events_db: SessionFactory
 ) -> None:
-    inside_start, _ = await _rsvp_shop(db_async, events_db, NOW + timedelta(hours=23))
-    await _rsvp_shop(db_async, events_db, NOW + timedelta(hours=24))
-    await _rsvp_shop(
-        db_async, events_db, NOW + timedelta(hours=23) - timedelta(seconds=1)
-    )
-    last, _ = await _rsvp_shop(
-        db_async, events_db, NOW + timedelta(hours=24) - timedelta(seconds=1)
-    )
+    soon, _ = await _rsvp_shop(db_async, events_db, NOW + timedelta(minutes=1))
+    edge, _ = await _rsvp_shop(db_async, events_db, NOW + timedelta(hours=24))
+    await _rsvp_shop(db_async, events_db, NOW + timedelta(hours=24, seconds=1))
+    await _rsvp_shop(db_async, events_db, NOW)  # starting now: already started
+    await _rsvp_shop(db_async, events_db, NOW - timedelta(minutes=1))
     assert await _run(db_async) == 2
     keys = {
         r.dedupe_key.split(":")[1] for r in await _emails(db_async, "events-reminder:")
     }
-    assert keys == {str(inside_start.listing_id), str(last.listing_id)}
+    assert keys == {str(soon.listing_id), str(edge.listing_id)}
+
+
+@pytest.mark.asyncio
+async def test_jittered_and_skipped_runs_still_remind_exactly_once(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop, _ = await _rsvp_shop(db_async, events_db, NOW + timedelta(hours=26))
+    # Runs at :12 with jitter; none yet sees the event (26h away).
+    assert await _run(db_async, NOW) == 0
+    assert await _run(db_async, NOW + timedelta(hours=1, seconds=40)) == 0
+    # The run at +2h is skipped entirely; the next one (+3h, 23h before the start)
+    # still catches the event, and later runs add nothing.
+    assert await _run(db_async, NOW + timedelta(hours=3, minutes=1)) == 1
+    assert await _run(db_async, NOW + timedelta(hours=4, seconds=20)) == 0
+    assert await _run(db_async, NOW + timedelta(hours=5)) == 0
+    (row,) = await _emails(db_async, "events-reminder:")
+    assert str(shop.listing_id) in row.dedupe_key
+
+
+@pytest.mark.asyncio
+async def test_an_event_booked_less_than_a_day_before_it_starts_is_reminded_once(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    await _rsvp_shop(db_async, events_db, NOW + timedelta(hours=10))
+    assert await _run(db_async) == 1
+    assert await _run(db_async, NOW + timedelta(hours=1)) == 0
+    assert await _run(db_async, NOW + timedelta(hours=2)) == 0
+    assert len(await _emails(db_async, "events-reminder:")) == 1
 
 
 @pytest.mark.asyncio
@@ -360,14 +416,41 @@ async def test_a_cancelled_ticket_and_an_event_that_started_are_skipped(
 
 
 @pytest.mark.asyncio
-async def test_a_suppressed_address_is_skipped_at_send_time(
-    db_async: AsyncSession, events_db: SessionFactory
+async def test_a_suppressed_address_gets_no_reminder_but_still_gets_a_receipt(
+    db_async: AsyncSession,
+    events_db: SessionFactory,
+    sent_emails: list[dict[str, Any]],
 ) -> None:
-    await _rsvp_shop(db_async, events_db, NOW + timedelta(hours=23, minutes=30))
+    from src import outbox as platform_outbox
+    from src.notifications.models import (
+        EmailSuppression,
+        OutboundEmail,
+        SuppressionReason,
+    )
+    from src.utils.email_hash import hash_email
+
+    _, user_id = await _rsvp_shop(db_async, events_db, NOW + timedelta(hours=10))
+    user = await db_async.get(User, user_id)
+    assert user is not None and user.email
+    email = user.email
+    db_async.add(
+        EmailSuppression(
+            email_hash=hash_email(email), reason=SuppressionReason.COMPLAINT.value
+        )
+    )
+    await db_async.commit()
     assert await _run(db_async) == 1
-    (row,) = await _emails(db_async, "events-reminder:")
-    # Not transactional: the platform email sender checks the suppression list.
-    assert row.payload["transactional"] is False
+
+    db_async.expire_all()
+    await platform_outbox.drain(db_async, only_topics={"email.send"})
+    rows = list(
+        await db_async.scalars(
+            select(OutboundEmail).where(OutboundEmail.to_email == email.lower())
+        )
+    )
+    reminder = [r for r in rows if r.subject.startswith("Reminder:")]
+    assert [r.status for r in reminder] == ["skipped"]
+    assert not any(m.get("subject", "").startswith("Reminder:") for m in sent_emails)
 
 
 @pytest.mark.asyncio

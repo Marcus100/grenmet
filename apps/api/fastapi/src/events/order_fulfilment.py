@@ -23,7 +23,7 @@ import logging
 import uuid
 from datetime import datetime
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, literal, select, tuple_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -210,7 +210,7 @@ async def _queue_refund_receipt(
     intent_provider: str,
     refund_id: uuid.UUID,
     *,
-    full: bool,
+    captured_minor: int,
 ) -> None:
     """Email the buyer one receipt per refund. The dedupe key is the refund id, so
     the inline manual path and the ``events.order_refunded`` reaction (and any
@@ -227,6 +227,18 @@ async def _queue_refund_receipt(
         or refund.status != RefundStatus.SUCCEEDED.value
     ):
         return  # a pending or failed refund has not settled: no receipt yet
+    # "Whole order" only when THIS refund brought the settled total up to what was
+    # paid: refunds count in creation order, so an earlier partial refund keeps its
+    # partial wording even when a later one completed the order first.
+    settled_through = await db.scalar(
+        select(func.coalesce(func.sum(Refund.amount_minor), 0)).where(
+            Refund.intent_id == intent_id,
+            Refund.status == RefundStatus.SUCCEEDED.value,
+            tuple_(Refund.created_at, Refund.id)
+            <= tuple_(literal(refund.created_at), literal(refund.id)),
+        )
+    )
+    full = captured_minor > 0 and (settled_through or 0) >= captured_minor
     buyer = await db.get(User, order.user_id)
     listing = await db.get(Listing, order.listing_id)
     if (
@@ -310,7 +322,7 @@ async def apply_refund(
             intent.id,
             intent.provider,
             refund_id,
-            full=outcome != "partial",
+            captured_minor=intent.captured_minor,
         )
     return outcome
 
