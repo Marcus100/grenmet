@@ -1,4 +1,9 @@
 import { onPublicEnv, readPublicEnv } from "@barrelsgd/ui/lib/public-env";
+import { disableZodEvalProbe } from "@/lib/zod-csp";
+
+// Zod caches its eval probe at the first object schema it builds, so this must
+// run before any page module builds one.
+disableZodEvalProbe();
 
 // Sentry's browser SDK is ~120 KB gzip. Loading it with a static import puts it
 // in the first-load bundle of every page and delays hydration on slow mobile
