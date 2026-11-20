@@ -1,7 +1,9 @@
 # Barrels AI workflow register
 
-**Status:** Pilot register  
-**Owner:** Barrels Grenada product and engineering  
+**Status:** Pilot register
+
+**Owner:** Barrels Grenada product and engineering
+
 **Last updated:** 2026-11-19
 
 Barrels uses AI to assist work with defined inputs, checks and human decisions.
