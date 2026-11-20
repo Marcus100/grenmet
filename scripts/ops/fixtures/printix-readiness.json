@@ -1,0 +1,10 @@
+{
+  "checkpoint": "readiness",
+  "checks": {
+    "staff_access": "pass",
+    "event_setup": "pass",
+    "ticket_import": "blocked",
+    "device_test": "unknown",
+    "offline_fallback": "blocked"
+  }
+}
