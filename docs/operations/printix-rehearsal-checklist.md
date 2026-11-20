@@ -2,7 +2,7 @@
 
 **Status:** Active guide  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-18
+**Last updated:** 2026-11-19
 
 For Barrels and Printix staff running the rehearsal on 14 Dec 2026 and the event on
 26 Dec 2026. Plain steps, in order. Tick each one off. Every screen name and button below
@@ -12,6 +12,9 @@ are at `scan.barrels.gd/organiser`.
 Two roles are used. An **organiser** sets up events, imports tickets, voids tickets and
 makes gate codes. A **gate lead** can only make and cancel gate codes. Gate staff need no
 sign-in: their phone is paired with a gate code.
+
+Use the [operations brief pilot](./printix-operations-brief-pilot.md) to compare
+readiness and closeout summaries from recorded rehearsal evidence.
 
 ## Before the day
 

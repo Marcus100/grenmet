@@ -4,7 +4,7 @@
 **Recorded:** 2026-09-23  
 **Horizon:** Five years, with a 2035 national-ambition reference  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-31
+**Last updated:** 2026-11-19
 
 ## Purpose
 
@@ -45,6 +45,15 @@ organisation or work account. Showing a customer their own activity is distinct
 from using it for recommendations. Define authorised data use, retention,
 evaluation and confirmation of consequential actions in the feature design.
 Existing domain services remain authoritative for transactions and rewards.
+
+## Internal AI operations
+
+The [Printix operations brief pilot](../operations/printix-operations-brief-pilot.md)
+tests AI in event operations using operator-verified checklist results and
+aggregate counts. A Barrels operator reviews both a deterministic brief and an
+AI-assisted draft. The comparison measures time through correction, missed
+exceptions and factual errors. Use the same pattern for another internal
+workflow only after the pilot shows an improvement in the work.
 
 ## National context
 
