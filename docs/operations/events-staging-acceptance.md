@@ -2,7 +2,7 @@
 
 **Status:** Draft checklist; nothing here has been run  
 **Owner:** Barrels Grenada engineering (the staging owner runs it)  
-**Last updated:** 2026-11-18
+**Last updated:** 2026-11-19
 
 A hands-on runbook for the owner to bring Barrels Events up on **staging** and
 prove it works, end to end, with Stripe in **test mode**. It follows the format
@@ -28,6 +28,9 @@ can be verified by staff, publish an event with tiers and an image, sell at an
 outlet, record manual payments, admit people at the door, see orders and
 attendees, refund and cancel. Staff can moderate, switch entitlements and
 enrol MFA.
+
+The separate [WhatsApp draft pilot](./events-whatsapp-draft-pilot.md)
+describes a synthetic, opt-in check in the organiser editor.
 
 ## 1. Prerequisites and owner configuration checklist
 

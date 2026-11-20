@@ -309,6 +309,7 @@ export interface MyTicketDetail extends MyTicket {
 
 /** What an organiser edits; adds publishing state to the public listing. */
 export interface ManagedEvent extends EventDetail {
+  readonly accessType: NonNullable<ManagedListing["access_type"]> | null;
   readonly status: ManagedListing["status"];
   readonly visibility: "public" | "unlisted";
 }
