@@ -31,7 +31,8 @@ AI is intended to support the connected consumer and business ecosystem in the
 [product strategy](barrels-product-strategy.md#connected-ecosystem-direction--31-october-2026).
 Candidate capabilities include natural-language discovery, a shared assistant,
 content creation, business operations, community summaries and controllable
-personalisation. The first use case and delivery order remain undecided.
+personalisation. The first hosted model integration and its delivery order
+remain undecided.
 Normal navigation and task completion should remain available without AI.
 
 NISabot is a candidate reference for a later discovery exercise; its design and
@@ -54,6 +55,19 @@ aggregate counts. A Barrels operator reviews both a deterministic brief and an
 AI-assisted draft. The comparison measures time through correction, missed
 exceptions and factual errors. Use the same pattern for another internal
 workflow only after the pilot shows an improvement in the work.
+
+## Company workflows
+
+Start with a business task and its source facts. Use fixed steps for factual
+outputs when possible and evaluate AI on the work that requires judgment or
+drafting. Existing domain services own transaction state and permission checks.
+A person with the existing operational authority reviews consequential decisions.
+
+The [workflow register](../operations/barrels-ai-workflows.md) tracks the
+Printix operations and Events organiser pilots. It records who reviews each
+output and how to compare it with the fixed draft. Use the results to decide
+whether to extend the workflow and whether a shared service would solve a
+demonstrated need.
 
 ## National context
 

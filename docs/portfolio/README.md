@@ -28,6 +28,13 @@ Its [portfolio amendment](barrels-portfolio-implementation-plan.md#ecosystem-pla
 keeps discovery separate from scheduled delivery. Use these amendments when
 interpreting older assumptions about the corporate homepage and shared accounts.
 
+## AI workflow evidence
+
+The [Barrels AI workflow register](../operations/barrels-ai-workflows.md)
+records current company pilots, accountable owners and acceptance evidence.
+Use it with the Barrels portfolio plan when reviewing investment in a shared AI
+capability.
+
 ## Classification rules
 
 - **Barrels product:** a market-facing product whose strategy and commercial
