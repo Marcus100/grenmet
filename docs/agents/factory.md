@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-19
 
 How agent work in this repository is defined, run, measured and improved. Each
 layer is a file or a command in this repository, so the factory itself is
@@ -24,21 +24,34 @@ versioned, reviewed and testable like any other code.
 | Benchmarks | 25 fixed tasks graded by hidden tests, per agent and model | [benchmarks/](benchmarks/README.md) |
 | Self-improvement | Repeated failures become one reviewed change to the factory | `pnpm agents:improve`, `factory-improve` skill |
 
-## Data stays local
+## Local reporting and judge inputs
 
-Transcripts hold private and client context, so nothing in the measuring loop
-uploads them. `scripts/agents/sessions.mjs` reads them in place:
+The flow report reads repository transcripts from the workstation and computes
+its metrics locally. The delivery report uses Git history and GitHub release and
+workflow metadata. The score report reads stored verdicts. Transcript content
+stays on the workstation during these report commands.
 
-- Claude Code: `~/.claude/projects/<repo path slug>*/*.jsonl` (worktrees and
-  subagents included).
-- Codex: `$CODEX_HOME`, `~/.codex/sessions/` and, under WSL,
-  `/mnt/c/Users/*/.codex/sessions/` (the desktop app).
+`scripts/agents/sessions.mjs` reads transcripts from:
 
-Scorer verdicts go to `~/.cache/grenmet-factory/scores.jsonl` and skill-eval
-results to `~/.cache/grenmet-skill-evals/results.jsonl`. Only derived numbers
-and paraphrased lessons reach the repository. Cloud sessions (Claude Code on
-the web, Codex cloud tasks) keep their transcripts with the vendor and are not
-counted; their PRs and run records still are.
+- Claude Code at `~/.claude/projects/<repo path slug>*/*.jsonl`, including
+  worktrees and subagents.
+- Codex under `$CODEX_HOME`, `~/.codex/sessions/` and, in WSL, the desktop
+  app's `/mnt/c/Users/*/.codex/sessions/`.
+
+Generating a new verdict with `pnpm agents:score run` sends a bounded digest
+to the selected judge command. With the configured Claude Code or Codex judge,
+its model provider receives that input. A digest can contain human prompts,
+shell commands, file paths and final replies. Treat it as session data when
+deciding which provider may receive it. The `--dry-run` option lists work
+without invoking a judge. See the [session digest](../../scripts/agents/sessions.mjs)
+and [scoring command](../../scripts/agents/score-sessions.mjs).
+
+By default, verdicts go to `~/.cache/grenmet-factory/scores.jsonl` and skill-evaluation
+results go to `~/.cache/grenmet-skill-evals/results.jsonl`. Verdict records
+can include evidence or suggestions based on session content. The repository
+keeps derived numbers and paraphrased lessons. Vendor-hosted sessions stay with
+their vendor and are outside the local transcript totals. Their PRs and run
+records still count where those sources are used.
 
 ## Measures
 
@@ -84,19 +97,23 @@ pnpm agents:score run --dry-run                # list what would be judged
 pnpm agents:score report --days 30             # pass rate per scorer and week
 ```
 
-The judge runs through the logged-in CLI (`claude -p`, or `--judge codex`) in an
-empty directory with no tools, MCP servers, settings or saved session, and with
-API keys scrubbed from the environment so it uses the plan allowance. If it
-reports `Failed to authenticate`, log the WSL CLI in again with
+The built-in judges use a temporary empty working directory and scrub API
+keys from the environment. The Claude command disables tools, provides an
+empty MCP configuration, skips normal setting sources and disables session
+persistence. The Codex command requests an ephemeral, read-only session.
+Codex can still read its normal local configuration.
+
+If Claude reports `Failed to authenticate`, log the WSL CLI in again with
 `claude auth login`. `CLAUDE_BIN` overrides the binary.
 
 ## The weekly loop
 
 Once a week, in an attended session:
 
-1. Run the `factory-improve` skill (`/factory-improve`). It runs flow, scoring
-   and `pnpm agents:improve`, which groups failing verdicts, skill-trigger
-   misses and open friction issues that repeat at least three times.
+1. Run the `factory-improve` skill (`/factory-improve`). It reads flow and
+   stored verdicts with `agents:score report`, then uses `pnpm agents:improve`
+   to group failing verdicts, skill-trigger misses and open friction issues
+   that repeat at least three times.
 2. It picks the top problem with a cause in the repository and makes one small
    change to a skill, an `AGENTS.md` rule, a scorer or a check, with a
    regression case.
