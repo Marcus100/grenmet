@@ -10,8 +10,7 @@ export function formatPrice(price: Money): string {
   if (price.amountMinor === 0) {
     return "Free";
   }
-  const text = formatMoney(price);
-  return price.currency === "XCD" ? `EC${text}` : text;
+  return formatMoney(price);
 }
 
 /** Time left on a hold as "m:ss"; never negative. */

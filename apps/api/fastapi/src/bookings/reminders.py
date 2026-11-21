@@ -6,9 +6,8 @@ the platform outbox. A pending booking's reminder says the business has not
 confirmed it yet. The outbox's unique ``(topic, dedupe_key)`` with
 ``booking-reminder:<booking id>`` makes the job safe to repeat: each booking is
 queued once however often it runs, so a booking that was reminded as pending and
-is confirmed later is not reminded a second time. The reminder has no manage
-link, because the manage token exists only as a hash (an owner decision on how
-to carry one is open).
+is confirmed later is not reminded a second time. The reminder carries a signed
+manage link (``manage_link``, minted now) and, for a guest, the account invitation.
 """
 
 from datetime import datetime, timedelta
@@ -19,10 +18,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.contacts.models import Contact
 from src.notifications import outbox_handlers
 from src.utils.datetime import utc_now
-from src.utils.timezones import zone
 
-from . import emails
-from .models import Booking, BookingProfile, BookingStatus, Customer, Provider, Service
+from . import emails, public
+from .models import (
+    Booking,
+    BookingProfile,
+    BookingStatus,
+    Customer,
+    Provider,
+    Service,
+)
 
 REMINDER_WINDOW = timedelta(hours=24)
 REMINDED_STATUSES = (BookingStatus.CONFIRMED.value, BookingStatus.PENDING.value)
@@ -40,7 +45,7 @@ async def enqueue_due_reminders(
     to one organisation (tests, backfills)."""
     moment = now or utc_now()
     query = (
-        select(Booking, BookingProfile, Service, Provider, Contact)
+        select(Booking, BookingProfile, Service, Provider, Customer, Contact)
         .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
         .join(Service, Service.id == Booking.service_id)
         .join(Provider, Provider.id == Booking.provider_id)
@@ -57,20 +62,14 @@ async def enqueue_due_reminders(
     if organisation_id is not None:
         query = query.where(Booking.organisation_id == organisation_id)
     queued = 0
-    for booking, profile, service, provider, contact in (
+    for booking, profile, service, provider, customer, contact in (
         await session.execute(query)
     ).all():
         if not contact.email:
             continue
+        managed = public.Managed(booking, profile, service, provider, customer, contact)
         subject, body = emails.customer_reminder(
-            emails.BookingEmail(
-                business=profile.display_name,
-                customer_name=contact.name or "",
-                service_name=service.name,
-                provider_name=provider.name,
-                starts_at=booking.starts_at,
-                tz=zone(profile.timezone),
-            ),
+            public.build_mail(managed),
             confirmed=booking.status == BookingStatus.CONFIRMED.value,
         )
         if await outbox_handlers.enqueue_email(

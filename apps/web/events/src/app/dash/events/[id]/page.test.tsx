@@ -58,6 +58,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   getManagedOrganiser.mockResolvedValue(workspace);
   getListingActivity.mockResolvedValue([]);
+  requireViewer.mockResolvedValue({ name: "Ada Byron" });
 });
 
 describe("event editor WhatsApp preview", () => {

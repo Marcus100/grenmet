@@ -273,7 +273,7 @@ export function EventEditor({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="scroll-mt-6" id="admission">
           <CardHeader className="border-b">
             <CardTitle>
               <h2>Admission & capacity</h2>

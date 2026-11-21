@@ -24,6 +24,8 @@ const NO_CONTACT = {
   email: null,
 };
 const INSTAGRAM = /Instagram @teststudio/u;
+const KEEP_IN_ONE_PLACE = "Keep your bookings in one place";
+const LISTED_UNDER_MY_BOOKINGS = /listed under My bookings/u;
 const PAYMENT_DUE = /Payment of EC\$225 not received yet/u;
 const DIRECTLY = /please contact the business directly\./u;
 const CUTOFF =
@@ -273,5 +275,45 @@ describe("ManageBooking", () => {
     expect(
       screen.queryByRole("link", { name: "Pay now" })
     ).not.toBeInTheDocument();
+  });
+
+  it("invites a guest to an account at the API's link, unchanged", () => {
+    const inviteUrl =
+      "https://auth.barrels.gd/signup?returnTo=https%3A%2F%2Fbookings.barrels.gd%2Fsignin%3FreturnTo%3D%2Fstudio";
+    renderManage({ ...booking, account_invite_url: inviteUrl });
+    expect(
+      screen.getByRole("heading", { name: KEEP_IN_ONE_PLACE })
+    ).toBeVisible();
+    expect(screen.getByText(LISTED_UNDER_MY_BOOKINGS)).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Create an account or sign in" })
+    ).toHaveAttribute("href", inviteUrl);
+  });
+
+  it("shows no account invitation when the API gives null", () => {
+    renderManage({ ...booking, account_invite_url: null });
+    expect(
+      screen.queryByRole("heading", { name: KEEP_IN_ONE_PLACE })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Create an account or sign in" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows no account invitation when the field is absent", () => {
+    renderManage(booking);
+    expect(screen.queryByText(KEEP_IN_ONE_PLACE)).not.toBeInTheDocument();
+  });
+
+  it("never puts the manage token into the invitation link", () => {
+    renderManage({
+      ...booking,
+      account_invite_url:
+        "https://auth.barrels.gd/signup?returnTo=%2Fsea-salt-spa",
+    });
+    const link = screen.getByRole("link", {
+      name: "Create an account or sign in",
+    });
+    expect(link.getAttribute("href")).not.toContain(TOKEN);
   });
 });

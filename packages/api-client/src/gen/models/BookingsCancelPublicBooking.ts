@@ -10,7 +10,7 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsCancelPublicBookingPath = {
   /**
-   * @description The manage token returned when the booking was made.
+   * @description The manage token returned when the booking was made, or a signed manage link from a booking email.
    * @minLength 16
    * @maxLength 100
    * @type string

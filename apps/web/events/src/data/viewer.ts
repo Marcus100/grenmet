@@ -2,6 +2,7 @@ import "server-only";
 
 import { eventsGetMyProfile } from "@barrelsgd/api-client";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import type { Profile } from "@/domain/types";
 import { apiOptions } from "@/lib/api";
 import { reportError } from "@/lib/report-error";
@@ -33,7 +34,7 @@ function profileFromSession(session: EventsSession): Profile {
  * The current viewer: the signed-in member's profile, or a guest stand-in so
  * public pages render without branching. Use `isSignedIn` to tell them apart.
  */
-export async function getViewer(): Promise<Profile> {
+export const getViewer = cache(async (): Promise<Profile> => {
   const session = await getSession();
   if (!session) {
     return ANONYMOUS_VIEWER;
@@ -58,7 +59,7 @@ export async function getViewer(): Promise<Profile> {
     reportError(error, "events-viewer");
     return profileFromSession(session);
   }
-}
+});
 
 /** For member-only pages: send visitors to sign in, then back here. */
 export async function requireViewer(returnTo: string): Promise<Profile> {

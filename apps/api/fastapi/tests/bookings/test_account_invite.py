@@ -86,7 +86,9 @@ def test_the_api_and_the_web_apps_name_the_same_auth_address() -> None:
     assert frontend == app
 
 
-def test_the_invitation_is_part_of_the_received_and_confirmed_mails_only() -> None:
+def test_the_invitation_is_part_of_the_received_confirmed_and_reminder_mails_only() -> (
+    None
+):
     mail = emails.BookingEmail(
         business="Babydoll Beauty Bar",
         customer_name="Ada",
@@ -100,15 +102,17 @@ def test_the_invitation_is_part_of_the_received_and_confirmed_mails_only() -> No
         emails.customer_received(mail, confirmed=False),
         emails.customer_received(mail, confirmed=True),
         emails.customer_confirmed(mail),
+        emails.customer_reminder(mail, confirmed=True),
+        emails.customer_reminder(mail, confirmed=False),
     ):
         html = built[1]
         assert 'href="https://auth.example.test/signup"' in html
         assert "Booking never needs an account" in html
         assert "listed under My bookings" in html
     for other in (
-        emails.customer_reminder(mail)[1],
         emails.customer_cancelled(mail)[1],
         emails.customer_rescheduled(mail)[1],
+        emails.customer_rescheduled_by_studio(mail)[1],
     ):
         assert INVITE not in other
     plain = emails.BookingEmail(**{**mail.__dict__, "account_invite_url": None})

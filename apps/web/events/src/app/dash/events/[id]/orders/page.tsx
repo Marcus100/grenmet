@@ -12,6 +12,7 @@ import { getManagedOrganiser } from "@/data/events-api";
 import { resolveOrgContext } from "@/data/org-context";
 import { getOrgOrders } from "@/data/org-orders";
 import { requireViewer } from "@/data/viewer";
+import { shellEventOf } from "@/lib/dash-navigation";
 import { isOrderStatus, pageParam } from "@/lib/org-orders";
 
 /** Orders are live and per-organiser; never prerender them. */
@@ -28,7 +29,7 @@ export default async function OrdersPage({
 }) {
   const { id } = await params;
   const query = await searchParams;
-  await requireViewer(`/dash/events/${id}/orders`);
+  const viewer = await requireViewer(`/dash/events/${id}/orders`);
   const managed = await getManagedOrganiser();
   if (!managed) {
     return <NoOrganiserAccess />;
@@ -58,11 +59,12 @@ export default async function OrdersPage({
 
   return (
     <DashShell
-      active="events"
+      active="orders"
       currentOrganiser={managed.organiser.slug}
+      event={shellEventOf(event)}
       eventName={event.title}
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>

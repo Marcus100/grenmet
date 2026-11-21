@@ -65,4 +65,8 @@ export type BookingPublicDetail = {
    * @description Null when nothing was due at booking (pay at the business).
    */
   payment?: BookingPaymentSummary | null;
+  /**
+   * @description Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account.
+   */
+  account_invite_url?: string | null;
 };

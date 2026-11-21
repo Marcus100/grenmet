@@ -146,7 +146,8 @@ def customer_rescheduled(mail: BookingEmail) -> tuple[str, str]:
 def customer_rescheduled_by_studio(
     mail: BookingEmail, *, confirmed: bool = True
 ) -> tuple[str, str]:
-    """The business moved a booking. No manage link: the token is only a hash.
+    """The business moved a booking. It carries a signed manage link (the stored
+    token is only a hash) but no account invitation: moves carry none.
 
     ``confirmed`` false is a request the business has not accepted yet; the mail
     says it is still waiting and promises only an email once they decide."""
@@ -160,13 +161,14 @@ def customer_rescheduled_by_studio(
         f"Your booking at {mail.business} has a new time",
         f"<p>Hello {_e(mail.customer_name)},</p>"
         f"<p>{_e(mail.business)} has moved your booking to a new time.</p>"
-        f"{_details(mail)}{waiting}"
+        f"{_details(mail)}{waiting}{_manage(mail)}"
         f"<p>If this time does not suit you, please contact {_e(mail.business)}.</p>",
     )
 
 
 def customer_reminder(mail: BookingEmail, *, confirmed: bool = True) -> tuple[str, str]:
-    """A reminder within a day of the start.
+    """A reminder within a day of the start: the manage link and, for a guest,
+    the account invitation (ADR-0058).
 
     ``confirmed`` false is a request the business has not accepted yet: the
     wording says so and promises only what happens (an email once they decide).
@@ -176,7 +178,7 @@ def customer_reminder(mail: BookingEmail, *, confirmed: bool = True) -> tuple[st
             f"Reminder: your booking at {mail.business}",
             f"<p>Hello {_e(mail.customer_name)},</p>"
             f"<p>A reminder of your booking within the next day.</p>"
-            f"{_details(mail)}{_manage(mail)}",
+            f"{_details(mail)}{_manage(mail)}{_account_invite(mail)}",
         )
     return (
         f"Reminder: your booking request at {mail.business}",
@@ -184,7 +186,7 @@ def customer_reminder(mail: BookingEmail, *, confirmed: bool = True) -> tuple[st
         f"<p>A reminder of your booking request for the next day. "
         f"{_e(mail.business)} has not confirmed it yet. "
         f"We will email you as soon as they do.</p>"
-        f"{_details(mail)}{_manage(mail)}",
+        f"{_details(mail)}{_manage(mail)}{_account_invite(mail)}",
     )
 
 

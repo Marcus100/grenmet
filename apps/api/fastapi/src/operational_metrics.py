@@ -73,6 +73,8 @@ JOBS = frozenset(
         "send_notification_emails",
         "run_notification_sweeps",
         "purge_scan_log",
+        "enqueue_booking_reminders",
+        "expire_unpaid_bookings",
     }
 )
 
