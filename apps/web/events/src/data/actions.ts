@@ -55,6 +55,7 @@ import {
   toTill,
 } from "./api-mappers";
 import { ERROR_CODES, errorCodeOf } from "./error-code";
+import { rememberListing } from "./event-choice";
 import { getManagedAccess } from "./events-api";
 import { friendlyConflict } from "./order-errors";
 import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
@@ -321,6 +322,14 @@ export async function saveListing(id: string | null, listing: ListingUpsert) {
 export async function switchOrganiser(slug: string) {
   await rememberOrganiser(slug);
   revalidatePath("/dash", "layout");
+}
+
+/**
+ * Remembers the event the member opened, for the organiser nav's event links.
+ * No revalidation: it changes only a cookie, and the next page read uses it.
+ */
+export async function rememberEventChoice(listingId: string) {
+  await rememberListing(listingId);
 }
 
 /** Creates an organiser account for the member (unverified until reviewed). */
