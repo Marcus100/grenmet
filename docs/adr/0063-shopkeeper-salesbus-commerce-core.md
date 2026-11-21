@@ -2,18 +2,17 @@
 
 ## Status
 
-Proposed 21 Nov 2026. The owner's product decisions of 21 Nov 2026 are
-requirements, including two made after the first draft: Salesbus lives at
-`salesbus.barrels.gd`, and each business controls its own data as fully as
-possible (decision 2.9). If accepted, this record amends:
+Accepted 21 Nov 2026. The owner made the product decisions that day (including
+the `salesbus.barrels.gd` host and that each business controls its own data,
+decision 2.9) and delegated the remaining design choices to the agents, which
+are recorded under "Delegated decisions" at the end. Nothing is built. This
+record amends:
 
 - ADR-0043: adds the `shopkeeper` host, and brings back the retired `salesbus`
   host for this product. This is the owner's exception to the rule that retired
   hosts are never reassigned.
 - ADR-0061: a registered till may stay signed in.
 - ADR-0033: Commerce business records.
-
-Nothing is built.
 
 ## Context
 
@@ -122,7 +121,8 @@ pilot businesses.
 - Whether the pilot printers are Bluetooth Low Energy. Many cheap 58 mm
   printers are "classic" Bluetooth only.
 - How often pilot phones are shared with family (this drives decision 4.8).
-- Whether card acquiring is wanted in the pilot at all.
+- Whether card acquiring is wanted in the pilot at all (resolved: out of the
+  pilot, delegated decision 5).
 
 ## Options considered
 
@@ -427,7 +427,7 @@ pilot businesses.
    routes for that organisation and location: selling, credit, cash-up, stock
    entries and the till's snapshot. Reports, exports, settings, links, support
    grants and registering tills need a signed-in owner session, under
-   ADR-0061 unchanged.
+   ADR-0061 unchanged, which passed the authenticator (delegated decision 2).
 3. **Snapshot down.** `GET /commerce/public/devices/snapshot?since=<cursor>`
    returns:
    - products, units and prices;
@@ -651,19 +651,32 @@ pilot businesses.
   - the design lane spec `docs/design/shopkeeper.md`;
   - `src/commerce/AGENTS.md` and `apps/pwa/shopkeeper/AGENTS.md`.
 
-## Open questions for the owner
+## Delegated decisions (agents, 21 Nov 2026)
 
-1. **VAT.** Confirm the VAT registration threshold and the 15% standard rate
-   with Inland Revenue.
-2. **Helpers.** When helpers come, does each get their own membership and till
-   PIN, so sales name the person (recommended), or is one shared PIN enough?
-3. **Owner authenticator.** Must every shop owner use an authenticator app? It
-   is recommended for registering tills, exports, links and support grants;
-   daily selling does not need it.
-4. **Card payments.** Which acquirer comes first: Republic Bank, or Fygaro once
-   confirmed?
-5. **Crate and empty-bottle deposits.** Needed in phase 1 or 2?
-6. **Shared product list.** Curated by Barrels only, or shop suggestions reviewed
-   by Barrels (recommended)?
-7. **Ended links.** Do exchanged documents stay readable by both sides after a
-   link ends (recommended)?
+The owner accepts work into dev through the agents and approves only the merge
+into staging, so these were decided with the recommended option. Any of them
+can be changed before the pilot.
+
+1. **Helpers.** When helpers come, each gets their own membership and till PIN,
+   so every sale names the person who made it.
+2. **Owner authenticator.** Required for registering tills, exports, links,
+   closing the business and support grants. Daily selling never needs it.
+3. **Shared product list.** Shops may suggest products; Barrels reviews each
+   suggestion before it joins the list.
+4. **Ended links.** Documents already exchanged stay readable by both sides.
+5. **Card payments.** Out of the pilot. Cash, trust and hand-recorded card
+   payments only; an acquirer is chosen later through the ADR-0027 payments
+   core.
+6. **Crate and empty-bottle deposits.** Out of phase 1. Revisit for Salesbus
+   (phase 2) with the pilot distributors.
+
+## Still needed from outside
+
+1. **VAT.** Inland Revenue must confirm the registration threshold (EC$300,000
+   or EC$120,000 a year in different sources) and the 15% standard rate. Until
+   then VAT stays off by default and the rate is a setting.
+2. **Legal review.** The business terms and the ADR-0033 amendment (each
+   business controls its data) need a lawyer's review before the pilot takes
+   real customers.
+3. **Pilot printer.** The exact Bluetooth Low Energy model must be tested
+   before the pilot.
