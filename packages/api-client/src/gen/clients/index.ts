@@ -296,6 +296,7 @@ export { eventsUnfollowOrganiser } from "./eventsUnfollowOrganiser.js";
 export { eventsUnsaveListing } from "./eventsUnsaveListing.js";
 export { eventsUpdateManagedListing } from "./eventsUpdateManagedListing.js";
 export { eventsUpdateMyProfile } from "./eventsUpdateMyProfile.js";
+export { eventsUpdateOrganiserProfile } from "./eventsUpdateOrganiserProfile.js";
 export { eventsUpdateReport } from "./eventsUpdateReport.js";
 export { eventsUpdateSuggestion } from "./eventsUpdateSuggestion.js";
 export { featureCreateFlag } from "./featureCreateFlag.js";

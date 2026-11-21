@@ -680,6 +680,35 @@ async def resubmit_organiser(
     return await service.resubmit_organiser(session, user, scope, organiser)
 
 
+@router.patch(
+    "/manage/organiser",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Edit my approved organiser's profile",
+    description=(
+        "Owners and admins of an approved organiser change its public name and bio. "
+        "Send only the fields to change; the slug is fixed and the approval stays. "
+        "Each real change is logged. Pass ?organiser=<slug> when you manage several."
+    ),
+    responses={
+        **_ORGANISER,
+        422: {
+            "model": ApiError,
+            "description": "Invalid profile or organiser not chosen",
+        },
+    },
+)
+async def update_organiser_profile(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    body: schemas.OrganiserProfileUpdate,
+    organiser: _ManagedSlug = None,
+) -> schemas.OrganiserPublic:
+    return await service.update_organiser_profile(session, user, body, scope, organiser)
+
+
 @router.post(
     "/manage/listings",
     response_model=schemas.ManagedListing,

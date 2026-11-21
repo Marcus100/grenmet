@@ -782,6 +782,42 @@ async def resubmit_organiser(
     return await _organiser_public(db, organiser, user.id)
 
 
+async def update_organiser_profile(
+    db: AsyncSession,
+    user: User,
+    body: schemas.OrganiserProfileUpdate,
+    org_ids: list[str],
+    slug: str | None = None,
+) -> schemas.OrganiserPublic:
+    """Edit an approved organiser's public name and bio. The slug and the approval
+    stay as they are (no return to review); each real change writes one activity row.
+    Several organisers need ``?organiser=<slug>`` so an edit never lands on the wrong one."""
+    if slug is None and len(await my_organisers(db, user, org_ids)) > 1:
+        raise AppException("Choose an organiser with ?organiser=<slug>", 422)
+    organiser = await _my_organiser(db, user, org_ids, slug)
+    if not await _organiser_verified(organiser):
+        raise EventsForbidden("Only approved organisers can edit their profile")
+    changed = sorted(
+        field
+        for field in body.model_fields_set
+        if getattr(body, field) != getattr(organiser, field)
+    )
+    if changed:
+        for field in changed:
+            setattr(organiser, field, getattr(body, field))
+        activity.record(
+            db,
+            actor_id=user.id,
+            action="organiser.profile_updated",
+            entity_type="organiser",
+            entity_id=str(organiser.id),
+            organiser_id=organiser.id,
+            summary={"changed": changed},
+        )
+        await db.commit()
+    return await _organiser_public(db, organiser, user.id)
+
+
 async def organiser_public(
     db: AsyncSession, organiser: Organiser, viewer_id: uuid.UUID
 ) -> schemas.OrganiserPublic:

@@ -1489,6 +1489,11 @@ export {
   useEventsUpdateMyProfile,
 } from "./useEventsUpdateMyProfile.js";
 export {
+  eventsUpdateOrganiserProfileMutationKey,
+  eventsUpdateOrganiserProfileMutationOptions,
+  useEventsUpdateOrganiserProfile,
+} from "./useEventsUpdateOrganiserProfile.js";
+export {
   eventsUpdateReportMutationKey,
   eventsUpdateReportMutationOptions,
   useEventsUpdateReport,

@@ -3743,6 +3743,20 @@ export type {
   EventsUpdateMyProfileStatus429,
 } from "./models/EventsUpdateMyProfile.js";
 export type {
+  EventsUpdateOrganiserProfileBody,
+  EventsUpdateOrganiserProfileOptions,
+  EventsUpdateOrganiserProfileQuery,
+  EventsUpdateOrganiserProfileResponse,
+  EventsUpdateOrganiserProfileResponses,
+  EventsUpdateOrganiserProfileStatus200,
+  EventsUpdateOrganiserProfileStatus401,
+  EventsUpdateOrganiserProfileStatus403,
+  EventsUpdateOrganiserProfileStatus404,
+  EventsUpdateOrganiserProfileStatus409,
+  EventsUpdateOrganiserProfileStatus422,
+  EventsUpdateOrganiserProfileStatus429,
+} from "./models/EventsUpdateOrganiserProfile.js";
+export type {
   EventsUpdateReportBody,
   EventsUpdateReportOptions,
   EventsUpdateReportPath,
@@ -7368,6 +7382,7 @@ export type {
 export type { OrganiserCreate } from "./models/OrganiserCreate.js";
 export type { OrganiserLogoUpdate } from "./models/OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./models/OrganiserOption.js";
+export type { OrganiserProfileUpdate } from "./models/OrganiserProfileUpdate.js";
 export type { OrganiserPublic } from "./models/OrganiserPublic.js";
 export type { OrganiserReview } from "./models/OrganiserReview.js";
 export type { OutletItemInput } from "./models/OutletItemInput.js";
@@ -10705,6 +10720,7 @@ export { eventsUnfollowOrganiser } from "./clients/eventsUnfollowOrganiser.js";
 export { eventsUnsaveListing } from "./clients/eventsUnsaveListing.js";
 export { eventsUpdateManagedListing } from "./clients/eventsUpdateManagedListing.js";
 export { eventsUpdateMyProfile } from "./clients/eventsUpdateMyProfile.js";
+export { eventsUpdateOrganiserProfile } from "./clients/eventsUpdateOrganiserProfile.js";
 export { eventsUpdateReport } from "./clients/eventsUpdateReport.js";
 export { eventsUpdateSuggestion } from "./clients/eventsUpdateSuggestion.js";
 export { featureCreateFlag } from "./clients/featureCreateFlag.js";
@@ -12700,6 +12716,11 @@ export {
   eventsUpdateMyProfileMutationOptions,
   useEventsUpdateMyProfile,
 } from "./hooks/useEventsUpdateMyProfile.js";
+export {
+  eventsUpdateOrganiserProfileMutationKey,
+  eventsUpdateOrganiserProfileMutationOptions,
+  useEventsUpdateOrganiserProfile,
+} from "./hooks/useEventsUpdateOrganiserProfile.js";
 export {
   eventsUpdateReportMutationKey,
   eventsUpdateReportMutationOptions,
@@ -19255,6 +19276,20 @@ export {
   eventsUpdateMyProfileStatus429Schema,
 } from "./zod/eventsUpdateMyProfileSchema.js";
 export {
+  eventsUpdateOrganiserProfileBodySchema,
+  eventsUpdateOrganiserProfileErrorSchema,
+  eventsUpdateOrganiserProfileQueryOrganiserSchema,
+  eventsUpdateOrganiserProfileQuerySchema,
+  eventsUpdateOrganiserProfileResponseSchema,
+  eventsUpdateOrganiserProfileStatus200Schema,
+  eventsUpdateOrganiserProfileStatus401Schema,
+  eventsUpdateOrganiserProfileStatus403Schema,
+  eventsUpdateOrganiserProfileStatus404Schema,
+  eventsUpdateOrganiserProfileStatus409Schema,
+  eventsUpdateOrganiserProfileStatus422Schema,
+  eventsUpdateOrganiserProfileStatus429Schema,
+} from "./zod/eventsUpdateOrganiserProfileSchema.js";
+export {
   eventsUpdateReportBodySchema,
   eventsUpdateReportErrorSchema,
   eventsUpdateReportPathReportIdSchema,
@@ -22898,6 +22933,7 @@ export {
 export { organiserCreateSchema } from "./zod/organiserCreateSchema.js";
 export { organiserLogoUpdateSchema } from "./zod/organiserLogoUpdateSchema.js";
 export { organiserOptionSchema } from "./zod/organiserOptionSchema.js";
+export { organiserProfileUpdateSchema } from "./zod/organiserProfileUpdateSchema.js";
 export { organiserPublicSchema } from "./zod/organiserPublicSchema.js";
 export { organiserReviewSchema } from "./zod/organiserReviewSchema.js";
 export { outletItemInputSchema } from "./zod/outletItemInputSchema.js";

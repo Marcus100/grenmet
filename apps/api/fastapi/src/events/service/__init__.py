@@ -59,6 +59,7 @@ from .organiser_admin import (
     review_organiser,
     set_organiser_logo,
     update_listing,
+    update_organiser_profile,
 )
 from .outlet import (
     close_till,
@@ -131,6 +132,7 @@ __all__ = [
     "resubmit_organiser",
     "review_organiser",
     "set_organiser_logo",
+    "update_organiser_profile",
     "listing_activity",
     "managed_organiser",
     "organiser_public",
