@@ -74,7 +74,9 @@ agent instructions. Nothing here relaxes a root rule.
   `docs/operations/staging-promotion-automation.md`) and agents leave the
   staging PR alone. GitHub merges only after the staging ruleset's
   required checks pass; `CI Success` and `Build Web Apps` aggregate every API and
-  web job. If `dev` advances, update the recap and tell the owner.
+  web job. The recap flags each contract migration in the promotion diff as
+  `⚠ deletes or renames data` (`docs/api/development.md`). If `dev` advances,
+  update the recap and tell the owner.
 - Monitor the staging deployment and report actionable failures or readiness for
   acceptance. Reuse an open promotion PR. Production (`staging → main`), releases
   and deploys need separate explicit authorization. Do not promote unrelated or
