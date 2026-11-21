@@ -171,7 +171,8 @@ CONTRACT = {"expand_revision": "abc123", "contract_after": "2026-12-01"}
   `down_revision` chain, not just any revision in the directory.
 - The expand's filename date plus 7 days must be on or before `contract_after`.
   The filename date stands in for the merge date. Numbered domain files have no
-  date, so only the marker's form and chain are checked there.
+  date, so only the marker's form and chain are checked there. Every file in
+  `alembic/versions/` must carry a `YYYY-MM-DD_` prefix.
 - This migration's filename date must be on or after `contract_after`.
 
 `tests/test_migration_safety.py` fails a destructive operation with no marker, a
@@ -185,13 +186,16 @@ migration.
 
 A call the check cannot read (unreadable SQL, or a module-level helper such as
 `_backfill()`) fails unless the file has the marker or the call carries
-`# migration-safety: no destructive ops` after review. Helpers are not expanded,
+`# migration-safety: no destructive ops` on its own line after review.
+A waiver comment binds to its own line or lines inside the call, never to the
+line above. Helpers are not expanded,
 so the reviewer must read them.
 
 `tests/migration_safety_baseline.json` has two lists. `frozen` is every migration
 on origin/dev when the rule landed, and its sorted hash is pinned in the test.
 `grandfathered` lists the frozen files that break the rule. A new migration is
 checked, never grandfathered, and changing `frozen` fails the test.
+`grandfathered` shrinks only: a test fails for any listed file that passes.
 
 The staging readiness recap flags every contract migration `⚠ deletes or renames
 data` (`docs/agents/workflow.md`).

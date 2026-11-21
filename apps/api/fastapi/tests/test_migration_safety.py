@@ -8,8 +8,8 @@ landed (#1147). Only frozen files may be grandfathered, and a new migration is
 checked, never exempted.
 
 A locking operation (non-concurrent index, constraint without NOT VALID) takes a
-reviewed `# migration-safety: <why this is safe>` on the line above or anywhere in
-its call.
+reviewed `# migration-safety: <why this is safe>` on its own line: a trailing comment
+or a line inside the call. A comment on the line above does not count.
 
 Destructive operations (drop, rename, type change, NOT NULL on an existing column,
 TRUNCATE, and raw SQL doing these) cannot be waived. They need a contract step: a
@@ -81,10 +81,12 @@ class Problem:
 
 @dataclass(frozen=True)
 class Revision:
-    """A revision of one history: its filename date (dated files only) and parents."""
+    """A revision of one history: its filename date, its parents, and whether the
+    history is the main one (whose files must all carry a date prefix)."""
 
     merged: date | None
     parents: tuple[str, ...]
+    main: bool = False
 
 
 def migration_files() -> list[Path]:
@@ -185,22 +187,29 @@ def _target(call: ast.Call, position: int, keyword: str) -> str:
     return _literal(_keyword(call, keyword))
 
 
-def _table(call: ast.Call, batches: dict[str, str]) -> str:
+def _key(schema: str, name: str) -> str:
+    """A table's identity, schema-qualified; empty when its name cannot be read."""
+    return f"{schema}.{name}" if name else ""
+
+
+def _table(call: ast.Call, batches: dict[str, str], position: int = 0) -> str:
     """The table an operation acts on: a batch's table, else its table argument."""
     receiver = call.func.value if isinstance(call.func, ast.Attribute) else None
     if isinstance(receiver, ast.Name) and receiver.id in batches:
         return batches[receiver.id]
-    # drop_constraint(name, table) and drop_index(name, table) put the table second.
-    position = 1 if _method(call) in {"drop_constraint", "drop_index"} else 0
-    return _target(call, position, "table_name")
+    schema = _literal(_keyword(call, "schema"))
+    return _key(schema, _target(call, position, "table_name"))
 
 
 def _created_tables(body: list[ast.stmt]) -> set[str]:
-    return {
-        _target(node, 0, "table_name")
+    """Tables this migration creates. A name it cannot read creates nothing."""
+    created = {
+        _table(node, {})
         for node in ast.walk(ast.Module(body=body, type_ignores=[]))
         if isinstance(node, ast.Call) and _method(node) == "create_table"
     }
+    created.discard("")
+    return created
 
 
 def _batch_tables(body: list[ast.stmt]) -> dict[str, str]:
@@ -215,7 +224,7 @@ def _batch_tables(body: list[ast.stmt]) -> dict[str, str]:
                     and _method(call) == "batch_alter_table"
                     and isinstance(item.optional_vars, ast.Name)
                 ):
-                    tables[item.optional_vars.id] = _target(call, 0, "table_name")
+                    tables[item.optional_vars.id] = _table(call, {})
     return tables
 
 
@@ -254,7 +263,9 @@ def _destructive(
 ) -> str | None:
     """An operation that deletes, renames, truncates or retypes data: a contract step."""
     method = _method(call)
-    table = _table(call, batches)
+    # drop_constraint(name, table) and drop_index(name, table) put the table second.
+    position = 1 if method in {"drop_constraint", "drop_index"} else 0
+    table = _table(call, batches, position)
     if method in DROPS:
         if table in created:
             return None
@@ -293,29 +304,21 @@ def _call_problem(
     in_batch = batch in batches
     # Batch operations omit the table: it is the batch's.
     shift = 0 if in_batch else 1
-    table = batches[batch] if in_batch else _target(call, 0, "table_name")
+    table = _table(call, batches)
     if method == "add_column" and table not in created:
         column = (
             call.args[shift] if len(call.args) > shift else _keyword(call, "column")
         )
         return _column_problem(column) if column is not None else None
     if method == "create_index":
-        index_table = table if in_batch else _target(call, 1, "table_name")
+        index_table = table if in_batch else _table(call, batches, 1)
         if index_table in created or _is_true(
             _keyword(call, "postgresql_concurrently")
         ):
             return None
         return "creates an index on an existing table without postgresql_concurrently=True (blocks writes)"
     if method in LOCKING_ON_EXISTING:
-        source_table = (
-            table
-            if in_batch
-            else _target(
-                call,
-                1,
-                "source_table" if method == "create_foreign_key" else "table_name",
-            )
-        )
+        source_table = table if in_batch else _table(call, batches, 1)
         if source_table in created:
             return None
         return f"{method} on an existing table takes a lock and validates every row; add it NOT VALID and validate in a later release"
@@ -417,7 +420,16 @@ def _contract_problems(
                 f"CONTRACT contract_after must be a YYYY-MM-DD date; {CONTRACT_HINT}",
             )
         ]
-    merged = history[expand].merged
+    revision = history[expand]
+    if revision.merged is None and revision.main:
+        return [
+            Problem(
+                path,
+                line,
+                f"CONTRACT expand_revision {expand!r} has no date in its filename; main migrations are dated YYYY-MM-DD_",
+            )
+        ]
+    merged = revision.merged
     if merged is not None and after < merged + timedelta(days=7):
         return [
             Problem(
@@ -438,20 +450,26 @@ def _contract_problems(
     return []
 
 
+def _in_main_history(directory: Path) -> bool:
+    """alembic/versions is the main history; domain histories are numbered."""
+    return directory.name == "versions" and directory.parent.name == "alembic"
+
+
 @functools.cache
 def _history(directory: Path) -> dict[str, Revision]:
     """Every revision of one migration history, read from the files in its directory."""
+    main = _in_main_history(directory)
     history: dict[str, Revision] = {}
     for path in sorted(directory.glob("*.py")):
         revision, parents = _header(ast.parse(path.read_text()))
         if revision is not None:
-            history[revision] = Revision(_filename_date(path), parents)
+            history[revision] = Revision(_filename_date(path), parents, main)
     return history
 
 
 def _waived(node: ast.Call, lines: list[str], pattern: re.Pattern[str]) -> bool:
-    # The waiver may sit on the line above or anywhere in the call.
-    span = lines[max(node.lineno - 2, 0) : node.end_lineno or node.lineno]
+    # The waiver sits on the call's own lines: a trailing comment or a line inside it.
+    span = lines[node.lineno - 1 : node.end_lineno or node.lineno]
     return any(pattern.search(line) for line in span)
 
 
@@ -460,6 +478,15 @@ def check_source(
 ) -> list[Problem]:
     tree = ast.parse(source)
     lines = source.splitlines()
+    problems: list[Problem] = []
+    if _in_main_history(Path(path).parent) and _filename_date(path) is None:
+        problems.append(
+            Problem(
+                path,
+                1,
+                "main migrations need a YYYY-MM-DD_ filename prefix (alembic.ini file_template)",
+            )
+        )
     upgrade = next(
         (
             node
@@ -469,14 +496,13 @@ def check_source(
         None,
     )
     if upgrade is None:
-        return []
+        return problems
     created = _created_tables(upgrade.body)
     batches = _batch_tables(upgrade.body)
     sql = _Sql(_assignments(upgrade.body))
     helpers = _helpers(tree)
     contract = _contract(tree)
     _, parents = _header(tree)
-    problems: list[Problem] = []
     if contract is not None:
         problems.extend(_contract_problems(contract, path, history or {}, parents))
     for node in ast.walk(upgrade):
@@ -528,6 +554,10 @@ def test_new_migrations_are_safe_for_a_rolling_release() -> None:
     )
 
 
+# Both were on origin/dev before the rule and are grandfathered on purpose:
+# - 2026-11-13_index_names: SET NOT NULL, and drops of its own temporary CHECK and
+#   of an invalid index: the validate-then-set pattern for an existing column.
+# - 2026-11-13_profile_image_cascade: calls the module-level helper _replace().
 def test_baseline_is_frozen_to_the_migrations_on_origin_dev() -> None:
     frozen = _baseline()["frozen"]
     digest = hashlib.sha256("\n".join(sorted(frozen)).encode()).hexdigest()
@@ -623,7 +653,7 @@ def upgrade():
     assert check_source(source, "x.py") == []
 
 
-def test_waiver_on_the_line_above_and_downgrade_is_ignored() -> None:
+def test_a_waiver_on_the_line_above_does_not_cover_the_next_call() -> None:
     source = """
 def upgrade():
     # migration-safety: table is empty and only read by the old release
@@ -633,7 +663,8 @@ def upgrade():
 def downgrade():
     op.drop_table("anything")
 """
-    assert check_source(source, "x.py") == []
+    [problem] = check_source(source, "x.py")
+    assert "concurrently" in problem.message
 
 
 def test_a_waiver_inside_a_multi_line_call_counts() -> None:
@@ -791,24 +822,87 @@ def upgrade():
 """
 
 
+def _versions(root: Path) -> Path:
+    versions = root / "alembic" / "versions"
+    versions.mkdir(parents=True)
+    return versions
+
+
 def test_a_real_history_is_read_from_its_files(tmp_path: Path) -> None:
-    (tmp_path / "2026-11-20_expand.py").write_text(EXPAND_FILE)
-    contract = tmp_path / "2026-11-27_contract.py"
+    versions = _versions(tmp_path)
+    (versions / "2026-11-20_expand.py").write_text(EXPAND_FILE)
+    contract = versions / "2026-11-27_contract.py"
     contract.write_text(_contract_file("2026-11-27"))
-    history = _history(tmp_path)
-    assert history["exp1"] == Revision(date(2026, 11, 20), ())
-    assert history["con1"] == Revision(date(2026, 11, 27), ("exp1",))
+    history = _history(versions)
+    assert history["exp1"] == Revision(date(2026, 11, 20), (), main=True)
+    assert history["con1"] == Revision(date(2026, 11, 27), ("exp1",), main=True)
     assert check_source(contract.read_text(), contract.as_posix(), history) == []
 
 
 def test_a_real_contract_file_dated_too_early_fails(tmp_path: Path) -> None:
-    (tmp_path / "2026-11-20_expand.py").write_text(EXPAND_FILE)
-    contract = tmp_path / "2026-11-21_contract.py"
+    versions = _versions(tmp_path)
+    (versions / "2026-11-20_expand.py").write_text(EXPAND_FILE)
+    contract = versions / "2026-11-21_contract.py"
     contract.write_text(_contract_file("2026-11-27"))
-    [problem] = check_source(
-        contract.read_text(), contract.as_posix(), _history(tmp_path)
+    problems = check_source(
+        contract.read_text(), contract.as_posix(), _history(versions)
     )
-    assert "later than" in problem.message
+    assert any("later than" in problem.message for problem in problems)
+
+
+def test_a_main_expand_without_a_date_fails_the_contract_check(tmp_path: Path) -> None:
+    versions = _versions(tmp_path)
+    (versions / "expand.py").write_text(EXPAND_FILE)
+    contract = versions / "2026-11-27_contract.py"
+    contract.write_text(_contract_file("2026-11-27"))
+    problems = check_source(
+        contract.read_text(), contract.as_posix(), _history(versions)
+    )
+    assert any("has no date" in problem.message for problem in problems)
+
+
+def test_every_main_migration_has_a_date_prefix() -> None:
+    undated = [
+        path.name
+        for path in migration_files()
+        if _in_main_history(path.parent) and _filename_date(path) is None
+    ]
+    assert undated == [], f"Main migrations need a YYYY-MM-DD_ prefix: {undated}"
+
+
+def test_an_undated_main_file_is_a_problem() -> None:
+    [problem] = check_source(
+        "def upgrade():\n    pass\n", "alembic/versions/undated.py"
+    )
+    assert "YYYY-MM-DD_" in problem.message
+
+
+def test_a_table_name_that_cannot_be_read_is_not_a_new_table() -> None:
+    source = """
+def upgrade():
+    op.create_table(NAME, sa.Column("id", sa.Integer()))
+    for table in ("a", "b"):
+        op.drop_table(table)
+"""
+    problems = check_source(source, "x.py")
+    assert [problem.message.split()[0] for problem in problems] == ["drop_table"]
+
+
+def test_a_table_in_another_schema_is_not_the_same_table() -> None:
+    source = """
+def upgrade():
+    op.create_table("notes", sa.Column("id", sa.Integer()), schema="hr")
+    op.drop_column("notes", "body")
+    op.drop_column("notes", "body", schema="hr")
+"""
+    assert [problem.line for problem in check_source(source, "x.py")] == [4]
+
+
+def test_every_grandfathered_file_still_fails_the_check() -> None:
+    for relative in _baseline()["grandfathered"]:
+        path = ROOT / relative
+        problems = check_source(path.read_text(), relative, _history(path.parent))
+        assert problems, f"{relative} passes now: remove it from the baseline"
 
 
 @pytest.mark.parametrize(
@@ -858,7 +952,7 @@ def test_unreadable_calls_need_a_marker_or_the_no_destructive_ops_waiver(
     module = f"{HELPER}\n\ndef upgrade():\n    {body}\n"
     [problem] = check_source(module, "x.py", HISTORY)
     assert "cannot read" in problem.message
-    waived = f"{HELPER}\n\ndef upgrade():\n    # migration-safety: no destructive ops\n    {body}\n"
+    waived = f"{HELPER}\n\ndef upgrade():\n    {body}  # migration-safety: no destructive ops\n"
     assert check_source(waived, "x.py", HISTORY) == []
     # A general waiver does not cover an unreadable call.
     general = (

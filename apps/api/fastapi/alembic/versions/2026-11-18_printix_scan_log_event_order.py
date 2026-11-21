@@ -27,8 +27,8 @@ INDEX = "scan_log_pairing_id_happened_at_idx"
 
 
 def upgrade() -> None:
-    # migration-safety: one index on a small table, built in the migration transaction.
     op.execute(
+        # migration-safety: one index on a small table, built in the migration transaction.
         f'CREATE INDEX IF NOT EXISTS "{INDEX}" ON {SCHEMA}.scan_log '
         "(pairing_id, (COALESCE(offline_scanned_at, scanned_at)), id)"
     )
