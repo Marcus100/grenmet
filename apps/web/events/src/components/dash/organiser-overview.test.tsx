@@ -178,7 +178,7 @@ describe("OrganiserOverview sales panel", () => {
     expect(scoped.getByText("Tickets issued")).toBeInTheDocument();
     expect(scoped.getByText("50")).toBeInTheDocument();
     expect(scoped.getByText("33")).toBeInTheDocument();
-    expect(scoped.getByText("$175.00")).toBeInTheDocument();
+    expect(scoped.getByText("EC$175.00")).toBeInTheDocument();
     expect(
       scoped.getByText(RE_ONLINE_PAYMENTS_ARE_NOT_TOTALLED_HERE)
     ).toBeInTheDocument();
