@@ -16,7 +16,8 @@ user's home folder instead, so a new machine needs them installed once:
 
 ## Set up a machine
 
-From the repository's main checkout:
+From the owner's main checkout, never a task worktree (the script refuses to
+run from one unless given `--from-worktree`, which is only for testing it):
 
 ```bash
 uv run scripts/agents/settings/apply.py --dry-run   # list what would change
@@ -24,15 +25,24 @@ uv run scripts/agents/settings/apply.py             # apply
 ```
 
 Then restart Claude Code and Codex, and in Codex run `/hooks` and trust the new
-hook.
+hook. Codex runs a hook only after you trust it, and trust is tied to the
+hook's hash: the project hooks in `.codex/config.toml` (the shared
+`block-dangerous-git.mjs`, `protect-files.mjs` and the others) need the same
+`/hooks` approval in each checkout and again after any of them changes. Until
+then they do not run.
 
 The script finds the repository from its own location and everything else from
 the home folder, so it holds no machine-specific path. It is safe to run again:
 it adds only what is missing and rewrites a file only when its content would
-change. Before it changes a file it copies the old one to
+change. It checks the new content (JSON or TOML) before writing, and writes
+through a temporary file renamed into place, so a failure never leaves a
+half-written file. Before it changes a file it copies the old one to
 `~/.local/state/grenmet-agent-settings/backups/<time>/`; restore one with
-`cp <backup file> <original path>`. A file that fails validation after an edit
-is put back automatically.
+`cp <backup file> <original path>`.
+
+These files, the hooks and `.claude/settings.json` are enforcement files: an
+agent session cannot edit them (`protect-files.mjs`) and the merge hook refuses
+an agent merge of a PR that changes them. The owner edits and merges them.
 
 ## Keeping Claude Code and Codex in step
 
@@ -43,7 +53,8 @@ force push, `git reset --hard`, `git clean -f`, a push to `dev`, `staging` or
 files together.
 
 Codex rules match a command by its first words, so they cannot express every
-form. The shared hook `.claude/hooks/block-dangerous-git.mjs` runs in both tools
+form: a flag in the middle (`gh pr merge 5 --admin`, `gh pr edit 5 --base main`)
+or a leading `+` (`git push origin +main`) is left to the hook. The shared hook `.claude/hooks/block-dangerous-git.mjs` runs in both tools
 and refuses the rest (for example `git push origin feat/x:dev`). These rules are
 a second layer, and GitHub's branch rulesets are the backstop.
 

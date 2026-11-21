@@ -18,7 +18,6 @@ prefix_rule(pattern=["python3"], decision="allow")
 prefix_rule(pattern=["pytest"], decision="allow")
 prefix_rule(pattern=["heavy"], decision="allow")
 prefix_rule(pattern=["{{HOME}}/.local/bin/heavy"], decision="allow")
-prefix_rule(pattern=["curl"], decision="allow")
 prefix_rule(pattern=["rg"], decision="allow")
 prefix_rule(pattern=["grep"], decision="allow")
 prefix_rule(pattern=["cat"], decision="allow")
@@ -52,6 +51,14 @@ prefix_rule(pattern=["gh", "variable", "list"], decision="allow")
 prefix_rule(pattern=["gh", "variable", "get"], decision="allow")
 
 # --- The edges: ask the owner -------------------------------------------------
+# curl can send repository or session data anywhere, so it asks.
+prefix_rule(pattern=["curl"], decision="prompt")
+prefix_rule(pattern=["wget"], decision="prompt")
+# Retargeting a PR: only the leading form can be matched here; the shared hook
+# (.claude/hooks/block-dangerous-git.mjs) refuses `gh pr edit <n> --base` too.
+prefix_rule(pattern=["gh", "pr", "edit", ["--base", "-B"]], decision="prompt")
+prefix_rule(pattern=["gh", "run", "delete"], decision="prompt")
+prefix_rule(pattern=["gh", "run", "cancel"], decision="prompt")
 prefix_rule(pattern=["gh", "api"], decision="prompt")
 prefix_rule(pattern=["gh", "release", "create"], decision="prompt")
 prefix_rule(pattern=["gh", "variable", "set"], decision="prompt")
@@ -80,6 +87,18 @@ prefix_rule(pattern=["git", "push", "--force"], decision="forbidden")
 prefix_rule(pattern=["git", "push", "-f"], decision="forbidden")
 prefix_rule(pattern=["git", "push", "origin", "--force"], decision="forbidden")
 prefix_rule(pattern=["git", "push", "origin", "-f"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "--force-with-lease"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "origin", "--force-with-lease"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "--force-if-includes"], decision="forbidden")
+# `git push origin +branch` forces too, but prefix rules match whole words and
+# cannot see a leading `+`; the shared hook refuses it.
+prefix_rule(pattern=["git", "branch", "-D"], decision="forbidden")
+prefix_rule(pattern=["git", "filter-branch"], decision="forbidden")
+prefix_rule(pattern=["git", "filter-repo"], decision="forbidden")
+prefix_rule(pattern=["git", "stash", "clear"], decision="forbidden")
+# `gh pr merge <n> --admin` puts the flag mid-line; this matches the leading
+# form and the shared hook refuses every other.
+prefix_rule(pattern=["gh", "pr", "merge", "--admin"], decision="forbidden")
 prefix_rule(pattern=["git", "reset", "--hard"], decision="forbidden")
 prefix_rule(pattern=["git", "clean", "-f"], decision="forbidden")
 prefix_rule(pattern=["git", "clean", "-fd"], decision="forbidden")

@@ -40,7 +40,10 @@ function codexDecision(command) {
   const words = command.split(" ");
   let strictest = "allow";
   for (const rule of codexRules) {
-    const matches = rule.words.every((word, index) => words[index] === word);
+    // A list inside a pattern is a set of alternatives for that word.
+    const matches = rule.words.every((word, index) =>
+      Array.isArray(word) ? word.includes(words[index]) : words[index] === word
+    );
     if (matches && STRICTNESS[rule.decision] > STRICTNESS[strictest]) {
       strictest = rule.decision;
     }
@@ -75,6 +78,13 @@ const DANGEROUS = [
   ["git clean -xfd", "forbidden"],
   ["gh repo delete", "forbidden"],
   ["gh repo delete Marcus100/grenmet --yes", "forbidden"],
+  ["git push --force-with-lease", "forbidden"],
+  ["git push origin --force-with-lease", "forbidden"],
+  ["git branch -D feat/old", "forbidden"],
+  ["git filter-branch --tree-filter x", "forbidden"],
+  ["git filter-repo --path x", "forbidden"],
+  ["git stash clear", "forbidden"],
+  ["gh pr merge --admin 5", "forbidden"],
   ...PROTECTED.flatMap((branch) => [
     [`git push origin ${branch}`, "prompt"],
     [`git push origin ${branch} --no-verify`, "prompt"],
@@ -94,11 +104,15 @@ const EVERYDAY = [
   "git reset --soft HEAD~1",
   "git clean -n",
   "gh repo view",
+  "gh pr edit 5 --body-file body.md",
+  "node --test scripts/guardrails/agent-settings-parity.test.mjs",
+  "python3 scripts/agents/settings/apply.py --dry-run",
+  "uv run scripts/agents/settings/apply.py",
 ];
 
 // Claude Code denies these, and Codex's first-words rules cannot express them;
 // the shared hook (.claude/hooks/block-dangerous-git.mjs) refuses them in both.
-const HOOK_ONLY = new Set(["gh pr merge * --admin*"]);
+const HOOK_ONLY = new Set(["gh pr merge * --admin*", "git branch * -D*"]);
 
 test("both tools read a non-empty rule set", () => {
   assert.ok(codexRules.length > 20, "default.rules has no prefix_rule lines");
@@ -116,6 +130,17 @@ test("Claude Code and Codex both stop every dangerous command", () => {
       STRICTNESS[decision] >= STRICTNESS[least],
       `default.rules gives '${decision}' for: ${command} (needs at least '${least}')`
     );
+  }
+});
+
+test("Codex asks before the commands Claude Code leaves to the shared hook or the owner", () => {
+  for (const command of [
+    "curl https://example.com",
+    "wget https://example.com",
+    "gh pr edit --base main 5",
+    "gh run delete 123",
+  ]) {
+    assert.equal(codexDecision(command), "prompt", command);
   }
 });
 

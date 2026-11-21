@@ -8,6 +8,11 @@
 Owner decisions: agents work freely and guard the edges; Codex automates as much
 as possible; Codex routes heavy commands through ~/.local/bin/heavy like Claude.
 
+Run it only from the owner's main checkout (not a task worktree: the paths it
+writes into the Codex sandbox come from where it runs, and a worktree may hold
+unreviewed changes to these files). It refuses to run from a worktree unless
+given --from-worktree.
+
 Run once, from the repository's main checkout:
     uv run scripts/agents/settings/apply.py
 Dry run:
@@ -24,8 +29,11 @@ and rewrites a file only when its content would change.
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import subprocess
 import sys
+import tempfile
 import tomllib
 from datetime import datetime
 from pathlib import Path
@@ -35,6 +43,7 @@ HERE = Path(__file__).resolve().parent
 # scripts/agents/settings/apply.py -> the checkout this script lives in.
 REPO = HERE.parents[2]
 DRY = "--dry-run" in sys.argv
+FROM_WORKTREE = "--from-worktree" in sys.argv
 STAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
 BACKUPS = HOME / ".local" / "state" / "grenmet-agent-settings" / "backups" / STAMP
 
@@ -130,25 +139,73 @@ def backup(path: Path) -> None:
         shutil.copy2(path, target)
 
 
+def write_atomically(path: Path, text: str) -> None:
+    """Write a temporary file beside the target, then rename it into place, so
+    a crash or a full disk never leaves a half-written settings file."""
+    target = path.resolve()  # keep a symlinked settings file a symlink
+    target.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(
+        dir=target.parent, prefix=f".{target.name}.", suffix=".tmp"
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        if target.exists():
+            shutil.copymode(target, temporary)
+        os.replace(temporary, target)
+    except BaseException:
+        Path(temporary).unlink(missing_ok=True)
+        raise
+
+
 def write(path: Path, text: str, validate) -> None:
     if path.exists() and path.read_text() == text:
         return  # already up to date: no backup, no rewrite
+    try:
+        validate(text)  # check before anything touches the disk
+    except Exception as error:
+        sys.exit(f"Refusing to write {path}: the new content does not validate: {error}")
     if DRY:
         changes.append(f"(dry run) would update {path}")
         return
     backup(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    old = path.read_text() if path.exists() else None
-    path.write_text(text)
-    try:
-        validate(text)
-    except Exception as error:  # restore and stop
-        if old is None:
-            path.unlink()
-        else:
-            path.write_text(old)
-        sys.exit(f"Validation failed for {path}, restored it: {error}")
+    write_atomically(path, text)
     changes.append(f"updated {path}")
+
+
+def first_table_line(lines: list[str]) -> int:
+    """The index of the first [table] header, ignoring a `[` that starts a line
+    inside a multi-line array or string: the text before a real header always
+    parses as TOML on its own, the text before such a line does not."""
+    for index, line in enumerate(lines):
+        if not line.lstrip().startswith("["):
+            continue
+        try:
+            tomllib.loads("".join(lines[:index]))
+        except tomllib.TOMLDecodeError:
+            continue
+        return index
+    return len(lines)
+
+
+def worktree_problem() -> str | None:
+    """Why this checkout is not a main checkout, or None when it is."""
+    result = subprocess.run(
+        ["git", "-C", str(REPO), "rev-parse", "--git-dir", "--git-common-dir"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return f"{REPO} is not a git checkout"
+    git_dir, common_dir = (
+        (REPO / line).resolve() for line in result.stdout.split()
+    )
+    if git_dir != common_dir:
+        return f"{REPO} is a worktree, not the main checkout"
+    return None
 
 
 def claude_user() -> None:
@@ -201,9 +258,7 @@ def codex_config() -> None:
     parsed = tomllib.loads(text)
     lines = text.splitlines(keepends=True)
     # Top-level keys must come before the first [table].
-    first_table = next(
-        (i for i, line in enumerate(lines) if line.lstrip().startswith("[")), len(lines)
-    )
+    first_table = first_table_line(lines)
     new_top = [
         f"{key} = {value}\n"
         for key, value in CODEX_TOP_LEVEL.items()
@@ -266,6 +321,15 @@ def playwright_paths() -> None:
 
 
 def main() -> None:
+    problem = worktree_problem()
+    if problem is not None:
+        message = (
+            f"{problem}. Run this from the owner's main checkout; "
+            "pass --from-worktree only to test the script itself."
+        )
+        if not (DRY or FROM_WORKTREE):
+            sys.exit(message)
+        print(f"Warning: {message}\n")
     playwright_paths()
     claude_user()
     claude_grenmet_local()
