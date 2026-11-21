@@ -257,7 +257,12 @@ export function friendlyOrgError(
     return "We couldn't find that order or event for this organiser. Reload the page.";
   }
   if (status === 422) {
-    return "The server rejected some of the details. Check the form and try again.";
+    // The API words refusals for organisers (a stricter refund term, a reason
+    // that is needed); a validation list with no usable text gives null.
+    return (
+      detail ??
+      "The server rejected some of the details. Check the form and try again."
+    );
   }
   if (status === 409) {
     if (detail && STILL_RUNNING.test(detail)) {

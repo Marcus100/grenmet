@@ -9,6 +9,7 @@ import { getEventBySlug, getMyTicket } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
 import { formatEventDate } from "@/lib/datetime";
 import { isPaidTier } from "@/lib/orders";
+import { ticketRefundTerms } from "@/lib/refund-terms";
 
 type Params = Promise<{ id: string }>;
 
@@ -27,6 +28,7 @@ export default async function TicketPage({ params }: { params: Params }) {
   const cancelled = ticket.status !== "valid";
   const event = await getEventBySlug(ticket.listingSlug);
   const paidOnline = isPaidTier(event?.tiers ?? null, ticket.tierName);
+  const paidTerms = ticketRefundTerms(event, ticket.tierName);
 
   return (
     <div className="mx-auto max-w-md space-y-6">
@@ -70,9 +72,9 @@ export default async function TicketPage({ params }: { params: Params }) {
           </>
         )}
       </div>
-      {cancelled || event?.admission !== "ticketed" ? null : (
+      {cancelled || !paidTerms ? null : (
         <div className="text-center">
-          <RefundTermsLine terms={event.refundTerms} />
+          <RefundTermsLine terms={paidTerms} />
         </div>
       )}
       {cancelled ? null : (

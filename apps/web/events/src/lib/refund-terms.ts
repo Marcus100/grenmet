@@ -1,6 +1,6 @@
 import { money } from "@/domain/money";
-import type { RefundTerms } from "@/domain/types";
-import { formatPrice } from "@/lib/orders";
+import type { EventDetail, RefundTerms } from "@/domain/types";
+import { formatPrice, isPaidTier } from "@/lib/orders";
 
 /**
  * Refund terms in words, for buyers and organisers. Pure: the screens pass the
@@ -129,6 +129,20 @@ export function refundTermsLines(terms: RefundTerms): {
   readonly summary: string;
 } {
   return { summary: refundSummary(terms), cancelled: CANCELLED_EVENT_LINE };
+}
+
+/**
+ * The terms a buyer sees for a ticket: only a ticket from a paid tier has money
+ * to refund, so free and RSVP tickets get none (null).
+ */
+export function ticketRefundTerms(
+  event: Pick<EventDetail, "refundTerms" | "tiers"> | null,
+  tierName: string
+): RefundTerms | null {
+  if (!(event && isPaidTier(event.tiers, tierName))) {
+    return null;
+  }
+  return event.refundTerms;
 }
 
 /**

@@ -6,7 +6,7 @@ import { getEventBySlug, getMyTickets } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
 import type { MyTicket, RefundTerms } from "@/domain/types";
 import { formatEventDate } from "@/lib/datetime";
-import { refundTermsLines } from "@/lib/refund-terms";
+import { refundTermsLines, ticketRefundTerms } from "@/lib/refund-terms";
 
 export const metadata: Metadata = {
   title: "My tickets",
@@ -63,16 +63,21 @@ export default async function MyTicketsPage() {
       ticket.status === "valid" && new Date(ticket.endsAt).getTime() > now
   );
   const past = tickets.filter((ticket) => !upcoming.includes(ticket));
-  // Refund terms matter for tickets still to be used, so only upcoming ones look
-  // their event up; each ticketed event is read once.
+  // Refund terms matter for paid tickets still to be used, so only upcoming
+  // ones look their event up; each event is read once.
   const slugs = [...new Set(upcoming.map((ticket) => ticket.listingSlug))];
   const events = await Promise.all(slugs.map((slug) => getEventBySlug(slug)));
-  const termsBySlug = new Map<string, RefundTerms>();
-  for (const [index, slug] of slugs.entries()) {
-    const event = events[index];
-    if (event?.admission === "ticketed") {
-      termsBySlug.set(slug, event.refundTerms);
-    }
+  const eventBySlug = new Map(
+    slugs.flatMap((slug, index) => {
+      const event = events[index];
+      return event ? [[slug, event] as const] : [];
+    })
+  );
+  function refundTermsFor(ticket: MyTicket): RefundTerms | null {
+    return ticketRefundTerms(
+      eventBySlug.get(ticket.listingSlug) ?? null,
+      ticket.tierName
+    );
   }
 
   return (
@@ -105,7 +110,7 @@ export default async function MyTicketsPage() {
             {upcoming.map((ticket) => (
               <TicketRow
                 key={ticket.id}
-                refundTerms={termsBySlug.get(ticket.listingSlug) ?? null}
+                refundTerms={refundTermsFor(ticket)}
                 ticket={ticket}
               />
             ))}

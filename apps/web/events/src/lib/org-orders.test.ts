@@ -166,6 +166,12 @@ describe("422 validation details", () => {
   it("gives a validation message", () => {
     expect(friendlyOrgError(422, null)).toMatch(VALIDATION);
   });
+
+  it("shows the API's own text for a refused term or a needed reason", () => {
+    expect(
+      friendlyOrgError(422, "Give a reason, because the money is kept.")
+    ).toBe("Give a reason, because the money is kept.");
+  });
 });
 
 describe("cancel refund choices", () => {

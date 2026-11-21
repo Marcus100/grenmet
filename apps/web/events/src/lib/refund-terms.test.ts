@@ -9,6 +9,7 @@ import {
   formatHours,
   refundSummary,
   refundTermsLines,
+  ticketRefundTerms,
 } from "./refund-terms";
 
 const BASE: RefundTerms = {
@@ -168,5 +169,34 @@ describe("buyerCancelMayKeepMoney", () => {
         now
       )
     ).toBe(true);
+  });
+});
+
+describe("ticketRefundTerms", () => {
+  const tierOf = (name: string, amountMinor: number) => ({
+    id: name,
+    name,
+    allocation: 10,
+    held: 0,
+    perAccountLimit: 4,
+    remaining: 10,
+    price: { amountMinor, currency: "XCD" as const },
+  });
+  const paidEvent = {
+    refundTerms: BASE,
+    tiers: [tierOf("General", 0), tierOf("VIP", 5000)],
+  };
+
+  it("gives the terms for a ticket from a paid tier", () => {
+    expect(ticketRefundTerms(paidEvent, "VIP")).toBe(BASE);
+  });
+
+  it("gives no terms for a free or RSVP ticket", () => {
+    expect(ticketRefundTerms(paidEvent, "General")).toBeNull();
+    expect(ticketRefundTerms(paidEvent, "Not a tier")).toBeNull();
+  });
+
+  it("gives no terms when the event is unknown", () => {
+    expect(ticketRefundTerms(null, "VIP")).toBeNull();
   });
 });
