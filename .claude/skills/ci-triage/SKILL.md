@@ -1,13 +1,13 @@
 ---
 name: ci-triage
 description: "Diagnoses failing GitHub Actions checks on a PR or branch: lists the failures, ranks falsifiable hypotheses, confirms the root cause with log evidence, then applies and verifies the smallest authorized fix. Use when CI is red, checks or a workflow run fail, or the user asks why a build, lint, type-check or test job failed; invoke it before running any gh pr checks or gh run command."
-allowed-tools: Bash(gh pr *), Bash(gh run *), Bash(git branch *), Bash(git log *)
+allowed-tools: Bash(gh pr *), Bash(gh run *), Bash(gh api *), Bash(git branch *), Bash(git log *)
 ---
 
 ## CI Triage
 
 **Step 1 — List failures**
-Run `gh pr checks` on the current PR and list every failing check by name. For a push-triggered run with no PR, use `gh run list --branch <branch> --limit 5` instead.
+Run `gh pr checks` on the current PR and list every failing check by name. For a push-triggered run with no PR, use `gh run list --branch <branch> --limit 5` instead. In a cloud session `gh pr` is blocked: list the check runs of the head with `gh api repos/Marcus100/grenmet/commits/<sha>/check-runs` (`docs/agents/tool-usage.md` → GitHub from a cloud session).
 
 **Step 2 — Hypotheses first**
 For each failing check, enumerate your top 3 hypotheses with the single fastest command to falsify each (usually starting with `gh run view <id> --log-failed`). Show this list to the user, then start testing; wait for an answer only when a hypothesis needs a decision only they can make.
@@ -22,7 +22,10 @@ State the confirmed root cause clearly. Do not guess or propose a fix until you 
 For a fix request, make the smallest supported change within the task. For a review-only request, report the proposed fix without editing. Ask only at the root AGENTS.md boundaries; existing authorization counts.
 
 **Step 6 — Verification command**
-After the fix is applied, run and report the exact command that confirms it resolves the failure before pushing — the same command CI runs (from the workflow YAML), not an approximation.
+After the fix is applied, run and report the exact command that confirms it resolves the failure before pushing — the same command CI runs (from the workflow YAML), not an approximation. On the shared machine that command is heavy and runs through `~/.local/bin/heavy` (the hooks enforce it).
+
+**Step 7 — File what you cannot fix here**
+If the confirmed cause is outside this task, or the failure budget is spent, file it so the factory builds it later: search open issues for the failing check's name first and comment on a match. Otherwise write the body to a file (the failing check, the run link, the confirmed cause with the log evidence, the proposed fix and the verification command) and run `gh issue create --title "ci: <check> fails on <branch>" --label bug --label ready-for-agent --label area:<area> --body-file <file>`. The label is allowed because the agent filed the issue itself from a failure (`docs/agents/triage-labels.md`); use `needs-triage` instead when the cause is not confirmed. Never paste secrets or log lines that hold personal data.
 
 ---
 
