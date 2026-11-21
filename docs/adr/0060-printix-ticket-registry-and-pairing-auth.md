@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. The owner chose pairing QR codes for gate staff on 15 Nov 2026. Built
+Accepted; amended by [ADR-0064](0064-one-ticket-registry-for-all-tickets.md) (one registry for every ticket). The owner chose pairing QR codes for gate staff on 15 Nov 2026. Built
 as the API side of the Printix registry (`apps/api/fastapi/src/printix/`). The
 scanner app and offline mode are built (#1529). The organiser-access amendment
 (16 Nov 2026) is accepted and not yet built. Revised after the security review of
