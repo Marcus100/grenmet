@@ -20,13 +20,15 @@ describe("buildWhatsAppDraft", () => {
     const result = buildWhatsAppDraft(source, site, now);
     expect(result?.facts.split("\n")).toEqual([
       "Synthetic harbour show",
-      "2026-12-26 at 8:30 PM (Grenada time)",
+      "Saturday, 26 December at 8:30 PM (Grenada time)",
       "Example Wharf",
       "https://events.barrels.gd/events/synthetic-harbour-show",
     ]);
     expect(result?.prompt).toContain("WhatsApp opening line v1");
     expect(result?.prompt).toContain("Return the opening line only");
-    expect(result?.prompt).toContain("2026-12-26 at 8:30 PM (Grenada time)");
+    expect(result?.prompt).toContain(
+      "Saturday, 26 December at 8:30 PM (Grenada time)"
+    );
     for (const excluded of [
       "Private description marker",
       "Attendee marker",
@@ -81,7 +83,9 @@ describe("buildWhatsAppDraft", () => {
       site,
       now
     );
-    expect(result?.facts).toContain("2026-12-27 at 8:30 PM (Grenada time)");
+    expect(result?.facts).toContain(
+      "Sunday, 27 December at 8:30 PM (Grenada time)"
+    );
     expect(result?.prompt).not.toContain("2026-12-26");
   });
 });
