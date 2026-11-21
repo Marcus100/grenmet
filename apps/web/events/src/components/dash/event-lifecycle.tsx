@@ -17,14 +17,8 @@ import { useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
 import { cancelEvent, postponeEvent } from "@/data/actions";
 import { cancelEventWithRefund } from "@/data/order-actions";
-import {
-  type CancelCounts,
-  EVENT_CANCEL_BUTTON,
-  EVENT_REFUND_CHOICES,
-  type RefundChoice,
-} from "@/lib/org-orders";
+import type { CancelCounts } from "@/lib/org-orders";
 import { draftEndsAt, draftStartsAt } from "./event-draft";
-import { RefundChoiceGroup } from "./refund-choice";
 
 function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
@@ -61,9 +55,10 @@ export function CancelSummary({ counts }: { counts: CancelCounts }) {
 }
 
 /**
- * Cancel or postpone a published event. Cancelling cancels every valid ticket
- * and tells going, saved and ticket-holding members; outlet cash tickets can
- * then be refunded from the outlet screen. Postponing keeps tickets valid.
+ * Cancel or postpone a published event. Cancelling cancels every valid ticket,
+ * refunds everyone who paid online in full, and tells going, saved and
+ * ticket-holding members; outlet cash tickets can then be refunded from the
+ * outlet screen. Postponing keeps tickets valid.
  */
 export function EventLifecycle({
   canChooseRefund = false,
@@ -86,7 +81,6 @@ export function EventLifecycle({
   const [open, setOpen] = useState(false);
   const [when, setWhen] = useState({ date, startTime, endTime });
   const [notice, setNotice] = useState<string | null>(null);
-  const [refund, setRefund] = useState<RefundChoice>("follow_policy");
   const [counts, setCounts] = useState<CancelCounts | null>(null);
 
   async function postpone() {
@@ -101,9 +95,7 @@ export function EventLifecycle({
 
   async function cancel() {
     if (canChooseRefund) {
-      const result = await perform(() =>
-        cancelEventWithRefund(listingId, refund)
-      );
+      const result = await perform(() => cancelEventWithRefund(listingId));
       setOpen(false);
       if (result.ok) {
         setCounts(result.data);
@@ -207,13 +199,10 @@ export function EventLifecycle({
             it or hold tickets are told. This can't be undone.
           </AlertDialogDescription>
           {canChooseRefund ? (
-            <RefundChoiceGroup
-              legend="Money already paid online"
-              name="cancel-event-refund"
-              onChange={setRefund}
-              options={EVENT_REFUND_CHOICES}
-              value={refund}
-            />
+            <p className="text-body rounded-xl border p-3">
+              Everyone who paid online is refunded in full, with no fee kept.
+              Card refunds are sent to the payment provider, with retries.
+            </p>
           ) : (
             <p className="border-destructive/40 text-body rounded-xl border p-3 font-medium">
               This cancel moves no money. Orders and refunds aren't available
@@ -224,7 +213,7 @@ export function EventLifecycle({
           <AlertDialogFooter>
             <AlertDialogCancel>Keep event</AlertDialogCancel>
             <AlertDialogAction onClick={cancel}>
-              {canChooseRefund ? EVENT_CANCEL_BUTTON[refund] : "Cancel event"}
+              {canChooseRefund ? "Cancel and refund everyone" : "Cancel event"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

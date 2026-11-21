@@ -40,9 +40,11 @@ import {
   draftToCard,
   draftToUpsert,
   type EventDraft,
+  type RefundDraft,
   type TierDraft,
 } from "./event-draft";
 import { ImageUpload } from "./image-upload";
+import { RefundTermsFields } from "./refund-terms-fields";
 
 /**
  * Organiser event editor with a live public-page preview. The preview uses
@@ -82,6 +84,10 @@ export function EventEditor({
   const update = <K extends keyof EventDraft>(key: K, value: EventDraft[K]) => {
     setSaved(null);
     setDraft((current) => ({ ...current, [key]: value }));
+  };
+  const updateRefunds = (patch: Partial<RefundDraft>) => {
+    setSaved(null);
+    setDraft((current) => ({ ...current, ...patch }));
   };
   const updateTier = (id: string, patch: Partial<TierDraft>) =>
     update(
@@ -447,6 +453,9 @@ export function EventEditor({
                     Add tier
                   </Button>
                 </fieldset>
+              ) : null}
+              {draft.admission === "ticketed" ? (
+                <RefundTermsFields onChange={updateRefunds} value={draft} />
               ) : null}
             </FieldGroup>
           </CardContent>

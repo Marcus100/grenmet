@@ -19,7 +19,6 @@ import {
   COULDNT_CONFIRM,
   friendlyOrgError,
   keepsKey,
-  type RefundChoice,
 } from "@/lib/org-orders";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
@@ -193,10 +192,13 @@ export async function refundOrder(
   );
 }
 
+const initiator = z.enum(["buyer", "organiser"]);
+
 const cancelOrderInput = z.object({
   orderId: id,
   refund: choice,
   reason: z.string().trim().max(300),
+  initiatedBy: initiator,
 });
 
 export interface OrderCancelled {
@@ -204,7 +206,10 @@ export interface OrderCancelled {
   readonly outcome: "kept" | "not_due" | "queued" | "refunded";
 }
 
-/** Cancels one order; its seats go back on sale. Protected by the order's state. */
+/**
+ * Cancels one order; its seats go back on sale. Protected by the order's state.
+ * `initiatedBy` says who asked: only a buyer's cancel follows the event's terms.
+ */
 export async function cancelOrder(
   input: z.input<typeof cancelOrderInput>
 ): Promise<OrderActionResult<OrderCancelled>> {
@@ -212,29 +217,36 @@ export async function cancelOrder(
   if (!parsed.success) {
     return refuse(CHECK_FORM);
   }
-  const { orderId, refund, reason } = parsed.data;
+  const { orderId, refund, reason, initiatedBy } = parsed.data;
   return await run(async (options) => {
     const result = await eventsOrgCancelOrder({
       ...options,
       path: { order_id: orderId },
-      body: { refund, reason: reason || null },
+      body: {
+        refund,
+        reason: reason || null,
+        initiated_by: initiatedBy,
+      },
     }).unwrap();
     return { order: result.order, outcome: result.refund_outcome };
   }, ORDER_PATHS);
 }
 
-const cancelEventInput = z.object({ listingId: id, refund: choice });
+const cancelEventInput = z.object({ listingId: id });
 
-/** Cancels a published event with the organiser's choice for money already paid. */
+/**
+ * Cancels a published event. Money already paid online is always refunded in
+ * full with no fee: an event the organiser cancels is never a reason to keep it.
+ */
 export async function cancelEventWithRefund(
-  listingId: string,
-  refund: RefundChoice
+  listingId: string
 ): Promise<OrderActionResult<CancelCounts>> {
-  const parsed = cancelEventInput.safeParse({ listingId, refund });
+  const parsed = cancelEventInput.safeParse({ listingId });
   if (!parsed.success) {
     return refuse(CHECK_FORM);
   }
-  const { listingId: id, refund: choice } = parsed.data;
+  const { listingId: eventId } = parsed.data;
+  const choice = "full" as const;
   const toCounts = (result: CancelResult): CancelCounts => ({
     ticketsCancelled: result.tickets_cancelled,
     ordersRefunded: result.orders_refunded ?? 0,
@@ -257,7 +269,7 @@ export async function cancelEventWithRefund(
       const organiser = await chosenOrganiser();
       const result = await eventsCancelEvent({
         ...(await apiOptions(session.accessToken)),
-        path: { listing_id: id },
+        path: { listing_id: eventId },
         query: organiser ? { organiser } : {},
         body: { confirm: true, refund: choice },
       }).unwrap();
@@ -274,7 +286,7 @@ export async function cancelEventWithRefund(
       toCounts(
         await eventsOrgCancelEvent({
           ...options,
-          path: { listing_id: id },
+          path: { listing_id: eventId },
           body: { confirm: true, refund: choice },
         }).unwrap()
       ),

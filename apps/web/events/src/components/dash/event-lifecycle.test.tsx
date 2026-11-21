@@ -4,9 +4,10 @@ import { cancelEvent, postponeEvent } from "@/data/actions";
 import { cancelEventWithRefund } from "@/data/order-actions";
 import { EventLifecycle } from "./event-lifecycle";
 
+const NO_REFUND_RADIO = /Do not refund/u;
+
 const MAY_HAVE_GONE = "The cancel may have gone through";
-const RE_1 = /Follow the business policy/u;
-const RE_2 = /Refund in full/u;
+const RE_1 = /refunded in full, with no fee kept/u;
 const RE_3 = /moves no money/u;
 
 const refresh = vi.fn();
@@ -71,7 +72,7 @@ describe("EventLifecycle", () => {
     );
   });
 
-  it("with an organisation, offers the refund choice and shows the result counts", async () => {
+  it("with an organisation, refunds everyone in full and shows the result counts", async () => {
     vi.mocked(cancelEventWithRefund).mockResolvedValue({
       ok: true,
       data: {
@@ -85,13 +86,15 @@ describe("EventLifecycle", () => {
     });
     renderPanel(true);
     fireEvent.click(screen.getByRole("button", { name: "Cancel event" }));
-    expect(await screen.findByRole("radio", { name: RE_1 })).toBeChecked();
-    fireEvent.click(screen.getByRole("radio", { name: RE_2 }));
+    expect(await screen.findByText(RE_1)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("radio", { name: NO_REFUND_RADIO })
+    ).not.toBeInTheDocument();
     fireEvent.click(
       screen.getByRole("button", { name: "Cancel and refund everyone" })
     );
     const summary = await screen.findByRole("status");
-    expect(cancelEventWithRefund).toHaveBeenCalledWith("evt", "full");
+    expect(cancelEventWithRefund).toHaveBeenCalledWith("evt");
     expect(summary).toHaveTextContent("2 orders queued for a card refund");
     expect(summary).toHaveTextContent("1 unpaid order released");
     expect(summary).toHaveTextContent("1 refund failed");
@@ -107,7 +110,7 @@ describe("EventLifecycle", () => {
     renderPanel(true);
     fireEvent.click(screen.getByRole("button", { name: "Cancel event" }));
     fireEvent.click(
-      await screen.findByRole("button", { name: "Cancel and follow policy" })
+      await screen.findByRole("button", { name: "Cancel and refund everyone" })
     );
     expect(
       await screen.findByText(MAY_HAVE_GONE, { exact: false })

@@ -3,6 +3,8 @@ import type {
   OrgOrderDetail,
   OrgOrderRow,
 } from "@barrelsgd/api-client";
+import type { RefundTerms } from "@/domain/types";
+import { refundSummary } from "@/lib/refund-terms";
 
 const MINOR_PER_MAJOR = 100;
 
@@ -131,62 +133,73 @@ export function pageParam(value: string | undefined): number {
 
 export type RefundChoice = "follow_policy" | "full" | "none";
 
-export const REFUND_CUTOFF_HOURS = 48;
+/** Who asked for a cancel: the buyer, or the organiser cancelling. */
+export type CancelInitiator = "buyer" | "organiser";
 
-export const REFUND_CHOICES: readonly {
+/** A radio option; each one says what it does. */
+export interface ChoiceOption<T extends string> {
   readonly description: string;
   readonly label: string;
-  readonly value: RefundChoice;
-}[] = [
-  {
-    value: "follow_policy",
-    label: "Follow the business policy",
-    description: `Paid online orders are refunded when the event starts at least ${REFUND_CUTOFF_HOURS} hours away; inside that window the money is kept.`,
-  },
-  {
-    value: "full",
-    label: "Refund in full",
-    description: "Everything paid online goes back to the buyer.",
-  },
-  {
-    value: "none",
-    label: "Do not refund",
-    description:
-      "The money is kept. You can still refund the order by hand afterwards.",
-  },
-];
+  readonly value: T;
+}
 
-export const EVENT_REFUND_CHOICES: readonly {
-  readonly description: string;
-  readonly label: string;
-  readonly value: RefundChoice;
-}[] = [
-  {
-    value: "follow_policy",
-    label: "Follow the business policy",
-    description:
-      "An event you cancel is refunded in full to everyone who paid online.",
-  },
-  {
-    value: "full",
-    label: "Refund in full",
-    description:
-      "Every order paid online is refunded. Card refunds are queued and sent to the payment provider with retries.",
-  },
-  {
-    value: "none",
-    label: "Do not refund",
-    description:
-      "No money moves. You refund each order by hand from the Orders screen.",
-  },
-];
+export const CANCEL_INITIATOR_CHOICES: readonly ChoiceOption<CancelInitiator>[] =
+  [
+    {
+      value: "buyer",
+      label: "The buyer asked",
+      description: "The event's refund terms decide what the buyer gets back.",
+    },
+    {
+      value: "organiser",
+      label: "We are cancelling",
+      description:
+        "A cancel by the organiser is refunded in full, unless you choose to keep the money.",
+    },
+  ];
 
-/** The confirm button of the cancel-event dialog says what it will do. */
-export const EVENT_CANCEL_BUTTON: Record<RefundChoice, string> = {
-  follow_policy: "Cancel and follow policy",
-  full: "Cancel and refund everyone",
-  none: "Cancel, keep the money",
-};
+/**
+ * The refund choices for one cancel. "Follow the event's refund policy" is the
+ * terms in words and only applies when the buyer asked; an organiser's cancel
+ * refunds in full by default.
+ */
+export function refundChoicesFor(
+  terms: RefundTerms,
+  initiator: CancelInitiator
+): readonly ChoiceOption<RefundChoice>[] {
+  return [
+    {
+      value: "follow_policy",
+      label: "Follow the event's refund policy",
+      description:
+        initiator === "buyer"
+          ? refundSummary(terms, "organiser")
+          : "Only applies when the buyer asked for the cancel.",
+    },
+    {
+      value: "full",
+      label: "Refund in full",
+      description: "Everything paid online goes back to the buyer.",
+    },
+    {
+      value: "none",
+      label: "Do not refund",
+      description:
+        "The money is kept, so give a reason. You can still refund the order by hand afterwards.",
+    },
+  ];
+}
+
+/** The choice a cancel starts on: the policy for a buyer, a full refund for us. */
+export function defaultRefundFor(
+  initiator: CancelInitiator,
+  outletCash: boolean
+): RefundChoice {
+  if (outletCash) {
+    return "none";
+  }
+  return initiator === "buyer" ? "follow_policy" : "full";
+}
 
 /** What a finished order cancel did with the money, in words. */
 export function cancelOutcomeMessage(
@@ -244,7 +257,12 @@ export function friendlyOrgError(
     return "We couldn't find that order or event for this organiser. Reload the page.";
   }
   if (status === 422) {
-    return "The server rejected some of the details. Check the form and try again.";
+    // The API words refusals for organisers (a stricter refund term, a reason
+    // that is needed); a validation list with no usable text gives null.
+    return (
+      detail ??
+      "The server rejected some of the details. Check the form and try again."
+    );
   }
   if (status === 409) {
     if (detail && STILL_RUNNING.test(detail)) {

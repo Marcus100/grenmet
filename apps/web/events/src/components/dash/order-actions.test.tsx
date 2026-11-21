@@ -1,3 +1,4 @@
+import type { OrgOrderDetail } from "@barrelsgd/api-client";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -5,8 +6,32 @@ import {
   recordManualPayment,
   refundOrder,
 } from "@/data/order-actions";
+import { makeRefundTerms } from "@/test/factories";
 import { makeOrderDetail } from "@/test/org-factories";
 import { OrderActions } from "./order-actions";
+
+const KEEPS_MONEY = /Give a reason, because some of the money/u;
+const WE_CANCEL = /We are cancelling/u;
+const BUYER_ASKED = /The buyer asked/u;
+
+/** The listing's terms, as the order page passes them. */
+const TERMS = makeRefundTerms();
+
+function Actions({ order }: { order: OrgOrderDetail }) {
+  return <OrderActions order={order} refundTerms={TERMS} />;
+}
+
+/** Opens the cancel dialog from the form and presses its confirm button. */
+async function confirmCancel() {
+  fireEvent.click(screen.getByRole("button", { name: "Cancel order" }));
+  const buttons = await screen.findAllByRole("button", {
+    name: "Cancel order",
+  });
+  const confirm = buttons.at(-1);
+  if (confirm) {
+    fireEvent.click(confirm);
+  }
+}
 
 const UUID = /^[0-9a-f-]{36}$/u;
 const ALREADY_WAITING = /already waiting/u;
@@ -15,8 +40,8 @@ const RE_2 = /nothing left to refund/iu;
 const RE_3 = /Payment recorded/u;
 const RE_4 = /Refund XCD 150\.00 to the buyer/u;
 const RE_5 = /between/u;
-const RE_6 = /Follow the business policy/u;
-const RE_7 = /at least 48 hours away/u;
+const RE_6 = /Follow the event's refund policy/u;
+const RE_7 = /Full refunds until 2 days before the event/u;
 const RE_8 = /Refund in full/u;
 const RE_9 = /queued/u;
 const RE_10 = /Do not refund/u;
@@ -60,7 +85,7 @@ beforeEach(() => {
 
 describe("OrderActions panels", () => {
   it("always shows all three panels and says why one does not apply", () => {
-    render(<OrderActions order={makeOrderDetail()} />);
+    render(<Actions order={makeOrderDetail()} />);
     expect(
       screen.getByRole("heading", { name: "Record manual payment" })
     ).toBeInTheDocument();
@@ -72,7 +97,7 @@ describe("OrderActions panels", () => {
   });
 
   it("explains the empty refund and cancel panels on an unpaid order", () => {
-    render(<OrderActions order={pending} />);
+    render(<Actions order={pending} />);
     expect(screen.getByText(RE_2)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Record payment" })
@@ -86,7 +111,7 @@ describe("manual payment", () => {
       ok: true,
       data: makeOrderDetail(),
     });
-    render(<OrderActions order={pending} />);
+    render(<Actions order={pending} />);
     fireEvent.click(screen.getByRole("button", { name: "Bank transfer" }));
     fireEvent.change(screen.getByLabelText("Reference (optional)"), {
       target: { value: "TX-9" },
@@ -114,7 +139,7 @@ describe("manual payment", () => {
         keepKey: false,
       })
       .mockResolvedValueOnce({ ok: false, error: "again", keepKey: false });
-    render(<OrderActions order={pending} />);
+    render(<Actions order={pending} />);
     const submit = screen.getByRole("button", { name: "Record payment" });
     const keys: string[] = [];
     for (let i = 0; i < 4; i++) {
@@ -139,7 +164,7 @@ describe("manual payment", () => {
       error: "boom",
       keepKey: true,
     });
-    const { rerender } = render(<OrderActions order={pending} />);
+    const { rerender } = render(<Actions order={pending} />);
     const submit = screen.getByRole("button", { name: "Record payment" });
     fireEvent.click(submit);
     await waitFor(() => expect(recordManualPayment).toHaveBeenCalledTimes(1));
@@ -149,7 +174,7 @@ describe("manual payment", () => {
       screen.getByRole("button", { name: "Bank transfer" })
     ).toBeDisabled();
     expect(screen.getByLabelText("Reference (optional)")).toBeDisabled();
-    rerender(<OrderActions order={{ ...pending }} />);
+    rerender(<Actions order={{ ...pending }} />);
     expect(
       screen.getByRole("button", { name: "Bank transfer" })
     ).toBeDisabled();
@@ -170,10 +195,10 @@ describe("manual payment", () => {
       ok: true,
       data: makeOrderDetail(),
     });
-    const { rerender } = render(<OrderActions order={pending} />);
+    const { rerender } = render(<Actions order={pending} />);
     fireEvent.click(screen.getByRole("button", { name: "Record payment" }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
-    rerender(<OrderActions order={makeOrderDetail()} />);
+    rerender(<Actions order={makeOrderDetail()} />);
     expect(
       screen.queryByRole("button", { name: "Record payment" })
     ).not.toBeInTheDocument();
@@ -182,7 +207,7 @@ describe("manual payment", () => {
 
   it("says the result is unconfirmed when the action throws", async () => {
     vi.mocked(recordManualPayment).mockRejectedValue(new Error("network"));
-    render(<OrderActions order={pending} />);
+    render(<Actions order={pending} />);
     fireEvent.click(screen.getByRole("button", { name: "Record payment" }));
     await waitFor(() =>
       expect(live("alert")).toContain("We couldn't confirm this went through")
@@ -199,7 +224,7 @@ describe("refund", () => {
 
   it("asks for confirmation before moving money", async () => {
     vi.mocked(refundOrder).mockResolvedValue({ ok: true, data: paid });
-    render(<OrderActions order={paid} />);
+    render(<Actions order={paid} />);
     fireEvent.change(screen.getByLabelText("Reason"), {
       target: { value: "Buyer asked" },
     });
@@ -218,7 +243,7 @@ describe("refund", () => {
 
   it("refunds a partial amount in minor units", async () => {
     vi.mocked(refundOrder).mockResolvedValue({ ok: true, data: paid });
-    render(<OrderActions order={paid} />);
+    render(<Actions order={paid} />);
     fireEvent.click(screen.getByRole("button", { name: "Partial amount" }));
     fireEvent.change(screen.getByLabelText("Amount to refund (XCD)"), {
       target: { value: "25.50" },
@@ -235,7 +260,7 @@ describe("refund", () => {
   });
 
   it("refuses an amount above what is refundable, without calling the API", () => {
-    render(<OrderActions order={paid} />);
+    render(<Actions order={paid} />);
     fireEvent.click(screen.getByRole("button", { name: "Partial amount" }));
     fireEvent.change(screen.getByLabelText("Amount to refund (XCD)"), {
       target: { value: "999" },
@@ -255,7 +280,7 @@ describe("refund", () => {
         "A refund for this order is already waiting for the payment provider",
       keepKey: false,
     });
-    render(<OrderActions order={paid} />);
+    render(<Actions order={paid} />);
     fireEvent.change(screen.getByLabelText("Reason"), {
       target: { value: "Buyer asked" },
     });
@@ -266,18 +291,98 @@ describe("refund", () => {
 });
 
 describe("cancel order", () => {
-  it("defaults to the business policy and explains the 48 hour rule", () => {
-    render(<OrderActions order={makeOrderDetail()} />);
+  it("starts on an organiser cancel that refunds in full", () => {
+    render(<Actions order={makeOrderDetail()} />);
+    expect(screen.getByRole("radio", { name: WE_CANCEL })).toBeChecked();
+    expect(screen.getByRole("radio", { name: RE_8 })).toBeChecked();
+  });
+
+  it("does not offer the event's policy for an organiser cancel", () => {
+    render(<Actions order={makeOrderDetail()} />);
+    expect(screen.getByRole("radio", { name: RE_6 })).toBeDisabled();
+    expect(
+      screen.getByText("Only applies when the buyer asked for the cancel.")
+    ).toBeInTheDocument();
+  });
+
+  it("applies the event's terms when the buyer asked", () => {
+    render(<Actions order={makeOrderDetail()} />);
+    fireEvent.click(screen.getByRole("radio", { name: BUYER_ASKED }));
     expect(screen.getByRole("radio", { name: RE_6 })).toBeChecked();
     expect(screen.getByText(RE_7)).toBeInTheDocument();
   });
 
-  it("confirms, then cancels with the chosen refund", async () => {
+  it("resets the refund choice to the default when who asked changes", () => {
+    render(<Actions order={makeOrderDetail()} />);
+    fireEvent.click(screen.getByRole("radio", { name: RE_10 }));
+    fireEvent.click(screen.getByRole("radio", { name: BUYER_ASKED }));
+    expect(screen.getByRole("radio", { name: RE_6 })).toBeChecked();
+  });
+
+  it("requires a reason only when online money is kept", () => {
+    render(<Actions order={makeOrderDetail()} />);
+    expect(screen.getByLabelText("Reason (optional)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: RE_10 }));
+    expect(screen.getByLabelText("Reason (required)")).toBeInTheDocument();
+  });
+
+  it("submits an outlet cash cancel without a reason", async () => {
+    vi.mocked(cancelOrder).mockResolvedValue({
+      ok: true,
+      data: { order: makeOrderDetail(), outcome: "kept" },
+    });
+    render(
+      <Actions
+        order={makeOrderDetail({
+          channel: "outlet",
+          payment_method: "cash_outlet",
+          payment: null,
+        })}
+      />
+    );
+    await confirmCancel();
+    await waitFor(() =>
+      expect(cancelOrder).toHaveBeenCalledWith({
+        orderId: makeOrderDetail().id,
+        refund: "none",
+        reason: "",
+        initiatedBy: "organiser",
+      })
+    );
+  });
+
+  it("submits a buyer's policy cancel without a reason", async () => {
+    vi.mocked(cancelOrder).mockResolvedValue({
+      ok: true,
+      data: { order: makeOrderDetail(), outcome: "kept" },
+    });
+    render(<Actions order={makeOrderDetail()} />);
+    fireEvent.click(screen.getByRole("radio", { name: BUYER_ASKED }));
+    await confirmCancel();
+    await waitFor(() =>
+      expect(cancelOrder).toHaveBeenCalledWith({
+        orderId: makeOrderDetail().id,
+        refund: "follow_policy",
+        reason: "",
+        initiatedBy: "buyer",
+      })
+    );
+  });
+
+  it("asks for a reason before keeping the money", () => {
+    render(<Actions order={makeOrderDetail()} />);
+    fireEvent.click(screen.getByRole("radio", { name: RE_10 }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel order" }));
+    expect(live("alert")).toMatch(KEEPS_MONEY);
+    expect(cancelOrder).not.toHaveBeenCalled();
+  });
+
+  it("confirms, then cancels with the chosen refund and who asked", async () => {
     vi.mocked(cancelOrder).mockResolvedValue({
       ok: true,
       data: { order: makeOrderDetail(), outcome: "queued" },
     });
-    render(<OrderActions order={makeOrderDetail()} />);
+    render(<Actions order={makeOrderDetail()} />);
     fireEvent.click(screen.getByRole("radio", { name: RE_8 }));
     fireEvent.click(screen.getByRole("button", { name: "Cancel order" }));
     expect(cancelOrder).not.toHaveBeenCalled();
@@ -294,13 +399,14 @@ describe("cancel order", () => {
       orderId: makeOrderDetail().id,
       refund: "full",
       reason: "",
+      initiatedBy: "organiser",
     });
     expect(live("status")).toMatch(RE_9);
   });
 
   it("allows only no-refund for outlet cash", () => {
     render(
-      <OrderActions
+      <Actions
         order={makeOrderDetail({
           payment_method: "cash_outlet",
           payment: null,
@@ -314,9 +420,7 @@ describe("cancel order", () => {
 
 describe("pending card refund", () => {
   it("disables the refund panel and says the refund is waiting", () => {
-    render(
-      <OrderActions order={makeOrderDetail({ refund_status: "queued" })} />
-    );
+    render(<Actions order={makeOrderDetail({ refund_status: "queued" })} />);
     expect(
       screen.getByText("A card refund is waiting for the payment provider.", {
         exact: false,
@@ -334,7 +438,7 @@ describe("outcomes persist across the refresh", () => {
       ok: true,
       data: { order: makeOrderDetail(), outcome: "kept" },
     });
-    const { rerender } = render(<OrderActions order={makeOrderDetail()} />);
+    const { rerender } = render(<Actions order={makeOrderDetail()} />);
     fireEvent.click(screen.getByRole("button", { name: "Cancel order" }));
     const buttons = await screen.findAllByRole("button", {
       name: "Cancel order",
@@ -345,7 +449,7 @@ describe("outcomes persist across the refresh", () => {
     }
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     rerender(
-      <OrderActions
+      <Actions
         order={makeOrderDetail({ active_ticket_count: 0, refunded_minor: 0 })}
       />
     );
@@ -360,7 +464,7 @@ describe("outcomes persist across the refresh", () => {
       ok: true,
       data: makeOrderDetail({ refund_status: "refunded" }),
     });
-    const { rerender } = render(<OrderActions order={makeOrderDetail()} />);
+    const { rerender } = render(<Actions order={makeOrderDetail()} />);
     fireEvent.change(screen.getByLabelText("Reason"), {
       target: { value: "Buyer asked" },
     });
@@ -368,7 +472,7 @@ describe("outcomes persist across the refresh", () => {
     fireEvent.click(screen.getByRole("button", { name: "Confirm refund" }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     rerender(
-      <OrderActions
+      <Actions
         order={makeOrderDetail({
           status: "refunded",
           refund_status: "refunded",
@@ -389,7 +493,7 @@ describe("refund lock after an uncertain failure", () => {
       error: "We couldn't confirm this went through.",
       keepKey: true,
     });
-    const view = render(<OrderActions order={paid} />);
+    const view = render(<Actions order={paid} />);
     fireEvent.change(screen.getByLabelText("Reason"), {
       target: { value: "Buyer asked" },
     });
@@ -403,7 +507,7 @@ describe("refund lock after an uncertain failure", () => {
   it("stays locked across a reload that shows no change", async () => {
     const { rerender } = await failRefund();
     expect(screen.getByLabelText("Reason")).toBeDisabled();
-    rerender(<OrderActions order={{ ...paid }} />);
+    rerender(<Actions order={{ ...paid }} />);
     expect(screen.getByLabelText("Reason")).toBeDisabled();
     expect(
       screen.getByRole("button", { name: "I've checked the order, continue" })
@@ -413,7 +517,7 @@ describe("refund lock after an uncertain failure", () => {
   it("unlocks when the order shows a refund", async () => {
     const { rerender } = await failRefund();
     rerender(
-      <OrderActions
+      <Actions
         order={makeOrderDetail({
           refunded_minor: 5000,
           refund_status: "partial",
@@ -425,7 +529,7 @@ describe("refund lock after an uncertain failure", () => {
 
   it("unlocks on the explicit confirmation, and a changed amount then gets a new key", async () => {
     const { rerender } = await failRefund();
-    rerender(<OrderActions order={{ ...paid }} />);
+    rerender(<Actions order={{ ...paid }} />);
     fireEvent.click(
       screen.getByRole("button", { name: "I've checked the order, continue" })
     );

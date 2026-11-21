@@ -77,7 +77,7 @@ export default async function OrderPage({
         {order ? (
           <>
             <OrderDetail order={order} />
-            <OrderActions order={order} />
+            <OrderActions order={order} refundTerms={event.refundTerms} />
           </>
         ) : (
           fallback
