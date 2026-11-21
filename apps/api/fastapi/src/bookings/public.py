@@ -27,6 +27,7 @@ from src.auth.config import auth_settings
 from src.auth.models import User
 from src.contacts import service as contacts_service
 from src.contacts.models import ConsentPurpose, Contact
+from src.email import business_sender
 from src.notifications import outbox_handlers
 from src.organisations import sites
 from src.rewards import service as rewards_service
@@ -386,6 +387,9 @@ async def queue_customer_email(
 ) -> None:
     if not managed.contact.email:
         return
+    sender = business_sender(
+        managed.profile.display_name, managed.profile.contact_email
+    )
     await outbox_handlers.enqueue_email(
         session,
         to_email=managed.contact.email,
@@ -395,6 +399,8 @@ async def queue_customer_email(
         transactional=True,
         dedupe_key=dedupe_key,
         organisation_id=managed.booking.organisation_id,
+        from_name=sender.from_name,
+        reply_to=sender.reply_to,
     )
 
 
@@ -546,11 +552,14 @@ async def request_email_code(
         return BookingEmailCodeSent(required=False)
     if await email_code.is_exempt(session, payer, email):
         return BookingEmailCodeSent(required=False)
+    sender = business_sender(profile.display_name, profile.contact_email)
     ttl = await email_code.request_code(
         session,
         _binding(profile, email, payload.service_id, payload.starts_at),
         to_email=email,
         business=profile.display_name,
+        from_name=sender.from_name,
+        reply_to=sender.reply_to,
     )
     return BookingEmailCodeSent(required=True, expires_in_seconds=ttl)
 

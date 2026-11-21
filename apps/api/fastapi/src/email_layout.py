@@ -109,6 +109,9 @@ class RenderedEmail(NamedTuple):
 
 #: The React Email template every card is rendered with (packages/email-templates).
 CARD_TEMPLATE = "card"
+#: A hung render service must not hold up each card mail inside the outbox
+#: transaction; the Python fallback is the safety net.
+CARD_RENDER_TIMEOUT_SECONDS = 3.0
 
 
 # ── Values ────────────────────────────────────────────────────────────────────
@@ -312,7 +315,11 @@ async def render_card(card: EmailCard) -> RenderedEmail:
     service being off, falls back to the Python rendering so the mail still goes."""
     if email_settings.EMAIL_RENDER_URL:
         try:
-            data = await email_module.render_remote(CARD_TEMPLATE, to_props(card))
+            data = await email_module.render_remote(
+                CARD_TEMPLATE,
+                to_props(card),
+                timeout_seconds=CARD_RENDER_TIMEOUT_SECONDS,
+            )
         except Exception:  # noqa: BLE001 - the fallback is the safety net
             logger.warning("React Email card render failed; using the Python fallback")
         else:

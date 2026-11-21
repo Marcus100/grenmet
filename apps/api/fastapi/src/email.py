@@ -1,11 +1,14 @@
 import logging
+import re
 import smtplib
+import unicodedata
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formataddr
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 import httpx
 import jwt
@@ -21,6 +24,17 @@ logger = logging.getLogger(__name__)
 
 # A hung SMTP server must not hold a caller (and any lock it holds) indefinitely.
 SMTP_TIMEOUT_SECONDS = 10.0
+# Other React Email renders; the card path passes a shorter timeout (email_layout).
+RENDER_TIMEOUT_SECONDS = 10.0
+
+#: Suffix for business mail: "<Business> via Barrels".
+VIA_SUFFIX = " via Barrels"
+MAX_DISPLAY_NAME = 60
+MAX_REPLY_TO = 254
+# Characters a display name may not keep: angle brackets and quotes (header
+# syntax), backslash (escape), and "@" (a name must not look like an address).
+_NAME_BANNED = '<>"\\@'
+_REPLY_TO = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+")
 
 
 @dataclass
@@ -29,6 +43,64 @@ class EmailData:
     subject: str
     #: The plain-text part, when the render service sends one.
     text_content: str | None = None
+
+
+class SenderIdentity(NamedTuple):
+    """The display name and Reply-To a business mail carries. ``None`` keeps the
+    configured sender (the From address is never changed)."""
+
+    from_name: str | None = None
+    reply_to: str | None = None
+
+
+# ── Sender identity ───────────────────────────────────────────────────────────
+
+
+def _display_name(value: str | None, limit: int = MAX_DISPLAY_NAME) -> str:
+    """``value`` as a safe display name: control and format characters, angle
+    brackets, quotes, backslash and "@" become spaces; whitespace is collapsed and
+    the length capped. Business-controlled text goes through here."""
+    spaced = "".join(
+        " " if unicodedata.category(char)[0] == "C" or char in _NAME_BANNED else char
+        for char in value or ""
+    )
+    return " ".join(spaced.split())[:limit].strip()
+
+
+def sender_header(from_name: str | None) -> str:
+    """The From header: the cleaned name (or the configured default when nothing
+    is left) with the verified sending address. ``formataddr`` quotes the name
+    where it must be, so no name can add a header or a second address."""
+    name = _display_name(from_name) or _display_name(email_settings.EMAILS_FROM_NAME)
+    return formataddr((name, str(email_settings.EMAILS_FROM_EMAIL)))
+
+
+def business_sender_name(business: str) -> str:
+    """The display name "<Business> via Barrels". The business part is cut so the
+    suffix survives. Empty when the business has no usable name."""
+    base = _display_name(business, MAX_DISPLAY_NAME - len(VIA_SUFFIX))
+    return f"{base}{VIA_SUFFIX}" if base else ""
+
+
+def safe_reply_to(value: str | None) -> str | None:
+    """``value`` when it is one plain email address, else None."""
+    candidate = (value or "").strip()
+    if (
+        not candidate
+        or len(candidate) > MAX_REPLY_TO
+        or not _REPLY_TO.fullmatch(candidate)
+    ):
+        return None
+    return candidate
+
+
+def business_sender(business: str, contact_email: str | None) -> SenderIdentity:
+    """The identity for a business's customer mail. Without a valid contact email
+    the mail keeps the default sender and carries no Reply-To."""
+    reply_to = safe_reply_to(contact_email)
+    if reply_to is None:
+        return SenderIdentity()
+    return SenderIdentity(business_sender_name(business) or None, reply_to)
 
 
 # ── Sending ───────────────────────────────────────────────────────────────────
@@ -59,10 +131,8 @@ def send_email(
             "Email is not configured: set RESEND_API_KEY or SMTP_HOST + EMAILS_FROM_EMAIL"
         )
 
-    from_address = (
-        f"{from_name or email_settings.EMAILS_FROM_NAME} "
-        f"<{email_settings.EMAILS_FROM_EMAIL}>"
-    )
+    from_address = sender_header(from_name)
+    reply = safe_reply_to(reply_to)
 
     # ── Resend (production / staging) ──────────────────────────────────────────
     if email_settings.RESEND_API_KEY:
@@ -77,8 +147,8 @@ def send_email(
             params["headers"] = dict(headers)
         if text_content:
             params["text"] = text_content
-        if reply_to:
-            params["reply_to"] = reply_to
+        if reply:
+            params["reply_to"] = reply
         result = resend.Emails.send(params)
         logger.info("Email sent via Resend to %s (id=%s)", email_to, result.get("id"))
         return
@@ -93,8 +163,8 @@ def send_email(
     msg["Subject"] = subject
     msg["From"] = from_address
     msg["To"] = email_to
-    if reply_to:
-        msg["Reply-To"] = reply_to
+    if reply:
+        msg["Reply-To"] = reply
     for name, value in (headers or {}).items():
         msg[name] = value
     if text_content:
@@ -131,10 +201,16 @@ def send_email(
 # ── React Email remote rendering ──────────────────────────────────────────────
 
 
-async def render_remote(template: str, props: dict[str, Any]) -> EmailData:
+async def render_remote(
+    template: str,
+    props: dict[str, Any],
+    *,
+    timeout_seconds: float = RENDER_TIMEOUT_SECONDS,
+) -> EmailData:
     """Call the web-auth Next.js render endpoint to get React Email HTML.
 
-    Raises httpx.HTTPStatusError on non-2xx responses.
+    ``timeout_seconds`` bounds the call in seconds. Raises httpx.HTTPStatusError on
+    non-2xx responses.
     """
     if not email_settings.EMAIL_RENDER_URL:
         raise RuntimeError("EMAIL_RENDER_URL is not configured")
@@ -147,7 +223,7 @@ async def render_remote(template: str, props: dict[str, Any]) -> EmailData:
             url,
             json={"template": template, "props": props},
             headers=headers,
-            timeout=10.0,
+            timeout=timeout_seconds,
         )
         response.raise_for_status()
 

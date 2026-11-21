@@ -882,6 +882,77 @@ async def test_emails_are_queued_on_the_outbox_with_a_manage_link(
     await db_async.rollback()
 
 
+async def test_customer_mail_is_sent_as_the_business_with_its_contact_as_reply_to(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+    outbound_email_calls: list[dict[str, str]],
+) -> None:
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", "noreply@example.com")
+    monkeypatch.setattr(email_settings, "RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", None)
+    studio, _, _ = await _booked(
+        db_async, async_client, contact_email="owner@salon.example"
+    )
+    by_key = {
+        row.dedupe_key.split(":")[0]: row
+        for row in await _emails(db_async, studio.org_id)
+    }
+    customer = by_key["booking-confirmation"].payload
+    assert customer["from_name"] == "Babydoll Beauty Bar via Barrels"
+    assert customer["reply_to"] == "owner@salon.example"
+    studio_mail = by_key["booking-studio-created"].payload
+    assert "from_name" not in studio_mail
+    assert "reply_to" not in studio_mail
+    await outbox_handlers.send_email(
+        db_async,
+        outbox.OutboxMessage(
+            id=by_key["booking-confirmation"].id,
+            organisation_id=studio.org_id,
+            topic=outbox_handlers.EMAIL_SEND,
+            payload=customer,
+            dedupe_key="x",
+            attempts=0,
+        ),
+    )
+    assert outbound_email_calls[-1]["from_name"] == "Babydoll Beauty Bar via Barrels"
+    assert outbound_email_calls[-1]["reply_to"] == "owner@salon.example"
+    await db_async.rollback()
+
+
+async def test_customer_mail_without_a_contact_email_keeps_the_default_sender(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+    outbound_email_calls: list[dict[str, str]],
+) -> None:
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", "noreply@example.com")
+    monkeypatch.setattr(email_settings, "RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", None)
+    studio, _, _ = await _booked(db_async, async_client)
+    by_key = {
+        row.dedupe_key.split(":")[0]: row
+        for row in await _emails(db_async, studio.org_id)
+    }
+    customer = by_key["booking-confirmation"].payload
+    assert "from_name" not in customer
+    assert "reply_to" not in customer
+    await outbox_handlers.send_email(
+        db_async,
+        outbox.OutboxMessage(
+            id=by_key["booking-confirmation"].id,
+            organisation_id=studio.org_id,
+            topic=outbox_handlers.EMAIL_SEND,
+            payload=customer,
+            dedupe_key="x",
+            attempts=0,
+        ),
+    )
+    assert "from_name" not in outbound_email_calls[-1]
+    assert "reply_to" not in outbound_email_calls[-1]
+    await db_async.rollback()
+
+
 async def test_a_failed_create_queues_no_email(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:

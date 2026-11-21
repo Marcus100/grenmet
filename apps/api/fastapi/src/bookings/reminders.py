@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import email_layout as layout
 from src.contacts.models import Contact
+from src.email import business_sender
 from src.notifications import outbox_handlers
 from src.utils.datetime import utc_now
 
@@ -73,6 +74,7 @@ async def enqueue_due_reminders(
             public.build_mail(managed),
             confirmed=booking.status == BookingStatus.CONFIRMED.value,
         )
+        sender = business_sender(profile.display_name, profile.contact_email)
         if await outbox_handlers.enqueue_email(
             session,
             to_email=contact.email,
@@ -82,6 +84,8 @@ async def enqueue_due_reminders(
             transactional=True,
             dedupe_key=f"booking-reminder:{booking.id}",
             organisation_id=booking.organisation_id,
+            from_name=sender.from_name,
+            reply_to=sender.reply_to,
         ):
             queued += 1
     return queued

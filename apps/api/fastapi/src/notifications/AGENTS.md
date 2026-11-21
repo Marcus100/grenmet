@@ -26,3 +26,5 @@
 `src/worker/AGENTS.md`, `packages/email-templates/AGENTS.md`, `docs/api/contracts.md`.
 
 - `email_suppression` stores only `email_hash` for new rows (`email` is a nullable legacy column). `is_suppressed` and `suppress_email` hash the address and also match legacy plaintext rows. The plaintext-removal data migration is a separate, backup-gated step (docs/operations/release-runbook.md).
+
+- Business mail (Bookings, Events) sends as "<Business> via Barrels" with Reply-To the business contact (`email.business_sender`); the From address never changes, and `send_email` cleans both values.
