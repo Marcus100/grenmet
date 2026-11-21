@@ -1,4 +1,9 @@
-import type { Group, Organiser, PublicEvent } from "@/domain/types";
+import type {
+  Group,
+  ManagedEvent,
+  Organiser,
+  PublicEvent,
+} from "@/domain/types";
 
 /** A published public event; override only what a test cares about. */
 export function makeEvent(overrides: Partial<PublicEvent> = {}): PublicEvent {
@@ -23,6 +28,22 @@ export function makeEvent(overrides: Partial<PublicEvent> = {}): PublicEvent {
     goingNames: ["Dana Pierre", "Alex Charles", "Kemi Joseph"],
     viewerGoing: null,
     viewerSaved: null,
+    ...overrides,
+  };
+}
+
+export function makeManagedEvent(
+  overrides: Partial<ManagedEvent> = {}
+): ManagedEvent {
+  return {
+    ...makeEvent(),
+    accessType: "public",
+    capacity: 100,
+    group: null,
+    organiser: makeOrganiser(),
+    status: "published",
+    tiers: [],
+    visibility: "public",
     ...overrides,
   };
 }

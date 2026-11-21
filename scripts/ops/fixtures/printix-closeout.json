@@ -1,0 +1,13 @@
+{
+  "checkpoint": "closeout",
+  "checks": {
+    "event_closed": "pass",
+    "phones_synced": "pass",
+    "report_reviewed": "blocked",
+    "gate_codes_cancelled": "pass"
+  },
+  "counts": {
+    "admitted": 128,
+    "pending": 0
+  }
+}
