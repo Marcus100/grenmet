@@ -96,6 +96,7 @@
   "alembic/versions/2026-11-03_cap_feed_insecure_since.py",
   "alembic/versions/2026-11-04_auth_sign_in_setup_reason_sensitive.py",
   "alembic/versions/2026-11-09_almanac_schema.py",
+  "alembic/versions/2026-11-13_index_names.py",
   "alembic/versions/2026_03_06_hr_user_profile_remove_name_columns.py",
   "alembic/versions/2026_03_11_auth_session_foundation.py",
   "alembic/versions/2026_06_02_cap_domain.py",

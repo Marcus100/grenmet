@@ -9,13 +9,21 @@ check started); the files there are grandfathered.
 A deliberate exception carries `# migration-safety: <why this is safe>` on the line
 above the operation or anywhere within its call. The baseline can only shrink:
 a listed file must predate the check (`grandfathered`).
+
+Destructive operations (drop, rename, type change, NOT NULL on an existing
+column) cannot be waived. They belong in a contract migration with a module-level
+`CONTRACT = {"expand_revision": "<revision>", "contract_after": "YYYY-MM-DD"}`
+naming an earlier expand migration in the same history, dated at least 7 days
+after it (the expand's filename date; numbered domain migrations have none).
 """
 
 import ast
+import functools
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -24,20 +32,30 @@ ROOT = Path(__file__).resolve().parents[1]
 BASELINE = Path(__file__).with_name("migration_safety_baseline.json")
 VERSION_DIRS = ("alembic/versions", "src/*/migrations/versions")
 WAIVER = re.compile(r"#\s*migration-safety:\s*\S")
-RISKY_SQL = re.compile(
-    r"\b(DROP\s+(TABLE|COLUMN|CONSTRAINT|SCHEMA|INDEX(?!\s+CONCURRENTLY))"
+# Deletes, renames or retypes data: only in a contract migration.
+DESTRUCTIVE_SQL = re.compile(
+    r"\b(DROP\s+(TABLE|COLUMN|CONSTRAINT|SCHEMA|INDEX)"
     r"|ALTER\s+TABLE\s+\S+\s+(RENAME|ALTER\s+(COLUMN\s+)?\S+\s+(SET\s+DATA\s+)?TYPE)"
-    r"|RENAME\s+(TO|COLUMN)|SET\s+NOT\s+NULL|LOCK\s+TABLE"
-    r"|CREATE\s+(UNIQUE\s+)?INDEX(?!\s+CONCURRENTLY))\b",
+    r"|RENAME\s+(TO|COLUMN)|SET\s+NOT\s+NULL)\b",
+    re.IGNORECASE,
+)
+# Locks a live table or builds an index on it without deleting anything: waivable.
+LOCKING_SQL = re.compile(
+    r"\b(LOCK\s+TABLE|CREATE\s+(UNIQUE\s+)?INDEX(?!\s+CONCURRENTLY))\b",
     re.IGNORECASE,
 )
 # SQLAlchemy Core builders cannot express DDL, so executing one is data work.
 CORE_BUILDERS = {"select", "insert", "update", "delete", "values", "union"}
-DROPS = {"drop_column", "drop_table", "rename_table", "drop_constraint"}
+DROPS = {"drop_column", "drop_table", "rename_table", "drop_constraint", "drop_index"}
 LOCKING_ON_EXISTING = {"create_foreign_key", "create_unique_constraint"}
-# Grandfathered files: main migrations dated up to the start of the check, and
-# domain migrations up to their number then (the baseline can only shrink).
-BASELINE_LAST_DATE = date(2026, 11, 11)
+CONTRACT_HINT = (
+    "add a contract step: CONTRACT = {'expand_revision': '<revision of an earlier "
+    "expand migration>', 'contract_after': 'YYYY-MM-DD'} (at least 7 days after it)"
+)
+# Grandfathered files: main migrations dated up to the day before the expand-then-
+# contract rule (#1147), and domain migrations up to their number then. The baseline
+# may list only these; it lists the files that already break the rule.
+BASELINE_LAST_DATE = date(2026, 11, 20)
 BASELINE_LAST_DOMAIN_NUMBER = {
     "eregister": 7,
     "janitorial": 2,
@@ -214,20 +232,6 @@ def _call_problem(
     # Batch operations omit the table: it is the batch's.
     shift = 0 if in_batch else 1
     table = batches[batch] if in_batch else _target(call, 0, "table_name")
-    if method in DROPS:
-        if method == "drop_constraint" and table in created:
-            return None
-        return f"{method} breaks the release still running; do it in a later release"
-    if method == "alter_column":
-        if table in created:
-            return None
-        if _keyword(call, "new_column_name") is not None:
-            return "renames a column the running release still reads"
-        if _keyword(call, "type_") is not None:
-            return "changes a column type (rewrites and locks the table)"
-        if _is_false(_keyword(call, "nullable")):
-            return "makes an existing column NOT NULL (scans and locks the table); backfill and validate first"
-        return None
     if method == "add_column" and table not in created:
         column = (
             call.args[shift] if len(call.args) > shift else _keyword(call, "column")
@@ -260,12 +264,127 @@ def _call_problem(
             if sql.is_core_query(argument):
                 return None
             return "executes SQL the check cannot read; keep it a literal, or waive it after review"
-        if RISKY_SQL.search(text):
-            return "raw SQL drops, renames, retypes, locks, sets NOT NULL or builds an index without CONCURRENTLY"
+        if LOCKING_SQL.search(text):
+            return "raw SQL locks a table or builds an index without CONCURRENTLY"
     return None
 
 
-def check_source(source: str, path: str) -> list[Problem]:
+def _table(call: ast.Call, batches: dict[str, str]) -> str:
+    """The table an operation acts on: the batch's table, else its first argument."""
+    receiver = call.func.value if isinstance(call.func, ast.Attribute) else None
+    if isinstance(receiver, ast.Name) and receiver.id in batches:
+        return batches[receiver.id]
+    return _target(call, 0, "table_name")
+
+
+def _destructive(
+    call: ast.Call, created: set[str], batches: dict[str, str], sql: _Sql
+) -> str | None:
+    """An operation that deletes, renames or retypes data: a contract step only."""
+    method = _method(call)
+    table = _table(call, batches)
+    if method in DROPS:
+        if method == "drop_constraint" and table in created:
+            return None
+        return f"{method} deletes or renames data"
+    if method == "alter_column" and table not in created:
+        if _keyword(call, "new_column_name") is not None:
+            return "alter_column renames a column the running release still reads"
+        if _keyword(call, "type_") is not None:
+            return "alter_column changes a column type (may lose data)"
+        if _is_false(_keyword(call, "nullable")):
+            return "alter_column makes an existing column NOT NULL (fails on existing NULLs)"
+    if method == "execute":
+        text = sql.text(call.args[0] if call.args else None)
+        if text is not None and DESTRUCTIVE_SQL.search(text):
+            return "raw SQL drops, renames, retypes or sets NOT NULL"
+    return None
+
+
+def _contract(tree: ast.Module) -> ast.expr | None:
+    """The value of a module-level `CONTRACT = {...}`, when the migration has one."""
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Name) and target.id == "CONTRACT"
+            for target in node.targets
+        ):
+            return node.value
+    return None
+
+
+def _contract_problems(
+    value: ast.expr, path: str, history: Mapping[str, date | None]
+) -> list[Problem]:
+    """A CONTRACT marker must name a known expand revision and a date 7+ days later."""
+    line = value.lineno
+    try:
+        marker = ast.literal_eval(value)
+    except ValueError:
+        marker = None
+    if not isinstance(marker, dict):
+        return [
+            Problem(path, line, f"CONTRACT must be a dict literal; {CONTRACT_HINT}")
+        ]
+    expand = marker.get("expand_revision")
+    if not isinstance(expand, str) or expand not in history:
+        return [
+            Problem(
+                path,
+                line,
+                f"CONTRACT expand_revision {expand!r} is not a revision in this migration history",
+            )
+        ]
+    after_text = marker.get("contract_after")
+    try:
+        after = date.fromisoformat(after_text) if isinstance(after_text, str) else None
+    except ValueError:
+        after = None
+    if after is None:
+        return [
+            Problem(
+                path,
+                line,
+                f"CONTRACT contract_after must be a YYYY-MM-DD date; {CONTRACT_HINT}",
+            )
+        ]
+    merged = history[expand]
+    if merged is not None and after < merged + timedelta(days=7):
+        return [
+            Problem(
+                path,
+                line,
+                f"CONTRACT contract_after {after} is less than 7 days after the expand migration ({merged})",
+            )
+        ]
+    return []
+
+
+def _revision(path: Path) -> str | None:
+    for node in ast.parse(path.read_text()).body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Name) and target.id == "revision"
+            for target in node.targets
+        ):
+            return _literal(node.value) or None
+    return None
+
+
+@functools.cache
+def _history(directory: Path) -> dict[str, date | None]:
+    """Revision ids of one migration history, each with its filename date if dated."""
+    history: dict[str, date | None] = {}
+    for path in sorted(directory.glob("*.py")):
+        revision = _revision(path)
+        if revision is None:
+            continue
+        match = MAIN_DATE.match(path.name)
+        history[revision] = date(*map(int, match.groups())) if match else None
+    return history
+
+
+def check_source(
+    source: str, path: str, history: Mapping[str, date | None] | None = None
+) -> list[Problem]:
     tree = ast.parse(source)
     lines = source.splitlines()
     upgrade = next(
@@ -281,9 +400,21 @@ def check_source(source: str, path: str) -> list[Problem]:
     created = _created_tables(upgrade.body)
     batches = _batch_tables(upgrade.body)
     sql = _Sql(_assignments(upgrade.body))
+    contract = _contract(tree)
     problems: list[Problem] = []
+    if contract is not None:
+        problems.extend(_contract_problems(contract, path, history or {}))
     for node in ast.walk(upgrade):
         if not isinstance(node, ast.Call):
+            continue
+        destructive = _destructive(node, created, batches, sql)
+        if destructive is not None:
+            # A waiver never exempts these. With a CONTRACT marker the file is
+            # a contract step, and the marker was checked above.
+            if contract is None:
+                problems.append(
+                    Problem(path, node.lineno, f"{destructive}; {CONTRACT_HINT}")
+                )
             continue
         message = _call_problem(node, created, batches, sql)
         if message is None:
@@ -319,7 +450,9 @@ def test_new_migrations_are_safe_for_a_rolling_release() -> None:
         problem
         for path in migration_files()
         if _relative(path) not in baseline
-        for problem in check_source(path.read_text(), _relative(path))
+        for problem in check_source(
+            path.read_text(), _relative(path), _history(path.parent)
+        )
     ]
     assert problems == [], (
         "Unsafe migration operations (release runbook: keep migrations additive). "
@@ -382,8 +515,9 @@ def test_unsafe_operations_are_reported(body: str, expected: str) -> None:
         'op.execute("CREATE INDEX CONCURRENTLY ix ON users (age)")',
         "op.get_bind().execute(sa.select(users).limit(1))",
         'op.alter_column("users", "age", comment="years")',
-        # Waived after review, on the line or the line above.
-        'op.drop_column("users", "age")  # migration-safety: column unused since v1.0.2',
+        # Waived after review, on the line or the line above (locking ops only:
+        # destructive ops need a CONTRACT marker, see below).
+        'op.create_index("ix_age", "users", ["age"])  # migration-safety: table is empty',
     ],
 )
 def test_safe_or_waived_operations_pass(body: str) -> None:
@@ -404,8 +538,8 @@ def upgrade():
 def test_waiver_on_the_line_above_and_downgrade_is_ignored() -> None:
     source = """
 def upgrade():
-    # migration-safety: table emptied and unused since v1.0.4
-    op.drop_table("old")
+    # migration-safety: table is empty and only read by the old release
+    op.create_index("ix_old_x", "old", ["x"])
 
 
 def downgrade():
@@ -433,16 +567,19 @@ def upgrade():
 """
     assert [p.message.split(" ")[0] for p in check_source(source, "x.py")] == [
         "drop_column",
-        "changes",
+        "alter_column",
     ]
 
 
 def test_a_waiver_inside_a_multi_line_call_counts() -> None:
     source = """
 def upgrade():
-    op.drop_column(
+    op.create_foreign_key(
+        "fk_users_org",
         "users",
-        "age",  # migration-safety: unused since v1.0.2, removed after release
+        "orgs",
+        ["org"],
+        ["id"],  # migration-safety: users table is empty in every environment
     )
 """
     assert check_source(source, "x.py") == []
@@ -453,7 +590,8 @@ def upgrade():
     [
         ("alembic/versions/2026-11-11_x.py", True),
         ("alembic/versions/2026_06_02_x.py", True),
-        ("alembic/versions/2026-11-12_x.py", False),
+        ("alembic/versions/2026-11-20_x.py", True),
+        ("alembic/versions/2026-11-21_x.py", False),
         ("src/wxproducts/migrations/versions/0005_x.py", True),
         ("src/wxproducts/migrations/versions/0006_x.py", False),
         ("src/newdomain/migrations/versions/0001_x.py", False),
@@ -463,3 +601,95 @@ def test_only_migrations_that_predate_the_check_can_be_grandfathered(
     path: str, expected: bool
 ) -> None:
     assert grandfathered(path) is expected
+
+
+# Expand, then contract (#1147). A destructive op (drop, rename, type change,
+# NOT NULL on an existing column) is only allowed in a contract migration that
+# names its expand migration and comes at least 7 days after it.
+HISTORY: dict[str, date | None] = {
+    "abc123": date(2026, 11, 20),
+    "eregister_0007": None,
+}
+MARKER = 'CONTRACT = {"expand_revision": "abc123", "contract_after": "2026-12-01"}'
+
+
+def _upgrade(*lines: str, marker: str = "") -> str:
+    body = "\n".join(f"    {line}" for line in lines)
+    return f"{marker}\n\n\ndef upgrade():\n{body}\n"
+
+
+def test_additive_migration_passes() -> None:
+    source = _upgrade(
+        'op.add_column("users", sa.Column("nick", sa.Text(), nullable=True))',
+        'op.create_table("notes", sa.Column("id", sa.Integer()))',
+        'op.create_index("ix_users_nick", "users", ["nick"], postgresql_concurrently=True)',
+    )
+    assert check_source(source, "x.py", HISTORY) == []
+
+
+def test_drop_without_a_contract_marker_fails() -> None:
+    source = _upgrade('op.drop_column("users", "age")')
+    [problem] = check_source(source, "x.py", HISTORY)
+    assert "drop_column" in problem.message
+    assert "CONTRACT" in problem.message
+
+
+def test_drop_with_a_valid_contract_marker_passes() -> None:
+    source = _upgrade('op.drop_column("users", "age")', marker=MARKER)
+    assert check_source(source, "x.py", HISTORY) == []
+
+
+def test_marker_naming_an_unknown_revision_fails() -> None:
+    marker = 'CONTRACT = {"expand_revision": "zzz999", "contract_after": "2026-12-01"}'
+    source = _upgrade('op.drop_column("users", "age")', marker=marker)
+    [problem] = check_source(source, "x.py", HISTORY)
+    assert "zzz999" in problem.message
+
+
+@pytest.mark.parametrize(
+    "marker",
+    [
+        # Six days after the expand migration (2026-11-20): too early.
+        'CONTRACT = {"expand_revision": "abc123", "contract_after": "2026-11-26"}',
+        'CONTRACT = {"expand_revision": "abc123", "contract_after": "soon"}',
+        'CONTRACT = {"expand_revision": "abc123"}',
+    ],
+)
+def test_malformed_or_too_early_marker_fails(marker: str) -> None:
+    source = _upgrade('op.drop_column("users", "age")', marker=marker)
+    [problem] = check_source(source, "x.py", HISTORY)
+    assert "CONTRACT" in problem.message
+
+
+def test_marker_exactly_seven_days_after_the_expand_passes() -> None:
+    marker = 'CONTRACT = {"expand_revision": "abc123", "contract_after": "2026-11-27"}'
+    source = _upgrade('op.drop_column("users", "age")', marker=marker)
+    assert check_source(source, "x.py", HISTORY) == []
+
+
+def test_numbered_domain_history_has_no_merge_date_to_check() -> None:
+    marker = 'CONTRACT = {"expand_revision": "eregister_0007", "contract_after": "2026-12-01"}'
+    source = _upgrade('op.drop_column("readings", "old")', marker=marker)
+    assert check_source(source, "x.py", HISTORY) == []
+
+
+def test_a_waiver_does_not_exempt_a_destructive_operation() -> None:
+    source = _upgrade(
+        'op.drop_column("users", "age")  # migration-safety: unused since v1.0.2'
+    )
+    [problem] = check_source(source, "x.py", HISTORY)
+    assert "CONTRACT" in problem.message
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        'op.rename_table("users", "people")',
+        'op.alter_column("users", "age", new_column_name="years")',
+        'op.execute("ALTER TABLE users RENAME COLUMN age TO years")',
+    ],
+)
+def test_renames_are_detected_and_need_a_contract_step(body: str) -> None:
+    [problem] = check_source(_upgrade(body), "x.py", HISTORY)
+    assert "renames" in problem.message
+    assert check_source(_upgrade(body, marker=MARKER), "x.py", HISTORY) == []

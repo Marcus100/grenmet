@@ -148,6 +148,33 @@ they keep each domain's history ordered and independent. Never point a
 main-database migration at these tables, and never add new Drizzle migrations
 in gaa-admin. Schema changes are Ask First.
 
+## Expand, then contract
+
+The previous release keeps running while a deploy rolls, so a migration must
+be additive to ship:
+
+- **Expand** (merges freely): a new table, a new nullable column or one with a
+  server default, an index built `CONCURRENTLY`, or a constraint added
+  `NOT VALID` and validated in a later step.
+- **Contract** (its own later migration): a drop of a table, column, constraint
+  or index; a rename; a type change; `NOT NULL` on an existing column.
+
+A contract migration names its expand migration and carries a module-level
+marker, at least 7 days after the expand:
+
+```python
+CONTRACT = {"expand_revision": "abc123", "contract_after": "2026-12-01"}
+```
+
+`expand_revision` must be a revision in the same history. `contract_after` must
+be an ISO date at least 7 days after the expand's filename date. Numbered domain
+files carry no date, so only the marker's form is checked there.
+`tests/test_migration_safety.py` fails a destructive operation without a marker,
+a marker naming an unknown revision, and a date too soon. A
+`# migration-safety:` waiver never covers a destructive operation. The staging
+readiness recap flags every contract migration `⚠ deletes or renames data`
+(`.claude/skills/release/SKILL.md`).
+
 ## A fast, disposable test database
 
 `scripts/agents/test-db.sh up` starts a second Postgres for tests only
