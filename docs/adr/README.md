@@ -38,7 +38,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0030](0030-rewards-earn-sources-and-gamification.md) | Generic rewards earn sources, Passport, achievements, check-in streaks; opt-in leaderboards, challenges and gated stamp gifting (PF8–PF11) | Accepted, built (API, plus the organisation rewards admin page in `apps/web/auth`) |
 | [0031](0031-self-registering-api-domains.md) | Per-domain manifests and one ordered list replace edits to four shared API files | Approved; steps 1–5 built (in v1.0.8), step 6 not started |
 | [0032](0032-canonical-observation-store-and-publish-gate.md) | Canonical observation store in the eregister database, with a per-station-hour WIS2 publish gate | Accepted, built |
-| [0033](0033-data-ownership.md) | Barrels Grenada owns the data on its platforms | Accepted; health records excepted by 0062 |
+| [0033](0033-data-ownership.md) | Data ownership: Barrels Grenada owns the software; since the 21 Nov 2026 amendment GAA and GMS own their data and Barrels processes it, and Barrels products keep Barrels as platform owner with each business controlling its records | Accepted 2026-10-20, amended 2026-11-21 (GAA and GMS own their data); health records excepted by 0062; Commerce business records by 0063 |
 | [0034](0034-go-live-checklist.md) | A simple go-live checklist: backups with a verified restore, and monitoring | Accepted |
 | [0035](0035-secrets-management.md) | Secrets: one source per environment, restricted payment keys, yearly rotation, named owners | Accepted |
 | [0036](0036-hosting-split.md) | Static sites on Cloudflare Pages; everything with sign-in or data on the droplets | Accepted |
