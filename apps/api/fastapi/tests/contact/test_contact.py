@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.contact.config import contact_settings, recipient_for
 from src.contact.models import ContactMessage
 from src.notifications.models import OutboundEmail
+from tests.email_payload import payload_html
 
 _URL = "/api/v1/contact/messages"
 
@@ -61,9 +62,40 @@ async def test_message_is_stored_and_one_email_queued(
     assert len(mails) == 1
     assert mails[0].to_email == "inbox@example.com"
     assert mails[0].transactional is True
-    assert mails[0].html is not None
-    assert "<script>" not in mails[0].html  # visitor text is escaped
-    assert "&lt;script&gt;" in mails[0].html
+    assert mails[0].template == "card"
+    assert mails[0].html is None
+    html = payload_html({"props": mails[0].props})
+    assert "<script>" not in html  # visitor text is escaped
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+    assert "Jane Reader" in html
+    assert str(payload["email"]) in html
+    assert str(payload["subject"]) in html
+    assert "mbia" in html
+    assert "<a " not in html  # visitor text is never a link
+
+
+async def test_multi_line_message_keeps_each_line(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(contact_settings, "MBIA_CONTACT_RECIPIENT", "inbox@example.com")
+    payload = _payload(message="First line here.\nSecond line, http://evil.example")
+    resp = await async_client.post(_URL, json=payload)
+    assert resp.status_code == 202
+
+    mails = (
+        await db_async.scalars(
+            select(OutboundEmail).where(
+                OutboundEmail.subject == f"Website message: {payload['subject']}"
+            )
+        )
+    ).all()
+    [mail] = mails
+    html = payload_html({"props": mail.props})
+    assert "First line here." in html
+    assert "Second line, http://evil.example" in html
+    assert "<a " not in html
 
 
 async def test_without_recipient_message_is_only_stored(

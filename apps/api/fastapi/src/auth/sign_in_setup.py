@@ -37,9 +37,17 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src import email_layout as layout
 from src.audit import service as audit
 from src.audit.models import AuditEntry
-from src.auth import app_service, assignments, modern_service, privileged_mfa, totp
+from src.auth import (
+    app_service,
+    assignments,
+    email_cards,
+    modern_service,
+    privileged_mfa,
+    totp,
+)
 from src.auth.config import auth_settings
 from src.auth.models import Role, User
 from src.auth.modern_models import AuthChallenge
@@ -79,16 +87,6 @@ _INVALID_LINK = (
 )
 _ACCOUNT_NOT_FOUND = "Account not found"
 _SUPERUSER_ONLY = "Only a superuser can set up sign-in for this account"
-_ISSUE_NOTICE_SUBJECT = "A sign-in link was set up for your account"
-_ISSUE_NOTICE_HTML = (
-    "<p>An administrator set up a sign-in link for your account. "
-    "If you did not expect this, contact your administrator.</p>"
-)
-_DONE_NOTICE_SUBJECT = "Your sign-in password was set up"
-_DONE_NOTICE_HTML = (
-    "<p>A sign-in password was set up for your account. "
-    "If this was not you, contact your administrator straight away.</p>"
-)
 
 
 async def _issuer(session: AsyncSession, issuer_id: uuid.UUID) -> User | None:
@@ -295,14 +293,15 @@ async def _enforce_issue_limits(
         )
 
 
-def _notify(session: AsyncSession, target: User, subject: str, html: str) -> None:
+def _notify(session: AsyncSession, target: User, card: layout.EmailCard) -> None:
     """Courtesy notice to the address on file. Carries no link."""
     notification_service.enqueue_email(
         session=session,
         to_email=target.email,
-        subject=subject,
+        subject=card.subject,
         transactional=True,
-        html=html,
+        template=layout.CARD_TEMPLATE,
+        props=layout.to_props(card),
     )
 
 
@@ -362,7 +361,7 @@ async def issue(
         changes=changes,
         sensitive=frozenset({"reason"}),
     )
-    _notify(session, target, _ISSUE_NOTICE_SUBJECT, _ISSUE_NOTICE_HTML)
+    _notify(session, target, email_cards.link_issued())
     await session.commit()
     return ActivationLink(
         activation_url=(
@@ -435,5 +434,5 @@ async def confirm(session: AsyncSession, body: ActivationConfirm) -> None:
         action="completed",
         changes={"completed": (None, True)},
     )
-    _notify(session, user, _DONE_NOTICE_SUBJECT, _DONE_NOTICE_HTML)
+    _notify(session, user, email_cards.setup_completed())
     await session.commit()
