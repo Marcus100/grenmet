@@ -169,11 +169,19 @@ jobs:
           # user:password of one STAGING_BASIC_AUTH_USERS entry, so the post-deploy
           # smoke can pass the staging gate. Unset on production.
           STAGING_PROBE_CREDENTIALS: ${{ inputs.environment == 'staging' && secrets.STAGING_PROBE_CREDENTIALS || '' }}
-          STORAGE_ENDPOINT_URL: ${{ secrets.STORAGE_ENDPOINT_URL || secrets.DO_SPACES_ENDPOINT }}
-          STORAGE_REGION: ${{ secrets.STORAGE_REGION || secrets.DO_SPACES_REGION }}
-          STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET || secrets.DO_SPACES_BUCKET }}
-          STORAGE_ACCESS_KEY_ID: ${{ secrets.STORAGE_ACCESS_KEY_ID || secrets.DO_SPACES_ACCESS_KEY_ID }}
-          STORAGE_SECRET_ACCESS_KEY: ${{ secrets.STORAGE_SECRET_ACCESS_KEY || secrets.DO_SPACES_SECRET_ACCESS_KEY }}
+          # Application object storage reads STORAGE_* in every environment (issue #1146).
+          STORAGE_ENDPOINT_URL: ${{ secrets.STORAGE_ENDPOINT_URL }}
+          STORAGE_REGION: ${{ secrets.STORAGE_REGION }}
+          STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET }}
+          STORAGE_ACCESS_KEY_ID: ${{ secrets.STORAGE_ACCESS_KEY_ID }}
+          STORAGE_SECRET_ACCESS_KEY: ${{ secrets.STORAGE_SECRET_ACCESS_KEY }}
+          # Temporary, staging only: render-env.py uses these for any unset STORAGE_*
+          # and notes it in the summary. Production's DO_SPACES_* are the backup store.
+          LEGACY_DO_SPACES_ENDPOINT: ${{ inputs.environment == 'staging' && secrets.DO_SPACES_ENDPOINT || '' }}
+          LEGACY_DO_SPACES_REGION: ${{ inputs.environment == 'staging' && secrets.DO_SPACES_REGION || '' }}
+          LEGACY_DO_SPACES_BUCKET: ${{ inputs.environment == 'staging' && secrets.DO_SPACES_BUCKET || '' }}
+          LEGACY_DO_SPACES_ACCESS_KEY_ID: ${{ inputs.environment == 'staging' && secrets.DO_SPACES_ACCESS_KEY_ID || '' }}
+          LEGACY_DO_SPACES_SECRET_ACCESS_KEY: ${{ inputs.environment == 'staging' && secrets.DO_SPACES_SECRET_ACCESS_KEY || '' }}
           STORAGE_PUBLIC_BASE_URL: ${{ secrets.STORAGE_PUBLIC_BASE_URL }}
           BILLING_STRIPE_SECRET_KEY: ${{ secrets.BILLING_STRIPE_SECRET_KEY }}
           BILLING_STRIPE_WEBHOOK_SECRET: ${{ secrets.BILLING_STRIPE_WEBHOOK_SECRET }}
