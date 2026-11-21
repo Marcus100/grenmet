@@ -37,7 +37,7 @@ HOSTILE_NAMES = [
     "Acme\nX-Injected: yes",
     'Acme "Ltd"',
     "Acme, Ltd",
-    "Acme Bcc: victim@example.net",
+    "Acme\u2028Bcc: victim@example.net",
     "Acme\x00\x1b[31m",
 ]
 
@@ -126,7 +126,7 @@ def test_a_hostile_display_name_never_makes_a_second_address_or_header(
     monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", _FROM)
     header = sender_header(business_sender_name(name))
     assert "\r" not in header and "\n" not in header
-    assert " " not in header and "\x00" not in header
+    assert "\u2028" not in header and "\x00" not in header
     assert _addresses(header) == [_FROM]
 
 
@@ -349,3 +349,70 @@ async def test_other_renders_keep_the_ten_second_timeout(
     seen = _record_timeouts(monkeypatch)
     await email_module.render_remote("welcome", {})
     assert seen == [10.0]
+
+
+# ── Encoded words, separators and edge names ─────────────────────────────────
+
+ENCODED_WORD = "=?utf-8?b?PGNlb0BiYW5rLmV4YW1wbGU+?="
+
+
+def test_an_encoded_word_name_cannot_decode_into_an_address(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", _FROM)
+    header = sender_header(business_sender_name(ENCODED_WORD))
+    assert "=?" not in header and "?=" not in header
+    assert _addresses(header) == [_FROM]
+
+
+def test_an_encoded_word_name_is_safe_on_resend_and_smtp(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    kwargs = {
+        "email_to": "reader@example.com",
+        "subject": "Hi",
+        "html_content": _HTML,
+        "from_name": ENCODED_WORD,
+    }
+    sent = _resend(monkeypatch)
+    _real_send_email(**kwargs)
+    messages = _smtp(monkeypatch)
+    _real_send_email(**kwargs)
+    for header in (sent[0]["from"], messages[0]["From"]):
+        assert "=?" not in header
+        assert _addresses(header) == [_FROM]
+
+
+@pytest.mark.parametrize("separator", [" ", " ", "\u0085"])
+def test_unicode_line_and_paragraph_separators_collapse_to_a_space(
+    separator: str,
+) -> None:
+    assert business_sender_name(f"Acme{separator}Ltd") == "Acme Ltd via Barrels"
+
+
+def test_a_name_that_is_only_at_signs_falls_back_to_the_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", _FROM)
+    assert sender_header("@@@") == sender_header(None)
+
+
+def test_a_non_ascii_name_on_smtp_gives_one_valid_from_address(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from email.header import decode_header, make_header
+    from email.utils import parseaddr
+
+    messages = _smtp(monkeypatch)
+    _real_send_email(
+        email_to="reader@example.com",
+        subject="Hi",
+        html_content=_HTML,
+        from_name="Café Bistro",
+    )
+    raw = messages[0]["From"]
+    assert _addresses(raw) == [_FROM]
+    encoded_name, address = parseaddr(raw)
+    assert address == _FROM
+    decoded = str(make_header(decode_header(encoded_name)))
+    assert decoded == "Café Bistro"

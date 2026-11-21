@@ -64,7 +64,11 @@ def _display_name(value: str | None, limit: int = MAX_DISPLAY_NAME) -> str:
         " " if unicodedata.category(char)[0] == "C" or char in _NAME_BANNED else char
         for char in value or ""
     )
-    return " ".join(spaced.split())[:limit].strip()
+    collapsed = " ".join(spaced.split())
+    # An RFC 2047 encoded word (=?charset?enc?text?=) in a name would be decoded
+    # by mail apps into text they show as a sender; a space breaks the marker.
+    neutral = collapsed.replace("=?", "= ?").replace("?=", "? =")
+    return neutral[:limit].strip()
 
 
 def sender_header(from_name: str | None) -> str:
