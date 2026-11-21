@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.outbox import Outbox
 from tests.bookings.test_public_bookings import API, Studio
+from tests.email_payload import payload_html
 
 
 async def latest_code(db: AsyncSession, org_id: str) -> str:
@@ -24,7 +25,7 @@ async def latest_code(db: AsyncSession, org_id: str) -> str:
         )
     )
     assert rows, "no code email was queued"
-    match = re.search(r"<strong>(\d{6})</strong>", rows[0].payload["html"])
+    match = re.search(r">(\d{6})</td>", payload_html(rows[0].payload))
     assert match
     return match.group(1)
 

@@ -30,10 +30,11 @@ from tests.bookings.test_public_bookings import (
     _slots,
     _studio,
 )
+from tests.email_payload import card_html, payload_html
 from tests.factories import make_user
 from tests.organisations.support import headers_for
 
-INVITE = "create a Barrels account or sign in"
+INVITE = "Create a free account or sign in"
 
 
 def _href(slug: str) -> str:
@@ -47,7 +48,7 @@ async def _mail(db: AsyncSession, studio: Studio, booking_id: str, kind: str) ->
         for row in await _emails(db, studio.org_id)
         if row.dedupe_key == f"{kind}:{booking_id}"
     ]
-    return str(row.payload["html"])
+    return str(payload_html(row.payload))
 
 
 def test_the_sign_up_address_returns_the_person_signed_in_to_the_booking_page() -> None:
@@ -105,18 +106,18 @@ def test_the_invitation_is_part_of_the_received_confirmed_and_reminder_mails_onl
         emails.customer_reminder(mail, confirmed=True),
         emails.customer_reminder(mail, confirmed=False),
     ):
-        html = built[1]
+        html = card_html(built)
         assert 'href="https://auth.example.test/signup"' in html
         assert "Booking never needs an account" in html
         assert "listed under My bookings" in html
     for other in (
-        emails.customer_cancelled(mail)[1],
-        emails.customer_rescheduled(mail)[1],
-        emails.customer_rescheduled_by_studio(mail)[1],
+        card_html(emails.customer_cancelled(mail)),
+        card_html(emails.customer_rescheduled(mail)),
+        card_html(emails.customer_rescheduled_by_studio(mail)),
     ):
         assert INVITE not in other
     plain = emails.BookingEmail(**{**mail.__dict__, "account_invite_url": None})
-    assert INVITE not in emails.customer_received(plain, confirmed=True)[1]
+    assert INVITE not in card_html(emails.customer_received(plain, confirmed=True))
 
 
 async def test_a_guest_booking_mails_carry_the_invitation(

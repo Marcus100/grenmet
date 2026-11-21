@@ -132,3 +132,129 @@ describe("superuser invitation template", () => {
     ).rejects.toThrow("superuser-invitation requires");
   });
 });
+
+describe("card template", () => {
+  const card = {
+    subject: "Your booking is confirmed",
+    eyebrow: "Sample Studio",
+    chip: { label: "Confirmed", tone: "accent" as const },
+    title: "Your booking is confirmed",
+    greeting: "Hello Ann,",
+    paragraphs: ["Thank you for booking."],
+    rows: [{ label: "What", value: "Haircut with Alex" }],
+    primary: {
+      label: "Manage booking",
+      url: "https://booking.example.test/manage/x",
+    },
+    secondary: [
+      {
+        label: "Add to Google Calendar",
+        url: "https://calendar.google.com/render?action=TEMPLATE&text=Haircut",
+      },
+    ],
+    footer: "You are getting this email because you booked.",
+  };
+
+  it("renders the card with its subject and a plain-text part", async () => {
+    const { html, subject, text } = await renderTemplate("card", card);
+    expect(subject).toBe("Your booking is confirmed");
+    expect(html).toContain("Haircut with Alex");
+    expect(html).toContain('bgcolor="#0b132b"');
+    expect(text).toContain("Your booking is confirmed");
+    expect(text).toContain("Haircut with Alex");
+    expect(text).toContain("https://booking.example.test/manage/x");
+    expect(text).not.toContain("<");
+  });
+
+  it("escapes every value", async () => {
+    const { html } = await renderTemplate("card", {
+      ...card,
+      title: "<script>alert(1)</script>",
+      rows: [{ label: "<b>What</b>", value: "<img src=x onerror=alert(1)>" }],
+    });
+    expect(html).not.toContain("<script>alert(1)</script>");
+    expect(html).not.toContain("<img src=x");
+    expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+  });
+
+  it("drops links that are not absolute http(s) URLs", async () => {
+    const { html, text } = await renderTemplate("card", {
+      ...card,
+      primary: { label: "Manage booking", url: "javascript:alert(1)" },
+      secondary: [
+        { label: "Calendar", url: "data:text/html,<b>x</b>" },
+        { label: "Relative", url: "/manage/x" },
+        { label: "Spaced", url: "https://ok.example.test/a b" },
+      ],
+    });
+    expect(html).not.toContain("javascript:");
+    expect(html).not.toContain("data:text");
+    expect(html).not.toContain("Manage booking");
+    expect(html).not.toContain("Calendar");
+    expect(html).not.toContain("Relative");
+    expect(html).not.toContain("Spaced");
+    expect(text).not.toContain("javascript:");
+  });
+
+  it("falls back to navy when the accent fails 4.5:1 against white", async () => {
+    const { html } = await renderTemplate("card", {
+      ...card,
+      accent: "#ffff00",
+    });
+    expect(html).not.toContain("#ffff00");
+    expect(html).toContain('bgcolor="#0b132b"');
+  });
+
+  it("renders a verification code as a large monospace block", async () => {
+    const { html, text } = await renderTemplate("card", {
+      ...card,
+      code: "482913",
+    });
+    expect(html).toContain("482913");
+    expect(html).toContain("Courier New");
+    expect(text).toContain("482913");
+  });
+
+  it("shows an https logo at 40px with its alt text, and drops other logo URLs", async () => {
+    const logo = {
+      url: "https://cdn.example.test/logo.png",
+      alt: "Sample Studio",
+    };
+    const shown = await renderTemplate("card", { ...card, logo });
+    expect(shown.html).toContain('src="https://cdn.example.test/logo.png"');
+    expect(shown.html).toContain('alt="Sample Studio"');
+    expect(shown.html).toContain("height:40px");
+    const plain = await renderTemplate("card", {
+      ...card,
+      logo: { url: "http://cdn.example.test/logo.png", alt: "Sample Studio" },
+    });
+    expect(plain.html).not.toContain("<img");
+    expect(plain.text).toContain("Your booking is confirmed");
+  });
+
+  it("refuses to render without a subject, title or footer", async () => {
+    await expect(
+      renderTemplate("card", { ...card, subject: "" })
+    ).rejects.toThrow("card requires");
+    await expect(
+      renderTemplate("card", { ...card, title: "" })
+    ).rejects.toThrow("card requires");
+    await expect(
+      renderTemplate("card", { ...card, footer: "" })
+    ).rejects.toThrow("card requires");
+  });
+});
+
+describe("notification template on the shared layout", () => {
+  it("returns a plain-text part with the title and body", async () => {
+    const { html, text } = await renderTemplate("notification", {
+      projectName: "Grenmet",
+      title: "Leave approved",
+      body: "Your leave was approved.",
+      linkUrl: "https://gms.example.test/hr",
+    });
+    expect(html).toContain("Leave approved");
+    expect(text).toContain("Your leave was approved.");
+    expect(text).toContain("https://gms.example.test/hr");
+  });
+});

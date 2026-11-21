@@ -31,7 +31,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import literal, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.config import auth_settings
+from src import email_layout as layout
 from src.auth.models import User
 from src.notifications.config import notification_settings
 from src.notifications.outbox_handlers import enqueue_email
@@ -39,6 +39,7 @@ from src.utils.datetime import utc_now
 
 from . import emails
 from .models import Listing, Ticket
+from .order_fulfilment import my_tickets_url
 
 HORIZON = timedelta(hours=24)
 PAGE_SIZE = 500
@@ -78,7 +79,7 @@ async def enqueue_due_reminders(
         .order_by(Listing.id, User.id)
         .limit(PAGE_SIZE)
     )
-    tickets_url = f"{auth_settings.EVENTS_APP_URL.rstrip('/')}/me/tickets"
+    tickets_url = my_tickets_url()
     queued = 0
     after: tuple[uuid.UUID, uuid.UUID] | None = None
     for page in range(MAX_PAGES):
@@ -92,18 +93,20 @@ async def enqueue_due_reminders(
         for listing, user in rows:
             if not user.email or not notification_settings.email_allowed(user.email):
                 continue
-            subject, body = emails.event_reminder(
+            message = emails.event_reminder(
                 name=user.first_name,
                 title=listing.title,
                 starts_at=listing.starts_at,
+                ends_at=listing.ends_at,
                 venue=listing.venue,
                 tickets_url=tickets_url,
             )
             if await enqueue_email(
                 db,
                 to_email=user.email,
-                subject=subject,
-                html=body,
+                subject=message.subject,
+                template=layout.CARD_TEMPLATE,
+                props=layout.to_props(message),
                 transactional=False,  # a reminder: skips suppressed addresses
                 dedupe_key=reminder_key(listing.id, user.id, listing.starts_at),
             ):

@@ -23,6 +23,7 @@ from tests.bookings.test_public_bookings import (
     _slots,
     _studio,
 )
+from tests.email_payload import payload_html
 from tests.factories import make_user
 from tests.organisations.support import headers_for
 
@@ -202,7 +203,7 @@ async def test_decline_cancels_emails_once_and_releases_the_slot(
     ]
     assert len(rows) == 1
     assert rows[0].payload["subject"].startswith("Your booking request")
-    assert "Fully booked that day" in rows[0].payload["html"]
+    assert "Fully booked that day" in payload_html(rows[0].payload)
 
 
 async def test_decline_of_a_confirmed_booking_is_409(

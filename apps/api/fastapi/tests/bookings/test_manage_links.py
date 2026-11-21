@@ -30,12 +30,13 @@ from tests.bookings.test_public_bookings import (
     _slots,
     _studio,
 )
+from tests.email_payload import payload_html
 from tests.factories import make_user
 from tests.organisations.support import headers_for
 
 MANAGE_PREFIX = MANAGE.split("{token}")[0]
 LINK = re.compile(r'href="(' + re.escape(MANAGE_PREFIX) + r'[^"]+)"')
-INVITE = "create a Barrels account or sign in"
+INVITE = "Create a free account or sign in"
 
 
 def _manage_token(html: str) -> str:
@@ -48,7 +49,7 @@ async def _mail_html(db: AsyncSession, org_id: str, prefix: str) -> str:
     [row] = [
         row for row in await _emails(db, org_id) if row.dedupe_key.startswith(prefix)
     ]
-    return str(row.payload["html"])
+    return str(payload_html(row.payload))
 
 
 def _flip_last(text: str) -> str:

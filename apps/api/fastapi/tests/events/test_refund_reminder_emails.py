@@ -4,8 +4,8 @@ Nothing is sent: the emails are rows on the platform outbox (topic ``email.send`
 """
 
 import uuid
-from typing import Any
 from datetime import datetime, timedelta
+from typing import Any
 
 import pytest
 from sqlalchemy import delete, select, update
@@ -18,6 +18,7 @@ from src.notifications.config import notification_settings
 from src.outbox import Outbox
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
+from tests.email_payload import card_html, payload_html
 from tests.events.support import SessionFactory
 from tests.events.test_org_orders import ORG, _desk, _h, _paid, _shop_with_events
 from tests.events.test_paid_orders import (
@@ -26,12 +27,11 @@ from tests.events.test_paid_orders import (
     _drain,
     _intent,
     _paid_order,
-    _row,
     _shop,
     _tickets,
     make_user,
+    sent_emails,  # noqa: F401  (fixture)
 )
-from tests.events.test_paid_orders import sent_emails  # noqa: F401  (fixture)
 
 NOW = datetime.fromisoformat("2026-10-22T12:00:00")
 
@@ -81,7 +81,7 @@ async def test_a_full_refund_queues_one_receipt_even_when_replayed(
     payload = rows[0].payload
     assert payload["transactional"] is True
     assert payload["subject"] == "Refund for Paid Fete"
-    html = payload["html"]
+    html = payload_html(payload)
     assert "XCD 100.00" in html
     assert "whole order" in html
     assert "Paid Fete" in html
@@ -110,9 +110,9 @@ async def test_a_partial_refund_says_the_tickets_stay_valid(
     order_id = await _paid_order(db_async, shop, 2)
     await _refund(db_async, shop, order_id, PRICE)
     (row,) = await _emails(db_async, "events-order-refunded:")
-    assert "XCD 50.00" in row.payload["html"]
-    assert "partial refund" in row.payload["html"]
-    assert "whole order" not in row.payload["html"]
+    assert "XCD 50.00" in payload_html(row.payload)
+    assert "partial refund" in payload_html(row.payload)
+    assert "whole order" not in payload_html(row.payload)
     assert {t.status for t in await _tickets(events_db, order_id)} == {"valid"}
     # A second partial refund is its own receipt (a different refund id).
     await _refund(db_async, shop, order_id, PRICE)
@@ -141,9 +141,9 @@ async def test_only_the_refund_that_completes_the_order_says_whole_order(
     await _drain(db_async)
     rows = await _emails(db_async, "events-order-refunded:")
     assert len(rows) == 2
-    wording = sorted("whole order" in r.payload["html"] for r in rows)
+    wording = sorted("whole order" in payload_html(r.payload) for r in rows)
     assert wording == [False, True]
-    assert sum("partial refund" in r.payload["html"] for r in rows) == 1
+    assert sum("partial refund" in payload_html(r.payload) for r in rows) == 1
     assert {t.status for t in await _tickets(events_db, order_id)} == {"refunded"}
 
 
@@ -179,7 +179,7 @@ async def test_a_cancelled_event_refund_receipt_names_the_cancellation(
         )
     assert done.status_code == 200, done.text
     (row,) = await _emails(db_async, "events-order-refunded:")
-    assert "organiser cancelled" in row.payload["html"]
+    assert "organiser cancelled" in payload_html(row.payload)
 
 
 @pytest.mark.asyncio
@@ -219,15 +219,17 @@ async def test_a_pending_refund_sends_no_receipt_until_it_settles(
 
 
 def test_the_card_receipt_gives_the_timeline_and_amounts_are_escaped() -> None:
-    _, html = emails.order_refunded(
-        buyer_name="<b>Ann</b>",
-        title="Fete",
-        order_ref="AB12CD34",
-        refund_minor=123456,
-        currency="XCD",
-        full=True,
-        card=True,
-        event_cancelled=False,
+    html = card_html(
+        emails.order_refunded(
+            buyer_name="<b>Ann</b>",
+            title="Fete",
+            order_ref="AB12CD34",
+            refund_minor=123456,
+            currency="XCD",
+            full=True,
+            card=True,
+            event_cancelled=False,
+        )
     )
     assert "XCD 1,234.56" in html
     assert "5 to 10 business days" in html
@@ -319,7 +321,7 @@ async def test_the_email_has_grenada_time_venue_and_my_tickets_link(
     await _rsvp_shop(db_async, events_db, NOW + timedelta(hours=23, minutes=30))
     assert await _run(db_async) == 1
     (row,) = await _emails(db_async, "events-reminder:")
-    html = row.payload["html"]
+    html = payload_html(row.payload)
     assert "Friday 23 October 2026, 7:30 AM (Grenada time)" in html
     assert "Stadium" in html
     assert "/me/tickets" in html
@@ -419,7 +421,7 @@ async def test_a_cancelled_ticket_and_an_event_that_started_are_skipped(
 async def test_a_suppressed_address_gets_no_reminder_but_still_gets_a_receipt(
     db_async: AsyncSession,
     events_db: SessionFactory,
-    sent_emails: list[dict[str, Any]],
+    sent_emails: list[dict[str, Any]],  # noqa: F811  (imported fixture)
 ) -> None:
     from src import outbox as platform_outbox
     from src.notifications.models import (

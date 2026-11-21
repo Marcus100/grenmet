@@ -28,6 +28,7 @@ from tests.bookings.test_public_bookings import (
     _studio,
 )
 from tests.bookings.test_studio import _booked, _events, _key, _url
+from tests.email_payload import payload_html
 from tests.factories import make_user
 from tests.organisations.support import headers_for
 
@@ -123,14 +124,14 @@ async def test_staff_move_a_booking_and_the_customer_is_told(
 
     [mail] = await _moves_mail(db_async, studio, booking_id)
     assert mail["subject"] == "Your booking at Babydoll Beauty Bar has a new time"
-    assert "has moved your booking to a new time" in mail["html"]
+    assert "has moved your booking to a new time" in payload_html(mail)
     # The body names the NEW time (on the business's clock), not the old one.
-    assert _when(moved.starts_at) in mail["html"]
-    assert _when(old_start) not in mail["html"]
-    assert "not confirmed" not in mail["html"]
-    assert "please contact Babydoll Beauty Bar" in mail["html"]
+    assert _when(moved.starts_at) in payload_html(mail)
+    assert _when(old_start) not in payload_html(mail)
+    assert "not confirmed" not in payload_html(mail)
+    assert "please contact Babydoll Beauty Bar" in payload_html(mail)
     # A signed manage link, minted now: the stored token is only a hash.
-    assert mail["html"].count('href="https://babydoll.example/manage/') == 1
+    assert payload_html(mail).count('href="https://babydoll.example/manage/') == 1
 
     [(kind, data, _)] = [w for w in webhooks if w[0] == "booking.rescheduled"]
     assert kind == "booking.rescheduled"
@@ -310,9 +311,9 @@ async def test_a_pending_booking_mail_says_it_is_still_unconfirmed(
 
     [mail] = await _moves_mail(db_async, studio, booking_id)
     moved = await _booking_for(db_async, booking_id)
-    assert _when(moved.starts_at) in mail["html"]
-    assert "has not confirmed this booking yet" in mail["html"]
-    assert "as soon as they do" in mail["html"]
+    assert _when(moved.starts_at) in payload_html(mail)
+    assert "has not confirmed this booking yet" in payload_html(mail)
+    assert "as soon as they do" in payload_html(mail)
 
 
 async def test_a_member_cannot_move_a_booking(
