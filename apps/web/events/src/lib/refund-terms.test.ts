@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RefundTerms } from "@/domain/types";
 import {
-  buyerCancelMayKeepMoney,
   CANCELLED_EVENT_LINE,
   clampCutoffHours,
   deadlineFromHours,
@@ -28,13 +27,13 @@ const terms = (overrides: Partial<RefundTerms>): RefundTerms => ({
 describe("refundSummary", () => {
   it("says full refunds until the default two days", () => {
     expect(refundSummary(BASE)).toBe(
-      "Full refunds until 2 days before the event."
+      "Ask the organiser for a full refund until 2 days before the event."
     );
   });
 
   it("names a fixed fee per ticket in EC$", () => {
     expect(refundSummary(terms({ feeType: "fixed", feeValue: 500 }))).toBe(
-      "Refunds until 2 days before the event, less EC$5.00 per ticket."
+      "Ask the organiser for a refund until 2 days before the event, less EC$5.00 per ticket."
     );
   });
 
@@ -44,13 +43,13 @@ describe("refundSummary", () => {
         terms({ cutoffHoursEffective: 168, feeType: "percent", feeValue: 10 })
       )
     ).toBe(
-      "Refunds until 7 days before the event, less 10% of the amount paid."
+      "Ask the organiser for a refund until 7 days before the event, less 10% of the amount paid."
     );
   });
 
   it("treats a zero fee as no fee", () => {
     expect(refundSummary(terms({ feeType: "fixed", feeValue: 0 }))).toBe(
-      "Full refunds until 2 days before the event."
+      "Ask the organiser for a full refund until 2 days before the event."
     );
   });
 
@@ -62,13 +61,21 @@ describe("refundSummary", () => {
 
   it("reads a zero cutoff as until the event starts", () => {
     expect(refundSummary(terms({ cutoffHoursEffective: 0 }))).toBe(
-      "Full refunds until the event starts."
+      "Ask the organiser for a full refund until the event starts."
     );
   });
 
   it("uses hours for a cutoff that is not whole days", () => {
     expect(refundSummary(terms({ cutoffHoursEffective: 36 }))).toBe(
-      "Full refunds until 36 hours before the event."
+      "Ask the organiser for a full refund until 36 hours before the event."
+    );
+  });
+});
+
+describe("refundSummary for the organiser", () => {
+  it("states the terms as the organiser's own rule", () => {
+    expect(refundSummary(BASE, "organiser")).toBe(
+      "Full refunds until 2 days before the event."
     );
   });
 });
@@ -130,45 +137,6 @@ describe("deadline controls", () => {
   it("rounds and clamps typed hours", () => {
     expect(clampCutoffHours(12.6)).toBe(13);
     expect(clampCutoffHours(Number.NaN)).toBe(0);
-  });
-});
-
-describe("buyerCancelMayKeepMoney", () => {
-  const now = new Date("2026-11-21T12:00:00Z");
-  const sixDaysAhead = "2026-11-27T12:00:00Z";
-  const tomorrow = "2026-11-22T12:00:00Z";
-
-  it("is true for no refunds, whenever the event starts", () => {
-    expect(
-      buyerCancelMayKeepMoney(
-        terms({ policy: "no_refunds" }),
-        sixDaysAhead,
-        now
-      )
-    ).toBe(true);
-  });
-
-  it("is true for any fee", () => {
-    expect(
-      buyerCancelMayKeepMoney(
-        terms({ feeType: "percent", feeValue: 5 }),
-        sixDaysAhead,
-        now
-      )
-    ).toBe(true);
-  });
-
-  it("is true inside the cutoff and false outside it", () => {
-    // BASE has a 48 hour cutoff: tomorrow is inside it, six days ahead is not.
-    expect(buyerCancelMayKeepMoney(BASE, tomorrow, now)).toBe(true);
-    expect(buyerCancelMayKeepMoney(BASE, sixDaysAhead, now)).toBe(false);
-    expect(
-      buyerCancelMayKeepMoney(
-        terms({ cutoffHoursEffective: 168 }),
-        sixDaysAhead,
-        now
-      )
-    ).toBe(true);
   });
 });
 

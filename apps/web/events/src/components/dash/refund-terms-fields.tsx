@@ -57,8 +57,11 @@ export function RefundTermsFields({
         </NativeSelect>
       </Field>
       {noRefunds ? (
-        <p className="text-body flex gap-2">
-          <TriangleAlert className="text-warning mt-0.5 size-4 shrink-0" />
+        <p className="text-body flex gap-2" role="status">
+          <TriangleAlert
+            aria-hidden="true"
+            className="text-warning mt-0.5 size-4 shrink-0"
+          />
           {NO_REFUND_WARNING}
         </p>
       ) : (
@@ -88,7 +91,8 @@ export function RefundTermsFields({
                 ))}
               </NativeSelect>
               <FieldDescription>
-                Buyers can get a refund until this long before the start.
+                Buyers can ask you for a refund until this long before the
+                start.
               </FieldDescription>
             </Field>
             {value.refundDeadline === "custom" ? (

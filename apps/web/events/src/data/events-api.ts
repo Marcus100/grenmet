@@ -125,14 +125,15 @@ export async function listEvents(
   return result.data.map(toEvent);
 }
 
-export async function getEventBySlug(
-  slug: string
-): Promise<EventDetail | null> {
-  const listing = await orNull(
-    eventsGetListing({ ...(await options()), path: { slug } }).unwrap()
-  );
-  return listing ? toEventDetail(listing) : null;
-}
+/** One read per event and request: the ticket list and the ticket page share it. */
+export const getEventBySlug = cache(
+  async (slug: string): Promise<EventDetail | null> => {
+    const listing = await orNull(
+      eventsGetListing({ ...(await options()), path: { slug } }).unwrap()
+    );
+    return listing ? toEventDetail(listing) : null;
+  }
+);
 
 export async function getOrganiserBySlug(
   slug: string

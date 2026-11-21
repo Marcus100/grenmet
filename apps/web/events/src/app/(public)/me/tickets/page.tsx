@@ -7,6 +7,7 @@ import { requireViewer } from "@/data/viewer";
 import type { MyTicket, RefundTerms } from "@/domain/types";
 import { formatEventDate } from "@/lib/datetime";
 import { refundTermsLines, ticketRefundTerms } from "@/lib/refund-terms";
+import { readTicketEvents } from "@/lib/ticket-events";
 
 export const metadata: Metadata = {
   title: "My tickets",
@@ -66,13 +67,7 @@ export default async function MyTicketsPage() {
   // Refund terms matter for paid tickets still to be used, so only upcoming
   // ones look their event up; each event is read once.
   const slugs = [...new Set(upcoming.map((ticket) => ticket.listingSlug))];
-  const events = await Promise.all(slugs.map((slug) => getEventBySlug(slug)));
-  const eventBySlug = new Map(
-    slugs.flatMap((slug, index) => {
-      const event = events[index];
-      return event ? [[slug, event] as const] : [];
-    })
-  );
+  const eventBySlug = await readTicketEvents(slugs, getEventBySlug);
   function refundTermsFor(ticket: MyTicket): RefundTerms | null {
     return ticketRefundTerms(
       eventBySlug.get(ticket.listingSlug) ?? null,

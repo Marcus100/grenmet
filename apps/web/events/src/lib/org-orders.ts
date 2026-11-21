@@ -173,7 +173,7 @@ export function refundChoicesFor(
       label: "Follow the event's refund policy",
       description:
         initiator === "buyer"
-          ? refundSummary(terms)
+          ? refundSummary(terms, "organiser")
           : "Only applies when the buyer asked for the cancel.",
     },
     {

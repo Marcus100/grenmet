@@ -294,7 +294,7 @@ describe("refund terms on the picker", () => {
     );
     expect(
       screen.getByText(
-        "Refunds until 2 days before the event, less EC$5.00 per ticket."
+        "Ask the organiser for a refund until 2 days before the event, less EC$5.00 per ticket."
       )
     ).toBeInTheDocument();
     expect(

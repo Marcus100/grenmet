@@ -34,7 +34,6 @@ import {
   type RefundChoice,
   refundChoicesFor,
 } from "@/lib/org-orders";
-import { buyerCancelMayKeepMoney } from "@/lib/refund-terms";
 import { useIdempotencyKey } from "@/lib/use-idempotency-key";
 import { RefundChoiceGroup } from "./refund-choice";
 
@@ -130,13 +129,10 @@ function LockNotice({ onRelease }: { onRelease: () => void }) {
 export function OrderActions({
   order,
   refundTerms,
-  startsAt,
 }: {
   order: OrgOrderDetail;
   /** The event's refund terms, which a buyer's cancel follows. */
   refundTerms: RefundTerms;
-  /** The event start (ISO 8601), to tell whether a buyer's cancel is inside the cutoff. */
-  startsAt: string;
 }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -202,7 +198,6 @@ export function OrderActions({
             order={order}
             refundTerms={refundTerms}
             report={report}
-            startsAt={startsAt}
           />
         </Panel>
       </div>
@@ -512,16 +507,26 @@ function refundsDisabled(
   return initiator === "organiser" ? ["follow_policy"] : [];
 }
 
+/**
+ * Online money still held for the order: the only money a cancel can keep.
+ * Mirrors the API, where a kept amount needs an online-paid order.
+ */
+function onlineMoneyLeft(order: OrgOrderDetail): boolean {
+  return (
+    order.channel === "online" &&
+    order.payment_method === "online" &&
+    order.collected_minor - order.refunded_minor > 0
+  );
+}
+
 function CancelOrderForm({
   order,
   refundTerms,
   report,
-  startsAt,
 }: {
   order: OrgOrderDetail;
   refundTerms: RefundTerms;
   report: Report;
-  startsAt: string;
 }) {
   const router = useRouter();
   const { pending, perform } = useMemberAction(COULDNT_CONFIRM);
@@ -530,8 +535,12 @@ function CancelOrderForm({
   const [refund, setRefund] = useState<RefundChoice>(
     defaultRefundFor("organiser", outletCash)
   );
+  // The API asks for a reason only when money is kept: "none" on online money
+  // that is still held. Other choices may keep nothing, so they need no reason.
+  const reasonRequired = refund === "none" && onlineMoneyLeft(order);
   const [reason, setReason] = useState("");
   const [reasonError, setReasonError] = useState<string | null>(null);
+  const reasonErrorId = `cancel-reason-error-${order.id}`;
   const [open, setOpen] = useState(false);
 
   const choices = refundChoicesFor(refundTerms, initiator);
@@ -545,20 +554,8 @@ function CancelOrderForm({
     setReasonError(null);
   }
 
-  /** Keeping money needs a reason: always for "Do not refund", and for a buyer's cancel the terms may keep. */
-  function keepsSomeMoney(): boolean {
-    if (refund === "none") {
-      return true;
-    }
-    return (
-      initiator === "buyer" &&
-      refund === "follow_policy" &&
-      buyerCancelMayKeepMoney(refundTerms, startsAt, new Date())
-    );
-  }
-
   function review() {
-    if (keepsSomeMoney() && reason.trim() === "") {
+    if (reasonRequired && reason.trim() === "") {
       setReasonError("Give a reason, because some of the money is kept.");
       return;
     }
@@ -621,9 +618,10 @@ function CancelOrderForm({
       ) : null}
       <Field>
         <FieldLabel htmlFor={`cancel-reason-${order.id}`}>
-          {refund === "none" ? "Reason (required)" : "Reason (optional)"}
+          {reasonRequired ? "Reason (required)" : "Reason (optional)"}
         </FieldLabel>
         <Input
+          aria-describedby={reasonError ? reasonErrorId : undefined}
           aria-invalid={reasonError ? true : undefined}
           className="min-h-11"
           id={`cancel-reason-${order.id}`}
@@ -636,7 +634,11 @@ function CancelOrderForm({
         />
       </Field>
       {reasonError ? (
-        <p className="text-body text-destructive" role="alert">
+        <p
+          className="text-body text-destructive"
+          id={reasonErrorId}
+          role="alert"
+        >
           {reasonError}
         </p>
       ) : null}

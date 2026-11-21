@@ -14,14 +14,23 @@ const KEEPS_MONEY = /Give a reason, because some of the money/u;
 const WE_CANCEL = /We are cancelling/u;
 const BUYER_ASKED = /The buyer asked/u;
 
-/** The listing's terms and start, as the order page passes them. */
+/** The listing's terms, as the order page passes them. */
 const TERMS = makeRefundTerms();
-const STARTS_AT = "2026-12-20T20:00:00Z";
 
 function Actions({ order }: { order: OrgOrderDetail }) {
-  return (
-    <OrderActions order={order} refundTerms={TERMS} startsAt={STARTS_AT} />
-  );
+  return <OrderActions order={order} refundTerms={TERMS} />;
+}
+
+/** Opens the cancel dialog from the form and presses its confirm button. */
+async function confirmCancel() {
+  fireEvent.click(screen.getByRole("button", { name: "Cancel order" }));
+  const buttons = await screen.findAllByRole("button", {
+    name: "Cancel order",
+  });
+  const confirm = buttons.at(-1);
+  if (confirm) {
+    fireEvent.click(confirm);
+  }
 }
 
 const UUID = /^[0-9a-f-]{36}$/u;
@@ -308,6 +317,56 @@ describe("cancel order", () => {
     fireEvent.click(screen.getByRole("radio", { name: RE_10 }));
     fireEvent.click(screen.getByRole("radio", { name: BUYER_ASKED }));
     expect(screen.getByRole("radio", { name: RE_6 })).toBeChecked();
+  });
+
+  it("requires a reason only when online money is kept", () => {
+    render(<Actions order={makeOrderDetail()} />);
+    expect(screen.getByLabelText("Reason (optional)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: RE_10 }));
+    expect(screen.getByLabelText("Reason (required)")).toBeInTheDocument();
+  });
+
+  it("submits an outlet cash cancel without a reason", async () => {
+    vi.mocked(cancelOrder).mockResolvedValue({
+      ok: true,
+      data: { order: makeOrderDetail(), outcome: "kept" },
+    });
+    render(
+      <Actions
+        order={makeOrderDetail({
+          channel: "outlet",
+          payment_method: "cash_outlet",
+          payment: null,
+        })}
+      />
+    );
+    await confirmCancel();
+    await waitFor(() =>
+      expect(cancelOrder).toHaveBeenCalledWith({
+        orderId: makeOrderDetail().id,
+        refund: "none",
+        reason: "",
+        initiatedBy: "organiser",
+      })
+    );
+  });
+
+  it("submits a buyer's policy cancel without a reason", async () => {
+    vi.mocked(cancelOrder).mockResolvedValue({
+      ok: true,
+      data: { order: makeOrderDetail(), outcome: "kept" },
+    });
+    render(<Actions order={makeOrderDetail()} />);
+    fireEvent.click(screen.getByRole("radio", { name: BUYER_ASKED }));
+    await confirmCancel();
+    await waitFor(() =>
+      expect(cancelOrder).toHaveBeenCalledWith({
+        orderId: makeOrderDetail().id,
+        refund: "follow_policy",
+        reason: "",
+        initiatedBy: "buyer",
+      })
+    );
   });
 
   it("asks for a reason before keeping the money", () => {

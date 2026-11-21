@@ -9,7 +9,6 @@ import { formatPrice, isPaidTier } from "@/lib/orders";
  */
 
 const HOURS_PER_DAY = 24;
-const MS_PER_HOUR = 60 * 60 * 1000;
 
 /** The API accepts a cutoff from 0 to 30 days. */
 export const CUTOFF_HOURS_MIN = 0;
@@ -110,17 +109,28 @@ function feeClause(terms: RefundTerms): string | null {
   return `less ${terms.feeValue}% of the amount paid`;
 }
 
-/** One plain sentence for the terms: "Refunds until 2 days before the event, less EC$5.00 per ticket." */
-export function refundSummary(terms: RefundTerms): string {
+/**
+ * One plain sentence for the terms. A buyer is asked to ask the organiser: the
+ * platform does not refund on the buyer's own request. The organiser's form
+ * reads the same terms as the organiser's own rule.
+ */
+export function refundSummary(
+  terms: RefundTerms,
+  audience: "buyer" | "organiser" = "buyer"
+): string {
   if (terms.policy === "no_refunds") {
     return "No refunds, except if the event is cancelled.";
   }
   const until = untilPhrase(terms.cutoffHoursEffective);
   const fee = feeClause(terms);
-  if (fee === null) {
-    return `Full refunds until ${until}.`;
+  if (audience === "organiser") {
+    return fee === null
+      ? `Full refunds until ${until}.`
+      : `Refunds until ${until}, ${fee}.`;
   }
-  return `Refunds until ${until}, ${fee}.`;
+  return fee === null
+    ? `Ask the organiser for a full refund until ${until}.`
+    : `Ask the organiser for a refund until ${until}, ${fee}.`;
 }
 
 /** Both buyer lines: the terms, then what a cancellation by the organiser means. */
@@ -143,24 +153,4 @@ export function ticketRefundTerms(
     return null;
   }
   return event.refundTerms;
-}
-
-/**
- * True when a buyer-asked cancel could keep some money under these terms: no
- * refunds at all, a fee, or a start already inside the cutoff. Mirrors the API's
- * rule so the form can ask for the reason before it sends the request.
- */
-export function buyerCancelMayKeepMoney(
-  terms: RefundTerms,
-  startsAt: string,
-  now: Date
-): boolean {
-  if (terms.policy === "no_refunds") {
-    return true;
-  }
-  if (terms.feeType !== "none" && terms.feeValue > 0) {
-    return true;
-  }
-  const cutoffMs = terms.cutoffHoursEffective * MS_PER_HOUR;
-  return now.getTime() > new Date(startsAt).getTime() - cutoffMs;
 }
