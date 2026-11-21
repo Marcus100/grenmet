@@ -32,6 +32,7 @@ export const orgOrderDetailSchema = z.object({
   buyer_phone: z.union([z.string(), z.null()]),
   refund_status: orgOrderDetailPropertiesRefundStatusEnumSchema,
   payment_expires_at: z.union([z.iso.datetime(), z.null()]),
+  cancellation_fee_kept_minor: z.int().optional().default(0),
   items: z.array(orgOrderItemSchema),
   tickets: z.array(orgOrderTicketSchema),
   payment: z.union([orgOrderPaymentSchema, z.null()]),

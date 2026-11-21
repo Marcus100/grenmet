@@ -21,7 +21,9 @@ vi.mock("@/data/org-orders", () => ({
 vi.mock("@/components/dash/no-organiser-access", () => ({
   NoOrganiserAccess: () => <p>No access</p>,
 }));
-vi.mock("@/data/viewer", () => ({ requireViewer: vi.fn() }));
+vi.mock("@/data/viewer", () => ({
+  requireViewer: () => Promise.resolve({ name: "Ada Byron" }),
+}));
 vi.mock("@/components/dash/dash-shell", () => ({
   DashShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>

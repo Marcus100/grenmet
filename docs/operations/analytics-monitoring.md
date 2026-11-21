@@ -189,8 +189,9 @@ the worker-poll heartbeat and the deferred monitors stay paused.
 | Kind | Name (`Production · …`) | Target | Check |
 | --- | --- | --- | --- |
 | Monitor | GAA API readiness | `https://api.barrels.gd/api/v1/utils/ready/` | keyword `"status":"ready"` |
-| Monitor | Barrels ID (auth), GAA staff portal, GMS weather, CAP alert hub, GMS dashboard, GMS docs, MBIA, Signal, Elections health | `https://{auth,admin,weather,cap,gmsdash,docs,mbia,signal}.barrels.gd/api/health`; Elections (static on Cloudflare Pages, no health route) `https://elections.barrels.gd/` | HTTP 2xx |
-| Monitor (deferred) | CMS readiness, Events health, Bookings health, Barrels homepage | `cms…/api/ready`, `events…/api/health`, `bookings…/api/health`, `https://barrels.gd/` | covered by the probe runner until quota allows |
+| Monitor | Barrels ID (auth), GAA staff portal, GMS weather, CAP alert hub, GMS dashboard, MBIA health | `https://{auth,admin,weather,cap,gmsdash,mbia}.barrels.gd/api/health` | HTTP 2xx |
+| Monitor (to create) | CMS readiness, Events health, Bookings health | `cms…/api/ready`, `events…/api/health`, `bookings…/api/health` | created paused, then unpaused (see Swap below) |
+| Monitor (deferred) | GMS docs, Signal, Elections health, Barrels homepage | `docs…/api/health`, `signal…/api/health`, `https://elections.barrels.gd/` (static on Cloudflare Pages), `https://barrels.gd/` | covered by the probe runner until quota allows |
 | Heartbeat | probe runner | `PROBE_HEARTBEAT_URL` | 5 min + 10 min grace |
 | Heartbeat | verified core backup | `BACKUP_HEARTBEAT_URL` | 24 h + 2 h grace |
 | Heartbeat | worker poll completion | `WORKER_HEARTBEAT_URL` (rendered as `TELEMETRY_WORKER_HEARTBEAT_URL`) | 1 min + 2 min grace |
@@ -213,6 +214,15 @@ with `environment=production`, `operation=preview`; review the planned `POST`s,
 then rerun with `operation=apply`. Record each returned ID in `betterstack.json`
 (adopting it, like staging) and the catalogue `availability.monitorId`, then
 unpause in Better Stack and set `"paused": false` in the file.
+
+**Swap (owner decision, 21 Nov 2026):** the free plan stays; GMS docs, Signal
+and Elections give their slots to CMS, Events and Bookings, which are
+server-hosted and transactional. Paused monitors still count against the plan,
+so first delete the three old monitors in Better Stack (IDs 5237467 GMS docs,
+5237469 Signal, 5237470 Elections; the plan refuses the creates until they are
+gone), then run the preview and apply above and adopt the three new IDs. Until
+then, and for the three retired sites afterwards, the probe runner is their only
+uptime check. Unpause the new monitors as the Apply paragraph says.
 
 **Secrets (production GitHub environment):** `BETTERSTACK_API_TOKEN`,
 `PROBE_HEARTBEAT_URL`, `WORKER_HEARTBEAT_URL` (copy the
@@ -238,7 +248,8 @@ failures.
 is skipped without `SENTRY_AUTH_TOKEN` and never fails a deploy.
 
 The worker sends Sentry Cron check-ins for `process_cap_jobs`, `ingest_cap_feeds`,
-`drain_outbox` and `purge_expired_data` (slugs
+`drain_outbox`, `purge_expired_data`, `enqueue_booking_reminders` and
+`expire_unpaid_bookings` (slugs
 `<environment>-worker-<job>`, e.g. `production-worker-drain-outbox`) only when
 `SENTRY_CRONS_ENABLED=true` reaches the worker; check the plan's included cron
 monitors first. Sentry creates the monitors from the first check-ins.
@@ -393,6 +404,10 @@ require at least 24 hours of staging evidence before production promotion.
   installed in `/opt/grenmet/monitoring-revision`; no mutable ref is accepted.
 - Set `MONITORING_STORAGE_VERIFIED=true` only after checking the existing storage
   capacity, lifecycle and cost limits; both manual and scheduled jobs require it.
+- Staging maintenance runs in the `staging-backup` GitHub environment, not
+  `staging`: schedules run from `main`, which the `staging` environment's branch
+  rule refuses. Put the staging maintenance variables and backup-storage secrets
+  there ([inputs](launch-monitoring-inputs.md)).
 - Set `MONITORING_MAINTENANCE_ENABLED=true` only after a manual backup and restore
   pass, the existing Spaces lifecycle/capacity/cost are verified, and the backup
   heartbeat is ready. Production remains disabled until staging acceptance.

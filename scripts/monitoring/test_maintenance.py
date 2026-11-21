@@ -365,9 +365,12 @@ class ProviderTests(unittest.TestCase):
                 # Waiting for quota: never created, so no ID, and declared paused.
                 self.assertNotIn("id", resource)
                 self.assertIs(resource["settings"]["paused"], True)
-            else:
-                # Created on 14 Nov 2026 and adopted by provider ID.
+            elif "id" in resource:
+                # Created and adopted by provider ID.
                 self.assertRegex(str(resource["id"]), r"^[0-9]+$")
+            else:
+                # Declared for creation: the provider requires it to start paused.
+                self.assertIs(resource["settings"]["paused"], True)
             # Heartbeat URLs are credentials; they never live in the repository.
             if resource["kind"] == "heartbeats":
                 self.assertNotIn("url", resource["settings"])
@@ -380,7 +383,19 @@ class ProviderTests(unittest.TestCase):
             self.assertLessEqual(
                 len([r for r in active if r["kind"] == kind]), config["limits"][kind]
             )
-        ids = [r["id"] for r in active]
+        adopted = [r for r in active if "id" in r]
+        pending = [r for r in active if "id" not in r]
+        # Only these are waiting to be created (owner swap, 21 Nov 2026), so an
+        # adopted monitor that lost its ID fails here. Empty once IDs are adopted.
+        self.assertLessEqual(
+            {r["settings"]["pronounceable_name"] for r in pending},
+            {
+                "Production · CMS readiness",
+                "Production · Events health",
+                "Production · Bookings health",
+            },
+        )
+        ids = [r["id"] for r in adopted]
         self.assertEqual(len(ids), len(set(ids)))
 
         def live_copy(resource):
@@ -392,11 +407,34 @@ class ProviderTests(unittest.TestCase):
             return {"id": str(resource["id"]), "attributes": attributes}
 
         live = {
-            kind: [live_copy(r) for r in active if r["kind"] == kind]
+            kind: [live_copy(r) for r in adopted if r["kind"] == kind]
             for kind in ("monitors", "heartbeats")
         }
-        # An inventory that matches the declaration needs no change.
-        self.assertEqual(betterstack.plan(config, "production", live), [])
+        # An inventory that matches the declaration only creates the pending
+        # resources, paused, within the free limits.
+        changes = betterstack.plan(config, "production", live)
+        self.assertEqual(
+            [(c["method"], c["path"]) for c in changes],
+            [("POST", r["kind"]) for r in pending],
+        )
+        self.assertTrue(all(c["settings"]["paused"] is True for c in changes))
+        # Paused monitors still count against the plan, so the retired ones must
+        # be deleted at the provider before the pending ones can be created.
+        if pending:
+            spare = config["limits"]["monitors"] - len(live["monitors"])
+            crowded = {
+                "monitors": live["monitors"]
+                + [
+                    {
+                        "id": str(9_000_000 + i),
+                        "attributes": {"pronounceable_name": f"Old {i}"},
+                    }
+                    for i in range(spare)
+                ],
+                "heartbeats": live["heartbeats"],
+            }
+            with self.assertRaisesRegex(ValueError, "Free quota"):
+                betterstack.plan(config, "production", crowded)
         # A declared ID the provider does not have is refused, never recreated.
         with self.assertRaises(ValueError):
             betterstack.plan(config, "production", {"monitors": [], "heartbeats": []})

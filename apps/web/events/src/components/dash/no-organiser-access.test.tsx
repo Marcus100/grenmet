@@ -6,6 +6,9 @@ const getManagedAccess = vi.fn();
 vi.mock("@/data/events-api", () => ({
   getManagedAccess: () => getManagedAccess(),
 }));
+vi.mock("@/data/viewer", () => ({
+  getViewer: () => Promise.resolve({ name: "Ada Byron" }),
+}));
 vi.mock("./dash-shell", () => ({
   DashShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>

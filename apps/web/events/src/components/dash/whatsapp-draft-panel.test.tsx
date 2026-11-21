@@ -6,7 +6,7 @@ import { WhatsAppDraftPanel } from "./whatsapp-draft-panel";
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 
 const facts =
-  "Synthetic show\n2026-12-26 at 8:30 PM (Grenada time)\nExample Wharf";
+  "Synthetic show\nSaturday, 26 December at 8:30 PM (Grenada time)\nExample Wharf";
 const prompt = "Synthetic prompt";
 
 afterEach(() => {

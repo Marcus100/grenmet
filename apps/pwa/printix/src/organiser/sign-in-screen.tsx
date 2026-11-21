@@ -78,7 +78,7 @@ export function SignInScreen({
 
       <p className="text-px-muted text-sm">
         First time? Accept your invitation and add an authenticator at
-        account.barrels.gd, then sign in here.
+        auth.barrels.gd/security, then sign in here.
       </p>
     </main>
   );

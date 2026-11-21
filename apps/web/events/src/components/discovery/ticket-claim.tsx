@@ -7,10 +7,11 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
 import { claimTickets } from "@/data/actions";
-import type { EventDetail, MyOrder } from "@/domain/types";
+import type { EventDetail, MyOrder, RefundTerms } from "@/domain/types";
 import { formatTime } from "@/lib/datetime";
 import { goToCheckout } from "@/lib/navigation";
 import { formatPrice, safeCheckoutUrl } from "@/lib/orders";
+import { RefundTermsLine } from "./refund-terms-line";
 
 type Tier = EventDetail["tiers"][number];
 
@@ -49,11 +50,14 @@ function newKey(): string {
  * reserved. Guests can see the tiers; claiming sends them to sign in.
  */
 export function TicketClaim({
+  refundTerms,
   slug,
   tiers,
 }: {
   slug: string;
   tiers: readonly Tier[];
+  /** The event's refund terms, shown above the pay button when a tier is paid. */
+  refundTerms: RefundTerms;
 }) {
   const router = useRouter();
   const [quantities, setQuantities] = useState<Record<string, number>>({});
@@ -171,6 +175,9 @@ export function TicketClaim({
           );
         })}
       </ul>
+      {tiers.some((tier) => tier.price.amountMinor > 0) ? (
+        <RefundTermsLine terms={refundTerms} />
+      ) : null}
       <Button
         className="text-body-base h-11 w-full"
         disabled={pending || total === 0 || outcome?.kind === "redirecting"}

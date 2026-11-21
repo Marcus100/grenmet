@@ -1,6 +1,6 @@
 ---
 name: commit
-description: "Reviews, validates and commits authorized changes, opens the task branch's PR into dev and merges it once CI is green and the review is clean, then creates or updates the staging promotion PR for the owner. Use when a task is ready to land, when the user says commit, ship or push it, or when a routine reaches its commit gates."
+description: "Reviews, validates and commits authorized changes, opens the task branch's PR into dev and merges it once CI is green and the review is clean, and sends the owner a phone alert. Use when a task is ready to land, when the user says commit, ship or push it, or when a routine reaches its commit gates."
 allowed-tools: Bash(git *), Bash(pnpm *), Bash(gh *)
 ---
 
@@ -30,25 +30,55 @@ Claude Code fills these in; in Codex, run the commands.
    already ran on this diff, and fix or answer each finding. If a gate fails twice
    on the same error, stop and report it (failure budget in `AGENTS.md`).
    For web UI changes in `gms` or `gaa-admin`, also run `pnpm e2e` (a SKIP
-   means no dev server is running; say so in the recap).
+   means no dev server is running; say so in the recap). Tests, builds,
+   commits and pushes are heavy commands: on the shared machine they run through
+   `~/.local/bin/heavy`, one at a time (the hooks enforce it;
+   `docs/agents/tool-usage.md` → Heavy commands).
 
 3. Stage only authorized changes, preserving unrelated staged and unstaged work.
    Commit with the reviewed message. Do not bypass hooks or force-push.
 
 4. Integrate current `origin/dev` into the task branch, validate the combined
-   result with the checks above, then push the task branch and open a PR into
-   `dev` (`gh pr create --base dev`) with the step 7 recap as its body. Once CI is
-   green on the PR head and the review has no open blocking finding, merge the
-   PR into `dev` yourself so `origin/dev` always has the latest; never push `dev`.
-   First run `gh pr checks <num> --watch --fail-fast` until it exits 0 on that
-   head and post the fresh-context review as a PR comment naming the reviewer;
-   then `gh pr merge <num> --merge --match-head-commit <sha>`. A `risk:high` PR
-   also needs a `security-reviewer` pass with no open finding first.
-   Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before agents merge into dev. PRs that change owner-only paths listed in `AGENTS.md` are left for the owner to merge. If
-   remote dev advances, integrate and revalidate before updating the PR; never
-   force-push. Unattended scheduled runs (`docs/agents/routines.md`) do the same
-   from their `agent/<n>-<slug>` branch. For a cross-tool review first, hand the
-   owner the block from `pnpm agents:handoff`.
+   result with the checks above, then push the task branch; never push to `dev`,
+   and never force-push. If remote dev advances, integrate and revalidate before
+   updating the PR. Unattended scheduled runs (`docs/agents/routines.md`) do the
+   same from their `agent/<n>-<slug>` branch. Then, one command per call, with
+   long text written to a file first (no heredocs, no long inline `--body`):
+   1. Write the step 7 recap to a file and open the PR into `dev`:
+      `gh pr create --base dev --title "<title>" --body-file <file>`.
+   2. Wait for CI: `gh pr checks <num> --watch --fail-fast` until it exits 0 on
+      the PR head.
+   3. Get the fresh-context review of that head, write it to a file and post it,
+      naming the reviewer: `gh pr comment <num> --body-file <file>`. Fix or
+      answer each finding. A `risk:high` PR also needs a clean
+      `security-reviewer` pass, named in the PR body. For a cross-tool review,
+      post the block from `pnpm agents:handoff` as a PR comment the same way.
+   4. Enforcement files (hooks, `.claude/settings.json`, `.codex`, Codex
+      rules, `.github`, rulesets, `.husky`, root `package.json`, guardrail
+      scripts that are not tests): stop after CI and review; the owner merges
+      the PR (the hook refuses an agent merge). Agent-rules files (skills, role
+      briefs, `docs/agents`, guardrail tests, the root `AGENTS.md`): run the
+      `security-reviewer` on the head, and read Codex's GitHub review of that
+      exact head. Only when both are clean, add both lines to the PR body
+      (`gh pr edit <num> --body-file <file>`), each alone on its line with the
+      full 40-character head sha:
+      `Security review: no open findings (<reviewer>, <sha>)` and
+      `Codex review: no blocking findings (<sha>)`. A new push means both
+      reviews and both lines again. No Codex review of that head: stop and say
+      so; do not merge.
+   5. Once CI is green on the head and the review has no open blocking finding,
+      merge it yourself, alone in its command:
+      `gh pr merge <num> --repo Marcus100/grenmet --merge --match-head-commit <full head sha>`.
+   6. Send the owner a phone alert: the PR number, title and link. For a
+      agent-rules PR send a separate alert that lists the files changed.
+      Use `PushNotification` when the session has it; otherwise comment on the
+      open issue labelled `factory-landed`.
+
+   In a cloud session `gh pr` is blocked: use the `gh api` forms in
+   `docs/agents/tool-usage.md` → GitHub from a cloud session (create the PR,
+   list the check runs, comment, and merge with
+   `gh api -X PUT repos/Marcus100/grenmet/pulls/<num>/merge -f sha=<full head sha> -f merge_method=merge`).
+   Full rule: `docs/agents/workflow.md` → Merging into dev.
 
 5. Use PRs for `dev → staging → main` promotion, reusing an existing promotion PR.
    Once the PR is merged into `dev`, stop: say what is now waiting on `dev`. Open

@@ -10,6 +10,7 @@ import asyncio
 import logging
 from collections.abc import Callable
 from datetime import timedelta
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,7 @@ from sqlalchemy import String, cast, exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import email as email_module
+from src import email_layout
 from src.auth.models import User
 from src.email_config import email_settings
 from src.outbox import Outbox
@@ -208,20 +210,26 @@ def _list_headers(row: OutboundEmail) -> dict[str, str] | None:
 
 async def _render_content(
     *, subject: str, html: str | None, template: str | None, props: dict[str, Any]
-) -> tuple[str, str]:
+) -> tuple[str, str, str | None]:
+    """``(subject, html, text)``; ``text`` is None when the template has none."""
     if html is not None:
-        return subject, html
+        return subject, html, None
     name = template or ""
+    if name == email_layout.CARD_TEMPLATE:
+        # Structured mail is rendered here, at delivery, from the stored props.
+        card_rendered = await email_layout.render_card(email_layout.from_props(props))
+        return card_rendered.subject, card_rendered.html, card_rendered.text
     if email_settings.EMAIL_RENDER_URL:
         try:
-            rendered = await email_module.render_remote(name, props)
-            return rendered.subject, rendered.html_content
+            remote = await email_module.render_remote(name, props)
+            return remote.subject, remote.html_content, remote.text_content
         except Exception:  # noqa: BLE001 - any render failure falls back to Jinja
             logger.warning("React Email render failed; using Jinja fallback")
-    return subject, _templates.get_template(_OUTBOUND_JINJA[name]).render(**props)
+    html_out = _templates.get_template(_OUTBOUND_JINJA[name]).render(**props)
+    return subject, html_out, None
 
 
-async def _render_outbound(row: OutboundEmail) -> tuple[str, str]:
+async def _render_outbound(row: OutboundEmail) -> tuple[str, str, str | None]:
     return await _render_content(
         subject=row.subject, html=row.html, template=row.template, props=row.props
     )
@@ -255,20 +263,22 @@ async def send_outbound_row(
         row.status = OutboundEmailStatus.SKIPPED.value
         row.last_error = skip_reason
     else:
-        subject, html = await _render_outbound(row)
+        subject, html, text = await _render_outbound(row)
+        extra: dict[str, Any] = {}
         headers = _list_headers(row)
         if headers:
-            await asyncio.to_thread(
+            extra["headers"] = headers
+        if text:
+            extra["text_content"] = text
+        await asyncio.to_thread(
+            partial(
                 send,
                 email_to=row.to_email,
                 subject=subject,
                 html_content=html,
-                headers=headers,
+                **extra,
             )
-        else:
-            await asyncio.to_thread(
-                send, email_to=row.to_email, subject=subject, html_content=html
-            )
+        )
         row.status = OutboundEmailStatus.SENT.value
         row.sent_at = utc_now()
         row.last_error = None
@@ -295,7 +305,7 @@ async def _deliver_outbound(
         row.props = {}
         return
     try:
-        subject, html = await _render_outbound(row)
+        subject, html, _text = await _render_outbound(row)
         await asyncio.to_thread(
             sender, email_to=row.to_email, subject=subject, html_content=html
         )

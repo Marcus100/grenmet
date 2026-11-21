@@ -48,6 +48,7 @@ import type {
   Profile,
   PublicEvent,
   Refund,
+  RefundTerms,
   Settlement,
   SettlementCounts,
   SettlementSummary,
@@ -127,6 +128,17 @@ export function toGroup(group: ApiGroupSummary): Group {
   };
 }
 
+/** The refund terms the API gives for a listing (snake_case in, domain out). */
+export function toRefundTerms(listing: ListingDetail): RefundTerms {
+  return {
+    policy: listing.refund_policy,
+    cutoffHours: listing.refund_cutoff_hours ?? null,
+    cutoffHoursEffective: listing.refund_cutoff_hours_effective,
+    feeType: listing.cancellation_fee_type,
+    feeValue: listing.cancellation_fee_value,
+  };
+}
+
 export function toEventDetail(listing: ListingDetail): EventDetail {
   return {
     ...toEvent(listing),
@@ -134,6 +146,7 @@ export function toEventDetail(listing: ListingDetail): EventDetail {
     capacity: listing.capacity,
     organiser: toOrganiser(listing.organiser),
     group: listing.group ? toGroup(listing.group) : null,
+    refundTerms: toRefundTerms(listing),
     tiers: listing.tiers.map((tier) => ({
       id: tier.id,
       name: tier.name,

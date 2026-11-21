@@ -2,17 +2,17 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-06-27
+**Last updated:** 2026-11-21
 
-Issues and PRDs for this repo live as GitHub issues in `Marcus100/grenmet`. Use the `gh` CLI for all operations.
+Issues and PRDs for this repo live as GitHub issues in `Marcus100/grenmet`. Use the `gh` CLI for all operations. In a cloud session `gh issue` and `gh pr` are blocked: use the `gh api` REST forms in [tool-usage.md](tool-usage.md) → GitHub from a cloud session.
 
 ## Conventions
 
-- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
+- **Create an issue**: write the body to a file, then `gh issue create --title "..." --body-file <file>`. One command per call; no heredocs or long inline `--body`.
 - **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
 - **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
-- **Comment on an issue**: `gh issue comment <number> --body "..."`
-- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
+- **Comment on an issue**: write the comment to a file, then `gh issue comment <number> --body-file <file>`
+- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`. Who may apply `ready-for-agent`: [triage-labels.md](triage-labels.md).
 - **Close**: `gh issue close <number> --comment "..."`
 
 Infer the repo from `git remote -v` — `gh` does this automatically when run inside a clone.

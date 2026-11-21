@@ -1,5 +1,7 @@
-import { render } from "react-email";
+import type { ReactElement } from "react";
+import { render, toPlainText } from "react-email";
 import { CapAlertEmail, type CapAlertEmailProps } from "./cap-alert";
+import { CardEmail, type CardEmailProps } from "./card";
 import { NewsletterEmail, type NewsletterEmailProps } from "./newsletter";
 import { NotificationEmail, type NotificationEmailProps } from "./notification";
 import {
@@ -21,6 +23,7 @@ import {
 import { WelcomeEmail, type WelcomeEmailProps } from "./welcome";
 
 export type TemplateName =
+  | "card"
   | "cap-alert"
   | "newsletter"
   | "notification"
@@ -33,13 +36,42 @@ export type TemplateName =
 export interface RenderResult {
   html: string;
   subject: string;
+  /** The plain-text part, generated from the same HTML (react-email toPlainText). */
+  text: string;
 }
 
-export async function renderTemplate(
-  template: TemplateName,
-  props: Record<string, unknown>
-): Promise<RenderResult> {
+interface Built {
+  element: ReactElement;
+  subject: string;
+}
+
+function requireFields(
+  template: string,
+  props: Record<string, unknown>,
+  fields: readonly string[]
+): void {
+  const missing = fields.filter((field) => !props[field]);
+  if (missing.length > 0) {
+    throw new Error(`${template} requires ${fields.join(", ")}`);
+  }
+}
+
+function cardProps(props: Record<string, unknown>): CardEmailProps {
+  requireFields("card", props, ["subject", "title", "footer"]);
+  for (const field of ["paragraphs", "rows", "money", "secondary", "policy"]) {
+    if (props[field] !== undefined && !Array.isArray(props[field])) {
+      throw new Error(`card ${field} must be a list`);
+    }
+  }
+  return props as unknown as CardEmailProps;
+}
+
+function build(template: TemplateName, props: Record<string, unknown>): Built {
   switch (template) {
+    case "card": {
+      const p = cardProps(props);
+      return { element: CardEmail(p), subject: p.subject };
+    }
     case "cap-alert": {
       const p = props as unknown as CapAlertEmailProps;
       if (!(p.headline && p.alertLink && p.unsubscribeLink)) {
@@ -48,7 +80,7 @@ export async function renderTemplate(
         );
       }
       return {
-        html: await render(CapAlertEmail(p)),
+        element: CapAlertEmail(p),
         subject: `${p.label}: ${p.headline}`,
       };
     }
@@ -60,16 +92,13 @@ export async function renderTemplate(
         );
       }
       return {
-        html: await render(NewsletterEmail(p)),
+        element: NewsletterEmail(p),
         subject: p.subject || `${p.listName}: ${p.headline}`,
       };
     }
     case "notification": {
       const p = props as unknown as NotificationEmailProps;
-      return {
-        html: await render(NotificationEmail(p)),
-        subject: p.title,
-      };
+      return { element: NotificationEmail(p), subject: p.title };
     }
     case "organisation-invitation": {
       const p = props as unknown as OrganisationInvitationEmailProps;
@@ -79,7 +108,7 @@ export async function renderTemplate(
         );
       }
       return {
-        html: await render(OrganisationInvitationEmail(p)),
+        element: OrganisationInvitationEmail(p),
         subject: `You are invited to join ${p.organisationName}`,
       };
     }
@@ -91,14 +120,15 @@ export async function renderTemplate(
         );
       }
       return {
-        html: await render(SuperuserInvitationEmail(p)),
+        element: SuperuserInvitationEmail(p),
         subject: `You are invited to be an administrator of ${p.projectName}`,
       };
     }
     case "reset-password": {
+      requireFields("reset-password", props, ["resetLink"]);
       const p = props as unknown as ResetPasswordEmailProps;
       return {
-        html: await render(ResetPasswordEmail(p)),
+        element: ResetPasswordEmail(p),
         subject: `${p.projectName} — Reset your password`,
       };
     }
@@ -108,14 +138,14 @@ export async function renderTemplate(
         throw new Error("subscription-confirm requires its links and listName");
       }
       return {
-        html: await render(SubscriptionConfirmEmail(p)),
+        element: SubscriptionConfirmEmail(p),
         subject: `Confirm your subscription to ${p.listName}`,
       };
     }
     case "welcome": {
       const p = props as unknown as WelcomeEmailProps;
       return {
-        html: await render(WelcomeEmail(p)),
+        element: WelcomeEmail(p),
         subject: `Welcome to ${p.projectName}`,
       };
     }
@@ -124,4 +154,18 @@ export async function renderTemplate(
       throw new Error(`Unknown email template: ${_exhaustive}`);
     }
   }
+}
+
+// Headings keep their case in the plain-text part (html-to-text uppercases by default).
+const PLAIN_TEXT_OPTIONS = {
+  selectors: [{ selector: "h1", options: { uppercase: false } }],
+};
+
+export async function renderTemplate(
+  template: TemplateName,
+  props: Record<string, unknown>
+): Promise<RenderResult> {
+  const { element, subject } = build(template, props);
+  const html = await render(element);
+  return { html, subject, text: toPlainText(html, PLAIN_TEXT_OPTIONS) };
 }

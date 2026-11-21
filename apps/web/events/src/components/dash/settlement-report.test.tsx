@@ -90,8 +90,8 @@ describe("SettlementReport", () => {
     render(<SettlementReport report={report} />);
     expect(screen.getByText(DANA_TILL)).toBeInTheDocument();
     expect(screen.getByText("Outlet cash")).toBeInTheDocument();
-    expect(screen.getAllByText("$200.00").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("−$5.00").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("EC$200.00").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("−EC$5.00").length).toBeGreaterThan(0);
   });
 
   it("says so when nothing needs reconciling", () => {

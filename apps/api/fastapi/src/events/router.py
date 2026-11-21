@@ -680,6 +680,35 @@ async def resubmit_organiser(
     return await service.resubmit_organiser(session, user, scope, organiser)
 
 
+@router.patch(
+    "/manage/organiser",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Edit my approved organiser's profile",
+    description=(
+        "Owners and admins of an approved organiser change its public name and bio. "
+        "Send only the fields to change; the slug is fixed and the approval stays. "
+        "Each real change is logged. Pass ?organiser=<slug> when you manage several."
+    ),
+    responses={
+        **_ORGANISER,
+        422: {
+            "model": ApiError,
+            "description": "Invalid profile or organiser not chosen",
+        },
+    },
+)
+async def update_organiser_profile(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    body: schemas.OrganiserProfileUpdate,
+    organiser: _ManagedSlug = None,
+) -> schemas.OrganiserPublic:
+    return await service.update_organiser_profile(session, user, body, scope, organiser)
+
+
 @router.post(
     "/manage/listings",
     response_model=schemas.ManagedListing,
@@ -837,7 +866,7 @@ async def get_settlement_csv(
     response_model=schemas.CancelResult,
     status_code=status.HTTP_200_OK,
     summary="Cancel an event",
-    description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` (default; no money moves) or `follow_policy` (an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.",
+    description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. Money already paid online is always refunded in full; `refund` is accepted for compatibility and ignored. Outlet cash tickets are refunded by hand.",
     responses={
         **_ORGANISER,
         409: {"model": ApiError, "description": "Not a published event"},

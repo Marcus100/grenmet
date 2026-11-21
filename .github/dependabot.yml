@@ -161,6 +161,22 @@ updates:
       - dependency-name: graphql
         update-types:
           - version-update:semver-major
+      # Held until #1437: vite 8.3.8 drops jest-dom matcher types; kubb 5.21
+      # changes the generated client. Lift all three entries when #1437 closes.
+      # Limited to minor and patch version updates so security updates (and
+      # majors, reviewed one by one) still open pull requests.
+      - dependency-name: vite
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-patch
+      - dependency-name: kubb
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-patch
+      - dependency-name: "@kubb/*"
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-patch
     groups:
       npm-minor-patch:
         patterns:

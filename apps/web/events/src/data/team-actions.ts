@@ -1,7 +1,10 @@
 "use server";
 
 import {
+  type InvitationPublic,
+  invitationCreateSchema,
   type MembershipGrantPublic,
+  organisationsCreateInvitation,
   organisationsDeleteMember,
   organisationsGrantMemberRole,
   organisationsListIssuedGrants,
@@ -66,7 +69,8 @@ async function run<T>(
       headers: { "X-Barrels-Organisation": string };
     },
     organisationId: string
-  ) => Promise<T>
+  ) => Promise<T>,
+  onFailure: (error: unknown) => { error: string; ok: false } = failureOf
 ): Promise<ActionResult<T>> {
   const context: OrgContext = await resolveOrgContext();
   if (!context.ok) {
@@ -85,7 +89,7 @@ async function run<T>(
     revalidatePath("/dash/team");
     return { ok: true, data };
   } catch (error) {
-    return failureOf(error);
+    return onFailure(error);
   }
 }
 
@@ -200,4 +204,52 @@ export async function removeMember(
     }).unwrap();
     return removalScope(body);
   });
+}
+
+const INVITE_FALLBACK =
+  "We couldn't send that invitation. Check the address and the role, then try again.";
+const INVITE_UNKNOWN = "We couldn't send that invitation. Try again shortly.";
+
+/**
+ * An invitation refusal shows the API's own sentence (for example "already a
+ * member"), because the Events screen has no wording of its own for it. Other
+ * faults go to Sentry and show a generic line.
+ */
+function inviteFailureOf(error: unknown): { error: string; ok: false } {
+  if (error instanceof ResponseError && error.status === 401) {
+    return refuse(SIGN_IN_REQUIRED);
+  }
+  if (
+    error instanceof ResponseError &&
+    error.status >= 400 &&
+    error.status < 500
+  ) {
+    return refuse(detailOf(error) ?? INVITE_FALLBACK);
+  }
+  reportError(error, "events-team");
+  return refuse(INVITE_UNKNOWN);
+}
+
+/**
+ * Emails a single-use invitation link. Admins invite members and admins; only
+ * owners invite owners (the API decides, and its refusal is shown as sent).
+ * Nothing is logged about the invitee: the address is personal data.
+ */
+export async function inviteMember(
+  input: z.input<typeof invitationCreateSchema>
+): Promise<ActionResult<InvitationPublic>> {
+  const parsed = invitationCreateSchema.safeParse(input);
+  if (!parsed.success) {
+    return refuse(CHECK_FORM);
+  }
+  const body = parsed.data;
+  return await run(
+    async (options, organisationId) =>
+      await organisationsCreateInvitation({
+        ...options,
+        path: { organisation_id: organisationId },
+        body,
+      }).unwrap(),
+    inviteFailureOf
+  );
 }

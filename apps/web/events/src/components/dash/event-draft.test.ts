@@ -1,12 +1,18 @@
 import { describe, expect, it } from "vitest";
 import type { EventDetail } from "@/domain/types";
-import { makeEvent, makeGroup, makeOrganiser } from "@/test/factories";
+import {
+  makeEvent,
+  makeGroup,
+  makeOrganiser,
+  makeRefundTerms,
+} from "@/test/factories";
 import {
   draftFromEvent,
   draftIssues,
   draftToCard,
   draftToUpsert,
   emptyDraft,
+  feeValueOf,
 } from "./event-draft";
 
 const now = new Date("2026-10-03T12:00:00-04:00");
@@ -18,6 +24,7 @@ const sunset: EventDetail = {
   capacity: 1200,
   organiser: makeOrganiser(),
   group: makeGroup(),
+  refundTerms: makeRefundTerms(),
   tiers: [
     {
       id: "11111111-1111-4111-8111-111111111111",
@@ -158,5 +165,82 @@ describe("uncategorised listings (#810)", () => {
     expect(draft.category).toBeNull();
     expect(draftToUpsert(draft, "published")).toHaveProperty("category", null);
     expect(draftToCard(draft).category).toBeNull();
+  });
+});
+
+describe("refund terms", () => {
+  it("maps saved terms into the editor and back to the API fields", () => {
+    const event: EventDetail = {
+      ...sunset,
+      refundTerms: {
+        policy: "refundable",
+        cutoffHours: 168,
+        cutoffHoursEffective: 168,
+        feeType: "fixed",
+        feeValue: 500,
+      },
+    };
+    const draft = draftFromEvent(event);
+    expect(draft).toMatchObject({
+      refundDeadline: "7d",
+      cancellationFeeType: "fixed",
+      cancellationFeeAmount: 5,
+    });
+    expect(draftToUpsert(draft, "draft")).toMatchObject({
+      refund_policy: "refundable",
+      refund_cutoff_hours: 168,
+      cancellation_fee_type: "fixed",
+      cancellation_fee_value: 500,
+    });
+  });
+
+  it("sends the two-day default as a null cutoff and no fee", () => {
+    expect(draftToUpsert(emptyDraft(now), "draft")).toMatchObject({
+      refund_policy: "refundable",
+      refund_cutoff_hours: null,
+      cancellation_fee_type: "none",
+      cancellation_fee_value: 0,
+    });
+  });
+
+  it("sends a custom deadline and a whole percent fee", () => {
+    const draft = {
+      ...emptyDraft(now),
+      refundDeadline: "custom" as const,
+      refundCustomHours: 36,
+      cancellationFeeType: "percent" as const,
+      cancellationFeeAmount: 12.6,
+    };
+    expect(draftToUpsert(draft, "draft")).toMatchObject({
+      refund_cutoff_hours: 36,
+      cancellation_fee_type: "percent",
+      cancellation_fee_value: 13,
+    });
+  });
+
+  it("turns an EC$ fixed fee into minor units and ignores a fee of none", () => {
+    expect(
+      feeValueOf({ cancellationFeeType: "fixed", cancellationFeeAmount: 0.1 })
+    ).toBe(10);
+    expect(
+      feeValueOf({ cancellationFeeType: "none", cancellationFeeAmount: 9 })
+    ).toBe(0);
+    expect(
+      feeValueOf({ cancellationFeeType: "percent", cancellationFeeAmount: 250 })
+    ).toBe(100);
+  });
+
+  it("keeps the saved fee when refunds are switched off", () => {
+    const draft = {
+      ...draftFromEvent(sunset),
+      refundPolicy: "no_refunds" as const,
+      cancellationFeeType: "fixed" as const,
+      cancellationFeeAmount: 2,
+    };
+    expect(draftToUpsert(draft, "draft")).toMatchObject({
+      refund_policy: "no_refunds",
+      cancellation_fee_type: "fixed",
+      cancellation_fee_value: 200,
+    });
   });
 });

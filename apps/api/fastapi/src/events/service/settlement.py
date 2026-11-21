@@ -106,6 +106,7 @@ async def _online_payments(
                 ),
                 func.coalesce(func.sum(Order.collected_minor), 0),
                 func.coalesce(func.sum(Order.refunded_minor), 0),
+                func.coalesce(func.sum(Order.cancellation_fee_kept_minor), 0),
             ).where(
                 Order.listing_id == listing.id,
                 Order.channel == "online",
@@ -113,7 +114,7 @@ async def _online_payments(
             )
         )
     ).one()
-    paid, pending, pending_minor, collected, refunded = (int(v) for v in totals)
+    paid, pending, pending_minor, collected, refunded, kept = (int(v) for v in totals)
     ledger_collected: int | None = None
     ledger_refunded: int | None = None
     organisation_id = await db.scalar(
@@ -134,6 +135,7 @@ async def _online_payments(
         pending_minor=pending_minor,
         collected_minor=collected,
         refunded_minor=refunded,
+        cancellation_fee_kept_minor=kept,
         ledger_collected_minor=ledger_collected,
         ledger_refunded_minor=ledger_refunded,
         reconciled=reconciled,

@@ -13,6 +13,8 @@ import { listingCardPropertiesAdmissionEnumSchema } from "./listingCardPropertie
 import { listingCardPropertiesBookingModeEnumSchema } from "./listingCardPropertiesBookingModeEnumSchema.js";
 import { listingCardPropertiesCurrencyEnumSchema } from "./listingCardPropertiesCurrencyEnumSchema.js";
 import { listingCardPropertiesPricingTypeEnumSchema } from "./listingCardPropertiesPricingTypeEnumSchema.js";
+import { listingDetailPropertiesCancellationFeeTypeEnumSchema } from "./listingDetailPropertiesCancellationFeeTypeEnumSchema.js";
+import { listingDetailPropertiesRefundPolicyEnumSchema } from "./listingDetailPropertiesRefundPolicyEnumSchema.js";
 import { organiserPublicSchema } from "./organiserPublicSchema.js";
 import { personChipSchema } from "./personChipSchema.js";
 import { tierPublicSchema } from "./tierPublicSchema.js";
@@ -57,4 +59,9 @@ export const listingDetailSchema = z.object({
   organiser: organiserPublicSchema,
   group: z.union([groupSummarySchema, z.null()]),
   tiers: z.array(tierPublicSchema),
+  refund_policy: listingDetailPropertiesRefundPolicyEnumSchema,
+  refund_cutoff_hours: z.union([z.int(), z.null()]),
+  refund_cutoff_hours_effective: z.int(),
+  cancellation_fee_type: listingDetailPropertiesCancellationFeeTypeEnumSchema,
+  cancellation_fee_value: z.int(),
 });

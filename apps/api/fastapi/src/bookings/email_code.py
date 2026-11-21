@@ -45,6 +45,7 @@ from redis.asyncio import Redis
 from redis.exceptions import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email_layout as layout
 from src.auth.config import auth_settings
 from src.auth.email_verification import (
     EmailNotVerifiedError,
@@ -293,14 +294,15 @@ async def request_code(
     await store.put(
         f"{_PREFIX}code:{binding.slot}", _mac("code", binding.slot, code), CODE_TTL
     )
-    subject, html = emails.verification_code(
+    message = emails.verification_code(
         business=business, code=code, minutes=CODE_TTL // 60
     )
     await outbox_handlers.enqueue_email(
         session,
         to_email=to_email,
-        subject=subject,
-        html=html,
+        subject=message.subject,
+        template=layout.CARD_TEMPLATE,
+        props=layout.to_props(message),
         transactional=True,
         dedupe_key=f"booking-email-code:{uuid.uuid4().hex}",
         organisation_id=binding.organisation_id,

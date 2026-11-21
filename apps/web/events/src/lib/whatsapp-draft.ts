@@ -1,5 +1,5 @@
 import type { ManagedEvent } from "@/domain/types";
-import { formatTime, grenadaDateKey } from "@/lib/datetime";
+import { formatDayKey, formatTime, grenadaDateKey } from "@/lib/datetime";
 
 const EVENT_SLUG = /^[a-z0-9][a-z0-9-]{1,79}$/u;
 const WHITESPACE = /\s+/gu;
@@ -49,7 +49,15 @@ export function buildWhatsAppDraft(
     return null;
   }
 
-  const when = `${grenadaDateKey(event.startsAt)} at ${formatTime(event.startsAt)} (Grenada time)`;
+  const dayKey = grenadaDateKey(event.startsAt);
+  // The year is added only when it is not this year, so a January event
+  // announced in December is not read as last January.
+  const year = dayKey.slice(0, 4);
+  const day =
+    year === grenadaDateKey(now).slice(0, 4)
+      ? formatDayKey(dayKey)
+      : `${formatDayKey(dayKey)} ${year}`;
+  const when = `${day} at ${formatTime(event.startsAt)} (Grenada time)`;
   const venue = onOneLine(event.venue);
   const facts = [title, when, venue, url.href].filter(Boolean).join("\n");
   const prompt = [

@@ -57,6 +57,9 @@ strength: check all five modules, not just the one you started in.
 
 ## Verification
 
+These are heavy commands: on the shared machine they run through
+`~/.local/bin/heavy`, one at a time (the hooks enforce it).
+
 ```bash
 # From apps/web/gaa-admin
 pnpm vitest run                    # unit tests

@@ -17,6 +17,11 @@ export type SettlementOnlinePayments = {
   pending_minor: number;
   collected_minor: number;
   refunded_minor: number;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  cancellation_fee_kept_minor?: number;
   ledger_collected_minor?: number | null;
   ledger_refunded_minor?: number | null;
   reconciled?: boolean | null;

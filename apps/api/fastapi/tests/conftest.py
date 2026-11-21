@@ -561,6 +561,8 @@ class EmailSendCall(TypedDict):
     html_content: str
     # Present only for mail that carries extra headers (List-Unsubscribe).
     headers: NotRequired[dict[str, str]]
+    # Present only for mail that carries a plain-text part.
+    text_content: NotRequired[str]
 
 
 class EmailSender(Protocol):
@@ -593,6 +595,7 @@ def stub_email_sender(
         subject: str = "",
         html_content: str = "",
         headers: dict[str, str] | None = None,
+        text_content: str | None = None,
     ) -> None:
         call: EmailSendCall = {
             "email_to": email_to,
@@ -601,6 +604,8 @@ def stub_email_sender(
         }
         if headers:
             call["headers"] = headers
+        if text_content:
+            call["text_content"] = text_content
         outbound_email_calls.append(call)
 
     def block_provider(*_args: object, **_kwargs: object) -> None:

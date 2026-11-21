@@ -7,6 +7,7 @@ import Link from "next/link";
 import { DashShell } from "@/components/dash/dash-shell";
 import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
 import { EventFlyer } from "@/components/discovery/event-flyer";
+import { rememberedEvent } from "@/data/event-choice";
 import { getManagedOrganiser } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
 import { PARISH_LABELS, priceLabel } from "@/domain/labels";
@@ -31,21 +32,23 @@ function statusBadge(event: ManagedEvent, now: Date) {
 }
 
 export default async function DashEventsPage() {
-  await requireViewer("/dash/events");
+  const viewer = await requireViewer("/dash/events");
   const managed = await getManagedOrganiser();
   if (!managed) {
     return <NoOrganiserAccess />;
   }
   const { listings, organiser } = managed;
   const now = new Date();
+  const remembered = await rememberedEvent(listings);
 
   return (
     <DashShell
       active="events"
       currentOrganiser={organiser.slug}
+      event={remembered}
       eventName={organiser.name}
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">

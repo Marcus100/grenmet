@@ -299,7 +299,7 @@ describe("verifySignIn", () => {
 
 describe("the no-authenticator answer", () => {
   const MESSAGE =
-    "Add an authenticator at account.barrels.gd first, then sign in here again.";
+    "Add an authenticator at auth.barrels.gd/security first, then sign in here again.";
 
   it("prefers the structured code over the text", () => {
     expect(
