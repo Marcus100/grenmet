@@ -259,11 +259,16 @@ describe("cancelOrder", () => {
       orderId: ORDER,
       refund: "follow_policy",
       reason: "",
+      initiatedBy: "buyer",
     });
     expect(result.ok && result.data.outcome).toBe("queued");
     expect(cancelOrderCall).toHaveBeenCalledWith(
       expect.objectContaining({
-        body: { refund: "follow_policy", reason: null },
+        body: {
+          refund: "follow_policy",
+          reason: null,
+          initiated_by: "buyer",
+        },
       })
     );
   });
@@ -273,6 +278,7 @@ describe("cancelOrder", () => {
       orderId: ORDER,
       refund: "everything" as never,
       reason: "",
+      initiatedBy: "organiser",
     });
     expect(result.ok).toBe(false);
     expect(cancelOrderCall).not.toHaveBeenCalled();
@@ -293,7 +299,7 @@ describe("cancelEventWithRefund", () => {
         orders_released: 3,
       })
     );
-    const result = await cancelEventWithRefund(ORDER, "full");
+    const result = await cancelEventWithRefund(ORDER);
     expect(result).toEqual({
       ok: true,
       data: {
@@ -316,7 +322,7 @@ describe("cancelEventWithRefund", () => {
   it("never retries a refused org-zone cancel through the legacy route", async () => {
     for (const status of [403, 404]) {
       cancelEventCall.mockReturnValue(failing(responseError(status, {})));
-      const result = await cancelEventWithRefund(ORDER, "follow_policy");
+      const result = await cancelEventWithRefund(ORDER);
       expect(result).toEqual({
         ok: false,
         error: CANCEL_FORBIDDEN,
@@ -339,7 +345,7 @@ describe("cancelEventWithRefund", () => {
         tickets_cancelled: 2,
       })
     );
-    const result = await cancelEventWithRefund(ORDER, "full");
+    const result = await cancelEventWithRefund(ORDER);
     expect(result).toMatchObject({
       ok: true,
       data: { ticketsCancelled: 2, ordersQueued: 0 },

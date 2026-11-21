@@ -23,13 +23,18 @@ import {
   refundOrder,
 } from "@/data/order-actions";
 import { parseMinor } from "@/domain/money";
+import type { RefundTerms } from "@/domain/types";
 import {
+  CANCEL_INITIATOR_CHOICES,
+  type CancelInitiator,
   COULDNT_CONFIRM,
   cancelOutcomeMessage,
+  defaultRefundFor,
   formatOrderMoneyCode,
-  REFUND_CHOICES,
   type RefundChoice,
+  refundChoicesFor,
 } from "@/lib/org-orders";
+import { buyerCancelMayKeepMoney } from "@/lib/refund-terms";
 import { useIdempotencyKey } from "@/lib/use-idempotency-key";
 import { RefundChoiceGroup } from "./refund-choice";
 
@@ -122,7 +127,17 @@ function LockNotice({ onRelease }: { onRelease: () => void }) {
  * Idempotency-Key that is kept across a timeout or server fault and rotated
  * after a refusal or a success.
  */
-export function OrderActions({ order }: { order: OrgOrderDetail }) {
+export function OrderActions({
+  order,
+  refundTerms,
+  startsAt,
+}: {
+  order: OrgOrderDetail;
+  /** The event's refund terms, which a buyer's cancel follows. */
+  refundTerms: RefundTerms;
+  /** The event start (ISO 8601), to tell whether a buyer's cancel is inside the cutoff. */
+  startsAt: string;
+}) {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const report: Report = {
@@ -183,7 +198,12 @@ export function OrderActions({ order }: { order: OrgOrderDetail }) {
           }
           title="Cancel order"
         >
-          <CancelOrderForm order={order} report={report} />
+          <CancelOrderForm
+            order={order}
+            refundTerms={refundTerms}
+            report={report}
+            startsAt={startsAt}
+          />
         </Panel>
       </div>
     </div>
@@ -481,26 +501,80 @@ function RefundForm({
   );
 }
 
+/** Which refund choices are off for a cancel: outlet cash only takes "do not refund"; an organiser's cancel never follows the buyer's terms. */
+function refundsDisabled(
+  outletCash: boolean,
+  initiator: CancelInitiator
+): readonly RefundChoice[] {
+  if (outletCash) {
+    return ["follow_policy", "full"];
+  }
+  return initiator === "organiser" ? ["follow_policy"] : [];
+}
+
 function CancelOrderForm({
   order,
+  refundTerms,
   report,
+  startsAt,
 }: {
   order: OrgOrderDetail;
+  refundTerms: RefundTerms;
   report: Report;
+  startsAt: string;
 }) {
   const router = useRouter();
   const { pending, perform } = useMemberAction(COULDNT_CONFIRM);
   const outletCash = order.payment_method === "cash_outlet";
+  const [initiator, setInitiator] = useState<CancelInitiator>("organiser");
   const [refund, setRefund] = useState<RefundChoice>(
-    outletCash ? "none" : "follow_policy"
+    defaultRefundFor("organiser", outletCash)
   );
   const [reason, setReason] = useState("");
+  const [reasonError, setReasonError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+
+  const choices = refundChoicesFor(refundTerms, initiator);
+  // Outlet cash is handed back by hand; an organiser's cancel never follows the
+  // buyer's terms.
+  const disabledValues = refundsDisabled(outletCash, initiator);
+
+  function chooseInitiator(next: CancelInitiator) {
+    setInitiator(next);
+    setRefund(defaultRefundFor(next, outletCash));
+    setReasonError(null);
+  }
+
+  /** Keeping money needs a reason: always for "Do not refund", and for a buyer's cancel the terms may keep. */
+  function keepsSomeMoney(): boolean {
+    if (refund === "none") {
+      return true;
+    }
+    return (
+      initiator === "buyer" &&
+      refund === "follow_policy" &&
+      buyerCancelMayKeepMoney(refundTerms, startsAt, new Date())
+    );
+  }
+
+  function review() {
+    if (keepsSomeMoney() && reason.trim() === "") {
+      setReasonError("Give a reason, because some of the money is kept.");
+      return;
+    }
+    setReasonError(null);
+    setOpen(true);
+  }
 
   async function confirm() {
     report.clear();
     const result = await perform(() =>
-      cancelOrder({ orderId: order.id, refund, reason })
+      cancelOrder({
+        orderId: order.id,
+        refund,
+        reason,
+        initiatedBy: initiator,
+      })
     );
     setOpen(false);
     if (result.ok) {
@@ -521,15 +595,22 @@ function CancelOrderForm({
       className="space-y-3"
       onSubmit={(event) => {
         event.preventDefault();
-        setOpen(true);
+        review();
       }}
     >
       <RefundChoiceGroup
-        disabledValues={outletCash ? ["follow_policy", "full"] : []}
+        legend="Who asked for the cancellation?"
+        name={`cancel-initiator-${order.id}`}
+        onChange={chooseInitiator}
+        options={CANCEL_INITIATOR_CHOICES}
+        value={initiator}
+      />
+      <RefundChoiceGroup
+        disabledValues={disabledValues}
         legend="What happens to the money"
         name={`cancel-refund-${order.id}`}
         onChange={setRefund}
-        options={REFUND_CHOICES}
+        options={choices}
         value={refund}
       />
       {outletCash ? (
@@ -540,16 +621,25 @@ function CancelOrderForm({
       ) : null}
       <Field>
         <FieldLabel htmlFor={`cancel-reason-${order.id}`}>
-          Reason (optional)
+          {refund === "none" ? "Reason (required)" : "Reason (optional)"}
         </FieldLabel>
         <Input
+          aria-invalid={reasonError ? true : undefined}
           className="min-h-11"
           id={`cancel-reason-${order.id}`}
           maxLength={300}
-          onChange={(event) => setReason(event.target.value)}
+          onChange={(event) => {
+            setReason(event.target.value);
+            setReasonError(null);
+          }}
           value={reason}
         />
       </Field>
+      {reasonError ? (
+        <p className="text-body text-destructive" role="alert">
+          {reasonError}
+        </p>
+      ) : null}
       <Button
         className="min-h-11"
         disabled={pending}
@@ -563,10 +653,7 @@ function CancelOrderForm({
           <AlertDialogTitle>Cancel this order?</AlertDialogTitle>
           <AlertDialogDescription>
             Its tickets stop working and the seats go back on sale.{" "}
-            {
-              REFUND_CHOICES.find((choice) => choice.value === refund)
-                ?.description
-            }
+            {choices.find((choice) => choice.value === refund)?.description}
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep order</AlertDialogCancel>

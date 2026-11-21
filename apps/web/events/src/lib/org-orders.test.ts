@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { makeRefundTerms } from "@/test/factories";
 import {
   cancelOutcomeMessage,
+  defaultRefundFor,
   formatOrderMoneyCode,
   friendlyOrgError,
   humanise,
@@ -10,6 +12,7 @@ import {
   orderBadge,
   orderStatus,
   pageParam,
+  refundChoicesFor,
   refundStatus,
 } from "./org-orders";
 
@@ -162,5 +165,25 @@ describe("friendlyOrgError wording", () => {
 describe("422 validation details", () => {
   it("gives a validation message", () => {
     expect(friendlyOrgError(422, null)).toMatch(VALIDATION);
+  });
+});
+
+describe("cancel refund choices", () => {
+  it("starts an organiser's cancel on a full refund and a buyer's on the policy", () => {
+    expect(defaultRefundFor("organiser", false)).toBe("full");
+    expect(defaultRefundFor("buyer", false)).toBe("follow_policy");
+    expect(defaultRefundFor("buyer", true)).toBe("none");
+  });
+
+  it("describes the event's terms for a buyer and says the policy is buyer-only for us", () => {
+    const terms = makeRefundTerms({ cutoffHoursEffective: 168 });
+    const forBuyer = refundChoicesFor(terms, "buyer");
+    const forOrganiser = refundChoicesFor(terms, "organiser");
+    expect(forBuyer[0]?.description).toBe(
+      "Full refunds until 7 days before the event."
+    );
+    expect(forOrganiser[0]?.description).toBe(
+      "Only applies when the buyer asked for the cancel."
+    );
   });
 });
