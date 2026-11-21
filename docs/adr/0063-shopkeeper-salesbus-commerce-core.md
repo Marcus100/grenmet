@@ -306,6 +306,25 @@ pilot businesses.
      shared product list suggestions, are off unless the owner opts in. There
      is no advertising, no selling of data, and no use of business data to
      train AI models.
+
+   **Barrels does the work, the business keeps the control (owner, 21 Nov
+   2026).** Barrels handles everything it can to make running the business
+   easier, without needing to look at the business's data:
+   - running, hosting, updates, security fixes and monitoring of the apps;
+   - automatic backups and restore drills;
+   - sync between phones and the laptop, and recovery of entries stuck on a
+     phone;
+   - VAT arithmetic, receipt and invoice numbering, and tax-ready sales and VAT
+     summaries the owner can hand to an accountant or Inland Revenue;
+   - credit reminders, low-stock and expiry alerts, and reorder suggestions,
+     worked out automatically;
+   - keeping the shared product list (names, barcodes, sizes) so owners type
+     less;
+   - setting up new shops and tills, and importing an existing product list.
+
+   Anything that needs a person at Barrels to see the business's own records
+   (for example fixing a wrong stock history) happens only under a support grant
+   the owner gives (decision 2.7).
 10. **Tests that prove the isolation,** in `tests/commerce/`, written before the
     routes they guard:
     - a tenancy inventory that fails if a commerce model lacks
