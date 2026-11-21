@@ -14,6 +14,9 @@ from src import email_layout as layout
 from src.email_config import email_settings
 from src.notifications import dispatch
 
+# A transactional row never reads the session (no suppression lookup).
+NO_SESSION: Any = None
+
 
 def _row() -> Any:
     card = layout.with_subject(
@@ -63,7 +66,7 @@ async def test_card_row_is_sent_once_with_html_and_text_when_render_service_is_d
         sent.append(kwargs)
 
     row = _row()
-    await dispatch.send_outbound_row(None, row, attempts=1, sender=record)  # type: ignore[arg-type]
+    await dispatch.send_outbound_row(NO_SESSION, row, attempts=1, sender=record)
 
     assert len(sent) == 1
     mail = sent[0]
@@ -98,7 +101,7 @@ async def test_card_row_uses_the_render_service_result_and_passes_its_text(
     def record(**kwargs: Any) -> None:
         sent.append(kwargs)
 
-    await dispatch.send_outbound_row(None, _row(), attempts=1, sender=record)  # type: ignore[arg-type]
+    await dispatch.send_outbound_row(NO_SESSION, _row(), attempts=1, sender=record)
 
     assert len(sent) == 1
     assert sent[0]["subject"] == "Rendered subject"

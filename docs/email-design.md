@@ -1,5 +1,9 @@
 # Customer email standard
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-11-21
+
 React Email is the single design source for every email. The shared layout is
 `EmailLayout` in `packages/email-templates/src/components/layout.tsx`; the generic
 card template is `card` (`src/card.tsx`). Python never writes email markup by

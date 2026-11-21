@@ -1,7 +1,7 @@
-import { Body, Head, Html, Preview } from "react-email";
+import { Body, Head, Html, Img, Preview } from "react-email";
 
 /**
- * The house email layout (docs/design/email.md): page background, white 600px
+ * The house email layout (docs/email-design.md): page background, white 600px
  * card, eyebrow, status chip, title, greeting, paragraphs, a code block, details
  * rows, money rows, one primary button, secondary buttons, a copy-the-link line,
  * policy lines, a quiet paragraph, a divider and a footer.
@@ -136,6 +136,10 @@ function Button({
 }) {
   const background = primary ? accent : "#ffffff";
   const text = primary ? "#ffffff" : accent;
+  const href = safeUrl(action.url);
+  if (!href) {
+    return null;
+  }
   return (
     <table
       border={0}
@@ -158,7 +162,7 @@ function Button({
             }}
           >
             <a
-              href={action.url}
+              href={href}
               style={{
                 display: "block",
                 lineHeight: "20px",
@@ -198,8 +202,8 @@ function Details({ rows }: { rows: CardRow[] }) {
           <tr key={`${row.label}:${row.value}`}>
             <td
               style={{
-                width: 120,
-                padding: "10px 16px 10px 0",
+                width: 88,
+                padding: "10px 12px 10px 0",
                 borderTop: "1px solid #e5e7eb",
                 color: "#6b7280",
                 fontFamily: FONT,
@@ -358,9 +362,7 @@ export function EmailLayout(props: EmailLayoutProps) {
                         }}
                       >
                         {logo ? (
-                          // biome-ignore lint/performance/noImgElement: email clients need a plain img, not next/image
-                          // biome-ignore lint/correctness/useImageSize: logos vary in shape; height is fixed and width follows
-                          <img
+                          <Img
                             alt={logo.alt}
                             height={40}
                             src={logo.url}

@@ -420,7 +420,7 @@ def _rows(rows: tuple[Row, ...]) -> str:
         return ""
     body = "".join(
         "<tr>"
-        '<td valign="top" style="width:120px;padding:10px 16px 10px 0;'
+        '<td valign="top" style="width:88px;padding:10px 12px 10px 0;'
         "border-top:1px solid #e5e7eb;color:#6b7280;font-family:"
         f'{_FONT};font-size:13px;line-height:20px;">{_t(row.label)}</td>'
         '<td valign="top" style="padding:10px 0;border-top:1px solid #e5e7eb;'

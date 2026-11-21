@@ -375,7 +375,7 @@ async def test_unverified_self_registered_account_is_cleared_before_the_grant(
 async def test_fallback_email_carries_the_link_and_escapes_the_inviter() -> None:
     from src.notifications.dispatch import _render_content
 
-    _, html = await _render_content(
+    _, html, _text = await _render_content(
         subject="s",
         html=None,
         template="superuser-invitation",

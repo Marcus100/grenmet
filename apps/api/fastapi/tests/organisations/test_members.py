@@ -603,7 +603,7 @@ async def test_invitation_email_renders_through_the_jinja_fallback():
         },
         transactional=True,
     )
-    subject, html = await _render_outbound(row)
+    subject, html, _text = await _render_outbound(row)
     assert "Acme &amp; Co" in html
     assert "organisations/accept?token=abc" in html
     assert "expires in 7 days" in html

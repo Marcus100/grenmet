@@ -8,6 +8,7 @@ nothing here knows a site's address. No ticket codes or QR tokens appear here; t
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from src import email_layout as layout
@@ -125,9 +126,9 @@ def _footer(mail: BookingEmail, why: str) -> str:
     return f"{why} Contact {mail.business} about this booking."
 
 
-def _card(mail: BookingEmail, **fields: object) -> layout.EmailCard:
+def _card(mail: BookingEmail, **fields: Any) -> layout.EmailCard:
     """A customer card for this booking; ``fields`` override the defaults."""
-    base: dict[str, object] = {
+    base: dict[str, Any] = {
         "eyebrow": mail.business,
         "greeting": f"Hello {layout.first_name(mail.customer_name)},",
         "rows": _rows(mail),
@@ -136,7 +137,7 @@ def _card(mail: BookingEmail, **fields: object) -> layout.EmailCard:
         ),
     }
     base.update(fields)
-    return layout.EmailCard(**base)  # type: ignore[arg-type]
+    return layout.EmailCard(**base)
 
 
 def verification_code(*, business: str, code: str, minutes: int) -> layout.EmailCard:
