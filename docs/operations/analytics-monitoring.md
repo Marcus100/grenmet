@@ -220,7 +220,9 @@ and Elections give their slots to CMS, Events and Bookings, which are
 server-hosted and transactional. Paused monitors still count against the plan,
 so first delete the three old monitors in Better Stack (IDs 5237467 GMS docs,
 5237469 Signal, 5237470 Elections; the plan refuses the creates until they are
-gone), then run the preview and apply above and adopt the three new IDs.
+gone), then run the preview and apply above and adopt the three new IDs. Until
+then, and for the three retired sites afterwards, the probe runner is their only
+uptime check. Unpause the new monitors as the Apply paragraph says.
 
 **Secrets (production GitHub environment):** `BETTERSTACK_API_TOKEN`,
 `PROBE_HEARTBEAT_URL`, `WORKER_HEARTBEAT_URL` (copy the

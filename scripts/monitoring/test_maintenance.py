@@ -385,6 +385,16 @@ class ProviderTests(unittest.TestCase):
             )
         adopted = [r for r in active if "id" in r]
         pending = [r for r in active if "id" not in r]
+        # Only these are waiting to be created (owner swap, 21 Nov 2026), so an
+        # adopted monitor that lost its ID fails here. Empty once IDs are adopted.
+        self.assertLessEqual(
+            {r["settings"]["pronounceable_name"] for r in pending},
+            {
+                "Production · CMS readiness",
+                "Production · Events health",
+                "Production · Bookings health",
+            },
+        )
         ids = [r["id"] for r in adopted]
         self.assertEqual(len(ids), len(set(ids)))
 
