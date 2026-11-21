@@ -23,11 +23,13 @@ import logging
 import uuid
 from datetime import datetime
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, literal, select, tuple_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.notifications.config import notification_settings
 from src.notifications.outbox_handlers import enqueue_email
+from src.payments.models import ProviderKey, Refund, RefundStatus
 from src.utils.datetime import utc_now
 
 from . import emails, order_payments, rewards_hook, tickets, transitions
@@ -200,14 +202,85 @@ async def fulfil_paid(
     return outcome
 
 
+async def _queue_refund_receipt(
+    db: AsyncSession,
+    order: Order,
+    organisation_id: str,
+    intent_id: uuid.UUID,
+    intent_provider: str,
+    refund_id: uuid.UUID,
+    *,
+    captured_minor: int,
+) -> None:
+    """Email the buyer one receipt per refund. The dedupe key is the refund id, so
+    the inline manual path and the ``events.order_refunded`` reaction (and any
+    replay) queue it once. Skipped when the refund is unknown to the order's intent,
+    the refund has not settled (a provider refund is pending until the provider
+    confirms it; that confirmation replays this call) or the buyer has no
+    deliverable email."""
+    if order.user_id is None:
+        return
+    refund = await db.get(Refund, refund_id)
+    if (
+        refund is None
+        or refund.intent_id != intent_id
+        or refund.status != RefundStatus.SUCCEEDED.value
+    ):
+        return  # a pending or failed refund has not settled: no receipt yet
+    # "Whole order" only when THIS refund brought the settled total up to what was
+    # paid: refunds count in creation order, so an earlier partial refund keeps its
+    # partial wording even when a later one completed the order first.
+    settled_through = await db.scalar(
+        select(func.coalesce(func.sum(Refund.amount_minor), 0)).where(
+            Refund.intent_id == intent_id,
+            Refund.status == RefundStatus.SUCCEEDED.value,
+            tuple_(Refund.created_at, Refund.id)
+            <= tuple_(literal(refund.created_at), literal(refund.id)),
+        )
+    )
+    full = captured_minor > 0 and (settled_through or 0) >= captured_minor
+    buyer = await db.get(User, order.user_id)
+    listing = await db.get(Listing, order.listing_id)
+    if (
+        buyer is None
+        or listing is None
+        or not buyer.email
+        or not notification_settings.email_allowed(buyer.email)
+    ):
+        return
+    subject, body = emails.order_refunded(
+        buyer_name=buyer.first_name,
+        title=listing.title,
+        order_ref=str(order.id)[:8].upper(),
+        refund_minor=refund.amount_minor,
+        currency=order.currency,
+        full=full,
+        card=intent_provider != ProviderKey.MANUAL,
+        event_cancelled=listing.status == "cancelled",
+    )
+    await enqueue_email(
+        db,
+        to_email=buyer.email,
+        subject=subject,
+        html=body,
+        transactional=True,
+        dedupe_key=f"events-order-refunded:{refund_id}",
+        organisation_id=organisation_id,
+    )
+
+
 async def apply_refund(
     db: AsyncSession,
     *,
     organisation_id: str,
     order_id: uuid.UUID,
+    refund_id: uuid.UUID | None = None,
 ) -> str:
     """A refund was recorded on the order's intent. Returns ``refunded`` (tickets
-    cancelled), ``partial``, ``duplicate`` or ``ignored``."""
+    cancelled), ``partial``, ``duplicate`` or ``ignored``.
+
+    With ``refund_id`` the buyer also gets that refund's receipt email (queued on
+    every replay, deduplicated by the refund id)."""
     now = utc_now()
     order = await _locked_order(db, order_id)
     if order is None or not _is_online_paid(order):
@@ -241,6 +314,16 @@ async def apply_refund(
         await rewards_hook.reverse_for_tickets(db, refunded_ids)
         if order.status == OrderStatus.CONFIRMED.value:
             move_order(order, "refund")
+    if refund_id is not None:
+        await _queue_refund_receipt(
+            db,
+            order,
+            organisation_id,
+            intent.id,
+            intent.provider,
+            refund_id,
+            captured_minor=intent.captured_minor,
+        )
     return outcome
 
 

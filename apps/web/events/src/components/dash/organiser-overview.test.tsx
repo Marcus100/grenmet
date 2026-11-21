@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { ManagedEvent } from "@/domain/types";
-import { makeEvent, makeOrganiser } from "@/test/factories";
+import { makeManagedEvent, makeOrganiser } from "@/test/factories";
 import { countListings, OrganiserOverview } from "./organiser-overview";
 
 vi.mock("next/navigation", () => ({
@@ -22,17 +22,7 @@ const NEW_EVENT_LABEL = /New event/u;
 const NOW = new Date("2026-10-17T12:00:00Z");
 
 function managed(overrides: Partial<ManagedEvent>): ManagedEvent {
-  const base = makeEvent({ id: "evt-x", title: "Untitled" });
-  return {
-    ...base,
-    capacity: 100,
-    group: null,
-    organiser: makeOrganiser(),
-    status: "published",
-    tiers: [],
-    visibility: "public",
-    ...overrides,
-  };
+  return makeManagedEvent({ id: "evt-x", title: "Untitled", ...overrides });
 }
 
 const listings: ManagedEvent[] = [

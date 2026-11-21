@@ -43,7 +43,7 @@ describe("SkyDayStrip", () => {
   it("shows the maximum and minimum for a day with a forecast", () => {
     renderStrip([day({})]);
     const tab = screen.getByRole("link", { name: FRIDAY });
-    expect(within(tab).getByText("31°")).toBeInTheDocument();
+    expect(within(tab).getByText("31°C")).toBeInTheDocument();
     expect(within(tab).getByText("25°")).toBeInTheDocument();
     expect(within(tab).queryByText("No forecast yet")).not.toBeInTheDocument();
   });
@@ -114,7 +114,7 @@ describe("SkyDayStrip", () => {
     expect(tab).not.toHaveTextContent("—");
     expect(tab).not.toHaveTextContent("Fri");
     // The low is shown once, on top.
-    expect(within(tab).getAllByText("25°")).toHaveLength(1);
+    expect(within(tab).getAllByText("25°C")).toHaveLength(1);
   });
 
   it("treats only today with a low and no high as tonight", () => {

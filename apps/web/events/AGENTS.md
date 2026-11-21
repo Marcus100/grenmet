@@ -28,7 +28,10 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
   `data/viewer.ts` gives `getViewer()` (guest stand-in when signed out) and
   `requireViewer(returnTo)` for member pages.
 - Client components run writes through `useMemberAction`; visitors are sent to
-  `/sign-in?returnTo=…`. Expected 4xx show the API's message; others go to Sentry.
+  `/sign-in?returnTo=…` with a full-page load (`goToSignIn`, `lib/navigation.ts`).
+  Never link to `/sign-in` with `next/link` or `router.push`: `/sign-in` redirects to
+  the account host, and a client fetch of that redirect fails the connect-src check.
+  Expected 4xx show the API's message; others go to Sentry.
 - A 404 from the API is `null`; any other read failure throws to `error.tsx`.
 - **404s and streaming:** `(public)/loading.tsx` begins the response before a page's `notFound()` runs, so that status is 200. `src/proxy.ts` therefore answers a full page load of `/events/<slug>` for a missing event (`lib/event-exists.ts`, answers kept briefly) with the server-rendered not-found page and status 404; client navigations (`RSC` header) keep the page's own `notFound()`. A new page under `/events/` must be added to `EVENTS_PAGES` (`proxy.test.ts` enforces it). Groups, organisers and people pages still answer 200 when missing.
 - Refusals the web must tell apart carry a stable `code` next to `detail` (`ATTEMPT_EXPIRED`, `CARD_PAYMENT_UNAVAILABLE`, `EVENTS_NOT_ENABLED`, `ORGANISATION_NOT_REJECTED`, `UPLOADS_NOT_CONFIGURED`; `data/error-code.ts`). Match on the code, never on the English wording; raise it with `code=` on `EventsForbidden` / `EventsConflict`, or set `self.extra["code"]` in an exception subclass.

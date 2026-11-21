@@ -3,18 +3,18 @@ import { secondaryButtonClass, textLinkClass } from "@/components/form-styles";
 import { signInPath } from "@/lib/sign-in-links";
 
 /**
- * "Continue with Google". No prefetch: /google/start redirects to Google, and a
- * prefetch of it fails CORS and logs a console error on every visit.
+ * "Continue with Google". A plain link: /google/start redirects to Google, so a
+ * client-side navigation would fetch a cross-origin redirect (it fails
+ * connect-src and CORS rejects it). A full page load goes straight to Google.
  */
 export function GoogleSignInLink({ returnTo }: { returnTo: string | null }) {
   return (
-    <Link
+    <a
       className={secondaryButtonClass}
       href={signInPath("/google/start", { returnTo })}
-      prefetch={false}
     >
       Continue with Google
-    </Link>
+    </a>
   );
 }
 

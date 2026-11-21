@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  APP_SOURCES,
   buildContentSecurityPolicy,
+  type CspApp,
   contentSecurityPolicyHeaders,
   sentryReporting,
 } from "./content-security-policy";
@@ -10,16 +12,16 @@ const REPORT =
   "https://o1.ingest.sentry.io/api/4507/security/?sentry_key=abc123&sentry_environment=production";
 
 const GA_CONNECT =
-  "https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com";
+  "https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://www.google.com";
 
 function expected(sentry: boolean): string {
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://challenges.cloudflare.com",
+    "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.googletagmanager.com https://challenges.cloudflare.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com",
     "font-src 'self'",
-    `connect-src 'self' ${GA_CONNECT} https://challenges.cloudflare.com${sentry ? " https://o1.ingest.sentry.io" : ""}`,
+    `connect-src 'self' https://cloudflareinsights.com ${GA_CONNECT} https://challenges.cloudflare.com${sentry ? " https://o1.ingest.sentry.io" : ""}`,
     "frame-src https://challenges.cloudflare.com",
     "object-src 'none'",
     "base-uri 'self'",
@@ -133,11 +135,11 @@ describe("bookings policy", () => {
   function expectedBookings(sentry: boolean): string {
     return [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+      "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self'",
-      `connect-src 'self' https://challenges.cloudflare.com${sentry ? " https://o1.ingest.sentry.io" : ""}`,
+      `connect-src 'self' https://cloudflareinsights.com https://challenges.cloudflare.com${sentry ? " https://o1.ingest.sentry.io" : ""}`,
       "frame-src https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
@@ -191,11 +193,11 @@ describe("mbia policy (GA4 plus the contact form's Turnstile)", () => {
     ).toBe(
       [
         "default-src 'self'",
-        `script-src 'self' 'unsafe-inline' ${GA_SCRIPT} ${TURNSTILE}`,
+        `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com ${GA_SCRIPT} ${TURNSTILE}`,
         "style-src 'self' 'unsafe-inline'",
         `img-src 'self' data: blob: ${GA_IMG}`,
         "font-src 'self'",
-        `connect-src 'self' ${GA_CONNECT} ${TURNSTILE} ${SENTRY_CONNECT}`,
+        `connect-src 'self' https://cloudflareinsights.com ${GA_CONNECT} ${TURNSTILE} ${SENTRY_CONNECT}`,
         `frame-src ${TURNSTILE}`,
         "object-src 'none'",
         "base-uri 'self'",
@@ -210,11 +212,11 @@ describe("mbia policy (GA4 plus the contact form's Turnstile)", () => {
     expect(buildContentSecurityPolicy({ app: "mbia" })).toBe(
       [
         "default-src 'self'",
-        `script-src 'self' 'unsafe-inline' ${GA_SCRIPT} ${TURNSTILE}`,
+        `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com ${GA_SCRIPT} ${TURNSTILE}`,
         "style-src 'self' 'unsafe-inline'",
         `img-src 'self' data: blob: ${GA_IMG}`,
         "font-src 'self'",
-        `connect-src 'self' ${GA_CONNECT} ${TURNSTILE}`,
+        `connect-src 'self' https://cloudflareinsights.com ${GA_CONNECT} ${TURNSTILE}`,
         `frame-src ${TURNSTILE}`,
         "object-src 'none'",
         "base-uri 'self'",
@@ -236,11 +238,11 @@ describe("elections policy (GA4 only, no forms)", () => {
     ).toBe(
       [
         "default-src 'self'",
-        `script-src 'self' 'unsafe-inline' ${GA_SCRIPT}`,
+        `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com ${GA_SCRIPT}`,
         "style-src 'self' 'unsafe-inline'",
         `img-src 'self' data: blob: ${GA_IMG}`,
         "font-src 'self'",
-        `connect-src 'self' ${GA_CONNECT} ${SENTRY_CONNECT}`,
+        `connect-src 'self' https://cloudflareinsights.com ${GA_CONNECT} ${SENTRY_CONNECT}`,
         "frame-src 'none'",
         "object-src 'none'",
         "base-uri 'self'",
@@ -255,11 +257,11 @@ describe("elections policy (GA4 only, no forms)", () => {
     expect(buildContentSecurityPolicy({ app: "elections" })).toBe(
       [
         "default-src 'self'",
-        `script-src 'self' 'unsafe-inline' ${GA_SCRIPT}`,
+        `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com ${GA_SCRIPT}`,
         "style-src 'self' 'unsafe-inline'",
         `img-src 'self' data: blob: ${GA_IMG}`,
         "font-src 'self'",
-        `connect-src 'self' ${GA_CONNECT}`,
+        `connect-src 'self' https://cloudflareinsights.com ${GA_CONNECT}`,
         "frame-src 'none'",
         "object-src 'none'",
         "base-uri 'self'",
@@ -274,11 +276,11 @@ describe("babydoll policy (no analytics, Turnstile on /book)", () => {
   // Babydoll has no Sentry, so there is no reporting endpoint.
   const BABYDOLL_POLICY = [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline' ${TURNSTILE}`,
+    `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com ${TURNSTILE}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    `connect-src 'self' ${TURNSTILE}`,
+    `connect-src 'self' https://cloudflareinsights.com ${TURNSTILE}`,
     `frame-src ${TURNSTILE}`,
     "object-src 'none'",
     "base-uri 'self'",
@@ -358,12 +360,15 @@ function policyWith(extras: Extras, sentry: boolean): string {
     extra ? `${base} ${extra}` : base;
   return [
     "default-src 'self'",
-    add("script-src 'self' 'unsafe-inline'", extras.script),
+    add(
+      "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+      extras.script
+    ),
     "style-src 'self' 'unsafe-inline'",
     add("img-src 'self' data: blob:", extras.img),
     "font-src 'self'",
     add(
-      add("connect-src 'self'", extras.connect),
+      add("connect-src 'self' https://cloudflareinsights.com", extras.connect),
       sentry ? SENTRY_CONNECT : ""
     ),
     `frame-src ${extras.frame || "'none'"}`,
@@ -445,11 +450,11 @@ describe("Report-Only policies for admin, auth, cap, cms, events, gaa-admin, gms
       expect(buildContentSecurityPolicy({ app })).toBe(
         [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline'",
+          "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: blob:",
           "font-src 'self'",
-          "connect-src 'self'",
+          "connect-src 'self' https://cloudflareinsights.com",
           "frame-src 'none'",
           "object-src 'none'",
           "base-uri 'self'",
@@ -458,5 +463,53 @@ describe("Report-Only policies for admin, auth, cap, cms, events, gaa-admin, gms
         ].join("; ")
       );
     }
+  });
+});
+
+/** Splits a serialised policy into directive name -> source tokens. */
+function directivesOf(policy: string): Record<string, string[]> {
+  return Object.fromEntries(
+    policy.split("; ").map((directive) => {
+      const [name, ...sources] = directive.split(" ");
+      return [name, sources];
+    })
+  );
+}
+
+const CSP_APPS = Object.keys(APP_SOURCES) as CspApp[];
+
+describe("shared Cloudflare Web Analytics sources", () => {
+  it.each(CSP_APPS)(
+    "%s allows the Cloudflare beacon script and report host",
+    (app) => {
+      const policy = directivesOf(buildContentSecurityPolicy({ app }));
+      expect(policy["script-src"]).toContain(
+        "https://static.cloudflareinsights.com"
+      );
+      expect(policy["connect-src"]).toContain("https://cloudflareinsights.com");
+    }
+  );
+});
+
+describe("Google Analytics measurement host", () => {
+  it.each(["docs", "signal", "mbia", "elections", "events", "gms"] as const)(
+    "%s sends GA4 hits to www.google.com",
+    (app) => {
+      const policy = directivesOf(buildContentSecurityPolicy({ app }));
+      expect(policy["connect-src"]).toContain("https://www.google.com");
+    }
+  );
+
+  it("does not add www.google.com to apps without analytics", () => {
+    const policy = directivesOf(
+      buildContentSecurityPolicy({ app: "babydoll" })
+    );
+    expect(policy["connect-src"]).not.toContain("https://www.google.com");
+  });
+});
+
+describe("eval", () => {
+  it.each(CSP_APPS)("%s never allows unsafe-eval", (app) => {
+    expect(buildContentSecurityPolicy({ app })).not.toContain("unsafe-eval");
   });
 });

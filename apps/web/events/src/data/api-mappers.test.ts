@@ -6,6 +6,7 @@ import {
   toEvent,
   toEventDetail,
   toGroup,
+  toManagedEvent,
   toMyTicketDetail,
   toThread,
 } from "./api-mappers";
@@ -93,6 +94,18 @@ describe("toEventDetail", () => {
       held: 1,
     });
     expect(mapped.capacity).toBe(1200);
+    expect(
+      toManagedEvent({
+        ...detail,
+        access_type: "private",
+        status: "published",
+        visibility: "public",
+      }).accessType
+    ).toBe("private");
+    expect(
+      toManagedEvent({ ...detail, status: "published", visibility: "public" })
+        .accessType
+    ).toBeNull();
   });
 });
 

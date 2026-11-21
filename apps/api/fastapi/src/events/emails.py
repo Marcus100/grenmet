@@ -44,3 +44,65 @@ def order_confirmation(
         "<p>Sign in and open My tickets to show the QR code at the door.</p>"
     )
     return subject, body
+
+
+def order_refunded(
+    *,
+    buyer_name: str,
+    title: str,
+    order_ref: str,
+    refund_minor: int,
+    currency: str,
+    full: bool,
+    card: bool,
+    event_cancelled: bool,
+) -> tuple[str, str]:
+    """Receipt for one refund on an order. ``full`` means everything paid on the
+    order is now refunded (the tickets are cancelled); otherwise the tickets stay
+    valid. ``card`` is a provider (card) refund, which takes days to show."""
+    amount = _e(_money(refund_minor, currency))
+    subject = f"Refund for {title}"
+    why = (
+        f"<p>The organiser cancelled <strong>{_e(title)}</strong>.</p>"
+        if event_cancelled
+        else ""
+    )
+    scope = (
+        "This refunds your whole order and its tickets are cancelled."
+        if full
+        else "This is a partial refund; your tickets stay valid."
+    )
+    timeline = (
+        "<p>The money goes back to the card you paid with. Your bank usually "
+        "shows it within 5 to 10 business days.</p>"
+        if card
+        else "<p>The organiser returns this to you directly.</p>"
+    )
+    body = (
+        f"<p>Hello {_e(buyer_name)},</p>"
+        f"{why}"
+        f"<p>We refunded <strong>{amount}</strong> for "
+        f"<strong>{_e(title)}</strong> (order {_e(order_ref)}). {scope}</p>"
+        f"{timeline}"
+    )
+    return subject, body
+
+
+def event_reminder(
+    *,
+    name: str,
+    title: str,
+    starts_at: datetime,
+    venue: str,
+    tickets_url: str,
+) -> tuple[str, str]:
+    """Reminder about an event starting in about a day (times in Grenada)."""
+    subject = f"Reminder: {title} is coming up"
+    body = (
+        f"<p>Hello {_e(name)},</p>"
+        f"<p><strong>{_e(title)}</strong> starts soon.</p>"
+        f"<p>{_e(_when(starts_at))} (Grenada time)<br>{_e(venue)}</p>"
+        f'<p><a href="{_e(tickets_url)}">Open My tickets</a> to show your QR '
+        "code at the door.</p>"
+    )
+    return subject, body
