@@ -1,4 +1,4 @@
-import { Body, Head, Html, Img, Preview } from "react-email";
+import { Body, Head, Html, Img, Link, Preview } from "react-email";
 
 /**
  * The house email layout (docs/email-design.md): page background, white 600px
@@ -161,7 +161,7 @@ function Button({
               padding: "12px 24px",
             }}
           >
-            <a
+            <Link
               href={href}
               style={{
                 display: "block",
@@ -176,7 +176,7 @@ function Button({
               }}
             >
               {action.label}
-            </a>
+            </Link>
           </td>
         </tr>
       </tbody>
