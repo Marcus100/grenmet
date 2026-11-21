@@ -393,6 +393,10 @@ require at least 24 hours of staging evidence before production promotion.
   installed in `/opt/grenmet/monitoring-revision`; no mutable ref is accepted.
 - Set `MONITORING_STORAGE_VERIFIED=true` only after checking the existing storage
   capacity, lifecycle and cost limits; both manual and scheduled jobs require it.
+- Staging maintenance runs in the `staging-backup` GitHub environment, not
+  `staging`: schedules run from `main`, which the `staging` environment's branch
+  rule refuses. Put the staging maintenance variables and backup-storage secrets
+  there ([inputs](launch-monitoring-inputs.md)).
 - Set `MONITORING_MAINTENANCE_ENABLED=true` only after a manual backup and restore
   pass, the existing Spaces lifecycle/capacity/cost are verified, and the backup
   heartbeat is ready. Production remains disabled until staging acceptance.
