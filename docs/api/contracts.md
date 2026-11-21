@@ -1073,8 +1073,17 @@ answer with `Idempotency-Replayed: true`.
 
 Refund choice: cancelling takes `refund`: `full`, `none` or `follow_policy`.
 `POST /events/org/orders/{id}/cancel` (`{reason?, refund}`, default `follow_policy`) cancels one
-order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUTOFF_HOURS`
-(default 48) away; outlet cash orders cancel only with `none`.
+order. Under `follow_policy` the event's refund terms apply (`refund_policy`, `refund_cutoff_hours`,
+`cancellation_fee_type`/`cancellation_fee_value`): `no_refunds` keeps the money; inside the cutoff
+(the event's own `refund_cutoff_hours`, NULL = `EVENTS_REFUND_CUTOFF_HOURS`, default 48) it is kept;
+otherwise the fee is kept (`fixed`: per ticket cancelled; `percent`: whole percent) and the rest is
+refunded in one refund. A partial refund leaves the tickets cancelled and the order `confirmed`
+with `refunded_minor` below `collected_minor`; the activity row records `refund_minor` and
+`fee_minor`. Outlet cash orders cancel only with `none`. Listing read schemas (`ListingDetail`,
+`ManagedListing`) carry the terms, with `refund_cutoff_hours_effective` resolved; `ListingUpsert`
+takes them (omitted keeps the stored value). Once a paid order exists, a stricter change (a
+`no_refunds` policy, a longer cutoff, a higher or new fee, or a fixed/percent switch unless the fee
+becomes 0) is refused with 409; loosening is always allowed.
 `POST /events/org/events/{id}/cancel` (`{confirm, refund}`, default `follow_policy`: paid online
 orders are refunded in full, unpaid holds released) cancels an event. The legacy
 `POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and

@@ -15,6 +15,7 @@ from src.auth.models import User
 from src.organisations import verification
 from src.utils.datetime import utc_now
 
+from .. import refund_policy as rp
 from .. import schemas
 from ..exceptions import EventsNotFound
 from ..models import (
@@ -371,6 +372,13 @@ async def get_listing(
         organiser=await _organiser_public(db, organiser, viewer_id),
         group=(await _group_summaries(db, [group], viewer_id))[0] if group else None,
         tiers=await _tiers(db, listing.id, viewer_id),
+        refund_policy=listing.refund_policy,
+        refund_cutoff_hours=listing.refund_cutoff_hours,
+        refund_cutoff_hours_effective=rp.effective_cutoff_hours(
+            listing.refund_cutoff_hours
+        ),
+        cancellation_fee_type=listing.cancellation_fee_type,
+        cancellation_fee_value=listing.cancellation_fee_value,
     )
 
 

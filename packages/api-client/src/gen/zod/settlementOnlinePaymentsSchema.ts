@@ -12,6 +12,7 @@ export const settlementOnlinePaymentsSchema = z
     pending_minor: z.int(),
     collected_minor: z.int(),
     refunded_minor: z.int(),
+    cancellation_fee_kept_minor: z.int().optional().default(0),
     ledger_collected_minor: z.union([z.int(), z.null()]).optional(),
     ledger_refunded_minor: z.union([z.int(), z.null()]).optional(),
     reconciled: z.union([z.boolean(), z.null()]).optional(),

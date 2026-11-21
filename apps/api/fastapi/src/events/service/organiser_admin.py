@@ -27,17 +27,25 @@ from src.utils.datetime import utc_now
 from src.utils.reserved_names import is_reserved
 
 from .. import activity, outbox, schemas
+from .. import refund_policy as rp
 from ..exceptions import EventsConflict, EventsForbidden, EventsNotFound
 from ..models import (
     Group,
     Listing,
+    Order,
     OrderItem,
     Organiser,
     OrganiserMember,
     Ticket,
     TicketTier,
 )
-from ..transitions import ListingAction, ListingStatus, TicketStatus, move_listing
+from ..transitions import (
+    ListingAction,
+    ListingStatus,
+    OrderStatus,
+    TicketStatus,
+    move_listing,
+)
 from . import event_cancel, holds, organiser_verification, taxonomy
 from .common import _naive_utc, _pairs
 from .discover import (
@@ -51,6 +59,8 @@ from .discover import (
 
 _STATUS = TypeAdapter(Literal["draft", "published", "cancelled"])
 _VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
+_REFUND_POLICY = TypeAdapter(rp.RefundPolicy)
+_FEE_TYPE = TypeAdapter(rp.FeeType)
 
 # --- Organiser management -------------------------------------------------------------------
 
@@ -136,6 +146,13 @@ async def _managed(
         organiser=await _organiser_public(db, organiser, user.id),
         group=(await _group_summaries(db, [group], user.id))[0] if group else None,
         tiers=await _tiers(db, listing.id, user.id),
+        refund_policy=_REFUND_POLICY.validate_python(listing.refund_policy),
+        refund_cutoff_hours=listing.refund_cutoff_hours,
+        refund_cutoff_hours_effective=rp.effective_cutoff_hours(
+            listing.refund_cutoff_hours
+        ),
+        cancellation_fee_type=_FEE_TYPE.validate_python(listing.cancellation_fee_type),
+        cancellation_fee_value=listing.cancellation_fee_value,
         status=_STATUS.validate_python(listing.status),
         visibility=_VISIBILITY.validate_python(listing.visibility),
     )
@@ -253,10 +270,27 @@ async def _apply_listing(
         await _require_file(body.image_file_id, organiser, "listing-image")
         listing.image_file_id = body.image_file_id
     await taxonomy.apply_classification(db, listing, body)
+    _apply_refund_terms(listing, body)
     listing.updated_at = utc_now()
     db.add(listing)
     await db.flush()
     await _sync_tiers(db, listing, body.tiers if body.admission == "ticketed" else [])
+
+
+def _apply_refund_terms(listing: Listing, body: schemas.ListingUpsert) -> None:
+    """Omitted terms keep the stored value (new listings take the column defaults).
+    A fee type travels with its value; a none fee is stored as 0."""
+    if body.refund_policy is not None:
+        listing.refund_policy = body.refund_policy
+    if "refund_cutoff_hours" in body.model_fields_set:
+        listing.refund_cutoff_hours = body.refund_cutoff_hours
+    if body.cancellation_fee_type is not None:
+        listing.cancellation_fee_type = body.cancellation_fee_type
+        listing.cancellation_fee_value = (
+            0
+            if body.cancellation_fee_type == "none"
+            else body.cancellation_fee_value or 0
+        )
 
 
 async def _sync_tiers(
@@ -364,6 +398,10 @@ async def _snapshot(db: AsyncSession, listing: Listing) -> dict[str, Any]:
             str(listing.subcategory_id) if listing.subcategory_id else None
         ),
         "external_ticket_url": listing.external_ticket_url,
+        "refund_policy": listing.refund_policy,
+        "refund_cutoff_hours": listing.refund_cutoff_hours,
+        "cancellation_fee_type": listing.cancellation_fee_type,
+        "cancellation_fee_value": listing.cancellation_fee_value,
         "tiers": [[row.name, row.price_minor, row.allocation] for row in tiers],
     }
 
@@ -471,6 +509,59 @@ async def create_listing(
     return await _managed(db, listing, user)
 
 
+#: Orders a buyer paid for on the stored refund terms (not pending or expired ones).
+_PAID_ORDER_STATUSES = (OrderStatus.CONFIRMED.value, OrderStatus.REFUNDED.value)
+
+
+async def enforce_paid_terms(
+    db: AsyncSession, listing: Listing, body: schemas.ListingUpsert
+) -> None:
+    """Once a paid order exists, the refund terms may only become more generous.
+
+    Buyers see the terms before they buy, so a stricter change is refused (409 with
+    what is allowed). Loosening always passes. Omitted fields keep the stored value;
+    a fee type travels with its value, and a none fee is stored as 0."""
+    paid = await db.scalar(
+        select(Order.id)
+        .where(
+            Order.listing_id == listing.id,
+            Order.total_minor > 0,
+            Order.status.in_(_PAID_ORDER_STATUSES),
+        )
+        .limit(1)
+    )
+    if paid is None:
+        return
+    old = rp.Terms(
+        policy=listing.refund_policy,
+        cutoff_hours=listing.refund_cutoff_hours,
+        fee_type=listing.cancellation_fee_type,
+        fee_value=listing.cancellation_fee_value,
+    )
+    if body.cancellation_fee_type is None:
+        fee_type, fee_value = old.fee_type, old.fee_value
+    elif body.cancellation_fee_type == "none":
+        fee_type, fee_value = "none", 0
+    else:
+        fee_type, fee_value = (
+            body.cancellation_fee_type,
+            body.cancellation_fee_value or 0,
+        )
+    new = rp.Terms(
+        policy=body.refund_policy or old.policy,
+        cutoff_hours=(
+            body.refund_cutoff_hours
+            if "refund_cutoff_hours" in body.model_fields_set
+            else old.cutoff_hours
+        ),
+        fee_type=fee_type,
+        fee_value=fee_value,
+    )
+    message = rp.paid_terms_conflict(old, new)
+    if message is not None:
+        raise EventsConflict(message)
+
+
 async def update_listing(
     db: AsyncSession,
     user: User,
@@ -487,6 +578,7 @@ async def update_listing(
         # Saving as cancelled cancels like the cancel action: the exclusive
         # listing lock first, then orders, then tickets. No money moves here.
         await db.refresh(listing, with_for_update=True)
+    await enforce_paid_terms(db, listing, body)
     before = await _snapshot(db, listing)
     await _require_verified_to_publish(organiser, body.status, before["status"])
     await _apply_listing(db, listing, body, organiser)

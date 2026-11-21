@@ -12,6 +12,8 @@ import type { ListingCardPropertiesAdmissionEnum } from "./ListingCardProperties
 import type { ListingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
 import type { ListingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
 import type { ListingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
+import type { ListingDetailPropertiesCancellationFeeTypeEnum } from "./ListingDetailPropertiesCancellationFeeTypeEnum.js";
+import type { ListingDetailPropertiesRefundPolicyEnum } from "./ListingDetailPropertiesRefundPolicyEnum.js";
 import type { OrganiserPublic } from "./OrganiserPublic.js";
 import type { PersonChip } from "./PersonChip.js";
 import type { TierPublic } from "./TierPublic.js";
@@ -77,4 +79,9 @@ export type ListingDetail = {
   organiser: OrganiserPublic;
   group: GroupSummary | null;
   tiers: TierPublic[];
+  refund_policy: ListingDetailPropertiesRefundPolicyEnum;
+  refund_cutoff_hours: number | null;
+  refund_cutoff_hours_effective: number;
+  cancellation_fee_type: ListingDetailPropertiesCancellationFeeTypeEnum;
+  cancellation_fee_value: number;
 };

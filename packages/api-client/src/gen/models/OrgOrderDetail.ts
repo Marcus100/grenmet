@@ -54,6 +54,11 @@ export type OrgOrderDetail = {
   buyer_phone: string | null;
   refund_status: OrgOrderDetailPropertiesRefundStatusEnum;
   payment_expires_at: string | null;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  cancellation_fee_kept_minor?: number;
   items: OrgOrderItem[];
   tickets: OrgOrderTicket[];
   payment: OrgOrderPayment | null;

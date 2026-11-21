@@ -11,6 +11,8 @@ import { listingCardPropertiesAccessTypeEnumSchema } from "./listingCardProperti
 import { listingCardPropertiesAdmissionEnumSchema } from "./listingCardPropertiesAdmissionEnumSchema.js";
 import { listingCardPropertiesBookingModeEnumSchema } from "./listingCardPropertiesBookingModeEnumSchema.js";
 import { listingCardPropertiesPricingTypeEnumSchema } from "./listingCardPropertiesPricingTypeEnumSchema.js";
+import { listingDetailPropertiesCancellationFeeTypeEnumSchema } from "./listingDetailPropertiesCancellationFeeTypeEnumSchema.js";
+import { listingDetailPropertiesRefundPolicyEnumSchema } from "./listingDetailPropertiesRefundPolicyEnumSchema.js";
 import { listingUpsertPropertiesStatusEnumSchema } from "./listingUpsertPropertiesStatusEnumSchema.js";
 import { listingUpsertPropertiesVisibilityEnumSchema } from "./listingUpsertPropertiesVisibilityEnumSchema.js";
 import { tierInputSchema } from "./tierInputSchema.js";
@@ -56,5 +58,15 @@ export const listingUpsertSchema = z.object({
     .optional(),
   subcategory_slug: z
     .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional(),
+  refund_policy: z
+    .union([listingDetailPropertiesRefundPolicyEnumSchema, z.null()])
+    .optional(),
+  refund_cutoff_hours: z.union([z.int().min(0).max(720), z.null()]).optional(),
+  cancellation_fee_type: z
+    .union([listingDetailPropertiesCancellationFeeTypeEnumSchema, z.null()])
+    .optional(),
+  cancellation_fee_value: z
+    .union([z.int().min(0).max(10000000), z.null()])
     .optional(),
 });

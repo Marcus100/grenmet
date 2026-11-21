@@ -33,6 +33,7 @@ from .. import (
     schemas,
     transitions,
 )
+from .. import refund_policy as rp
 from ..exceptions import EventsConflict, EventsNotFound
 from ..models import (
     Admission,
@@ -265,6 +266,7 @@ async def _detail(
         buyer_email=email,
         buyer_phone=order.buyer_phone,
         payment_expires_at=order.payment_expires_at,
+        cancellation_fee_kept_minor=order.cancellation_fee_kept_minor,
         items=[
             schemas.OrgOrderItem(
                 tier_id=item.tier_id,
@@ -520,6 +522,8 @@ async def cancel_order(
     if order.status == OrderStatus.CONFIRMED.value and issued and not live:
         raise EventsConflict("This order is already cancelled")
     outcome: Literal["refunded", "queued", "kept", "not_due"] = "not_due"
+    refund_minor = 0
+    fee_minor = 0
     if order.status == OrderStatus.PENDING_PAYMENT.value:
         unpaid = await order_payments.stop_collecting(
             db, organisation_id=organisation_id, order_id=order.id
@@ -565,12 +569,22 @@ async def cancel_order(
             else 0
         )
         if refundable > 0:
-            if order_refunds.should_refund(
+            # The live tickets are the ones this cancel stops; a fee is per ticket.
+            due = rp.refund_due(
                 body.refund,
+                policy=listing.refund_policy,
+                cutoff_hours=listing.refund_cutoff_hours,
+                fee_type=listing.cancellation_fee_type,
+                fee_value=listing.cancellation_fee_value,
                 event_cancelled=listing.status == ListingStatus.CANCELLED.value,
                 starts_at=listing.starts_at,
                 now=now,
-            ):
+                refundable_minor=refundable,
+                ticket_count=live or 0,
+            )
+            if due > 0:
+                # Everything left is refunded as None (the same request as before);
+                # less than that is a partial refund under the same single cancel key.
                 result, _ = await order_refunds.request_refund(
                     db,
                     organisation_id=organisation_id,
@@ -579,6 +593,7 @@ async def cancel_order(
                     reason=(body.reason or "Order cancelled by the organiser")[:500],
                     key=order_refunds.CANCEL_KEY,
                     reason_code="order_cancelled",
+                    amount_minor=None if due == refundable else due,
                 )
                 if result == "queued":
                     outcome = "queued"
@@ -589,6 +604,14 @@ async def cancel_order(
                     outcome = "not_due"
             else:
                 outcome = "kept"
+            if body.refund == "follow_policy":
+                # What the policy kept (a cancellation fee, or the whole amount under
+                # no_refunds or inside the cutoff). Reporting only.
+                refund_minor = due if outcome in ("refunded", "queued") else 0
+                fee_minor = refundable - due
+                if outcome in ("refunded", "queued", "kept"):
+                    # Kept under the terms: recorded on the order, never owed back.
+                    order.cancellation_fee_kept_minor = fee_minor
     activity.record(
         db,
         actor_id=actor.id,
@@ -596,7 +619,13 @@ async def cancel_order(
         entity_type="listing",
         entity_id=str(listing.id),
         organiser_id=listing.organiser_id,
-        summary={"order_id": str(order.id), "refund": outcome, "choice": body.refund},
+        summary={
+            "order_id": str(order.id),
+            "refund": outcome,
+            "choice": body.refund,
+            "refund_minor": refund_minor,
+            "fee_minor": fee_minor,
+        },
     )
     await db.flush()
     detail = await _detail(db, organisation_id, order, listing, show_email)

@@ -6675,6 +6675,10 @@ export { listingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurren
 export type { ListingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
 export { listingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
 export type { ListingDetail } from "./ListingDetail.js";
+export type { ListingDetailPropertiesCancellationFeeTypeEnum } from "./ListingDetailPropertiesCancellationFeeTypeEnum.js";
+export { listingDetailPropertiesCancellationFeeTypeEnum } from "./ListingDetailPropertiesCancellationFeeTypeEnum.js";
+export type { ListingDetailPropertiesRefundPolicyEnum } from "./ListingDetailPropertiesRefundPolicyEnum.js";
+export { listingDetailPropertiesRefundPolicyEnum } from "./ListingDetailPropertiesRefundPolicyEnum.js";
 export type { ListingUpsert } from "./ListingUpsert.js";
 export type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
 export { listingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
