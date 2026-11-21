@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 // Requires: pnpm dev:web:gms running (FastAPI from pnpm start for live data).
@@ -24,6 +25,26 @@ for (const { name, path } of PAGES) {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByText("Application error")).toHaveCount(0);
     expect(pageErrors).toEqual([]);
+  });
+}
+
+// Automated WCAG 2.1 A/AA check (axe-core) on the public pages. Automation finds
+// roughly a third of WCAG issues; it does not replace a manual keyboard pass.
+const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
+for (const { name, path } of PAGES) {
+  test(`${name} page has no WCAG 2.1 A/AA violations axe can find`, async ({
+    page,
+  }) => {
+    await page.goto(path, { waitUntil: "domcontentloaded" });
+    await page.waitForLoadState("networkidle");
+    const results = await new AxeBuilder({ page })
+      .withTags(WCAG_TAGS)
+      .analyze();
+    const summary = results.violations.map(
+      (violation) =>
+        `${violation.id} (${violation.impact}): ${violation.help}, ${violation.nodes.length} element(s), e.g. ${violation.nodes[0]?.target.join(" ")}`
+    );
+    expect(summary).toEqual([]);
   });
 }
 
