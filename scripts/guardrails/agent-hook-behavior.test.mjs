@@ -228,7 +228,7 @@ test("block-dangerous-git: allows the safe neighbours of blocked commands", () =
     "git log --follow -- src/app.ts",
   ]) {
     assert.equal(
-      findBlockedPattern(command, baseIs("main")),
+      findBlockedPattern(command, { ...baseIs("main"), ...TASK_BRANCH }),
       undefined,
       command
     );
