@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RefundTermsLine } from "@/components/discovery/refund-terms-line";
 import { QrCode } from "@/components/tickets/qr-code";
 import { PrintButton } from "@/components/tickets/ticket-actions";
 import { TicketCancellation } from "@/components/tickets/ticket-cancellation";
@@ -69,6 +70,11 @@ export default async function TicketPage({ params }: { params: Params }) {
           </>
         )}
       </div>
+      {cancelled || event?.admission !== "ticketed" ? null : (
+        <div className="text-center">
+          <RefundTermsLine terms={event.refundTerms} />
+        </div>
+      )}
       {cancelled ? null : (
         <div className="flex flex-wrap gap-2 print:hidden">
           <PrintButton />

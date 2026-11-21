@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { claimTickets } from "@/data/actions";
 import type { EventDetail, MyOrder } from "@/domain/types";
 import { goToCheckout } from "@/lib/navigation";
+import { makeRefundTerms } from "@/test/factories";
 import { claimableCount, TicketClaim } from "./ticket-claim";
 
 const refresh = vi.fn();
+const TERMS = makeRefundTerms();
 const CLAIMED_TEXT = /You have 2 new tickets\./u;
 const SOLD_OUT_TEXT = /Sold out/u;
 const MORE_NAME = /More/u;
@@ -87,7 +89,13 @@ describe("TicketClaim", () => {
       ok: true,
       data: order({ ticketIds: ["a", "b"] }),
     });
-    render(<TicketClaim slug="free-night" tiers={[tier({ held: 2 })]} />);
+    render(
+      <TicketClaim
+        refundTerms={TERMS}
+        slug="free-night"
+        tiers={[tier({ held: 2 })]}
+      />
+    );
 
     const more = screen.getByRole("button", {
       name: "More Registration tickets",
@@ -113,6 +121,7 @@ describe("TicketClaim", () => {
   it("lets a paid tier be chosen and shows its price", () => {
     render(
       <TicketClaim
+        refundTerms={TERMS}
         slug="mixed"
         tiers={[paidTier, tier({ id: "gone", name: "Early", remaining: 0 })]}
       />
@@ -132,7 +141,7 @@ describe("TicketClaim", () => {
       ok: false,
       error: "Something went wrong. Try again shortly.",
     });
-    render(<TicketClaim slug="mixed" tiers={[paidTier]} />);
+    render(<TicketClaim refundTerms={TERMS} slug="mixed" tiers={[paidTier]} />);
     fireEvent.click(screen.getByRole("button", { name: "More VIP tickets" }));
     const pay = screen.getByRole("button", { name: "Pay for 1 ticket" });
     fireEvent.click(pay);
@@ -162,7 +171,7 @@ describe("TicketClaim", () => {
       ok: false,
       error: "Something went wrong. Try again shortly.",
     });
-    render(<TicketClaim slug="mixed" tiers={[paidTier]} />);
+    render(<TicketClaim refundTerms={TERMS} slug="mixed" tiers={[paidTier]} />);
     fireEvent.click(screen.getByRole("button", { name: "More VIP tickets" }));
     const pay = screen.getByRole("button", { name: "Pay for 1 ticket" });
     fireEvent.click(pay);
@@ -184,7 +193,7 @@ describe("TicketClaim", () => {
         "Card payments are temporarily unavailable. Try again in a moment.",
       freshKey: true,
     });
-    render(<TicketClaim slug="mixed" tiers={[paidTier]} />);
+    render(<TicketClaim refundTerms={TERMS} slug="mixed" tiers={[paidTier]} />);
     fireEvent.click(screen.getByRole("button", { name: "More VIP tickets" }));
     const pay = screen.getByRole("button", { name: "Pay for 1 ticket" });
     fireEvent.click(pay);
@@ -209,7 +218,7 @@ describe("TicketClaim", () => {
         checkoutUrl: "https://checkout.stripe.com/c/pay/cs_test_1",
       }),
     });
-    render(<TicketClaim slug="mixed" tiers={[paidTier]} />);
+    render(<TicketClaim refundTerms={TERMS} slug="mixed" tiers={[paidTier]} />);
     orderOneVip();
     await vi.waitFor(() =>
       expect(goToCheckout).toHaveBeenCalledWith(
@@ -227,7 +236,7 @@ describe("TicketClaim", () => {
         checkoutUrl: "javascript:alert(1)",
       }),
     });
-    render(<TicketClaim slug="mixed" tiers={[paidTier]} />);
+    render(<TicketClaim refundTerms={TERMS} slug="mixed" tiers={[paidTier]} />);
     orderOneVip();
     expect(await screen.findByText(RESERVED_TEXT)).toBeInTheDocument();
     expect(goToCheckout).not.toHaveBeenCalled();
@@ -244,7 +253,7 @@ describe("TicketClaim", () => {
         paymentExpiresAt: "2030-01-01T18:30:00Z",
       }),
     });
-    render(<TicketClaim slug="mixed" tiers={[paidTier]} />);
+    render(<TicketClaim refundTerms={TERMS} slug="mixed" tiers={[paidTier]} />);
     orderOneVip();
     expect(await screen.findByText(RESERVED_TEXT)).toBeInTheDocument();
     expect(screen.getByText(EXPIRY_TEXT)).toHaveTextContent("2:30 PM");
@@ -259,11 +268,48 @@ describe("TicketClaim", () => {
       ok: false,
       error: "Registration is sold out",
     });
-    render(<TicketClaim slug="free-night" tiers={[tier()]} />);
+    render(
+      <TicketClaim refundTerms={TERMS} slug="free-night" tiers={[tier()]} />
+    );
     fireEvent.click(
       screen.getByRole("button", { name: "More Registration tickets" })
     );
     fireEvent.click(screen.getByRole("button", { name: "Get 1 ticket" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("sold out");
+  });
+});
+
+describe("refund terms on the picker", () => {
+  it("shows the terms above the pay button when a tier is paid", () => {
+    render(
+      <TicketClaim
+        refundTerms={makeRefundTerms({
+          feeType: "fixed",
+          feeValue: 500,
+          cutoffHoursEffective: 48,
+        })}
+        slug="mixed"
+        tiers={[paidTier]}
+      />
+    );
+    expect(
+      screen.getByText(
+        "Refunds until 2 days before the event, less EC$5.00 per ticket."
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "If the organiser cancels the event, you get a full refund."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("leaves the terms out of a free-only picker", () => {
+    render(<TicketClaim refundTerms={TERMS} slug="free" tiers={[tier()]} />);
+    expect(
+      screen.queryByText(
+        "If the organiser cancels the event, you get a full refund."
+      )
+    ).not.toBeInTheDocument();
   });
 });

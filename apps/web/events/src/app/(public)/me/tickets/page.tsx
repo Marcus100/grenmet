@@ -2,17 +2,24 @@ import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getMyTickets } from "@/data/events-api";
+import { getEventBySlug, getMyTickets } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
-import type { MyTicket } from "@/domain/types";
+import type { MyTicket, RefundTerms } from "@/domain/types";
 import { formatEventDate } from "@/lib/datetime";
+import { refundTermsLines } from "@/lib/refund-terms";
 
 export const metadata: Metadata = {
   title: "My tickets",
   robots: { index: false },
 };
 
-function TicketRow({ ticket }: { ticket: MyTicket }) {
+function TicketRow({
+  refundTerms,
+  ticket,
+}: {
+  refundTerms: RefundTerms | null;
+  ticket: MyTicket;
+}) {
   const used = ticket.admittedAt !== null;
   return (
     <li className="border-border bg-card flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4">
@@ -29,6 +36,11 @@ function TicketRow({ ticket }: { ticket: MyTicket }) {
           {used ? " · Used" : ""}
           {ticket.status === "valid" ? "" : " · Cancelled"}
         </p>
+        {refundTerms ? (
+          <p className="text-caption text-muted-foreground">
+            {refundTermsLines(refundTerms).summary}
+          </p>
+        ) : null}
       </div>
       {ticket.status === "valid" ? (
         <Link
@@ -51,6 +63,17 @@ export default async function MyTicketsPage() {
       ticket.status === "valid" && new Date(ticket.endsAt).getTime() > now
   );
   const past = tickets.filter((ticket) => !upcoming.includes(ticket));
+  // Refund terms matter for tickets still to be used, so only upcoming ones look
+  // their event up; each ticketed event is read once.
+  const slugs = [...new Set(upcoming.map((ticket) => ticket.listingSlug))];
+  const events = await Promise.all(slugs.map((slug) => getEventBySlug(slug)));
+  const termsBySlug = new Map<string, RefundTerms>();
+  for (const [index, slug] of slugs.entries()) {
+    const event = events[index];
+    if (event?.admission === "ticketed") {
+      termsBySlug.set(slug, event.refundTerms);
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -80,7 +103,11 @@ export default async function MyTicketsPage() {
           </h2>
           <ul className="space-y-3">
             {upcoming.map((ticket) => (
-              <TicketRow key={ticket.id} ticket={ticket} />
+              <TicketRow
+                key={ticket.id}
+                refundTerms={termsBySlug.get(ticket.listingSlug) ?? null}
+                ticket={ticket}
+              />
             ))}
           </ul>
         </section>
@@ -93,7 +120,7 @@ export default async function MyTicketsPage() {
           </h2>
           <ul className="space-y-3">
             {past.map((ticket) => (
-              <TicketRow key={ticket.id} ticket={ticket} />
+              <TicketRow key={ticket.id} refundTerms={null} ticket={ticket} />
             ))}
           </ul>
         </section>
