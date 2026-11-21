@@ -43,23 +43,26 @@ async def enqueue_email(
     organisation_id: str | None = None,
     run_at: datetime | None = None,
 ) -> bool:
-    """Queue an email through the outbox; no commit. Returns False for a repeat."""
+    """Queue an email through the outbox; no commit. Returns False for a repeat.
+
+    Structured mail passes ``template`` and ``props`` (rendered at delivery)."""
     if html is None and template is None:
         raise ValueError("An email needs html or a template")
+    payload: dict[str, Any] = {
+        "to_email": to_email,
+        "subject": subject,
+        "transactional": transactional,
+        "html": html,
+        "template": template,
+        "props": props or {},
+    }
     return await outbox.enqueue(
         session,
         topic=EMAIL_SEND,
         dedupe_key=dedupe_key,
         organisation_id=organisation_id,
         run_at=run_at,
-        payload={
-            "to_email": to_email,
-            "subject": subject,
-            "transactional": transactional,
-            "html": html,
-            "template": template,
-            "props": props or {},
-        },
+        payload=payload,
     )
 
 

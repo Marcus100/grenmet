@@ -26,6 +26,8 @@ from datetime import datetime
 from sqlalchemy import func, literal, select, tuple_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email_layout as layout
+from src.auth.config import auth_settings
 from src.auth.models import User
 from src.notifications.config import notification_settings
 from src.notifications.outbox_handlers import enqueue_email
@@ -34,7 +36,14 @@ from src.utils.datetime import utc_now
 
 from . import emails, order_payments, rewards_hook, tickets, transitions
 from .models import Listing, Order, OrderItem, Organiser, Ticket
+from .refund_policy import effective_cutoff_hours
 from .transitions import ListingStatus, OrderStatus, move_order
+
+
+def my_tickets_url() -> str:
+    """The buyer's My tickets page in the Events app (the mail's button)."""
+    return f"{auth_settings.EVENTS_APP_URL.rstrip('/')}/me/tickets"
+
 
 logger = logging.getLogger(__name__)
 
@@ -131,19 +140,27 @@ async def _queue_receipt(
     buyer = await db.get(User, order.user_id)
     if buyer is None or not buyer.email:
         return
-    subject, body = emails.order_confirmation(
+    organiser = await db.get(Organiser, listing.organiser_id)
+    message = emails.order_confirmation(
         buyer_name=buyer.first_name,
         title=listing.title,
         starts_at=listing.starts_at,
+        ends_at=listing.ends_at,
+        venue=listing.venue,
+        tickets_url=my_tickets_url(),
+        organiser=organiser.name if organiser else None,
         ticket_count=count,
         total_minor=order.total_minor,
         currency=order.currency,
+        refund_policy=listing.refund_policy,
+        refund_cutoff_hours=effective_cutoff_hours(listing.refund_cutoff_hours),
     )
     await enqueue_email(
         db,
         to_email=buyer.email,
-        subject=subject,
-        html=body,
+        subject=message.subject,
+        template=layout.CARD_TEMPLATE,
+        props=layout.to_props(message),
         transactional=True,
         dedupe_key=f"events-order-paid:{order.id}",
         organisation_id=organisation_id,
@@ -260,7 +277,7 @@ async def _queue_refund_receipt(
             )
         )
     )
-    subject, body = emails.order_refunded(
+    message = emails.order_refunded(
         buyer_name=buyer.first_name,
         title=listing.title,
         order_ref=str(order.id)[:8].upper(),
@@ -275,8 +292,9 @@ async def _queue_refund_receipt(
     await enqueue_email(
         db,
         to_email=buyer.email,
-        subject=subject,
-        html=body,
+        subject=message.subject,
+        template=layout.CARD_TEMPLATE,
+        props=layout.to_props(message),
         transactional=True,
         dedupe_key=f"events-order-refunded:{refund_id}",
         organisation_id=organisation_id,

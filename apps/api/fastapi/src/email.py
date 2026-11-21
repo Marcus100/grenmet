@@ -27,6 +27,8 @@ SMTP_TIMEOUT_SECONDS = 10.0
 class EmailData:
     html_content: str
     subject: str
+    #: The plain-text part, when the render service sends one.
+    text_content: str | None = None
 
 
 # ── Sending ───────────────────────────────────────────────────────────────────
@@ -38,12 +40,19 @@ def send_email(
     subject: str = "",
     html_content: str = "",
     headers: dict[str, str] | None = None,
+    text_content: str | None = None,
+    from_name: str | None = None,
+    reply_to: str | None = None,
 ) -> None:
     """Send an email via Resend (primary) or SMTP fallback (local dev / Mailpit).
 
     Resend is used when ``RESEND_API_KEY`` is configured.
     SMTP is the fallback for local development with Mailpit.
     ``headers`` adds extra message headers (list mail: ``List-Unsubscribe``).
+    ``text_content`` is an optional plain-text part sent beside the HTML; without
+    it the message is HTML only, as before. ``from_name`` replaces the sender's
+    display name and ``reply_to`` sets the Reply-To address (both optional; the
+    defaults are the configured sender).
     """
     if not email_settings.emails_enabled:
         raise RuntimeError(
@@ -51,7 +60,8 @@ def send_email(
         )
 
     from_address = (
-        f"{email_settings.EMAILS_FROM_NAME} <{email_settings.EMAILS_FROM_EMAIL}>"
+        f"{from_name or email_settings.EMAILS_FROM_NAME} "
+        f"<{email_settings.EMAILS_FROM_EMAIL}>"
     )
 
     # ── Resend (production / staging) ──────────────────────────────────────────
@@ -65,6 +75,10 @@ def send_email(
         }
         if headers:
             params["headers"] = dict(headers)
+        if text_content:
+            params["text"] = text_content
+        if reply_to:
+            params["reply_to"] = reply_to
         result = resend.Emails.send(params)
         logger.info("Email sent via Resend to %s (id=%s)", email_to, result.get("id"))
         return
@@ -79,8 +93,12 @@ def send_email(
     msg["Subject"] = subject
     msg["From"] = from_address
     msg["To"] = email_to
+    if reply_to:
+        msg["Reply-To"] = reply_to
     for name, value in (headers or {}).items():
         msg[name] = value
+    if text_content:
+        msg.attach(MIMEText(text_content, "plain"))
     msg.attach(MIMEText(html_content, "html"))
 
     if email_settings.SMTP_SSL:
@@ -134,7 +152,11 @@ async def render_remote(template: str, props: dict[str, Any]) -> EmailData:
         response.raise_for_status()
 
     data = response.json()
-    return EmailData(html_content=data["html"], subject=data["subject"])
+    return EmailData(
+        html_content=data["html"],
+        subject=data["subject"],
+        text_content=data.get("text"),
+    )
 
 
 # ── Jinja2 fallback ───────────────────────────────────────────────────────────

@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email_layout as layout
 from src.audit import service as audit_service
 from src.auth.models import User
 from src.contacts import service as contacts_service
@@ -285,7 +286,7 @@ async def _cancel(
     reason: str,
     refund: bool | None,
     note: str,
-    email: Callable[[emails.BookingEmail, str | None], tuple[str, str]],
+    email: Callable[[emails.BookingEmail, str | None], layout.EmailCard],
     dedupe_key: str,
     now: datetime,
 ) -> BookingStudioDetail:

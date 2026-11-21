@@ -11,7 +11,8 @@ import { env } from "@/lib/env";
  * Never expose this route to the public internet.
  *
  * Request body: { template: TemplateName, props: Record<string, unknown> }
- * Response:     { html: string, subject: string }
+ * Response:     { html: string, text: string, subject: string }
+ * The card template ("card") takes the props FastAPI builds (email_layout.to_props).
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   // ── Auth ────────────────────────────────────────────────────────────────────

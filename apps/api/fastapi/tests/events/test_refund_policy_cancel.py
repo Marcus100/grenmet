@@ -19,6 +19,7 @@ from src.events.exceptions import EventsConflict, EventsInvalid
 from src.events.models import Listing, Order, TicketTier
 from src.events.service import organiser_admin
 from src.utils.datetime import utc_now
+from tests.email_payload import card_html
 from tests.events.support import BASE, SessionFactory, client_as
 from tests.events.test_org_orders import (
     ORG,
@@ -650,31 +651,35 @@ async def test_refunding_the_kept_remainder_clears_the_kept_amount(
 
 
 def test_a_receipt_names_the_fee_kept_on_a_partial_refund() -> None:
-    _, body = emails.order_refunded(
-        buyer_name="Ana",
-        title="Paid <Fete>",
-        order_ref="ABCD1234",
-        refund_minor=4_000,
-        currency="XCD",
-        full=False,
-        card=False,
-        event_cancelled=False,
-        tickets_valid=False,
-        fee_kept_minor=1_000,
+    body = card_html(
+        emails.order_refunded(
+            buyer_name="Ana",
+            title="Paid <Fete>",
+            order_ref="ABCD1234",
+            refund_minor=4_000,
+            currency="XCD",
+            full=False,
+            card=False,
+            event_cancelled=False,
+            tickets_valid=False,
+            fee_kept_minor=1_000,
+        )
     )
     assert "XCD 10.00 was kept as the cancellation fee" in body
     assert "under the event's refund policy" in body
     assert "<Fete>" not in body  # the title is still escaped
-    _, full = emails.order_refunded(
-        buyer_name="Ana",
-        title="Paid Fete",
-        order_ref="ABCD1234",
-        refund_minor=5_000,
-        currency="XCD",
-        full=True,
-        card=False,
-        event_cancelled=False,
-        fee_kept_minor=1_000,
+    full = card_html(
+        emails.order_refunded(
+            buyer_name="Ana",
+            title="Paid Fete",
+            order_ref="ABCD1234",
+            refund_minor=5_000,
+            currency="XCD",
+            full=True,
+            card=False,
+            event_cancelled=False,
+            fee_kept_minor=1_000,
+        )
     )
     assert "cancellation fee" not in full
 
@@ -804,30 +809,34 @@ async def test_the_terms_guard_counts_an_order_that_has_collected_money(
 
 
 def test_a_partial_refund_on_cancelled_tickets_does_not_say_they_stay_valid() -> None:
-    _, body = emails.order_refunded(
-        buyer_name="Ana",
-        title="Paid Fete",
-        order_ref="ABCD1234",
-        refund_minor=4500,
-        currency="XCD",
-        full=False,
-        card=False,
-        event_cancelled=False,
-        tickets_valid=False,
+    body = card_html(
+        emails.order_refunded(
+            buyer_name="Ana",
+            title="Paid Fete",
+            order_ref="ABCD1234",
+            refund_minor=4500,
+            currency="XCD",
+            full=False,
+            card=False,
+            event_cancelled=False,
+            tickets_valid=False,
+        )
     )
     assert "stay valid" not in body
     assert "tickets on this order are cancelled" in body
 
 
 def test_a_partial_refund_with_valid_tickets_still_says_they_stay_valid() -> None:
-    _, body = emails.order_refunded(
-        buyer_name="Ana",
-        title="Paid Fete",
-        order_ref="ABCD1234",
-        refund_minor=4500,
-        currency="XCD",
-        full=False,
-        card=False,
-        event_cancelled=False,
+    body = card_html(
+        emails.order_refunded(
+            buyer_name="Ana",
+            title="Paid Fete",
+            order_ref="ABCD1234",
+            refund_minor=4500,
+            currency="XCD",
+            full=False,
+            card=False,
+            event_cancelled=False,
+        )
     )
     assert "your tickets stay valid" in body

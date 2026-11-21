@@ -21,6 +21,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email_layout as layout
 from src.audit import service as audit_service
 from src.auth.config import auth_settings
 from src.auth.models import User
@@ -369,23 +370,28 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         customer_phone=managed.contact.phone,
         notes=managed.booking.notes,
         account_invite_url=account_invite_for(profile, managed.contact),
+        duration_min=managed.service.duration_min,
+        reference=str(managed.booking.id).replace("-", "")[:8].upper(),
+        cancel_cutoff_hours=profile.cancel_cutoff_hours,
+        business_email=profile.contact_email,
+        business_phone=profile.contact_phone,
     )
 
 
 async def queue_customer_email(
     session: AsyncSession,
     managed: Managed,
-    message: tuple[str, str],
+    message: layout.EmailCard,
     dedupe_key: str,
 ) -> None:
     if not managed.contact.email:
         return
-    subject, body = message
     await outbox_handlers.enqueue_email(
         session,
         to_email=managed.contact.email,
-        subject=subject,
-        html=body,
+        subject=message.subject,
+        template=layout.CARD_TEMPLATE,
+        props=layout.to_props(message),
         transactional=True,
         dedupe_key=dedupe_key,
         organisation_id=managed.booking.organisation_id,
@@ -395,17 +401,17 @@ async def queue_customer_email(
 async def queue_studio_email(
     session: AsyncSession,
     managed: Managed,
-    message: tuple[str, str],
+    message: layout.EmailCard,
     dedupe_key: str,
 ) -> None:
     if not managed.profile.notify_email:
         return
-    subject, body = message
     await outbox_handlers.enqueue_email(
         session,
         to_email=managed.profile.notify_email,
-        subject=subject,
-        html=body,
+        subject=message.subject,
+        template=layout.CARD_TEMPLATE,
+        props=layout.to_props(message),
         transactional=True,
         dedupe_key=dedupe_key,
         organisation_id=managed.booking.organisation_id,
@@ -942,7 +948,7 @@ async def reschedule_booking(
     await queue_customer_email(
         session,
         managed,
-        emails.customer_rescheduled(mail),
+        emails.customer_rescheduled(mail, confirmed=current is BookingStatus.CONFIRMED),
         f"booking-rescheduled:{booking.id}:{move}",
     )
     await queue_studio_email(
