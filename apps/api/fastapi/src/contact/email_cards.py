@@ -57,5 +57,9 @@ def data_request_received(name: str) -> layout.EmailCard:
         paragraphs=(
             "We will reply by email; typical turnaround is 10 to 20 working days.",
         ),
+        footer=(
+            "You are getting this email because this address was used on the climate "
+            "data request form."
+        ),
     )
     return layout.with_subject("We received your climate data request", card)

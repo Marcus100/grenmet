@@ -98,6 +98,31 @@ async def test_multi_line_message_keeps_each_line(
     assert "<a " not in html
 
 
+async def test_subject_with_line_breaks_is_queued_as_one_line(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(contact_settings, "MBIA_CONTACT_RECIPIENT", "inbox@example.com")
+    unique = uuid.uuid4().hex[:8]
+    payload = _payload(subject=f"Lost {unique}\r\nBcc: spy{unique}@example.com")
+    resp = await async_client.post(_URL, json=payload)
+    assert resp.status_code == 202
+
+    [mail] = (
+        await db_async.scalars(
+            select(OutboundEmail).where(
+                OutboundEmail.subject.like(f"Website message: Lost {unique}%")
+            )
+        )
+    ).all()
+    assert "\r" not in mail.subject and "\n" not in mail.subject
+    assert (
+        mail.subject == f"Website message: Lost {unique} Bcc: spy{unique}@example.com"
+    )
+    assert "\n" not in mail.subject
+
+
 async def test_without_recipient_message_is_only_stored(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,

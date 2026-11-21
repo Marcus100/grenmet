@@ -41,6 +41,7 @@ def _card(
     paragraphs: tuple[str, ...] = (),
 ) -> layout.EmailCard:
     link = layout.safe_url(pdf_url)
+    issuer = entity or "the sender"
     card = layout.EmailCard(
         eyebrow=entity,
         title=title,
@@ -56,6 +57,10 @@ def _card(
         primary=layout.Action("Download invoice (PDF)", link) if link else None,
         policy=(_EXPIRY,) if link else (_NO_LINK,),
         quiet=_PAY,
+        footer=(
+            f"You are getting this email because {issuer} issued an invoice to this "
+            "address. Reply to this email with any question."
+        ),
     )
     return layout.with_subject(subject, card)
 

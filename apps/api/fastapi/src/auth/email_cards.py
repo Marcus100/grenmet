@@ -12,6 +12,10 @@ def link_issued() -> layout.EmailCard:
     card = layout.EmailCard(
         title=ISSUED_SUBJECT,
         paragraphs=("If you did not expect this, contact your administrator.",),
+        footer=(
+            "You are getting this email because a sign-in was set up for your "
+            "account. If this was not you, contact your administrator."
+        ),
     )
     return layout.with_subject(ISSUED_SUBJECT, card)
 
@@ -21,5 +25,9 @@ def setup_completed() -> layout.EmailCard:
     card = layout.EmailCard(
         title=COMPLETED_SUBJECT,
         paragraphs=("If this was not you, contact your administrator straight away.",),
+        footer=(
+            "You are getting this email because a sign-in password was set up for "
+            "your account. If this was not you, contact your administrator."
+        ),
     )
     return layout.with_subject(COMPLETED_SUBJECT, card)

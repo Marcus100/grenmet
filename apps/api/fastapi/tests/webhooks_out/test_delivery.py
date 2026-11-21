@@ -292,10 +292,11 @@ async def test_auto_disable_after_fifteen_failures_in_a_row(
     html = payload_html(emails[0].payload)
     assert endpoint.id in html
     assert "hooks.example.com" in html
-    assert "15" in html  # the reason names the failure count
-    assert "Events sent while it was disabled are not replayed." in payload_text(
-        emails[0].payload
-    )
+    text = payload_text(emails[0].payload)
+    reason = f"Disabled after {service.AUTO_DISABLE_AFTER} failed deliveries in a row"
+    assert reason in text
+    assert f"Reason: {reason}" in text
+    assert "Events sent while it was disabled are not replayed." in text
     assert "A webhook endpoint was disabled" in html
     assert "<a " not in html
 

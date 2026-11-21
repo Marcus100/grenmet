@@ -18,5 +18,6 @@ def endpoint_disabled(*, endpoint_id: str, host: str, reason: str) -> layout.Ema
             "Fix the receiver, then re-enable the endpoint in your organisation "
             "settings. Events sent while it was disabled are not replayed.",
         ),
+        footer="You are getting this email because you manage webhooks for this organisation.",
     )
     return layout.with_subject("A webhook endpoint was disabled", card)

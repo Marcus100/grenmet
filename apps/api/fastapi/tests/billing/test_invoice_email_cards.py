@@ -53,7 +53,7 @@ def test_pdf_link_is_a_button_that_expires_after_seven_days() -> None:
 
     assert card.primary == layout.Action("Download invoice (PDF)", PDF)
     assert "The download link expires after seven days." in card.policy
-    assert "Reply to this email" not in card_html(card)
+    assert "if you need another copy" not in card_html(card)
     assert "Download invoice (PDF)" in card_html(card)
 
 
