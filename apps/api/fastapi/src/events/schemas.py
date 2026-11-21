@@ -9,6 +9,10 @@ from pydantic import Field, StringConstraints, field_validator, model_validator
 from src.models import BaseModel, UtcDateTime
 from src.payments.models import IntentStatus, ProviderKey
 
+from .refund_policy import CUTOFF_HOURS_MAX
+from .refund_policy import FeeType as FeeTypeName
+from .refund_policy import RefundPolicy as RefundPolicyName
+
 Category = Literal[
     "fete",
     "music",
@@ -159,6 +163,15 @@ class ListingDetail(ListingCard):
     organiser: OrganiserPublic
     group: GroupSummary | None
     tiers: list[TierPublic]
+    #: The refund terms buyers see before they buy (refund_policy.py).
+    refund_policy: RefundPolicyName
+    #: The organiser's own cutoff in hours; null means the platform default.
+    refund_cutoff_hours: int | None
+    #: The cutoff in force, with the platform default resolved (the web never hard-codes it).
+    refund_cutoff_hours_effective: int
+    cancellation_fee_type: FeeTypeName
+    #: Minor units per ticket for a fixed fee, a whole percent for a percent fee, else 0.
+    cancellation_fee_value: int
 
 
 class PersonSuggestion(PersonChip):
@@ -341,6 +354,14 @@ class ListingUpsert(BaseModel):
     #: Top-level category slug; `subcategory_slug` must belong to it.
     category_slug: str | None = Field(default=None, pattern=SLUG_PATTERN)
     subcategory_slug: str | None = Field(default=None, pattern=SLUG_PATTERN)
+    # Refund terms. Omitted keeps the listing's current value (new listings:
+    # refundable, platform cutoff, no fee). A fee type travels with its value.
+    refund_policy: RefundPolicyName | None = None
+    #: Hours before the start; null uses the platform default.
+    refund_cutoff_hours: int | None = Field(default=None, ge=0, le=CUTOFF_HOURS_MAX)
+    cancellation_fee_type: FeeTypeName | None = None
+    #: Minor units per ticket (fixed) or a whole percent 0-100 (percent).
+    cancellation_fee_value: int | None = Field(default=None, ge=0, le=10_000_000)
 
     @model_validator(mode="before")
     @classmethod
@@ -352,6 +373,31 @@ class ListingUpsert(BaseModel):
                 "external_ticket_url is set by Barrels staff, not organisers"
             )
         return data
+
+    @model_validator(mode="after")
+    def _refund_terms(self) -> ListingUpsert:
+        if "cancellation_fee_value" in self.model_fields_set and (
+            self.cancellation_fee_type is None
+        ):
+            raise ValueError("cancellation_fee_value needs cancellation_fee_type")
+        fee_type = self.cancellation_fee_type
+        fee_value = self.cancellation_fee_value
+        if fee_type in ("fixed", "percent") and fee_value is None:
+            raise ValueError(
+                "cancellation_fee_value is needed with a fixed or percent fee"
+            )
+        if fee_type == "none" and fee_value:
+            raise ValueError("a cancellation fee of type none must have value 0")
+        if fee_type == "percent" and fee_value is not None and fee_value > 100:
+            raise ValueError("a percent cancellation fee can be at most 100")
+        if fee_type == "fixed" and fee_value and self.admission == "ticketed":
+            # A fixed fee is per ticket, so it may not exceed the cheapest paid ticket.
+            paid = [tier.price_minor for tier in self.tiers if tier.price_minor > 0]
+            if paid and fee_value > min(paid):
+                raise ValueError(
+                    "a fixed cancellation fee can't be more than the lowest paid ticket price"
+                )
+        return self
 
     @field_validator("booking_mode")
     @classmethod
@@ -718,6 +764,9 @@ class SettlementOnlinePayments(BaseModel):
     pending_minor: int
     collected_minor: int
     refunded_minor: int
+    #: Kept by organiser cancels under the refund terms: retained revenue, not owed
+    #: to buyers. Already inside collected minus refunded; shown for the breakdown.
+    cancellation_fee_kept_minor: int = 0
     #: From the payments ledger; null when the ledger could not be read.
     ledger_collected_minor: int | None = None
     ledger_refunded_minor: int | None = None
@@ -768,35 +817,32 @@ class SettlementOverview(BaseModel):
 # --- Cancel, postpone and refund (E5) ---------------------------------------------------
 
 
-#: What happens to money already paid when an organiser cancels. ``full`` hands
-#: everything back, ``none`` keeps it, ``follow_policy`` applies the organiser's
-#: refund policy (an event the organiser cancels is refunded in full; a single
-#: order is refunded when the event is at least the policy cutoff away).
+#: What happens to money already paid when an order is cancelled. ``full`` hands
+#: everything back, ``none`` keeps it (an organiser must give a reason), and
+#: ``follow_policy`` applies the event's refund terms to a buyer-initiated cancel.
+#: An organiser-initiated cancel under ``follow_policy`` is refunded in full.
+#: An event that is cancelled is always refunded in full, whatever is sent here.
 RefundChoice = Literal["full", "none", "follow_policy"]
+
+#: Event cancels always refund in full (Grenada Consumer Protection Act, Schedule
+#: IV(f)): the choice is accepted for compatibility and ignored.
+EVENT_REFUND_CHOICES_NOTE = (
+    "Money already paid for online orders is always refunded in full when the event "
+    "is cancelled. This field is accepted for compatibility and ignored."
+)
 
 
 class CancelEvent(BaseModel):
     #: Must be true; guards against an accidental call.
     confirm: Literal[True]
-    refund: RefundChoice = Field(
-        default="none",
-        description=(
-            "What to do with money already paid for online orders. Left out, no "
-            "money moves (the organiser refunds from the orders page)."
-        ),
-    )
+    refund: RefundChoice = Field(default="none", description=EVENT_REFUND_CHOICES_NOTE)
 
 
 class OrgEventCancel(BaseModel):
     #: Must be true; guards against an accidental call.
     confirm: Literal[True]
     refund: RefundChoice = Field(
-        default="follow_policy",
-        description=(
-            "What to do with money already paid for online orders. Left out, the "
-            "organiser policy applies: an event the organiser cancels is refunded "
-            "in full."
-        ),
+        default="follow_policy", description=EVENT_REFUND_CHOICES_NOTE
     )
 
 
@@ -942,6 +988,10 @@ class OrgOrderDetail(OrgOrderRow):
     #: retries), `failed` gave up and needs a manual refund.
     refund_status: Literal["none", "queued", "partial", "refunded", "failed"]
     payment_expires_at: UtcDateTime | None
+    #: Kept by an organiser cancel under the refund terms (a fee, or the whole amount
+    #: under no_refunds or inside the cutoff). Not owed to the buyer; still part of
+    #: the ledger amount, so `payment.refundable_minor` can include it.
+    cancellation_fee_kept_minor: int = 0
     items: list[OrgOrderItem]
     tickets: list[OrgOrderTicket]
     payment: OrgOrderPayment | None
@@ -977,10 +1027,23 @@ class OrgOrderRefundCreate(BaseModel):
 
 
 class OrgOrderCancel(BaseModel):
-    reason: str | None = Field(default=None, max_length=300)
+    reason: str | None = Field(
+        default=None,
+        max_length=300,
+        description="Required when the organiser keeps money on this order.",
+    )
     refund: RefundChoice = Field(
         default="follow_policy",
-        description="What to do with money already paid for this order.",
+        description=(
+            "What to do with money already paid for this order. `follow_policy` applies "
+            "the event's refund terms only for a buyer-initiated cancel; an "
+            "organiser-initiated cancel is refunded in full."
+        ),
+    )
+    #: Who asked for the cancel. Only a buyer's cancel is subject to the refund terms.
+    initiated_by: Literal["buyer", "organiser"] = Field(
+        default="organiser",
+        description="Who asked for this cancel. Only a buyer's cancel follows the terms.",
     )
 
 

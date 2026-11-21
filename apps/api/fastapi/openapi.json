@@ -58723,7 +58723,7 @@
           "events"
         ],
         "summary": "Cancel an event",
-        "description": "Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` (default; no money moves) or `follow_policy` (an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.",
+        "description": "Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. Money already paid online is always refunded in full; `refund` is accepted for compatibility and ignored. Outlet cash tickets are refunded by hand.",
         "operationId": "eventsCancelEvent",
         "security": [
           {
@@ -92738,6 +92738,31 @@
             },
             "type": "array",
             "title": "Tiers"
+          },
+          "refund_policy": {
+            "$ref": "#/components/schemas/ListingDetailPropertiesRefundPolicyEnum"
+          },
+          "refund_cutoff_hours": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Cutoff Hours"
+          },
+          "refund_cutoff_hours_effective": {
+            "type": "integer",
+            "title": "Refund Cutoff Hours Effective"
+          },
+          "cancellation_fee_type": {
+            "$ref": "#/components/schemas/ListingDetailPropertiesCancellationFeeTypeEnum"
+          },
+          "cancellation_fee_value": {
+            "type": "integer",
+            "title": "Cancellation Fee Value"
           }
         },
         "type": "object",
@@ -92764,7 +92789,12 @@
           "capacity",
           "organiser",
           "group",
-          "tiers"
+          "tiers",
+          "refund_policy",
+          "refund_cutoff_hours",
+          "refund_cutoff_hours_effective",
+          "cancellation_fee_type",
+          "cancellation_fee_value"
         ],
         "title": "ListingDetail"
       },
@@ -92952,6 +92982,54 @@
               }
             ],
             "title": "Subcategory Slug"
+          },
+          "refund_policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingDetailPropertiesRefundPolicyEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Policy"
+          },
+          "refund_cutoff_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 720.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Cutoff Hours"
+          },
+          "cancellation_fee_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingDetailPropertiesCancellationFeeTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Fee Type"
+          },
+          "cancellation_fee_value": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Fee Value"
           }
         },
         "type": "object",
@@ -93302,6 +93380,31 @@
             "type": "array",
             "title": "Tiers"
           },
+          "refund_policy": {
+            "$ref": "#/components/schemas/ListingDetailPropertiesRefundPolicyEnum"
+          },
+          "refund_cutoff_hours": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Cutoff Hours"
+          },
+          "refund_cutoff_hours_effective": {
+            "type": "integer",
+            "title": "Refund Cutoff Hours Effective"
+          },
+          "cancellation_fee_type": {
+            "$ref": "#/components/schemas/ListingDetailPropertiesCancellationFeeTypeEnum"
+          },
+          "cancellation_fee_value": {
+            "type": "integer",
+            "title": "Cancellation Fee Value"
+          },
           "status": {
             "$ref": "#/components/schemas/ListingUpsertPropertiesStatusEnum"
           },
@@ -93334,6 +93437,11 @@
           "organiser",
           "group",
           "tiers",
+          "refund_policy",
+          "refund_cutoff_hours",
+          "refund_cutoff_hours_effective",
+          "cancellation_fee_type",
+          "cancellation_fee_value",
           "status",
           "visibility"
         ],
@@ -96241,10 +96349,14 @@
                 "type": "null"
               }
             ],
-            "title": "Reason"
+            "title": "Reason",
+            "description": "Required when the organiser keeps money on this order."
           },
           "refund": {
             "$ref": "#/components/schemas/CancelEventPropertiesRefundEnum"
+          },
+          "initiated_by": {
+            "$ref": "#/components/schemas/OrgOrderCancelPropertiesInitiatedByEnum"
           }
         },
         "type": "object",
@@ -96379,6 +96491,11 @@
               }
             ],
             "title": "Payment Expires At"
+          },
+          "cancellation_fee_kept_minor": {
+            "type": "integer",
+            "title": "Cancellation Fee Kept Minor",
+            "default": 0
           },
           "items": {
             "items": {
@@ -112325,6 +112442,11 @@
             "type": "integer",
             "title": "Refunded Minor"
           },
+          "cancellation_fee_kept_minor": {
+            "type": "integer",
+            "title": "Cancellation Fee Kept Minor",
+            "default": 0
+          },
           "ledger_collected_minor": {
             "anyOf": [
               {
@@ -125619,7 +125741,7 @@
           "none",
           "follow_policy"
         ],
-        "description": "What to do with money already paid for online orders. Left out, no money moves (the organiser refunds from the orders page).",
+        "description": "Money already paid for online orders is always refunded in full when the event is cancelled. This field is accepted for compatibility and ignored.",
         "default": "none"
       },
       "CapAlertImportRequestPropertiesSourceEnum": {
@@ -126000,6 +126122,21 @@
         ],
         "default": "none"
       },
+      "ListingDetailPropertiesRefundPolicyEnum": {
+        "type": "string",
+        "enum": [
+          "refundable",
+          "no_refunds"
+        ]
+      },
+      "ListingDetailPropertiesCancellationFeeTypeEnum": {
+        "type": "string",
+        "enum": [
+          "none",
+          "fixed",
+          "percent"
+        ]
+      },
       "ListingUpsertPropertiesVisibilityEnum": {
         "type": "string",
         "enum": [
@@ -126164,6 +126301,15 @@
           "cash",
           "bank_transfer"
         ]
+      },
+      "OrgOrderCancelPropertiesInitiatedByEnum": {
+        "type": "string",
+        "enum": [
+          "buyer",
+          "organiser"
+        ],
+        "description": "Who asked for this cancel. Only a buyer's cancel follows the terms.",
+        "default": "organiser"
       },
       "OrgOrderCancelResultPropertiesRefundOutcomeEnum": {
         "type": "string",

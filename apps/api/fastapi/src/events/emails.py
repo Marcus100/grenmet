@@ -56,22 +56,34 @@ def order_refunded(
     full: bool,
     card: bool,
     event_cancelled: bool,
+    tickets_valid: bool = True,
+    fee_kept_minor: int = 0,
 ) -> tuple[str, str]:
     """Receipt for one refund on an order. ``full`` means everything paid on the
-    order is now refunded (the tickets are cancelled); otherwise the tickets stay
-    valid. ``card`` is a provider (card) refund, which takes days to show."""
+    order is now refunded (the tickets are cancelled). Otherwise it is partial:
+    ``tickets_valid`` says whether the order's tickets still work (a partial refund
+    on an organiser cancel leaves them cancelled, with a fee kept). ``fee_kept_minor``
+    is what the policy kept as a cancellation fee, named in the receipt when above
+    zero. ``card`` is a provider (card) refund, which takes days to show."""
     amount = _e(_money(refund_minor, currency))
+    fee = (
+        f"<p>{_e(_money(fee_kept_minor, currency))} was kept as the cancellation fee "
+        "under the event's refund policy.</p>"
+        if fee_kept_minor > 0 and not full
+        else ""
+    )
     subject = f"Refund for {title}"
     why = (
         f"<p>The organiser cancelled <strong>{_e(title)}</strong>.</p>"
         if event_cancelled
         else ""
     )
-    scope = (
-        "This refunds your whole order and its tickets are cancelled."
-        if full
-        else "This is a partial refund; your tickets stay valid."
-    )
+    if full:
+        scope = "This refunds your whole order and its tickets are cancelled."
+    elif tickets_valid:
+        scope = "This is a partial refund; your tickets stay valid."
+    else:
+        scope = "This is a partial refund; the tickets on this order are cancelled."
     timeline = (
         "<p>The money goes back to the card you paid with. Your bank usually "
         "shows it within 5 to 10 business days.</p>"
@@ -83,6 +95,7 @@ def order_refunded(
         f"{why}"
         f"<p>We refunded <strong>{amount}</strong> for "
         f"<strong>{_e(title)}</strong> (order {_e(order_ref)}). {scope}</p>"
+        f"{fee}"
         f"{timeline}"
     )
     return subject, body

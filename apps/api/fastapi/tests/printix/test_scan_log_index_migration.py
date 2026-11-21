@@ -77,4 +77,9 @@ def test_the_migration_continues_the_current_head() -> None:
     revision = scripts.get_revision(REVISION)
     assert revision is not None
     assert revision.down_revision == "authsessionsignedin20261116"
-    assert scripts.get_heads() == [REVISION]
+    # Later migrations may follow; this one must stay on the single main line.
+    heads = scripts.get_heads()
+    assert len(heads) == 1
+    assert REVISION in {
+        rev.revision for rev in scripts.walk_revisions("base", heads[0])
+    }

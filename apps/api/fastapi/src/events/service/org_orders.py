@@ -33,7 +33,8 @@ from .. import (
     schemas,
     transitions,
 )
-from ..exceptions import EventsConflict, EventsNotFound
+from .. import refund_policy as rp
+from ..exceptions import EventsConflict, EventsInvalid, EventsNotFound
 from ..models import (
     Admission,
     Listing,
@@ -265,6 +266,7 @@ async def _detail(
         buyer_email=email,
         buyer_phone=order.buyer_phone,
         payment_expires_at=order.payment_expires_at,
+        cancellation_fee_kept_minor=order.cancellation_fee_kept_minor,
         items=[
             schemas.OrgOrderItem(
                 tier_id=item.tier_id,
@@ -492,6 +494,37 @@ async def refund_order(
     return await _detail(db, organisation_id, order, listing, show_email)
 
 
+async def _paid_ticket_totals(db: AsyncSession, order_id: uuid.UUID) -> tuple[int, int]:
+    """Valid tickets on the order that were paid for, and what they cost in total.
+
+    Free tickets carry no cancellation fee. A ticket's price is the unit price of its
+    order item (what was paid), not the tier's current price."""
+    row = (
+        await db.execute(
+            select(
+                func.count(Ticket.id),
+                func.coalesce(func.sum(OrderItem.unit_price_minor), 0),
+            )
+            .select_from(Ticket)
+            .join(
+                OrderItem,
+                (OrderItem.order_id == Ticket.order_id)
+                & (OrderItem.tier_id == Ticket.tier_id),
+            )
+            .where(
+                Ticket.order_id == order_id,
+                Ticket.status == TicketStatus.VALID.value,
+                OrderItem.unit_price_minor > 0,
+            )
+        )
+    ).one()
+    return int(row[0]), int(row[1])
+
+
+def _has_reason(body: schemas.OrgOrderCancel) -> bool:
+    return bool((body.reason or "").strip())
+
+
 async def cancel_order(
     db: AsyncSession,
     organisation_id: str,
@@ -520,6 +553,8 @@ async def cancel_order(
     if order.status == OrderStatus.CONFIRMED.value and issued and not live:
         raise EventsConflict("This order is already cancelled")
     outcome: Literal["refunded", "queued", "kept", "not_due"] = "not_due"
+    refund_minor = 0
+    fee_minor = 0
     if order.status == OrderStatus.PENDING_PAYMENT.value:
         unpaid = await order_payments.stop_collecting(
             db, organisation_id=organisation_id, order_id=order.id
@@ -546,6 +581,37 @@ async def cancel_order(
                 " ticket from the event's refund screen, or cancel with refund"
                 " set to none"
             )
+        refundable = (
+            order.collected_minor - order.refunded_minor
+            if _is_online_paid(order)
+            else 0
+        )
+        # Decided before anything changes: a 422 here must leave the order as it was.
+        paid_tickets, paid_minor = await _paid_ticket_totals(db, order.id)
+        due = 0
+        if refundable > 0:
+            due = rp.refund_due(
+                body.refund,
+                policy=listing.refund_policy,
+                cutoff_hours=listing.refund_cutoff_hours,
+                fee_type=listing.cancellation_fee_type,
+                fee_value=listing.cancellation_fee_value,
+                event_cancelled=listing.status == ListingStatus.CANCELLED.value,
+                initiated_by=body.initiated_by,
+                starts_at=listing.starts_at,
+                now=now,
+                refundable_minor=refundable,
+                paid_ticket_count=paid_tickets,
+                paid_minor=paid_minor,
+            )
+        kept = refundable - due
+        # Keeping money needs a reason whoever asked for the cancel: an explicit
+        # `none`, or an organiser keeping money.
+        keeps = body.refund == "none" or body.initiated_by == "organiser"
+        if kept > 0 and keeps and not _has_reason(body):
+            raise EventsInvalid(
+                "Give a reason when you keep money on an order you cancel"
+            )
         await db.execute(
             update(Ticket)
             .where(
@@ -559,18 +625,17 @@ async def cancel_order(
                 cancelled_at=now,
             )
         )
-        refundable = (
-            order.collected_minor - order.refunded_minor
-            if _is_online_paid(order)
-            else 0
-        )
         if refundable > 0:
-            if order_refunds.should_refund(
-                body.refund,
-                event_cancelled=listing.status == ListingStatus.CANCELLED.value,
-                starts_at=listing.starts_at,
-                now=now,
-            ):
+            if body.refund == "follow_policy":
+                # What the policy kept (a cancellation fee, or the whole amount under
+                # no_refunds or inside the cutoff). Set before the refund, so the
+                # receipt of a partial refund can name the fee; the refund then lowers
+                # it to what is still kept (apply_refund).
+                order.cancellation_fee_kept_minor = kept
+                fee_minor = kept
+            if due > 0:
+                # Everything left is refunded as None (the same request as before);
+                # less than that is a partial refund under the same single cancel key.
                 result, _ = await order_refunds.request_refund(
                     db,
                     organisation_id=organisation_id,
@@ -579,6 +644,7 @@ async def cancel_order(
                     reason=(body.reason or "Order cancelled by the organiser")[:500],
                     key=order_refunds.CANCEL_KEY,
                     reason_code="order_cancelled",
+                    amount_minor=None if due == refundable else due,
                 )
                 if result == "queued":
                     outcome = "queued"
@@ -589,6 +655,8 @@ async def cancel_order(
                     outcome = "not_due"
             else:
                 outcome = "kept"
+            if outcome in ("refunded", "queued"):
+                refund_minor = due
     activity.record(
         db,
         actor_id=actor.id,
@@ -596,7 +664,14 @@ async def cancel_order(
         entity_type="listing",
         entity_id=str(listing.id),
         organiser_id=listing.organiser_id,
-        summary={"order_id": str(order.id), "refund": outcome, "choice": body.refund},
+        summary={
+            "order_id": str(order.id),
+            "refund": outcome,
+            "choice": body.refund,
+            "initiated_by": body.initiated_by,
+            "refund_minor": refund_minor,
+            "fee_minor": fee_minor,
+        },
     )
     await db.flush()
     detail = await _detail(db, organisation_id, order, listing, show_email)

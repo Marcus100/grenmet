@@ -837,7 +837,7 @@ async def get_settlement_csv(
     response_model=schemas.CancelResult,
     status_code=status.HTTP_200_OK,
     summary="Cancel an event",
-    description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` (default; no money moves) or `follow_policy` (an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.",
+    description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. Money already paid online is always refunded in full; `refund` is accepted for compatibility and ignored. Outlet cash tickets are refunded by hand.",
     responses={
         **_ORGANISER,
         409: {"model": ApiError, "description": "Not a published event"},

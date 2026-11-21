@@ -163,6 +163,18 @@ class Listing(EventsModel):
     )
     external_ticket_url: Mapped[str | None] = mapped_column(Text, default=None)
     curated: Mapped[bool] = mapped_column(default=False)
+    # Refund terms (migration eventsrefundpolicy20261121, refund_policy.py).
+    refund_policy: Mapped[str] = mapped_column(
+        Text, default="refundable", server_default="refundable"
+    )
+    #: NULL means the platform default (events_settings.REFUND_CUTOFF_HOURS).
+    refund_cutoff_hours: Mapped[int | None] = mapped_column(Integer, default=None)
+    cancellation_fee_type: Mapped[str] = mapped_column(
+        Text, default="none", server_default="none"
+    )
+    cancellation_fee_value: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0"
+    )
 
 
 class TicketTier(EventsModel):
@@ -338,6 +350,12 @@ class Order(EventsModel):
     paid_at: Mapped[datetime | None] = mapped_column(DateTime)
     #: Mirrors the payments ledger (``collected_minor`` holds the charge).
     refunded_minor: Mapped[int] = mapped_column(Integer, default=0)
+    #: Money an organiser cancel kept under the event's refund terms (a fee, or the
+    #: whole amount under no_refunds or inside the cutoff). Kept, not owed to the
+    #: buyer; migration eventsrefundpolicy20261121.
+    cancellation_fee_kept_minor: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 

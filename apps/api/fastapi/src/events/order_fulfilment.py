@@ -248,6 +248,18 @@ async def _queue_refund_receipt(
         or not notification_settings.email_allowed(buyer.email)
     ):
         return
+    # A partial refund keeps the tickets only when some are still valid (an organiser
+    # cancel cancels them first, and the fee is kept on the cancelled order).
+    tickets_valid = not full and bool(
+        await db.scalar(
+            select(func.count())
+            .select_from(Ticket)
+            .where(
+                Ticket.order_id == order.id,
+                Ticket.status == transitions.TicketStatus.VALID.value,
+            )
+        )
+    )
     subject, body = emails.order_refunded(
         buyer_name=buyer.first_name,
         title=listing.title,
@@ -257,6 +269,8 @@ async def _queue_refund_receipt(
         full=full,
         card=intent_provider != ProviderKey.MANUAL,
         event_cancelled=listing.status == "cancelled",
+        tickets_valid=tickets_valid,
+        fee_kept_minor=order.cancellation_fee_kept_minor,
     )
     await enqueue_email(
         db,
@@ -293,6 +307,12 @@ async def apply_refund(
         return "ignored"
     order.collected_minor = intent.captured_minor
     order.refunded_minor = intent.refunded_minor
+    # A fee kept on a cancel is no longer kept once it has been refunded: never more
+    # than what is still on the order.
+    order.cancellation_fee_kept_minor = min(
+        order.cancellation_fee_kept_minor,
+        max(0, order.collected_minor - order.refunded_minor),
+    )
     outcome = "partial"
     if intent.captured_minor > 0 and intent.refunded_minor >= intent.captured_minor:
         released = await db.execute(

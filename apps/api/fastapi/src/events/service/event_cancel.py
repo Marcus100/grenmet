@@ -27,6 +27,7 @@ from src.auth.models import User
 from src.exceptions import AppException
 
 from .. import order_payments, order_refunds
+from .. import refund_policy as rp
 from ..models import Listing, Order, Organiser
 from ..transitions import OrderStatus, move_order
 from .ticketing import cancel_valid_tickets
@@ -115,9 +116,23 @@ async def _settle_order(
         return
     if order.collected_minor - order.refunded_minor <= 0:
         return
-    if not order_refunds.should_refund(
-        refund, event_cancelled=True, starts_at=listing.starts_at, now=now
-    ):
+    # An event that is cancelled is refunded in full whatever `refund` says, with no
+    # fee, so the terms and the ticket figures below are never used for the amount.
+    due = rp.refund_due(
+        refund,
+        policy=listing.refund_policy,
+        cutoff_hours=listing.refund_cutoff_hours,
+        fee_type=listing.cancellation_fee_type,
+        fee_value=listing.cancellation_fee_value,
+        event_cancelled=True,
+        initiated_by="organiser",
+        starts_at=listing.starts_at,
+        now=now,
+        refundable_minor=order.collected_minor - order.refunded_minor,
+        paid_ticket_count=0,
+        paid_minor=0,
+    )
+    if due <= 0:
         result.kept += 1
         return
     outcome, _ = await order_refunds.request_refund(

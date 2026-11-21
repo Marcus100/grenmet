@@ -3,7 +3,7 @@
 ``RefundChoice`` is ``full`` | ``none`` | ``follow_policy`` (the same three-way
 meaning as the bookings studio cancel's ``refund_deposit`` true / false / left
 out). The policy: an event the organiser cancels is refunded in full; a single
-order is refunded when the event starts at least ``REFUND_CUTOFF_HOURS`` away.
+order is refunded according to the event's refund terms (``refund_policy.refund_due``).
 
 Where the money moves:
 - The manual rail (staff hand the money back) has no network, so it settles
@@ -25,7 +25,6 @@ it busy answers 409 instead of waiting behind the provider call.
 """
 
 import uuid
-from datetime import datetime, timedelta
 from typing import Literal
 
 from sqlalchemy import select
@@ -41,7 +40,6 @@ from src.payments.models import ProviderKey
 from src.utils.datetime import utc_now
 
 from . import order_fulfilment, order_payments
-from .config import events_settings
 from .exceptions import EventsConflict
 from .models import Order
 
@@ -61,18 +59,6 @@ _REASONS: dict[str, str] = {
     "order_cancelled": "Order cancelled by the organiser",
     "organiser_refund": "Refund issued by the organiser",
 }
-
-
-def should_refund(
-    choice: str, *, event_cancelled: bool, starts_at: datetime, now: datetime
-) -> bool:
-    if choice == "full":
-        return True
-    if choice == "none":
-        return False
-    if event_cancelled:
-        return True
-    return starts_at - now >= timedelta(hours=events_settings.REFUND_CUTOFF_HOURS)
 
 
 class RefundAlreadyPending(EventsConflict):
