@@ -30,8 +30,40 @@ env:
   UV_CACHE_DIR: ~/.cache/uv
 
 jobs:
+  # Which jobs this change needs (docs/operations/release-runbook.md, pull-request check selection).
+  # Narrows only pull requests into dev; every other event selects everything
+  # (scripts/ci/select-checks.mjs). It never fails the run: an error there
+  # selects every check, and the job below also runs when this one did not succeed.
+  changes:
+    name: Select checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      journeys: ${{ steps.select.outputs.journeys }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - id: select
+        env:
+          # off | shadow | on; unset means shadow (docs/operations/release-runbook.md).
+          CI_PATH_SELECTION: ${{ vars.CI_PATH_SELECTION }}
+        run: node scripts/ci/select-checks.mjs
+      - name: Keep the shadow record for the wrong-skip report
+        # Written only for a pull request into dev (scripts/ci/selection-report.mjs reads it).
+        if: ${{ !cancelled() && hashFiles('ci-selection.json') != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ci-selection
+          path: ci-selection.json
+          retention-days: 30
+
   journeys:
     name: Browser journeys
+    needs: [changes]
+    # Fail open: also runs when the selection job did not succeed.
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.journeys == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
