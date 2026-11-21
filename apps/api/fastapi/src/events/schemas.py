@@ -4,7 +4,13 @@ import uuid
 from datetime import date
 from typing import Annotated, Literal
 
-from pydantic import Field, StringConstraints, field_validator, model_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
 
 from src.models import BaseModel, UtcDateTime
 from src.payments.models import IntentStatus, ProviderKey
@@ -433,6 +439,33 @@ class OrganiserCreate(BaseModel):
 class OrganiserLogoUpdate(BaseModel):
     #: A completed `organiser-logo` upload of this organiser; null clears it.
     file_id: uuid.UUID | None = None
+
+
+class OrganiserProfileUpdate(BaseModel):
+    """Partial edit of an approved organiser's public profile: send only what changes.
+
+    The slug is not editable here, so an unknown field (such as ``slug``) is a 422.
+    Null is refused for both fields; leave a field out to keep it."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: (
+        Annotated[
+            str, StringConstraints(strip_whitespace=True, min_length=2, max_length=80)
+        ]
+        | None
+    ) = None
+    # Trimmed, so a bio of spaces is stored as an empty bio (which clears it).
+    bio: (
+        Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)] | None
+    ) = None
+
+    @field_validator("name", "bio")
+    @classmethod
+    def _no_null(cls, value: str | None) -> str | None:
+        if value is None:
+            raise ValueError("Send a value, or leave the field out to keep it")
+        return value
 
 
 class OrganiserReview(BaseModel):

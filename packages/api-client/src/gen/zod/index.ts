@@ -3795,6 +3795,20 @@ export {
   eventsUpdateMyProfileStatus429Schema,
 } from "./eventsUpdateMyProfileSchema.js";
 export {
+  eventsUpdateOrganiserProfileBodySchema,
+  eventsUpdateOrganiserProfileErrorSchema,
+  eventsUpdateOrganiserProfileQueryOrganiserSchema,
+  eventsUpdateOrganiserProfileQuerySchema,
+  eventsUpdateOrganiserProfileResponseSchema,
+  eventsUpdateOrganiserProfileStatus200Schema,
+  eventsUpdateOrganiserProfileStatus401Schema,
+  eventsUpdateOrganiserProfileStatus403Schema,
+  eventsUpdateOrganiserProfileStatus404Schema,
+  eventsUpdateOrganiserProfileStatus409Schema,
+  eventsUpdateOrganiserProfileStatus422Schema,
+  eventsUpdateOrganiserProfileStatus429Schema,
+} from "./eventsUpdateOrganiserProfileSchema.js";
+export {
   eventsUpdateReportBodySchema,
   eventsUpdateReportErrorSchema,
   eventsUpdateReportPathReportIdSchema,
@@ -7423,6 +7437,7 @@ export { organisationUpdateSchema } from "./organisationUpdateSchema.js";
 export { organiserCreateSchema } from "./organiserCreateSchema.js";
 export { organiserLogoUpdateSchema } from "./organiserLogoUpdateSchema.js";
 export { organiserOptionSchema } from "./organiserOptionSchema.js";
+export { organiserProfileUpdateSchema } from "./organiserProfileUpdateSchema.js";
 export { organiserPublicSchema } from "./organiserPublicSchema.js";
 export { organiserReviewSchema } from "./organiserReviewSchema.js";
 export { orgEventCancelSchema } from "./orgEventCancelSchema.js";

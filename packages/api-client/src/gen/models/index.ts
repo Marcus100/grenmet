@@ -3809,6 +3809,20 @@ export type {
   EventsUpdateMyProfileStatus429,
 } from "./EventsUpdateMyProfile.js";
 export type {
+  EventsUpdateOrganiserProfileBody,
+  EventsUpdateOrganiserProfileOptions,
+  EventsUpdateOrganiserProfileQuery,
+  EventsUpdateOrganiserProfileResponse,
+  EventsUpdateOrganiserProfileResponses,
+  EventsUpdateOrganiserProfileStatus200,
+  EventsUpdateOrganiserProfileStatus401,
+  EventsUpdateOrganiserProfileStatus403,
+  EventsUpdateOrganiserProfileStatus404,
+  EventsUpdateOrganiserProfileStatus409,
+  EventsUpdateOrganiserProfileStatus422,
+  EventsUpdateOrganiserProfileStatus429,
+} from "./EventsUpdateOrganiserProfile.js";
+export type {
   EventsUpdateReportBody,
   EventsUpdateReportOptions,
   EventsUpdateReportPath,
@@ -7480,6 +7494,7 @@ export type { OrganisationUpdate } from "./OrganisationUpdate.js";
 export type { OrganiserCreate } from "./OrganiserCreate.js";
 export type { OrganiserLogoUpdate } from "./OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./OrganiserOption.js";
+export type { OrganiserProfileUpdate } from "./OrganiserProfileUpdate.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OrganiserReview } from "./OrganiserReview.js";
 export type { OrgEventCancel } from "./OrgEventCancel.js";
