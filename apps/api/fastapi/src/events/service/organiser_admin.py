@@ -281,7 +281,11 @@ async def _apply_listing(
 async def _check_fixed_fee_within_tiers(db: AsyncSession, listing: Listing) -> None:
     """A fixed cancellation fee is per paid ticket, so it may not exceed the cheapest
     paid tier, checked against the tiers as they are after this save (so a tier-only
-    save that lowers a price is refused too)."""
+    save that lowers a price is refused too). A save that leaves the event cancelled
+    is never refused here: a cancelled event has nothing left to price, so it must
+    always be cancellable."""
+    if listing.status == ListingStatus.CANCELLED.value:
+        return
     if listing.cancellation_fee_type != "fixed" or not listing.cancellation_fee_value:
         return
     lowest = await db.scalar(

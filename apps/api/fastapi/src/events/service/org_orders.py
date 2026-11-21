@@ -605,7 +605,10 @@ async def cancel_order(
                 paid_minor=paid_minor,
             )
         kept = refundable - due
-        if kept > 0 and body.initiated_by == "organiser" and not _has_reason(body):
+        # Keeping money needs a reason whoever asked for the cancel: an explicit
+        # `none`, or an organiser keeping money.
+        keeps = body.refund == "none" or body.initiated_by == "organiser"
+        if kept > 0 and keeps and not _has_reason(body):
             raise EventsInvalid(
                 "Give a reason when you keep money on an order you cancel"
             )

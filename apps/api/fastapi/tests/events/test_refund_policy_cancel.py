@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.events import emails
 from src.events import schemas as event_schemas
-from src.events.exceptions import EventsConflict
+from src.events.exceptions import EventsConflict, EventsInvalid
 from src.events.models import Listing, Order, TicketTier
 from src.events.service import organiser_admin
 from src.utils.datetime import utc_now
@@ -677,6 +677,127 @@ def test_a_receipt_names_the_fee_kept_on_a_partial_refund() -> None:
         fee_kept_minor=1_000,
     )
     assert "cancellation fee" not in full
+
+
+@pytest.mark.asyncio
+async def test_a_buyer_cancel_that_keeps_money_with_none_needs_a_reason(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    order_id = await _paid(db_async, shop, 1)
+    refused = await _cancel_order(shop, order_id, refund="none", initiated_by="buyer")
+    assert refused.status_code == 422, refused.text
+    assert await _refunded(db_async, order_id) == 0
+    assert (await _row(events_db, order_id)).status == "confirmed"  # nothing changed
+    kept = await _cancel_order(
+        shop,
+        order_id,
+        refund="none",
+        initiated_by="buyer",
+        reason="Buyer changed plans",
+    )
+    assert kept.status_code == 200, kept.text
+    assert kept.json()["refund_outcome"] == "kept"
+
+
+@pytest.mark.asyncio
+async def test_a_tier_only_save_that_lowers_a_paid_tier_below_the_fixed_fee_is_422(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    await _paid(db_async, shop, 1)  # a paid order exists
+    await _set_terms(
+        events_db, shop, cancellation_fee_type="fixed", cancellation_fee_value=1_000
+    )
+    # Only the tiers change: the paid tier drops from PRICE to 500, below the fee.
+    body = _upsert(
+        status="published",
+        tiers=[
+            {
+                "id": str(shop.tier_id),
+                "name": "General",
+                "price_minor": 500,
+                "allocation": 3,
+            }
+        ],
+    )
+    with pytest.raises(EventsInvalid) as caught:
+        async with events_db() as events:
+            await organiser_admin.update_listing(
+                events, shop.owner, shop.listing_id, body, [shop.organisation_id]
+            )
+    assert caught.value.status_code == 422
+    async with events_db() as events:
+        tier = await events.get(TicketTier, shop.tier_id)
+        assert tier is not None
+        assert tier.price_minor == PRICE  # the save was refused, nothing changed
+
+
+@pytest.mark.asyncio
+async def test_an_event_cancel_with_none_refunds_a_paid_online_order_in_full(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    from tests.events.test_org_orders_money import _as_organiser
+
+    # The organiser route (OrgEventCancel) with refund none.
+    org_shop = await _shop_with_events(db_async, events_db)
+    org_order = await _paid(db_async, org_shop, 1)
+    async with await _desk() as client:
+        org_response = await client.post(
+            f"{ORG}/events/{org_shop.listing_id}/cancel",
+            headers=_h(org_shop),
+            json={"confirm": True, "refund": "none"},
+        )
+    assert org_response.status_code == 200, org_response.text
+    assert await _refunded(db_async, org_order) == PRICE
+
+    # The legacy route (CancelEvent) with refund none.
+    legacy_shop = await _shop_with_events(db_async, events_db)
+    legacy_order = await _paid(db_async, legacy_shop, 1)
+    async with _as_organiser(legacy_shop) as client:
+        legacy_response = await client.post(
+            f"{BASE}/manage/{legacy_shop.listing_id}/cancel",
+            json={"confirm": True, "refund": "none"},
+        )
+    assert legacy_response.status_code == 200, legacy_response.text
+    assert await _refunded(db_async, legacy_order) == PRICE
+
+
+@pytest.mark.asyncio
+async def test_the_terms_guard_counts_an_order_that_has_collected_money(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    # Fully refunded (status refunded): it was paid, so the terms are locked.
+    refunded_shop = await _shop_with_events(db_async, events_db, allocation=3)
+    refunded_order = await _paid(db_async, refunded_shop, 1)
+    async with await _desk() as client:
+        full = await client.post(
+            f"{ORG}/orders/{refunded_order}/refunds",
+            headers=_h(refunded_shop, "guard-full-001"),
+            json={"reason": "Full refund"},
+        )
+    assert full.status_code == 201, full.text
+    assert (await _row(events_db, refunded_order)).status == "refunded"
+    message = await _conflict(
+        events_db, refunded_shop, _upsert(refund_policy="no_refunds")
+    )
+    assert "refunds can't be switched off" in message
+
+    # Partly refunded (still confirmed, collected money left): also locked.
+    partial_shop = await _shop_with_events(db_async, events_db, allocation=3)
+    partial_order = await _paid(db_async, partial_shop, 2)
+    async with await _desk() as client:
+        part = await client.post(
+            f"{ORG}/orders/{partial_order}/refunds",
+            headers=_h(partial_shop, "guard-part-001"),
+            json={"amount_minor": 1_000, "reason": "Part refund"},
+        )
+    assert part.status_code == 201, part.text
+    assert (await _row(events_db, partial_order)).status == "confirmed"
+    message = await _conflict(
+        events_db, partial_shop, _upsert(refund_policy="no_refunds")
+    )
+    assert "refunds can't be switched off" in message
 
 
 # --- receipt wording for a refund on a cancelled ticket --------------------------------
