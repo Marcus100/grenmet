@@ -156,24 +156,45 @@ be additive to ship:
 - **Expand** (merges freely): a new table, a new nullable column or one with a
   server default, an index built `CONCURRENTLY`, or a constraint added
   `NOT VALID` and validated in a later step.
-- **Contract** (its own later migration): a drop of a table, column, constraint
-  or index; a rename; a type change; `NOT NULL` on an existing column.
+- **Contract** (its own later migration): a drop of a table, column, constraint,
+  index, view, trigger, function, sequence or type; a rename; a type change; a
+  `TRUNCATE`; `NOT NULL` on an existing column. Raw SQL that does any of these is
+  read the same way.
 
-A contract migration names its expand migration and carries a module-level
-marker, at least 7 days after the expand:
+A contract migration carries a module-level marker:
 
 ```python
 CONTRACT = {"expand_revision": "abc123", "contract_after": "2026-12-01"}
 ```
 
-`expand_revision` must be a revision in the same history. `contract_after` must
-be an ISO date at least 7 days after the expand's filename date. Numbered domain
-files carry no date, so only the marker's form is checked there.
-`tests/test_migration_safety.py` fails a destructive operation without a marker,
-a marker naming an unknown revision, and a date too soon. A
-`# migration-safety:` waiver never covers a destructive operation. The staging
-readiness recap flags every contract migration `⚠ deletes or renames data`
-(`.claude/skills/release/SKILL.md`).
+- `expand_revision` must be an **ancestor** of this migration in its
+  `down_revision` chain, not just any revision in the directory.
+- The expand's filename date plus 7 days must be on or before `contract_after`.
+  The filename date stands in for the merge date. Numbered domain files have no
+  date, so only the marker's form and chain are checked there.
+- This migration's filename date must be on or after `contract_after`.
+
+`tests/test_migration_safety.py` fails a destructive operation with no marker, a
+marker naming a revision off the chain, and a date that is too early for either
+side. A `# migration-safety:` waiver never covers a destructive operation.
+
+**Limit: a marker allows destructive operations on any table in the file.** The
+check cannot tell whether a `drop_column` belongs to the expanded table. The
+reviewer checks each destructive operation in a marked file against the expand
+migration.
+
+A call the check cannot read (unreadable SQL, or a module-level helper such as
+`_backfill()`) fails unless the file has the marker or the call carries
+`# migration-safety: no destructive ops` after review. Helpers are not expanded,
+so the reviewer must read them.
+
+`tests/migration_safety_baseline.json` has two lists. `frozen` is every migration
+on origin/dev when the rule landed, and its sorted hash is pinned in the test.
+`grandfathered` lists the frozen files that break the rule. A new migration is
+checked, never grandfathered, and changing `frozen` fails the test.
+
+The staging readiness recap flags every contract migration `⚠ deletes or renames
+data` (`docs/agents/workflow.md`).
 
 ## A fast, disposable test database
 
