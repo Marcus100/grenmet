@@ -61,11 +61,6 @@ describe("toEventDetail", () => {
       ...card,
       description: "Doors at four.",
       capacity: 1200,
-      refund_policy: "refundable",
-      refund_cutoff_hours: null,
-      refund_cutoff_hours_effective: 48,
-      cancellation_fee_type: "none",
-      cancellation_fee_value: 0,
       organiser: {
         id: "o1",
         slug: "feel-free",
