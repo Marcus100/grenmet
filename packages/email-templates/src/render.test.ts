@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { renderTemplate } from "./render";
 
 const INVITATION_EXPIRY = /expires in (<!-- -->)?24(<!-- -->)? hours/u;
+const RESET_EXPIRY = /expires in (<!-- -->)?48(<!-- -->)? hours/u;
+const WELCOME_BUTTON = /href="https:\/\/auth\.example\.test"/u;
+const ROLE_ROW = /Your role[\s\S]*?member/u;
+const INVITED_BY_ROW = /Invited by[\s\S]*?Alex Example/u;
+const INVITE_DAYS = /expires in (<!-- -->)?7(<!-- -->)? days/u;
 
 const base = {
   alerts: [],
@@ -130,6 +135,98 @@ describe("superuser invitation template", () => {
     await expect(
       renderTemplate("superuser-invitation", { ...invitation, acceptLink: "" })
     ).rejects.toThrow("superuser-invitation requires");
+  });
+});
+
+describe("account and invitation templates on the shared layout", () => {
+  const amp = (value: string) => value.replace(/&/gu, "&amp;");
+
+  it("reset password carries the link, the expiry and a text fallback link", async () => {
+    const props = {
+      projectName: "Barrels Grenada",
+      resetLink: "https://auth.example.test/reset-password?token=t&x=1",
+      username: "jane@example.test",
+      validHours: 48,
+    };
+    const { html, subject, text } = await renderTemplate(
+      "reset-password",
+      props
+    );
+    expect(subject).not.toContain("token=");
+    expect(html).toContain("Reset your password");
+    expect(html).toContain("Hello jane@example.test,");
+    expect(html).toContain(amp(props.resetLink));
+    expect(html).toMatch(RESET_EXPIRY);
+    expect(text).toContain(props.resetLink);
+  });
+
+  it("reset password refuses to render without its link", async () => {
+    await expect(
+      renderTemplate("reset-password", {
+        projectName: "Barrels Grenada",
+        resetLink: "",
+        username: "jane@example.test",
+        validHours: 48,
+      })
+    ).rejects.toThrow("reset-password requires");
+  });
+
+  it("welcome lists the username and email and links to sign in", async () => {
+    const { html } = await renderTemplate("welcome", {
+      email: "jane@example.test",
+      firstName: "Jane",
+      projectName: "Barrels Grenada",
+      signInLink: "https://auth.example.test",
+      username: "janesmith",
+    });
+    expect(html).toContain("Hi Jane,");
+    expect(html).toContain("janesmith");
+    expect(html).toContain("jane@example.test");
+    expect(html).toMatch(WELCOME_BUTTON);
+  });
+
+  it("organisation invitation names the organisation, role and inviter", async () => {
+    const link = "https://auth.example.test/organisations/accept?token=t";
+    const { html, subject } = await renderTemplate("organisation-invitation", {
+      acceptLink: link,
+      inviterName: "Alex Example",
+      organisationName: "Example Ltd",
+      projectName: "Barrels Grenada",
+      roleLabel: "member",
+      validDays: 7,
+    });
+    expect(html).toContain("Join Example Ltd");
+    expect(html).toMatch(ROLE_ROW);
+    expect(html).toMatch(INVITED_BY_ROW);
+    expect(html).toMatch(INVITE_DAYS);
+    expect(html).toContain(link);
+    expect(subject).not.toContain("token=");
+  });
+
+  it("subscription confirmation keeps the confirm and unsubscribe links", async () => {
+    const confirm = "https://api.example.test/subscriptions/confirm?token=t";
+    const unsubscribe =
+      "https://api.example.test/subscriptions/unsubscribe?token=t";
+    const { html } = await renderTemplate("subscription-confirm", {
+      confirmLink: confirm,
+      listName: "Grenada Signal",
+      projectName: "Barrels Grenada",
+      unsubscribeLink: unsubscribe,
+    });
+    expect(html).toContain("Confirm your subscription to Grenada Signal");
+    expect(html).toContain("The link expires in 7 days");
+    expect(html).toContain(confirm);
+    expect(html).toContain(unsubscribe);
+  });
+
+  it("drops a link that is not http or https", async () => {
+    const { html } = await renderTemplate("reset-password", {
+      projectName: "Barrels Grenada",
+      resetLink: "javascript:alert(1)",
+      username: "jane@example.test",
+      validHours: 48,
+    });
+    expect(html).not.toContain("javascript:");
   });
 });
 
