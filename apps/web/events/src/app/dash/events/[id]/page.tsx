@@ -14,6 +14,7 @@ import { WhatsAppDraftPanel } from "@/components/dash/whatsapp-draft-panel";
 import { getListingActivity, getManagedOrganiser } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
 import { env } from "@/env";
+import { shellEventOf } from "@/lib/dash-navigation";
 import { buildWhatsAppDraft } from "@/lib/whatsapp-draft";
 
 /** Organiser data is per-user and live; never prerender it. */
@@ -31,7 +32,7 @@ export default async function EditEventPage({
   const { id } = await params;
   const showWhatsAppPilot = (await searchParams).pilot === "whatsapp";
   const returnTo = `/dash/events/${encodeURIComponent(id)}`;
-  await requireViewer(
+  const viewer = await requireViewer(
     showWhatsAppPilot ? `${returnTo}?pilot=whatsapp` : returnTo
   );
   const managed = await getManagedOrganiser();
@@ -51,11 +52,12 @@ export default async function EditEventPage({
 
   return (
     <DashShell
-      active="build"
+      active="events"
       currentOrganiser={managed.organiser.slug}
+      event={shellEventOf(event)}
       eventName={event.title}
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-3">

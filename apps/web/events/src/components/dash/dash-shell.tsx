@@ -1,156 +1,62 @@
-import { Button } from "@barrelsgd/ui/components/ui/button";
-import { cn } from "@barrelsgd/ui/lib/utils";
-import {
-  Bell,
-  CalendarDays,
-  CalendarPlus2,
-  Compass,
-  Landmark,
-  LayoutDashboard,
-  LifeBuoy,
-  type LucideIcon,
-  MoreHorizontal,
-  ReceiptText,
-  ScanLine,
-  Settings2,
-  ShieldCheck,
-  Ticket,
-  Users,
-} from "lucide-react";
-import type { Route } from "next";
-import Link from "next/link";
+import { Ticket } from "lucide-react";
 import type { OrganiserOption } from "@/domain/types";
+import {
+  type DashSection,
+  dashNavigation,
+  type ShellEvent,
+} from "@/lib/dash-navigation";
+import { DashMobileMenu } from "./dash-mobile-menu";
+import {
+  DashAccountLinks,
+  DashNavLinks,
+  EventSelector,
+} from "./dash-navigation";
 import { OrganiserSwitcher } from "./organiser-switcher";
-
-export type DashSection = "overview" | "events" | "build" | "team";
-
-interface NavigationItem {
-  badge?: string;
-  /** Null while the screen is still to come. */
-  href: Route | null;
-  icon: LucideIcon;
-  key: string;
-  label: string;
-}
-
-const navigation: NavigationItem[] = [
-  { key: "overview", label: "Overview", icon: LayoutDashboard, href: "/dash" },
-  {
-    key: "events",
-    label: "My events",
-    icon: CalendarDays,
-    href: "/dash/events",
-  },
-  {
-    key: "build",
-    label: "Build event",
-    icon: CalendarPlus2,
-    href: "/dash/events/new",
-  },
-  { key: "tickets", label: "Tickets & capacity", icon: Ticket, href: null },
-  { key: "orders", label: "Orders", icon: ReceiptText, href: null },
-  { key: "attendees", label: "Attendees", icon: Users, href: null },
-  {
-    key: "door",
-    label: "Door & box office",
-    icon: ScanLine,
-    href: null,
-    badge: "2",
-  },
-  { key: "finance", label: "Finance", icon: Landmark, href: null },
-  {
-    key: "team",
-    label: "Team and roles",
-    icon: ShieldCheck,
-    href: "/dash/team",
-  },
-  { key: "settings", label: "Settings", icon: Settings2, href: null },
-];
-
-function NavigationLink({
-  active,
-  item,
-}: {
-  active: boolean;
-  item: NavigationItem;
-}) {
-  const Icon = item.icon;
-  const className = cn(
-    "text-body flex min-h-11 items-center gap-3 rounded-lg px-3 transition-colors",
-    active && "bg-sidebar-primary text-sidebar-primary-foreground",
-    !active &&
-      item.href &&
-      "text-sidebar-foreground/80 hover:bg-sidebar-accent",
-    !item.href && "text-sidebar-foreground/45 pointer-events-none"
-  );
-  const content = (
-    <>
-      <Icon className="size-4" />
-      <span className="flex-1">{item.label}</span>
-      {item.badge ? (
-        <span
-          aria-hidden="true"
-          className="bg-warning text-caption text-warning-foreground flex size-5 items-center justify-center rounded-full"
-        >
-          {item.badge}
-        </span>
-      ) : null}
-    </>
-  );
-
-  if (!item.href) {
-    return (
-      <span
-        aria-disabled="true"
-        className={className}
-        title="Available in a later step"
-      >
-        {content}
-      </span>
-    );
-  }
-  return (
-    <Link
-      aria-current={active ? "page" : undefined}
-      className={className}
-      href={item.href}
-    >
-      {content}
-    </Link>
-  );
-}
+import { RememberEvent } from "./remember-event";
 
 /**
- * Organiser console frame: desktop sidebar plus a mobile header with a
- * scrolling section bar. Desktop-first per apps/web/events/AGENTS.md.
+ * Organiser console frame: a desktop sidebar, and on phones a header with a
+ * menu button that opens the same navigation in a sheet. Desktop-first per
+ * apps/web/events/AGENTS.md. `event` is the event in the URL, or the one the
+ * member last opened on the overview, events and team screens.
  */
 export function DashShell({
   active,
   children,
   currentOrganiser,
+  event = null,
   eventName,
-  isDemo,
   organisers = [],
+  viewerName,
 }: {
   active: DashSection;
   children: React.ReactNode;
   /** Slug of the organiser the console is acting for. */
   currentOrganiser?: string;
+  /** The selected event, or null when none is selected. */
+  event?: ShellEvent | null;
+  /** Shown when no event is selected (the organiser's name). */
   eventName: string;
-  isDemo: boolean;
   /** Everything the member manages; a switcher shows when there are several. */
   organisers?: readonly OrganiserOption[];
+  /** The signed-in viewer's display name, from the server. */
+  viewerName: string;
 }) {
+  const items = dashNavigation(event);
   const switcher =
     currentOrganiser && organisers.length > 1 ? (
       <OrganiserSwitcher current={currentOrganiser} organisers={organisers} />
     ) : null;
+  const title = event?.title ?? eventName;
+
   return (
     <div className="bg-muted/40 min-h-screen">
+      {event ? <RememberEvent listingId={event.id} /> : null}
+
       <aside className="bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 hidden w-64 flex-col lg:flex">
         <div className="flex h-20 items-center gap-3 px-5">
           <div className="bg-sidebar-primary text-sidebar-primary-foreground flex size-10 items-center justify-center rounded-xl">
-            <Ticket className="size-5" />
+            <Ticket aria-hidden="true" className="size-5" />
           </div>
           <div>
             <p className="font-display text-body-base font-semibold">
@@ -165,130 +71,41 @@ export function DashShell({
         ) : null}
 
         <div className="px-3">
-          <Button
-            aria-label="Select event"
-            className="border-sidebar-border bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground h-auto w-full justify-start px-3 py-3 text-left"
-            disabled
-            size="lg"
-            title="Available in a later step"
-            type="button"
-            variant="outline"
-          >
-            <span className="bg-sidebar flex size-9 items-center justify-center rounded-lg">
-              <CalendarDays className="size-4" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="text-caption text-sidebar-foreground/65 block truncate">
-                {isDemo ? "Demo event" : "Selected event"}
-              </span>
-              <span className="text-body block truncate">{eventName}</span>
-            </span>
-          </Button>
+          <EventSelector event={event} eventName={eventName} />
         </div>
 
-        <nav
-          aria-label="Event workspace"
-          className="mt-5 flex-1 space-y-1 px-3"
-        >
-          {navigation.map((item) => (
-            <NavigationLink
-              active={item.key === active}
-              item={item}
-              key={item.key}
-            />
-          ))}
-        </nav>
-
-        <div className="border-sidebar-border space-y-1 border-t p-3">
-          <Link
-            className="text-body text-sidebar-foreground/80 hover:bg-sidebar-accent flex min-h-11 items-center gap-3 rounded-lg px-3"
-            href="/"
-          >
-            <Compass className="size-4" />
-            View public site
-          </Link>
-          <span
-            aria-disabled="true"
-            className="text-body text-sidebar-foreground/45 pointer-events-none flex min-h-11 items-center gap-3 rounded-lg px-3"
-          >
-            <LifeBuoy className="size-4" />
-            Support
-          </span>
-          <div className="flex items-center gap-3 px-3 py-3">
-            <div className="bg-sidebar-accent text-caption flex size-9 items-center justify-center rounded-full font-semibold">
-              EG
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-body truncate">Eugine G.</p>
-              <p className="text-caption text-sidebar-foreground/60 truncate">
-                Owner
-              </p>
-            </div>
-            <MoreHorizontal className="text-sidebar-foreground/60 size-4" />
-          </div>
+        <div className="mt-5 flex-1">
+          <DashNavLinks active={active} items={items} label="Event workspace" />
         </div>
+
+        <DashAccountLinks viewerName={viewerName} />
       </aside>
 
       <div className="lg:pl-64">
-        <header className="border-border bg-card border-b px-4 py-3 lg:hidden">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-events-ink text-events-lime flex size-9 items-center justify-center rounded-lg">
-                <Ticket className="size-4" />
+        <header className="border-border bg-card sticky top-0 z-30 border-b px-4 py-2 lg:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="bg-events-ink text-events-lime flex size-9 shrink-0 items-center justify-center rounded-lg">
+                <Ticket aria-hidden="true" className="size-4" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="font-display text-body-base font-semibold">
                   Barrels Events
                 </p>
-                <p className="text-caption text-muted-foreground">
-                  {eventName}
+                <p className="text-caption text-muted-foreground truncate">
+                  {title}
                 </p>
               </div>
             </div>
-            <Button
-              aria-label="Open notifications"
-              disabled
-              size="icon"
-              title="Available in a later step"
-              variant="ghost"
-            >
-              <Bell />
-            </Button>
+            <DashMobileMenu
+              active={active}
+              event={event}
+              eventName={eventName}
+              items={items}
+              switcher={switcher}
+              viewerName={viewerName}
+            />
           </div>
-          {switcher ? <div className="mt-3">{switcher}</div> : null}
-          <nav
-            aria-label="Mobile event workspace"
-            className="border-border -mx-4 mt-3 flex gap-2 overflow-x-auto border-t px-4 pt-3"
-          >
-            {navigation.map((item) =>
-              item.href ? (
-                <Link
-                  aria-current={item.key === active ? "page" : undefined}
-                  className={cn(
-                    "text-caption flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3",
-                    item.key === active
-                      ? "bg-events-ink text-white"
-                      : "bg-muted text-foreground"
-                  )}
-                  href={item.href}
-                  key={item.key}
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                <span
-                  aria-disabled="true"
-                  className="bg-muted text-caption text-muted-foreground flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 opacity-60"
-                  key={item.key}
-                >
-                  {item.label}
-                  {item.badge ? (
-                    <span aria-hidden="true">{item.badge}</span>
-                  ) : null}
-                </span>
-              )
-            )}
-          </nav>
         </header>
         {children}
       </div>

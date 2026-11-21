@@ -6,10 +6,12 @@ import {
   OrgForbidden,
   OrgUnavailable,
 } from "@/components/dash/org-unavailable";
+import { InviteMemberDialog } from "@/components/dash/team/invite-member-dialog";
 import { TeamFeedbackProvider } from "@/components/dash/team/team-feedback";
 import { TeamHelp } from "@/components/dash/team/team-help";
 import { TeamMembers } from "@/components/dash/team/team-members";
 import { TeamPager } from "@/components/dash/team/team-pager";
+import { rememberedEvent } from "@/data/event-choice";
 import { getManagedOrganiser } from "@/data/events-api";
 import { resolveOrgContext } from "@/data/org-context";
 import { getTeam } from "@/data/team";
@@ -29,7 +31,7 @@ export default async function TeamPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const query = await searchParams;
-  await requireViewer("/dash/team");
+  const viewer = await requireViewer("/dash/team");
   const session = await getSession();
   if (!session?.userId) {
     // No signed-in user id means signed out, never an empty id.
@@ -62,6 +64,11 @@ export default async function TeamPage({
     body = (
       <TeamFeedbackProvider>
         <TeamHelp />
+        {team.viewer.canRemove ? (
+          <div className="flex justify-end">
+            <InviteMemberDialog canInviteOwner={team.viewer.isOwner} />
+          </div>
+        ) : null}
         <TeamMembers
           bundles={team.bundles}
           members={team.members}
@@ -85,9 +92,10 @@ export default async function TeamPage({
     <DashShell
       active="team"
       currentOrganiser={managed.organiser.slug}
+      event={await rememberedEvent(managed.listings)}
       eventName={managed.organiser.name}
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>

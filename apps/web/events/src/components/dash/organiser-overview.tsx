@@ -10,6 +10,7 @@ import type {
   OrganiserOption,
   SettlementSummary,
 } from "@/domain/types";
+import type { ShellEvent } from "@/lib/dash-navigation";
 import { formatEventDate } from "@/lib/datetime";
 import { LISTING_STATUS_BADGE as STATUS_BADGE } from "@/lib/listing-status";
 import { DashShell } from "./dash-shell";
@@ -44,9 +45,48 @@ export function countListings(
   return { drafts, published, total: listings.length, upcoming };
 }
 
+/**
+ * The overview list: events that have not ended yet, soonest first, then the
+ * ended ones, most recent first. Drafts and cancelled events sort by date too.
+ */
+export function overviewOrder(
+  listings: readonly ManagedEvent[],
+  now: Date
+): ManagedEvent[] {
+  const nowMs = now.getTime();
+  const endsMs = (event: ManagedEvent) => Date.parse(event.endsAt);
+  const startsMs = (event: ManagedEvent) => Date.parse(event.startsAt);
+  const upcoming = listings
+    .filter((event) => endsMs(event) > nowMs)
+    .sort((a, b) => startsMs(a) - startsMs(b));
+  const ended = listings
+    .filter((event) => endsMs(event) <= nowMs)
+    .sort((a, b) => startsMs(b) - startsMs(a));
+  return [...upcoming, ...ended];
+}
+
+/** Totals across the ticketed events' settlement summaries (no online revenue here). */
+export function salesTotals(rows: readonly SettlementSummary[]) {
+  let issued = 0;
+  let admitted = 0;
+  let cashMinor = 0;
+  for (const row of rows) {
+    issued += row.issued;
+    admitted += row.admitted;
+    cashMinor += row.cashCollectedMinor;
+  }
+  return { admitted, cashMinor, issued };
+}
+
 const RECENT_LIMIT = 5;
 
-function CountTile({ label, value }: { label: string; value: number }) {
+function CountTile({
+  label,
+  value,
+}: {
+  label: string;
+  value: number | string;
+}) {
   return (
     <div className="border-border bg-card rounded-2xl border p-4">
       <p className="text-caption text-muted-foreground">{label}</p>
@@ -108,46 +148,80 @@ function SettlementPanel({ rows }: { rows: readonly SettlementSummary[] }) {
   );
 }
 
-function UnavailablePanel({ title }: { title: string }) {
+/**
+ * Sales totals from the same settlement summaries as the panel below. Only
+ * what settlement reports is shown: issued tickets, admissions and cash taken
+ * at the till. Online payments are not totalled here.
+ */
+function SalesPanel({ rows }: { rows: readonly SettlementSummary[] }) {
+  const totals = salesTotals(rows);
   return (
-    <section className="border-border bg-card rounded-2xl border border-dashed p-4">
-      <h2 className="text-body-base font-semibold">{title}</h2>
-      <p className="text-body text-muted-foreground mt-1">
-        Available when ticketing launches. No figures are shown until then.
-      </p>
+    <section
+      aria-labelledby="sales-heading"
+      className="border-border bg-card space-y-3 rounded-2xl border p-4"
+    >
+      <h2 className="text-body-base font-semibold" id="sales-heading">
+        Ticket sales
+      </h2>
+      {rows.length === 0 ? (
+        <p className="text-body text-muted-foreground">
+          No ticketed events yet, so there are no sales to total.
+        </p>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-3">
+            <CountTile label="Tickets issued" value={totals.issued} />
+            <CountTile label="Admitted" value={totals.admitted} />
+            <CountTile
+              label="Cash at the till"
+              value={formatMoney(money(totals.cashMinor, "XCD"))}
+            />
+          </div>
+          <p className="text-caption text-muted-foreground">
+            Totals for {rows.length} ticketed{" "}
+            {rows.length === 1 ? "event" : "events"}, from settlement. Online
+            payments are not totalled here; each event&apos;s Settlement has the
+            breakdown.
+          </p>
+        </>
+      )}
     </section>
   );
 }
 
 /**
- * Organiser overview built from the real listings API. Sales has no backing
- * API yet (an empty state); settlement comes from the settlement summaries.
+ * Organiser overview built from the real listings API. The settlement
+ * summaries feed both the sales totals and the per-event settlement list.
  */
 export function OrganiserOverview({
+  event = null,
   listings,
   now,
   organiser,
   organisers = [],
   settlement = [],
+  viewerName,
 }: {
+  /** The event the member last opened, shown in the nav's event selector. */
+  event?: ShellEvent | null;
   listings: readonly ManagedEvent[];
   now: Date;
   organiser: Organiser;
   organisers?: readonly OrganiserOption[];
   settlement?: readonly SettlementSummary[];
+  viewerName: string;
 }) {
   const counts = countListings(listings, now);
-  const recent = [...listings]
-    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
-    .slice(0, RECENT_LIMIT);
+  const recent = overviewOrder(listings, now).slice(0, RECENT_LIMIT);
 
   return (
     <DashShell
       active="overview"
       currentOrganiser={organiser.slug}
+      event={event}
       eventName={organiser.name}
-      isDemo={false}
       organisers={organisers}
+      viewerName={viewerName}
     >
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -227,7 +301,7 @@ export function OrganiserOverview({
         </section>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <UnavailablePanel title="Ticket sales" />
+          <SalesPanel rows={settlement} />
           <SettlementPanel rows={settlement} />
         </div>
       </main>

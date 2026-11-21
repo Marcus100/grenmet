@@ -17,8 +17,8 @@ describe("organiser switcher", () => {
         active="overview"
         currentOrganiser="beta"
         eventName="Beta"
-        isDemo={false}
         organisers={organisers}
+        viewerName="Ada Byron"
       >
         <p>content</p>
       </DashShell>
@@ -35,8 +35,8 @@ describe("organiser switcher", () => {
         active="overview"
         currentOrganiser="alpha"
         eventName="Alpha"
-        isDemo={false}
         organisers={organisers.slice(0, 1)}
+        viewerName="Ada Byron"
       >
         <p>content</p>
       </DashShell>
