@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-21
 
 Detail behind the short rules in the root `AGENTS.md`. Read the matching section
 before parallel work, integrating or pushing, a cross-layer change, or editing
@@ -60,19 +60,18 @@ agent instructions. Nothing here relaxes a root rule.
   exits 0 on that head, and leave the fresh-context review as a PR comment that
   names the reviewer. A `risk:high` PR also gets a `security-reviewer` pass with
   no open finding first. Unattended routines do the same from their own branch.
-  A PR that changes owner-only files listed in `AGENTS.md` is merged by the
-  owner; the hook refuses an agent merge. Other factory-control changes require
-  independent code and security review with no open blocking finding before an
-  agent merges into dev. If `origin/dev` advances, integrate it and revalidate.
+  A PR that changes a safety file follows [Merging into dev](#merging-into-dev)
+  below. If `origin/dev` advances, integrate it and revalidate.
 - Promotion to staging: the owner decides when a `dev → staging` PR is opened
   (owner, 14 Nov 2026). Agents keep landing work on `dev` and do not open the
   promotion PR on their own after merges. When the owner asks,
   create or update the `dev → staging` PR with a recap, review the promotion diff
   and verify `dev` has not advanced. The owner reviews and merges into `staging`;
-  agents do not arm auto-merge. While `PROMOTE_STAGING_ENABLED` is `true`,
-  `promote-staging.yml` does this daily (see
-  `docs/operations/staging-promotion-automation.md`) and agents leave the
-  staging PR alone. GitHub merges only after the staging ruleset's
+  agents do not arm auto-merge. `promote-staging.yml` can open and merge the
+  staging PR daily, but it is off unless the owner sets the repository variable
+  `PROMOTE_STAGING_ENABLED` to `true` (see
+  `docs/operations/staging-promotion-automation.md`); the owner decides, and
+  while it is on agents leave the staging PR alone. GitHub merges only after the staging ruleset's
   required checks pass; `CI Success` and `Build Web Apps` aggregate every API and
   web job. If `dev` advances, update the recap and tell the owner.
 - Monitor the staging deployment and report actionable failures or readiness for
@@ -83,24 +82,74 @@ agent instructions. Nothing here relaxes a root rule.
 **Unattended routines** follow [routines.md](routines.md): they push only
 their own `agent/<n>-<slug>` branch, open a PR to `dev`, and never push `dev`,
 `staging` or `main`. They merge reviewed PRs into dev under the same checks as
-attended sessions, except the owner merges PRs that touch owner-only files.
+attended sessions, the safety-file rule included.
+
+### Merging into dev
+
+The owner's decision of 21 Nov 2026: agents (Claude Code and Codex) automate
+the whole process through the merge into `dev`. The owner's first approval is
+the `dev → staging` merge; the owner also keeps `main`, releases, production,
+secrets, money and deletions.
+
+Every PR, in this order:
+
+1. CI is green on the PR head.
+2. A fresh-context review of that head has no open blocking finding, posted as
+   a PR comment that names the reviewer. A `risk:high` PR also has a clean
+   `security-reviewer` pass, named in the PR body.
+3. Merge, pinned to the reviewed head:
+   `gh pr merge <num> --merge --match-head-commit <sha>`. In a cloud session
+   `gh pr` is blocked, so use the REST form, which the hook checks the same way:
+   `gh api -X PUT repos/Marcus100/grenmet/pulls/<num>/merge -f sha=<full head sha> -f merge_method=merge`.
+   The other REST forms are in [tool-usage.md](tool-usage.md) → Cloud sessions.
+4. Send the owner a phone alert: the PR number, title and link.
+
+A PR that changes a **safety file** (hooks and settings under `.claude/`,
+`.codex/`, `.agents/`, skills, `.husky/`, the root `AGENTS.md`, `.github/`,
+`infra/github/`, `scripts/guardrails/`, `scripts/verification/`,
+`scripts/agents/settings/`, the root `package.json` and
+`docs/agents/routines.md`) needs both of these first, for the exact head being
+merged, as two lines in the PR body, each alone on its line:
+
+```text
+Security review: no open findings (<reviewer>, <full 40-character head sha>)
+Codex review: no blocking findings (<full 40-character head sha>)
+```
+
+- Add the first line only after a Claude `security-reviewer` pass on that head
+  reported no open finding.
+- Add the second line only after reading Codex's GitHub review of that exact
+  head (its review comment names the commit) and finding no blocking finding in
+  it. No Codex review of that head means no line and no merge.
+- A new push changes the head, so both reviews run again and both lines are
+  rewritten with the new sha. The hook compares each line's sha with the merge
+  command's sha, and GitHub refuses the merge when that sha is not the head.
+- After the merge, send the owner a **separate** phone alert that names the PR
+  and lists the safety files it changed.
+
+**Phone alert.** Use the session's push-notification tool when it has one
+(Claude Code: `PushNotification`). Where there is none, post the same text as a
+comment on the open issue labelled `factory-landed`, which the owner watches in
+the GitHub mobile app: write the text to a file and run
+`gh api repos/Marcus100/grenmet/issues/<n>/comments -F body=@<file>`.
+
+The body lines are the agent's own record that the reviews happened, which the
+hook can check; they are not proof. The backstop is GitHub's branch rulesets,
+which agents cannot edit: required CI on `dev`, and `staging` and `main`
+protected so only the owner's merge reaches them.
 
 **Rulesets.** `infra/github/rulesets.json` is the committed copy of the branch
 rulesets, which are what make "PR required" and "required checks" true.
 `pnpm guardrails:rulesets` compares it with GitHub, and
 `.github/workflows/rulesets-drift.yml` does the same on every PR into a
-long-lived branch and weekly. Today `main` and `staging` each require a PR and
-six checks with no bypass actors. `Protect dev` adds the factory code/security
-review contexts and requires branches to be current with `dev` before merge.
-This protects the worker's merge-base and changed-file overlap check from `dev`
-advancing between check and merge. A `dev` merge makes other PR branches stale;
-the worker syncs only the next eligible PR and waits for fresh CI and review. This
-is slower than loose checks, but this personal-account repo has no GitHub merge
-queue to provide the equivalent server-side guarantee. No bypass actors are
-configured. The review contexts must be pinned to the dedicated status App's
-integration ID in both GitHub and the snapshot. The worker refuses to publish
-review statuses unless its App ID matches that pin; until this setup is
-complete, do not treat user-created review statuses as trusted.
+long-lived branch and weekly. Today `dev`, `staging` and `main` each require a
+PR and the same six checks, with no bypass actors. The review worker's
+`Factory review` statuses are advisory: the snapshot does not list them as
+required checks, so the reviews in [Merging into dev](#merging-into-dev) are
+the agent's duty and the hook's check, not a server rule. If review contexts
+are added later they must be pinned to the dedicated status App's integration
+ID in both GitHub and the snapshot; do not treat user-created review statuses
+as trusted.
 After changing a ruleset, run `node scripts/guardrails/github-rulesets.mjs
 --snapshot` and commit the result.
 
@@ -136,8 +185,9 @@ still updates `docs/api/contracts.md`.
 ## Session handoff
 
 Claude Code and Codex share one working tree on a host or devcontainer; separate
-cloud environments do not, so there the owner relays handoffs
-(`pnpm agents:handoff` prints the block; see [roles.md](roles.md)). A
+cloud environments do not, so there the handoff travels on the PR: the author
+posts the block `pnpm agents:handoff` prints as a PR comment (see
+[roles.md](roles.md)). A
 `SessionStart` hook tails `SESSION_LOG.md` (main checkout root, gitignored,
 shared by every worktree) into context; read it before assuming a task is
 untouched. After a meaningful chunk of work, append one entry: timestamp, tool,
@@ -186,21 +236,35 @@ Hook scripts live in `.claude/hooks/` and are wired in `.claude/settings.json`
 `block-dangerous-git.mjs` blocks force pushes (`--force`, `-f`, `+ref`),
 `git reset --hard`, `git clean -f`, forced branch deletes, `git checkout .`,
 `git restore .` (unstaging with `--staged` is allowed), `git stash clear`, forced
-switches and worktree removals, and merges through `gh api`. It also scans
+switches and worktree removals. It refuses a `git push` to `dev`, `staging` or
+`main` in any form (`origin dev`, `HEAD:dev`, `-u origin main`,
+`x:refs/heads/staging`, or a push with no branch named while one of them is
+checked out), a tag push (`--tags`, `--follow-tags`, `--mirror`, `refs/tags/`,
+`tag <name>`), a remote delete (`--delete`, `-d`, `--prune`, `:branch`),
+`--all`, and a destination it cannot read (a variable, a wildcard or a command
+substitution); task-branch pushes pass. It also scans
 commands inside `bash -c`, `sh -c` and `eval`. `gh pr merge` is allowed only in
 one exact shape, read the way the shell reads it (quotes and line continuations
 removed, so `gh pr "merge"` is still a merge; wrappers such as `xargs`, `env`,
-`sudo`, `timeout` and `nice`, `if`, `!`, subshells and `-R` before `merge` are
+`sudo`, `timeout`, `nice` and `heavy`, `if`, `!`, subshells and `-R` before `merge` are
 looked through): `gh pr merge <number|url> [--repo Marcus100/grenmet] [--merge]
 [--delete-branch] --match-head-commit <sha>`. Anything else blocks: `--admin`,
 `--auto`, `--squash`, `--body`, another repository (`-R`, `--repo`, a PR URL,
 `GH_REPO`), a chained `gh pr edit --base`, a `cd`, a PR not named in the
-command, or no pinned head. The PR's base must be `dev`; a PR that changes
-owner-only paths listed in `AGENTS.md`, an unknown base or file list blocks,
-and `staging` and `main` always block. `gh alias`, GraphQL
-merge mutations, `gh api …/merges` and the REST merge endpoint block too. This
-is a best-effort filter, not a sandbox: the real controls are the rulesets, the
-owner's merge into `staging`, and the permission rule in the user's settings.
+command, or no pinned head. The PR's base must be `dev`; an unknown base, file
+list or PR body blocks, and `staging` and `main` always block. A PR that
+changes a safety file also needs the full 40-character head sha and both review
+lines for it in the PR body (see [Merging into dev](#merging-into-dev)). The
+REST merge is accepted in one shape only, under the same rules:
+`gh api -X PUT repos/Marcus100/grenmet/pulls/<number>/merge -f sha=<full head sha> -f merge_method=merge`
+(plus `--jq`, `--silent` or a redirect). `gh alias`, GraphQL merge mutations,
+`gh api …/merges` and any other call to a merge endpoint block. Known gaps in
+the push check: a tag pushed by its bare name (`git push origin v1.2.3`), a
+destination set only in git config, and a bare push after `cd` into another
+checkout. This is a best-effort filter, not a sandbox: the real controls are
+the rulesets, the owner's merge into `staging`, and the permission rules in
+`.claude/settings.json` and the Codex command rules
+(`scripts/agents/settings/`), which a parity test keeps in step.
 `protect-files.mjs` blocks `.env*` writes and edits to the generated API client.
 Claude Code also enforces `permissions.deny` in `.claude/settings.json`, which a
 hook cannot override. In Codex these hooks sit alongside its own sandbox and
@@ -219,6 +283,8 @@ For UI work, `pnpm ui:screenshots --app <app> --path <route>` renders a running
 dev server at 375 and 1280 px in light and dark mode into `.ui-review/` and flags
 horizontal overflow, console errors and failed requests. `/ui-check` feeds the
 PNGs to a fresh-context reviewer and repairs at most two rounds per finding.
+Codex has a second, per-machine hook for heavy commands; see
+[tool-usage.md](tool-usage.md) → Heavy commands.
 To extend the git blocklist, edit `DANGEROUS_PATTERNS` in
 `block-dangerous-git.mjs` and add a blocking case (and, for phrases that can appear
 in quoted text, a non-blocking case) to

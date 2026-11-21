@@ -1,15 +1,22 @@
 # Agent roles and automated gates
 
-Factory-control changes require independent code and security review with no
-open blocking finding before landing. Agents may merge only when the PR does not
-change owner-only files listed in `AGENTS.md`; the owner merges those. Staging
-and production merges remain owner approved. Use existing subscriptions first
-with $0 extra spending by default; prefer local execution and use cloud as
-fallback. Extra API spending requires owner approval.
+Agents merge every PR into `dev`, safety files included (owner, 21 Nov 2026).
+A PR that changes a safety file needs a clean Claude `security-reviewer` pass
+and a clean Codex review of its exact head, both recorded in the PR body, and
+a separate phone alert to the owner after the merge
+([workflow.md](workflow.md) → Merging into dev). Staging and production merges
+remain owner approved. The factory runs on the owner's existing subscriptions
+with $0 extra spending: the Claude cloud is the primary home and local runs
+are the fallback. Extra API spending requires owner approval.
 
-The subscription-backed worker runs with
-`node scripts/agents/review-worker.mjs --once --merge` and only takes dev PRs
-labelled `factory-review` in this repository. It publishes `Factory review` and
+Claude builds and Codex reviews. Codex is advisory: its findings are claims to
+check and never block a Claude merge on their own, with one exception, the
+safety-file rule above, where a clean Codex review of the head is required.
+
+The subscription-backed worker (`node scripts/agents/review-worker.mjs --once`)
+is advisory too: it reviews dev PRs labelled `factory-review` in this
+repository and does not do the merging; the authoring agent merges under the
+rules above. It publishes `Factory review` and
 `Factory security review` statuses for the exact PR head and reviewed merge-base.
 Factory-control changes and high risk changes receive security review; other
 changes receive an explicit not-required result. A changed head or merge-base
@@ -20,7 +27,7 @@ branch sync and fresh CI. Status trust requires the App ID pinned in
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-21
 
 Specialist roles are defined once, as Markdown briefs in `.claude/agents/`. Each
 has the tools its job needs and nothing more, and reads the nested `AGENTS.md`
@@ -46,6 +53,9 @@ skill (`.claude/skills/team-roles`, which Codex reads as `.agents/skills`):
 The model column is a cost and quality preference, not a benchmark result.
 Planning and review use the stronger model because a wrong plan or a missed
 defect costs more than the tokens. Change it in the agent file's frontmatter.
+The routing preference sends Python to Codex Luna, but `api-engineer` stays on
+Claude haiku: Claude does the building and Codex the reviewing, so the brief's
+model is the one that runs.
 
 ## Handoffs
 
@@ -55,8 +65,8 @@ request → planner (spec, slices)
         → qa-engineer (failing tests from the acceptance criteria)
         → api-engineer / web-engineer (make them pass, API first)
         → code-reviewer (+ security-reviewer for auth, access, CI, dependencies)
-        → /commit (gates) → PR → subscription-backed review + CI
-        → agent merges into dev → dev → staging PR (when the owner asks) → owner merges into staging
+        → /commit (gates) → PR → CI + fresh-context review (+ Codex review)
+        → agent merges into dev → phone alert → dev → staging PR (when the owner asks) → owner merges into staging
 ```
 
 Use it for work that spans roles. A small fix needs one role or none. Name the
@@ -79,9 +89,9 @@ in [routines.md](routines.md) (`docs/agents/routing.json`).
 | Plan, spec, orchestrate roles, feature implementation | Claude Code | Owns the branch and the role subagents |
 | Fresh-context review of Claude's diff | Codex, read-only | A different model is less likely to wave through its own family's mistakes |
 | Fresh-context review of Codex's diff | Claude `code-reviewer` / `security-reviewer` | Same reason, reversed |
-| Unattended `area:api` routines | Codex | Cheap tier, owner preference; the Claude routine also takes `area:api` until a Codex task exists ([routines.md](routines.md)) |
+| Unattended routines, every area an agent may take | Claude cloud scheduled tasks | The factory's primary home; Codex builds only when the owner assigns it a task ([routines.md](routines.md)) |
 | Needs Sentry, PostHog, Cloudflare or the owner's browser | Claude Code | Codex has none of these |
-| CI, infra, security changes | Unattended: human writes. Attended: the agent may write, with a `security-reviewer` pass | The owner merges the ones `AGENTS.md` reserves to the owner |
+| CI, hooks, skills and other safety files | The agent writes and merges | Needs a clean `security-reviewer` pass and a clean Codex review of the head, then a phone alert to the owner |
 
 Rules: one author per branch at a time; the author never counts its own review
 as the fresh-context one; and a review request carries the handoff block, not the
@@ -108,8 +118,8 @@ comment, and `--dry-run` to see the command and prompt. It is opt-in per PR
 because it spends Codex tokens, and its comment counts as the fresh-context
 review only when it reports no blocking finding for the head SHA it names.
 Running it (with `--post`) is the relay the section below describes for that one
-review; every other handoff is still relayed by the owner. There is no live link
-between the tools: the script runs one review and exits.
+review; other handoffs travel as a PR comment carrying the handoff block. There
+is no live link between the tools: the script runs one review and exits.
 
 The runner requires a ChatGPT CLI login and strips inherited API-key variables;
 it refuses API-key login rather than enabling extra billing. Results must match
@@ -139,10 +149,11 @@ worker; other handoffs remain explicit and self-contained. If the two disagree, 
 disagreement first names its evidence and the applicable rule; anything still
 unresolved goes to the owner.
 
-1. **Roles.** Claude is the owner's primary interactive agent: it owns feature
-   implementation and fixes on its assigned branches. Codex is used for
-   automation: unattended routines under [routines.md](routines.md), and review
-   when the owner assigns it. In the review role a tool is read-only: it reports
+1. **Roles.** Claude builds: it owns feature implementation and fixes on its
+   branches, attended or in the unattended routines under
+   [routines.md](routines.md). Codex reviews first: it reviews Claude's PRs on
+   GitHub and audits code and apps, and builds only when the owner assigns it a
+   task. In the review role a tool is read-only: it reports
    findings, does not edit, commit, push, merge or deploy, and writes no files,
    including `SESSION_LOG.md`. The tools may swap author and reviewer per task when
    the owner says so.
@@ -151,12 +162,11 @@ unresolved goes to the owner.
    its own PR into `dev` once CI is green on the PR head and a fresh-context
    review (the other tool, or a `code-reviewer` subagent) has no open blocking
    finding; no agent pushes `dev`. The author never counts its own review as the
-   fresh-context one. The owner merges PRs that touch the owner-only files listed
-   in `AGENTS.md`; the hook blocks agent merges of those paths. This is the
-   attended-session rule in `AGENTS.md` and [workflow.md](workflow.md). The
-   `Protect dev` ruleset requires CI and the worker's review contexts; the worker
-   verifies the merge-base and changed-file overlap, syncing only when current
-   branch protection requires an up-to-date branch or the changes overlap.
+   fresh-context one. A PR that changes a safety file needs a clean
+   `security-reviewer` pass and a clean Codex review of its head, both recorded
+   in the PR body; the hook blocks the merge without them. This is the
+   factory-flow rule in `AGENTS.md` and [workflow.md](workflow.md). The
+   `Protect dev` ruleset requires CI; the worker's review statuses are advisory.
 3. **Promotion.** The owner decides when a `dev → staging` PR is opened (owner,
    14 Nov 2026). Agents keep landing work on `dev`, and an agent creates or
    updates the `dev → staging` PR, with a recap of what changed, only when the
@@ -165,9 +175,8 @@ unresolved goes to the owner.
    staging ruleset's required checks pass. `staging → main`, releases and
    production deploys need the owner's explicit authorization each time. The
    agent hook allows `gh pr merge` only when the base is `dev`, only in this
-   repository, with a pinned head, and when the PR does not touch owner-only
-   files. Factory-control changes outside that list require independent code and
-   security review before an agent merges them.
+   repository, with a pinned head, and, for a PR that changes a safety file,
+   with both review lines for that head in the PR body.
 4. **Review handoff.** Every request includes the block `pnpm agents:handoff`
    prints (`scripts/agents/review-handoff.mjs`), completed by the author:
    - the task and its acceptance criteria;
@@ -180,8 +189,8 @@ unresolved goes to the owner.
    applies only to the SHAs it examined. After fixes, the author sends the new
    head SHA, the base SHA and the new test results for re-review.
 6. **Session log.** `SESSION_LOG.md` is local and gitignored, so it does not
-   synchronize separate cloud environments or machines. The owner relays
-   handoffs, or explicitly authorizes a GitHub comment. The reviewer does not
+   synchronize separate cloud environments or machines. There the handoff block
+   and the review travel as PR comments. The reviewer does not
    write to it, an exception that `AGENTS.md` states and that overrides the
    logging requirement there and in [workflow.md](workflow.md); the author records
    the review outcome in its own local log. Never commit the log to synchronize
@@ -198,10 +207,14 @@ per client by triggering a blocked action in a safe context. Likewise, a workflo
 file in `.github/workflows/` is not a required merge check until branch
 protection or the ruleset lists it; check the ruleset, not the file.
 
-**Automatic Codex PR review is separate.** This manual loop does not depend on
-it. Whether the Codex GitHub integration reviews pull requests automatically on
-this repository has not been verified; treat it as unavailable until confirmed in
-the GitHub and Codex settings.
+**Automatic Codex PR review is the plan.** Codex's GitHub integration reviews
+each pull request into `dev` automatically, and the author reads that review
+before merging. It is advisory for ordinary PRs. For a safety-file PR it is
+required: the agent adds the `Codex review: no blocking findings (<head sha>)`
+line only after reading Codex's review of that exact head. Until the
+integration is confirmed on this repository (GitHub and Codex settings), run
+`pnpm agents:codex-review -- --post <pr>` for that review instead; a PR with no
+Codex review of its head does not get the line.
 
 If a reviewer cannot see a branch, run `git ls-remote origin <branch>` before
 changing access settings: the branch may not have been pushed.
@@ -210,7 +223,7 @@ changing access settings: the branch may not have been pushed.
 
 | Gate | Where | Behaviour |
 | --- | --- | --- |
-| AI review | `scripts/agents/review-worker.mjs` | Subscription-backed review for `factory-review` PRs into `dev`; exact-head code and security statuses, with security review for high risk and factory-control changes. |
+| AI review | `scripts/agents/review-worker.mjs` | Advisory subscription-backed review for `factory-review` PRs into `dev`; exact-head code and security statuses, with security review for high risk and factory-control changes. It does not merge and is not a required check. |
 | API breaking changes | `.github/workflows/api-breaking-changes.yml`, `scripts/api/check-api-breaking.mjs` | Fails a PR into `dev` that removes a route or method, adds required input, or removes or retypes output. The `breaking-change` label accepts an intended break. |
 | Rulesets drift | `.github/workflows/rulesets-drift.yml`, `scripts/guardrails/github-rulesets.mjs` | Fails when GitHub's branch rulesets differ from `infra/github/rulesets.json`. Runs on PRs into `dev`, `staging` and `main`, and weekly. |
 | CodeQL | `.github/workflows/codeql.yml` | Static analysis of TypeScript and Python on PRs and `dev` pushes; results go to the Security tab. |

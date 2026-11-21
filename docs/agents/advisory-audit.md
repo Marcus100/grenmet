@@ -220,7 +220,7 @@ reporting. New-issue intake remains capped at ten per run.
 Systemd starts a WSL login shell to select the host Node runtime. Isolated checks
 invoke pnpm through corepack in that runtime, avoiding a home-dependent wrapper
 hidden by `ProtectHome`. Separate HOME/cache and credential isolation remain.
-Runner changes require owner merge; host validation does not merge the PR.
+Runner changes follow the safety-file rule (a clean `security-reviewer` pass and a clean Codex review of the head, then a phone alert to the owner); host validation does not merge the PR.
 
 Turbo checks explicitly select the disposable checkout and its `.turbo/cache`.
 Git worktree discovery can otherwise resolve the main checkout as the cache

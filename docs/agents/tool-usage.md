@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-19
+**Last updated:** 2026-11-21
 
 - When the user wants to inspect a file, return full contents — not a summary.
 - Before investigating a CI or build failure, list the top hypotheses with the
@@ -46,6 +46,29 @@ Claude Code cloud containers ship a toolchain older than the repo's pins. `scrip
 | `uv sync --package fast-back` misses `gms-ingest` | syncs both packages |
 | no Postgres or Redis for API tests | starts both on `localhost`, creates the `app` role and database; Redis runs with `--dir /tmp --save ""` so no `dump.rdb` lands in the repo |
 
+### GitHub from a cloud session
+
+`gh pr` and `gh issue` are blocked in the cloud sandbox (they use GraphQL);
+`gh api` over REST works. Use these forms, one command per call, with long text
+in a file:
+
+| Job | Command |
+| --- | --- |
+| Open a PR into `dev` | `gh api repos/Marcus100/grenmet/pulls -f title="<title>" -f head=<branch> -f base=dev -F body=@<file>` |
+| Read a PR | `gh api repos/Marcus100/grenmet/pulls/<n>` |
+| List the checks on a head | `gh api repos/Marcus100/grenmet/commits/<sha>/check-runs --jq '.check_runs[] \| "\(.name) \(.status) \(.conclusion)"'` |
+| Read a failed run's log | `gh run view <run id> --log-failed` |
+| Comment on a PR or an issue | `gh api repos/Marcus100/grenmet/issues/<n>/comments -F body=@<file>` |
+| Merge into `dev` | `gh api -X PUT repos/Marcus100/grenmet/pulls/<n>/merge -f sha=<full head sha> -f merge_method=merge` |
+| List issues by label | `gh api "repos/Marcus100/grenmet/issues?labels=<label>&state=open&per_page=100"` |
+| Search open issues | `gh api "search/issues?q=repo:Marcus100/grenmet+is:issue+is:open+<terms>"` |
+| File an issue | `gh api repos/Marcus100/grenmet/issues -f title="<title>" -F body=@<file> -f "labels[]=<label>"` |
+| Add a label | `gh api repos/Marcus100/grenmet/issues/<n>/labels -f "labels[]=<label>"` |
+| Who applied a label | `gh api repos/Marcus100/grenmet/issues/<n>/events` (the `labeled` events name the actor) |
+
+The merge form is the only REST merge the hook accepts, and it meets the same
+rules as `gh pr merge` ([workflow.md](workflow.md) → Merging into dev).
+
 ### Fast cloud starts: the environment setup script
 
 Paste `scripts/agents/cloud-setup.sh` into the cloud environment's **Setup script** (claude.ai → environment settings), or load the file there. The cloud runs it once, as root, then snapshots the filesystem and starts every later session from that snapshot; it rebuilds the snapshot about every seven days or when the script changes ([cloud environments](https://code.claude.com/docs/en/cloud-environments#environment-caching)). The script makes a shallow copy of the public repo beside the cache (`~/.cache/barrels-bootstrap`), runs `cloud-bootstrap.sh` once to fill the caches (the uv Python and uv cache, Node and pnpm when the image's are too old), keeps the filled pnpm store at `~/.cache/barrels-bootstrap/pnpm-store`, stops the Postgres and Redis it started so the snapshot holds them shut down cleanly, deletes the copy and always exits 0. The clone has a 60 s limit and the whole script a 270 s budget, so it stays under the platform's five-minute snapshot limit. The `SessionStart` hook still runs the bootstrap every session: it hard-links the cached store's package files into the checkout's `.pnpm-store` (where `pnpm-workspace.yaml` keeps it) and gives the checkout its own copy of pnpm's index (`index.db`, which pnpm edits in place) before `pnpm install`, so installs link instead of downloading, and it starts Postgres and Redis, since running servers are not snapshotted. Measured in a clean container: setup 198 s once; a session's bootstrap 14 s with the snapshot, 136 s without.
@@ -79,22 +102,40 @@ forking. Runtime hook trust and client permissions remain separate checks.
 ## Heavy commands on the shared WSL machine
 
 Several agents share one WSL machine with limited memory, and parallel test runs or
-builds have restarted it before. Two small scripts in `~/.local/bin` (outside the
-repository, set up per machine) guard against that:
+builds have restarted it before. The rule is one heavy job at a time,
+machine-wide. Two small scripts in `~/.local/bin` (outside the repository, set
+up per machine) guard against that:
 
-- `heavy <command>` runs the command only when a slot is free and memory is
-  available, otherwise it waits. Use it for tests, builds and `pnpm verify:changed`:
-  `HEAVY_SLOTS=2 heavy pnpm verify:changed`. At most `HEAVY_SLOTS` (default 2) heavy
-  commands run at once, and it waits while available memory is below `HEAVY_MIN_MB`
-  (default 3000). Locks live in `HEAVY_LOCK_DIR` (default `/tmp/heavy-slots`).
+- `heavy <command>` runs the command only when the slot is free and memory is
+  available, otherwise it waits. Tests, builds, installs, type-checks, commits
+  and pushes go through it: `~/.local/bin/heavy pnpm verify:changed`. One heavy
+  command runs at a time (`HEAVY_SLOTS`, default 1), and it waits while available
+  memory is below `HEAVY_MIN_MB` (default 3000). Locks live in `HEAVY_LOCK_DIR`
+  (default `/tmp/heavy-slots`).
 - `memwatch` is an emergency brake that runs in the background. When available memory
   falls under about 1200 MB it pauses the largest test or build process (vitest,
   pytest, next build, tsc, biome, turbo) for 20 seconds and logs it to
   `/tmp/memwatch.log`.
 
-Run one heavy command at a time per session, set `PYTEST_WORKERS=1` for FastAPI tests,
-and pass `--maxWorkers=1` to vitest. If `heavy` is not on the machine, the repository
-does not depend on it; the rules above are the same, just not enforced.
+The hooks enforce it, differently in each tool. Claude Code's user hook
+(`~/.claude/hooks/auto-heavy.mjs`) wraps a heavy command automatically. Codex's
+user hook (`~/.codex/hooks/require-heavy.mjs`) refuses a bare heavy command and
+prints the `heavy` form to run instead. Skills and role briefs therefore show
+plain commands; on this machine they run through `heavy` either way.
+
+Set `PYTEST_WORKERS=1` for FastAPI tests and pass `--maxWorkers=1` to vitest. If
+`heavy` is not on the machine (a cloud session), the repository does not depend
+on it; the rule is the same, just not enforced.
+
+### Setting up a machine
+
+`uv run scripts/agents/settings/apply.py` (add `--dry-run` to preview) installs
+the Codex command rules (`~/.codex/rules/default.rules`), the Codex heavy hook,
+the Codex sandbox settings and the matching Claude Code user settings. It is
+safe to run again and backs up every file it changes; see
+`scripts/agents/settings/README.md`. A parity test
+(`scripts/guardrails/agent-settings-parity.test.mjs`) fails when the Codex rules
+and the deny list in `.claude/settings.json` disagree on a dangerous command.
 
 ## Worktree sessions
 
@@ -108,8 +149,8 @@ long quoted `--body`. In a worktree session:
 - Run one plain command per Bash call.
 - Edit files with Edit or Write, not `cat <<EOF`.
 
-The skills that show inline `--body "$(cat <<'EOF' ...)"` examples need the same
-change; they live under `.claude/`, so that edit goes through the owner.
+The repo-owned skills follow the same rule: they write the text to a file and
+pass `--body-file`, one command per call.
 
 ## Keeping the session log short
 
