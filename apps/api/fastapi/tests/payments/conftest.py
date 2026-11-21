@@ -23,6 +23,7 @@ class StripeStub:
     fail_checkout: bool = False
     #: Status Stripe reports for the refunds it creates (``pending`` settles later).
     refund_status: str = "succeeded"
+    checkout_id: str = "cs_test_1"
 
     def form(self, index: int = -1) -> dict[str, str]:
         parsed = parse_qs(self.requests[index].content.decode())
@@ -41,8 +42,8 @@ def stripe_env(monkeypatch: pytest.MonkeyPatch) -> StripeStub:
             return httpx.Response(
                 200,
                 json={
-                    "id": "cs_test_1",
-                    "url": "https://checkout.stripe.com/c/pay/cs_test_1",
+                    "id": stub.checkout_id,
+                    "url": f"https://checkout.stripe.com/c/pay/{stub.checkout_id}",
                 },
             )
         if request.method == "POST" and request.url.path == "/v1/refunds":
