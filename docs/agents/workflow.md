@@ -114,10 +114,10 @@ Files fall into three groups:
 | --- | --- | --- |
 | Ordinary | everything not listed below | the agent, under steps 1 to 4 |
 | Agent rules | skills, role briefs and anything else under `.claude/` or `.agents/` not listed as enforcement, `docs/agents/`, the root `AGENTS.md`, guardrail tests (`scripts/guardrails/*.test.mjs`) | the agent, after both reviews below |
-| Enforcement | `.claude/hooks/`, `.claude/settings.json`, `.codex/`, `.agents/` settings, `scripts/agents/settings/`, `.github/` (workflows, dependabot, CODEOWNERS), `infra/github/`, any `CODEOWNERS`, `.husky/`, the root `package.json`, the guardrail scripts that are not tests, `scripts/verification/` | the owner, always; the hook refuses an agent merge whatever the PR body says |
+| Enforcement | `.claude/hooks/`, `.claude/settings.json`, `.codex/`, `.agents/` settings, `.github/` (workflows, dependabot, CODEOWNERS), `infra/github/`, any `CODEOWNERS`, `.husky/`, `.devcontainer/`, `.vscode/`, `.mcp.json`, `.gitleaks.toml`, `skills-lock.json`, the root `package.json`, `pnpm-workspace.yaml`, `.npmrc`, `pnpm-lock.yaml`, `scripts/agents/`, `scripts/ci/`, `scripts/production/`, `scripts/ops/`, `scripts/monitoring/`, `scripts/verification/`, the guardrail scripts that are not tests | the owner, always; the hook refuses an agent merge whatever the PR body says |
 
-`pnpm-workspace.yaml`, `.npmrc` and `pnpm-lock.yaml` are owner-merge only in a
-PR that also changes a workflow, which the `.github/` rule already covers.
+The lockfile and workspace files are owner-merge on their own, so dependency
+bumps, Dependabot's included, go to the owner.
 Agents do not edit the hooks, `.claude/settings.json`, `.codex/` or
 `scripts/agents/settings/` at all: `protect-files.mjs` refuses it, so the owner
 makes those edits by hand. An agent may still prepare the change as a written

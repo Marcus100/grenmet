@@ -106,6 +106,9 @@ const OPAQUE = /the hook cannot read it/u;
 const ALIAS = /alias/u;
 const CONFIG_WRITE = /change where a push goes|changes where the push goes/u;
 const CONFIGURED_PUSH = /git config sets where pushes go/u;
+const INJECTED_CONFIG = /injects git configuration/u;
+const INLINE_CONFIG = /inline alias, include or hooks path/u;
+const RAW_PUSH = /pushes without git push/u;
 const API_MERGE = /gh api merge/u;
 const UNKNOWN_FILES = /unknown file list/u;
 const MAIN_BASE = /main/u;
@@ -505,6 +508,20 @@ const OWNER_ONLY_FILES = [
   "scripts/guardrails/check-blast-radius.mjs",
   "scripts/guardrails/risk-tier.mjs",
   "scripts/verification/changed.mjs",
+  "scripts/agents/routing.mjs",
+  "scripts/agents/review-worker.mjs",
+  "scripts/ci/check.mjs",
+  "scripts/production/deploy.sh",
+  "scripts/ops/backup.sh",
+  "scripts/monitoring/uptime.mjs",
+  ".devcontainer/devcontainer.json",
+  ".vscode/settings.json",
+  ".mcp.json",
+  ".gitleaks.toml",
+  "skills-lock.json",
+  "pnpm-workspace.yaml",
+  ".npmrc",
+  "pnpm-lock.yaml",
 ];
 
 test("block-dangerous-git: a safety-file PR merges into dev only with both review lines for its head", () => {
@@ -579,22 +596,26 @@ test("block-dangerous-git: enforcement files are owner-merge, whatever the body 
     ),
     OWNER_ONLY
   );
-  // Lockfiles and workspace settings alone are ordinary; with a workflow the
-  // workflow already makes the PR owner-merge.
-  for (const file of ["pnpm-lock.yaml", "pnpm-workspace.yaml", ".npmrc"]) {
+  // A dependency bump (app manifest plus lockfile) goes to the owner.
+  assert.match(
+    String(
+      findBlockedPattern(
+        merge,
+        baseIs("dev", ["apps/web/gms/package.json", "pnpm-lock.yaml"])
+      )
+    ),
+    OWNER_ONLY
+  );
+  // Ordinary scripts and app config stay agent-merge.
+  for (const file of [
+    "scripts/docs/check-links.mjs",
+    "scripts/api/check-api-breaking.mjs",
+    "apps/web/gms/package.json",
+    "apps/web/gms/.vscode-notes.md",
+  ]) {
     assert.equal(
       findBlockedPattern(merge, baseIs("dev", [file])),
       undefined,
-      file
-    );
-    assert.match(
-      String(
-        findBlockedPattern(
-          merge,
-          baseIs("dev", [file, ".github/workflows/ci.yml"], bothLines())
-        )
-      ),
-      OWNER_ONLY,
       file
     );
   }
@@ -1448,10 +1469,10 @@ test("protect-files CLI: exits 0 for an ordinary file", () => {
   assert.equal(result.stderr, "");
 });
 
-test("malformed stdin: the git hook refuses, protect-files lets it pass, neither throws", () => {
+test("malformed stdin: both hooks refuse, neither throws", () => {
   for (const [script, status] of [
     ["block-dangerous-git.mjs", 2],
-    ["protect-files.mjs", 0],
+    ["protect-files.mjs", 2],
   ]) {
     for (const input of ["not json", "", "{"]) {
       const result = spawnSync(process.execPath, [join(hooksDir, script)], {
@@ -1521,6 +1542,105 @@ test("block-dangerous-git: refuses git push or gh inside code it cannot read", (
     "git ls-files | xargs wc -l",
     'git commit -m "docs: never run node -e with gh inside"',
     "python3 scripts/check.py --push-report",
+  ]) {
+    assert.equal(findBlockedPattern(command, TASK_BRANCH), undefined, command);
+  }
+});
+
+test("block-dangerous-git: refuses injected git config, include and hooks paths, and send-pack", () => {
+  for (const command of [
+    "GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=alias.p GIT_CONFIG_VALUE_0=push git p origin dev",
+    "GIT_CONFIG_PARAMETERS=\"'alias.p=push'\" git p origin dev",
+    "GIT_CONFIG_GLOBAL=/tmp/evil git push origin feat/task",
+    "GIT_CONFIG_SYSTEM=/tmp/evil git status",
+    "env GIT_CONFIG_COUNT=1 git push",
+    "export GIT_CONFIG_COUNT=1 && git push origin feat/task",
+    "export GIT_CONFIG_KEY_0=core.hooksPath; git commit -m x",
+    "declare -x GIT_CONFIG_GLOBAL=/tmp/evil",
+    "heavy env GIT_CONFIG_PARAMETERS=x git push",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(command, TASK_BRANCH)),
+      INJECTED_CONFIG,
+      command
+    );
+  }
+  for (const command of [
+    "git -c include.path=/tmp/evil push origin feat/task",
+    "git -c includeIf.gitdir:/x/.path=/tmp/evil status",
+    "git -c core.hooksPath=/tmp/hooks commit -m x",
+    "git -c core.hooksPath=/dev/null push origin feat/task",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(command, TASK_BRANCH)),
+      INLINE_CONFIG,
+      command
+    );
+  }
+  for (const command of [
+    "git config include.path /tmp/evil",
+    "git config --global core.hooksPath /tmp/hooks",
+    "git config includeIf.gitdir:~/x/.path /tmp/evil",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(command, TASK_BRANCH)),
+      CONFIG_WRITE,
+      command
+    );
+  }
+  for (const command of [
+    "git send-pack origin refs/heads/feat/task:refs/heads/dev",
+    "git -C ../x send-pack --all origin",
+    "git http-push https://example.com/repo.git dev",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(command, TASK_BRANCH)),
+      RAW_PUSH,
+      command
+    );
+  }
+  // Reading config and mentioning the variables in text stay allowed.
+  for (const command of [
+    "git config --get core.hooksPath",
+    'echo "GIT_CONFIG_COUNT=1 is how git injects config"',
+    'git commit -m "docs: GIT_CONFIG_GLOBAL is refused"',
+    "GIT_TRACE=1 git push origin feat/task",
+    "export PATH=$PATH:/x && git status",
+  ]) {
+    assert.equal(findBlockedPattern(command, TASK_BRANCH), undefined, command);
+  }
+});
+
+test("block-dangerous-git: short destination names are read like full ones", () => {
+  for (const command of [
+    "git push origin feat/task:heads/dev",
+    "git push origin HEAD:heads/main",
+    "git push origin heads/staging",
+    "git push origin feat/task:refs/heads/main",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(command, TASK_BRANCH)),
+      NEVER_PUSH,
+      command
+    );
+  }
+  for (const command of [
+    "git push origin HEAD:tags/v1.5.0",
+    "git push origin tags/v1.5.0",
+    "git push origin v1:refs/tags/v1",
+    "git push origin feat/task:tags/x",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(command, TASK_BRANCH)),
+      OWNER_TAGS,
+      command
+    );
+  }
+  for (const command of [
+    "git push origin HEAD:heads/feat/task",
+    "git push origin feat/task:refs/heads/feat/task",
+    "git push origin feat/tags-page",
+    "git push origin feat/heads-up",
   ]) {
     assert.equal(findBlockedPattern(command, TASK_BRANCH), undefined, command);
   }

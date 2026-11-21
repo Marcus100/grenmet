@@ -97,15 +97,24 @@ const ALLOWED_REPO = "marcus100/grenmet";
 // rulesets, Codex rules and the guardrail scripts. An agent never merges a PR
 // that changes one, whatever its body says; the owner merges it (owner
 // decision, 21 Nov 2026). protect-files.mjs also refuses agent edits to the
-// hooks, settings and Codex files. pnpm-workspace.yaml, .npmrc and
-// pnpm-lock.yaml are owner-only when the PR also changes a workflow; every
-// .github/ change is already owner-only, so they need no rule of their own.
+// hooks, settings and Codex files. The dependency manifests and lockfile are
+// here too, so dependency bumps (Dependabot included) go to the owner.
 const OWNER_ONLY_PATHS = [
   /^\.claude\/hooks\//,
   /^\.claude\/settings(?:\.local)?\.json$/,
   /^\.codex\//,
   /^\.agents\/(?:.*\/)?[^/]*settings[^/]*$/,
-  /^scripts\/agents\/settings\//,
+  // Factory, CI, production and operations scripts.
+  /^scripts\/(?:agents|ci|production|ops|monitoring)\//,
+  // Developer environment, MCP servers, secret scanning and vendored skills.
+  /^\.devcontainer\//,
+  /^\.vscode\//,
+  /^\.mcp\.json$/,
+  /^\.gitleaks\.toml$/,
+  /^skills-lock\.json$/,
+  /^pnpm-workspace\.yaml$/,
+  /^\.npmrc$/,
+  /^pnpm-lock\.yaml$/,
   /^\.github\//,
   /^infra\/github\//,
   /(?:^|\/)CODEOWNERS$/,
@@ -156,8 +165,18 @@ const REST_FIELD_FLAGS = new Set(["-f", "-F", "--field", "--raw-field"]);
 const API_WRITE_TARGET =
   /(?:^|\/)(?:pulls\/[^\s?]+|git\/(?:refs|tags)(?:[/?]|$)|contents(?:[/?]|$)|branches\/[^\s?]+|merges(?:[/?]|$)|merge-upstream(?:[/?]|$))/i;
 const READ_METHODS = new Set(["GET", "HEAD"]);
+// `git -c` keys refused on any git command: an alias renames a command, an
+// include pulls in other config, a hooks path runs other hooks.
+const UNSAFE_INLINE_CONFIG =
+  /^(?:alias\.|include\.path$|includeif\..+\.path$|core\.hookspath$)/i;
+// Environment variables that inject git configuration the command never shows.
+const GIT_CONFIG_ENV =
+  /^GIT_CONFIG(?:_COUNT|_KEY_\d+|_VALUE_\d+|_PARAMETERS|_GLOBAL|_SYSTEM|_NOSYSTEM)?=/;
+const DECLARES_ENV = new Set(["export", "declare", "typeset", "readonly", "local", "env", "set"]);
+// Plumbing that pushes without going through `git push`.
+const RAW_PUSH_COMMANDS = new Set(["send-pack", "http-push", "receive-pack"]);
 // `git config` keys that rename a command or change where a push goes.
-const REROUTING_CONFIG = /^(?:alias\.|remote\..+\.(?:push|pushurl|url)$|url\..+\.(?:push)?insteadof$|push\.default$|branch\..+\.(?:remote|merge|pushremote)$|remote\.pushdefault$)/i;
+const REROUTING_CONFIG = /^(?:alias\.|include\.path$|includeif\..+\.path$|core\.hookspath$|remote\..+\.(?:push|pushurl|url)$|url\..+\.(?:push)?insteadof$|push\.default$|branch\..+\.(?:remote|merge|pushremote)$|remote\.pushdefault$)/i;
 const CONFIG_READ_FLAGS =
   /^(?:--get|--get-all|--get-regexp|--get-urlmatch|--list|-l|--unset|--unset-all|--show-origin|--show-scope|--name-only)$/;
 // Agents never push to these branches; work lands through a PR into dev.
@@ -861,17 +880,44 @@ function pushArguments(words) {
 }
 
 /**
+ * A GIT_CONFIG_* assignment, before a command or through export, declare, env
+ * and the like: it injects git configuration the command does not show.
+ */
+function findGitConfigEnv(words) {
+  for (const word of words) {
+    if (GIT_CONFIG_ENV.test(word)) {
+      return `${word.split("=")[0]} (it injects git configuration the command does not show)`;
+    }
+    const prefix =
+      DECLARES_ENV.has(word) ||
+      COMMAND_WRAPPERS.has(word) ||
+      HEAVY_WRAPPER.test(word) ||
+      ENV_ASSIGNMENT.test(word) ||
+      word.startsWith("-");
+    // The first word that is not a wrapper, flag or assignment is the command.
+    if (!prefix) return undefined;
+  }
+  return undefined;
+}
+
+/**
  * Git configuration that renames a command or reroutes a push: `git -c alias.*`
  * on any command, and a `git config` write of such a key.
  */
 function findBlockedGitConfig(segment) {
   const rawSegment = neutraliseQuotedSeparators(segment).replace(/\\\n/g, "");
   for (const subcommand of rawSegment.split(SUBCOMMAND_SPLIT)) {
-    const git = gitArguments(shellWords(subcommand));
+    const words = shellWords(subcommand);
+    const injected = findGitConfigEnv(words);
+    if (injected) return injected;
+    const git = gitArguments(words);
     if (!git) continue;
-    const alias = git.configs.find((key) => /^alias\./i.test(key));
-    if (alias !== undefined) {
-      return `git -c ${alias} (an inline alias could rename a blocked command)`;
+    const inline = git.configs.find((key) => UNSAFE_INLINE_CONFIG.test(key));
+    if (inline !== undefined) {
+      return `git -c ${inline} (an inline alias, include or hooks path could rename a command or run other hooks)`;
+    }
+    if (RAW_PUSH_COMMANDS.has(git.sub)) {
+      return `git ${git.sub} (it pushes without git push, so the push checks cannot read it)`;
     }
     if (git.sub === "config") {
       const key = git.args.find((arg) => REROUTING_CONFIG.test(arg));
@@ -912,14 +958,15 @@ function findBlockedRefspec(refspec, currentBranches) {
   if (
     spec === "tag" ||
     source.startsWith("refs/tags/") ||
-    destination.startsWith("refs/tags/")
+    /^(?:refs\/)?tags\//.test(destination)
   ) {
     return `git push of '${refspec}' (the owner publishes tags and releases)`;
   }
+  // `refs/heads/dev` and `heads/dev` both name the branch dev.
   const names =
     destination === "HEAD" || destination === "@"
       ? [currentBranches().head]
-      : [destination.replace(/^refs\/heads\//, "")];
+      : [destination.replace(/^(?:refs\/)?heads\//, "")];
   const hit = names.find((name) => PROTECTED_BRANCHES.has(name));
   return hit === undefined
     ? undefined

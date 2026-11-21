@@ -191,7 +191,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       filePath = parsed?.tool_input?.file_path ?? "";
       command = parsed?.tool_input?.command ?? "";
     } catch {
-      process.exit(0);
+      // Input the hook cannot read is refused, not waved through.
+      process.stderr.write(
+        "BLOCKED: protect-files.mjs could not read the tool input, so the edit was not checked.\n"
+      );
+      process.exit(2);
     }
     const violation = filePath
       ? findProtectedViolation(filePath)

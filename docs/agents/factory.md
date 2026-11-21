@@ -205,3 +205,30 @@ Not built yet; each needs its own change:
   here (see [skill-standard.md](skill-standard.md)); the label trust rule and
   the heavy-command rule for them live in [triage-labels.md](triage-labels.md)
   and [tool-usage.md](tool-usage.md).
+
+## Hook and review gaps still open
+
+Known ways around `.claude/hooks/block-dangerous-git.mjs` and the review
+lane, left after the 21 Nov 2026 security review. File them as one issue;
+GitHub's branch rulesets are the backstop meanwhile.
+
+- **Wrappers with options.** `env`, `timeout` and `sudo` are looked through,
+  but their option values are not parsed (`env -u X`, `timeout -s KILL 5`,
+  `sudo -u someone`), so a value could be read as the command or the command
+  missed.
+- **Shell options and inputs.** `bash -O <opt> -c`, here-strings
+  (`bash <<< "git push origin dev"`) and text piped into a shell
+  (`echo "git push origin dev" | bash`) are not read as commands.
+- **Commands built at run time.** `$(echo git) push origin dev`, `"$G" push`
+  and similar names a variable or substitution produces are not recognised as
+  git or gh.
+- **Self-attested review lines.** For agent-rules PRs the
+  `Security review` and `Codex review` lines are written by the agent that
+  merges; the hook checks their shape and sha, not that a review happened.
+  Making both reviews required GitHub statuses from a pinned App would close
+  this.
+- **Rulesets not re-verified.** The protections the factory relies on
+  (required CI on `dev`, `staging` and `main` protected, no bypass actors) are
+  read from the committed snapshot `infra/github/rulesets.json`; nobody has
+  re-checked them against GitHub since these decisions. Run
+  `pnpm guardrails:rulesets` and record the result.
