@@ -88,4 +88,15 @@ describe("buildWhatsAppDraft", () => {
     );
     expect(result?.prompt).not.toContain("2026-12-26");
   });
+
+  it("adds the year when the event is not in the current Grenada year", () => {
+    const result = buildWhatsAppDraft(
+      { ...source, startsAt: "2027-01-09T23:00:00Z" },
+      site,
+      now
+    );
+    expect(result?.facts).toContain(
+      "Saturday, 9 January 2027 at 7:00 PM (Grenada time)"
+    );
+  });
 });
