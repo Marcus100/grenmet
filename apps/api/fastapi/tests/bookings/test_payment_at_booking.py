@@ -403,17 +403,19 @@ async def test_my_bookings_carry_the_payment_and_only_the_callers(
     async_client: httpx.AsyncClient,
     stripe_env: payments_conftest.StripeStub,
 ) -> None:
-    _ = stripe_env
     studio = await _full_price_studio(db_async, async_client)
     ada = await make_user(db_async, email=f"ada-{uuid.uuid4().hex[:6]}@example.com")
     bob = await make_user(db_async, email=f"bob-{uuid.uuid4().hex[:6]}@example.com")
     # Read once: the commits below expire the user objects.
     people = {
-        "ada": (ada.email, headers_for(ada), 0),
-        "bob": (bob.email, headers_for(bob), -1),
+        "ada": (ada.email, headers_for(ada), 0, "cs_test_1"),
+        "bob": (bob.email, headers_for(bob), -1, "cs_test_2"),
     }
     ids: dict[str, str] = {}
-    for name, (email, headers, slot) in people.items():
+    for name, (email, headers, slot, checkout_id) in people.items():
+        # A signed checkout callback matches by provider reference as well as
+        # metadata. Give each booking its own reference, as Stripe does.
+        stripe_env.checkout_id = checkout_id
         slots = await _slots(async_client, studio)
         proof = await get_proof(db_async, async_client, studio, slots[slot], email)
         response = await async_client.post(
@@ -422,7 +424,12 @@ async def test_my_bookings_carry_the_payment_and_only_the_callers(
             json=_body(studio, slots[slot], customer_email=email, email_proof=proof),
         )
         assert response.status_code == 201, response.text
-        ids[name] = response.json()["booking"]["id"]
+        receipt = response.json()
+        assert (
+            receipt["checkout_url"]
+            == f"https://checkout.stripe.com/c/pay/{checkout_id}"
+        )
+        ids[name] = receipt["booking"]["id"]
 
     async def mine(name: str) -> list[dict]:
         resp = await async_client.get(f"{API}/me/bookings", headers=people[name][1])

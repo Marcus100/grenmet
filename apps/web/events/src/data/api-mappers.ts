@@ -149,6 +149,7 @@ export function toEventDetail(listing: ListingDetail): EventDetail {
 export function toManagedEvent(listing: ManagedListing): ManagedEvent {
   return {
     ...toEventDetail(listing),
+    accessType: listing.access_type ?? null,
     status: listing.status,
     visibility: listing.visibility,
   };
