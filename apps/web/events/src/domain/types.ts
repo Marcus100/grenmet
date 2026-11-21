@@ -248,11 +248,29 @@ export interface PublicEvent {
   readonly viewerSaved: boolean | null;
 }
 
+/**
+ * An event's refund terms as the organiser set them. Money is in minor units;
+ * the cutoff is in hours before the start.
+ */
+export interface RefundTerms {
+  /** The organiser's own cutoff in hours; null means the platform default. */
+  readonly cutoffHours: number | null;
+  /** The cutoff in force, with the platform default resolved. */
+  readonly cutoffHoursEffective: number;
+  /** `fixed` is per paid ticket cancelled; `percent` is of the refundable amount. */
+  readonly feeType: "none" | "fixed" | "percent";
+  /** Minor units per ticket for a fixed fee, a whole percent for a percent fee, else 0. */
+  readonly feeValue: number;
+  /** `no_refunds`: nothing is refunded unless the event is cancelled. */
+  readonly policy: "refundable" | "no_refunds";
+}
+
 /** An event page: the listing plus its organiser, group and ticket tiers. */
 export interface EventDetail extends PublicEvent {
   readonly capacity: number;
   readonly group: Group | null;
   readonly organiser: Organiser;
+  readonly refundTerms: RefundTerms;
   readonly tiers: readonly {
     readonly allocation: number;
     /** Valid tickets the signed-in viewer already holds for this tier. */

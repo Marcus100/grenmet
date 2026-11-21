@@ -3,7 +3,22 @@ import type {
   ManagedEvent,
   Organiser,
   PublicEvent,
+  RefundTerms,
 } from "@/domain/types";
+
+/** Refund terms with the platform default: refundable, 48 hours, no fee. */
+export function makeRefundTerms(
+  overrides: Partial<RefundTerms> = {}
+): RefundTerms {
+  return {
+    policy: "refundable",
+    cutoffHours: null,
+    cutoffHoursEffective: 48,
+    feeType: "none",
+    feeValue: 0,
+    ...overrides,
+  };
+}
 
 /** A published public event; override only what a test cares about. */
 export function makeEvent(overrides: Partial<PublicEvent> = {}): PublicEvent {
@@ -41,6 +56,7 @@ export function makeManagedEvent(
     capacity: 100,
     group: null,
     organiser: makeOrganiser(),
+    refundTerms: makeRefundTerms(),
     status: "published",
     tiers: [],
     visibility: "public",

@@ -8,6 +8,12 @@ import type {
   Parish,
 } from "@/domain/types";
 import { addDaysToKey, grenadaDateKey, grenadaWallClock } from "@/lib/datetime";
+import {
+  DEFAULT_CUSTOM_HOURS,
+  deadlineFromHours,
+  deadlineHours,
+  type RefundDeadline,
+} from "@/lib/refund-terms";
 
 export interface TierDraft {
   readonly allocation: number;
@@ -19,8 +25,21 @@ export interface TierDraft {
   readonly priceMajor: number;
 }
 
+/**
+ * The refund fields the editor edits. Plain values, like the rest of the draft:
+ * the deadline is a preset or "custom" with its hours, and the fee amount is
+ * EC$ per ticket for a fixed fee or a whole percent for a percent fee.
+ */
+export interface RefundDraft {
+  readonly cancellationFeeAmount: number;
+  readonly cancellationFeeType: "none" | "fixed" | "percent";
+  readonly refundCustomHours: number;
+  readonly refundDeadline: RefundDeadline;
+  readonly refundPolicy: "refundable" | "no_refunds";
+}
+
 /** Editor state for an event listing. Plain values so inputs bind directly. */
-export interface EventDraft {
+export interface EventDraft extends RefundDraft {
   readonly admission: Admission;
   readonly capacity: number;
   /** Null leaves the listing uncategorised; saving sends an explicit null. */
@@ -57,10 +76,24 @@ function timeOf(instant: string): string {
   }).format(new Date(instant));
 }
 
+/** Editor values for the saved refund terms. */
+function refundDraftFrom(terms: EventDetail["refundTerms"]): RefundDraft {
+  const deadline = deadlineFromHours(terms.cutoffHours);
+  return {
+    refundPolicy: terms.policy,
+    refundDeadline: deadline.deadline,
+    refundCustomHours: deadline.customHours,
+    cancellationFeeType: terms.feeType,
+    cancellationFeeAmount:
+      terms.feeType === "fixed" ? terms.feeValue / 100 : terms.feeValue,
+  };
+}
+
 export function draftFromEvent(
   event: EventDetail & { readonly visibility?: "public" | "unlisted" }
 ): EventDraft {
   return {
+    ...refundDraftFrom(event.refundTerms),
     title: event.title,
     summary: event.summary,
     description: event.description,
@@ -106,6 +139,11 @@ export function emptyDraft(now: Date): EventDraft {
     groupSlug: null,
     imageFileId: null,
     tiers: [],
+    refundPolicy: "refundable",
+    refundDeadline: "2d",
+    refundCustomHours: DEFAULT_CUSTOM_HOURS,
+    cancellationFeeType: "none",
+    cancellationFeeAmount: 0,
   };
 }
 
@@ -122,6 +160,22 @@ export function draftEndsAt(
   const date =
     draft.endTime > draft.startTime ? draft.date : addDaysToKey(draft.date, 1);
   return `${date}T${draft.endTime}:00${GRENADA_OFFSET}`;
+}
+
+/** Minor units per ticket for a fixed fee, a whole percent otherwise, 0 for none. */
+export function feeValueOf(
+  draft: Pick<RefundDraft, "cancellationFeeAmount" | "cancellationFeeType">
+): number {
+  const amount = Number.isFinite(draft.cancellationFeeAmount)
+    ? draft.cancellationFeeAmount
+    : 0;
+  if (draft.cancellationFeeType === "fixed") {
+    return Math.round(amount * 100);
+  }
+  if (draft.cancellationFeeType === "percent") {
+    return Math.min(100, Math.max(0, Math.round(amount)));
+  }
+  return 0;
 }
 
 /** The API payload for saving this draft as a draft or a published listing. */
@@ -146,6 +200,13 @@ export function draftToUpsert(
     status,
     group_slug: draft.groupSlug,
     image_file_id: draft.imageFileId ?? null,
+    refund_policy: draft.refundPolicy,
+    refund_cutoff_hours: deadlineHours(
+      draft.refundDeadline,
+      draft.refundCustomHours
+    ),
+    cancellation_fee_type: draft.cancellationFeeType,
+    cancellation_fee_value: feeValueOf(draft),
     tiers:
       draft.admission === "ticketed"
         ? draft.tiers.map((tier) => ({
