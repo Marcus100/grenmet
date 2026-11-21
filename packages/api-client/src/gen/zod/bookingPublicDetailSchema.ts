@@ -36,5 +36,11 @@ export const bookingPublicDetailSchema = z
       .union([bookingPaymentSummarySchema, z.null()])
       .optional()
       .describe("Null when nothing was due at booking (pay at the business)."),
+    account_invite_url: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account."
+      ),
   })
   .describe("A booking as its customer sees it.");

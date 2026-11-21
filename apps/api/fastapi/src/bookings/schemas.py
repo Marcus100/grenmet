@@ -724,6 +724,14 @@ class BookingPublicDetail(BaseModel):
         default=None,
         description="Null when nothing was due at booking (pay at the business).",
     )
+    account_invite_url: str | None = Field(
+        default=None,
+        description=(
+            "Where a guest can create a free account or sign in, so this booking "
+            "is listed under My bookings. Null once the booking's contact is linked "
+            "to an account."
+        ),
+    )
 
 
 class BookingPublicReceipt(BaseModel):

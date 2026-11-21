@@ -116,3 +116,60 @@ def test_key_jobs_are_monitored_and_keep_their_names() -> None:
         assert hasattr(job, "__wrapped__")
         # ARQ names jobs after the function; wrapping must not change it.
         assert job.__name__ == job.__wrapped__.__name__
+
+
+class _Session:
+    async def __aenter__(self) -> _Session:
+        return self
+
+    async def __aexit__(self, *_exc: object) -> None:
+        return None
+
+    async def commit(self) -> None:
+        return None
+
+
+def test_booking_jobs_are_tracked_by_the_operational_metrics() -> None:
+    from src import operational_metrics
+
+    assert {"enqueue_booking_reminders", "expire_unpaid_bookings"} <= (
+        operational_metrics.JOBS
+    )
+
+
+async def test_booking_jobs_report_check_ins_with_their_cron_schedule(
+    monkeypatch: pytest.MonkeyPatch, checkins: list[dict[str, Any]]
+) -> None:
+    from src import database
+    from src.bookings import deposits, reminders
+
+    async def no_reminders(_session: object) -> int:
+        return 0
+
+    async def no_expiries(_session: object) -> int:
+        return 0
+
+    monkeypatch.setattr(database, "async_session_factory", _Session)
+    monkeypatch.setattr(reminders, "enqueue_due_reminders", no_reminders)
+    monkeypatch.setattr(deposits, "expire_unpaid", no_expiries)
+    _enable(monkeypatch)
+
+    assert await main.enqueue_booking_reminders({}) == 0
+    assert await main.expire_unpaid_bookings({}) == 0
+
+    by_slug = {c["monitor_slug"]: c for c in checkins if c["status"] == "ok"}
+    reminder = by_slug["production-worker-enqueue-booking-reminders"]
+    assert reminder["monitor_config"]["schedule"] == {
+        "type": "crontab",
+        "value": "7 * * * *",
+    }
+    expiry = by_slug["production-worker-expire-unpaid-bookings"]
+    assert expiry["monitor_config"]["schedule"]["value"] == (
+        "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+    )
+
+
+def test_booking_jobs_keep_their_names() -> None:
+    for job in (main.enqueue_booking_reminders, main.expire_unpaid_bookings):
+        assert hasattr(job, "__wrapped__")
+        assert job.__name__ == job.__wrapped__.__name__

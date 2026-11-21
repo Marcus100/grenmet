@@ -248,7 +248,8 @@ failures.
 is skipped without `SENTRY_AUTH_TOKEN` and never fails a deploy.
 
 The worker sends Sentry Cron check-ins for `process_cap_jobs`, `ingest_cap_feeds`,
-`drain_outbox` and `purge_expired_data` (slugs
+`drain_outbox`, `purge_expired_data`, `enqueue_booking_reminders` and
+`expire_unpaid_bookings` (slugs
 `<environment>-worker-<job>`, e.g. `production-worker-drain-outbox`) only when
 `SENTRY_CRONS_ENABLED=true` reaches the worker; check the plan's included cron
 monitors first. Sentry creates the monitors from the first check-ins.

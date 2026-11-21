@@ -195,6 +195,7 @@ async def drain_outbox(ctx: dict[str, Any]) -> int:
     return result
 
 
+@monitored(schedule="7 * * * *", checkin_margin=10, max_runtime=10)
 async def enqueue_booking_reminders(ctx: dict[str, Any]) -> int:
     """Queue one reminder per booking starting within 24 hours (idempotent)."""
     from src.bookings import reminders
@@ -241,6 +242,11 @@ async def enqueue_event_reminders(ctx: dict[str, Any]) -> int:
     return result
 
 
+@monitored(
+    schedule="2,7,12,17,22,27,32,37,42,47,52,57 * * * *",
+    checkin_margin=5,
+    max_runtime=5,
+)
 async def expire_unpaid_bookings(ctx: dict[str, Any]) -> int:
     """Cancel deposit bookings left unpaid past the hold; frees the slot (idempotent)."""
     from src.bookings import deposits
