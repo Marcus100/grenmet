@@ -1,74 +1,88 @@
 ---
-title: Refunds that follow each event's own terms, one look for our emails, and clearer units on the weather site
-summary: Version 1.6.0 lets each event set its own refund policy and cancellation fee, sends refund receipts and day-before ticket reminders, puts a manage link in every booking email, moves our emails onto one shared layout, and shows units on the weather forecast.
+title: Refund terms for every event, one look for our emails, and clearer units on the weather site
+summary: Version 1.6.0 lets each event set its own refund policy and cancellation fee, sends refund receipts and ticket reminders, adds manage links to booking emails, moves our emails onto one shared layout, and shows units on the forecast.
 date: 2026-11-21
 release: 1.6.0
 ---
 
 Version 1.6.0 carries the work merged after v1.5.0. It has one database change,
-which only adds four columns with safe defaults, so the previous version still
-runs against the new schema. Events and Bookings got most of the new features.
+and it only adds: five new columns for the refund policy (four on event listings
+and one on orders), each with a safe default or left empty, plus checks on their
+values. Events and Bookings got most of the new features.
 
 ### Events
 
 - **Refund policy per event:** an organiser can choose whether an event is
   refundable, how many hours before the start refunds stop, and an optional
-  cancellation fee. The terms show in the organiser editor, in the cancel flows
-  and on the buyer's page, so people see them before they pay.
-- **Receipts and reminders:** a refund now sends a receipt that says what was
-  refunded and why, and ticket holders get a reminder about a day before the
-  event.
-- **A working organiser dashboard:** the event dashboard now shows real figures
-  instead of placeholders.
-- **Edit your organiser profile:** an approved organiser can change the profile
-  name and bio.
-- **WhatsApp drafts (pilot):** the organiser editor can prepare a WhatsApp
-  announcement for the organiser to review and send. Nothing is sent for them.
+  cancellation fee. The terms show in the organiser editor, in the cancel flows,
+  and as a one-line summary on the event page and ticket claim for paid tickets.
+  Once an order has been paid, terms can only be made more generous, and a
+  cancelled event always refunds everyone in full with no fee.
+- **Receipts and reminders:** a refund now sends a receipt that says how much was
+  refunded, whether it covers the whole order, any cancellation fee kept, and
+  when the organiser cancelled the event, that it was cancelled. Ticket holders
+  get one reminder email once their event is within 24 hours.
+- **A working organiser console:** every menu item now opens the selected event's
+  tickets, orders, attendees, door and finance pages, the console remembers the
+  last event you opened, and the account block shows the signed-in person. The
+  overview shows tickets issued, admitted and cash at the till (online payments
+  are not totalled yet). Screens show EC$ and US$ labels, and a team member can be
+  invited from the Team page.
+- **Organiser profile edit (API):** an approved organiser can now change the
+  profile name and bio through the API. The Settings screen that uses it follows.
+- **WhatsApp drafts (pilot):** an opt-in pilot builds a WhatsApp announcement
+  draft from the saved event facts. The organiser reviews the text and copies it
+  to send by hand; nothing is sent and no draft is stored.
 
 ### Bookings
 
-- **A manage link in every email:** every customer email about a booking carries
-  a link to change or cancel it, and guests are invited to create an account
-  afterwards.
-- **Jobs we can watch:** the booking reminder job reports to monitoring.
-- **Clearer payment wording** on the booking, manage and studio pages (carried
-  over from the last release, with display fixes).
+- **A manage link in the key emails:** the confirmation, deposit, reminder and
+  reschedule emails carry a signed link to manage the booking, which expires 7
+  days after the booking ends. Guests are also invited to create an account in
+  the booking received, confirmed and reminder emails and on the manage page.
+- **Jobs we can watch:** the booking reminder and unpaid-booking expiry jobs
+  report to monitoring.
 
 ### One look for our emails
 
 - **A shared layout:** booking and event emails, and the password reset, welcome,
   invitation and subscription emails, now use one layout: the business or
   product name, a clear title, the key details in a table and one large button.
-  Every link is checked before it is shown, and each email also has a plain-text
-  version.
-- **Rendered when sent:** an email is stored as data and rendered at the moment
-  it is delivered, with a fallback if the renderer is down, so a rendering
-  problem cannot lose a message.
+  Every link is checked before it is shown, and booking and event emails also
+  have a plain-text version. Staff notification emails changed look too.
+- **Rendered when sent:** booking and event emails are stored as data and
+  rendered at the moment they are delivered, with a fallback if the renderer is
+  down, so the message still goes out. The account and invitation emails use the
+  same look when the renderer is up; the fallback keeps their old look for now.
 
 ### Weather and sites
 
-- **Units on the forecast:** the forecast card and the day strip now show the
-  unit next to each temperature.
-- **Report PDFs:** the document preview now says why a preview is not available.
+- **Units on the forecast:** the forecast day card and the day strip now show the
+  unit next to the main temperatures (lows stay as a bare degree).
+- **Report PDFs:** when a document preview fails, the message now depends on the
+  cause (server error, expired session, or a reply in the wrong format) instead
+  of always blaming the connection.
 - **Our own site:** the Barrels homepage lists a wider range of ICT services.
 
 ### Safety and reliability
 
-- **Fewer security-policy violations:** violations that the report-only content
-  security policy found in production are cleared.
+- **Security-policy fixes:** fixes for the four violations that the report-only
+  content security policy reported in production (analytics hosts, sign-in links
+  in Events and Auth, and a script probe on the MBIA contact page). Nothing is
+  enforced yet; we confirm in the next production window.
 - **Account deletion and rosters:** creating a membership and deleting an account
   now take the same lock, so they cannot overlap.
 - **Safer database changes:** destructive migrations now have to be split into an
   additive step and a later removal, and CI enforces it.
-- **More monitors, same free plan:** the CMS, Events and Bookings now have
-  uptime monitors.
 
 ### Tests, CI and docs
 
-- **Accessibility checks:** the public weather pages are checked with axe against
-  WCAG 2.1 A and AA on every pull request.
-- **Decision records:** records for the health-records foundation, the Shop
-  Keeper and Salesbus commerce core, and one registry for every ticket, plus
-  guidance on Grenada's information and communications technology law.
+- **Accessibility checks:** the home, alerts and about pages of the public weather
+  site are checked with axe against WCAG 2.1 A and AA in the browser journeys that
+  run on every pull request.
+- **Decision records:** records for the Shop Keeper and Salesbus commerce core and
+  for one registry for every ticket, health insurers added to the health-records
+  record, and a health records section in the guidance on Grenada's information
+  and communications technology law.
 - **Environment guide:** the environment templates and guide now cover every
   setting.
