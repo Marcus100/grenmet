@@ -49,6 +49,12 @@ describe("rememberListing", () => {
     expect(options).not.toHaveProperty("domain");
   });
 
+  it("does not rewrite the cookie when the event is already remembered", async () => {
+    cookieIs("evt-1");
+    await rememberListing("evt-1");
+    expect(cookieStore.set).not.toHaveBeenCalled();
+  });
+
   it("ignores an id that is not well formed", async () => {
     await rememberListing("../../etc");
     await rememberListing("");

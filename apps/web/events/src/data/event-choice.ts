@@ -14,7 +14,12 @@ export async function rememberListing(listingId: string): Promise<void> {
   if (!LISTING_ID.test(listingId)) {
     return;
   }
-  (await cookies()).set(LISTING_COOKIE, listingId, {
+  const store = await cookies();
+  // Setting a cookie in an action re-renders the route; skip it when unchanged.
+  if (store.get(LISTING_COOKIE)?.value === listingId) {
+    return;
+  }
+  store.set(LISTING_COOKIE, listingId, {
     httpOnly: true,
     maxAge: 60 * 60 * 24 * 365,
     path: "/",
