@@ -286,7 +286,7 @@ export function problemMessage(problem: Problem): string {
     case "not-set-up":
       return "This account is not set up for Printix yet. Ask Barrels to give you access.";
     case "no-authenticator":
-      return "Add an authenticator at account.barrels.gd first, then sign in here again.";
+      return "Add an authenticator at auth.barrels.gd/security first, then sign in here again.";
     case "authenticator-session":
       return "This sign-in did not pass the authenticator check. Sign out, then sign in again with your authenticator code.";
     case "forbidden":

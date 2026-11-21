@@ -23,8 +23,8 @@ readiness and closeout summaries from recorded rehearsal evidence.
 - [ ] Give the organisation and each person their access. Follow
       [printix-onboarding.md](printix-onboarding.md): admin.barrels.gd, the Printix
       organisation, App access, then "Printix access" and "Add person to Printix".
-- [ ] Each person has a Barrels account (account.barrels.gd) and **adds an authenticator**
-      there. Without one, sign-in at the scanner is refused.
+- [ ] Each person has a Barrels account and **adds an authenticator** at
+      auth.barrels.gd/security. Without one, sign-in at the scanner is refused.
 - [ ] Each person signs in at `scan.barrels.gd/organiser`: type the email, tap "Send the
       code", then type the 6-digit code from the email and the 6-digit code from the
       authenticator app, and tap "Sign in". A sign-in lasts at most 12 hours.

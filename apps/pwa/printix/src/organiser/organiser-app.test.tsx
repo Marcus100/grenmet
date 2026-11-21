@@ -148,7 +148,7 @@ describe("sign-in", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "First time? Accept your invitation and add an authenticator at account.barrels.gd, then sign in here."
+        "First time? Accept your invitation and add an authenticator at auth.barrels.gd/security, then sign in here."
       )
     ).toBeInTheDocument();
 

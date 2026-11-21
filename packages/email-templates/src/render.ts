@@ -125,6 +125,7 @@ function build(template: TemplateName, props: Record<string, unknown>): Built {
       };
     }
     case "reset-password": {
+      requireFields("reset-password", props, ["resetLink"]);
       const p = props as unknown as ResetPasswordEmailProps;
       return {
         element: ResetPasswordEmail(p),
