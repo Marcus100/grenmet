@@ -13,7 +13,7 @@ from src.bookings import email_code, manage_link
 BOOKING = uuid.UUID("6f1d2c3b-4a59-4e7f-8a6b-0c1d2e3f4a5b")
 OTHER = uuid.UUID("0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d")
 ENDS = datetime(2027, 1, 5, 14, 30)  # naive UTC, as the database holds it
-THIRTY_DAYS = timedelta(days=30)
+GRACE_DAYS = timedelta(days=7)
 
 
 @pytest.fixture(autouse=True)
@@ -92,7 +92,7 @@ def test_a_tampered_token_is_rejected() -> None:
 
 def test_an_expired_link_is_rejected_at_the_expiry_second_and_after() -> None:
     token = manage_link.mint(BOOKING, ENDS)
-    expiry = ENDS + THIRTY_DAYS
+    expiry = ENDS + GRACE_DAYS
     assert manage_link.verify(token, now=expiry - timedelta(seconds=1)) == BOOKING
     assert manage_link.verify(token, now=expiry + timedelta(seconds=1)) is None
 

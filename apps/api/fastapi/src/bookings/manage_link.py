@@ -34,7 +34,7 @@ from src.auth.config import auth_settings
 PURPOSE_MANAGE = "manage"
 CURRENT_VERSION = "v1"
 #: How long a signed link works after its booking ends.
-GRACE = timedelta(days=30)
+GRACE = timedelta(days=7)
 _KEY_INFO = {"v1": b"bookings-manage-link-v1"}
 _TAG_BYTES = 16
 
