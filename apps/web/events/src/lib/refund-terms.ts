@@ -16,20 +16,32 @@ export const CUTOFF_HOURS_MAX = 720;
 /** Starting value when an organiser switches to a custom deadline. */
 export const DEFAULT_CUSTOM_HOURS = 72;
 
-export const REFUND_DEADLINES = ["1d", "2d", "7d", "30d", "custom"] as const;
+export const REFUND_DEADLINES = [
+  "default",
+  "1d",
+  "2d",
+  "7d",
+  "30d",
+  "custom",
+] as const;
 export type RefundDeadline = (typeof REFUND_DEADLINES)[number];
 
-/** Presets in hours. "2d" is null: the platform default (48 hours). */
+/**
+ * Presets in hours. "default" saves null, so the listing follows the Barrels
+ * default (the API reports its current value as `refund_cutoff_hours_effective`).
+ */
 const PRESET_HOURS: Record<Exclude<RefundDeadline, "custom">, number | null> = {
+  default: null,
   "1d": HOURS_PER_DAY,
-  "2d": null,
+  "2d": 2 * HOURS_PER_DAY,
   "7d": 7 * HOURS_PER_DAY,
   "30d": 30 * HOURS_PER_DAY,
 };
 
 export const REFUND_DEADLINE_LABELS: Record<RefundDeadline, string> = {
+  default: "Barrels default",
   "1d": "1 day",
-  "2d": "2 days (default)",
+  "2d": "2 days",
   "7d": "7 days",
   "30d": "30 days",
   custom: "Custom",
@@ -68,17 +80,13 @@ export function deadlineFromHours(hours: number | null): {
   readonly deadline: RefundDeadline;
 } {
   if (hours === null) {
-    return { deadline: "2d", customHours: DEFAULT_CUSTOM_HOURS };
+    return { deadline: "default", customHours: DEFAULT_CUSTOM_HOURS };
   }
   const preset = REFUND_DEADLINES.find(
     (name) => name !== "custom" && PRESET_HOURS[name] === hours
   );
   if (preset) {
     return { deadline: preset, customHours: hours };
-  }
-  // 48 hours is the default, so it reads as the "2 days" preset.
-  if (hours === 2 * HOURS_PER_DAY) {
-    return { deadline: "2d", customHours: hours };
   }
   return { deadline: "custom", customHours: hours };
 }

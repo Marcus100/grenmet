@@ -106,7 +106,8 @@ describe("formatHours", () => {
 
 describe("deadline controls", () => {
   it("saves the two-day preset as the platform default (null)", () => {
-    expect(deadlineHours("2d", 999)).toBeNull();
+    expect(deadlineHours("default", 999)).toBeNull();
+    expect(deadlineHours("2d", 999)).toBe(48);
     expect(deadlineHours("1d", 999)).toBe(24);
     expect(deadlineHours("7d", 999)).toBe(168);
     expect(deadlineHours("30d", 999)).toBe(720);
@@ -120,7 +121,7 @@ describe("deadline controls", () => {
 
   it("maps a saved cutoff back to its preset or to custom", () => {
     expect(deadlineFromHours(null)).toEqual({
-      deadline: "2d",
+      deadline: "default",
       customHours: 72,
     });
     expect(deadlineFromHours(48)).toEqual({ deadline: "2d", customHours: 48 });

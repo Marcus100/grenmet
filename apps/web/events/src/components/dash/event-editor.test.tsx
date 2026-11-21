@@ -93,7 +93,7 @@ describe("refund terms", () => {
       target: { value: "ticketed" },
     });
     expect(screen.getByLabelText("Refunds allowed")).toHaveValue("refundable");
-    expect(screen.getByLabelText("Refund deadline")).toHaveValue("2d");
+    expect(screen.getByLabelText("Refund deadline")).toHaveValue("default");
   });
 
   it("warns about no refunds and hides the deadline and fee", () => {

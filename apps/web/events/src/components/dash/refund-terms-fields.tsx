@@ -139,7 +139,7 @@ export function RefundTermsFields({
                   Fixed per ticket (EC$)
                 </NativeSelectOption>
                 <NativeSelectOption value="percent">
-                  Percentage of the amount paid
+                  Percentage of the amount still refundable
                 </NativeSelectOption>
               </NativeSelect>
             </Field>
@@ -152,6 +152,7 @@ export function RefundTermsFields({
                 </FieldLabel>
                 <Input
                   id="ed-fee-amount"
+                  inputMode="decimal"
                   max={
                     value.cancellationFeeType === "percent"
                       ? MAX_PERCENT

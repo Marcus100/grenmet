@@ -140,7 +140,7 @@ export function emptyDraft(now: Date): EventDraft {
     imageFileId: null,
     tiers: [],
     refundPolicy: "refundable",
-    refundDeadline: "2d",
+    refundDeadline: "default",
     refundCustomHours: DEFAULT_CUSTOM_HOURS,
     cancellationFeeType: "none",
     cancellationFeeAmount: 0,

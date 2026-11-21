@@ -623,6 +623,7 @@ function CancelOrderForm({
         <Input
           aria-describedby={reasonError ? reasonErrorId : undefined}
           aria-invalid={reasonError ? true : undefined}
+          aria-required={reasonRequired}
           className="min-h-11"
           id={`cancel-reason-${order.id}`}
           maxLength={300}
