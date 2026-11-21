@@ -99,8 +99,9 @@ A Printix gate must admit printed tickets on Sat 26 Dec 2026, with a rehearsal o
 
 **Uncertainty**
 
-- Whether the 26 Dec event also sells online through Barrels Events (owner question
-  1). It decides whether online scanning must pass the 14 Dec rehearsal.
+- None open on timing. The owner answered on 21 Nov 2026: the 26 Dec event sells no
+  tickets through Barrels Events (printed only), and online tickets through Printix
+  are piloted at the next event after it.
 
 ## Options considered
 
@@ -162,8 +163,10 @@ columns, all nullable or with a server default:
   `registry.ensure_event_for_listing` runs `INSERT ... ON CONFLICT DO NOTHING`, then
   reads the row back, because sales hold only a shared listing lock and two can race.
   It does not reuse `create_event`, which needs the `printix` entitlement and commits.
-  The event's organisation is the organiser's `organisation_id`. `closes_at` is the
-  listing's `ends_at`, updated on postpone.
+  The event's organisation is the organiser's `organisation_id`. For an event
+  created from a listing, `closes_at` is the listing's `ends_at`, updated on postpone.
+  For a printed event linked to a listing, Printix owns `closes_at`, and postponing
+  the listing never moves it.
 - **Linking an existing printed event (admin only).** `POST
   /printix/admin/events/{id}/listing` links a listing to an existing Printix event
   before the listing's first issue or backfill. It is refused (409) if the listing
@@ -203,8 +206,10 @@ other domains import. Events imports Printix, never the reverse.
   `registry.void(session, tickets, reason)` takes the Events ticket rows. When a
   registry row is missing (a ticket from before dual-write, not yet backfilled), it
   **inserts a complete row already void**, so a void can never be lost to the
-  backfill. A later commercial reason replaces an earlier commercial one (for
-  example `cancelled` then `refunded`). It never replaces `organiser`. Postpone calls
+  backfill. On a row that is already void, a later commercial reason
+  replaces an earlier commercial one (for example `cancelled` then `refunded`); the
+  status stays `void`, so admission is unaffected and repeating the same reason
+  changes nothing. It never replaces `organiser`. Postpone calls
   `registry.reschedule`.
 - **Guards read the registry.** Once a listing is switched, the "already used" checks
   in `cancel_ticket`, the `org_orders` cancel and `refund_ticket` read `admitted_at`
@@ -242,11 +247,13 @@ other domains import. Events imports Printix, never the reverse.
   | External sellers | `Idempotency-Key` (ADR-0026) per API key |
 
 - **Lock order.** Events side: listing, tiers, order, Events tickets, then the
-  registry event row, then registry ticket rows **in id order** (bulk voids
+  registry event row (`FOR SHARE`, so a long Events transaction never blocks gate
+  scans), then registry ticket rows **in id order** (bulk voids
   included). Scanner: pairing advisory lock, registry event row (`FOR SHARE`), then
   one ticket row. Both take the event row before ticket rows, so no cycle is
-  expected. A deadlock victim is still retried once and then answered as a lost race
-  (`ticketing.is_deadlock`).
+  expected. A deadlock victim is still retried once and then answered as a lost race.
+  The deadlock check moves from `ticketing.is_deadlock` to a shared helper in
+  `src/utils/`, because Printix must not import Events.
 - **No commits inside.** `registry.py` and new inner functions behind today's `admit`,
   `set_ticket_void` and `sync_offline_admissions` write without committing. The
   Printix routes keep their commit, so their behaviour is unchanged.
@@ -261,8 +268,11 @@ other domains import. Events imports Printix, never the reverse.
 - **Code formats.** Printed tickets: the printer's barcode, plus the printed number
   only when `allow_typed_numbers` is on (0060 rule 6). Online, outlet and RSVP
   tickets: `barcode_value` stores the full signed token given at issue. A scan is an
-  exact match, with no signature check at scan time. New tokens are signed with a
-  dedicated ticket signing key list (the first key signs, every live key verifies).
+  exact match, with no signature check at scan time. Until My tickets, the outlet print
+  and the console's `code_from_scan` read `registry.payload_for` (phase 2), issue
+  stores today's `qr_token(code)`, so the QR a holder is shown always equals the stored
+  payload (tested). Only after those three readers have moved are new tokens signed
+  with a dedicated ticket signing key list (the first key signs, every live key verifies).
   Typed lookup also tries the old `SECRET_KEY` signature for existing tickets. A
   rotation therefore never breaks a stored token.
 - **Typed online codes** follow the same rule as printed numbers. They work only on a
@@ -324,10 +334,10 @@ other domains import. Events imports Printix, never the reverse.
 | --- | --- | --- | --- |
 | 0 | 24 Nov | This record; issues filed | n/a |
 | 1 Expand | 30 Nov | Columns above (server defaults or nullable); unique indexes built `CONCURRENTLY` inside an autocommit block; `source` check added `NOT VALID`, with an issue filed for the later `VALIDATE` migration; audit exclusions extended; `registry.py` with tests; admin link route. Scan path unchanged for printed tickets | leaving it unused |
-| 2 Dual-write | 7 Dec | Events issues, voids, reschedules and console admissions write the registry in the same transaction; listing-linked events start as authority `events`. Backfill (dry run, then apply) copies tickets of unended listings with their admissions, `ON CONFLICT DO NOTHING`. Nightly `reconcile_ticket_registry` compares **per ticket** by `source_ref` (status and admission) and alerts on any difference | flag `events.registry_write` off; reconcile again before turning it back on |
-| 3 Switch per event | from 8 Dec (staging first) | Per listing, under the listing row `FOR UPDATE` (which waits for console scans holding `FOR SHARE`): copy any missing admissions, set authority `registry`. Pairings then admit Events tickets too | under the same lock, copy registry admissions into `events.admissions` synchronously, then set `events` |
-| Freeze | 15–27 Dec | No schema or scan-path change in `printix` except fixes. The printed path is identical to the 14 Dec rehearsal | n/a |
-| 26 Dec | event | Printed tickets through Printix (must). Online tickets through Printix only if that listing was switched and passed on 14 Dec; otherwise on the Events door console, unchanged | n/a |
+| 2 Dual-write | 7 Dec | Events issues, voids, reschedules and console admissions write the registry in the same transaction; My tickets, the outlet print and the console read `payload_for`; listing-linked events start as authority `events`. Backfill (dry run, then apply) copies tickets of unended listings with their admissions, `ON CONFLICT DO NOTHING`. Nightly `reconcile_ticket_registry` compares **per ticket** by `source_ref` (status and admission) and alerts on any difference | flag `events.registry_write` off; reconcile again before turning it back on |
+| 3 Switch per event | staging from 8 Dec; production from 28 Dec, first live listing is the pilot event after 26 Dec | Per listing, under the listing row `FOR UPDATE` (which waits for console scans holding `FOR SHARE`): copy any missing admissions, set authority `registry`. Pairings then admit Events tickets too | under the same lock, copy registry admissions into `events.admissions` synchronously, then set `events` |
+| Freeze | 15–27 Dec | No schema or scan-path change in `printix` except fixes. The printed path is identical to the 14 Dec rehearsal. Scanner-side changes for Events tickets (the event-row `FOR SHARE` lock, Events-ticket lookups, typed online codes) land after 27 Dec | n/a |
+| 26 Dec | event | Printed tickets only, through Printix (must). The event sells no tickets through Barrels Events (owner, 21 Nov) | n/a |
 | 4 Switch all | Jan 2027 | Default `registry` for every listing; manifest, My tickets state and payload, settlement admitted counts and badges read the registry for a week while compared against the copy; staff responses gain an additive `reference` field and `apps/web/events` moves to it; door page moves to gate codes | per listing, as phase 3 |
 | 5 Contract | not before 1 Feb 2027 | `CONTRACT` migration and API removal: drop the `events` authority value and the direct Events admission write; remove `code` from `ManifestRow`, `AdmissionPublic`, `RefundPublic`, `OrgOrderTicket` and `OrgAttendee` (`apps/web/events` already moved); retire the console's scan box after one release with no callers. `events.tickets`, `OutletTicket.qr_token` and the `events.admissions` copy stay | none (contract) |
 | 6 External API | Q1 2027 | Section 7 | flag off |
@@ -421,7 +431,7 @@ other domains import. Events imports Printix, never the reverse.
   audit history; `holder_user_id` not in history.
 - Scanner (`apps/pwa/printix`): new fields shown, `void_reason` words, online QR
   scanned in the browser run. Rehearsal checklist (`docs/operations/
-  printix-rehearsal-checklist.md`) gains an online-ticket step if question 1 is yes.
+  printix-rehearsal-checklist.md`) gains an online-ticket step for the pilot event.
 
 ## Blast radius
 
@@ -460,6 +470,5 @@ other domains import. Events imports Printix, never the reverse.
 
 ## Questions for the owner
 
-1. Does the 26 Dec event also sell tickets online through Barrels Events? If yes,
-   that listing is linked and switched and tested at the 14 Dec rehearsal; if no,
-   online scanning through Printix starts in January.
+None open. Answered 21 Nov 2026: the 26 Dec event is printed only, and the online
+pilot is the next event after it.
