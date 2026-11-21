@@ -257,7 +257,7 @@ Run: `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests
   3. invite the person with a role bundle (`printix-organiser` or `printix-gate-lead`);
   4. grant the `printix-member` role (`app.printix.access`) to the person's account. This
      is a separate step: the organisation invitation does not grant app access;
-  5. the person adds an authenticator on account.barrels.gd (required for every organiser route);
+  5. the person adds an authenticator on auth.barrels.gd/security (the account app has no security page yet) (required for every organiser route);
   6. they sign in at scan.barrels.gd (the `printix` app, email code).
   Steps 3 and 4 are one action now (`onboarding.py`, #1554): `PUT
   /admin/organisations/{id}/members/{membership_id}/access` and `POST
