@@ -36,10 +36,7 @@ if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
 When the owner has asked to promote, create or reuse the promotion PR
 (`gh pr create --base staging --head dev`).
 Review its complete diff for authorized, finished work. Keep the PR body's
-recap current: changed, gates, outcome and friction per `/commit` step 7. List each
-contract migration in the promotion diff first, flagged `⚠ deletes or renames data`
-with its file path and expand revision (`grep -l '^CONTRACT = ' <migration files>`;
-see `docs/api/development.md`). Verify
+recap current: changed, gates, outcome and friction per `/commit` step 7. Verify
 `dev` still matches the reviewed head, then stop and tell the owner the PR is
 ready to merge into `staging`; do not merge it or arm auto-merge. GitHub merges
 only once the staging ruleset's required checks pass; `CI Success` and
