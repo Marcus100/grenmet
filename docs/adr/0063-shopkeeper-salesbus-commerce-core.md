@@ -14,8 +14,6 @@ record amends:
 - ADR-0061: a registered till may stay signed in.
 - ADR-0033: Commerce business records.
 
-Nothing is built.
-
 ## Context
 
 Barrels will build two private apps on one shared backend:
@@ -123,7 +121,8 @@ pilot businesses.
 - Whether the pilot printers are Bluetooth Low Energy. Many cheap 58 mm
   printers are "classic" Bluetooth only.
 - How often pilot phones are shared with family (this drives decision 4.8).
-- Whether card acquiring is wanted in the pilot at all.
+- Whether card acquiring is wanted in the pilot at all (resolved: out of the
+  pilot, delegated decision 5).
 
 ## Options considered
 
@@ -428,7 +427,7 @@ pilot businesses.
    routes for that organisation and location: selling, credit, cash-up, stock
    entries and the till's snapshot. Reports, exports, settings, links, support
    grants and registering tills need a signed-in owner session, under
-   ADR-0061 unchanged.
+   ADR-0061 unchanged, which passed the authenticator (delegated decision 2).
 3. **Snapshot down.** `GET /commerce/public/devices/snapshot?since=<cursor>`
    returns:
    - products, units and prices;
