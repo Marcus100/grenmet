@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "New event" };
 
 export default async function NewEventPage() {
-  await requireViewer("/dash/events/new");
+  const viewer = await requireViewer("/dash/events/new");
   const managed = await getManagedOrganiser();
   if (!managed) {
     return <NoOrganiserAccess />;
@@ -23,8 +23,8 @@ export default async function NewEventPage() {
       active="build"
       currentOrganiser={managed.organiser.slug}
       eventName="New event"
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>

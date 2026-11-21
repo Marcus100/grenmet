@@ -12,6 +12,7 @@ import { getManagedOrganiser } from "@/data/events-api";
 import { resolveOrgContext } from "@/data/org-context";
 import { getOrgAttendees } from "@/data/org-orders";
 import { requireViewer } from "@/data/viewer";
+import { shellEventOf } from "@/lib/dash-navigation";
 import { isTicketStatus, pageParam } from "@/lib/org-orders";
 
 /** Attendees are live and per-organiser; never prerender them. */
@@ -28,7 +29,7 @@ export default async function AttendeesPage({
 }) {
   const { id } = await params;
   const query = await searchParams;
-  await requireViewer(`/dash/events/${id}/attendees`);
+  const viewer = await requireViewer(`/dash/events/${id}/attendees`);
   const managed = await getManagedOrganiser();
   if (!managed) {
     return <NoOrganiserAccess />;
@@ -62,11 +63,12 @@ export default async function AttendeesPage({
 
   return (
     <DashShell
-      active="events"
+      active="attendees"
       currentOrganiser={managed.organiser.slug}
+      event={shellEventOf(event)}
       eventName={event.title}
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>

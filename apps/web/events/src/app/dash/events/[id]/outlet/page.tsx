@@ -6,6 +6,7 @@ import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
 import { OutletConsole } from "@/components/dash/outlet-console";
 import { getManagedOrganiser, getOutlet } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
+import { shellEventOf } from "@/lib/dash-navigation";
 import { formatEventDate } from "@/lib/datetime";
 
 /** Outlet data is live and per-staff; never prerender it. */
@@ -19,7 +20,7 @@ export default async function OutletPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await requireViewer(`/dash/events/${id}/outlet`);
+  const viewer = await requireViewer(`/dash/events/${id}/outlet`);
   const managed = await getManagedOrganiser();
   if (!managed) {
     return <NoOrganiserAccess />;
@@ -28,14 +29,16 @@ export default async function OutletPage({
   if (!outlet) {
     notFound();
   }
+  const listing = managed.listings.find((candidate) => candidate.id === id);
 
   return (
     <DashShell
-      active="events"
+      active="door"
       currentOrganiser={managed.organiser.slug}
+      event={listing ? shellEventOf(listing) : null}
       eventName={outlet.title}
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>

@@ -16,12 +16,18 @@ vi.mock("@/data/org-context", () => ({
 vi.mock("@/data/team", () => ({
   getTeam: (...args: unknown[]) => getTeam(...args),
 }));
-vi.mock("@/data/viewer", () => ({ requireViewer: vi.fn() }));
+vi.mock("@/data/viewer", () => ({
+  requireViewer: () => Promise.resolve({ name: "Ada Byron" }),
+}));
+vi.mock("@/data/event-choice", () => ({
+  rememberedEvent: () => Promise.resolve(null),
+}));
 vi.mock("@/lib/session", () => ({
   getSession: () => getSession(),
 }));
 vi.mock("@/data/team-actions", () => ({
   grantRole: vi.fn(),
+  inviteMember: vi.fn(),
   revokeGrant: vi.fn(),
   loadIssuedGrants: vi.fn(),
   removeMember: vi.fn(),

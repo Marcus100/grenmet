@@ -2,6 +2,7 @@ import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 import { getManagedAccess } from "@/data/events-api";
+import { getViewer } from "@/data/viewer";
 import { DashShell } from "./dash-shell";
 import { OrganiserRequestForm } from "./organiser-request-form";
 
@@ -12,9 +13,13 @@ import { OrganiserRequestForm } from "./organiser-request-form";
  * would not help).
  */
 export async function NoOrganiserAccess() {
-  const access = await getManagedAccess();
+  const [access, viewer] = await Promise.all([getManagedAccess(), getViewer()]);
   return (
-    <DashShell active="events" eventName="Organiser dashboard" isDemo={false}>
+    <DashShell
+      active="events"
+      eventName="Organiser dashboard"
+      viewerName={viewer.name}
+    >
       <main className="mx-auto max-w-xl space-y-4 px-4 py-16 text-center">
         {access.kind === "events-disabled" ? (
           <EventsSwitchedOff />

@@ -6,6 +6,7 @@ import { DoorConsole } from "@/components/dash/door-console";
 import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
 import { getDoorManifest, getManagedOrganiser } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
+import { shellEventOf } from "@/lib/dash-navigation";
 import { formatEventDate } from "@/lib/datetime";
 
 /** Door data is live and per-organiser; never prerender it. */
@@ -19,7 +20,7 @@ export default async function DoorPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await requireViewer(`/dash/events/${id}/door`);
+  const viewer = await requireViewer(`/dash/events/${id}/door`);
   const managed = await getManagedOrganiser();
   if (!managed) {
     return <NoOrganiserAccess />;
@@ -28,14 +29,16 @@ export default async function DoorPage({
   if (!manifest) {
     notFound();
   }
+  const listing = managed.listings.find((candidate) => candidate.id === id);
 
   return (
     <DashShell
-      active="events"
+      active="door"
       currentOrganiser={managed.organiser.slug}
+      event={listing ? shellEventOf(listing) : null}
       eventName={manifest.title}
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="print:hidden">

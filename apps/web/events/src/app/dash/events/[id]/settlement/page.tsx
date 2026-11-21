@@ -9,6 +9,7 @@ import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
 import { SettlementReport } from "@/components/dash/settlement-report";
 import { getManagedOrganiser, getSettlement } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
+import { shellEventOf } from "@/lib/dash-navigation";
 import { formatEventDate } from "@/lib/datetime";
 
 /** Settlement is live and per-organiser; never prerender it. */
@@ -22,7 +23,7 @@ export default async function SettlementPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await requireViewer(`/dash/events/${id}/settlement`);
+  const viewer = await requireViewer(`/dash/events/${id}/settlement`);
   const managed = await getManagedOrganiser();
   if (!managed) {
     return <NoOrganiserAccess />;
@@ -31,14 +32,16 @@ export default async function SettlementPage({
   if (!report) {
     notFound();
   }
+  const listing = managed.listings.find((candidate) => candidate.id === id);
 
   return (
     <DashShell
-      active="events"
+      active="finance"
       currentOrganiser={managed.organiser.slug}
+      event={listing ? shellEventOf(listing) : null}
       eventName={report.title}
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
