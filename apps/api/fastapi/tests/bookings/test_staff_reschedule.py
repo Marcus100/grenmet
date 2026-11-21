@@ -129,7 +129,8 @@ async def test_staff_move_a_booking_and_the_customer_is_told(
     assert _when(old_start) not in mail["html"]
     assert "not confirmed" not in mail["html"]
     assert "please contact Babydoll Beauty Bar" in mail["html"]
-    assert "href=" not in mail["html"]  # no manage link: the token is only a hash
+    # A signed manage link, minted now: the stored token is only a hash.
+    assert mail["html"].count('href="https://babydoll.example/manage/') == 1
 
     [(kind, data, _)] = [w for w in webhooks if w[0] == "booking.rescheduled"]
     assert kind == "booking.rescheduled"

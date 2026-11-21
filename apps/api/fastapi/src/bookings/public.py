@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import urlencode
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,7 +33,15 @@ from src.utils.datetime import utc_now
 from src.utils.timezones import utc_to_local, zone
 from src.webhooks_out import service as webhook_service
 
-from . import deposit_payments, email_code, emails, ics, service, transitions
+from . import (
+    deposit_payments,
+    email_code,
+    emails,
+    ics,
+    manage_link,
+    service,
+    transitions,
+)
 from .exceptions import BookingConflictError, BookingNotFoundError
 from .models import (
     ACTIVE_STATUSES,
@@ -90,6 +98,15 @@ def manage_url(profile: BookingProfile, token: str) -> str | None:
     if not profile.manage_url_template:
         return None
     return profile.manage_url_template.replace("{token}", token)
+
+
+def signed_manage_url(managed: Managed) -> str | None:
+    """A freshly signed manage link for this booking (``manage_link``), or None
+    when the business configured no manage page. Nothing is stored."""
+    if not managed.profile.manage_url_template:
+        return None
+    token = manage_link.mint(managed.booking.id, managed.booking.ends_at)
+    return manage_url(managed.profile, token)
 
 
 def _single_line(value: str) -> str:
@@ -273,6 +290,7 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
         can_cancel=_can_cancel(booking, profile, now),
         contact=BookingBusinessContact(**service.business_contact(profile)),
+        account_invite_url=account_invite_for(profile, managed.contact),
     )
 
 
@@ -300,10 +318,19 @@ def decoy_receipt(
             cancel_cutoff_hours=profile.cancel_cutoff_hours,
             can_cancel=False,
             contact=BookingBusinessContact(**service.business_contact(profile)),
+            account_invite_url=account_signup_url(profile.public_slug),
         ),
         manage_token=token,
         manage_url=manage_url(profile, token),
     )
+
+
+def account_invite_for(profile: BookingProfile, contact: Contact) -> str | None:
+    """Where a guest is invited to create an account; None once the contact is
+    linked to one (the invitation never insists, ADR-0058)."""
+    if contact.user_id is not None:
+        return None
+    return account_signup_url(profile.public_slug)
 
 
 def account_signup_url(slug: str) -> str:
@@ -324,6 +351,9 @@ def account_signup_url(slug: str) -> str:
 
 
 def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmail:
+    """The mail's facts. ``token`` is the legacy random token, given only where it
+    is still at hand (the create that minted it). Otherwise the mail carries a
+    freshly signed manage link: the stored token is only a hash."""
     profile = managed.profile
     return emails.BookingEmail(
         business=profile.display_name,
@@ -332,16 +362,13 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         provider_name=managed.provider.name,
         starts_at=managed.booking.starts_at,
         tz=zone(profile.timezone),
-        manage_url=manage_url(profile, token) if token else None,
+        manage_url=(
+            manage_url(profile, token) if token else signed_manage_url(managed)
+        ),
         customer_email=managed.contact.email,
         customer_phone=managed.contact.phone,
         notes=managed.booking.notes,
-        # Only a customer with no account link is invited to create one.
-        account_invite_url=(
-            account_signup_url(profile.public_slug)
-            if managed.contact.user_id is None
-            else None
-        ),
+        account_invite_url=account_invite_for(profile, managed.contact),
     )
 
 
@@ -701,8 +728,17 @@ async def _create_booking(
 async def load_by_token(
     session: AsyncSession, token: str, *, lock: bool = False
 ) -> Managed:
-    """The booking behind ``token``. Unknown, cleared and unentitled tokens all
-    answer the same 404."""
+    """The booking behind ``token``: a signed manage link (``manage_link``) or the
+    legacy random token. Unknown, expired, tampered, cleared and unentitled tokens
+    all answer the same 404. Clearing the stored hash (retention) revokes signed
+    links too, so there is one switch."""
+    if manage_link.is_signed(token):
+        booking_id = manage_link.verify(token, now=utc_now())
+        if booking_id is None:
+            raise BookingNotFoundError("Booking")
+        match = and_(Booking.id == booking_id, Booking.manage_token_hash.is_not(None))
+    else:
+        match = Booking.manage_token_hash == hash_token(token)
     query = (
         select(Booking, BookingProfile, Service, Provider, Customer, Contact)
         .join(BookingProfile, BookingProfile.organisation_id == Booking.organisation_id)
@@ -710,7 +746,7 @@ async def load_by_token(
         .join(Provider, Provider.id == Booking.provider_id)
         .join(Customer, Customer.id == Booking.customer_id)
         .join(Contact, Contact.id == Customer.contact_id)
-        .where(Booking.manage_token_hash == hash_token(token))
+        .where(match)
     )
     if lock:
         query = query.with_for_update(of=Booking)

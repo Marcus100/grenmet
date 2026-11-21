@@ -13,7 +13,9 @@ export const bookingsReschedulePublicBookingPathTokenSchema = z
   .string()
   .min(16)
   .max(100)
-  .describe("The manage token returned when the booking was made.");
+  .describe(
+    "The manage token returned when the booking was made, or a signed manage link from a booking email."
+  );
 
 export const bookingsReschedulePublicBookingStatus200Schema =
   bookingPublicDetailSchema.describe("A booking as its customer sees it.");
@@ -46,5 +48,7 @@ export const bookingsReschedulePublicBookingPathSchema = z.object({
     .string()
     .min(16)
     .max(100)
-    .describe("The manage token returned when the booking was made."),
+    .describe(
+      "The manage token returned when the booking was made, or a signed manage link from a booking email."
+    ),
 });

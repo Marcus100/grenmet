@@ -913,7 +913,10 @@ ManageToken = Annotated[
     Path(
         min_length=16,
         max_length=100,
-        description="The manage token returned when the booking was made.",
+        description=(
+            "The manage token returned when the booking was made, or a signed "
+            "manage link from a booking email."
+        ),
     ),
 ]
 
@@ -1072,8 +1075,8 @@ async def confirm_email_code(
     response_model=BookingPublicDetail,
     summary="Get a booking by its manage token",
     description=(
-        "A customer's own booking. Unknown, expired and unentitled tokens all "
-        "answer 404."
+        "A customer's own booking. Unknown, expired, tampered and unentitled tokens "
+        "all answer 404."
     ),
     operation_id="bookingsGetPublicBooking",
     responses={**NOT_FOUND},

@@ -13401,7 +13401,7 @@
           "bookings"
         ],
         "summary": "Get a booking by its manage token",
-        "description": "A customer's own booking. Unknown, expired and unentitled tokens all answer 404.",
+        "description": "A customer's own booking. Unknown, expired, tampered and unentitled tokens all answer 404.",
         "operationId": "bookingsGetPublicBooking",
         "parameters": [
           {
@@ -13412,10 +13412,10 @@
               "type": "string",
               "minLength": 16,
               "maxLength": 100,
-              "description": "The manage token returned when the booking was made.",
+              "description": "The manage token returned when the booking was made, or a signed manage link from a booking email.",
               "title": "Token"
             },
-            "description": "The manage token returned when the booking was made."
+            "description": "The manage token returned when the booking was made, or a signed manage link from a booking email."
           }
         ],
         "responses": {
@@ -13469,10 +13469,10 @@
               "type": "string",
               "minLength": 16,
               "maxLength": 100,
-              "description": "The manage token returned when the booking was made.",
+              "description": "The manage token returned when the booking was made, or a signed manage link from a booking email.",
               "title": "Token"
             },
-            "description": "The manage token returned when the booking was made."
+            "description": "The manage token returned when the booking was made, or a signed manage link from a booking email."
           }
         ],
         "requestBody": {
@@ -13545,10 +13545,10 @@
               "type": "string",
               "minLength": 16,
               "maxLength": 100,
-              "description": "The manage token returned when the booking was made.",
+              "description": "The manage token returned when the booking was made, or a signed manage link from a booking email.",
               "title": "Token"
             },
-            "description": "The manage token returned when the booking was made."
+            "description": "The manage token returned when the booking was made, or a signed manage link from a booking email."
           }
         ],
         "requestBody": {
@@ -13622,10 +13622,10 @@
               "type": "string",
               "minLength": 16,
               "maxLength": 100,
-              "description": "The manage token returned when the booking was made.",
+              "description": "The manage token returned when the booking was made, or a signed manage link from a booking email.",
               "title": "Token"
             },
-            "description": "The manage token returned when the booking was made."
+            "description": "The manage token returned when the booking was made, or a signed manage link from a booking email."
           }
         ],
         "responses": {
@@ -77543,6 +77543,18 @@
               }
             ],
             "description": "Null when nothing was due at booking (pay at the business)."
+          },
+          "account_invite_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Invite Url",
+            "description": "Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account."
           }
         },
         "type": "object",
