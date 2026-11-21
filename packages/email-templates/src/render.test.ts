@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderTemplate } from "./render";
 
 const INVITATION_EXPIRY = /expires in (<!-- -->)?24(<!-- -->)? hours/u;
+const RESET_EXPIRY = /expires in (<!-- -->)?48(<!-- -->)? hours/u;
 
 const base = {
   alerts: [],
@@ -130,6 +131,80 @@ describe("superuser invitation template", () => {
     await expect(
       renderTemplate("superuser-invitation", { ...invitation, acceptLink: "" })
     ).rejects.toThrow("superuser-invitation requires");
+  });
+});
+
+describe("account and invitation templates on the shared layout", () => {
+  const amp = (value: string) => value.replace(/&/gu, "&amp;");
+
+  it("reset password carries the link, the expiry and a text fallback link", async () => {
+    const props = {
+      projectName: "Barrels Grenada",
+      resetLink: "https://auth.example.test/reset-password?token=t&x=1",
+      username: "jane@example.test",
+      validHours: 48,
+    };
+    const { html, text } = await renderTemplate("reset-password", props);
+    expect(html).toContain("Reset your password");
+    expect(html).toContain("Hello jane@example.test,");
+    expect(html).toContain(amp(props.resetLink));
+    expect(html).toMatch(RESET_EXPIRY);
+    expect(text).toContain(props.resetLink);
+  });
+
+  it("welcome lists the username and email and links to sign in", async () => {
+    const { html } = await renderTemplate("welcome", {
+      email: "jane@example.test",
+      firstName: "Jane",
+      projectName: "Barrels Grenada",
+      signInLink: "https://auth.example.test",
+      username: "janesmith",
+    });
+    expect(html).toContain("Hi Jane,");
+    expect(html).toContain("janesmith");
+    expect(html).toContain("jane@example.test");
+    expect(html).toContain("https://auth.example.test");
+  });
+
+  it("organisation invitation names the organisation, role and inviter", async () => {
+    const link = "https://auth.example.test/organisations/accept?token=t";
+    const { html } = await renderTemplate("organisation-invitation", {
+      acceptLink: link,
+      inviterName: "Alex Example",
+      organisationName: "Example Ltd",
+      projectName: "Barrels Grenada",
+      roleLabel: "member",
+      validDays: 7,
+    });
+    expect(html).toContain("Join Example Ltd");
+    expect(html).toContain("Alex Example");
+    expect(html).toContain("member");
+    expect(html).toContain(link);
+  });
+
+  it("subscription confirmation keeps the confirm and unsubscribe links", async () => {
+    const confirm = "https://api.example.test/subscriptions/confirm?token=t";
+    const unsubscribe =
+      "https://api.example.test/subscriptions/unsubscribe?token=t";
+    const { html } = await renderTemplate("subscription-confirm", {
+      confirmLink: confirm,
+      listName: "Grenada Signal",
+      projectName: "Barrels Grenada",
+      unsubscribeLink: unsubscribe,
+    });
+    expect(html).toContain("Confirm your subscription to Grenada Signal");
+    expect(html).toContain(confirm);
+    expect(html).toContain(unsubscribe);
+  });
+
+  it("drops a link that is not http or https", async () => {
+    const { html } = await renderTemplate("reset-password", {
+      projectName: "Barrels Grenada",
+      resetLink: "javascript:alert(1)",
+      username: "jane@example.test",
+      validHours: 48,
+    });
+    expect(html).not.toContain("javascript:");
   });
 });
 
