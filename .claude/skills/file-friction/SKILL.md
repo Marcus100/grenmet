@@ -67,9 +67,12 @@ gh issue create --label friction --label ready-for-agent --label area:<area> --t
 ```
 
 The agent may apply `ready-for-agent` here because it filed the issue itself
-from friction it hit (`docs/agents/triage-labels.md`). Use `--label needs-triage`
-in place of `ready-for-agent` and the `area:` label when the fix is unclear or
-needs an Ask First decision.
+from friction it hit (`docs/agents/triage-labels.md`), and only when the body
+holds the agent's own words and commands: the command, its exit code and the
+tool's name, not pasted output. Use `--label needs-triage`
+in place of `ready-for-agent` and the `area:` label when the fix is unclear,
+needs an Ask First decision, touches an enforcement file (hooks, settings,
+Codex rules, CI), or the evidence needs pasted output.
 
 In a cloud session `gh issue` is blocked; use the `gh api` forms in
 `docs/agents/tool-usage.md` → GitHub from a cloud session (search, comment,

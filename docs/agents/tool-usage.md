@@ -59,7 +59,7 @@ in a file:
 | List the checks on a head | `gh api repos/Marcus100/grenmet/commits/<sha>/check-runs --jq '.check_runs[] \| "\(.name) \(.status) \(.conclusion)"'` |
 | Read a failed run's log | `gh run view <run id> --log-failed` |
 | Comment on a PR or an issue | `gh api repos/Marcus100/grenmet/issues/<n>/comments -F body=@<file>` |
-| Merge into `dev` | `gh api -X PUT repos/Marcus100/grenmet/pulls/<n>/merge -f sha=<full head sha> -f merge_method=merge` |
+| Merge into `dev` | `gh api -X PUT repos/Marcus100/grenmet/pulls/<n>/merge -f sha=<full head sha> -f merge_method=merge` (alone in its command) |
 | List issues by label | `gh api "repos/Marcus100/grenmet/issues?labels=<label>&state=open&per_page=100"` |
 | Search open issues | `gh api "search/issues?q=repo:Marcus100/grenmet+is:issue+is:open+<terms>"` |
 | File an issue | `gh api repos/Marcus100/grenmet/issues -f title="<title>" -F body=@<file> -f "labels[]=<label>"` |
@@ -67,7 +67,9 @@ in a file:
 | Who applied a label | `gh api repos/Marcus100/grenmet/issues/<n>/events` (the `labeled` events name the actor) |
 
 The merge form is the only REST merge the hook accepts, and it meets the same
-rules as `gh pr merge` ([workflow.md](workflow.md) → Merging into dev).
+rules as `gh pr merge` ([workflow.md](workflow.md) → Merging into dev). Other
+`gh api` writes to a PR (`PATCH pulls/<n>`, reviews), to refs, tags, file
+contents or branch settings are refused. Read issue events with `--paginate`.
 
 ### Fast cloud starts: the environment setup script
 

@@ -39,5 +39,5 @@ API work goes before web work, because web types come from the generated client.
 
 - A reviewer is never the session that wrote the change. If the author was Codex, reviewing in Claude Code (or the reverse) is better still.
 - Read-only roles (`planner`, `architect`, both reviewers) edit nothing, whichever tool runs them.
-- Codex's GitHub review of the PR is a second, advisory review: treat its findings as claims to check. It is required only for a PR that changes a safety file (`docs/agents/workflow.md` → Merging into dev). The `ai-review.yml` workflow is retired and the `factory-review` worker is advisory; neither merges.
+- Codex's GitHub review of the PR is a second, advisory review: treat its findings as claims to check. It is required only for a PR that changes an agent-rules file (`docs/agents/workflow.md` → Merging into dev). The `ai-review.yml` workflow is retired and the `factory-review` worker is advisory; neither merges.
 - Finish with the gates in root `AGENTS.md` (targeted tests, then push; GitHub CI is the full gate); roles do not replace them.

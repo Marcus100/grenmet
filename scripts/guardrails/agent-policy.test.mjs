@@ -90,17 +90,20 @@ const SNAPSHOT_MENTION = /infra\/github\/rulesets\.json/u;
 // paths" rule must not come back.
 const SECURITY_REVIEW_LINE = /Security review: no open findings \(/u;
 const CODEX_REVIEW_LINE = /Codex review: no blocking findings \(/u;
-const SAFETY_FILE_RULE = /safety[- ]file/iu;
+// The two lanes: agent-rules files after both reviews, enforcement files owner-merge.
+const SAFETY_FILE_RULE = /enforcement files?|agent-rules|owner-merge/iu;
+const OWNER_MERGE_ENFORCEMENT = /Enforcement files[\s\S]{0,200}?owner-merge/u;
 const BOTH_REVIEWS = /security-reviewer[\s\S]*Codex review/u;
 const PHONE_ALERT = /phone alert/iu;
+// The old wording sent every agent-limits PR to the owner by a vague list.
 const RETIRED_OWNER_ONLY =
-  /owner-only (?:files|paths)|the owner merges (?:those|PRs that (?:change|touch))|left for the owner to merge/iu;
+  /owner-only (?:files|paths) listed in `AGENTS\.md`/iu;
 const HIGH_RISK_SECURITY_REVIEW = /risk:high[^.]*security-reviewer/iu;
 const NEVER_MERGE_ANYTHING = /or merge anything/u;
 const NO_EXTRA_SPENDING = /\$0 extra spending/u;
 const NO_API_KEYS = /ANTHROPIC_API_KEY/u;
 
-test("safety-file dev merges need both reviews and a phone alert", () => {
+test("agent-rules merges need both reviews and a phone alert; enforcement files are owner-merge", () => {
   const reviewPolicyFiles = [
     "AGENTS.md",
     "docs/agents/workflow.md",
@@ -117,7 +120,7 @@ test("safety-file dev merges need both reviews and a phone alert", () => {
     assert.doesNotMatch(
       text,
       RETIRED_OWNER_ONLY,
-      `${file}: agents now merge safety-file PRs into dev after both reviews`
+      `${file}: name the agent-rules and enforcement lanes, not the old owner-only list`
     );
   }
   for (const file of [
@@ -130,6 +133,7 @@ test("safety-file dev merges need both reviews and a phone alert", () => {
     assert.match(text, CODEX_REVIEW_LINE, `${file}: Codex review line`);
   }
   assert.match(read("docs/agents/roles.md"), BOTH_REVIEWS);
+  assert.match(read("AGENTS.md"), OWNER_MERGE_ENFORCEMENT);
   assert.match(read("AGENTS.md"), HIGH_RISK_SECURITY_REVIEW);
   assert.doesNotMatch(read("docs/agents/workflow.md"), NEVER_MERGE_ANYTHING);
   assert.match(read("docs/agents/factory.md"), NO_EXTRA_SPENDING);

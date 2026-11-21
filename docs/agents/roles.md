@@ -1,9 +1,16 @@
 # Agent roles and automated gates
 
-Agents merge every PR into `dev`, safety files included (owner, 21 Nov 2026).
-A PR that changes a safety file needs a clean Claude `security-reviewer` pass
-and a clean Codex review of its exact head, both recorded in the PR body, and
-a separate phone alert to the owner after the merge
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-11-21
+
+Agents merge PRs into `dev` (owner, 21 Nov 2026): skills, role briefs,
+`docs/agents`, guardrail tests and the root `AGENTS.md` after both reviews,
+that is a clean Claude `security-reviewer` pass and a clean Codex review of the
+exact head recorded in the PR body, followed by a separate phone alert to the
+owner. The enforcement files (hooks, settings, `.codex`, Codex rules, CI,
+rulesets, `.husky`, the root `package.json`, guardrail scripts) are
+owner-merge, and agents do not edit the hooks, settings or Codex rules
 ([workflow.md](workflow.md) → Merging into dev). Staging and production merges
 remain owner approved. The factory runs on the owner's existing subscriptions
 with $0 extra spending: the Claude cloud is the primary home and local runs
@@ -11,7 +18,7 @@ are the fallback. Extra API spending requires owner approval.
 
 Claude builds and Codex reviews. Codex is advisory: its findings are claims to
 check and never block a Claude merge on their own, with one exception, the
-safety-file rule above, where a clean Codex review of the head is required.
+agent-rules lane above, where a clean Codex review of the head is required.
 
 The subscription-backed worker (`node scripts/agents/review-worker.mjs --once`)
 is advisory too: it reviews dev PRs labelled `factory-review` in this
@@ -24,10 +31,6 @@ needs new review. A disjoint advance of `dev` may preserve a review when the
 merge-base and changed-file scope remain the same; overlapping changes trigger
 branch sync and fresh CI. Status trust requires the App ID pinned in
 `Protect dev` and the verified GitHub App bot login that created each status.
-
-**Status:** Active reference  
-**Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-21
 
 Specialist roles are defined once, as Markdown briefs in `.claude/agents/`. Each
 has the tools its job needs and nothing more, and reads the nested `AGENTS.md`
@@ -91,7 +94,8 @@ in [routines.md](routines.md) (`docs/agents/routing.json`).
 | Fresh-context review of Codex's diff | Claude `code-reviewer` / `security-reviewer` | Same reason, reversed |
 | Unattended routines, every area an agent may take | Claude cloud scheduled tasks | The factory's primary home; Codex builds only when the owner assigns it a task ([routines.md](routines.md)) |
 | Needs Sentry, PostHog, Cloudflare or the owner's browser | Claude Code | Codex has none of these |
-| CI, hooks, skills and other safety files | The agent writes and merges | Needs a clean `security-reviewer` pass and a clean Codex review of the head, then a phone alert to the owner |
+| Skills, role briefs, `docs/agents`, root `AGENTS.md` | The agent writes and merges | Needs a clean `security-reviewer` pass and a clean Codex review of the head, then a phone alert to the owner |
+| Hooks, settings, Codex rules, CI, rulesets, guardrail scripts | The owner edits and merges; an agent may propose the change | Enforcement files: `protect-files.mjs` refuses agent edits and the merge hook refuses agent merges |
 
 Rules: one author per branch at a time; the author never counts its own review
 as the fresh-context one; and a review request carries the handoff block, not the
@@ -162,9 +166,10 @@ unresolved goes to the owner.
    its own PR into `dev` once CI is green on the PR head and a fresh-context
    review (the other tool, or a `code-reviewer` subagent) has no open blocking
    finding; no agent pushes `dev`. The author never counts its own review as the
-   fresh-context one. A PR that changes a safety file needs a clean
+   fresh-context one. A PR that changes an agent-rules file needs a clean
    `security-reviewer` pass and a clean Codex review of its head, both recorded
-   in the PR body; the hook blocks the merge without them. This is the
+   in the PR body; the hook blocks the merge without them, and always blocks a
+   PR that changes an enforcement file. This is the
    factory-flow rule in `AGENTS.md` and [workflow.md](workflow.md). The
    `Protect dev` ruleset requires CI; the worker's review statuses are advisory.
 3. **Promotion.** The owner decides when a `dev → staging` PR is opened (owner,
@@ -175,7 +180,8 @@ unresolved goes to the owner.
    staging ruleset's required checks pass. `staging → main`, releases and
    production deploys need the owner's explicit authorization each time. The
    agent hook allows `gh pr merge` only when the base is `dev`, only in this
-   repository, with a pinned head, and, for a PR that changes a safety file,
+   repository (named with `--repo`), pinned to the PR's current full head, alone
+   in its command, never for an enforcement file, and, for an agent-rules file,
    with both review lines for that head in the PR body.
 4. **Review handoff.** Every request includes the block `pnpm agents:handoff`
    prints (`scripts/agents/review-handoff.mjs`), completed by the author:
@@ -209,7 +215,7 @@ protection or the ruleset lists it; check the ruleset, not the file.
 
 **Automatic Codex PR review is the plan.** Codex's GitHub integration reviews
 each pull request into `dev` automatically, and the author reads that review
-before merging. It is advisory for ordinary PRs. For a safety-file PR it is
+before merging. It is advisory for ordinary PRs. For an agent-rules PR it is
 required: the agent adds the `Codex review: no blocking findings (<head sha>)`
 line only after reading Codex's review of that exact head. Until the
 integration is confirmed on this repository (GitHub and Codex settings), run

@@ -47,7 +47,7 @@ Use `docs/agents/skill-standard.md` → "Choose the right layer":
 | A scorer is noisy | Its rubric |
 
 Agents may implement factory scripts, hooks, skills, agent configuration and CI.
-The agent merges them into dev itself. A PR that changes a safety file (hooks, settings, skills, agent configuration, guardrail scripts, CI, the root `AGENTS.md`) first needs a clean `security-reviewer` pass and a clean Codex review of its exact head, both recorded as lines in the PR body, and is followed by a phone alert to the owner (`docs/agents/workflow.md` → Merging into dev). Done when one file (or
+The agent merges changes to skills, role briefs, `docs/agents`, guardrail tests and the root `AGENTS.md` itself, after a clean `security-reviewer` pass and a clean Codex review of the exact head, both recorded as lines in the PR body, followed by a phone alert to the owner. A change to an enforcement file (hooks, settings, Codex rules, CI, guardrail scripts) is written up as a proposal for the owner, who edits and merges it (`docs/agents/workflow.md` → Merging into dev). Done when one file (or
 one file plus its test) is chosen.
 
 ## 4. Change and verify
