@@ -3,6 +3,10 @@ import { renderTemplate } from "./render";
 
 const INVITATION_EXPIRY = /expires in (<!-- -->)?24(<!-- -->)? hours/u;
 const RESET_EXPIRY = /expires in (<!-- -->)?48(<!-- -->)? hours/u;
+const WELCOME_BUTTON = /href="https:\/\/auth\.example\.test"/u;
+const ROLE_ROW = /Your role[\s\S]*?member/u;
+const INVITED_BY_ROW = /Invited by[\s\S]*?Alex Example/u;
+const INVITE_DAYS = /expires in (<!-- -->)?7(<!-- -->)? days/u;
 
 const base = {
   alerts: [],
@@ -144,12 +148,27 @@ describe("account and invitation templates on the shared layout", () => {
       username: "jane@example.test",
       validHours: 48,
     };
-    const { html, text } = await renderTemplate("reset-password", props);
+    const { html, subject, text } = await renderTemplate(
+      "reset-password",
+      props
+    );
+    expect(subject).not.toContain("token=");
     expect(html).toContain("Reset your password");
     expect(html).toContain("Hello jane@example.test,");
     expect(html).toContain(amp(props.resetLink));
     expect(html).toMatch(RESET_EXPIRY);
     expect(text).toContain(props.resetLink);
+  });
+
+  it("reset password refuses to render without its link", async () => {
+    await expect(
+      renderTemplate("reset-password", {
+        projectName: "Barrels Grenada",
+        resetLink: "",
+        username: "jane@example.test",
+        validHours: 48,
+      })
+    ).rejects.toThrow("reset-password requires");
   });
 
   it("welcome lists the username and email and links to sign in", async () => {
@@ -163,12 +182,12 @@ describe("account and invitation templates on the shared layout", () => {
     expect(html).toContain("Hi Jane,");
     expect(html).toContain("janesmith");
     expect(html).toContain("jane@example.test");
-    expect(html).toContain("https://auth.example.test");
+    expect(html).toMatch(WELCOME_BUTTON);
   });
 
   it("organisation invitation names the organisation, role and inviter", async () => {
     const link = "https://auth.example.test/organisations/accept?token=t";
-    const { html } = await renderTemplate("organisation-invitation", {
+    const { html, subject } = await renderTemplate("organisation-invitation", {
       acceptLink: link,
       inviterName: "Alex Example",
       organisationName: "Example Ltd",
@@ -177,9 +196,11 @@ describe("account and invitation templates on the shared layout", () => {
       validDays: 7,
     });
     expect(html).toContain("Join Example Ltd");
-    expect(html).toContain("Alex Example");
-    expect(html).toContain("member");
+    expect(html).toMatch(ROLE_ROW);
+    expect(html).toMatch(INVITED_BY_ROW);
+    expect(html).toMatch(INVITE_DAYS);
     expect(html).toContain(link);
+    expect(subject).not.toContain("token=");
   });
 
   it("subscription confirmation keeps the confirm and unsubscribe links", async () => {
@@ -193,6 +214,7 @@ describe("account and invitation templates on the shared layout", () => {
       unsubscribeLink: unsubscribe,
     });
     expect(html).toContain("Confirm your subscription to Grenada Signal");
+    expect(html).toContain("The link expires in 7 days");
     expect(html).toContain(confirm);
     expect(html).toContain(unsubscribe);
   });
