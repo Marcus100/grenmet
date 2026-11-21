@@ -5,13 +5,23 @@
 
 import * as z from "zod";
 import { cancelEventPropertiesRefundEnumSchema } from "./cancelEventPropertiesRefundEnumSchema.js";
+import { orgOrderCancelPropertiesInitiatedByEnumSchema } from "./orgOrderCancelPropertiesInitiatedByEnumSchema.js";
 
 export const orgOrderCancelSchema = z.object({
-  reason: z.union([z.string().max(300), z.null()]).optional(),
+  reason: z
+    .union([z.string().max(300), z.null()])
+    .optional()
+    .describe("Required when the organiser keeps money on this order."),
   refund: cancelEventPropertiesRefundEnumSchema
     .optional()
     .default("none")
     .describe(
-      "What to do with money already paid for online orders. Left out, no money moves (the organiser refunds from the orders page)."
+      "Money already paid for online orders is always refunded in full when the event is cancelled. This field is accepted for compatibility and ignored."
+    ),
+  initiated_by: orgOrderCancelPropertiesInitiatedByEnumSchema
+    .optional()
+    .default("organiser")
+    .describe(
+      "Who asked for this cancel. Only a buyer's cancel follows the terms."
     ),
 });

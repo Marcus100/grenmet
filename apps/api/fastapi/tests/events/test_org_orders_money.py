@@ -548,9 +548,10 @@ def _as_organiser(shop: Shop) -> httpx.AsyncClient:
 
 
 @pytest.mark.asyncio
-async def test_the_legacy_cancel_route_moves_no_money_by_default(
+async def test_the_legacy_cancel_route_refunds_in_full_whatever_refund_is_sent(
     db_async: AsyncSession, events_db: SessionFactory
 ) -> None:
+    """An event cancel refunds in full: the legacy default no longer keeps money."""
     shop = await _shop_with_events(db_async, events_db)
     order_id = await _paid(db_async, shop)
     unpaid, _ = await _pending(db_async, shop)
@@ -561,19 +562,19 @@ async def test_the_legacy_cancel_route_moves_no_money_by_default(
     assert response.status_code == 200, response.text
     body = response.json()
     assert (body["orders_refunded"], body["orders_queued"], body["orders_kept"]) == (
-        0,
-        0,
         1,
+        0,
+        0,
     )
     assert body["orders_released"] == 1
-    assert await _refunded(db_async, order_id) == 0
-    assert (await _row(events_db, order_id)).status == "confirmed"
+    assert await _refunded(db_async, order_id) == PRICE
+    assert (await _row(events_db, order_id)).status == "refunded"
     assert (await _row(events_db, unpaid)).status == "expired"
     assert {t.status for t in await _tickets(events_db, order_id)} == {"cancelled"}
 
 
 @pytest.mark.asyncio
-async def test_saving_a_listing_as_cancelled_moves_no_money_and_locks_orders(
+async def test_saving_a_listing_as_cancelled_refunds_in_full_and_locks_orders(
     db_async: AsyncSession, events_db: SessionFactory
 ) -> None:
     shop = await _shop_with_events(db_async, events_db)
@@ -604,7 +605,7 @@ async def test_saving_a_listing_as_cancelled_moves_no_money_and_locks_orders(
         )
     assert response.status_code == 200, response.text
     assert response.json()["status"] == "cancelled"
-    assert await _refunded(db_async, order_id) == 0
+    assert await _refunded(db_async, order_id) == PRICE  # an event cancel: full refund
     assert {t.status for t in await _tickets(events_db, order_id)} == {"cancelled"}
     assert (await _row(events_db, unpaid)).status == "expired"  # hold released
 
@@ -715,7 +716,9 @@ async def test_grant_holding_members_never_get_the_buyer_email(
 
         paid = await _paid(db_async, shop)
         cancelled = await client.post(
-            f"{ORG}/orders/{paid}/cancel", headers=member, json={"refund": "none"}
+            f"{ORG}/orders/{paid}/cancel",
+            headers=member,
+            json={"refund": "none", "reason": "Seat kept for a later date"},
         )
         assert cancelled.status_code == 200, cancelled.text
         assert cancelled.json()["order"]["buyer_email"] is None

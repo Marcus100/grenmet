@@ -2,13 +2,18 @@
 
 An organiser sets, per event, whether tickets are refundable, how long before the
 start a refund is still given (``refund_cutoff_hours``, NULL = the platform default)
-and an optional cancellation fee (``fixed``: minor units per ticket cancelled;
-``percent``: a whole percent of the refundable amount).
+and an optional cancellation fee (``fixed``: minor units per PAID ticket cancelled,
+capped at what those tickets cost; ``percent``: a whole percent of the refundable
+amount that is still left on the order).
 
-``refund_due`` gives the amount to hand back for one order. An event the organiser
-cancels is always refunded in full, with no fee. ``paid_terms_conflict`` says
-whether a change to the terms is stricter than what buyers already agreed to once a
-paid order exists (loosening is always allowed).
+``refund_due`` gives the amount to hand back for one order. An event that is
+cancelled is always refunded in full, with no fee and whatever choice was sent: the
+organiser cancelled, so the buyer is not at fault (Grenada Consumer Protection Act,
+Schedule IV(f)). A cancel the organiser starts is refunded in full too, unless the
+organiser explicitly keeps the money; only a buyer-initiated cancel applies the
+policy, cutoff and fee. ``paid_terms_conflict`` says whether a change to the terms
+is stricter than what buyers already agreed to once a paid order exists (loosening
+is always allowed).
 
 No database access here: the service passes the listing's values in.
 """
@@ -21,6 +26,8 @@ from .config import events_settings
 
 RefundPolicy = Literal["refundable", "no_refunds"]
 FeeType = Literal["none", "fixed", "percent"]
+Initiator = Literal["buyer", "organiser"]
+REFUND_CHOICES = ("full", "none", "follow_policy")
 
 #: Valid range for ``refund_cutoff_hours`` (30 days).
 CUTOFF_HOURS_MAX = 720
@@ -49,16 +56,22 @@ def effective_cutoff_hours(cutoff_hours: int | None) -> int:
 
 
 def cancellation_fee_minor(
-    *, fee_type: str, fee_value: int, refundable_minor: int, ticket_count: int
+    *,
+    fee_type: str,
+    fee_value: int,
+    refundable_minor: int,
+    paid_ticket_count: int,
+    paid_minor: int,
 ) -> int:
     """What the organiser keeps as a cancellation fee on one order.
 
-    ``fixed`` is per ticket cancelled. ``percent`` is rounded half up on the
-    refundable amount, using whole minor units only."""
+    ``fixed`` is per PAID ticket cancelled (free tickets carry no fee), and the total
+    is capped at what those paid tickets cost. ``percent`` is a whole percent of the
+    refundable amount still left on the order, rounded half up."""
     if fee_type == "none":
         return 0
     if fee_type == "fixed":
-        return fee_value * ticket_count
+        return min(fee_value * paid_ticket_count, paid_minor)
     if fee_type == "percent":
         return (refundable_minor * fee_value + 50) // 100
     raise ValueError(f"unknown cancellation fee type {fee_type!r}")
@@ -72,26 +85,32 @@ def refund_due(
     fee_type: str,
     fee_value: int,
     event_cancelled: bool,
+    initiated_by: str,
     starts_at: datetime,
     now: datetime,
     refundable_minor: int,
-    ticket_count: int,
+    paid_ticket_count: int,
+    paid_minor: int,
 ) -> int:
     """Minor units to refund for one order, from ``0`` to ``refundable_minor``.
 
-    ``choice`` is the organiser's ``full`` (everything, no fee), ``none`` (nothing)
-    or ``follow_policy``. Under ``follow_policy``: an event the organiser cancelled
-    is refunded in full whatever the policy and fee; ``no_refunds`` keeps the money;
-    inside the cutoff the money is kept; before it the fee is taken off, floored at 0.
-    """
+    ``choice`` is ``full`` (everything), ``none`` (keep everything) or
+    ``follow_policy``. Whatever the choice, an event that is cancelled is refunded in
+    full with no fee. Under ``follow_policy``: an organiser-initiated cancel is
+    refunded in full; a buyer-initiated one gets nothing under ``no_refunds`` or
+    inside the cutoff, and otherwise the fee is taken off, floored at 0."""
+    if choice not in REFUND_CHOICES:
+        raise ValueError(f"unknown refund choice {choice!r}")
+    if event_cancelled:
+        return refundable_minor
     if choice == "full":
         return refundable_minor
     if choice == "none":
         return 0
-    if choice != "follow_policy":
-        raise ValueError(f"unknown refund choice {choice!r}")
-    if event_cancelled:
+    if initiated_by == "organiser":
         return refundable_minor
+    if initiated_by != "buyer":
+        raise ValueError(f"unknown initiator {initiated_by!r}")
     if policy == "no_refunds":
         return 0
     if starts_at - now < timedelta(hours=effective_cutoff_hours(cutoff_hours)):
@@ -100,7 +119,8 @@ def refund_due(
         fee_type=fee_type,
         fee_value=fee_value,
         refundable_minor=refundable_minor,
-        ticket_count=ticket_count,
+        paid_ticket_count=paid_ticket_count,
+        paid_minor=paid_minor,
     )
     return max(0, refundable_minor - fee)
 
@@ -129,8 +149,12 @@ def paid_terms_conflict(old: Terms, new: Terms) -> str | None:
     """Why ``new`` is refused once a paid order exists, or ``None`` when allowed.
 
     Buyers must see the terms before they buy, so once someone has paid on the
-    stored terms the organiser may only make them more generous. The first
+    stored terms the organiser may only make them more generous. Moving from
+    ``no_refunds`` to ``refundable`` is always more generous, whatever cutoff or fee
+    comes with it, because nothing was refundable before. Otherwise the first
     stricter rule found is reported."""
+    if old.policy == "no_refunds" and new.policy == "refundable":
+        return None
     if old.policy == "refundable" and new.policy == "no_refunds":
         return POLICY_STRICTER
     old_cutoff = effective_cutoff_hours(old.cutoff_hours)

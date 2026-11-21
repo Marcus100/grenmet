@@ -7487,6 +7487,8 @@ export type { OrgManualPaymentCreate } from "./OrgManualPaymentCreate.js";
 export type { OrgManualPaymentCreatePropertiesMethodEnum } from "./OrgManualPaymentCreatePropertiesMethodEnum.js";
 export { orgManualPaymentCreatePropertiesMethodEnum } from "./OrgManualPaymentCreatePropertiesMethodEnum.js";
 export type { OrgOrderCancel } from "./OrgOrderCancel.js";
+export type { OrgOrderCancelPropertiesInitiatedByEnum } from "./OrgOrderCancelPropertiesInitiatedByEnum.js";
+export { orgOrderCancelPropertiesInitiatedByEnum } from "./OrgOrderCancelPropertiesInitiatedByEnum.js";
 export type { OrgOrderCancelResult } from "./OrgOrderCancelResult.js";
 export type { OrgOrderCancelResultPropertiesRefundOutcomeEnum } from "./OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
 export { orgOrderCancelResultPropertiesRefundOutcomeEnum } from "./OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";

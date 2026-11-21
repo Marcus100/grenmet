@@ -116,8 +116,8 @@ async def _settle_order(
         return
     if order.collected_minor - order.refunded_minor <= 0:
         return
-    # An event cancel is refunded in full: the fee does not apply (event_cancelled),
-    # so no ticket count is needed.
+    # An event that is cancelled is refunded in full whatever `refund` says, with no
+    # fee, so the terms and the ticket figures below are never used for the amount.
     due = rp.refund_due(
         refund,
         policy=listing.refund_policy,
@@ -125,10 +125,12 @@ async def _settle_order(
         fee_type=listing.cancellation_fee_type,
         fee_value=listing.cancellation_fee_value,
         event_cancelled=True,
+        initiated_by="organiser",
         starts_at=listing.starts_at,
         now=now,
         refundable_minor=order.collected_minor - order.refunded_minor,
-        ticket_count=0,
+        paid_ticket_count=0,
+        paid_minor=0,
     )
     if due <= 0:
         result.kept += 1

@@ -26,9 +26,11 @@ def _due(
     fee_type: str = "none",
     fee_value: int = 0,
     event_cancelled: bool = False,
+    initiated_by: str = "buyer",
     hours_away: float = 100,
     refundable: int = 10_000,
     tickets: int = 2,
+    paid_minor: int | None = None,
 ) -> int:
     return rp.refund_due(
         choice,
@@ -37,10 +39,96 @@ def _due(
         fee_type=fee_type,
         fee_value=fee_value,
         event_cancelled=event_cancelled,
+        initiated_by=initiated_by,
         starts_at=NOW + timedelta(hours=hours_away),
         now=NOW,
         refundable_minor=refundable,
-        ticket_count=tickets,
+        paid_ticket_count=tickets,
+        paid_minor=refundable if paid_minor is None else paid_minor,
+    )
+
+
+def test_an_event_cancel_is_refunded_in_full_whatever_the_choice() -> None:
+    for choice in ("none", "follow_policy", "full"):
+        assert (
+            _due(
+                choice,
+                event_cancelled=True,
+                policy="no_refunds",
+                fee_type="percent",
+                fee_value=100,
+                hours_away=1,
+            )
+            == 10_000
+        )
+
+
+def test_an_organiser_cancel_follows_no_policy_and_is_refunded_in_full() -> None:
+    assert (
+        _due(
+            "follow_policy",
+            initiated_by="organiser",
+            policy="no_refunds",
+            fee_type="fixed",
+            fee_value=1_000,
+            hours_away=1,
+        )
+        == 10_000
+    )
+
+
+def test_a_buyer_cancel_follows_the_policy() -> None:
+    assert (
+        _due(
+            "follow_policy",
+            initiated_by="buyer",
+            policy="no_refunds",
+            hours_away=100,
+        )
+        == 0
+    )
+
+
+def test_an_unknown_initiator_is_rejected() -> None:
+    with pytest.raises(ValueError):
+        _due("follow_policy", initiated_by="landlord")
+
+
+def test_a_fixed_fee_counts_only_the_paid_tickets_and_is_capped_at_their_price() -> (
+    None
+):
+    # One paid ticket of 5000 and one free; the fee is 1000 for the paid ticket.
+    assert (
+        rp.cancellation_fee_minor(
+            fee_type="fixed",
+            fee_value=1_000,
+            refundable_minor=5_000,
+            paid_ticket_count=1,
+            paid_minor=5_000,
+        )
+        == 1_000
+    )
+    # A fee bigger than the paid amount is capped at that amount.
+    assert (
+        rp.cancellation_fee_minor(
+            fee_type="fixed",
+            fee_value=9_000,
+            refundable_minor=5_000,
+            paid_ticket_count=1,
+            paid_minor=5_000,
+        )
+        == 5_000
+    )
+    # No paid tickets: no fixed fee at all.
+    assert (
+        rp.cancellation_fee_minor(
+            fee_type="fixed",
+            fee_value=1_000,
+            refundable_minor=0,
+            paid_ticket_count=0,
+            paid_minor=0,
+        )
+        == 0
     )
 
 
@@ -130,7 +218,8 @@ def test_percent_fee_rounds_half_up(
             fee_type="percent",
             fee_value=percent,
             refundable_minor=refundable,
-            ticket_count=1,
+            paid_ticket_count=1,
+            paid_minor=refundable,
         )
         == fee
     )
@@ -177,6 +266,15 @@ def _terms(
     ("old", "new"),
     [
         (_terms("no_refunds"), _terms("refundable")),
+        # Once nothing was refundable, any refundable terms are more generous.
+        (
+            _terms("no_refunds"),
+            _terms("refundable", cutoff=720, fee_type="fixed", fee_value=9_000),
+        ),
+        (
+            _terms("no_refunds", cutoff=72),
+            _terms("refundable", fee_type="percent", fee_value=100),
+        ),
         (_terms(cutoff=72), _terms(cutoff=48)),
         (_terms(cutoff=None), _terms(cutoff=24)),
         (_terms(cutoff=None), _terms(cutoff=48)),

@@ -6,6 +6,13 @@ class EventsNotFound(AppException):
         super().__init__(what, 404)
 
 
+class EventsInvalid(AppException):
+    """The request is well formed but the event's terms or the cancel is not valid."""
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(detail, 422)
+
+
 class EventsForbidden(AppException):
     def __init__(
         self, detail: str = "You can't do that here", *, code: str | None = None

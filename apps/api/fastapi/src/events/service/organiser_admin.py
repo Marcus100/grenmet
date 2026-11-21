@@ -28,7 +28,7 @@ from src.utils.reserved_names import is_reserved
 
 from .. import activity, outbox, schemas
 from .. import refund_policy as rp
-from ..exceptions import EventsConflict, EventsForbidden, EventsNotFound
+from ..exceptions import EventsConflict, EventsForbidden, EventsInvalid, EventsNotFound
 from ..models import (
     Group,
     Listing,
@@ -275,6 +275,25 @@ async def _apply_listing(
     db.add(listing)
     await db.flush()
     await _sync_tiers(db, listing, body.tiers if body.admission == "ticketed" else [])
+    await _check_fixed_fee_within_tiers(db, listing)
+
+
+async def _check_fixed_fee_within_tiers(db: AsyncSession, listing: Listing) -> None:
+    """A fixed cancellation fee is per paid ticket, so it may not exceed the cheapest
+    paid tier, checked against the tiers as they are after this save (so a tier-only
+    save that lowers a price is refused too)."""
+    if listing.cancellation_fee_type != "fixed" or not listing.cancellation_fee_value:
+        return
+    lowest = await db.scalar(
+        select(func.min(TicketTier.price_minor)).where(
+            TicketTier.listing_id == listing.id, TicketTier.price_minor > 0
+        )
+    )
+    if lowest is not None and listing.cancellation_fee_value > lowest:
+        raise EventsInvalid(
+            "The fixed cancellation fee is more than the lowest paid ticket price. "
+            "Lower the fee or raise the ticket price."
+        )
 
 
 def _apply_refund_terms(listing: Listing, body: schemas.ListingUpsert) -> None:
@@ -509,24 +528,25 @@ async def create_listing(
     return await _managed(db, listing, user)
 
 
-#: Orders a buyer paid for on the stored refund terms (not pending or expired ones).
-_PAID_ORDER_STATUSES = (OrderStatus.CONFIRMED.value, OrderStatus.REFUNDED.value)
-
-
 async def enforce_paid_terms(
     db: AsyncSession, listing: Listing, body: schemas.ListingUpsert
 ) -> None:
     """Once a paid order exists, the refund terms may only become more generous.
 
-    Buyers see the terms before they buy, so a stricter change is refused (409 with
-    what is allowed). Loosening always passes. Omitted fields keep the stored value;
-    a fee type travels with its value, and a none fee is stored as 0."""
+    A paid order is one that is waiting for payment (its money is not in yet, but
+    the buyer has been shown the terms) or has any money collected. Free and expired
+    orders do not count. Buyers see the terms before they buy, so a stricter change
+    is refused (409 with what is allowed). Loosening always passes. Omitted fields
+    keep the stored value; a fee type travels with its value, and a none fee is
+    stored as 0. The caller holds the listing's row lock."""
     paid = await db.scalar(
         select(Order.id)
         .where(
             Order.listing_id == listing.id,
-            Order.total_minor > 0,
-            Order.status.in_(_PAID_ORDER_STATUSES),
+            or_(
+                Order.status == OrderStatus.PENDING_PAYMENT.value,
+                Order.collected_minor > 0,
+            ),
         )
         .limit(1)
     )
@@ -574,10 +594,9 @@ async def update_listing(
     listing = await db.get(Listing, listing_id)
     if listing is None or listing.organiser_id != organiser.id:
         raise EventsNotFound("Event not found")
-    if body.status == ListingStatus.CANCELLED.value:
-        # Saving as cancelled cancels like the cancel action: the exclusive
-        # listing lock first, then orders, then tickets. No money moves here.
-        await db.refresh(listing, with_for_update=True)
+    # The exclusive listing lock first, for every save: a concurrent confirm or
+    # checkout waits for it, so the paid-order guard below sees every order.
+    await db.refresh(listing, with_for_update=True)
     await enforce_paid_terms(db, listing, body)
     before = await _snapshot(db, listing)
     await _require_verified_to_publish(organiser, body.status, before["status"])
@@ -586,7 +605,9 @@ async def update_listing(
         before["status"] != ListingStatus.CANCELLED.value
         and listing.status == ListingStatus.CANCELLED.value
     ):
-        await event_cancel.cancel_event_orders(db, user, listing, "none", utc_now())
+        # Saving as cancelled cancels the event: every buyer is refunded in full,
+        # whatever the terms say (the organiser cancelled; no fee).
+        await event_cancel.cancel_event_orders(db, user, listing, "full", utc_now())
     await _record_listing_change(db, listing, user, before=before)
     await db.commit()
     return await _managed(db, listing, user)

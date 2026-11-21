@@ -12,6 +12,6 @@ export const cancelEventSchema = z.object({
     .optional()
     .default("none")
     .describe(
-      "What to do with money already paid for online orders. Left out, no money moves (the organiser refunds from the orders page)."
+      "Money already paid for online orders is always refunded in full when the event is cancelled. This field is accepted for compatibility and ignored."
     ),
 });

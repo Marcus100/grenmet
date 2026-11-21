@@ -16,10 +16,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.events import emails
 from src.events import schemas as event_schemas
 from src.events.exceptions import EventsConflict
-from src.events.models import Listing, Order
+from src.events.models import Listing, Order, TicketTier
 from src.events.service import organiser_admin
 from src.utils.datetime import utc_now
-from tests.events.support import SessionFactory
+from tests.events.support import BASE, SessionFactory, client_as
 from tests.events.test_org_orders import (
     ORG,
     _activity,
@@ -31,7 +31,7 @@ from tests.events.test_org_orders import (
     _refunded,
     _shop_with_events,
 )
-from tests.events.test_paid_orders import PRICE, Shop, _row, _tickets
+from tests.events.test_paid_orders import PRICE, Shop, _row, _tickets, make_user
 
 
 async def _set_terms(events_db: SessionFactory, shop: Shop, **fields: Any) -> None:
@@ -62,7 +62,9 @@ async def test_a_fixed_fee_per_ticket_is_kept_and_the_rest_refunded(
     await _set_terms(
         events_db, shop, cancellation_fee_type="fixed", cancellation_fee_value=1_000
     )
-    response = await _cancel_order(shop, order_id)  # follow_policy
+    response = await _cancel_order(
+        shop, order_id, initiated_by="buyer"
+    )  # follow_policy
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["refund_outcome"] == "refunded"
@@ -85,7 +87,7 @@ async def test_a_percent_fee_is_kept_and_the_rest_refunded(
     await _set_terms(
         events_db, shop, cancellation_fee_type="percent", cancellation_fee_value=10
     )
-    response = await _cancel_order(shop, order_id)
+    response = await _cancel_order(shop, order_id, initiated_by="buyer")
     assert response.status_code == 200, response.text
     assert response.json()["refund_outcome"] == "refunded"
     assert await _refunded(db_async, order_id) == PRICE - PRICE // 10
@@ -101,7 +103,7 @@ async def test_a_fee_at_least_the_amount_keeps_everything(
     await _set_terms(
         events_db, shop, cancellation_fee_type="fixed", cancellation_fee_value=PRICE
     )
-    response = await _cancel_order(shop, order_id)
+    response = await _cancel_order(shop, order_id, initiated_by="buyer")
     assert response.status_code == 200, response.text
     assert response.json()["refund_outcome"] == "kept"
     assert await _refunded(db_async, order_id) == 0
@@ -115,7 +117,7 @@ async def test_no_refunds_policy_keeps_the_money(
     shop = await _shop_with_events(db_async, events_db)
     order_id = await _paid(db_async, shop, 1)
     await _set_terms(events_db, shop, refund_policy="no_refunds")
-    response = await _cancel_order(shop, order_id)
+    response = await _cancel_order(shop, order_id, initiated_by="buyer")
     assert response.json()["refund_outcome"] == "kept"
     assert await _refunded(db_async, order_id) == 0
 
@@ -128,7 +130,7 @@ async def test_a_custom_cutoff_keeps_the_money_inside_it(
     order_id = await _paid(db_async, shop, 1)
     await _set_terms(events_db, shop, refund_cutoff_hours=72)
     await _set_start(events_db, shop, hours=60)
-    response = await _cancel_order(shop, order_id)
+    response = await _cancel_order(shop, order_id, initiated_by="buyer")
     assert response.json()["refund_outcome"] == "kept"
     assert await _refunded(db_async, order_id) == 0
 
@@ -140,7 +142,7 @@ async def test_a_null_cutoff_uses_the_platform_default_on_the_money_path(
     shop = await _shop_with_events(db_async, events_db)
     order_id = await _paid(db_async, shop, 1)
     await _set_start(events_db, shop, hours=24)  # inside the default 48 hours
-    response = await _cancel_order(shop, order_id)
+    response = await _cancel_order(shop, order_id, initiated_by="buyer")
     assert response.json()["refund_outcome"] == "kept"
 
 
@@ -154,7 +156,7 @@ async def test_a_manual_refund_of_the_kept_remainder_is_still_possible(
     await _set_terms(
         events_db, shop, cancellation_fee_type="fixed", cancellation_fee_value=1_000
     )
-    await _cancel_order(shop, order_id)
+    await _cancel_order(shop, order_id, initiated_by="buyer")
     async with await _desk() as client:
         later = await client.post(
             f"{ORG}/orders/{order_id}/refunds",
@@ -177,7 +179,7 @@ async def test_a_fee_kept_on_cancel_is_recorded_on_the_order_and_in_settlement(
     await _set_terms(
         events_db, shop, cancellation_fee_type="fixed", cancellation_fee_value=1_000
     )
-    response = await _cancel_order(shop, order_id)
+    response = await _cancel_order(shop, order_id, initiated_by="buyer")
     assert response.status_code == 200, response.text
     detail = response.json()["order"]
     assert detail["cancellation_fee_kept_minor"] == 2_000
@@ -262,7 +264,6 @@ async def test_without_paid_orders_any_terms_can_be_set(
     db_async: AsyncSession, events_db: SessionFactory
 ) -> None:
     shop = await _shop_with_events(db_async, events_db)
-    await _pending(db_async, shop, 1)  # unpaid holds do not count
     await _guard(
         events_db,
         shop,
@@ -389,6 +390,293 @@ async def test_an_expired_order_does_not_lock_the_terms(
         order.status = "expired"
         await events.commit()
     await _guard(events_db, shop, _upsert(refund_policy="no_refunds"))
+
+
+@pytest.mark.asyncio
+async def test_a_pending_order_blocks_a_stricter_change(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    await _pending(db_async, shop, 1)  # waiting for payment: the buyer saw the terms
+    message = await _conflict(events_db, shop, _upsert(refund_policy="no_refunds"))
+    assert "refunds can't be switched off" in message
+
+
+@pytest.mark.asyncio
+async def test_moving_no_refunds_to_refundable_with_any_fee_is_allowed(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    await _paid(db_async, shop, 1)
+    await _set_terms(events_db, shop, refund_policy="no_refunds")
+    await _guard(
+        events_db,
+        shop,
+        _upsert(
+            refund_policy="refundable",
+            refund_cutoff_hours=720,
+            cancellation_fee_type="fixed",
+            cancellation_fee_value=2_000,
+        ),
+    )
+
+
+@pytest.mark.asyncio
+async def test_a_stricter_terms_save_through_the_update_is_refused_and_leaves_no_change(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    await _paid(db_async, shop, 1)
+    body = _upsert(
+        status="cancelled",
+        refund_policy="no_refunds",
+        tiers=[
+            {
+                "id": str(shop.tier_id),
+                "name": "General",
+                "price_minor": PRICE,
+                "allocation": 3,
+            }
+        ],
+    )
+    with pytest.raises(EventsConflict):
+        async with events_db() as events:
+            await organiser_admin.update_listing(
+                events, shop.owner, shop.listing_id, body, [shop.organisation_id]
+            )
+    async with events_db() as events:
+        listing = await events.get(Listing, shop.listing_id)
+        assert listing is not None
+        assert listing.status == "published"
+        assert listing.refund_policy == "refundable"
+
+
+@pytest.mark.asyncio
+async def test_saving_an_event_as_cancelled_refunds_every_buyer_in_full(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db, allocation=3)
+    order_id = await _paid(db_async, shop, 2)
+    # Terms that would keep money for an organiser cancel: a fee and no refunds.
+    await _set_terms(
+        events_db,
+        shop,
+        refund_policy="no_refunds",
+        cancellation_fee_type="fixed",
+        cancellation_fee_value=1_000,
+    )
+    body = _upsert(
+        status="cancelled",
+        tiers=[
+            {
+                "id": str(shop.tier_id),
+                "name": "General",
+                "price_minor": PRICE,
+                "allocation": 3,
+            }
+        ],
+    )
+    async with events_db() as events:
+        await organiser_admin.update_listing(
+            events, shop.owner, shop.listing_id, body, [shop.organisation_id]
+        )
+    assert await _refunded(db_async, order_id) == 2 * PRICE
+    assert (await _row(events_db, order_id)).status == "refunded"
+    assert (await _row(events_db, order_id)).cancellation_fee_kept_minor == 0
+
+
+@pytest.mark.asyncio
+async def test_an_organiser_cancel_is_refunded_in_full_even_inside_the_cutoff(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    order_id = await _paid(db_async, shop, 1)
+    await _set_start(events_db, shop, hours=5)
+    await _set_terms(events_db, shop, refund_policy="no_refunds")
+    response = await _cancel_order(shop, order_id)  # organiser, follow_policy
+    assert response.status_code == 200, response.text
+    assert response.json()["refund_outcome"] == "refunded"
+    assert await _refunded(db_async, order_id) == PRICE
+    assert (await _activity_summary(events_db))["initiated_by"] == "organiser"
+
+
+async def _activity_summary(events_db: SessionFactory) -> dict[str, Any]:
+    rows = await _activity(events_db, "order.cancelled")
+    return rows[-1].summary
+
+
+@pytest.mark.asyncio
+async def test_an_organiser_keep_needs_a_reason_and_a_buyer_keep_does_not(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    order_id = await _paid(db_async, shop, 1)
+    refused = await _cancel_order(shop, order_id, refund="none")
+    assert refused.status_code == 422, refused.text
+    assert await _refunded(db_async, order_id) == 0
+    assert (await _row(events_db, order_id)).status == "confirmed"  # nothing changed
+    blank = await _cancel_order(shop, order_id, refund="none", reason="   ")
+    assert blank.status_code == 422
+
+    kept = await _cancel_order(
+        shop, order_id, refund="none", reason="Venue kept the fee"
+    )
+    assert kept.status_code == 200, kept.text
+    assert kept.json()["refund_outcome"] == "kept"
+    assert await _refunded(db_async, order_id) == 0
+    assert (await _activity_summary(events_db))["initiated_by"] == "organiser"
+
+
+@pytest.mark.asyncio
+async def test_a_buyer_cancel_keeps_money_under_the_policy_without_a_reason(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db)
+    order_id = await _paid(db_async, shop, 1)
+    await _set_terms(events_db, shop, refund_policy="no_refunds")
+    response = await _cancel_order(shop, order_id, initiated_by="buyer")
+    assert response.status_code == 200, response.text
+    assert response.json()["refund_outcome"] == "kept"
+    summary = await _activity_summary(events_db)
+    assert summary["initiated_by"] == "buyer"
+
+
+@pytest.mark.asyncio
+async def test_a_fixed_fee_counts_only_the_paid_tickets_of_a_mixed_order(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db, allocation=5)
+    async with events_db() as events:
+        free = TicketTier(
+            listing_id=shop.listing_id,
+            name="Free",
+            price_minor=0,
+            allocation=5,
+            per_account_limit=4,
+        )
+        events.add(free)
+        await events.commit()
+        free_tier_id = free.id
+    buyer = await make_user(db_async)
+    async with client_as(buyer) as client:
+        created = await client.post(
+            f"{BASE}/listings/{shop.slug}/orders",
+            json={
+                "items": [
+                    {"tier_id": str(shop.tier_id), "quantity": 1},
+                    {"tier_id": str(free_tier_id), "quantity": 1},
+                ]
+            },
+        )
+    assert created.status_code == 201, created.text
+    order_id = created.json()["id"]
+    async with await _desk() as client:
+        paid = await client.post(
+            f"{ORG}/orders/{order_id}/manual-payments",
+            headers=_h(shop, "mixed-pay-001"),
+            json={"method": "cash"},
+        )
+    assert paid.status_code == 201, paid.text
+    await _set_terms(
+        events_db, shop, cancellation_fee_type="fixed", cancellation_fee_value=1_000
+    )
+    response = await _cancel_order(shop, order_id, initiated_by="buyer")
+    assert response.status_code == 200, response.text
+    # One paid ticket pays the 1000 fee; the free ticket carries none.
+    assert await _refunded(db_async, order_id) == PRICE - 1_000
+    assert response.json()["order"]["cancellation_fee_kept_minor"] == 1_000
+
+
+@pytest.mark.asyncio
+async def test_a_partly_refunded_order_through_follow_policy_refunds_the_rest_less_the_fee(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db, allocation=3)
+    order_id = await _paid(db_async, shop, 2)
+    async with await _desk() as client:
+        partial = await client.post(
+            f"{ORG}/orders/{order_id}/refunds",
+            headers=_h(shop, "partial-first-001"),
+            json={"amount_minor": 1_000, "reason": "Goodwill refund"},
+        )
+    assert partial.status_code == 201, partial.text
+    await _set_terms(
+        events_db, shop, cancellation_fee_type="fixed", cancellation_fee_value=1_000
+    )
+    response = await _cancel_order(shop, order_id, initiated_by="buyer")
+    assert response.status_code == 200, response.text
+    # 10000 paid, 1000 already back: 9000 left, less 2 x 1000 for the two tickets.
+    assert await _refunded(db_async, order_id) == 1_000 + 7_000
+    assert response.json()["order"]["cancellation_fee_kept_minor"] == 2_000
+    assert response.json()["order"]["refund_status"] == "partial"
+
+
+@pytest.mark.asyncio
+async def test_a_replayed_cancel_does_not_refund_again(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db, allocation=3)
+    order_id = await _paid(db_async, shop, 2)
+    await _set_terms(
+        events_db, shop, cancellation_fee_type="fixed", cancellation_fee_value=1_000
+    )
+    first = await _cancel_order(shop, order_id, initiated_by="buyer")
+    assert first.status_code == 200, first.text
+    assert await _refunded(db_async, order_id) == 2 * PRICE - 2 * 1_000
+    replay = await _cancel_order(shop, order_id, initiated_by="buyer")
+    assert replay.status_code == 409
+    assert await _refunded(db_async, order_id) == 2 * PRICE - 2 * 1_000
+
+
+@pytest.mark.asyncio
+async def test_refunding_the_kept_remainder_clears_the_kept_amount(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db, allocation=3)
+    order_id = await _paid(db_async, shop, 2)
+    await _set_terms(
+        events_db, shop, cancellation_fee_type="fixed", cancellation_fee_value=1_000
+    )
+    await _cancel_order(shop, order_id, initiated_by="buyer")
+    assert (await _row(events_db, order_id)).cancellation_fee_kept_minor == 2_000
+    async with await _desk() as client:
+        later = await client.post(
+            f"{ORG}/orders/{order_id}/refunds",
+            headers=_h(shop, "fee-later-clears"),
+            json={"reason": "Goodwill: fee waived"},
+        )
+    assert later.status_code == 201, later.text
+    assert (await _row(events_db, order_id)).cancellation_fee_kept_minor == 0
+
+
+def test_a_receipt_names_the_fee_kept_on_a_partial_refund() -> None:
+    _, body = emails.order_refunded(
+        buyer_name="Ana",
+        title="Paid <Fete>",
+        order_ref="ABCD1234",
+        refund_minor=4_000,
+        currency="XCD",
+        full=False,
+        card=False,
+        event_cancelled=False,
+        tickets_valid=False,
+        fee_kept_minor=1_000,
+    )
+    assert "XCD 10.00 was kept as the cancellation fee" in body
+    assert "under the event's refund policy" in body
+    assert "<Fete>" not in body  # the title is still escaped
+    _, full = emails.order_refunded(
+        buyer_name="Ana",
+        title="Paid Fete",
+        order_ref="ABCD1234",
+        refund_minor=5_000,
+        currency="XCD",
+        full=True,
+        card=False,
+        event_cancelled=False,
+        fee_kept_minor=1_000,
+    )
+    assert "cancellation fee" not in full
 
 
 # --- receipt wording for a refund on a cancelled ticket --------------------------------

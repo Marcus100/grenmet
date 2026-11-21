@@ -817,35 +817,32 @@ class SettlementOverview(BaseModel):
 # --- Cancel, postpone and refund (E5) ---------------------------------------------------
 
 
-#: What happens to money already paid when an organiser cancels. ``full`` hands
-#: everything back, ``none`` keeps it, ``follow_policy`` applies the organiser's
-#: refund policy (an event the organiser cancels is refunded in full; a single
-#: order is refunded when the event is at least the policy cutoff away).
+#: What happens to money already paid when an order is cancelled. ``full`` hands
+#: everything back, ``none`` keeps it (an organiser must give a reason), and
+#: ``follow_policy`` applies the event's refund terms to a buyer-initiated cancel.
+#: An organiser-initiated cancel under ``follow_policy`` is refunded in full.
+#: An event that is cancelled is always refunded in full, whatever is sent here.
 RefundChoice = Literal["full", "none", "follow_policy"]
+
+#: Event cancels always refund in full (Grenada Consumer Protection Act, Schedule
+#: IV(f)): the choice is accepted for compatibility and ignored.
+EVENT_REFUND_CHOICES_NOTE = (
+    "Money already paid for online orders is always refunded in full when the event "
+    "is cancelled. This field is accepted for compatibility and ignored."
+)
 
 
 class CancelEvent(BaseModel):
     #: Must be true; guards against an accidental call.
     confirm: Literal[True]
-    refund: RefundChoice = Field(
-        default="none",
-        description=(
-            "What to do with money already paid for online orders. Left out, no "
-            "money moves (the organiser refunds from the orders page)."
-        ),
-    )
+    refund: RefundChoice = Field(default="none", description=EVENT_REFUND_CHOICES_NOTE)
 
 
 class OrgEventCancel(BaseModel):
     #: Must be true; guards against an accidental call.
     confirm: Literal[True]
     refund: RefundChoice = Field(
-        default="follow_policy",
-        description=(
-            "What to do with money already paid for online orders. Left out, the "
-            "organiser policy applies: an event the organiser cancels is refunded "
-            "in full."
-        ),
+        default="follow_policy", description=EVENT_REFUND_CHOICES_NOTE
     )
 
 
@@ -1030,10 +1027,23 @@ class OrgOrderRefundCreate(BaseModel):
 
 
 class OrgOrderCancel(BaseModel):
-    reason: str | None = Field(default=None, max_length=300)
+    reason: str | None = Field(
+        default=None,
+        max_length=300,
+        description="Required when the organiser keeps money on this order.",
+    )
     refund: RefundChoice = Field(
         default="follow_policy",
-        description="What to do with money already paid for this order.",
+        description=(
+            "What to do with money already paid for this order. `follow_policy` applies "
+            "the event's refund terms only for a buyer-initiated cancel; an "
+            "organiser-initiated cancel is refunded in full."
+        ),
+    )
+    #: Who asked for the cancel. Only a buyer's cancel is subject to the refund terms.
+    initiated_by: Literal["buyer", "organiser"] = Field(
+        default="organiser",
+        description="Who asked for this cancel. Only a buyer's cancel follows the terms.",
     )
 
 

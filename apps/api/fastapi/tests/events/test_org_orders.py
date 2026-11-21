@@ -376,7 +376,10 @@ async def test_cancel_order_follow_policy_keeps_money_inside_the_cutoff(
         listing.starts_at = utc_now() + timedelta(hours=5)
         listing.ends_at = utc_now() + timedelta(hours=9)
         await events.commit()
-    kept = await _cancel_order(shop, order_id, refund="follow_policy")
+    # A buyer's cancel follows the policy: inside the cutoff the money is kept.
+    kept = await _cancel_order(
+        shop, order_id, refund="follow_policy", initiated_by="buyer"
+    )
     assert kept.status_code == 200, kept.text
     assert kept.json()["refund_outcome"] == "kept"
     assert kept.json()["order"]["status"] == "confirmed"
@@ -385,9 +388,15 @@ async def test_cancel_order_follow_policy_keeps_money_inside_the_cutoff(
     assert await _refunded(db_async, order_id) == 0
     assert (await _cancel_order(shop, order_id)).status_code == 409  # already cancelled
 
+    # An organiser's cancel is refunded in full even inside the cutoff (no policy).
+    organiser = await _paid(db_async, shop)
+    refunded = await _cancel_order(shop, organiser, refund="follow_policy")
+    assert refunded.json()["refund_outcome"] == "refunded"
+    assert await _refunded(db_async, organiser) == PRICE
+
     # "full" overrides the policy even inside the cutoff.
     other = await _paid(db_async, shop)
-    forced = await _cancel_order(shop, other, refund="full")
+    forced = await _cancel_order(shop, other, refund="full", initiated_by="buyer")
     assert forced.json()["refund_outcome"] == "refunded"
     assert await _refunded(db_async, other) == PRICE
 
@@ -414,7 +423,9 @@ async def test_cancel_order_none_keeps_the_money_and_frees_the_seat(
 ) -> None:
     shop = await _shop_with_events(db_async, events_db, allocation=1)
     order_id = await _paid(db_async, shop)
-    response = await _cancel_order(shop, order_id, refund="none")
+    response = await _cancel_order(
+        shop, order_id, refund="none", reason="Seat released to the waiting list"
+    )
     assert response.status_code == 200
     assert response.json()["refund_outcome"] == "kept"
     assert await _refunded(db_async, order_id) == 0
@@ -501,9 +512,10 @@ async def test_cancel_event_follow_policy_refunds_paid_orders_and_releases_unpai
 
 
 @pytest.mark.asyncio
-async def test_cancel_event_none_keeps_the_money(
+async def test_cancel_event_none_still_refunds_in_full(
     db_async: AsyncSession, events_db: SessionFactory
 ) -> None:
+    """An event cancel is refunded in full whatever `refund` says (Schedule IV(f))."""
     shop = await _shop_with_events(db_async, events_db)
     order_id = await _paid(db_async, shop)
     async with await _desk() as client:
@@ -513,8 +525,8 @@ async def test_cancel_event_none_keeps_the_money(
             json={"confirm": True, "refund": "none"},
         )
         assert response.status_code == 200
-        assert response.json()["orders_kept"] == 1
-        assert response.json()["orders_refunded"] == 0
+        assert response.json()["orders_kept"] == 0
+        assert response.json()["orders_refunded"] == 1
         repeat = await client.post(
             f"{ORG}/events/{shop.listing_id}/cancel",
             headers=_h(shop),
@@ -527,16 +539,8 @@ async def test_cancel_event_none_keeps_the_money(
             json={"confirm": True, "refund": "maybe"},
         )
         assert bad.status_code == 422
-    assert await _refunded(db_async, order_id) == 0
-    # The money can still be handed back later from the order.
-    async with await _desk() as client:
-        later = await client.post(
-            f"{ORG}/orders/{order_id}/refunds",
-            headers=_h(shop, "later-key-001"),
-            json={"reason": "Changed our mind"},
-        )
-    assert later.status_code == 201, later.text
     assert await _refunded(db_async, order_id) == PRICE
+    assert (await _row(events_db, order_id)).status == "refunded"
 
 
 def test_the_cancel_body_defaults_to_follow_policy() -> None:
