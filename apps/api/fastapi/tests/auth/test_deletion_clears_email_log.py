@@ -6,6 +6,7 @@ deleted account must leave no address, first name or signed link behind, while t
 delivery statistics (status, attempts, timestamps) and bounce suppression stay.
 """
 
+import asyncio
 import uuid
 from datetime import timedelta
 
@@ -14,9 +15,12 @@ from sqlalchemy import cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.types import String
 
+from src import outbox
 from src.audit.models import AuditEntry
 from src.auth import service
 from src.auth.models import User
+from src.database import async_session_factory
+from src.email_config import email_settings
 from src.notifications import address_log, outbox_handlers
 from src.notifications import service as notification_service
 from src.notifications.models import (
@@ -28,6 +32,14 @@ from src.notifications.models import (
 from src.outbox import Outbox, OutboxStatus
 from src.utils.datetime import utc_now
 from tests.factories import make_user
+
+
+@pytest.fixture
+def mail_configured(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Let the real send path run; the shared stub records the provider call."""
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", "noreply@example.com")
+    monkeypatch.setattr(email_settings, "RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", None)
 
 
 def _names() -> tuple[str, str]:
@@ -312,3 +324,145 @@ async def test_a_second_deletion_changes_nothing_in_the_log(
         )
     )
     assert len(list(audits.all())) == 1
+
+
+@pytest.mark.usefixtures("db_async", "mail_configured")
+@pytest.mark.parametrize("outcome", ["sent", "dead"])
+async def test_a_send_in_flight_during_deletion_leaves_no_address(
+    db_async: AsyncSession, outcome: str
+) -> None:
+    """The outbox drain holds an email.send row while its handler writes the log row
+    with the real address (sent, or failed when dead). Deletion must wait for that
+    commit, so the address never survives. Each step runs the real handler code."""
+    local, first_name = _names()
+    address = f"{local}@example.com"
+    key = f"inflight-{uuid.uuid4().hex}"
+    user = await make_user(db_async, email=address)
+    await outbox_handlers.enqueue_email(
+        db_async,
+        to_email=address,
+        subject=f"Hi {first_name}",
+        dedupe_key=key,
+        transactional=False,
+        html=f"<p>Hi {first_name}</p>",
+        props={
+            "firstName": first_name,
+            "unsubscribeLink": f"https://example.com/u?token=tok-{first_name}",
+        },
+    )
+    await db_async.commit()
+    user_id = user.id
+
+    async with async_session_factory() as drain, async_session_factory() as deletion:
+        row = await drain.scalar(
+            select(Outbox).where(Outbox.dedupe_key == key).with_for_update()
+        )
+        assert row is not None
+        message = outbox.OutboxMessage(
+            id=row.id,
+            organisation_id=row.organisation_id,
+            topic=row.topic,
+            payload=dict(row.payload),
+            dedupe_key=row.dedupe_key,
+            attempts=row.attempts,
+        )
+        if outcome == "sent":
+            await outbox_handlers.send_email(drain, message)
+            row.status = OutboxStatus.DONE.value
+        else:
+            await outbox_handlers._email_send_dead(
+                drain, message, RuntimeError("provider down")
+            )
+            row.status = OutboxStatus.DEAD.value
+        row.payload = {}
+
+        deleted_user = await deletion.get(User, user_id)
+        assert deleted_user is not None
+        task = asyncio.create_task(
+            service.delete_user(session=deletion, user=deleted_user)
+        )
+        await asyncio.sleep(1)
+        assert not task.done(), "deletion must wait for the in-flight send"
+        await drain.commit()
+        await task
+
+    async with async_session_factory() as check:
+        assert await _leaks(check, address) == 0
+        assert await _leaks(check, first_name) == 0
+        assert await _leaks(check, "unsubscribe?token=tok-" + first_name) == 0
+        log = (
+            await check.scalars(
+                select(OutboundEmail).where(OutboundEmail.to_email.like("deleted-%"))
+            )
+        ).all()
+        assert len(log) == 1
+        expected = (
+            OutboundEmailStatus.SENT
+            if outcome == "sent"
+            else OutboundEmailStatus.FAILED
+        )
+        assert log[0].status == expected.value
+        assert log[0].props == {}
+        assert log[0].html is None
+
+
+@pytest.mark.usefixtures("db_async")
+async def test_padded_and_capitalised_stored_addresses_are_matched(
+    db_async: AsyncSession,
+) -> None:
+    """Python strips all whitespace from the address; the column match must strip the
+    same characters (a stored tab or newline is not a space)."""
+    local, first_name = _names()
+    address = f"{local}@example.com"
+    user = await make_user(db_async, email=address)
+    for value in (f"\t{address.upper()}\n", f" {address} \r\n"):
+        db_async.add(
+            OutboundEmail(
+                id=uuid.uuid4(),
+                to_email=value,
+                subject=f"Hi {first_name}",
+                template="card",
+                props={"firstName": first_name},
+                transactional=False,
+                status=OutboundEmailStatus.SENT.value,
+                attempts=1,
+                created_at=utc_now(),
+            )
+        )
+    db_async.add(
+        Outbox(
+            id=uuid.uuid4(),
+            topic=outbox_handlers.EMAIL_SEND,
+            payload={
+                "to_email": f"\t{address}\n",
+                "subject": f"Hi {first_name}",
+                "transactional": False,
+                "html": None,
+                "template": "card",
+                "props": {"firstName": first_name},
+            },
+            dedupe_key=f"padded-{uuid.uuid4().hex}",
+            attempts=0,
+            next_attempt_at=utc_now(),
+            status=OutboxStatus.PENDING.value,
+            created_at=utc_now(),
+            updated_at=utc_now(),
+        )
+    )
+    await db_async.commit()
+
+    await service.delete_user(session=db_async, user=user)
+
+    assert await _leaks(db_async, first_name) == 0
+    left_in_log = await db_async.scalar(
+        select(func.count())
+        .select_from(OutboundEmail)
+        .where(OutboundEmail.to_email.ilike(f"%{local}%"))
+    )
+    assert left_in_log == 0
+    left_in_queue = await db_async.scalar(
+        select(func.count())
+        .select_from(Outbox)
+        .where(cast(Outbox.payload, String).ilike(f"%{local}%"))
+    )
+    assert left_in_queue == 0
