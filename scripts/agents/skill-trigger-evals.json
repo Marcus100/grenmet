@@ -143,5 +143,10 @@
     "prompt": "Run the weekly factory review and fix whatever keeps failing.",
     "should_use": ["factory-improve"],
     "should_not_use": ["file-friction"]
+  },
+  {
+    "prompt": "Run the factory: pick up the next ready-for-agent issues and land them on dev.",
+    "should_use": ["factory-run"],
+    "should_not_use": ["factory-improve"]
   }
 ]

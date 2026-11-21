@@ -1,12 +1,12 @@
 ---
 name: pre-merge
-description: "Runs the read-only pre-merge checklist (types, lint, Docker image names, env drift, OpenAPI and API client sync, GitHub Actions SHA pinning) and reports exact fix commands without editing files. Use when about to merge or promote a branch, or when the user asks whether a branch is ready to merge."
+description: "Runs the pre-merge checklist (types, lint, Docker image names, env drift, OpenAPI and API client sync, GitHub Actions SHA pinning) and reports each failure with its exact fix; applies the fixes when the agent is landing its own branch, and stays read-only when asked for a review. Use when about to merge or promote a branch, or when the user asks whether a branch is ready to merge."
 allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *), Bash(uv run *), Bash(cd apps/api/fastapi *)
 ---
 
 ## Pre-Merge Check
 
-Run all checks in parallel. **Analysis only — list findings and show exact fix commands. Do not edit any files.**
+Run the checks one heavy command at a time (on the shared machine they go through `~/.local/bin/heavy`; the hooks enforce it). **First pass is analysis only — list findings and show exact fix commands.**
 
 **1. Types**
 Run `pnpm type-check`. Report all errors grouped by package.
@@ -45,11 +45,14 @@ Grep all workflow YAMLs for `uses:` lines. Flag any action pinned to a tag (e.g.
 ❌ GH Actions pinning — actions/checkout@v4 in deploy.yml (needs SHA)
 ```
 
-List the exact commands or diffs to fix each failure. Do not apply any fixes. Wait for the user to approve and run them.
+List the exact commands or diffs to fix each failure. Then:
+
+- **Landing your own branch** (a `/commit` or routine flow): apply the fixes inside the task's scope, rerun the failed checks and report the new table. Stop at the root `AGENTS.md` Ask First and Never boundaries.
+- **Asked for a review** ("is this ready to merge?", a review-only request, someone else's branch): edit nothing; the table and the fix list are the deliverable.
 
 ---
 
 Live context (Claude Code fills these in; in Codex, run the commands):
 
 Current branch: !`git branch --show-current`
-Changed files vs main: !`git diff --name-only origin/main...HEAD`
+Changed files vs dev: !`git diff --name-only origin/dev...HEAD`

@@ -13,9 +13,9 @@ Rules:
 - Server Components by default. React Query only for client-side mutations and polling.
 - Types, fetch clients, hooks and Zod schemas come from `@barrelsgd/api-client`. Never hand-write an API response type; if the client lacks a field, the API changes first (`api-engineer`).
 - No `any`, no `forwardRef`, no `process.env` in app code (use the app's typed env module).
-- Style only with `--gm-*` tokens, Tailwind aliases or shadcn semantics. UI primitives come from `@barrelsgd/ui/components/ui/<name>`.
+- Style only with `--gm-*` tokens, Tailwind aliases or shadcn semantics; name any new token in the PR body. UI primitives come from `@barrelsgd/ui/components/ui/<name>`.
 - Unexpected errors throw to `error.tsx`. If you catch and show a fallback, call `reportError(error, "<area>")`.
 - For visible changes run `pnpm ui:screenshots --app <app> --path <route>` and look at the 375 px and 1280 px renders in light and dark mode.
-- Prove it: `pnpm fix:changed`, then the app's type check and tests (`turbo run type-check test --filter=<app package>`), then push; GitHub CI on the PR is the full gate (`pnpm verify:changed` only for work you will not push).
+- Prove it: `pnpm fix:changed`, then the app's type check and tests (`turbo run type-check test --filter=<app package>`), then push; GitHub CI on the PR is the full gate (`pnpm verify:changed` only for work you will not push). On the shared machine these run through `~/.local/bin/heavy`, one at a time (the hooks enforce it).
 
 Finish with the commands you ran, pass or fail, the files changed and known risks.

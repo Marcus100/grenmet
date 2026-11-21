@@ -42,10 +42,10 @@ Present this list to the user. Do not edit files yet.
 
 **Step 4 — Propose changes**
 For an implementation request, apply changes within the authorized scope. For a review-only request, show proposed changes without editing; existing authorization counts.
-Flag separately any change that would need a new or altered `--gm-*` token.
+A change that needs a new or altered `--gm-*` token is allowed when the design-system rules (`docs/design-system.md`) call for one; list each such token so it is named in the PR body.
 
 **Step 5 — Apply and render**
-After approval, apply the changes and run `pnpm design-system:check` to confirm
+Apply the changes (after approval only for a review-only request) and run `pnpm design-system:check` to confirm
 the token contract still holds. Then render the result yourself:
 
 ```bash

@@ -15,11 +15,12 @@ Once the owner has merged, monitor the resulting staging deployment. Main merges
 publication/deployment need separate authorization. Never bypass protection,
 hooks, or failing checks.
 
-**Automation:** when the repository variable `PROMOTE_STAGING_ENABLED` is
-`true` (`gh variable get PROMOTE_STAGING_ENABLED`), the `promote-staging.yml`
-workflow opens and auto-merges the staging PR daily and `staging-smoke.yml`
-tests the deploy. Then do NOT open, edit or merge the staging PR; do not arm
-auto-merge. The remaining review is reading the staging smoke comment (or the
+**Automation:** `promote-staging.yml` is off unless the owner sets the
+repository variable `PROMOTE_STAGING_ENABLED` to `true`
+(`gh variable get PROMOTE_STAGING_ENABLED`); the owner decides when staging is
+promoted. Only while it is `true` does the workflow open and auto-merge the
+staging PR daily, with `staging-smoke.yml` testing the deploy. Then do NOT
+open, edit or merge the staging PR; do not arm auto-merge. The remaining review is reading the staging smoke comment (or the
 `staging-smoke` issue) and the signed-in checks. Hold or turn off per
 `docs/operations/staging-promotion-automation.md`. Sections 2 below apply only
 when the automation is off.
@@ -36,7 +37,10 @@ if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
 When the owner has asked to promote, create or reuse the promotion PR
 (`gh pr create --base staging --head dev`).
 Review its complete diff for authorized, finished work. Keep the PR body's
-recap current: changed, gates, outcome and friction per `/commit` step 7. Verify
+recap current: changed, gates, outcome and friction per `/commit` step 7.
+List each contract migration in the promotion diff first, flagged
+`⚠ deletes or renames data` with its file path and expand revision
+(`grep -l '^CONTRACT = ' <migration files>`; see `docs/api/development.md`). Verify
 `dev` still matches the reviewed head, then stop and tell the owner the PR is
 ready to merge into `staging`; do not merge it or arm auto-merge. GitHub merges
 only once the staging ruleset's required checks pass; `CI Success` and
