@@ -8,7 +8,7 @@ environment allowlist; the admin screen is built at `apps/web/admin/src/app/(con
 rollouts, originally out of scope below, were added with the organisation and
 user rules because the social-layer flags (PF10) need them.
 
-Owner decision 2026-10-20: Babydoll's online-booking switch moves from the `BABYDOLL_ONLINE_BOOKING` environment variable to a flag before cutover.
+Owner decision 2026-10-20: Babydoll's online-booking switch moves from the `BABYDOLL_ONLINE_BOOKING` environment variable to a flag before cutover. Note, 21 Nov 2026 (fact check; the decision is not changed): no longer needed: the Babydoll site became static on 13 Nov 2026 and the `BABYDOLL_ONLINE_BOOKING` switch was removed rather than moved to a flag; bookings run on `bookings.barrels.gd`.
 
 ## Context
 
