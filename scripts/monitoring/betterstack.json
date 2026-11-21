@@ -181,7 +181,7 @@
     {
       "environment": "production",
       "kind": "monitors",
-      "id": 5237467,
+      "deferred": true,
       "settings": {
         "pronounceable_name": "Production · GMS docs health",
         "url": "https://docs.barrels.gd/api/health",
@@ -196,7 +196,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": false
+        "paused": true
       }
     },
     {
@@ -223,7 +223,7 @@
     {
       "environment": "production",
       "kind": "monitors",
-      "id": 5237469,
+      "deferred": true,
       "settings": {
         "pronounceable_name": "Production · Signal health",
         "url": "https://signal.barrels.gd/api/health",
@@ -238,13 +238,13 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": false
+        "paused": true
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
-      "id": 5237470,
+      "deferred": true,
       "settings": {
         "pronounceable_name": "Production · Elections health",
         "url": "https://elections.barrels.gd/",
@@ -259,13 +259,12 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": false
+        "paused": true
       }
     },
     {
       "environment": "production",
       "kind": "monitors",
-      "deferred": true,
       "settings": {
         "pronounceable_name": "Production · CMS readiness",
         "url": "https://cms.barrels.gd/api/ready",
@@ -287,7 +286,6 @@
     {
       "environment": "production",
       "kind": "monitors",
-      "deferred": true,
       "settings": {
         "pronounceable_name": "Production · Events health",
         "url": "https://events.barrels.gd/api/health",
@@ -308,7 +306,6 @@
     {
       "environment": "production",
       "kind": "monitors",
-      "deferred": true,
       "settings": {
         "pronounceable_name": "Production · Bookings health",
         "url": "https://bookings.barrels.gd/api/health",
