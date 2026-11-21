@@ -261,3 +261,19 @@ async def test_several_organisers_need_an_explicit_choice(
     assert chosen.json()["slug"] == "second"
     assert (await _organiser(events_db, "second")).name == "Second Renamed"
     assert (await _organiser(events_db)).name == "Crew"
+
+
+@pytest.mark.asyncio
+async def test_the_bio_is_trimmed_so_spaces_are_no_change(
+    events_db: SessionFactory, db_async: AsyncSession
+):
+    owner, _ = await _setup(events_db, db_async)
+    async with client_with_real_roles(owner) as client:
+        same = await client.patch(PROFILE, json={"bio": "  Old bio  "})
+        blank = await client.patch(PROFILE, json={"bio": "   "})
+    assert same.status_code == 200, same.text
+    assert blank.status_code == 200, blank.text
+    stored = await _organiser(events_db)
+    assert stored.bio == ""
+    rows = await _profile_activity(events_db)
+    assert [row.summary for row in rows] == [{"changed": ["bio"]}]

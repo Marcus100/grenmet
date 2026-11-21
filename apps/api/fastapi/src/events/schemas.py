@@ -455,7 +455,10 @@ class OrganiserProfileUpdate(BaseModel):
         ]
         | None
     ) = None
-    bio: str | None = Field(default=None, max_length=500)
+    # Trimmed, so a bio of spaces is stored as an empty bio (which clears it).
+    bio: (
+        Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)] | None
+    ) = None
 
     @field_validator("name", "bio")
     @classmethod
