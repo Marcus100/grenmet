@@ -35,7 +35,9 @@ describe("orders helpers", () => {
     expect(formatPrice({ amountMinor: 5050, currency: "XCD" })).toBe(
       "EC$50.50"
     );
-    expect(formatPrice({ amountMinor: 5000, currency: "USD" })).toBe("$50.00");
+    expect(formatPrice({ amountMinor: 5000, currency: "USD" })).toBe(
+      "US$50.00"
+    );
   });
 
   it("formats and clamps countdowns", () => {

@@ -1,14 +1,17 @@
-"""Booking email subjects and bodies. Pure: each function returns ``(subject, html)``.
+"""Booking emails: subject, HTML and plain text. Pure: each builder returns an
+``EmailCard`` (``src.email_layout``): the card data, rendered at delivery.
 
-Every value is HTML-escaped. Times are shown in the profile's timezone. Links come
-from the profile's ``manage_url_template``; nothing here knows a site's address.
+Every value is escaped by the layout. Times are shown in the profile's timezone and
+named ("Grenada time"). Links come from the profile's ``manage_url_template``;
+nothing here knows a site's address. No ticket codes or QR tokens appear here; the signed manage link is the one token a mail carries.
 """
 
-import html
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Any
 from zoneinfo import ZoneInfo
 
+from src import email_layout as layout
 from src.utils.timezones import utc_to_local
 
 
@@ -27,6 +30,15 @@ class BookingEmail:
     #: Where to create a free account (ADR-0058). Set only for a customer whose
     #: booking is not linked to an account; the mail then invites, never insists.
     account_invite_url: str | None = None
+    #: Service length in minutes (the calendar end and "duration" in the When row).
+    duration_min: int | None = None
+    #: Short booking reference (the first eight characters of the booking id).
+    reference: str | None = None
+    #: Changes inside this many hours of the start are arranged with the business.
+    cancel_cutoff_hours: int | None = None
+    #: The business's own contact details, shown in the footer when set.
+    business_email: str | None = None
+    business_phone: str | None = None
 
     @property
     def when(self) -> str:
@@ -34,168 +46,340 @@ class BookingEmail:
         return local.strftime("%A %d %B %Y, %I:%M %p").replace(" 0", " ")
 
 
-def _e(value: str) -> str:
-    return html.escape(value, quote=True)
+def zone_label(tz: ZoneInfo) -> str:
+    """How a mail names the business's clock: "Grenada time", else the IANA name."""
+    if tz.key == "America/Grenada":
+        return "Grenada time"
+    return f"{tz.key} time"
 
 
-def _details(mail: BookingEmail) -> str:
+def _when_line(mail: BookingEmail) -> str:
+    value = f"{mail.when} ({zone_label(mail.tz)})"
+    if mail.duration_min:
+        value += f" · {layout.duration_label(mail.duration_min)}"
+    return value
+
+
+def _rows(mail: BookingEmail, *extra: layout.Row) -> tuple[layout.Row, ...]:
+    rows = [
+        layout.Row("What", f"{mail.service_name} with {mail.provider_name}"),
+        layout.Row("When", _when_line(mail)),
+    ]
+    if mail.reference:
+        rows.append(layout.Row("Reference", mail.reference))
+    return (*rows, *extra)
+
+
+def _manage(mail: BookingEmail) -> layout.Action | None:
+    return layout.Action("Manage booking", mail.manage_url) if mail.manage_url else None
+
+
+def _calendar(mail: BookingEmail) -> tuple[layout.Action, ...]:
+    """Add-to-calendar (Google). Apple and Outlook need an .ics URL, which the mail
+    does not have, so no button is offered for them."""
+    if not mail.duration_min:
+        return ()
+    ends = mail.starts_at + timedelta(minutes=mail.duration_min)
+    url = layout.google_calendar_url(
+        title=f"{mail.service_name} with {mail.business}",
+        starts_at=mail.starts_at,
+        ends_at=ends,
+        details=f"Booking reference {mail.reference}" if mail.reference else None,
+    )
+    return (layout.Action("Add to Google Calendar", url),)
+
+
+def _policy(mail: BookingEmail) -> tuple[str, ...]:
+    hours = mail.cancel_cutoff_hours
+    if not hours or hours <= 0:
+        return ()
+    noun = "hour" if hours == 1 else "hours"
     return (
-        f"<p><strong>{_e(mail.service_name)}</strong> with {_e(mail.provider_name)}"
-        f"<br>{_e(mail.when)}</p>"
+        f"Changes made less than {hours} {noun} before the start are arranged "
+        f"with {mail.business}.",
     )
 
 
-def _manage(mail: BookingEmail) -> str:
-    if not mail.manage_url:
-        return ""
-    url = _e(mail.manage_url)
-    return f'<p>Need to change or cancel? <a href="{url}">Manage your booking</a>.</p>'
-
-
-def _account_invite(mail: BookingEmail) -> str:
-    """An optional invitation. It promises only what the code does: the
-    customer's bookings with this business are listed under My bookings once
-    they are signed in with the same email and book with the business."""
+def _invite(mail: BookingEmail) -> dict[str, object]:
+    """The optional invitation, as a quiet paragraph with one link. It promises
+    only what the code does: the customer's bookings with this business are listed
+    under My bookings once they are signed in with the same email and book again."""
     if not mail.account_invite_url:
-        return ""
-    url = _e(mail.account_invite_url)
-    return (
-        "<p>Booking never needs an account. If you would like one, it is free: "
-        f'<a href="{url}">create a Barrels account or sign in</a> with this email '
-        f"address. When you are signed in and book with {_e(mail.business)}, your "
-        "bookings with them, including this one, are listed under My bookings.</p>"
-    )
+        return {}
+    return {
+        "quiet": (
+            "Booking never needs an account. If you would like one, it is free. "
+            "Once you are signed in with this email address and book with "
+            f"{mail.business}, your bookings with them, including this one, are "
+            "listed under My bookings."
+        ),
+        "quiet_link": layout.Action(
+            "Create a free account or sign in", mail.account_invite_url
+        ),
+    }
 
 
-def verification_code(*, business: str, code: str, minutes: int) -> tuple[str, str]:
+def _footer(mail: BookingEmail, why: str) -> str:
+    contact = [part for part in (mail.business_email, mail.business_phone) if part]
+    if contact:
+        return f"{why} Contact {mail.business} at {' or '.join(contact)}."
+    return f"{why} Contact {mail.business} about this booking."
+
+
+def _card(mail: BookingEmail, **fields: Any) -> layout.EmailCard:
+    """A customer card for this booking; ``fields`` override the defaults."""
+    base: dict[str, Any] = {
+        "eyebrow": mail.business,
+        "greeting": f"Hello {layout.first_name(mail.customer_name)},",
+        "rows": _rows(mail),
+        "footer": _footer(
+            mail, f"You are getting this email because you booked with {mail.business}."
+        ),
+    }
+    base.update(fields)
+    return layout.EmailCard(**base)
+
+
+def verification_code(*, business: str, code: str, minutes: int) -> layout.EmailCard:
     """The code that proves a visitor controls the booking email (deposit step)."""
-    return (
-        f"Your {business} booking code",
-        f"<p>Your verification code is <strong>{_e(code)}</strong>.</p>"
-        f"<p>It expires in {minutes} minutes. If you did not ask for it, "
-        "ignore this email.</p>",
+    card = layout.EmailCard(
+        eyebrow=business,
+        title="Your booking code",
+        paragraphs=(
+            "Enter this code on the booking page to confirm your email address.",
+            f"It expires in {minutes} minutes.",
+        ),
+        code=code,
+        footer=(
+            "If you did not ask for this code, you can ignore this email. "
+            f"You are getting it because someone used this address to book with {business}."
+        ),
     )
+    return layout.with_subject(f"Your {business} booking code", card)
 
 
-def customer_received(mail: BookingEmail, *, confirmed: bool) -> tuple[str, str]:
+def customer_received(mail: BookingEmail, *, confirmed: bool) -> layout.EmailCard:
     if confirmed:
-        subject = f"Your booking at {mail.business} is confirmed"
-        lead = "Your booking is confirmed."
-    else:
-        subject = f"We received your booking request at {mail.business}"
-        lead = "We received your request. We will email you once it is confirmed."
-    body = (
-        f"<p>Hello {_e(mail.customer_name)},</p><p>{lead}</p>"
-        f"{_details(mail)}{_manage(mail)}{_account_invite(mail)}"
+        return layout.with_subject(
+            f"Your booking at {mail.business} is confirmed",
+            _card(
+                mail,
+                chip=layout.Chip("Confirmed"),
+                title="Your booking is confirmed",
+                paragraphs=(f"Thank you for booking with {mail.business}.",),
+                primary=_manage(mail),
+                secondary=_calendar(mail),
+                policy=_policy(mail),
+                **_invite(mail),
+            ),
+        )
+    return layout.with_subject(
+        f"We received your booking request at {mail.business}",
+        _card(
+            mail,
+            chip=layout.Chip("Request received"),
+            title="We received your booking request",
+            paragraphs=(f"We will email you once {mail.business} confirms it.",),
+            primary=_manage(mail),
+            **_invite(mail),
+        ),
     )
-    return subject, body
 
 
-def customer_cancelled(mail: BookingEmail) -> tuple[str, str]:
-    return (
+def customer_cancelled(mail: BookingEmail) -> layout.EmailCard:
+    return layout.with_subject(
         f"Your booking at {mail.business} was cancelled",
-        f"<p>Hello {_e(mail.customer_name)},</p>"
-        f"<p>Your booking was cancelled.</p>{_details(mail)}",
+        _card(
+            mail,
+            chip=layout.Chip("Cancelled", layout.ChipTone.MUTED),
+            title="Your booking was cancelled",
+            paragraphs=("This booking will not go ahead.",),
+        ),
     )
 
 
-def _reason(reason: str | None) -> str:
-    return f"<p>Reason: {_e(reason)}</p>" if reason else ""
+def _reason_row(reason: str | None) -> tuple[layout.Row, ...]:
+    return (layout.Row("Reason", reason),) if reason else ()
 
 
-def customer_confirmed(mail: BookingEmail) -> tuple[str, str]:
+def customer_confirmed(mail: BookingEmail) -> layout.EmailCard:
     """The business accepted a booking request."""
-    return (
+    return layout.with_subject(
         f"Your booking at {mail.business} is confirmed",
-        f"<p>Hello {_e(mail.customer_name)},</p>"
-        f"<p>Your booking is confirmed.</p>{_details(mail)}{_manage(mail)}"
-        f"{_account_invite(mail)}",
+        _card(
+            mail,
+            chip=layout.Chip("Confirmed"),
+            title="Your booking is confirmed",
+            paragraphs=(f"{mail.business} has confirmed your booking request.",),
+            primary=_manage(mail),
+            secondary=_calendar(mail),
+            policy=_policy(mail),
+            **_invite(mail),
+        ),
     )
 
 
-def customer_declined(mail: BookingEmail, reason: str | None) -> tuple[str, str]:
+def customer_declined(mail: BookingEmail, reason: str | None) -> layout.EmailCard:
     """The business could not accept a booking request."""
-    return (
+    return layout.with_subject(
         f"Your booking request at {mail.business} could not be accepted",
-        f"<p>Hello {_e(mail.customer_name)},</p>"
-        f"<p>Sorry, we could not accept your booking request.</p>"
-        f"{_details(mail)}{_reason(reason)}",
+        _card(
+            mail,
+            chip=layout.Chip("Not accepted", layout.ChipTone.MUTED),
+            title="We could not accept your booking request",
+            paragraphs=(
+                f"Sorry, {mail.business} could not accept your booking request.",
+            ),
+            rows=_rows(mail, *_reason_row(reason)),
+        ),
     )
 
 
 def customer_cancelled_by_studio(
     mail: BookingEmail, reason: str | None
-) -> tuple[str, str]:
+) -> layout.EmailCard:
     """The business cancelled a booking."""
-    return (
+    return layout.with_subject(
         f"Your booking at {mail.business} was cancelled",
-        f"<p>Hello {_e(mail.customer_name)},</p>"
-        f"<p>{_e(mail.business)} had to cancel your booking.</p>"
-        f"{_details(mail)}{_reason(reason)}",
+        _card(
+            mail,
+            chip=layout.Chip("Cancelled", layout.ChipTone.MUTED),
+            title="Your booking was cancelled",
+            paragraphs=(f"{mail.business} had to cancel your booking.",),
+            rows=_rows(mail, *_reason_row(reason)),
+        ),
     )
 
 
-def customer_rescheduled(mail: BookingEmail) -> tuple[str, str]:
-    return (
+def customer_rescheduled(
+    mail: BookingEmail, *, confirmed: bool = True
+) -> layout.EmailCard:
+    """The customer moved their own booking. ``confirmed`` false is a request the
+    business has not accepted yet: no calendar button, and the mail says so."""
+    waiting: tuple[str, ...] = (
+        ()
+        if confirmed
+        else (
+            f"{mail.business} has not confirmed this booking yet. "
+            "We will email you as soon as they do.",
+        )
+    )
+    return layout.with_subject(
         f"Your booking at {mail.business} has a new time",
-        f"<p>Hello {_e(mail.customer_name)},</p>"
-        f"<p>Your booking was moved.</p>{_details(mail)}{_manage(mail)}",
+        _card(
+            mail,
+            chip=layout.Chip("Rescheduled"),
+            title="Your booking has a new time",
+            paragraphs=("Your booking was moved.", *waiting),
+            primary=_manage(mail),
+            secondary=_calendar(mail) if confirmed else (),
+            policy=_policy(mail),
+        ),
     )
 
 
 def customer_rescheduled_by_studio(
     mail: BookingEmail, *, confirmed: bool = True
-) -> tuple[str, str]:
-    """The business moved a booking. No manage link: the token is only a hash.
+) -> layout.EmailCard:
+    """The business moved a booking. It carries a signed manage link (the stored
+    token is only a hash) but no account invitation: moves carry none.
 
     ``confirmed`` false is a request the business has not accepted yet; the mail
     says it is still waiting and promises only an email once they decide."""
-    waiting = (
-        ""
+    waiting: tuple[str, ...] = (
+        ()
         if confirmed
-        else f"<p>{_e(mail.business)} has not confirmed this booking yet. "
-        "We will email you as soon as they do.</p>"
+        else (
+            f"{mail.business} has not confirmed this booking yet. "
+            "We will email you as soon as they do.",
+        )
     )
-    return (
+    return layout.with_subject(
         f"Your booking at {mail.business} has a new time",
-        f"<p>Hello {_e(mail.customer_name)},</p>"
-        f"<p>{_e(mail.business)} has moved your booking to a new time.</p>"
-        f"{_details(mail)}{waiting}"
-        f"<p>If this time does not suit you, please contact {_e(mail.business)}.</p>",
+        _card(
+            mail,
+            chip=layout.Chip("Rescheduled"),
+            title="Your booking has a new time",
+            paragraphs=(
+                f"{mail.business} has moved your booking to a new time.",
+                *waiting,
+            ),
+            primary=_manage(mail),
+            secondary=_calendar(mail) if confirmed else (),
+            policy=(
+                f"If this time does not suit you, please contact {mail.business}.",
+            ),
+        ),
     )
 
 
-def customer_reminder(mail: BookingEmail, *, confirmed: bool = True) -> tuple[str, str]:
-    """A reminder within a day of the start.
+def customer_reminder(
+    mail: BookingEmail, *, confirmed: bool = True
+) -> layout.EmailCard:
+    """A reminder within a day of the start: the manage link and, for a guest,
+    the account invitation (ADR-0058).
 
     ``confirmed`` false is a request the business has not accepted yet: the
     wording says so and promises only what happens (an email once they decide).
     """
     if confirmed:
-        return (
+        return layout.with_subject(
             f"Reminder: your booking at {mail.business}",
-            f"<p>Hello {_e(mail.customer_name)},</p>"
-            f"<p>A reminder of your booking within the next day.</p>"
-            f"{_details(mail)}{_manage(mail)}",
+            _card(
+                mail,
+                chip=layout.Chip("Reminder"),
+                title="Your booking is coming up",
+                paragraphs=("A reminder of your booking within the next day.",),
+                primary=_manage(mail),
+                secondary=_calendar(mail),
+                policy=_policy(mail),
+                **_invite(mail),
+            ),
         )
-    return (
+    return layout.with_subject(
         f"Reminder: your booking request at {mail.business}",
-        f"<p>Hello {_e(mail.customer_name)},</p>"
-        f"<p>A reminder of your booking request for the next day. "
-        f"{_e(mail.business)} has not confirmed it yet. "
-        f"We will email you as soon as they do.</p>"
-        f"{_details(mail)}{_manage(mail)}",
+        _card(
+            mail,
+            chip=layout.Chip("Reminder"),
+            title="Your booking request is coming up",
+            paragraphs=(
+                "A reminder of your booking request for the next day. "
+                f"{mail.business} has not confirmed it yet. "
+                "We will email you as soon as they do.",
+            ),
+            primary=_manage(mail),
+            **_invite(mail),
+        ),
     )
 
 
-def studio_notice(mail: BookingEmail, *, event: str) -> tuple[str, str]:
+_STUDIO_HEADLINES = {
+    "created": ("New booking", layout.Chip("New booking")),
+    "requested": ("New booking request", layout.Chip("Request")),
+    "cancelled": ("Booking cancelled", layout.Chip("Cancelled", layout.ChipTone.MUTED)),
+    "rescheduled": ("Booking moved", layout.Chip("Rescheduled")),
+}
+
+
+def studio_notice(mail: BookingEmail, *, event: str) -> layout.EmailCard:
     """``event``: ``created``, ``requested``, ``cancelled`` or ``rescheduled``."""
+    headline, chip = _STUDIO_HEADLINES[event]
     contact = ", ".join(
-        _e(part) for part in (mail.customer_email, mail.customer_phone) if part
+        part for part in (mail.customer_email, mail.customer_phone) if part
     )
-    notes = f"<p>Notes: {_e(mail.notes)}</p>" if mail.notes else ""
-    return (
-        f"Booking {event}: {mail.customer_name} ({mail.service_name})"[:300],
-        f"<p>Booking {_e(event)} by {_e(mail.customer_name)}"
-        f"{f' ({contact})' if contact else ''}.</p>{_details(mail)}{notes}",
+    rows = _rows(
+        mail,
+        layout.Row("Customer", mail.customer_name),
+        layout.Row("Contact", contact),
+        layout.Row("Notes", mail.notes or ""),
+    )
+    card = layout.EmailCard(
+        eyebrow=mail.business,
+        chip=chip,
+        title=f"{headline} from {mail.customer_name}",
+        rows=rows,
+        footer=f"Automatic notice for {mail.business} staff, sent to the booking notice address.",
+    )
+    return layout.with_subject(
+        f"Booking {event}: {mail.customer_name} ({mail.service_name})", card
     )

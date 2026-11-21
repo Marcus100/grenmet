@@ -23,16 +23,27 @@ import logging
 import uuid
 from datetime import datetime
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, literal, select, tuple_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email_layout as layout
+from src.auth.config import auth_settings
 from src.auth.models import User
+from src.notifications.config import notification_settings
 from src.notifications.outbox_handlers import enqueue_email
+from src.payments.models import ProviderKey, Refund, RefundStatus
 from src.utils.datetime import utc_now
 
 from . import emails, order_payments, rewards_hook, tickets, transitions
 from .models import Listing, Order, OrderItem, Organiser, Ticket
+from .refund_policy import effective_cutoff_hours
 from .transitions import ListingStatus, OrderStatus, move_order
+
+
+def my_tickets_url() -> str:
+    """The buyer's My tickets page in the Events app (the mail's button)."""
+    return f"{auth_settings.EVENTS_APP_URL.rstrip('/')}/me/tickets"
+
 
 logger = logging.getLogger(__name__)
 
@@ -129,19 +140,27 @@ async def _queue_receipt(
     buyer = await db.get(User, order.user_id)
     if buyer is None or not buyer.email:
         return
-    subject, body = emails.order_confirmation(
+    organiser = await db.get(Organiser, listing.organiser_id)
+    message = emails.order_confirmation(
         buyer_name=buyer.first_name,
         title=listing.title,
         starts_at=listing.starts_at,
+        ends_at=listing.ends_at,
+        venue=listing.venue,
+        tickets_url=my_tickets_url(),
+        organiser=organiser.name if organiser else None,
         ticket_count=count,
         total_minor=order.total_minor,
         currency=order.currency,
+        refund_policy=listing.refund_policy,
+        refund_cutoff_hours=effective_cutoff_hours(listing.refund_cutoff_hours),
     )
     await enqueue_email(
         db,
         to_email=buyer.email,
-        subject=subject,
-        html=body,
+        subject=message.subject,
+        template=layout.CARD_TEMPLATE,
+        props=layout.to_props(message),
         transactional=True,
         dedupe_key=f"events-order-paid:{order.id}",
         organisation_id=organisation_id,
@@ -200,14 +219,100 @@ async def fulfil_paid(
     return outcome
 
 
+async def _queue_refund_receipt(
+    db: AsyncSession,
+    order: Order,
+    organisation_id: str,
+    intent_id: uuid.UUID,
+    intent_provider: str,
+    refund_id: uuid.UUID,
+    *,
+    captured_minor: int,
+) -> None:
+    """Email the buyer one receipt per refund. The dedupe key is the refund id, so
+    the inline manual path and the ``events.order_refunded`` reaction (and any
+    replay) queue it once. Skipped when the refund is unknown to the order's intent,
+    the refund has not settled (a provider refund is pending until the provider
+    confirms it; that confirmation replays this call) or the buyer has no
+    deliverable email."""
+    if order.user_id is None:
+        return
+    refund = await db.get(Refund, refund_id)
+    if (
+        refund is None
+        or refund.intent_id != intent_id
+        or refund.status != RefundStatus.SUCCEEDED.value
+    ):
+        return  # a pending or failed refund has not settled: no receipt yet
+    # "Whole order" only when THIS refund brought the settled total up to what was
+    # paid: refunds count in creation order, so an earlier partial refund keeps its
+    # partial wording even when a later one completed the order first.
+    settled_through = await db.scalar(
+        select(func.coalesce(func.sum(Refund.amount_minor), 0)).where(
+            Refund.intent_id == intent_id,
+            Refund.status == RefundStatus.SUCCEEDED.value,
+            tuple_(Refund.created_at, Refund.id)
+            <= tuple_(literal(refund.created_at), literal(refund.id)),
+        )
+    )
+    full = captured_minor > 0 and (settled_through or 0) >= captured_minor
+    buyer = await db.get(User, order.user_id)
+    listing = await db.get(Listing, order.listing_id)
+    if (
+        buyer is None
+        or listing is None
+        or not buyer.email
+        or not notification_settings.email_allowed(buyer.email)
+    ):
+        return
+    # A partial refund keeps the tickets only when some are still valid (an organiser
+    # cancel cancels them first, and the fee is kept on the cancelled order).
+    tickets_valid = not full and bool(
+        await db.scalar(
+            select(func.count())
+            .select_from(Ticket)
+            .where(
+                Ticket.order_id == order.id,
+                Ticket.status == transitions.TicketStatus.VALID.value,
+            )
+        )
+    )
+    message = emails.order_refunded(
+        buyer_name=buyer.first_name,
+        title=listing.title,
+        order_ref=str(order.id)[:8].upper(),
+        refund_minor=refund.amount_minor,
+        currency=order.currency,
+        full=full,
+        card=intent_provider != ProviderKey.MANUAL,
+        event_cancelled=listing.status == "cancelled",
+        tickets_valid=tickets_valid,
+        fee_kept_minor=order.cancellation_fee_kept_minor,
+    )
+    await enqueue_email(
+        db,
+        to_email=buyer.email,
+        subject=message.subject,
+        template=layout.CARD_TEMPLATE,
+        props=layout.to_props(message),
+        transactional=True,
+        dedupe_key=f"events-order-refunded:{refund_id}",
+        organisation_id=organisation_id,
+    )
+
+
 async def apply_refund(
     db: AsyncSession,
     *,
     organisation_id: str,
     order_id: uuid.UUID,
+    refund_id: uuid.UUID | None = None,
 ) -> str:
     """A refund was recorded on the order's intent. Returns ``refunded`` (tickets
-    cancelled), ``partial``, ``duplicate`` or ``ignored``."""
+    cancelled), ``partial``, ``duplicate`` or ``ignored``.
+
+    With ``refund_id`` the buyer also gets that refund's receipt email (queued on
+    every replay, deduplicated by the refund id)."""
     now = utc_now()
     order = await _locked_order(db, order_id)
     if order is None or not _is_online_paid(order):
@@ -220,6 +325,12 @@ async def apply_refund(
         return "ignored"
     order.collected_minor = intent.captured_minor
     order.refunded_minor = intent.refunded_minor
+    # A fee kept on a cancel is no longer kept once it has been refunded: never more
+    # than what is still on the order.
+    order.cancellation_fee_kept_minor = min(
+        order.cancellation_fee_kept_minor,
+        max(0, order.collected_minor - order.refunded_minor),
+    )
     outcome = "partial"
     if intent.captured_minor > 0 and intent.refunded_minor >= intent.captured_minor:
         released = await db.execute(
@@ -241,6 +352,16 @@ async def apply_refund(
         await rewards_hook.reverse_for_tickets(db, refunded_ids)
         if order.status == OrderStatus.CONFIRMED.value:
             move_order(order, "refund")
+    if refund_id is not None:
+        await _queue_refund_receipt(
+            db,
+            order,
+            organisation_id,
+            intent.id,
+            intent.provider,
+            refund_id,
+            captured_minor=intent.captured_minor,
+        )
     return outcome
 
 

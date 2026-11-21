@@ -14,6 +14,6 @@ Process:
 2. Cover boundaries, empty and invalid input, permission denial, concurrency or ordering where relevant, and the failure path, not only the happy path.
 3. Test behaviour through public interfaces. Mock only at system boundaries (network, clock, third-party services).
 4. For a bug, write the regression test first and confirm it fails before the fix.
-5. Keep tests fast and deterministic. No sleeps, no real network, no order dependence. Never skip, disable or loosen a test to get green.
+5. Keep tests fast and deterministic. On the shared machine test runs go through `~/.local/bin/heavy`, one at a time (the hooks enforce it). No sleeps, no real network, no order dependence. Never skip, disable or loosen a test to get green.
 
 Finish with: tests added, which fail now and why, which pass, and any production gap you found.

@@ -6,6 +6,7 @@ import {
   toEvent,
   toEventDetail,
   toGroup,
+  toManagedEvent,
   toMyTicketDetail,
   toThread,
 } from "./api-mappers";
@@ -70,6 +71,11 @@ describe("toEventDetail", () => {
         viewer_following: false,
       },
       group: null,
+      refund_policy: "refundable",
+      refund_cutoff_hours: 168,
+      refund_cutoff_hours_effective: 168,
+      cancellation_fee_type: "fixed",
+      cancellation_fee_value: 500,
       tiers: [
         {
           id: "t1",
@@ -93,6 +99,25 @@ describe("toEventDetail", () => {
       held: 1,
     });
     expect(mapped.capacity).toBe(1200);
+    expect(mapped.refundTerms).toEqual({
+      policy: "refundable",
+      cutoffHours: 168,
+      cutoffHoursEffective: 168,
+      feeType: "fixed",
+      feeValue: 500,
+    });
+    expect(
+      toManagedEvent({
+        ...detail,
+        access_type: "private",
+        status: "published",
+        visibility: "public",
+      }).accessType
+    ).toBe("private");
+    expect(
+      toManagedEvent({ ...detail, status: "published", visibility: "public" })
+        .accessType
+    ).toBeNull();
   });
 });
 

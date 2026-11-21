@@ -158,7 +158,11 @@ export default async function EventPage({ params }: { params: Params }) {
               </p>
             </div>
             {event.admission === "ticketed" ? (
-              <TicketClaim slug={event.slug} tiers={event.tiers} />
+              <TicketClaim
+                refundTerms={event.refundTerms}
+                slug={event.slug}
+                tiers={event.tiers}
+              />
             ) : (
               <RsvpButton
                 admission={event.admission}

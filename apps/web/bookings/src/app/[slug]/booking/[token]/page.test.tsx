@@ -145,4 +145,36 @@ describe("/[slug]/booking/[token]", () => {
       referrer: "no-referrer",
     });
   });
+
+  it("invites a guest to create an account at the API's link", async () => {
+    const inviteUrl =
+      "https://auth.barrels.gd/signup?returnTo=https%3A%2F%2Fbookings.barrels.gd%2Fsignin%3FreturnTo%3D%2Fsea-salt-spa";
+    vi.mocked(getBooking).mockResolvedValue({
+      ...booking,
+      account_invite_url: inviteUrl,
+    });
+    render(await ManageBookingPage(params("sea-salt-spa", "tok-123")));
+
+    expect(
+      screen.getByRole("heading", { name: "Keep your bookings in one place" })
+    ).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Create an account or sign in" })
+    ).toHaveAttribute("href", inviteUrl);
+  });
+
+  it("shows no account invitation once the booking is linked to an account", async () => {
+    vi.mocked(getBooking).mockResolvedValue({
+      ...booking,
+      account_invite_url: null,
+    });
+    render(await ManageBookingPage(params("sea-salt-spa", "tok-123")));
+
+    expect(
+      screen.queryByRole("heading", { name: "Keep your bookings in one place" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Create an account or sign in" })
+    ).not.toBeInTheDocument();
+  });
 });

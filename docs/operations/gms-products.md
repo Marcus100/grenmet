@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-10-12
+**Last updated:** 2026-11-18
 
 The product desk in gaa-admin calls FastAPI, which owns authoring and migrations in the separate wxproducts Postgres database.
 
@@ -154,6 +154,24 @@ warnings, and the green-level products issued by GMS, which the site calls
 `marine-forecast` kind.
 All product forms have printable PDF previews, including the restored forecast and marine layouts and complete data sheets. There is no public archive or scheduled NHC collection. Existing legacy product tables and example document components
 remain available; the new desk stores authored drafts/publications separately.
+
+## Issuing the Marine Forecast and the Climate Bulletin
+
+Both are authored in GAA Admin under the weather desk and published by the author (no second reviewer). Field rules and validation are in [the API contracts](../api/contracts.md#marine-forecast-and-climate-bulletin).
+
+**Marine Forecast** (Forecasts page, kind "Marine forecast"; daily, before 05:00 Grenada time):
+
+1. Open Forecasts and choose the Marine forecast tab. "Start from last issued" copies yesterday's wording; issue time, validity (05:00 to 05:00 next day), area and forecaster are set for today.
+2. Fill or check the synopsis, wind, sea state, swell and outlook. Enter wind in mph and waves in feet. Do not type alert or small craft text: the CAP warnings and GMS alerts in force are imported when you save or preview.
+3. Choose "Validate and preview", read the preview and the PDF, then tick the review box ("I have checked the content...").
+4. Choose "Publish to GMS". The forecast appears on the public marine page and in the issued archive. To pull it back, use Withdraw and give the reason in the revision note.
+
+**Climate Bulletin** (Climate Bulletin page; monthly, issued on the 15th, reviewing the month before):
+
+1. Open Climate Bulletin and start a new issue. Set the volume, issue number and month reviewed (`YYYY-MM`; it defaults to the month before the issue date).
+2. The month's rainfall, rain days and temperature figures are shown beside the form from the eRegister month summary; copy them into the bulletin fields (the looking-back rows are typed by hand for now).
+3. Fill the ENSO, sea surface temperature, outlook and SPI text and the sector impact rows (at least one impact row or the general implications are needed to publish).
+4. Choose "Validate and preview". The PDF is two pages; the editor warns when it runs past two. Tick the review box and choose "Publish to GMS". The bulletin stays live until the next issue.
 
 ## Database handover
 

@@ -8,6 +8,7 @@ the organiser as the audit actor.
 """
 
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -545,13 +546,14 @@ async def test_the_organiser_limit_fails_open_when_the_limiter_backend_is_down(
     db_async: AsyncSession,
     world: dict[str, Any],
     monkeypatch: pytest.MonkeyPatch,
+    patch_limiter_hit: Callable[..., None],
 ) -> None:
     monkeypatch.setattr(limiter, "enabled", True)
 
     def unavailable(*_args: object, **_kwargs: object) -> bool:
         raise ConnectionError("redis is down")
 
-    monkeypatch.setattr(limiter.limiter, "hit", unavailable)
+    patch_limiter_hit(unavailable)
     organiser, _ = await _pair_setup(db_async, world)
     headers = await _headers(db_async, organiser, world["org_a"])
     ticket = await make_ticket(

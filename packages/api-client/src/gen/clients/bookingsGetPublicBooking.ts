@@ -11,7 +11,7 @@ import type {
 } from "../models/BookingsGetPublicBooking.js";
 
 /**
- * @description A customer's own booking. Unknown, expired and unentitled tokens all answer 404.
+ * @description A customer's own booking. Unknown, expired, tampered and unentitled tokens all answer 404.
  * @summary Get a booking by its manage token
  * {@link /api/v1/bookings/public/bookings/:token}
  */

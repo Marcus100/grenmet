@@ -43,9 +43,11 @@ export function SiteHeader({ viewer }: { viewer: Profile }) {
               <PersonAvatar name={viewer.name} />
             </Link>
           ) : (
-            <Link className={buttonVariants()} href="/sign-in">
+            // A plain link: /sign-in redirects to the Barrels account host, and
+            // a Next client fetch of that redirect fails the connect-src check.
+            <a className={buttonVariants()} href="/sign-in">
               Sign in
-            </Link>
+            </a>
           )}
           <MobileNav />
         </div>

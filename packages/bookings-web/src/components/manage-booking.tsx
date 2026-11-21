@@ -247,6 +247,22 @@ export function ManageBooking({
           </div>
         </section>
       )}
+
+      {booking.account_invite_url && (
+        <section aria-labelledby="manage-invite" className="notice">
+          <h2 id="manage-invite">Keep your bookings in one place</h2>
+          <p>
+            Create a free Barrels account, or sign in with the same email
+            address, so your bookings with this business can be listed under My
+            bookings.
+          </p>
+          <p>
+            <a className="btn" href={booking.account_invite_url}>
+              Create an account or sign in
+            </a>
+          </p>
+        </section>
+      )}
     </article>
   );
 }

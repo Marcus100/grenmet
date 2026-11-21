@@ -23,7 +23,7 @@ modules, GMS tokens or client branding.
 - **Tokens:** only the foundation block from `@barrelsgd/ui/styles/globals`
   (shadcn semantics such as `bg-background`, `text-muted-foreground`, `border`).
   The app defines no colours of its own, so dark mode and any future preset
-  re-skin it for free. New tokens need approval.
+  re-skin it for free. Name new tokens in the PR body.
 - **Layout:** the GMS portal shell (`apps/web/gaa-admin`), rebuilt from shared
   primitives only: a collapsible inset sidebar (`@barrelsgd/ui` sidebar) with
   the product name, grouped navigation (Platform, Billing, Settings; lucide

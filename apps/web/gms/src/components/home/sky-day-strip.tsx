@@ -160,7 +160,7 @@ export function SkyDayStrip({
             slug="now"
           >
             <span className="text-body-base leading-body-base font-bold tabular-nums">
-              <Temperature value={now.temperature} />
+              <Temperature showUnit value={now.temperature} />
             </span>
             <IconRow
               after={ys[1] ?? null}
@@ -201,7 +201,7 @@ export function SkyDayStrip({
                 slug={day.slug}
               >
                 <span className="text-body-base leading-body-base font-bold tabular-nums">
-                  <Temperature value={top(day)} />
+                  <Temperature showUnit value={top(day)} />
                   {top(day) !== null && (
                     <span className="sr-only">
                       {day.tonight ? " minimum tonight" : " maximum"}

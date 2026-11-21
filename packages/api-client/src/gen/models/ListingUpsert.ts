@@ -10,6 +10,8 @@ import type { ListingCardPropertiesAccessTypeEnum } from "./ListingCardPropertie
 import type { ListingCardPropertiesAdmissionEnum } from "./ListingCardPropertiesAdmissionEnum.js";
 import type { ListingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
 import type { ListingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
+import type { ListingDetailPropertiesCancellationFeeTypeEnum } from "./ListingDetailPropertiesCancellationFeeTypeEnum.js";
+import type { ListingDetailPropertiesRefundPolicyEnum } from "./ListingDetailPropertiesRefundPolicyEnum.js";
 import type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
 import type { ListingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPropertiesVisibilityEnum.js";
 import type { TierInput } from "./TierInput.js";
@@ -81,4 +83,8 @@ export type ListingUpsert = {
   booking_mode?: ListingCardPropertiesBookingModeEnum | null;
   category_slug?: string | null;
   subcategory_slug?: string | null;
+  refund_policy?: ListingDetailPropertiesRefundPolicyEnum | null;
+  refund_cutoff_hours?: number | null;
+  cancellation_fee_type?: ListingDetailPropertiesCancellationFeeTypeEnum | null;
+  cancellation_fee_value?: number | null;
 };

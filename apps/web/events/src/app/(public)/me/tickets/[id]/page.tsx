@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RefundTermsLine } from "@/components/discovery/refund-terms-line";
 import { QrCode } from "@/components/tickets/qr-code";
 import { PrintButton } from "@/components/tickets/ticket-actions";
 import { TicketCancellation } from "@/components/tickets/ticket-cancellation";
@@ -8,6 +9,7 @@ import { getEventBySlug, getMyTicket } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
 import { formatEventDate } from "@/lib/datetime";
 import { isPaidTier } from "@/lib/orders";
+import { ticketRefundTerms } from "@/lib/refund-terms";
 
 type Params = Promise<{ id: string }>;
 
@@ -26,6 +28,7 @@ export default async function TicketPage({ params }: { params: Params }) {
   const cancelled = ticket.status !== "valid";
   const event = await getEventBySlug(ticket.listingSlug);
   const paidOnline = isPaidTier(event?.tiers ?? null, ticket.tierName);
+  const paidTerms = ticketRefundTerms(event, ticket.tierName);
 
   return (
     <div className="mx-auto max-w-md space-y-6">
@@ -69,6 +72,11 @@ export default async function TicketPage({ params }: { params: Params }) {
           </>
         )}
       </div>
+      {cancelled || !paidTerms ? null : (
+        <div className="text-center">
+          <RefundTermsLine terms={paidTerms} />
+        </div>
+      )}
       {cancelled ? null : (
         <div className="flex flex-wrap gap-2 print:hidden">
           <PrintButton />

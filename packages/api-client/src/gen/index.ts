@@ -3743,6 +3743,20 @@ export type {
   EventsUpdateMyProfileStatus429,
 } from "./models/EventsUpdateMyProfile.js";
 export type {
+  EventsUpdateOrganiserProfileBody,
+  EventsUpdateOrganiserProfileOptions,
+  EventsUpdateOrganiserProfileQuery,
+  EventsUpdateOrganiserProfileResponse,
+  EventsUpdateOrganiserProfileResponses,
+  EventsUpdateOrganiserProfileStatus200,
+  EventsUpdateOrganiserProfileStatus401,
+  EventsUpdateOrganiserProfileStatus403,
+  EventsUpdateOrganiserProfileStatus404,
+  EventsUpdateOrganiserProfileStatus409,
+  EventsUpdateOrganiserProfileStatus422,
+  EventsUpdateOrganiserProfileStatus429,
+} from "./models/EventsUpdateOrganiserProfile.js";
+export type {
   EventsUpdateReportBody,
   EventsUpdateReportOptions,
   EventsUpdateReportPath,
@@ -6574,6 +6588,8 @@ export type { ListingCardPropertiesBookingModeEnum } from "./models/ListingCardP
 export type { ListingCardPropertiesCurrencyEnum } from "./models/ListingCardPropertiesCurrencyEnum.js";
 export type { ListingCardPropertiesPricingTypeEnum } from "./models/ListingCardPropertiesPricingTypeEnum.js";
 export type { ListingDetail } from "./models/ListingDetail.js";
+export type { ListingDetailPropertiesCancellationFeeTypeEnum } from "./models/ListingDetailPropertiesCancellationFeeTypeEnum.js";
+export type { ListingDetailPropertiesRefundPolicyEnum } from "./models/ListingDetailPropertiesRefundPolicyEnum.js";
 export type { ListingUpsert } from "./models/ListingUpsert.js";
 export type { ListingUpsertPropertiesStatusEnum } from "./models/ListingUpsertPropertiesStatusEnum.js";
 export type { ListingUpsertPropertiesVisibilityEnum } from "./models/ListingUpsertPropertiesVisibilityEnum.js";
@@ -6848,6 +6864,7 @@ export type { OrgEventCancel } from "./models/OrgEventCancel.js";
 export type { OrgManualPaymentCreate } from "./models/OrgManualPaymentCreate.js";
 export type { OrgManualPaymentCreatePropertiesMethodEnum } from "./models/OrgManualPaymentCreatePropertiesMethodEnum.js";
 export type { OrgOrderCancel } from "./models/OrgOrderCancel.js";
+export type { OrgOrderCancelPropertiesInitiatedByEnum } from "./models/OrgOrderCancelPropertiesInitiatedByEnum.js";
 export type { OrgOrderCancelResult } from "./models/OrgOrderCancelResult.js";
 export type { OrgOrderCancelResultPropertiesRefundOutcomeEnum } from "./models/OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
 export type { OrgOrderDetail } from "./models/OrgOrderDetail.js";
@@ -7365,6 +7382,7 @@ export type {
 export type { OrganiserCreate } from "./models/OrganiserCreate.js";
 export type { OrganiserLogoUpdate } from "./models/OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./models/OrganiserOption.js";
+export type { OrganiserProfileUpdate } from "./models/OrganiserProfileUpdate.js";
 export type { OrganiserPublic } from "./models/OrganiserPublic.js";
 export type { OrganiserReview } from "./models/OrganiserReview.js";
 export type { OutletItemInput } from "./models/OutletItemInput.js";
@@ -10702,6 +10720,7 @@ export { eventsUnfollowOrganiser } from "./clients/eventsUnfollowOrganiser.js";
 export { eventsUnsaveListing } from "./clients/eventsUnsaveListing.js";
 export { eventsUpdateManagedListing } from "./clients/eventsUpdateManagedListing.js";
 export { eventsUpdateMyProfile } from "./clients/eventsUpdateMyProfile.js";
+export { eventsUpdateOrganiserProfile } from "./clients/eventsUpdateOrganiserProfile.js";
 export { eventsUpdateReport } from "./clients/eventsUpdateReport.js";
 export { eventsUpdateSuggestion } from "./clients/eventsUpdateSuggestion.js";
 export { featureCreateFlag } from "./clients/featureCreateFlag.js";
@@ -12697,6 +12716,11 @@ export {
   eventsUpdateMyProfileMutationOptions,
   useEventsUpdateMyProfile,
 } from "./hooks/useEventsUpdateMyProfile.js";
+export {
+  eventsUpdateOrganiserProfileMutationKey,
+  eventsUpdateOrganiserProfileMutationOptions,
+  useEventsUpdateOrganiserProfile,
+} from "./hooks/useEventsUpdateOrganiserProfile.js";
 export {
   eventsUpdateReportMutationKey,
   eventsUpdateReportMutationOptions,
@@ -15327,6 +15351,8 @@ export { listingCardPropertiesAdmissionEnum } from "./models/ListingCardProperti
 export { listingCardPropertiesBookingModeEnum } from "./models/ListingCardPropertiesBookingModeEnum.js";
 export { listingCardPropertiesCurrencyEnum } from "./models/ListingCardPropertiesCurrencyEnum.js";
 export { listingCardPropertiesPricingTypeEnum } from "./models/ListingCardPropertiesPricingTypeEnum.js";
+export { listingDetailPropertiesCancellationFeeTypeEnum } from "./models/ListingDetailPropertiesCancellationFeeTypeEnum.js";
+export { listingDetailPropertiesRefundPolicyEnum } from "./models/ListingDetailPropertiesRefundPolicyEnum.js";
 export { listingUpsertPropertiesStatusEnum } from "./models/ListingUpsertPropertiesStatusEnum.js";
 export { listingUpsertPropertiesVisibilityEnum } from "./models/ListingUpsertPropertiesVisibilityEnum.js";
 export { manifestRowPropertiesChannelEnum } from "./models/ManifestRowPropertiesChannelEnum.js";
@@ -15350,6 +15376,7 @@ export { observationSendPropertiesTargetEnum } from "./models/ObservationSendPro
 export { orderPublicPropertiesStatusEnum } from "./models/OrderPublicPropertiesStatusEnum.js";
 export { orgAttendeePropertiesStatusEnum } from "./models/OrgAttendeePropertiesStatusEnum.js";
 export { orgManualPaymentCreatePropertiesMethodEnum } from "./models/OrgManualPaymentCreatePropertiesMethodEnum.js";
+export { orgOrderCancelPropertiesInitiatedByEnum } from "./models/OrgOrderCancelPropertiesInitiatedByEnum.js";
 export { orgOrderCancelResultPropertiesRefundOutcomeEnum } from "./models/OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
 export { orgOrderDetailPropertiesPaymentMethodEnum } from "./models/OrgOrderDetailPropertiesPaymentMethodEnum.js";
 export { orgOrderDetailPropertiesRefundStatusEnum } from "./models/OrgOrderDetailPropertiesRefundStatusEnum.js";
@@ -19249,6 +19276,20 @@ export {
   eventsUpdateMyProfileStatus429Schema,
 } from "./zod/eventsUpdateMyProfileSchema.js";
 export {
+  eventsUpdateOrganiserProfileBodySchema,
+  eventsUpdateOrganiserProfileErrorSchema,
+  eventsUpdateOrganiserProfileQueryOrganiserSchema,
+  eventsUpdateOrganiserProfileQuerySchema,
+  eventsUpdateOrganiserProfileResponseSchema,
+  eventsUpdateOrganiserProfileStatus200Schema,
+  eventsUpdateOrganiserProfileStatus401Schema,
+  eventsUpdateOrganiserProfileStatus403Schema,
+  eventsUpdateOrganiserProfileStatus404Schema,
+  eventsUpdateOrganiserProfileStatus409Schema,
+  eventsUpdateOrganiserProfileStatus422Schema,
+  eventsUpdateOrganiserProfileStatus429Schema,
+} from "./zod/eventsUpdateOrganiserProfileSchema.js";
+export {
   eventsUpdateReportBodySchema,
   eventsUpdateReportErrorSchema,
   eventsUpdateReportPathReportIdSchema,
@@ -22069,6 +22110,8 @@ export { listingCardPropertiesBookingModeEnumSchema } from "./zod/listingCardPro
 export { listingCardPropertiesCurrencyEnumSchema } from "./zod/listingCardPropertiesCurrencyEnumSchema.js";
 export { listingCardPropertiesPricingTypeEnumSchema } from "./zod/listingCardPropertiesPricingTypeEnumSchema.js";
 export { listingCardSchema } from "./zod/listingCardSchema.js";
+export { listingDetailPropertiesCancellationFeeTypeEnumSchema } from "./zod/listingDetailPropertiesCancellationFeeTypeEnumSchema.js";
+export { listingDetailPropertiesRefundPolicyEnumSchema } from "./zod/listingDetailPropertiesRefundPolicyEnumSchema.js";
 export { listingDetailSchema } from "./zod/listingDetailSchema.js";
 export { listingUpsertPropertiesStatusEnumSchema } from "./zod/listingUpsertPropertiesStatusEnumSchema.js";
 export { listingUpsertPropertiesVisibilityEnumSchema } from "./zod/listingUpsertPropertiesVisibilityEnumSchema.js";
@@ -22344,6 +22387,7 @@ export { orgAttendeeSchema } from "./zod/orgAttendeeSchema.js";
 export { orgEventCancelSchema } from "./zod/orgEventCancelSchema.js";
 export { orgManualPaymentCreatePropertiesMethodEnumSchema } from "./zod/orgManualPaymentCreatePropertiesMethodEnumSchema.js";
 export { orgManualPaymentCreateSchema } from "./zod/orgManualPaymentCreateSchema.js";
+export { orgOrderCancelPropertiesInitiatedByEnumSchema } from "./zod/orgOrderCancelPropertiesInitiatedByEnumSchema.js";
 export { orgOrderCancelResultPropertiesRefundOutcomeEnumSchema } from "./zod/orgOrderCancelResultPropertiesRefundOutcomeEnumSchema.js";
 export { orgOrderCancelResultSchema } from "./zod/orgOrderCancelResultSchema.js";
 export { orgOrderCancelSchema } from "./zod/orgOrderCancelSchema.js";
@@ -22889,6 +22933,7 @@ export {
 export { organiserCreateSchema } from "./zod/organiserCreateSchema.js";
 export { organiserLogoUpdateSchema } from "./zod/organiserLogoUpdateSchema.js";
 export { organiserOptionSchema } from "./zod/organiserOptionSchema.js";
+export { organiserProfileUpdateSchema } from "./zod/organiserProfileUpdateSchema.js";
 export { organiserPublicSchema } from "./zod/organiserPublicSchema.js";
 export { organiserReviewSchema } from "./zod/organiserReviewSchema.js";
 export { outletItemInputSchema } from "./zod/outletItemInputSchema.js";

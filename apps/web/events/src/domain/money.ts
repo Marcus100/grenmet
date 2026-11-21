@@ -3,13 +3,12 @@ import type { CurrencyCode, Money } from "./types";
 /**
  * Display symbol per currency.
  *
- * XCD renders as a bare "$" for now to match the existing organiser screens.
- * Whether Grenadian organisers should see "EC$" is a product decision that
- * belongs with the attendee-facing surface, not this refactor.
+ * XCD renders as "EC$" so organiser screens match the public site, tickets
+ * and emails, and are never confused with US dollars (decided 21 Nov 2026).
  */
 const CURRENCY_SYMBOL: Record<CurrencyCode, string> = {
-  XCD: "$",
-  USD: "$",
+  XCD: "EC$",
+  USD: "US$",
 };
 
 const MINOR_UNITS_PER_MAJOR = 100;

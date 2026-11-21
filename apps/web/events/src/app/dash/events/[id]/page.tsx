@@ -10,8 +10,12 @@ import { draftFromEvent } from "@/components/dash/event-draft";
 import { EventEditor } from "@/components/dash/event-editor";
 import { EventLifecycle } from "@/components/dash/event-lifecycle";
 import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
+import { WhatsAppDraftPanel } from "@/components/dash/whatsapp-draft-panel";
 import { getListingActivity, getManagedOrganiser } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
+import { env } from "@/env";
+import { shellEventOf } from "@/lib/dash-navigation";
+import { buildWhatsAppDraft } from "@/lib/whatsapp-draft";
 
 /** Organiser data is per-user and live; never prerender it. */
 export const dynamic = "force-dynamic";
@@ -20,11 +24,17 @@ export const metadata: Metadata = { title: "Edit event" };
 
 export default async function EditEventPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ pilot?: string | string[] }>;
 }) {
   const { id } = await params;
-  await requireViewer(`/dash/events/${id}`);
+  const showWhatsAppPilot = (await searchParams).pilot === "whatsapp";
+  const returnTo = `/dash/events/${encodeURIComponent(id)}`;
+  const viewer = await requireViewer(
+    showWhatsAppPilot ? `${returnTo}?pilot=whatsapp` : returnTo
+  );
   const managed = await getManagedOrganiser();
   if (!managed) {
     return <NoOrganiserAccess />;
@@ -36,14 +46,18 @@ export default async function EditEventPage({
 
   const activity = await getListingActivity(event.id);
   const initial = draftFromEvent(event);
+  const whatsapp = showWhatsAppPilot
+    ? buildWhatsAppDraft(event, env.NEXT_PUBLIC_SITE_URL, new Date())
+    : null;
 
   return (
     <DashShell
-      active="build"
+      active="events"
       currentOrganiser={managed.organiser.slug}
+      event={shellEventOf(event)}
       eventName={event.title}
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -113,6 +127,7 @@ export default async function EditEventPage({
             title={event.title}
           />
         ) : null}
+        {whatsapp ? <WhatsAppDraftPanel {...whatsapp} /> : null}
         <ActivityPanel entries={activity} />
       </main>
     </DashShell>

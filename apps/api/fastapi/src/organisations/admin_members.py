@@ -26,7 +26,7 @@ from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.exceptions import AppException
 from src.notifications import service as notification_service
-from src.organisations import members, service, transitions
+from src.organisations import grants, members, service, transitions
 from src.organisations.exceptions import AlreadyMemberError, OrganisationNotFoundError
 from src.organisations.models import (
     Invitation,
@@ -127,7 +127,11 @@ async def add(
 ) -> tuple[Membership, User]:
     superuser_mfa.require_superuser_mfa(actor)
     await _organisation(session, organisation_id)
-    user = await _target(session, user_id=user_id, email=email)
+    target = await _target(session, user_id=user_id, email=email)
+    # Lock order: the account, then the roster, then the membership row (#1523). The
+    # target is refreshed under the account lock, so a deletion that ran first refuses.
+    user = await grants.lock_user(session, target.id)
+    await grants.lock_roster(session, organisation_id)
     audit_service.set_actor(session, actor.id)
     existing = await session.scalar(
         select(Membership)

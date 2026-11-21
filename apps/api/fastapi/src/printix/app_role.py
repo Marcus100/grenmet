@@ -137,13 +137,15 @@ async def drop_role_if_unneeded(
     has a composite primary key). Returns whether the role was removed."""
     await session.execute(select(User.id).where(User.id == user_id).with_for_update())
     link = await session.get(
-        UserRoleLink, (user_id, role_id or await _role_id(session))
+        UserRoleLink,
+        (user_id, role_id or await _role_id(session)),
+        populate_existing=True,
     )
     if link is None or await holds_access(session, user_id):
         return False
     await session.delete(link)
     await session.flush()
-    user = await session.get(User, user_id)
+    user = await session.get(User, user_id, populate_existing=True)
     still_eligible = user is not None and user.id in (
         await eligibility.eligible_user_ids_for_app(
             session=session, users=[user], app_key=APP_KEY

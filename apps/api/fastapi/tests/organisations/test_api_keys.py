@@ -1,6 +1,6 @@
 """Organisation API keys (ADR-0029, PF5): issue, authenticate, rotate, revoke."""
 
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 from datetime import timedelta
 from typing import Annotated, Any
 
@@ -463,11 +463,12 @@ async def test_rate_limit_answers_429(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
+    patch_limiter_hit: Callable[..., None],
 ) -> None:
     admin, org = await _setup(db_async)
     secret = (await _create(async_client, admin, org)).json()["secret"]
     monkeypatch.setattr(limiter, "enabled", True)
-    monkeypatch.setattr(limiter.limiter, "hit", lambda *args, **kwargs: False)
+    patch_limiter_hit(lambda *args, **kwargs: False)
     resp = await async_client.get(f"{URL}/org/key-info", headers=_bearer(secret))
     assert resp.status_code == 429
 

@@ -8,7 +8,7 @@ import type { CancelEventPropertiesRefundEnum } from "./CancelEventPropertiesRef
 export type CancelEvent = {
   confirm: true;
   /**
-   * @description What to do with money already paid for online orders. Left out, no money moves (the organiser refunds from the orders page).
+   * @description Money already paid for online orders is always refunded in full when the event is cancelled. This field is accepted for compatibility and ignored.
    * @default 'none'
    * @type string | undefined
    */

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Mechanically enforces the Never tier in AGENTS.md: never write to
-// .env*/.env.local, never hand-edit the generated API client. Also raises a
+// .env*/.env.local, never hand-edit the generated API client, never edit the
+// hooks, settings or Codex rules an agent session runs under. Also raises a
 // permission prompt for the Ask-first tier (toolchain config, new deps). Shared between
 // Claude Code (.claude/settings.json) and Codex (.codex/config.toml).
 //
@@ -26,6 +27,12 @@ const GENERATED_CLIENT_MARKER = "packages/api-client/src/gen/";
 // agents may edit these; real git-ignored env files stay blocked.
 const COMMITTED_DEPLOY_CONFIG = /(?:^|\/)infra\/docker\/(?:staging|production)\.env$/;
 
+// The hooks, settings and Codex rules an agent session runs under, in this
+// repository or the user's home folder (owner decision, 21 Nov 2026): an agent
+// cannot edit the rules that police it. The owner edits them by hand.
+const ENFORCEMENT_FILES =
+  /(?:^|\/)(?:\.claude\/hooks\/|\.claude\/settings(?:\.local)?\.json$|\.codex\/|scripts\/agents\/settings\/)/;
+
 export function findProtectedViolation(filePath) {
   const normalized = filePath.replaceAll("\\", "/");
 
@@ -42,6 +49,13 @@ export function findProtectedViolation(filePath) {
     return {
       pattern: ".env*",
       message: `BLOCKED: '${filePath}' matches protected pattern '.env*' — see the Never tier in AGENTS.md. Ask the user to edit env files directly.`,
+    };
+  }
+
+  if (ENFORCEMENT_FILES.test(normalized)) {
+    return {
+      pattern: "agent enforcement files",
+      message: `BLOCKED: '${filePath}' is an enforcement file (a hook, a settings file or the Codex rules an agent session runs under). The owner edits it by hand; describe the change you want instead.`,
     };
   }
 
@@ -177,7 +191,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       filePath = parsed?.tool_input?.file_path ?? "";
       command = parsed?.tool_input?.command ?? "";
     } catch {
-      process.exit(0);
+      // Input the hook cannot read is refused, not waved through.
+      process.stderr.write(
+        "BLOCKED: protect-files.mjs could not read the tool input, so the edit was not checked.\n"
+      );
+      process.exit(2);
     }
     const violation = filePath
       ? findProtectedViolation(filePath)

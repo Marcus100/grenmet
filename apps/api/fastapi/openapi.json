@@ -13401,7 +13401,7 @@
           "bookings"
         ],
         "summary": "Get a booking by its manage token",
-        "description": "A customer's own booking. Unknown, expired and unentitled tokens all answer 404.",
+        "description": "A customer's own booking. Unknown, expired, tampered and unentitled tokens all answer 404.",
         "operationId": "bookingsGetPublicBooking",
         "parameters": [
           {
@@ -13412,10 +13412,10 @@
               "type": "string",
               "minLength": 16,
               "maxLength": 100,
-              "description": "The manage token returned when the booking was made.",
+              "description": "The manage token returned when the booking was made, or a signed manage link from a booking email.",
               "title": "Token"
             },
-            "description": "The manage token returned when the booking was made."
+            "description": "The manage token returned when the booking was made, or a signed manage link from a booking email."
           }
         ],
         "responses": {
@@ -13469,10 +13469,10 @@
               "type": "string",
               "minLength": 16,
               "maxLength": 100,
-              "description": "The manage token returned when the booking was made.",
+              "description": "The manage token returned when the booking was made, or a signed manage link from a booking email.",
               "title": "Token"
             },
-            "description": "The manage token returned when the booking was made."
+            "description": "The manage token returned when the booking was made, or a signed manage link from a booking email."
           }
         ],
         "requestBody": {
@@ -13545,10 +13545,10 @@
               "type": "string",
               "minLength": 16,
               "maxLength": 100,
-              "description": "The manage token returned when the booking was made.",
+              "description": "The manage token returned when the booking was made, or a signed manage link from a booking email.",
               "title": "Token"
             },
-            "description": "The manage token returned when the booking was made."
+            "description": "The manage token returned when the booking was made, or a signed manage link from a booking email."
           }
         ],
         "requestBody": {
@@ -13622,10 +13622,10 @@
               "type": "string",
               "minLength": 16,
               "maxLength": 100,
-              "description": "The manage token returned when the booking was made.",
+              "description": "The manage token returned when the booking was made, or a signed manage link from a booking email.",
               "title": "Token"
             },
-            "description": "The manage token returned when the booking was made."
+            "description": "The manage token returned when the booking was made, or a signed manage link from a booking email."
           }
         ],
         "responses": {
@@ -57490,15 +57490,20 @@
         "summary": "Request an organiser account",
         "description": "Create an organiser backed by a new platform organisation with me as owner. It starts unverified (pending) until a moderator verifies it.",
         "operationId": "eventsRequestOrganiser",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/OrganiserCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -57512,14 +57517,14 @@
             }
           },
           "422": {
-            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Unprocessable Content"
           },
           "401": {
             "description": "Sign in to Barrels Events",
@@ -57569,12 +57574,131 @@
               }
             }
           }
-        },
+        }
+      },
+      "patch": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Edit my approved organiser's profile",
+        "description": "Owners and admins of an approved organiser change its public name and bio. Send only the fields to change; the slug is fixed and the approval stays. Each real change is logged. Pass ?organiser=<slug> when you manage several.",
+        "operationId": "eventsUpdateOrganiserProfile",
         "security": [
           {
             "HTTPBearer": []
           }
-        ]
+        ],
+        "parameters": [
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Organiser to act for when the member manages several.",
+              "title": "Organiser"
+            },
+            "description": "Organiser to act for when the member manages several."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganiserProfileUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganiserPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid profile or organiser not chosen",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Eventsupdateorganiserprofile"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Organiser access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid listing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/events/manage/organiser/logo": {
@@ -58723,7 +58847,7 @@
           "events"
         ],
         "summary": "Cancel an event",
-        "description": "Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` (default; no money moves) or `follow_policy` (an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.",
+        "description": "Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. Money already paid online is always refunded in full; `refund` is accepted for compatibility and ignored. Outlet cash tickets are refunded by hand.",
         "operationId": "eventsCancelEvent",
         "security": [
           {
@@ -77543,6 +77667,18 @@
               }
             ],
             "description": "Null when nothing was due at booking (pay at the business)."
+          },
+          "account_invite_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Invite Url",
+            "description": "Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account."
           }
         },
         "type": "object",
@@ -92726,6 +92862,31 @@
             },
             "type": "array",
             "title": "Tiers"
+          },
+          "refund_policy": {
+            "$ref": "#/components/schemas/ListingDetailPropertiesRefundPolicyEnum"
+          },
+          "refund_cutoff_hours": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Cutoff Hours"
+          },
+          "refund_cutoff_hours_effective": {
+            "type": "integer",
+            "title": "Refund Cutoff Hours Effective"
+          },
+          "cancellation_fee_type": {
+            "$ref": "#/components/schemas/ListingDetailPropertiesCancellationFeeTypeEnum"
+          },
+          "cancellation_fee_value": {
+            "type": "integer",
+            "title": "Cancellation Fee Value"
           }
         },
         "type": "object",
@@ -92752,7 +92913,12 @@
           "capacity",
           "organiser",
           "group",
-          "tiers"
+          "tiers",
+          "refund_policy",
+          "refund_cutoff_hours",
+          "refund_cutoff_hours_effective",
+          "cancellation_fee_type",
+          "cancellation_fee_value"
         ],
         "title": "ListingDetail"
       },
@@ -92940,6 +93106,54 @@
               }
             ],
             "title": "Subcategory Slug"
+          },
+          "refund_policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingDetailPropertiesRefundPolicyEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Policy"
+          },
+          "refund_cutoff_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 720.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Cutoff Hours"
+          },
+          "cancellation_fee_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingDetailPropertiesCancellationFeeTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Fee Type"
+          },
+          "cancellation_fee_value": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Fee Value"
           }
         },
         "type": "object",
@@ -93290,6 +93504,31 @@
             "type": "array",
             "title": "Tiers"
           },
+          "refund_policy": {
+            "$ref": "#/components/schemas/ListingDetailPropertiesRefundPolicyEnum"
+          },
+          "refund_cutoff_hours": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Cutoff Hours"
+          },
+          "refund_cutoff_hours_effective": {
+            "type": "integer",
+            "title": "Refund Cutoff Hours Effective"
+          },
+          "cancellation_fee_type": {
+            "$ref": "#/components/schemas/ListingDetailPropertiesCancellationFeeTypeEnum"
+          },
+          "cancellation_fee_value": {
+            "type": "integer",
+            "title": "Cancellation Fee Value"
+          },
           "status": {
             "$ref": "#/components/schemas/ListingUpsertPropertiesStatusEnum"
           },
@@ -93322,6 +93561,11 @@
           "organiser",
           "group",
           "tiers",
+          "refund_policy",
+          "refund_cutoff_hours",
+          "refund_cutoff_hours_effective",
+          "cancellation_fee_type",
+          "cancellation_fee_value",
           "status",
           "visibility"
         ],
@@ -96229,10 +96473,14 @@
                 "type": "null"
               }
             ],
-            "title": "Reason"
+            "title": "Reason",
+            "description": "Required when the organiser keeps money on this order."
           },
           "refund": {
             "$ref": "#/components/schemas/CancelEventPropertiesRefundEnum"
+          },
+          "initiated_by": {
+            "$ref": "#/components/schemas/OrgOrderCancelPropertiesInitiatedByEnum"
           }
         },
         "type": "object",
@@ -96367,6 +96615,11 @@
               }
             ],
             "title": "Payment Expires At"
+          },
+          "cancellation_fee_kept_minor": {
+            "type": "integer",
+            "title": "Cancellation Fee Kept Minor",
+            "default": 0
           },
           "items": {
             "items": {
@@ -97154,6 +97407,39 @@
           "name"
         ],
         "title": "OrganiserOption"
+      },
+      "OrganiserProfileUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "OrganiserProfileUpdate",
+        "description": "Partial edit of an approved organiser's public profile: send only what changes.\n\nThe slug is not editable here, so an unknown field (such as ``slug``) is a 422.\nNull is refused for both fields; leave a field out to keep it."
       },
       "OrganiserPublic": {
         "properties": {
@@ -112313,6 +112599,11 @@
             "type": "integer",
             "title": "Refunded Minor"
           },
+          "cancellation_fee_kept_minor": {
+            "type": "integer",
+            "title": "Cancellation Fee Kept Minor",
+            "default": 0
+          },
           "ledger_collected_minor": {
             "anyOf": [
               {
@@ -125607,7 +125898,7 @@
           "none",
           "follow_policy"
         ],
-        "description": "What to do with money already paid for online orders. Left out, no money moves (the organiser refunds from the orders page).",
+        "description": "Money already paid for online orders is always refunded in full when the event is cancelled. This field is accepted for compatibility and ignored.",
         "default": "none"
       },
       "CapAlertImportRequestPropertiesSourceEnum": {
@@ -125988,6 +126279,21 @@
         ],
         "default": "none"
       },
+      "ListingDetailPropertiesRefundPolicyEnum": {
+        "type": "string",
+        "enum": [
+          "refundable",
+          "no_refunds"
+        ]
+      },
+      "ListingDetailPropertiesCancellationFeeTypeEnum": {
+        "type": "string",
+        "enum": [
+          "none",
+          "fixed",
+          "percent"
+        ]
+      },
       "ListingUpsertPropertiesVisibilityEnum": {
         "type": "string",
         "enum": [
@@ -126152,6 +126458,15 @@
           "cash",
           "bank_transfer"
         ]
+      },
+      "OrgOrderCancelPropertiesInitiatedByEnum": {
+        "type": "string",
+        "enum": [
+          "buyer",
+          "organiser"
+        ],
+        "description": "Who asked for this cancel. Only a buyer's cancel follows the terms.",
+        "default": "organiser"
       },
       "OrgOrderCancelResultPropertiesRefundOutcomeEnum": {
         "type": "string",

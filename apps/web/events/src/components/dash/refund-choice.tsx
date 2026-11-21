@@ -1,18 +1,13 @@
 "use client";
 
-import type { RefundChoice } from "@/lib/org-orders";
-
-export interface RefundChoiceOption {
-  readonly description: string;
-  readonly label: string;
-  readonly value: RefundChoice;
-}
+import type { ChoiceOption } from "@/lib/org-orders";
 
 /**
- * Which refund a cancel does. Every option says what it does with the money;
- * the choice is a radio group so the words stay visible on phone and desktop.
+ * A radio group where every option says what it does; the words stay visible
+ * on phone and desktop. Used for who asked for a cancel and what happens to the
+ * money.
  */
-export function RefundChoiceGroup({
+export function RefundChoiceGroup<T extends string>({
   disabledValues = [],
   legend,
   name,
@@ -20,12 +15,12 @@ export function RefundChoiceGroup({
   options,
   value,
 }: {
-  disabledValues?: readonly RefundChoice[];
+  disabledValues?: readonly T[];
   legend: string;
   name: string;
-  onChange: (value: RefundChoice) => void;
-  options: readonly RefundChoiceOption[];
-  value: RefundChoice;
+  onChange: (value: T) => void;
+  options: readonly ChoiceOption<T>[];
+  value: T;
 }) {
   return (
     <fieldset className="space-y-2">

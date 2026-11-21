@@ -26,6 +26,7 @@ from src.organisations.models import MembershipRole, PublicSite, new_public_site
 from src.outbox import Outbox
 from src.utils.datetime import utc_now
 from tests.bookings.booking_day import DAY, MONDAY, utc_iso
+from tests.email_payload import payload_html, payload_text
 from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
 
@@ -847,11 +848,11 @@ async def test_emails_are_queued_on_the_outbox_with_a_manage_link(
     assert set(by_key) == {"booking-confirmation", "booking-studio-created"}
     customer = by_key["booking-confirmation"].payload
     assert customer["transactional"] is True
-    assert receipt["manage_url"] in customer["html"]
+    assert receipt["manage_url"] in payload_html(customer)
     assert "confirmed" in customer["subject"]
     studio_mail = by_key["booking-studio-created"].payload
     assert studio_mail["to_email"] == "studio@example.com"
-    assert receipt["manage_url"] not in studio_mail["html"]
+    assert receipt["manage_url"] not in payload_html(studio_mail)
     # The handler turns a row into a real outbound email.
     await outbox_handlers.send_email(
         db_async,
@@ -874,7 +875,8 @@ async def test_emails_are_queued_on_the_outbox_with_a_manage_link(
         {
             "email_to": customer["to_email"].lower(),
             "subject": customer["subject"],
-            "html_content": customer["html"],
+            "html_content": payload_html(customer),
+            "text_content": payload_text(customer),
         }
     ]
     await db_async.rollback()
@@ -923,7 +925,7 @@ async def test_reminders_are_queued_once_per_booking(
     ]
     assert len(rows) == 1
     assert "Reminder" in rows[0].payload["subject"]
-    assert receipt["manage_token"] not in rows[0].payload["html"]
+    assert receipt["manage_token"] not in payload_html(rows[0].payload)
 
 
 async def test_cancelled_and_past_bookings_get_no_reminder(
@@ -966,9 +968,9 @@ async def test_a_pending_booking_is_reminded_and_the_mail_says_it_is_unconfirmed
     assert row.payload["subject"] == (
         "Reminder: your booking request at Babydoll Beauty Bar"
     )
-    assert "has not confirmed it yet" in row.payload["html"]
-    assert "Classic full set" in row.payload["html"]
-    assert receipt["manage_token"] not in row.payload["html"]
+    assert "has not confirmed it yet" in payload_html(row.payload)
+    assert "Classic full set" in payload_html(row.payload)
+    assert receipt["manage_token"] not in payload_html(row.payload)
 
 
 async def test_a_confirmed_booking_reminder_does_not_say_unconfirmed(
@@ -982,7 +984,7 @@ async def test_a_confirmed_booking_reminder_does_not_say_unconfirmed(
     await db_async.commit()
     [row] = _reminder_rows(await _emails(db_async, studio.org_id), str(booking.id))
     assert row.payload["subject"] == "Reminder: your booking at Babydoll Beauty Bar"
-    assert "not confirmed" not in row.payload["html"]
+    assert "not confirmed" not in payload_html(row.payload)
 
 
 async def test_a_reminded_pending_booking_is_not_reminded_again_once_confirmed(

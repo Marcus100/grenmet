@@ -92,8 +92,12 @@ Only on the user's go-ahead, and only the findings they name. Then:
 
 ```bash
 pnpm design-system:check
-pnpm fix:changed && pnpm type-check
+pnpm fix:changed
+pnpm type-check
 ```
+
+Run them one per call; on the shared machine they go through
+`~/.local/bin/heavy` (the hooks enforce it).
 
 In a shared checkout, format explicit owned files as required by root AGENTS.md.
 

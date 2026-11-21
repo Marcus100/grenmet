@@ -132,23 +132,26 @@ const CARD_HEADING = /<h2>([^<]+)<\/h2>/u;
 const SUITED = /<span>Suited to:<\/span>/u;
 const EXPECTED_SERVICES = [
   "Web and Software",
+  "Website Care",
   "Business Software (Barrels Business)",
+  "Systems and Payment Integrations",
   "Digital Marketing and Design",
   "Data and Business Analysis",
   "Consulting and Digital Strategy",
   "AI and Automation",
   "Managed IT",
   "Cloud and Security",
+  "Backup and Disaster Recovery",
   "Networking, Wi-Fi and CCTV",
   "Training and Workshops (Barrels Academy)",
   "Weather, Aviation and Climate Data",
   "Research and Reports",
 ];
 
-test("services page lists exactly the twelve services, each with a Suited to line", () => {
+test("services page lists the service catalogue, each with a Suited to line", () => {
   const html = read("services/index.html");
   const cards = [...html.matchAll(SERVICE_CARD)].map(([, body]) => body);
-  assert.equal(cards.length, 12, "twelve service cards");
+  assert.equal(cards.length, EXPECTED_SERVICES.length, "service cards");
   const headings = cards.map((body) => body.match(CARD_HEADING)?.[1]);
   assert.deepEqual(headings, EXPECTED_SERVICES);
   for (const body of cards)
@@ -485,7 +488,7 @@ const JSON_LD = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/gu;
 const jsonLd = (page) =>
   [...read(page).matchAll(JSON_LD)].map(([, body]) => JSON.parse(body));
 
-test("structured data parses and describes the company and the twelve services", () => {
+test("structured data parses and describes the company and services", () => {
   const [home] = jsonLd("index.html");
   const graph = home["@graph"];
   const org = graph.find(
@@ -504,7 +507,6 @@ test("structured data parses and describes the company and the twelve services",
   const [catalog] = jsonLd("services/index.html");
   assert.equal(catalog["@type"], "OfferCatalog");
   const names = catalog.itemListElement.map((offer) => offer.itemOffered.name);
-  assert.equal(names.length, 12);
   assert.deepEqual(names, [...EXPECTED_SERVICES]);
   const headings = [
     ...read("services/index.html").matchAll(/<h2>([^<]+)<\/h2>/gu),
@@ -730,7 +732,7 @@ test("the live and coming-soon pills win the cascade over the panel paragraph ru
   }
 });
 
-test("the same twelve services in the same order on the home chips, home JSON-LD and services page", () => {
+test("the same services in the same order on the home chips, home JSON-LD and services page", () => {
   const home = read("index.html");
   const chips = [
     ...(home.match(CHIPS_LIST)?.[1] ?? "").matchAll(CHIP_ITEM),

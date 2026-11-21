@@ -215,7 +215,9 @@ describe("EmailChangeSettings", () => {
     openForm();
     fireEvent.click(screen.getByRole("radio", { name: "Email me a code" }));
     fireEvent.click(screen.getByRole("button", { name: "Email me a code" }));
-    await screen.findByRole("alert");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Too many codes. Try again later."
+    );
 
     fireEvent.click(
       screen.getByRole("radio", { name: "Use my current password" })
@@ -224,7 +226,10 @@ describe("EmailChangeSettings", () => {
     typeInto("Current password", "secret-password");
     submitChange();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    // The failed code send's alert is already on screen, so a bare findByRole would
+    // resolve at once with that stale alert. Wait for the refused change's own text.
+    await screen.findByText("That email address is already in use.");
+    expect(screen.getByRole("alert")).toHaveTextContent(
       "That email address is already in use."
     );
     expect(screen.getAllByRole("alert")).toHaveLength(1);

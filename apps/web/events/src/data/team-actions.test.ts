@@ -9,6 +9,7 @@ const grantCall = vi.fn();
 const revokeCall = vi.fn();
 const issuedCall = vi.fn();
 const deleteCall = vi.fn();
+const inviteCall = vi.fn();
 
 vi.mock("next/cache", () => ({
   revalidatePath: (...a: unknown[]) => revalidatePath(...a),
@@ -29,11 +30,11 @@ vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   organisationsRevokeMemberGrant: (...a: unknown[]) => revokeCall(...a),
   organisationsListIssuedGrants: (...a: unknown[]) => issuedCall(...a),
   organisationsDeleteMember: (...a: unknown[]) => deleteCall(...a),
+  organisationsCreateInvitation: (...a: unknown[]) => inviteCall(...a),
 }));
 
-const { grantRole, loadIssuedGrants, removeMember, revokeGrant } = await import(
-  "./team-actions"
-);
+const { grantRole, inviteMember, loadIssuedGrants, removeMember, revokeGrant } =
+  await import("./team-actions");
 
 function responseError(status: number, detail: unknown) {
   return new ResponseError({
@@ -58,6 +59,7 @@ beforeEach(() => {
     revokeCall,
     issuedCall,
     deleteCall,
+    inviteCall,
   ]) {
     mock.mockReset();
   }
@@ -65,6 +67,94 @@ beforeEach(() => {
     ok: true,
     accessToken: "tok",
     organisationId: "org_1",
+  });
+});
+
+describe("inviteMember", () => {
+  const invite = { email: "ada@example.test", role: "admin" as const };
+
+  it("sends the invitation to the server-resolved organisation", async () => {
+    inviteCall.mockReturnValue(
+      ok({ id: "inv_1", email: invite.email, role: "admin" })
+    );
+    const result = await inviteMember(invite);
+    expect(result).toEqual({
+      ok: true,
+      data: { id: "inv_1", email: invite.email, role: "admin" },
+    });
+    expect(inviteCall).toHaveBeenCalledWith(
+      expect.objectContaining({
+        client: "test-client",
+        headers: { "X-Barrels-Organisation": "org_1" },
+        path: { organisation_id: "org_1" },
+        body: invite,
+      })
+    );
+    expect(revalidatePath).toHaveBeenCalledWith("/dash/team");
+  });
+
+  it("shows the API's own refusal sentence", async () => {
+    inviteCall.mockReturnValue(
+      failing(responseError(409, "That person is already a member"))
+    );
+    expect(await inviteMember(invite)).toEqual({
+      ok: false,
+      error: "That person is already a member",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("joins the API's validation messages", async () => {
+    const error = new ResponseError({
+      data: {
+        detail: "Validation error",
+        errors: [{ msg: "value is not a valid email address" }],
+      },
+      status: 422,
+      statusText: "",
+      request: new Request("http://api.test"),
+      response: new Response(),
+    });
+    inviteCall.mockReturnValue(failing(error));
+    expect(await inviteMember(invite)).toEqual({
+      ok: false,
+      error: "value is not a valid email address",
+    });
+  });
+
+  it("uses a plain fallback when a refusal carries no sentence", async () => {
+    inviteCall.mockReturnValue(failing(responseError(403, null)));
+    const result = await inviteMember(invite);
+    expect(result.ok).toBe(false);
+    expect(result).toMatchObject({
+      error: expect.stringContaining("couldn't send that invitation"),
+    });
+  });
+
+  it("reports a fault to Sentry and shows a generic line", async () => {
+    inviteCall.mockReturnValue(failing(new Error("socket hang up")));
+    expect(await inviteMember(invite)).toEqual({
+      ok: false,
+      error: "We couldn't send that invitation. Try again shortly.",
+    });
+    expect(reportError).toHaveBeenCalledWith(expect.any(Error), "events-team");
+  });
+
+  it("asks a visitor to sign in on a 401", async () => {
+    inviteCall.mockReturnValue(failing(responseError(401, "Not signed in")));
+    expect(await inviteMember(invite)).toEqual({
+      ok: false,
+      error: SIGN_IN_REQUIRED,
+    });
+  });
+
+  it("refuses a malformed email without calling the API", async () => {
+    const result = await inviteMember({
+      email: "not-an-address",
+      role: "member",
+    });
+    expect(result.ok).toBe(false);
+    expect(inviteCall).not.toHaveBeenCalled();
   });
 });
 

@@ -119,3 +119,16 @@ describe("<DayCard> forecast card", () => {
     );
   });
 });
+
+describe("<DayCard> temperature units", () => {
+  it("shows the unit beside the high and the low", () => {
+    const { container } = render(
+      <DayCard condition="partly-cloudy" day={issuedDay()} now={NOW} />
+    );
+    const text = container.textContent ?? "";
+    expect(text).toContain("31°C");
+    expect(text).toContain("88°F");
+    expect(text).toContain("24°C");
+    expect(text).toContain("75°F");
+  });
+});

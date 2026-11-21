@@ -332,7 +332,7 @@ Where this file is more specific, this file wins. Checklist for new code:
 | API docs hidden in production | `main.py` sets `docs_url`/`openapi_url` to `None` outside allowed environments — keep it that way |
 | DB names: `lower_snake`, singular, grouped prefixes, `_at` for datetimes and `_date` for dates | Explicit index/constraint naming via `src.orm.Base.metadata` |
 | Migrations static, reversible, date-slug file names | Main `alembic.ini` uses `%%(year)d-%%(month).2d-%%(day).2d_%%(slug)s` |
-| Migrations additive for a rolling release: no drop, rename, type change, NOT NULL on an existing column or non-concurrent index on an existing table in `upgrade()` | `tests/test_migration_safety.py` checks every migration not in `tests/migration_safety_baseline.json`; a reviewed exception carries `# migration-safety: <reason>` |
+| Expand, then contract: a drop, rename, type change or NOT NULL on an existing column needs a `CONTRACT` marker (`docs/api/development.md`) | `tests/test_migration_safety.py` checks migrations not in the baseline; `# migration-safety:` waives locking ops only |
 | SQL-first; nested JSON via `func.json_build_object` when it saves Python reshaping | See "SQL first, Pydantic second" |
 | Async test client from day one; `dependency_overrides` for external services | Real DB + real JWT for auth |
 | Models and main migrations agree | `tests/test_alembic_drift.py` runs `alembic check` on the migrated test database; a new model module goes in `src/model_registry.py` (or its domain manifest), which `alembic/env.py` loads |

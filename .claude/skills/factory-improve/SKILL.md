@@ -47,7 +47,7 @@ Use `docs/agents/skill-standard.md` → "Choose the right layer":
 | A scorer is noisy | Its rubric |
 
 Agents may implement factory scripts, hooks, skills, agent configuration and CI.
-Factory-control changes (factory scripts, hooks, skills, agent configuration and CI) require independent code and security review with no open blocking finding before an agent merges into dev. A PR that touches owner-only paths listed in `AGENTS.md` is left for the owner to merge. Done when one file (or
+The agent merges changes to skills, role briefs, `docs/agents`, guardrail tests and the root `AGENTS.md` itself, after a clean `security-reviewer` pass and a clean Codex review of the exact head, both recorded as lines in the PR body, followed by a phone alert to the owner. A change to an enforcement file (hooks, settings, Codex rules, CI, guardrail scripts) is written up as a proposal for the owner, who edits and merges it (`docs/agents/workflow.md` → Merging into dev). Done when one file (or
 one file plus its test) is chosen.
 
 ## 4. Change and verify
@@ -71,6 +71,8 @@ Done when both commands pass.
 - After it lands, the next `agents:score report` shows whether the pass rate
   for that scorer moved. Mention that check in the recap.
 
-Execution uses existing subscriptions first with $0 extra spending by default.
-Prefer local execution; use cloud as fallback. Extra API spending requires owner
-approval, including scorer, benchmark and skill-eval runs that incur charges.
+Execution uses the owner's existing subscriptions with $0 extra spending by
+default: the Claude cloud is the primary home and local runs the fallback (this
+weekly review runs locally because it reads local transcripts). Extra API
+spending requires owner approval, including scorer, benchmark and skill-eval
+runs that incur charges.

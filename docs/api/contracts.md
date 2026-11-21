@@ -1072,13 +1072,27 @@ rail and issues its tickets at once. `POST .../refunds` (`{amount_minor?, reason
 answer with `Idempotency-Replayed: true`.
 
 Refund choice: cancelling takes `refund`: `full`, `none` or `follow_policy`.
-`POST /events/org/orders/{id}/cancel` (`{reason?, refund}`, default `follow_policy`) cancels one
-order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUTOFF_HOURS`
-(default 48) away; outlet cash orders cancel only with `none`.
+`POST /events/org/orders/{id}/cancel` (`{reason?, refund, initiated_by}`, `refund` default
+`follow_policy`, `initiated_by` default `organiser`) cancels one order. An organiser-initiated cancel
+under `follow_policy` is refunded in full. Only `initiated_by: buyer` applies the event's refund terms
+(`refund_policy`, `refund_cutoff_hours`, `cancellation_fee_type`/`cancellation_fee_value`): `no_refunds`
+keeps the money; inside the cutoff (the event's own `refund_cutoff_hours`, NULL =
+`EVENTS_REFUND_CUTOFF_HOURS`, default 48) it is kept; otherwise the fee is kept (`fixed`: per paid ticket
+cancelled, capped at what those tickets cost; `percent`: a whole percent of the refundable amount left
+on the order) and the rest is refunded in one refund. An organiser who keeps money (`refund: none`, or
+any kept amount) must send a non-empty `reason`, or the cancel answers 422 and changes nothing. A
+partial refund leaves the tickets cancelled and the order `confirmed` with `refunded_minor` below
+`collected_minor`; `cancellation_fee_kept_minor` on the order shows what was kept. The activity row
+records `initiated_by`, `refund_minor` and `fee_minor`. Outlet cash orders cancel only with `none`. Listing read schemas (`ListingDetail`,
+`ManagedListing`) carry the terms, with `refund_cutoff_hours_effective` resolved; `ListingUpsert`
+takes them (omitted keeps the stored value). Once a paid order exists, a stricter change (a
+`no_refunds` policy, a longer cutoff, a higher or new fee, or a fixed/percent switch unless the fee
+becomes 0) is refused with 409; loosening is always allowed.
 `POST /events/org/events/{id}/cancel` (`{confirm, refund}`, default `follow_policy`: paid online
 orders are refunded in full, unpaid holds released) cancels an event. The legacy
-`POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and
-saving a listing as cancelled never moves money. Event cancel reports `orders_refunded`
+`POST /events/manage/{id}/cancel` takes the same optional `refund` (accepted and ignored: an event cancel
+is always refunded in full), and
+saving a listing as cancelled cancels it the same way (every buyer refunded in full). Event cancel reports `orders_refunded`
 (manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`,
 `refunds_failed` and `orders_pending` (an earlier refund of the order is still waiting for the
 payment provider: not failed, not queued again).

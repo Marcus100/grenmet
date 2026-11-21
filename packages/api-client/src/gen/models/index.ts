@@ -3809,6 +3809,20 @@ export type {
   EventsUpdateMyProfileStatus429,
 } from "./EventsUpdateMyProfile.js";
 export type {
+  EventsUpdateOrganiserProfileBody,
+  EventsUpdateOrganiserProfileOptions,
+  EventsUpdateOrganiserProfileQuery,
+  EventsUpdateOrganiserProfileResponse,
+  EventsUpdateOrganiserProfileResponses,
+  EventsUpdateOrganiserProfileStatus200,
+  EventsUpdateOrganiserProfileStatus401,
+  EventsUpdateOrganiserProfileStatus403,
+  EventsUpdateOrganiserProfileStatus404,
+  EventsUpdateOrganiserProfileStatus409,
+  EventsUpdateOrganiserProfileStatus422,
+  EventsUpdateOrganiserProfileStatus429,
+} from "./EventsUpdateOrganiserProfile.js";
+export type {
   EventsUpdateReportBody,
   EventsUpdateReportOptions,
   EventsUpdateReportPath,
@@ -6675,6 +6689,10 @@ export { listingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurren
 export type { ListingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
 export { listingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
 export type { ListingDetail } from "./ListingDetail.js";
+export type { ListingDetailPropertiesCancellationFeeTypeEnum } from "./ListingDetailPropertiesCancellationFeeTypeEnum.js";
+export { listingDetailPropertiesCancellationFeeTypeEnum } from "./ListingDetailPropertiesCancellationFeeTypeEnum.js";
+export type { ListingDetailPropertiesRefundPolicyEnum } from "./ListingDetailPropertiesRefundPolicyEnum.js";
+export { listingDetailPropertiesRefundPolicyEnum } from "./ListingDetailPropertiesRefundPolicyEnum.js";
 export type { ListingUpsert } from "./ListingUpsert.js";
 export type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
 export { listingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
@@ -7476,6 +7494,7 @@ export type { OrganisationUpdate } from "./OrganisationUpdate.js";
 export type { OrganiserCreate } from "./OrganiserCreate.js";
 export type { OrganiserLogoUpdate } from "./OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./OrganiserOption.js";
+export type { OrganiserProfileUpdate } from "./OrganiserProfileUpdate.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OrganiserReview } from "./OrganiserReview.js";
 export type { OrgEventCancel } from "./OrgEventCancel.js";
@@ -7483,6 +7502,8 @@ export type { OrgManualPaymentCreate } from "./OrgManualPaymentCreate.js";
 export type { OrgManualPaymentCreatePropertiesMethodEnum } from "./OrgManualPaymentCreatePropertiesMethodEnum.js";
 export { orgManualPaymentCreatePropertiesMethodEnum } from "./OrgManualPaymentCreatePropertiesMethodEnum.js";
 export type { OrgOrderCancel } from "./OrgOrderCancel.js";
+export type { OrgOrderCancelPropertiesInitiatedByEnum } from "./OrgOrderCancelPropertiesInitiatedByEnum.js";
+export { orgOrderCancelPropertiesInitiatedByEnum } from "./OrgOrderCancelPropertiesInitiatedByEnum.js";
 export type { OrgOrderCancelResult } from "./OrgOrderCancelResult.js";
 export type { OrgOrderCancelResultPropertiesRefundOutcomeEnum } from "./OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";
 export { orgOrderCancelResultPropertiesRefundOutcomeEnum } from "./OrgOrderCancelResultPropertiesRefundOutcomeEnum.js";

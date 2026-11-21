@@ -1,0 +1,109 @@
+# Codex command rules for this machine (owner decision 21 Nov 2026):
+# automate as much as possible, stop only at the edges.
+# Source: scripts/agents/settings/default.rules in the grenmet repository.
+# `uv run scripts/agents/settings/apply.py` copies it to
+# ~/.codex/rules/default.rules and fills in {{HOME}}; edit the source, not the copy.
+# scripts/guardrails/agent-settings-parity.test.mjs keeps the dangerous commands
+# here in step with the deny list in .claude/settings.json.
+# When several rules match, the strictest decision wins
+# (forbidden > prompt > allow).
+
+# --- Everyday work: allowed --------------------------------------------------
+prefix_rule(pattern=["pnpm"], decision="allow")
+prefix_rule(pattern=["npx"], decision="allow")
+prefix_rule(pattern=["node"], decision="allow")
+prefix_rule(pattern=["turbo"], decision="allow")
+prefix_rule(pattern=["uv"], decision="allow")
+prefix_rule(pattern=["python3"], decision="allow")
+prefix_rule(pattern=["pytest"], decision="allow")
+prefix_rule(pattern=["heavy"], decision="allow")
+prefix_rule(pattern=["{{HOME}}/.local/bin/heavy"], decision="allow")
+prefix_rule(pattern=["rg"], decision="allow")
+prefix_rule(pattern=["grep"], decision="allow")
+prefix_rule(pattern=["cat"], decision="allow")
+prefix_rule(pattern=["sed"], decision="allow")
+prefix_rule(pattern=["head"], decision="allow")
+prefix_rule(pattern=["tail"], decision="allow")
+prefix_rule(pattern=["ls"], decision="allow")
+prefix_rule(pattern=["find"], decision="allow")
+prefix_rule(pattern=["wc"], decision="allow")
+prefix_rule(pattern=["pwd"], decision="allow")
+prefix_rule(pattern=["command", "-v"], decision="allow")
+prefix_rule(pattern=["ps"], decision="allow")
+prefix_rule(pattern=["free"], decision="allow")
+prefix_rule(pattern=["df"], decision="allow")
+prefix_rule(pattern=["docker", "ps"], decision="allow")
+prefix_rule(pattern=["docker", "logs"], decision="allow")
+prefix_rule(pattern=["docker", "compose", "ps"], decision="allow")
+prefix_rule(pattern=["docker", "compose", "logs"], decision="allow")
+
+# Git: local work and task-branch pushes are free.
+prefix_rule(pattern=["git"], decision="allow")
+# GitHub CLI: PRs (merges into dev are policed by block-dangerous-git.mjs),
+# issues, runs and reads are free.
+prefix_rule(pattern=["gh", "pr"], decision="allow")
+prefix_rule(pattern=["gh", "issue"], decision="allow")
+prefix_rule(pattern=["gh", "run"], decision="allow")
+prefix_rule(pattern=["gh", "repo", "view"], decision="allow")
+prefix_rule(pattern=["gh", "release", "list"], decision="allow")
+prefix_rule(pattern=["gh", "release", "view"], decision="allow")
+prefix_rule(pattern=["gh", "variable", "list"], decision="allow")
+prefix_rule(pattern=["gh", "variable", "get"], decision="allow")
+
+# --- The edges: ask the owner -------------------------------------------------
+# curl can send repository or session data anywhere, so it asks.
+prefix_rule(pattern=["curl"], decision="prompt")
+prefix_rule(pattern=["wget"], decision="prompt")
+# Retargeting a PR: only the leading form can be matched here; the shared hook
+# (.claude/hooks/block-dangerous-git.mjs) refuses `gh pr edit <n> --base` too.
+prefix_rule(pattern=["gh", "pr", "edit", ["--base", "-B"]], decision="prompt")
+prefix_rule(pattern=["gh", "run", "delete"], decision="prompt")
+prefix_rule(pattern=["gh", "run", "cancel"], decision="prompt")
+prefix_rule(pattern=["gh", "api"], decision="prompt")
+prefix_rule(pattern=["gh", "release", "create"], decision="prompt")
+prefix_rule(pattern=["gh", "variable", "set"], decision="prompt")
+prefix_rule(pattern=["gh", "secret"], decision="prompt")
+prefix_rule(pattern=["gh", "workflow", "run"], decision="prompt")
+prefix_rule(pattern=["gh", "issue", "delete"], decision="prompt")
+prefix_rule(pattern=["git", "push", "origin", "dev"], decision="prompt")
+prefix_rule(pattern=["git", "push", "origin", "staging"], decision="prompt")
+prefix_rule(pattern=["git", "push", "origin", "main"], decision="prompt")
+prefix_rule(pattern=["git", "push", "origin", "HEAD:dev"], decision="prompt")
+prefix_rule(pattern=["git", "push", "origin", "HEAD:staging"], decision="prompt")
+prefix_rule(pattern=["git", "push", "origin", "HEAD:main"], decision="prompt")
+prefix_rule(pattern=["git", "push", "-u", "origin", "dev"], decision="prompt")
+prefix_rule(pattern=["git", "push", "-u", "origin", "staging"], decision="prompt")
+prefix_rule(pattern=["git", "push", "-u", "origin", "main"], decision="prompt")
+prefix_rule(pattern=["git", "push", "--tags"], decision="prompt")
+prefix_rule(pattern=["git", "push", "origin", "--tags"], decision="prompt")
+prefix_rule(pattern=["git", "push", "origin", "--delete"], decision="prompt")
+prefix_rule(pattern=["rm", "-rf"], decision="prompt")
+prefix_rule(pattern=["docker", "volume", "rm"], decision="prompt")
+prefix_rule(pattern=["docker", "system", "prune"], decision="prompt")
+
+# --- Never --------------------------------------------------------------------
+prefix_rule(pattern=["gh", "repo", "delete"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "--force"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "-f"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "origin", "--force"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "origin", "-f"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "--force-with-lease"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "origin", "--force-with-lease"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "--force-if-includes"], decision="forbidden")
+# `git push origin +branch` forces too, but prefix rules match whole words and
+# cannot see a leading `+`; the shared hook refuses it.
+prefix_rule(pattern=["git", "branch", "-D"], decision="forbidden")
+prefix_rule(pattern=["git", "filter-branch"], decision="forbidden")
+prefix_rule(pattern=["git", "filter-repo"], decision="forbidden")
+prefix_rule(pattern=["git", "stash", "clear"], decision="forbidden")
+# `gh pr merge <n> --admin` puts the flag mid-line; this matches the leading
+# form and the shared hook refuses every other.
+prefix_rule(pattern=["gh", "pr", "merge", "--admin"], decision="forbidden")
+prefix_rule(pattern=["git", "reset", "--hard"], decision="forbidden")
+prefix_rule(pattern=["git", "clean", "-f"], decision="forbidden")
+prefix_rule(pattern=["git", "clean", "-fd"], decision="forbidden")
+prefix_rule(pattern=["git", "clean", "-fx"], decision="forbidden")
+prefix_rule(pattern=["git", "clean", "-fdx"], decision="forbidden")
+prefix_rule(pattern=["git", "clean", "-xf"], decision="forbidden")
+prefix_rule(pattern=["git", "clean", "-xfd"], decision="forbidden")
+prefix_rule(pattern=["git", "clean", "--force"], decision="forbidden")

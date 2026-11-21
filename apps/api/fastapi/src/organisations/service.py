@@ -208,13 +208,13 @@ async def add_member(
     invited_by_user_id: uuid.UUID | None = None,
     skip_email_check: bool = False,
 ) -> Membership:
+    # The account lock comes before any roster lock and before the insert, so account
+    # deletion cannot miss this membership (#1523). Every caller inherits it.
+    user = await grants.lock_user(session, user_id)
     # ADR-0018: owning or administering an organisation needs a verified email.
     # Callers that must stay exempt pass skip_email_check=True with a comment
     # and are listed in src/auth/AGENTS.md.
     if not skip_email_check and role in (MembershipRole.OWNER, MembershipRole.ADMIN):
-        user = await session.get(User, user_id)
-        if user is None:
-            raise AppException("User not found", 404)
         await require_verified_or_admin_activated(
             session, user, f"become an organisation {role.value}"
         )

@@ -13,6 +13,7 @@ import { getManagedOrganiser } from "@/data/events-api";
 import { resolveOrgContext } from "@/data/org-context";
 import { getOrgOrder } from "@/data/org-orders";
 import { requireViewer } from "@/data/viewer";
+import { shellEventOf } from "@/lib/dash-navigation";
 
 /** An order is live money state; never prerender it. */
 export const dynamic = "force-dynamic";
@@ -25,7 +26,7 @@ export default async function OrderPage({
   params: Promise<{ id: string; orderId: string }>;
 }) {
   const { id, orderId } = await params;
-  await requireViewer(`/dash/events/${id}/orders/${orderId}`);
+  const viewer = await requireViewer(`/dash/events/${id}/orders/${orderId}`);
   const managed = await getManagedOrganiser();
   if (!managed) {
     return <NoOrganiserAccess />;
@@ -54,11 +55,12 @@ export default async function OrderPage({
 
   return (
     <DashShell
-      active="events"
+      active="orders"
       currentOrganiser={managed.organiser.slug}
+      event={shellEventOf(event)}
       eventName={event.title}
-      isDemo={false}
       organisers={managed.organisers}
+      viewerName={viewer.name}
     >
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
@@ -75,7 +77,7 @@ export default async function OrderPage({
         {order ? (
           <>
             <OrderDetail order={order} />
-            <OrderActions order={order} />
+            <OrderActions order={order} refundTerms={event.refundTerms} />
           </>
         ) : (
           fallback
