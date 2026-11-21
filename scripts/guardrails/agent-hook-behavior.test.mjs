@@ -33,7 +33,11 @@ import {
 } from "../../.claude/hooks/audit-log.mjs";
 import {
   findBlockedPattern,
+  lookupMergeBase,
+  lookupMergeBody,
   lookupMergeFiles,
+  lookupPushTargets,
+  missingReviewLines,
 } from "../../.claude/hooks/block-dangerous-git.mjs";
 import { isInsideRepo } from "../../.claude/hooks/format-changed-file.mjs";
 import { mainCheckoutRoot } from "../../.claude/hooks/main-checkout.mjs";
@@ -57,16 +61,40 @@ import {
 } from "../../scripts/verification/receipt.mjs";
 
 const BLOCKED_MESSAGE = /BLOCKED/u;
-const baseIs = (base, files = ["apps/web/docs/page.tsx"]) => ({
+const baseIs = (base, files = ["apps/web/docs/page.tsx"], body = "") => ({
   lookupBase: () => base,
   lookupFiles: () => files,
+  lookupBody: () => body,
 });
+// The branch a push would start from; tests never ask the real checkout.
+const onBranch = (head, bare = [head]) => ({
+  lookupTargets: () => ({ head, bare: bare.filter(Boolean) }),
+});
+const TASK_BRANCH = onBranch("feat/task");
+const HEAD_SHA = "0123456789abcdef0123456789abcdef01234567";
+const OTHER_SHA = "fedcba9876543210fedcba9876543210fedcba98";
+const securityLine = (sha = HEAD_SHA, reviewer = "security-reviewer") =>
+  `Security review: no open findings (${reviewer}, ${sha})`;
+const codexLine = (sha = HEAD_SHA) =>
+  `Codex review: no blocking findings (${sha})`;
+const bothLines = (sha = HEAD_SHA) => `${securityLine(sha)}\n${codexLine(sha)}`;
+const NO_REVIEW_LINES = /without both review lines/u;
+const NEEDS_SECURITY_LINE = /needs: Security review: no open findings/u;
+const NEEDS_CODEX_LINE = /needs: Codex review: no blocking findings/u;
+const NEEDS_BOTH_LINES =
+  /needs: Security review: no open findings .* and Codex review: no blocking findings/u;
+const SHORT_SHA = /short sha/u;
+const UNKNOWN_BODY = /unknown PR body/u;
+const NEVER_PUSH = /agents never push dev, staging or main/u;
+const OWNER_TAGS = /owner publishes tags/u;
+const OWNER_DELETES = /owner deletes/u;
+const HIDDEN_DESTINATION = /hides the destination/u;
+const EVERY_BRANCH = /every branch/u;
 const OWNER_MERGES_STAGING = /owner merges staging/u;
 const OTHER_REPO = /only marcus100\/grenmet/u;
 const GH_REPO_SET = /GH_REPO/u;
 const RETARGETS = /retargets/u;
 const API_MERGE = /gh api merge/u;
-const OWNER_ONLY_FILE = /owner merges changes to agent limits/u;
 const UNKNOWN_FILES = /unknown file list/u;
 const MAIN_BASE = /main/u;
 const UNKNOWN_BASE = /unknown base/u;
@@ -114,13 +142,19 @@ test("block-dangerous-git: does not flag dangerous phrases inside quoted strings
 test("block-dangerous-git: still blocks the real, unquoted commands", () => {
   assert.equal(findBlockedPattern("git commit -m fix"), undefined);
   assert.equal(findBlockedPattern('git commit -m "fix bug"'), undefined);
-  assert.equal(findBlockedPattern("git push origin dev"), undefined);
+  assert.equal(
+    findBlockedPattern("git push origin feat/task", TASK_BRANCH),
+    undefined
+  );
   assert.ok(findBlockedPattern("git push --force"));
   assert.ok(findBlockedPattern("git reset --hard HEAD~1"));
   assert.ok(findBlockedPattern("git clean -fd"));
   assert.ok(findBlockedPattern("git branch -D feature-x"));
   assert.ok(findBlockedPattern("gh pr merge 42", baseIs("main")));
-  assert.equal(findBlockedPattern("npm test && git push"), undefined);
+  assert.equal(
+    findBlockedPattern("npm test && git push", TASK_BRANCH),
+    undefined
+  );
 });
 
 test("block-dangerous-git: blocks force and discard variants that slipped past the old patterns", () => {
@@ -167,7 +201,7 @@ test("block-dangerous-git: treats heredoc text as text unless a shell runs it", 
 
 test("block-dangerous-git: allows the safe neighbours of blocked commands", () => {
   for (const command of [
-    "git push -u origin dev",
+    "git push -u origin feat/task",
     "git push && rm -f build.log",
     "git restore --staged .",
     "git restore src/app.ts",
@@ -251,10 +285,24 @@ test("block-dangerous-git: a quoted or indirect merge is checked like a plain on
   // The PR named after a flag must be read as the PR, not as that flag's value.
   assert.ok(findBlockedPattern(`gh pr merge --body "x" 5 ${sha}`, main));
   assert.ok(findBlockedPattern(`gh pr merge -b"x" 5 ${sha}`, main));
-  // The owner-only file check still applies to a quoted command.
+  // The safety-file check still applies to a quoted command.
   assert.match(
     String(findBlockedPattern(`gh pr "merge" 123 ${sha}`, dev)),
-    OWNER_ONLY_FILE
+    SHORT_SHA
+  );
+  assert.match(
+    String(
+      findBlockedPattern(
+        `gh pr "merge" 123 --merge --match-head-commit ${HEAD_SHA}`,
+        dev
+      )
+    ),
+    NO_REVIEW_LINES
+  );
+  // The machine's memory guard in front does not hide the merge.
+  assert.ok(findBlockedPattern(`heavy gh pr merge 123 ${sha}`, main));
+  assert.ok(
+    findBlockedPattern(`~/.local/bin/heavy gh pr merge 123 ${sha}`, main)
   );
   // Only the exact shape is accepted: merge method, auto-merge, no pinned head.
   for (const command of [
@@ -392,33 +440,311 @@ test("block-dangerous-git: no retargeting the base, no other merge routes", () =
   );
 });
 
-test("block-dangerous-git: the owner merges changes to the files that limit the agents", () => {
-  const merge = "gh pr merge 42 --merge --match-head-commit abc1234";
-  for (const file of [
-    ".claude/hooks/block-dangerous-git.mjs",
-    ".claude/settings.json",
-    ".claude/skills/commit/SKILL.md",
-    ".claude/commands/new.md",
-    ".codex/config.toml",
-    ".agents/rules/project.md",
-    ".husky/pre-push",
-    "AGENTS.md",
-    "scripts/guardrails/agent-policy.test.mjs",
-    "scripts/verification/changed.mjs",
-    "package.json",
-    "docs/agents/routines.md",
-    ".github/workflows/deploy.yml",
-    ".github/actions/setup/action.yml",
-    ".github/dependabot.yml",
-    ".github/CODEOWNERS",
-    "infra/github/rulesets.json",
-  ]) {
-    assert.match(
-      String(findBlockedPattern(merge, baseIs("dev", ["README.md", file]))),
-      OWNER_ONLY_FILE,
+const SAFETY_FILES = [
+  ".claude/hooks/block-dangerous-git.mjs",
+  ".claude/settings.json",
+  ".claude/skills/commit/SKILL.md",
+  ".claude/commands/new.md",
+  ".codex/config.toml",
+  ".agents/rules/project.md",
+  ".husky/pre-push",
+  "AGENTS.md",
+  "scripts/guardrails/agent-policy.test.mjs",
+  "scripts/verification/changed.mjs",
+  "scripts/agents/settings/default.rules",
+  "package.json",
+  "docs/agents/routines.md",
+  ".github/workflows/deploy.yml",
+  ".github/actions/setup/action.yml",
+  ".github/dependabot.yml",
+  ".github/CODEOWNERS",
+  "infra/github/rulesets.json",
+];
+
+test("block-dangerous-git: a safety-file PR merges into dev only with both review lines for its head", () => {
+  const merge = `gh pr merge 42 --merge --match-head-commit ${HEAD_SHA}`;
+  const body = `## Summary\n\nTightens the hook.\n\n${bothLines()}\n`;
+  const blocked = (files, text, base = "dev") =>
+    String(findBlockedPattern(merge, baseIs(base, files, text)));
+  for (const file of SAFETY_FILES) {
+    const files = ["README.md", file];
+    // Allowed: both lines name the head being merged.
+    assert.equal(
+      findBlockedPattern(merge, baseIs("dev", files, body)),
+      undefined,
       file
     );
+    // Refused: no line at all.
+    assert.match(blocked(files, "## Summary"), NEEDS_BOTH_LINES, file);
+    // Refused: only one of the two reviews is recorded.
+    assert.match(blocked(files, securityLine()), NEEDS_CODEX_LINE, file);
+    assert.match(blocked(files, codexLine()), NEEDS_SECURITY_LINE, file);
+    // Refused: a line was written for an earlier head.
+    assert.match(blocked(files, bothLines(OTHER_SHA)), NEEDS_BOTH_LINES, file);
+    assert.match(
+      blocked(files, `${securityLine()}\n${codexLine(OTHER_SHA)}`),
+      NEEDS_CODEX_LINE,
+      file
+    );
+    assert.match(
+      blocked(files, `${securityLine(OTHER_SHA)}\n${codexLine()}`),
+      NEEDS_SECURITY_LINE,
+      file
+    );
+    // Refused for staging and main, with or without the lines.
+    for (const base of ["staging", "main"]) {
+      assert.match(
+        blocked(files, body, base),
+        OWNER_MERGES_STAGING,
+        `${file} into ${base}`
+      );
+    }
   }
+});
+
+test("block-dangerous-git: each review line is exact and bound to the full head sha", () => {
+  const files = [".github/workflows/ci.yml"];
+  const merge = `gh pr merge 42 --merge --match-head-commit ${HEAD_SHA}`;
+  const blocked = (body, command = merge) =>
+    String(findBlockedPattern(command, baseIs("dev", files, body)));
+  // Windows line endings, surrounding space, an upper-case sha, either order
+  // and stale lines beside the current ones still count.
+  for (const body of [
+    bothLines(),
+    `${codexLine()}\n${securityLine()}`,
+    `intro\r\n${securityLine()}\r\n\r\n${codexLine()}\r\noutro`,
+    `  ${securityLine(HEAD_SHA.toUpperCase())}  \n\t${codexLine(HEAD_SHA.toUpperCase())}`,
+    `${securityLine(HEAD_SHA, "Claude security-reviewer")}\n${codexLine()}`,
+    `${bothLines(OTHER_SHA)}\n${bothLines()}`,
+  ]) {
+    assert.equal(
+      findBlockedPattern(merge, baseIs("dev", files, body)),
+      undefined,
+      body
+    );
+  }
+  // A security line that is not exactly the line, beside a good Codex line.
+  for (const line of [
+    "",
+    "Security review: no open findings",
+    `Security review: no open findings (${HEAD_SHA})`,
+    `Security review: no open findings (, ${HEAD_SHA})`,
+    `Security review: no open findings (security-reviewer, ${HEAD_SHA.slice(0, 12)})`,
+    `Security review: 2 open findings (security-reviewer, ${HEAD_SHA})`,
+    `Security review: pending, then no open findings (security-reviewer, ${HEAD_SHA})`,
+    `> ${securityLine()}`,
+    `- [ ] ${securityLine()}`,
+    `${securityLine()} (to be confirmed)`,
+    `Not yet: ${securityLine()}`,
+  ]) {
+    assert.match(blocked(`${line}\n${codexLine()}`), NEEDS_SECURITY_LINE, line);
+  }
+  // A Codex line that is not exactly the line, beside a good security line.
+  for (const line of [
+    "",
+    "Codex review: no blocking findings",
+    `Codex review: no blocking findings (${HEAD_SHA.slice(0, 12)})`,
+    `Codex review: no blocking findings (codex, ${HEAD_SHA})`,
+    `Codex review: 1 blocking finding (${HEAD_SHA})`,
+    `Codex review: requested, no blocking findings (${HEAD_SHA})`,
+    `> ${codexLine()}`,
+    `${codexLine()} pending`,
+    `Waiting for ${codexLine()}`,
+  ]) {
+    assert.match(blocked(`${securityLine()}\n${line}`), NEEDS_CODEX_LINE, line);
+  }
+  // The two lines on one line are neither line.
+  assert.match(blocked(`${securityLine()} ${codexLine()}`), NEEDS_BOTH_LINES);
+  // A short sha cannot be matched against the lines, even ones that repeat it.
+  const short = HEAD_SHA.slice(0, 7);
+  assert.match(
+    blocked(
+      bothLines(short),
+      `gh pr merge 42 --merge --match-head-commit ${short}`
+    ),
+    SHORT_SHA
+  );
+  // The lines must name the sha in the command, which GitHub checks is the head.
+  assert.match(
+    blocked(
+      bothLines(),
+      `gh pr merge 42 --merge --match-head-commit ${OTHER_SHA}`
+    ),
+    NEEDS_BOTH_LINES
+  );
+  // Fails closed when GitHub cannot return the body.
+  assert.match(
+    String(
+      findBlockedPattern(merge, {
+        lookupBase: () => "dev",
+        lookupFiles: () => files,
+        lookupBody: () => null,
+      })
+    ),
+    UNKNOWN_BODY
+  );
+  // --admin and the other refused shapes stay refused with both lines.
+  for (const command of [
+    `${merge} --admin`,
+    `${merge} --auto`,
+    `gh pr merge 42 --squash --match-head-commit ${HEAD_SHA}`,
+    `GH_REPO=other/repo ${merge}`,
+    `gh pr merge 42 --repo other/repo --merge --match-head-commit ${HEAD_SHA}`,
+  ]) {
+    assert.ok(
+      findBlockedPattern(command, baseIs("dev", files, bothLines())),
+      command
+    );
+  }
+  assert.deepEqual(missingReviewLines(bothLines(), HEAD_SHA), []);
+  assert.deepEqual(missingReviewLines(securityLine(), HEAD_SHA), [codexLine()]);
+  assert.deepEqual(missingReviewLines(codexLine(), HEAD_SHA), [securityLine()]);
+  assert.equal(missingReviewLines(bothLines(), undefined).length, 2);
+  assert.equal(missingReviewLines(null, HEAD_SHA).length, 2);
+});
+
+test("block-dangerous-git: looks up the PR body for the PR and repo named", () => {
+  const calls = [];
+  const spawn = (command, args) => {
+    calls.push([command, ...args]);
+    return { status: 0, stdout: `${bothLines()}\n` };
+  };
+  assert.equal(
+    lookupMergeBody(["42", "--repo", "Marcus100/grenmet"], spawn),
+    `${bothLines()}\n`
+  );
+  assert.deepEqual(calls, [
+    ["gh", "api", "repos/Marcus100/grenmet/pulls/42", "--jq", '.body // ""'],
+  ]);
+  assert.equal(
+    lookupMergeBody(["42"], () => ({ status: 1, stdout: "" })),
+    null
+  );
+  // The base is read the same way: REST works where `gh pr view` does not.
+  const baseCalls = [];
+  assert.equal(
+    lookupMergeBase(["42"], (command, args) => {
+      baseCalls.push([command, ...args]);
+      return { status: 0, stdout: "dev\n" };
+    }),
+    "dev"
+  );
+  assert.deepEqual(baseCalls, [
+    ["gh", "api", "repos/{owner}/{repo}/pulls/42", "--jq", ".base.ref"],
+  ]);
+  assert.equal(
+    lookupMergeBase(["42"], () => ({ status: 1, stdout: "" })),
+    null
+  );
+  assert.equal(
+    lookupMergeBase(["42"], () => ({ status: 0, stdout: "\n" })),
+    null
+  );
+  // The body is only fetched for a PR that changes a safety file.
+  let asked = 0;
+  findBlockedPattern("gh pr merge 42 --merge --match-head-commit abc1234", {
+    lookupBase: () => "dev",
+    lookupFiles: () => ["docs/env.md"],
+    lookupBody: () => {
+      asked++;
+      return "";
+    },
+  });
+  assert.equal(asked, 0);
+});
+
+test("block-dangerous-git: the REST merge meets the same rules as gh pr merge", () => {
+  const route = "repos/Marcus100/grenmet/pulls/42/merge";
+  const merge = `gh api -X PUT ${route} -f sha=${HEAD_SHA} -f merge_method=merge`;
+  const safety = [".claude/settings.json"];
+  // Allowed: base dev, pinned to the full head sha, ordinary files.
+  for (const command of [
+    merge,
+    `gh api --method PUT ${route} -f merge_method=merge -f sha=${HEAD_SHA}`,
+    `gh api --method=PUT /${route} --field sha=${HEAD_SHA} --raw-field merge_method=merge --jq .merged`,
+    `gh api -X PUT "${route}" -f "sha=${HEAD_SHA}" -f merge_method=merge --silent`,
+    `${merge} > merge.json`,
+    `heavy ${merge}`,
+  ]) {
+    assert.equal(
+      findBlockedPattern(command, baseIs("dev")),
+      undefined,
+      command
+    );
+  }
+  // Refused: any base other than dev.
+  for (const base of ["staging", "main", null]) {
+    assert.ok(findBlockedPattern(merge, baseIs(base)), String(base));
+  }
+  assert.match(
+    String(findBlockedPattern(merge, baseIs("staging"))),
+    OWNER_MERGES_STAGING
+  );
+  // Safety files: both review lines for the head, or no merge.
+  assert.equal(
+    findBlockedPattern(merge, baseIs("dev", safety, bothLines())),
+    undefined
+  );
+  assert.match(
+    String(findBlockedPattern(merge, baseIs("dev", safety, securityLine()))),
+    NEEDS_CODEX_LINE
+  );
+  assert.match(
+    String(findBlockedPattern(merge, baseIs("dev", safety, codexLine()))),
+    NEEDS_SECURITY_LINE
+  );
+  assert.match(
+    String(
+      findBlockedPattern(merge, baseIs("dev", safety, bothLines(OTHER_SHA)))
+    ),
+    NEEDS_BOTH_LINES
+  );
+  for (const base of ["staging", "main"]) {
+    assert.match(
+      String(findBlockedPattern(merge, baseIs(base, safety, bothLines()))),
+      OWNER_MERGES_STAGING
+    );
+  }
+  assert.match(
+    String(
+      findBlockedPattern(merge, {
+        lookupBase: () => "dev",
+        lookupFiles: () => null,
+        lookupBody: () => bothLines(),
+      })
+    ),
+    UNKNOWN_FILES
+  );
+  // Refused: every other shape of the request.
+  for (const command of [
+    `gh api -X PUT ${route}`,
+    `gh api -X PUT ${route} -f merge_method=merge`,
+    `gh api -X PUT ${route} -f sha=${HEAD_SHA.slice(0, 7)} -f merge_method=merge`,
+    `gh api -X PUT ${route} -f sha=${HEAD_SHA}`,
+    `gh api -X PUT ${route} -f sha=${HEAD_SHA} -f merge_method=squash`,
+    `gh api -X PUT ${route} -f sha=${HEAD_SHA} -f merge_method=merge -f merge_method=squash`,
+    `gh api -X PUT ${route} -f sha=${HEAD_SHA} -f merge_method=merge -f commit_title=x`,
+    `gh api -X PUT ${route} -f sha=${HEAD_SHA} -f merge_method=merge --input body.json`,
+    `gh api -X PUT ${route} -f sha=${HEAD_SHA} -f merge_method=merge -H "X-Other: 1"`,
+    `gh api -X POST ${route} -f sha=${HEAD_SHA} -f merge_method=merge`,
+    `gh api ${route} -f sha=${HEAD_SHA} -f merge_method=merge`,
+    `gh api -X PUT repos/other/repo/pulls/42/merge -f sha=${HEAD_SHA} -f merge_method=merge`,
+    `gh api -X PUT repos/Marcus100/grenmet/pulls/42/%6Derge -f sha=${HEAD_SHA}`,
+    `gh api -X PUT repos/Marcus100/grenmet/pulls/42/merge/../../43/merge -f sha=${HEAD_SHA} -f merge_method=merge`,
+    `GH_REPO=other/repo ${merge}`,
+    `GH_HOST=example.com ${merge}`,
+    `cd ../other && ${merge}`,
+    `${merge} && gh api -X PUT repos/Marcus100/grenmet/pulls/43/merge`,
+    `${merge}; somewrapper gh api -X PUT repos/Marcus100/grenmet/pulls/43/merge`,
+    "gh api -X PUT repos/Marcus100/grenmet/pulls/42/update-branch-merge",
+    "gh api repos/Marcus100/grenmet/merges -f base=dev -f head=feat/x",
+  ]) {
+    assert.ok(findBlockedPattern(command, baseIs("dev")), command);
+  }
+});
+
+test("block-dangerous-git: ordinary PRs merge into dev without review lines", () => {
+  const merge = "gh pr merge 42 --merge --match-head-commit abc1234";
   assert.equal(
     findBlockedPattern(
       merge,
@@ -444,6 +770,7 @@ test("block-dangerous-git: the owner merges changes to the files that limit the 
       findBlockedPattern(merge, {
         lookupBase: () => "dev",
         lookupFiles: () => null,
+        lookupBody: () => bothLines(),
       })
     ),
     UNKNOWN_FILES
@@ -534,6 +861,200 @@ test("block-dangerous-git: looks up the merge base for the PR and repo named", (
     }
   );
   assert.deepEqual(seen, [["42", "--repo", "Marcus100/grenmet"]]);
+});
+
+test("block-dangerous-git: never pushes dev, staging or main", () => {
+  for (const branch of ["dev", "staging", "main"]) {
+    for (const command of [
+      `git push origin ${branch}`,
+      `git push -u origin ${branch}`,
+      `git push --set-upstream origin ${branch}`,
+      `git push origin HEAD:${branch}`,
+      `git push origin feat/task:${branch}`,
+      `git push origin feat/task:refs/heads/${branch}`,
+      `git push origin refs/heads/${branch}`,
+      `git push origin ${branch}:${branch}`,
+      `git push origin feat/task ${branch}`,
+      `git push origin "${branch}"`,
+      `git push --no-verify origin ${branch}`,
+      `git push -o ci.skip origin ${branch}`,
+      `git -C ../grenmet push origin ${branch}`,
+      `git -c push.default=current push origin ${branch}`,
+      `heavy git push origin ${branch}`,
+      `~/.local/bin/heavy git push origin ${branch}`,
+      `env GIT_TRACE=1 git push origin ${branch}`,
+      `bash -c "git push origin ${branch}"`,
+      `pnpm test && git push origin ${branch}`,
+      `git push origin ${branch} 2>&1 | tail -5`,
+      `echo $(git push origin ${branch})`,
+    ]) {
+      assert.match(
+        String(findBlockedPattern(command, TASK_BRANCH)),
+        NEVER_PUSH,
+        command
+      );
+    }
+    // A push with no branch named goes to the branch checked out.
+    for (const command of [
+      "git push",
+      "git push origin",
+      "git push -u origin",
+      "git push origin HEAD",
+      "git push -u origin HEAD",
+      "git push origin @",
+      "npm test && git push",
+    ]) {
+      assert.match(
+        String(findBlockedPattern(command, onBranch(branch))),
+        NEVER_PUSH,
+        `${command} on ${branch}`
+      );
+    }
+    // push.default=upstream: a task branch that tracks the protected branch.
+    const tracking = onBranch("feat/task", ["feat/task", branch]);
+    assert.match(String(findBlockedPattern("git push", tracking)), NEVER_PUSH);
+    // Naming HEAD pushes the branch under its own name, not to its upstream.
+    assert.equal(
+      findBlockedPattern("git push origin HEAD", tracking),
+      undefined
+    );
+  }
+  // A destination the hook cannot read is refused, not guessed.
+  for (const command of [
+    "git push origin $BRANCH",
+    'git push origin "$BRANCH"',
+    "git push origin HEAD:$TARGET",
+    "git push origin $(echo dev)",
+    "git push origin `echo dev`",
+    "git push origin 'refs/heads/*:refs/heads/*'",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(command, TASK_BRANCH)),
+      HIDDEN_DESTINATION,
+      command
+    );
+  }
+  assert.match(
+    String(findBlockedPattern("git push --all origin", TASK_BRANCH)),
+    EVERY_BRANCH
+  );
+});
+
+test("block-dangerous-git: never pushes tags or deletes remote branches", () => {
+  for (const command of [
+    "git push --tags",
+    "git push origin --tags",
+    "git push --follow-tags origin feat/task",
+    "git push --mirror",
+    "git push origin refs/tags/v1.5.0",
+    "git push origin v1.5.0:refs/tags/v1.5.0",
+    "git push origin tag v1.5.0",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(command, TASK_BRANCH)),
+      OWNER_TAGS,
+      command
+    );
+  }
+  for (const command of [
+    "git push origin --delete feat/old",
+    "git push --delete origin feat/old",
+    "git push -d origin feat/old",
+    "git push origin :feat/old",
+    "git push origin :refs/tags/v1.5.0",
+    "git push --prune origin",
+  ]) {
+    assert.match(
+      String(findBlockedPattern(command, TASK_BRANCH)),
+      OWNER_DELETES,
+      command
+    );
+  }
+});
+
+test("block-dangerous-git: task-branch pushes stay allowed", () => {
+  for (const command of [
+    "git push",
+    "git push origin",
+    "git push origin HEAD",
+    "git push -u origin HEAD",
+    "git push -u origin feat/task",
+    "git push --set-upstream origin chore/factory-autonomy",
+    "git push origin feat/task:feat/task",
+    "git push origin HEAD:refs/heads/feat/task",
+    "git push origin dev:feat/from-dev",
+    "git push origin dev-tools",
+    "git push origin feat/main",
+    "git push origin fix/staging-banner",
+    "git push --dry-run origin feat/task",
+    "git push --no-verify origin feat/task",
+    "git push -o ci.skip origin feat/task",
+    "git push origin feat/task 2>&1 | tail -5",
+    "git push origin feat/task > push.log",
+    "heavy git push -u origin feat/task",
+    "pnpm test && git push -u origin feat/task",
+    // Text that only mentions a protected push is not a push.
+    'echo "git push origin dev"',
+    'git commit -m "docs: never run git push origin dev; open a PR"',
+    "git commit -m 'docs: agents stop at\ngit push origin main'",
+    'gh pr comment 5 --body "do not git push --tags"',
+    "git log --oneline origin/dev",
+    "git fetch origin dev",
+    "git pull origin dev",
+  ]) {
+    assert.equal(findBlockedPattern(command, TASK_BRANCH), undefined, command);
+  }
+  // An unknown branch (detached HEAD, not a repository) does not block.
+  assert.equal(findBlockedPattern("git push", onBranch("", [])), undefined);
+});
+
+test("block-dangerous-git: reads the push targets from git, upstream only when pushes go there", () => {
+  const git = (answers) => (command, args) => {
+    assert.equal(command, "git");
+    const key = args.filter((arg) => arg !== "-C" && arg !== "/repo").join(" ");
+    const stdout = answers[key];
+    return stdout === undefined
+      ? { status: 1, stdout: "" }
+      : { status: 0, stdout: `${stdout}\n` };
+  };
+  const upstream = "rev-parse --abbrev-ref --symbolic-full-name @{upstream}";
+  assert.deepEqual(
+    lookupPushTargets(
+      "/repo",
+      git({
+        "symbolic-ref --short -q HEAD": "feat/task",
+        [upstream]: "origin/dev",
+      })
+    ),
+    { head: "feat/task", bare: ["feat/task"] }
+  );
+  assert.deepEqual(
+    lookupPushTargets(
+      "/repo",
+      git({
+        "symbolic-ref --short -q HEAD": "feat/task",
+        "config --get push.default": "upstream",
+        [upstream]: "origin/dev",
+      })
+    ),
+    { head: "feat/task", bare: ["feat/task", "dev"] }
+  );
+  assert.deepEqual(lookupPushTargets(undefined, git({})), {
+    head: "",
+    bare: [],
+  });
+});
+
+test("block-dangerous-git CLI: refuses a protected push and allows a task-branch push", () => {
+  const refused = runHook("block-dangerous-git.mjs", {
+    tool_input: { command: "git push origin HEAD:main" },
+  });
+  assert.equal(refused.status, 2);
+  assert.match(refused.stderr, NEVER_PUSH);
+  const allowed = runHook("block-dangerous-git.mjs", {
+    tool_input: { command: "git push -u origin feat/task" },
+  });
+  assert.equal(allowed.status, 0);
 });
 
 test("block-dangerous-git: still blocks command substitution (not just literal quotes)", () => {

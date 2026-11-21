@@ -49,9 +49,13 @@ const DANGEROUS_PATTERNS = [
   /push\s+--force/,
   new RegExp(`\\bgit\\b${SAME_COMMAND}\\bpush\\b${SAME_COMMAND}\\s-[a-zA-Z]*f\\b`),
   new RegExp(`\\bgit\\b${SAME_COMMAND}\\bpush\\b${SAME_COMMAND}\\s\\+[\\w./-]+`),
-  // Merging through the REST API skips the staging-only rule below.
-  new RegExp(`\\bgh\\s+api\\b${SAME_COMMAND}/pulls/\\d+/merge\\b`),
 ];
+// A REST merge. findBlockedGh checks the one accepted shape; any other
+// occurrence (behind a wrapper the word scan does not know) is blocked.
+const REST_MERGE_ROUTE = new RegExp(
+  `\\bgh\\s+api\\b${SAME_COMMAND}/pulls/\\d+/merge\\b`,
+  "g"
+);
 
 // `git restore .` discards working-tree edits; `git restore --staged .` only
 // unstages, which loses nothing.
@@ -78,9 +82,11 @@ const COMMAND_SUBSTITUTION = /\$\([^)]*\)|`[^`]*`/g;
 
 const ALLOWED_MERGE_BASES = new Set(["dev"]);
 const ALLOWED_REPO = "marcus100/grenmet";
-// These files control agent authority, CI or merge policy; the owner merges
-// PRs that change them, even after independent review.
-const OWNER_ONLY_PATHS = [
+// These files control agent authority, CI or merge policy. An agent may merge
+// a PR that changes them into dev only when the PR body carries both review
+// lines for the exact head being merged: a clean Claude security review and a
+// clean Codex review (owner decision, 21 Nov 2026).
+const SAFETY_PATHS = [
   /^\.claude\//,
   /^\.codex\//,
   /^\.agents\//,
@@ -88,6 +94,7 @@ const OWNER_ONLY_PATHS = [
   /^\.github\//,
   /^infra\/github\//,
   /^scripts\/(?:guardrails|verification)\//,
+  /^scripts\/agents\/settings\//,
   /^package\.json$/,
   /^docs\/agents\/routines\.md$/,
   // Only the root AGENTS.md sets the agents' own rules. Per-area AGENTS.md notes
@@ -95,6 +102,59 @@ const OWNER_ONLY_PATHS = [
   // fresh-context code review (and a security review for risk:high).
   /^AGENTS\.md$/,
 ];
+// The two lines a safety-file PR carries in its body, each alone on its line
+// and each ending in the full head sha:
+//   Security review: no open findings (<reviewer>, <full head sha>)
+//   Codex review: no blocking findings (<full head sha>)
+const REVIEW_LINES = [
+  {
+    name: "Security review",
+    pattern:
+      /^Security review: no open findings \([^(),\s][^(),]*, ([0-9a-f]{40})\)$/i,
+    example: (sha) =>
+      `Security review: no open findings (security-reviewer, ${sha})`,
+  },
+  {
+    name: "Codex review",
+    pattern: /^Codex review: no blocking findings \(([0-9a-f]{40})\)$/i,
+    example: (sha) => `Codex review: no blocking findings (${sha})`,
+  },
+];
+const FULL_SHA = /^[0-9a-f]{40}$/i;
+const REST_MERGE_PATH = /^\/?repos\/([^/\s]+\/[^/\s]+)\/pulls\/(\d+)\/merge\/?$/i;
+const REST_FIELD_FLAGS = new Set(["-f", "-F", "--field", "--raw-field"]);
+// Agents never push to these branches; work lands through a PR into dev.
+const PROTECTED_BRANCHES = new Set(["dev", "staging", "main"]);
+// `git` options that take a separate value, before the subcommand.
+const GIT_OPTIONS_WITH_VALUE = new Set([
+  "-C",
+  "-c",
+  "--git-dir",
+  "--work-tree",
+  "--namespace",
+  "--exec-path",
+  "--config-env",
+]);
+const PUSH_FLAGS_WITH_VALUE = new Set([
+  "--repo",
+  "-o",
+  "--push-option",
+  "--receive-pack",
+  "--exec",
+]);
+// Push flags that publish tags or every branch, or delete remote refs.
+const PUSH_TAG_FLAGS = new Set(["--tags", "--follow-tags", "--mirror"]);
+const PUSH_ALL_FLAGS = new Set(["--all", "--branches"]);
+const PUSH_DELETE_FLAGS = new Set(["--delete", "-d", "--prune"]);
+const SHORT_FLAGS = /^-[a-zA-Z]+$/;
+// A refspec the hook cannot read: a variable or a wildcard.
+const OPAQUE_REFSPEC = /[$*]/;
+const SEPARATORS_IN_QUOTES = /[;&|\n(){}]/g;
+const RUNS_INSIDE_QUOTES = /\$\(|`/;
+// The machine's memory guard prefixes heavy commands (`heavy git push …`).
+const HEAVY_WRAPPER = /(?:^|\/)heavy$/;
+const GIT_LOOKUP_TIMEOUT_MS = 5000;
+const PUSHES_TO_UPSTREAM = /^(?:upstream|tracking)$/;
 // Merge routes other than `gh pr merge`: GraphQL mutations, branch merges and
 // the REST merge endpoint. Tested on text with the quotes removed.
 const API_MERGE_KEYWORDS = /merge/i;
@@ -138,6 +198,7 @@ const COMMAND_WRAPPERS = new Set([
 ]);
 const WRAPPER_NUMBER = /^\d+(?:\.\d+)?[smhd]?$/;
 const GH_COMMAND = /^(?:.*\/)?gh$/;
+const GIT_COMMAND = /^(?:.*\/)?git$/;
 const REDIRECT = /^\d*>>?(?:&\d+|\S*)$/;
 const REDIRECT_WITHOUT_TARGET = /^\d*>>?$/;
 const ENV_ASSIGNMENT = /^\w+=/;
@@ -245,25 +306,27 @@ export function parseMergeTarget(args) {
   return { prRef, repo };
 }
 
-/** Ask GitHub which branch a PR merges into; null when it can't tell. */
-export function lookupMergeBase(args) {
+/**
+ * One field of a PR, read over REST (`gh pr view` needs GraphQL, which the
+ * cloud sandbox blocks); null when GitHub can't say.
+ */
+function lookupPullField(args, jq, spawn) {
   const { prRef, repo } = parseMergeTarget(args);
-  const repoArgs = repo === undefined ? [] : ["--repo", repo];
-  const result = spawnSync(
-    "gh",
-    [
-      "pr",
-      "view",
-      ...(prRef ? [prRef] : []),
-      ...repoArgs,
-      "--json",
-      "baseRefName",
-      "--jq",
-      ".baseRefName",
-    ],
-    { encoding: "utf8", timeout: GH_LOOKUP_TIMEOUT_MS }
-  );
-  return result.status === 0 ? result.stdout.trim() : null;
+  const number = /(\d+)\/?$/.exec(prRef ?? "")?.[1];
+  if (number === undefined) return null;
+  const slug = repo ?? PR_URL.exec(prRef ?? "")?.[1] ?? "{owner}/{repo}";
+  const result = spawn("gh", ["api", `repos/${slug}/pulls/${number}`, "--jq", jq], {
+    encoding: "utf8",
+    timeout: GH_LOOKUP_TIMEOUT_MS,
+  });
+  return result.status === 0 && typeof result.stdout === "string"
+    ? result.stdout
+    : null;
+}
+
+/** Ask GitHub which branch a PR merges into; null when it can't tell. */
+export function lookupMergeBase(args, spawn = spawnSync) {
+  return lookupPullField(args, ".base.ref", spawn)?.trim() || null;
 }
 
 /**
@@ -335,6 +398,59 @@ export function lookupMergeFiles(args, spawn = spawnSync) {
   }
 }
 
+/** Ask GitHub for a PR's description; null when it can't tell. */
+export function lookupMergeBody(args, spawn = spawnSync) {
+  return lookupPullField(args, '.body // ""', spawn);
+}
+
+/**
+ * The review lines a PR body still lacks for this head (empty when both are
+ * there). Each line stands alone, and its sha must equal the
+ * `--match-head-commit` sha. GitHub refuses the merge when that sha is not the
+ * PR head, so a line written for an earlier head stops counting as soon as
+ * anything new is pushed.
+ */
+export function missingReviewLines(body, sha) {
+  if (!(typeof body === "string" && FULL_SHA.test(sha ?? ""))) {
+    return REVIEW_LINES.map((line) => line.example(sha ?? "<full head sha>"));
+  }
+  const lines = body.split(/\r?\n/).map((line) => line.trim());
+  return REVIEW_LINES.filter(
+    ({ pattern }) =>
+      !lines.some(
+        (line) => pattern.exec(line)?.[1].toLowerCase() === sha.toLowerCase()
+      )
+  ).map((line) => line.example(sha));
+}
+
+/**
+ * What a push from `dir` would update: `head` is the branch checked out, and
+ * `bare` lists the branches a `git push` without a refspec could reach (the
+ * branch itself, plus its upstream when push.default sends pushes there).
+ * Empty when git can't say.
+ */
+export function lookupPushTargets(dir, spawn = spawnSync) {
+  const run = (args) => {
+    const result = spawn("git", [...(dir ? ["-C", dir] : []), ...args], {
+      encoding: "utf8",
+      timeout: GIT_LOOKUP_TIMEOUT_MS,
+    });
+    return result.status === 0 ? (result.stdout ?? "").trim() : "";
+  };
+  const head = run(["symbolic-ref", "--short", "-q", "HEAD"]);
+  const bare = [head];
+  if (PUSHES_TO_UPSTREAM.test(run(["config", "--get", "push.default"]))) {
+    const upstream = run([
+      "rev-parse",
+      "--abbrev-ref",
+      "--symbolic-full-name",
+      "@{upstream}",
+    ]);
+    bare.push(upstream.slice(upstream.indexOf("/") + 1));
+  }
+  return { head, bare: bare.filter(Boolean) };
+}
+
 /** A subcommand's words as the shell sees them: quotes and line breaks removed. */
 function shellWords(subcommand) {
   return subcommand
@@ -345,13 +461,17 @@ function shellWords(subcommand) {
     .filter(Boolean);
 }
 
-/** The words after `gh` when this command runs it (also through env, xargs, sudo…). */
-function ghArguments(words) {
+/** The words after `gh` (or `git`) when this command runs it (also through env, xargs, sudo, heavy…). */
+function ghArguments(words, program = GH_COMMAND) {
   let index = 0;
   let wrapped = false;
   while (index < words.length) {
     const word = words[index];
-    if (ENV_ASSIGNMENT.test(word) || COMMAND_WRAPPERS.has(word)) {
+    if (
+      ENV_ASSIGNMENT.test(word) ||
+      COMMAND_WRAPPERS.has(word) ||
+      HEAVY_WRAPPER.test(word)
+    ) {
       wrapped = true;
     } else if (
       !(wrapped && (word.startsWith("-") || WRAPPER_NUMBER.test(word)))
@@ -360,7 +480,7 @@ function ghArguments(words) {
     }
     index++;
   }
-  return GH_COMMAND.test(words[index] ?? "")
+  return program.test(words[index] ?? "")
     ? words.slice(index + 1)
     : undefined;
 }
@@ -429,10 +549,22 @@ function parsePrMerge(words) {
 /**
  * `gh pr merge` is allowed only as the exact shape in parsePrMerge, into dev
  * (AGENTS.md: agents merge their own green, reviewed PRs into dev; the owner
- * merges owner-only files, staging and main), only in this repository. Fails closed: an unknown base or file
- * list blocks.
+ * merges staging and main), only in this repository. A PR that changes a
+ * safety file also needs both review lines for its head. Fails closed:
+ * an unknown base, file list or PR body blocks.
  */
-function findBlockedPrMerge(words, whole, { lookupBase, lookupFiles }) {
+function findBlockedPrMerge(words, whole, lookups) {
+  const hit = findUnsafeMergeContext(whole);
+  if (hit) return hit;
+  const { problem, ref, repo, sha } = parsePrMerge(words);
+  if (problem !== undefined) {
+    return `gh pr merge with '${problem}' (agents may only run: gh pr merge <number> --merge --match-head-commit <sha>)`;
+  }
+  return findBlockedMergeTarget({ ref, repo, sha }, lookups);
+}
+
+/** Things around a merge command that could point it somewhere else. */
+function findUnsafeMergeContext(whole) {
   const text = whole.join(" ");
   if (REPO_ENV.test(text)) {
     return "gh pr merge with GH_REPO set (the merge could hit another repository)";
@@ -443,10 +575,18 @@ function findBlockedPrMerge(words, whole, { lookupBase, lookupFiles }) {
   if (CHANGES_DIRECTORY.test(text)) {
     return "gh pr merge after cd or pushd (it would run in another directory)";
   }
-  const { problem, ref, repo, sha } = parsePrMerge(words);
-  if (problem !== undefined) {
-    return `gh pr merge with '${problem}' (agents may only run: gh pr merge <number> --merge --match-head-commit <sha>)`;
-  }
+  return undefined;
+}
+
+/**
+ * The rules every agent merge meets, whichever command asks for it: this
+ * repository, a named PR, a pinned head, base dev, and both review lines when
+ * the PR changes a safety file.
+ */
+function findBlockedMergeTarget(
+  { ref, repo, sha },
+  { lookupBase, lookupFiles, lookupBody }
+) {
   // Both the --repo flag and the repository inside a PR URL must be ours.
   for (const named of [repo, PR_URL.exec(ref ?? "")?.[1]]) {
     if (named !== undefined && named.toLowerCase() !== ALLOWED_REPO) {
@@ -466,13 +606,202 @@ function findBlockedPrMerge(words, whole, { lookupBase, lookupFiles }) {
   }
   const files = lookupFiles(lookupArgs);
   if (files === null) {
-    return "gh pr merge with an unknown file list (the owner-only paths could not be checked)";
+    return "gh pr merge with an unknown file list (the safety paths could not be checked)";
   }
-  const ownerOnly = files.find((file) =>
-    OWNER_ONLY_PATHS.some((pattern) => pattern.test(file))
+  const safetyFile = files.find((file) =>
+    SAFETY_PATHS.some((pattern) => pattern.test(file))
   );
-  if (ownerOnly) {
-    return `gh pr merge of a PR that changes '${ownerOnly}' (the owner merges changes to agent limits, CI and rulesets)`;
+  if (safetyFile === undefined) return undefined;
+  if (!FULL_SHA.test(sha)) {
+    return `gh pr merge of a PR that changes '${safetyFile}' with a short sha (changes to agent limits, CI and rulesets need --match-head-commit <full 40-character head sha>)`;
+  }
+  const body = lookupBody(lookupArgs);
+  if (body === null) {
+    return `gh pr merge of a PR that changes '${safetyFile}' with an unknown PR body (the review lines could not be checked)`;
+  }
+  const missing = missingReviewLines(body, sha);
+  if (missing.length > 0) {
+    return `gh pr merge of a PR that changes '${safetyFile}' without both review lines for this head (after a clean security-reviewer pass and a clean Codex review of this exact head, the PR body needs: ${missing.join(" and ")})`;
+  }
+  return undefined;
+}
+
+/**
+ * The only accepted REST merge, for sandboxes where `gh pr merge` is blocked:
+ *   gh api -X PUT repos/Marcus100/grenmet/pulls/<number>/merge
+ *     -f sha=<full head sha> -f merge_method=merge
+ * It meets the same rules as `gh pr merge`. Returns undefined when the request
+ * is not a call to a PR merge endpoint, `{ hit }` when it is (hit undefined
+ * means allowed).
+ */
+function findBlockedRestMerge(gh, whole, lookups) {
+  const words = gh.slice(1).map(decodeEscapes);
+  const route = words.find((word) => REST_MERGE_PATH.test(word));
+  if (route === undefined) return undefined;
+  const [, slug, number] = REST_MERGE_PATH.exec(route);
+  const context = findUnsafeMergeContext(whole);
+  if (context) return { hit: context };
+  const fields = {};
+  let method;
+  for (let index = 0; index < words.length; index++) {
+    const word = words[index];
+    if (word === route) continue;
+    if (REDIRECT.test(word)) {
+      if (REDIRECT_WITHOUT_TARGET.test(word)) index++;
+    } else if (word === "-X" || word === "--method") {
+      method = words[++index];
+    } else if (word.startsWith("--method=")) {
+      method = word.slice("--method=".length);
+    } else if (REST_FIELD_FLAGS.has(word)) {
+      const [key, ...value] = (words[++index] ?? "").split("=");
+      if (Object.hasOwn(fields, key)) return { hit: restProblem(key) };
+      fields[key] = value.join("=");
+    } else if (word === "--jq" || word === "-q") {
+      index++;
+    } else if (word !== "--silent") {
+      return { hit: restProblem(word) };
+    }
+  }
+  const extra = Object.keys(fields).find(
+    (key) => key !== "sha" && key !== "merge_method"
+  );
+  if (extra !== undefined) return { hit: restProblem(extra) };
+  if (method?.toUpperCase() !== "PUT" || fields.merge_method !== "merge") {
+    return { hit: restProblem("a method other than PUT with merge_method=merge") };
+  }
+  if (!FULL_SHA.test(fields.sha ?? "")) {
+    return {
+      hit: "gh api merge without sha=<full 40-character head sha> (the merge must be pinned to the reviewed head)",
+    };
+  }
+  return {
+    hit: findBlockedMergeTarget(
+      { ref: number, repo: slug, sha: fields.sha },
+      lookups
+    ),
+  };
+}
+
+function restProblem(what) {
+  return `gh api merge with '${what}' (agents may only run: gh api -X PUT repos/Marcus100/grenmet/pulls/<number>/merge -f sha=<full head sha> -f merge_method=merge)`;
+}
+
+/**
+ * Quoted text is one argument, so a `;` or line break inside it does not start
+ * a command. Double quotes that hold `$(…)` or a backtick are left alone: that
+ * text runs.
+ */
+function neutraliseQuotedSeparators(segment) {
+  return segment.replace(QUOTED_LITERAL, (literal) =>
+    literal.startsWith('"') && RUNS_INSIDE_QUOTES.test(literal)
+      ? literal
+      : literal.replace(SEPARATORS_IN_QUOTES, " ")
+  );
+}
+
+/** The words after `git push`, and the `-C` directory, when this command is one. */
+function pushArguments(words) {
+  const git = ghArguments(words, GIT_COMMAND);
+  if (!git) return undefined;
+  let dir;
+  let index = 0;
+  while (index < git.length && git[index].startsWith("-")) {
+    if (git[index] === "-C") dir = git[index + 1];
+    index += GIT_OPTIONS_WITH_VALUE.has(git[index]) ? 2 : 1;
+  }
+  return git[index] === "push" ? { dir, args: git.slice(index + 1) } : undefined;
+}
+
+/**
+ * Why one refspec may not be pushed, if it may not. The destination is the part
+ * after `:`, or the source when there is none.
+ */
+function findBlockedRefspec(refspec, currentBranches) {
+  if (refspec === undefined) {
+    const hit = currentBranches().bare.find((name) =>
+      PROTECTED_BRANCHES.has(name)
+    );
+    return hit === undefined
+      ? undefined
+      : `git push without a branch while on '${hit}' (agents never push dev, staging or main; push the task branch and open a PR into dev)`;
+  }
+  const spec = refspec.replace(/^\+/, "");
+  if (OPAQUE_REFSPEC.test(spec)) {
+    return `git push of '${refspec}' (a variable or wildcard hides the destination; name the task branch)`;
+  }
+  const colon = spec.indexOf(":");
+  const source = colon === -1 ? spec : spec.slice(0, colon);
+  const destination = colon === -1 ? spec : spec.slice(colon + 1);
+  if (colon !== -1 && source === "") {
+    return `git push of '${refspec}' (it deletes a remote branch or tag; the owner deletes)`;
+  }
+  if (
+    spec === "tag" ||
+    source.startsWith("refs/tags/") ||
+    destination.startsWith("refs/tags/")
+  ) {
+    return `git push of '${refspec}' (the owner publishes tags and releases)`;
+  }
+  const names =
+    destination === "HEAD" || destination === "@"
+      ? [currentBranches().head]
+      : [destination.replace(/^refs\/heads\//, "")];
+  const hit = names.find((name) => PROTECTED_BRANCHES.has(name));
+  return hit === undefined
+    ? undefined
+    : `git push to '${hit}' (agents never push dev, staging or main; push the task branch and open a PR into dev)`;
+}
+
+/**
+ * `git push` may only send a task branch: never dev, staging or main (by name,
+ * as `HEAD:dev`, as `refs/heads/dev` or as the branch a bare push would
+ * update), never tags, never a deletion.
+ *
+ * Known gaps (GitHub's branch and tag rulesets are the hard layer): a tag
+ * pushed by its bare name (`git push origin v1.2.3`), a destination set only in
+ * git config (`remote.<name>.push`, `push.default matching`), and a bare push
+ * after `cd` into another checkout.
+ */
+function findBlockedPush(segment, { lookupTargets, cwd }) {
+  const rawSegment = neutraliseQuotedSeparators(segment).replace(/\\\n/g, "");
+  // Scanned twice: as written (a push inside `$(…)` is still a push), and with
+  // each `$(…)` turned into a variable, so a destination built at run time
+  // reads as one unreadable refspec instead of vanishing.
+  const subcommands = [
+    ...rawSegment.split(SUBCOMMAND_SPLIT),
+    ...rawSegment.replace(COMMAND_SUBSTITUTION, "$SUBST").split(SUBCOMMAND_SPLIT),
+  ];
+  for (const subcommand of subcommands) {
+    const push = pushArguments(shellWords(subcommand));
+    if (!push) continue;
+    const refs = [];
+    for (let index = 0; index < push.args.length; index++) {
+      const word = push.args[index];
+      if (REDIRECT.test(word)) {
+        if (REDIRECT_WITHOUT_TARGET.test(word)) index++;
+      } else if (PUSH_FLAGS_WITH_VALUE.has(word)) {
+        index++;
+      } else if (PUSH_TAG_FLAGS.has(word)) {
+        return `git push ${word} (the owner publishes tags and releases)`;
+      } else if (PUSH_ALL_FLAGS.has(word)) {
+        return `git push ${word} (it pushes every branch, dev, staging and main included)`;
+      } else if (
+        PUSH_DELETE_FLAGS.has(word) ||
+        (SHORT_FLAGS.test(word) && word.includes("d"))
+      ) {
+        return `git push ${word} (it deletes remote branches or tags; the owner deletes)`;
+      } else if (!word.startsWith("-")) {
+        refs.push(word);
+      }
+    }
+    const currentBranches = () => lookupTargets(push.dir ?? cwd);
+    // The first word is the remote. With no refspec git pushes the current
+    // branch, to its own name or to its upstream.
+    const refspecs = refs.length > 1 ? refs.slice(1) : [undefined];
+    for (const refspec of refspecs) {
+      const hit = findBlockedRefspec(refspec, currentBranches);
+      if (hit) return hit;
+    }
   }
   return undefined;
 }
@@ -502,6 +831,13 @@ function findBlockedGh(segment, lookups) {
     const [area] = gh;
     if (area === "alias") {
       return "gh alias (it could rename a blocked command)";
+    }
+    const restMerge =
+      area === "api" ? findBlockedRestMerge(gh, whole, lookups) : undefined;
+    if (restMerge) {
+      if (restMerge.hit) return restMerge.hit;
+      lookups.allowedRestMerges.count++;
+      continue;
     }
     if (area === "api") {
       // Any mention of "merge" in a request, with percent-escapes decoded, or
@@ -536,13 +872,29 @@ function findDiscardingRestore(segment) {
 
 export function findBlockedPattern(
   command,
-  { lookupBase = lookupMergeBase, lookupFiles = lookupMergeFiles } = {}
+  {
+    lookupBase = lookupMergeBase,
+    lookupFiles = lookupMergeFiles,
+    lookupBody = lookupMergeBody,
+    lookupTargets = lookupPushTargets,
+    cwd,
+  } = {}
 ) {
+  const allowedRestMerges = { count: 0 };
   for (const raw of executedSegments(command, 0, false)) {
-    const hit = findBlockedGh(raw, { lookupBase, lookupFiles });
+    const hit =
+      findBlockedGh(raw, {
+        lookupBase,
+        lookupFiles,
+        lookupBody,
+        allowedRestMerges,
+      }) ?? findBlockedPush(raw, { lookupTargets, cwd });
     if (hit) return hit;
   }
+  let restMerges = 0;
   for (const segment of executedSegments(command)) {
+    restMerges += segment.match(REST_MERGE_ROUTE)?.length ?? 0;
+    if (restMerges > allowedRestMerges.count) return REST_MERGE_ROUTE;
     const hit =
       DANGEROUS_PATTERNS.find((pattern) => pattern.test(segment)) ??
       findDiscardingRestore(segment);
@@ -559,12 +911,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
   process.stdin.on("end", () => {
     let command = "";
+    let cwd;
     try {
-      command = JSON.parse(data)?.tool_input?.command ?? "";
+      const input = JSON.parse(data);
+      command = input?.tool_input?.command ?? "";
+      cwd = typeof input?.cwd === "string" ? input.cwd : undefined;
     } catch {
       process.exit(0);
     }
-    const hit = findBlockedPattern(command);
+    const hit = findBlockedPattern(command, { cwd });
     if (hit) {
       process.stderr.write(
         `BLOCKED: '${command}' matches dangerous pattern '${hit}'. The user has prevented you from doing this — see the Never tier in AGENTS.md.\n`
