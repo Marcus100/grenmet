@@ -31,6 +31,7 @@ from tests.factories import (
     make_supervised_pair,
     make_user,
 )
+from tests.email_payload import payload_html
 
 BASE = "/api/v1/auth/onboarding"
 PASSWORD = "My-new-password-123!"
@@ -720,8 +721,12 @@ async def test_courtesy_notices_are_queued_on_issue_and_completion(
     ).all()
     assert len(issued) == 1
     assert "sign-in link" in issued[0].subject
-    assert token not in (issued[0].html or "")
-    assert "/activate" not in (issued[0].html or "")
+    assert issued[0].template == "card"
+    issued_html = payload_html({"props": issued[0].props})
+    assert token not in issued_html
+    assert "/activate" not in issued_html
+    assert "If you did not expect this, contact your administrator." in issued_html
+    assert "<a " not in issued_html
     done = await async_client.post(
         f"{BASE}/activate", json={"token": token, "new_password": PASSWORD}
     )
@@ -732,7 +737,13 @@ async def test_courtesy_notices_are_queued_on_issue_and_completion(
         )
     ).all()
     assert len(all_rows) == 2
-    assert any("password was set up" in row.subject for row in all_rows)
+    [completed] = [row for row in all_rows if "password was set up" in row.subject]
+    completed_html = payload_html({"props": completed.props})
+    assert completed.template == "card"
+    assert "If this was not you, contact your administrator straight away." in (
+        completed_html
+    )
+    assert token not in completed_html
 
 
 @pytest.mark.asyncio

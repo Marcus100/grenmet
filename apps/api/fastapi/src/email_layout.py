@@ -324,6 +324,12 @@ async def render_card(card: EmailCard) -> RenderedEmail:
 # ── Plain text ────────────────────────────────────────────────────────────────
 
 
+def _one_line(value: str) -> str:
+    """A value on one text line: control characters and newlines become spaces, so a
+    value cannot fake another label line in the plain-text part."""
+    return " ".join(value.split())
+
+
 def _usable(action: Action | None) -> str | None:
     """The label and URL pair, as text, when the action has a safe URL."""
     if action is None or safe_url(action.url) is None:
@@ -344,7 +350,9 @@ def render_text(card: EmailCard) -> str:
         lines += [f"Code: {card.code}", ""]
     lines += [*card.paragraphs, ""]
     details = [
-        f"{row.label}: {row.value}" for row in (*card.rows, *card.money) if row.value
+        f"{_one_line(row.label)}: {_one_line(row.value)}"
+        for row in (*card.rows, *card.money)
+        if row.value
     ]
     if details:
         lines += details + [""]
