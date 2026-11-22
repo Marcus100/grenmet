@@ -35,9 +35,79 @@ database outside a deploy (a restore, a dropped table, a hand-run migration),
 run the next deploy with `FORCE_MIGRATIONS=1` on the environment, or delete
 `~/.local/state/grenmet-deploy/<project>/migrated` on the host.
 
+## Pull-request check selection
+
+With the repository variable `CI_PATH_SELECTION` set to `on`, a pull request
+**into `dev`** runs only the expensive checks its changed files can affect. Everything else runs everything: pull requests into `staging` and
+`main`, pushes to `dev`, `staging` and `main`, merge-group, scheduled and manual
+runs. Selection is by job, never by a workflow-level `paths:` filter (a workflow
+that never starts leaves a required check pending forever). The code is
+`scripts/ci/select-checks.mjs` (tests: `scripts/ci/select-checks.test.mjs`,
+`scripts/guardrails/ci-path-selection.test.mjs`); `select-images.mjs` applies it
+to the API and web workflows, and `e2e.yml`, `codeql.yml` and
+`api-breaking-changes.yml` call it from a `changes` job.
+
+| Changed path | Runs (besides the always-on checks) |
+| --- | --- |
+| docs: `docs/**`, any `*.md`/`*.mdx`, `.claude/**`, `.agents/**`, `.codex/**`, `.devcontainer/**`, `.vscode/**`, `.gitignore`, `LICENSE*` | nothing extra |
+| `apps/web/commit/content/**` | web tests (the app's tests read the posts) |
+| `apps/web/**`, `apps/pwa/**`, `packages/**` | web tests, browser journeys, CodeQL JavaScript; core storage integration when `apps/web/cms/**` or `packages/**` |
+| `apps/api/**` | API suite (3 shards, fuzz, coverage floor, API documentation, Ruff/mypy, Trivy), core storage integration, API breaking changes, CodeQL Python; `src/**` and `openapi.json` also web tests and browser journeys |
+| `packages/api-client/**`, `openapi.json` | API suite, storage, API breaking changes, web tests, browser journeys |
+| `docs/api/**`, `docs/ports.md` | API suite and storage |
+| `packages/gms/**`, `apps/web/{bookings,hr}/src/app/**`, `apps/web/gaa-admin/drizzle/**` and two fixtures the API tests read | the above web rules plus the API suite |
+| `surface/**` | SURFACE job only |
+| `.github/**`, `scripts/ci/**`, `infra/github/**`, `infra/docker/**`, root `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `turbo.json`, `biome.jsonc`, any `tsconfig*.json`, `Dockerfile*`, `package.json`, `pyproject.toml`, `uv.lock` | everything |
+| any other path (including other `scripts/**`), an empty or unreadable change list, more than 2000 files | everything |
+
+Always on, whatever changed: Secret Scan, Gitleaks, Repository Guardrails,
+Repository Drift, Rulesets match snapshot, Labeler, Peer Dependencies, Biome
+Check, Type Check, api-client, Select image checks. Image builds keep their own
+per-app selection.
+
+The gates stay strict. `CI Success` and `Build Web Apps` pass a skipped job only
+when the selection output said it was not needed; a failed, cancelled or
+otherwise skipped job fails them, and so does a failed selection job. If the
+changed files cannot be listed, selection falls back to every check. The
+required check names did not change, and the six required checks are never
+skipped on a push to `dev`, which promotion relies on.
+
+**Rollout switch** (repository variable `CI_PATH_SELECTION`, Settings, Secrets
+and variables, Actions, Variables): `off` runs every check as before; `shadow`
+(the default when the variable is unset, empty or unknown) also runs every check
+and only records what selection would have skipped, in each run's job summary
+and as the `ci-selection` artifact of the Browser journeys run (PR number, head
+sha, per-group decisions); `on` applies the selection. Roll out in this order:
+
+1. Leave the variable unset (shadow) and merge this change.
+2. After one week of pull requests into `dev`, run
+   `node scripts/ci/selection-report.mjs` (needs `gh`; `--limit 200` runs by
+   default). It lists every check that selection would have skipped but that
+   failed on the same head (a wrong skip) and exits 1 if there is any.
+3. Only if there are no wrong skips, the owner sets `CI_PATH_SELECTION` to `on`.
+   Any wrong skip: fix the path map first (`select-checks.mjs`), keep `shadow`,
+   and measure another week.
+
+**Force a full run:** add the `ci:full` label to the pull request, then push a
+new commit (a re-run reuses the old label list). Create the label once with
+`gh label create ci:full --repo Marcus100/grenmet`.
+
+**Extend the map:** edit `classify()` in `scripts/ci/select-checks.mjs` and add a
+row to the table in `scripts/ci/select-checks.test.mjs`. When a test starts
+reading a repository path from the other side (an API test reading a web file,
+or the reverse), add that path to `apiReadsPath` or `webReadsPath`; the
+guardrail test fails when an API test mentions a top-level folder the map would
+skip.
+
 ## 1. Pre-flight on dev
 
-- `pnpm fix:changed` then `pnpm type-check` — both clean.
+- Dev CI is green on the head to promote. CI is the gate: do not re-run the full
+  `pnpm check:ci` or `pnpm type-check` locally (promotion reuses dev's results when
+  the tree matches; a local full run is killed by the memory cap, use
+  `turbo run <task> --concurrency=2` if one is ever needed).
+- Every merge into `dev` restarts dev CI and changes an open promotion PR. Land the
+  last PRs back to back, open the promotion PR, and hold further merges into `dev`
+  until the owner has merged staging.
 - Run the `/pre-merge` check (types, lint, Docker names, env drift, API-client
   sync, Actions pinning). Fix findings before promoting.
 - `git status` clean, `dev` pushed.
@@ -90,8 +160,8 @@ run the next deploy with `FORCE_MIGRATIONS=1` on the environment, or delete
 ## 3. Promote staging → main
 
 - `gh pr create --base main --head staging --title "chore: promote staging to main"`
-- Arm auto-merge (`gh pr merge <num> --auto --merge`), which is the human merge decision. Merging to `main` does NOT
-  deploy prod — prod is release-gated.
+- The owner merges it. Agents do not merge it or arm auto-merge (`AGENTS.md`,
+  Git). Merging to `main` does NOT deploy prod — prod is release-gated.
 
 ## 4. Publish the release (deploys prod)
 
@@ -133,7 +203,7 @@ The draft's generated notes only list pull request titles. Before publishing, ad
 - `/runtime-env.js` on each web app carries that environment's public settings (site and API address, Sentry, Turnstile key). It is cached up to 60 seconds, including at Cloudflare, so a settings change reaches browsers within a minute.
 
 - API health: `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/`
-- Spot-check app domains: `auth` / `admin` / `docs` / `weather` / `signal` / `mbia` / `events` / `hapi` `.barrels.gd`.
+- Spot-check app domains: `auth` / `admin` / `account` / `gms` / `weather` / `cap` / `gmsdash` / `cms` / `docs` / `signal` / `mbia` / `events` / `bookings` `.barrels.gd`.
 
 ## Irreversible data migrations need a verified backup first
 
@@ -161,7 +231,15 @@ plaintext suppression column) is not written yet and waits for this gate.
 
 The `backup-gate` phase checks that the newest nightly dump of each production
 database (`app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport`,
-`eregister`, `events`) in the Spaces bucket is newer than a limit. It lists the
+`eregister`; Events is a schema in `app_prod`, ADR-0003) in the Spaces bucket is
+newer than a limit (`DAILY_REQUIRED` in `scripts/production/restore-drill.py`).
+The nightly job also dumps the CMS database `gms_cms`, which the gate does not
+check.
+
+**Today the gate cannot verify.** The `production` deploy environment does not
+have the backup store's read keys (they live in `production-backup`), so every
+production deploy reports the backup as unverifiable and, in the default
+`warn` mode, continues: the gate passes open. Fix the keys before relying on it. It lists the
 `production/YYYY/MM/DD/<database>_<timestamp>.dump` objects written by
 `backup-database.yml` and reuses the discovery logic of `restore-drill.py`; it
 does not use the unused `latest-success.json` markers.
@@ -287,9 +365,8 @@ release notes so the leaking code path can be fixed.
 
 ## Build once, promote by digest
 
-Lands with PR #1026 (stacked on PR #1020 and PR #1025; merge in that order, owner
-merges because workflows change). Until then the previous build-at-release
-pipeline described in sections 2 and 4 is what runs. Issue #1019 is the design.
+Live: PR #1026 (with #1020 and #1025) is merged, and every promotion uses this
+pipeline. Issue #1019 is the design.
 
 **Why it works.** `staging` and `main` are merge commits of `dev`, so a commit
 there has the same git tree as the dev commit it came from. Images are keyed by
@@ -304,7 +381,10 @@ that tree: what staging proved is exactly what production runs.
 
 **Server side (PR #1020).** `core.sh` pulls only images missing on the host
 (`PULL_PARALLEL`, default 4). With `ROLLING_DEPLOY=1` routed services (`api`,
-`web-*`) roll in batches of `ROLLOUT_PARALLEL` (default 4; `1` is one at a time).
+`web-*`) roll in batches of `ROLLOUT_PARALLEL` (`1` is one at a time). The code
+defaults are 4 on staging and 2 on production, but the repository variables
+set `ROLLOUT_PARALLEL=1` and `PULL_PARALLEL=2`, so both environments roll one
+service at a time today.
 A new container is probed every 2 seconds while it starts (`start_interval`,
 Docker Engine 25 or later; an older engine stops the deploy in the `disk` phase).
 A healthy routed container whose Compose config hash is unchanged is kept. After
@@ -356,13 +436,11 @@ fallback: merge it into dev first.
    `image_tag=production-sha-<commit>` of the last good release (the images already
    exist) and `image_digests` copied from that run summary. Only when no digest list
    is available, tick `manual_redeploy`; `core.sh` then accepts the commit label or
-   a `gd.barrels.build-once=true` image. (`image_digests` and `manual_redeploy` land
-   with PR #1026; on `origin/dev` dispatch with the release tag.)
+   a `gd.barrels.build-once=true` image.
 3. Watch `gh run watch`, then run section 5, "Verify prod".
 4. Tell the owner before and after. Production deploys need the owner's go.
 
-A release made before PR #1026 has no digest list: use its release tag as on
-`origin/dev` today, and select that tag as the workflow ref when it predates the
+A release made before PR #1026 has no digest list: use its release tag, and select that tag as the workflow ref when it predates the
 domain migration so its matching Compose definition is used. The `deploy-prod.yml`
 and `deploy-staging.yml` entries delegate to the same Deploy workflow.
 

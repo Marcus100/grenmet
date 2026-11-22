@@ -8,6 +8,8 @@ that have no server part. First user: the Printix organiser screen in
 `apps/pwa/printix`. Partly built: the per-app session cap and authenticator
 requirement are in `apps/api/fastapi/src/auth/apps.py`, and the app keeps its
 session in `sessionStorage` (`apps/pwa/printix/src/organiser/session.ts`).
+Amended by ADR-0063 (21 Nov 2026): a registered Shop Keeper or Salesbus till
+may stay signed in (noted 21 Nov 2026).
 
 ## Context
 

@@ -102,7 +102,7 @@ Choose C.
   bundles and resolver; S2 Events enforcement; S3 team-management routes and
   UI; S4 Bookings enforcement; S5 retire compatibility aliases and review.
 
-## Amended by ADR-0050 (2026-10-22, Proposed)
+## Amended by ADR-0050 (2026-10-22; ADR-0050 accepted 2026-11-15)
 
 Organisation keys stay membership-only and are never held by a staff role. Barrels
 staff operating organisers' events use five separate global keys

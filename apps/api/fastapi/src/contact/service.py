@@ -1,14 +1,15 @@
 """Public contact-form messages: store, then queue one notification email."""
 
-import html
 import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email_layout as layout
 from src.notifications import service as notification_service
 from src.organisations.sites import ResolvedSite
 from src.utils.datetime import utc_now
 
+from . import email_cards
 from .config import contact_settings, recipient_for
 from .models import ContactDataRequest, ContactMessage
 from .schemas import ContactMessageBody, DataRequestCreate
@@ -16,21 +17,22 @@ from .schemas import ContactMessageBody, DataRequestCreate
 logger = logging.getLogger(__name__)
 
 
-def _notification_html(message: ContactMessage) -> str:
-    esc = html.escape
-    body = esc(message.message).replace("\n", "<br>")
-    return (
-        f"<p><strong>From:</strong> {esc(message.name)} &lt;{esc(message.email)}&gt;"
-        f"<br><strong>Site:</strong> {esc(message.site)}"
-        f"<br><strong>Subject:</strong> {esc(message.subject)}</p><p>{body}</p>"
-    )
-
-
 def site_recipient(site_key: str, site: ResolvedSite | None) -> str | None:
     """The site's own inbox, else the deprecated environment setting."""
     if site is not None and site.contact_recipient:
         return site.contact_recipient
     return recipient_for(site_key)
+
+
+def _queue(session: AsyncSession, to_email: str, card: layout.EmailCard) -> None:
+    notification_service.enqueue_email(
+        session=session,
+        to_email=to_email,
+        subject=card.subject,
+        transactional=True,
+        template=layout.CARD_TEMPLATE,
+        props=layout.to_props(card),
+    )
 
 
 async def submit_message(
@@ -53,12 +55,16 @@ async def submit_message(
 
     recipient = site_recipient(site_key, site)
     if recipient:
-        notification_service.enqueue_email(
-            session=session,
-            to_email=recipient,
-            subject=f"Website message: {message.subject}"[:300],
-            transactional=True,
-            html=_notification_html(message),
+        _queue(
+            session,
+            recipient,
+            email_cards.website_message(
+                site=message.site,
+                name=message.name,
+                email=message.email,
+                subject=message.subject,
+                message=message.message,
+            ),
         )
     else:
         logger.info(
@@ -70,24 +76,6 @@ async def submit_message(
 
 
 GMS_SITE = "gms-data-request"
-
-
-def _data_request_html(item: ContactDataRequest) -> str:
-    esc = html.escape
-    rows = [
-        ("From", f"{item.name} <{item.email}>"),
-        ("Organisation", item.organisation),
-        ("Intended use", item.intended_use),
-        ("Parameters", ", ".join(item.parameters)),
-        ("Stations", item.stations),
-        ("Period", f"{item.period_start} to {item.period_end}"),
-        ("Format", item.data_format),
-    ]
-    lines = "".join(
-        f"<br><strong>{label}:</strong> {esc(value)}" for label, value in rows
-    )
-    purpose = esc(item.purpose).replace("\n", "<br>")
-    return f"<p>{lines[4:]}</p><p><strong>Purpose:</strong><br>{purpose}</p>"
 
 
 async def submit_data_request(
@@ -119,29 +107,12 @@ async def submit_data_request(
 
     recipient = contact_settings.GMS_DATA_REQUEST_RECIPIENT
     if recipient:
-        notification_service.enqueue_email(
-            session=session,
-            to_email=recipient,
-            subject=f"Climate data request: {item.organisation}"[:300],
-            transactional=True,
-            html=_data_request_html(item),
-        )
+        _queue(session, recipient, email_cards.data_request_for_staff(item))
     else:
         logger.info(
             "Data request stored; recipient unset, not emailed",
             extra={"request_id": str(item.id)},
         )
-    notification_service.enqueue_email(
-        session=session,
-        to_email=item.email,
-        subject="We received your climate data request",
-        transactional=True,
-        html=(
-            f"<p>Hello {html.escape(item.name)},</p>"
-            "<p>The Grenada Meteorological Service has received your climate "
-            "data request. We will reply by email; typical turnaround is "
-            "10 to 20 working days.</p>"
-        ),
-    )
+    _queue(session, item.email, email_cards.data_request_received(item.name))
     await session.commit()
     return item

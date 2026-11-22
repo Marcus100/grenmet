@@ -821,9 +821,11 @@ credentials into staging.
   `STORAGE_BUCKET`, `STORAGE_ENDPOINT_URL`, optionally `STORAGE_REGION`
   and `STORAGE_PUBLIC_BASE_URL`.
 
-The deploy workflow also accepts matching `DO_SPACES_ACCESS_KEY_ID`,
-`DO_SPACES_SECRET_ACCESS_KEY`, `DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT`, and
-`DO_SPACES_REGION` secrets when the corresponding `STORAGE_*` secret is absent.
+Every environment reads application storage from `STORAGE_*`. On staging only,
+and only until the owner adds the five `STORAGE_*` secrets there, the deploy falls
+back to the matching `DO_SPACES_*` secret for each unset name and writes a
+deprecation notice (names only) to the deploy summary. Production never falls
+back: its `DO_SPACES_*` secrets name the backup store.
 Keep the key ID and secret from the same Spaces key, and grant that key access
 to the configured bucket. A configured value only proves presence: a worker
 `head_bucket` response of HTTP 403 means storage access still needs correction.
@@ -1168,8 +1170,8 @@ when the value is empty.
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | secrets | API; set together |
 | `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` | secrets (PEM contents) | API and worker; set together |
 | `CAP_SIGNING_KEY_REF` | variable | API and worker (default `cap-signing-key`) |
-| `STORAGE_*` (`ENDPOINT_URL`, `REGION`, `BUCKET`, `ACCESS_KEY_ID`, `SECRET_ACCESS_KEY`, `PUBLIC_BASE_URL`) | secrets | API, worker and nhc-worker. The `DO_SPACES_*` secrets are the fallback for all but `STORAGE_PUBLIC_BASE_URL`; the renderer rejects a partial bundle |
-| `DO_SPACES_ACCESS_KEY_ID`, `DO_SPACES_SECRET_ACCESS_KEY`, `DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT`, `DO_SPACES_REGION` | secrets | Storage fallback (above) and the backup, restore and monitoring workflows. The write key is separate from the read-only `DO_SPACES_READ_*` pair |
+| `STORAGE_*` (`ENDPOINT_URL`, `REGION`, `BUCKET`, `ACCESS_KEY_ID`, `SECRET_ACCESS_KEY`, `PUBLIC_BASE_URL`) | secrets | API, worker and nhc-worker, in every environment. Staging alone falls back to `DO_SPACES_*` (all but `STORAGE_PUBLIC_BASE_URL`) with a deprecation notice until its `STORAGE_*` are set; the renderer rejects a partial bundle |
+| `DO_SPACES_ACCESS_KEY_ID`, `DO_SPACES_SECRET_ACCESS_KEY`, `DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT`, `DO_SPACES_REGION` | secrets | The backup store for the backup, restore, monitoring and weather workflows and the deploy backup gate; on staging also the temporary storage fallback (above). The write key is separate from the read-only `DO_SPACES_READ_*` pair |
 | `WXWATCH_INGEST_TOKEN` | secret | API; the collector uses the same value |
 | `AUTH_PRIVILEGED_MFA_MODE`, `AUTH_TOTP_ENCRYPTION_KEYS` | variable, secret | API, worker and prestart. See "Privileged MFA rollout" |
 | `*_SSO_CLIENT_SECRET` (`GAA_ADMIN`, `CMS`, `EVENTS`, `BARRELS_ADMIN`, `CAP`, `MBIA`, `SIGNAL`, `DOCS`, `GMSDASH`, `BOOKINGS`, `ACCOUNT`, `WEATHER`) | secrets | The API and the matching web app. Each 32 or more characters, different per app and different from `TRUSTED_WEB_SECRET` and `SECRET_KEY` |
@@ -1198,7 +1200,7 @@ another workflow or script, or is a leftover that can be deleted by the owner:
 |---|---|
 | `BACKUP_HEARTBEAT_URL` | In use, from other environments: `backup-database.yml` (`production-backup`) and `monitoring-maintenance.yml` (`production`, `staging-backup`). The copy stored in the `staging` environment is read by nothing |
 | `BOOTSTRAP_CMS` | Leftover. Only `scripts/production/backup-core.py` reads it from the host shell, and no workflow sets it |
-| `EVENTS_DB_PASSWORD` | Leftover. Events lives in the main database; no code, compose file or script uses it. The environment settings manifest still lists it as required, so update the manifest when deleting it |
-| `SESSION_COOKIE_NAME` | Leftover. Only the retired prototype compose file used it; each app now has its own cookie name. The manifest still lists it as required |
+| `EVENTS_DB_PASSWORD` | Leftover. Events lives in the main database; no code, compose file or script uses it. The environment settings manifest lists it as pending ("leftover: delete from both environments"), so deleting it never fails the check |
+| `SESSION_COOKIE_NAME` | Leftover. Only the retired prototype compose file used it; each app now has its own cookie name. Pending in the manifest like `EVENTS_DB_PASSWORD` |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Inert. The gms image has a build argument for it, but no workflow passes a value |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Inert. See the PostHog note under "GitHub environment secret names" |
