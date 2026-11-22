@@ -183,8 +183,48 @@ describe("profile", () => {
       contact_email: null,
       brand_color: null,
       logo_file_id: null,
+      listed: false,
+      category: null,
+      short_description: null,
+      city: null,
     });
     expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+  });
+
+  it("saves the home page listing switch and its text, blank as null", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        ...PROFILE,
+        listed: "on",
+        category: " Hair ",
+        shortDescription: "Cuts and colour",
+        city: "  ",
+      })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        listed: true,
+        category: "Hair",
+        short_description: "Cuts and colour",
+        city: null,
+      })
+    );
+  });
+
+  it("keeps the business off the home page unless the switch is on", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(SLUG, IDLE, form({ ...PROFILE, listed: "" }));
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ listed: false })
+    );
   });
 
   it("saves the full-price choice and treats anything else as deposit", async () => {

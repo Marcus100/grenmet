@@ -1,3 +1,6 @@
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { StaffOnly } from "@/components/staff-only";
@@ -7,8 +10,6 @@ import { createOrganisationAction } from "../actions";
 
 export const metadata: Metadata = { title: "New organisation" };
 export const dynamic = "force-dynamic";
-
-const FIELD = "rounded-md border bg-background px-2.5 py-1.5";
 
 export default async function NewOrganisationPage({
   searchParams,
@@ -36,28 +37,22 @@ export default async function NewOrganisationPage({
       <form action={createOrganisationAction} className="grid max-w-md gap-3">
         <label className="grid gap-1 text-sm">
           Name
-          <input
-            className={FIELD}
-            maxLength={255}
-            name="name"
-            required
-            type="text"
-          />
+          <Input maxLength={255} name="name" required type="text" />
         </label>
         <label className="grid gap-1 text-sm">
           Kind
-          <select className={FIELD} defaultValue="business" name="kind">
+          <NativeSelect defaultValue="business" name="kind">
             {KINDS.map((kind) => (
               <option key={kind} value={kind}>
                 {kind}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="grid gap-1 text-sm">
           Slug (optional)
-          <input
-            className={`${FIELD} font-mono`}
+          <Input
+            className="font-mono"
             maxLength={100}
             name="slug"
             pattern="[a-z0-9]+(-[a-z0-9]+)*"
@@ -69,12 +64,7 @@ export default async function NewOrganisationPage({
           </span>
         </label>
         <div>
-          <button
-            className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
-            type="submit"
-          >
-            Create organisation
-          </button>
+          <Button type="submit">Create organisation</Button>
         </div>
       </form>
     </>

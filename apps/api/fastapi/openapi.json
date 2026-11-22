@@ -13670,6 +13670,104 @@
         }
       }
     },
+    "/api/v1/bookings/public/businesses": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "List businesses on the Barrels Bookings home page",
+        "description": "Businesses that opted in to the home page and are open for booking, 24 to a page. `q` searches the name, category, description and city; `category` keeps one category. Each card has public fields only. `categories` lists the filter chips. Needs no sign-in.",
+        "operationId": "bookingsListPublicBusinesses",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingPublicBusinessPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Bookingslistpublicbusinesses"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/bookings/public/{slug}": {
       "get": {
         "tags": [
@@ -78360,6 +78458,51 @@
             "title": "Logo File Id",
             "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
           },
+          "listed": {
+            "type": "boolean",
+            "title": "Listed",
+            "description": "Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept.",
+            "default": false
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Short category for the home page, such as Hair or Nails; it is the filter chip a visitor taps. Blank clears it. Left out, the stored value is kept."
+          },
+          "short_description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Description",
+            "description": "One line for the home page card. Blank clears it. Left out, the stored value is kept."
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City",
+            "description": "Town or city for the home page card. Blank clears it. Left out, the stored value is kept."
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -78563,6 +78706,51 @@
             ],
             "title": "Logo File Id",
             "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+          },
+          "listed": {
+            "type": "boolean",
+            "title": "Listed",
+            "description": "Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept.",
+            "default": false
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Short category for the home page, such as Hair or Nails; it is the filter chip a visitor taps. Blank clears it. Left out, the stored value is kept."
+          },
+          "short_description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Description",
+            "description": "One line for the home page card. Blank clears it. Left out, the stored value is kept."
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City",
+            "description": "Town or city for the home page card. Blank clears it. Left out, the stored value is kept."
           }
         },
         "type": "object",
@@ -78789,6 +78977,125 @@
         },
         "type": "object",
         "title": "BookingProviderUpdate"
+      },
+      "BookingPublicBusiness": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug",
+            "description": "The business's booking page is /<slug>."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "short_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Description"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "brand_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Color",
+            "description": "The business's accent as `#rrggbb`, or null."
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url",
+            "description": "Public https address of the logo, or null when there is no finished logo upload or no public API address is configured. Load it as an image."
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "category",
+          "short_description",
+          "city",
+          "brand_color",
+          "logo_url"
+        ],
+        "title": "BookingPublicBusiness",
+        "description": "One card on the Barrels Bookings home page. Public fields only: no contact\ndetails, owner data or emails."
+      },
+      "BookingPublicBusinessPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BookingPublicBusiness"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when a later page holds more businesses."
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Categories",
+            "description": "The distinct categories of every listed business, case folded, for the filter chips. Not narrowed by the search."
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "has_more",
+          "categories"
+        ],
+        "title": "BookingPublicBusinessPage"
       },
       "BookingPublicCancel": {
         "properties": {

@@ -181,6 +181,7 @@ Totals: 677 paths and 813 operations.
 | POST | `/api/v1/bookings/public/bookings/{token}/cancel` | public | no | Cancel a booking | `bookingsCancelPublicBooking` |
 | GET | `/api/v1/bookings/public/bookings/{token}/ics` | public | no | Download a booking as a calendar file | `bookingsGetPublicBookingIcs` |
 | POST | `/api/v1/bookings/public/bookings/{token}/reschedule` | public | no | Move a booking to another slot | `bookingsReschedulePublicBooking` |
+| GET | `/api/v1/bookings/public/businesses` | public | no | List businesses on the Barrels Bookings home page | `bookingsListPublicBusinesses` |
 | GET | `/api/v1/bookings/public/{slug}` | public | no | Get a business's booking page | `bookingsGetStorefront` |
 | GET | `/api/v1/bookings/public/{slug}/availability` | public | no | List open booking slots | `bookingsGetAvailability` |
 | POST | `/api/v1/bookings/public/{slug}/bookings` | public | no | Book a slot | `bookingsCreatePublicBooking` |

@@ -1,4 +1,12 @@
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@barrelsgd/ui/components/ui/empty";
 import {
   Table,
   TableBody,
@@ -19,12 +27,51 @@ export interface OrganisationRow {
   verified_at?: string | null;
 }
 
-export function OrganisationTable({ rows }: { rows: OrganisationRow[] }) {
+/**
+ * An empty list is explained, never shown as bare text. With filters on it says
+ * nothing matches and offers "Clear filters"; with none on it says there are no
+ * organisations yet. Both offer "New organisation".
+ */
+export function OrganisationTable({
+  filtered = false,
+  rows,
+}: {
+  filtered?: boolean;
+  rows: OrganisationRow[];
+}) {
   if (rows.length === 0) {
     return (
-      <p className="text-muted-foreground" role="status">
-        No organisations match.
-      </p>
+      <Empty role="status">
+        <EmptyHeader>
+          <EmptyTitle>
+            {filtered ? "No organisations match" : "No organisations yet"}
+          </EmptyTitle>
+          <EmptyDescription>
+            {filtered
+              ? "Nothing matches the search or filters. Clear them to see every organisation."
+              : "Create the first organisation to add members and apps."}
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent className="flex-row flex-wrap justify-center">
+          {filtered ? (
+            <Button
+              nativeButton={false}
+              render={<Link href="/organisations" />}
+              size="default"
+              variant="outline"
+            >
+              Clear filters
+            </Button>
+          ) : null}
+          <Button
+            nativeButton={false}
+            render={<Link href="/organisations/new" />}
+            size="default"
+          >
+            New organisation
+          </Button>
+        </EmptyContent>
+      </Empty>
     );
   }
   return (

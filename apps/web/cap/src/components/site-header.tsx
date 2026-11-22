@@ -32,7 +32,9 @@ export function SiteHeader() {
             {NAV.map((item) => (
               <li key={item.href}>
                 <Link
-                  className="text-gm-blue-ink font-medium underline-offset-4 hover:underline"
+                  // 44px tall on phones: the links are the only way to move
+                  // between the alert pages, so a short target is hard to hit.
+                  className="text-gm-blue-ink inline-flex min-h-11 items-center font-medium underline-offset-4 hover:underline"
                   href={item.href}
                   prefetch={false}
                 >

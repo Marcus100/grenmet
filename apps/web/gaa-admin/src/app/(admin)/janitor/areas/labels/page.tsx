@@ -5,7 +5,7 @@ import {
   NativeSelectOption,
 } from "@barrelsgd/ui/components/ui/native-select";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { NeedsAccess } from "@/components/access/needs-access";
 import { JanitorHeader, SiteSwitcher } from "@/components/janitorial/portal";
 import {
   type AreaLabel,
@@ -40,7 +40,14 @@ export default async function JanitorLabelsPage({
   const building = typeof params.building === "string" ? params.building : "";
   // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
   const access = await getJanitorialAccess();
-  if (!access.canView) notFound();
+  if (!access.canView) {
+    return (
+      <NeedsAccess
+        ask="Ask a Janitorial administrator for a janitorial role. Field staff use the janitor app."
+        module="Janitor"
+      />
+    );
+  }
   const { buildings } = await getJanitorialCatalogue(site);
   const labels: AreaLabel[] = filterAreas(flattenAreas(buildings), {
     building,

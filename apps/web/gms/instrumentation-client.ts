@@ -1,3 +1,5 @@
+// First import: zod must be in jitless mode before any schema parse (no eval).
+import "@/lib/zod-jitless";
 import { onPublicEnv, readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import {
   scrubSentryEvent,

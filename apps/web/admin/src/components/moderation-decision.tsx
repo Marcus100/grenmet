@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { unstable_rethrow as rethrow } from "next/navigation";
 import { useActionState, useEffect, useRef } from "react";
 import type { ModerationFormState } from "@/app/(console)/moderation/actions";
@@ -15,7 +17,6 @@ type DecisionAction = (
   formData: FormData
 ) => Promise<ModerationFormState>;
 
-const FIELD = "min-h-11 rounded-md border bg-background px-2.5 py-2";
 const NO_STATE: ModerationFormState = {};
 
 /**
@@ -73,8 +74,7 @@ export function ApproveForm({
         </p>
         <label className="grid gap-1 text-sm">
           Note (optional, kept in the history)
-          <input
-            className={FIELD}
+          <Input
             defaultValue={state.reason ?? ""}
             maxLength={MAX_REASON}
             name="reason"
@@ -112,9 +112,8 @@ export function RejectForm({
         </p>
         <label className="grid gap-1 text-sm">
           Reason sent to the owners (required)
-          <textarea
+          <Textarea
             aria-describedby="reject-count"
-            className={FIELD}
             defaultValue={state.reason ?? ""}
             maxLength={MAX_REASON}
             minLength={MIN_REASON}
