@@ -42,11 +42,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import InstrumentedAttribute
 from sqlalchemy.sql.elements import ColumnElement
 
-from src.outbox import Outbox, OutboxStatus
+from src import outbox
+from src.outbox import Outbox
 from src.utils.datetime import utc_now
 
-from . import outbox_handlers, service
-from .models import OutboundEmail, OutboundEmailStatus
+from . import dispatch, outbox_handlers, service
+from .models import OutboundEmail
 
 DELETED_SUBJECT: Final = "Email to a deleted account"
 ACCOUNT_DELETED_ERROR: Final = "Account deleted before sending"
@@ -73,10 +74,7 @@ async def _clear_queued(session: AsyncSession, clean: str, now: datetime) -> int
         )
     ).all()
     for message in queued:
-        if message.status == OutboxStatus.PENDING.value:
-            message.status = OutboxStatus.DONE.value
-        message.payload = {}
-        message.updated_at = now
+        outbox.erase_payload(message, now)
     return len(queued)
 
 
@@ -89,13 +87,8 @@ async def _clear_log(session: AsyncSession, clean: str, placeholder: str) -> int
         )
     ).all()
     for row in log_rows:
-        not_final = row.status == OutboundEmailStatus.PENDING.value or (
-            row.status == OutboundEmailStatus.FAILED.value
-            and row.next_retry_at is not None
-        )
-        if not_final:
-            row.status = OutboundEmailStatus.SKIPPED.value
-            row.last_error = ACCOUNT_DELETED_ERROR
+        if dispatch.is_unsent(row):
+            dispatch.skip_unsent(row, ACCOUNT_DELETED_ERROR)
         else:
             row.last_error = None
         row.to_email = placeholder

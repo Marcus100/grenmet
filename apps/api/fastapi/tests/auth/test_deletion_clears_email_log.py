@@ -21,7 +21,7 @@ from src.auth import service
 from src.auth.models import User
 from src.database import async_session_factory
 from src.email_config import email_settings
-from src.notifications import address_log, outbox_handlers
+from src.notifications import address_log, dispatch, outbox_handlers
 from src.notifications import service as notification_service
 from src.notifications.models import (
     EmailSuppression,
@@ -186,7 +186,9 @@ async def test_deletion_clears_the_address_and_content_from_the_delivery_log(
     assert await _leaks(db_async, address) == 0
     assert await _leaks(db_async, first_name) == 0
     assert await _leaks(db_async, "unsubscribe?token=tok-" + first_name) == 0
-    rows = {key: await db_async.get(OutboundEmail, row_id) for key, row_id in ids.items()}
+    rows = {
+        key: await db_async.get(OutboundEmail, row_id) for key, row_id in ids.items()
+    }
     for row in rows.values():
         assert row is not None
         assert row.to_email.startswith("deleted-")
@@ -272,9 +274,7 @@ async def test_bounce_suppression_still_blocks_the_address(
 
     await service.delete_user(session=db_async, user=user)
 
-    assert await notification_service.is_suppressed(
-        session=db_async, email=address
-    )
+    assert await notification_service.is_suppressed(session=db_async, email=address)
     stored = await db_async.scalar(
         select(EmailSuppression.email_hash).where(
             EmailSuppression.email_hash.is_not(None)
@@ -466,3 +466,52 @@ async def test_padded_and_capitalised_stored_addresses_are_matched(
         .where(cast(Outbox.payload, String).ilike(f"%{local}%"))
     )
     assert left_in_queue == 0
+
+
+@pytest.mark.parametrize(
+    ("status", "expected"),
+    [
+        (OutboxStatus.PENDING.value, OutboxStatus.DONE.value),
+        (OutboxStatus.DEAD.value, OutboxStatus.DEAD.value),
+        (OutboxStatus.DONE.value, OutboxStatus.DONE.value),
+    ],
+)
+def test_erase_payload_moves_only_a_pending_row_to_done(
+    status: str, expected: str
+) -> None:
+    row = Outbox(
+        topic=outbox_handlers.EMAIL_SEND,
+        payload={"to_email": "someone@example.com"},
+        dedupe_key=uuid.uuid4().hex,
+        status=status,
+    )
+    outbox.erase_payload(row, utc_now())
+    assert row.status == expected
+    assert row.payload == {}
+
+
+@pytest.mark.parametrize(
+    ("status", "next_retry_at", "moves"),
+    [
+        (OutboundEmailStatus.PENDING.value, None, True),
+        (OutboundEmailStatus.FAILED.value, utc_now(), True),
+        (OutboundEmailStatus.FAILED.value, None, False),
+        (OutboundEmailStatus.SENT.value, None, False),
+        (OutboundEmailStatus.SKIPPED.value, None, False),
+    ],
+)
+def test_skip_unsent_only_moves_mail_that_is_not_final(
+    status: str, next_retry_at: object, moves: bool
+) -> None:
+    row = OutboundEmail(
+        to_email="someone@example.com",
+        subject="Hello",
+        status=status,
+        next_retry_at=next_retry_at,
+    )
+    dispatch.skip_unsent(row, "Account deleted before sending")
+    if moves:
+        assert row.status == OutboundEmailStatus.SKIPPED.value
+        assert row.last_error == "Account deleted before sending"
+    else:
+        assert row.status == status

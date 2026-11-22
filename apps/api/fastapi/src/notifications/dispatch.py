@@ -326,6 +326,24 @@ async def _deliver_outbound(
     row.html = None
 
 
+def is_unsent(row: OutboundEmail) -> bool:
+    """True while a mail has not been sent and may still be: pending, or failed with a
+    retry scheduled. These are the moves the delivery lifecycle allows to skipped."""
+    return row.status == OutboundEmailStatus.PENDING.value or (
+        row.status == OutboundEmailStatus.FAILED.value and row.next_retry_at is not None
+    )
+
+
+def skip_unsent(row: OutboundEmail, reason: str) -> None:
+    """Mark an unsent mail skipped with ``reason``, e.g. when its address is deleted
+    (issue #1629). Does nothing for a mail that is final (sent, skipped, or failed with
+    no retry left)."""
+    if not is_unsent(row):
+        return
+    row.status = OutboundEmailStatus.SKIPPED.value
+    row.last_error = reason
+
+
 async def process_outbound_emails(
     *,
     session: AsyncSession,
