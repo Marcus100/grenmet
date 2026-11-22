@@ -2697,6 +2697,7 @@ export { documentSensitivity } from "./DocumentSensitivity.js";
 export type { EditionAsset } from "./EditionAsset.js";
 export type { EffectiveAccess } from "./EffectiveAccess.js";
 export type { EmailConfirm } from "./EmailConfirm.js";
+export type { EmailOutboxBacklog } from "./EmailOutboxBacklog.js";
 export type { EmailRequest } from "./EmailRequest.js";
 export type { EmergencyContactPublic } from "./EmergencyContactPublic.js";
 export type { EmergencyContactUpdate } from "./EmergencyContactUpdate.js";
@@ -4019,6 +4020,9 @@ export type {
   FeedbackSendPageFeedbackStatus400,
   FeedbackSendPageFeedbackStatus422,
 } from "./FeedbackSendPageFeedback.js";
+export type { FeedFreshness } from "./FeedFreshness.js";
+export type { FeedStatus } from "./FeedStatus.js";
+export { feedStatus } from "./FeedStatus.js";
 export type { FileAccess } from "./FileAccess.js";
 export type { FlagPublic } from "./FlagPublic.js";
 export type { FlagReason } from "./FlagReason.js";
@@ -4045,6 +4049,7 @@ export type { ForecastSource } from "./ForecastSource.js";
 export type { ForecastSourcePropertiesKindEnum } from "./ForecastSourcePropertiesKindEnum.js";
 export { forecastSourcePropertiesKindEnum } from "./ForecastSourcePropertiesKindEnum.js";
 export type { Frequency } from "./Frequency.js";
+export type { FreshnessReport } from "./FreshnessReport.js";
 export type { Gender } from "./Gender.js";
 export { gender } from "./Gender.js";
 export type { GmsCataloguePublic } from "./GmsCataloguePublic.js";
@@ -6870,6 +6875,15 @@ export type {
   ModelsListOrganisationsStatus403,
   ModelsListOrganisationsStatus422,
 } from "./ModelsListOrganisations.js";
+export type {
+  MonitoringGetFreshnessOptions,
+  MonitoringGetFreshnessResponse,
+  MonitoringGetFreshnessResponses,
+  MonitoringGetFreshnessStatus200,
+  MonitoringGetFreshnessStatus401,
+  MonitoringGetFreshnessStatus403,
+  MonitoringGetFreshnessStatus422,
+} from "./MonitoringGetFreshness.js";
 export type { MovementKind } from "./MovementKind.js";
 export { movementKind } from "./MovementKind.js";
 export type { MyDeductionPublic } from "./MyDeductionPublic.js";

@@ -1261,6 +1261,27 @@ Readiness returns the 503 as a response, not a raised exception, so expected not
 
 Deployment smoke checks currently use liveness. Operational diagnosis should use readiness when database access matters.
 
+### Ingest freshness and email backlog (monitoring, 22 Nov 2026)
+
+`GET /api/v1/monitoring/admin/freshness` (`monitoring.freshness.read`, superusers by
+default; no default role holds the key). Used by the Better Stack keyword monitor (match
+`"healthy":true`, with an `Authorization: Bearer` header from a superuser token) and the
+staff monitoring screen.
+
+- `feeds[]`: `cap_feeds`, `opensky_flights`, `copernicus_marine`, `copernicus_cams`,
+  `model_guidance`, `wis2box_publications`. Each has `status` (`fresh`, `stale`, `never`,
+  `unknown` when telemetry is off or Redis is unreachable, `disabled` when its flag is
+  off), `last_success_at` and `max_age_minutes`.
+- `email_outbox`: `pending`, `stale_pending` (due more than `OUTBOX_STALE_MINUTES` ago),
+  and `dead_last_window` (dead in `OUTBOX_DEAD_WINDOW_HOURS`) for `email.send` and
+  `email.deliver` rows.
+- `healthy` is true only when every enabled feed is `fresh` and the email backlog is at or
+  under `OUTBOX_ALERT_THRESHOLD`. `telemetry_available: false` means the success times could
+  not be read, so `healthy` is false.
+
+Success times are written to Redis (`telemetry:v1:<env>:feed-success`) only when
+`TELEMETRY_ENABLED=true`. Counts and times only: no recipients, payloads or error text.
+
 ## Rewards (Barrels ID)
 
 Stamp cards funded by organisations; non-monetary, non-transferable. Domain

@@ -2659,6 +2659,7 @@ export { documentSensitivitySchema } from "./documentSensitivitySchema.js";
 export { editionAssetSchema } from "./editionAssetSchema.js";
 export { effectiveAccessSchema } from "./effectiveAccessSchema.js";
 export { emailConfirmSchema } from "./emailConfirmSchema.js";
+export { emailOutboxBacklogSchema } from "./emailOutboxBacklogSchema.js";
 export { emailRequestSchema } from "./emailRequestSchema.js";
 export { emergencyContactPublicSchema } from "./emergencyContactPublicSchema.js";
 export { emergencyContactUpdateSchema } from "./emergencyContactUpdateSchema.js";
@@ -4013,6 +4014,8 @@ export {
   feedbackSendPageFeedbackStatus400Schema,
   feedbackSendPageFeedbackStatus422Schema,
 } from "./feedbackSendPageFeedbackSchema.js";
+export { feedFreshnessSchema } from "./feedFreshnessSchema.js";
+export { feedStatusSchema } from "./feedStatusSchema.js";
 export { fileAccessSchema } from "./fileAccessSchema.js";
 export { flagPublicSchema } from "./flagPublicSchema.js";
 export { flagReasonSchema } from "./flagReasonSchema.js";
@@ -4036,6 +4039,7 @@ export { forecastPeriodSchema } from "./forecastPeriodSchema.js";
 export { forecastSourcePropertiesKindEnumSchema } from "./forecastSourcePropertiesKindEnumSchema.js";
 export { forecastSourceSchema } from "./forecastSourceSchema.js";
 export { frequencySchema } from "./frequencySchema.js";
+export { freshnessReportSchema } from "./freshnessReportSchema.js";
 export { genderSchema } from "./genderSchema.js";
 export { gmsCataloguePublicSchema } from "./gmsCataloguePublicSchema.js";
 export { gmsColourSchema } from "./gmsColourSchema.js";
@@ -6815,6 +6819,14 @@ export {
   modelsListOrganisationsStatus403Schema,
   modelsListOrganisationsStatus422Schema,
 } from "./modelsListOrganisationsSchema.js";
+export {
+  monitoringGetFreshnessErrorSchema,
+  monitoringGetFreshnessResponseSchema,
+  monitoringGetFreshnessStatus200Schema,
+  monitoringGetFreshnessStatus401Schema,
+  monitoringGetFreshnessStatus403Schema,
+  monitoringGetFreshnessStatus422Schema,
+} from "./monitoringGetFreshnessSchema.js";
 export { movementKindSchema } from "./movementKindSchema.js";
 export { myDeductionPublicSchema } from "./myDeductionPublicSchema.js";
 export { myDeductionsPublicSchema } from "./myDeductionsPublicSchema.js";

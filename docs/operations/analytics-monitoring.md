@@ -247,12 +247,22 @@ failures.
 `grenmet-<environment>`, matching `SENTRY_RELEASE` and `NEXT_PUBLIC_RELEASE`). It
 is skipped without `SENTRY_AUTH_TOKEN` and never fails a deploy.
 
-The worker sends Sentry Cron check-ins for `process_cap_jobs`, `ingest_cap_feeds`,
-`drain_outbox`, `purge_expired_data`, `enqueue_booking_reminders` and
-`expire_unpaid_bookings` (slugs
-`<environment>-worker-<job>`, e.g. `production-worker-drain-outbox`) only when
-`SENTRY_CRONS_ENABLED=true` reaches the worker; check the plan's included cron
-monitors first. Sentry creates the monitors from the first check-ins.
+The worker sends Sentry Cron check-ins for every scheduled job (slugs
+`<environment>-worker-<job>`, e.g. `production-worker-drain-outbox`; the list is
+the `MONITORED` registry in `src/worker/cron_monitor.py`, checked against the ARQ
+schedule by `tests/worker/test_cron_monitor.py`) only when
+`SENTRY_CRONS_ENABLED=true` reaches the worker. Each job is one Sentry cron monitor,
+so check the plan's included cron monitors before turning it on. Sentry creates the
+monitors from the first check-ins.
+
+Data freshness for uptime monitors: `GET /api/v1/monitoring/admin/freshness` (see
+[contracts](../api/contracts.md#ingest-freshness-and-email-backlog-monitoring-22-nov-2026))
+returns `healthy: true` only when every enabled ingest feed ran inside its window and
+the email outbox has no stale or dead rows. Better Stack keyword monitor: match
+`"healthy":true`. It needs `TELEMETRY_ENABLED=true` on the worker and API (success
+times live in Redis) and a superuser bearer token with `monitoring.freshness.read`
+in the request header; the owner creates that monitor in Better Stack (not in
+`betterstack.json`, which is owner-managed).
 
 Create these alert rules in each Sentry project (`grenmet-staging`,
 `grenmet-production`), email to the owner:
