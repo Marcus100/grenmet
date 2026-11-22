@@ -291,8 +291,8 @@ async def test_auto_disable_after_fifteen_failures_in_a_row(
     assert emails[0].payload["html"] is None
     html = payload_html(emails[0].payload)
     assert endpoint.id in html
-    assert "hooks.example.com" in html
     text = payload_text(emails[0].payload)
+    assert "Host: hooks.example.com" in text
     reason = f"Disabled after {service.AUTO_DISABLE_AFTER} failed deliveries in a row"
     assert reason in text
     assert f"Reason: {reason}" in text
