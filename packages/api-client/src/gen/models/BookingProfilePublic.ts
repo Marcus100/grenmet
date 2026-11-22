@@ -92,6 +92,10 @@ export type BookingProfilePublic = {
    */
   payment_at_booking?: BookingPaymentMode;
   /**
+   * @description The business's own https payment link (for example a bank's e-commerce page or a PayPal.me address). Used as the deposit checkout while no online provider is ready; staff record the payment when it arrives. Blank clears it; left out, the stored link is kept.
+   */
+  deposit_payment_link?: string | null;
+  /**
    * @description
    * Format: `uuid`
    * @type string

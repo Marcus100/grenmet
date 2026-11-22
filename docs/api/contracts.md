@@ -1208,7 +1208,14 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   never answers them), and the Connect endpoint `POST /payments/public/webhooks/stripe-connect`
   (hidden; its own secret, events from connected accounts). Org routes need
   `payments.connect.manage` (owners and admins hold it). `POST /payments/admin/connect/accounts/{organisation_id}/platform-fee`
-  (superuser, `payments.connect.fees`) sets Barrels' fee in basis points, New Zealand only, at most the platform cap. Superuser reconciliation, ledger, balances and payouts under
+  (superuser, `payments.connect.fees`) sets Barrels' fee in basis points, New Zealand only, at most the platform cap.
+  WiPay (Grenada, ADR-0027 amendment, 21 Nov 2026): a business's own
+  account, `GET /payments/org/merchant-accounts` and `PUT /payments/org/merchant-accounts/{provider}`
+  (organisation admin; secrets encrypted, never returned; 503 without the organisation secret keys);
+  the customer returns to `GET /payments/public/returns/wipay` (browser redirect, hidden from
+  OpenAPI, 303 to the business's page, 400 when WiPay's hash does not verify); live checkouts need
+  the owner's approval, `POST /payments/admin/merchant-accounts/{organisation_id}/{provider}/live-approval`
+  (permission `payments.live.approve`; 409 before a verified sandbox payment). Superuser reconciliation, ledger, balances and payouts under
   `/payments/admin/...` (each ledger entry also carries `source_type`, `source_id` and a `description` label, null for older payments), including `reconciliation.csv`. The ledger is append-only. A payout
   needs a client-generated `request_id`: repeating it returns the first entry (no double
   payout), and reusing it for different details is 409.
@@ -1298,17 +1305,20 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | `POST /api/v1/bookings/org/bookings` | Admin member or API key `bookings.write`; `Idempotency-Key` required | Staff entry (phone, walk-in, re-entered appointment): `confirmed`, source `studio`, no deposit; ignores lead time, horizon and weekly hours, but an overlap is 409; provider must offer the service (422); optional customer email, emailed only with `send_confirmation` |
 | `POST /api/v1/bookings/org/bookings/{id}/confirm`, `/decline`, `/cancel`, `/no-show`, `/complete` | Admin member or API key `bookings.write` | Studio actions through the status machine; decline and cancel need a `reason`, email the customer and emit `booking.cancelled`; an illegal move 409 |
 | `POST /api/v1/bookings/org/bookings/{id}/reschedule` | Admin member or API key `bookings.write` | Staff move a `pending` or `confirmed` booking to a new `starts_at` (same provider and service): ignores hours, lead time and horizon like staff entry, but the time must be in the future and on a whole minute (422) and an overlap is 409; any other status 409; the same time is a no-op; the customer is emailed (no manage link) and `booking.rescheduled` is emitted |
-| `POST /api/v1/bookings/org/bookings/{id}/manual-deposit` | Owner or admin member only (no API key), organisation must hold `bookings` and `payments`; `Idempotency-Key` required | Records a deposit taken outside Stripe (`method` cash/bank_transfer/cheque, optional `reference`) through the payments manual rail, so `deposit_captured_minor` shows it and a `pending_payment` booking is confirmed; writes an audit entry and a history note with the actor; no deposit, closed booking, deposit already paid, an online payment in flight, or a failed or expired card payment is 409 |
+| `POST /api/v1/bookings/org/bookings/{id}/manual-deposit` | Owner or admin member only (no API key), organisation must hold `bookings` and `payments`; `Idempotency-Key` required | Records a deposit taken outside Stripe (`method` cash/bank_transfer/cheque/payment_link, optional `reference`; `payment_link` is a card payment made on the business's own payment link) through the payments manual rail, so `deposit_captured_minor` shows it and a `pending_payment` booking is confirmed; writes an audit entry and a history note with the actor; no deposit, closed booking, deposit already paid, an online payment in flight, or a failed or expired card payment is 409 |
 
 Overlapping active bookings for one provider are refused by the database
 (`booking_no_overlap`).
 
 Deposits: when a service has a deposit and the organisation holds the `payments`
 entitlement, `POST /bookings/public/{slug}/bookings` answers a booking in
-`pending_payment` with `payment_required: true` and a `checkout_url` (Stripe test
-mode; null when the business records payment itself). Unpaid bookings are cancelled
-and their slot released after `BOOKINGS_DEPOSIT_HOLD_MINUTES` (30). Both receipt
-fields are additive.
+`pending_payment` with `payment_required: true` and a `checkout_url` (21 Nov 2026: the
+business's WiPay checkout when its account is ready; else the Stripe test checkout when
+configured; else the business's own `deposit_payment_link` (profile field, https only);
+else no online deposit, so the booking is made with `deposit_minor` 0 and paid in the
+salon). Staff confirm a payment-link deposit with `manual-deposit`. Unpaid bookings are
+cancelled and their slot released after `BOOKINGS_DEPOSIT_HOLD_MINUTES` (30). Receipt
+fields and `deposit_payment_link` are additive.
 
 Email code before a deposit (#471, ADR-0018): a deposit booking needs `email_proof` in
 the create body unless the caller is a signed-in account (any session, including the

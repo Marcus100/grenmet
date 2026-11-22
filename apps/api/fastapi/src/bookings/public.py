@@ -269,7 +269,11 @@ async def full_detail(
 ) -> BookingPublicDetail:
     """``detail`` plus what the customer paid at booking (needs the payments rows)."""
     result = detail(managed, now)
-    result.payment = await deposit_payments.payment_summary(session, managed.booking)
+    result.payment = await deposit_payments.payment_summary(
+        session,
+        managed.booking,
+        payment_link=managed.profile.deposit_payment_link,
+    )
     return result
 
 
@@ -715,6 +719,7 @@ async def _create_booking(
             booking,
             contact.email,
             title=deposit_payments.checkout_title(booking, svc, profile, deposit),
+            profile=profile,
         )
     else:
         mail = build_mail(managed, token)

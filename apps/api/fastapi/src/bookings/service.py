@@ -84,7 +84,7 @@ CONTACT_FIELDS = frozenset(
 )
 #: Profile fields an older client (or the seed) may not send; a PUT that leaves
 #: one out keeps the stored value.
-KEPT_UNLESS_NAMED = CONTACT_FIELDS | {"payment_at_booking"}
+KEPT_UNLESS_NAMED = CONTACT_FIELDS | {"payment_at_booking", "deposit_payment_link"}
 
 
 async def upsert_profile(

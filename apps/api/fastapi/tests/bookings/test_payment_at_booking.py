@@ -134,7 +134,8 @@ async def test_full_price_without_stripe_keeps_a_service_deposit(
     )
     receipt = (await _book_with_proof(db_async, async_client, studio)).json()
     assert receipt["booking"]["deposit_minor"] == DEPOSIT
-    assert receipt["checkout_url"] is None  # the studio records it by hand
+    # No card rail: the business's own payment link is the checkout (21 Nov 2026).
+    assert receipt["checkout_url"] == "https://pay.example.test/deposit/salon"
 
 
 async def test_full_price_needs_the_payments_entitlement(

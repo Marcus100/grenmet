@@ -358,6 +358,9 @@ async def seed_studio(
                 horizon_days=60,
                 cancel_cutoff_hours=24,
                 requires_confirmation=True,
+                # Deposits take the manual rail here; a business with no online rail
+                # takes no deposit, so the demo studio names its own payment link.
+                deposit_payment_link="https://pay.example.com/demo-deposit",
             ),
         )
         result.add("studio:profile")

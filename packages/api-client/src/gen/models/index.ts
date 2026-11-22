@@ -6730,6 +6730,12 @@ export type { MembershipRole } from "./MembershipRole.js";
 export { membershipRole } from "./MembershipRole.js";
 export type { MembershipStatus } from "./MembershipStatus.js";
 export { membershipStatus } from "./MembershipStatus.js";
+export type { MerchantAccountListPublic } from "./MerchantAccountListPublic.js";
+export type { MerchantAccountPublic } from "./MerchantAccountPublic.js";
+export type { MerchantAccountUpsert } from "./MerchantAccountUpsert.js";
+export type { MerchantEnvironment } from "./MerchantEnvironment.js";
+export { merchantEnvironment } from "./MerchantEnvironment.js";
+export type { MerchantLiveApproval } from "./MerchantLiveApproval.js";
 export type { Message } from "./Message.js";
 export type { MessageCreate } from "./MessageCreate.js";
 export type { MessagePublic } from "./MessagePublic.js";
@@ -7665,6 +7671,18 @@ export type {
   PaymentsAdminListLedgerStatus422,
 } from "./PaymentsAdminListLedger.js";
 export type {
+  PaymentsAdminSetLiveApprovalBody,
+  PaymentsAdminSetLiveApprovalOptions,
+  PaymentsAdminSetLiveApprovalPath,
+  PaymentsAdminSetLiveApprovalResponse,
+  PaymentsAdminSetLiveApprovalResponses,
+  PaymentsAdminSetLiveApprovalStatus200,
+  PaymentsAdminSetLiveApprovalStatus401,
+  PaymentsAdminSetLiveApprovalStatus403,
+  PaymentsAdminSetLiveApprovalStatus409,
+  PaymentsAdminSetLiveApprovalStatus422,
+} from "./PaymentsAdminSetLiveApproval.js";
+export type {
   PaymentsAdminSetPlatformFeeBody,
   PaymentsAdminSetPlatformFeeOptions,
   PaymentsAdminSetPlatformFeePath,
@@ -7778,6 +7796,16 @@ export type {
   PaymentsListIntentsStatus422,
 } from "./PaymentsListIntents.js";
 export type {
+  PaymentsListMerchantAccountsHeaders,
+  PaymentsListMerchantAccountsOptions,
+  PaymentsListMerchantAccountsResponse,
+  PaymentsListMerchantAccountsResponses,
+  PaymentsListMerchantAccountsStatus200,
+  PaymentsListMerchantAccountsStatus401,
+  PaymentsListMerchantAccountsStatus403,
+  PaymentsListMerchantAccountsStatus422,
+} from "./PaymentsListMerchantAccounts.js";
+export type {
   PaymentsRecordManualPaymentBody,
   PaymentsRecordManualPaymentHeaders,
   PaymentsRecordManualPaymentOptions,
@@ -7792,6 +7820,22 @@ export type {
   PaymentsRecordManualPaymentStatus409,
   PaymentsRecordManualPaymentStatus422,
 } from "./PaymentsRecordManualPayment.js";
+export type {
+  PaymentsSaveMerchantAccountBody,
+  PaymentsSaveMerchantAccountHeaders,
+  PaymentsSaveMerchantAccountOptions,
+  PaymentsSaveMerchantAccountPath,
+  PaymentsSaveMerchantAccountResponse,
+  PaymentsSaveMerchantAccountResponses,
+  PaymentsSaveMerchantAccountStatus200,
+  PaymentsSaveMerchantAccountStatus400,
+  PaymentsSaveMerchantAccountStatus401,
+  PaymentsSaveMerchantAccountStatus403,
+  PaymentsSaveMerchantAccountStatus404,
+  PaymentsSaveMerchantAccountStatus409,
+  PaymentsSaveMerchantAccountStatus422,
+  PaymentsSaveMerchantAccountStatus503,
+} from "./PaymentsSaveMerchantAccount.js";
 export type { PayPeriodAmountsPublic } from "./PayPeriodAmountsPublic.js";
 export type { PayPeriodCreate } from "./PayPeriodCreate.js";
 export type { PayPeriodDetail } from "./PayPeriodDetail.js";

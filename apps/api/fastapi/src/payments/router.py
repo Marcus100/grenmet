@@ -10,9 +10,10 @@ Routers commit; service functions flush.
 
 import uuid
 from datetime import date
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, Response, status
+from fastapi.responses import RedirectResponse
 
 from src.auth.policy import require_permission
 from src.dependencies import AdminUser, CurrentUser, SessionDep
@@ -32,11 +33,14 @@ from src.organisations.dependencies import (
 from src.organisations.models import MembershipRole
 from src.pagination import PaginationDep
 
-from . import schemas, service
+from . import merchant_accounts, schemas, service
 from .connect import accounts as connect_accounts
 from .connect import disputes as connect_disputes
 from .connect import webhook as connect_webhook
 from .models import IntentStatus, LedgerKind
+
+#: The online providers a business sets up for itself (the rest are platform rails).
+MerchantProvider = Literal["wipay"]
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -202,6 +206,49 @@ async def create_refund(
     return result
 
 
+@router.get(
+    "/org/merchant-accounts",
+    response_model=schemas.MerchantAccountListPublic,
+    summary="List the business's own payment accounts",
+    description=(
+        "Each online provider the business set up, with its environment and switches. "
+        "Never returns a credential."
+    ),
+    operation_id="paymentsListMerchantAccounts",
+    responses={**AUTHENTICATED},
+)
+async def list_merchant_accounts(*, session: SessionDep, org: PaymentsOrgAdmin) -> Any:
+    return schemas.MerchantAccountListPublic(
+        data=await merchant_accounts.list_accounts(session, org.organisation_id)
+    )
+
+
+@router.put(
+    "/org/merchant-accounts/{provider}",
+    response_model=schemas.MerchantAccountPublic,
+    summary="Save the business's own WiPay account",
+    description=(
+        "Stores the business's WiPay account number, API key and webhook secret, "
+        "encrypted. A blank secret keeps the stored one. 503 while the platform has no "
+        "secret keys. Live payments need the owner's approval before a checkout starts."
+    ),
+    operation_id="paymentsSaveMerchantAccount",
+    responses={**WRITE_ERRORS, **_UNAVAILABLE},
+)
+async def save_merchant_account(
+    *,
+    session: SessionDep,
+    org: PaymentsOrgAdmin,
+    provider: MerchantProvider,  # noqa: ARG001  (the route's path; WiPay is the only one)
+    payload: schemas.MerchantAccountUpsert,
+) -> Any:
+    result = await merchant_accounts.save(
+        session, organisation_id=org.organisation_id, actor=org.user, payload=payload
+    )
+    await session.commit()
+    return result
+
+
 # --- provider callbacks ---------------------------------------------------------------
 
 
@@ -334,7 +381,62 @@ async def receive_webhook(
     return schemas.PaymentCallbackAck()
 
 
+@router.get(
+    "/public/returns/wipay",
+    status_code=status.HTTP_303_SEE_OTHER,
+    summary="WiPay sends the customer back here",
+    description=(
+        "Verifies WiPay's hash for the payment, records it once, then redirects the "
+        "customer to the business's own page. A return that does not verify changes "
+        "nothing and answers 400."
+    ),
+    operation_id="paymentsWipayReturn",
+    responses={
+        400: {"model": ApiError, "description": "The return does not verify"},
+        404: {"model": ApiError, "description": "Unknown payment"},
+        503: {"description": "The business's WiPay account is not usable"},
+    },
+    include_in_schema=False,
+)
+async def wipay_return(*, session: SessionDep, request: Request) -> Any:
+    target = await service.process_wipay_return(session, params=request.query_params)
+    await session.commit()
+    return RedirectResponse(url=target, status_code=status.HTTP_303_SEE_OTHER)
+
+
 # --- administration -------------------------------------------------------------------
+
+
+@router.post(
+    "/admin/merchant-accounts/{organisation_id}/{provider}/live-approval",
+    response_model=schemas.MerchantAccountPublic,
+    summary="Approve or withdraw live payments for a business",
+    description=(
+        "The owner's switch. Approval needs a verified sandbox payment first (409 "
+        "otherwise). Withdrawing it stops new live checkouts at once."
+    ),
+    operation_id="paymentsAdminSetLiveApproval",
+    responses={**AUTHENTICATED, **CONFLICT},
+)
+async def admin_set_live_approval(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: str,
+    provider: MerchantProvider,  # noqa: ARG001  (the route's path; WiPay is the only one)
+    payload: schemas.MerchantLiveApproval,
+) -> Any:
+    require_permission(
+        current_user=current_user, permission_key="payments.live.approve"
+    )
+    result = await merchant_accounts.set_live_approval(
+        session,
+        organisation_id=organisation_id,
+        approved=payload.approved,
+        actor=current_user,
+    )
+    await session.commit()
+    return result
 
 
 @router.get(

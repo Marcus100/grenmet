@@ -5,4 +5,9 @@
 
 import * as z from "zod";
 
-export const manualMethodSchema = z.enum(["cash", "bank_transfer", "cheque"]);
+export const manualMethodSchema = z.enum([
+  "cash",
+  "bank_transfer",
+  "cheque",
+  "payment_link",
+]);

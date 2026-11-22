@@ -18,6 +18,17 @@ class RefundFailedAtProvider(PaymentsConflictError):
     cannot succeed: the provider replays its answer for the idempotency key."""
 
 
+class ManualRefundRequiredError(PaymentsConflictError):
+    """The provider has no refund API (WiPay): the refund is made in the provider's
+    dashboard and is not recorded here. Nothing is written (409)."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "WiPay has no refund API. Refund this payment in the WiPay dashboard; "
+            "the refund is not recorded here."
+        )
+
+
 class PaymentsValidationError(AppException):
     def __init__(self, message: str) -> None:
         super().__init__(message, status.HTTP_422_UNPROCESSABLE_CONTENT)

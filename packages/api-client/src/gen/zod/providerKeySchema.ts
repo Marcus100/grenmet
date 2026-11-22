@@ -5,4 +5,4 @@
 
 import * as z from "zod";
 
-export const providerKeySchema = z.enum(["manual", "stripe"]);
+export const providerKeySchema = z.enum(["manual", "stripe", "wipay"]);

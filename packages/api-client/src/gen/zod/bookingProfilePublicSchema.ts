@@ -64,6 +64,12 @@ export const bookingProfilePublicSchema = z.object({
     .describe(
       "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept."
     ),
+  deposit_payment_link: z
+    .union([z.string().max(2000), z.null()])
+    .optional()
+    .describe(
+      "The business's own https payment link (for example a bank's e-commerce page or a PayPal.me address). Used as the deposit checkout while no online provider is ready; staff record the payment when it arrives. Blank clears it; left out, the stored link is kept."
+    ),
   id: z.uuid(),
   organisation_id: z.string(),
   created_at: z.iso.datetime(),

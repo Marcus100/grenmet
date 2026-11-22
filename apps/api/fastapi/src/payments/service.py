@@ -29,7 +29,7 @@ from src.utils.datetime import utc_now
 from src.utils.timezones import GRENADA, local_to_utc
 from src.webhooks_out import service as webhook_service
 
-from . import schemas, transitions
+from . import return_urls, schemas, transitions
 from .config import payments_settings
 from .connect import accounts as connect_accounts
 from .exceptions import (
@@ -51,7 +51,7 @@ from .models import (
     Refund,
     RefundStatus,
 )
-from .providers import registry
+from .providers import registry, wipay
 from .providers.base import (
     EventKind,
     PaymentProvider,
@@ -289,7 +289,9 @@ async def create_intent(
     name the buyer sees on the hosted checkout (not stored; no personal data).
     """
     # Resolve the provider first so an unavailable rail fails before any row exists.
-    provider = registry.get_provider(payload.provider.value)
+    provider = await registry.provider_for(
+        session, organisation_id=organisation_id, key=payload.provider.value
+    )
 
     existing = await _by_idempotency_key(
         session, organisation_id, payload.idempotency_key
@@ -314,6 +316,9 @@ async def create_intent(
         provider=payload.provider.value,
         connected_account_id=route.connected_account_id if route else None,
         application_fee_minor=route.application_fee_minor if route else None,
+        provider_environment=provider.environment
+        if isinstance(provider, wipay.WiPayProvider)
+        else None,
         source_type=payload.source_type,
         source_id=payload.source_id,
         customer_email_hash=hash_email(payload.customer_email)
@@ -765,7 +770,9 @@ async def refund_intent(
             f"Only {refundable} minor units can still be refunded on this payment"
         )
 
-    provider = registry.get_provider(intent.provider)
+    provider = await registry.provider_for(
+        session, organisation_id=intent.organisation_id, key=intent.provider
+    )
     # Born pending: we have asked the provider and wait for its answer.
     refund = Refund(
         id=refund_id or uuid.uuid4(),
@@ -847,8 +854,9 @@ async def process_callback(
     Idempotent: the ledger's unique ``(provider, provider_event_id)`` plus a row lock
     on the intent mean a replay changes nothing and still answers 2xx.
     """
-    provider = registry.get_provider(provider_key)
-    event = provider.verify_callback(headers, body)
+    event = await registry.verify_callback(
+        session, provider_key=provider_key, headers=headers, body=body
+    )
     if _names_connected_account(body):
         # The platform endpoint never handles a connected account's event (the Connect
         # endpoint does). Dropped, and acknowledged so Stripe does not retry.
@@ -866,12 +874,14 @@ async def apply_event(
     *,
     connected_account: str | None = None,
 ) -> str:
-    """Apply a verified provider event (the body of ``process_callback``).
+    """Apply a verified provider event (a callback, or WiPay's return; the body of
+    ``process_callback``).
 
     ``connected_account`` is the Stripe connected account the event came from (the
     Connect endpoint), or None for the platform's own endpoint. A payment on a
     connected account is changed only by that account's events, and a platform event
-    never changes one (ADR-0027, Connect)."""
+    never changes one (ADR-0027, Connect). Returns ``processed``, ``duplicate`` or
+    ``ignored``. Idempotent per ledger key."""
     if event.kind is EventKind.IGNORED:
         return "ignored"
 
@@ -904,6 +914,40 @@ async def apply_event(
     if event.kind is EventKind.REFUND_REPORTED:
         return await _apply_refund_reported(session, intent, event)
     return await _apply_refunded(session, intent, event)
+
+
+async def process_wipay_return(
+    session: AsyncSession, *, params: Mapping[str, str]
+) -> str:
+    """Apply the customer's return from WiPay and say where to send them: the source's
+    success page once the payment is recorded, else its cancel page. The return is
+    verified first (``wipay.event_from_return``); a refused one changes nothing."""
+    try:
+        intent_id = uuid.UUID(hex=params.get("order_id") or "")
+    except ValueError:
+        raise IntentNotFoundError() from None
+    intent = await session.get(Intent, intent_id)
+    if intent is None or intent.provider != ProviderKey.WIPAY.value:
+        raise IntentNotFoundError()
+    event = await wipay.event_from_return(session, intent=intent, params=params)
+    if event.kind is not EventKind.IGNORED:
+        await apply_event(session, event)
+    address = return_urls.resolve(
+        intent.source_type, intent.source_id, payments_settings
+    )
+    if address is None:
+        raise ProviderUnavailableError(
+            "The return addresses for this payment are not set"
+        )
+    paid = (
+        transitions.stored_state(IntentStatus, intent.status) is IntentStatus.SUCCEEDED
+    )
+    return address.success_url if paid else address.cancel_url
+
+
+async def wipay_ready(session: AsyncSession, organisation_id: str) -> bool:
+    """True when the business can take WiPay payments now (see ``wipay.is_ready``)."""
+    return await wipay.is_ready(session, organisation_id)
 
 
 _REFUND_KINDS = frozenset({EventKind.REFUNDED, EventKind.REFUND_REPORTED})
@@ -996,6 +1040,7 @@ async def _apply_success(
         actor=None,
         payment_ref=event.payment_ref,
     )
+    await wipay.note_capture(session, intent)
     return "processed"
 
 
