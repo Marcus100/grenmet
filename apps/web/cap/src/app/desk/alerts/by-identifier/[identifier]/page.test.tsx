@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { reportError } from "@/lib/report-error";
 import { deskAlert } from "@/test/desk-alert.fixture";
 import { staffGate } from "@/test/desk-gate.fixture";
 import DeskAlertByIdentifierPage from "./page";
@@ -83,6 +84,19 @@ describe("/desk/alerts/by-identifier/[identifier]", () => {
     render(await page());
     expect(screen.getByRole("alert")).toHaveTextContent(staff.email);
     expect(fetchAlert).not.toHaveBeenCalled();
+  });
+
+  it("reports a service failure and shows that the alert is unavailable", async () => {
+    fetchAlert.mockResolvedValue(Response.json({}, { status: 503 }));
+
+    render(await page());
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "This alert could not be loaded"
+    );
+    expect(reportError).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 503 }),
+      "cap-desk-alert-by-identifier"
+    );
   });
 
   it("sends colons and slashes as one encoded path segment", async () => {

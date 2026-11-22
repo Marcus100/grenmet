@@ -28,7 +28,7 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
   `/desk`, through `app/desk/api/[...path]/route.ts`: an allow-list
   (`lib/desk/proxy-rules.ts`), a same-origin check for changes, minimal
   headers, the token added server-side. Add a rule there before using a new
-  endpoint from the desk. Server reads: `lib/desk/api.ts`.
+  endpoint from the desk. Server reads live in `lib/desk/`.
 - **Desk scope.** Board, new warning, edit draft (PATCH), validate, submit,
   review, approve, publish, emergency publish, cancel, expire and Issue update
   (`POST /cap/alerts/{id}/updates`). Imported alerts are flagged and need the

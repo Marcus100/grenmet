@@ -2,7 +2,7 @@ import { ResponseError } from "@barrelsgd/api-client";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { DeskRefused, DeskUnavailable } from "@/components/desk/desk-panels";
-import { getAlertByIdentifier } from "@/lib/desk/api";
+import { getAlertByIdentifier } from "@/lib/desk/alert-by-identifier";
 import { requireDeskGate } from "@/lib/desk/gate";
 import { reportError } from "@/lib/report-error";
 
