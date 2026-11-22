@@ -53,6 +53,8 @@ const storefront: BookingStorefront = {
   cancel_cutoff_hours: 24,
   contact: NO_CONTACT,
   providers: [],
+  brand_color: null,
+  logo_url: null,
   services: [
     {
       id: DEPOSIT_ID,

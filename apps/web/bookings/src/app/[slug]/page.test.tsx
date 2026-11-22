@@ -43,6 +43,8 @@ const storefront: BookingStorefront = {
       service_ids: [],
     },
   ],
+  brand_color: null,
+  logo_url: null,
   services: [
     {
       id: SERVICE_ID,

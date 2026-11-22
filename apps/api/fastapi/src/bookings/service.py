@@ -4,6 +4,7 @@ Service functions flush; routers commit. Every query is filtered by
 ``organisation_id`` so one business never sees another's data.
 """
 
+import logging
 import uuid
 from collections import defaultdict
 from datetime import UTC, date, datetime, time, timedelta
@@ -26,6 +27,8 @@ from src.organisations.models import (
 )
 from src.pagination import PaginationParams
 from src.storage import uploads
+from src.storage.models import OrgUpload, UploadStatus
+from src.storage.public_url import public_file_url
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
@@ -83,6 +86,8 @@ async def get_profile(session: AsyncSession, organisation_id: str) -> BookingPro
 CONTACT_FIELDS = frozenset(
     {"contact_phone", "contact_whatsapp", "contact_instagram", "contact_email"}
 )
+logger = logging.getLogger(__name__)
+
 #: The logo's upload purpose (``src/storage/uploads.py``).
 LOGO_PURPOSE = "booking-logo"
 #: Profile fields an older client (or the seed) may not send; a PUT that leaves
@@ -464,6 +469,48 @@ def business_contact(profile: BookingProfile) -> dict[str, str | None]:
     }
 
 
+async def _logo_is_complete(session: AsyncSession, profile: BookingProfile) -> bool:
+    """The same rule as ``uploads.file_is_usable``, read on the request session:
+    a complete booking-logo upload of this business."""
+    found = await session.scalar(
+        select(OrgUpload.id).where(
+            OrgUpload.id == profile.logo_file_id,
+            OrgUpload.organisation_id == profile.organisation_id,
+            OrgUpload.purpose == LOGO_PURPOSE,
+            OrgUpload.status == UploadStatus.COMPLETE.value,
+        )
+    )
+    return found is not None
+
+
+async def _public_logo_url(
+    session: AsyncSession, profile: BookingProfile
+) -> str | None:
+    """The business logo's public address, shown only while the file is still a
+    complete booking-logo upload of this business and the API address is https.
+    The mail builds its image from the same address (``public_file_url``).
+
+    Fails closed: any error reading the logo answers None, so the public page
+    still loads with its colour. A savepoint keeps a database error from aborting
+    the storefront's own transaction."""
+    if profile.logo_file_id is None:
+        return None
+    try:
+        async with session.begin_nested():
+            complete = await _logo_is_complete(session, profile)
+    except Exception as error:  # fail closed: a public page must still load
+        logger.warning(
+            "Storefront logo check failed for %s; showing no logo",
+            profile.public_slug,
+            extra={"error_type": type(error).__name__},
+        )
+        return None
+    if not complete:
+        return None
+    url = public_file_url(profile.logo_file_id)
+    return url if url is not None and url.startswith("https://") else None
+
+
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
     services = await list_services(session, profile.organisation_id, active_only=True)
     providers = await list_providers(session, profile.organisation_id, active_only=True)
@@ -484,6 +531,8 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         "currency": profile.currency,
         "cancel_cutoff_hours": profile.cancel_cutoff_hours,
         "contact": business_contact(profile),
+        "brand_color": profile.brand_color,
+        "logo_url": await _public_logo_url(session, profile),
         "services": [
             {
                 **BookingPublicService.model_validate(
