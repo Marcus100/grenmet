@@ -55,6 +55,7 @@ LEGACY_MODEL_MODULES: tuple[str, ...] = (
     "src.organisations.models",
     "src.outbox",
     "src.payments.models",
+    "src.payments.connect.models",
     "src.push.models",
     "src.rewards.models",
     "src.rewards.models_gamification",

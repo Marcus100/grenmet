@@ -206,6 +206,18 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "API key: change Barrels Payments data",
         binding="organisation",
     ),
+    # Stripe Connect (ADR-0027, New Zealand, test mode): the business's own card
+    # setup and its disputes. Owners and admins hold it through entitlement.
+    PermissionDef(
+        "payments.connect.manage",
+        "Set up card payments for the organisation (Stripe onboarding and status) and see its disputes",
+        binding="organisation",
+    ),
+    # Barrels-side: the platform fee on a business's card payments (superusers).
+    PermissionDef(
+        "payments.connect.fees",
+        "Set the Barrels platform fee on an organisation's card payments (New Zealand only)",
+    ),
     PermissionDef(
         "webhooks.read", "API key: read Barrels Webhooks data", binding="organisation"
     ),

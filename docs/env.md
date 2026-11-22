@@ -1043,6 +1043,10 @@ The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter ru
 | `PAYMENTS_REQUEST_TIMEOUT_SECONDS` | Provider request timeout (default 10). |
 | `PAYMENTS_REFUND_RECONCILE_WINDOW_DAYS`, `PAYMENTS_REFUND_RECONCILE_BATCH` | The daily refund reconciliation job checks captured provider payments created in the last this-many days (default 180), at most this many per run (default 200). |
 | `PAYMENTS_REFUND_RECONCILE_BUDGET_SECONDS`, `PAYMENTS_REFUND_RECONCILE_PAGE_MARGIN_SECONDS` | The run stops cleanly after this long (default 240, under the worker's 300-second job limit); a payment's listing stops paging once less than the margin (default 20) of the budget is left. |
+| `PAYMENTS_STRIPE_CONNECT_WEBHOOK_SECRET` | Signing secret of the Stripe Connect webhook endpoint (`POST /api/v1/payments/public/webhooks/stripe-connect`, events from connected accounts). Separate from `PAYMENTS_STRIPE_WEBHOOK_SECRET`; 503 when unset. Test mode only (`whsec_`). |
+| `PAYMENTS_CONNECT_RETURN_URL` | HTTPS page a business returns to after Stripe onboarding, and where Stripe sends it when a link has expired. Onboarding answers 503 until it is set. |
+| `PAYMENTS_CONNECT_PLATFORM_FEE_CAP_BPS` | The most Barrels may take on a New Zealand business's card payments, in basis points (default `0`: no fee can be set until the owner sets a cap). |
+| `PAYMENTS_CONNECT_REFUND_APPLICATION_FEE` | Whether a refund on a connected charge also refunds Barrels' platform fee (default `false`: the fee is kept). |
 
 ## Deploy and GitHub settings
 

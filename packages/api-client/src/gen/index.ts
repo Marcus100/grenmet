@@ -2348,6 +2348,10 @@ export type { ClockSiteCreate } from "./models/ClockSiteCreate.js";
 export type { ClockSiteIssued } from "./models/ClockSiteIssued.js";
 export type { ClockSitePublic } from "./models/ClockSitePublic.js";
 export type { ClockSitesPublic } from "./models/ClockSitesPublic.js";
+export type { ConnectFeePublic } from "./models/ConnectFeePublic.js";
+export type { ConnectOnboardingLinkPublic } from "./models/ConnectOnboardingLinkPublic.js";
+export type { ConnectPlatformFeeUpdate } from "./models/ConnectPlatformFeeUpdate.js";
+export type { ConnectStatusPublic } from "./models/ConnectStatusPublic.js";
 export type { ConnectionCreate } from "./models/ConnectionCreate.js";
 export type { ConnectionPublic } from "./models/ConnectionPublic.js";
 export type { ConnectionPublicPropertiesStateEnum } from "./models/ConnectionPublicPropertiesStateEnum.js";
@@ -2572,6 +2576,8 @@ export type { DepartmentUpdate } from "./models/DepartmentUpdate.js";
 export type { DepartmentsPublic } from "./models/DepartmentsPublic.js";
 export type { DerivationInput } from "./models/DerivationInput.js";
 export type { DerivationResult } from "./models/DerivationResult.js";
+export type { DisputeListPublic } from "./models/DisputeListPublic.js";
+export type { DisputePublic } from "./models/DisputePublic.js";
 export type { DocumentCategory } from "./models/DocumentCategory.js";
 export type { DocumentEmployeeListPublic } from "./models/DocumentEmployeeListPublic.js";
 export type { DocumentEmployeePublic } from "./models/DocumentEmployeePublic.js";
@@ -7528,6 +7534,31 @@ export type {
   PaymentsAdminListLedgerStatus422,
 } from "./models/PaymentsAdminListLedger.js";
 export type {
+  PaymentsAdminSetPlatformFeeBody,
+  PaymentsAdminSetPlatformFeeOptions,
+  PaymentsAdminSetPlatformFeePath,
+  PaymentsAdminSetPlatformFeeResponse,
+  PaymentsAdminSetPlatformFeeResponses,
+  PaymentsAdminSetPlatformFeeStatus200,
+  PaymentsAdminSetPlatformFeeStatus400,
+  PaymentsAdminSetPlatformFeeStatus401,
+  PaymentsAdminSetPlatformFeeStatus403,
+  PaymentsAdminSetPlatformFeeStatus404,
+  PaymentsAdminSetPlatformFeeStatus422,
+} from "./models/PaymentsAdminSetPlatformFee.js";
+export type {
+  PaymentsCreateConnectOnboardingLinkHeaders,
+  PaymentsCreateConnectOnboardingLinkOptions,
+  PaymentsCreateConnectOnboardingLinkResponse,
+  PaymentsCreateConnectOnboardingLinkResponses,
+  PaymentsCreateConnectOnboardingLinkStatus200,
+  PaymentsCreateConnectOnboardingLinkStatus401,
+  PaymentsCreateConnectOnboardingLinkStatus403,
+  PaymentsCreateConnectOnboardingLinkStatus422,
+  PaymentsCreateConnectOnboardingLinkStatus502,
+  PaymentsCreateConnectOnboardingLinkStatus503,
+} from "./models/PaymentsCreateConnectOnboardingLink.js";
+export type {
   PaymentsCreateIntentBody,
   PaymentsCreateIntentHeaders,
   PaymentsCreateIntentOptions,
@@ -7571,6 +7602,17 @@ export type {
   PaymentsGetBalanceStatus422,
 } from "./models/PaymentsGetBalance.js";
 export type {
+  PaymentsGetConnectStatusHeaders,
+  PaymentsGetConnectStatusOptions,
+  PaymentsGetConnectStatusResponse,
+  PaymentsGetConnectStatusResponses,
+  PaymentsGetConnectStatusStatus200,
+  PaymentsGetConnectStatusStatus401,
+  PaymentsGetConnectStatusStatus403,
+  PaymentsGetConnectStatusStatus422,
+  PaymentsGetConnectStatusStatus503,
+} from "./models/PaymentsGetConnectStatus.js";
+export type {
   PaymentsGetIntentHeaders,
   PaymentsGetIntentOptions,
   PaymentsGetIntentPath,
@@ -7582,6 +7624,17 @@ export type {
   PaymentsGetIntentStatus404,
   PaymentsGetIntentStatus422,
 } from "./models/PaymentsGetIntent.js";
+export type {
+  PaymentsListDisputesHeaders,
+  PaymentsListDisputesOptions,
+  PaymentsListDisputesQuery,
+  PaymentsListDisputesResponse,
+  PaymentsListDisputesResponses,
+  PaymentsListDisputesStatus200,
+  PaymentsListDisputesStatus401,
+  PaymentsListDisputesStatus403,
+  PaymentsListDisputesStatus422,
+} from "./models/PaymentsListDisputes.js";
 export type {
   PaymentsListIntentsHeaders,
   PaymentsListIntentsOptions,
@@ -11025,10 +11078,14 @@ export { paymentsAdminGetReconciliationCsv } from "./clients/paymentsAdminGetRec
 export { paymentsAdminListBalances } from "./clients/paymentsAdminListBalances.js";
 export { paymentsAdminListIntents } from "./clients/paymentsAdminListIntents.js";
 export { paymentsAdminListLedger } from "./clients/paymentsAdminListLedger.js";
+export { paymentsAdminSetPlatformFee } from "./clients/paymentsAdminSetPlatformFee.js";
+export { paymentsCreateConnectOnboardingLink } from "./clients/paymentsCreateConnectOnboardingLink.js";
 export { paymentsCreateIntent } from "./clients/paymentsCreateIntent.js";
 export { paymentsCreateRefund } from "./clients/paymentsCreateRefund.js";
 export { paymentsGetBalance } from "./clients/paymentsGetBalance.js";
+export { paymentsGetConnectStatus } from "./clients/paymentsGetConnectStatus.js";
 export { paymentsGetIntent } from "./clients/paymentsGetIntent.js";
+export { paymentsListDisputes } from "./clients/paymentsListDisputes.js";
 export { paymentsListIntents } from "./clients/paymentsListIntents.js";
 export { paymentsRecordManualPayment } from "./clients/paymentsRecordManualPayment.js";
 export { printixAddMember } from "./clients/printixAddMember.js";
@@ -14242,6 +14299,16 @@ export {
   usePaymentsAdminListLedger,
 } from "./hooks/usePaymentsAdminListLedger.js";
 export {
+  paymentsAdminSetPlatformFeeMutationKey,
+  paymentsAdminSetPlatformFeeMutationOptions,
+  usePaymentsAdminSetPlatformFee,
+} from "./hooks/usePaymentsAdminSetPlatformFee.js";
+export {
+  paymentsCreateConnectOnboardingLinkMutationKey,
+  paymentsCreateConnectOnboardingLinkMutationOptions,
+  usePaymentsCreateConnectOnboardingLink,
+} from "./hooks/usePaymentsCreateConnectOnboardingLink.js";
+export {
   paymentsCreateIntentMutationKey,
   paymentsCreateIntentMutationOptions,
   usePaymentsCreateIntent,
@@ -14257,10 +14324,20 @@ export {
   usePaymentsGetBalance,
 } from "./hooks/usePaymentsGetBalance.js";
 export {
+  paymentsGetConnectStatusQueryKey,
+  paymentsGetConnectStatusQueryOptions,
+  usePaymentsGetConnectStatus,
+} from "./hooks/usePaymentsGetConnectStatus.js";
+export {
   paymentsGetIntentQueryKey,
   paymentsGetIntentQueryOptions,
   usePaymentsGetIntent,
 } from "./hooks/usePaymentsGetIntent.js";
+export {
+  paymentsListDisputesQueryKey,
+  paymentsListDisputesQueryOptions,
+  usePaymentsListDisputes,
+} from "./hooks/usePaymentsListDisputes.js";
 export {
   paymentsListIntentsQueryKey,
   paymentsListIntentsQueryOptions,
@@ -17821,6 +17898,10 @@ export { clockSiteCreateSchema } from "./zod/clockSiteCreateSchema.js";
 export { clockSiteIssuedSchema } from "./zod/clockSiteIssuedSchema.js";
 export { clockSitePublicSchema } from "./zod/clockSitePublicSchema.js";
 export { clockSitesPublicSchema } from "./zod/clockSitesPublicSchema.js";
+export { connectFeePublicSchema } from "./zod/connectFeePublicSchema.js";
+export { connectOnboardingLinkPublicSchema } from "./zod/connectOnboardingLinkPublicSchema.js";
+export { connectPlatformFeeUpdateSchema } from "./zod/connectPlatformFeeUpdateSchema.js";
+export { connectStatusPublicSchema } from "./zod/connectStatusPublicSchema.js";
 export { connectionCreateSchema } from "./zod/connectionCreateSchema.js";
 export { connectionPublicPropertiesStateEnumSchema } from "./zod/connectionPublicPropertiesStateEnumSchema.js";
 export { connectionPublicSchema } from "./zod/connectionPublicSchema.js";
@@ -18060,6 +18141,8 @@ export { departmentUpdateSchema } from "./zod/departmentUpdateSchema.js";
 export { departmentsPublicSchema } from "./zod/departmentsPublicSchema.js";
 export { derivationInputSchema } from "./zod/derivationInputSchema.js";
 export { derivationResultSchema } from "./zod/derivationResultSchema.js";
+export { disputeListPublicSchema } from "./zod/disputeListPublicSchema.js";
+export { disputePublicSchema } from "./zod/disputePublicSchema.js";
 export { documentCategorySchema } from "./zod/documentCategorySchema.js";
 export { documentEmployeeListPublicSchema } from "./zod/documentEmployeeListPublicSchema.js";
 export { documentEmployeePublicSchema } from "./zod/documentEmployeePublicSchema.js";
@@ -23087,6 +23170,31 @@ export {
   paymentsAdminListLedgerStatus422Schema,
 } from "./zod/paymentsAdminListLedgerSchema.js";
 export {
+  paymentsAdminSetPlatformFeeBodySchema,
+  paymentsAdminSetPlatformFeeErrorSchema,
+  paymentsAdminSetPlatformFeePathOrganisationIdSchema,
+  paymentsAdminSetPlatformFeePathSchema,
+  paymentsAdminSetPlatformFeeResponseSchema,
+  paymentsAdminSetPlatformFeeStatus200Schema,
+  paymentsAdminSetPlatformFeeStatus400Schema,
+  paymentsAdminSetPlatformFeeStatus401Schema,
+  paymentsAdminSetPlatformFeeStatus403Schema,
+  paymentsAdminSetPlatformFeeStatus404Schema,
+  paymentsAdminSetPlatformFeeStatus422Schema,
+} from "./zod/paymentsAdminSetPlatformFeeSchema.js";
+export {
+  paymentsCreateConnectOnboardingLinkErrorSchema,
+  paymentsCreateConnectOnboardingLinkHeaderXBarrelsOrganisationSchema,
+  paymentsCreateConnectOnboardingLinkHeadersSchema,
+  paymentsCreateConnectOnboardingLinkResponseSchema,
+  paymentsCreateConnectOnboardingLinkStatus200Schema,
+  paymentsCreateConnectOnboardingLinkStatus401Schema,
+  paymentsCreateConnectOnboardingLinkStatus403Schema,
+  paymentsCreateConnectOnboardingLinkStatus422Schema,
+  paymentsCreateConnectOnboardingLinkStatus502Schema,
+  paymentsCreateConnectOnboardingLinkStatus503Schema,
+} from "./zod/paymentsCreateConnectOnboardingLinkSchema.js";
+export {
   paymentsCreateIntentBodySchema,
   paymentsCreateIntentErrorSchema,
   paymentsCreateIntentHeaderXBarrelsOrganisationSchema,
@@ -23131,6 +23239,17 @@ export {
   paymentsGetBalanceStatus422Schema,
 } from "./zod/paymentsGetBalanceSchema.js";
 export {
+  paymentsGetConnectStatusErrorSchema,
+  paymentsGetConnectStatusHeaderXBarrelsOrganisationSchema,
+  paymentsGetConnectStatusHeadersSchema,
+  paymentsGetConnectStatusResponseSchema,
+  paymentsGetConnectStatusStatus200Schema,
+  paymentsGetConnectStatusStatus401Schema,
+  paymentsGetConnectStatusStatus403Schema,
+  paymentsGetConnectStatusStatus422Schema,
+  paymentsGetConnectStatusStatus503Schema,
+} from "./zod/paymentsGetConnectStatusSchema.js";
+export {
   paymentsGetIntentErrorSchema,
   paymentsGetIntentHeaderXBarrelsOrganisationSchema,
   paymentsGetIntentHeadersSchema,
@@ -23143,6 +23262,19 @@ export {
   paymentsGetIntentStatus404Schema,
   paymentsGetIntentStatus422Schema,
 } from "./zod/paymentsGetIntentSchema.js";
+export {
+  paymentsListDisputesErrorSchema,
+  paymentsListDisputesHeaderXBarrelsOrganisationSchema,
+  paymentsListDisputesHeadersSchema,
+  paymentsListDisputesQueryPageSchema,
+  paymentsListDisputesQuerySchema,
+  paymentsListDisputesQuerySizeSchema,
+  paymentsListDisputesResponseSchema,
+  paymentsListDisputesStatus200Schema,
+  paymentsListDisputesStatus401Schema,
+  paymentsListDisputesStatus403Schema,
+  paymentsListDisputesStatus422Schema,
+} from "./zod/paymentsListDisputesSchema.js";
 export {
   paymentsListIntentsErrorSchema,
   paymentsListIntentsHeaderXBarrelsOrganisationSchema,
