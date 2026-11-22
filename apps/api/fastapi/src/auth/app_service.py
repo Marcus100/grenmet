@@ -199,8 +199,14 @@ async def _create_member(
     return user
 
 
-async def ensure_member(session: AsyncSession, user: User, app: AppDefinition) -> None:
-    """Grant the app's default role on first sign-in when self sign-up is open."""
+async def ensure_member(
+    session: AsyncSession, user: User, app: AppDefinition, *, auto_grant: bool = False
+) -> None:
+    """Grant the app's default role on first sign-in when self sign-up is open.
+
+    ``auto_grant`` marks a grant that replaces a skipped Join prompt (the app has
+    ``join_prompt`` off). Only a newly created link is audited, in the same commit.
+    """
     if await service.is_eligible_for_app(session=session, user=user, app_key=app.key):
         return
     if not app.self_signup:
@@ -211,7 +217,56 @@ async def ensure_member(session: AsyncSession, user: User, app: AppDefinition) -
     exists = await session.get(UserRoleLink, (user.id, role_id))
     if exists is None:
         session.add(UserRoleLink(user_id=user.id, role_id=role_id))
+        if auto_grant:
+            await _record_auto_grant(session, user, app)
     await session.commit()
+
+
+async def _record_auto_grant(
+    session: AsyncSession, user: User, app: AppDefinition
+) -> None:
+    """Audit row for a default role granted without a Join prompt. Ids and keys only."""
+    from src.audit import service as audit
+
+    audit.set_actor(session, user.id)
+    await audit.record_change(
+        session,
+        entity_type="account",
+        entity_id=str(user.id),
+        record_type="account_membership",
+        record_id=str(user.id),
+        action="role_auto_grant",
+        changes={"app": (None, app.key), "role": (None, app.default_role)},
+    )
+
+
+async def _may_self_grant(session: AsyncSession, user: User) -> bool:
+    """Whether a skipped Join prompt may grant the default role at all.
+
+    The same gates as ``is_eligible_for_app``, plus ended employment: once every
+    employment record has ended, effective roles ignore plain role links, so a
+    grant would be an ineffective link. A refused person gets the usual 403 with no
+    link and no audit row.
+    """
+    if not user.is_active or (
+        user.password_setup_pending and user.email_verified_at is None
+    ):
+        return False
+    from src.hr.models import EmploymentRecord, live_employment_clause
+    from src.utils.timezones import local_today
+
+    has_record = await session.scalar(
+        select(EmploymentRecord.id).where(EmploymentRecord.user_id == user.id)
+    )
+    if has_record is None:
+        return True
+    has_active = await session.scalar(
+        select(EmploymentRecord.id).where(
+            EmploymentRecord.user_id == user.id,
+            live_employment_clause(local_today()),
+        )
+    )
+    return has_active is not None
 
 
 async def _session_response(
@@ -819,7 +874,9 @@ async def handoff_start(
             raise AppException("Ask the team to give you access to this app.", 403)
         if not body.join and app.join_prompt:
             raise AppException(f"Join {app.label} to continue.", 409)
-        await ensure_member(session, user, app)
+        if not app.join_prompt and not await _may_self_grant(session, user):
+            raise AppException("This account can't sign in to this app.", 403)
+        await ensure_member(session, user, app, auto_grant=not app.join_prompt)
         if not await service.is_eligible_for_app(
             session=session, user=user, app_key=app.key
         ):
