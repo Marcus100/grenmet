@@ -34,6 +34,27 @@ MAX_REPLY_TO = 254
 # Characters a display name may not keep: angle brackets and quotes (header
 # syntax), backslash (escape), and "@" (a name must not look like an address).
 _NAME_BANNED = '<>"\\@'
+#: Business names containing any of these (case-insensitive) are not used as the
+#: sender name: they would let a business pass as Barrels, a government body, a
+#: bank or a support desk, or carry a web address. The sender then keeps the
+#: default name. Moderation of names is a follow-up on issue 1640.
+RESERVED_SENDER_TERMS = (
+    "barrels",
+    "gaa",
+    "grenada airports",
+    "gms",
+    "met office",
+    "meteorological",
+    "government",
+    "bank",
+    "support",
+    "security",
+    "admin",
+    "http",
+    "www.",
+    ".com",
+    ".gd",
+)
 _REPLY_TO = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+")
 
 
@@ -85,30 +106,31 @@ def sender_header(from_name: str | None) -> str:
 
 def business_sender_name(business: str) -> str:
     """The display name "<Business> via Barrels". The business part is cut so the
-    suffix survives. Empty when the business has no usable name."""
+    suffix survives. Empty when the business has no usable name, or when its name
+    holds a reserved term (the default sender is used instead)."""
     base = _display_name(business, MAX_DISPLAY_NAME - len(VIA_SUFFIX))
-    return f"{base}{VIA_SUFFIX}" if base else ""
+    if not base:
+        return ""
+    lowered = base.lower()
+    if any(term in lowered for term in RESERVED_SENDER_TERMS):
+        logger.warning("Business name not used as sender: reserved term")
+        return ""
+    return f"{base}{VIA_SUFFIX}"
 
 
 def safe_reply_to(value: str | None) -> str | None:
-    """``value`` when it is one plain email address, else None."""
+    """``value`` when it is one plain email address, else None. A rejected value is
+    logged without the address."""
     candidate = (value or "").strip()
     if (
         not candidate
         or len(candidate) > MAX_REPLY_TO
         or not _REPLY_TO.fullmatch(candidate)
     ):
+        if candidate:
+            logger.warning("Reply-To rejected: not a plain email address")
         return None
     return candidate
-
-
-def business_sender(business: str, contact_email: str | None) -> SenderIdentity:
-    """The identity for a business's customer mail. Without a valid contact email
-    the mail keeps the default sender and carries no Reply-To."""
-    reply_to = safe_reply_to(contact_email)
-    if reply_to is None:
-        return SenderIdentity()
-    return SenderIdentity(business_sender_name(business) or None, reply_to)
 
 
 # ── Sending ───────────────────────────────────────────────────────────────────

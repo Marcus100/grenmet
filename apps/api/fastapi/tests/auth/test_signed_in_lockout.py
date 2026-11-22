@@ -440,7 +440,11 @@ async def test_record_failure_sets_the_ttl_with_the_count() -> None:
 
     client = FakeAsyncRedis(decode_responses=True)
     lockout = LoginLockout(
-        redis_url=None, client=client, max_attempts=2, lockout_seconds=60, window_seconds=30
+        redis_url=None,
+        client=client,
+        max_attempts=2,
+        lockout_seconds=60,
+        window_seconds=30,
     )
     assert await lockout.record_failure("a@x.test") is False
     assert 0 < await client.ttl("login:fail:a@x.test") <= 30

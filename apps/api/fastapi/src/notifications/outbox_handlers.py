@@ -49,7 +49,7 @@ async def enqueue_email(
 
     Structured mail passes ``template`` and ``props`` (rendered at delivery).
     ``from_name`` and ``reply_to`` are the business sender identity (see
-    ``email.business_sender``); the sender cleans and checks both at send time."""
+    ``notifications.sender_identity.business_identity``); the sender cleans and checks both at send time."""
     if html is None and template is None:
         raise ValueError("An email needs html or a template")
     payload: dict[str, Any] = {

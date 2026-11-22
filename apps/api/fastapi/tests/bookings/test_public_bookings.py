@@ -9,12 +9,13 @@ from typing import Any
 
 import httpx
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox, turnstile
 from src.bookings import public, reminders
+from src.auth.models import User
 from src.bookings.models import Booking, BookingEvent, BookingStatus, Customer
 from src.contacts.models import Contact
 from src.email_config import email_settings
@@ -22,7 +23,12 @@ from src.idempotency import IdempotencyKey
 from src.notifications import outbox_handlers
 from src.notifications.models import OutboundEmail
 from src.organisations import service as organisation_service
-from src.organisations.models import MembershipRole, PublicSite, new_public_site_id
+from src.organisations.models import (
+    Membership,
+    MembershipRole,
+    PublicSite,
+    new_public_site_id,
+)
 from src.outbox import Outbox
 from src.utils.datetime import utc_now
 from tests.bookings.booking_day import DAY, MONDAY, utc_iso
@@ -32,6 +38,20 @@ from tests.organisations.support import headers_for, make_org
 
 API = "/api/v1/bookings"
 MANAGE = "https://babydoll.example/manage/{token}"
+
+
+#: Pass as ``contact_email`` to use the studio owner's own (verified) login email.
+OWNER_CONTACT = "<owner>"
+
+
+async def _owner_email(db: AsyncSession, org_id: str) -> str:
+    email = await db.scalar(
+        select(User.email)
+        .join(Membership, Membership.user_id == User.id)
+        .where(Membership.organisation_id == org_id)
+    )
+    assert email is not None
+    return str(email)
 
 
 @dataclass
@@ -52,6 +72,11 @@ async def _studio(
     **profile: object,
 ) -> Studio:
     owner = await make_user(db)
+    await db.execute(
+        update(User).where(User.id == owner.id).values(email_verified_at=utc_now())
+    )
+    if profile.get("contact_email") == OWNER_CONTACT:
+        profile["contact_email"] = owner.email
     org = await make_org(
         db,
         f"Salon {uuid.uuid4().hex[:6]}",
@@ -877,6 +902,7 @@ async def test_emails_are_queued_on_the_outbox_with_a_manage_link(
             "subject": customer["subject"],
             "html_content": payload_html(customer),
             "text_content": payload_text(customer),
+            "from_name": "Babydoll Beauty Bar via Barrels",
         }
     ]
     await db_async.rollback()
@@ -891,16 +917,15 @@ async def test_customer_mail_is_sent_as_the_business_with_its_contact_as_reply_t
     monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", "noreply@example.com")
     monkeypatch.setattr(email_settings, "RESEND_API_KEY", "re_test")
     monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", None)
-    studio, _, _ = await _booked(
-        db_async, async_client, contact_email="owner@salon.example"
-    )
+    studio, _, _ = await _booked(db_async, async_client, contact_email=OWNER_CONTACT)
+    owner_email = await _owner_email(db_async, studio.org_id)
     by_key = {
         row.dedupe_key.split(":")[0]: row
         for row in await _emails(db_async, studio.org_id)
     }
     customer = by_key["booking-confirmation"].payload
     assert customer["from_name"] == "Babydoll Beauty Bar via Barrels"
-    assert customer["reply_to"] == "owner@salon.example"
+    assert customer["reply_to"] == owner_email
     studio_mail = by_key["booking-studio-created"].payload
     assert "from_name" not in studio_mail
     assert "reply_to" not in studio_mail
@@ -916,11 +941,32 @@ async def test_customer_mail_is_sent_as_the_business_with_its_contact_as_reply_t
         ),
     )
     assert outbound_email_calls[-1]["from_name"] == "Babydoll Beauty Bar via Barrels"
-    assert outbound_email_calls[-1]["reply_to"] == "owner@salon.example"
+    assert outbound_email_calls[-1]["reply_to"] == owner_email
     await db_async.rollback()
 
 
-async def test_customer_mail_without_a_contact_email_keeps_the_default_sender(
+async def test_a_reply_to_is_sent_only_for_a_verified_member_email(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", "noreply@example.com")
+    monkeypatch.setattr(email_settings, "RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", None)
+    outsider = await make_user(db_async)
+    for contact in ("someone@else.example", outsider.email):
+        studio, _, _ = await _booked(db_async, async_client, contact_email=contact)
+        customer = next(
+            row.payload
+            for row in await _emails(db_async, studio.org_id)
+            if row.dedupe_key.startswith("booking-confirmation")
+        )
+        assert "reply_to" not in customer
+        assert customer["from_name"] == "Babydoll Beauty Bar via Barrels"
+    await db_async.rollback()
+
+
+async def test_customer_mail_without_a_contact_email_keeps_the_name_and_no_reply_to(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
     monkeypatch: pytest.MonkeyPatch,
@@ -935,7 +981,7 @@ async def test_customer_mail_without_a_contact_email_keeps_the_default_sender(
         for row in await _emails(db_async, studio.org_id)
     }
     customer = by_key["booking-confirmation"].payload
-    assert "from_name" not in customer
+    assert customer["from_name"] == "Babydoll Beauty Bar via Barrels"
     assert "reply_to" not in customer
     await outbox_handlers.send_email(
         db_async,
@@ -948,7 +994,7 @@ async def test_customer_mail_without_a_contact_email_keeps_the_default_sender(
             attempts=0,
         ),
     )
-    assert "from_name" not in outbound_email_calls[-1]
+    assert outbound_email_calls[-1]["from_name"] == "Babydoll Beauty Bar via Barrels"
     assert "reply_to" not in outbound_email_calls[-1]
     await db_async.rollback()
 

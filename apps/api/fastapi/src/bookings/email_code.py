@@ -286,7 +286,7 @@ async def request_code(
     reply_to: str | None = None,
 ) -> int:
     """Issue a code and queue its email. Returns the code lifetime in seconds.
-    ``from_name`` and ``reply_to`` are the business sender (``email.business_sender``)."""
+    ``from_name`` and ``reply_to`` are the business sender (``notifications.sender_identity.business_identity``)."""
     store = _Current.store
     if await store.exists(f"{_PREFIX}lock:{binding.who}"):
         raise CodeRateLimitedError

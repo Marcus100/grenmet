@@ -17,7 +17,6 @@ from src import email as email_module
 from src import email_layout as layout
 from src.email import (
     SenderIdentity,
-    business_sender,
     business_sender_name,
     safe_reply_to,
     sender_header,
@@ -178,19 +177,6 @@ def test_a_valid_reply_to_is_kept(value: str) -> None:
 @pytest.mark.parametrize("value", HOSTILE_REPLY_TO + [None])
 def test_an_invalid_reply_to_is_dropped(value: str | None) -> None:
     assert safe_reply_to(value) is None
-
-
-def test_business_sender_uses_the_business_and_its_contact_email() -> None:
-    assert business_sender(
-        "Babydoll Beauty Bar", "owner@example.com"
-    ) == SenderIdentity("Babydoll Beauty Bar via Barrels", "owner@example.com")
-
-
-@pytest.mark.parametrize("contact", [None, "", "not-an-address"])
-def test_a_business_without_a_valid_contact_email_keeps_the_default_sender(
-    contact: str | None,
-) -> None:
-    assert business_sender("Babydoll Beauty Bar", contact) == SenderIdentity(None, None)
 
 
 # ── Resend and SMTP both get the same safe values ───────────────────────────
@@ -360,7 +346,7 @@ def test_an_encoded_word_name_cannot_decode_into_an_address(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", _FROM)
-    header = sender_header(business_sender_name(ENCODED_WORD))
+    header = sender_header(ENCODED_WORD)
     assert "=?" not in header and "?=" not in header
     assert _addresses(header) == [_FROM]
 
@@ -416,3 +402,65 @@ def test_a_non_ascii_name_on_smtp_gives_one_valid_from_address(
     assert address == _FROM
     decoded = str(make_header(decode_header(encoded_name)))
     assert decoded == "Café Bistro"
+
+
+# ── Reserved terms, pinned defaults and logging ──────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "Barrels Salon",
+        "GAA Spa",
+        "Grenada Airports Spa",
+        "GMS Salon",
+        "Met Office Cafe",
+        "Meteorological Shop",
+        "Government Store",
+        "Bank of Spa",
+        "Support Desk",
+        "Security Salon",
+        "Admin Spa",
+        "Visit www.spa.example",
+        "http spa",
+        "spa.com",
+        "Spa.GD",
+    ],
+)
+def test_a_name_with_a_reserved_term_falls_back_to_the_default(name: str) -> None:
+    assert business_sender_name(name) == ""
+
+
+def test_an_ordinary_name_is_not_caught_by_the_reserved_terms() -> None:
+    assert (
+        business_sender_name("Babydoll Beauty Bar") == "Babydoll Beauty Bar via Barrels"
+    )
+
+
+def test_the_default_header_is_the_literal_configured_pair(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_NAME", "Sender Default")
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_EMAIL", _FROM)
+    assert sender_header(None) == "Sender Default <noreply@example.com>"
+
+
+def test_the_smtp_default_from_is_the_literal_configured_pair(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(email_settings, "EMAILS_FROM_NAME", "Sender Default")
+    messages = _smtp(monkeypatch)
+    _real_send_email(email_to="reader@example.com", subject="Hi", html_content=_HTML)
+    assert messages[0]["From"] == "Sender Default <noreply@example.com>"
+
+
+def test_a_rejected_reply_to_is_logged_without_the_address(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    logged: list[str] = []
+    monkeypatch.setattr(
+        email_module.logger, "warning", lambda msg, *args: logged.append(msg % args)
+    )
+    assert safe_reply_to("secret@example.com, other@example.net") is None
+    assert logged and "Reply-To rejected" in logged[0]
+    assert all("secret@" not in line for line in logged)
