@@ -772,3 +772,38 @@ test("noindex is found in either attribute order and any case, and only there", 
   ])
     assert.ok(!NOINDEX_ROBOTS.test(tag), `ignores ${tag}`);
 });
+
+test("every page links the favicon, and the built site ships it as an ICO", () => {
+  for (const page of PAGES) {
+    assert.ok(
+      read(page).includes('<link href="/favicon.ico" rel="icon" sizes="any">'),
+      `${page} links /favicon.ico`
+    );
+  }
+  const icon = readFileSync(new URL("./dist/favicon.ico", import.meta.url));
+  // ICO header: reserved 0, type 1 (icon), at least one image.
+  assert.deepEqual([...icon.subarray(0, 4)], [0, 0, 1, 0]);
+});
+
+test("security headers: HSTS without subdomains or preload, frame and permissions limits", () => {
+  const config = JSON.parse(
+    readFileSync(new URL("./vercel.json", import.meta.url), "utf8")
+  );
+  const headers = Object.fromEntries(
+    config.headers[0].headers.map((header) => [header.key, header.value])
+  );
+  assert.equal(
+    headers["Strict-Transport-Security"],
+    "max-age=31536000",
+    "HSTS is one year with no includeSubDomains and no preload"
+  );
+  assert.equal(headers["X-Frame-Options"], "SAMEORIGIN");
+  assert.equal(
+    headers["Permissions-Policy"],
+    "camera=(), microphone=(), geolocation=(), payment=()"
+  );
+  // The static host copies the same lines (checked above), so the policy
+  // cannot drift between the Vercel and Cloudflare Pages outputs.
+  const lines = read("_headers").split("\n");
+  assert.ok(lines.includes("  Strict-Transport-Security: max-age=31536000"));
+});
