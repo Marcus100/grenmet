@@ -18,6 +18,7 @@ from src import outbox
 from src.audit import service as audit_service
 from src.auth.models import User
 from src.notifications import outbox_handlers
+from src.notifications import service as notification_service
 from src.organisations import service as organisations_service
 from src.organisations.config import organisations_settings
 from src.organisations.models import Membership, MembershipRole, MembershipStatus
@@ -287,6 +288,13 @@ async def disable_endpoint(
     )
     stamp = int(utc_now().timestamp())
     for email in await _admin_emails(session, endpoint.organisation_id):
+        # Issue 1629: never mail an address that has no account. The log names no address.
+        if not await notification_service.has_account(session=session, email=email):
+            logger.warning(
+                "Webhook disabled notice skipped: recipient has no account",
+                extra={"endpoint_id": endpoint.id},
+            )
+            continue
         await outbox_handlers.enqueue_email(
             session,
             to_email=email,

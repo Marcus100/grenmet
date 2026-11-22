@@ -33,6 +33,7 @@ from src.config import settings
 from src.storage.service import storage_service
 from src.utils.datetime import utc_now
 from src.worker.dispatch import exhausted_jobs, process_due_jobs
+from tests.factories import make_user
 
 
 def _client(handler) -> httpx.AsyncClient:
@@ -610,7 +611,7 @@ async def test_failure_email_is_queued_once_per_job_and_recipient_across_runs(
     monkeypatch.setattr(
         worker_settings,
         "CAP_DELIVERY_FAILURE_RECIPIENTS",
-        "duty@gms.example.test, weather@gms.example.test",
+        "duty@gms.example.com, weather@gms.example.com",
     )
     jobs = [
         await _add_job(db_async, "publish.email"),
@@ -619,6 +620,9 @@ async def test_failure_email_is_queued_once_per_job_and_recipient_across_runs(
     for job in jobs:
         job.status = CapJobStatus.FAILED
         job.attempts = 5
+    # Issue 1629: only recipients with an account are mailed.
+    for address in ("duty@gms.example.com", "weather@gms.example.com"):
+        await make_user(db_async, email=address)
     await db_async.commit()
 
     assert await worker_main.check_cap_job_failures({}) == 2
@@ -627,7 +631,7 @@ async def test_failure_email_is_queued_once_per_job_and_recipient_across_runs(
     expected = sorted(
         f"cap-job-failed:{job.id}:{address}"
         for job in jobs
-        for address in ("duty@gms.example.test", "weather@gms.example.test")
+        for address in ("duty@gms.example.com", "weather@gms.example.com")
     )
     rows = (
         await db_async.scalars(
@@ -681,12 +685,14 @@ async def test_exhausted_job_emails_gms_once_with_no_personal_data(
     from src.worker.config import worker_settings
 
     monkeypatch.setattr(
-        worker_settings, "CAP_DELIVERY_FAILURE_RECIPIENTS", "duty@gms.example.test"
+        worker_settings, "CAP_DELIVERY_FAILURE_RECIPIENTS", "duty@gms.example.com"
     )
     job = await _add_job(db_async, "publish.email")
     job.status = CapJobStatus.FAILED
     job.attempts = 5
     job.result = {"error": "smtp said ada@example.com", "error_class": "OSError"}
+    # Issue 1629: the recipient must have an account to be mailed.
+    await make_user(db_async, email="duty@gms.example.com")
     await db_async.commit()
 
     assert await worker_main.check_cap_job_failures({}) == 1
@@ -703,7 +709,7 @@ async def test_exhausted_job_emails_gms_once_with_no_personal_data(
     )
     assert len(rows) == 1
     mail = rows[0]
-    assert mail.to_email == "duty@gms.example.test"
+    assert mail.to_email == "duty@gms.example.com"
     body = str(mail.props["body"])
     assert "Delivery channel: email" in body
     assert "Attempts: 5" in body
