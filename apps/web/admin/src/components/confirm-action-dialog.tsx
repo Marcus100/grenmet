@@ -11,13 +11,15 @@ import {
   AlertDialogTrigger,
 } from "@barrelsgd/ui/components/ui/alert-dialog";
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import { useState } from "react";
+import { type FormEvent, useState, useTransition } from "react";
 
 /**
  * The console's shared confirmation for destructive or recorded actions
  * (docs/design/admin.md: destructive actions confirm first). The trigger opens a
- * dialog that says what changes; only its confirm button submits the server
- * action, with `fields` sent as hidden inputs. Cancel changes nothing.
+ * dialog that says what changes. Confirm runs the server action with `fields`
+ * as form data, then closes the dialog whether it worked or not: the action
+ * revalidates the same page, so this component stays mounted and must not stay
+ * open over the result. Cancel changes nothing.
  */
 export function ConfirmActionDialog({
   action,
@@ -40,6 +42,21 @@ export function ConfirmActionDialog({
   triggerLabel: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  function confirm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(async () => {
+      try {
+        await action(data);
+      } finally {
+        // Redirects and revalidation both leave this mounted; close either way.
+        setOpen(false);
+      }
+    });
+  }
+
   return (
     <AlertDialog onOpenChange={setOpen} open={open}>
       <AlertDialogTrigger
@@ -61,13 +78,14 @@ export function ConfirmActionDialog({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        <form action={action}>
+        <form onSubmit={confirm}>
           {Object.entries(fields).map(([name, value]) => (
             <input key={name} name={name} type="hidden" value={value} />
           ))}
           <AlertDialogFooter>
             <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
             <Button
+              disabled={pending}
               type="submit"
               variant={destructive ? "destructive" : "default"}
             >

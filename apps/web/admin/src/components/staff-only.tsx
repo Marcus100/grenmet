@@ -64,7 +64,7 @@ export function StaffOnly({ email }: { email?: string }) {
             method="post"
           >
             <Button className="min-h-11 w-full sm:w-auto" type="submit">
-              Switch account
+              Sign out of this console
             </Button>
           </form>
           <Button

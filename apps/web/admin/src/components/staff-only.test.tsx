@@ -20,7 +20,9 @@ it("refuses non-staff, shows the signed-in account and offers the way out", () =
   expect(screen.getByRole("heading", { name: "Who to ask" })).toBeTruthy();
   expect(screen.queryByRole("link", { name: "Organisations" })).toBeNull();
   expect(
-    screen.getByRole("button", { name: "Switch account" }).getAttribute("type")
+    screen
+      .getByRole("button", { name: "Sign out of this console" })
+      .getAttribute("type")
   ).toBe("submit");
   expect(
     screen

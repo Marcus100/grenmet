@@ -2,6 +2,8 @@ import { flexRender, type RowData } from "@tanstack/react-table";
 import type { LegacyReactTable } from "@tanstack/react-table/legacy";
 import type { ReactNode } from "react";
 
+const OMITTED_COLUMNS = new Set(["select"]);
+
 /**
  * The phone layout for a data table: each row becomes a card with the column
  * name above each value, so nothing is cut off or squeezed into a narrow
@@ -25,6 +27,10 @@ export function RowCards<TData extends RowData>({
         <li className="bg-card rounded-xl border p-4" key={row.id}>
           <div className="grid gap-3 text-sm">
             {row.getVisibleCells().map((cell) => {
+              // Bulk-select checkboxes stay in the table only: a second copy in
+              // the cards would repeat their labels and ids. Actions stay, since
+              // a phone needs them.
+              if (OMITTED_COLUMNS.has(cell.column.id)) return null;
               // Only plain-text headers become labels; checkbox and icon
               // headers are not words, so their cells show without one.
               const { header } = cell.column.columnDef;

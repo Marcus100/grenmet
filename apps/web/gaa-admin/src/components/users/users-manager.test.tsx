@@ -1,6 +1,12 @@
 import { configureApiClient } from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import {
@@ -166,6 +172,17 @@ function renderUsers() {
 }
 
 describe("UsersManager", () => {
+  it("shows a desktop table and a phone card list, without bulk checkboxes in the cards", async () => {
+    renderUsers();
+    await screen.findAllByText("Gerard Tamar");
+    const cards = screen.getByRole("list", { name: "Results" });
+    expect(cards.className).toContain("md:hidden");
+    const tableWrapper = screen.getByRole("table").closest(".hidden");
+    expect(tableWrapper?.className).toContain("md:block");
+    expect(within(cards).queryAllByRole("checkbox")).toHaveLength(0);
+    expect(screen.getAllByRole("checkbox").length).toBeGreaterThan(0);
+  });
+
   it("hides global account creation for scoped managers", async () => {
     actor.is_superuser = false;
     renderUsers();
