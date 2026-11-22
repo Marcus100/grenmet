@@ -1547,6 +1547,7 @@ export {
 } from "./bookingsListExceptionsSchema.js";
 export {
   bookingsListMyBookingsErrorSchema,
+  bookingsListMyBookingsQueryCancelledSchema,
   bookingsListMyBookingsQueryPageSchema,
   bookingsListMyBookingsQuerySchema,
   bookingsListMyBookingsQuerySizeSchema,

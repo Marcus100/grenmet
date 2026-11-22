@@ -17125,6 +17125,7 @@ export {
 } from "./zod/bookingsListExceptionsSchema.js";
 export {
   bookingsListMyBookingsErrorSchema,
+  bookingsListMyBookingsQueryCancelledSchema,
   bookingsListMyBookingsQueryPageSchema,
   bookingsListMyBookingsQuerySchema,
   bookingsListMyBookingsQuerySizeSchema,

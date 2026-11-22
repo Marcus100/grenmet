@@ -686,6 +686,7 @@ async def list_my_bookings(
     *,
     upcoming: bool | None,
     pagination: PaginationParams,
+    cancelled: bool | None = None,
     now: datetime | None = None,
 ) -> tuple[list[tuple[Booking, str, str, str]], int]:
     """The account's bookings across organisations, one SQL page.
@@ -697,6 +698,9 @@ async def list_my_bookings(
     to ``user_id`` (ADR-0058). Returns ``(booking, service name, business name,
     business slug)`` rows and the total before paging. ``upcoming`` True keeps
     bookings starting at or after now, False keeps the earlier ones, None keeps all.
+    ``cancelled`` True keeps only cancelled bookings, False leaves them out, None
+    keeps every status. The filters are independent, so "Upcoming" is
+    ``upcoming=True, cancelled=False``.
     """
     moment = now or utc_now()
     linked_customers = (
@@ -713,6 +717,10 @@ async def list_my_bookings(
         filters.append(Booking.starts_at >= moment)
     elif upcoming is False:
         filters.append(Booking.starts_at < moment)
+    if cancelled is True:
+        filters.append(Booking.status == BookingStatus.CANCELLED.value)
+    elif cancelled is False:
+        filters.append(Booking.status != BookingStatus.CANCELLED.value)
     total = await session.scalar(
         select(func.count()).select_from(Booking).where(*filters)
     )

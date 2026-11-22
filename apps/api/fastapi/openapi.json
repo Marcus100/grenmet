@@ -10209,6 +10209,24 @@
             "description": "True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first."
           },
           {
+            "name": "cancelled",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "True: only cancelled bookings. False: every booking except the cancelled ones. Omit: all statuses. Combine with `upcoming` for the Upcoming list (upcoming=true, cancelled=false).",
+              "title": "Cancelled"
+            },
+            "description": "True: only cancelled bookings. False: every booking except the cancelled ones. Omit: all statuses. Combine with `upcoming` for the Upcoming list (upcoming=true, cancelled=false)."
+          },
+          {
             "name": "page",
             "in": "query",
             "required": false,
@@ -77352,6 +77370,18 @@
               }
             ],
             "description": "What was paid when booking; null when nothing was due at booking (pay at the business)."
+          },
+          "manage_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manage Url",
+            "description": "The booking's manage page (Reschedule, Cancel, Add to calendar), with a signed link that works until a week after the booking ends. Null once that window has passed or the stored link was cleared."
           }
         },
         "type": "object",
@@ -77365,7 +77395,7 @@
           "business_slug"
         ],
         "title": "BookingMyBooking",
-        "description": "One of the caller's bookings, with the business it is with. Carries no\nmanage token, notes, or other customers' details."
+        "description": "One of the caller's bookings, with the business it is with. Carries no\nstored manage token, notes, or other customers' details; ``manage_url`` is a\nfreshly signed link to the booking's manage page, the same kind the booking\nemail carries."
       },
       "BookingMyBookingList": {
         "properties": {
@@ -78420,6 +78450,19 @@
             ],
             "title": "Account Invite Url",
             "description": "Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account."
+          },
+          "hold_ends_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hold Ends At",
+            "description": "While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise."
           }
         },
         "type": "object",

@@ -14,6 +14,10 @@ export type BookingsListMyBookingsQuery = {
    */
   upcoming?: boolean | null;
   /**
+   * @description True: only cancelled bookings. False: every booking except the cancelled ones. Omit: all statuses. Combine with `upcoming` for the Upcoming list (upcoming=true, cancelled=false).
+   */
+  cancelled?: boolean | null;
+  /**
    * @description Page number (1-indexed)
    * @minimum 1
    * @maximum 1000000

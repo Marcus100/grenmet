@@ -44,7 +44,9 @@ class BookingMyOrganisation(BaseModel):
 
 class BookingMyBooking(BaseModel):
     """One of the caller's bookings, with the business it is with. Carries no
-    manage token, notes, or other customers' details."""
+    stored manage token, notes, or other customers' details; ``manage_url`` is a
+    freshly signed link to the booking's manage page, the same kind the booking
+    email carries."""
 
     id: uuid.UUID
     status: BookingStatus
@@ -58,6 +60,14 @@ class BookingMyBooking(BaseModel):
         description=(
             "What was paid when booking; null when nothing was due at booking "
             "(pay at the business)."
+        ),
+    )
+    manage_url: str | None = Field(
+        default=None,
+        description=(
+            "The booking's manage page (Reschedule, Cancel, Add to calendar), "
+            "with a signed link that works until a week after the booking ends. "
+            "Null once that window has passed or the stored link was cleared."
         ),
     )
 
@@ -765,6 +775,13 @@ class BookingPublicDetail(BaseModel):
             "Where a guest can create a free account or sign in, so this booking "
             "is listed under My bookings. Null once the booking's contact is linked "
             "to an account."
+        ),
+    )
+    hold_ends_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "While `status` is `pending_payment`: when the unpaid hold is released "
+            "if the payment has not arrived. Null otherwise."
         ),
     )
 
