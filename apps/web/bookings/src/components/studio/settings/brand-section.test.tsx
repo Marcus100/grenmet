@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const actions = vi.hoisted(() => ({
   finishLogoUploadAction: vi.fn(),
+  saveProfileAction: vi.fn(),
   startLogoUploadAction: vi.fn(),
 }));
 const reportError = vi.hoisted(() => vi.fn());
@@ -10,6 +11,10 @@ vi.mock("@/app/studio/[orgSlug]/settings/actions", () => actions);
 vi.mock("@/lib/report-error", () => ({ reportError }));
 
 import { BrandColour, BrandLogo, BrandSection } from "./brand-section";
+import { ProfileForm } from "./profile-form";
+
+const SAVE_PROFILE = /^Save profile$/u;
+const CHOOSE_FILE = /^Choose a logo image$/u;
 
 const COLOUR_INPUT = /^Accent colour/u;
 const PICKER = /Pick the accent colour/u;
@@ -263,5 +268,67 @@ describe("brand section", () => {
     expect(screen.getByRole("group", { name: "Brand" })).toBeInTheDocument();
     expect(screen.getByLabelText(COLOUR_INPUT)).toHaveValue("#0b63ee");
     expect(screen.getByRole("button", { name: UPLOAD })).toBeInTheDocument();
+  });
+});
+
+describe("logo upload controls", () => {
+  it("names the hidden file input and keeps it out of the tab order", () => {
+    render(<BrandLogo businessName="Sea Salt" initial={null} orgSlug="s" />);
+    const input = screen.getByLabelText(CHOOSE_FILE);
+    expect(input).toHaveAttribute("type", "file");
+    expect(input).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("tells the host while an upload is in flight, then when it ends", async () => {
+    actions.startLogoUploadAction.mockResolvedValue({
+      ok: true,
+      target: { id: LOGO, url: "https://storage.test/put", headers: {} },
+    });
+    actions.finishLogoUploadAction.mockResolvedValue({
+      ok: true,
+      fileId: LOGO,
+    });
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 200 }));
+    const onUploadingChange = vi.fn();
+    render(
+      <BrandLogo
+        businessName="Sea Salt"
+        initial={null}
+        onUploadingChange={onUploadingChange}
+        orgSlug="s"
+      />
+    );
+    pick(new File(["x"], "logo.png", { type: "image/png" }));
+    await screen.findByText("Logo uploaded. Save the profile to use it.");
+    expect(onUploadingChange.mock.calls).toEqual([[true], [false]]);
+  });
+
+  it("keeps Save disabled while a logo uploads, so the old logo is not saved", async () => {
+    actions.startLogoUploadAction.mockResolvedValue({
+      ok: true,
+      target: { id: LOGO, url: "https://storage.test/put", headers: {} },
+    });
+    actions.finishLogoUploadAction.mockResolvedValue({
+      ok: true,
+      fileId: LOGO,
+    });
+    let finishTransfer: (response: Response) => void = () => undefined;
+    vi.mocked(fetch).mockReturnValue(
+      new Promise<Response>((resolve) => {
+        finishTransfer = resolve;
+      })
+    );
+    render(
+      <ProfileForm orgSlug="sea-salt" profile={null} suggestedName="Sea Salt" />
+    );
+    expect(screen.getByRole("button", { name: SAVE_PROFILE })).toBeEnabled();
+    pick(new File(["x"], "logo.png", { type: "image/png" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: SAVE_PROFILE })).toBeDisabled()
+    );
+    finishTransfer(new Response(null, { status: 200 }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: SAVE_PROFILE })).toBeEnabled()
+    );
   });
 });

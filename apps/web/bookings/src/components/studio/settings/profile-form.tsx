@@ -36,6 +36,8 @@ export function ProfileForm({
     saveProfileAction.bind(null, orgSlug),
     IDLE
   );
+  // True while a logo is uploading: Save waits so it cannot keep the old logo.
+  const [logoUploading, setLogoUploading] = useState(false);
   const [zone, setZone] = useState(profile?.timezone ?? "America/Grenada");
   const [currency, setCurrency] = useState(profile?.currency ?? "XCD");
   const zoneChanged =
@@ -238,6 +240,7 @@ export function ProfileForm({
         brandColour={profile?.brand_color ?? null}
         businessName={profile?.display_name ?? suggestedName}
         logoFileId={profile?.logo_file_id ?? null}
+        onUploadingChange={setLogoUploading}
         orgSlug={orgSlug}
       />
       <ContactOptions
@@ -263,7 +266,7 @@ export function ProfileForm({
       <SettingsResult pending={pending} state={state} />
       <Button
         className="min-h-11 w-full sm:w-auto"
-        disabled={pending || !hydrated}
+        disabled={pending || !hydrated || logoUploading}
         size="touch"
         type="submit"
       >

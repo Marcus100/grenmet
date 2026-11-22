@@ -35,11 +35,14 @@ export function BrandSection({
   businessName,
   brandColour,
   logoFileId,
+  onUploadingChange,
   orgSlug,
 }: {
   businessName: string;
   brandColour: string | null;
   logoFileId: string | null;
+  /** Tells the host form while a logo is in flight, so Save waits for it. */
+  onUploadingChange?: (uploading: boolean) => void;
   orgSlug: string;
 }) {
   return (
@@ -53,6 +56,7 @@ export function BrandSection({
       <BrandLogo
         businessName={businessName}
         initial={logoFileId}
+        onUploadingChange={onUploadingChange}
         orgSlug={orgSlug}
       />
     </fieldset>
@@ -142,14 +146,21 @@ export function BrandColour({ initial }: { initial: string }) {
 export function BrandLogo({
   businessName,
   initial,
+  onUploadingChange,
   orgSlug,
 }: {
   businessName: string;
   initial: string | null;
+  onUploadingChange?: (uploading: boolean) => void;
   orgSlug: string;
 }) {
   const [fileId, setFileId] = useState(initial);
   const [busy, setBusy] = useState(false);
+  // One place for the busy flag, so the form's Save waits on the same state.
+  const setUploading = (uploading: boolean) => {
+    setBusy(uploading);
+    onUploadingChange?.(uploading);
+  };
   const [message, setMessage] = useState<{
     tone: "error" | "status";
     text: string;
@@ -162,7 +173,7 @@ export function BrandLogo({
       setMessage({ tone: "error", text: problem });
       return;
     }
-    setBusy(true);
+    setUploading(true);
     setMessage(null);
     try {
       const started = await startLogoUploadAction(orgSlug, {
@@ -196,7 +207,7 @@ export function BrandLogo({
       reportError(error, "studio-logo");
       setMessage({ tone: "error", text: UPLOAD_FAILED });
     } finally {
-      setBusy(false);
+      setUploading(false);
     }
   };
 
@@ -246,6 +257,7 @@ export function BrandLogo({
         ) : null}
         <input
           accept={LOGO_ACCEPT}
+          aria-label="Choose a logo image"
           className="sr-only"
           disabled={busy}
           onChange={(event) => {
@@ -256,6 +268,7 @@ export function BrandLogo({
             }
           }}
           ref={input}
+          tabIndex={-1}
           type="file"
         />
       </div>
