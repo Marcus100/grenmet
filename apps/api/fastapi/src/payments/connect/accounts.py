@@ -18,6 +18,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.feature_flags import keys as flag_keys
+from src.feature_flags import service as flag_service
+from src.feature_flags.exceptions import FeatureOffError
 from src.organisations.models import PlatformOrganisation
 from src.payments import schemas
 from src.payments.exceptions import (
@@ -50,6 +53,22 @@ class ChargeRoute:
 
     connected_account_id: str
     application_fee_minor: int
+
+
+async def connect_enabled(session: AsyncSession, organisation_id: str) -> bool:
+    """Whether Connect is on for this business (flag ``payments-stripe-connect``).
+
+    Off: the Connect routes answer 404 and every card payment is the platform charge.
+    Flag rows are runtime data (see ``src/feature_flags/AGENTS.md``)."""
+    return await flag_service.is_enabled(
+        session, flag_keys.PAYMENTS_STRIPE_CONNECT, organisation_id=organisation_id
+    )
+
+
+async def require_connect_enabled(session: AsyncSession, organisation_id: str) -> None:
+    """Raise the 404 that a switched-off Connect route answers."""
+    if not await connect_enabled(session, organisation_id):
+        raise FeatureOffError()
 
 
 def _provider() -> StripeProvider:
@@ -241,14 +260,16 @@ async def charge_route(
 ) -> ChargeRoute | None:
     """Where a card payment for the business is charged, or None for the platform.
 
-    None (the platform charge, as before Connect) when the business has no connected
-    account, when its account cannot take charges yet (checked live when the stored
-    state says not yet and is older than a minute), or when the charge is not in New
-    Zealand dollars.
+    None (the platform charge, as before Connect) when the Connect flag is off, when
+    the business has no connected account, when its account cannot take charges yet
+    (checked live when the stored state says not yet and is older than a minute), or
+    when the charge is not in New Zealand dollars.
     Otherwise a direct charge on the business's account, with the platform fee: the
     fee is the stored rate capped at the platform cap, at charge time, and must be
     less than the charge.
     """
+    if not await connect_enabled(session, organisation_id):
+        return None
     if currency != CHARGE_CURRENCY:
         return None
     row = await _row(session, organisation_id)

@@ -5,6 +5,9 @@ account updates) to a Connect endpoint with its own signing secret, separate fro
 platform endpoint. Each event carries ``account``: the connected account it is about.
 The signature is verified with the Connect secret; an unknown or unsigned event is
 refused (400). Every handler is idempotent: a replay changes nothing and still answers 2xx.
+While Connect is switched off for a business (``payments-stripe-connect``), its
+account and dispute events are acknowledged and not applied; payments already on its
+account still apply.
 """
 
 import json
@@ -82,6 +85,16 @@ async def process_connect_webhook(
     if not isinstance(event_type, str) or not isinstance(obj, dict):
         raise InvalidCallbackError()
 
+    if event_type in (ACCOUNT_EVENT, DISPUTE_EVENT) and await _switched_off(
+        session, account_id
+    ):
+        # Acknowledged (200) so Stripe does not retry it; not applied while Connect is off.
+        logger.info(
+            "connect flag off; account or dispute event acknowledged, not applied",
+            extra={"event_type": event_type, "event_id": str(event.get("id"))},
+        )
+        return "ignored"
+
     if event_type == ACCOUNT_EVENT:
         return await _apply_account(session, account_id, obj, event.get("created"))
     if event_type == DISPUTE_EVENT:
@@ -108,6 +121,19 @@ async def process_connect_webhook(
     return await service.apply_event(
         session, provider_event, connected_account=account_id
     )
+
+
+async def _switched_off(session: AsyncSession, account_id: str) -> bool:
+    """True when the account belongs to a business whose Connect flag is off. The flag
+    is read for that business, so a flag opened for one pilot still applies to it."""
+    organisation_id = await session.scalar(
+        select(ConnectedAccount.organisation_id).where(
+            ConnectedAccount.stripe_account_id == account_id
+        )
+    )
+    if organisation_id is None:
+        return False
+    return not await accounts.connect_enabled(session, organisation_id)
 
 
 async def _account_row(
