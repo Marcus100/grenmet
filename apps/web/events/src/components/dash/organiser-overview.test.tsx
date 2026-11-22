@@ -180,13 +180,23 @@ describe("salesTotals", () => {
 });
 
 describe("issuedBreakdown", () => {
-  it("lists issued, refunded and cancelled, omitting zero parts", () => {
+  it("starts with active and issued counts and omits zero adjustments", () => {
     expect(
-      issuedBreakdown({ cancelledTickets: 2, issued: 50, refunded: 4 })
-    ).toBe("50 issued, 4 refunded, 2 cancelled");
+      issuedBreakdown({
+        active: 44,
+        cancelledTickets: 2,
+        issued: 50,
+        refunded: 4,
+      })
+    ).toBe("44 active · 50 issued · 4 refunded · 2 cancelled");
     expect(
-      issuedBreakdown({ cancelledTickets: 0, issued: 10, refunded: 0 })
-    ).toBe("10 issued");
+      issuedBreakdown({
+        active: 10,
+        cancelledTickets: 0,
+        issued: 10,
+        refunded: 0,
+      })
+    ).toBe("10 active · 10 issued");
   });
 });
 
@@ -228,7 +238,7 @@ describe("OrganiserOverview sales panel", () => {
     expect(scoped.getByText("Tickets active")).toBeInTheDocument();
     expect(scoped.getByText("44")).toBeInTheDocument();
     expect(
-      scoped.getByText("50 issued, 4 refunded, 2 cancelled")
+      scoped.getByText("44 active · 50 issued · 4 refunded · 2 cancelled")
     ).toBeInTheDocument();
     expect(scoped.queryByText("Tickets issued")).toBeNull();
     expect(scoped.getByText("33")).toBeInTheDocument();
@@ -237,6 +247,29 @@ describe("OrganiserOverview sales panel", () => {
       scoped.getByText(RE_ONLINE_PAYMENTS_ARE_NOT_TOTALLED_HERE)
     ).toBeInTheDocument();
     expect(scoped.queryByText(NO_SALES_LABEL)).toBeNull();
+
+    const table = within(screen.getByRole("table"));
+    const headers = table.getAllByRole("columnheader");
+    const activeColumn = headers.indexOf(
+      table.getByRole("columnheader", { name: "Active" })
+    );
+    const issuedColumn = headers.indexOf(
+      table.getByRole("columnheader", { name: "Issued (all)" })
+    );
+    const counts = table
+      .getAllByRole("row")
+      .slice(1)
+      .map((row) => {
+        const cells = within(row).getAllByRole("cell");
+        return [
+          cells[activeColumn]?.textContent,
+          cells[issuedColumn]?.textContent,
+        ];
+      });
+    expect(counts).toEqual([
+      ["34", "40"],
+      ["10", "10"],
+    ]);
   });
 
   it("says there are no sales yet when no ticketed event has settlement", () => {
