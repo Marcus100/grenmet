@@ -1,5 +1,6 @@
 "use client";
 
+import { MAIN_CONTENT_ID } from "@barrelsgd/ui/components/ui/skip-link";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -55,7 +56,13 @@ export function Layout({
           </div>
         </motion.header>
         <div className="relative flex h-full flex-col px-4 pt-14 sm:px-6 lg:px-8">
-          <main className="flex-auto">{children}</main>
+          <main
+            className="flex-auto outline-none"
+            id={MAIN_CONTENT_ID}
+            tabIndex={-1}
+          >
+            {children}
+          </main>
           <Footer />
         </div>
       </div>
