@@ -10,6 +10,7 @@ import {
   capAuditEventListPublicSchema,
   capCatalogsPublicSchema,
   capFeedImportPublicSchema,
+  capGetAlertByIdentifier,
   capGetHazardProfilesResponseSchema,
   capGetIbfMatrixResponseSchema,
   capGetIntegrationsResponseSchema,
@@ -86,6 +87,19 @@ export function getAlert(accessToken: string, alertId: string) {
     `/cap/alerts/${encodeURIComponent(alertId)}`,
     capAlertPublicSchema
   );
+}
+
+export async function getAlertByIdentifier(
+  accessToken: string,
+  identifier: string
+) {
+  const alert = await capGetAlertByIdentifier({
+    auth: accessToken,
+    baseURL: getAuthConfig().authApiBaseUrl,
+    options: { cache: "no-store" },
+    path: { identifier },
+  }).unwrap();
+  return capAlertPublicSchema.parse(alert);
 }
 
 /** Newest first; the desk reads it for schema-mismatch notices and the trail. */
