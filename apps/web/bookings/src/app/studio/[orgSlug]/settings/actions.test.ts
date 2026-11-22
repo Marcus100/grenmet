@@ -17,6 +17,7 @@ vi.mock("@/lib/studio-api", () => ({
   deleteException: vi.fn(),
   findOrganisation: vi.fn(),
   getBusinessTimezone: vi.fn(),
+  getProfile: vi.fn(),
   replaceHours: vi.fn(),
   saveProfile: vi.fn(),
   updateProvider: vi.fn(),
@@ -35,6 +36,7 @@ import {
   deleteException,
   findOrganisation,
   getBusinessTimezone,
+  getProfile,
   replaceHours,
   saveProfile,
   updateProvider,
@@ -82,12 +84,36 @@ function org(role: MembershipRole) {
   });
 }
 
+/** A saved profile: what a section keeps when it does not own a field. */
+const STORED = {
+  public_slug: "sea-salt",
+  display_name: "Sea Salt Spa",
+  enabled: true,
+  timezone: "America/Grenada",
+  currency: "XCD",
+  slot_step_min: 30,
+  lead_time_min: 120,
+  horizon_days: 60,
+  cancel_cutoff_hours: 24,
+  requires_confirmation: true,
+  notify_email: "ops@seasalt.example",
+  manage_url_template: null,
+  contact_phone: "+14734401234",
+  contact_whatsapp: "14734405678",
+  contact_instagram: "seasaltspa",
+  contact_email: "hello@seasalt.example",
+  payment_at_booking: "full_price",
+  brand_color: "#0b63ee",
+  logo_file_id: null,
+} as never;
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(redirect).mockImplementation((to: string) => {
     throw new Error(`NEXT_REDIRECT ${to}`);
   });
   vi.mocked(getSession).mockResolvedValue(session);
+  vi.mocked(getProfile).mockResolvedValue(null);
   org("admin");
 });
 
@@ -227,13 +253,18 @@ describe("profile", () => {
     );
   });
 
-  it("saves the full-price choice and treats anything else as deposit", async () => {
+  it("saves the payment choice in the payments section and treats anything else as deposit", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
     vi.mocked(saveProfile).mockResolvedValue({} as never);
-    await saveProfileAction(
+    const result = await saveProfileAction(
       SLUG,
       IDLE,
-      form({ ...PROFILE, paymentAtBooking: "full_price" })
+      form({ section: "payments", paymentAtBooking: "full_price" })
     );
+    expect(result).toMatchObject({
+      status: "success",
+      message: "Payment choice saved.",
+    });
     expect(saveProfile).toHaveBeenLastCalledWith(
       "tok",
       ORG_ID,
@@ -242,7 +273,7 @@ describe("profile", () => {
     await saveProfileAction(
       SLUG,
       IDLE,
-      form({ ...PROFILE, paymentAtBooking: "everything" })
+      form({ section: "payments", paymentAtBooking: "everything" })
     );
     expect(saveProfile).toHaveBeenLastCalledWith(
       "tok",
@@ -251,24 +282,161 @@ describe("profile", () => {
     );
   });
 
-  it("saves the contact options in the form the public page links to", async () => {
+  it("keeps the stored profile when the payments section saves", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", paymentAtBooking: "deposit" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith("tok", ORG_ID, {
+      public_slug: "sea-salt",
+      display_name: "Sea Salt Spa",
+      enabled: true,
+      timezone: "America/Grenada",
+      currency: "XCD",
+      slot_step_min: 30,
+      lead_time_min: 120,
+      horizon_days: 60,
+      cancel_cutoff_hours: 24,
+      requires_confirmation: true,
+      notify_email: "ops@seasalt.example",
+      manage_url_template: null,
+      contact_phone: "+14734401234",
+      contact_whatsapp: "14734405678",
+      contact_instagram: "seasaltspa",
+      contact_email: "hello@seasalt.example",
+      payment_at_booking: "deposit",
+      brand_color: "#0b63ee",
+      logo_file_id: null,
+    });
+  });
+
+  it("sends every writable stored key to the API from each section, including keys this build does not list", async () => {
+    const READ_ONLY = ["id", "organisation_id", "created_at", "updated_at"];
+    // Keys a later profile release adds (listing, category, city...) are stored too.
+    const stored: Record<string, unknown> = {
+      ...(STORED as Record<string, unknown>),
+      id: "66666666-6666-4666-8666-666666666666",
+      organisation_id: ORG_ID,
+      created_at: "2026-11-01T00:00:00Z",
+      updated_at: "2026-11-02T00:00:00Z",
+      listed: true,
+      category: "spa",
+      short_description: "Hands and feet",
+      city: "St George's",
+    };
+    vi.mocked(getProfile).mockResolvedValue(stored as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+
+    const writable = Object.entries(stored).filter(
+      ([key]) => !READ_ONLY.includes(key)
+    );
+    expect(writable.length).toBeGreaterThan(0);
+
+    await saveProfileAction(SLUG, IDLE, form({ section: "contact" }));
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", paymentAtBooking: "deposit" })
+    );
+    const [contactBody, paymentsBody] = vi
+      .mocked(saveProfile)
+      .mock.calls.map((call) => call[2] as Record<string, unknown>);
+    for (const [key, value] of writable) {
+      if (key.startsWith("contact_") || key === "payment_at_booking") {
+        // Owned by the section that saves them.
+        continue;
+      }
+      expect(contactBody).toHaveProperty(key, value);
+      expect(paymentsBody).toHaveProperty(key, value);
+    }
+    for (const key of READ_ONLY) {
+      expect(contactBody).not.toHaveProperty(key);
+      expect(paymentsBody).not.toHaveProperty(key);
+    }
+
+    // The Profile section owns its form fields (the listing ones included, read
+    // from the form); the Profile section keeps the contact options and payment.
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        ...PROFILE,
+        listed: "on",
+        category: "Spa",
+        shortDescription: "Hands and feet",
+        city: "St George's",
+      })
+    );
+    const profileBody = vi.mocked(saveProfile).mock.calls.at(-1)?.[2] as Record<
+      string,
+      unknown
+    >;
+    expect(profileBody).toHaveProperty("listed", true);
+    expect(profileBody).toHaveProperty("category", "Spa");
+    expect(profileBody).toHaveProperty("short_description", "Hands and feet");
+    expect(profileBody).toHaveProperty("city", "St George's");
+    expect(profileBody).toHaveProperty("contact_phone", "+14734401234");
+    expect(profileBody).toHaveProperty("payment_at_booking", "full_price");
+    expect(profileBody).not.toHaveProperty("id");
+  });
+
+  it("keeps the stored contact options and payment choice when the profile section saves", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, displayName: "Sea Salt" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        display_name: "Sea Salt",
+        contact_phone: "+14734401234",
+        contact_email: "hello@seasalt.example",
+        payment_at_booking: "full_price",
+      })
+    );
+  });
+
+  it("refuses a contact or payment save before the business has a profile", async () => {
+    expect(
+      await saveProfileAction(SLUG, IDLE, form({ section: "contact" }))
+    ).toMatchObject({ status: "error", kind: "invalid" });
+    expect(
+      await saveProfileAction(SLUG, IDLE, form({ section: "payments" }))
+    ).toMatchObject({ status: "error", kind: "invalid" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("saves the contact options in the contact section, keeping the rest of the profile", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
     vi.mocked(saveProfile).mockResolvedValue({} as never);
     const result = await saveProfileAction(
       SLUG,
       IDLE,
       form({
-        ...PROFILE,
+        section: "contact",
         contactPhone: "+1 (473) 440-1234",
         contactWhatsapp: "+1 473 440 5678",
         contactInstagram: "https://www.instagram.com/seasaltspa/",
         contactEmail: " hello@seasalt.example ",
       })
     );
-    expect(result).toMatchObject({ status: "success" });
+    expect(result).toMatchObject({
+      status: "success",
+      message: "Contact options saved.",
+    });
     expect(saveProfile).toHaveBeenCalledWith(
       "tok",
       ORG_ID,
       expect.objectContaining({
+        display_name: "Sea Salt Spa",
+        payment_at_booking: "full_price",
         contact_phone: "+14734401234",
         contact_whatsapp: "14734405678",
         contact_instagram: "seasaltspa",
@@ -277,12 +445,29 @@ describe("profile", () => {
     );
   });
 
+  it("clears a contact option that the contact section leaves blank", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(SLUG, IDLE, form({ section: "contact" }));
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        contact_phone: null,
+        contact_whatsapp: null,
+        contact_instagram: null,
+        contact_email: null,
+      })
+    );
+  });
+
   it("names each wrong contact option without calling the API", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
     const result = await saveProfileAction(
       SLUG,
       IDLE,
       form({
-        ...PROFILE,
+        section: "contact",
         contactPhone: "473 440 1234",
         contactWhatsapp: "call me",
         contactInstagram: "https://facebook.com/seasalt",
@@ -304,6 +489,7 @@ describe("profile", () => {
   });
 
   it("points at the contact option the API refused", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
     vi.mocked(saveProfile).mockRejectedValue(
       apiError(422, {
         detail: "Validation error",
@@ -315,7 +501,11 @@ describe("profile", () => {
         ],
       })
     );
-    const result = await saveProfileAction(SLUG, IDLE, form(PROFILE));
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "contact", contactInstagram: "seasaltspa" })
+    );
     expect(result).toMatchObject({
       status: "error",
       message: "Check the highlighted contact options.",

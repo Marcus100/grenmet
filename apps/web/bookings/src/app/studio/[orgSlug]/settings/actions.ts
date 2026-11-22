@@ -8,7 +8,12 @@
 // so a repeat is harmless (a repeated create adds a second row, which the
 // page shows). Sentry gets the error only, never the form values.
 
-import { type BookingPaymentMode, ResponseError } from "@barrelsgd/api-client";
+import {
+  type BookingPaymentMode,
+  type BookingProfilePublic,
+  type BookingProfileUpdate,
+  ResponseError,
+} from "@barrelsgd/api-client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -27,6 +32,7 @@ import {
   deleteException,
   findOrganisation,
   getBusinessTimezone,
+  getProfile,
   replaceHours,
   saveProfile,
   updateProvider,
@@ -246,6 +252,75 @@ function moneyField(text: string): number | null {
   return text.trim() === "" ? 0 : parseMoney(text);
 }
 
+/**
+ * The three profile sections. Each has its own form and Save button; the API
+ * replaces the whole profile on every write, so a section sends the stored
+ * values for everything it does not own (see `keptFields`).
+ */
+type ProfileSection = "profile" | "contact" | "payments";
+
+function profileSection(formData: FormData): ProfileSection {
+  const value = field(formData, "section");
+  return value === "contact" || value === "payments" ? value : "profile";
+}
+
+/**
+ * Keys the API returns on a stored profile but never takes on write. Every
+ * other key is kept, so a field added to the profile later (listing, category,
+ * city, ...) survives a section save without this list being edited.
+ */
+const READ_ONLY_PROFILE_KEYS: readonly string[] = [
+  "id",
+  "organisation_id",
+  "created_at",
+  "updated_at",
+];
+
+/**
+ * Every writable field of a stored profile, as the replace body the API takes.
+ * Built from the stored object itself, so no field is dropped by omission.
+ */
+function storedFields(current: BookingProfilePublic): BookingProfileUpdate {
+  const body: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(current)) {
+    if (!READ_ONLY_PROFILE_KEYS.includes(key)) {
+      body[key] = value;
+    }
+  }
+  return body as BookingProfileUpdate;
+}
+
+/**
+ * The values a section keeps when it does not own them: the stored profile, or
+ * for a business with no profile yet, blank contacts and the deposit default.
+ */
+function keptFields(
+  current: BookingProfilePublic | null
+): Partial<BookingProfileUpdate> {
+  if (current) {
+    return storedFields(current);
+  }
+  return {
+    contact_phone: null,
+    contact_whatsapp: null,
+    contact_instagram: null,
+    contact_email: null,
+    payment_at_booking: "deposit",
+  };
+}
+
+const SECTION_SAVED: Record<ProfileSection, string> = {
+  profile: "Business profile saved.",
+  contact: "Contact options saved.",
+  payments: "Payment choice saved.",
+};
+
+/**
+ * Saves one profile section. The profile section owns the name, address,
+ * hours rules, notices, brand and the booking-page switch; the contact section
+ * owns the four contact options; the payments section owns the payment choice.
+ * Anything a section leaves out is kept as it is stored.
+ */
 export async function saveProfileAction(
   orgSlug: string,
   _previous: ProfileState,
@@ -255,6 +330,31 @@ export async function saveProfileAction(
   if (!auth.ok) {
     return auth.state;
   }
+  const section = profileSection(formData);
+
+  if (section === "payments") {
+    return savePaymentsSection(orgSlug, auth, formData);
+  }
+  if (section === "contact") {
+    return saveContactSection(orgSlug, auth, formData);
+  }
+  return saveProfileSection(orgSlug, auth, formData);
+}
+
+type Granted = Extract<Authorised, { ok: true }>;
+
+/** The stored profile for a section that edits an existing one; null with none. */
+async function currentProfile(
+  auth: Granted
+): Promise<BookingProfilePublic | null> {
+  return (await getProfile(auth.accessToken, auth.organisationId)) ?? null;
+}
+
+async function saveProfileSection(
+  orgSlug: string,
+  auth: Granted,
+  formData: FormData
+): Promise<ProfileState> {
   const parsed = profileSchema.safeParse({
     displayName: field(formData, "displayName"),
     publicSlug: field(formData, "publicSlug"),
@@ -279,6 +379,40 @@ export async function saveProfileAction(
   if (logoFileId === undefined) {
     return invalid(LOGO_INVALID);
   }
+  try {
+    const current = await currentProfile(auth);
+    await saveProfile(auth.accessToken, auth.organisationId, {
+      ...keptFields(current),
+      public_slug: input.publicSlug,
+      display_name: input.displayName,
+      enabled: formData.get("enabled") === "on",
+      timezone: input.timezone,
+      currency: input.currency,
+      slot_step_min: input.slotStepMin,
+      lead_time_min: input.leadTimeMin,
+      horizon_days: input.horizonDays,
+      cancel_cutoff_hours: input.cancelCutoffHours,
+      requires_confirmation: formData.get("requiresConfirmation") === "on",
+      notify_email: input.notifyEmail || null,
+      manage_url_template: input.manageUrlTemplate || null,
+      brand_color: brandColor,
+      logo_file_id: logoFileId,
+      listed: formData.get("listed") === "on",
+      category: field(formData, "category").trim() || null,
+      short_description: field(formData, "shortDescription").trim() || null,
+      city: field(formData, "city").trim() || null,
+    });
+  } catch (error) {
+    return failed(orgSlug, error);
+  }
+  return saved(orgSlug, SECTION_SAVED.profile);
+}
+
+async function saveContactSection(
+  orgSlug: string,
+  auth: Granted,
+  formData: FormData
+): Promise<ProfileState> {
   const contacts = checkContacts({
     contactPhone: field(formData, "contactPhone"),
     contactWhatsapp: field(formData, "contactWhatsapp"),
@@ -295,26 +429,14 @@ export async function saveProfileAction(
     };
   }
   try {
+    const current = await currentProfile(auth);
+    if (!current) {
+      return invalid(
+        "Save the business profile first, then add contact options."
+      );
+    }
     await saveProfile(auth.accessToken, auth.organisationId, {
-      public_slug: input.publicSlug,
-      display_name: input.displayName,
-      enabled: formData.get("enabled") === "on",
-      timezone: input.timezone,
-      currency: input.currency,
-      slot_step_min: input.slotStepMin,
-      lead_time_min: input.leadTimeMin,
-      horizon_days: input.horizonDays,
-      cancel_cutoff_hours: input.cancelCutoffHours,
-      requires_confirmation: formData.get("requiresConfirmation") === "on",
-      payment_at_booking: paymentAtBooking(formData),
-      notify_email: input.notifyEmail || null,
-      manage_url_template: input.manageUrlTemplate || null,
-      brand_color: brandColor,
-      logo_file_id: logoFileId,
-      listed: formData.get("listed") === "on",
-      category: field(formData, "category").trim() || null,
-      short_description: field(formData, "shortDescription").trim() || null,
-      city: field(formData, "city").trim() || null,
+      ...storedFields(current),
       ...contacts.body,
     });
   } catch (error) {
@@ -327,7 +449,29 @@ export async function saveProfileAction(
     }
     return { ...state, message: CONTACT_INVALID, fields };
   }
-  return saved(orgSlug, "Business profile saved.");
+  return saved(orgSlug, SECTION_SAVED.contact);
+}
+
+async function savePaymentsSection(
+  orgSlug: string,
+  auth: Granted,
+  formData: FormData
+): Promise<ProfileState> {
+  try {
+    const current = await currentProfile(auth);
+    if (!current) {
+      return invalid(
+        "Save the business profile first, then choose how customers pay."
+      );
+    }
+    await saveProfile(auth.accessToken, auth.organisationId, {
+      ...storedFields(current),
+      payment_at_booking: paymentAtBooking(formData),
+    });
+  } catch (error) {
+    return failed(orgSlug, error);
+  }
+  return saved(orgSlug, SECTION_SAVED.payments);
 }
 
 export interface LogoTarget {

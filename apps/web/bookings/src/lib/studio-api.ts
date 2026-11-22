@@ -202,6 +202,29 @@ export async function getBusinessTimezone(
   return (await getBusinessProfile(accessToken, organisationId)).timezone;
 }
 
+/**
+ * The whole saved booking profile, or null when the business has none yet
+ * (404). Section saves read it first: the API's profile write replaces every
+ * field, so a section must send the stored values of the sections it leaves out.
+ */
+export async function getProfile(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingProfilePublic | null> {
+  try {
+    return await bookingsGetProfile({
+      client: studioClient(accessToken, organisationId),
+    })
+      .unwrap()
+      .catch(redactRequest);
+  } catch (error) {
+    if (ResponseError.is(error) && error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 /** Enters a phone or walk-in booking. The key makes a retry safe. */
 export function createStudioBooking(
   accessToken: string,

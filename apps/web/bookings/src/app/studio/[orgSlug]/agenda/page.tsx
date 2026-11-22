@@ -16,11 +16,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DepositBadge, StatusBadge } from "@/components/studio/badges";
 import { BookingAddress } from "@/components/studio/booking-address";
+import { SetupChecklist } from "@/components/studio/setup-checklist";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { env } from "@/env";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
-import { getAgenda, getBusinessProfile, listProviders } from "@/lib/studio-api";
+import { type SetupStep, setupSteps } from "@/lib/setup-checklist";
+import {
+  getAgenda,
+  getBusinessProfile,
+  getSettings,
+  listProviders,
+} from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import {
   type AgendaRange,
@@ -113,7 +120,7 @@ export default async function AgendaPage({
     today
   );
 
-  const [agenda, providers] = await Promise.all([
+  const [agenda, providers, setupSteps] = await Promise.all([
     guarded(
       () =>
         getAgenda(session.accessToken, organisationId, {
@@ -129,7 +136,14 @@ export default async function AgendaPage({
       reportError(error, "studio");
       return [];
     }),
+    setupChecklistSteps(
+      session.accessToken,
+      organisationId,
+      canManageBookings(org.value.role),
+      base
+    ),
   ]);
+  const showSetup = setupSteps.some((step) => !step.done);
 
   const link = (overrides: {
     date?: string;
@@ -173,6 +187,10 @@ export default async function AgendaPage({
           ) : null}
         </div>
       </header>
+
+      {showSetup ? (
+        <SetupChecklist orgSlug={orgSlug} steps={setupSteps} />
+      ) : null}
 
       {publicSlug ? (
         <BookingAddress
@@ -283,6 +301,26 @@ export default async function AgendaPage({
       )}
     </div>
   );
+}
+
+/**
+ * The checklist's steps for an owner or admin. A member gets none, and a failed
+ * settings read gives none (the agenda still shows); `guarded` reports the fault.
+ */
+async function setupChecklistSteps(
+  accessToken: string,
+  organisationId: string,
+  manages: boolean,
+  base: string
+): Promise<SetupStep[]> {
+  if (!manages) {
+    return [];
+  }
+  const settings = await guarded(
+    () => getSettings(accessToken, organisationId),
+    base
+  );
+  return settings.ok ? setupSteps(settings.value) : [];
 }
 
 function AgendaDays({
