@@ -130,6 +130,7 @@ export { bookingsListExceptions } from "./bookingsListExceptions.js";
 export { bookingsListMyBookings } from "./bookingsListMyBookings.js";
 export { bookingsListMyOrganisations } from "./bookingsListMyOrganisations.js";
 export { bookingsListProviders } from "./bookingsListProviders.js";
+export { bookingsListPublicBusinesses } from "./bookingsListPublicBusinesses.js";
 export { bookingsListServices } from "./bookingsListServices.js";
 export { bookingsListStudioBookings } from "./bookingsListStudioBookings.js";
 export { bookingsNoShowStudioBooking } from "./bookingsNoShowStudioBooking.js";

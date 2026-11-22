@@ -66,6 +66,7 @@ from .schemas import (
     BookingProviderCreate,
     BookingProviderPublic,
     BookingProviderUpdate,
+    BookingPublicBusinessPage,
     BookingPublicCancelBody,
     BookingPublicCreate,
     BookingPublicDetail,
@@ -923,6 +924,34 @@ async def complete_studio_booking(
 
 
 # --- public ----------------------------------------------------------------------------
+
+
+@router.get(
+    "/public/businesses",
+    response_model=BookingPublicBusinessPage,
+    summary="List businesses on the Barrels Bookings home page",
+    description=(
+        "Businesses that opted in to the home page and are open for booking, 24 to a "
+        "page. `q` searches the name, category, description and city; `category` "
+        "keeps one category. Each card has public fields only. `categories` lists "
+        "the filter chips. Needs no sign-in."
+    ),
+    operation_id="bookingsListPublicBusinesses",
+    responses={429: {"model": RateLimitedBody, "description": "Too many requests"}},
+)
+@limiter.limit("60/minute")
+async def list_public_businesses(
+    *,
+    request: Request,
+    session: SessionDep,
+    q: Annotated[str | None, Query(max_length=80)] = None,
+    category: Annotated[str | None, Query(max_length=80)] = None,
+    page: Annotated[int, Query(ge=1, le=1000)] = 1,
+) -> Any:
+    _ = request  # the rate limiter reads it
+    return await service.list_public_businesses(
+        session, q=q, category=category, page=page
+    )
 
 
 @router.get(

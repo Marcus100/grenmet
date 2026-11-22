@@ -203,6 +203,54 @@ export function ProfileForm({
           )}
         </SettingsField>
         <SettingsField
+          hint="Shown on your card on the Barrels bookings home page, and a word people can search."
+          id="profile-category"
+          label="Category (optional)"
+        >
+          {(describedBy) => (
+            <Input
+              aria-describedby={describedBy}
+              className={INPUT}
+              defaultValue={profile?.category ?? ""}
+              id="profile-category"
+              maxLength={80}
+              name="category"
+            />
+          )}
+        </SettingsField>
+        <SettingsField
+          hint="One line on your card on the home page."
+          id="profile-shortDescription"
+          label="Short description (optional)"
+        >
+          {(describedBy) => (
+            <Input
+              aria-describedby={describedBy}
+              className={INPUT}
+              defaultValue={profile?.short_description ?? ""}
+              id="profile-shortDescription"
+              maxLength={160}
+              name="shortDescription"
+            />
+          )}
+        </SettingsField>
+        <SettingsField
+          hint="Shown on your card on the home page."
+          id="profile-city"
+          label="Town or city (optional)"
+        >
+          {(describedBy) => (
+            <Input
+              aria-describedby={describedBy}
+              className={INPUT}
+              defaultValue={profile?.city ?? ""}
+              id="profile-city"
+              maxLength={80}
+              name="city"
+            />
+          )}
+        </SettingsField>
+        <SettingsField
           hint="Where new-booking alerts go. Leave empty for none."
           id="profile-notifyEmail"
           label="Notification email (optional)"
@@ -254,6 +302,11 @@ export function ProfileForm({
           defaultChecked={profile?.enabled ?? false}
           label="Online booking is open (customers can book on the public page)"
           name="enabled"
+        />
+        <SettingsCheck
+          defaultChecked={profile?.listed ?? false}
+          label="Show my business on the Barrels bookings home page"
+          name="listed"
         />
       </div>
       <SettingsResult pending={pending} state={state} />

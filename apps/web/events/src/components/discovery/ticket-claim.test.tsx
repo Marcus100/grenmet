@@ -333,6 +333,8 @@ describe("refund terms on the picker", () => {
 
     expect(action?.className).toContain("max-lg:fixed");
     expect(action?.className).toContain("max-lg:bottom-0");
+    // The page's footer reserves room while this marker is on the page.
+    expect(action).toHaveAttribute("data-buy-bar");
     expect(action).toContainElement(screen.getByTestId("ticket-summary"));
   });
 

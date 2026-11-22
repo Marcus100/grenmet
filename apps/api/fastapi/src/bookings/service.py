@@ -10,7 +10,7 @@ from collections import defaultdict
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import ColumnElement, delete, func, select
+from sqlalchemy import ColumnElement, delete, func, or_, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -98,6 +98,10 @@ KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
     "payment_at_booking",
     "brand_color",
     "logo_file_id",
+    "listed",
+    "category",
+    "short_description",
+    "city",
 }
 
 
@@ -653,6 +657,137 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
             for svc in services
         ],
         "providers": [p for p in public_providers if p["service_ids"]],
+    }
+
+
+# --- public home-page listing ----------------------------------------------------------
+
+#: Businesses on one page of the home page listing.
+PUBLIC_LISTING_PAGE_SIZE = 24
+#: Categories offered as filter chips; more stay reachable through search.
+PUBLIC_LISTING_CATEGORY_LIMIT = 50
+
+
+def _contains_pattern(text: str) -> str:
+    """An ILIKE pattern for ``text`` anywhere in a value, with ``%``, ``_`` and
+    ``\\`` matched literally."""
+    escaped = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
+def _open_for_listing() -> list[ColumnElement[bool]]:
+    """Filters for a business that may appear on the home page: it opted in, is
+    enabled, holds the bookings entitlement, sits in an active organisation and
+    has at least one active service. Evaluated in SQL."""
+    has_service = (
+        select(Service.id)
+        .where(
+            Service.organisation_id == BookingProfile.organisation_id,
+            Service.active.is_(True),
+        )
+        .exists()
+    )
+    entitled = (
+        select(OrganisationApp.app_key)
+        .where(
+            OrganisationApp.organisation_id == BookingProfile.organisation_id,
+            OrganisationApp.app_key == "bookings",
+            OrganisationApp.enabled.is_(True),
+        )
+        .exists()
+    )
+    active_organisation = (
+        select(PlatformOrganisation.id)
+        .where(
+            PlatformOrganisation.id == BookingProfile.organisation_id,
+            PlatformOrganisation.status == OrganisationStatus.ACTIVE.value,
+        )
+        .exists()
+    )
+    return [
+        BookingProfile.listed.is_(True),
+        BookingProfile.enabled.is_(True),
+        has_service,
+        entitled,
+        active_organisation,
+    ]
+
+
+def _listing_card(profile: BookingProfile, logo_id: uuid.UUID | None) -> dict[str, Any]:
+    """A home page card. ``logo_id`` is set only for a finished booking-logo upload
+    of this business (joined in SQL); the address must be https."""
+    logo_url = public_file_url(logo_id) if logo_id is not None else None
+    return {
+        "slug": profile.public_slug,
+        "name": profile.display_name,
+        "category": profile.category,
+        "short_description": profile.short_description,
+        "city": profile.city,
+        "brand_color": profile.brand_color,
+        "logo_url": (
+            logo_url
+            if logo_url is not None and logo_url.startswith("https://")
+            else None
+        ),
+    }
+
+
+async def list_public_businesses(
+    session: AsyncSession, *, q: str | None, category: str | None, page: int
+) -> dict[str, Any]:
+    """One page of the businesses that opted in to the home page, the search
+    (name, category, description or city) and the category filter, plus the
+    categories for the filter chips. Everything is filtered, joined and paged in
+    SQL; the page holds one row more than it shows, to learn whether more follow."""
+    conditions: list[ColumnElement[bool]] = _open_for_listing()
+    needle = (q or "").strip()
+    if needle:
+        pattern = _contains_pattern(needle)
+        conditions.append(
+            or_(
+                BookingProfile.display_name.ilike(pattern, escape="\\"),
+                BookingProfile.category.ilike(pattern, escape="\\"),
+                BookingProfile.short_description.ilike(pattern, escape="\\"),
+                BookingProfile.city.ilike(pattern, escape="\\"),
+            )
+        )
+    chosen = (category or "").strip()
+    if chosen:
+        conditions.append(func.lower(BookingProfile.category) == chosen.lower())
+
+    rows = await session.execute(
+        select(BookingProfile, OrgUpload.id)
+        .outerjoin(
+            OrgUpload,
+            (OrgUpload.id == BookingProfile.logo_file_id)
+            & (OrgUpload.organisation_id == BookingProfile.organisation_id)
+            & (OrgUpload.purpose == LOGO_PURPOSE)
+            & (OrgUpload.status == UploadStatus.COMPLETE.value),
+        )
+        .where(*conditions)
+        .order_by(func.lower(BookingProfile.display_name), BookingProfile.id)
+        .offset((page - 1) * PUBLIC_LISTING_PAGE_SIZE)
+        .limit(PUBLIC_LISTING_PAGE_SIZE + 1)
+    )
+    found = rows.all()
+    categories = await session.scalars(
+        select(func.min(BookingProfile.category))
+        .where(
+            *_open_for_listing(),
+            BookingProfile.category.is_not(None),
+        )
+        .group_by(func.lower(BookingProfile.category))
+        .order_by(func.min(BookingProfile.category))
+        .limit(PUBLIC_LISTING_CATEGORY_LIMIT)
+    )
+    return {
+        "items": [
+            _listing_card(profile, logo_id)
+            for profile, logo_id in found[:PUBLIC_LISTING_PAGE_SIZE]
+        ],
+        "page": page,
+        "has_more": len(found) > PUBLIC_LISTING_PAGE_SIZE,
+        "categories": list(categories),
     }
 
 

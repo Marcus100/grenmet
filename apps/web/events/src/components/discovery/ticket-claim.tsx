@@ -206,7 +206,7 @@ export function TicketClaim({
       {tiers.some((tier) => tier.price.amountMinor > 0) ? (
         <RefundTermsLine terms={refundTerms} />
       ) : null}
-      <div className={ACTION_BLOCK_CLASS}>
+      <div className={ACTION_BLOCK_CLASS} data-buy-bar="">
         <p className="text-body flex items-baseline justify-between gap-3">
           <span className="font-medium" data-testid="ticket-summary">
             {total === 0

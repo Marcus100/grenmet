@@ -119,6 +119,14 @@ class BookingProfile(Base):
     brand_color: Mapped[str | None] = mapped_column(String(7))
     #: A completed ``booking-logo`` upload (``src/storage``); no cross-database FK.
     logo_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
+    #: Opt-in to the Barrels Bookings home page listing (off by default). The
+    #: listing shows only enabled, entitled, active businesses with a service.
+    listed: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
+    #: Listing text: a short category (chips on the home page), a one-line
+    #: description and a city. Blank means not shown.
+    category: Mapped[str | None] = mapped_column(String(80))
+    short_description: Mapped[str | None] = mapped_column(String(160))
+    city: Mapped[str | None] = mapped_column(String(80))
     #: ``BookingPaymentMode``: what an online booking pays when it is made.
     payment_at_booking: Mapped[str] = mapped_column(
         String(20),

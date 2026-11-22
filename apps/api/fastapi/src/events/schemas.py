@@ -841,10 +841,13 @@ class SettlementSummary(BaseModel):
     title: str
     starts_at: UtcDateTime
     status: Literal["draft", "published", "cancelled"]
+    #: Every ticket issued, including cancelled and refunded ones (unchanged).
     issued: int
     claimed: int
     admitted: int
     cancelled: int
+    #: Tickets refunded (refund recorded); these also count in ``issued``.
+    refunded: int
     cash_collected_minor: int
     cash_expected_minor: int
     cash_counted_minor: int

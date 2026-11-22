@@ -108,9 +108,11 @@ describe("LedgerPanel", () => {
     expect(screen.getByText("TT-1")).toBeTruthy();
     expect(screen.getByText("30 total, page 1 of 2")).toBeTruthy();
     expect(
-      screen.getByRole("link", { name: "Next" }).getAttribute("href")
+      screen.getByRole("link", { name: "Go to next page" }).getAttribute("href")
     ).toBe("/payments?page=2");
-    expect(screen.queryByRole("link", { name: "Previous" })).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: "Go to previous page" })
+    ).toBeNull();
   });
 
   it("says so when empty", () => {

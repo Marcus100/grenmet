@@ -9,6 +9,11 @@ const config: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
   reactCompiler: true,
+  experimental: {
+    // One styled 404 for every unmatched URL. The CMS has two root layouts
+    // (sign-in, and the Payload editor), so a single layout cannot host it.
+    globalNotFound: true,
+  },
   outputFileTracingRoot: path.join(import.meta.dirname, "../../.."),
   // CSP is Report-Only until a clean report window (docs/security.md). Outside
   // production the helper returns no headers, and Next rejects an empty rule.

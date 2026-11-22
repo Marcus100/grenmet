@@ -57,13 +57,10 @@ describe("JanitorSetupPage", () => {
     expect(screen.getAllByRole("button", { name: "Add area" }).length).toBe(2);
   });
 
-  it("is not found for people who cannot edit the catalogue", async () => {
-    let thrown: unknown;
-    try {
-      await renderPage(viewerAccess);
-    } catch (error) {
-      thrown = error;
-    }
-    expect((thrown as Error).message).toBe("NEXT_NOT_FOUND");
+  it("explains the catalogue role instead of a 404 for people who cannot edit it", async () => {
+    await renderPage(viewerAccess);
+    expect(
+      screen.getByRole("heading", { name: "Janitor setup access needed" })
+    ).toBeInTheDocument();
   });
 });

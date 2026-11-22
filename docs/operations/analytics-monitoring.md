@@ -190,7 +190,7 @@ the worker-poll heartbeat and the deferred monitors stay paused.
 | --- | --- | --- | --- |
 | Monitor | GAA API readiness | `https://api.barrels.gd/api/v1/utils/ready/` | keyword `"status":"ready"` |
 | Monitor | Barrels ID (auth), GAA staff portal, GMS weather, CAP alert hub, GMS dashboard, MBIA health | `https://{auth,admin,weather,cap,gmsdash,mbia}.barrels.gd/api/health` | HTTP 2xx |
-| Monitor (to create) | CMS readiness, Events health, Bookings health | `cms…/api/ready`, `events…/api/health`, `bookings…/api/health` | created paused, then unpaused (see Swap below) |
+| Monitor (to create) | CMS readiness, Events health | `cms…/api/ready`, `events…/api/health` | created paused, then unpaused (see Swap below) |
 | Monitor (deferred) | GMS docs, Signal, Elections health, Barrels homepage | `docs…/api/health`, `signal…/api/health`, `https://elections.barrels.gd/` (static on Cloudflare Pages), `https://barrels.gd/` | covered by the probe runner until quota allows |
 | Heartbeat | probe runner | `PROBE_HEARTBEAT_URL` | 5 min + 10 min grace |
 | Heartbeat | verified core backup | `BACKUP_HEARTBEAT_URL` | 24 h + 2 h grace |

@@ -1209,6 +1209,8 @@ export { bookingProviderCreateSchema } from "./bookingProviderCreateSchema.js";
 export { bookingProviderPublicSchema } from "./bookingProviderPublicSchema.js";
 export { bookingProviderSettingsSchema } from "./bookingProviderSettingsSchema.js";
 export { bookingProviderUpdateSchema } from "./bookingProviderUpdateSchema.js";
+export { bookingPublicBusinessPageSchema } from "./bookingPublicBusinessPageSchema.js";
+export { bookingPublicBusinessSchema } from "./bookingPublicBusinessSchema.js";
 export { bookingPublicCancelBodySchema } from "./bookingPublicCancelBodySchema.js";
 export { bookingPublicCancelSchema } from "./bookingPublicCancelSchema.js";
 export { bookingPublicCreateSchema } from "./bookingPublicCreateSchema.js";
@@ -1627,6 +1629,17 @@ export {
   bookingsListProvidersStatus404Schema,
   bookingsListProvidersStatus422Schema,
 } from "./bookingsListProvidersSchema.js";
+export {
+  bookingsListPublicBusinessesErrorSchema,
+  bookingsListPublicBusinessesQueryCategorySchema,
+  bookingsListPublicBusinessesQueryPageSchema,
+  bookingsListPublicBusinessesQueryQSchema,
+  bookingsListPublicBusinessesQuerySchema,
+  bookingsListPublicBusinessesResponseSchema,
+  bookingsListPublicBusinessesStatus200Schema,
+  bookingsListPublicBusinessesStatus422Schema,
+  bookingsListPublicBusinessesStatus429Schema,
+} from "./bookingsListPublicBusinessesSchema.js";
 export {
   bookingsListServicesErrorSchema,
   bookingsListServicesHeadersSchema,

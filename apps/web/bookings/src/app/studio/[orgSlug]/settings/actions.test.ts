@@ -209,8 +209,48 @@ describe("profile", () => {
       contact_email: null,
       brand_color: null,
       logo_file_id: null,
+      listed: false,
+      category: null,
+      short_description: null,
+      city: null,
     });
     expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
+  });
+
+  it("saves the home page listing switch and its text, blank as null", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        ...PROFILE,
+        listed: "on",
+        category: " Hair ",
+        shortDescription: "Cuts and colour",
+        city: "  ",
+      })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        listed: true,
+        category: "Hair",
+        short_description: "Cuts and colour",
+        city: null,
+      })
+    );
+  });
+
+  it("keeps the business off the home page unless the switch is on", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(SLUG, IDLE, form({ ...PROFILE, listed: "" }));
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ listed: false })
+    );
   });
 
   it("saves the payment choice in the payments section and treats anything else as deposit", async () => {
@@ -317,16 +357,29 @@ describe("profile", () => {
       expect(paymentsBody).not.toHaveProperty(key);
     }
 
-    // The Profile section owns its form fields; everything else it keeps.
-    await saveProfileAction(SLUG, IDLE, form(PROFILE));
+    // The Profile section owns its form fields (the listing ones included, read
+    // from the form); the Profile section keeps the contact options and payment.
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        ...PROFILE,
+        listed: "on",
+        category: "Spa",
+        shortDescription: "Hands and feet",
+        city: "St George's",
+      })
+    );
     const profileBody = vi.mocked(saveProfile).mock.calls.at(-1)?.[2] as Record<
       string,
       unknown
     >;
     expect(profileBody).toHaveProperty("listed", true);
-    expect(profileBody).toHaveProperty("category", "spa");
+    expect(profileBody).toHaveProperty("category", "Spa");
     expect(profileBody).toHaveProperty("short_description", "Hands and feet");
     expect(profileBody).toHaveProperty("city", "St George's");
+    expect(profileBody).toHaveProperty("contact_phone", "+14734401234");
+    expect(profileBody).toHaveProperty("payment_at_booking", "full_price");
     expect(profileBody).not.toHaveProperty("id");
   });
 
