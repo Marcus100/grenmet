@@ -22,7 +22,11 @@ function rowKeys(rows: InfoTableProps["rows"]): string[] {
   });
 }
 
-/** Bordered data table. Scrolls on its own so narrow screens never pan. */
+/**
+ * Bordered data table. From `sm` up it is a real table that scrolls on its own
+ * so it never pans the page. On a phone each row becomes a card of label and
+ * value pairs, because a clipped table hides its later columns.
+ */
 export function InfoTable({
   caption,
   headers,
@@ -33,11 +37,43 @@ export function InfoTable({
   return (
     <section
       aria-label={caption ? `Table: ${caption}` : "Table"}
-      className="rounded-gm-card border-gm-border focus-visible:shadow-gm-focus overflow-x-auto border focus-visible:outline-none"
+      className="rounded-gm-card border-gm-border focus-visible:shadow-gm-focus overflow-hidden border focus-visible:outline-none sm:overflow-x-auto"
       // biome-ignore lint/a11y/noNoninteractiveTabindex: a region that scrolls sideways must be reachable by keyboard (WCAG 2.1.1)
       tabIndex={0}
     >
-      <table className="w-full border-collapse text-left">
+      {caption && (
+        <p className="border-gm-border bg-gm-surface text-gm-text-secondary text-label leading-label border-b px-4 py-2.5 sm:hidden">
+          {caption}
+        </p>
+      )}
+      <ul className="divide-gm-border divide-y sm:hidden">
+        {rows.map((row, rowIndex) => (
+          <li className="px-4 py-3" key={keys[rowIndex]}>
+            <dl className="grid gap-2">
+              {row.map((cell, columnIndex) => (
+                <div
+                  className="grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)] gap-x-3"
+                  key={headers[columnIndex] ?? `extra-${columnIndex}`}
+                >
+                  <dt className="text-gm-heading text-label leading-label font-bold tracking-wider uppercase">
+                    {headers[columnIndex]}
+                  </dt>
+                  <dd
+                    className={cn(
+                      "text-body text-gm-text-secondary leading-body",
+                      monoColumns?.includes(columnIndex) &&
+                        "font-mono tabular-nums"
+                    )}
+                  >
+                    {cell}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </li>
+        ))}
+      </ul>
+      <table className="hidden w-full border-collapse text-left sm:table">
         {caption && (
           <caption className="border-gm-border bg-gm-surface text-gm-text-secondary text-label leading-label border-b px-4 py-2.5 lg:px-5">
             {caption}

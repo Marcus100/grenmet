@@ -11,7 +11,7 @@ import {
 } from "@/lib/current-conditions";
 import { feelsLike } from "@/lib/feels-like";
 import type { Condition, ForecastDayData } from "@/lib/forecast-data";
-import { isStale, validityNote } from "@/lib/freshness";
+import { isStale, staleAgeWords, validityNote } from "@/lib/freshness";
 import { isIssued, rainChance } from "@/lib/hero-readings";
 import type { Measure as MeasureValue } from "@/lib/units";
 import {
@@ -184,6 +184,43 @@ function ForecastLink({ today }: { today: TodayLink }) {
 }
 
 /**
+ * The Now card's first line. A fresh reading just says Now; an old one (over
+ * two hours, `isStale`) says when it was taken, never passing for current.
+ */
+function nowLabel(
+  current: CurrentConditions | null,
+  station: string | null,
+  fallbackTemperature: number | null,
+  now?: Date
+): string {
+  // A place without a station never shows a reading; the national forecast
+  // in the day tabs is its only weather.
+  if (station === null) return "No observing station here";
+  if (current && isStale(current.observedAt, now)) {
+    const time = clock12(localTime(current.observedAt));
+    const when = isOtherGrenadaDay(current.observedAt, now)
+      ? `${localDay(current.observedAt)}, ${time}`
+      : time;
+    return `Last observed ${when} · ${station}`;
+  }
+  if (!current) {
+    return fallbackTemperature === null
+      ? `No current observation · ${station}`
+      : `Midday reading · ${station}`;
+  }
+  return `Now · ${station}`;
+}
+
+/** "Out of date · 3 hours old": the badge on a reading older than two hours. */
+function OutOfDateBadge({ age }: { age: string | null }) {
+  return (
+    <span className="bg-gm-text-inverse/20 text-caption leading-caption ms-2 inline-block rounded-full px-2 py-0.5 font-bold whitespace-nowrap">
+      Out of date{age ? ` · ${age} old` : ""}
+    </span>
+  );
+}
+
+/**
  * Now: what is measured at the station. The temperature with today's lowest
  * and highest so far either side, the sky (observer's words, else the cloud
  * amount), feels like and wind with gusts, and a link to today's forecast.
@@ -212,29 +249,26 @@ export function NowCard({
     current?.temperature == null
       ? null
       : feelsLike(current.temperature, current.humidity);
-  // A fresh reading just says Now; an old one (over two hours, `isStale`)
-  // says when it was taken, never passing for current.
-  let label = `Now · ${station}`;
-  if (station === null) {
-    // A place without a station never shows a reading; the national forecast
-    // in the day tabs is its only weather.
-    label = "No observing station here";
-  } else if (current && isStale(current.observedAt, now)) {
-    const time = clock12(localTime(current.observedAt));
-    const when = isOtherGrenadaDay(current.observedAt, now)
-      ? `${localDay(current.observedAt)}, ${time}`
-      : time;
-    label = `Last observed ${when} · ${station}`;
-  } else if (!current) {
-    label =
-      fallbackTemperature === null
-        ? `No current observation · ${station}`
-        : `Midday reading · ${station}`;
-  }
+  const label = nowLabel(current, station, fallbackTemperature, now);
+  // A reading older than two hours is out of date: its number is greyed and a
+  // badge gives its age, so it never reads as the current temperature.
+  const reading = station !== null && current ? current : null;
+  const outOfDate = reading !== null && isStale(reading.observedAt, now);
+  const age =
+    reading && outOfDate ? staleAgeWords(reading.observedAt, now) : null;
   return (
     <HeroCard
       footer={today && <ForecastLink today={today} />}
-      label={label}
+      label={
+        outOfDate ? (
+          <>
+            {label}
+            <OutOfDateBadge age={age} />
+          </>
+        ) : (
+          label
+        )
+      }
       left={
         <Extreme
           arrow="▼"
@@ -263,7 +297,15 @@ export function NowCard({
         />
       }
       sky={sky}
-      temperature={<Temperature showUnit value={temperature} />}
+      temperature={
+        outOfDate ? (
+          <span className="text-gm-text-inverse/70">
+            <Temperature showUnit value={temperature} />
+          </span>
+        ) : (
+          <Temperature showUnit value={temperature} />
+        )
+      }
     />
   );
 }

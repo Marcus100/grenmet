@@ -27,7 +27,17 @@ function ValidityNotice({
   return note ? <FreshnessNotice message={note} /> : null;
 }
 
-export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
+export async function PublishedProducts({
+  emptyNotice,
+  kinds,
+}: {
+  kinds: ProductKind[];
+  /**
+   * One message for the whole list when none of its categories has a product,
+   * instead of a line under each category. Without it each category says so.
+   */
+  emptyNotice?: string;
+}) {
   const now = new Date();
   const result = await fetchPublishedProducts(
     kinds.length === 1 ? kinds[0] : undefined
@@ -45,6 +55,16 @@ export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
   const products = result.products.filter((product) =>
     kinds.includes(product.kind)
   );
+  if (emptyNotice && products.length === 0) {
+    return (
+      <p
+        className="rounded-gm-card border-gm-border text-body-base leading-body-base border p-4"
+        role="status"
+      >
+        {emptyNotice}
+      </p>
+    );
+  }
   return (
     <div className="space-y-6">
       {kinds.map((kind) => {

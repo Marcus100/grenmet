@@ -11,3 +11,10 @@ it("explains the missing page and links home", () => {
       .getAttribute("href")
   ).toBe("/");
 });
+
+it("offers the site search, which goes to the search page", () => {
+  render(<NotFound />);
+  const box = screen.getByRole("searchbox", { name: "Search the site" });
+  expect(box).toHaveAttribute("name", "q");
+  expect(box.closest("form")).toHaveAttribute("action", "/search");
+});
