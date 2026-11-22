@@ -101,7 +101,13 @@ skip.
 
 ## 1. Pre-flight on dev
 
-- `pnpm fix:changed` then `pnpm type-check` — both clean.
+- Dev CI is green on the head to promote. CI is the gate: do not re-run the full
+  `pnpm check:ci` or `pnpm type-check` locally (promotion reuses dev's results when
+  the tree matches; a local full run is killed by the memory cap, use
+  `turbo run <task> --concurrency=2` if one is ever needed).
+- Every merge into `dev` restarts dev CI and changes an open promotion PR. Land the
+  last PRs back to back, open the promotion PR, and hold further merges into `dev`
+  until the owner has merged staging.
 - Run the `/pre-merge` check (types, lint, Docker names, env drift, API-client
   sync, Actions pinning). Fix findings before promoting.
 - `git status` clean, `dev` pushed.
