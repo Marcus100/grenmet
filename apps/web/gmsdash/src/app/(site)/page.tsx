@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NoAccessNotice } from "@/components/no-access-notice";
 import { listMyOrganisations } from "@/lib/api";
 import { getSession } from "@/lib/session";
 
@@ -56,10 +57,7 @@ export default async function Home() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">Your organisations</h2>
           {organisations.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              You are not a member of an organisation yet. Ask an organisation
-              owner to invite you, then come back.
-            </p>
+            <NoAccessNotice />
           ) : (
             <ul className="divide-y rounded-md border">
               {organisations.map((organisation) => (

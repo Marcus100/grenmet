@@ -39,12 +39,17 @@ export default async function AccessPage({ searchParams }: PageProps) {
 
   if (!organisation) {
     return (
-      <section className="space-y-2">
+      <section className="space-y-4">
         <h1 className="text-2xl font-semibold">Access</h1>
-        <p className="text-muted-foreground max-w-2xl">
-          You are not a member of an organisation yet. Ask an organisation owner
-          to invite you; access is requested per organisation.
-        </p>
+        <div className="bg-muted max-w-2xl space-y-2 rounded-md border px-4 py-3">
+          <h2 className="text-xl font-semibold">You do not have access yet</h2>
+          <p className="text-sm">
+            You are not a member of an organisation yet, so there is nothing
+            here to request. Ask an owner or admin of your organisation to
+            invite you. Access is requested per organisation, by its owner or
+            admin, once you belong to it.
+          </p>
+        </div>
       </section>
     );
   }
