@@ -45,6 +45,9 @@ from .schemas import (
     BookingAgenda,
     BookingAgendaItem,
     BookingAvailability,
+    BookingClosureCreate,
+    BookingClosureCreated,
+    BookingClosurePublic,
     BookingEmailCodeConfirm,
     BookingEmailCodeRequest,
     BookingEmailCodeSent,
@@ -538,6 +541,69 @@ async def list_bookings(
 # --- organisation: studio actions (B5) -------------------------------------------------
 
 BookingId = Annotated[uuid.UUID, Path(description="The booking's id.")]
+
+
+# --- organisation: business closures (BK-20) -------------------------------------------
+
+
+@router.get(
+    "/org/closures",
+    response_model=list[BookingClosurePublic],
+    summary="List whole-business closures",
+    description="Days the business is closed for every provider, earliest first.",
+    operation_id="bookingsListClosures",
+    responses=READ_ERRORS,
+)
+async def list_closures(
+    *, session: SessionDep, org: BookingsOrgRead, pagination: PaginationDep
+) -> Any:
+    return await service.list_closures(
+        session,
+        org.organisation_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
+
+
+@router.post(
+    "/org/closures",
+    response_model=BookingClosureCreated,
+    status_code=status.HTTP_201_CREATED,
+    summary="Close the business for whole days",
+    description=(
+        "Closes local days for every provider (both ends inclusive, at most a year). "
+        "The response lists the active bookings inside the closure, first name only, "
+        "for the studio to follow up. Existing bookings are not cancelled."
+    ),
+    operation_id="bookingsCreateClosure",
+    responses=WRITE_ERRORS,
+)
+async def create_closure(
+    *, session: SessionDep, org: BookingsOrgAdmin, payload: BookingClosureCreate
+) -> Any:
+    result = await service.create_closure(session, org.organisation_id, payload)
+    await session.commit()
+    return result
+
+
+@router.delete(
+    "/org/closures/{closure_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Reopen the business for a closure",
+    description=(
+        "Removes one closure. Deleting a closure already removed returns 204 again. "
+        "Another business's closure answers 404."
+    ),
+    operation_id="bookingsDeleteClosure",
+    responses=WRITE_ERRORS,
+)
+async def delete_closure(
+    *, session: SessionDep, org: BookingsOrgAdmin, closure_id: uuid.UUID
+) -> None:
+    await service.delete_closure(
+        session, closure_id, organisation_id=org.organisation_id
+    )
+    await session.commit()
 
 
 @router.get(

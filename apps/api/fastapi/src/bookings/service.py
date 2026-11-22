@@ -44,6 +44,7 @@ from .models import (
     Booking,
     BookingProfile,
     BookingStatus,
+    BusinessClosure,
     Customer,
     Provider,
     ProviderService,
@@ -51,6 +52,7 @@ from .models import (
     WorkingHours,
 )
 from .schemas import (
+    BookingClosureCreate,
     BookingExceptionCreate,
     BookingProfileUpdate,
     BookingProviderCreate,
@@ -388,6 +390,114 @@ async def delete_exception(
     await session.flush()
 
 
+# --- business closures (BK-20) ----------------------------------------------------------
+
+
+def _first_name(name: str | None) -> str | None:
+    words = (name or "").split()
+    return words[0] if words else None
+
+
+async def _bookings_inside(
+    session: AsyncSession,
+    organisation_id: str,
+    *,
+    window_start: datetime,
+    window_end: datetime,
+) -> list[dict[str, Any]]:
+    """Active bookings overlapping ``[window_start, window_end)``: id, start and
+    the customer's first name only. Filtered and ordered in SQL."""
+    rows = await session.execute(
+        select(Booking.id, Booking.starts_at, Contact.name)
+        .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
+        .where(
+            Booking.organisation_id == organisation_id,
+            Booking.status.in_([s.value for s in ACTIVE_STATUSES]),
+            Booking.starts_at < window_end,
+            Booking.ends_at > window_start,
+        )
+        .order_by(Booking.starts_at, Booking.id)
+    )
+    return [
+        {
+            "id": booking_id,
+            "starts_at": booking_start,
+            "customer_first_name": _first_name(name),
+        }
+        for booking_id, booking_start, name in rows.all()
+    ]
+
+
+async def create_closure(
+    session: AsyncSession, organisation_id: str, payload: BookingClosureCreate
+) -> dict[str, Any]:
+    """Close the business on whole local days. Existing bookings are reported,
+    never cancelled."""
+    profile = await get_profile(session, organisation_id)
+    row = BusinessClosure(
+        organisation_id=organisation_id,
+        starts_on=payload.starts_on,
+        ends_on=payload.ends_on,
+        reason=payload.reason,
+    )
+    session.add(row)
+    await session.flush()
+    window_start, window_end = availability.closure_interval(
+        row.starts_on, row.ends_on, zone(profile.timezone)
+    )
+    affected = await _bookings_inside(
+        session, organisation_id, window_start=window_start, window_end=window_end
+    )
+    logger.info(
+        "Business closure created",
+        extra={"organisation_id": organisation_id, "affected_count": len(affected)},
+    )
+    return {
+        "id": row.id,
+        "starts_on": row.starts_on,
+        "ends_on": row.ends_on,
+        "reason": row.reason,
+        "created_at": row.created_at,
+        "affected_bookings": affected,
+    }
+
+
+async def list_closures(
+    session: AsyncSession, organisation_id: str, *, skip: int, limit: int
+) -> list[BusinessClosure]:
+    query = (
+        select(BusinessClosure)
+        .where(BusinessClosure.organisation_id == organisation_id)
+        .order_by(BusinessClosure.starts_on, BusinessClosure.id)
+        .offset(skip)
+        .limit(limit)
+    )
+    return list(await session.scalars(query))
+
+
+async def delete_closure(
+    session: AsyncSession, closure_id: uuid.UUID, *, organisation_id: str
+) -> None:
+    """Remove a closure. Deleting one already gone is a no-op (idempotent). Another
+    business's closure answers 404 and is never touched."""
+    row = await session.scalar(
+        select(BusinessClosure).where(
+            BusinessClosure.id == closure_id,
+            BusinessClosure.organisation_id == organisation_id,
+        )
+    )
+    if row is None:
+        elsewhere = await session.scalar(
+            select(BusinessClosure.id).where(BusinessClosure.id == closure_id)
+        )
+        if elsewhere is not None:
+            raise BookingNotFoundError("Closure")
+        return
+    await session.delete(row)
+    await session.flush()
+
+
 # --- studio agenda -------------------------------------------------------------------
 
 
@@ -616,6 +726,23 @@ async def available_slots(
                 change.starts_at, change.ends_at, change.kind
             )
         )
+    # A business closure (BK-20) is time off for every provider at once.
+    closures = await session.scalars(
+        select(BusinessClosure).where(
+            BusinessClosure.organisation_id == profile.organisation_id,
+            BusinessClosure.starts_on <= last_day,
+            BusinessClosure.ends_on >= first_day,
+        )
+    )
+    closed = [
+        availability.ScheduleException(
+            *availability.closure_interval(closure.starts_on, closure.ends_on, tz),
+            "time_off",
+        )
+        for closure in closures
+    ]
+    for provider in providers:
+        exceptions[provider.id].extend(closed)
 
     busy: dict[uuid.UUID, list[availability.Interval]] = defaultdict(list)
     busy_query = select(

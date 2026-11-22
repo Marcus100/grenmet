@@ -1216,6 +1216,10 @@ export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
 export type { BookingBusinessContact } from "./BookingBusinessContact.js";
+export type { BookingClosureAffected } from "./BookingClosureAffected.js";
+export type { BookingClosureCreate } from "./BookingClosureCreate.js";
+export type { BookingClosureCreated } from "./BookingClosureCreated.js";
+export type { BookingClosurePublic } from "./BookingClosurePublic.js";
 export type { BookingEmailCodeConfirm } from "./BookingEmailCodeConfirm.js";
 export type { BookingEmailCodeRequest } from "./BookingEmailCodeRequest.js";
 export type { BookingEmailCodeSent } from "./BookingEmailCodeSent.js";
@@ -1337,6 +1341,20 @@ export type {
   BookingsConfirmStudioBookingStatus422,
 } from "./BookingsConfirmStudioBooking.js";
 export type {
+  BookingsCreateClosureBody,
+  BookingsCreateClosureHeaders,
+  BookingsCreateClosureOptions,
+  BookingsCreateClosureResponse,
+  BookingsCreateClosureResponses,
+  BookingsCreateClosureStatus201,
+  BookingsCreateClosureStatus400,
+  BookingsCreateClosureStatus401,
+  BookingsCreateClosureStatus403,
+  BookingsCreateClosureStatus404,
+  BookingsCreateClosureStatus409,
+  BookingsCreateClosureStatus422,
+} from "./BookingsCreateClosure.js";
+export type {
   BookingsCreateExceptionBody,
   BookingsCreateExceptionHeaders,
   BookingsCreateExceptionOptions,
@@ -1422,6 +1440,20 @@ export type {
   BookingsDeclineStudioBookingStatus409,
   BookingsDeclineStudioBookingStatus422,
 } from "./BookingsDeclineStudioBooking.js";
+export type {
+  BookingsDeleteClosureHeaders,
+  BookingsDeleteClosureOptions,
+  BookingsDeleteClosurePath,
+  BookingsDeleteClosureResponse,
+  BookingsDeleteClosureResponses,
+  BookingsDeleteClosureStatus204,
+  BookingsDeleteClosureStatus400,
+  BookingsDeleteClosureStatus401,
+  BookingsDeleteClosureStatus403,
+  BookingsDeleteClosureStatus404,
+  BookingsDeleteClosureStatus409,
+  BookingsDeleteClosureStatus422,
+} from "./BookingsDeleteClosure.js";
 export type {
   BookingsDeleteExceptionHeaders,
   BookingsDeleteExceptionOptions,
@@ -1549,6 +1581,19 @@ export type {
   BookingsGetWorkingHoursStatus404,
   BookingsGetWorkingHoursStatus422,
 } from "./BookingsGetWorkingHours.js";
+export type {
+  BookingsListClosuresHeaders,
+  BookingsListClosuresOptions,
+  BookingsListClosuresQuery,
+  BookingsListClosuresResponse,
+  BookingsListClosuresResponses,
+  BookingsListClosuresStatus200,
+  BookingsListClosuresStatus400,
+  BookingsListClosuresStatus401,
+  BookingsListClosuresStatus403,
+  BookingsListClosuresStatus404,
+  BookingsListClosuresStatus422,
+} from "./BookingsListClosures.js";
 export type {
   BookingsListExceptionsHeaders,
   BookingsListExceptionsOptions,

@@ -13,6 +13,7 @@ from src.utils.reserved_names import is_reserved
 from src.utils.timezones import is_valid_timezone
 
 from . import contact
+from .availability import MAX_CLOSURE_DAYS
 from .models import (
     BookingExceptionKind,
     BookingPaymentMode,
@@ -380,6 +381,53 @@ class BookingExceptionPublic(BaseModel):
     starts_at: UtcDateTime
     ends_at: UtcDateTime
     reason: str | None
+
+
+class BookingClosureCreate(BaseModel):
+    starts_on: date = Field(description="First closed day, the business's local date.")
+    ends_on: date = Field(description="Last closed day, inclusive, local date.")
+    reason: Annotated[str, Field(max_length=200)] | None = None
+
+    @field_validator("reason")
+    @classmethod
+    def _blank_reason_is_none(cls, value: str | None) -> str | None:
+        return (value or "").strip() or None
+
+    @model_validator(mode="after")
+    def _period(self) -> Self:
+        if self.ends_on < self.starts_on:
+            raise ValueError("ends_on must not be before starts_on")
+        if (self.ends_on - self.starts_on).days + 1 > MAX_CLOSURE_DAYS:
+            raise ValueError(f"A closure covers at most {MAX_CLOSURE_DAYS} days")
+        return self
+
+
+class BookingClosurePublic(BaseModel):
+    id: uuid.UUID
+    starts_on: date
+    ends_on: date
+    reason: str | None
+    created_at: UtcDateTime
+
+
+class BookingClosureAffected(BaseModel):
+    """An existing booking inside a new closure: for the studio's follow-up only."""
+
+    id: uuid.UUID
+    starts_at: UtcDateTime
+    customer_first_name: str | None = Field(
+        description="First name only. No email or phone is sent."
+    )
+
+
+class BookingClosureCreated(BookingClosurePublic):
+    affected_bookings: list[BookingClosureAffected] = Field(
+        default_factory=list,
+        description=(
+            "Active bookings (pending, confirmed, awaiting deposit) that fall inside "
+            "the closure, earliest first. They are NOT cancelled: follow them up."
+        ),
+    )
 
 
 # --- organisation agenda -----------------------------------------------------------
