@@ -44,6 +44,7 @@ from src.payments.config import payments_settings
 from src.payments.models import Intent, IntentStatus, ProviderKey
 
 from .config import bookings_settings
+from .exceptions import BookingConflictError
 from .models import (
     Booking,
     BookingPaymentMode,
@@ -58,6 +59,9 @@ logger = logging.getLogger(__name__)
 SOURCE_TYPE = "bookings.deposit"
 PAID_TOPIC = "bookings.deposit_paid"
 _TEST_KEY_PREFIX = "sk_test_"
+#: The history note's wording when a deposit refund cannot be made here (WiPay has no
+#: refund call): the studio is told by note and by email (public.refund_refused_notice).
+REFUND_BY_HAND = "refund failed; refund it by hand"
 #: Providers whose hosted checkout the customer is sent to (their summary links it).
 ONLINE_PROVIDERS = (ProviderKey.STRIPE, ProviderKey.WIPAY)
 
@@ -303,6 +307,12 @@ async def start_deposit(
             payload=_payload(booking, ProviderKey.MANUAL, customer_email, title),
         )
         return profile.deposit_payment_link
+    if route is DepositRoute.NONE:
+        # Asked for an online deposit with no rail (the rail changed after the amount was
+        # set): fail the booking. No manual intent is silently created in its place.
+        raise BookingConflictError(
+            "Online payment for this deposit is not available right now; try again"
+        )
     if stripe_available():
         try:
             async with session.begin_nested():
@@ -398,8 +408,9 @@ async def payment_summary(
 async def payment_summaries(
     session: AsyncSession, bookings: list[Booking]
 ) -> dict[uuid.UUID, BookingPaymentSummary | None]:
-    """``payment_summary`` for many bookings in two queries at most (the intents
-    with their totals, then the checkout links of the ones still due)."""
+    """``payment_summary`` for many bookings in three queries at most (the intents
+    with their totals, the checkout links of the ones still due, and the businesses'
+    payment links)."""
     owing = [b for b in bookings if b.deposit_minor > 0]
     intents = await payments_service.find_by_idempotency_keys(
         session,
@@ -426,10 +437,33 @@ async def payment_summaries(
             .tuples()
             .all()
         )
+    payment_links: dict[object, str | None] = {}
+    if owing:
+        payment_links = dict(
+            (
+                await session.execute(
+                    select(
+                        BookingProfile.organisation_id,
+                        BookingProfile.deposit_payment_link,
+                    ).where(
+                        BookingProfile.organisation_id.in_(
+                            {b.organisation_id for b in owing}
+                        )
+                    )
+                )
+            )
+            .tuples()
+            .all()
+        )
     result: dict[uuid.UUID, BookingPaymentSummary | None] = {}
     for b in bookings:
         intent = found.get(b.id)
-        result[b.id] = _summary(b, intent, links.get(intent.id) if intent else None)
+        result[b.id] = _summary(
+            b,
+            intent,
+            links.get(intent.id) if intent else None,
+            payment_link=payment_links.get(b.organisation_id),
+        )
     return result
 
 
@@ -509,4 +543,4 @@ async def settle_cancellation(
     if not refund:
         return f"{noun} kept"
     done = await refund_deposit(session, booking, reason="Booking cancelled")
-    return f"{noun} refunded" if done else f"{noun} refund failed; refund it by hand"
+    return f"{noun} refunded" if done else f"{noun} {REFUND_BY_HAND}"

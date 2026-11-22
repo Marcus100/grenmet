@@ -358,11 +358,16 @@ _STUDIO_HEADLINES = {
     "requested": ("New booking request", layout.Chip("Request")),
     "cancelled": ("Booking cancelled", layout.Chip("Cancelled", layout.ChipTone.MUTED)),
     "rescheduled": ("Booking moved", layout.Chip("Rescheduled")),
+    "refund": (
+        "Deposit refund needed",
+        layout.Chip("Refund by hand", layout.ChipTone.MUTED),
+    ),
 }
 
 
 def studio_notice(mail: BookingEmail, *, event: str) -> layout.EmailCard:
-    """``event``: ``created``, ``requested``, ``cancelled`` or ``rescheduled``."""
+    """``event``: ``created``, ``requested``, ``cancelled``, ``rescheduled`` or ``refund``
+    (a deposit refund the platform cannot make: the business refunds it by hand)."""
     headline, chip = _STUDIO_HEADLINES[event]
     contact = ", ".join(
         part for part in (mail.customer_email, mail.customer_phone) if part

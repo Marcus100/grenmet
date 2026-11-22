@@ -37,7 +37,8 @@ from . import merchant_accounts, schemas, service
 from .connect import accounts as connect_accounts
 from .connect import disputes as connect_disputes
 from .connect import webhook as connect_webhook
-from .models import IntentStatus, LedgerKind
+from .exceptions import PaymentsValidationError
+from .models import IntentStatus, LedgerKind, ProviderKey
 
 #: The online providers a business sets up for itself (the rest are platform rails).
 MerchantProvider = Literal["wipay"]
@@ -83,6 +84,11 @@ async def create_intent(
     *, session: SessionDep, org: PaymentsOrgAdmin, payload: schemas.PaymentIntentCreate
 ) -> Any:
     service.reject_reserved_source(payload.source_type)
+    if payload.provider is ProviderKey.WIPAY:
+        # WiPay checkouts start from the booking flow or the test checkout only.
+        raise PaymentsValidationError(
+            "WiPay checkouts are started by the booking flow, not by this route"
+        )
     result = await service.create_intent(
         session, organisation_id=org.organisation_id, actor=org.user, payload=payload
     )
@@ -244,6 +250,29 @@ async def save_merchant_account(
 ) -> Any:
     result = await merchant_accounts.save(
         session, organisation_id=org.organisation_id, actor=org.user, payload=payload
+    )
+    await session.commit()
+    return result
+
+
+@router.post(
+    "/org/merchant-accounts/wipay/test-checkout",
+    response_model=schemas.PaymentCheckoutPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Start the business's WiPay sandbox test checkout",
+    description=(
+        "Creates a sandbox checkout of 1.00 XCD with no booking or customer. Its verified "
+        "success records the sandbox proof that live approval needs. The account must be "
+        "set to sandbox and enabled."
+    ),
+    operation_id="paymentsStartWipayTestCheckout",
+    responses={**WRITE_ERRORS, **_UNAVAILABLE},
+)
+async def start_wipay_test_checkout(
+    *, session: SessionDep, org: PaymentsOrgAdmin
+) -> Any:
+    result = await merchant_accounts.start_test_checkout(
+        session, organisation_id=org.organisation_id, actor=org.user
     )
     await session.commit()
     return result

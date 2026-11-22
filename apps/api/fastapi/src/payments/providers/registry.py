@@ -34,11 +34,19 @@ def get_provider(key: str) -> PaymentProvider:
 
 
 async def provider_for(
-    session: AsyncSession, *, organisation_id: str, key: str
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    key: str,
+    allow_sandbox_test: bool = False,
 ) -> PaymentProvider:
     """The adapter for ``key`` as the organisation's business uses it."""
     if key == ProviderKey.WIPAY.value:
-        return await wipay.load_provider(session, organisation_id=organisation_id)
+        return await wipay.load_provider(
+            session,
+            organisation_id=organisation_id,
+            allow_sandbox_test=allow_sandbox_test,
+        )
     return get_provider(key)
 
 

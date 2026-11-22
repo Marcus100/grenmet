@@ -242,7 +242,7 @@ async def test_the_owner_approves_live_only_after_a_verified_sandbox_payment(
     assert too_early.status_code == 409
     assert "sandbox" in too_early.json()["detail"].lower()
 
-    intent_id, _ = await _checkout(async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
     row = await _intent_row(db_async, intent_id)
     await async_client.get(
         f"{API}/public/returns/wipay",
@@ -287,7 +287,7 @@ async def test_the_live_switch_needs_the_payments_live_approve_permission(
     db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
-    intent_id, _ = await _checkout(async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
     row = await _intent_row(db_async, intent_id)
     await async_client.get(
         f"{API}/public/returns/wipay",
@@ -362,3 +362,37 @@ async def test_a_business_with_a_connect_account_is_not_wipay_ready(
     )
     await db_async.flush()
     assert not await payments_service.wipay_ready(db_async, org.id)  # type: ignore[attr-defined]
+
+
+async def test_a_first_save_that_loses_a_race_applies_to_the_row_that_won(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    wipay_env,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src.payments import merchant_accounts
+
+    org, admin, headers = await _org_with_wipay(db_async, async_client)
+    real_row = merchant_accounts._row
+    calls = {"count": 0}
+
+    async def first_look_misses(session, organisation_id):  # type: ignore[no-untyped-def]
+        calls["count"] += 1
+        if calls["count"] == 1:
+            return None  # another request has just inserted the row
+        return await real_row(session, organisation_id)
+
+    monkeypatch.setattr(merchant_accounts, "_row", first_look_misses)
+    response = await async_client.put(
+        f"{API}/org/merchant-accounts/wipay",
+        headers=headers,
+        json=_put_body(enabled=False),
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["enabled"] is False
+    rows = list(
+        await db_async.scalars(
+            select(MerchantAccount).where(MerchantAccount.organisation_id == org.id)  # type: ignore[attr-defined]
+        )
+    )
+    assert len(rows) == 1

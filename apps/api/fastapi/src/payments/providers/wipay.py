@@ -32,6 +32,7 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import settings
 from src.organisations.config import organisations_settings
 from src.utils import secret_box
 from src.utils.datetime import utc_now
@@ -81,6 +82,8 @@ HOSTS: dict[str, dict[str, str]] = {
         "sandbox": "https://ttsb.wipayfinancial.com",
     },
 }
+#: Largest webhook body read (WiPay's envelopes are a few kilobytes).
+MAX_WEBHOOK_BYTES = 64 * 1024
 SIGNATURE_HEADER = "x-wipay-webhook-signature"
 TIMESTAMP_HEADER = "x-wipay-webhook-timestamp"
 #: Test seam: an httpx transport (MockTransport) used instead of the network.
@@ -425,10 +428,18 @@ def _credentials(account: MerchantAccount) -> Credentials:
         raise ProviderUnavailableError(
             "WiPay credentials cannot be read; the platform operator must check secret storage"
         ) from None
+    account_number = data.get("account_number")
+    api_key = data.get("api_key")
+    if not isinstance(account_number, str) or not isinstance(api_key, str):
+        logger.error(
+            "WiPay credentials are incomplete",
+            extra={"organisation_id": account.organisation_id},
+        )
+        raise ProviderUnavailableError("WiPay credentials are incomplete")
     webhook_secret = data.get("webhook_secret")
     return Credentials(
-        account_number=str(data["account_number"]),
-        api_key=str(data["api_key"]),
+        account_number=account_number,
+        api_key=api_key,
         webhook_secret=webhook_secret if isinstance(webhook_secret, str) else None,
     )
 
@@ -456,13 +467,21 @@ async def is_ready(session: AsyncSession, organisation_id: str) -> bool:
         return False
     if account.environment == MerchantEnvironment.LIVE.value:
         return account.live_approved_at is not None
-    return True
+    # The sandbox never takes a real customer's deposit in production.
+    return not production()
+
+
+def production() -> bool:
+    """True in the production environment: the sandbox is then for the business's own
+    test checkout only (``allow_sandbox_test``), never for a customer's deposit."""
+    return settings.ENVIRONMENT == "production"
 
 
 async def load_provider(
-    session: AsyncSession, *, organisation_id: str
+    session: AsyncSession, *, organisation_id: str, allow_sandbox_test: bool = False
 ) -> WiPayProvider:
-    """The business's adapter for new checkouts. 503 when it is not ready."""
+    """The business's adapter for new checkouts. 503 when it is not ready. The sandbox
+    is refused in production unless ``allow_sandbox_test`` (the test checkout)."""
     if await _has_connected_account(session, organisation_id):
         raise ProviderUnavailableError(
             "This business takes card payments through Stripe Connect"
@@ -475,6 +494,11 @@ async def load_provider(
         and account.live_approved_at is None
     ):
         raise ProviderUnavailableError("Live WiPay payments are not approved yet")
+    if production() and account.environment == MerchantEnvironment.SANDBOX.value:
+        if not allow_sandbox_test:
+            raise ProviderUnavailableError(
+                "WiPay sandbox is not used for customer payments in production"
+            )
     creds = _credentials(account)
     return WiPayProvider(
         environment=account.environment,
@@ -502,7 +526,13 @@ async def verify_webhook(
 
     The order is only used to choose the secret; the signature then decides. An
     order we do not know is acknowledged and ignored. A business with no webhook
-    secret answers 503, so WiPay retries once it is configured."""
+    secret answers 503, so WiPay retries once it is configured.
+
+    A body over ``MAX_WEBHOOK_BYTES`` is refused before anything is read. The signature
+    needs the business's secret, which needs the order, so two cheap reads come first;
+    nothing is written before the signature is checked."""
+    if len(body) > MAX_WEBHOOK_BYTES:
+        raise InvalidCallbackError()
     try:
         envelope = json.loads(body)
     except ValueError:

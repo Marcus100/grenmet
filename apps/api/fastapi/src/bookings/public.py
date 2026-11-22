@@ -411,6 +411,18 @@ async def queue_customer_email(
     )
 
 
+async def refund_refused_notice(session: AsyncSession, managed: Managed) -> None:
+    """Tell the studio, by email, that a deposit refund must be made by hand (WiPay has
+    no refund call). The history note is written by the caller."""
+    mail = build_mail(managed)
+    await queue_studio_email(
+        session,
+        managed,
+        emails.studio_notice(mail, event="refund"),
+        f"booking-refund-refused:{uuid.uuid4().hex}",
+    )
+
+
 async def queue_studio_email(
     session: AsyncSession,
     managed: Managed,
@@ -868,6 +880,8 @@ async def cancel_booking(
             BookingStatus.CANCELLED,
             note=money,
         )
+        if deposit_payments.REFUND_BY_HAND in money:
+            await refund_refused_notice(session, managed)
     await emit_webhook(
         session,
         booking,

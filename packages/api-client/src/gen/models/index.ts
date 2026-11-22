@@ -7836,6 +7836,20 @@ export type {
   PaymentsSaveMerchantAccountStatus422,
   PaymentsSaveMerchantAccountStatus503,
 } from "./PaymentsSaveMerchantAccount.js";
+export type {
+  PaymentsStartWipayTestCheckoutHeaders,
+  PaymentsStartWipayTestCheckoutOptions,
+  PaymentsStartWipayTestCheckoutResponse,
+  PaymentsStartWipayTestCheckoutResponses,
+  PaymentsStartWipayTestCheckoutStatus201,
+  PaymentsStartWipayTestCheckoutStatus400,
+  PaymentsStartWipayTestCheckoutStatus401,
+  PaymentsStartWipayTestCheckoutStatus403,
+  PaymentsStartWipayTestCheckoutStatus404,
+  PaymentsStartWipayTestCheckoutStatus409,
+  PaymentsStartWipayTestCheckoutStatus422,
+  PaymentsStartWipayTestCheckoutStatus503,
+} from "./PaymentsStartWipayTestCheckout.js";
 export type { PayPeriodAmountsPublic } from "./PayPeriodAmountsPublic.js";
 export type { PayPeriodCreate } from "./PayPeriodCreate.js";
 export type { PayPeriodDetail } from "./PayPeriodDetail.js";

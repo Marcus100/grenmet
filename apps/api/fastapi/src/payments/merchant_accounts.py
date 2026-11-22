@@ -3,16 +3,20 @@
 - Credentials are one encrypted blob under the organisation keys
   (``ORG_SECRET_ENCRYPTION_KEYS``); with no keys saving is the existing 503.
 - Responses never carry a secret. A blank secret on save keeps the stored one.
-- Changing the account number or the API key starts again: no sandbox proof and no
-  live approval carry over. Changing the environment to live needs the owner's
-  approval (``set_live_approval``), which needs a verified sandbox payment first.
+- Changing the environment, or any credential (account number, API key or webhook
+  secret), starts again: no sandbox proof and no live approval carry over, so
+  live -> sandbox -> live needs a new approval.
+- The sandbox proof comes from a verified sandbox payment: the business's own sandbox
+  checkout (``start_test_checkout``, the only way to test in production).
 Service functions flush; routers commit.
 """
 
 import json
 import logging
+import uuid
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
@@ -22,13 +26,17 @@ from src.organisations.exceptions import SecretStorageUnavailableError
 from src.utils import secret_box
 from src.utils.datetime import utc_now
 
-from . import schemas
+from . import schemas, service
 from .exceptions import PaymentsConflictError, PaymentsValidationError
 from .models import MerchantAccount, MerchantEnvironment, ProviderKey
 
 logger = logging.getLogger(__name__)
 
 _PROVIDER = ProviderKey.WIPAY.value
+#: The test checkout's amount: 1.00 XCD, the smallest sensible sandbox payment.
+TEST_CHECKOUT_AMOUNT_MINOR = 100
+#: The source of a test checkout: no booking, no customer, nothing is sold.
+TEST_SOURCE_TYPE = "payments.wipay-test"
 
 
 def _keys() -> list[str]:
@@ -98,6 +106,7 @@ async def save(
     organisation_id: str,
     actor: User,
     payload: schemas.MerchantAccountUpsert,
+    _retry: bool = True,
 ) -> schemas.MerchantAccountPublic:
     keys = _keys()  # 503 before anything is read or written
     row = await _row(session, organisation_id)
@@ -115,23 +124,39 @@ async def save(
 
     environment = payload.environment.value
     if row is None:
-        row = MerchantAccount(
-            organisation_id=organisation_id,
-            provider=_PROVIDER,
-            environment=environment,
-            enabled=payload.enabled,
-            credentials_encrypted=ciphertext,
-        )
-        session.add(row)
+        try:
+            async with session.begin_nested():
+                row = MerchantAccount(
+                    organisation_id=organisation_id,
+                    provider=_PROVIDER,
+                    environment=environment,
+                    enabled=payload.enabled,
+                    credentials_encrypted=ciphertext,
+                )
+                session.add(row)
+                await session.flush()
+        except IntegrityError:
+            # A concurrent first save created the row first: apply this save to it.
+            if not _retry:
+                raise
+            return await save(
+                session,
+                organisation_id=organisation_id,
+                actor=actor,
+                payload=payload,
+                _retry=False,
+            )
         changes: dict[str, tuple[object, object]] = {
             "environment": (None, environment),
             "enabled": (None, payload.enabled),
         }
     else:
-        new_account = (account_number, api_key) != (
+        credentials_changed = (account_number, api_key, webhook_secret) != (
             stored.get("account_number"),
             stored.get("api_key"),
+            stored.get("webhook_secret"),
         )
+        environment_changed = row.environment != environment
         changes = {
             "environment": (row.environment, environment),
             "enabled": (row.enabled, payload.enabled),
@@ -139,8 +164,10 @@ async def save(
         row.environment = environment
         row.enabled = payload.enabled
         row.credentials_encrypted = ciphertext
-        if new_account:
+        if credentials_changed:
             changes["credentials"] = ("stored", "replaced")
+        if credentials_changed or environment_changed:
+            # A new environment or new secrets start again: live needs a new approval.
             row.sandbox_verified_at = None
             row.live_approved_at = None
             row.live_approved_by_user_id = None
@@ -202,3 +229,37 @@ async def set_live_approval(
         extra={"organisation_id": organisation_id, "approved": approved},
     )
     return _public(row)
+
+
+async def start_test_checkout(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    actor: User,
+) -> schemas.PaymentCheckoutPublic:
+    """An org admin's sandbox checkout with no booking and no customer. Its verified
+    success records the sandbox proof, the only way to earn live approval in production.
+    Needs the account set to sandbox (enabled); the WiPay sandbox is never used for a
+    real booking in production (``wipay.load_provider``)."""
+    row = await _row(session, organisation_id)
+    if row is None:
+        raise PaymentsConflictError("This business has no WiPay account")
+    if row.environment != MerchantEnvironment.SANDBOX.value:
+        raise PaymentsConflictError(
+            "The test checkout uses the sandbox: set the account to sandbox first"
+        )
+    payload = schemas.PaymentIntentCreate(
+        amount_minor=TEST_CHECKOUT_AMOUNT_MINOR,
+        currency="XCD",
+        provider=ProviderKey.WIPAY,
+        source_type=TEST_SOURCE_TYPE,
+        idempotency_key=uuid.uuid4().hex,
+        metadata={"purpose": "sandbox_proof"},
+    )
+    return await service.create_intent(
+        session,
+        organisation_id=organisation_id,
+        actor=actor,
+        payload=payload,
+        allow_sandbox_test=True,
+    )

@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
+from src.bookings import deposit_payments
 from src.bookings.models import BookingProfile
 from src.bookings.schemas import BookingProfileUpdate
 from src.payments.models import LedgerEntry, LedgerKind
@@ -346,3 +347,97 @@ async def test_a_wipay_webhook_confirms_the_deposit_once(
         )
     )
     assert len(charges) == 1
+
+
+# --- review round 2: summaries, no silent fall-through, refunds the studio must make ----
+
+
+async def test_payment_summaries_carry_the_business_payment_link(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    from src.bookings.models import Booking
+    from src.bookings.schemas import BookingPaymentStatus
+
+    studio = await _deposit_studio(db_async, async_client, deposit_payment_link=LINK)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
+    booking = await db_async.get(Booking, uuid.UUID(receipt["booking"]["id"]))
+    assert booking is not None
+    summaries = await deposit_payments.payment_summaries(db_async, [booking])
+    summary = summaries[booking.id]
+    assert summary is not None
+    assert summary.status == BookingPaymentStatus.DUE
+    assert summary.checkout_url == LINK
+
+
+async def test_asking_for_an_online_deposit_with_no_rail_fails_the_booking(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    from src.bookings.exceptions import BookingConflictError
+    from src.bookings.models import Booking, BookingProfile
+
+    studio = await _deposit_studio(db_async, async_client, deposit_payment_link=LINK)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
+    booking = await db_async.get(Booking, uuid.UUID(receipt["booking"]["id"]))
+    assert booking is not None
+    profile = await db_async.scalar(
+        select(BookingProfile).where(BookingProfile.organisation_id == studio.org_id)
+    )
+    assert profile is not None
+    profile.deposit_payment_link = None
+    await db_async.commit()
+    with pytest.raises(BookingConflictError) as raised:
+        await deposit_payments.start_deposit(db_async, booking, None)
+    assert raised.value.status_code == 409
+
+
+async def test_a_refused_refund_is_noted_and_the_studio_is_emailed(
+    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+) -> None:
+    from src.bookings import deposits
+    from src.bookings.models import Booking
+    from src.outbox import Outbox
+
+    studio = await _deposit_studio(db_async, async_client, deposit_payment_link=None)
+    await _enable_wipay(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
+    booking_id = receipt["booking"]["id"]
+    intent = await _intent(db_async, booking_id)
+    assert intent is not None
+    returned = await async_client.get(
+        f"{PAYMENTS}/public/returns/wipay",
+        params=return_query(
+            order_id=intent.id.hex,
+            transaction_id=intent.provider_ref or "",
+            amount_minor=DEPOSIT,
+        ),
+        follow_redirects=False,
+    )
+    assert returned.status_code == 303, returned.text
+    await db_async.refresh(intent)
+    assert intent.status == "succeeded", intent.status
+    # A payment lands after the booking was cancelled: WiPay cannot refund it here.
+    booking = await db_async.get(Booking, uuid.UUID(booking_id))
+    assert booking is not None
+    booking.status = "cancelled"
+    await db_async.commit()
+    result = await deposits.confirm_paid(
+        db_async,
+        organisation_id=studio.org_id,
+        booking_id=uuid.UUID(booking_id),
+    )
+    assert result == "refunded"
+
+    notes = [e.note or "" for e in await _events(db_async, booking_id)]
+    assert any("refund failed; refund it by hand" in note for note in notes), (
+        result,
+        notes,
+    )
+    queued = list(
+        await db_async.scalars(
+            select(Outbox).where(
+                Outbox.organisation_id == studio.org_id,
+                Outbox.dedupe_key.like("booking-refund-refused:%"),
+            )
+        )
+    )
+    assert len(queued) == 1

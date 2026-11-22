@@ -1215,7 +1215,7 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   the customer returns to `GET /payments/public/returns/wipay` (browser redirect, hidden from
   OpenAPI, 303 to the business's page, 400 when WiPay's hash does not verify); live checkouts need
   the owner's approval, `POST /payments/admin/merchant-accounts/{organisation_id}/{provider}/live-approval`
-  (permission `payments.live.approve`; 409 before a verified sandbox payment). Superuser reconciliation, ledger, balances and payouts under
+  (permission `payments.live.approve`; 409 before a verified sandbox payment). `POST /payments/org/merchant-accounts/wipay/test-checkout` (organisation admin; a 1.00 XCD sandbox checkout with no booking; its verified success records the sandbox proof, and it is the only sandbox payment in production; 409 unless the account is sandbox). In production the sandbox takes no customer deposit; the browser return credits only in sandbox, and a live payment is credited only by the signed webhook. Superuser reconciliation, ledger, balances and payouts under
   `/payments/admin/...` (each ledger entry also carries `source_type`, `source_id` and a `description` label, null for older payments), including `reconciliation.csv`. The ledger is append-only. A payout
   needs a client-generated `request_id`: repeating it returns the first entry (no double
   payout), and reusing it for different details is 409.

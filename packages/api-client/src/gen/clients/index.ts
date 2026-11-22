@@ -614,6 +614,7 @@ export { paymentsListIntents } from "./paymentsListIntents.js";
 export { paymentsListMerchantAccounts } from "./paymentsListMerchantAccounts.js";
 export { paymentsRecordManualPayment } from "./paymentsRecordManualPayment.js";
 export { paymentsSaveMerchantAccount } from "./paymentsSaveMerchantAccount.js";
+export { paymentsStartWipayTestCheckout } from "./paymentsStartWipayTestCheckout.js";
 export { printixAddMember } from "./printixAddMember.js";
 export { printixAdmitTicket } from "./printixAdmitTicket.js";
 export { printixCloseEvent } from "./printixCloseEvent.js";

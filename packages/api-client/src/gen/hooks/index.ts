@@ -3079,6 +3079,11 @@ export {
   usePaymentsSaveMerchantAccount,
 } from "./usePaymentsSaveMerchantAccount.js";
 export {
+  paymentsStartWipayTestCheckoutMutationKey,
+  paymentsStartWipayTestCheckoutMutationOptions,
+  usePaymentsStartWipayTestCheckout,
+} from "./usePaymentsStartWipayTestCheckout.js";
+export {
   printixAddMemberMutationKey,
   printixAddMemberMutationOptions,
   usePrintixAddMember,

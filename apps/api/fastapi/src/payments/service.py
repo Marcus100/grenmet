@@ -47,6 +47,7 @@ from .models import (
     IntentStatus,
     LedgerEntry,
     LedgerKind,
+    MerchantEnvironment,
     ProviderKey,
     Refund,
     RefundStatus,
@@ -121,11 +122,17 @@ def _refunded() -> sa.ScalarSelect[Any]:
 
 def _platform_money() -> Any:
     """Ledger rows for money Barrels holds. A payment on a business's own connected
-    account (ADR-0027, Connect) is the business's money, not Barrels': its rows stay
-    for that payment's own totals and refunds, but balances, payouts and the
-    reconciliation's ledger totals leave them out."""
+    account (ADR-0027, Connect) and a WiPay payment (the business's own WiPay account)
+    are the business's money, not Barrels': their rows stay for that payment's own
+    totals and refunds, but balances, payouts and the reconciliation's ledger totals
+    leave them out."""
     connected_intents = select(Intent.id).where(
-        Intent.connected_account_id.is_not(None)
+        sa.or_(
+            Intent.connected_account_id.is_not(None),
+            # WiPay money goes straight to the business's own WiPay account: Barrels
+            # never holds it, so a WiPay row must not be paid out from the platform.
+            Intent.provider == ProviderKey.WIPAY.value,
+        )
     )
     return sa.or_(
         LedgerEntry.intent_id.is_(None),
@@ -279,6 +286,7 @@ async def create_intent(
     actor: User | None,
     payload: schemas.PaymentIntentCreate,
     checkout_title: str | None = None,
+    allow_sandbox_test: bool = False,
 ) -> schemas.PaymentCheckoutPublic:
     """Create an intent (idempotent per organisation and ``idempotency_key``).
 
@@ -288,16 +296,20 @@ async def create_intent(
     deposit): ``created_by_user_id`` is then NULL. ``checkout_title`` is the human
     name the buyer sees on the hosted checkout (not stored; no personal data).
     """
-    # Resolve the provider first so an unavailable rail fails before any row exists.
-    provider = await registry.provider_for(
-        session, organisation_id=organisation_id, key=payload.provider.value
-    )
-
+    # A repeat with the same key returns the original, even after the rail was
+    # switched off: the replay is looked up before the provider is resolved.
     existing = await _by_idempotency_key(
         session, organisation_id, payload.idempotency_key
     )
     if existing is not None:
         return await _replay(session, existing, payload)
+    # Resolve the provider before any row exists, so an unavailable rail fails cleanly.
+    provider = await registry.provider_for(
+        session,
+        organisation_id=organisation_id,
+        key=payload.provider.value,
+        allow_sandbox_test=allow_sandbox_test,
+    )
 
     # Stripe Connect (ADR-0027): a business with a connected account is charged on
     # it, with its platform fee. A business without one keeps the platform charge.
@@ -930,8 +942,17 @@ async def process_wipay_return(
     if intent is None or intent.provider != ProviderKey.WIPAY.value:
         raise IntentNotFoundError()
     event = await wipay.event_from_return(session, intent=intent, params=params)
-    if event.kind is not EventKind.IGNORED:
+    verified = event.kind is not EventKind.IGNORED
+    if verified and intent.provider_environment != MerchantEnvironment.LIVE.value:
+        # Sandbox only (tests and the business's own test checkout): the return may credit.
         await apply_event(session, event)
+    elif verified:
+        # Live: the return is not trusted to credit (WiPay's hash on failed results and
+        # its webhook delivery are unconfirmed; ADR-0027). Only the signed webhook credits.
+        logger.info(
+            "live WiPay return verified; not credited here",
+            extra={"intent_id": str(intent.id)},
+        )
     address = return_urls.resolve(
         intent.source_type, intent.source_id, payments_settings
     )
@@ -939,10 +960,7 @@ async def process_wipay_return(
         raise ProviderUnavailableError(
             "The return addresses for this payment are not set"
         )
-    paid = (
-        transitions.stored_state(IntentStatus, intent.status) is IntentStatus.SUCCEEDED
-    )
-    return address.success_url if paid else address.cancel_url
+    return address.success_url if verified else address.cancel_url
 
 
 async def wipay_ready(session: AsyncSession, organisation_id: str) -> bool:

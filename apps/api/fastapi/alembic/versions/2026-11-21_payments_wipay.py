@@ -41,16 +41,22 @@ PROVIDER_CHECKS = (
 )
 
 
+def _add_provider_check(table: str, name: str, providers: str) -> None:
+    """Add the provider check without holding a long lock on a populated table: NOT
+    VALID (new rows are checked at once), then VALIDATE (existing rows, in a lock that
+    lets reads and writes continue)."""
+    op.execute(
+        f"ALTER TABLE payments.{table} ADD CONSTRAINT {name} "
+        f"CHECK (provider IN ({providers})) NOT VALID"
+    )
+    op.execute(f"ALTER TABLE payments.{table} VALIDATE CONSTRAINT {name}")
+
+
 def upgrade() -> None:
     op.execute("SET LOCAL lock_timeout = '5s'")
     for table, name in PROVIDER_CHECKS:
         op.drop_constraint(op.f(name), table, schema="payments", type_="check")
-        op.create_check_constraint(
-            op.f(name),
-            table,
-            f"provider IN ({PROVIDERS_AFTER})",
-            schema="payments",
-        )
+        _add_provider_check(table, name, PROVIDERS_AFTER)
 
     op.add_column(
         "intent",
@@ -133,9 +139,4 @@ def downgrade() -> None:
     op.drop_column("intent", "provider_environment", schema="payments")
     for table, name in PROVIDER_CHECKS:
         op.drop_constraint(op.f(name), table, schema="payments", type_="check")
-        op.create_check_constraint(
-            op.f(name),
-            table,
-            f"provider IN ({PROVIDERS_BEFORE})",
-            schema="payments",
-        )
+        _add_provider_check(table, name, PROVIDERS_BEFORE)

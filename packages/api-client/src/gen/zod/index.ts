@@ -7784,6 +7784,20 @@ export {
   paymentsSaveMerchantAccountStatus422Schema,
   paymentsSaveMerchantAccountStatus503Schema,
 } from "./paymentsSaveMerchantAccountSchema.js";
+export {
+  paymentsStartWipayTestCheckoutErrorSchema,
+  paymentsStartWipayTestCheckoutHeadersSchema,
+  paymentsStartWipayTestCheckoutHeaderXBarrelsOrganisationSchema,
+  paymentsStartWipayTestCheckoutResponseSchema,
+  paymentsStartWipayTestCheckoutStatus201Schema,
+  paymentsStartWipayTestCheckoutStatus400Schema,
+  paymentsStartWipayTestCheckoutStatus401Schema,
+  paymentsStartWipayTestCheckoutStatus403Schema,
+  paymentsStartWipayTestCheckoutStatus404Schema,
+  paymentsStartWipayTestCheckoutStatus409Schema,
+  paymentsStartWipayTestCheckoutStatus422Schema,
+  paymentsStartWipayTestCheckoutStatus503Schema,
+} from "./paymentsStartWipayTestCheckoutSchema.js";
 export { payPeriodAmountsPublicSchema } from "./payPeriodAmountsPublicSchema.js";
 export { payPeriodCreateSchema } from "./payPeriodCreateSchema.js";
 export { payPeriodDetailSchema } from "./payPeriodDetailSchema.js";
