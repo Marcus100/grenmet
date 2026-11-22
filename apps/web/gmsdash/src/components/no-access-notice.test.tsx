@@ -1,18 +1,25 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
-import { NoAccessNotice } from "@/components/no-access-notice";
+import { NoOrganisationNotice } from "@/components/no-access-notice";
 
+const NOT_A_MEMBER = /You are not a member of an organisation yet/u;
+const ENABLE = /enable the dashboard/u;
 const ASK_OWNER = /Ask an owner or admin of your organisation/u;
-const SIGN_ON = /Single sign-on/u;
 
-it("says who to ask and links to the Access page", () => {
-  render(<NoAccessNotice />);
-  const notice = screen.getByRole("region", {
-    name: "You do not have access yet",
-  });
-  expect(within(notice).getByText(ASK_OWNER)).toBeInTheDocument();
+it("says the person is not in an organisation, and who can invite them", () => {
+  render(<NoOrganisationNotice />);
   expect(
-    within(notice).getByRole("link", { name: "Access page" })
-  ).toHaveAttribute("href", "/access");
-  expect(screen.queryByText(SIGN_ON)).toBeNull();
+    screen.getByRole("heading", {
+      level: 3,
+      name: "You do not have access yet",
+    })
+  ).toBeInTheDocument();
+  expect(screen.getByText(NOT_A_MEMBER)).toBeInTheDocument();
+  expect(screen.getByText(ASK_OWNER)).toBeInTheDocument();
+});
+
+it("does not offer the enable-the-dashboard request, which only fits an organisation without access", () => {
+  render(<NoOrganisationNotice />);
+  expect(screen.queryByText(ENABLE)).toBeNull();
+  expect(screen.queryByRole("link")).toBeNull();
 });

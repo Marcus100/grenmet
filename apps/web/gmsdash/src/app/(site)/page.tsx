@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NoAccessNotice } from "@/components/no-access-notice";
+import { NoOrganisationNotice } from "@/components/no-access-notice";
 import { listMyOrganisations } from "@/lib/api";
 import { getSession } from "@/lib/session";
 
@@ -57,35 +57,47 @@ export default async function Home() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">Your organisations</h2>
           {organisations.length === 0 ? (
-            <NoAccessNotice />
+            <NoOrganisationNotice />
           ) : (
-            <ul className="divide-y rounded-md border">
-              {organisations.map((organisation) => (
-                <li
-                  className="flex flex-wrap items-center justify-between gap-2 px-3 py-2"
-                  key={organisation.id}
-                >
-                  <span>{organisation.name}</span>
-                  {organisation.entitled ? (
-                    <Link
-                      className="text-sm underline underline-offset-4"
-                      href={`/meteogram?org=${encodeURIComponent(organisation.id)}`}
-                    >
-                      Open meteogram
-                    </Link>
-                  ) : (
-                    <Link
-                      className="text-sm underline underline-offset-4"
-                      href={`/access?org=${encodeURIComponent(organisation.id)}`}
-                    >
-                      {organisation.request_status === "pending"
-                        ? "Request pending"
-                        : "Request access"}
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="divide-y rounded-md border">
+                {organisations.map((organisation) => (
+                  <li
+                    className="flex flex-wrap items-center justify-between gap-2 px-3 py-2"
+                    key={organisation.id}
+                  >
+                    <span>{organisation.name}</span>
+                    {organisation.entitled ? (
+                      <Link
+                        className="text-sm underline underline-offset-4"
+                        href={`/meteogram?org=${encodeURIComponent(organisation.id)}`}
+                      >
+                        Open meteogram
+                      </Link>
+                    ) : (
+                      <Link
+                        className="text-sm underline underline-offset-4"
+                        href={`/access?org=${encodeURIComponent(organisation.id)}`}
+                      >
+                        {organisation.request_status === "pending"
+                          ? "Request pending"
+                          : "Request access"}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {organisations.some((organisation) => !organisation.entitled) && (
+                <p className="text-muted-foreground text-sm">
+                  An owner or admin can ask GMS to enable the dashboard for the
+                  organisation on the{" "}
+                  <Link className="underline underline-offset-4" href="/access">
+                    Access page
+                  </Link>
+                  . GMS reviews the request.
+                </p>
+              )}
+            </>
           )}
         </section>
       ) : (
