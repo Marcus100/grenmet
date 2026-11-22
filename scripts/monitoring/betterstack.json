@@ -266,10 +266,9 @@
       "environment": "production",
       "kind": "monitors",
       "settings": {
-        "pronounceable_name": "Production · CMS readiness",
-        "url": "https://cms.barrels.gd/api/ready",
-        "monitor_type": "keyword",
-        "required_keyword": "\"status\":\"ready\"",
+        "pronounceable_name": "Production · CMS health",
+        "url": "https://cms.barrels.gd/api/health",
+        "monitor_type": "status",
         "check_frequency": 180,
         "confirmation_period": 180,
         "recovery_period": 180,

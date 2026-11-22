@@ -390,7 +390,7 @@ class ProviderTests(unittest.TestCase):
         self.assertLessEqual(
             {r["settings"]["pronounceable_name"] for r in pending},
             {
-                "Production · CMS readiness",
+                "Production · CMS health",
                 "Production · Events health",
                 "Production · Bookings health",
             },
