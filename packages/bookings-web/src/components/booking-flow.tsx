@@ -962,7 +962,7 @@ export function BookingFlow({
           </p>
         )}
         {service && dueAtBooking(service) === 0 && (
-          <p className="muted">No payment online. You pay at the salon.</p>
+          <p className="muted">No payment online. You pay when you visit.</p>
         )}
         {service?.description && (
           <p className="muted">

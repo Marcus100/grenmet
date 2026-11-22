@@ -145,6 +145,7 @@ export default async function BusinessBookingPage({
           aria-labelledby="book-title"
           className="scroll-mt-6 space-y-3"
           id="book-online"
+          tabIndex={-1}
         >
           <h2 className="text-lg font-semibold" id="book-title">
             Book online
