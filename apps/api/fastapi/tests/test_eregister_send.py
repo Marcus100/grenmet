@@ -622,6 +622,33 @@ async def test_job_failure_retries_with_backoff_then_fails(
     assert again.status_code == 202
 
 
+async def test_a_run_reports_the_transfers_that_did_not_land(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    incoming: Path,
+) -> None:
+    """The wis2box freshness timestamp only moves when every transfer in the run landed."""
+    client, _ = send_client
+    log = await _queued_wis2(client, db_async)
+    config = Wis2boxConfig(WIS2BOX_INCOMING_DIR=str(incoming), WIS2BOX_MAX_ATTEMPTS=3)
+
+    def failing(_key: str, _content: str) -> None:
+        raise OSError("wis2box unreachable")
+
+    failed_run = await publisher.run_due_publications(
+        session=db_async, sink=failing, config=config
+    )
+    assert (failed_run.handled, failed_run.failed) == (1, 1)
+
+    # Retry is due: the same row now lands, and the run is clean.
+    log.next_retry_at = log.next_retry_at - timedelta(days=1)
+    await db_async.commit()
+    healthy = await publisher.run_due_publications(
+        session=db_async, sink=lambda _k, _c: None, config=config
+    )
+    assert (healthy.handled, healthy.failed) == (1, 0)
+
+
 async def test_job_recovers_after_a_failure(
     send_client: tuple[httpx.AsyncClient, User],
     db_async: AsyncSession,

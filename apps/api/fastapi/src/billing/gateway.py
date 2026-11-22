@@ -3,6 +3,8 @@ from typing import Any, Protocol
 
 import stripe
 
+from src import provider_health
+
 from .config import BillingConfig, billing_settings
 from .exceptions import (
     BillingNotConfiguredError,
@@ -50,18 +52,27 @@ class StripeSdkGateway:
 
         try:
             client = stripe.StripeClient(secret_key, max_network_retries=2)
-            session = client.v1.checkout.sessions.create(
-                {
-                    "cancel_url": str(self._config.CHECKOUT_CANCEL_URL),
-                    "client_reference_id": client_reference_id,
-                    "customer_email": customer_email,
-                    "line_items": [{"price": price_id, "quantity": 1}],
-                    "metadata": {"user_id": client_reference_id},
-                    "mode": "subscription",
-                    "subscription_data": {"metadata": {"user_id": client_reference_id}},
-                    "success_url": str(self._config.CHECKOUT_SUCCESS_URL),
-                }
-            )
+            # Only Stripe's own trouble counts as a provider failure; a request it
+            # rejects (for example a bad email) is not an outage.
+            with provider_health.watch(
+                "stripe",
+                "checkout",
+                errors=(stripe.APIConnectionError, stripe.APIError),
+            ):
+                session = client.v1.checkout.sessions.create(
+                    {
+                        "cancel_url": str(self._config.CHECKOUT_CANCEL_URL),
+                        "client_reference_id": client_reference_id,
+                        "customer_email": customer_email,
+                        "line_items": [{"price": price_id, "quantity": 1}],
+                        "metadata": {"user_id": client_reference_id},
+                        "mode": "subscription",
+                        "subscription_data": {
+                            "metadata": {"user_id": client_reference_id}
+                        },
+                        "success_url": str(self._config.CHECKOUT_SUCCESS_URL),
+                    }
+                )
         except stripe.StripeError as exc:
             raise BillingProviderError("Stripe Checkout request failed") from exc
         if not session.url:

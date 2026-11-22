@@ -72719,6 +72719,63 @@
           }
         ]
       }
+    },
+    "/api/v1/monitoring/admin/freshness": {
+      "get": {
+        "tags": [
+          "monitoring"
+        ],
+        "summary": "Read ingest freshness and the email outbox backlog",
+        "description": "For staff (the monitoring screen). Each ingest feed reports its last successful run and whether that is inside its window; the email outbox reports pending, overdue and recently dead rows. `healthy` is true only when every enabled feed is fresh and the email backlog is within threshold. Needs monitoring.freshness.read. It is not an uptime monitor target: a signed-in token expires within an hour. Counts and times only; no recipients, payloads or error text.",
+        "operationId": "monitoringGetFreshness",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FreshnessReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing monitoring.freshness.read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -87497,6 +87554,39 @@
         ],
         "title": "EmailConfirm"
       },
+      "EmailOutboxBacklog": {
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "title": "Pending"
+          },
+          "stale_pending": {
+            "type": "integer",
+            "title": "Stale Pending"
+          },
+          "dead_last_window": {
+            "type": "integer",
+            "title": "Dead Last Window"
+          },
+          "dead_window_hours": {
+            "type": "integer",
+            "title": "Dead Window Hours"
+          },
+          "stale_after_minutes": {
+            "type": "integer",
+            "title": "Stale After Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pending",
+          "stale_pending",
+          "dead_last_window",
+          "dead_window_hours",
+          "stale_after_minutes"
+        ],
+        "title": "EmailOutboxBacklog"
+      },
       "EmailRequest": {
         "properties": {
           "email": {
@@ -89747,6 +89837,58 @@
         "title": "FeatureFlagUpdate",
         "description": "Partial update; send ``null`` to clear a nullable field. The key is immutable."
       },
+      "FeedFreshness": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FeedStatus"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "max_age_minutes": {
+            "type": "integer",
+            "title": "Max Age Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "enabled",
+          "last_success_at",
+          "max_age_minutes"
+        ],
+        "title": "FeedFreshness"
+      },
+      "FeedStatus": {
+        "type": "string",
+        "enum": [
+          "fresh",
+          "stale",
+          "never",
+          "unknown",
+          "disabled"
+        ],
+        "title": "FeedStatus",
+        "description": "fresh: last success within its window. stale: older than the window.\nnever: no success recorded yet. unknown: telemetry off or Redis unreachable.\ndisabled: the feed's flag is off, so it is not expected to run."
+      },
       "FileAccess": {
         "properties": {
           "url": {
@@ -90174,6 +90316,42 @@
           "periodUnit"
         ],
         "title": "Frequency"
+      },
+      "FreshnessReport": {
+        "properties": {
+          "healthy": {
+            "type": "boolean",
+            "title": "Healthy"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          },
+          "telemetry_available": {
+            "type": "boolean",
+            "title": "Telemetry Available"
+          },
+          "feeds": {
+            "items": {
+              "$ref": "#/components/schemas/FeedFreshness"
+            },
+            "type": "array",
+            "title": "Feeds"
+          },
+          "email_outbox": {
+            "$ref": "#/components/schemas/EmailOutboxBacklog"
+          }
+        },
+        "type": "object",
+        "required": [
+          "healthy",
+          "checked_at",
+          "telemetry_available",
+          "feeds",
+          "email_outbox"
+        ],
+        "title": "FreshnessReport"
       },
       "Gender": {
         "type": "string",

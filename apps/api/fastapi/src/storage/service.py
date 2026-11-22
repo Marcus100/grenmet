@@ -15,11 +15,14 @@ from typing import Any, cast
 
 import boto3
 from botocore.config import Config as BotoConfig
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
 
+from src import provider_health
 from src.storage.config import StorageConfig, storage_settings
 
 logger = logging.getLogger(__name__)
+# Provider trouble only: transport errors and S3 error responses.
+_STORAGE_ERRORS = (BotoCoreError, ClientError)
 
 
 class StorageNotConfiguredError(RuntimeError):
@@ -115,13 +118,15 @@ class StorageService:
         extra: dict[str, Any] = {}
         if content_type:
             extra["ContentType"] = content_type
-        self.client.put_object(Bucket=self.bucket, Key=key, Body=data, **extra)
+        with provider_health.watch("storage", "put", errors=_STORAGE_ERRORS):
+            self.client.put_object(Bucket=self.bucket, Key=key, Body=data, **extra)
         logger.info("Stored object", extra={"key": key})
 
     def get_object(self, key: str) -> bytes:
         """Object bytes (network I/O — wrap in run_in_threadpool from async code)."""
-        response = self.client.get_object(Bucket=self.bucket, Key=key)
-        return cast(bytes, response["Body"].read())
+        with provider_health.watch("storage", "get", errors=_STORAGE_ERRORS):
+            response = self.client.get_object(Bucket=self.bucket, Key=key)
+            return cast(bytes, response["Body"].read())
 
     def head_object(self, key: str) -> dict[str, Any] | None:
         """Object metadata, or None when absent (network I/O — use run_in_threadpool)."""
@@ -141,7 +146,8 @@ class StorageService:
 
     def delete_object(self, key: str) -> None:
         """Delete an object (network I/O — wrap in run_in_threadpool from async code)."""
-        self.client.delete_object(Bucket=self.bucket, Key=key)
+        with provider_health.watch("storage", "delete", errors=_STORAGE_ERRORS):
+            self.client.delete_object(Bucket=self.bucket, Key=key)
         logger.info("Deleted object", extra={"key": key})
 
 
