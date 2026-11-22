@@ -22,7 +22,10 @@ from src.organisations.models import MembershipRole
 from src.storage import service as storage
 from src.storage.image_metadata import ImageRejectedError, strip_metadata
 from src.storage.models import OrgUpload
-from src.storage.uploads import LOGO_MAX_PIXELS
+from src.storage.uploads import (
+    BOOKING_LOGO_MAX_PIXELS,
+    ORGANISER_LOGO_MAX_PIXELS,
+)
 from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
 from tests.storage.test_uploads import FakeStore
@@ -31,7 +34,7 @@ UPLOADS = "/api/v1/storage/uploads"
 GPS_IFD = 0x8825
 MAKE = 0x010F
 ORIENTATION = 0x0112
-CAP = LOGO_MAX_PIXELS
+CAP = BOOKING_LOGO_MAX_PIXELS
 
 
 def _jpeg_with_location(size: tuple[int, int] = (40, 30)) -> bytes:
@@ -288,21 +291,34 @@ async def test_completing_an_organiser_logo_strips_its_metadata(
     assert b"Phone Maker" not in byte_store.blobs[key]
 
 
-async def test_a_logo_over_the_pixel_cap_is_422_and_deleted(
+def _flat_png(width: int, height: int) -> bytes:
+    buffer = io.BytesIO()
+    Image.new("L", (width, height), 7).save(buffer, "PNG")  # small file, big decode
+    return buffer.getvalue()
+
+
+def test_the_pixel_caps_are_per_purpose() -> None:
+    five_megapixels = _flat_png(2500, 2000)
+    assert strip_metadata(
+        five_megapixels, "image/png", max_pixels=ORGANISER_LOGO_MAX_PIXELS
+    )
+    with pytest.raises(ImageRejectedError, match="too many pixels"):
+        strip_metadata(five_megapixels, "image/png", max_pixels=BOOKING_LOGO_MAX_PIXELS)
+
+
+async def test_a_booking_logo_over_its_cap_is_422_and_deleted(
     async_client: httpx.AsyncClient, db_async: AsyncSession, byte_store: ByteStore
 ) -> None:
     owner = await make_user(db_async)
-    org = await make_org(db_async, "Big Co", members=((owner, MembershipRole.OWNER),))
+    org = await make_org(
+        db_async, "Big Co", members=((owner, MembershipRole.OWNER),), apps=("bookings",)
+    )
     headers = headers_for(owner, org.id)
-    buffer = io.BytesIO()
-    Image.new("L", (2100, 2100), 7).save(buffer, "PNG")
     upload_id, key = await _upload(
         async_client,
         byte_store,
         headers,
-        buffer.getvalue(),
-        app="events",
-        purpose="organiser-logo",
+        _flat_png(2500, 2000),  # 5 megapixels: over the booking cap
         content_type="image/png",
     )
 
@@ -313,6 +329,76 @@ async def test_a_logo_over_the_pixel_cap_is_422_and_deleted(
     assert response.status_code == 422, response.text
     assert "too many pixels" in response.text
     assert key not in byte_store.blobs
+
+
+async def test_an_organiser_logo_of_five_megapixels_is_accepted(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, byte_store: ByteStore
+) -> None:
+    owner = await make_user(db_async)
+    org = await make_org(db_async, "Phone Co", members=((owner, MembershipRole.OWNER),))
+    headers = headers_for(owner, org.id)
+    upload_id, key = await _upload(
+        async_client,
+        byte_store,
+        headers,
+        _flat_png(2500, 2000),
+        app="events",
+        purpose="organiser-logo",
+        content_type="image/png",
+    )
+
+    response = await async_client.post(
+        f"{UPLOADS}/{upload_id}/complete", headers=headers
+    )
+
+    assert response.status_code == 200, response.text
+    assert key in byte_store.blobs
+
+
+async def test_a_re_encode_failure_is_422_and_the_object_is_deleted(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    byte_store: ByteStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def disk_full(_self: object, *_args: object, **_kwargs: object) -> None:
+        raise OSError("No space left on device")
+
+    raw = _jpeg_with_location()  # built before save is patched
+    monkeypatch.setattr(Image.Image, "save", disk_full)
+    owner = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Full Co",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("bookings",),
+    )
+    headers = headers_for(owner, org.id)
+    upload_id, key = await _upload(async_client, byte_store, headers, raw)
+
+    response = await async_client.post(
+        f"{UPLOADS}/{upload_id}/complete", headers=headers
+    )
+
+    assert response.status_code == 422, response.text
+    assert "re-encoded" in response.text
+    assert key not in byte_store.blobs
+    assert key in byte_store.deleted
+    row = await db_async.get(OrgUpload, uuid.UUID(upload_id))
+    assert row is not None
+    assert row.status == "pending"
+
+
+def test_a_save_failure_surfaces_as_a_rejection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def broken(_self: object, *_args: object, **_kwargs: object) -> None:
+        raise ValueError("cannot encode")
+
+    raw = _jpeg_with_location()  # built before save is patched
+    monkeypatch.setattr(Image.Image, "save", broken)
+    with pytest.raises(ImageRejectedError, match="re-encoded"):
+        strip_metadata(raw, "image/jpeg", max_pixels=CAP)
 
 
 async def test_a_logo_that_is_not_really_an_image_is_deleted(

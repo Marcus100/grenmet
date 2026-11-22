@@ -7,9 +7,11 @@ it complete. Reads never expose bucket URLs: members get a short presigned GET,
 and purposes flagged public are served through a cached redirect by file id.
 
 Service functions flush and never commit; the router owns the transaction.
-Dimension checks are not done. Purposes with ``strip_metadata`` are decoded by Pillow
-at completion (``image_metadata.py``), re-encoded without their metadata, and refused
-when the bytes are not the image type they declared.
+Pixel limits apply only where a purpose sets ``strip_metadata``: those images are
+decoded by Pillow at completion (``image_metadata.py``) and refused above the purpose's
+``max_pixels`` (per purpose), re-encoded without their metadata, and refused when the
+bytes are not the image type they declared. Any failure there deletes the object and
+answers 422.
 """
 
 import functools
@@ -45,8 +47,12 @@ PUBLIC_REDIRECT_SECONDS = 300
 PUBLIC_CACHE_SECONDS = 120
 
 
-#: A logo is shown at 40 to 64 pixels; 4 megapixels decodes comfortably and bounds memory.
-LOGO_MAX_PIXELS = 4_000_000
+#: Decoded-size caps (width times height, in pixels) for the metadata step. A booking
+#: logo is shown at 40 to 64 pixels, so 4 megapixels is generous. Organiser logos keep
+#: the 16 megapixels they had before the metadata step (phone photos of 3000 by 2000
+#: pixels and more are accepted). Pillow's decompression-bomb guard stays on in both.
+BOOKING_LOGO_MAX_PIXELS = 4_000_000
+ORGANISER_LOGO_MAX_PIXELS = 16_000_000
 
 
 @dataclass(frozen=True)
@@ -60,16 +66,24 @@ class Purpose:
     #: stays valid for 15 minutes, so the object can still be overwritten afterwards.
     strip_metadata: bool = False
     #: Decoded-size cap for the metadata step (width times height, in pixels).
-    max_pixels: int = LOGO_MAX_PIXELS
+    max_pixels: int = ORGANISER_LOGO_MAX_PIXELS
 
 
 PURPOSES: dict[str, Purpose] = {
     "organiser-logo": Purpose(
-        app="events", max_bytes=2 * 1024 * 1024, public=True, strip_metadata=True
+        app="events",
+        max_bytes=2 * 1024 * 1024,
+        public=True,
+        strip_metadata=True,
+        max_pixels=ORGANISER_LOGO_MAX_PIXELS,
     ),
     "listing-image": Purpose(app="events", max_bytes=5 * 1024 * 1024, public=True),
     "booking-logo": Purpose(
-        app="bookings", max_bytes=2 * 1024 * 1024, public=True, strip_metadata=True
+        app="bookings",
+        max_bytes=2 * 1024 * 1024,
+        public=True,
+        strip_metadata=True,
+        max_pixels=BOOKING_LOGO_MAX_PIXELS,
     ),
 }
 

@@ -56,16 +56,21 @@ def strip_metadata(raw: bytes, content_type: str, *, max_pixels: int) -> bytes:
     ) as error:
         raise ImageRejectedError("The file is not a readable image") from error
 
-    # Transparency given by ``info`` (a palette entry or a colour key) must become an
-    # alpha channel before ``info`` is cleared, or transparent pixels save opaque.
-    if "transparency" in image.info and image.mode not in ("RGBA", "LA"):
-        image = image.convert("RGBA")
-    elif image.mode not in _SAVE_MODES[expected]:
-        image = image.convert("RGB" if expected == "JPEG" else "RGBA")
-    # Pillow reuses ``info`` for ICC profiles and EXIF on save; clearing it leaves
-    # the pixels and nothing else.
-    image.info = {}
-    output = io.BytesIO()
-    options = {"quality": _QUALITY} if expected in {"JPEG", "WEBP"} else {}
-    image.save(output, format=expected, **options)
+    # Convert and save fail too (a broken file, a full disk): the caller treats any
+    # ImageRejectedError as a rejected upload, so none of these becomes a 500.
+    try:
+        # Transparency given by ``info`` (a palette entry or a colour key) must become
+        # an alpha channel before ``info`` is cleared, or transparent pixels save opaque.
+        if "transparency" in image.info and image.mode not in ("RGBA", "LA"):
+            image = image.convert("RGBA")
+        elif image.mode not in _SAVE_MODES[expected]:
+            image = image.convert("RGB" if expected == "JPEG" else "RGBA")
+        # Pillow reuses ``info`` for ICC profiles and EXIF on save; clearing it leaves
+        # the pixels and nothing else.
+        image.info = {}
+        output = io.BytesIO()
+        options = {"quality": _QUALITY} if expected in {"JPEG", "WEBP"} else {}
+        image.save(output, format=expected, **options)
+    except (OSError, ValueError, Image.DecompressionBombError) as error:
+        raise ImageRejectedError("The image could not be re-encoded") from error
     return output.getvalue()
