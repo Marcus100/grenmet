@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   type AlertView,
   formatClock,
+  formatUpdated,
   freshness,
   isInForce,
   overallLevel,
@@ -115,6 +116,12 @@ describe("freshness", () => {
 
   it("formats the clock in Grenada time (UTC-4)", () => {
     expect(formatClock(new Date("2026-10-18T14:05:00Z"))).toBe("10:05");
+  });
+
+  it("formats the date and time a feed was read, in Grenada time", () => {
+    expect(formatUpdated(new Date("2026-10-18T14:05:00Z"))).toBe(
+      "18 Oct 2026, 10:05"
+    );
   });
 });
 

@@ -8,15 +8,18 @@ import {
   type StripDay,
 } from "@/components/home/sky-day-strip";
 import { UnitsToggle } from "@/components/units-toggle";
+import { clock12 } from "@/lib/clock";
 import {
   isOtherGrenadaDay,
+  localDay,
   localTime,
   localWeekday,
 } from "@/lib/current-conditions";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { getForecastDays } from "@/lib/forecast-days";
+import { UNAVAILABLE_SOURCE } from "@/lib/forecast-selection";
 import { isStale } from "@/lib/freshness";
-import { skyFromWords } from "@/lib/hero-readings";
+import { isIssued, skyFromWords } from "@/lib/hero-readings";
 import {
   defaultLocation,
   locationHref,
@@ -55,6 +58,25 @@ function stripTime(
       ? localWeekday(observedAt)
       : localTime(observedAt),
   };
+}
+
+/**
+ * Why today's tab is empty, in one line under the strip: the forecast is not
+ * out yet (with when the last one was issued), or the feed is down. Null when
+ * today's forecast is issued.
+ */
+export function todayStatusLine(
+  weather: Pick<WeatherSnapshot, "days" | "lastIssuedAt">
+): string | null {
+  const today = weather.days[0];
+  if (!today || isIssued(today)) return null;
+  if (today.source === UNAVAILABLE_SOURCE) {
+    return "Today’s forecast cannot be retrieved right now.";
+  }
+  const last = weather.lastIssuedAt
+    ? `${localDay(weather.lastIssuedAt)}, ${clock12(localTime(weather.lastIssuedAt))} AST`
+    : "not known";
+  return `Today’s forecast has not been issued yet. Last issued: ${last}`;
 }
 
 /**
@@ -103,6 +125,7 @@ export function SkyHero({
   const nowHref = locationHref(location, "/");
   const current = weather.current;
   const today = days[0];
+  const status = todayStatusLine(weather);
 
   // Every tab's content is rendered up front so switching tabs needs no server trip.
   const cards: Record<string, React.ReactNode> = {
@@ -180,6 +203,14 @@ export function SkyHero({
                   ...stripTime(current?.observedAt ?? null, now),
                 }}
               />
+              {status && (
+                <p
+                  className="rounded-gm-card bg-gm-scrim text-body-sm leading-body-sm px-4 py-2"
+                  role="status"
+                >
+                  {status}
+                </p>
+              )}
               <ByTab fit panels={panels} />
             </div>
           </div>

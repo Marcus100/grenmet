@@ -122,9 +122,11 @@ describe("breadcrumbTrail", () => {
   });
 
   it("gives every standing page on disk a trail unless it sits outside the nav", () => {
-    // Every standing page is in the menu or the footer group, except the draft
-    // preview: a noindex page reached only through a signed CMS link.
-    const outside = new Set<string>(["/preview"]);
+    // Every standing page is in the menu or the footer group, except two
+    // utility pages: the draft preview (a noindex page reached only through a
+    // signed CMS link) and search results (reached from the search box, not
+    // the menu).
+    const outside = new Set<string>(["/preview", "/search"]);
     const standing = routesOnDisk(path.join(APP_DIR, "(pages)")).filter(
       (route) => !route.includes("[")
     );

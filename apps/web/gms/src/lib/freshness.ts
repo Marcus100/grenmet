@@ -123,6 +123,21 @@ function agoWords(ms: number): string {
 }
 
 /**
+ * How old a stale observation is, in words ("3 hours", "1 day"), for the
+ * "Out of date" badge. Null when it is fresh, or when its age cannot be read
+ * (then the badge says "Out of date" without an age, never a made-up one).
+ */
+export function staleAgeWords(
+  observedAt: string | null | undefined,
+  now: Date = new Date()
+): string | null {
+  if (!isStale(observedAt, now)) return null;
+  const age = ageMs(observedAt, now);
+  if (age === null || age < 0) return null;
+  return agoWords(age);
+}
+
+/**
  * The label for an observation, or null when it is fresh. Stale readings say
  * how long ago they were taken and when, in Grenada time: "Observed 3 hours
  * ago (11:00 a.m. AST) — older than usual". A time that cannot be checked says
@@ -140,7 +155,7 @@ export function observationNote(
   if (age === null || age < 0) {
     return "Observation time could not be checked, so treat this reading as older than usual.";
   }
-  return `Observed ${agoWords(age)} ago (${astTimeLabel(observedAt, now)}) — older than usual`;
+  return `Observed ${agoWords(age)} ago (${astTimeLabel(observedAt, now)}) — older than usual.`;
 }
 
 /**

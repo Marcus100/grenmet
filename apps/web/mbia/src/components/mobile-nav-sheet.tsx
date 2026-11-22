@@ -7,11 +7,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@barrelsgd/ui/components/ui/sheet";
-import { PlaneTakeoff } from "lucide-react";
+import { Phone, PlaneTakeoff } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import type { RefObject } from "react";
 import { NAV_GROUPS } from "@/lib/nav";
+
+/** The airport switchboard, the same number the utility bar and footer show. */
+const GAA_PHONE_TEL = "+14734444555";
+const GAA_PHONE_DISPLAY = "+1 (473) 444-4555";
 
 /** Mobile navigation panel. Loaded on demand by `MobileNavToggle`. */
 export function MobileNavSheet({
@@ -39,6 +43,14 @@ export function MobileNavSheet({
           </SheetTitle>
         </SheetHeader>
         <nav aria-label="Site menu" className="flex flex-col gap-6 px-4 pb-10">
+          {/* The utility bar with the phone number is desktop-only, so the phone
+              menu keeps a visible Call button (the airport's switchboard). */}
+          <Button asChild className="min-h-11" variant="outline">
+            <a href={`tel:${GAA_PHONE_TEL}`} onClick={close}>
+              <Phone aria-hidden="true" className="size-4" />
+              Call {GAA_PHONE_DISPLAY}
+            </a>
+          </Button>
           <Button
             asChild
             className="bg-gaa-gold text-gaa-navy-ink hover:bg-gaa-gold-deep"
