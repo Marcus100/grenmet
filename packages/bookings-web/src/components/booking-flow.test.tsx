@@ -48,6 +48,10 @@ const NEVER_NEEDS = /Booking never needs an account/u;
 const DATE_RANGE = /^\w{3} \d{1,2} \w{3} to \w{3} \d{1,2} \w{3}$/u;
 const EMAIL_ERROR = /Enter a valid email address/u;
 const HELD_WHILE_PAYING = /Your time is held while you pay/u;
+const NO_PAYMENT = /No payment online\. You pay when you visit\./u;
+const CANCEL_RULE = /until 24 hours before your visit\./u;
+const CONSULTATION = /Note for Hybrid: Consultation required/u;
+const NOTE_PREFIX = /^Note for /u;
 
 const storefront: BookingStorefront = {
   slug: "test-studio",
@@ -859,5 +863,50 @@ describe("BookingFlow error messages follow the person's changes", () => {
       "true"
     );
     expect(screen.getAllByText(EMAIL_ERROR).length).toBeGreaterThan(0);
+  });
+});
+
+describe("BookingFlow confirm step wording", () => {
+  it("says there is no payment online when the service takes no deposit", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    expect(screen.queryByText(NO_PAYMENT)).not.toBeInTheDocument();
+    await chooseSlot(user);
+    expect(screen.getByText(NO_PAYMENT)).toBeVisible();
+    expect(screen.getByText(CANCEL_RULE)).toBeVisible();
+  });
+
+  it("does not say there is no payment online when a deposit is due", async () => {
+    const user = userEvent.setup();
+    renderFlow("", {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        due_at_booking_minor: 1000,
+      })),
+    });
+    await chooseSlot(user);
+    expect(screen.queryByText(NO_PAYMENT)).not.toBeInTheDocument();
+    expect(screen.getByText(PAY_DEPOSIT)).toBeVisible();
+  });
+
+  it("shows the selected service's note when it has one", async () => {
+    const user = userEvent.setup();
+    renderFlow("", {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        description: "Consultation required",
+      })),
+    });
+    await chooseSlot(user);
+    expect(screen.getByText(CONSULTATION)).toBeVisible();
+  });
+
+  it("shows no service note when the service has none", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await chooseSlot(user);
+    expect(screen.queryByText(NOTE_PREFIX)).not.toBeInTheDocument();
   });
 });

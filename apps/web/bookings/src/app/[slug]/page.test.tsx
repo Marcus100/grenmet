@@ -28,6 +28,7 @@ vi.mock("next/navigation", () => ({
 const SERVICE_ID = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10";
 const QUESTIONS = /Questions\? Contact us/u;
 const INSTAGRAM = /Instagram @seasaltspa/u;
+const DEPOSIT = /deposit/iu;
 
 const storefront: BookingStorefront = {
   slug: "sea-salt-spa",
@@ -73,14 +74,43 @@ describe("/[slug]", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "Sea Salt Spa"
     );
-    const list = screen.getByRole("region", { name: "Services" });
-    expect(within(list).getByText("Deep tissue massage")).toBeVisible();
-    expect(within(list).getByText("1 hr 30 min · EC$25 deposit")).toBeVisible();
-    expect(within(list).getByText("EC$150")).toBeVisible();
+    expect(screen.queryByRole("region", { name: "Services" })).toBeNull();
+    expect(screen.getByText("Deep tissue massage")).toBeVisible();
+    expect(screen.getByText("EC$150")).toBeVisible();
     expect(screen.getByText("Maya")).toBeVisible();
     expect(
       screen.getByRole("form", { name: "Book an appointment" })
     ).toBeVisible();
+  });
+
+  it("lists each service once, in the booking form", async () => {
+    vi.mocked(getStorefront).mockResolvedValue(storefront);
+    render(await BusinessBookingPage(params("sea-salt-spa")));
+    const form = screen.getByRole("form", { name: "Book an appointment" });
+    expect(within(form).getByText("Deep tissue massage")).toBeVisible();
+    expect(screen.getAllByText("Deep tissue massage")).toHaveLength(1);
+  });
+
+  it("has a Book now link that jumps to the booking form", async () => {
+    vi.mocked(getStorefront).mockResolvedValue(storefront);
+    const { container } = render(
+      await BusinessBookingPage(params("sea-salt-spa"))
+    );
+    const link = screen.getByRole("link", { name: "Book now" });
+    expect(link).toHaveAttribute("href", "#book-online");
+    expect(container.querySelectorAll("#book-online")).toHaveLength(1);
+    expect(container.querySelector("#book-online")).toContainElement(
+      screen.getByRole("form", { name: "Book an appointment" })
+    );
+  });
+
+  it("shows no Book now link when no service is open", async () => {
+    vi.mocked(getStorefront).mockResolvedValue({
+      ...storefront,
+      services: [],
+    });
+    render(await BusinessBookingPage(params("sea-salt-spa")));
+    expect(screen.queryByRole("link", { name: "Book now" })).toBeNull();
   });
 
   it("shows no contact strip when the business set no contact", async () => {
@@ -116,8 +146,8 @@ describe("/[slug]", () => {
       services: [{ ...storefront.services[0], deposit_minor: 0 }],
     } as BookingStorefront);
     render(await BusinessBookingPage(params("sea-salt-spa")));
-    const list = screen.getByRole("region", { name: "Services" });
-    expect(within(list).getByText("1 hr 30 min")).toBeVisible();
+    expect(screen.getByText("1 hr 30 min")).toBeVisible();
+    expect(screen.queryByText(DEPOSIT)).toBeNull();
   });
 
   it("says online booking is not open when there are no services", async () => {

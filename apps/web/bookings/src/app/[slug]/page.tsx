@@ -1,10 +1,6 @@
 import { BookingFlow } from "@barrelsgd/bookings-web/components/booking-flow";
 import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contact";
-import {
-  formatDuration,
-  formatMoney,
-  timeZonePlace,
-} from "@barrelsgd/bookings-web/lib/booking-format";
+import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -111,40 +107,20 @@ export default async function BusinessBookingPage({
           </p>
         )}
         <ContactStrip contact={storefront.contact} />
+        {services.length > 0 && (
+          <p>
+            <a className="btn btn-solid" href="#book-online">
+              Book now
+            </a>
+          </p>
+        )}
       </header>
 
-      <section aria-labelledby="services-title" className="space-y-3">
-        <h2 className="text-lg font-semibold" id="services-title">
-          Services
-        </h2>
-        {services.length === 0 ? (
-          <p className="text-muted-foreground">
-            Online booking is not open for this business yet.
-          </p>
-        ) : (
-          <ul className="divide-border border-border divide-y rounded-lg border">
-            {services.map((service) => (
-              <li
-                className="flex items-start justify-between gap-4 px-4 py-3"
-                key={service.id}
-              >
-                <div>
-                  <p className="font-medium">{service.name}</p>
-                  <p className="text-muted-foreground text-sm">
-                    {formatDuration(service.duration_min)}
-                    {service.deposit_minor > 0
-                      ? ` · ${formatMoney(service.deposit_minor, storefront.currency)} deposit`
-                      : ""}
-                  </p>
-                </div>
-                <p className="font-semibold">
-                  {formatMoney(service.price_minor, storefront.currency)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {services.length === 0 && (
+        <p className="text-muted-foreground">
+          Online booking is not open for this business yet.
+        </p>
+      )}
 
       {providers.length > 0 && (
         <section aria-labelledby="providers-title" className="space-y-3">
@@ -165,7 +141,12 @@ export default async function BusinessBookingPage({
       )}
 
       {services.length > 0 && (
-        <section aria-labelledby="book-title" className="space-y-3">
+        <section
+          aria-labelledby="book-title"
+          className="scroll-mt-6 space-y-3"
+          id="book-online"
+          tabIndex={-1}
+        >
           <h2 className="text-lg font-semibold" id="book-title">
             Book online
           </h2>
