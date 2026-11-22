@@ -4,6 +4,7 @@ import type { ManagedEvent, SettlementSummary } from "@/domain/types";
 import { makeManagedEvent, makeOrganiser } from "@/test/factories";
 import {
   countListings,
+  issuedBreakdown,
   OrganiserOverview,
   overviewOrder,
   salesTotals,
@@ -62,10 +63,11 @@ function summary(overrides: Partial<SettlementSummary>): SettlementSummary {
   return {
     admitted: 0,
     cancelled: 0,
+    claimed: 0,
+    refunded: 0,
     cashCollectedMinor: 0,
     cashCountedMinor: 0,
     cashExpectedMinor: 0,
-    claimed: 0,
     issued: 0,
     issues: 0,
     listingId: "evt-s",
@@ -130,17 +132,61 @@ describe("overviewOrder", () => {
 });
 
 describe("salesTotals", () => {
-  it("adds issued, admitted and cash across the ticketed events", () => {
+  it("adds the ticket counts and cash across the ticketed events", () => {
     expect(
       salesTotals([
-        summary({ issued: 40, admitted: 31, cashCollectedMinor: 15_000 }),
-        summary({ issued: 10, admitted: 2, cashCollectedMinor: 2500 }),
+        summary({
+          issued: 40,
+          claimed: 34,
+          refunded: 4,
+          cancelled: 2,
+          admitted: 31,
+          cashCollectedMinor: 15_000,
+        }),
+        summary({
+          issued: 10,
+          claimed: 10,
+          admitted: 2,
+          cashCollectedMinor: 2500,
+        }),
       ])
-    ).toEqual({ admitted: 33, cashMinor: 17_500, issued: 50 });
+    ).toEqual({
+      active: 44,
+      admitted: 33,
+      cancelledTickets: 2,
+      cashMinor: 17_500,
+      issued: 50,
+      refunded: 4,
+    });
+  });
+
+  it("counts a holder-cancelled ticket as not active", () => {
+    const totals = salesTotals([
+      summary({ issued: 3, claimed: 1, refunded: 1, cancelled: 1 }),
+    ]);
+    expect(totals.active).toBe(1);
   });
 
   it("is all zeros with no ticketed events", () => {
-    expect(salesTotals([])).toEqual({ admitted: 0, cashMinor: 0, issued: 0 });
+    expect(salesTotals([])).toEqual({
+      active: 0,
+      admitted: 0,
+      cancelledTickets: 0,
+      cashMinor: 0,
+      issued: 0,
+      refunded: 0,
+    });
+  });
+});
+
+describe("issuedBreakdown", () => {
+  it("lists issued, refunded and cancelled, omitting zero parts", () => {
+    expect(
+      issuedBreakdown({ cancelledTickets: 2, issued: 50, refunded: 4 })
+    ).toBe("50 issued, 4 refunded, 2 cancelled");
+    expect(
+      issuedBreakdown({ cancelledTickets: 0, issued: 10, refunded: 0 })
+    ).toBe("10 issued");
   });
 });
 
@@ -154,6 +200,9 @@ describe("OrganiserOverview sales panel", () => {
         settlement={[
           summary({
             issued: 40,
+            claimed: 34,
+            refunded: 4,
+            cancelled: 2,
             admitted: 31,
             cashCollectedMinor: 15_000,
             listingId: "evt-a",
@@ -161,6 +210,7 @@ describe("OrganiserOverview sales panel", () => {
           }),
           summary({
             issued: 10,
+            claimed: 10,
             admitted: 2,
             cashCollectedMinor: 2500,
             listingId: "evt-b",
@@ -175,8 +225,12 @@ describe("OrganiserOverview sales panel", () => {
       .closest("section");
     expect(panel).not.toBeNull();
     const scoped = within(panel as HTMLElement);
-    expect(scoped.getByText("Tickets issued")).toBeInTheDocument();
-    expect(scoped.getByText("50")).toBeInTheDocument();
+    expect(scoped.getByText("Tickets active")).toBeInTheDocument();
+    expect(scoped.getByText("44")).toBeInTheDocument();
+    expect(
+      scoped.getByText("50 issued, 4 refunded, 2 cancelled")
+    ).toBeInTheDocument();
+    expect(scoped.queryByText("Tickets issued")).toBeNull();
     expect(scoped.getByText("33")).toBeInTheDocument();
     expect(scoped.getByText("EC$175.00")).toBeInTheDocument();
     expect(
@@ -195,7 +249,7 @@ describe("OrganiserOverview sales panel", () => {
       />
     );
     expect(screen.getByText(NO_SALES_LABEL)).toBeInTheDocument();
-    expect(screen.queryByText("Tickets issued")).toBeNull();
+    expect(screen.queryByText("Tickets active")).toBeNull();
   });
 });
 

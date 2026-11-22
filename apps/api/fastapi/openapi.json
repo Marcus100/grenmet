@@ -114306,6 +114306,10 @@
             "type": "integer",
             "title": "Cancelled"
           },
+          "refunded": {
+            "type": "integer",
+            "title": "Refunded"
+          },
           "cash_collected_minor": {
             "type": "integer",
             "title": "Cash Collected Minor"
@@ -114338,6 +114342,7 @@
           "claimed",
           "admitted",
           "cancelled",
+          "refunded",
           "cash_collected_minor",
           "cash_expected_minor",
           "cash_counted_minor",
