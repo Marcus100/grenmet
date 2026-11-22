@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "@barrelsgd/ui/styles/globals";
+
+/* Tailwind only scans this app's source by default; scan the shared primitives
+   too so their utilities are generated (same setup as apps/web/admin). The
+   stylesheet is imported only by the signed-out pages (sign-in and 404), so
+   the Payload editor keeps its own styles. */
+@source "../../node_modules/@barrelsgd/ui/src";
