@@ -1,5 +1,11 @@
 import type { ApiKeyPublic } from "@barrelsgd/api-client";
-import { render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
   ApiKeysError,
@@ -8,8 +14,12 @@ import {
 } from "@/components/api-key-panels";
 import { apiKeyNoticeFor, keyState } from "@/lib/api-key-form";
 
+const { revokeApiKeyAction } = vi.hoisted(() => ({
+  revokeApiKeyAction: vi.fn((_data: FormData) => Promise.resolve()),
+}));
+
 vi.mock("@/app/(console)/organisations/api-key-actions", () => ({
-  revokeApiKeyAction: () => Promise.resolve(undefined as never),
+  revokeApiKeyAction,
 }));
 
 const NOW = new Date("2026-10-20T00:00:00Z");
@@ -55,11 +65,39 @@ describe("ApiKeysPanel", () => {
     expect(one.getByText("2026-12-01")).toBeTruthy();
     expect(one.getByText("2026-10-19")).toBeTruthy();
     expect(one.getByText("Active")).toBeTruthy();
-    expect(one.getByRole("button", { name: "Confirm revoke" })).toBeTruthy();
+    expect(one.getByRole("button", { name: "Revoke" })).toBeTruthy();
     const two = within(second as HTMLElement);
     expect(two.getByText("Revoked")).toBeTruthy();
     expect(two.getByText("Never used")).toBeTruthy();
-    expect(two.queryByRole("button", { name: "Confirm revoke" })).toBeNull();
+    expect(two.queryByRole("button", { name: "Revoke" })).toBeNull();
+  });
+
+  it("submits the organisation and key IDs on confirmation and closes the dialog", async () => {
+    render(
+      <ApiKeysPanel
+        count={1}
+        now={NOW}
+        organisationId="org_1"
+        rows={[active]}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+    const dialog = screen.getByRole("alertdialog", {
+      name: "Revoke this API key?",
+    });
+    expect(revokeApiKeyAction).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Confirm revoke" })
+    );
+
+    await waitFor(() => expect(revokeApiKeyAction).toHaveBeenCalledTimes(1));
+    const submitted = revokeApiKeyAction.mock.calls[0]?.[0];
+    expect(Object.fromEntries(submitted ?? [])).toEqual({
+      organisation_id: "org_1",
+      key_id: "key_1",
+    });
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
   });
 
   it("offers revoke only, never create or rotate, and never a secret", () => {
