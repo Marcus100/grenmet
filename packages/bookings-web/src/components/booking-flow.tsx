@@ -961,6 +961,14 @@ export function BookingFlow({
             {payNow}
           </p>
         )}
+        {service && dueAtBooking(service) === 0 && (
+          <p className="muted">No payment online. You pay at the salon.</p>
+        )}
+        {service?.description && (
+          <p className="muted">
+            Note for {service.name}: {service.description}
+          </p>
+        )}
         <p className="muted">
           By appointment only. You can change or cancel online until{" "}
           {formatHours(storefront.cancel_cutoff_hours)} before your visit.
