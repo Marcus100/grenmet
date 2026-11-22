@@ -18,20 +18,27 @@ const CHIP =
   "inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-medium";
 const CHIP_CHOSEN = "border-primary bg-primary text-primary-foreground";
 
-/** The home page address for a query; the page number is kept only past page 1. */
-export function listingHref(query: Partial<ListingQuery>): string {
-  const params = new URLSearchParams();
+/**
+ * The home page address for a query, as a typed route object (the page number is
+ * kept only past page 1). Typed routes reject a plain string built at run time.
+ */
+export function listingHref(query: Partial<ListingQuery>): {
+  pathname: "/";
+  query?: Record<string, string>;
+} {
+  const params: Record<string, string> = {};
   if (query.q) {
-    params.set("q", query.q);
+    params.q = query.q;
   }
   if (query.category) {
-    params.set("category", query.category);
+    params.category = query.category;
   }
   if (query.page && query.page > 1) {
-    params.set("page", String(query.page));
+    params.page = String(query.page);
   }
-  const text = params.toString();
-  return text ? `/?${text}` : "/";
+  return Object.keys(params).length > 0
+    ? { pathname: "/", query: params }
+    : { pathname: "/" };
 }
 
 function BusinessCard({ card }: Readonly<{ card: BookingPublicBusiness }>) {
@@ -55,7 +62,7 @@ function BusinessCard({ card }: Readonly<{ card: BookingPublicBusiness }>) {
       )}
       <div className="flex min-w-0 flex-col gap-1">
         <h3 className="text-lg font-semibold">
-          <Link className={LINK} href={`/${card.slug}`}>
+          <Link className={LINK} href={{ pathname: `/${card.slug}` }}>
             {card.name}
           </Link>
         </h3>

@@ -131,7 +131,12 @@ describe("BusinessListing", () => {
       />
     );
 
-    const search = screen.getByRole("search");
+    // jsdom does not map the <search> element to the "search" role, so find it by tag.
+    const search = document.querySelector("search");
+    expect(search).not.toBeNull();
+    if (!search) {
+      return;
+    }
     expect(
       (within(search).getByRole("searchbox") as HTMLInputElement).value
     ).toBe("fade");
