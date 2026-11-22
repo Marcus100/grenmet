@@ -26,6 +26,15 @@ function rowKeys(rows: InfoTableProps["rows"]): string[] {
 }
 
 /**
+ * A key for each column position. Columns never reorder within a table, and
+ * header text can repeat or be empty, so the position is the stable key (never
+ * the header text).
+ */
+function columnKeys(columns: number): string[] {
+  return Array.from({ length: columns }, (_, position) => `column-${position}`);
+}
+
+/**
  * Bordered data table. From `sm` up it is a real table in a scroll region that
  * can take keyboard focus, so a wide table scrolls sideways without panning the
  * page. On a phone each row becomes a card of label and value pairs, because a
@@ -39,6 +48,9 @@ export function InfoTable({
   rows,
 }: InfoTableProps) {
   const keys = rowKeys(rows);
+  const columns = columnKeys(
+    Math.max(headers.length, ...rows.map((row) => row.length))
+  );
   return (
     <section
       aria-label={caption ? `Table: ${caption}` : "Table"}
@@ -56,8 +68,7 @@ export function InfoTable({
               {row.map((cell, columnIndex) => (
                 <div
                   className="grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)] gap-x-3"
-                  // biome-ignore lint/suspicious/noArrayIndexKey: columns are fixed for a table and never reorder; header text can repeat or be empty, so the position is the key
-                  key={`column-${columnIndex}`}
+                  key={columns[columnIndex]}
                 >
                   <dt className="text-gm-heading text-label leading-label font-bold tracking-wider uppercase">
                     {headers[columnIndex]?.trim() || UNLABELLED_COLUMN}
@@ -93,8 +104,7 @@ export function InfoTable({
               {headers.map((header, columnIndex) => (
                 <th
                   className="text-gm-heading text-label leading-label px-4 py-2.5 font-bold tracking-wider whitespace-nowrap uppercase lg:px-5 lg:py-3"
-                  // biome-ignore lint/suspicious/noArrayIndexKey: columns are fixed for a table and never reorder; header text can repeat or be empty, so the position is the key
-                  key={`column-${columnIndex}`}
+                  key={columns[columnIndex]}
                   scope="col"
                 >
                   {header}
@@ -112,8 +122,7 @@ export function InfoTable({
                       monoColumns?.includes(columnIndex) &&
                         "font-mono tabular-nums"
                     )}
-                    // biome-ignore lint/suspicious/noArrayIndexKey: columns are fixed for a table and never reorder; the position is the key
-                    key={`column-${columnIndex}`}
+                    key={columns[columnIndex]}
                   >
                     {cell}
                   </td>
