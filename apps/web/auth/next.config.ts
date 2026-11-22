@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactCompiler: true,
   output: "standalone",
+  async redirects() {
+    // Sign-up lives at /signup. Common guesses land on the real page, not a 404.
+    // Temporary (307), so a later change of plan is not stuck in a browser cache.
+    return [
+      { source: "/sign-up", destination: "/signup", permanent: false },
+      { source: "/register", destination: "/signup", permanent: false },
+    ];
+  },
   async headers() {
     // CSP is Report-Only until a clean report window (docs/security.md). Outside
     // production the helper returns no headers, so the rule is left out.

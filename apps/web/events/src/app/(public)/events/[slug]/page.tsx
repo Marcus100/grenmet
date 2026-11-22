@@ -1,6 +1,7 @@
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { breadcrumbList } from "@barrelsgd/ui/lib/seo";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { BadgeCheck, Clock, MapPin, Repeat, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -69,9 +70,17 @@ export default async function EventPage({ params }: { params: Params }) {
     .filter((candidate) => candidate.id !== event.id)
     .slice(0, 3);
   const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.venue}, Grenada`)}`;
+  // Shared links must open on their own: the full address, never a bare path.
+  const eventUrl = new URL(`/events/${slug}`, siteUrl).toString();
 
   return (
-    <div className="space-y-12">
+    <div
+      className={cn(
+        "space-y-12",
+        // Room for the fixed buy bar on phones (see TicketClaim).
+        event.admission === "ticketed" && "max-lg:pb-36"
+      )}
+    >
       {structuredData.map((data) => (
         <JsonLd data={data} key={String(data["@type"])} />
       ))}
@@ -179,8 +188,8 @@ export default async function EventPage({ params }: { params: Params }) {
             />
             <ShareActions
               icsHref={`/events/${event.slug}/ics`}
-              path={`/events/${event.slug}`}
               title={event.title}
+              url={eventUrl}
             />
           </div>
 
