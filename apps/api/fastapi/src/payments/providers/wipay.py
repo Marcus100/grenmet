@@ -110,10 +110,14 @@ def total_text(amount_minor: int) -> str:
     return f"{amount_minor // 100}.{amount_minor % 100:02d}"
 
 
-def response_hash(transaction_id: str, amount_minor: int, api_key: str) -> str:
-    """The documented hash: ``md5(transaction_id + original_total + api_key)``."""
-    text = f"{transaction_id}{total_text(amount_minor)}{api_key}"
-    return hashlib.md5(text.encode(), usedforsecurity=False).hexdigest()
+def response_hash(transaction_id: str, amount_minor: int, signing_value: str) -> str:
+    """WiPay's documented return hash: ``md5(transaction_id + original_total + <the
+    business's WiPay API key>)``. MD5 is mandated by WiPay's protocol, so it cannot be
+    changed here. It is not the only check on a live payment: live crediting also needs
+    the signed webhook (HMAC-SHA256, the business's endpoint secret), and this hash is
+    compared in constant time."""
+    signed_text = f"{transaction_id}{total_text(amount_minor)}{signing_value}"
+    return hashlib.md5(signed_text.encode(), usedforsecurity=False).hexdigest()
 
 
 def hash_matches(

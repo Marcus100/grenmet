@@ -104,10 +104,11 @@ def total_text(amount_minor: int) -> str:
 
 
 def expected_hash(
-    transaction_id: str, amount_minor: int, api_key: str = WIPAY_API_KEY
+    transaction_id: str, amount_minor: int, signing_value: str = WIPAY_API_KEY
 ) -> str:
-    text = f"{transaction_id}{total_text(amount_minor)}{api_key}"
-    return hashlib.md5(text.encode(), usedforsecurity=False).hexdigest()
+    """WiPay's documented hash (see ``wipay.response_hash``), computed independently."""
+    signed_text = f"{transaction_id}{total_text(amount_minor)}{signing_value}"
+    return hashlib.md5(signed_text.encode(), usedforsecurity=False).hexdigest()
 
 
 def return_query(
