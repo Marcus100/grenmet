@@ -315,8 +315,8 @@ export function EmailLayout(props: EmailLayoutProps) {
   );
   const fallback = safeUrl(props.linkFallback);
   const logo = safeLogo(props.logo);
-  const quietLink =
-    props.quietLink && safeUrl(props.quietLink.url) ? props.quietLink : null;
+  const quietHref = props.quietLink ? safeUrl(props.quietLink.url) : null;
+  const quietLink = props.quietLink && quietHref ? props.quietLink : null;
 
   return (
     <Html dir="ltr" lang="en">
@@ -427,7 +427,7 @@ export function EmailLayout(props: EmailLayoutProps) {
                             If the button does not work, copy this link into
                             your browser:
                             <br />
-                            <a
+                            <Link
                               href={fallback}
                               style={{
                                 color: accent,
@@ -436,7 +436,7 @@ export function EmailLayout(props: EmailLayoutProps) {
                               }}
                             >
                               {fallback}
-                            </a>
+                            </Link>
                           </p>
                         ) : null}
                         {(props.policy ?? []).map((line) => (
@@ -450,8 +450,8 @@ export function EmailLayout(props: EmailLayoutProps) {
                             {quietLink ? (
                               <>
                                 {" "}
-                                <a
-                                  href={quietLink.url}
+                                <Link
+                                  href={quietHref ?? undefined}
                                   style={{
                                     color: accent,
                                     fontWeight: "bold",
@@ -459,7 +459,7 @@ export function EmailLayout(props: EmailLayoutProps) {
                                   }}
                                 >
                                   {quietLink.label}
-                                </a>
+                                </Link>
                               </>
                             ) : null}
                           </p>
