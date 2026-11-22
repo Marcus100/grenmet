@@ -42,14 +42,21 @@ PROVIDER_CHECKS = (
 
 
 def _add_provider_check(table: str, name: str, providers: str) -> None:
-    """Add the provider check without holding a long lock on a populated table: NOT
-    VALID (new rows are checked at once), then VALIDATE (existing rows, in a lock that
-    lets reads and writes continue)."""
+    """Add the provider check NOT VALID: new rows are checked at once, and the existing
+    rows are checked by ``_validate_provider_checks`` (a lock that lets reads and writes
+    continue). Splitting them keeps the long check out of the transaction."""
     op.execute(
         f"ALTER TABLE payments.{table} ADD CONSTRAINT {name} "
         f"CHECK (provider IN ({providers})) NOT VALID"
     )
-    op.execute(f"ALTER TABLE payments.{table} VALIDATE CONSTRAINT {name}")
+
+
+def _validate_provider_checks() -> None:
+    """Check the existing rows against the wider provider list. VALIDATE CONSTRAINT takes
+    a share-update-exclusive lock: reads and writes continue, so it runs in this same
+    transaction (no autocommit block is needed)."""
+    for table, name in PROVIDER_CHECKS:
+        op.execute(f"ALTER TABLE payments.{table} VALIDATE CONSTRAINT {name}")
 
 
 def upgrade() -> None:
@@ -120,6 +127,7 @@ def upgrade() -> None:
         sa.Column("deposit_payment_link", sa.String(length=2000), nullable=True),
         schema="bookings",
     )
+    _validate_provider_checks()
 
 
 def downgrade() -> None:
@@ -140,3 +148,4 @@ def downgrade() -> None:
     for table, name in PROVIDER_CHECKS:
         op.drop_constraint(op.f(name), table, schema="payments", type_="check")
         _add_provider_check(table, name, PROVIDERS_BEFORE)
+    _validate_provider_checks()

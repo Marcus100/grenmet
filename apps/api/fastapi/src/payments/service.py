@@ -928,12 +928,21 @@ async def apply_event(
     return await _apply_refunded(session, intent, event)
 
 
+@dataclass(frozen=True)
+class WipayReturn:
+    """Where the customer goes after WiPay's return. ``target`` is None when no return
+    address is set for the payment; the capture (if any) has been applied either way."""
+
+    target: str | None
+    verified: bool
+
+
 async def process_wipay_return(
     session: AsyncSession, *, params: Mapping[str, str]
-) -> str:
-    """Apply the customer's return from WiPay and say where to send them: the source's
-    success page once the payment is recorded, else its cancel page. The return is
-    verified first (``wipay.event_from_return``); a refused one changes nothing."""
+) -> WipayReturn:
+    """Verify and apply the customer's return from WiPay, and resolve where to send
+    them. The redirect is resolved first, but a missing address never stops the capture:
+    the router commits the session before it answers (a verified capture is kept)."""
     try:
         intent_id = uuid.UUID(hex=params.get("order_id") or "")
     except ValueError:
@@ -943,6 +952,9 @@ async def process_wipay_return(
         raise IntentNotFoundError()
     event = await wipay.event_from_return(session, intent=intent, params=params)
     verified = event.kind is not EventKind.IGNORED
+    address = return_urls.resolve(
+        intent.source_type, intent.source_id, payments_settings
+    )
     if verified and intent.provider_environment != MerchantEnvironment.LIVE.value:
         # Sandbox only (tests and the business's own test checkout): the return may credit.
         await apply_event(session, event)
@@ -953,14 +965,14 @@ async def process_wipay_return(
             "live WiPay return verified; not credited here",
             extra={"intent_id": str(intent.id)},
         )
-    address = return_urls.resolve(
-        intent.source_type, intent.source_id, payments_settings
-    )
     if address is None:
-        raise ProviderUnavailableError(
-            "The return addresses for this payment are not set"
+        logger.error(
+            "no return address for a WiPay payment",
+            extra={"intent_id": str(intent.id), "source_type": intent.source_type},
         )
-    return address.success_url if verified else address.cancel_url
+        return WipayReturn(target=None, verified=verified)
+    target = address.success_url if verified else address.cancel_url
+    return WipayReturn(target=target, verified=verified)
 
 
 async def wipay_ready(session: AsyncSession, organisation_id: str) -> bool:

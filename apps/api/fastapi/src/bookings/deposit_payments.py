@@ -30,7 +30,7 @@ import logging
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -219,6 +219,26 @@ def _return_address(source_id: str | None) -> return_urls.ReturnAddress | None:
 
 
 return_urls.register(SOURCE_TYPE, _return_address)
+
+#: The business's sandbox test checkout (payments, ADR-0027 amendment): the customer
+#: returns to the studio settings page of the business. The source id is the
+#: organisation's slug, so the page is built from settings and the slug only.
+TEST_SOURCE_TYPE = "payments.wipay-test"
+
+
+def _test_return_address(source_id: str | None) -> return_urls.ReturnAddress | None:
+    if not source_id:
+        return None
+    base = bookings_settings.APP_URL.rstrip("/")
+
+    def url(result: str) -> str:
+        query = urlencode({"wipay_test": result})
+        return f"{base}/studio/{quote(source_id, safe='')}/settings?{query}"
+
+    return return_urls.ReturnAddress(url("paid"), url("cancelled"))
+
+
+return_urls.register(TEST_SOURCE_TYPE, _test_return_address)
 
 
 def _payload(

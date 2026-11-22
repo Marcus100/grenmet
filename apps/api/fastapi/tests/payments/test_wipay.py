@@ -40,6 +40,8 @@ from tests.payments.wipay_support import (
 )
 
 # The fixtures live in wipay_support; bound here by name (as test_deposits does).
+stripe_return_fallbacks = wipay_support.stripe_return_fallbacks
+# The fixtures live in wipay_support; bound here by name (as test_deposits does).
 org_secret_keys = wipay_support.org_secret_keys
 wipay_env = wipay_support.wipay_env
 
@@ -530,7 +532,10 @@ async def test_a_wipay_checkout_returns_the_hosted_url_and_records_the_environme
 
 
 async def test_the_return_credits_once_and_a_replay_is_a_no_op(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    wipay_env,
+    stripe_return_fallbacks: None,
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
     intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
@@ -570,7 +575,10 @@ async def test_a_tampered_return_is_refused_and_credits_nothing(
 
 
 async def test_a_cancelled_return_redirects_to_cancel_and_changes_nothing(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    wipay_env,
+    stripe_return_fallbacks: None,
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
     intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
@@ -770,3 +778,20 @@ async def test_a_sandbox_capture_is_recorded_as_the_sandbox_test(
     assert (
         await _intent_row(db_async, intent_id)
     ).status == IntentStatus.SUCCEEDED.value
+
+
+def test_the_wipay_test_source_has_a_builder_and_no_fallback_is_needed() -> None:
+    """Resolution uses the builder for the test checkout, with no Stripe fallbacks set."""
+    from src.bookings import deposit_payments  # registers the builders
+    from src.payments import return_urls
+
+    address = return_urls.resolve(
+        deposit_payments.TEST_SOURCE_TYPE, "salon-x", PaymentsConfig()
+    )
+    assert address is not None
+    assert address.success_url.endswith("/studio/salon-x/settings?wipay_test=paid")
+    assert address.cancel_url.endswith("/studio/salon-x/settings?wipay_test=cancelled")
+    assert (
+        return_urls.resolve(deposit_payments.TEST_SOURCE_TYPE, None, PaymentsConfig())
+        is None
+    )

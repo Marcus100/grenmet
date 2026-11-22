@@ -441,3 +441,46 @@ async def test_a_refused_refund_is_noted_and_the_studio_is_emailed(
         )
     )
     assert len(queued) == 1
+
+
+async def test_the_refund_refused_email_is_queued_once_per_deposit(
+    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+) -> None:
+    from src.bookings import deposits
+    from src.bookings.models import Booking
+    from src.outbox import Outbox
+
+    studio = await _deposit_studio(db_async, async_client, deposit_payment_link=None)
+    await _enable_wipay(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
+    booking_id = receipt["booking"]["id"]
+    intent = await _intent(db_async, booking_id)
+    assert intent is not None
+    returned = await async_client.get(
+        f"{PAYMENTS}/public/returns/wipay",
+        params=return_query(
+            order_id=intent.id.hex,
+            transaction_id=intent.provider_ref or "",
+            amount_minor=DEPOSIT,
+        ),
+        follow_redirects=False,
+    )
+    assert returned.status_code == 303
+    booking = await db_async.get(Booking, uuid.UUID(booking_id))
+    assert booking is not None
+    booking.status = "cancelled"
+    await db_async.commit()
+    for _ in range(2):  # the same late payment reported twice
+        await deposits.confirm_paid(
+            db_async, organisation_id=studio.org_id, booking_id=uuid.UUID(booking_id)
+        )
+    queued = list(
+        await db_async.scalars(
+            select(Outbox).where(
+                Outbox.organisation_id == studio.org_id,
+                Outbox.dedupe_key.like("booking-refund-refused:%"),
+            )
+        )
+    )
+    assert len(queued) == 1
+    assert queued[0].dedupe_key == f"booking-refund-refused:{booking_id}:{intent.id}"

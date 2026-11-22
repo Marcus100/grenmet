@@ -82,13 +82,20 @@ def wipay_env(
 
     monkeypatch.setattr(wipay_module, "_transport", httpx.MockTransport(handler))
     monkeypatch.setattr(payments_settings, "WIPAY_RESPONSE_URL", WIPAY_RESPONSE_URL)
+    # No Stripe fallback return URLs here: a payment's return must not depend on them.
+    return stub
+
+
+@pytest.fixture
+def stripe_return_fallbacks(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Only for a test whose source has no registered return address: the global
+    fallback pages (ADR-0027). Other tests run without them."""
     monkeypatch.setattr(
         payments_settings, "STRIPE_SUCCESS_URL", "https://example.test/paid"
     )
     monkeypatch.setattr(
         payments_settings, "STRIPE_CANCEL_URL", "https://example.test/cancelled"
     )
-    return stub
 
 
 def total_text(amount_minor: int) -> str:

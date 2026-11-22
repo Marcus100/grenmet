@@ -37,7 +37,7 @@ from . import merchant_accounts, schemas, service
 from .connect import accounts as connect_accounts
 from .connect import disputes as connect_disputes
 from .connect import webhook as connect_webhook
-from .exceptions import PaymentsValidationError
+from .exceptions import PaymentsValidationError, ProviderUnavailableError
 from .models import IntentStatus, LedgerKind, ProviderKey
 
 #: The online providers a business sets up for itself (the rest are platform rails).
@@ -428,9 +428,14 @@ async def receive_webhook(
     include_in_schema=False,
 )
 async def wipay_return(*, session: SessionDep, request: Request) -> Any:
-    target = await service.process_wipay_return(session, params=request.query_params)
+    result = await service.process_wipay_return(session, params=request.query_params)
+    # Commit first: a verified capture is kept whatever happens to the redirect.
     await session.commit()
-    return RedirectResponse(url=target, status_code=status.HTTP_303_SEE_OTHER)
+    if result.target is None:
+        raise ProviderUnavailableError(
+            "The return addresses for this payment are not set"
+        )
+    return RedirectResponse(url=result.target, status_code=status.HTTP_303_SEE_OTHER)
 
 
 # --- administration -------------------------------------------------------------------

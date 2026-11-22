@@ -31,6 +31,7 @@ from tests.payments.wipay_support import (
 API = "/api/v1/payments"
 ADMIN = f"{API}/admin/merchant-accounts"
 org_secret_keys = wipay_support.org_secret_keys
+stripe_return_fallbacks = wipay_support.stripe_return_fallbacks
 wipay_env = wipay_support.wipay_env
 
 
@@ -338,7 +339,10 @@ async def _approve_live(db: AsyncSession, org_id: str) -> None:
 
 
 async def test_a_live_return_with_a_flipped_status_credits_nothing(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    wipay_env,
+    stripe_return_fallbacks: None,
 ) -> None:
     org, admin, headers = await _org_with_wipay(
         db_async, async_client, environment="live"
@@ -363,7 +367,10 @@ async def test_a_live_return_with_a_flipped_status_credits_nothing(
 
 
 async def test_a_verified_live_return_waits_for_the_signed_webhook(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    wipay_env,
+    stripe_return_fallbacks: None,
 ) -> None:
     org, admin, headers = await _org_with_wipay(
         db_async, async_client, environment="live"
@@ -409,3 +416,79 @@ async def test_the_platform_ledger_count_ignores_wipay_in_the_reconciliation(
         )
     )
     assert total == 1  # recorded for the business's own totals, not as platform money
+
+
+# --- review round 3: the redirect never rolls back a verified capture ------------------
+
+
+async def test_the_test_checkout_returns_to_the_studio_settings_page(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    wipay_env,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No Stripe fallback URLs are set: the builder for the test checkout is the return."""
+    monkeypatch.setattr(settings, "ENVIRONMENT", "production")
+    org, admin, headers = await _org_with_wipay(db_async, async_client)
+    created = await async_client.post(
+        f"{API}/org/merchant-accounts/wipay/test-checkout", headers=headers
+    )
+    assert created.status_code == 201, created.text
+    row = await _intent_row(db_async, created.json()["intent"]["id"])
+    assert row.source_id == org.slug  # type: ignore[attr-defined]
+    response = await async_client.get(
+        f"{API}/public/returns/wipay",
+        params=return_query(
+            order_id=row.id.hex, transaction_id=row.provider_ref or "", amount_minor=100
+        ),
+        follow_redirects=False,
+    )
+    assert response.status_code == 303, response.text
+    location = response.headers["location"]
+    assert f"/studio/{org.slug}/settings?wipay_test=paid" in location  # type: ignore[attr-defined]
+    account = await _row(db_async, org.id)  # type: ignore[attr-defined]
+    assert account.sandbox_verified_at is not None
+
+
+async def test_a_failed_redirect_keeps_the_verified_capture(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    wipay_env,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src.payments import return_urls
+
+    org, admin, headers = await _org_with_wipay(db_async, async_client)
+    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    row = await _intent_row(db_async, intent_id)
+    monkeypatch.setattr(return_urls, "resolve", lambda *args, **kwargs: None)
+    response = await async_client.get(
+        f"{API}/public/returns/wipay",
+        params=return_query(
+            order_id=row.id.hex,
+            transaction_id=row.provider_ref or "",
+            amount_minor=5000,
+        ),
+        follow_redirects=False,
+    )
+    assert response.status_code == 503  # the customer gets an error page...
+    assert await _charges(db_async, intent_id) == 1  # ...but the capture is committed
+    assert (await _intent_row(db_async, intent_id)).status == "succeeded"
+    account = await _row(db_async, org.id)  # type: ignore[attr-defined]
+    assert account.sandbox_verified_at is not None
+
+
+async def test_a_sandbox_proof_needs_a_sandbox_account(
+    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+) -> None:
+    """A sandbox payment whose account has since gone live proves nothing about live."""
+    from src.payments.providers import wipay as wipay_module
+
+    org, admin, headers = await _org_with_wipay(db_async, async_client)
+    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    row = await _intent_row(db_async, intent_id)
+    account = await _row(db_async, org.id)  # type: ignore[attr-defined]
+    account.environment = "live"
+    await db_async.flush()
+    await wipay_module.note_capture(db_async, row)
+    assert account.sandbox_verified_at is None

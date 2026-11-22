@@ -51,7 +51,7 @@ describe("record deposit", () => {
       Array.from(screen.getByLabelText("How was it paid?").children).map(
         (option) => option.textContent
       )
-    ).toEqual(["Cash", "Bank transfer", "Cheque"]);
+    ).toEqual(["Cash", "Bank transfer", "Cheque", "Payment link"]);
     expect(document.querySelector('input[name="amount"]')).toBeNull();
     expect(key()).toMatch(UUID);
   });

@@ -587,6 +587,12 @@ async def note_capture(session: AsyncSession, intent: Intent) -> None:
     ):
         return
     account = await _merchant(session, intent.organisation_id)
-    if account is not None and account.sandbox_verified_at is None:
+    # Only the sandbox account's own payments count as the test: a payment taken in the
+    # sandbox while the account is now live proves nothing about the live account.
+    if (
+        account is not None
+        and account.environment == MerchantEnvironment.SANDBOX.value
+        and account.sandbox_verified_at is None
+    ):
         account.sandbox_verified_at = utc_now()
         await session.flush()

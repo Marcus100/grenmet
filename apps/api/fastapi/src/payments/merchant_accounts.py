@@ -23,6 +23,7 @@ from src.audit import service as audit_service
 from src.auth.models import User
 from src.organisations.config import organisations_settings
 from src.organisations.exceptions import SecretStorageUnavailableError
+from src.organisations.models import PlatformOrganisation
 from src.utils import secret_box
 from src.utils.datetime import utc_now
 
@@ -248,11 +249,16 @@ async def start_test_checkout(
         raise PaymentsConflictError(
             "The test checkout uses the sandbox: set the account to sandbox first"
         )
+    organisation = await session.get(PlatformOrganisation, organisation_id)
+    if organisation is None:
+        raise PaymentsConflictError("The organisation was not found")
     payload = schemas.PaymentIntentCreate(
         amount_minor=TEST_CHECKOUT_AMOUNT_MINOR,
         currency="XCD",
         provider=ProviderKey.WIPAY,
         source_type=TEST_SOURCE_TYPE,
+        # The studio settings page is keyed by the slug; the return address is built from it.
+        source_id=organisation.slug,
         idempotency_key=uuid.uuid4().hex,
         metadata={"purpose": "sandbox_proof"},
     )

@@ -413,13 +413,16 @@ async def queue_customer_email(
 
 async def refund_refused_notice(session: AsyncSession, managed: Managed) -> None:
     """Tell the studio, by email, that a deposit refund must be made by hand (WiPay has
-    no refund call). The history note is written by the caller."""
+    no refund call). The history note is written by the caller. Once per booking and
+    deposit intent: a repeat refusal for the same deposit queues nothing new."""
     mail = build_mail(managed)
+    intent = await deposit_payments.find_deposit(session, managed.booking)
+    intent_part = str(intent.id) if intent is not None else "none"
     await queue_studio_email(
         session,
         managed,
         emails.studio_notice(mail, event="refund"),
-        f"booking-refund-refused:{uuid.uuid4().hex}",
+        f"booking-refund-refused:{managed.booking.id}:{intent_part}",
     )
 
 
