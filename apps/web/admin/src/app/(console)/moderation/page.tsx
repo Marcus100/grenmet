@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ConsolePager } from "@/components/console-pager";
 import { CaseTable, StatusTabs } from "@/components/moderation-panels";
 import { StaffOnly } from "@/components/staff-only";
 import { listVerificationCases } from "@/lib/moderation-api";
@@ -62,27 +62,16 @@ export default async function ModerationPage({
       <StatusTabs current={status} />
       <CaseTable rows={list.data} status={status} />
 
-      <nav aria-label="Pages" className="flex items-center gap-4 text-sm">
-        <span className="text-muted-foreground">
-          {list.count} total, page {Math.min(page, lastPage)} of {lastPage}
-        </span>
-        {page > 1 ? (
-          <Link
-            className="inline-flex min-h-11 items-center underline"
-            href={linkTo(page - 1)}
-          >
-            Previous
-          </Link>
-        ) : null}
-        {page < lastPage ? (
-          <Link
-            className="inline-flex min-h-11 items-center underline"
-            href={linkTo(page + 1)}
-          >
-            Next
-          </Link>
-        ) : null}
-      </nav>
+      {list.count > 0 ? (
+        <ConsolePager
+          count={list.count}
+          label="Moderation pages"
+          lastPage={lastPage}
+          nextHref={page < lastPage ? linkTo(page + 1) : undefined}
+          page={page}
+          previousHref={page > 1 ? linkTo(page - 1) : undefined}
+        />
+      ) : null}
     </>
   );
 }
