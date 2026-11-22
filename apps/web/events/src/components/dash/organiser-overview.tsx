@@ -67,21 +67,49 @@ export function overviewOrder(
 
 /**
  * Totals across the ticketed events' settlement summaries (no online revenue
- * here). `active` is issued minus refunded: a refunded ticket is no longer a
- * sale. Cancelled tickets are still in `active`; the settlement page has them.
+ * here). `active` is the valid tickets (`claimed`): issued minus refunded and
+ * minus holder-cancelled. The three statuses are exclusive, so nothing is
+ * subtracted twice.
  */
 export function salesTotals(rows: readonly SettlementSummary[]) {
   let issued = 0;
+  let active = 0;
   let refunded = 0;
+  let cancelledTickets = 0;
   let admitted = 0;
   let cashMinor = 0;
   for (const row of rows) {
     issued += row.issued;
+    active += row.claimed;
     refunded += row.refunded;
+    cancelledTickets += row.cancelled;
     admitted += row.admitted;
     cashMinor += row.cashCollectedMinor;
   }
-  return { active: issued - refunded, admitted, cashMinor, issued, refunded };
+  return {
+    active,
+    admitted,
+    cancelledTickets,
+    cashMinor,
+    issued,
+    refunded,
+  };
+}
+
+/** "50 issued, 4 refunded, 2 cancelled"; zero parts after "issued" are omitted. */
+export function issuedBreakdown(totals: {
+  cancelledTickets: number;
+  issued: number;
+  refunded: number;
+}): string {
+  const parts = [`${totals.issued} issued`];
+  if (totals.refunded > 0) {
+    parts.push(`${totals.refunded} refunded`);
+  }
+  if (totals.cancelledTickets > 0) {
+    parts.push(`${totals.cancelledTickets} cancelled`);
+  }
+  return parts.join(", ");
 }
 
 const RECENT_LIMIT = 5;
@@ -184,7 +212,7 @@ function SalesPanel({ rows }: { rows: readonly SettlementSummary[] }) {
         <>
           <div className="grid grid-cols-3 gap-3">
             <CountTile
-              detail={`${totals.issued} issued, ${totals.refunded} refunded`}
+              detail={issuedBreakdown(totals)}
               label="Tickets active"
               value={totals.active}
             />

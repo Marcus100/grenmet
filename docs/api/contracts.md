@@ -1042,9 +1042,10 @@ event is 404) returns tickets by channel (`online`, `outlet_cash`: `issued`, `cl
 stock, every till with expected, counted and difference, cash totals and `discrepancies`
 (`till_short`, `till_over`, `till_open`). `GET .../settlement.csv` downloads the same report
 as CSV. `GET /events/manage/settlement` returns one summary row per ticketed event:
-`issued` (every ticket, refunded ones included; unchanged), `claimed`, `admitted`, `cancelled`
-and `refunded` (additive; the refunded tickets are already inside `issued`, so `issued` minus
-`refunded` is the active count the organiser Overview headlines).
+`issued` (every ticket, refunded and cancelled ones included; unchanged), `claimed` (valid tickets
+only: `issued` minus `cancelled` minus `refunded`, the active count the organiser Overview
+headlines), `admitted`, `cancelled` and `refunded` (additive; `refunded` is a separate status from
+`cancelled`, so the three never overlap).
 
 ### Events cancel, postpone and refund (E5)
 

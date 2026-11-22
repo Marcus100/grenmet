@@ -224,6 +224,8 @@ async def test_summary_counts_refunded_tickets_apart_from_issued(
     assert row["claimed"] == 1
     assert row["refunded"] == 1
     assert row["cancelled"] == 0
+    # The three statuses are exclusive, so claimed is issued minus the rest.
+    assert row["issued"] == row["claimed"] + row["refunded"] + row["cancelled"]
 
 
 @pytest.mark.asyncio
