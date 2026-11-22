@@ -241,6 +241,8 @@ async def send_outbound_row(
     *,
     attempts: int,
     sender: Sender | None = None,
+    from_name: str | None = None,
+    reply_to: str | None = None,
 ) -> None:
     """Send one email for the outbox handlers (``outbox_handlers``).
 
@@ -249,6 +251,8 @@ async def send_outbound_row(
     A send or render failure is raised so the outbox backs off and retries; the
     caller's transaction (including this row) is then rolled back. Whatever the
     outcome, the content (props, html) is cleared once the row is final.
+    ``from_name`` and ``reply_to`` (business mail) are passed to the sender only
+    when given, so the default sender is unchanged.
     """
     send = sender or email_module.send_email
     row.attempts = attempts
@@ -270,6 +274,10 @@ async def send_outbound_row(
             extra["headers"] = headers
         if text:
             extra["text_content"] = text
+        if from_name:
+            extra["from_name"] = from_name
+        if reply_to:
+            extra["reply_to"] = reply_to
         await asyncio.to_thread(
             partial(
                 send,

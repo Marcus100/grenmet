@@ -29,6 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import email_layout as layout
 from src.auth.config import auth_settings
 from src.auth.models import User
+from src.email import business_sender_name
 from src.notifications.config import notification_settings
 from src.notifications.outbox_handlers import enqueue_email
 from src.payments.models import ProviderKey, Refund, RefundStatus
@@ -141,6 +142,7 @@ async def _queue_receipt(
     if buyer is None or not buyer.email:
         return
     organiser = await db.get(Organiser, listing.organiser_id)
+    from_name = business_sender_name(organiser.name) if organiser else ""
     message = emails.order_confirmation(
         buyer_name=buyer.first_name,
         title=listing.title,
@@ -164,6 +166,7 @@ async def _queue_receipt(
         transactional=True,
         dedupe_key=f"events-order-paid:{order.id}",
         organisation_id=organisation_id,
+        from_name=from_name or None,
     )
 
 
@@ -277,6 +280,8 @@ async def _queue_refund_receipt(
             )
         )
     )
+    organiser = await db.get(Organiser, listing.organiser_id)
+    from_name = business_sender_name(organiser.name) if organiser else ""
     message = emails.order_refunded(
         buyer_name=buyer.first_name,
         title=listing.title,
@@ -298,6 +303,7 @@ async def _queue_refund_receipt(
         transactional=True,
         dedupe_key=f"events-order-refunded:{refund_id}",
         organisation_id=organisation_id,
+        from_name=from_name or None,
     )
 
 

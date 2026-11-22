@@ -373,7 +373,9 @@ def test_render_card_uses_the_render_service_html_and_text(
 
     seen: list[tuple[str, dict[str, object]]] = []
 
-    async def remote(template: str, props: dict[str, object]) -> EmailData:
+    async def remote(
+        template: str, props: dict[str, object], *, timeout_seconds: float = 10.0
+    ) -> EmailData:
         seen.append((template, props))
         return EmailData(
             html_content="<p>react</p>", subject="Hello", text_content="react text"

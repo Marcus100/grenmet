@@ -469,6 +469,10 @@ async def test_payment_issues_tickets_exactly_once_even_if_the_handler_runs_twic
     assert await outbox.drain(db_async, only_topics={private}) == 1
     assert [mail["email_to"] for mail in sent_emails] == [buyer.email]
     assert "Paid Fete" in str(sent_emails[0])
+    # The receipt comes from the organiser's name, with no Reply-To (organisers
+    # have no public contact email yet).
+    assert sent_emails[0]["from_name"] == "Fete Co via Barrels"
+    assert "reply_to" not in sent_emails[0]
 
 
 @pytest.mark.asyncio
