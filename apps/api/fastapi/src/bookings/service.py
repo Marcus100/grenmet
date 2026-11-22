@@ -26,6 +26,7 @@ from src.organisations.models import (
 )
 from src.pagination import PaginationParams
 from src.storage import uploads
+from src.storage.public_url import public_file_url
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
@@ -464,6 +465,22 @@ def business_contact(profile: BookingProfile) -> dict[str, str | None]:
     }
 
 
+async def _public_logo_url(profile: BookingProfile) -> str | None:
+    """The business logo's public address, shown only while the file is still a
+    complete booking-logo upload of this business and the API address is https.
+    The mail builds its image from the same address (``public_file_url``)."""
+    if profile.logo_file_id is None:
+        return None
+    if not await uploads.file_is_usable(
+        profile.logo_file_id,
+        organisation_id=profile.organisation_id,
+        purpose=LOGO_PURPOSE,
+    ):
+        return None
+    url = public_file_url(profile.logo_file_id)
+    return url if url is not None and url.startswith("https://") else None
+
+
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
     services = await list_services(session, profile.organisation_id, active_only=True)
     providers = await list_providers(session, profile.organisation_id, active_only=True)
@@ -484,6 +501,8 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         "currency": profile.currency,
         "cancel_cutoff_hours": profile.cancel_cutoff_hours,
         "contact": business_contact(profile),
+        "brand_color": profile.brand_color,
+        "logo_url": await _public_logo_url(profile),
         "services": [
             {
                 **BookingPublicService.model_validate(

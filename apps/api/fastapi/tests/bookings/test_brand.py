@@ -11,10 +11,12 @@ from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import email_layout as layout
 from src.bookings import emails
+from src.bookings.models import BookingProfile
 from src.config import settings
 from src.organisations import service as organisation_service
 from src.organisations.models import MembershipRole
@@ -275,3 +277,176 @@ def test_a_mail_without_a_brand_uses_navy_and_no_image() -> None:
     html = layout.render_html(emails.customer_confirmed(mail))
     assert "<img" not in html
     assert layout.NAVY in html
+
+
+# --- the public storefront (issue #1622, web follow-up) ----------------------------------
+
+
+async def _brand_profile(
+    client: httpx.AsyncClient, studio: Studio, **fields: object
+) -> httpx.Response:
+    """A full profile body: a PUT that names only some fields resets the rest."""
+    return await client.put(
+        f"{API}/org/profile",
+        headers=studio.headers,
+        json={
+            "public_slug": studio.slug,
+            "display_name": "Babydoll Beauty Bar",
+            "enabled": True,
+            "lead_time_min": 0,
+            "horizon_days": 365,
+            "cancel_cutoff_hours": 24,
+            "notify_email": "studio@example.com",
+            "manage_url_template": MANAGE,
+            **fields,
+        },
+    )
+
+
+async def _storefront(client: httpx.AsyncClient, studio: Studio) -> dict[str, object]:
+    response = await client.get(f"{API}/public/{studio.slug}")
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+async def test_storefront_without_colour_or_logo_says_so(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "API_BASE_URL", API_BASE)
+    studio = await _studio(db_async, async_client)
+    body = await _storefront(async_client, studio)
+    assert body["brand_color"] is None
+    assert body["logo_url"] is None
+
+
+async def test_storefront_carries_the_colour_and_the_public_logo_url(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "API_BASE_URL", API_BASE)
+    studio = await _studio(db_async, async_client, brand_color="#0B63EE")
+    logo = await _logo(db_async, studio.org_id)
+    saved = await _brand_profile(
+        async_client, studio, brand_color="#0B63EE", logo_file_id=str(logo)
+    )
+    assert saved.status_code == 200, saved.text
+
+    body = await _storefront(async_client, studio)
+    assert body["brand_color"] == "#0b63ee"
+    assert body["logo_url"] == f"{PUBLIC_LOGO}{logo}"
+
+
+async def test_storefront_colour_without_logo(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "API_BASE_URL", API_BASE)
+    studio = await _studio(db_async, async_client, brand_color=BLUE)
+    body = await _storefront(async_client, studio)
+    assert body["brand_color"] == BLUE
+    assert body["logo_url"] is None
+
+
+async def test_storefront_hides_a_logo_that_is_not_a_complete_business_upload(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "API_BASE_URL", API_BASE)
+    studio = await _studio(db_async, async_client, brand_color=BLUE)
+    owner = await make_user(db_async)
+    other = await make_org(
+        db_async,
+        "Other Co",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("bookings",),
+    )
+    mine = await _logo(db_async, studio.org_id)
+    events_logo = await _logo(db_async, studio.org_id, purpose="organiser-logo")
+    theirs = await _logo(db_async, other.id)
+    pending = await _logo(db_async, studio.org_id)
+    assert (
+        await _brand_profile(async_client, studio, logo_file_id=str(mine))
+    ).status_code == 200
+
+    # The stored pointer is changed directly, as a later upload or a stale row could.
+    for stored in (events_logo, theirs, uuid.uuid4()):
+        await db_async.execute(
+            update(BookingProfile)
+            .where(BookingProfile.organisation_id == studio.org_id)
+            .values(logo_file_id=stored)
+        )
+        await db_async.commit()
+        assert (await _storefront(async_client, studio))["logo_url"] is None
+
+    await db_async.execute(
+        update(BookingProfile)
+        .where(BookingProfile.organisation_id == studio.org_id)
+        .values(logo_file_id=pending)
+    )
+    await db_async.execute(
+        update(OrgUpload).where(OrgUpload.id == pending).values(status="pending")
+    )
+    await db_async.commit()
+    assert (await _storefront(async_client, studio))["logo_url"] is None
+
+
+async def test_storefront_logo_needs_an_https_api_address(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "API_BASE_URL", "http://localhost:8000")
+    studio = await _studio(db_async, async_client, brand_color=BLUE)
+    logo = await _logo(db_async, studio.org_id)
+    assert (
+        await _brand_profile(async_client, studio, logo_file_id=str(logo))
+    ).status_code == 200
+    body = await _storefront(async_client, studio)
+    assert body["logo_url"] is None
+    assert body["brand_color"] == BLUE
+
+
+async def test_storefront_has_no_logo_without_a_public_api_address(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "API_BASE_URL", API_BASE)
+    studio = await _studio(db_async, async_client, brand_color=BLUE)
+    logo = await _logo(db_async, studio.org_id)
+    assert (
+        await _brand_profile(async_client, studio, logo_file_id=str(logo))
+    ).status_code == 200
+    monkeypatch.setattr(settings, "API_BASE_URL", None)
+    body = await _storefront(async_client, studio)
+    assert body["logo_url"] is None
+    assert body["brand_color"] == BLUE
+
+
+async def test_unknown_and_disabled_pages_still_answer_one_404_with_no_brand(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "API_BASE_URL", API_BASE)
+    studio = await _studio(db_async, async_client, brand_color=BLUE)
+    logo = await _logo(db_async, studio.org_id)
+    assert (
+        await _brand_profile(async_client, studio, logo_file_id=str(logo))
+    ).status_code == 200
+    assert (
+        await _brand_profile(async_client, studio, enabled=False)
+    ).status_code == 200
+
+    disabled = await async_client.get(f"{API}/public/{studio.slug}")
+    unknown = await async_client.get(f"{API}/public/nobody-here-{uuid.uuid4().hex[:6]}")
+    assert disabled.status_code == 404
+    assert unknown.status_code == 404
+    assert disabled.json() == unknown.json()
+    assert "brand_color" not in disabled.text
+    assert "logo" not in disabled.text

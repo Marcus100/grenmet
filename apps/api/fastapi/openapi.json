@@ -79020,6 +79020,30 @@
           "contact": {
             "$ref": "#/components/schemas/BookingBusinessContact"
           },
+          "brand_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Color",
+            "description": "The business's accent colour as `#rrggbb`, or null when it has not set one. Not checked for contrast: the page decides how to use it."
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url",
+            "description": "Public https address of the business logo, or null when there is no logo or no public API address is configured. Load it as an image."
+          },
           "services": {
             "items": {
               "$ref": "#/components/schemas/BookingPublicService"
@@ -79043,6 +79067,8 @@
           "currency",
           "cancel_cutoff_hours",
           "contact",
+          "brand_color",
+          "logo_url",
           "services",
           "providers"
         ],

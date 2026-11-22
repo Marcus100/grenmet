@@ -23,6 +23,14 @@ export type BookingStorefront = {
    * @type object
    */
   contact: BookingBusinessContact;
+  /**
+   * @description The business's accent colour as `#rrggbb`, or null when it has not set one. Not checked for contrast: the page decides how to use it.
+   */
+  brand_color: string | null;
+  /**
+   * @description Public https address of the business logo, or null when there is no logo or no public API address is configured. Load it as an image.
+   */
+  logo_url: string | null;
   services: BookingPublicService[];
   providers: BookingPublicProvider[];
 };
