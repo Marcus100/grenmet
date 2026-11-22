@@ -61,10 +61,12 @@ Images are built once, when a change lands on `dev`, and promoted by digest
   `SENTRY_DSN_PRODUCTION` and `SENTRY_DSN_STAGING`. A dev web build fails when
   the catalogue routes the app to Sentry but the DSN is empty (admin is not
   routed yet and is skipped).
-- Server deploy speed (lands with PR #1020): `core.sh` pulls only images missing
-  on the host (`PULL_PARALLEL`, default 4) and, with `ROLLING_DEPLOY=1`, rolls
-  routed services in batches (`ROLLOUT_PARALLEL`, default 4 on staging, 2 on
-  production).
+- Server deploy speed (PR #1020, merged): `core.sh` pulls only images missing
+  on the host (`PULL_PARALLEL`) and, with `ROLLING_DEPLOY=1`, rolls routed
+  services in batches (`ROLLOUT_PARALLEL`). The code defaults are 4 pulls, and
+  batches of 4 on staging and 2 on production; the repository variables set
+  `PULL_PARALLEL=2` and `ROLLOUT_PARALLEL=1`, so both environments roll one
+  service at a time today.
 - A manual **Deploy** dispatch redeploys existing images; it does not build them.
   Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 
@@ -359,7 +361,7 @@ Verify login, return URLs, and any data-backed pages you changed.
 
 1. Open a PR from `staging` to `main`; wait for checks and merge on GitHub.
 2. Go to **Releases → Draft a new release**.
-3. Choose a new, increasing `vX.Y.Z` tag (the latest is `v1.4.0`, published on 2026-11-17) targeting `main` and publish the release.
+3. Choose a new, increasing `vX.Y.Z` tag (the latest is `v1.5.0`, published on 2026-11-18) targeting `main` and publish the release.
 4. Watch **Production Pipeline** promote the images staging built and tested for that tree and deploy them.
 5. Verify the production domains and API readiness as above.
 
@@ -415,8 +417,9 @@ run 37131928180).
 
 Set the GitHub environment variable `ROLLING_DEPLOY` to `1` (or `true`) to start routed
 services (`api` and every `web-*`, the `routed` role in
-`scripts/ci/release-scope.mjs`) in parallel batches instead (`ROLLOUT_PARALLEL`,
-default 4; `1` restores one at a time):
+`scripts/ci/release-scope.mjs`) in parallel batches instead (`ROLLOUT_PARALLEL`:
+code default 4 on staging and 2 on production, set to `1`, one at a time, by
+the repository variable today):
 
 1. Start a second container from the new image beside the old one.
 2. Wait until it is healthy. Traefik only routes to healthy containers.

@@ -58,7 +58,7 @@ Stamps come from one source only: Events admissions, through the dedicated job `
 
 **Consumer protection (owner decision 2026-10-20):** points expire after 12 months with no activity, with a reminder 30 days before. Gifting stays off.
 
-**Events:** Events still use `sync_event_rewards` (`src/worker/main.py`); it goes away when Events moves into the main database (ADR-0003 rewrite).
+**Events:** Events still use `sync_event_rewards` (`src/worker/main.py`); it goes away when Events moves into the main database (ADR-0003 rewrite). (Note, 21 Nov 2026 (fact check; the decision is not changed): done: Events is a schema in the main database, `sync_event_rewards` is gone, and admissions credit stamps in their own transaction through `events/rewards_hook.py`; see `src/rewards/AGENTS.md`.)
 
 **Still banned:** cash withdrawal, buying points or stamps, random prizes and loot mechanics, rewards for opening the app, and spend-ranked public boards.
 

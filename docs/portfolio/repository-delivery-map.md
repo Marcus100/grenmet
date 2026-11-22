@@ -3,7 +3,7 @@
 **Status:** Authoritative repository coverage map  
 **Effective:** 2026-08-16  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-18
+**Last updated:** 2026-11-21
 
 ## Purpose
 
@@ -51,12 +51,12 @@ retain their own purpose; the Barrels admin control plane remains distinct.
 | `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Cloudflare Pages site at barrels.gd |
 | `apps/web/babydoll` | Client website for Babydoll Beauty Bar (lash, brow and skin studio); built by Barrels, client owns its name, logo and content | Live (static) at `babydoll.barrels.gd`; pilot tenant for Barrels Bookings | Static Next.js export on Cloudflare Pages; takes no bookings since 2026-11-13 (Book buttons open the studio's page on `apps/web/bookings` after the cutover; the studio screens are in that app); the client's own domain `babydollbeautybar.com` later |
 | `apps/pwa/printix` | Printix Scanner: gate scanning for Printix, a collaboration and Barrels Grenada's main ticket app (security-printed tickets; also scans Barrels Events tickets); built and run by Barrels, Printix name with Barrels shown | Live at scan.barrels.gd for a first event on 26 December 2026; scanner, offline mode, organiser screens and staff onboarding built (ADR-0060 amendment, ADR-0061) | Installable phone app (React built with Vite, files only) on Cloudflare Pages at `scan.barrels.gd` |
-| `apps/web/commit` | Commit, the Barrels Grenada engineering blog: one post per release, starting with 1.0.0 | Live on Cloudflare Pages at `commit.barrels.gd` | Static Next.js export on Cloudflare Pages (ADR-0036 amendment); posts are MDX in `content/posts/` |
+| `apps/web/commit` | Commit, the Barrels Grenada engineering blog: a post every week (one per release from 1.0.0 until 21 Nov 2026; release notes still ship every release) | Live on Cloudflare Pages at `commit.barrels.gd` | Static Next.js export on Cloudflare Pages (ADR-0036 amendment); posts are MDX in `content/posts/` |
 | `apps/web/gaa-admin` | GAA staff portal with GMS and GAA modules | Active; renamed at transition boundary 7 | `apps/web/gaa-admin`; GMS pilot followed by GAA department rollout |
 | `apps/web/gms` | GMS public weather service | Active foundation; renamed at transition boundary 6 | `apps/web/gms`; forecasts, observations, warnings, and public products |
 | `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
-| `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
+| `apps/web/events` | Barrels Events product | Active: live in production at `events.barrels.gd` | Events discovery and ticketing; first of the Barrels products in the owner's order (21 Nov 2026) |
 | `apps/web/bookings` | Barrels Bookings: appointment booking for Grenada businesses (ADR-0024) | Live on production (it was deployed before v1.0.8); pilot tenant not yet seeded there (2026-11-14) | Public booking pages at `bookings.barrels.gd/{business}` and `/studio` on Barrels sign-in; the booking flow comes from `packages/bookings-web` |
 | `apps/web/account` | Barrels account: a person's name, email and profile photo (ADR-0057), plus My bookings on `dev` (ADR-0058) | Partly built: step 1 in v1.0.8; sign-in off on production until its secret is set (#1335) | `account.barrels.gd`; signs in through `auth.barrels.gd` (single sign-on); photo API from the FastAPI profile-images routes |
 | `apps/web/elections` | Barrels Elections Grenada product (Grenada election coverage and history) | Prototype; 2026 coverage first | Election coverage and results history from static checked data; a FastAPI domain for results night later |
@@ -73,7 +73,7 @@ transition:
 | HR, users, shared roster/workflow | GAA | Organisation-wide platform core, piloted in GMS |
 | Janitorial | GAA Janitorial | Department module |
 | Transport/bus | GAA Transport | Department module |
-| Salesbus | Barrels | Extract from the client portal before product investment |
+| Salesbus | Barrels | Extract from the client portal; the Salesbus product is accepted as its own app on the Commerce core (ADR-0063) |
 
 ## Shared packages
 
@@ -238,8 +238,10 @@ documented data boundaries.
 | Barrels corporate hub | Barrels company surface | Next | Transition dependencies and approved brand/copy |
 | Barrels superuser admin | Barrels control plane | Next | Explicit access model and minimal operational scope |
 | GAA corporate site | GAA public-service delivery | Later | GAA content owner, domain, scope, and acceptance |
-| Barrels Shop | Barrels product option | Explore | Separate product discovery and investment approval |
-| Salesbus | Barrels product option/prototype extraction | Explore | Remove from client portal, then validate users and commercial case |
+| Shop Keeper (`apps/pwa/shopkeeper`, `shopkeeper.barrels.gd`, port 3043) | Barrels product, accepted 21 Nov 2026 ([ADR-0063](../adr/0063-shopkeeper-salesbus-commerce-core.md)) | Next (after Events, Babydoll and Bookings) | Shared Commerce core first; Shop Keeper pilot |
+| Salesbus (`apps/pwa/salesbus`, `salesbus.barrels.gd`, port 3030) | Barrels product, accepted 21 Nov 2026 ([ADR-0063](../adr/0063-shopkeeper-salesbus-commerce-core.md)) | Next, after Shop Keeper | Same Commerce core; remove the old module from the client portal |
+| Barrels Health (`health.barrels.gd`, port 3042) | Barrels product, accepted 18 Nov 2026 ([ADR-0062](../adr/0062-health-records-foundation.md)) | Now: foundation started | No real patient data before the ADR-0062 go-live gate |
+| Barrels Shop (customer-facing, `shop`, port 3008) | Barrels product option | Explore | Separate product discovery and investment approval |
 | Barrels Human Resource | Barrels product (investment approved 2026-10-18) | Next | Stays inside `apps/web/gaa-admin` until built; decision 2026-10-21: a separate multi-organisation HR app at `hr.barrels.gd` with the organisation in the path (`/<orgSlug>/...`), port 3016 (ADR-0043). Organisation-scoped HR built from shared workforce code; launch needs GAA pilot evidence, signed licence, tenant isolation, support and pricing |
 | Streaming/media application | Barrels product option | Explore | Audience, rights, economics, operating model, and architecture approval |
 

@@ -13,8 +13,9 @@ protection and ship last, behind their own review.
 Build progress: rules 2 and 4 are implemented on branch
 `feat/adr-0059-rules-2-4` (migration `authsessionemail20261115`, adds
 `session.email_code_verified_at`; `src/auth/totp_enrolment.py`; tests in
-`tests/auth/test_mailbox_proof_enrolment.py`). Pending the security review and
-merge into dev; the rules are not live until that merge reaches an environment.
+`tests/auth/test_mailbox_proof_enrolment.py`). Merged into `dev` in PR #1515
+(checked 21 Nov 2026); they are live in an environment once a release carrying
+that merge reaches it.
 Operations detail: `docs/operations/privileged-mfa.md`, "Mailbox proof during
 set-up".
 

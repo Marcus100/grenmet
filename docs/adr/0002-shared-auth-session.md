@@ -3,7 +3,9 @@
 ## Status
 
 Accepted; the shared cookie part is superseded by ADR-0017 (each app keeps a
-host-only cookie and signs in through an auth.barrels.gd handoff).
+host-only cookie and signs in through an auth.barrels.gd handoff). ADR-0016
+(app-scoped accounts and sessions) also replaces the one shared session for the
+apps it covers, which is why the index lists both 0016 and 0017.
 
 ## Context
 

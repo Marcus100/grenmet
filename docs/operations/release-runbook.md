@@ -160,8 +160,8 @@ skip.
 ## 3. Promote staging → main
 
 - `gh pr create --base main --head staging --title "chore: promote staging to main"`
-- Arm auto-merge (`gh pr merge <num> --auto --merge`), which is the human merge decision. Merging to `main` does NOT
-  deploy prod — prod is release-gated.
+- The owner merges it. Agents do not merge it or arm auto-merge (`AGENTS.md`,
+  Git). Merging to `main` does NOT deploy prod — prod is release-gated.
 
 ## 4. Publish the release (deploys prod)
 
@@ -203,7 +203,7 @@ The draft's generated notes only list pull request titles. Before publishing, ad
 - `/runtime-env.js` on each web app carries that environment's public settings (site and API address, Sentry, Turnstile key). It is cached up to 60 seconds, including at Cloudflare, so a settings change reaches browsers within a minute.
 
 - API health: `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/`
-- Spot-check app domains: `auth` / `admin` / `docs` / `weather` / `signal` / `mbia` / `events` / `hapi` `.barrels.gd`.
+- Spot-check app domains: `auth` / `admin` / `account` / `gms` / `weather` / `cap` / `gmsdash` / `cms` / `docs` / `signal` / `mbia` / `events` / `bookings` `.barrels.gd`.
 
 ## Irreversible data migrations need a verified backup first
 
@@ -231,7 +231,15 @@ plaintext suppression column) is not written yet and waits for this gate.
 
 The `backup-gate` phase checks that the newest nightly dump of each production
 database (`app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport`,
-`eregister`, `events`) in the Spaces bucket is newer than a limit. It lists the
+`eregister`; Events is a schema in `app_prod`, ADR-0003) in the Spaces bucket is
+newer than a limit (`DAILY_REQUIRED` in `scripts/production/restore-drill.py`).
+The nightly job also dumps the CMS database `gms_cms`, which the gate does not
+check.
+
+**Today the gate cannot verify.** The `production` deploy environment does not
+have the backup store's read keys (they live in `production-backup`), so every
+production deploy reports the backup as unverifiable and, in the default
+`warn` mode, continues: the gate passes open. Fix the keys before relying on it. It lists the
 `production/YYYY/MM/DD/<database>_<timestamp>.dump` objects written by
 `backup-database.yml` and reuses the discovery logic of `restore-drill.py`; it
 does not use the unused `latest-success.json` markers.
@@ -357,9 +365,8 @@ release notes so the leaking code path can be fixed.
 
 ## Build once, promote by digest
 
-Lands with PR #1026 (stacked on PR #1020 and PR #1025; merge in that order, owner
-merges because workflows change). Until then the previous build-at-release
-pipeline described in sections 2 and 4 is what runs. Issue #1019 is the design.
+Live: PR #1026 (with #1020 and #1025) is merged, and every promotion uses this
+pipeline. Issue #1019 is the design.
 
 **Why it works.** `staging` and `main` are merge commits of `dev`, so a commit
 there has the same git tree as the dev commit it came from. Images are keyed by
@@ -374,7 +381,10 @@ that tree: what staging proved is exactly what production runs.
 
 **Server side (PR #1020).** `core.sh` pulls only images missing on the host
 (`PULL_PARALLEL`, default 4). With `ROLLING_DEPLOY=1` routed services (`api`,
-`web-*`) roll in batches of `ROLLOUT_PARALLEL` (default 4; `1` is one at a time).
+`web-*`) roll in batches of `ROLLOUT_PARALLEL` (`1` is one at a time). The code
+defaults are 4 on staging and 2 on production, but the repository variables
+set `ROLLOUT_PARALLEL=1` and `PULL_PARALLEL=2`, so both environments roll one
+service at a time today.
 A new container is probed every 2 seconds while it starts (`start_interval`,
 Docker Engine 25 or later; an older engine stops the deploy in the `disk` phase).
 A healthy routed container whose Compose config hash is unchanged is kept. After
@@ -426,13 +436,11 @@ fallback: merge it into dev first.
    `image_tag=production-sha-<commit>` of the last good release (the images already
    exist) and `image_digests` copied from that run summary. Only when no digest list
    is available, tick `manual_redeploy`; `core.sh` then accepts the commit label or
-   a `gd.barrels.build-once=true` image. (`image_digests` and `manual_redeploy` land
-   with PR #1026; on `origin/dev` dispatch with the release tag.)
+   a `gd.barrels.build-once=true` image.
 3. Watch `gh run watch`, then run section 5, "Verify prod".
 4. Tell the owner before and after. Production deploys need the owner's go.
 
-A release made before PR #1026 has no digest list: use its release tag as on
-`origin/dev` today, and select that tag as the workflow ref when it predates the
+A release made before PR #1026 has no digest list: use its release tag, and select that tag as the workflow ref when it predates the
 domain migration so its matching Compose definition is used. The `deploy-prod.yml`
 and `deploy-staging.yml` entries delegate to the same Deploy workflow.
 

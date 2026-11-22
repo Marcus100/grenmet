@@ -68,10 +68,10 @@ Next.js apps follow `@barrelsgd/web-<app>`.
 | `cap` | 3010 | GMS-branded public CAP alert hub | Public FastAPI CAP feeds and alerts |
 | `admin` | 3012 | Barrels control plane for superusers | FastAPI platform APIs; staff sign-in through the auth.barrels.gd handoff |
 | `gmsdash` | 3013 | GMS Dashboard: raw-model point meteograms for entitled organisations | FastAPI models-guidance API; app-scoped sign-in through the auth.barrels.gd handoff |
-| `babydoll` | 3014 | Babydoll Beauty Bar client website (Cloudflare Pages) | Local content; online booking through the Bookings API behind a switch |
-| `bookings` | 3015 | Barrels Bookings: public booking pages and the `/studio` staff area (skeleton) | Bookings API (public and org routes); app-scoped Barrels sign-in pending API registration |
+| `babydoll` | 3014 | Babydoll Beauty Bar client website (static, Cloudflare Pages, since 13 Nov 2026) | Local content; no API calls. Book buttons open `bookings.barrels.gd/babydoll-beauty-bar` |
+| `bookings` | 3015 | Barrels Bookings on `bookings.barrels.gd`: public booking pages and the `/studio` staff area | Bookings API (public and org routes); app-scoped Barrels sign-in (registered in `src/auth/apps.py`) |
 | `account` | 3018 | Barrels account: a person's name, email and profile photo (ADR-0057) | Profile photo API through the same-origin proxy; app-scoped Barrels sign-in |
-| `commit` | 3019 | Commit, the Barrels engineering blog: one post per release (Cloudflare Pages, static export) | Local MDX content; no API calls |
+| `commit` | 3019 | Commit, the Barrels engineering blog: release notes every release, a post every week (Cloudflare Pages, static export) | Local MDX content; no API calls |
 | `barrels` | — | Barrels Grenada company homepage | Static HTML/CSS; separate build, no Next.js dev port |
 
 ### Consolidated staff portal

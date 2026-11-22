@@ -1,8 +1,8 @@
 # Staging promotion automation
 
-**Status:** Built, off by default  
+**Status:** Built, off: `PROMOTE_STAGING_ENABLED` is not set (checked 21 Nov 2026), so the daily promotion below does not run. Automatic staging deploys on a green `dev` are being redesigned (owner, 21 Nov 2026)  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-04
+**Last updated:** 2026-11-21
 
 The daily `dev` to `staging` promotion needs no human click. A person or agent
 only reviews the result on staging. This covers `staging` only. `staging` to
@@ -102,8 +102,8 @@ enough there.
   `gh variable delete PROMOTE_STAGING_HOLD`.
 - **Turn off:** `gh variable set PROMOTE_STAGING_ENABLED --body false`.
 - **Run once by hand:** `gh workflow run promote-staging.yml` (add
-  `-f dry_run=true` to only print the body, `-f ignore_enabled_switch=true` to
-  run while the switch is off, `-f respect_hold=false` to run during a hold).
+  `-f dry_run=true` to only print the body). `dry_run` is the workflow's only
+  input: a manual run still needs the switch on and no hold.
 - **It skipped:** read the run summary. Usual reasons: switch off, hold on,
   `dev` not ahead, or dev CI not green or still running (the next day, or a
   manual run, retries).
