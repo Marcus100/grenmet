@@ -35,6 +35,70 @@ database outside a deploy (a restore, a dropped table, a hand-run migration),
 run the next deploy with `FORCE_MIGRATIONS=1` on the environment, or delete
 `~/.local/state/grenmet-deploy/<project>/migrated` on the host.
 
+## Pull-request check selection
+
+With the repository variable `CI_PATH_SELECTION` set to `on`, a pull request
+**into `dev`** runs only the expensive checks its changed files can affect. Everything else runs everything: pull requests into `staging` and
+`main`, pushes to `dev`, `staging` and `main`, merge-group, scheduled and manual
+runs. Selection is by job, never by a workflow-level `paths:` filter (a workflow
+that never starts leaves a required check pending forever). The code is
+`scripts/ci/select-checks.mjs` (tests: `scripts/ci/select-checks.test.mjs`,
+`scripts/guardrails/ci-path-selection.test.mjs`); `select-images.mjs` applies it
+to the API and web workflows, and `e2e.yml`, `codeql.yml` and
+`api-breaking-changes.yml` call it from a `changes` job.
+
+| Changed path | Runs (besides the always-on checks) |
+| --- | --- |
+| docs: `docs/**`, any `*.md`/`*.mdx`, `.claude/**`, `.agents/**`, `.codex/**`, `.devcontainer/**`, `.vscode/**`, `.gitignore`, `LICENSE*` | nothing extra |
+| `apps/web/commit/content/**` | web tests (the app's tests read the posts) |
+| `apps/web/**`, `apps/pwa/**`, `packages/**` | web tests, browser journeys, CodeQL JavaScript; core storage integration when `apps/web/cms/**` or `packages/**` |
+| `apps/api/**` | API suite (3 shards, fuzz, coverage floor, API documentation, Ruff/mypy, Trivy), core storage integration, API breaking changes, CodeQL Python; `src/**` and `openapi.json` also web tests and browser journeys |
+| `packages/api-client/**`, `openapi.json` | API suite, storage, API breaking changes, web tests, browser journeys |
+| `docs/api/**`, `docs/ports.md` | API suite and storage |
+| `packages/gms/**`, `apps/web/{bookings,hr}/src/app/**`, `apps/web/gaa-admin/drizzle/**` and two fixtures the API tests read | the above web rules plus the API suite |
+| `surface/**` | SURFACE job only |
+| `.github/**`, `scripts/ci/**`, `infra/github/**`, `infra/docker/**`, root `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `turbo.json`, `biome.jsonc`, any `tsconfig*.json`, `Dockerfile*`, `package.json`, `pyproject.toml`, `uv.lock` | everything |
+| any other path (including other `scripts/**`), an empty or unreadable change list, more than 2000 files | everything |
+
+Always on, whatever changed: Secret Scan, Gitleaks, Repository Guardrails,
+Repository Drift, Rulesets match snapshot, Labeler, Peer Dependencies, Biome
+Check, Type Check, api-client, Select image checks. Image builds keep their own
+per-app selection.
+
+The gates stay strict. `CI Success` and `Build Web Apps` pass a skipped job only
+when the selection output said it was not needed; a failed, cancelled or
+otherwise skipped job fails them, and so does a failed selection job. If the
+changed files cannot be listed, selection falls back to every check. The
+required check names did not change, and the six required checks are never
+skipped on a push to `dev`, which promotion relies on.
+
+**Rollout switch** (repository variable `CI_PATH_SELECTION`, Settings, Secrets
+and variables, Actions, Variables): `off` runs every check as before; `shadow`
+(the default when the variable is unset, empty or unknown) also runs every check
+and only records what selection would have skipped, in each run's job summary
+and as the `ci-selection` artifact of the Browser journeys run (PR number, head
+sha, per-group decisions); `on` applies the selection. Roll out in this order:
+
+1. Leave the variable unset (shadow) and merge this change.
+2. After one week of pull requests into `dev`, run
+   `node scripts/ci/selection-report.mjs` (needs `gh`; `--limit 200` runs by
+   default). It lists every check that selection would have skipped but that
+   failed on the same head (a wrong skip) and exits 1 if there is any.
+3. Only if there are no wrong skips, the owner sets `CI_PATH_SELECTION` to `on`.
+   Any wrong skip: fix the path map first (`select-checks.mjs`), keep `shadow`,
+   and measure another week.
+
+**Force a full run:** add the `ci:full` label to the pull request, then push a
+new commit (a re-run reuses the old label list). Create the label once with
+`gh label create ci:full --repo Marcus100/grenmet`.
+
+**Extend the map:** edit `classify()` in `scripts/ci/select-checks.mjs` and add a
+row to the table in `scripts/ci/select-checks.test.mjs`. When a test starts
+reading a repository path from the other side (an API test reading a web file,
+or the reverse), add that path to `apiReadsPath` or `webReadsPath`; the
+guardrail test fails when an API test mentions a top-level folder the map would
+skip.
+
 ## 1. Pre-flight on dev
 
 - `pnpm fix:changed` then `pnpm type-check` — both clean.
