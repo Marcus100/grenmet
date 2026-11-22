@@ -22,7 +22,7 @@ import {
   recordManualPayment,
   refundOrder,
 } from "@/data/order-actions";
-import { parseMinor } from "@/domain/money";
+import { currencySymbol, parseMinor } from "@/domain/money";
 import type { RefundTerms } from "@/domain/types";
 import {
   CANCEL_INITIATOR_CHOICES,
@@ -30,7 +30,7 @@ import {
   COULDNT_CONFIRM,
   cancelOutcomeMessage,
   defaultRefundFor,
-  formatOrderMoneyCode,
+  formatOrderMoney,
   type RefundChoice,
   refundChoicesFor,
 } from "@/lib/org-orders";
@@ -262,8 +262,8 @@ function ManualPaymentForm({
     >
       <p className="text-body text-muted-foreground">
         Use this when you received{" "}
-        {formatOrderMoneyCode(order.total_minor, order.currency)} in cash or by
-        bank transfer. The order is confirmed and tickets are issued at once.
+        {formatOrderMoney(order.total_minor, order.currency)} in cash or by bank
+        transfer. The order is confirmed and tickets are issued at once.
       </p>
       <div className="flex gap-2">
         {(
@@ -328,7 +328,7 @@ function RefundForm({
 
   const partialMinor = mode === "partial" ? parseMinor(amount) : null;
   const amountMinor = mode === "full" ? refundable : partialMinor;
-  const code = (minor: number) => formatOrderMoneyCode(minor, order.currency);
+  const code = (minor: number) => formatOrderMoney(minor, order.currency);
 
   function review() {
     report.clear();
@@ -422,7 +422,8 @@ function RefundForm({
       {mode === "partial" ? (
         <Field>
           <FieldLabel htmlFor={`refund-amount-${order.id}`}>
-            Amount to refund ({order.currency})
+            Amount to refund ({currencySymbol(order.currency) ?? order.currency}
+            )
           </FieldLabel>
           <Input
             className="min-h-11"

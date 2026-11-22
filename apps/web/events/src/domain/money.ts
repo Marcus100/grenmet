@@ -11,6 +11,13 @@ const CURRENCY_SYMBOL: Record<CurrencyCode, string> = {
   USD: "US$",
 };
 
+/** The display symbol for a known currency; undefined for any other code. */
+export function currencySymbol(currency: string): string | undefined {
+  return Object.hasOwn(CURRENCY_SYMBOL, currency)
+    ? CURRENCY_SYMBOL[currency as CurrencyCode]
+    : undefined;
+}
+
 const MINOR_UNITS_PER_MAJOR = 100;
 const DOLLARS = /^\d+(\.\d{1,2})?$/u;
 /** Thousands separators must group exactly three digits ("1,250.00", never "10,50"). */

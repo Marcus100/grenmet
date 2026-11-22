@@ -126,7 +126,7 @@ describe("TicketClaim", () => {
         tiers={[paidTier, tier({ id: "gone", name: "Early", remaining: 0 })]}
       />
     );
-    expect(screen.getByText(PRICE_TEXT)).toBeInTheDocument();
+    expect(screen.getAllByText(PRICE_TEXT).length).toBeGreaterThan(0);
     expect(screen.queryByText(OLD_NOTE)).toBeNull();
     expect(screen.getByText(SOLD_OUT_TEXT)).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: MORE_NAME })).toHaveLength(1);
@@ -302,6 +302,43 @@ describe("refund terms on the picker", () => {
         "If the organiser cancels the event, you get a full refund."
       )
     ).toBeInTheDocument();
+  });
+
+  it("says what to choose before anything is picked, then prices the basket", () => {
+    render(<TicketClaim refundTerms={TERMS} slug="mixed" tiers={[paidTier]} />);
+
+    // No quantity yet: the button says what is missing rather than just being
+    // disabled, and the bar shows the starting price.
+    expect(
+      screen.getByRole("button", { name: "Choose how many tickets" })
+    ).toBeDisabled();
+    expect(screen.getByTestId("ticket-summary")).toHaveTextContent(
+      "From EC$50.00"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "More VIP tickets" }));
+    fireEvent.click(screen.getByRole("button", { name: "More VIP tickets" }));
+    expect(
+      screen.getByRole("button", { name: "Pay for 2 tickets" })
+    ).toBeEnabled();
+    expect(screen.getByTestId("ticket-summary")).toHaveTextContent("2 tickets");
+    expect(screen.getByText("EC$100.00")).toBeInTheDocument();
+  });
+
+  it("keeps the price and the main button in one block that is fixed on phones", () => {
+    render(<TicketClaim refundTerms={TERMS} slug="mixed" tiers={[paidTier]} />);
+    const action = screen.getByRole("button", {
+      name: "Choose how many tickets",
+    }).parentElement;
+
+    expect(action?.className).toContain("max-lg:fixed");
+    expect(action?.className).toContain("max-lg:bottom-0");
+    expect(action).toContainElement(screen.getByTestId("ticket-summary"));
+  });
+
+  it("shows a free ticket as Free before a quantity is chosen", () => {
+    render(<TicketClaim refundTerms={TERMS} slug="free" tiers={[tier()]} />);
+    expect(screen.getByTestId("ticket-summary")).toHaveTextContent("Free");
   });
 
   it("leaves the terms out of a free-only picker", () => {

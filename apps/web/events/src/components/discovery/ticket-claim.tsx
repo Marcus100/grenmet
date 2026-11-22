@@ -1,13 +1,15 @@
 "use client";
 
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Check, Clock, Minus, Plus, Ticket } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMemberAction } from "@/components/community/use-member-action";
 import { claimTickets } from "@/data/actions";
-import type { EventDetail, MyOrder, RefundTerms } from "@/domain/types";
+import { money } from "@/domain/money";
+import type { EventDetail, Money, MyOrder, RefundTerms } from "@/domain/types";
 import { formatTime } from "@/lib/datetime";
 import { goToCheckout } from "@/lib/navigation";
 import { formatPrice, safeCheckoutUrl } from "@/lib/orders";
@@ -44,6 +46,18 @@ function newKey(): string {
 }
 
 /**
+ * On a phone the action block sits fixed at the bottom of the screen, so the
+ * price and the main button stay in reach while the tiers scroll. From the
+ * laptop breakpoint it is an ordinary block inside the buy card.
+ */
+const ACTION_BLOCK_CLASS = cn(
+  "space-y-2",
+  "max-lg:border-border max-lg:bg-card max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:border-t max-lg:px-4 max-lg:pt-3 max-lg:pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] max-lg:shadow-lg",
+  // The installed app's bottom tab bar sits on the same edge.
+  "max-md:standalone:bottom-14"
+);
+
+/**
  * Claim tickets. Free and registration tiers issue at once. A paid tier
  * creates an order that holds the stock: the buyer is sent to the payment
  * page, or, when the organiser takes payment by hand, told the tickets are
@@ -66,6 +80,9 @@ export function TicketClaim({
   // One key per distinct selection: a retry of the same basket reuses it so a
   // double click or a dropped response converges on a single order.
   const attempt = useRef<{ key: string; signature: string } | null>(null);
+  // Errors and confirmations sit in the card. On a phone the fixed action block
+  // can hide them, so they are brought into view when they change.
+  const noticeRef = useRef<HTMLDivElement>(null);
 
   const chosen = tiers
     .map((tier) => ({ tierId: tier.id, quantity: quantities[tier.id] ?? 0 }))
@@ -76,6 +93,15 @@ export function TicketClaim({
       (tiers.find((tier) => tier.id === item.tierId)?.price.amountMinor ?? 0) >
       0
   );
+  const subtotal = chosenSubtotal(tiers, chosen);
+  const lowest = lowestTier(tiers);
+
+  useEffect(() => {
+    if (outcome === null && !error) {
+      return;
+    }
+    noticeRef.current?.scrollIntoView?.({ block: "nearest" });
+  }, [outcome, error]);
 
   function change(tier: Tier, delta: number) {
     const next = (quantities[tier.id] ?? 0) + delta;
@@ -178,28 +204,85 @@ export function TicketClaim({
       {tiers.some((tier) => tier.price.amountMinor > 0) ? (
         <RefundTermsLine terms={refundTerms} />
       ) : null}
-      <Button
-        className="text-body-base h-11 w-full"
-        disabled={pending || total === 0 || outcome?.kind === "redirecting"}
-        onClick={submit}
-        size="lg"
-      >
-        <Ticket data-icon="inline-start" />
-        {buttonLabel(total, paid)}
-      </Button>
-      <OutcomeNotice outcome={outcome} />
-      {error ? (
-        <p className="text-caption text-destructive" role="alert">
-          {error}
+      <div className={ACTION_BLOCK_CLASS}>
+        <p className="text-body flex items-baseline justify-between gap-3">
+          <span className="font-medium" data-testid="ticket-summary">
+            {total === 0
+              ? startingPriceLabel(lowest)
+              : `${total} ticket${total === 1 ? "" : "s"}`}
+          </span>
+          {total > 0 && subtotal ? (
+            <span className="font-display font-bold tabular-nums">
+              {formatPrice(subtotal)}
+            </span>
+          ) : null}
         </p>
-      ) : null}
+        <Button
+          className="text-body-base h-11 w-full"
+          disabled={pending || total === 0 || outcome?.kind === "redirecting"}
+          onClick={submit}
+          size="lg"
+        >
+          <Ticket data-icon="inline-start" />
+          {buttonLabel(total, paid)}
+        </Button>
+      </div>
+      <div className="space-y-3" ref={noticeRef}>
+        <OutcomeNotice outcome={outcome} />
+        {error ? (
+          <p className="text-caption text-destructive" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }
 
+/** The cheapest tier, the price the bar shows before any ticket is chosen. */
+function lowestTier(tiers: readonly Tier[]): Tier | null {
+  return tiers.reduce<Tier | null>(
+    (best, tier) =>
+      best === null || tier.price.amountMinor < best.price.amountMinor
+        ? tier
+        : best,
+    null
+  );
+}
+
+function startingPriceLabel(lowest: Tier | null): string {
+  if (!lowest) {
+    return "";
+  }
+  return lowest.price.amountMinor === 0
+    ? "Free"
+    : `From ${formatPrice(lowest.price)}`;
+}
+
+/** What the chosen tickets cost together, or null when nothing is chosen. */
+function chosenSubtotal(
+  tiers: readonly Tier[],
+  chosen: readonly { tierId: string; quantity: number }[]
+): Money | null {
+  let subtotal: Money | null = null;
+  for (const item of chosen) {
+    const tier = tiers.find((candidate) => candidate.id === item.tierId);
+    if (!tier) {
+      continue;
+    }
+    const line = tier.price.amountMinor * item.quantity;
+    subtotal = money((subtotal?.amountMinor ?? 0) + line, tier.price.currency);
+  }
+  return subtotal;
+}
+
+/**
+ * The button says what is missing while nothing is chosen, so a disabled
+ * button is never a mystery.
+ */
 function buttonLabel(total: number, paid: boolean): string {
   if (total === 0) {
-    return "Get tickets";
+    return "Choose how many tickets";
   }
   const noun = `ticket${total === 1 ? "" : "s"}`;
   return paid ? `Pay for ${total} ${noun}` : `Get ${total} ${noun}`;
