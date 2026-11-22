@@ -16,7 +16,7 @@ Host wiring mirrors `apps/web/babydoll`: `src/lib/booking-api.ts` (server-only, 
 
 ## Boundary
 
-- `/` is public: what Barrels Bookings is.
+- `/` is public: businesses that opted in.
 - `/[slug]` is the public booking page for one business (any tenant). It shows the business name from the API, never a name typed into this app. A business with no services says online booking is not open.
 - `/studio` is staff only, behind a Barrels sign-in. The agenda, booking detail, New booking, Record deposit and Settings live here.
 - Backend logic stays in FastAPI (`/bookings/public/*`, `/bookings/org/*`). Route handlers may only validate, proxy or render. Never add database access or booking rules here.

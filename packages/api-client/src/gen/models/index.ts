@@ -1248,6 +1248,8 @@ export type { BookingProviderCreate } from "./BookingProviderCreate.js";
 export type { BookingProviderPublic } from "./BookingProviderPublic.js";
 export type { BookingProviderSettings } from "./BookingProviderSettings.js";
 export type { BookingProviderUpdate } from "./BookingProviderUpdate.js";
+export type { BookingPublicBusiness } from "./BookingPublicBusiness.js";
+export type { BookingPublicBusinessPage } from "./BookingPublicBusinessPage.js";
 export type { BookingPublicCancel } from "./BookingPublicCancel.js";
 export type { BookingPublicCancelBody } from "./BookingPublicCancelBody.js";
 export type { BookingPublicCreate } from "./BookingPublicCreate.js";
@@ -1640,6 +1642,15 @@ export type {
   BookingsListProvidersStatus404,
   BookingsListProvidersStatus422,
 } from "./BookingsListProviders.js";
+export type {
+  BookingsListPublicBusinessesOptions,
+  BookingsListPublicBusinessesQuery,
+  BookingsListPublicBusinessesResponse,
+  BookingsListPublicBusinessesResponses,
+  BookingsListPublicBusinessesStatus200,
+  BookingsListPublicBusinessesStatus422,
+  BookingsListPublicBusinessesStatus429,
+} from "./BookingsListPublicBusinesses.js";
 export type {
   BookingsListServicesHeaders,
   BookingsListServicesOptions,
