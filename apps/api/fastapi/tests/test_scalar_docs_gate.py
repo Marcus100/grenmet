@@ -5,6 +5,7 @@ interpreter. Running in-process would only ever see the test session's value.
 """
 
 import os
+import secrets
 import subprocess
 import sys
 from pathlib import Path
@@ -25,10 +26,10 @@ def _scalar_registered_for(environment: str) -> bool:
     env = {
         **os.environ,
         "ENVIRONMENT": environment,
-        # Production validation needs real-looking secrets; the test values are safe.
-        "POSTGRES_PASSWORD": "s3cure-test-pw-x9",
-        "FIRST_SUPERUSER_PASSWORD": "s3cure-test-pw-y8",
-        "SECRET_KEY": "prod-test-secret-key-min-32-characters-long-zz",
+        # Production validation rejects default secrets; generate throwaway ones per run.
+        "POSTGRES_PASSWORD": secrets.token_urlsafe(24),
+        "FIRST_SUPERUSER_PASSWORD": secrets.token_urlsafe(24),
+        "SECRET_KEY": secrets.token_urlsafe(48),
         # Skips the TOTP key requirement; this probe never signs in.
         "AUTH_PRIVILEGED_MFA_MODE": "disabled",
         "BCRYPT_ROUNDS": "12",
