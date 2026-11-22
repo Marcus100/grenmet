@@ -9,7 +9,8 @@ Two scopes:
   administrator approves it.
 
 Every app asks "Join <app>?" once. Self-service apps join instantly; CMS is
-granted by a superuser and cannot be joined.
+granted by a superuser and cannot be joined. The account app (ADR-0057) asks
+no question: its default role is granted on first sign-in.
 
 An app-scoped session belongs to one app: its access tokens carry an ``app``
 claim, only that app's routes accept them, and staff (legacy) routes refuse
@@ -60,6 +61,10 @@ class AppDefinition:
     #: enrolment: the first authenticator needs an emailed code and a new enrolment
     #: ends their other sessions (ADR-0061). Sign-in enforcement is unchanged.
     privileged_members: bool = False
+    #: Whether a sign-in from a person without access asks "Join <app>?" first.
+    #: Off for the account app: every person belongs to it (ADR-0057), so its
+    #: default role is granted on first sign-in. Access rules are unchanged.
+    join_prompt: bool = True
 
     def allows(self, user: User) -> bool:
         """Whether this app's own rule admits an otherwise staff-eligible user."""
@@ -76,6 +81,11 @@ class AppDefinition:
     @property
     def callback_url(self) -> str:
         return f"{self.url}{self.callback_path}"
+
+
+#: Self-service apps whose sign-in grants the default role without a "Join" step.
+#: Only ``account``: it is every person's home (ADR-0057). Nothing else belongs here.
+_NO_JOIN_PROMPT = frozenset({"account"})
 
 
 def _apps() -> dict[str, AppDefinition]:
@@ -172,6 +182,7 @@ def _apps() -> dict[str, AppDefinition]:
             google_redirect_uri="",
             methods=frozenset(),
             client_secret=secret,
+            join_prompt=key not in _NO_JOIN_PROMPT,
         )
         for key, label, url, secret in (
             (

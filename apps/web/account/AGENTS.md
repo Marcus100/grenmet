@@ -13,8 +13,8 @@ and apps move here in later PRs. Sign-in stays on `auth.barrels.gd`
   (`apps/api/fastapi/src/auth/apps.py`). The callback returns 503 while the
   secret is empty, so nobody can complete sign-in. That is the state on
   production (14 Nov 2026): the secret is not set there, so sign-in is off. On
-  staging sign-in works but stops at a "Join" prompt, which is wrong for an app
-  every person should have (#1335).
+  staging sign-in works; the account app asks no "Join" question, since its
+  default role is granted on first sign-in (#1335).
 - The session is a host-only `ACCOUNT_SESSION_COOKIE_NAME` cookie
   (`account_session`). `src/lib/session.ts` exchanges it for an app-scoped
   access token on the server; FastAPI checks the token on every call.
@@ -100,7 +100,7 @@ src/app/
   production before the host goes live there (done for staging on 14 Nov 2026;
   `docs/operations/cloudflare-proxy.md`, step 3). The Better Stack monitor and
   DNS are production-only steps too.
-- Sign-in should not stop at a "Join" prompt for this app (#1335).
+- No "Join" prompt for this app: `join_prompt=False` in the API registry (#1335).
 
 ## Tests
 
