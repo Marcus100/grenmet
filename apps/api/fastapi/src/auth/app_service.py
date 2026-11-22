@@ -817,7 +817,7 @@ async def handoff_start(
     ):
         if not app.self_signup:
             raise AppException("Ask the team to give you access to this app.", 403)
-        if not body.join:
+        if not body.join and app.join_prompt:
             raise AppException(f"Join {app.label} to continue.", 409)
         await ensure_member(session, user, app)
         if not await service.is_eligible_for_app(

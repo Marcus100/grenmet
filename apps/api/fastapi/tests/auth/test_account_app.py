@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.auth import app_service, apps
+from src.auth import app_service, apps, service
 from src.auth.config import auth_settings
 from tests.auth.test_app_handoff import (
     _account_session,
@@ -99,3 +99,99 @@ async def test_account_handoff_refused_with_empty_secret(
     assert started.status_code == 404
     redeemed = await _redeem(async_client, "x" * 32, _state(), base=BASE, secret=SECRET)
     assert redeemed.status_code == 404
+
+
+async def _user_by_email(db_async, email):
+    from sqlalchemy import select
+
+    from src.auth.models import User
+
+    return (
+        await db_async.execute(select(User).where(User.email == email))
+    ).scalar_one()
+
+
+def test_only_the_account_app_skips_the_join_prompt():
+    no_prompt = {app.key for app in apps.all_apps() if not app.join_prompt}
+    assert no_prompt == {"account"}
+
+
+@pytest.mark.asyncio
+async def test_new_person_reaches_account_without_a_join_prompt(
+    async_client,
+    db_async,
+    seeded,
+    monkeypatch,
+):
+    """A signed-in person with no account-app membership goes straight through."""
+    _ = seeded
+    monkeypatch.setattr(auth_settings, "ACCOUNT_SSO_CLIENT_SECRET", SECRET)
+    email = "newcomer@example.com"
+    secret = await _account_session(db_async, email=email)
+    state = _state()
+
+    started = await _start(async_client, secret, state, join=False, base=BASE)
+    assert started.status_code == 200, started.text
+    redeemed = await _redeem(
+        async_client, started.json()["code"], state, base=BASE, secret=SECRET
+    )
+    assert redeemed.status_code == 200, redeemed.text
+    assert redeemed.json()["session"]["app_name"] == "account"
+
+    user = await _user_by_email(db_async, email)
+    assert await service.is_eligible_for_app(
+        session=db_async, user=user, app_key="account"
+    )
+    # Only the account app is granted; the other self-service apps stay closed.
+    assert not await service.is_eligible_for_app(
+        session=db_async, user=user, app_key="events"
+    )
+    assert not await service.is_eligible_for_app(
+        session=db_async, user=user, app_key="bookings"
+    )
+
+
+@pytest.mark.asyncio
+async def test_other_self_service_apps_still_ask_to_join(
+    async_client,
+    db_async,
+    seeded,
+    monkeypatch,
+):
+    """Events keeps its Join prompt: the exception is for the account app only."""
+    _ = seeded
+    monkeypatch.setattr(auth_settings, "EVENTS_SSO_CLIENT_SECRET", SECRET)
+    email = "eventsjoiner@example.com"
+    secret = await _account_session(db_async, email=email)
+
+    first = await _start(
+        async_client, secret, _state(), join=False, base="/api/v1/auth/apps/events"
+    )
+    assert first.status_code == 409
+    assert "Join" in first.text
+    user = await _user_by_email(db_async, email)
+    assert not await service.is_eligible_for_app(
+        session=db_async, user=user, app_key="events"
+    )
+
+
+@pytest.mark.asyncio
+async def test_staff_only_app_still_refuses_a_non_superuser(
+    async_client,
+    db_async,
+    seeded,
+    monkeypatch,
+):
+    """superuser_only is unchanged: a plain person is refused by Barrels admin."""
+    _ = seeded
+    monkeypatch.setattr(auth_settings, "BARRELS_ADMIN_SSO_CLIENT_SECRET", SECRET)
+    secret = await _account_session(db_async, email="plainperson@example.com")
+    refused = await _start(
+        async_client,
+        secret,
+        _state(),
+        join=True,
+        base="/api/v1/auth/apps/barrels-admin",
+    )
+    assert refused.status_code == 403
+    assert "staff only" in refused.text
