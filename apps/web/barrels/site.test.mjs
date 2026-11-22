@@ -1,8 +1,14 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import test from "node:test";
+import test, { before } from "node:test";
 import { NOINDEX_ROBOTS } from "./build.mjs";
+
+// Every test below reads dist/, so build it first (with no Turnstile key, the
+// default state) instead of relying on a previous run having left it behind.
+before(() => {
+  execFileSync("node", [new URL("./build.mjs", import.meta.url).pathname, ""]);
+});
 
 const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/su;
 const PRIVACY_DIALOG = /<section[^>]*role="dialog"/su;
@@ -773,6 +779,20 @@ test("noindex is found in either attribute order and any case, and only there", 
     assert.ok(!NOINDEX_ROBOTS.test(tag), `ignores ${tag}`);
 });
 
+test("the CSP lets the site load its own favicon and images", () => {
+  const config = JSON.parse(
+    readFileSync(new URL("./vercel.json", import.meta.url), "utf8")
+  );
+  const csp = config.headers[0].headers.find(
+    (header) => header.key === "Content-Security-Policy"
+  ).value;
+  // The favicon is an image request: img-src must allow the same origin.
+  assert.ok(
+    directiveSources(csp, "img-src").includes("'self'"),
+    "img-src allows 'self' so /favicon.ico loads"
+  );
+});
+
 test("every page links the favicon, and the built site ships it as an ICO", () => {
   for (const page of PAGES) {
     assert.ok(
@@ -797,7 +817,7 @@ test("security headers: HSTS without subdomains or preload, frame and permission
     "max-age=31536000",
     "HSTS is one year with no includeSubDomains and no preload"
   );
-  assert.equal(headers["X-Frame-Options"], "SAMEORIGIN");
+  assert.equal(headers["X-Frame-Options"], "DENY");
   assert.equal(
     headers["Permissions-Policy"],
     "camera=(), microphone=(), geolocation=(), payment=()"
