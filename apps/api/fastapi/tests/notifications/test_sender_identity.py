@@ -464,3 +464,64 @@ def test_a_rejected_reply_to_is_logged_without_the_address(
     assert safe_reply_to("secret@example.com, other@example.net") is None
     assert logged and "Reply-To rejected" in logged[0]
     assert all("secret@" not in line for line in logged)
+
+
+# ── Reserved-term bypasses (issue 1640) ──────────────────────────────────────
+# Each name below is a way to pass as Barrels, a government body, a bank or a
+# support desk while the plain substring list would miss it.
+
+BYPASS_NAMES = [
+    # zero-width and soft-hyphen characters inside a reserved word
+    "Bar​rels Spa",
+    "Bar­rels Spa",
+    "Bar⁠rels Spa",
+    # spaces inside a reserved word
+    "G A A Spa",
+    "Met  Office Spa",
+    "B a r r e l s Spa",
+    # Cyrillic lookalikes (a, e, o, p, c, and capital A)
+    "Bаrrеls Spa",
+    "GАA Spa",
+    "Grеnаda Airport Authority",
+    "Gоvеrnment Store",
+    # fullwidth letters (folded by NFKC)
+    "Ｂａｒｒｅｌｓ Spa",
+    # digits standing in for letters: 1 as l or i, 0 as o, 3 as e, 5 as s
+    "Barre1s Spa",
+    "Adm1n Spa",
+    "Met0ffice Spa",
+    "Gov3rnment Store",
+    "Support D3sk",
+    # reserved phrases the list missed
+    "Grenada Airport Authority",
+    "Grenada Met Service",
+    "Official Weather",
+    "Weather Service Spa",
+    "Spa.com",
+    "spa . com",
+    "Visit www.spa.example",
+]
+
+
+@pytest.mark.parametrize("name", BYPASS_NAMES)
+def test_a_reserved_name_bypass_falls_back_to_the_default_sender(name: str) -> None:
+    assert business_sender_name(name) == ""
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["Sunset Bakery", "Caribbean Cafe", "Grenada Airbnb Rentals", "Island Hair Studio"],
+)
+def test_ordinary_names_with_similar_letters_still_work(name: str) -> None:
+    assert business_sender_name(name) == f"{name} via Barrels"
+
+
+def test_a_reserved_name_is_logged_without_the_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    logged: list[str] = []
+    monkeypatch.setattr(
+        email_module.logger, "warning", lambda msg, *args: logged.append(msg % args)
+    )
+    assert business_sender_name("G A A Spa") == ""
+    assert logged and all("G A A" not in line for line in logged)

@@ -34,27 +34,108 @@ MAX_REPLY_TO = 254
 # Characters a display name may not keep: angle brackets and quotes (header
 # syntax), backslash (escape), and "@" (a name must not look like an address).
 _NAME_BANNED = '<>"\\@'
-#: Business names containing any of these (case-insensitive) are not used as the
-#: sender name: they would let a business pass as Barrels, a government body, a
-#: bank or a support desk, or carry a web address. The sender then keeps the
-#: default name. Moderation of names is a follow-up on issue 1640.
+#: Business names containing any of these (case-insensitive, after the folding
+#: below) are not used as the sender name: they would let a business pass as
+#: Barrels, a government body, a bank or a support desk, or carry a web address.
+#: The sender then keeps the default name. Moderation of names is a follow-up on
+#: issue 1640. Words are matched with spaces, punctuation and digit substitutions
+#: removed (so "G A A" and "Barre1s" are caught); a dotted term ("spa.com") is
+#: matched with spaces removed.
+#: Tradeoff: plain substring matching also catches a word inside a longer one
+#: ("Gaanesh" and "Riverbank Cafe" keep the default name). That is accepted: the
+#: fallback is safe, and whole-word matching would let "BarrelsSpa" through.
 RESERVED_SENDER_TERMS = (
     "barrels",
     "gaa",
-    "grenada airports",
+    "grenada airport",
     "gms",
     "met office",
+    "met service",
     "meteorological",
+    "official weather",
+    "weather service",
     "government",
     "bank",
     "support",
     "security",
     "admin",
     "http",
-    "www.",
+    "www",
     ".com",
     ".gd",
 )
+# Lookalike letters (Cyrillic and Greek) folded to the Latin letter they resemble.
+_CONFUSABLES = str.maketrans(
+    {
+        "а": "a",
+        "в": "b",
+        "с": "c",
+        "е": "e",
+        "һ": "h",
+        "і": "i",
+        "ј": "j",
+        "к": "k",
+        "м": "m",
+        "н": "h",
+        "о": "o",
+        "р": "p",
+        "ԁ": "d",
+        "ԛ": "q",
+        "ѕ": "s",
+        "т": "t",
+        "у": "y",
+        "х": "x",
+        "α": "a",
+        "ε": "e",
+        "ι": "i",
+        "κ": "k",
+        "ν": "v",
+        "ο": "o",
+        "ρ": "p",
+        "τ": "t",
+        "υ": "u",
+        "χ": "x",
+    }
+)
+# Digits that stand in for letters. "1" reads as l or i, so both are tried.
+_DIGIT_LETTERS = {"0": "o", "3": "e", "5": "s"}
+
+
+def _fold(value: str) -> str:
+    """Lower-case text with compatibility forms, accents, format characters
+    (zero-width and soft hyphen) and lookalike letters folded away. Spaces and
+    punctuation are kept."""
+    text = unicodedata.normalize("NFKC", value)
+    text = unicodedata.normalize("NFKD", text)
+    kept = "".join(
+        char for char in text if unicodedata.category(char) not in ("Cf", "Mn")
+    )
+    return kept.casefold().translate(_CONFUSABLES)
+
+
+def _squashed(folded: str, one: str) -> str:
+    """Letters and digits only, with digits read as letters and "1" as ``one``."""
+    chars = []
+    for char in folded.replace("1", one):
+        char = _DIGIT_LETTERS.get(char, char)
+        if "a" <= char <= "z" or "0" <= char <= "9":
+            chars.append(char)
+    return "".join(chars)
+
+
+def _is_reserved(name: str) -> bool:
+    folded = _fold(name)
+    spaced_out = re.sub(r"\s", "", folded)
+    squashed = {_squashed(folded, "l"), _squashed(folded, "i")}
+    for term in RESERVED_SENDER_TERMS:
+        if "." in term:
+            if term in spaced_out:
+                return True
+        elif any(_squashed(term, "l") in form for form in squashed):
+            return True
+    return False
+
+
 _REPLY_TO = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+")
 
 
@@ -111,8 +192,7 @@ def business_sender_name(business: str) -> str:
     base = _display_name(business, MAX_DISPLAY_NAME - len(VIA_SUFFIX))
     if not base:
         return ""
-    lowered = base.lower()
-    if any(term in lowered for term in RESERVED_SENDER_TERMS):
+    if _is_reserved(base):
         logger.warning("Business name not used as sender: reserved term")
         return ""
     return f"{base}{VIA_SUFFIX}"

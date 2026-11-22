@@ -8,6 +8,8 @@ and the error class only: no subscriber addresses, payloads or error text.
 
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap.models import CapAlert, CapJobEvent
@@ -15,6 +17,8 @@ from src.email_config import email_settings
 from src.notifications import service as notification_service
 from src.worker import cap_content
 from src.worker.config import worker_settings
+
+logger = logging.getLogger(__name__)
 
 
 def recipients() -> list[str]:
@@ -51,6 +55,16 @@ async def queue_failure_emails(
             "It will not be retried automatically."
         )
         for address in to:
+            # Issue 1629: a configured address with no account (deleted, or never
+            # one) is not mailed. The log names no address.
+            if not await notification_service.has_account(
+                session=session, email=address
+            ):
+                logger.warning(
+                    "CAP failure email skipped: recipient has no account",
+                    extra={"job_id": str(job.id)},
+                )
+                continue
             created = await notification_service.enqueue_email_once(
                 session=session,
                 to_email=address,
