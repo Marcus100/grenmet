@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { NeedsAccess } from "@/components/access/needs-access";
 import { BusHeader } from "@/components/bus/portal";
 import { StopsManager } from "@/components/bus/stops-manager";
 import {
@@ -21,7 +21,14 @@ export default async function BusStopsPage() {
     getTransportAccess(),
     getTransportCatalogue(),
   ]);
-  if (!access.canView) notFound();
+  if (!access.canView) {
+    return (
+      <NeedsAccess
+        ask="Ask a Transport officer for a transport role. The timetable in force is still available to all staff."
+        module="Bus"
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
