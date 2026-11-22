@@ -8,6 +8,31 @@ Accepted for the test-mode core; implemented in `apps/api/fastapi/src/payments` 
 
 **Consumers (2026-10-20):** Bookings deposits (B6) and Events paid ticket tiers (N4b, `events_0010`, source type `events.order`) run on this core in test mode only: pending order, held stock, intent keyed by the order, ticket issue on `events.order_paid`, hold expiry sweeper, full refund of a late payment, and `events.order_refunded` cancelling the tickets. The live gate below is unchanged.
 
+## Amendment, 2026-11-21: one provider per country, the business is the seller
+
+Owner decision, 21 November 2026. This amendment overrides the sections above where they conflict: the Barrels-held merchant account model and the Stripe Connect payout model are **not** the live model. The test-mode core stays as built.
+
+**Decisions**
+
+1. **One provider per country, behind the payments core.** Grenada: WiPay (integrated; `providers/wipay.py`) and Republic Bank ePay (the business's own e-commerce link, used through the manual payment link until an integration is approved). New Zealand: Stripe Connect with the business as seller, using direct charges (a separate track, not built here). CARICOM later, one provider per country again.
+2. **The business is the seller and the merchant of record for its own sales.** Barrels never holds funds. A customer pays the business's own provider account directly. Barrels charges its own subscription and holds no client money. Refunds and disputes are the business's. The ledger keeps the business's sales record for reconciliation; it is not a balance Barrels owes or holds for online rails.
+3. **Live money is gated per provider and per business:**
+   - credentials are the business's own, stored encrypted under the organisation keys (`payments.merchant_account`; 503 when the keys are unset);
+   - a sandbox test payment must verify first (the sandbox proof is recorded automatically);
+   - the owner switches live on (`POST /payments/admin/merchant-accounts/{organisation_id}/{provider}/live-approval`, superuser only), and can switch it off at once;
+   - the existing gate still applies: an accountant and legal sign-off, and a reconciliation exercise, before the first live sale.
+4. **Barrels platform fee on Grenada payments: off.** No fee is charged. The legal reading of Grenada's Payment System and Services Act 2025 is in progress. `PAYMENTS_GRENADA_PLATFORM_FEE_ENABLED` exists, defaults to false, and is refused at startup while true, because nothing implements it.
+5. **Bookings deposit route** (`bookings/deposit_payments.deposit_route`): the business's WiPay account when ready; else the Stripe test rail when configured (test mode, as before); else the business's own payment link when it has one (staff confirm the payment with method `payment_link`); else no online deposit, and the booking is paid in the salon.
+6. **Refunds of WiPay payments are not recorded here.** WiPay's Payments API has no refund call; a refund is made in the WiPay dashboard and the API answers 409 (`ManualRefundRequiredError`). Recording a dashboard refund is a follow-up.
+
+**Facts about Stripe and Grenada** (owner statement and the research of 13 November 2026; not re-verified in this change): Stripe does not offer Grenada businesses a Stripe account, so a Grenada business cannot be onboarded as a connected account; a New Zealand platform cannot pay out cross-border to Grenada. Stripe therefore stays test-mode only for this product. The New Zealand track depends on Stripe Connect's own country rules and is not affected by this decision.
+
+**WiPay (Grenada platform, public docs read 21 November 2026):** hosted checkout via `POST {host}/plugins/payments/request` with `account_number`, `country_code` (GD), `currency`, `environment` (`sandbox` or `live`), `fee_structure`, `method`, `order_id`, `origin`, `response_url`, `total`. The redirect is verified with `hash = md5(transaction_id + total + api_key)` using the total we sent, to two decimal places. Webhooks are verified with `X-WiPay-Webhook-Signature: sha256=` HMAC of `timestamp.body` using the endpoint's secret. The return and the webhook both credit the same ledger key (`wipay:<transaction_id>`), so each payment is recorded once.
+
+**Open before live money (additions):** WiPay sandbox credentials for the business (WiPay's public sandbox account is shared and is not a merchant's account); the webhook endpoint registered in WiPay's dashboard; Grenada legal reading (fee, licence); a WiPay refund procedure; Republic Bank ePay approval, if it is wanted as an integration rather than a link.
+
+**Consequences:** Barrels' own money exposure for online rails is nil under this model, so the old "Funds sit on Barrels' merchant account" statements in `src/payments/AGENTS.md` are superseded. The manual payout route stays for manual rails and the test core.
+
 ## Context
 
 Events paid tiers, Bookings deposits (ADR-0024, B6) and online invoice payment all need the same things: payment intents, provider callbacks, refunds and reconciliation.
