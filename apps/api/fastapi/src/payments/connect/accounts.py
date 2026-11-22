@@ -139,7 +139,9 @@ async def _refresh(session: AsyncSession, row: ConnectedAccount) -> bool:
 async def _refresh_if_stale(session: AsyncSession, row: ConnectedAccount) -> bool:
     """Read the account from Stripe only when the stored state is older than
     ``STATE_FRESH_FOR``. True when the state is current or was read."""
-    if utc_now() - row.state_as_of < STATE_FRESH_FOR:
+    # A state dated in the future (clock skew) is not fresh: only 0 <= age < window.
+    age = utc_now() - row.state_as_of
+    if timedelta(0) <= age < STATE_FRESH_FOR:
         return True
     return await _refresh(session, row)
 

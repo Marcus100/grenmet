@@ -110,3 +110,41 @@ async def test_no_recipient_with_an_account_queues_nothing(
     queued = await cap_failure_mail.queue_failure_emails(session=db_async, jobs=[job])
 
     assert queued == 0
+
+
+@pytest.mark.usefixtures("db_async")
+async def test_all_recipients_skipped_logs_an_error_and_does_not_crash(
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Shared mailboxes with no account are skipped; the operator is told at ERROR
+    (Sentry) with the count and job id, never an address, and the worker survives."""
+    token = _token()
+    ghost = f"desk-{token}@example.com"
+    monkeypatch.setattr(worker_settings, "CAP_DELIVERY_FAILURE_RECIPIENTS", ghost)
+    job = await _failed_job(db_async)
+    warnings: list[str] = []
+    errors: list[tuple[str, dict[str, object]]] = []
+    monkeypatch.setattr(
+        cap_failure_mail.logger,
+        "warning",
+        lambda msg, *args, **kwargs: warnings.append(f"{msg} {args} {kwargs}"),
+    )
+    monkeypatch.setattr(
+        cap_failure_mail.logger,
+        "error",
+        lambda msg, *args, **kwargs: errors.append(
+            (msg % args if args else msg, kwargs.get("extra", {}))
+        ),
+    )
+
+    queued = await cap_failure_mail.queue_failure_emails(session=db_async, jobs=[job])
+    await db_async.commit()
+
+    assert queued == 0
+    assert len(errors) == 1
+    message, extra = errors[0]
+    assert "no deliverable recipient" in message
+    assert extra == {"job_id": str(job.id), "skipped": 1}
+    assert all(ghost not in f"{msg} {extra}" for msg, extra in errors)
+    assert all(ghost not in line for line in warnings)

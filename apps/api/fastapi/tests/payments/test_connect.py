@@ -1180,3 +1180,27 @@ async def test_charge_route_reads_stripe_when_state_is_older_than_a_minute(
     assert len(connect_env.find("GET", f"/v1/accounts/{ACCOUNT_ID}")) == 1
     checkout = connect_env.find("POST", "/v1/checkout/sessions")
     assert "Stripe-Account" in connect_env.requests[checkout[0]].headers
+
+
+async def test_a_future_dated_state_does_not_suppress_the_live_read(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+) -> None:
+    """A stored state_as_of in the future (clock skew, or a webhook timestamp ahead of
+    our clock) is not "fresh": it must not stop the live read."""
+    from datetime import timedelta
+
+    from src.utils.datetime import utc_now
+
+    org, user = await _org(db_async)
+    assert (await _onboard(async_client, org, user)).status_code == 200
+    row = await _stored_row(db_async, org.id)
+    row.state_as_of = utc_now() + timedelta(hours=1)
+    await db_async.commit()
+    connect_env.charges_enabled = True
+
+    response = await _checkout(async_client, org, user)
+
+    assert response.status_code == 201, response.text
+    assert len(connect_env.find("GET", f"/v1/accounts/{ACCOUNT_ID}")) == 1

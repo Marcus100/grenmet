@@ -802,7 +802,7 @@ def normalise_email(email: str) -> str:
 
 
 async def has_account(*, session: AsyncSession, email: str) -> bool:
-    """True when a user account holds this address (case-insensitive).
+    """True when an active user account holds this address (case-insensitive).
 
     Used by the jobs that mail addresses from configuration or from a stored
     webhook recipient list (issue 1629): an address with no account is never
@@ -810,7 +810,9 @@ async def has_account(*, session: AsyncSession, email: str) -> bool:
     """
     clean = normalise_email(email)
     found = await session.scalar(
-        select(User.id).where(func.lower(User.email) == clean).limit(1)
+        select(User.id)
+        .where(func.lower(User.email) == clean, User.is_active.is_(True))
+        .limit(1)
     )
     return found is not None
 

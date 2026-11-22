@@ -8,6 +8,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.notifications import sender_identity
+from src.notifications import service as notification_service
 from src.organisations.models import MembershipRole, OrganisationStatus
 from tests.factories import make_user
 from tests.organisations.support import make_org
@@ -61,3 +62,16 @@ async def test_an_unverified_member_gives_no_reply_to(db_async: AsyncSession) ->
     assert (
         await sender_identity.verified_reply_to(db_async, org.id, user.email)
     ) is None
+
+
+@pytest.mark.usefixtures("db_async")
+async def test_has_account_ignores_a_deactivated_account(
+    db_async: AsyncSession,
+) -> None:
+    user, _ = await _member_org(db_async, "deactivated-account")
+    assert await notification_service.has_account(session=db_async, email=user.email)
+    user.is_active = False
+    await db_async.commit()
+    assert not await notification_service.has_account(
+        session=db_async, email=user.email
+    )
