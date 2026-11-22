@@ -28,6 +28,7 @@ from src.auth.models import User
 from src.contacts import service as contacts_service
 from src.contacts.models import ConsentPurpose, Contact
 from src.notifications import outbox_handlers
+from src.notifications.sender_identity import business_identity
 from src.organisations import sites
 from src.rewards import service as rewards_service
 from src.utils.datetime import utc_now
@@ -375,6 +376,8 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
         business_email=profile.contact_email,
         business_phone=profile.contact_phone,
+        accent=profile.brand_color,
+        logo=emails.business_logo(profile.display_name, profile.logo_file_id),
     )
 
 
@@ -386,6 +389,12 @@ async def queue_customer_email(
 ) -> None:
     if not managed.contact.email:
         return
+    sender = await business_identity(
+        session,
+        managed.booking.organisation_id,
+        managed.profile.display_name,
+        managed.profile.contact_email,
+    )
     await outbox_handlers.enqueue_email(
         session,
         to_email=managed.contact.email,
@@ -395,6 +404,8 @@ async def queue_customer_email(
         transactional=True,
         dedupe_key=dedupe_key,
         organisation_id=managed.booking.organisation_id,
+        from_name=sender.from_name,
+        reply_to=sender.reply_to,
     )
 
 
@@ -546,11 +557,16 @@ async def request_email_code(
         return BookingEmailCodeSent(required=False)
     if await email_code.is_exempt(session, payer, email):
         return BookingEmailCodeSent(required=False)
+    sender = await business_identity(
+        session, profile.organisation_id, profile.display_name, profile.contact_email
+    )
     ttl = await email_code.request_code(
         session,
         _binding(profile, email, payload.service_id, payload.starts_at),
         to_email=email,
         business=profile.display_name,
+        from_name=sender.from_name,
+        reply_to=sender.reply_to,
     )
     return BookingEmailCodeSent(required=True, expires_in_seconds=ttl)
 

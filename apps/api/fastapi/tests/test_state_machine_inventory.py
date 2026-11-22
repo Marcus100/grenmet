@@ -183,6 +183,11 @@ INVENTORY: dict[str, Decision] = {
         "src/organisations/transitions.py"
     ),
     "src/outbox.py:Outbox.status": _table("src/outbox.py"),
+    "src/payments/connect/models.py:Dispute.status": _outcome(
+        "the dispute as Stripe reported it when it was recorded (charge.dispute.created); "
+        "Barrels never moves it, and Stripe's later status changes are not applied yet "
+        "(follow-up: charge.dispute.updated and closed)"
+    ),
     "src/payments/models.py:Intent.status": _PAYMENTS,
     "src/payments/models.py:Attempt.status": _PAYMENTS,
     "src/payments/models.py:Refund.status": _PAYMENTS,

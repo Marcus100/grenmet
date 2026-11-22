@@ -187,6 +187,20 @@ async def enqueue(
     return bool(getattr(result, "rowcount", 0))
 
 
+def erase_payload(row: Outbox, now: datetime) -> None:
+    """Empty a row's payload and dedupe key because they hold personal data that is no
+    longer wanted (issue #1629). The dedupe key becomes ``erased:<row id>``: still
+    unique (the row id is), and it no longer carries the address. A pending row also
+    moves to done, so its handler never runs on the erased payload. The move is the
+    pending-to-done entry of ``STATUS_MOVES``."""
+    if row.status == OutboxStatus.PENDING.value:
+        STATUS_MOVES.require(row.status, OutboxStatus.DONE)
+        row.status = OutboxStatus.DONE.value
+    row.payload = {}
+    row.dedupe_key = f"erased:{row.id}"
+    row.updated_at = now
+
+
 def pending_for_order(topic: str, order_id: str) -> sa.ColumnElement[bool]:
     """Pending rows of ``topic`` whose payload names ``order_id``.
 

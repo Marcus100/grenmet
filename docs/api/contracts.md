@@ -1200,7 +1200,15 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   values owned by another domain, `bookings.deposit` and `events.order`, with 422);
   signed provider callbacks at
   `POST /payments/public/webhooks/{provider}` (idempotent through the ledger, hidden
-  from OpenAPI); superuser reconciliation, ledger, balances and payouts under
+  from OpenAPI). Stripe Connect for New Zealand businesses (ADR-0027, test mode; the
+  business is the seller, charges are direct charges on its connected account):
+  `GET /payments/org/connect` (status; reads Stripe, `synced` false when it could not),
+  `POST /payments/org/connect/onboarding-links` (creates the account once, returns the
+  hosted onboarding URL), `GET /payments/org/disputes` (disputes for the business; Barrels
+  never answers them), and the Connect endpoint `POST /payments/public/webhooks/stripe-connect`
+  (hidden; its own secret, events from connected accounts). Org routes need
+  `payments.connect.manage` (owners and admins hold it). `POST /payments/admin/connect/accounts/{organisation_id}/platform-fee`
+  (superuser, `payments.connect.fees`) sets Barrels' fee in basis points, New Zealand only, at most the platform cap. Superuser reconciliation, ledger, balances and payouts under
   `/payments/admin/...` (each ledger entry also carries `source_type`, `source_id` and a `description` label, null for older payments), including `reconciliation.csv`. The ledger is append-only. A payout
   needs a client-generated `request_id`: repeating it returns the first entry (no double
   payout), and reusing it for different details is 409.
@@ -1274,7 +1282,7 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
 | `GET /api/v1/bookings/me/bookings?upcoming&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`, `payment` (`BookingPaymentSummary`, null when nothing was due at booking). No manage token, notes or other customers' details |
 | `GET /api/v1/bookings/me/businesses/{slug}/choices` | Account token or the bookings app session (other apps 401); no organisation header; 60 a minute (429); unknown or switched-off slug 404 | Prefill for the signed-in person's next booking with one business, from their own linked bookings only (the My bookings rule, ADR-0058): `phone` (the number the business holds for them, else the account's, else null) and `recent` (up to three distinct services, latest first, each with `service_id`, the `provider_id` used last and `last_booked_at`, which is that booking's start time; only pending, confirmed and completed bookings count, so cancelled (declined and expired included), no-show and unpaid-deposit ones are left out). Nothing about other customers |
-| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`), optional customer contact options `contact_phone` (stored E.164), `contact_whatsapp` (stored as digits), `contact_instagram` (stored as the handle; an instagram.com profile address is reduced to it), `contact_email` (blank clears; a malformed value is 422), and `payment_at_booking` (`deposit`, the default: each service's own deposit; or `full_price`: the service price by card, only while the platform has a Stripe test key and the organisation holds `payments`, otherwise it acts as `deposit`; left out, the stored value is kept); slug taken by another organisation 409, a platform reserved name 422 |
+| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`), optional customer contact options `contact_phone` (stored E.164), `contact_whatsapp` (stored as digits), `contact_instagram` (stored as the handle; an instagram.com profile address is reduced to it), `contact_email` (blank clears; a malformed value is 422), and `brand_color` (`#rrggbb`, blank clears; the mail falls back to navy when too pale) and `logo_file_id` (a completed `booking-logo` upload of this business, else 409; null clears), `payment_at_booking` (`deposit`, the default: each service's own deposit; or `full_price`: the service price by card, only while the platform has a Stripe test key and the organisation holds `payments`, otherwise it acts as `deposit`; left out, the stored value is kept); slug taken by another organisation 409, a platform reserved name 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
 | `GET/PUT /api/v1/bookings/org/providers/{id}/hours` | Same | Replace the weekly plan; overlapping periods on one day 422 |
@@ -3168,6 +3176,8 @@ Events stores the resulting file ids: `ListingUpsert.image_file_id`,
 `PUT /events/manage/organiser/logo` (`{file_id}`, null clears), returned as
 `ListingCard.image_file_id` and `OrganiserPublic.logo_file_id`. A new id must be a
 completed upload of that organiser's organisation and purpose, else 409.
+
+Brand (#1622): `PATCH /events/manage/organiser` takes `brand_color` (`#rrggbb`, null or blank clears; returned as `OrganiserPublic.brand_color`). Booking profiles take `brand_color` and `logo_file_id` (a completed `booking-logo` upload of the business, else 409) on `PUT /bookings/org/profile`; left out keeps the stored value. Booking and event mail use both; see `docs/email-design.md`.
 
 ## Profile photos (#1303)
 

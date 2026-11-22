@@ -1,5 +1,4 @@
 const deferredPath = /^(surface|wis2box|geonetcast|wxwatch|gms-ingest)\//u;
-const zeroSha = /^0+$/u;
 const workspaceManifest = /^(apps\/[^/]+\/[^/]+\/package\.json)$/u;
 const rootMarkdown = /^[^/]+\.md$/u;
 const nonImagePath =
@@ -9,9 +8,16 @@ import { execFileSync } from "node:child_process";
 import { appendFileSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { changedPaths } from "./changed-paths.mjs";
+import {
+  narrowJobs,
+  selectChecks,
+  writeShadowRecord,
+} from "./select-checks.mjs";
 import { promotionVerified } from "./promotion-verified.mjs";
 import { releaseScope, weatherImages, webImages } from "./release-scope.mjs";
 
+export { changedPaths } from "./changed-paths.mjs";
 export { weatherImages, webImages } from "./release-scope.mjs";
 
 // Unknown inputs invalidate every image. Shared packages conservatively
@@ -134,21 +140,6 @@ export function selectJobs(paths, mode = "affected") {
   return { python: code, collectors, webtests: code, storage: code };
 }
 
-export function changedPaths(
-  event,
-  git = (args) => execFileSync("git", args, { encoding: "utf8" })
-) {
-  let base = event.before;
-  const head = event.pull_request?.head?.sha ?? event.after;
-  if (event.pull_request)
-    base = git(["merge-base", event.pull_request.base.sha, head]).trim();
-  if (!(base && head) || zeroSha.test(base))
-    throw new Error("No trustworthy comparison base");
-  return git(["diff", "--no-renames", "--name-only", "-z", base, head])
-    .split("\0")
-    .filter(Boolean);
-}
-
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   // Standalone CI entry point; never reads application secrets.
   const {
@@ -197,14 +188,26 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     // Deployment builds own their checks; every other mode needs the diff,
     // at least for the SURFACE selection.
-    const paths =
-      mode === "deployment"
-        ? []
-        : changedPaths(JSON.parse(readFileSync(eventPath, "utf8")));
+    const event =
+      mode === "deployment" ? {} : JSON.parse(readFileSync(eventPath, "utf8"));
+    const paths = mode === "deployment" ? [] : changedPaths(event);
     selection = selectImages(paths, mode);
     coverage = selectCoverage(paths, mode);
     surface = selectSurface(paths, mode);
-    jobs = selectJobs(paths, mode);
+    // Pull requests into dev narrow the suites further (select-checks.mjs).
+    // Under CI_PATH_SELECTION=shadow (the default) or off this changes nothing
+    // and shadow mode records what `on` would skip.
+    const rollout = process.env.CI_PATH_SELECTION;
+    jobs = narrowJobs(selectJobs(paths, mode), paths, event, mode, rollout);
+    writeShadowRecord(
+      selectChecks(paths, {
+        mode,
+        baseRef: event.pull_request?.base?.ref,
+        labels: (event.pull_request?.labels ?? []).map((l) => l.name),
+        rollout,
+      }),
+      event
+    );
   } catch {
     console.error("Image comparison unavailable; checking every image.");
     selection = selectImages([], "full");

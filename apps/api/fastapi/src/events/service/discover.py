@@ -304,6 +304,7 @@ async def _organiser_public(
         verified=await _organiser_verified(organiser),
         organisation_id=organiser.organisation_id,
         logo_file_id=organiser.logo_file_id,
+        brand_color=organiser.brand_color,
         follower_count=int(followers or 0),
         viewer_following=following,
     )

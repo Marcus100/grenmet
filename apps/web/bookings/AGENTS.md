@@ -46,7 +46,7 @@ Host wiring mirrors `apps/web/babydoll`: `src/lib/booking-api.ts` (server-only, 
 
 ## Deployment
 
-Compose service `web-bookings` with its own Traefik router and certificate (`bookings.${BASE_DOMAIN}`), release scope in `scripts/ci/release-scope.mjs`, service-catalogue entry in `packages/ui/src/lib/service-catalogue.json`, monitor in `scripts/monitoring/betterstack.json` (paused, deferred). `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is passed to the container at run time (`infra/docker/docker-compose.deploy.yml`) and read through `readPublicEnv`. Needs a DNS record for `bookings.*` and the GitHub secret `BOOKINGS_SSO_CLIENT_SECRET` (optional: empty keeps sign-in off).
+Compose service `web-bookings` with its own Traefik router and certificate (`bookings.${BASE_DOMAIN}`), release scope in `scripts/ci/release-scope.mjs`, service-catalogue entry in `packages/ui/src/lib/service-catalogue.json`, monitor `Production · Bookings health` in `scripts/monitoring/betterstack.json` (active entry, created once the owner deletes three old Better Stack monitors; `docs/operations/analytics-monitoring.md`, Swap). `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is passed to the container at run time (`infra/docker/docker-compose.deploy.yml`) and read through `readPublicEnv`. Needs a DNS record for `bookings.*` and the GitHub secret `BOOKINGS_SSO_CLIENT_SECRET` (optional: empty keeps sign-in off).
 
 <!-- BEGIN:nextjs-agent-rules -->
 

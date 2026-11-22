@@ -104,6 +104,8 @@ export type { AttendanceShiftPublic } from "./AttendanceShiftPublic.js";
 export type { AttendanceSubmit } from "./AttendanceSubmit.js";
 export type { AttendanceWeekPublic } from "./AttendanceWeekPublic.js";
 export type { AuditChangePublic } from "./AuditChangePublic.js";
+export type { AuditEntryAdminPage } from "./AuditEntryAdminPage.js";
+export type { AuditEntryAdminPublic } from "./AuditEntryAdminPublic.js";
 export type { AuditEntryPublic } from "./AuditEntryPublic.js";
 export type {
   AuditGetHistoryOptions,
@@ -116,6 +118,15 @@ export type {
   AuditGetHistoryStatus404,
   AuditGetHistoryStatus422,
 } from "./AuditGetHistory.js";
+export type {
+  AuditListAdminAuditEntriesOptions,
+  AuditListAdminAuditEntriesQuery,
+  AuditListAdminAuditEntriesResponse,
+  AuditListAdminAuditEntriesResponses,
+  AuditListAdminAuditEntriesStatus200,
+  AuditListAdminAuditEntriesStatus403,
+  AuditListAdminAuditEntriesStatus422,
+} from "./AuditListAdminAuditEntries.js";
 export type {
   AuthAcceptSuperuserInvitationBody,
   AuthAcceptSuperuserInvitationOptions,
@@ -2391,10 +2402,14 @@ export type { ClockSiteCreate } from "./ClockSiteCreate.js";
 export type { ClockSiteIssued } from "./ClockSiteIssued.js";
 export type { ClockSitePublic } from "./ClockSitePublic.js";
 export type { ClockSitesPublic } from "./ClockSitesPublic.js";
+export type { ConnectFeePublic } from "./ConnectFeePublic.js";
 export type { ConnectionCreate } from "./ConnectionCreate.js";
 export type { ConnectionPublic } from "./ConnectionPublic.js";
 export type { ConnectionPublicPropertiesStateEnum } from "./ConnectionPublicPropertiesStateEnum.js";
 export { connectionPublicPropertiesStateEnum } from "./ConnectionPublicPropertiesStateEnum.js";
+export type { ConnectOnboardingLinkPublic } from "./ConnectOnboardingLinkPublic.js";
+export type { ConnectPlatformFeeUpdate } from "./ConnectPlatformFeeUpdate.js";
+export type { ConnectStatusPublic } from "./ConnectStatusPublic.js";
 export type { ConsentPurpose } from "./ConsentPurpose.js";
 export { consentPurpose } from "./ConsentPurpose.js";
 export type { ContactConsentHistoryPublic } from "./ContactConsentHistoryPublic.js";
@@ -2626,6 +2641,8 @@ export type { DepartmentsPublic } from "./DepartmentsPublic.js";
 export type { DepartmentUpdate } from "./DepartmentUpdate.js";
 export type { DerivationInput } from "./DerivationInput.js";
 export type { DerivationResult } from "./DerivationResult.js";
+export type { DisputeListPublic } from "./DisputeListPublic.js";
+export type { DisputePublic } from "./DisputePublic.js";
 export type { DocumentCategory } from "./DocumentCategory.js";
 export { documentCategory } from "./DocumentCategory.js";
 export type { DocumentEmployeeListPublic } from "./DocumentEmployeeListPublic.js";
@@ -7659,6 +7676,31 @@ export type {
   PaymentsAdminListLedgerStatus422,
 } from "./PaymentsAdminListLedger.js";
 export type {
+  PaymentsAdminSetPlatformFeeBody,
+  PaymentsAdminSetPlatformFeeOptions,
+  PaymentsAdminSetPlatformFeePath,
+  PaymentsAdminSetPlatformFeeResponse,
+  PaymentsAdminSetPlatformFeeResponses,
+  PaymentsAdminSetPlatformFeeStatus200,
+  PaymentsAdminSetPlatformFeeStatus400,
+  PaymentsAdminSetPlatformFeeStatus401,
+  PaymentsAdminSetPlatformFeeStatus403,
+  PaymentsAdminSetPlatformFeeStatus404,
+  PaymentsAdminSetPlatformFeeStatus422,
+} from "./PaymentsAdminSetPlatformFee.js";
+export type {
+  PaymentsCreateConnectOnboardingLinkHeaders,
+  PaymentsCreateConnectOnboardingLinkOptions,
+  PaymentsCreateConnectOnboardingLinkResponse,
+  PaymentsCreateConnectOnboardingLinkResponses,
+  PaymentsCreateConnectOnboardingLinkStatus200,
+  PaymentsCreateConnectOnboardingLinkStatus401,
+  PaymentsCreateConnectOnboardingLinkStatus403,
+  PaymentsCreateConnectOnboardingLinkStatus422,
+  PaymentsCreateConnectOnboardingLinkStatus502,
+  PaymentsCreateConnectOnboardingLinkStatus503,
+} from "./PaymentsCreateConnectOnboardingLink.js";
+export type {
   PaymentsCreateIntentBody,
   PaymentsCreateIntentHeaders,
   PaymentsCreateIntentOptions,
@@ -7702,6 +7744,17 @@ export type {
   PaymentsGetBalanceStatus422,
 } from "./PaymentsGetBalance.js";
 export type {
+  PaymentsGetConnectStatusHeaders,
+  PaymentsGetConnectStatusOptions,
+  PaymentsGetConnectStatusResponse,
+  PaymentsGetConnectStatusResponses,
+  PaymentsGetConnectStatusStatus200,
+  PaymentsGetConnectStatusStatus401,
+  PaymentsGetConnectStatusStatus403,
+  PaymentsGetConnectStatusStatus422,
+  PaymentsGetConnectStatusStatus503,
+} from "./PaymentsGetConnectStatus.js";
+export type {
   PaymentsGetIntentHeaders,
   PaymentsGetIntentOptions,
   PaymentsGetIntentPath,
@@ -7713,6 +7766,17 @@ export type {
   PaymentsGetIntentStatus404,
   PaymentsGetIntentStatus422,
 } from "./PaymentsGetIntent.js";
+export type {
+  PaymentsListDisputesHeaders,
+  PaymentsListDisputesOptions,
+  PaymentsListDisputesQuery,
+  PaymentsListDisputesResponse,
+  PaymentsListDisputesResponses,
+  PaymentsListDisputesStatus200,
+  PaymentsListDisputesStatus401,
+  PaymentsListDisputesStatus403,
+  PaymentsListDisputesStatus422,
+} from "./PaymentsListDisputes.js";
 export type {
   PaymentsListIntentsHeaders,
   PaymentsListIntentsOptions,

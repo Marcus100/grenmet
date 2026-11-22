@@ -2,7 +2,8 @@
 
 **Status:** Active checklist. Staging: Babydoll seeded, one test booking made and confirmed (2026-11-14). Production: the bookings app is live and Babydoll is seeded (15 Nov 2026: organisation, profile, 14 services, provider, public site); a temporary Barrels owner account is a member; the Book buttons on the Babydoll site open the studio's booking page since v1.2.0; the studio owner's own account and the test booking are not recorded as done here  
 **Owner:** Barrels Grenada engineering (client decisions: Babydoll Beauty Bar owner)  
-**Last updated:** 2026-11-16
+**Last updated:** 2026-11-21  
+**Go-live:** Saturday 29 November 2026 (owner decision, 21 Nov 2026)
 
 This is the go-live checklist and test plan for moving Babydoll Beauty Bar's
 booking from its Acuity link onto Barrels Bookings in production. It builds on
@@ -79,10 +80,10 @@ after the seed.
 | 1 | `TRUSTED_WEB_SECRET` of at least 32 characters, shared by the API and the bookings app. The deploy requires it: `render-env.py` refuses a shorter value and Compose passes it to `api` and `web-bookings`. It is no longer a Babydoll Vercel setting (the site makes no API calls). | A deploy that passed; API startup log must not show the "shorter than 32" warning | [agent] check the log |
 | 2 | **The API container receives `TRUSTED_WEB_SECRET`.** Met: `deploy.yml`, `render-env.py` and `docker-compose.deploy.yml` carry it (this answers Q1). | `grep -rn TRUSTED_WEB_SECRET .github infra scripts/production`; `docker compose -p grenmet exec api printenv TRUSTED_WEB_SECRET \| wc -c` (length only, never print) | [agent] check |
 | 3 | `VISITOR_IP_PROXY_HOPS` for the bookings app. The booking flow now runs on the droplet, not on Vercel. `render-env.py` sets it for `api` and `web-bookings`: 1, or 2 when the Cloudflare proxy switch is on. Wrong values rate-limit by the wrong address, or let a visitor choose their own bucket. | Test from two networks on staging; compare the `X-Visitor-IP` the API sees ([Cloudflare proxy runbook](cloudflare-proxy.md), acceptance item 1) | [agent] test |
-| 4 | Turnstile for the booking form. Today it is **off** in staging and production (honeypot and rate limits only). To turn on: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` as a build argument of the bookings app image (inlined at build time; not wired yet, `apps/web/bookings/AGENTS.md`), a Turnstile secret saved on the `babydoll` public site (needs `ORG_SECRET_ENCRYPTION_KEYS`, else 503), and the site's `turnstile_mode` set. | Booking form shows the widget; a create without a token is refused | [owner] keys; [agent] wiring and verify |
+| 4 | Turnstile for the booking form. Today it is **off** in staging and production (honeypot and rate limits only). The bookings app is already wired for it: `apps/web/bookings/src/env.ts` reads `NEXT_PUBLIC_TURNSTILE_SITE_KEY` through `readPublicEnv`, the `Dockerfile` accepts it as a build argument and `infra/docker/docker-compose.deploy.yml` passes it at run time. Only the keys are missing: the site key in the deploy environment, a Turnstile secret saved on the `babydoll` public site (needs `ORG_SECRET_ENCRYPTION_KEYS`, else 503), and the site's `turnstile_mode` set. | Booking form shows the widget; a create without a token is refused | [owner] keys; [agent] verify |
 | 5 | The Book buttons. There is no environment switch any more. `ONLINE_BOOKING_URL` in `apps/web/babydoll/src/data/site.ts` and the `/book` redirect (`public/_redirects`, `vercel.json`) are `https://bookings.barrels.gd/babydoll-beauty-bar` since v1.2.0. Changing the three values is a normal pull request and a site deploy. | `curl -sI https://babydoll.barrels.gd/book`: the redirect's `Location` | [agent] pull request; [owner] go and deploy |
 | 6 | Email-code step (ADR-0018). Needed only when a deposit is due: the customer gets a 6-digit code at the booking email, then a signed proof is sent with the create. Needs Redis (fails closed with 503, so a deposit booking is refused if Redis is down), `EMAIL_HASH_PEPPER`, and Resend sending from `barrels.gd`. A booking with no deposit has no step. | Staging test T3 | [agent] |
-| 7 | **Online payment at launch: none.** Customers pay in the salon, and the studio does not charge for late cancellations or no-shows, so every service keeps `deposit_minor = 0`. The Stripe adapter is test mode only and refuses a key that does not start with `sk_test_` (`src/payments/providers/stripe.py`, `require_test_key`, answering 503; `docs/env.md`, ADR-0027). Owner direction of 13 Nov 2026 (issue #1372, no code yet): try both Stripe and Republic Bank's e-commerce service; each business is paid directly through its own merchant account and Barrels charges a subscription; online payment for bookings stays optional. Run deposits in Stripe test mode on staging only (see section 6). | n/a | [owner] decision |
+| 7 | **Online payment at launch: a deposit only if a gateway is live and tested by Friday 28 Nov 2026; otherwise customers pay in the salon** (owner decision, 21 Nov 2026). The business is the seller and Barrels never holds the funds. One provider per country: in Grenada WiPay or Republic Bank ePay (both are being pursued; the first one approved is used); in New Zealand Stripe Connect. Stripe cannot serve Grenada businesses. The studio does not charge for late cancellations or no-shows, and until a gateway is live every service keeps `deposit_minor = 0`. The Stripe adapter is test mode only and refuses a key that does not start with `sk_test_` (`src/payments/providers/stripe.py`, `require_test_key`, answering 503; `docs/env.md`, ADR-0027). Run deposits in Stripe test mode on staging only (see section 6). | n/a | [owner] gateway approval; [agent] build and test |
 | 8 | Business profile and services entered in the studio settings (`bookings.barrels.gd/studio/<org>/settings`): display name, timezone `America/Grenada`, currency, slot step, lead time, horizon, cancellation cutoff, confirmation on or off, manage-link template; the 14 services with confirmed durations, buffers and prices; provider and weekly hours; time off. The seed (`python -m src.bookings.seed`) provides the services, prices and durations the studio confirmed on 14 Nov 2026, with a 15-minute buffer after each service; the studio may still edit them in Settings. | Public storefront `GET /api/v1/bookings/public/babydoll-beauty-bar` returns 200 with the right menu | [owner] confirm with the salon; [agent] run the dry-run |
 | 9 | Hostnames: `babydoll.barrels.gd` (static site, production only, no staging site; on Cloudflare Pages since the cutover of 15 to 16 Nov 2026), API `api.barrels.gd`, public booking page and studio on `bookings.barrels.gd`. The client's own `babydollbeautybar.com` is later: moving it means changing `SITE_URL` in `apps/web/babydoll/src/data/site.ts` and `BOOKINGS_BABYDOLL_SITE_URL`. The profile's `manage_url_template` points at the bookings app (`https://bookings.barrels.gd/babydoll-beauty-bar/booking/{token}`) and does not move with the site. | `curl -sI` each host | [owner] DNS; [agent] verify |
 | 10 | The `babydoll` organisation exists in production with the `bookings` and `contacts` entitlements (seed). **Done on production 15 Nov 2026** (v1.1.0; dry run first, then the real run with `--notify-email`); staging too. `payments` is **not** granted, so any deposit set on a service is ignored (the booking is made without one and one INFO line is logged). The studio owner also needs an account and ownership of the organisation. | Dry-run output; entitlement list | [owner] run seed and grant ownership; [agent] dry-run |
@@ -140,8 +141,10 @@ after the seed.
    redirect in `public/_redirects` and `vercel.json`
    (`src/pages-files.test.ts` checks the Pages file), then deploy the site.
    **Done in v1.2.0.**
-8. **Salon re-enters upcoming Acuity appointments** with the studio's New
-   booking form (no email is sent unless asked) and confirms any pending ones.
+8. **Bring over upcoming Acuity appointments.** A one-off import of future
+   Acuity appointments is being built. Until it lands, the salon re-enters them
+   with the studio's New booking form (no email is sent unless asked) and
+   confirms any pending ones.
 9. **Retire Acuity the same day [owner]:** turn off online booking on the
    `babydollgnd` page or leave a notice pointing at the new booking page; the
    salon tells clients. Keep `BOOKING_URL` in code: it is where the Book buttons
@@ -228,10 +231,11 @@ recorded run. Record result, date and who ran it.
 
 Decided (studio and owner, recorded 14 Nov 2026):
 
-1. Deposits at launch: **none**. Customers pay in the salon, and there is no
-   charge for late cancellations or no-shows. Online payment is optional later
-   (issue #1372; live Stripe still needs the ADR-0027 live gate and code
-   changes, because the adapter refuses live keys).
+1. Deposits at launch (owner, 21 Nov 2026): an online deposit **only if a
+   Grenada gateway (WiPay or Republic Bank ePay) is live and tested by 28 Nov
+   2026**; otherwise customers pay in the salon. There is no charge for late
+   cancellations or no-shows. The business is the seller and Barrels never
+   holds funds; Stripe cannot serve Grenada businesses (issue #1372).
 2. `requires_confirmation` **stays on**: staff confirm every booking in the
    studio.
 3. Cancellation cutoff: **24 hours stays**. Lead time (24 hours) and horizon
@@ -247,7 +251,8 @@ Decided (studio and owner, recorded 14 Nov 2026):
 Still open:
 
 7. Turnstile on at launch, or honeypot and rate limits only for week one.
-8. Cutover date and quiet window; who sits with the salon for the first day.
+8. Quiet window and who sits with the salon for the first day (the go-live
+   date is decided: Saturday 29 Nov 2026).
 9. When Acuity is switched off, and the client domain move (`babydollbeautybar.com`).
 
 ## 7. Open questions (not answered by the repository)

@@ -28,7 +28,31 @@ permissions:
   contents: read
 
 jobs:
+  # Which languages this change needs analysed (docs/operations/release-runbook.md, pull-request check selection).
+  # Narrows only pull requests into dev; every other event selects everything
+  # (scripts/ci/select-checks.mjs). It never fails the run: an error there
+  # selects every check, and the job below also runs when this one did not succeed.
+  changes:
+    name: Select checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      codeql: ${{ steps.select.outputs.codeql }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - id: select
+        env:
+          # off | shadow | on; unset means shadow (docs/operations/release-runbook.md).
+          CI_PATH_SELECTION: ${{ vars.CI_PATH_SELECTION }}
+        run: node scripts/ci/select-checks.mjs
+
   analyze:
+    needs: [changes]
+    # Fail open: also runs, for every language, when the selection job did not succeed.
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.codeql != '[]') }}
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -39,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [javascript-typescript, python]
+        language: ${{ fromJSON(needs.changes.result == 'success' && needs.changes.outputs.codeql || '["javascript-typescript","python"]') }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1

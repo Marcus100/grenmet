@@ -29,9 +29,18 @@ when the automation is off.
 Start from the current `origin/dev`; never push `dev` yourself. See
 `docs/agents/workflow.md` → Git and GitHub workflow.
 
-Confirm the latest `dev` CI run is green (`gh run list --branch dev --limit 3`);
-if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
-`/pre-merge` checklist. Report findings. Stop and ask if anything is red.
+Confirm the latest `dev` CI run on the head is green (`gh run list --branch dev --limit 3`);
+if not, triage it first. GitHub CI is the gate and the promotion PR reuses dev's
+results when the tree matches (`scripts/ci/promotion-verified.mjs`), so do not
+re-run `pnpm check:ci` or `pnpm type-check` locally (if a local run is ever
+wanted, use `turbo run <task> --concurrency=2`: the full run is killed by the
+memory cap). Run the `/pre-merge` checklist, read the promotion diff with
+migrations first, and write the release notes while CI runs. Report findings.
+Stop and ask if anything is red.
+
+Every merge into `dev` restarts dev CI and changes an open promotion PR: land
+the last PRs back to back, then open the promotion PR, and hold further agent
+merges until the owner has merged staging.
 
 **2. dev → staging**
 When the owner has asked to promote, create or reuse the promotion PR

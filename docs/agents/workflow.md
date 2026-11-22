@@ -62,6 +62,8 @@ agent instructions. Nothing here relaxes a root rule.
   no open finding first. Unattended routines do the same from their own branch.
   A PR that changes an agent-rules or enforcement file follows [Merging into dev](#merging-into-dev)
   below. If `origin/dev` advances, integrate it and revalidate.
+  With `CI_PATH_SELECTION=on`, a skipped job on a `dev` PR is intended when the
+  path map did not select it (`scripts/ci/select-checks.mjs`); the `ci:full` label runs every check.
 - Promotion to staging: the owner decides when a `dev → staging` PR is opened
   (owner, 14 Nov 2026). Agents keep landing work on `dev` and do not open the
   promotion PR on their own after merges. When the owner asks,

@@ -65,5 +65,17 @@ export const bookingProfileUpdateSchema = z
       .describe(
         "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept."
       ),
+    brand_color: z
+      .union([z.string().max(7), z.null()])
+      .optional()
+      .describe(
+        "The business's accent colour in its emails, as `#rrggbb`. Blank clears it. Mail uses the Barrels navy instead when the colour is too pale for white text. Left out, the stored value is kept."
+      ),
+    logo_file_id: z
+      .union([z.uuid(), z.null()])
+      .optional()
+      .describe(
+        "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+      ),
   })
   .describe("Create or replace the organisation's booking profile.");
