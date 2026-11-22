@@ -404,7 +404,7 @@ async def send_wis2_publications(ctx: dict[str, Any]) -> int:
 
     async with async_session_factory() as session:
         try:
-            result = await publisher.process_due_publications(session=session)
+            run = await publisher.run_due_publications(session=session)
         except Exception:
             await operational_metrics.record_job(
                 ctx.get("redis"),
@@ -416,13 +416,13 @@ async def send_wis2_publications(ctx: dict[str, Any]) -> int:
         await operational_metrics.record_job(
             ctx.get("redis"), "send_wis2_publications", str(ctx.get("job_id", "")), True
         )
-        if wis2box_settings.sink is not None:
-            # The run finished. A failed transfer is retried on its row and logged
-            # by the wis2box provider streak; it does not reset this timestamp.
+        # Only a run in which every transfer landed counts as fresh. A row that
+        # failed (retrying or dead) leaves the timestamp where it was.
+        if wis2box_settings.sink is not None and run.failed == 0:
             await operational_metrics.record_feed_success(
                 ctx.get("redis"), "wis2box_publications"
             )
-        return result
+        return run.handled
 
 
 @monitored(schedule="0 11 * * *", checkin_margin=30, max_runtime=30)

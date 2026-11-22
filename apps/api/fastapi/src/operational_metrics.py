@@ -240,7 +240,7 @@ async def record_feed_success(redis: Any, feed: str) -> None:
     if redis is None or feed not in FEEDS or not _enabled():
         return
     try:
-        async with asyncio.timeout(0.05):
+        async with asyncio.timeout(0.25):
             await redis.hset(_feed_key(), feed, datetime.now(UTC).isoformat())
             await redis.expire(_feed_key(), TTL)
     except RedisError, TimeoutError, OSError:

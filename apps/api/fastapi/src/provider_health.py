@@ -62,7 +62,10 @@ def _error_type(error: BaseException | str) -> str:
 
 
 def record_failure(provider: str, operation: str, error: BaseException | str) -> None:
-    """Count one failed provider call and log it; never raises."""
+    """Count one failed provider call and log it.
+
+    An unknown provider or operation name raises ValueError: that is a bug in the
+    caller. Otherwise this does not raise, so it cannot break the call it reports."""
     _check(provider, operation)
     key = (provider, operation)
     streak = _streaks.setdefault(key, _Streak())

@@ -255,14 +255,14 @@ schedule by `tests/worker/test_cron_monitor.py`) only when
 so check the plan's included cron monitors before turning it on. Sentry creates the
 monitors from the first check-ins.
 
-Data freshness for uptime monitors: `GET /api/v1/monitoring/admin/freshness` (see
+Ingest freshness: `GET /api/v1/monitoring/admin/freshness` (see
 [contracts](../api/contracts.md#ingest-freshness-and-email-backlog-monitoring-22-nov-2026))
 returns `healthy: true` only when every enabled ingest feed ran inside its window and
-the email outbox has no stale or dead rows. Better Stack keyword monitor: match
-`"healthy":true`. It needs `TELEMETRY_ENABLED=true` on the worker and API (success
-times live in Redis) and a superuser bearer token with `monitoring.freshness.read`
-in the request header; the owner creates that monitor in Better Stack (not in
-`betterstack.json`, which is owner-managed).
+the email outbox has no stale or dead rows. It is for staff and a future staff screen,
+not for an uptime monitor: it needs a signed-in superuser token, and those tokens expire
+within an hour, so a monitor that sent one would alarm. Success times need
+`TELEMETRY_ENABLED=true` on the worker and API (they live in Redis). A token-free
+monitoring check is tracked in a GitHub issue (see the PR for #1713).
 
 Create these alert rules in each Sentry project (`grenmet-staging`,
 `grenmet-production`), email to the owner:

@@ -1264,9 +1264,9 @@ Deployment smoke checks currently use liveness. Operational diagnosis should use
 ### Ingest freshness and email backlog (monitoring, 22 Nov 2026)
 
 `GET /api/v1/monitoring/admin/freshness` (`monitoring.freshness.read`, superusers by
-default; no default role holds the key). Used by the Better Stack keyword monitor (match
-`"healthy":true`, with an `Authorization: Bearer` header from a superuser token) and the
-staff monitoring screen.
+default; no default role holds the key). It is for staff and a future staff screen. It
+is not an uptime monitor target: a signed-in token expires within an hour. A token-free
+check is proposed in a GitHub issue.
 
 - `feeds[]`: `cap_feeds`, `opensky_flights`, `copernicus_marine`, `copernicus_cams`,
   `model_guidance`, `wis2box_publications`. Each has `status` (`fresh`, `stale`, `never`,

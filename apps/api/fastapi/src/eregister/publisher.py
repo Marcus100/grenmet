@@ -11,6 +11,7 @@ import logging
 import os
 import tempfile
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
@@ -89,7 +90,8 @@ def default_sink(config: Wis2boxConfig) -> Sink | None:
     return None
 
 
-async def _deliver(row: ERegisterSend, sink: Sink, max_attempts: int) -> None:
+async def _deliver(row: ERegisterSend, sink: Sink, max_attempts: int) -> bool:
+    """Try one transfer. Returns True when wis2box has the file."""
     row.attempts += 1
     try:
         await asyncio.to_thread(
@@ -104,8 +106,9 @@ async def _deliver(row: ERegisterSend, sink: Sink, max_attempts: int) -> None:
             row.next_retry_at = utc_now() + timedelta(
                 seconds=retry_delay_seconds(row.attempts)
             )
+        logger.warning("WIS2 transfer failed", extra={"send_id": str(row.id)})
         provider_health.record_failure("wis2box", "transfer", exc)
-        return
+        return False
     provider_health.record_success("wis2box", "transfer")
     row.status = STATUS_SENT
     row.sent_at = utc_now()
@@ -113,6 +116,15 @@ async def _deliver(row: ERegisterSend, sink: Sink, max_attempts: int) -> None:
     row.next_retry_at = None
     # The CSV is no longer needed once wis2box has it.
     row.detail = {k: v for k, v in row.detail.items() if k != "content"}
+    return True
+
+
+@dataclass(frozen=True)
+class PublicationRun:
+    """One batch: rows handled, and rows whose transfer failed (retrying or failed)."""
+
+    handled: int
+    failed: int
 
 
 async def process_due_publications(
@@ -123,11 +135,26 @@ async def process_due_publications(
     config: Wis2boxConfig | None = None,
 ) -> int:
     """Store due CSV files. Returns how many rows were handled."""
+    run = await run_due_publications(
+        session=session, sink=sink, limit=limit, config=config
+    )
+    return run.handled
+
+
+async def run_due_publications(
+    *,
+    session: AsyncSession,
+    sink: Sink | None = None,
+    limit: int = 20,
+    config: Wis2boxConfig | None = None,
+) -> PublicationRun:
+    """Store due CSV files and count the transfers that did not succeed."""
     config = config or wis2box_settings
     sink = sink or default_sink(config)
     if sink is None:
-        return 0
+        return PublicationRun(handled=0, failed=0)
     handled = 0
+    failed = 0
     for _ in range(limit):
         now = utc_now()
         row = (
@@ -148,7 +175,8 @@ async def process_due_publications(
         ).scalar_one_or_none()
         if row is None:
             break
-        await _deliver(row, sink, config.WIS2BOX_MAX_ATTEMPTS)
+        if not await _deliver(row, sink, config.WIS2BOX_MAX_ATTEMPTS):
+            failed += 1
         await session.commit()
         handled += 1
-    return handled
+    return PublicationRun(handled=handled, failed=failed)

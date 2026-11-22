@@ -1,4 +1,4 @@
-"""Ingest freshness and email outbox backlog, read by uptime monitors and staff.
+"""Ingest freshness and email outbox backlog, read by staff.
 
 Last successes come from Redis (``operational_metrics.feed_successes``); the email
 backlog is counted in SQL on the platform outbox. Nothing here reads payloads,
