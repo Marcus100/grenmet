@@ -11,7 +11,7 @@
 - **Availability** (`availability.py`) is pure and tested without a database: weekly periods (gaps are breaks), `extra_hours` adds, `time_off` removes, slots on the step grid from local midnight, the service must fit one window, blocked ranges must not overlap, lead time and horizon apply. `service.available_slots` loads rows and calls it; keep business rules in the pure module.
 - **Organisation routes** (`/bookings/org/*`, the business's staff; a client site may call its UI "studio") use `OrgContext`: `OrgMember` reads, `OrgAdmin` writes. Another organisation's ids answer 404. **Public routes** (`/bookings/public/{slug}`, `/availability`) need no sign-in, are rate limited, and answer the same 404 for unknown and disabled profiles; availability spans at most 14 days.
 - Schema and enum names are prefixed `Booking*` so OpenAPI never renames a clashing name (Events already owns `ProfilePublic`).
-- Routers commit; service functions flush.
+- Routers commit; services flush.
 
 - Organisation routes (`/bookings/org/*`) require the `bookings` entitlement (`require_org_app`, PF1); the B4 tenant seed must grant it. Tests use `make_org(..., apps=("bookings",))`.
 
@@ -92,5 +92,6 @@ Four optional profile columns (migration `bookingcontact20261115`): `contact_pho
 ## Tests
 `tests/bookings/test_availability.py` (pure engine, no database), `tests/bookings/test_ics.py` (ICS format, status table), `tests/bookings/test_bookings_api.py` (studio CRUD, member read-only, cross-organisation denial, slug uniqueness, validation, the exclusion constraint, public storefront and availability, disabled/unknown 404, range limit), `tests/bookings/test_public_bookings.py` (create, replay, 409 reuse, concurrent duplicates, overlap race, honeypot, Turnstile, entitlement 404, cancel cutoff, reschedule, ICS, outbox emails, reminders, token never stored), `tests/bookings/test_studio.py` (studio actions, API keys, agenda), `tests/bookings/test_deposits.py` (deposits, paid handler, sweeper, refunds), `tests/worker/test_platform_jobs.py` (job registration, retention of tokens).
 
+- Brand (#1622): `brand_color`, `logo_file_id`.
 - **Turnstile and replays:** Turnstile is verified *inside* the idempotent handler (`create_once`, `router.py`): tokens are single-use, so a retry with the same `Idempotency-Key` and body replays the stored receipt without a second token; a new key must pass, and a failed check is not stored and releases the key (tests in `test_public_bookings.py`).
 

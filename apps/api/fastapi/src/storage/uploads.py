@@ -12,6 +12,7 @@ at completion (``image_metadata.py``), re-encoded without their metadata, and re
 when the bytes are not the image type they declared.
 """
 
+import functools
 import uuid
 from dataclasses import dataclass
 from datetime import timedelta
@@ -44,6 +45,10 @@ PUBLIC_REDIRECT_SECONDS = 300
 PUBLIC_CACHE_SECONDS = 120
 
 
+#: A logo is shown at 40 to 64 pixels; 4 megapixels decodes comfortably and bounds memory.
+LOGO_MAX_PIXELS = 4_000_000
+
+
 @dataclass(frozen=True)
 class Purpose:
     app: str
@@ -51,12 +56,17 @@ class Purpose:
     #: Public purposes are served unauthenticated by file id (marketing images).
     public: bool
     #: Re-encode the stored image without its metadata (EXIF location, camera serial)
-    #: when the upload completes. Used where the file is shown publicly.
+    #: when the upload completes. Removes metadata from honest uploads; a presigned PUT
+    #: stays valid for 15 minutes, so the object can still be overwritten afterwards.
     strip_metadata: bool = False
+    #: Decoded-size cap for the metadata step (width times height, in pixels).
+    max_pixels: int = LOGO_MAX_PIXELS
 
 
 PURPOSES: dict[str, Purpose] = {
-    "organiser-logo": Purpose(app="events", max_bytes=2 * 1024 * 1024, public=True),
+    "organiser-logo": Purpose(
+        app="events", max_bytes=2 * 1024 * 1024, public=True, strip_metadata=True
+    ),
     "listing-image": Purpose(app="events", max_bytes=5 * 1024 * 1024, public=True),
     "booking-logo": Purpose(
         app="bookings", max_bytes=2 * 1024 * 1024, public=True, strip_metadata=True
@@ -167,7 +177,7 @@ async def _own_upload(
     return row
 
 
-async def _strip_metadata(row: OrgUpload) -> int:
+async def _strip_metadata(row: OrgUpload, max_pixels: int) -> int:
     """Re-encode the stored image without its metadata; return the new size.
 
     A file that is not the image type it declared is deleted, as a size mismatch is.
@@ -175,7 +185,12 @@ async def _strip_metadata(row: OrgUpload) -> int:
     raw = await run_in_threadpool(storage.storage_service.get_object, row.object_key)
     try:
         clean = await run_in_threadpool(
-            image_metadata.strip_metadata, raw, row.content_type
+            functools.partial(
+                image_metadata.strip_metadata,
+                raw,
+                row.content_type,
+                max_pixels=max_pixels,
+            )
         )
     except image_metadata.ImageRejectedError as error:
         await run_in_threadpool(storage.storage_service.delete_object, row.object_key)
@@ -213,7 +228,7 @@ async def complete_upload(
         raise UploadRejectedError("The uploaded file does not match what was requested")
     purpose = PURPOSES.get(row.purpose)
     if purpose is not None and purpose.strip_metadata:
-        row.size_bytes = await _strip_metadata(row)
+        row.size_bytes = await _strip_metadata(row, purpose.max_pixels)
     transitions.move_upload(row, "complete")
     row.completed_at = utc_now()
     await session.flush()

@@ -49,8 +49,11 @@ are omitted, never shown blank.
   with the business name as alt text. The name is also in the eyebrow, so a mail
   with images blocked still names the sender. No logo is printed without
   `API_BASE_URL`, and never a non-https one.
-- Booking uploads are re-encoded without metadata when they complete
-  (`src/storage/image_metadata.py`); the other public purposes are not yet.
+- Logo uploads (`booking-logo`, `organiser-logo`) are re-encoded without metadata when
+  they complete (`src/storage/image_metadata.py`), keeping transparency and flattening
+  animated files to the first frame. This removes metadata from honest uploads; it is
+  not a defence against a hostile uploader. A presigned PUT stays valid for 15 minutes,
+  so the object can be overwritten after completion (follow-up: re-key on completion).
 
 ## Accessibility and safety
 
