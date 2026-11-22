@@ -53,7 +53,7 @@ and apps move here in later PRs. Sign-in stays on `auth.barrels.gd`
 src/app/
   page.tsx                     ← profile: name, email, photo upload/replace/remove (server read, client mutations)
   bookings/page.tsx            ← My bookings: Upcoming, Past and Cancelled tabs (?view=), grouped by day, server read; each row links to its manage page
-  signin/page.tsx              ← hand-off to auth; `sign_in=expired` says so and offers a retry
+  signin/page.tsx              ← hand-off to auth: renders "Taking you to sign in" (`SignInHandOff`, a client leaf that moves the browser on, with a link); `sign_in=expired` says so and offers a retry
   auth/start|callback|logout   ← single sign-on (ADR-0017)
   api/[...path]/route.ts       ← same-origin proxy to /api/v1/* (session → bearer)
   api/health/route.ts
