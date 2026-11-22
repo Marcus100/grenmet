@@ -33,6 +33,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@axe-core/playwright": "catalog:",
     "@barrelsgd/tsconfig": "workspace:*",
     "@playwright/test": "catalog:",
     "@tailwindcss/postcss": "catalog:",
