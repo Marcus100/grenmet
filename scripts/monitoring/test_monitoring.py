@@ -54,8 +54,31 @@ class MonitoringTests(unittest.TestCase):
         self.assertEqual(recovered, 1)
 
     def test_pending_never_becomes_healthy(self):
-        service = json.loads(CATALOGUE.read_text())["services"][-2]
-        self.assertEqual(check(service, "production")["status"], "pending")
+        services = {s["id"]: s for s in json.loads(CATALOGUE.read_text())["services"]}
+        # The worker has no origin, so it can never be probed into "up".
+        self.assertEqual(check(services["worker"], "production")["status"], "pending")
+
+    def test_catalogue_provider_ids_match_the_better_stack_manifest(self):
+        catalogue = json.loads(CATALOGUE.read_text())
+        manifest = json.loads(
+            (CATALOGUE.parents[4] / "scripts/monitoring/betterstack.json").read_text()
+        )
+        declared = {(r["environment"], r["kind"]): set() for r in manifest["resources"]}
+        for r in manifest["resources"]:
+            if "id" in r:
+                declared[(r["environment"], r["kind"])].add(int(r["id"]))
+        for service in catalogue["services"]:
+            monitor = service["environments"]["production"]["availability"]["monitorId"]
+            if monitor is not None:
+                self.assertIn(monitor, declared[("production", "monitors")])
+        for job in catalogue["operations"]["production"].values():
+            self.assertIn(job["heartbeatId"], declared[("production", "heartbeats")])
+        # Live sites without a Better Stack slot stay covered by the probe runner.
+        services = {s["id"]: s for s in catalogue["services"]}
+        for app in ("admin", "commit", "printix"):
+            entry = services[app]["environments"]["production"]
+            self.assertTrue(entry["origin"].startswith("https://"))
+            self.assertNotEqual(entry["deployment"], "pending")
 
     def test_staging_edge_credential_only_reaches_staging_web_hosts(self):
         services = {s["id"]: s for s in json.loads(CATALOGUE.read_text())["services"]}
