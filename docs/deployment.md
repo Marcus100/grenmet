@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-18
+**Last updated:** 2026-11-22
 
 > Current releases use `docker-compose.deploy.yml` and the canonical domain table
 > at the end of this guide. The per-environment `docker-compose.prod.yml` and
@@ -648,7 +648,13 @@ hurricane/spice hosts; no legacy redirects are installed.
 | Bookings | 3015 | https://bookings.barrels.gd | https://bookings.staging.barrels.gd |
 | Account | 3018 | https://account.barrels.gd | https://account.staging.barrels.gd |
 | Elections | 3007 | https://elections.barrels.gd (Cloudflare Pages) | Cloudflare Pages branch previews |
+| CMS (Payload) | 3006 | https://cms.barrels.gd | https://cms.staging.barrels.gd |
+| Commit (engineering blog) | 3019 | https://commit.barrels.gd (Cloudflare Pages) | Cloudflare Pages branch previews |
+| Printix scanner (PWA) | 3064 | https://scan.barrels.gd | https://scan.staging.barrels.gd |
+| HR (Barrels Human Resource) | 3016 | https://hr.barrels.gd (answers 403 on 22 Nov 2026: gated, not a public product yet) | https://hr.staging.barrels.gd |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
+
+Planned hosts with no route or certificate yet (they resolve through the wildcard and answer Cloudflare error 526 until built): `salesbus`, `janitor`, `bus`, `shop`, `status` and `mail`. Planned moves (owner decisions, 22 Nov 2026, issue #1656): the whole CAP module moves to `cap.barrels.gd`, salesbus to `salesbus.barrels.gd`, janitor to `janitor.barrels.gd` (a PWA) and bus to its own app or PWA. Domains held by others, not controlled by Barrels yet: `weather.gd`, `gaa.gd` and the Babydoll salon's own domain. Live check on 22 Nov 2026: `www.barrels.gd` answers 200 where this document says it redirects to the apex (issue #1657).
 
 Cloudflare wildcard A records point `*.barrels.gd` to the production droplet and
 `*.staging.barrels.gd` to the staging droplet (IPs: see the DigitalOcean dashboard). Staging has been behind the Cloudflare proxy since 1 Nov 2026 and production since 17 Nov 2026
