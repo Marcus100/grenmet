@@ -73,14 +73,12 @@ describe("JanitorPage (overview)", () => {
     expect(screen.getByText("No inspections yet")).toBeInTheDocument();
   });
 
-  it("is not found without janitorial access", async () => {
-    let thrown: unknown;
-    try {
-      await renderPage({}, noAccess);
-    } catch (error) {
-      thrown = error;
-    }
-    expect((thrown as Error).message).toBe("NEXT_NOT_FOUND");
+  it("explains the missing role instead of a 404", async () => {
+    await renderPage({}, noAccess);
+    expect(
+      screen.getByRole("heading", { name: "Janitor access needed" })
+    ).toBeInTheDocument();
+    expect(notFound).not.toHaveBeenCalled();
   });
 
   it("lets API failures reach the admin error boundary", async () => {

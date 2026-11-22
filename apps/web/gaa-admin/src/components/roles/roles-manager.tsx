@@ -6,6 +6,12 @@ import {
   useAuthGetRoles,
 } from "@barrelsgd/api-client";
 import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@barrelsgd/ui/components/ui/empty";
+import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
@@ -160,7 +166,19 @@ export function RolesManager() {
               </Select>
             </div>
 
-            <RolesTable table={table} />
+            <RolesTable
+              emptyState={
+                <Empty className="p-6" role="status">
+                  <EmptyHeader>
+                    <EmptyTitle>No roles match</EmptyTitle>
+                    <EmptyDescription>
+                      Clear the search or the type filter to see every role.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              }
+              table={table}
+            />
           </div>
         </TabsContent>
 

@@ -17,6 +17,12 @@ import {
   CardTitle,
 } from "@barrelsgd/ui/components/ui/card";
 import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@barrelsgd/ui/components/ui/empty";
+import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
@@ -53,7 +59,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-
+import { TableSkeleton } from "@/components/data-table/table-skeleton";
 import { CreateAccountDialog } from "./create-account-dialog";
 import { CreateUserDialog } from "./create-user-dialog";
 import { usersColumns } from "./users-columns";
@@ -133,6 +139,31 @@ export function UsersManager() {
     (table.getColumn("status")?.getFilterValue() as string) ??
     statusFilterOptions[0];
   const selectedCount = table.getFilteredSelectedRowModel().rows.length;
+  const filtered =
+    Boolean(searchQuery) ||
+    roleFilter !== roleOptions[0] ||
+    statusFilter !== statusFilterOptions[0];
+  // An empty list is explained: no staff at all, or nothing matches the filters.
+  const emptyState = filtered ? (
+    <Empty className="p-6" role="status">
+      <EmptyHeader>
+        <EmptyTitle>No staff match these filters</EmptyTitle>
+        <EmptyDescription>
+          Change the search, role or status filter to see more people.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  ) : (
+    <Empty className="p-6" role="status">
+      <EmptyHeader>
+        <EmptyTitle>No staff yet</EmptyTitle>
+        <EmptyDescription>
+          Add the first person with Create user above, then give them a role.
+          Their details and roles appear here.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
 
   function setColumnSelectFilter(columnId: string, value: string | null) {
     table
@@ -146,14 +177,10 @@ export function UsersManager() {
   const loadFailed = queries.some((query) => query.isError);
   const loading = queries.some((query) => query.isPending);
 
-  if (accessDenied || loadFailed || loading) {
-    let message = "Loading user management…";
-    if (accessDenied) {
-      message =
-        "You do not have permission to manage users. Contact your administrator if you need access.";
-    } else if (loadFailed) {
-      message = "Unable to load user management. Please try again.";
-    }
+  if (accessDenied || loadFailed) {
+    const message = accessDenied
+      ? "You do not have permission to manage users. Contact your administrator if you need access."
+      : "Unable to load user management. Please try again.";
     return (
       <Card>
         <CardHeader>
@@ -162,7 +189,7 @@ export function UsersManager() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p role={loadFailed ? "alert" : "status"}>{message}</p>
+          <p role="alert">{message}</p>
           {loadFailed && !accessDenied && (
             <Button
               onClick={async () => {
@@ -173,6 +200,21 @@ export function UsersManager() {
               Try again
             </Button>
           )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h1>Users</h1>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TableSkeleton columns={5} label="Loading users" />
         </CardContent>
       </Card>
     );
@@ -287,7 +329,7 @@ export function UsersManager() {
           </Tabs>
         </div>
 
-        <UsersTable table={table} />
+        <UsersTable emptyState={emptyState} table={table} />
       </CardContent>
     </Card>
   );
