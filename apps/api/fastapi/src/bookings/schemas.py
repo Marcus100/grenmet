@@ -26,6 +26,9 @@ Slug = Annotated[str, Field(pattern=r"^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$")]
 Minutes = Annotated[int, Field(ge=0, le=1440)]
 Minor = Annotated[int, Field(ge=0, le=100_000_000)]
 Currency = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
+#: Path words of this domain's public routes that a business may not take as its
+#: slug: ``/bookings/public/businesses`` is the home page listing, not a storefront.
+LISTING_PATH_WORDS = frozenset({"businesses"})
 
 
 # --- caller's organisations -------------------------------------------------------
@@ -209,11 +212,51 @@ class BookingProfileUpdate(BaseModel):
             "it. Left out, the stored logo is kept."
         ),
     )
+    listed: bool = Field(
+        default=False,
+        description=(
+            "Show this business on the Barrels Bookings home page. Off by default. "
+            "Only an enabled business that is open for booking is listed. Left out, "
+            "the stored value is kept."
+        ),
+    )
+    category: str | None = Field(
+        default=None,
+        max_length=80,
+        description=(
+            "Short category for the home page, such as Hair or Nails; it is the "
+            "filter chip a visitor taps. Blank clears it. Left out, the stored value "
+            "is kept."
+        ),
+    )
+    short_description: str | None = Field(
+        default=None,
+        max_length=160,
+        description=(
+            "One line for the home page card. Blank clears it. Left out, the stored "
+            "value is kept."
+        ),
+    )
+    city: str | None = Field(
+        default=None,
+        max_length=80,
+        description=(
+            "Town or city for the home page card. Blank clears it. Left out, the "
+            "stored value is kept."
+        ),
+    )
 
     @field_validator("brand_color", mode="before")
     @classmethod
     def _brand_color(cls, value: object) -> str | None:
         return normalise_hex(value)
+
+    @field_validator("category", "short_description", "city", mode="before")
+    @classmethod
+    def _listing_text(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip() or None
+        return value
 
     @field_validator("contact_phone", mode="before")
     @classmethod
@@ -240,7 +283,7 @@ class BookingProfileUpdate(BaseModel):
     def _not_reserved(cls, value: str) -> str:
         # Platform reserved names (ADR-0043) cover the web app's top-level routes
         # (studio, signin, auth, api) and the /bookings/public path word.
-        if is_reserved(value):
+        if is_reserved(value) or value in LISTING_PATH_WORDS:
             raise ValueError("That booking address is reserved")
         return value
 
@@ -644,6 +687,38 @@ class BookingStorefront(BaseModel):
     )
     services: list[BookingPublicService]
     providers: list[BookingPublicProvider]
+
+
+class BookingPublicBusiness(BaseModel):
+    """One card on the Barrels Bookings home page. Public fields only: no contact
+    details, owner data or emails."""
+
+    slug: str = Field(description="The business's booking page is /<slug>.")
+    name: str
+    category: str | None
+    short_description: str | None
+    city: str | None
+    brand_color: str | None = Field(
+        description="The business's accent as `#rrggbb`, or null."
+    )
+    logo_url: str | None = Field(
+        description=(
+            "Public https address of the logo, or null when there is no finished logo "
+            "upload or no public API address is configured. Load it as an image."
+        ),
+    )
+
+
+class BookingPublicBusinessPage(BaseModel):
+    items: list[BookingPublicBusiness]
+    page: int = Field(ge=1)
+    has_more: bool = Field(description="True when a later page holds more businesses.")
+    categories: list[str] = Field(
+        description=(
+            "The distinct categories of every listed business, case folded, for the "
+            "filter chips. Not narrowed by the search."
+        ),
+    )
 
 
 class BookingSlot(BaseModel):

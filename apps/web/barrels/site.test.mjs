@@ -319,8 +319,40 @@ test("static modules share the reader policy and CSP permits only the required e
     ),
     "connect-src allows the Barrels API origin"
   );
+  // GA4 measurement hits (/g/collect) go to this host; without it the homepage
+  // analytics are blocked by the policy.
+  assert.ok(
+    allowsOrigin(
+      directiveSources(csp, "connect-src"),
+      "https://www.google.com"
+    ),
+    "connect-src allows the GA4 measurement host"
+  );
   assert.ok(csp.includes("form-action 'none'"));
   assert.ok(!csp.includes("unsafe-inline"));
+});
+
+test("CSP allows the cookieless Cloudflare Web Analytics beacon the edge injects", () => {
+  const config = JSON.parse(
+    readFileSync(new URL("./vercel.json", import.meta.url), "utf8")
+  );
+  const csp = config.headers[0].headers.find(
+    (header) => header.key === "Content-Security-Policy"
+  ).value;
+  assert.ok(
+    allowsOrigin(
+      directiveSources(csp, "script-src"),
+      "https://static.cloudflareinsights.com"
+    ),
+    "script-src allows the beacon script"
+  );
+  assert.ok(
+    allowsOrigin(
+      directiveSources(csp, "connect-src"),
+      "https://cloudflareinsights.com"
+    ),
+    "connect-src allows the beacon endpoint"
+  );
 });
 
 test("CSP allows Cloudflare Turnstile for scripts, frames and connections only", () => {

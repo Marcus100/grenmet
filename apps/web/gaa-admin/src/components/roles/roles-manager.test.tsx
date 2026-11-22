@@ -3,7 +3,7 @@ import {
   type UserRoleAssignmentPublic,
 } from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
@@ -133,21 +133,23 @@ describe("RolesManager", () => {
   it("lists roles with type badges and holder counts; filters by search", async () => {
     renderRoles();
 
-    expect(await screen.findByText("staff")).toBeInTheDocument();
-    expect(screen.getByText("hr-admin")).toBeInTheDocument();
-    expect(screen.getByText("duty-officer")).toBeInTheDocument();
+    expect((await screen.findAllByText("staff")).at(0)).toBeInTheDocument();
+    expect(screen.getAllByText("hr-admin").at(0)).toBeInTheDocument();
+    expect(screen.getAllByText("duty-officer").at(0)).toBeInTheDocument();
     expect(
-      screen.getByText("Baseline access for all employees")
+      screen.getAllByText("Baseline access for all employees").at(0)
     ).toBeInTheDocument();
 
     // Type is derived, not stored: two system roles, one custom.
-    expect(screen.getAllByText("System")).toHaveLength(2);
-    expect(screen.getAllByText("Custom")).toHaveLength(1);
+    // Counted in the table only: the phone card list repeats each badge.
+    const grid = within(screen.getByRole("table"));
+    expect(grid.getAllByText("System")).toHaveLength(2);
+    expect(grid.getAllByText("Custom")).toHaveLength(1);
 
     fireEvent.change(screen.getByLabelText("Search roles"), {
       target: { value: "duty" },
     });
-    expect(screen.getByText("duty-officer")).toBeInTheDocument();
+    expect(screen.getAllByText("duty-officer").at(0)).toBeInTheDocument();
     expect(screen.queryByText("hr-admin")).not.toBeInTheDocument();
   });
 

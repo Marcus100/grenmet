@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { PendingInvitations } from "./pending-superuser-invitations";
 
@@ -10,6 +10,7 @@ vi.mock("@/app/(console)/superusers/actions", () => ({
 const EXPIRES = /^Expires /u;
 const TOKEN_WORD = /token/iu;
 const UNDONE = /cannot be undone/u;
+const EXPIRY_HINT = /expire after 24 hours/u;
 
 const INVITATION = {
   id: "3f2b8c1e-9a4d-4e7f-8b2a-1c2d3e4f5a6b",
@@ -21,9 +22,11 @@ const INVITATION = {
 };
 
 describe("PendingInvitations", () => {
-  it("shows the empty state instead of hiding the section", () => {
+  it("explains the empty state instead of hiding the section", () => {
     render(<PendingInvitations invitations={[]} />);
     expect(screen.getByText("No pending invitations")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByText(EXPIRY_HINT)).toBeInTheDocument();
   });
 
   it("lists each open invitation with its expiry", () => {
@@ -32,13 +35,24 @@ describe("PendingInvitations", () => {
     expect(screen.getByText(EXPIRES)).toBeInTheDocument();
   });
 
-  it("asks for confirmation before revoking, in the same form as API keys", () => {
+  it("does not revoke on the first click: the shared dialog asks first", () => {
     render(<PendingInvitations invitations={[INVITATION]} />);
-    expect(screen.getByText("Revoke")).toBeInTheDocument();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
     expect(screen.getByText(UNDONE)).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Confirm revoke" })
+      screen.getByRole("button", { name: "Revoke invitation" })
     ).toBeInTheDocument();
+  });
+
+  it("sends the invitation id as a hidden field of the confirm form", () => {
+    render(<PendingInvitations invitations={[INVITATION]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+    const hidden = document.querySelector<HTMLInputElement>(
+      'input[name="invitation_id"]'
+    );
+    expect(hidden?.value).toBe(INVITATION.id);
   });
 
   it("never shows a token", () => {

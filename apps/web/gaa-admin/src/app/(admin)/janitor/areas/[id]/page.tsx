@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Panel } from "@/app/(admin)/_components/panel";
+import { NeedsAccess } from "@/components/access/needs-access";
 import { AreaEditButton, TaskButton } from "@/components/janitorial/area-forms";
 import {
   AppaBadge,
@@ -53,7 +54,14 @@ export default async function JanitorAreaPage({
   if (!(Number.isSafeInteger(areaId) && areaId > 0)) notFound();
   // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
   const access = await getJanitorialAccess();
-  if (!access.canView) notFound();
+  if (!access.canView) {
+    return (
+      <NeedsAccess
+        ask="Ask a Janitorial administrator for a janitorial role. Field staff use the janitor app."
+        module="Janitor"
+      />
+    );
+  }
   const { buildings } = await getJanitorialCatalogue();
   const found = findArea(buildings, areaId);
   if (!found) notFound();

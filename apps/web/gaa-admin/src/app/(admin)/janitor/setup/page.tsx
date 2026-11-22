@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { NeedsAccess } from "@/components/access/needs-access";
 import { JanitorHeader, SiteSwitcher } from "@/components/janitorial/portal";
 import { SetupManager } from "@/components/janitorial/setup-manager";
 import {
@@ -24,7 +25,14 @@ export default async function JanitorSetupPage({
   const site = siteParam((await searchParams).site);
   // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
   const access = await getJanitorialAccess();
-  if (!(access.canView && access.canManageCatalogue)) notFound();
+  if (!(access.canView && access.canManageCatalogue)) {
+    return (
+      <NeedsAccess
+        ask="Setup changes the buildings, areas and tasks. Ask a Janitorial administrator for the catalogue role."
+        module="Janitor setup"
+      />
+    );
+  }
   const catalogue = await getJanitorialCatalogue(site);
   const current = catalogue.sites.find((value) => value.code === site);
   if (!current) notFound();

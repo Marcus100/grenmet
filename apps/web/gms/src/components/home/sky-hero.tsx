@@ -54,8 +54,10 @@ function stripTime(
   }
   return {
     label: "Last",
+    // An old reading shows its full short date ("Sun 1 Nov"), not just the
+    // weekday, so a reading from weeks ago is not mistaken for today's.
     time: isOtherGrenadaDay(observedAt, now)
-      ? localWeekday(observedAt)
+      ? `${localWeekday(observedAt)} ${localDay(observedAt)}`
       : localTime(observedAt),
   };
 }

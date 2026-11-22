@@ -38,7 +38,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton render={<Link href="/" />} size="lg">
+            <SidebarMenuButton
+              aria-label="GAA Admin home"
+              render={<Link href="/" />}
+              size="lg"
+            >
               <span className="hidden items-center group-data-[collapsible=icon]:flex">
                 <Logo className="size-7 shrink-0" variant="icon" />
               </span>

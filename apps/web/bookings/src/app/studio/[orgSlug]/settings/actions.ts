@@ -311,6 +311,10 @@ export async function saveProfileAction(
       manage_url_template: input.manageUrlTemplate || null,
       brand_color: brandColor,
       logo_file_id: logoFileId,
+      listed: formData.get("listed") === "on",
+      category: field(formData, "category").trim() || null,
+      short_description: field(formData, "shortDescription").trim() || null,
+      city: field(formData, "city").trim() || null,
       ...contacts.body,
     });
   } catch (error) {
