@@ -601,10 +601,14 @@ export { paymentsAdminGetReconciliationCsv } from "./paymentsAdminGetReconciliat
 export { paymentsAdminListBalances } from "./paymentsAdminListBalances.js";
 export { paymentsAdminListIntents } from "./paymentsAdminListIntents.js";
 export { paymentsAdminListLedger } from "./paymentsAdminListLedger.js";
+export { paymentsAdminSetPlatformFee } from "./paymentsAdminSetPlatformFee.js";
+export { paymentsCreateConnectOnboardingLink } from "./paymentsCreateConnectOnboardingLink.js";
 export { paymentsCreateIntent } from "./paymentsCreateIntent.js";
 export { paymentsCreateRefund } from "./paymentsCreateRefund.js";
 export { paymentsGetBalance } from "./paymentsGetBalance.js";
+export { paymentsGetConnectStatus } from "./paymentsGetConnectStatus.js";
 export { paymentsGetIntent } from "./paymentsGetIntent.js";
+export { paymentsListDisputes } from "./paymentsListDisputes.js";
 export { paymentsListIntents } from "./paymentsListIntents.js";
 export { paymentsRecordManualPayment } from "./paymentsRecordManualPayment.js";
 export { printixAddMember } from "./printixAddMember.js";

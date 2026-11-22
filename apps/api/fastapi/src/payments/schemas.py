@@ -214,3 +214,73 @@ class PaymentReconciliationPublic(BaseModel):
     end_date: date
     generated_at: UtcDateTime
     rows: list[PaymentReconciliationRowPublic]
+
+
+# --- Stripe Connect (ADR-0027, New Zealand, test mode) ---------------------------
+
+
+class ConnectStatusPublic(BaseModel):
+    """Where the business's Stripe account stands."""
+
+    connected: bool = Field(description="False until onboarding has started.")
+    connected_account_id: str | None = Field(
+        description="The Stripe account id (not a key)."
+    )
+    charges_enabled: bool
+    payouts_enabled: bool
+    details_submitted: bool
+    requirements_due: list[str] = Field(
+        description="What Stripe still needs from the business (field names)."
+    )
+    disabled_reason: str | None
+    platform_fee_bps: int = Field(
+        description="The Barrels platform fee on each card charge, in basis points."
+    )
+    synced: bool = Field(
+        description=(
+            "True when Stripe was read just now; False when Stripe could not be read "
+            "and the last stored state is shown."
+        )
+    )
+
+
+class ConnectOnboardingLinkPublic(BaseModel):
+    url: str = Field(
+        description="Where the business completes Stripe onboarding. Give it only to the signed-in admin."
+    )
+
+
+class ConnectPlatformFeeUpdate(BaseModel):
+    platform_fee_bps: int = Field(
+        ge=0,
+        le=10000,
+        description="The Barrels fee in basis points (100 = 1%). Capped by the platform setting; New Zealand only.",
+    )
+
+
+class ConnectFeePublic(BaseModel):
+    organisation_id: str
+    platform_fee_bps: int
+
+
+class DisputePublic(BaseModel):
+    id: uuid.UUID
+    intent_id: uuid.UUID | None = Field(
+        description="The payment it disputes, when Barrels could match it."
+    )
+    provider_dispute_ref: str = Field(description="The dispute id in Stripe.")
+    amount_minor: int
+    currency: str
+    status: str
+    reason: str | None
+    evidence_due_by: UtcDateTime | None = Field(
+        description="When the business must answer by, as Stripe states it."
+    )
+    created_at: UtcDateTime
+
+
+class DisputeListPublic(BaseModel):
+    data: list[DisputePublic]
+    count: int
+    page: int
+    size: int

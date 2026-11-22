@@ -47,3 +47,19 @@ class InvalidCallbackError(AppException):
 
     def __init__(self) -> None:
         super().__init__("Invalid callback", status.HTTP_400_BAD_REQUEST)
+
+
+class ConnectNotReadyError(PaymentsConflictError):
+    """The business has not finished Stripe onboarding, so it cannot take card payments."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Card payments are not set up yet: finish Stripe onboarding first"
+        )
+
+
+class ConnectAccountNotFoundError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            "This organisation has no Stripe account yet", status.HTTP_404_NOT_FOUND
+        )

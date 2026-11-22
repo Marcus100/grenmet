@@ -1200,7 +1200,15 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   values owned by another domain, `bookings.deposit` and `events.order`, with 422);
   signed provider callbacks at
   `POST /payments/public/webhooks/{provider}` (idempotent through the ledger, hidden
-  from OpenAPI); superuser reconciliation, ledger, balances and payouts under
+  from OpenAPI). Stripe Connect for New Zealand businesses (ADR-0027, test mode; the
+  business is the seller, charges are direct charges on its connected account):
+  `GET /payments/org/connect` (status; reads Stripe, `synced` false when it could not),
+  `POST /payments/org/connect/onboarding-links` (creates the account once, returns the
+  hosted onboarding URL), `GET /payments/org/disputes` (disputes for the business; Barrels
+  never answers them), and the Connect endpoint `POST /payments/public/webhooks/stripe-connect`
+  (hidden; its own secret, events from connected accounts). Org routes need
+  `payments.connect.manage` (owners and admins hold it). `POST /payments/admin/connect/accounts/{organisation_id}/platform-fee`
+  (superuser, `payments.connect.fees`) sets Barrels' fee in basis points, New Zealand only, at most the platform cap. Superuser reconciliation, ledger, balances and payouts under
   `/payments/admin/...` (each ledger entry also carries `source_type`, `source_id` and a `description` label, null for older payments), including `reconciliation.csv`. The ledger is append-only. A payout
   needs a client-generated `request_id`: repeating it returns the first entry (no double
   payout), and reusing it for different details is 409.

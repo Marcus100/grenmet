@@ -30,6 +30,7 @@ from src.webhooks_out import service as webhook_service
 
 from . import schemas, transitions
 from .config import payments_settings
+from .connect import accounts as connect_accounts
 from .exceptions import (
     IntentNotFoundError,
     PaymentsConflictError,
@@ -281,11 +282,23 @@ async def create_intent(
     if existing is not None:
         return await _replay(session, existing, payload)
 
+    # Stripe Connect (ADR-0027): a business with a connected account is charged on
+    # it, with its platform fee. A business without one keeps the platform charge.
+    route = None
+    if payload.provider is ProviderKey.STRIPE:
+        route = await connect_accounts.charge_route(
+            session,
+            organisation_id=organisation_id,
+            amount_minor=payload.amount_minor,
+            currency=payload.currency,
+        )
     intent = Intent(
         organisation_id=organisation_id,
         amount_minor=payload.amount_minor,
         currency=payload.currency,
         provider=payload.provider.value,
+        connected_account_id=route.connected_account_id if route else None,
+        application_fee_minor=route.application_fee_minor if route else None,
         source_type=payload.source_type,
         source_id=payload.source_id,
         customer_email_hash=hash_email(payload.customer_email)
@@ -811,6 +824,21 @@ async def process_callback(
     """
     provider = registry.get_provider(provider_key)
     event = provider.verify_callback(headers, body)
+    return await apply_event(session, event)
+
+
+async def apply_event(
+    session: AsyncSession,
+    event: ProviderEvent,
+    *,
+    connected_account: str | None = None,
+) -> str:
+    """Apply a verified provider event (the body of ``process_callback``).
+
+    ``connected_account`` is the Stripe connected account the event came from (the
+    Connect endpoint), or None for the platform's own endpoint. A payment on a
+    connected account is changed only by that account's events, and a platform event
+    never changes one (ADR-0027, Connect)."""
     if event.kind is EventKind.IGNORED:
         return "ignored"
 
@@ -819,6 +847,12 @@ async def process_callback(
         logger.warning(
             "callback for an unknown payment",
             extra={"provider": event.provider, "event_id": event.event_id},
+        )
+        return "ignored"
+    if intent.connected_account_id != connected_account:
+        logger.warning(
+            "provider event for another account ignored",
+            extra={"intent_id": str(intent.id), "event_id": event.event_id},
         )
         return "ignored"
     # Lock the row so concurrent deliveries of one event are serialised.

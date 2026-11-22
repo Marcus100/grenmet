@@ -34,8 +34,11 @@ Stripe runs in **test mode only**. `providers/stripe.py` refuses (503) any `PAYM
 ## Settings
 `PAYMENTS_STRIPE_SECRET_KEY`, `PAYMENTS_STRIPE_WEBHOOK_SECRET`, `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` (all unset by default = Stripe off), `PAYMENTS_STRIPE_API_BASE`, `PAYMENTS_WEBHOOK_TOLERANCE_SECONDS`, `PAYMENTS_REQUEST_TIMEOUT_SECONDS` (`config.py`).
 
+## Stripe Connect, New Zealand businesses (`connect/`, test mode)
+The business is the seller: a card payment is a direct charge on its connected account (`Stripe-Account`), with an optional Barrels platform fee (`application_fee_amount`, NZD only, capped by `PAYMENTS_CONNECT_PLATFORM_FEE_CAP_BPS`). An organisation without a connected account keeps the platform charge. Only the Stripe account id is stored (`payments.connected_account`). Disputes are recorded for the business (`payments.dispute`, never a ledger entry). Connect webhooks use `PAYMENTS_STRIPE_CONNECT_WEBHOOK_SECRET` at `public/webhooks/stripe-connect`; `apply_event(connected_account=)` keeps each payment to its own account's events. Routes need `payments.connect.manage` (org) or `payments.connect.fees` (superuser fee). Settings and the Dashboard steps: `docs/env.md`; design: ADR-0027 and the Connect tests in `tests/payments/test_connect.py`.
+
 ## Known gaps
-No audit-log registration for payments tables yet (the ledger itself is the record). Stripe Connect is deferred (ADR-0027, option 3).
+No audit-log registration for payments tables yet (the ledger itself is the record). Connect disputes are recorded at `charge.dispute.created` only; their status changes (`charge.dispute.updated`, `closed`) are not yet applied, so the business sees the status Stripe reported first.
 
 - **Registered return builders:** `bookings.deposit` (bookings app `/checkout/return`, `src/bookings/deposit_payments.py`). Others fall back to `PAYMENTS_STRIPE_SUCCESS_URL` / `PAYMENTS_STRIPE_CANCEL_URL`.
 - **Hosts for return addresses:** a registered return URL whose host contains `%` or non-ASCII characters is refused outside the local environment (`_is_local_host`), as are loopback, unspecified, private and link-local addresses and localhost names. Non-ASCII domain names must be sent in their punycode form.
