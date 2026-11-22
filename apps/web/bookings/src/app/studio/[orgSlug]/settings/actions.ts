@@ -12,13 +12,16 @@ import { type BookingPaymentMode, ResponseError } from "@barrelsgd/api-client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { isLogoFileId, LOGO_MAX_BYTES, LOGO_TYPES } from "@/lib/brand-logo";
 import { checkContacts, contactFieldErrors } from "@/lib/business-contact";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import { parseHours, parseMoney } from "@/lib/settings-view";
 import type { ActionState, ProfileState } from "@/lib/studio-action-state";
 import {
+  completeLogoUpload,
   createException,
+  createLogoUpload,
   createProvider,
   createService,
   deleteException,
@@ -30,6 +33,7 @@ import {
   updateService,
 } from "@/lib/studio-api";
 import {
+  logoUploadFailure,
   SETTINGS_ADMIN_REQUIRED,
   type StudioFailure,
   settingsFailure,
@@ -51,6 +55,9 @@ const MAX_MINOR = 100_000_000;
 const WHOLE = /^\d+$/u;
 
 const CONTACT_INVALID = "Check the highlighted contact options.";
+const BRAND_INVALID = "Use a colour like #0b63ee: a # and six hex digits.";
+const LOGO_INVALID = "That logo is not a valid upload. Upload it again.";
+const HEX_COLOUR = /^#[0-9a-fA-F]{6}$/u;
 
 const NOT_FOUND: StudioFailure = {
   kind: "not_found",
@@ -213,6 +220,27 @@ function paymentAtBooking(formData: FormData): BookingPaymentMode {
     : "deposit";
 }
 
+/**
+ * The brand colour: empty clears it, else six-digit hex saved in lower case. The
+ * API keeps any valid colour; mail falls back to navy when it is too pale.
+ */
+function brandColourField(text: string): string | null | undefined {
+  const value = text.trim();
+  if (value === "") {
+    return null;
+  }
+  return HEX_COLOUR.test(value) ? value.toLowerCase() : undefined;
+}
+
+/** The logo's file id: empty clears it, else it must be a UUID. */
+function logoFileField(text: string): string | null | undefined {
+  const value = text.trim();
+  if (value === "") {
+    return null;
+  }
+  return isLogoFileId(value) ? value : undefined;
+}
+
 /** The minor-unit amount in a money field; empty means 0. */
 function moneyField(text: string): number | null {
   return text.trim() === "" ? 0 : parseMoney(text);
@@ -243,6 +271,14 @@ export async function saveProfileAction(
     return invalid(parsed.error.issues[0]?.message ?? "Check the form.");
   }
   const input = parsed.data;
+  const brandColor = brandColourField(field(formData, "brandColor"));
+  if (brandColor === undefined) {
+    return invalid(BRAND_INVALID);
+  }
+  const logoFileId = logoFileField(field(formData, "logoFileId"));
+  if (logoFileId === undefined) {
+    return invalid(LOGO_INVALID);
+  }
   const contacts = checkContacts({
     contactPhone: field(formData, "contactPhone"),
     contactWhatsapp: field(formData, "contactWhatsapp"),
@@ -273,6 +309,8 @@ export async function saveProfileAction(
       payment_at_booking: paymentAtBooking(formData),
       notify_email: input.notifyEmail || null,
       manage_url_template: input.manageUrlTemplate || null,
+      brand_color: brandColor,
+      logo_file_id: logoFileId,
       ...contacts.body,
     });
   } catch (error) {
@@ -286,6 +324,99 @@ export async function saveProfileAction(
     return { ...state, message: CONTACT_INVALID, fields };
   }
   return saved(orgSlug, "Business profile saved.");
+}
+
+export interface LogoTarget {
+  headers: Record<string, string>;
+  id: string;
+  url: string;
+}
+
+export type LogoStart =
+  | { ok: true; target: LogoTarget }
+  | { ok: false; message: string };
+
+export type LogoFinish =
+  | { ok: true; fileId: string }
+  | { ok: false; message: string };
+
+const LOGO_UPLOAD = z.object({
+  contentType: z
+    .string()
+    .refine((type) => LOGO_TYPES.includes(type), "Unsupported image type"),
+  sizeBytes: z.number().int().positive().max(LOGO_MAX_BYTES),
+});
+
+/** Step 1 of a logo upload: the presigned PUT. The file itself goes from the browser. */
+export async function startLogoUploadAction(
+  orgSlug: string,
+  upload: { contentType: string; sizeBytes: number }
+): Promise<LogoStart> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  const parsed = LOGO_UPLOAD.safeParse(upload);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: "Choose a JPEG, PNG or WebP image up to 2 MB.",
+    };
+  }
+  try {
+    const ticket = await createLogoUpload(
+      auth.accessToken,
+      auth.organisationId,
+      {
+        content_type: parsed.data.contentType,
+        size_bytes: parsed.data.sizeBytes,
+      }
+    );
+    return {
+      ok: true,
+      target: { id: ticket.id, url: ticket.url, headers: ticket.headers },
+    };
+  } catch (error) {
+    return { ok: false, message: logoFailed(orgSlug, error) };
+  }
+}
+
+/** Step 3 of a logo upload: the API confirms the file and returns its id. */
+export async function finishLogoUploadAction(
+  orgSlug: string,
+  uploadId: string
+): Promise<LogoFinish> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  if (!isUuid(uploadId)) {
+    return { ok: false, message: "That upload is not valid. Upload it again." };
+  }
+  try {
+    const stored = await completeLogoUpload(
+      auth.accessToken,
+      auth.organisationId,
+      uploadId
+    );
+    return { ok: true, fileId: stored.id };
+  } catch (error) {
+    return { ok: false, message: logoFailed(orgSlug, error) };
+  }
+}
+
+/** The refusal a logo step shows when the session or role check fails first. */
+function refusalMessage(state: ActionState): string {
+  return state.status === "error" ? state.message : "Try again in a moment.";
+}
+
+/** A logo step's failure as one line for the form; sign-in and faults as usual. */
+function logoFailed(orgSlug: string, error: unknown): string {
+  // `failed` ends a lapsed session (redirect) and reports faults; it is called
+  // for those effects, and the upload's own wording is shown.
+  failed(orgSlug, error);
+  const failure = logoUploadFailure(error);
+  return `${failure.message} ${failure.nextStep}`;
 }
 
 export async function saveServiceAction(

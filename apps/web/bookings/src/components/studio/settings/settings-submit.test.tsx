@@ -2,8 +2,10 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 const actions = vi.hoisted(() => ({
+  finishLogoUploadAction: vi.fn(),
   saveHoursAction: vi.fn(),
   saveProfileAction: vi.fn(),
+  startLogoUploadAction: vi.fn(),
   saveProviderAction: vi.fn(),
   saveServiceAction: vi.fn(),
 }));

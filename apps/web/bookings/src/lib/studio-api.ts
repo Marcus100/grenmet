@@ -52,6 +52,10 @@ import {
   createClient,
   type ManualMethod,
   ResponseError,
+  type StoredFile,
+  storageCompleteUpload,
+  storageCreateUpload,
+  type UploadTicket,
 } from "@barrelsgd/api-client";
 import { cache } from "react";
 import { getAuthConfig } from "@/lib/auth-config";
@@ -60,6 +64,7 @@ import { DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
 /** Used only when the business has no profile yet; matches the Settings page. */
 const DEFAULT_CURRENCY = "XCD";
+const LOGO_PURPOSE = "booking-logo";
 const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 const TIMEOUT_MS = 10_000;
 
@@ -377,6 +382,34 @@ export function saveProfile(
   return bookingsUpsertProfile({
     client: studioClient(accessToken, organisationId),
     body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Step 1 of a logo upload: a presigned PUT for a `booking-logo` of this business. */
+export function createLogoUpload(
+  accessToken: string,
+  organisationId: string,
+  body: { content_type: string; size_bytes: number }
+): Promise<UploadTicket> {
+  return storageCreateUpload({
+    client: studioClient(accessToken, organisationId),
+    body: { app: "bookings", purpose: LOGO_PURPOSE, ...body },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Step 3 of a logo upload: the API confirms the bytes arrived; returns the file. */
+export function completeLogoUpload(
+  accessToken: string,
+  organisationId: string,
+  uploadId: string
+): Promise<StoredFile> {
+  return storageCompleteUpload({
+    client: studioClient(accessToken, organisationId),
+    path: { upload_id: uploadId },
   })
     .unwrap()
     .catch(redactRequest);
