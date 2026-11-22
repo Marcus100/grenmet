@@ -28,6 +28,7 @@ export type SettlementSummary = {
   claimed: number;
   admitted: number;
   cancelled: number;
+  refunded: number;
   cash_collected_minor: number;
   cash_expected_minor: number;
   cash_counted_minor: number;

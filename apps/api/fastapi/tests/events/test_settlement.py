@@ -203,6 +203,30 @@ async def test_a_balanced_till_raises_no_discrepancy(
 
 
 @pytest.mark.asyncio
+async def test_summary_counts_refunded_tickets_apart_from_issued(
+    events_db: SessionFactory, db_async: AsyncSession
+):
+    """A refunded ticket stays in `issued` (unchanged) and is also counted as `refunded`."""
+    staff, event = await cash_event(events_db, db_async)
+    await open_till(staff, event, 0)
+    sold = await sell(staff, event, 2, 5000)
+    assert sold.status_code == 201, sold.text
+    ticket_id = sold.json()["tickets"][0]["id"]
+    async with client_with_real_roles(staff) as client:
+        refunded = await client.post(
+            f"{BASE}/manage/{event['listing']}/tickets/{ticket_id}/refund",
+            json={"amount_minor": 2500, "method": "cash"},
+        )
+        assert refunded.status_code == 201, refunded.text
+        summary = (await client.get(f"{BASE}/manage/settlement")).json()
+    row = summary["listings"][0]
+    assert row["issued"] == 2
+    assert row["claimed"] == 1
+    assert row["refunded"] == 1
+    assert row["cancelled"] == 0
+
+
+@pytest.mark.asyncio
 async def test_csv_export_matches_the_report_and_guards_formulas(
     events_db: SessionFactory, db_async: AsyncSession
 ):

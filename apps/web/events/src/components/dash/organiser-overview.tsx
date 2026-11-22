@@ -65,17 +65,23 @@ export function overviewOrder(
   return [...upcoming, ...ended];
 }
 
-/** Totals across the ticketed events' settlement summaries (no online revenue here). */
+/**
+ * Totals across the ticketed events' settlement summaries (no online revenue
+ * here). `active` is issued minus refunded: a refunded ticket is no longer a
+ * sale. Cancelled tickets are still in `active`; the settlement page has them.
+ */
 export function salesTotals(rows: readonly SettlementSummary[]) {
   let issued = 0;
+  let refunded = 0;
   let admitted = 0;
   let cashMinor = 0;
   for (const row of rows) {
     issued += row.issued;
+    refunded += row.refunded;
     admitted += row.admitted;
     cashMinor += row.cashCollectedMinor;
   }
-  return { admitted, cashMinor, issued };
+  return { active: issued - refunded, admitted, cashMinor, issued, refunded };
 }
 
 const RECENT_LIMIT = 5;
@@ -83,9 +89,11 @@ const RECENT_LIMIT = 5;
 function CountTile({
   label,
   value,
+  detail,
 }: {
   label: string;
   value: number | string;
+  detail?: string;
 }) {
   return (
     <div className="border-border bg-card rounded-2xl border p-4">
@@ -93,6 +101,11 @@ function CountTile({
       <p className="text-heading-base mt-1 font-semibold tabular-nums">
         {value}
       </p>
+      {detail ? (
+        <p className="text-caption text-muted-foreground mt-1 tabular-nums">
+          {detail}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -170,7 +183,11 @@ function SalesPanel({ rows }: { rows: readonly SettlementSummary[] }) {
       ) : (
         <>
           <div className="grid grid-cols-3 gap-3">
-            <CountTile label="Tickets issued" value={totals.issued} />
+            <CountTile
+              detail={`${totals.issued} issued, ${totals.refunded} refunded`}
+              label="Tickets active"
+              value={totals.active}
+            />
             <CountTile label="Admitted" value={totals.admitted} />
             <CountTile
               label="Cash at the till"

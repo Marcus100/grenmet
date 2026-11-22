@@ -62,6 +62,7 @@ function summary(overrides: Partial<SettlementSummary>): SettlementSummary {
   return {
     admitted: 0,
     cancelled: 0,
+    refunded: 0,
     cashCollectedMinor: 0,
     cashCountedMinor: 0,
     cashExpectedMinor: 0,
@@ -130,17 +131,34 @@ describe("overviewOrder", () => {
 });
 
 describe("salesTotals", () => {
-  it("adds issued, admitted and cash across the ticketed events", () => {
+  it("adds issued, refunded, admitted and cash across the ticketed events", () => {
     expect(
       salesTotals([
-        summary({ issued: 40, admitted: 31, cashCollectedMinor: 15_000 }),
+        summary({
+          issued: 40,
+          refunded: 4,
+          admitted: 31,
+          cashCollectedMinor: 15_000,
+        }),
         summary({ issued: 10, admitted: 2, cashCollectedMinor: 2500 }),
       ])
-    ).toEqual({ admitted: 33, cashMinor: 17_500, issued: 50 });
+    ).toEqual({
+      active: 46,
+      admitted: 33,
+      cashMinor: 17_500,
+      issued: 50,
+      refunded: 4,
+    });
   });
 
   it("is all zeros with no ticketed events", () => {
-    expect(salesTotals([])).toEqual({ admitted: 0, cashMinor: 0, issued: 0 });
+    expect(salesTotals([])).toEqual({
+      active: 0,
+      admitted: 0,
+      cashMinor: 0,
+      issued: 0,
+      refunded: 0,
+    });
   });
 });
 
@@ -154,6 +172,7 @@ describe("OrganiserOverview sales panel", () => {
         settlement={[
           summary({
             issued: 40,
+            refunded: 4,
             admitted: 31,
             cashCollectedMinor: 15_000,
             listingId: "evt-a",
@@ -175,8 +194,10 @@ describe("OrganiserOverview sales panel", () => {
       .closest("section");
     expect(panel).not.toBeNull();
     const scoped = within(panel as HTMLElement);
-    expect(scoped.getByText("Tickets issued")).toBeInTheDocument();
-    expect(scoped.getByText("50")).toBeInTheDocument();
+    expect(scoped.getByText("Tickets active")).toBeInTheDocument();
+    expect(scoped.getByText("46")).toBeInTheDocument();
+    expect(scoped.getByText("50 issued, 4 refunded")).toBeInTheDocument();
+    expect(scoped.queryByText("Tickets issued")).toBeNull();
     expect(scoped.getByText("33")).toBeInTheDocument();
     expect(scoped.getByText("EC$175.00")).toBeInTheDocument();
     expect(
@@ -195,7 +216,7 @@ describe("OrganiserOverview sales panel", () => {
       />
     );
     expect(screen.getByText(NO_SALES_LABEL)).toBeInTheDocument();
-    expect(screen.queryByText("Tickets issued")).toBeNull();
+    expect(screen.queryByText("Tickets active")).toBeNull();
   });
 });
 
