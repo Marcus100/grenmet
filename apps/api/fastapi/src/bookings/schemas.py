@@ -5,6 +5,7 @@ from typing import Annotated, Self
 
 from pydantic import EmailStr, Field, RootModel, field_validator, model_validator
 
+from src.email_colour import normalise_hex
 from src.models import BaseModel, UtcDateTime
 from src.organisations.models import MembershipRole
 from src.payments.schemas import ManualPaymentCreate
@@ -180,6 +181,28 @@ class BookingProfileUpdate(BaseModel):
             "is kept."
         ),
     )
+    brand_color: str | None = Field(
+        default=None,
+        max_length=7,
+        description=(
+            "The business's accent colour in its emails, as `#rrggbb`. Blank clears "
+            "it. Mail uses the Barrels navy instead when the colour is too pale for "
+            "white text. Left out, the stored value is kept."
+        ),
+    )
+    logo_file_id: uuid.UUID | None = Field(
+        default=None,
+        description=(
+            "A completed `booking-logo` upload of this business (see "
+            "`POST /storage/uploads`), shown at the top of its emails. Null clears "
+            "it. Left out, the stored logo is kept."
+        ),
+    )
+
+    @field_validator("brand_color", mode="before")
+    @classmethod
+    def _brand_color(cls, value: object) -> str | None:
+        return normalise_hex(value)
 
     @field_validator("contact_phone", mode="before")
     @classmethod

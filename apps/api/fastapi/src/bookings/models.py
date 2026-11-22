@@ -82,6 +82,10 @@ class BookingProfile(Base):
             f"payment_at_booking IN ({_values(BookingPaymentMode)})",
             name="payment_at_booking",
         ),
+        sa.CheckConstraint(
+            "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
+            name="brand_color",
+        ),
         SCHEMA,
     )
 
@@ -110,6 +114,11 @@ class BookingProfile(Base):
     contact_whatsapp: Mapped[str | None] = mapped_column(String(15))
     contact_instagram: Mapped[str | None] = mapped_column(String(30))
     contact_email: Mapped[str | None] = mapped_column(String(254))
+    #: The business's accent in its emails: ``#rrggbb``, lower case. Mail falls back to
+    #: the Barrels navy when it fails 4.5:1 against white (``src/email_colour.py``).
+    brand_color: Mapped[str | None] = mapped_column(String(7))
+    #: A completed ``booking-logo`` upload (``src/storage``); no cross-database FK.
+    logo_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
     #: ``BookingPaymentMode``: what an online booking pays when it is made.
     payment_at_booking: Mapped[str] = mapped_column(
         String(20),

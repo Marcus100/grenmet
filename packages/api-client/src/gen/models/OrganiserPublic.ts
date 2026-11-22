@@ -16,6 +16,7 @@ export type OrganiserPublic = {
   verified: boolean;
   organisation_id?: string | null;
   logo_file_id?: string | null;
+  brand_color?: string | null;
   follower_count: number;
   viewer_following?: boolean | null;
 };

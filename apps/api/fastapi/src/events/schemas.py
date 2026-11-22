@@ -12,6 +12,7 @@ from pydantic import (
     model_validator,
 )
 
+from src.email_colour import normalise_hex
 from src.models import BaseModel, UtcDateTime
 from src.payments.models import IntentStatus, ProviderKey
 
@@ -126,6 +127,8 @@ class OrganiserPublic(BaseModel):
     organisation_id: str | None = None
     #: Stored logo; render through the public storage redirect.
     logo_file_id: uuid.UUID | None = None
+    #: Accent colour for the organiser's mail (`#rrggbb`), null for the Barrels navy.
+    brand_color: str | None = None
     follower_count: int
     viewer_following: bool | None = None
 
@@ -445,7 +448,8 @@ class OrganiserProfileUpdate(BaseModel):
     """Partial edit of an approved organiser's public profile: send only what changes.
 
     The slug is not editable here, so an unknown field (such as ``slug``) is a 422.
-    Null is refused for both fields; leave a field out to keep it."""
+    Null is refused for name and bio; leave a field out to keep it. Null or blank
+    clears ``brand_color``."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -459,6 +463,8 @@ class OrganiserProfileUpdate(BaseModel):
     bio: (
         Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)] | None
     ) = None
+    #: `#rrggbb`. Unlike name and bio, null (or blank) clears it: the navy is the default.
+    brand_color: str | None = Field(default=None, max_length=7)
 
     @field_validator("name", "bio")
     @classmethod
@@ -466,6 +472,11 @@ class OrganiserProfileUpdate(BaseModel):
         if value is None:
             raise ValueError("Send a value, or leave the field out to keep it")
         return value
+
+    @field_validator("brand_color", mode="before")
+    @classmethod
+    def _brand_color(cls, value: object) -> str | None:
+        return normalise_hex(value)
 
 
 class OrganiserReview(BaseModel):

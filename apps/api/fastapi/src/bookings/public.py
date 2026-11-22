@@ -376,6 +376,8 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
         business_email=profile.contact_email,
         business_phone=profile.contact_phone,
+        accent=profile.brand_color,
+        logo=emails.business_logo(profile.display_name, profile.logo_file_id),
     )
 
 

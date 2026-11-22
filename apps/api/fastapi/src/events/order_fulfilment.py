@@ -128,6 +128,13 @@ async def _issue_tickets(db: AsyncSession, order: Order, listing: Listing) -> in
     return len(issued)
 
 
+def _brand(organiser: Organiser | None) -> emails.Brand:
+    """The organiser's accent and logo for a buyer's mail; the Barrels look if unknown."""
+    if organiser is None:
+        return emails.Brand()
+    return emails.brand(organiser.name, organiser.brand_color, organiser.logo_file_id)
+
+
 async def _queue_receipt(
     db: AsyncSession,
     order: Order,
@@ -156,6 +163,7 @@ async def _queue_receipt(
         currency=order.currency,
         refund_policy=listing.refund_policy,
         refund_cutoff_hours=effective_cutoff_hours(listing.refund_cutoff_hours),
+        brand=_brand(organiser),
     )
     await enqueue_email(
         db,
@@ -293,6 +301,7 @@ async def _queue_refund_receipt(
         event_cancelled=listing.status == "cancelled",
         tickets_valid=tickets_valid,
         fee_kept_minor=order.cancellation_fee_kept_minor,
+        brand=_brand(organiser),
     )
     await enqueue_email(
         db,

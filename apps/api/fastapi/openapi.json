@@ -10403,7 +10403,7 @@
           "bookings"
         ],
         "summary": "Create or update my booking profile",
-        "description": "Set the public booking address, timezone, currency and booking rules. Online booking stays off until `enabled` is true.",
+        "description": "Set the public booking address, timezone, currency and booking rules. Online booking stays off until `enabled` is true. `brand_color` and `logo_file_id` set the accent and logo used in the business's emails.",
         "operationId": "bookingsUpsertProfile",
         "security": [
           {
@@ -58127,7 +58127,7 @@
           "events"
         ],
         "summary": "Edit my approved organiser's profile",
-        "description": "Owners and admins of an approved organiser change its public name and bio. Send only the fields to change; the slug is fixed and the approval stays. Each real change is logged. Pass ?organiser=<slug> when you manage several.",
+        "description": "Owners and admins of an approved organiser change its public name, bio and brand colour (`brand_color`, null clears it). Send only the fields to change; the slug is fixed and the approval stays. Each real change is logged. Pass ?organiser=<slug> when you manage several.",
         "operationId": "eventsUpdateOrganiserProfile",
         "security": [
           {
@@ -77726,6 +77726,32 @@
             "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
             "default": "deposit"
           },
+          "brand_color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 7
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Color",
+            "description": "The business's accent colour in its emails, as `#rrggbb`. Blank clears it. Mail uses the Barrels navy instead when the colour is too pale for white text. Left out, the stored value is kept."
+          },
+          "logo_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo File Id",
+            "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -77903,6 +77929,32 @@
             "$ref": "#/components/schemas/BookingPaymentMode",
             "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
             "default": "deposit"
+          },
+          "brand_color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 7
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Color",
+            "description": "The business's accent colour in its emails, as `#rrggbb`. Blank clears it. Mail uses the Barrels navy instead when the colour is too pale for white text. Left out, the stored value is kept."
+          },
+          "logo_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo File Id",
+            "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
           }
         },
         "type": "object",
@@ -94542,6 +94594,17 @@
             ],
             "title": "Logo File Id"
           },
+          "brand_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Color"
+          },
           "follower_count": {
             "type": "integer",
             "title": "Follower Count"
@@ -98359,12 +98422,24 @@
               }
             ],
             "title": "Bio"
+          },
+          "brand_color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 7
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Color"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "title": "OrganiserProfileUpdate",
-        "description": "Partial edit of an approved organiser's public profile: send only what changes.\n\nThe slug is not editable here, so an unknown field (such as ``slug``) is a 422.\nNull is refused for both fields; leave a field out to keep it."
+        "description": "Partial edit of an approved organiser's public profile: send only what changes.\n\nThe slug is not editable here, so an unknown field (such as ``slug``) is a 422.\nNull is refused for name and bio; leave a field out to keep it. Null or blank\nclears ``brand_color``."
       },
       "OrganiserPublic": {
         "properties": {
@@ -98411,6 +98486,17 @@
               }
             ],
             "title": "Logo File Id"
+          },
+          "brand_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Color"
           },
           "follower_count": {
             "type": "integer",

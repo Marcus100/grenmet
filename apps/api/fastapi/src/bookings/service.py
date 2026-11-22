@@ -25,6 +25,7 @@ from src.organisations.models import (
     PlatformOrganisation,
 )
 from src.pagination import PaginationParams
+from src.storage import uploads
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
@@ -82,9 +83,15 @@ async def get_profile(session: AsyncSession, organisation_id: str) -> BookingPro
 CONTACT_FIELDS = frozenset(
     {"contact_phone", "contact_whatsapp", "contact_instagram", "contact_email"}
 )
+#: The logo's upload purpose (``src/storage/uploads.py``).
+LOGO_PURPOSE = "booking-logo"
 #: Profile fields an older client (or the seed) may not send; a PUT that leaves
 #: one out keeps the stored value.
-KEPT_UNLESS_NAMED = CONTACT_FIELDS | {"payment_at_booking"}
+KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
+    "payment_at_booking",
+    "brand_color",
+    "logo_file_id",
+}
 
 
 async def upsert_profile(
@@ -101,9 +108,9 @@ async def upsert_profile(
     )
     if taken is not None:
         raise BookingConflictError("That booking address is already in use")
-    # Contact options and the payment setting are kept unless the request names
-    # them: a client (or a seed) that does not know them must not erase them. An
-    # explicit blank or null still clears a contact option.
+    # Contact options, the payment setting and the brand are kept unless the request
+    # names them: a client (or a seed) that does not know them must not erase them.
+    # An explicit blank or null still clears a contact option or the brand.
     values = payload.model_dump(
         mode="json",
         exclude={
@@ -112,6 +119,10 @@ async def upsert_profile(
             if name not in payload.model_fields_set and profile is not None
         },
     )
+    if "logo_file_id" in values:
+        # JSON gives a string; the column takes the UUID the request validated.
+        values["logo_file_id"] = payload.logo_file_id
+        await _require_logo(organisation_id, payload.logo_file_id, profile)
     if profile is None:
         profile = BookingProfile(organisation_id=organisation_id, **values)
         session.add(profile)
@@ -120,6 +131,21 @@ async def upsert_profile(
             setattr(profile, key, value)
     await session.flush()
     return profile
+
+
+async def _require_logo(
+    organisation_id: str, file_id: uuid.UUID | None, profile: BookingProfile | None
+) -> None:
+    """A new logo must be a finished upload of this business. An unchanged one is
+    not checked again, so a logo stored before a later rule stays valid."""
+    if file_id is None or (profile is not None and profile.logo_file_id == file_id):
+        return
+    if not await uploads.file_is_usable(
+        file_id, organisation_id=organisation_id, purpose=LOGO_PURPOSE
+    ):
+        raise BookingConflictError(
+            "That logo is not a finished upload for this business"
+        )
 
 
 # --- services ----------------------------------------------------------------------

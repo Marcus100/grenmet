@@ -118,6 +118,11 @@ class StorageService:
         self.client.put_object(Bucket=self.bucket, Key=key, Body=data, **extra)
         logger.info("Stored object", extra={"key": key})
 
+    def get_object(self, key: str) -> bytes:
+        """Object bytes (network I/O — wrap in run_in_threadpool from async code)."""
+        response = self.client.get_object(Bucket=self.bucket, Key=key)
+        return cast(bytes, response["Body"].read())
+
     def head_object(self, key: str) -> dict[str, Any] | None:
         """Object metadata, or None when absent (network I/O — use run_in_threadpool)."""
         try:

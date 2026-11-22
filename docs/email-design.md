@@ -38,6 +38,20 @@ are omitted, never shown blank.
 - Buttons and chips set the background on the table cell (`bgcolor` and
   `background-color`), so dark-mode clients and Outlook keep them.
 
+## Business brand (issue #1622)
+
+- A business sets `brand_color` (`#rrggbb`) and a logo: the booking profile
+  (`bookings.profile`) and the events organiser (`events.organisers`). Booking and
+  event mail pass them as the card's `accent` and `logo`; the rule is the same in
+  Python (`src/email_colour.py`) and React (`components/colour.ts`).
+- The logo is a completed `booking-logo` (or `organiser-logo`) upload, linked through
+  its public redirect (`/api/v1/storage/public/{id}`). It shows at the top at 40px,
+  with the business name as alt text. The name is also in the eyebrow, so a mail
+  with images blocked still names the sender. No logo is printed without
+  `API_BASE_URL`, and never a non-https one.
+- Booking uploads are re-encoded without metadata when they complete
+  (`src/storage/image_metadata.py`); the other public purposes are not yet.
+
 ## Accessibility and safety
 
 - Body text at least 4.5:1 against its background; large text at least 3:1.

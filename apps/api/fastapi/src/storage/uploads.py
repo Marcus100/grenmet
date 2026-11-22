@@ -7,7 +7,9 @@ it complete. Reads never expose bucket URLs: members get a short presigned GET,
 and purposes flagged public are served through a cached redirect by file id.
 
 Service functions flush and never commit; the router owns the transaction.
-Dimension checks are not done: Pillow is not a declared dependency.
+Dimension checks are not done. Purposes with ``strip_metadata`` are decoded by Pillow
+at completion (``image_metadata.py``), re-encoded without their metadata, and refused
+when the bytes are not the image type they declared.
 """
 
 import uuid
@@ -22,8 +24,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import apps as auth_apps
 from src.database import async_session_factory
 from src.exceptions import AppException, NotFoundError
+from src.storage import image_metadata, transitions
 from src.storage import service as storage
-from src.storage import transitions
 from src.storage.dependencies import UploadContext
 from src.storage.models import OrgUpload, UploadStatus
 from src.storage.schemas import UploadRequest
@@ -48,11 +50,17 @@ class Purpose:
     max_bytes: int
     #: Public purposes are served unauthenticated by file id (marketing images).
     public: bool
+    #: Re-encode the stored image without its metadata (EXIF location, camera serial)
+    #: when the upload completes. Used where the file is shown publicly.
+    strip_metadata: bool = False
 
 
 PURPOSES: dict[str, Purpose] = {
     "organiser-logo": Purpose(app="events", max_bytes=2 * 1024 * 1024, public=True),
     "listing-image": Purpose(app="events", max_bytes=5 * 1024 * 1024, public=True),
+    "booking-logo": Purpose(
+        app="bookings", max_bytes=2 * 1024 * 1024, public=True, strip_metadata=True
+    ),
 }
 
 
@@ -159,6 +167,29 @@ async def _own_upload(
     return row
 
 
+async def _strip_metadata(row: OrgUpload) -> int:
+    """Re-encode the stored image without its metadata; return the new size.
+
+    A file that is not the image type it declared is deleted, as a size mismatch is.
+    """
+    raw = await run_in_threadpool(storage.storage_service.get_object, row.object_key)
+    try:
+        clean = await run_in_threadpool(
+            image_metadata.strip_metadata, raw, row.content_type
+        )
+    except image_metadata.ImageRejectedError as error:
+        await run_in_threadpool(storage.storage_service.delete_object, row.object_key)
+        raise UploadRejectedError(str(error)) from error
+    if clean != raw:
+        await run_in_threadpool(
+            storage.storage_service.put_object,
+            row.object_key,
+            clean,
+            content_type=row.content_type,
+        )
+    return len(clean)
+
+
 async def complete_upload(
     session: AsyncSession, context: UploadContext, upload_id: uuid.UUID
 ) -> OrgUpload:
@@ -180,6 +211,9 @@ async def complete_upload(
     ):
         await run_in_threadpool(storage.storage_service.delete_object, row.object_key)
         raise UploadRejectedError("The uploaded file does not match what was requested")
+    purpose = PURPOSES.get(row.purpose)
+    if purpose is not None and purpose.strip_metadata:
+        row.size_bytes = await _strip_metadata(row)
     transitions.move_upload(row, "complete")
     row.completed_at = utc_now()
     await session.flush()

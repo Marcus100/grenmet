@@ -5,12 +5,35 @@ Every value is escaped by the layout. The mails carry public listing details and
 amounts; no ticket codes or QR tokens (those stay behind the buyer's sign-in).
 """
 
+import uuid
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from src import email_layout as layout
+from src.email_colour import safe_accent
+from src.storage.public_url import public_file_url
 from src.utils.timezones import GRENADA, utc_to_local
 
 GRENADA_TIME = "Grenada time"
+
+
+@dataclass(frozen=True)
+class Brand:
+    """The organiser's name, accent and logo for its mail. The defaults are the
+    Barrels look with no organiser named."""
+
+    name: str | None = None
+    accent: str | None = None
+    logo: layout.Logo | None = None
+
+
+def brand(
+    name: str | None, brand_color: str | None, logo_file_id: uuid.UUID | None
+) -> Brand:
+    """The organiser's brand. The logo needs a public API address and the name (alt text)."""
+    url = public_file_url(logo_file_id)
+    logo = layout.Logo(url, alt=name) if url and name else None
+    return Brand(name=name or None, accent=brand_color, logo=logo)
 
 
 def _money(minor: int, currency: str) -> str:
@@ -73,6 +96,7 @@ def order_confirmation(
     organiser: str | None = None,
     refund_policy: str | None = None,
     refund_cutoff_hours: int = 48,
+    brand: Brand | None = None,
 ) -> layout.EmailCard:
     """Receipt sent once the payment is captured and the tickets are issued."""
     noun = "ticket" if ticket_count == 1 else "tickets"
@@ -81,7 +105,10 @@ def order_confirmation(
         if refund_policy
         else ()
     )
+    look = brand or Brand()
     card = layout.EmailCard(
+        accent=safe_accent(look.accent),
+        logo=look.logo,
         eyebrow=_eyebrow(organiser),
         chip=layout.Chip("Confirmed"),
         title=f"You're going to {title}",
@@ -121,6 +148,7 @@ def order_refunded(
     event_cancelled: bool,
     tickets_valid: bool = True,
     fee_kept_minor: int = 0,
+    brand: Brand | None = None,
 ) -> layout.EmailCard:
     """Receipt for one refund on an order. ``full`` means everything paid on the
     order is now refunded (the tickets are cancelled). Otherwise it is partial:
@@ -152,8 +180,11 @@ def order_refunded(
             f"{_money(fee_kept_minor, currency)} was kept as the cancellation fee "
             "under the event's refund policy.",
         )
+    look = brand or Brand()
     card_model = layout.EmailCard(
-        eyebrow="Barrels Events",
+        accent=safe_accent(look.accent),
+        logo=look.logo,
+        eyebrow=_eyebrow(look.name),
         chip=layout.Chip("Refunded", layout.ChipTone.MUTED),
         title="You have been refunded" if full else "Part of your order was refunded",
         greeting=f"Hello {layout.first_name(buyer_name)},",
@@ -179,10 +210,14 @@ def event_reminder(
     venue: str,
     tickets_url: str,
     ends_at: datetime | None = None,
+    brand: Brand | None = None,
 ) -> layout.EmailCard:
     """Reminder about an event starting in about a day (times in Grenada)."""
+    look = brand or Brand()
     card = layout.EmailCard(
-        eyebrow="Barrels Events",
+        accent=safe_accent(look.accent),
+        logo=look.logo,
+        eyebrow=_eyebrow(look.name),
         chip=layout.Chip("Reminder"),
         title=f"{title} is coming up",
         greeting=f"Hello {layout.first_name(name)},",
