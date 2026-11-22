@@ -20,6 +20,7 @@ vi.mock("@/lib/handoff", () => ({
   startHandoff,
 }));
 vi.mock("./actions", () => ({ joinApp: vi.fn() }));
+vi.mock("@/app/actions", () => ({ signOutAction: vi.fn() }));
 vi.mock("@/components/auth-shell", () => ({
   AuthShell: ({ children }: { children: React.ReactNode }) => (
     <main>{children}</main>
@@ -41,6 +42,10 @@ vi.mock("@/components/auth-shell", () => ({
 import ContinuePage from "./page";
 
 const STATE = "s".repeat(32);
+const NOT_YOUR_FAULT = /not something you did wrong/u;
+const SUPPORT_EMAIL = /support@barrels\.gd/u;
+const APP_KEY_TEXT = /\(gmsdash\)/u;
+const ISNT_AVAILABLE = /isn't available/u;
 
 function page(params: Record<string, string>) {
   return ContinuePage({ searchParams: Promise.resolve(params) });
@@ -116,6 +121,28 @@ describe("/continue", () => {
         name: "Waiting for approval to use GAA Admin",
       })
     ).toBeTruthy();
+  });
+
+  it("tells a person the app is not set up yet, with a way out", async () => {
+    readSessionCookie.mockResolvedValue("account-session");
+    startHandoff.mockResolvedValue({ kind: "unavailable" });
+    render(await page({ app: "gmsdash", state: STATE }));
+
+    expect(
+      screen.getByRole("heading", {
+        name: "This app is not set up for Barrels sign-in yet",
+      })
+    ).toBeTruthy();
+    expect(screen.getByText(NOT_YOUR_FAULT)).toBeTruthy();
+    expect(screen.getByText(SUPPORT_EMAIL)).toBeTruthy();
+    expect(screen.getByText(APP_KEY_TEXT)).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", { name: "Go to your account" })
+        .getAttribute("href")
+    ).toBe("/");
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeTruthy();
+    expect(screen.queryByText(ISNT_AVAILABLE)).toBeNull();
   });
 
   it("explains a missing grant and a broken link", async () => {
