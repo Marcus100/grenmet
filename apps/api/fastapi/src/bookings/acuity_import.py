@@ -45,7 +45,7 @@ import logging
 import re
 import sys
 import uuid
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -57,6 +57,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import settings
 from src.contacts import service as contacts_service
 from src.contacts.models import Contact
 from src.utils.datetime import utc_now
@@ -127,10 +128,63 @@ R_UNKNOWN_STAFF = "unknown staff"
 R_NO_STAFF = "no staff"
 R_MISSING_CONTACT = "missing contact"
 R_AMBIGUOUS_CONTACT = "ambiguous contact"
+R_ERASED_CONTACT = "erased contact"
+R_NAME_TOO_LONG = "name too long"
+R_PHONE_TOO_LONG = "phone too long"
+R_EMAIL_TOO_LONG = "email too long"
+
+#: Column widths the database accepts (contacts and bookings).
+NAME_MAX = 255
+PHONE_MAX = 40
+EMAIL_MAX = 254
+NOTES_MAX = 1000
+#: Unmatched service or staff names shown in the report, at most this many.
+UNMATCHED_SHOWN = 20
+#: Longest unmatched value printed verbatim; longer or identifying text is redacted.
+UNMATCHED_MAX_CHARS = 60
+REDACTED = "<redacted: check --column-map>"
+_DIGITS_RUN = re.compile(r"\d{6,}")
 
 
 class AcuityImportError(ValueError):
     """The file or the options cannot be used; nothing is written."""
+
+
+def display_unmatched(value: str) -> str:
+    """An unmatched service or staff name, safe to print.
+
+    A wrong ``--column-map`` can put customer text in those columns, so only a
+    short value with no ``@`` and no run of six digits is shown as typed.
+    """
+    text = _squash(value)
+    if (
+        len(text) <= UNMATCHED_MAX_CHARS
+        and "@" not in text
+        and not _DIGITS_RUN.search(text)
+    ):
+        return text
+    return REDACTED
+
+
+def clip_notes(text: str) -> str | None:
+    """Acuity notes for the booking: stripped, NUL bytes removed, at most
+    ``NOTES_MAX`` characters. They appear in customer emails, so the owner must
+    confirm they are customer-facing (see the runbook)."""
+    cleaned = _squash(text.replace("\x00", ""))
+    return cleaned[:NOTES_MAX] or None
+
+
+def read_export_text(data: bytes, encoding: str) -> str:
+    """The export's text. UTF-8 with or without a byte-order mark is the default;
+    any other file is refused with a clear message rather than guessed at."""
+    try:
+        return data.decode(encoding)
+    except (UnicodeDecodeError, LookupError) as error:
+        raise AcuityImportError(
+            f"The export is not readable as {encoding!r} (encoding). Save it as "
+            "CSV UTF-8, or pass --encoding with the file's real encoding, for "
+            "example cp1252."
+        ) from error
 
 
 @dataclass(frozen=True)
@@ -167,6 +221,8 @@ class ImportReport:
     contacts_created: int = 0
     contacts_reused: int = 0
     emails_queued: int = 0
+    #: Where the run writes: environment, database host, business, organisation.
+    target: str = ""
 
     @property
     def created(self) -> int:
@@ -185,6 +241,7 @@ class ImportReport:
         verb = "Created" if self.applied else "Would create"
         lines = [
             head,
+            f"Target: {self.target}" if self.target else "Target: not resolved",
             f"Rows read: {self.rows_read}",
             f"Future appointments: {self.future}",
             f"{verb}: {self.created}" + _rows_suffix(self.created_rows),
@@ -239,7 +296,15 @@ def _rows_suffix(rows: Sequence[int]) -> str:
 
 
 def _counts(counter: Mapping[str, int]) -> str:
-    return ", ".join(f'"{name}" x{count}' for name, count in counter.items())
+    shown = list(counter.items())[:UNMATCHED_SHOWN]
+    text = ", ".join(f'"{name}" x{count}' for name, count in shown)
+    hidden = len(counter) - len(shown)
+    return text + (f" and {hidden} more" if hidden else "")
+
+
+def _count_unmatched(counter: dict[str, int], value: str) -> None:
+    shown = display_unmatched(value)
+    counter[shown] = counter.get(shown, 0) + 1
 
 
 # --- pure helpers ----------------------------------------------------------------------
@@ -460,10 +525,22 @@ class _Importer:
     async def run(
         self, reader: csv.DictReader[str], mapping: Mapping[str, str]
     ) -> ImportReport:
-        for number, raw in enumerate(reader, start=1):
+        rows = iter(reader)
+        number = 0
+        while True:
+            number += 1
+            try:
+                raw = next(rows)
+            except StopIteration:
+                break
+            except csv.Error as error:
+                # Only the row number and the error class: never the line's text.
+                raise AcuityImportError(
+                    f"Row {number} is not valid CSV ({type(error).__name__})"
+                ) from None
             self.report.rows_read += 1
             values = {
-                name: (raw.get(header) or "").strip()
+                name: (raw.get(header) or "").replace("\x00", "").strip()
                 for name, header in mapping.items()
             }
             await self._row(number, values)
@@ -499,9 +576,7 @@ class _Importer:
         service_name = _squash(values.get("service", ""))
         svc = self.services.match(service_name)
         if svc is None:
-            report.unknown_services[service_name] = (
-                report.unknown_services.get(service_name, 0) + 1
-            )
+            _count_unmatched(report.unknown_services, service_name)
             return report.skip(R_UNKNOWN_SERVICE, number)
         if not svc.active:
             return report.skip(R_INACTIVE_SERVICE, number)
@@ -509,16 +584,15 @@ class _Importer:
         provider, reason = _match_staff(values.get("calendar", ""), self.providers)
         if provider is None:
             if reason == R_UNKNOWN_STAFF:
-                calendar = _squash(values.get("calendar", ""))
-                report.unknown_staff[calendar] = (
-                    report.unknown_staff.get(calendar, 0) + 1
-                )
+                _count_unmatched(report.unknown_staff, values.get("calendar", ""))
             return report.skip(reason or R_NO_STAFF, number)
 
-        email = _valid_email(values.get("email", ""))
-        if values.get("email") and email is None:
+        raw_email = values.get("email", "")
+        email = _valid_email(raw_email)
+        if raw_email and email is None:
             report.invalid_emails.append(number)
-        key_phone = phone_key(values.get("phone"), self.options.local_area_code)
+        raw_phone = values.get("phone", "")
+        key_phone = phone_key(raw_phone, self.options.local_area_code)
         if email is None and key_phone is None:
             return report.skip(R_MISSING_CONTACT, number)
         name = (
@@ -530,6 +604,12 @@ class _Importer:
             or values.get("name")
             or None
         )
+        if len(raw_email) > EMAIL_MAX:
+            return report.skip(R_EMAIL_TOO_LONG, number)
+        if len(raw_phone) > PHONE_MAX:
+            return report.skip(R_PHONE_TOO_LONG, number)
+        if name is not None and len(name) > NAME_MAX:
+            return report.skip(R_NAME_TOO_LONG, number)
 
         ends_at = starts_at + timedelta(minutes=svc.duration_min)
         blocked_from = starts_at - timedelta(minutes=svc.buffer_before_min)
@@ -537,50 +617,59 @@ class _Importer:
         acuity_end = parse_local_time(values.get("end"), self.zone)
         if acuity_end is not None and acuity_end != ends_at:
             report.end_differs.append(number)
-        if await self._overlaps(provider.id, blocked_from, blocked_until):
-            return report.overlaps.append(number)
 
-        contact, reason, created = await self._contact(
-            email, key_phone, name, key_phone or (values.get("phone") or None)
-        )
-        if contact is None:
-            return report.skip(reason or R_AMBIGUOUS_CONTACT, number)
+        try:
+            async with self.session.begin_nested():
+                if await self._overlaps(provider.id, blocked_from, blocked_until):
+                    report.overlaps.append(number)
+                    return
+                contact, reason, created = await self._contact(
+                    email,
+                    key_phone,
+                    name,
+                    key_phone or (raw_phone or None),
+                )
+                if contact is None:
+                    return report.skip(reason or R_AMBIGUOUS_CONTACT, number)
+                customer = await public.customer_for_contact(
+                    self.session, self.profile.organisation_id, contact, self.now
+                )
+                _token, token_hash = public.new_manage_token()
+                booking = Booking(
+                    organisation_id=self.profile.organisation_id,
+                    provider_id=provider.id,
+                    service_id=svc.id,
+                    customer_id=customer.id,
+                    starts_at=starts_at,
+                    ends_at=ends_at,
+                    blocked_from=blocked_from,
+                    blocked_until=blocked_until,
+                    status=BookingStatus.CONFIRMED.value,
+                    source=BookingSource.STUDIO.value,
+                    price_minor=svc.price_minor,
+                    deposit_minor=0,
+                    currency=self.profile.currency,
+                    notes=clip_notes(values.get("notes", "")),
+                    manage_token_hash=token_hash,
+                    idempotency_key=key,
+                )
+                self.session.add(booking)
+                await self.session.flush()
+        except DBAPIError as error:
+            # The savepoint is rolled back. Only the class name is reported: the
+            # statement and its parameters (customer text) never are.
+            if booking_service.is_overlap_violation(error):
+                report.overlaps.append(number)
+            else:
+                report.skip(
+                    f"database refused the row ({type(error.orig).__name__})", number
+                )
+            return
+
         if created:
             report.contacts_created += 1
         else:
             report.contacts_reused += 1
-        customer = await public.customer_for_contact(
-            self.session, self.profile.organisation_id, contact, self.now
-        )
-
-        _token, token_hash = public.new_manage_token()
-        booking = Booking(
-            organisation_id=self.profile.organisation_id,
-            provider_id=provider.id,
-            service_id=svc.id,
-            customer_id=customer.id,
-            starts_at=starts_at,
-            ends_at=ends_at,
-            blocked_from=blocked_from,
-            blocked_until=blocked_until,
-            status=BookingStatus.CONFIRMED.value,
-            source=BookingSource.STUDIO.value,
-            price_minor=svc.price_minor,
-            deposit_minor=0,
-            currency=self.profile.currency,
-            notes=values.get("notes") or None,
-            manage_token_hash=token_hash,
-            idempotency_key=key,
-        )
-        try:
-            async with self.session.begin_nested():
-                self.session.add(booking)
-                await self.session.flush()
-        except DBAPIError as error:
-            if not booking_service.is_overlap_violation(error):
-                raise
-            return report.overlaps.append(number)
-
         public.record_event(
             self.session, booking, None, BookingStatus.CONFIRMED, note=HISTORY_NOTE
         )
@@ -612,7 +701,14 @@ class _Importer:
         )
         return hit is not None
 
-    async def _phone_matches(self, key: str) -> list[Contact]:
+    async def _phone_matches(self, key: str, email: str | None) -> list[Contact]:
+        """Contacts with this phone that the row may use.
+
+        Shared phones are common (a family's landline), so a phone alone never
+        decides who a booking belongs to: a row with an email may only use a
+        contact that has no email or the same one. Otherwise a new contact is
+        made. A shared email merges by email instead (ADR-0028).
+        """
         digits = func.regexp_replace(Contact.phone, "[^0-9]", "", "g")
         candidates = await self.session.scalars(
             select(Contact).where(
@@ -626,6 +722,7 @@ class _Importer:
             c
             for c in candidates
             if phone_key(c.phone, self.options.local_area_code) == key
+            and (email is None or c.email is None or normalise_email(c.email) == email)
         ]
 
     async def _contact(
@@ -640,6 +737,9 @@ class _Importer:
         if email:
             existing = await contacts_service.find_by_email(self.session, org, email)
             if existing is not None:
+                if existing.erased_at is not None:
+                    # An erased person is not revived by an import.
+                    return None, R_ERASED_CONTACT, False
                 contact = await contacts_service.upsert_contact(
                     self.session,
                     org,
@@ -650,7 +750,7 @@ class _Importer:
                 )
                 return contact, None, False
         if key_phone:
-            matches = await self._phone_matches(key_phone)
+            matches = await self._phone_matches(key_phone, email)
             if len(matches) > 1:
                 return None, R_AMBIGUOUS_CONTACT, False
             if matches:
@@ -698,7 +798,7 @@ async def import_csv(
         raise AcuityImportError(f"No booking profile with the slug {business_slug!r}")
     zone = ZoneInfo(profile.timezone)
     since = _parse_since(options.since, zone)
-    reader = csv.DictReader(io.StringIO(csv_text))
+    reader = csv.DictReader(io.StringIO(csv_text.replace("\x00", "")))
     mapping, unknown = map_columns(reader.fieldnames or [], options.column_map)
     services = list(
         await session.scalars(
@@ -722,6 +822,10 @@ async def import_csv(
     )
     importer.report.unknown_headers = unknown
     importer.report.column_map = dict(mapping)
+    importer.report.target = (
+        f"environment {settings.ENVIRONMENT}, database host {settings.POSTGRES_SERVER}, "
+        f"business {profile.display_name!r}, organisation {profile.organisation_id}"
+    )
     return await importer.run(reader, mapping)
 
 
@@ -733,9 +837,18 @@ async def run_import(
     options: ImportOptions,
     apply: bool,
     now: datetime | None = None,
+    confirm_production: bool = False,
+    expect_count: int | None = None,
+    announce: Callable[[str], None] | None = None,
 ) -> ImportReport:
-    """Import, then keep the writes only when ``apply`` is set and the run was
-    not aborted by ``--strict``. Otherwise everything is rolled back."""
+    """Import, then keep the writes only when ``apply`` is set and every guard
+    passes. Otherwise everything is rolled back.
+
+    Guards on apply: outside the ``local`` environment it needs
+    ``confirm_production``; ``expect_count`` must equal the number of bookings the
+    run would create (pass the number from the dry run). ``announce`` receives the
+    target line before anything is saved.
+    """
     report = await import_csv(
         session,
         business_slug=business_slug,
@@ -743,6 +856,22 @@ async def run_import(
         options=options,
         now=now,
     )
+    if announce is not None:
+        announce(f"Target: {report.target}")
+    try:
+        if apply and settings.ENVIRONMENT != "local" and not confirm_production:
+            raise AcuityImportError(
+                f"This is the {settings.ENVIRONMENT} database. Add --confirm-production "
+                "to save here; nothing was saved."
+            )
+        if apply and expect_count is not None and report.created != expect_count:
+            raise AcuityImportError(
+                f"--expect-count is {expect_count} but this run would create "
+                f"{report.created} bookings; nothing was saved."
+            )
+    except AcuityImportError:
+        await session.rollback()
+        raise
     if apply and not report.aborted:
         await session.commit()
         report.applied = True
@@ -809,7 +938,30 @@ def build_parser() -> argparse.ArgumentParser:
         "--strict", action="store_true", help="Stop the whole run if any row overlaps"
     )
     parser.add_argument("--local-area-code", default=LOCAL_AREA_CODE)
+    parser.add_argument(
+        "--encoding",
+        default="utf-8-sig",
+        help="The export's text encoding (default UTF-8, with or without a BOM)",
+    )
+    parser.add_argument(
+        "--confirm-production",
+        action="store_true",
+        help="Required with --apply on any database outside the local environment",
+    )
+    parser.add_argument(
+        "--expect-count",
+        type=int,
+        default=None,
+        metavar="N",
+        help="With --apply: refuse unless exactly N bookings would be created "
+        "(pass the count from the dry run)",
+    )
     return parser
+
+
+def _announce(line: str) -> None:
+    sys.stderr.write(line + "\n")
+    sys.stderr.flush()
 
 
 async def _cli(args: argparse.Namespace, csv_text: str) -> int:
@@ -831,9 +983,18 @@ async def _cli(args: argparse.Namespace, csv_text: str) -> int:
                 csv_text=csv_text,
                 options=options,
                 apply=args.apply,
+                confirm_production=args.confirm_production,
+                expect_count=args.expect_count,
+                announce=_announce,
             )
         except AcuityImportError as error:
             raise SystemExit(f"Import refused: {error}") from error
+        except DBAPIError as error:
+            # Never the message or the statement: those can carry customer text.
+            raise SystemExit(
+                f"The database refused the import ({type(error.orig).__name__}); "
+                "nothing was saved."
+            ) from None
     sys.stdout.write(report.format() + "\n")
     return 1 if report.aborted else 0
 
@@ -841,9 +1002,13 @@ async def _cli(args: argparse.Namespace, csv_text: str) -> int:
 def main() -> None:
     args = build_parser().parse_args()
     try:
-        csv_text = Path(args.file).read_text(encoding="utf-8-sig")
+        data = Path(args.file).read_bytes()
     except OSError as error:
         raise SystemExit(f"Cannot read the export: {error.strerror}") from error
+    try:
+        csv_text = read_export_text(data, args.encoding)
+    except AcuityImportError as error:
+        raise SystemExit(f"Import refused: {error}") from None
     raise SystemExit(asyncio.run(_cli(args, csv_text)))
 
 

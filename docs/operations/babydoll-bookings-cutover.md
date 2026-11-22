@@ -466,34 +466,66 @@ imported.
 **Export (owner).** In Acuity, export the appointments list as CSV (the menu path
 is in the Acuity account). Save it as `private/acuity-export.csv` in the
 repository root. `private/` is gitignored. The file holds customer personal data:
-never commit it or paste its contents into a report.
+never commit it, and never paste its contents, customer names or the importer's
+unmatched values into a chat, a ticket or a release note. Keep counts only.
 
 **Rules the importer applies.** Dry run is the default and writes nothing.
 Cancelled rows, rows before `--since` (default: now) and rows it cannot read
-(unknown service, unknown staff, bad time, no email or phone) are skipped, each
-with its row number. Services match by exact name, then case-insensitively, then
-`--service-map`. Customers match by email, else by phone, else a new contact is
-created. Imported bookings are `confirmed` with no deposit. No email is sent
-unless `--notify` is given (leave it off: customers already have Acuity
-confirmations), and no webhook is sent. An overlapping row is listed and left
-out; `--strict` stops the whole run instead.
+(unknown service, unknown staff, bad time, no email or phone, a name or phone
+too long for the database, an erased person) are skipped, each with its row
+number. Services match by exact name, then case-insensitively, then
+`--service-map`. A customer is matched by email. Without a matching email, a
+phone number is used only where it cannot belong to someone else: the row has no
+email, or the contact has no email or the same one. A shared phone with a
+different email makes a new contact (a family's landline). The same email always
+merges into one contact (ADR-0028). Imported bookings are `confirmed` with no
+deposit. No email is sent unless `--notify` is given (leave it off: customers
+already have Acuity confirmations), and no webhook is sent. An overlapping row
+is listed and left out; `--strict` stops the whole run instead.
 
-**Staging: dry run first (owner, or an agent with the owner's go).**
+**Unmatched values.** The report prints unmatched service and calendar names
+only when they are short and carry no `@` and no run of six digits. Anything
+else prints as `<redacted: check --column-map>`. A wrong column map is the usual
+cause, so check the dry run's output before keeping it anywhere.
+
+**Notes.** Acuity notes are copied into the booking's notes, cut to 1000
+characters. Notes can appear in customer emails. Before the import, the owner
+confirms that every note in the export is safe to show the customer; if not,
+clear that column first.
+
+**Reminders.** The importer cannot stop the hourly reminder job for these
+bookings: the job keys only on status, time and the contact's email. So switch
+Acuity's own reminders off before `--apply`. The first Barrels email to a
+customer is then the 24-hour reminder, which carries a manage link.
+
+**Export encoding.** The default is UTF-8, with or without a byte-order mark.
+A file in another encoding is refused with a message; re-save it as CSV UTF-8,
+or pass `--encoding cp1252` (or the file's real encoding).
+
+**Staging: dry run first (owner, or an agent with the owner's go).** Each
+command runs in one shell, and a trap removes the copied file from the container
+when the shell exits, even if a step fails:
 
 ```bash
+set -e
 docker compose -p grenmet-staging cp private/acuity-export.csv api:/tmp/acuity-export.csv
+trap 'docker compose -p grenmet-staging exec -T api rm -f /tmp/acuity-export.csv' EXIT
 docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar
-docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar --apply
-docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar --apply
-docker compose -p grenmet-staging exec api rm /tmp/acuity-export.csv
+docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar --apply --confirm-production --expect-count <N from the dry run>
+docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar --apply --confirm-production --expect-count 0
 ```
 
-Read the dry run's summary and its skipped rows before `--apply`. The second
-`--apply` is the rerun check: it must report "Created: 0".
+Read the dry run's summary and its skipped rows before `--apply`. `--expect-count`
+makes the apply refuse unless exactly that many bookings would be created, so a
+changed file or database cannot slip through. The last command is the rerun
+check: it must report "Created: 0" and succeed.
 
 **Production (owner runs it on the host).** The same commands with `-p grenmet`,
 after the staging dry run has been reviewed and the salon has confirmed the
-skipped rows. Keep the dry-run output with the release notes.
+skipped rows. Outside the local environment `--apply` also needs
+`--confirm-production`. Every run prints its target first: the environment, the
+database host, the business name and the organisation ID. Check that line before
+the apply.
 
 **From a local checkout** (no compose stack): from `apps/api/fastapi`, run
 `uv run --frozen --package fast-back python -m src.bookings.acuity_import --file ../../../private/acuity-export.csv --business babydoll-beauty-bar`,
@@ -503,7 +535,8 @@ adding `--apply` when ready. This needs that checkout's database settings.
 from Acuity's standard ones: a JSON object of field name to header, for example
 `{"email": "Client Email"}`. `--service-map @file.json` maps an Acuity service name
 to a Barrels service name. `--since 2026-12-01` sets the earliest start.
-`--strict` refuses the run if any row overlaps.
+`--strict` refuses the run if any row overlaps. `--encoding` sets the file's text
+encoding. `--expect-count N` and `--confirm-production` are described above.
 
 **After.** The studio agenda shows the imported bookings with source `studio`.
 Reminders go out 24 hours ahead for them, as for any confirmed booking.

@@ -235,6 +235,7 @@ async def _run(
     apply: bool,
     csv_text: str | None = None,
     since: str = SINCE,
+    confirm_production: bool = False,
     **options: Any,
 ) -> ImportReport:
     return await run_import(
@@ -243,6 +244,7 @@ async def _run(
         csv_text=csv_text if csv_text is not None else _fixture(),
         options=ImportOptions(since=since, **options),
         apply=apply,
+        confirm_production=confirm_production,
     )
 
 
@@ -565,3 +567,216 @@ async def test_unknown_business_slug_is_refused(db_async: AsyncSession) -> None:
             options=ImportOptions(since=SINCE),
             apply=False,
         )
+
+
+# --- review fixes: shared phones, bad input, guards, erased people --------------------
+
+ROW_HEADER = (
+    "Appointment ID,Start Time,First Name,Last Name,Phone,Email,Type,Calendar,"
+    "Notes,Canceled\n"
+)
+
+
+def _rows(*lines: str) -> str:
+    return ROW_HEADER + "".join(line + "\n" for line in lines)
+
+
+async def test_a_shared_phone_with_another_email_makes_a_new_contact(
+    db_async: AsyncSession,
+) -> None:
+    # Mother and daughter share a landline. The daughter's booking must not land
+    # on the mother's contact, or the mother gets the daughter's reminders.
+    salon = await _salon(db_async)
+    csv_text = _rows(
+        '2001,"December 3, 2026 10:00 am",Ana,Mother,473-555-0201,mother@example.com,Chin,Jeriann,,',
+        '2002,"December 4, 2026 10:00 am",Bea,Daughter,473-555-0201,daughter@example.com,Chin,Jeriann,,',
+        '2003,"December 5, 2026 10:00 am",Cy,Phoneonly,+1 473 555 0201,,Chin,Jeriann,,',
+    )
+    report = await _run(db_async, salon, apply=True, csv_text=csv_text)
+
+    assert report.created == 2
+    assert report.skipped["ambiguous contact"] == [3]
+    mother = await _booking_by_appointment(db_async, salon.org_id, "2001")
+    daughter = await _booking_by_appointment(db_async, salon.org_id, "2002")
+    assert mother.customer_id != daughter.customer_id
+    daughter_customer = await db_async.scalar(
+        select(Customer).where(Customer.id == daughter.customer_id)
+    )
+    assert daughter_customer is not None
+    contact = await db_async.get(Contact, daughter_customer.contact_id)
+    assert contact is not None
+    assert contact.email == "daughter@example.com"
+
+
+async def test_the_same_phone_and_the_same_email_reuse_one_contact(
+    db_async: AsyncSession,
+) -> None:
+    salon = await _salon(db_async)
+    csv_text = _rows(
+        '2011,"December 3, 2026 10:00 am",Ana,Mother,473-555-0201,mother@example.com,Chin,Jeriann,,',
+        '2012,"December 4, 2026 10:00 am",Ana,Mother,+1 473 555 0201,Mother@Example.com,Chin,Jeriann,,',
+    )
+    report = await _run(db_async, salon, apply=True, csv_text=csv_text)
+
+    assert report.created == 2
+    assert report.contacts_created == 1
+    assert report.contacts_reused == 1
+
+
+async def test_an_over_long_name_or_phone_is_skipped_with_a_reason(
+    db_async: AsyncSession,
+) -> None:
+    salon = await _salon(db_async)
+    long_name = "N" * 300
+    csv_text = _rows(
+        f'2021,"December 3, 2026 10:00 am",{long_name},Long,,long@example.com,Chin,Jeriann,,',
+        '2022,"December 4, 2026 10:00 am",Ok,Name,1'
+        + "2" * 45
+        + ",ok@example.com,Chin,Jeriann,,",
+    )
+    report = await _run(db_async, salon, apply=True, csv_text=csv_text)
+
+    assert report.skipped["name too long"] == [1]
+    assert report.skipped["phone too long"] == [2]
+    assert report.created == 0
+    assert await _bookings(db_async, salon.org_id) == []
+
+
+async def test_a_nul_byte_is_removed_and_the_row_still_imports(
+    db_async: AsyncSession,
+) -> None:
+    salon = await _salon(db_async)
+    csv_text = _rows(
+        '2031,"December 3, 2026 10:00 am",A\x00da,Example,,ada2@example.com,Chin,Jeriann,Note\x00 here,',
+    )
+    report = await _run(db_async, salon, apply=True, csv_text=csv_text)
+
+    assert report.created == 1
+    booking = await _booking_by_appointment(db_async, salon.org_id, "2031")
+    assert booking.notes == "Note here"
+    contact = await contacts_service.find_by_email(
+        db_async, salon.org_id, "ada2@example.com"
+    )
+    assert contact is not None
+    assert contact.name == "Ada Example"
+
+
+def test_a_latin_1_export_is_refused_with_a_clear_encoding_message() -> None:
+    latin1 = "Appointment ID,First Name\n1,José\n".encode("latin-1")
+    with pytest.raises(AcuityImportError, match="encoding"):
+        acuity_import.read_export_text(latin1, "utf-8-sig")
+    assert "Jos" in acuity_import.read_export_text(latin1, "latin-1")
+    with_bom = "﻿Appointment ID\n1\n".encode("utf-8")
+    assert acuity_import.read_export_text(with_bom, "utf-8-sig").startswith(
+        "Appointment ID"
+    )
+
+
+def test_unmatched_values_are_shown_only_when_they_cannot_identify_anyone() -> None:
+    assert acuity_import.display_unmatched("Mystery Facial") == "Mystery Facial"
+    assert acuity_import.display_unmatched("Client ada@example.com") == (
+        "<redacted: check --column-map>"
+    )
+    assert acuity_import.display_unmatched("Call 4734401234") == (
+        "<redacted: check --column-map>"
+    )
+    assert acuity_import.display_unmatched("x" * 61) == "<redacted: check --column-map>"
+
+
+async def test_a_wrong_column_map_does_not_print_customer_text(
+    db_async: AsyncSession,
+) -> None:
+    salon = await _salon(db_async)
+    csv_text = _rows(
+        '2041,"December 3, 2026 10:00 am",Ada,Example,,ada@example.com,ada@example.com,Jeriann,,',
+    )
+    report = await _run(db_async, salon, apply=False, csv_text=csv_text)
+
+    assert report.created == 0
+    text = report.format()
+    assert "ada@example.com" not in text
+    assert "<redacted: check --column-map>" in text
+
+
+def test_notes_are_cut_to_the_limit_and_blank_notes_are_none() -> None:
+    assert acuity_import.clip_notes("x" * 1500) == "x" * 1000
+    assert acuity_import.clip_notes("\x00   ") is None
+
+
+async def test_production_needs_confirm_production_and_prints_the_target(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    salon = await _salon(db_async)
+    monkeypatch.setattr(acuity_import.settings, "ENVIRONMENT", "production")
+    # Outside local, hashing refuses an empty pepper; the test supplies one.
+    monkeypatch.setattr(acuity_import.settings, "EMAIL_HASH_PEPPER", "test-pepper")
+    lines: list[str] = []
+
+    with pytest.raises(AcuityImportError, match="--confirm-production"):
+        await run_import(
+            db_async,
+            business_slug=salon.slug,
+            csv_text=_fixture(),
+            options=ImportOptions(since=SINCE),
+            apply=True,
+            announce=lines.append,
+        )
+    assert await _bookings(db_async, salon.org_id) == []
+    assert lines and "environment production" in lines[0]
+    assert salon.org_id in lines[0]
+
+    report = await _run(db_async, salon, apply=True, confirm_production=True)
+    assert report.applied is True
+    assert report.created == 7
+
+
+async def test_expect_count_refuses_a_run_that_would_create_another_number(
+    db_async: AsyncSession,
+) -> None:
+    salon = await _salon(db_async)
+    with pytest.raises(AcuityImportError, match="--expect-count is 6"):
+        await run_import(
+            db_async,
+            business_slug=salon.slug,
+            csv_text=_fixture(),
+            options=ImportOptions(since=SINCE),
+            apply=True,
+            expect_count=6,
+        )
+    assert await _bookings(db_async, salon.org_id) == []
+
+    report = await run_import(
+        db_async,
+        business_slug=salon.slug,
+        csv_text=_fixture(),
+        options=ImportOptions(since=SINCE),
+        apply=True,
+        expect_count=7,
+    )
+    assert report.applied is True
+
+
+async def test_an_erased_person_is_skipped_and_not_revived(
+    db_async: AsyncSession,
+) -> None:
+    salon = await _salon(db_async)
+    contact = await contacts_service.upsert_contact(
+        db_async,
+        salon.org_id,
+        email="erased@example.com",
+        name="Gone Person",
+        source="bookings",
+    )
+    await contacts_service.erase_contact(db_async, contact)
+    await db_async.commit()
+
+    csv_text = _rows(
+        '2051,"December 3, 2026 10:00 am",Gone,Person,,erased@example.com,Chin,Jeriann,,',
+    )
+    report = await _run(db_async, salon, apply=True, csv_text=csv_text)
+
+    assert report.skipped["erased contact"] == [1]
+    assert await _bookings(db_async, salon.org_id) == []
+    await db_async.refresh(contact)
+    assert contact.erased_at is not None
+    assert contact.email is None
