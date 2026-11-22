@@ -13,13 +13,14 @@ from typing import Any
 
 import httpx
 import pytest
+from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.organisations.models import MembershipRole, PlatformOrganisation
 from src.payments.config import payments_settings
-from src.payments.connect.config import connect_settings
+from src.payments.connect.config import ConnectConfig, connect_settings
 from src.payments.connect.disputes import dispute_for
 from src.payments.connect.models import ConnectedAccount
 from src.payments.models import Intent, LedgerEntry
@@ -48,6 +49,7 @@ class ConnectStub:
     payouts_enabled: bool = False
     currently_due: list[str] = field(default_factory=list)
     fail_retrieve: bool = False
+    fail_link: bool = False
     checkout_id: str = "cs_test_1"
 
     def json_of(self, index: int) -> dict[str, Any]:
@@ -95,6 +97,8 @@ def connect_env(monkeypatch: pytest.MonkeyPatch) -> ConnectStub:
                 200, json={"id": ACCOUNT_ID, "object": "v2.core.account"}
             )
         if request.method == "POST" and path == "/v2/core/account_links":
+            if stub.fail_link:
+                return httpx.Response(500, json={"error": {"message": "down"}})
             return httpx.Response(
                 200,
                 json={
@@ -113,6 +117,14 @@ def connect_env(monkeypatch: pytest.MonkeyPatch) -> ConnectStub:
                     "id": stub.checkout_id,
                     "url": f"https://checkout.stripe.com/c/pay/{stub.checkout_id}",
                 },
+            )
+        if request.method == "GET" and path.startswith("/v1/checkout/sessions/"):
+            return httpx.Response(
+                200, json={"payment_status": "paid", "status": "complete"}
+            )
+        if request.method == "GET" and path == "/v1/refunds":
+            return httpx.Response(
+                200, json={"object": "list", "has_more": False, "data": []}
             )
         if request.method == "POST" and path == "/v1/refunds":
             return httpx.Response(200, json={"id": "re_test_1", "status": "succeeded"})
@@ -467,16 +479,275 @@ async def test_zero_fee_sends_no_application_fee(
     assert form["line_items[0][price_data][currency]"] == "nzd"
 
 
-async def test_checkout_is_refused_until_onboarding_is_complete(
+async def test_checkout_stays_on_the_platform_until_onboarding_is_complete(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+) -> None:
+    # Onboarding must never break a business's existing card payments: until Stripe
+    # says charges are enabled, the checkout is the platform charge, as before.
+    org, user = await _org(db_async)
+    assert (await _onboard(async_client, org, user)).status_code == 200
+    response = await _checkout(async_client, org, user)
+    assert response.status_code == 201, response.text
+    checkout = connect_env.find("POST", "/v1/checkout/sessions")
+    assert len(checkout) == 1
+    assert "Stripe-Account" not in connect_env.requests[checkout[0]].headers
+    intent = (
+        await db_async.execute(
+            select(Intent).where(
+                Intent.id == uuid.UUID(response.json()["intent"]["id"])
+            )
+        )
+    ).scalar_one()
+    assert intent.connected_account_id is None
+
+
+async def test_non_nzd_checkout_for_a_connected_business_stays_on_the_platform(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     connect_env: ConnectStub,
 ) -> None:
     org, user = await _org(db_async)
-    assert (await _onboard(async_client, org, user)).status_code == 200
-    response = await _checkout(async_client, org, user)
-    assert response.status_code == 409
-    assert connect_env.find("POST", "/v1/checkout/sessions") == []
+    await _ready(async_client, org, user, connect_env)
+    response = await _checkout(async_client, org, user, currency="XCD")
+    assert response.status_code == 201, response.text
+    checkout = connect_env.find("POST", "/v1/checkout/sessions")
+    assert "Stripe-Account" not in connect_env.requests[checkout[0]].headers
+
+
+async def test_link_failure_keeps_the_account_and_a_retry_succeeds(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+) -> None:
+    org, user = await _org(db_async)
+    connect_env.fail_link = True
+    failed = await _onboard(async_client, org, user)
+    assert failed.status_code == 502
+    connect_env.fail_link = False
+    retried = await _onboard(async_client, org, user)
+    assert retried.status_code == 200, retried.text
+    # The account was saved before the link was requested: the retry reuses it.
+    assert len(connect_env.find("POST", "/v2/core/accounts")) == 1
+    assert (await _stored_row(db_async, org.id)).stripe_account_id == ACCOUNT_ID
+
+
+async def test_return_address_must_be_https(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        connect_settings, "CONNECT_RETURN_URL", "http://example.test/billing"
+    )
+    org, user = await _org(db_async)
+    assert (await _onboard(async_client, org, user)).status_code == 503
+    assert connect_env.find("POST", "/v2/core/accounts") == []
+
+
+def test_config_refuses_a_plain_http_return_address() -> None:
+    with pytest.raises(ValidationError):
+        ConnectConfig(CONNECT_RETURN_URL="http://example.test/billing")
+    accepted = ConnectConfig(CONNECT_RETURN_URL="https://example.test/billing")
+    assert accepted.CONNECT_RETURN_URL == "https://example.test/billing"
+
+
+def test_config_refuses_a_connect_secret_equal_to_the_platform_secret(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PAYMENTS_STRIPE_WEBHOOK_SECRET", "whsec_same_value")
+    monkeypatch.setenv("PAYMENTS_STRIPE_CONNECT_WEBHOOK_SECRET", "whsec_same_value")
+    with pytest.raises(ValidationError):
+        ConnectConfig()
+
+
+@pytest.mark.usefixtures("db_async", "connect_env")
+async def test_connect_webhook_refuses_a_secret_equal_to_the_platform_secret(
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        connect_settings, "STRIPE_CONNECT_WEBHOOK_SECRET", WEBHOOK_SIGNING_KEY
+    )
+    event = connect_event("evt_same", "account.updated", {"id": ACCOUNT_ID})
+    body, headers = signed(event, secret=WEBHOOK_SIGNING_KEY)
+    response = await async_client.post(
+        f"{API}/public/webhooks/stripe-connect", content=body, headers=headers
+    )
+    assert response.status_code == 503
+
+
+@pytest.mark.usefixtures("connect_env")
+async def test_platform_webhook_ignores_an_event_that_names_a_connected_account(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
+    # A platform-only organisation: its checkout is a platform charge.
+    org, user = await _org(db_async)
+    created = await _checkout(async_client, org, user, currency="XCD")
+    assert created.status_code == 201, created.text
+    intent_id = created.json()["intent"]["id"]
+
+    named = checkout_completed(
+        intent_id, event_id="evt_named", amount=5000, currency="xcd"
+    )
+    named["account"] = ACCOUNT_ID
+    body, headers = signed(named)
+    response = await async_client.post(
+        f"{API}/public/webhooks/stripe", content=body, headers=headers
+    )
+    assert response.status_code == 200
+    assert await _ledger_total(db_async, org.id) == 0
+
+    plain = checkout_completed(
+        intent_id, event_id="evt_plain", amount=5000, currency="xcd"
+    )
+    body, headers = signed(plain)
+    response = await async_client.post(
+        f"{API}/public/webhooks/stripe", content=body, headers=headers
+    )
+    assert response.status_code == 200
+    assert await _ledger_total(db_async, org.id) == 5000
+
+
+async def test_connected_charge_leaves_the_platform_balance_and_blocks_payouts(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    org, user = await _org(db_async)
+    await _ready(async_client, org, user, connect_env)
+    created = await _checkout(async_client, org, user, amount_minor=5000)
+    intent_id = created.json()["intent"]["id"]
+    paid = checkout_completed(
+        intent_id, event_id="evt_paid_b", amount=5000, currency="nzd"
+    )
+    assert (
+        await _post_connect(
+            async_client,
+            connect_event(
+                "evt_paid_b", "checkout.session.completed", paid["data"]["object"]
+            ),
+        )
+    ).status_code == 200
+
+    # The business's own money: Barrels' balance for the organisation is unchanged.
+    balance = await async_client.get(
+        f"{API}/org/balance", headers=headers_for(user, org.id)
+    )
+    assert balance.status_code == 200
+    assert balance.json()["data"] == []
+
+    # A payout cannot pay out money Barrels never held.
+    payout = await async_client.post(
+        f"{API}/admin/payouts",
+        headers=superuser_token_headers_async,
+        json={
+            "organisation_id": org.id,
+            "amount_minor": 1,
+            "currency": "NZD",
+            "reference": "bank-1",
+            "request_id": str(uuid.uuid4()),
+        },
+    )
+    assert payout.status_code == 409, payout.text
+
+
+async def test_platform_money_still_counts_beside_a_connected_charge(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+) -> None:
+    org, user = await _org(db_async)
+    await _ready(async_client, org, user, connect_env)
+    created = await _checkout(async_client, org, user, amount_minor=5000)
+    intent_id = created.json()["intent"]["id"]
+    paid = checkout_completed(
+        intent_id, event_id="evt_paid_c2", amount=5000, currency="nzd"
+    )
+    assert (
+        await _post_connect(
+            async_client,
+            connect_event(
+                "evt_paid_c2", "checkout.session.completed", paid["data"]["object"]
+            ),
+        )
+    ).status_code == 200
+    manual = await async_client.post(
+        f"{API}/org/intents",
+        headers=headers_for(user, org.id),
+        json={
+            "amount_minor": 3000,
+            "source_type": "shop.sale",
+            "source_id": f"cash-{uuid.uuid4().hex[:6]}",
+            "idempotency_key": uuid.uuid4().hex,
+        },
+    )
+    assert manual.status_code == 201, manual.text
+    recorded = await async_client.post(
+        f"{API}/org/intents/{manual.json()['intent']['id']}/manual-payments",
+        headers=headers_for(user, org.id),
+        json={"method": "cash", "reference": "R-9"},
+    )
+    assert recorded.status_code == 201, recorded.text
+    balance = await async_client.get(
+        f"{API}/org/balance", headers=headers_for(user, org.id)
+    )
+    assert balance.json()["data"] == [
+        {"organisation_id": org.id, "currency": "XCD", "owed_minor": 3000}
+    ]
+
+
+async def test_fee_is_capped_at_charge_time(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+) -> None:
+    org, user = await _org(db_async)
+    await _ready(async_client, org, user, connect_env)
+    row = await _stored_row(db_async, org.id)
+    row.platform_fee_bps = 9000  # above the cap, as a stored row could be
+    await db_async.commit()
+    assert (
+        await _checkout(async_client, org, user, amount_minor=5000)
+    ).status_code == 201
+    form = connect_env.form_of(connect_env.find("POST", "/v1/checkout/sessions")[-1])
+    # The cap is 1000 basis points (10%) in this test: 10% of 5000.
+    assert form["payment_intent_data[application_fee_amount]"] == "500"
+
+
+async def test_list_refunds_and_status_reads_use_the_connected_account(
+    connect_env: ConnectStub,
+) -> None:
+    from src.payments.providers.stripe import StripeProvider
+
+    intent = Intent(
+        id=uuid.uuid4(),
+        organisation_id="org-x",
+        amount_minor=5000,
+        currency="NZD",
+        provider="stripe",
+        status="succeeded",
+        source_type="shop.sale",
+        source_id="x",
+        idempotency_key="k" * 12,
+        provider_ref="cs_test_1",
+        provider_payment_ref="pi_test_1",
+        connected_account_id=ACCOUNT_ID,
+        application_fee_minor=0,
+    )
+    provider = StripeProvider()
+    await provider.list_refunds(intent)
+    await provider.fetch_status(intent)
+    listing = connect_env.find("GET", "/v1/refunds")
+    status_reads = connect_env.find("GET", "/v1/checkout/sessions/cs_test_1")
+    assert len(listing) == 1
+    assert len(status_reads) == 1
+    for index in listing + status_reads:
+        assert connect_env.requests[index].headers["Stripe-Account"] == ACCOUNT_ID
 
 
 async def test_fee_above_the_platform_cap_is_refused(

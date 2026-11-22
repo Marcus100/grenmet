@@ -1,9 +1,12 @@
 """Stripe Connect accounts for New Zealand businesses (ADR-0027, test mode).
 
 The business is the seller. Each organisation has at most one connected account
-(its Stripe id is the only thing stored; no keys). Card payments are direct charges
-on that account, with an optional Barrels platform fee. Test mode only: the Stripe
-adapter refuses anything but an ``sk_test_`` key before a request is made.
+(its Stripe id is the only thing stored; no keys). A card payment is a direct charge
+on that account, with an optional Barrels platform fee, once the account can take
+charges and the charge is in New Zealand dollars. Until then, and for any other
+currency, the payment stays a platform charge exactly as before Connect, so
+onboarding never breaks an organisation's existing card payments. Test mode only:
+the Stripe adapter refuses anything but an ``sk_test_`` key before a request is made.
 """
 
 import logging
@@ -19,7 +22,6 @@ from src.organisations.models import PlatformOrganisation
 from src.payments import schemas
 from src.payments.exceptions import (
     ConnectAccountNotFoundError,
-    ConnectNotReadyError,
     PaymentsValidationError,
     ProviderRequestError,
     ProviderUnavailableError,
@@ -27,7 +29,7 @@ from src.payments.exceptions import (
 from src.payments.providers.stripe import StripeProvider
 from src.utils.datetime import utc_now
 
-from .config import connect_settings
+from .config import connect_settings, is_https_url
 from .models import ConnectedAccount
 
 logger = logging.getLogger(__name__)
@@ -50,6 +52,15 @@ class ChargeRoute:
 def _provider() -> StripeProvider:
     # Refuses a missing or non-test key (503) before any request is made.
     return StripeProvider()
+
+
+def _return_address() -> str:
+    address = connect_settings.CONNECT_RETURN_URL
+    if not address or not is_https_url(address):
+        raise ProviderUnavailableError(
+            "Stripe onboarding return address is not configured"
+        )
+    return address
 
 
 async def _row(session: AsyncSession, organisation_id: str) -> ConnectedAccount | None:
@@ -86,7 +97,11 @@ def apply_snapshot(
 
 async def _refresh(session: AsyncSession, row: ConnectedAccount) -> bool:
     """Read the account from Stripe and store its state. False when Stripe cannot
-    be read; the stored state then stays as it is."""
+    be read; the stored state then stays as it is.
+
+    The read is taken as of the moment it was asked for. The row is locked and the
+    state is applied only if nothing newer (a webhook) was stored while Stripe was
+    being read, so a slow read cannot overwrite a newer event."""
     as_of = utc_now()
     try:
         snapshot = await _provider().retrieve_connected_account(row.stripe_account_id)
@@ -96,51 +111,68 @@ async def _refresh(session: AsyncSession, row: ConnectedAccount) -> bool:
             extra={"organisation_id": row.organisation_id},
         )
         return False
-    apply_snapshot(row, snapshot, as_of)
-    await session.flush()
+    locked = (
+        await session.execute(
+            select(ConnectedAccount)
+            .where(ConnectedAccount.id == row.id)
+            .with_for_update()
+        )
+    ).scalar_one()
+    if as_of > locked.state_as_of:
+        apply_snapshot(locked, snapshot, as_of)
+        await session.flush()
+    else:
+        logger.info(
+            "newer account state already stored; read not applied",
+            extra={"organisation_id": row.organisation_id},
+        )
     return True
 
 
-async def start_onboarding(session: AsyncSession, *, organisation_id: str) -> str:
-    """The hosted onboarding link for the business's account, creating the account
-    the first time. Flushes; the router commits."""
-    return_url = connect_settings.CONNECT_RETURN_URL
-    if not return_url:
-        raise ProviderUnavailableError("Stripe onboarding is not configured")
+async def ensure_account(session: AsyncSession, *, organisation_id: str) -> str:
+    """Create the business's connected account the first time and return its id.
+
+    Flushes only; the router commits before the onboarding link is requested, so an
+    account that Stripe created is never lost when the link request fails. A retry
+    reuses it (the Stripe request is keyed by organisation)."""
+    _return_address()
     provider = _provider()
     row = await _row(session, organisation_id)
-    if row is None:
-        name = await session.scalar(
-            select(PlatformOrganisation.name).where(
-                PlatformOrganisation.id == organisation_id
-            )
+    if row is not None:
+        return row.stripe_account_id
+    name = await session.scalar(
+        select(PlatformOrganisation.name).where(
+            PlatformOrganisation.id == organisation_id
         )
-        account_id = await provider.create_connected_account(
-            display_name=name or "Business", organisation_id=organisation_id
-        )
-        row = ConnectedAccount(
-            organisation_id=organisation_id,
-            stripe_account_id=account_id,
-            country=NEW_ZEALAND,
-            state_as_of=utc_now(),
-        )
-        try:
-            async with session.begin_nested():
-                session.add(row)
-                await session.flush()
-        except IntegrityError:
-            # A concurrent request created the row first: use that one. Stripe gave
-            # both requests the same account (keyed by organisation).
-            existing = await _row(session, organisation_id)
-            if existing is None:
-                raise
-            row = existing
-        logger.info(
-            "connected account created",
-            extra={"organisation_id": organisation_id},
-        )
-    return await provider.create_account_link(
-        row.stripe_account_id, return_url=return_url
+    )
+    account_id = await provider.create_connected_account(
+        display_name=name or "Business", organisation_id=organisation_id
+    )
+    row = ConnectedAccount(
+        organisation_id=organisation_id,
+        stripe_account_id=account_id,
+        country=NEW_ZEALAND,
+        state_as_of=utc_now(),
+    )
+    try:
+        async with session.begin_nested():
+            session.add(row)
+            await session.flush()
+    except IntegrityError:
+        # A concurrent request created the row first: use that one. Stripe gave
+        # both requests the same account (keyed by organisation).
+        existing = await _row(session, organisation_id)
+        if existing is None:
+            raise
+        return existing.stripe_account_id
+    logger.info("connected account created", extra={"organisation_id": organisation_id})
+    return account_id
+
+
+async def onboarding_link(account_id: str) -> str:
+    """A hosted onboarding link for the account (no database access)."""
+    return await _provider().create_account_link(
+        account_id, return_url=_return_address()
     )
 
 
@@ -190,25 +222,26 @@ async def charge_route(
     amount_minor: int,
     currency: str,
 ) -> ChargeRoute | None:
-    """Where a card payment for the business is charged.
+    """Where a card payment for the business is charged, or None for the platform.
 
-    None when the business has no connected account: the charge stays on the
-    platform account, as it did before Connect. Otherwise the business must have
-    finished onboarding (checked live once when the stored state says not yet), the
-    charge is in New Zealand dollars, and the platform fee is less than the charge.
+    None (the platform charge, as before Connect) when the business has no connected
+    account, when its account cannot take charges yet (checked live once when the
+    stored state says not yet), or when the charge is not in New Zealand dollars.
+    Otherwise a direct charge on the business's account, with the platform fee: the
+    fee is the stored rate capped at the platform cap, at charge time, and must be
+    less than the charge.
     """
+    if currency != CHARGE_CURRENCY:
+        return None
     row = await _row(session, organisation_id)
     if row is None:
         return None
     if not row.charges_enabled:
         await _refresh(session, row)
     if not row.charges_enabled:
-        raise ConnectNotReadyError()
-    if currency != CHARGE_CURRENCY:
-        raise PaymentsValidationError(
-            "Card payments for New Zealand businesses are charged in NZD"
-        )
-    fee = row.platform_fee_bps * amount_minor // BPS_DENOMINATOR
+        return None
+    rate = min(row.platform_fee_bps, connect_settings.CONNECT_PLATFORM_FEE_CAP_BPS)
+    fee = rate * amount_minor // BPS_DENOMINATOR
     if fee > 0 and row.country != NEW_ZEALAND:
         raise PaymentsValidationError(
             "A platform fee applies to New Zealand businesses only"

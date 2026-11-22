@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.payments import service
 from src.payments.config import payments_settings
 from src.payments.exceptions import InvalidCallbackError, ProviderUnavailableError
+from src.payments.providers.base import EventKind
 from src.payments.providers.stripe import (
     WHSEC_PREFIX,
     StripeProvider,
@@ -42,6 +43,10 @@ def _verify(headers: Mapping[str, str], body: bytes) -> dict[str, Any]:
     secret = connect_settings.STRIPE_CONNECT_WEBHOOK_SECRET
     if not secret or not secret.startswith(WHSEC_PREFIX):
         logger.error("Stripe Connect webhook secret is missing or malformed")
+        raise ProviderUnavailableError("Stripe Connect webhooks are not configured")
+    if secret == payments_settings.STRIPE_WEBHOOK_SECRET:
+        # One key for both endpoints would let either endpoint's events pass as the other's.
+        logger.error("Stripe Connect webhook secret equals the platform secret")
         raise ProviderUnavailableError("Stripe Connect webhooks are not configured")
     # The same test-mode guard as every Stripe call: a live key refuses (503) here too.
     StripeProvider()
@@ -94,6 +99,12 @@ async def process_connect_webhook(
             dispute=obj,
         )
     provider_event = normalise_event(event)
+    if provider_event.kind is EventKind.IGNORED:
+        logger.info(
+            "connect event type not handled; acknowledged",
+            extra={"event_type": event_type, "event_id": str(event.get("id"))},
+        )
+        return "ignored"
     return await service.apply_event(
         session, provider_event, connected_account=account_id
     )

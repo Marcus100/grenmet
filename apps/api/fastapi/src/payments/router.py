@@ -220,10 +220,13 @@ async def create_refund(
 async def create_connect_onboarding_link(
     *, session: SessionDep, org: ConnectOrgManager
 ) -> Any:
-    url = await connect_accounts.start_onboarding(
+    account_id = await connect_accounts.ensure_account(
         session, organisation_id=org.organisation_id
     )
+    # Save the account before asking Stripe for a link: if the link request fails,
+    # the account is kept and the retry reuses it.
     await session.commit()
+    url = await connect_accounts.onboarding_link(account_id)
     return schemas.ConnectOnboardingLinkPublic(url=url)
 
 
