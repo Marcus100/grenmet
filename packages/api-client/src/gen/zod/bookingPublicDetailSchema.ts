@@ -42,5 +42,11 @@ export const bookingPublicDetailSchema = z
       .describe(
         "Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account."
       ),
+    hold_ends_at: z
+      .union([z.iso.datetime(), z.null()])
+      .optional()
+      .describe(
+        "While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise."
+      ),
   })
   .describe("A booking as its customer sees it.");

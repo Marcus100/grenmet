@@ -202,13 +202,15 @@ export async function getBooking(
   }
 }
 
+/** Cancels the booking; `reason` is the customer's optional note (the business sees it). */
 export async function cancelBooking(
-  token: string
+  token: string,
+  reason: string | null
 ): Promise<BookingPublicDetail> {
   return bookingsCancelPublicBooking({
     ...(await options()),
     path: { token },
-    body: {},
+    body: reason ? { reason } : {},
   })
     .unwrap()
     .catch(redactRequest);

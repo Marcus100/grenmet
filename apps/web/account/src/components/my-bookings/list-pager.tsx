@@ -3,7 +3,7 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 
 interface ListPagerProps {
-  /** Other parameters to keep, so the other section keeps its page. */
+  /** Other parameters to keep (the tab), so the page links stay on the same list. */
   keep?: Record<string, string>;
   /** The page on screen, 1-indexed. */
   page: number;

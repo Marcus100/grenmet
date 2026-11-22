@@ -18,6 +18,7 @@ import {
   type FieldErrors,
   type FieldKey,
   fingerprint,
+  sameEmail,
   stillWrong,
   validateBooking,
 } from "../lib/booking-form";
@@ -29,6 +30,7 @@ import {
   timeZonePlace,
 } from "../lib/booking-format";
 import { payNowLine } from "../lib/booking-payment";
+import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
 import type { Booked, BookingFlowActions } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
@@ -210,6 +212,10 @@ function BookingDone({
           Thank you, {booking.customer_name.split(" ")[0]}
         </h2>
         <p>{statusLine(booking.status)}</p>
+        {booking.hold_ends_at ? (
+          <p>{holdEndsLine(booking.hold_ends_at, booking.timezone)}</p>
+        ) : null}
+        <p>{cancellationPolicyLine(booking.cancel_cutoff_hours)}</p>
         <dl className="summary">
           <div>
             <dt>Service</dt>
@@ -596,8 +602,13 @@ export function BookingFlow({
 
   useFocusWhen(summaryRef, showSummary);
 
+  // A signed-in visitor who types their own account email needs no code: the
+  // API takes the verified account as the proof (ADR-0018). A refusal from the
+  // API still forces the code step (`codeForced`).
+  const ownAccountEmail =
+    signedIn !== undefined && sameEmail(email, signedIn.email);
   const needsCode =
-    dueAtBooking(service) > 0 ||
+    (dueAtBooking(service) > 0 && !ownAccountEmail) ||
     (serviceId !== null && codeForced === serviceId);
   const payNow = service
     ? payNowLine(

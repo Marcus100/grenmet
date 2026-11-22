@@ -70,6 +70,21 @@ describe("getMyBookings", () => {
     expect(seen[0]?.searchParams.get("upcoming")).toBe("true");
   });
 
+  it("sends the cancelled filter for the Upcoming and Cancelled tabs", async () => {
+    serve();
+    await getMyBookings("tok-1", {
+      cancelled: false,
+      upcoming: true,
+      size: 20,
+    });
+    expect(seen[0]?.searchParams.get("cancelled")).toBe("false");
+    expect(seen[0]?.searchParams.get("upcoming")).toBe("true");
+    await getMyBookings("tok-1", { cancelled: true, size: 20 });
+    expect(seen[1]?.searchParams.get("cancelled")).toBe("true");
+    // Omitted filters are not sent, so the API keeps its own defaults.
+    expect(seen[1]?.searchParams.has("upcoming")).toBe(false);
+  });
+
   it("throws the API status for a refused call", async () => {
     reply = () => HttpResponse.json({ detail: "Nope." }, { status: 401 });
     serve();

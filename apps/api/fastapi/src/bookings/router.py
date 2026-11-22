@@ -38,6 +38,7 @@ from src.organisations.models import MembershipRole
 from src.pagination import PaginationDep
 from src.rate_limit import limiter
 from src.turnstile import require_turnstile
+from src.utils.datetime import utc_now
 
 from . import deposit_payments, public, service, studio
 from .models import BookingStatus
@@ -190,10 +191,25 @@ async def list_my_bookings(
             )
         ),
     ] = None,
+    cancelled: Annotated[
+        bool | None,
+        Query(
+            description=(
+                "True: only cancelled bookings. False: every booking except the "
+                "cancelled ones. Omit: all statuses. Combine with `upcoming` for the "
+                "Upcoming list (upcoming=true, cancelled=false)."
+            )
+        ),
+    ] = None,
 ) -> Any:
     _ = request  # the rate limiter reads it
+    moment = utc_now()
     rows, total = await service.list_my_bookings(
-        session, current_user.id, upcoming=upcoming, pagination=pagination
+        session,
+        current_user.id,
+        upcoming=upcoming,
+        cancelled=cancelled,
+        pagination=pagination,
     )
     payments = await deposit_payments.payment_summaries(
         session, [booking for booking, *_ in rows]
@@ -209,6 +225,7 @@ async def list_my_bookings(
                 business_name=business_name,
                 business_slug=business_slug,
                 payment=payments[booking.id],
+                manage_url=public.my_manage_url(business_slug, booking, moment),
             )
             for booking, service_name, business_name, business_slug in rows
         ],
