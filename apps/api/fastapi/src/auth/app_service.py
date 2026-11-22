@@ -816,8 +816,11 @@ HANDOFF_EXPIRED = "That sign-in link expired or was already used. Try again."
 
 
 def _require_sso(app: AppDefinition) -> None:
-    if not app.sso:
-        raise AppException("This app doesn't accept single sign-on", 404)
+    if app.sso:
+        return
+    if app.key == "hr":
+        raise AppException("Barrels HR sign-in is not configured", 503)
+    raise AppException("This app doesn't accept single sign-on", 404)
 
 
 async def _account_session_user(

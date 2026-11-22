@@ -7,4 +7,5 @@ export type OrganisationPublic = {
   id: string;
   code: string;
   name: string;
+  slug?: string | null;
 };

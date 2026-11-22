@@ -260,6 +260,7 @@ export type {
   AuthAppHandoffRedeemStatus404,
   AuthAppHandoffRedeemStatus422,
   AuthAppHandoffRedeemStatus429,
+  AuthAppHandoffRedeemStatus503,
 } from "./models/AuthAppHandoffRedeem.js";
 export type {
   AuthAppHandoffStartBody,
@@ -274,6 +275,7 @@ export type {
   AuthAppHandoffStartStatus409,
   AuthAppHandoffStartStatus422,
   AuthAppHandoffStartStatus429,
+  AuthAppHandoffStartStatus503,
 } from "./models/AuthAppHandoffStart.js";
 export type {
   AuthAppPasswordLoginBody,
@@ -4849,6 +4851,15 @@ export type {
   HrGetMyLeaveRequestsStatus422,
 } from "./models/HrGetMyLeaveRequests.js";
 export type {
+  HrGetMyOrganisationsOptions,
+  HrGetMyOrganisationsResponse,
+  HrGetMyOrganisationsResponses,
+  HrGetMyOrganisationsStatus200,
+  HrGetMyOrganisationsStatus401,
+  HrGetMyOrganisationsStatus403,
+  HrGetMyOrganisationsStatus422,
+} from "./models/HrGetMyOrganisations.js";
+export type {
   HrGetMySignatureOptions,
   HrGetMySignatureResponse,
   HrGetMySignatureResponses,
@@ -5578,6 +5589,7 @@ export type {
   HrLoadProvisionalHolidaysStatus403,
   HrLoadProvisionalHolidaysStatus422,
 } from "./models/HrLoadProvisionalHolidays.js";
+export type { HrMeOrganisationPublic } from "./models/HrMeOrganisationPublic.js";
 export type {
   HrOffboardStaffOptions,
   HrOffboardStaffPath,
@@ -10933,6 +10945,7 @@ export { hrGetHrProfileMe } from "./clients/hrGetHrProfileMe.js";
 export { hrGetInbox } from "./clients/hrGetInbox.js";
 export { hrGetInstance } from "./clients/hrGetInstance.js";
 export { hrGetMyLeaveRequests } from "./clients/hrGetMyLeaveRequests.js";
+export { hrGetMyOrganisations } from "./clients/hrGetMyOrganisations.js";
 export { hrGetMySignature } from "./clients/hrGetMySignature.js";
 export { hrGetMySignedDocuments } from "./clients/hrGetMySignedDocuments.js";
 export { hrGetMyTimesheets } from "./clients/hrGetMyTimesheets.js";
@@ -13310,6 +13323,11 @@ export {
   hrGetMyLeaveRequestsQueryOptions,
   useHrGetMyLeaveRequests,
 } from "./hooks/useHrGetMyLeaveRequests.js";
+export {
+  hrGetMyOrganisationsQueryKey,
+  hrGetMyOrganisationsQueryOptions,
+  useHrGetMyOrganisations,
+} from "./hooks/useHrGetMyOrganisations.js";
 export {
   hrGetMySignatureQueryKey,
   hrGetMySignatureQueryOptions,
@@ -15922,6 +15940,7 @@ export {
   authAppHandoffRedeemStatus404Schema,
   authAppHandoffRedeemStatus422Schema,
   authAppHandoffRedeemStatus429Schema,
+  authAppHandoffRedeemStatus503Schema,
 } from "./zod/authAppHandoffRedeemSchema.js";
 export {
   authAppHandoffStartBodySchema,
@@ -15936,6 +15955,7 @@ export {
   authAppHandoffStartStatus409Schema,
   authAppHandoffStartStatus422Schema,
   authAppHandoffStartStatus429Schema,
+  authAppHandoffStartStatus503Schema,
 } from "./zod/authAppHandoffStartSchema.js";
 export {
   authAppPasswordLoginBodySchema,
@@ -20554,6 +20574,14 @@ export {
   hrGetMyLeaveRequestsStatus422Schema,
 } from "./zod/hrGetMyLeaveRequestsSchema.js";
 export {
+  hrGetMyOrganisationsErrorSchema,
+  hrGetMyOrganisationsResponseSchema,
+  hrGetMyOrganisationsStatus200Schema,
+  hrGetMyOrganisationsStatus401Schema,
+  hrGetMyOrganisationsStatus403Schema,
+  hrGetMyOrganisationsStatus422Schema,
+} from "./zod/hrGetMyOrganisationsSchema.js";
+export {
   hrGetMySignatureErrorSchema,
   hrGetMySignatureResponseSchema,
   hrGetMySignatureStatus200Schema,
@@ -21312,6 +21340,7 @@ export {
   hrLoadProvisionalHolidaysStatus403Schema,
   hrLoadProvisionalHolidaysStatus422Schema,
 } from "./zod/hrLoadProvisionalHolidaysSchema.js";
+export { hrMeOrganisationPublicSchema } from "./zod/hrMeOrganisationPublicSchema.js";
 export {
   hrOffboardStaffErrorSchema,
   hrOffboardStaffPathSchema,

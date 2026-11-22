@@ -66,6 +66,14 @@ class OrganisationPublic(BaseModel):
     id: str
     code: str
     name: str
+    slug: str | None = None
+
+
+class HrMeOrganisationPublic(BaseModel):
+    id: str
+    slug: str
+    name: str
+    scope: RoleAssignmentScope
 
 
 class DepartmentPublic(BaseModel):
