@@ -11,8 +11,9 @@ interface StudioNavProps {
 }
 
 /**
- * Left navigation on desktop, a top tab row on phones. Agenda, New booking and Settings
- * are the screens in this release. Settings is shown to every member (read-only for non-admins).
+ * Left navigation on desktop, a top tab row on phones. Agenda, New booking,
+ * Services, People and Settings. Every member sees the four management screens
+ * (read-only for non-admins); New booking is for owners and admins only.
  */
 export function StudioNav({ canCreate = false, orgSlug }: StudioNavProps) {
   const pathname = usePathname();
@@ -34,6 +35,16 @@ export function StudioNav({ canCreate = false, orgSlug }: StudioNavProps) {
           },
         ]
       : []),
+    {
+      label: "Services",
+      href: `/studio/${orgSlug}/services`,
+      active: pathname.startsWith(`/studio/${orgSlug}/services`),
+    },
+    {
+      label: "People",
+      href: `/studio/${orgSlug}/people`,
+      active: pathname.startsWith(`/studio/${orgSlug}/people`),
+    },
     {
       label: "Settings",
       href: `/studio/${orgSlug}/settings`,

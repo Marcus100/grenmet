@@ -7,6 +7,7 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { env } from "@/env";
+import { EXAMPLE_BOOKING_PATH } from "@/lib/example-booking";
 
 export const metadata: Metadata = {
   title: "Online appointments in Grenada",
@@ -14,9 +15,6 @@ export const metadata: Metadata = {
     "Book an appointment online with Grenada businesses. Each business has its own booking page, with its services and times.",
   alternates: { canonical: "/" },
 };
-
-/** A business's public booking page, used as the worked example. */
-const EXAMPLE_BOOKING_PAGE = "/babydoll-beauty-bar";
 
 // Every link here is a 44 px target (`min-h-11`), phone first.
 const LINK =
@@ -55,7 +53,7 @@ export default function HomePage() {
         <p className="text-muted-foreground">
           There is no list of businesses here yet, so ask the business for its
           booking link. For example, this is a booking page:{" "}
-          <Link className={LINK} href={EXAMPLE_BOOKING_PAGE}>
+          <Link className={LINK} href={EXAMPLE_BOOKING_PATH}>
             see an example booking page
           </Link>
           .

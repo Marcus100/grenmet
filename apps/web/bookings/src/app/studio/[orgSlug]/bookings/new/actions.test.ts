@@ -17,17 +17,23 @@ vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
 vi.mock("@/lib/studio-api", () => ({
   createStudioBooking: vi.fn(),
   findOrganisation: vi.fn(),
+  getBusinessProfile: vi.fn(),
   getBusinessTimezone: vi.fn(),
+}));
+vi.mock("@/lib/booking-api", () => ({
+  getAvailability: vi.fn(),
 }));
 
 import { redirect } from "next/navigation";
+import { getAvailability } from "@/lib/booking-api";
 import { getSession } from "@/lib/session";
 import {
   createStudioBooking,
   findOrganisation,
+  getBusinessProfile,
   getBusinessTimezone,
 } from "@/lib/studio-api";
-import { createBookingAction } from "./actions";
+import { createBookingAction, loadWalkInTimesAction } from "./actions";
 
 const SLUG = "sea-salt";
 const IDLE = { status: "idle" } as const;
@@ -177,5 +183,121 @@ describe("create booking action", () => {
     const result = await createBookingAction(SLUG, IDLE, form());
     expect(result).toMatchObject({ status: "error", kind: "unavailable" });
     expect(reportError).toHaveBeenCalledWith(expect.anything(), "studio");
+  });
+});
+
+describe("walk-in open times", () => {
+  const WALK_IN = {
+    serviceId: SERVICE_ID,
+    providerId: PROVIDER_ID,
+    date: "2026-11-24",
+  };
+  // 13:00 UTC is 09:00 on the Grenada clock.
+  const SLOTS = {
+    timezone: "America/Grenada",
+    service_id: SERVICE_ID,
+    slots: [
+      {
+        starts_at: "2026-11-24T13:00:00Z",
+        ends_at: "2026-11-24T14:00:00Z",
+        provider_ids: [PROVIDER_ID],
+      },
+      {
+        starts_at: "2026-11-25T13:00:00Z",
+        ends_at: "2026-11-25T14:00:00Z",
+        provider_ids: [PROVIDER_ID],
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    vi.mocked(getBusinessProfile).mockResolvedValue({
+      currency: "XCD",
+      publicSlug: "sea-salt-spa",
+      timezone: "America/Grenada",
+    });
+    vi.mocked(getAvailability).mockResolvedValue(SLOTS as never);
+  });
+
+  it("reads the public times of the business's own address, for that day only", async () => {
+    const result = await loadWalkInTimesAction(SLUG, WALK_IN);
+    expect(getAvailability).toHaveBeenCalledWith(
+      "sea-salt-spa",
+      SERVICE_ID,
+      "2026-11-24",
+      PROVIDER_ID
+    );
+    expect(result).toEqual({
+      status: "ready",
+      times: [{ time: "09:00", label: "9:00 am" }],
+    });
+  });
+
+  it("asks without a provider when none is chosen", async () => {
+    await loadWalkInTimesAction(SLUG, { ...WALK_IN, providerId: "" });
+    expect(getAvailability).toHaveBeenCalledWith(
+      "sea-salt-spa",
+      SERVICE_ID,
+      "2026-11-24",
+      undefined
+    );
+  });
+
+  it("says closed when the business has no booking address", async () => {
+    vi.mocked(getBusinessProfile).mockResolvedValue({
+      currency: "XCD",
+      publicSlug: null,
+      timezone: "America/Grenada",
+    });
+    expect(await loadWalkInTimesAction(SLUG, WALK_IN)).toEqual({
+      status: "closed",
+    });
+    expect(getAvailability).not.toHaveBeenCalled();
+  });
+
+  it("says closed when the public page answers 404 (switched off)", async () => {
+    vi.mocked(getAvailability).mockRejectedValue(apiError(404));
+    expect(await loadWalkInTimesAction(SLUG, WALK_IN)).toEqual({
+      status: "closed",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("shows a plain message and reports a server fault", async () => {
+    const fault = apiError(500);
+    vi.mocked(getAvailability).mockRejectedValue(fault);
+    expect(await loadWalkInTimesAction(SLUG, WALK_IN)).toMatchObject({
+      status: "error",
+    });
+    expect(reportError).toHaveBeenCalledWith(fault, "studio");
+  });
+
+  it("refuses a member before any read", async () => {
+    org("member");
+    expect(await loadWalkInTimesAction(SLUG, WALK_IN)).toMatchObject({
+      status: "error",
+    });
+    expect(getAvailability).not.toHaveBeenCalled();
+  });
+
+  it("refuses a malformed service, day or provider before the API", async () => {
+    for (const bad of [
+      { ...WALK_IN, serviceId: "nope" },
+      { ...WALK_IN, date: "2026-13-40" },
+      { ...WALK_IN, providerId: "nope" },
+    ]) {
+      expect(await loadWalkInTimesAction(SLUG, bad)).toMatchObject({
+        status: "error",
+      });
+    }
+    expect(getAvailability).not.toHaveBeenCalled();
+  });
+
+  it("sends people without a session to sign in", async () => {
+    vi.mocked(getSession).mockResolvedValue(null);
+    await expect(loadWalkInTimesAction(SLUG, WALK_IN)).rejects.toThrow(
+      "NEXT_REDIRECT"
+    );
+    expect(getAvailability).not.toHaveBeenCalled();
   });
 });

@@ -9,8 +9,6 @@ import { TIMEZONE_SUGGESTIONS } from "@/lib/settings-view";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
 import { BrandSection } from "./brand-section";
-import { ContactOptions } from "./contact-options";
-import { PaymentOption } from "./payment-option";
 import {
   INPUT,
   keepTyped,
@@ -19,14 +17,16 @@ import {
   SettingsResult,
 } from "./settings-ui";
 
+/**
+ * The business profile section: name, address, timezone, prices, notices,
+ * brand and the booking-page switch. Contact options and the payment choice
+ * have their own forms and Save buttons (ContactForm, PaymentsForm).
+ */
 export function ProfileForm({
-  cardPaymentsAvailable = false,
   orgSlug,
   profile,
   suggestedName,
 }: {
-  /** The platform takes card payments online (Stripe test mode). */
-  cardPaymentsAvailable?: boolean;
   orgSlug: string;
   profile: BookingProfilePublic | null;
   /** Prefills the business name for a first-time profile. */
@@ -50,6 +50,7 @@ export function ProfileForm({
   const hydrated = useHydrated();
   return (
     <form className="space-y-5" onSubmit={keepTyped(formAction)}>
+      <input name="section" type="hidden" value="profile" />
       <div className="grid gap-5 lg:grid-cols-2">
         <SettingsField id="profile-displayName" label="Business name">
           {() => (
@@ -242,14 +243,6 @@ export function ProfileForm({
         logoFileId={profile?.logo_file_id ?? null}
         onUploadingChange={setLogoUploading}
         orgSlug={orgSlug}
-      />
-      <ContactOptions
-        errors={state.status === "error" ? state.fields : undefined}
-        profile={profile}
-      />
-      <PaymentOption
-        cardPaymentsAvailable={cardPaymentsAvailable}
-        profile={profile}
       />
       <div className="space-y-1">
         <SettingsCheck

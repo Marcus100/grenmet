@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { EXAMPLE_BOOKING_PATH } from "@/lib/example-booking";
 import HomePage from "./page";
 
 const NO_BUSINESS_LIST = /There is no list of businesses here yet/u;
@@ -21,7 +22,7 @@ describe("home page", () => {
     render(<HomePage />);
     expect(
       screen.getByRole("link", { name: "see an example booking page" })
-    ).toHaveAttribute("href", "/babydoll-beauty-bar");
+    ).toHaveAttribute("href", EXAMPLE_BOOKING_PATH);
   });
 
   it("puts For businesses in the header corner, pointing at the studio", () => {

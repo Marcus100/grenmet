@@ -17,6 +17,7 @@ vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
   getAgenda: vi.fn(),
   getBusinessProfile: vi.fn(),
+  getSettings: vi.fn(),
   listProviders: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
@@ -32,9 +33,18 @@ import {
   findOrganisation,
   getAgenda,
   getBusinessProfile,
+  getSettings,
   listProviders,
 } from "@/lib/studio-api";
 import AgendaPage from "./page";
+
+/** A business with nothing set up yet: every checklist step is open. */
+const NOTHING_SET_UP = {
+  profile: null,
+  services: [],
+  providers: [],
+  deposits_available: false,
+};
 
 const params = Promise.resolve({ orgSlug: "sea-salt" });
 /** The studio slug is "sea-salt"; customers book at a different public slug. */
@@ -50,6 +60,7 @@ const search = (query: Record<string, string> = {}) => Promise.resolve(query);
 const ADA = /Ada Lovelace/u;
 const GRACE = /Grace Hopper/u;
 const RETIRED = /with Retired Rae/u;
+const CHECKLIST = /Complete your setup/u;
 const BOOKING = "22222222-2222-4222-8222-222222222222";
 
 function item(overrides: Partial<BookingAgendaItem> = {}): BookingAgendaItem {
@@ -101,12 +112,81 @@ beforeEach(() => {
     role: "member",
   });
   vi.mocked(getAgenda).mockReset();
+  vi.mocked(getSettings).mockReset();
+  vi.mocked(getSettings).mockResolvedValue({
+    ...NOTHING_SET_UP,
+  } as never);
   vi.mocked(getBusinessProfile).mockResolvedValue(profile("America/Grenada"));
   vi.mocked(listProviders).mockResolvedValue([
     provider(PROVIDER_ID, "Maya"),
     provider("66666666-6666-4666-8666-666666666666", "Kofi"),
     provider("88888888-8888-4888-8888-888888888888", "Retired Rae", false),
   ]);
+});
+
+describe("setup checklist", () => {
+  it("shows the open steps for an owner with nothing set up, each with a Do this link", async () => {
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    vi.mocked(getSettings).mockResolvedValue(NOTHING_SET_UP as never);
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.getByText(CHECKLIST)).toBeInTheDocument();
+    expect(screen.getByText("0 of 5 steps done.")).toBeInTheDocument();
+    const links = screen.getAllByRole("link", { name: "Do this" });
+    expect(links).toHaveLength(5);
+    expect(links[0]).toHaveAttribute("href", "/studio/sea-salt/services");
+    expect(links[1]).toHaveAttribute("href", "/studio/sea-salt/settings#hours");
+  });
+
+  it("is not shown to a member, and its settings are not read", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.queryByText(CHECKLIST)).not.toBeInTheDocument();
+    expect(getSettings).not.toHaveBeenCalled();
+  });
+
+  it("is not shown once every step is done", async () => {
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "admin",
+    });
+    vi.mocked(getSettings).mockResolvedValue({
+      profile: {
+        public_slug: "sea-salt-spa",
+        enabled: true,
+        brand_color: "#0b63ee",
+        logo_file_id: null,
+        payment_at_booking: "deposit",
+      },
+      services: [{ id: "s1" }],
+      providers: [{ id: PROVIDER_ID, working_hours: [{}] }],
+      deposits_available: false,
+    } as never);
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.queryByText(CHECKLIST)).not.toBeInTheDocument();
+  });
+
+  it("is left out, without hiding the agenda, when the settings cannot be read", async () => {
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    vi.mocked(getSettings).mockRejectedValue(apiError(500));
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.queryByText(CHECKLIST)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Agenda" })).toBeInTheDocument();
+  });
 });
 
 describe("studio agenda", () => {

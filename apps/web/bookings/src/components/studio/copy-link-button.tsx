@@ -2,6 +2,7 @@
 
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useState } from "react";
+import { absoluteBookingUrl } from "@/lib/booking-url";
 import { reportError } from "@/lib/report-error";
 
 type CopyState = "idle" | "copied" | "failed";
@@ -23,7 +24,7 @@ export function CopyLinkButton({
   const [state, setState] = useState<CopyState>("idle");
 
   async function copy() {
-    const url = `${origin ?? window.location.origin}${path}`;
+    const url = absoluteBookingUrl(path, origin ?? window.location.origin);
     try {
       await navigator.clipboard.writeText(url);
       setState("copied");
