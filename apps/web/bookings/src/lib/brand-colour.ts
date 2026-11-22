@@ -28,12 +28,21 @@ export function contrastWithWhite(hex: string): number {
   return 1.05 / (luminance(hex) + 0.05);
 }
 
-/** The accent the emails print: lower-case hex that passes, else navy. */
-export function safeAccent(value: string | null | undefined): string {
+/**
+ * The accent a page may use: lower-case hex that passes, else null (the page
+ * keeps the shared tokens). Anything that is not `#rrggbb` is refused, so a raw
+ * string never reaches a style attribute.
+ */
+export function pageAccent(value: string | null | undefined): string | null {
   if (value && HEX.test(value) && contrastWithWhite(value) >= MIN_CONTRAST) {
     return value.toLowerCase();
   }
-  return NAVY;
+  return null;
+}
+
+/** The accent the emails print: lower-case hex that passes, else navy. */
+export function safeAccent(value: string | null | undefined): string {
+  return pageAccent(value) ?? NAVY;
 }
 
 /**

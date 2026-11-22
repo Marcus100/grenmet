@@ -3,6 +3,7 @@ import {
   checkBrandColour,
   contrastWithWhite,
   NAVY,
+  pageAccent,
   safeAccent,
 } from "./brand-colour";
 
@@ -90,6 +91,28 @@ describe("checkBrandColour", () => {
       } else {
         expect(printed).toBe(NAVY);
       }
+    }
+  });
+});
+
+describe("pageAccent", () => {
+  it("returns the lower-case hex that passes, and null for anything else", () => {
+    expect(pageAccent("#0B63EE")).toBe("#0b63ee");
+    expect(pageAccent("#767676")).toBe("#767676");
+    expect(pageAccent("#777777")).toBeNull();
+    expect(pageAccent("#ffff00")).toBeNull();
+    expect(pageAccent("red")).toBeNull();
+    expect(pageAccent("red;background:url(x)")).toBeNull();
+    expect(pageAccent("#0b63ee;")).toBeNull();
+    expect(pageAccent(" #0b63ee")).toBeNull();
+    expect(pageAccent("")).toBeNull();
+    expect(pageAccent(null)).toBeNull();
+    expect(pageAccent(undefined)).toBeNull();
+  });
+
+  it("agrees with safeAccent: the email fallback is navy wherever the page has no accent", () => {
+    for (const value of ["#0b63ee", "#777777", "red", null]) {
+      expect(safeAccent(value)).toBe(pageAccent(value) ?? NAVY);
     }
   });
 });

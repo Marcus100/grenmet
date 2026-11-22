@@ -10,11 +10,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
+import { StorefrontLogo } from "@/components/storefront-logo";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
 import { signInPath, signUpHref } from "@/lib/sign-in-links";
 import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
+import { brandStyle, safeLogoUrl } from "@/lib/storefront-brand";
 import { storefrontJsonLd } from "@/lib/storefront-jsonld";
 import {
   confirmEmailCode,
@@ -63,6 +65,9 @@ export default async function BusinessBookingPage({
     notFound();
   }
   const { providers, services } = storefront;
+  // Older cached payloads may lack these fields: both fall back to the shared
+  // tokens and no logo. The accent is checked for contrast before it is used.
+  const logo = safeLogoUrl(storefront.logo_url);
   // A signed-in person gets their own details prefilled and shortcuts from
   // their own earlier bookings here; a guest gets a blank form, the invitation
   // to create an account or sign in, and a quiet sign-in link.
@@ -74,7 +79,10 @@ export default async function BusinessBookingPage({
       };
 
   return (
-    <div className="booking space-y-10">
+    <div
+      className="booking space-y-10"
+      style={brandStyle(storefront.brand_color)}
+    >
       <JsonLd
         data={storefrontJsonLd(
           env.NEXT_PUBLIC_SITE_URL ?? "https://bookings.barrels.gd",
@@ -82,6 +90,7 @@ export default async function BusinessBookingPage({
         )}
       />
       <header className="space-y-2">
+        {logo && <StorefrontLogo name={storefront.display_name} src={logo} />}
         <h1 className="text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] font-bold tracking-tight">
           {storefront.display_name}
         </h1>
@@ -93,7 +102,7 @@ export default async function BusinessBookingPage({
           <p className="text-muted-foreground">
             Have a Barrels account?{" "}
             <a
-              className="text-foreground inline-flex min-h-11 items-center underline underline-offset-4"
+              className="brand-link inline-flex min-h-11 items-center underline underline-offset-4"
               href={signInPath(slug)}
             >
               Sign in
