@@ -336,6 +336,21 @@ describe("refund terms on the picker", () => {
     expect(action).toContainElement(screen.getByTestId("ticket-summary"));
   });
 
+  it("clears the installed app's tab bar and its safe-area inset on phones", () => {
+    render(<TicketClaim refundTerms={TERMS} slug="mixed" tiers={[paidTier]} />);
+    const action = screen.getByRole("button", {
+      name: "Choose how many tickets",
+    }).parentElement;
+
+    // BottomNav is 3.5rem tall and already carries the safe-area inset, so the
+    // bar sits above both; in standalone its own padding drops the inset.
+    expect(action?.className).toContain(
+      "max-md:standalone:bottom-[calc(3.5rem_+_env(safe-area-inset-bottom))]"
+    );
+    expect(action?.className).toContain("max-lg:standalone:pb-3");
+    expect(action?.className).not.toContain("max-md:standalone:bottom-14");
+  });
+
   it("shows a free ticket as Free before a quantity is chosen", () => {
     render(<TicketClaim refundTerms={TERMS} slug="free" tiers={[tier()]} />);
     expect(screen.getByTestId("ticket-summary")).toHaveTextContent("Free");

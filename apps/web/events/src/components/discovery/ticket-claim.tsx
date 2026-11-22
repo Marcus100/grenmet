@@ -50,11 +50,13 @@ function newKey(): string {
  * price and the main button stay in reach while the tiers scroll. From the
  * laptop breakpoint it is an ordinary block inside the buy card.
  */
-const ACTION_BLOCK_CLASS = cn(
+export const ACTION_BLOCK_CLASS = cn(
   "space-y-2",
   "max-lg:border-border max-lg:bg-card max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 max-lg:border-t max-lg:px-4 max-lg:pt-3 max-lg:pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] max-lg:shadow-lg",
-  // The installed app's bottom tab bar sits on the same edge.
-  "max-md:standalone:bottom-14"
+  // The installed app's bottom tab bar (BottomNav) is 3.5rem tall and carries
+  // the safe-area inset itself, so the bar sits above it by both. Its own
+  // bottom padding then drops the inset, which the offset already clears.
+  "max-md:standalone:bottom-[calc(3.5rem_+_env(safe-area-inset-bottom))] max-lg:standalone:pb-3"
 );
 
 /**

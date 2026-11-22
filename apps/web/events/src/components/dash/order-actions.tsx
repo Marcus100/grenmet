@@ -422,8 +422,7 @@ function RefundForm({
       {mode === "partial" ? (
         <Field>
           <FieldLabel htmlFor={`refund-amount-${order.id}`}>
-            Amount to refund ({currencySymbol(order.currency) ?? order.currency}
-            )
+            {`Amount to refund (${currencySymbol(order.currency) ?? order.currency})`}
           </FieldLabel>
           <Input
             className="min-h-11"

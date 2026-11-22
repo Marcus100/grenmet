@@ -1,10 +1,27 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SignInHandOff } from "./sign-in-hand-off";
 
 const START = "/auth/start?returnTo=%2Fbookings";
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("SignInHandOff", () => {
+  it("moves the browser to the sign-in hop with location.replace", () => {
+    // jsdom makes window.location.replace non-configurable, so the location
+    // object is stubbed for this test and the component reads the stub.
+    const replace = vi.fn();
+    vi.stubGlobal("location", { ...window.location, replace });
+
+    render(<SignInHandOff href={START} />);
+
+    expect(replace).toHaveBeenCalledTimes(1);
+    expect(replace).toHaveBeenCalledWith(START);
+    vi.unstubAllGlobals();
+  });
+
   it("explains the hop instead of showing a blank page", () => {
     render(<SignInHandOff href={START} />);
 
