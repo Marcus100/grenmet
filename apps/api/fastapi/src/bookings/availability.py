@@ -26,6 +26,9 @@ from src.utils.timezones import local_to_utc
 
 Interval = tuple[datetime, datetime]
 
+#: The longest whole-business closure, counted in local days, both ends inclusive.
+MAX_CLOSURE_DAYS = 366
+
 
 @dataclass(frozen=True)
 class WorkingPeriod:
@@ -122,6 +125,18 @@ def working_windows(
         (e.starts_at, e.ends_at) for e in calendar.exceptions if e.kind == "time_off"
     ]
     return subtract(merge([*windows, *extra]), time_off)
+
+
+def closure_interval(starts_on: date, ends_on: date, tz: ZoneInfo) -> Interval:
+    """A business closure's local days, both ends inclusive, as naive UTC.
+
+    The interval runs from local midnight on the first day to local midnight
+    after the last, so it follows the organisation's calendar, not UTC's.
+    """
+    return (
+        local_to_utc(starts_on, time(0), tz),
+        local_to_utc(ends_on + timedelta(days=1), time(0), tz),
+    )
 
 
 def provider_slots(
