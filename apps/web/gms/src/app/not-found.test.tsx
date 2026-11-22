@@ -16,5 +16,6 @@ it("offers the site search, which goes to the search page", () => {
   render(<NotFound />);
   const box = screen.getByRole("searchbox", { name: "Search the site" });
   expect(box).toHaveAttribute("name", "q");
+  expect(box).toHaveAttribute("maxlength", "200");
   expect(box.closest("form")).toHaveAttribute("action", "/search");
 });

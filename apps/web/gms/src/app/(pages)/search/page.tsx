@@ -3,9 +3,8 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { PageSection } from "@/components/pages/page-section";
 import { SiteSearchForm } from "@/components/site-search-form";
-import { fetchPublishedContent } from "@/lib/cms";
-import { buildSearchIndex, searchIndex } from "@/lib/search";
-import { searchArticles } from "@/lib/search-articles";
+import { buildSearchIndex, MAX_QUERY_LENGTH, searchIndex } from "@/lib/search";
+import { loadSearchArticles } from "@/lib/search-articles";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -29,10 +28,10 @@ export default async function SearchPage({
 }) {
   const { q } = await searchParams;
   const raw = Array.isArray(q) ? (q[0] ?? "") : (q ?? "");
-  const query = raw.trim().slice(0, 200);
+  const query = raw.trim().slice(0, MAX_QUERY_LENGTH);
   const results = query
     ? searchIndex(
-        buildSearchIndex(searchArticles(await fetchPublishedContent())),
+        buildSearchIndex(await loadSearchArticles()),
         query,
         RESULT_LIMIT
       )

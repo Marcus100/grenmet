@@ -1,6 +1,7 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
+import { MAX_QUERY_LENGTH } from "@/lib/search";
 
 /**
  * A plain GET form to `/search?q=`, so it works without JavaScript. Used where
@@ -26,6 +27,7 @@ export function SiteSearchForm({
             autoComplete="off"
             defaultValue={defaultValue}
             id={id}
+            maxLength={MAX_QUERY_LENGTH}
             name="q"
             placeholder="Forecasts, places, topics"
             type="search"

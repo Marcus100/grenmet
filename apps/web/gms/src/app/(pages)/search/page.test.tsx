@@ -7,6 +7,10 @@ vi.mock("@/lib/cms", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/cms")>()),
   fetchPublishedContent: vi.fn(),
 }));
+// The cache wrapper needs a Next request; the test calls the loader directly.
+vi.mock("next/cache", () => ({
+  unstable_cache: (fn: unknown) => fn,
+}));
 
 async function renderSearch(q: string | string[] | undefined) {
   const element = await SearchPage({

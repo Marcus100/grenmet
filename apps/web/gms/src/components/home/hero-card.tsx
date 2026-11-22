@@ -211,10 +211,14 @@ function nowLabel(
   return `Now · ${station}`;
 }
 
-/** "Out of date · 3 hours old": the badge on a reading older than two hours. */
+/**
+ * "Out of date · 3 hours old": the badge on a reading older than two hours. Its
+ * fill is the scrim and its text full white, so it clears 4.5:1 on every sky
+ * stop (11.8:1 on the lightest, the lowest; a 20% white fill gave 3.7:1).
+ */
 function OutOfDateBadge({ age }: { age: string | null }) {
   return (
-    <span className="bg-gm-text-inverse/20 text-caption leading-caption ms-2 inline-block rounded-full px-2 py-0.5 font-bold whitespace-nowrap">
+    <span className="bg-gm-scrim text-gm-text-inverse text-caption leading-caption ms-2 inline-block rounded-full px-2 py-0.5 font-bold whitespace-nowrap">
       Out of date{age ? ` · ${age} old` : ""}
     </span>
   );
