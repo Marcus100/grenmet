@@ -16,6 +16,7 @@ from src.billing.models import InvoiceReminder, ReminderStage
 from src.billing.schemas import InvoiceDraftWrite, InvoiceLineInput
 from src.database import async_session_factory
 from src.notifications.models import OutboundEmail
+from tests.email_payload import payload_html
 from tests.factories import assign_role, make_role_with_permission, make_user
 from tests.organisations.support import headers_for, make_org
 
@@ -263,7 +264,18 @@ async def test_issue_assigns_number_dates_pdf_and_queues_email(
     assert emails[0].to_email == "accounts@example.com"
     assert "BG-2031-0001" in emails[0].subject
     assert emails[0].transactional is True
-    assert emails[0].html is not None and "XCD 1,150.00" in emails[0].html
+    assert emails[0].template == "card"
+    assert emails[0].html is None
+    issued_html = payload_html({"props": emails[0].props})
+    assert "XCD 1,150.00" in issued_html
+    assert "Due date" in issued_html
+    assert "2031-03-31" in issued_html
+    assert "Barrels Grenada" in issued_html
+    # No storage in tests: no PDF link, the offer of another copy instead.
+    assert "Download invoice (PDF)" not in issued_html
+    assert "Reply to this email if you need another copy of the invoice." in (
+        issued_html
+    )
 
     pdf = await async_client.get(f"{API}/invoices/{issued['id']}/pdf", headers=headers)
     assert pdf.status_code == 200
@@ -654,6 +666,11 @@ async def test_reminders_are_idempotent_per_invoice_and_stage(
     assert "due in 7 days" in reminder_mails[0].subject
     assert "due today" in reminder_mails[1].subject
     assert "7 days ago" in reminder_mails[2].subject
+    leads = [payload_html({"props": mail.props}) for mail in reminder_mails]
+    assert "Invoice " in leads[0] and "is due in 7 days" in leads[0]
+    assert "is due today" in leads[1]
+    assert "is now 7 days overdue" in leads[2]
+    assert all(mail.template == "card" for mail in reminder_mails)
 
 
 async def test_no_reminder_for_voided_or_paid_invoices(

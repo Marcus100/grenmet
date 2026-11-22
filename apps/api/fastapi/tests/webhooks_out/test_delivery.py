@@ -20,6 +20,7 @@ from src.webhooks_out.models import (
     WebhookEndpoint,
 )
 from src.webhooks_out.schemas import WebhookEndpointCreate
+from tests.email_payload import payload_html, payload_text
 from tests.webhooks_out.support import RECEIVER, Receiver, Resolver, setup_org
 
 TOPIC = service.DELIVER_TOPIC
@@ -286,7 +287,18 @@ async def test_auto_disable_after_fifteen_failures_in_a_row(
     emails = await _rows(db_async, "email.send")
     assert [r.payload["to_email"] for r in emails] == [admin.email.lower()]
     assert emails[0].payload["transactional"] is True
-    assert endpoint.id in emails[0].payload["html"]
+    assert emails[0].payload["template"] == "card"
+    assert emails[0].payload["html"] is None
+    html = payload_html(emails[0].payload)
+    assert endpoint.id in html
+    text = payload_text(emails[0].payload)
+    assert "Host: hooks.example.com" in text
+    reason = f"Disabled after {service.AUTO_DISABLE_AFTER} failed deliveries in a row"
+    assert reason in text
+    assert f"Reason: {reason}" in text
+    assert "Events sent while it was disabled are not replayed." in text
+    assert "A webhook endpoint was disabled" in html
+    assert "<a " not in html
 
     # A repeat attempt on a disabled endpoint sends nothing.
     await _emit(db_async, org)

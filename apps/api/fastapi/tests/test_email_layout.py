@@ -195,6 +195,16 @@ def test_plain_text_part_carries_the_same_facts() -> None:
     assert "<" not in text and "</" not in text
 
 
+def test_row_values_cannot_fake_an_extra_line_in_the_text_part() -> None:
+    card = _card(
+        rows=(layout.Row("Customer", "Jane\nReason: x\r\nBcc: y"),),
+    )
+    lines = layout.render_text(card).splitlines()
+    assert "Customer: Jane Reason: x Bcc: y" in lines
+    assert not any(line.startswith("Reason:") for line in lines)
+    assert not any(line.startswith("Bcc:") for line in lines)
+
+
 def test_with_subject_flattens_the_subject_onto_the_card() -> None:
     card = layout.with_subject("Your booking\r\nis confirmed", _card())
     assert card.subject == "Your booking is confirmed"
