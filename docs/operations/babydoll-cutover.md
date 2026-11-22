@@ -194,8 +194,8 @@ recorded run. Record result, date and who ran it.
   booking flow and the studio (`apps/web/bookings`) report through the shared
   catalogue.
 - **Better Stack:** `scripts/monitoring/betterstack.json` has `Production ·
-  Bookings health` (`bookings.barrels.gd/api/health`) and the API readiness
-  monitors. There is **no monitor for `babydoll.barrels.gd`** (Q5), and none for
+  Bookings` (`bookings.barrels.gd/babydoll-beauty-bar`, id 5279837, created by
+  the owner on 22 Nov 2026) and the API readiness monitors. There is **no monitor for `babydoll.barrels.gd`** (Q5), and none for
   the studio's booking page. Add one for
   `bookings.barrels.gd/babydoll-beauty-bar` (expects 200) once production is
   seeded, plus a heartbeat check on the

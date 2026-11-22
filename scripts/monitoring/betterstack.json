@@ -305,9 +305,10 @@
     {
       "environment": "production",
       "kind": "monitors",
+      "id": 5279837,
       "settings": {
-        "pronounceable_name": "Production · Bookings health",
-        "url": "https://bookings.barrels.gd/api/health",
+        "pronounceable_name": "Production · Bookings",
+        "url": "https://bookings.barrels.gd/babydoll-beauty-bar",
         "monitor_type": "status",
         "check_frequency": 180,
         "confirmation_period": 180,
@@ -319,7 +320,7 @@
         "sms": false,
         "call": false,
         "push": true,
-        "paused": true
+        "paused": false
       }
     },
     {
