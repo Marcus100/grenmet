@@ -20,7 +20,7 @@ const DAILY_MAX_AGE_DAYS = 2;
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Grenada Signal: know what's going on",
+  title: "Grenada Signal: know what is going on",
   description:
     "Grenada news, weather and verification in five minutes: what happened, why it matters, who is affected and what to do next.",
   alternates: { canonical: "/" },
