@@ -1,4 +1,5 @@
 import { Body, Head, Html, Img, Link, Preview } from "react-email";
+import { safeAccent } from "./colour";
 
 /**
  * The house email layout (docs/email-design.md): page background, white 600px
@@ -11,11 +12,8 @@ import { Body, Head, Html, Img, Link, Preview } from "react-email";
  * falls back to the Barrels navy unless it clears 4.5:1 against white.
  */
 
-export const NAVY = "#0b132b";
 const PAGE = "#f3f8fc";
 const FONT = "Arial, Helvetica, sans-serif";
-const MIN_CONTRAST = 4.5;
-const HEX = /^#[0-9a-fA-F]{6}$/u;
 
 export interface CardRow {
   label: string;
@@ -86,11 +84,6 @@ export function safeUrl(value: string | null | undefined): string | null {
   return url.hostname ? value : null;
 }
 
-function channel(hex: string, start: number): number {
-  const value = Number.parseInt(hex.slice(start, start + 2), 16) / 255;
-  return value <= 0.039_28 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-}
-
 /** A logo must be https: images are fetched from the business's own host. */
 export function safeLogo(logo: CardLogo | null | undefined): CardLogo | null {
   const url = safeUrl(logo?.url);
@@ -100,29 +93,9 @@ export function safeLogo(logo: CardLogo | null | undefined): CardLogo | null {
   return { url, alt: logo.alt };
 }
 
-function luminance(hex: string): number {
-  return (
-    0.2126 * channel(hex, 1) +
-    0.7152 * channel(hex, 3) +
-    0.0722 * channel(hex, 5)
-  );
-}
-
 /** The legacy bgcolor attribute (Outlook reads it; the style covers the rest). */
 function bgcolorAttribute(color: string): { bgcolor: string } {
   return { bgcolor: color };
-}
-
-/** The accent when it is six-digit hex and reaches 4.5:1 against white, else navy. */
-export function safeAccent(value: string | null | undefined): string {
-  if (
-    value &&
-    HEX.test(value) &&
-    1.05 / (luminance(value) + 0.05) >= MIN_CONTRAST
-  ) {
-    return value.toLowerCase();
-  }
-  return NAVY;
 }
 
 function Button({

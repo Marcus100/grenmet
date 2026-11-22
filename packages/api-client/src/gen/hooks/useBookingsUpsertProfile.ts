@@ -57,7 +57,7 @@ export function bookingsUpsertProfileMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Set the public booking address, timezone, currency and booking rules. Online booking stays off until `enabled` is true.
+ * @description Set the public booking address, timezone, currency and booking rules. Online booking stays off until `enabled` is true. `brand_color` and `logo_file_id` set the accent and logo used in the business's emails.
  * @summary Create or update my booking profile
  * {@link /api/v1/bookings/org/profile}
  */
