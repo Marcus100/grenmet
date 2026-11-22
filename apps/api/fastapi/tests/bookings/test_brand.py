@@ -11,11 +11,11 @@ from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
-from sqlalchemy import update
+from sqlalchemy import text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import email_layout as layout
-from src.bookings import emails
+from src.bookings import emails, service
 from src.bookings.models import BookingProfile
 from src.config import settings
 from src.organisations import service as organisation_service
@@ -450,3 +450,34 @@ async def test_unknown_and_disabled_pages_still_answer_one_404_with_no_brand(
     assert disabled.json() == unknown.json()
     assert "brand_color" not in disabled.text
     assert "logo" not in disabled.text
+
+
+@pytest.mark.parametrize("failure", ["python", "database"])
+async def test_a_failing_logo_check_still_answers_the_storefront_without_a_logo(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+    failure: str,
+) -> None:
+    """Fail closed: the public page loads, with no logo and the colour intact."""
+    monkeypatch.setattr(settings, "API_BASE_URL", API_BASE)
+    studio = await _studio(db_async, async_client, brand_color=BLUE)
+    logo = await _logo(db_async, studio.org_id)
+    assert (
+        await _brand_profile(async_client, studio, logo_file_id=str(logo))
+    ).status_code == 200
+
+    async def broken(session: AsyncSession, _profile: object) -> bool:
+        if failure == "python":
+            raise RuntimeError("connection pool exhausted")
+        # A real database error inside the savepoint, not a stub.
+        await session.execute(text("select * from no_such_table_for_test"))
+        return True
+
+    monkeypatch.setattr(service, "_logo_is_complete", broken)
+    response = await async_client.get(f"{API}/public/{studio.slug}")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["logo_url"] is None
+    assert body["brand_color"] == BLUE
+    assert body["display_name"] == "Babydoll Beauty Bar"
