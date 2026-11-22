@@ -79,6 +79,10 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
   },
   // No analytics (publicAnalytics false in the catalogue). Turnstile guards the
   // public booking form.
+  // TODO(#1622): the business logo (storefront `logo_url`) and the studio logo
+  // preview are presigned storage URLs. Add that storage origin to img (and the
+  // browser PUT origin to connect) before this policy is enforced; the origin is
+  // deployment config, as for apps/web/events, so no constant exists yet.
   bookings: {
     script: [TURNSTILE],
     connect: [TURNSTILE],
