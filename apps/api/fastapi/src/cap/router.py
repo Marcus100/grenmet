@@ -767,17 +767,23 @@ def _public_list_view(result: CapAlertListPublic) -> CapAlertListPublicView:
     summary="List public CAP warnings",
     description="Returns the public warning feed without requiring authentication.",
 )
-async def read_public_warnings(
-    *, session: SessionDep, response: Response
-) -> PublicWarnings:
+async def read_public_warnings(*, session: SessionDep, response: Response) -> Any:
     from pydantic import ValidationError
     from sqlalchemy.exc import SQLAlchemyError
 
     from src.exceptions import AppException
 
+    async def _produce() -> dict[str, Any]:
+        result = await service.public_warnings(session=session)
+        return result.model_dump(mode="json")
+
     response.headers["Cache-Control"] = "no-store"
     try:
-        return await service.public_warnings(session=session)
+        # Server-side only (the browser is told no-store). Publish and withdraw
+        # invalidate the key; the TTL covers alerts that end by time alone.
+        return await cache.cached_json(
+            cache.PUBLIC_WARNINGS, cache.PUBLIC_WARNINGS_TTL_SECONDS, _produce
+        )
     except SQLAlchemyError, OSError, TimeoutError, ValidationError:
         raise AppException("Warning information is unavailable", 503)
 

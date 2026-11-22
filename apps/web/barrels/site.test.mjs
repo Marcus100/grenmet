@@ -319,6 +319,15 @@ test("static modules share the reader policy and CSP permits only the required e
     ),
     "connect-src allows the Barrels API origin"
   );
+  // GA4 measurement hits (/g/collect) go to this host; without it the homepage
+  // analytics are blocked by the policy.
+  assert.ok(
+    allowsOrigin(
+      directiveSources(csp, "connect-src"),
+      "https://www.google.com"
+    ),
+    "connect-src allows the GA4 measurement host"
+  );
   assert.ok(csp.includes("form-action 'none'"));
   assert.ok(!csp.includes("unsafe-inline"));
 });
