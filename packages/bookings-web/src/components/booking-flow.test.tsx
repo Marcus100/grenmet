@@ -57,6 +57,8 @@ const storefront: BookingStorefront = {
   cancel_cutoff_hours: 24,
   contact: NO_CONTACT,
   providers: [],
+  brand_color: null,
+  logo_url: null,
   services: [
     {
       id: SERVICE_ID,
@@ -629,6 +631,8 @@ const twoServices: BookingStorefront = {
     { id: JERIANN, name: "Jeriann", service_ids: [SERVICE_ID] },
     { id: MAYA, name: "Maya", service_ids: [SERVICE_ID, SECOND_SERVICE] },
   ],
+  brand_color: null,
+  logo_url: null,
   services: [
     ...storefront.services,
     {

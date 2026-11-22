@@ -60,6 +60,8 @@ const storefront: BookingStorefront = {
   cancel_cutoff_hours: 24,
   contact: { ...NO_CONTACT, whatsapp: "14734401234" },
   providers: [],
+  brand_color: null,
+  logo_url: null,
   services: [],
 };
 
