@@ -464,7 +464,8 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/
 | `NEXT_PUBLIC_API_URL` | FastAPI public URL for client-side requests |
 | `RESEND_API_KEY` | Email sending (server-side only) |
 | `CAP_API_URL` | FastAPI base URL for the consolidated CAP module |
-| `CAP_DESK_URL` | The new CAP warning desk, linked as "Try the new desk" on `/cap` during the parallel run (default `http://localhost:3010/desk`; `https://cap.${BASE_DOMAIN}/desk` in deployment) |
+| `CAP_DESK_URL` | CAP warning desk URL and cutover destination (default `http://localhost:3010/desk`; `https://cap.${BASE_DOMAIN}/desk` in deployment) |
+| `CAP_DESK_CUTOVER` | Server-only switch for GAA Admin. Set to `true` to redirect legacy CAP pages with HTTP 307 and link directly to the desk. Defaults to `false`. Set it back to `false` to restore portal routing |
 | `JANITOR_APP_URL` | Optional janitor PWA origin. Area QR labels encode `<origin>/a/<area code>`; unset, they encode the bare code |
 | `NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE` | `true` or `false` (code default `false`): whether weather images come from object storage. The Docker image build sets it to `true` (`ARG` in `apps/web/gaa-admin/Dockerfile`), so it is build-time |
 | `WXPRODUCTS_ACCESS_TOKEN` | Only `scripts/publish-local-forecasts.mjs`: personal access token of an authorised local author. Not read by the app |
