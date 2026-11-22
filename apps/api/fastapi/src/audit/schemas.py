@@ -28,3 +28,19 @@ class AuditEntryPublic(BaseModel):
     actor_app: str | None = None
     changes: list[AuditChangePublic]
     created_at: UtcDateTime
+
+
+class AuditEntryAdminPublic(AuditEntryPublic):
+    """One row of the global admin audit log: the entry plus the subject it groups under."""
+
+    entity_type: str
+    entity_id: str
+    organisation_id: str | None = None
+
+
+class AuditEntryAdminPage(BaseModel):
+    """One keyset page, newest first. ``next_cursor`` is opaque; null on the last page."""
+
+    data: list[AuditEntryAdminPublic]
+    limit: int
+    next_cursor: str | None = None

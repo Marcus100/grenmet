@@ -62,6 +62,8 @@ jobs:
           IMAGE_BUILD_MODE: ${{ inputs.deployment-builds && 'deployment' || ((github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' && github.base_ref == 'dev') && 'affected' || (github.event_name == 'pull_request' && 'promotion' || 'full')) }}
           # Promotion mode reads the dev commit's check-runs (#1239).
           GH_TOKEN: ${{ github.token }}
+          # off | shadow | on; unset means shadow (docs/operations/release-runbook.md).
+          CI_PATH_SELECTION: ${{ vars.CI_PATH_SELECTION }}
         run: node scripts/ci/select-images.mjs
 
   # Job 1: Biome lint/format check (fast, runs on all web code)

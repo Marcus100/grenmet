@@ -81,6 +81,9 @@ tenant data is scoped by platform organisation
    - Studio routes are organisation-scoped.
    - Client sites call the API directly, so their origins go in
      `BACKEND_CORS_ORIGINS`. Next.js route handlers only proxy.
+     (Note, 21 Nov 2026 (fact check; the decision is not changed): Babydoll, the first client site,
+     became static on 13 Nov 2026 and makes no API calls; customers book on
+     `bookings.barrels.gd/<slug>`, whose server calls the API.)
 6. **Payments on Barrels' merchant account through one adapter.** *Superseded by ADR-0027 (separate `src/payments` core); the billing gateway does not become the adapter.* Customer model: see ADR-0028 (party/role: contacts hold personal data). The billing
    gateway becomes the provider-neutral adapter (create hosted payment, verify
    callback, refund, status), with Stripe and Republic Bank ePay as providers.

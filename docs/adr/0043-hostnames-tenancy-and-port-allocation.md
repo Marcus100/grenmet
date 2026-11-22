@@ -6,6 +6,14 @@ Accepted (merged in #498). Owner-approved direction 2026-10-21; this ADR was pha
 checks only, no runtime change). Built: `docs/ports.md` is the live source and
 `scripts/ci/check-ports.mjs` enforces it.
 
+**Amended by later records (noted 21 Nov 2026; the decisions below are not
+rewritten).** ADR-0062 (18 Nov 2026) adds the `health` product host and
+allocates port 3042. ADR-0063 (21 Nov 2026) adds the `shopkeeper` host on port
+3043 and, by owner exception to decision 7 ("retired hosts are never reassigned"), brings
+back the retired `salesbus` host for the Salesbus app on port 3030; `sales`
+stays retired. `docs/ports.md` reserves the two ports; the hosts and reserved
+names move there when each app is built.
+
 ## Context
 
 Hostnames, ports and tenant addressing grew one app at a time. The transition

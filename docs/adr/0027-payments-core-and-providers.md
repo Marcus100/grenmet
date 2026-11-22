@@ -70,6 +70,8 @@ Build option 2 in PF4.
 
 Live mode stays off until the payout route is confirmed.
 
+**Connect scope (2026-11-21, owner review):** Stripe Connect in this codebase is for New Zealand businesses only (a New Zealand platform account, New Zealand connected accounts, NZD charges). Businesses outside New Zealand are not onboarded through Connect in this code. A connected business's money is not Barrels' money and is kept out of the platform balances and payouts.
+
 ## Consequences
 
 - Events, Bookings and Pay stop needing payment code of their own.

@@ -5,7 +5,6 @@ is the one call other domains make.
 """
 
 import hashlib
-import html
 import logging
 import secrets
 from typing import Any
@@ -14,17 +13,19 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import email_layout as layout
 from src import outbox
 from src.audit import service as audit_service
 from src.auth.models import User
 from src.notifications import outbox_handlers
+from src.notifications import service as notification_service
 from src.organisations import service as organisations_service
 from src.organisations.config import organisations_settings
 from src.organisations.models import Membership, MembershipRole, MembershipStatus
 from src.utils import secret_box
 from src.utils.datetime import utc_now
 
-from . import events, ssrf
+from . import email_cards, events, ssrf
 from .exceptions import (
     WebhookEndpointLimitError,
     WebhookEndpointNotFoundError,
@@ -281,23 +282,27 @@ async def disable_endpoint(
     )
     if not notify_admins:
         return
-    host = html.escape(endpoint.url.split("/")[2] if "//" in endpoint.url else "")
-    body = (
-        "<p>A webhook endpoint was disabled and is no longer receiving events.</p>"
-        f"<p>Endpoint: {html.escape(endpoint.id)} ({host})<br>"
-        f"Reason: {html.escape(reason)}</p>"
-        "<p>Fix the receiver, then re-enable the endpoint in your organisation "
-        "settings. Events sent while it was disabled are not replayed.</p>"
+    host = endpoint.url.split("/")[2] if "//" in endpoint.url else ""
+    card = email_cards.endpoint_disabled(
+        endpoint_id=endpoint.id, host=host, reason=reason
     )
     stamp = int(utc_now().timestamp())
     for email in await _admin_emails(session, endpoint.organisation_id):
+        # Issue 1629: never mail an address that has no account. The log names no address.
+        if not await notification_service.has_account(session=session, email=email):
+            logger.warning(
+                "Webhook disabled notice skipped: recipient has no account",
+                extra={"endpoint_id": endpoint.id},
+            )
+            continue
         await outbox_handlers.enqueue_email(
             session,
             to_email=email,
-            subject="A webhook endpoint was disabled",
+            subject=card.subject,
             dedupe_key=f"webhook-disabled:{endpoint.id}:{stamp}:{email}",
             transactional=True,
-            html=body,
+            template=layout.CARD_TEMPLATE,
+            props=layout.to_props(card),
             organisation_id=endpoint.organisation_id,
         )
 

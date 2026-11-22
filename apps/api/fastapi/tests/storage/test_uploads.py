@@ -4,6 +4,7 @@ Signing is real (local, no network); only the network calls (HEAD, DELETE) are
 served from an in-memory dict.
 """
 
+import io
 import uuid
 from collections.abc import Iterator
 from datetime import timedelta
@@ -13,6 +14,7 @@ from urllib.parse import parse_qs, urlparse
 import httpx
 import pytest
 from fastapi.security import HTTPAuthorizationCredentials
+from PIL import Image
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,6 +52,17 @@ class FakeStore(StorageService):
 
     def head_object(self, key: str) -> dict[str, Any] | None:
         return self.objects.get(key)
+
+    def get_object(self, key: str) -> bytes:
+        # Metadata-stripped purposes read the object: a real, tiny PNG is enough.
+        buffer = io.BytesIO()
+        Image.new("RGB", (8, 8), (10, 20, 30)).save(buffer, "PNG")
+        return buffer.getvalue()
+
+    def put_object(
+        self, key: str, data: bytes, *, content_type: str | None = None
+    ) -> None:
+        self.objects[key] = {"ContentLength": len(data), "ContentType": content_type}
 
     def delete_object(self, key: str) -> None:
         self.deleted.append(key)

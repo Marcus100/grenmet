@@ -95,4 +95,12 @@ export type BookingProfileUpdate = {
    * @type string | undefined
    */
   payment_at_booking?: BookingPaymentMode;
+  /**
+   * @description The business's accent colour in its emails, as `#rrggbb`. Blank clears it. Mail uses the Barrels navy instead when the colour is too pale for white text. Left out, the stored value is kept.
+   */
+  brand_color?: string | null;
+  /**
+   * @description A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept.
+   */
+  logo_file_id?: string | null;
 };

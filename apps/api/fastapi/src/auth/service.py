@@ -528,6 +528,7 @@ async def delete_user(
     from src.auth.models import UserImage
     from src.auth.modern_models import AuthChallenge
     from src.baseline.models import StaffCredential
+    from src.notifications import address_log
     from src.notifications.models import Notification, NotificationPreference
     from src.organisations import grants as organisation_grants
     from src.printix import app_role as printix_app_role
@@ -588,6 +589,13 @@ async def delete_user(
             session, organisation_id, before - {user_id}
         )
     await _clear_hr_personal_details(session, user_id, now)
+    # The delivery log and queued mail keep the address (#1629). Runs before
+    # _anonymise_fields replaces the address, and uses the same placeholder token.
+    await address_log.clear_address(
+        session,
+        email=user.email,
+        placeholder=placeholders.placeholder_email(token),
+    )
     await session.execute(
         update(StaffCredential)
         .where(StaffCredential.user_id == user_id, StaffCredential.revoked_at.is_(None))

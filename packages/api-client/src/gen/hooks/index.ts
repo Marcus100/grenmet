@@ -14,6 +14,11 @@ export {
   useAuditGetHistory,
 } from "./useAuditGetHistory.js";
 export {
+  auditListAdminAuditEntriesQueryKey,
+  auditListAdminAuditEntriesQueryOptions,
+  useAuditListAdminAuditEntries,
+} from "./useAuditListAdminAuditEntries.js";
+export {
   authAcceptSuperuserInvitationMutationKey,
   authAcceptSuperuserInvitationMutationOptions,
   useAuthAcceptSuperuserInvitation,
@@ -3014,6 +3019,16 @@ export {
   usePaymentsAdminListLedger,
 } from "./usePaymentsAdminListLedger.js";
 export {
+  paymentsAdminSetPlatformFeeMutationKey,
+  paymentsAdminSetPlatformFeeMutationOptions,
+  usePaymentsAdminSetPlatformFee,
+} from "./usePaymentsAdminSetPlatformFee.js";
+export {
+  paymentsCreateConnectOnboardingLinkMutationKey,
+  paymentsCreateConnectOnboardingLinkMutationOptions,
+  usePaymentsCreateConnectOnboardingLink,
+} from "./usePaymentsCreateConnectOnboardingLink.js";
+export {
   paymentsCreateIntentMutationKey,
   paymentsCreateIntentMutationOptions,
   usePaymentsCreateIntent,
@@ -3029,10 +3044,20 @@ export {
   usePaymentsGetBalance,
 } from "./usePaymentsGetBalance.js";
 export {
+  paymentsGetConnectStatusQueryKey,
+  paymentsGetConnectStatusQueryOptions,
+  usePaymentsGetConnectStatus,
+} from "./usePaymentsGetConnectStatus.js";
+export {
   paymentsGetIntentQueryKey,
   paymentsGetIntentQueryOptions,
   usePaymentsGetIntent,
 } from "./usePaymentsGetIntent.js";
+export {
+  paymentsListDisputesQueryKey,
+  paymentsListDisputesQueryOptions,
+  usePaymentsListDisputes,
+} from "./usePaymentsListDisputes.js";
 export {
   paymentsListIntentsQueryKey,
   paymentsListIntentsQueryOptions,

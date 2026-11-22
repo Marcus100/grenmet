@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.contact.config import contact_settings
 from src.contact.models import ContactDataRequest
 from src.notifications.models import OutboundEmail
+from tests.email_payload import payload_html
 
 _URL = "/api/v1/contact/data-requests"
 
@@ -72,12 +73,26 @@ async def test_request_is_stored_mailed_and_confirmed(
     assert stored.consent_at is not None
 
     [to_gms] = await _mails(db_async, inbox)
-    assert to_gms.html is not None
-    assert "<b>" not in to_gms.html
-    assert "&lt;b&gt;" in to_gms.html
+    assert to_gms.template == "card"
+    assert to_gms.html is None
+    html = payload_html({"props": to_gms.props})
+    assert "<b>" not in html
+    assert "&lt;b&gt;for&lt;/b&gt;" in html  # the purpose is escaped text
+    assert "Purpose:" in html
+    assert "Flood risk study" in html
+    assert "rainfall, temperature" in html
+    assert "2000-01-01 to 2020-12-31" in html
+    assert "Maurice Bishop International Airport" in html
+    assert "academic" in html
+    assert str(payload["organisation"]) in html
+    assert str(payload["email"]) in html
     [confirm] = await _mails(db_async, str(payload["email"]))
     assert confirm.transactional is True
     assert confirm.subject == "We received your climate data request"
+    confirm_html = payload_html({"props": confirm.props})
+    assert "Hello Dr Ada Researcher," in confirm_html
+    assert "typical turnaround is 10 to 20 working days" in confirm_html
+    assert "<a " not in confirm_html
 
 
 async def test_without_recipient_only_confirmation_is_sent(

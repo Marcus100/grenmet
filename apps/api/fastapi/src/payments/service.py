@@ -8,6 +8,7 @@ Service functions flush and never commit: routers commit.
 import csv
 import hashlib
 import io
+import json
 import logging
 import time as time_module
 import uuid
@@ -30,6 +31,7 @@ from src.webhooks_out import service as webhook_service
 
 from . import schemas, transitions
 from .config import payments_settings
+from .connect import accounts as connect_accounts
 from .exceptions import (
     IntentNotFoundError,
     PaymentsConflictError,
@@ -114,6 +116,20 @@ def _refunded() -> sa.ScalarSelect[Any]:
         .where(Refund.intent_id == Intent.id, Refund.status.in_(_LIVE_REFUND))
         .correlate(Intent)
         .scalar_subquery()
+    )
+
+
+def _platform_money() -> Any:
+    """Ledger rows for money Barrels holds. A payment on a business's own connected
+    account (ADR-0027, Connect) is the business's money, not Barrels': its rows stay
+    for that payment's own totals and refunds, but balances, payouts and the
+    reconciliation's ledger totals leave them out."""
+    connected_intents = select(Intent.id).where(
+        Intent.connected_account_id.is_not(None)
+    )
+    return sa.or_(
+        LedgerEntry.intent_id.is_(None),
+        LedgerEntry.intent_id.not_in(connected_intents),
     )
 
 
@@ -281,11 +297,23 @@ async def create_intent(
     if existing is not None:
         return await _replay(session, existing, payload)
 
+    # Stripe Connect (ADR-0027): a business with a connected account is charged on
+    # it, with its platform fee. A business without one keeps the platform charge.
+    route = None
+    if payload.provider is ProviderKey.STRIPE:
+        route = await connect_accounts.charge_route(
+            session,
+            organisation_id=organisation_id,
+            amount_minor=payload.amount_minor,
+            currency=payload.currency,
+        )
     intent = Intent(
         organisation_id=organisation_id,
         amount_minor=payload.amount_minor,
         currency=payload.currency,
         provider=payload.provider.value,
+        connected_account_id=route.connected_account_id if route else None,
+        application_fee_minor=route.application_fee_minor if route else None,
         source_type=payload.source_type,
         source_id=payload.source_id,
         customer_email_hash=hash_email(payload.customer_email)
@@ -796,6 +824,16 @@ async def _totals(session: AsyncSession, intent_id: uuid.UUID) -> tuple[int, int
 # --- provider callbacks ---------------------------------------------------------------
 
 
+def _names_connected_account(body: bytes) -> bool:
+    """True when a webhook body carries an ``account`` field: Stripe sets it only on
+    events from a connected account, never on the platform's own events."""
+    try:
+        loaded = json.loads(body)
+    except ValueError:
+        return False
+    return isinstance(loaded, dict) and "account" in loaded
+
+
 async def process_callback(
     session: AsyncSession,
     *,
@@ -811,6 +849,29 @@ async def process_callback(
     """
     provider = registry.get_provider(provider_key)
     event = provider.verify_callback(headers, body)
+    if _names_connected_account(body):
+        # The platform endpoint never handles a connected account's event (the Connect
+        # endpoint does). Dropped, and acknowledged so Stripe does not retry.
+        logger.warning(
+            "platform callback names a connected account; dropped",
+            extra={"provider": event.provider, "event_id": event.event_id},
+        )
+        return "ignored"
+    return await apply_event(session, event)
+
+
+async def apply_event(
+    session: AsyncSession,
+    event: ProviderEvent,
+    *,
+    connected_account: str | None = None,
+) -> str:
+    """Apply a verified provider event (the body of ``process_callback``).
+
+    ``connected_account`` is the Stripe connected account the event came from (the
+    Connect endpoint), or None for the platform's own endpoint. A payment on a
+    connected account is changed only by that account's events, and a platform event
+    never changes one (ADR-0027, Connect)."""
     if event.kind is EventKind.IGNORED:
         return "ignored"
 
@@ -819,6 +880,12 @@ async def process_callback(
         logger.warning(
             "callback for an unknown payment",
             extra={"provider": event.provider, "event_id": event.event_id},
+        )
+        return "ignored"
+    if intent.connected_account_id != connected_account:
+        logger.warning(
+            "provider event for another account ignored",
+            extra={"intent_id": str(intent.id), "event_id": event.event_id},
         )
         return "ignored"
     # Lock the row so concurrent deliveries of one event are serialised.
@@ -1613,6 +1680,7 @@ async def balances(
         .group_by(LedgerEntry.organisation_id, LedgerEntry.currency)
         .order_by(LedgerEntry.organisation_id, LedgerEntry.currency)
     )
+    statement = statement.where(_platform_money())
     if organisation_id is not None:
         statement = statement.where(LedgerEntry.organisation_id == organisation_id)
     rows = (await session.execute(statement)).all()
@@ -1663,6 +1731,7 @@ async def create_payout(
             select(func.coalesce(func.sum(LedgerEntry.amount_minor), 0)).where(
                 LedgerEntry.organisation_id == payload.organisation_id,
                 LedgerEntry.currency == payload.currency,
+                _platform_money(),
             )
         )
     ).scalar_one()
@@ -1805,13 +1874,14 @@ async def reconciliation(
                 )
             ).label("succeeded"),
         )
-        .where(LedgerEntry.created_at < end)
+        .where(LedgerEntry.created_at < end, _platform_money())
         .group_by(LedgerEntry.organisation_id, LedgerEntry.currency)
     )
     unmatched = (
         select(Intent.organisation_id, Intent.currency, func.count().label("n"))
         .where(
             Intent.status == IntentStatus.SUCCEEDED.value,
+            Intent.connected_account_id.is_(None),
             Intent.updated_at >= start,
             Intent.updated_at < end,
             ~sa.exists().where(

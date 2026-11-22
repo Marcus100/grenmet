@@ -563,6 +563,9 @@ class EmailSendCall(TypedDict):
     headers: NotRequired[dict[str, str]]
     # Present only for mail that carries a plain-text part.
     text_content: NotRequired[str]
+    # Present only for business mail (sender display name and Reply-To).
+    from_name: NotRequired[str]
+    reply_to: NotRequired[str]
 
 
 class EmailSender(Protocol):
@@ -596,6 +599,8 @@ def stub_email_sender(
         html_content: str = "",
         headers: dict[str, str] | None = None,
         text_content: str | None = None,
+        from_name: str | None = None,
+        reply_to: str | None = None,
     ) -> None:
         call: EmailSendCall = {
             "email_to": email_to,
@@ -606,6 +611,10 @@ def stub_email_sender(
             call["headers"] = headers
         if text_content:
             call["text_content"] = text_content
+        if from_name:
+            call["from_name"] = from_name
+        if reply_to:
+            call["reply_to"] = reply_to
         outbound_email_calls.append(call)
 
     def block_provider(*_args: object, **_kwargs: object) -> None:

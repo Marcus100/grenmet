@@ -288,6 +288,9 @@ mkdir -p runtime/rollout
 
 phase render-config
 python3 ../../scripts/production/render-env.py "$DEPLOY_ENV.env" runtime/.env.local
+# render-env.py may fill STORAGE_* from the staging fallback, and Compose prefers
+# the shell even when empty: drop the raw copies so runtime/.env.local decides.
+unset STORAGE_ENDPOINT_URL STORAGE_REGION STORAGE_BUCKET STORAGE_ACCESS_KEY_ID STORAGE_SECRET_ACCESS_KEY
 docker compose --env-file "$DEPLOY_ENV.env" --env-file runtime/.env.local -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" config --quiet
 docker compose --env-file "$DEPLOY_ENV.env" --env-file runtime/.env.local -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" config --format json | node ../../scripts/ci/check-release-scope.mjs --compose
 # Resolved before anything changes: service lists come from the release registry, so scope and delivery cannot drift.

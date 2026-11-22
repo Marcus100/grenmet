@@ -11,7 +11,7 @@ from collections.abc import Mapping
 from datetime import date, datetime
 from typing import Any, cast
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.engine.default import DefaultExecutionContext
 from sqlalchemy.orm import Mapped, mapped_column
@@ -29,6 +29,14 @@ class EventsModel(Base):
 
 class Organiser(EventsModel):
     __tablename__ = "organisers"
+    #: Typed Any: the base declares a dict, and a tuple adds the check constraint.
+    __table_args__: Any = (
+        CheckConstraint(
+            "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
+            name="brand_color",
+        ),
+        {"schema": "events"},
+    )
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     slug: Mapped[str] = mapped_column(Text, unique=True)
     name: Mapped[str] = mapped_column(Text)
@@ -38,6 +46,8 @@ class Organiser(EventsModel):
     organisation_id: Mapped[str | None] = mapped_column(Text, unique=True)
     #: Completed organisation upload (purpose organiser-logo); no cross-DB FK.
     logo_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
+    #: Accent for the organiser's mail: ``#rrggbb``, lower case, or NULL for navy.
+    brand_color: Mapped[str | None] = mapped_column(Text, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 

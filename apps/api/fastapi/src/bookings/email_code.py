@@ -282,8 +282,11 @@ async def request_code(
     *,
     to_email: str,
     business: str,
+    from_name: str | None = None,
+    reply_to: str | None = None,
 ) -> int:
-    """Issue a code and queue its email. Returns the code lifetime in seconds."""
+    """Issue a code and queue its email. Returns the code lifetime in seconds.
+    ``from_name`` and ``reply_to`` are the business sender (``notifications.sender_identity.business_identity``)."""
     store = _Current.store
     if await store.exists(f"{_PREFIX}lock:{binding.who}"):
         raise CodeRateLimitedError
@@ -306,6 +309,8 @@ async def request_code(
         transactional=True,
         dedupe_key=f"booking-email-code:{uuid.uuid4().hex}",
         organisation_id=binding.organisation_id,
+        from_name=from_name,
+        reply_to=reply_to,
     )
     return CODE_TTL
 

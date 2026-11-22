@@ -28,7 +28,7 @@ is allocated by category.
 | --- | --- | --- |
 | `3000–3019` | Legacy, frozen | Arrival-ordered. 3008 shop, 3016 hr, 3017 business, 3018 account, 3019 commit; **3011 was never used and is never assigned** |
 | `3020–3029` | Platform surfaces | 3020 developers, 3021 status |
-| `3030–3059` | Barrels products | 3030 salesbus POS, 3031 tickets, 3032 passport, 3033 pay, 3034 media, 3035-3041 sector products (education, automotive, delivery, bus, park, taxi, homegrown) |
+| `3030–3059` | Barrels products | 3030 salesbus POS, 3031 tickets, 3032 passport, 3033 pay, 3034 media, 3035-3041 sector products (education, automotive, delivery, bus, park, taxi, homegrown), 3042 health (ADR-0062), 3043 shopkeeper (ADR-0063) |
 | `3060–3089` | Client-dedicated apps | 3060 gaa corporate, 3061 janitor PWA, 3062 bus PWA, 3063 gms PWA, 3064 Printix scanner PWA |
 | `3090–3099` | Dev tools | 3090 UI gallery, 3091 email preview |
 | `4000–4099` | Retired (Hono API) | Never reuse |
@@ -69,7 +69,7 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | 3017 | `@barrelsgd/web-business` | Reserved |
 | 3020 | `@barrelsgd/web-developers` (`developers.barrels.gd`) | Reserved (platform) |
 | 3021 | `@barrelsgd/web-status` (`status.barrels.gd`) | Reserved (platform) |
-| 3030 | `@barrelsgd/web-salesbus` (point of sale; no host yet: `salesbus` and `sales` are retired hosts) | Reserved (product) |
+| 3030 | `@barrelsgd/web-salesbus` (point of sale; ADR-0063 brings back the `salesbus` host for `apps/pwa/salesbus`; `sales` stays retired) | Reserved (product) |
 | 3031 | `@barrelsgd/web-tickets` | Reserved (product) |
 | 3032 | `@barrelsgd/web-passport` | Reserved (product) |
 | 3033 | `@barrelsgd/web-pay` | Reserved (product) |
@@ -81,6 +81,8 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | 3039 | `@barrelsgd/web-park` (`park.barrels.gd`) | Reserved (sector product, not built) |
 | 3040 | `@barrelsgd/web-taxi` (`taxi.barrels.gd`) | Reserved (sector product, not built) |
 | 3041 | `@barrelsgd/web-homegrown` (`homegrown.barrels.gd`) | Reserved (sector product, not built) |
+| 3042 | `@barrelsgd/web-health` (Barrels Health, ADR-0062) | Reserved (product, not built; the host and reserved-name move land with ADR-0062 build step 1) |
+| 3043 | `@barrelsgd/pwa-shopkeeper` (Shop Keeper, `apps/pwa/shopkeeper`, ADR-0063) | Reserved (product, not built; the host and reserved name land with the app) |
 | 3060 | `@barrelsgd/web-gaa` (GAA corporate site) | Reserved (client) |
 | 3061 | `@barrelsgd/web-janitor` (janitor PWA) | Reserved (client) |
 | 3062 | `@barrelsgd/web-gaa-bus` (bus PWA) | Reserved (client) |
@@ -203,9 +205,10 @@ the Status says so.
   and `stores` API domains already exist), Education, Automotive. Reserving a
   name costs nothing; building an app is gated on validated demand. All sector
   products stay on `barrels.gd`: no per-sector domains.
-- **Salesbus:** the `salesbus` host is retired and never reassigned. The point
-  of sale keeps port 3030 and the reserved name, and gets its host (or lives as
-  a module of `shop`) when it is built.
+- **Salesbus:** the `salesbus` host was retired by ADR-0043. ADR-0063 (21 Nov
+  2026) brings it back for the Salesbus app (`apps/pwa/salesbus`, port 3030) by
+  owner exception; `sales` stays retired. The host moves out of the retired
+  table when the app is built.
 
 - **Audience/control:** `auth` (Barrels ID); `admin` (Barrels staff and
   superuser console, port 3012); `gms` (Met office staff portal, port 3001).
@@ -246,7 +249,7 @@ Old CORS lists in `infra/docker/.env.*.example` still name some of them.
 | `gmsadmin.*` | `gms.*` (Met office staff portal) | Retired |
 | `gaa-admin.*` | `gms.*` | Retired |
 | `wxwatch.*`, `wxproducts.*` | modules inside gaa-admin | Retired |
-| `salesbus.*`, `sales.*` | modules inside gaa-admin; the point-of-sale app (port 3030) will choose a new host | Retired |
+| `salesbus.*`, `sales.*` | modules inside gaa-admin; ADR-0063 brings `salesbus` back for the Salesbus app (port 3030) when it is built; `sales` stays retired | Retired |
 | `hurricane.*` | docs (redirect-only during the rename) | Retired |
 | `spice.*` | retired Spice weather app | Retired |
 | `proxy.*` | retired Hono weather-data proxy (port 4000 range) | Retired |

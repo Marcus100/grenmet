@@ -47,3 +47,10 @@ class InvalidCallbackError(AppException):
 
     def __init__(self) -> None:
         super().__init__("Invalid callback", status.HTTP_400_BAD_REQUEST)
+
+
+class ConnectAccountNotFoundError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            "This organisation has no Stripe account yet", status.HTTP_404_NOT_FOUND
+        )

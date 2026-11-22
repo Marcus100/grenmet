@@ -31,7 +31,7 @@ Every Barrels app retries requests. That includes mobile apps on weak networks, 
 
 **Uncertainty:**
 - How long stored responses must be kept. 24 hours is proposed and is a guess. (low)
-- Whether Events, which uses a separate database, can use a main-database outbox. That depends on ADR-0003 and needs a design check. (medium)
+- Whether Events, which uses a separate database, can use a main-database outbox. That depends on ADR-0003 and needs a design check. (medium) (Note, 21 Nov 2026 (fact check; the decision is not changed): resolved: Events is a schema in the main database, ADR-0003, and its paid-order events already use the platform outbox.)
 
 ## Options considered
 
