@@ -74,7 +74,8 @@ Decided by the project owner on 23 October 2026, in conversation with the agent.
 - Not changed by this amendment: hazard profile versions still need approval by
   someone other than their author.
 - Follow-up for the owner: `apps/api/fastapi/src/cap/AGENTS.md` still says
-  self-approval is always refused; that file is owner-only.
+  self-approval is always refused; that file is owner-only. (Done: the file now
+  describes the amended rule, checked 21 Nov 2026.)
 
 ## Amendment (2026-10-25): the author may approve their own alert
 

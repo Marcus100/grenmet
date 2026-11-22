@@ -207,7 +207,44 @@ def core_postgres(config, environment):
     }
 
 
-def render(config, environment):
+# Application object storage (issue #1146): every environment reads STORAGE_*.
+# Staging first stored the same bucket as DO_SPACES_*, which deploy.yml passes as
+# LEGACY_DO_SPACES_* on staging only. Until the owner adds STORAGE_* there, each unset
+# STORAGE_* name falls back to its old name, with a deprecation notice. Production
+# never falls back: its DO_SPACES_* name the backup store, not the application's.
+STORAGE_FALLBACK = {
+    "STORAGE_ENDPOINT_URL": "DO_SPACES_ENDPOINT",
+    "STORAGE_REGION": "DO_SPACES_REGION",
+    "STORAGE_BUCKET": "DO_SPACES_BUCKET",
+    "STORAGE_ACCESS_KEY_ID": "DO_SPACES_ACCESS_KEY_ID",
+    "STORAGE_SECRET_ACCESS_KEY": "DO_SPACES_SECRET_ACCESS_KEY",
+}
+
+
+def app_storage(environment, deployment_environment):
+    """The STORAGE_* values and the old names used in their place (names only)."""
+    values = {key: environment.get(key, "") for key in STORAGE_FALLBACK}
+    used = []
+    if deployment_environment != "staging":
+        return values, used
+    for key, old in STORAGE_FALLBACK.items():
+        legacy = environment.get(f"LEGACY_{old}", "")
+        if not values[key] and legacy:
+            values[key] = legacy
+            used.append(old)
+    return values, used
+
+
+def storage_notice(used):
+    return (
+        "Deprecated: staging application storage read " + ", ".join(used)
+        + " because the matching STORAGE_* secrets are not set. Add STORAGE_ENDPOINT_URL,"
+        " STORAGE_REGION, STORAGE_BUCKET, STORAGE_ACCESS_KEY_ID and STORAGE_SECRET_ACCESS_KEY"
+        " to the staging environment (docs/env.md); keep DO_SPACES_* for the backup workflows."
+    )
+
+
+def render(config, environment, notices=None):
     required = REQUIRED_SECRETS
     values = {}
     for key in required:
@@ -354,6 +391,10 @@ def render(config, environment):
     deployment_environment = config.get("ENVIRONMENT")
     if deployment_environment not in {"staging", "production"}:
         raise ValueError("ENVIRONMENT must be staging or production")
+    storage, legacy_used = app_storage(environment, deployment_environment)
+    values.update(storage)
+    if legacy_used and notices is not None:
+        notices.append(storage_notice(legacy_used))
     for key in STAGING_ONLY_SECRETS:
         users = environment.get(key, "") if deployment_environment == "staging" else ""
         if deployment_environment == "staging" and not users:
@@ -408,12 +449,20 @@ def render(config, environment):
 
 if __name__ == "__main__":
     try:
-        content = render(read_config(sys.argv[1]), os.environ)
+        notices = []
+        content = render(read_config(sys.argv[1]), os.environ, notices)
         destination = Path(sys.argv[2])
         destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w") as output:
             output.write(content)
+        # Names only, never values: a log annotation and a line in the deploy summary.
+        for notice in notices:
+            print(f"::warning title=Deprecated deploy setting::{notice}")
+            summary = os.environ.get("GITHUB_STEP_SUMMARY")
+            if summary:
+                with open(summary, "a") as handle:
+                    handle.write(f"- {notice}\n")
     except (ValueError, KeyError, OSError) as error:
         # Messages contain variable names or paths only, never environment values.
         print(f"Deployment configuration rejected: {error}", file=sys.stderr)

@@ -4,7 +4,7 @@
 **Effective:** 2026-08-16  
 **Horizon:** Five-year strategy expressed through dependency horizons  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-21
 
 ## Purpose
 
@@ -62,6 +62,8 @@ scenarios, not claims about current behaviour.
 
 1. Events and Tickets is the first transactional Barrels product and receives
    the default share of discretionary product capacity.
+   Owner order of 21 Nov 2026: Barrels products first, in the order Events,
+   then Babydoll and Bookings, then Shop Keeper.
 2. GMS safety, compliance, continuity, and live-operational needs may pre-empt
    Events. The reason and recovery point must be recorded when this happens.
 3. Client delivery and Barrels products remain separate even when they reuse
@@ -79,7 +81,7 @@ scenarios, not claims about current behaviour.
 | Initiative | Classification | Current state | Horizon | Portfolio outcome | Acceptance authority |
 | --- | --- | --- | --- | --- | --- |
 | Barrels platform transition | Company/platform programme | In progress; transition boundaries 1–8 complete; legacy `GrenMet` infrastructure names remain | Now | Company, product, and client identities are separated without disrupting working services | Barrels |
-| Events and Tickets | Barrels product | E1–E5 built on `dev`: free and registration tickets, door admission, outlet cash, settlement CSV, cancel and manual refunds; paid tiers (N4b, `events_0010`) run on the PF4 payments core in Stripe test mode or the manual rail only, with checkout UI in `apps/web/events` | Now → Next | Prove discovery → sale → admission → settlement with trusted organisers | Barrels product owner |
+| Events and Tickets | Barrels product | Live in production at `events.barrels.gd`. E1–E5 built: free and registration tickets, door admission, outlet cash, settlement CSV, cancel and manual refunds; paid tiers (N4b, `events_0010`) run on the PF4 payments core in Stripe test mode or the manual rail only, with checkout UI in `apps/web/events` | Now → Next | Prove discovery → sale → admission → settlement with trusted organisers | Barrels product owner |
 | Signal | Barrels media product | Working content-led application with component tests | Later | Maintain a distinct trusted media product and validate its role in the Barrels portfolio | Barrels product owner |
 | Barrels corporate hub and control plane | Company surfaces | Company homepage and admin application exist; distinct from the proposed personal daily home | Next | Maintain the company entry point and Barrels-only operational control plane; assess further work from current evidence | Barrels |
 | GAA/GMS engagement | Client portfolio | Multiple active workstreams at different maturity levels | Now → Later | Deliver accepted institutional outcomes without classifying the client as a product | Joint Barrels and GAA/GMS owners |
@@ -88,9 +90,11 @@ scenarios, not claims about current behaviour.
 | Barrels Human Resource | Barrels product | Investment approved 2026-10-18; built from the same Barrels-owned workforce code as the GAA staff platform; HR stays in `apps/web/gaa-admin` for now, with `hr.barrels.gd` as the eventual product host | Next | Offer an organisation-scoped, configuration-driven HR product to other organisations without GAA-specific logic or data | Barrels product owner; launch gated on the [productization prerequisites](gaa-gms-client-programme-plan.md#productization-gate) |
 | Streaming/media platform | Barrels product option | Early product brief only | Explore | Validate audience, rights, operating model, and economics before investment | Barrels |
 | Pay/Invoice | Barrels product | P1–P3 built (invoices, PDF, manual payments, receivables, reminders); online collection is not yet wired to the PF4 payments core, which is built in test mode ([ADR-0027](../adr/0027-payments-core-and-providers.md), Stripe test mode first) | Next | Prove invoicing, collection, and reconciliation as a product alongside Events; payment rails remain a platform capability that Events also consumes | Barrels product owner |
-| Barrels Bookings | Barrels platform capability | Approved 2026-10-19 ([ADR-0024](../adr/0024-bookings-domain.md)); B1–B4 and B6 built, plus the B5 studio-action API (studio configuration, public availability and booking, agenda and actions, deposits on the PF4 payments core in test mode); the `apps/web/bookings` app (public booking pages and the staff studio) is live on production (deployed before v1.0.8). The Babydoll site became static on 2026-11-13: its `/book` page and the `BABYDOLL_ONLINE_BOOKING` switch were removed, and its Book buttons still open Acuity until the cutover. On 2026-11-14 Babydoll is seeded on staging and not yet on production ([cutover checklist](../operations/babydoll-cutover.md)); Babydoll Beauty Bar is the pilot tenant | Now → Next | One organisation-scoped appointments API that any Barrels app or client site uses for services, availability, booking, reminders and deposits | Barrels product owner; pilot accepted by the Babydoll owner |
+| Barrels Bookings | Barrels platform capability | Approved 2026-10-19 ([ADR-0024](../adr/0024-bookings-domain.md)); B1–B4 and B6 built, plus the B5 studio-action API (studio configuration, public availability and booking, agenda and actions, deposits on the PF4 payments core in test mode); the `apps/web/bookings` app (public booking pages and the staff studio) is live on production (deployed before v1.0.8). The Babydoll site became static on 2026-11-13: its `/book` page and the `BABYDOLL_ONLINE_BOOKING` switch were removed, and its Book buttons open `bookings.barrels.gd/babydoll-beauty-bar` since v1.2.0. Babydoll is seeded on staging (14 Nov 2026) and production (15 Nov 2026) and goes live on 29 Nov 2026 ([cutover checklist](../operations/babydoll-cutover.md)); Babydoll Beauty Bar is the pilot tenant | Now → Next | One organisation-scoped appointments API that any Barrels app or client site uses for services, availability, booking, reminders and deposits | Barrels product owner; pilot accepted by the Babydoll owner |
 | Loyalty and rewards | Barrels product | U1–U4 built (ledger, organisation stamp cards, redemption, badges); PF8–PF10 and the PF11 API built (earn sources, Passport, achievements, flag-gated social layer, organisation admin routes); the organisation rewards admin page is built in the auth app (`apps/web/auth/src/app/organisations/[organisationId]/rewards`, checked 2026-11-14) and moves to the account app under ADR-0057 ([ADR-0030](../adr/0030-rewards-earn-sources-and-gamification.md)) | Now → Next | Decide merchant-funded versus platform-funded rewards and validate with Events and merchant evidence | Barrels product owner |
-| Shop, Salesbus, and other transactions | Barrels product options | Reserved identities or prototypes only | Explore | Promote only when evidence and operating capacity justify a product | Barrels |
+| Shop Keeper and Salesbus | Barrels product | Accepted 21 Nov 2026 ([ADR-0063](../adr/0063-shopkeeper-salesbus-commerce-core.md)): one Commerce core with two private apps, `shopkeeper.barrels.gd` (built first, Shop Keeper pilot) and `salesbus.barrels.gd`; each business controls its own records; not built | Next (after Events, Babydoll and Bookings) | Prove a corner-shop till and a distributor van on one Commerce core with real pilots | Barrels product owner |
+| Barrels Health | Barrels product | Accepted 18 Nov 2026 ([ADR-0062](../adr/0062-health-records-foundation.md)): records foundation for private clinics at `health.barrels.gd`; foundation started; no real patient data before the ADR-0062 go-live gate | Next | Prove the records foundation with the pilot doctors once the go-live gate is met | Barrels product owner; pilot accepted by the pilot doctors |
+| Other transactions (customer-facing shop and similar) | Barrels product options | Reserved identities only (`shop`, port 3008) | Explore | Promote only when evidence and operating capacity justify a product | Barrels |
 | Barrels Core AI and data capabilities | Company/platform programme | Direction recorded in [ADR-0014](../adr/0014-barrels-platform-core-direction.md); organisations and tenancy built (ADR-0022); shared platform foundations PF1–PF7 approved 2026-10-20 ([foundations plan](../exec-plans/barrels-foundations-plan.md#platform-foundations-pf-series-owner-decision-2026-10-20)), PF1 built; AI capabilities not implemented | Next (organizations, tenancy, audit) → Explore (AI gateway, Knowledge, Automate) | Provide organization-scoped, auditable, vendor-portable AI and data capabilities pulled by approved needs | Barrels |
 | Knowledge pilot over GAA/GMS procedures | Client-pulled platform pilot | Idea only; requires client request and data terms | Explore | Prove cited retrieval over institutional documents before any wider Knowledge offer | Joint Barrels and GAA/GMS owners |
 | Barrels Technology services | Barrels service lines | Strategy recorded in [service lines](../strategy/barrels-service-lines.md); no packages, pricing, or contracts yet | Next | Sell four defined packages (web and software, managed IT, AI and data, cloud and security) to SMEs with repeatable delivery and positive margins | Barrels |
@@ -175,7 +179,8 @@ scenarios, not claims about current behaviour.
 
 - Streaming, unified media subscriptions, advanced offline delivery, and
   creator payouts.
-- Loyalty, commerce, bookings, transport, and regional expansion. Loyalty
+- Further loyalty and commerce work beyond the accepted products (Events,
+  Bookings, Shop Keeper and Salesbus, Health), transport, and regional expansion. Loyalty
   reference products and the merchant-funded/platform-funded decision are
   surveyed in the
   [Loyalty and Gamification Reference Study](../strategy/loyalty-reference-study.md).

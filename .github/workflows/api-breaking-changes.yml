@@ -24,8 +24,32 @@ permissions:
   contents: read
 
 jobs:
+  # Whether this change can touch the API contract (docs/operations/release-runbook.md, pull-request check selection).
+  # Narrows only pull requests into dev; every other event selects everything
+  # (scripts/ci/select-checks.mjs). It never fails the run: an error there
+  # selects every check, and the job below also runs when this one did not succeed.
+  changes:
+    name: Select checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      apiContract: ${{ steps.select.outputs.apiContract }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - id: select
+        env:
+          # off | shadow | on; unset means shadow (docs/operations/release-runbook.md).
+          CI_PATH_SELECTION: ${{ vars.CI_PATH_SELECTION }}
+        run: node scripts/ci/select-checks.mjs
+
   breaking:
     name: API breaking changes
+    needs: [changes]
+    # Fail open: also runs when the selection job did not succeed.
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.apiContract == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
