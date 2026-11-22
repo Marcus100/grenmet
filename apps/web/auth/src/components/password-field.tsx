@@ -2,13 +2,15 @@
 
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, type Ref, useState } from "react";
 import { inputClass, labelClass } from "@/components/form-styles";
 import { MIN_PASSWORD_LENGTH, scorePassword } from "@/lib/password-strength";
 
 interface PasswordFieldProps {
   readonly autoComplete: "current-password" | "new-password";
   readonly id: string;
+  /** Lets the form put focus back in the field after a refusal (React 19 ref prop). */
+  readonly inputRef?: Ref<HTMLInputElement>;
   readonly label: string;
   /** Extra content beside the label, e.g. a "Forgot password?" link. */
   readonly labelAside?: ReactNode;
@@ -32,6 +34,7 @@ const METER_TONES = [
 export function PasswordField({
   autoComplete,
   id,
+  inputRef,
   label,
   labelAside,
   name,
@@ -70,6 +73,7 @@ export function PasswordField({
           }}
           placeholder={placeholder}
           readOnly={readOnly}
+          ref={inputRef}
           required
           type={visible ? "text" : "password"}
           value={current}
