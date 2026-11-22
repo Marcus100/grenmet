@@ -37,6 +37,9 @@ it("searches locally, links to original URLs and explains empty results", async 
   await user.type(input, "absent");
   expect(screen.getByRole("status")).toHaveTextContent("0 results");
   expect(
+    screen.getByText("No matches for “absent”.", { exact: false })
+  ).toBeVisible();
+  expect(
     screen.getByRole("link", { name: "browse the topics" })
   ).toHaveAttribute("href", "/topics");
   expect(fetchMock).not.toHaveBeenCalled();

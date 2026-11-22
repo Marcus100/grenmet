@@ -9,8 +9,15 @@ import { LeadStories } from "@/components/lead-stories";
 import { getCurrentArticles, getLatestBrief } from "@/lib/content";
 import { COLLECTIONS, HOME_LEAD_PATHS, selectStories } from "@/lib/discovery";
 import { env } from "@/lib/env";
-import { formatLongDate } from "@/lib/format";
+import { daysSince, formatLongDate } from "@/lib/format";
 import { SECTIONS } from "@/lib/nav";
+
+/** A briefing older than this is no longer called "Daily Signal" on the front page. */
+const DAILY_MAX_AGE_DAYS = 2;
+
+// The briefing's age is judged from the clock, so the page is rebuilt hourly
+// instead of once per deploy (a deploy-time check would call old briefings new).
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Grenada Signal: know what's going on",
@@ -21,6 +28,8 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   const brief = getLatestBrief();
+  const briefIsDaily =
+    brief !== undefined && daysSince(brief.date) <= DAILY_MAX_AGE_DAYS;
   const articles = getCurrentArticles();
   const collection = COLLECTIONS[0];
   const collectionStories = collection
@@ -48,13 +57,13 @@ export default function HomePage() {
           >
             <div>
               <p className="text-sm font-semibold tracking-wider uppercase">
-                Your daily briefing
+                {briefIsDaily ? "Your daily briefing" : "Last updated"}
               </p>
               <h1
                 className="mt-3 font-serif text-4xl leading-tight font-semibold"
                 id="briefing-title"
               >
-                Daily Signal
+                {briefIsDaily ? "Daily Signal" : "The latest from Signal"}
               </h1>
               <p className="mt-4 text-base">
                 <time dateTime={brief.date}>{formatLongDate(brief.date)}</time>
