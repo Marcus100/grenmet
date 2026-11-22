@@ -1,5 +1,6 @@
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
+import { SkipLink } from "@barrelsgd/ui/components/ui/skip-link";
 import { allHurricanepages } from "content-collections";
 import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
@@ -55,6 +56,8 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full bg-white antialiased">
+        {/* First in the page, so the first Tab stop is the skip link (WCAG 2.4.1). */}
+        <SkipLink />
         <PublicEnvScript />
         <PostHogProvider app="docs">
           <Providers>

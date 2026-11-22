@@ -4,6 +4,7 @@ Service functions flush; routers commit. Every query is filtered by
 ``organisation_id`` so one business never sees another's data.
 """
 
+import logging
 import uuid
 from collections import defaultdict
 from datetime import UTC, date, datetime, time, timedelta
@@ -26,6 +27,8 @@ from src.organisations.models import (
 )
 from src.pagination import PaginationParams
 from src.storage import uploads
+from src.storage.models import OrgUpload, UploadStatus
+from src.storage.public_url import public_file_url
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
@@ -41,6 +44,7 @@ from .models import (
     Booking,
     BookingProfile,
     BookingStatus,
+    BusinessClosure,
     Customer,
     Provider,
     ProviderService,
@@ -48,6 +52,7 @@ from .models import (
     WorkingHours,
 )
 from .schemas import (
+    BookingClosureCreate,
     BookingExceptionCreate,
     BookingProfileUpdate,
     BookingProviderCreate,
@@ -83,6 +88,8 @@ async def get_profile(session: AsyncSession, organisation_id: str) -> BookingPro
 CONTACT_FIELDS = frozenset(
     {"contact_phone", "contact_whatsapp", "contact_instagram", "contact_email"}
 )
+logger = logging.getLogger(__name__)
+
 #: The logo's upload purpose (``src/storage/uploads.py``).
 LOGO_PURPOSE = "booking-logo"
 #: Profile fields an older client (or the seed) may not send; a PUT that leaves
@@ -383,6 +390,114 @@ async def delete_exception(
     await session.flush()
 
 
+# --- business closures (BK-20) ----------------------------------------------------------
+
+
+def _first_name(name: str | None) -> str | None:
+    words = (name or "").split()
+    return words[0] if words else None
+
+
+async def _bookings_inside(
+    session: AsyncSession,
+    organisation_id: str,
+    *,
+    window_start: datetime,
+    window_end: datetime,
+) -> list[dict[str, Any]]:
+    """Active bookings overlapping ``[window_start, window_end)``: id, start and
+    the customer's first name only. Filtered and ordered in SQL."""
+    rows = await session.execute(
+        select(Booking.id, Booking.starts_at, Contact.name)
+        .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
+        .where(
+            Booking.organisation_id == organisation_id,
+            Booking.status.in_([s.value for s in ACTIVE_STATUSES]),
+            Booking.starts_at < window_end,
+            Booking.ends_at > window_start,
+        )
+        .order_by(Booking.starts_at, Booking.id)
+    )
+    return [
+        {
+            "id": booking_id,
+            "starts_at": booking_start,
+            "customer_first_name": _first_name(name),
+        }
+        for booking_id, booking_start, name in rows.all()
+    ]
+
+
+async def create_closure(
+    session: AsyncSession, organisation_id: str, payload: BookingClosureCreate
+) -> dict[str, Any]:
+    """Close the business on whole local days. Existing bookings are reported,
+    never cancelled."""
+    profile = await get_profile(session, organisation_id)
+    row = BusinessClosure(
+        organisation_id=organisation_id,
+        starts_on=payload.starts_on,
+        ends_on=payload.ends_on,
+        reason=payload.reason,
+    )
+    session.add(row)
+    await session.flush()
+    window_start, window_end = availability.closure_interval(
+        row.starts_on, row.ends_on, zone(profile.timezone)
+    )
+    affected = await _bookings_inside(
+        session, organisation_id, window_start=window_start, window_end=window_end
+    )
+    logger.info(
+        "Business closure created",
+        extra={"organisation_id": organisation_id, "affected_count": len(affected)},
+    )
+    return {
+        "id": row.id,
+        "starts_on": row.starts_on,
+        "ends_on": row.ends_on,
+        "reason": row.reason,
+        "created_at": row.created_at,
+        "affected_bookings": affected,
+    }
+
+
+async def list_closures(
+    session: AsyncSession, organisation_id: str, *, skip: int, limit: int
+) -> list[BusinessClosure]:
+    query = (
+        select(BusinessClosure)
+        .where(BusinessClosure.organisation_id == organisation_id)
+        .order_by(BusinessClosure.starts_on, BusinessClosure.id)
+        .offset(skip)
+        .limit(limit)
+    )
+    return list(await session.scalars(query))
+
+
+async def delete_closure(
+    session: AsyncSession, closure_id: uuid.UUID, *, organisation_id: str
+) -> None:
+    """Remove a closure. Deleting one already gone is a no-op (idempotent). Another
+    business's closure answers 404 and is never touched."""
+    row = await session.scalar(
+        select(BusinessClosure).where(
+            BusinessClosure.id == closure_id,
+            BusinessClosure.organisation_id == organisation_id,
+        )
+    )
+    if row is None:
+        elsewhere = await session.scalar(
+            select(BusinessClosure.id).where(BusinessClosure.id == closure_id)
+        )
+        if elsewhere is not None:
+            raise BookingNotFoundError("Closure")
+        return
+    await session.delete(row)
+    await session.flush()
+
+
 # --- studio agenda -------------------------------------------------------------------
 
 
@@ -464,6 +579,48 @@ def business_contact(profile: BookingProfile) -> dict[str, str | None]:
     }
 
 
+async def _logo_is_complete(session: AsyncSession, profile: BookingProfile) -> bool:
+    """The same rule as ``uploads.file_is_usable``, read on the request session:
+    a complete booking-logo upload of this business."""
+    found = await session.scalar(
+        select(OrgUpload.id).where(
+            OrgUpload.id == profile.logo_file_id,
+            OrgUpload.organisation_id == profile.organisation_id,
+            OrgUpload.purpose == LOGO_PURPOSE,
+            OrgUpload.status == UploadStatus.COMPLETE.value,
+        )
+    )
+    return found is not None
+
+
+async def _public_logo_url(
+    session: AsyncSession, profile: BookingProfile
+) -> str | None:
+    """The business logo's public address, shown only while the file is still a
+    complete booking-logo upload of this business and the API address is https.
+    The mail builds its image from the same address (``public_file_url``).
+
+    Fails closed: any error reading the logo answers None, so the public page
+    still loads with its colour. A savepoint keeps a database error from aborting
+    the storefront's own transaction."""
+    if profile.logo_file_id is None:
+        return None
+    try:
+        async with session.begin_nested():
+            complete = await _logo_is_complete(session, profile)
+    except Exception as error:  # fail closed: a public page must still load
+        logger.warning(
+            "Storefront logo check failed for %s; showing no logo",
+            profile.public_slug,
+            extra={"error_type": type(error).__name__},
+        )
+        return None
+    if not complete:
+        return None
+    url = public_file_url(profile.logo_file_id)
+    return url if url is not None and url.startswith("https://") else None
+
+
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
     services = await list_services(session, profile.organisation_id, active_only=True)
     providers = await list_providers(session, profile.organisation_id, active_only=True)
@@ -484,6 +641,8 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         "currency": profile.currency,
         "cancel_cutoff_hours": profile.cancel_cutoff_hours,
         "contact": business_contact(profile),
+        "brand_color": profile.brand_color,
+        "logo_url": await _public_logo_url(session, profile),
         "services": [
             {
                 **BookingPublicService.model_validate(
@@ -567,6 +726,23 @@ async def available_slots(
                 change.starts_at, change.ends_at, change.kind
             )
         )
+    # A business closure (BK-20) is time off for every provider at once.
+    closures = await session.scalars(
+        select(BusinessClosure).where(
+            BusinessClosure.organisation_id == profile.organisation_id,
+            BusinessClosure.starts_on <= last_day,
+            BusinessClosure.ends_on >= first_day,
+        )
+    )
+    closed = [
+        availability.ScheduleException(
+            *availability.closure_interval(closure.starts_on, closure.ends_on, tz),
+            "time_off",
+        )
+        for closure in closures
+    ]
+    for provider in providers:
+        exceptions[provider.id].extend(closed)
 
     busy: dict[uuid.UUID, list[availability.Interval]] = defaultdict(list)
     busy_query = select(
@@ -637,6 +813,7 @@ async def list_my_bookings(
     *,
     upcoming: bool | None,
     pagination: PaginationParams,
+    cancelled: bool | None = None,
     now: datetime | None = None,
 ) -> tuple[list[tuple[Booking, str, str, str]], int]:
     """The account's bookings across organisations, one SQL page.
@@ -648,6 +825,9 @@ async def list_my_bookings(
     to ``user_id`` (ADR-0058). Returns ``(booking, service name, business name,
     business slug)`` rows and the total before paging. ``upcoming`` True keeps
     bookings starting at or after now, False keeps the earlier ones, None keeps all.
+    ``cancelled`` True keeps only cancelled bookings, False leaves them out, None
+    keeps every status. The filters are independent, so "Upcoming" is
+    ``upcoming=True, cancelled=False``.
     """
     moment = now or utc_now()
     linked_customers = (
@@ -664,6 +844,10 @@ async def list_my_bookings(
         filters.append(Booking.starts_at >= moment)
     elif upcoming is False:
         filters.append(Booking.starts_at < moment)
+    if cancelled is True:
+        filters.append(Booking.status == BookingStatus.CANCELLED.value)
+    elif cancelled is False:
+        filters.append(Booking.status != BookingStatus.CANCELLED.value)
     total = await session.scalar(
         select(func.count()).select_from(Booking).where(*filters)
     )

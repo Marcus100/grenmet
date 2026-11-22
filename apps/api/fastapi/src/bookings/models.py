@@ -7,7 +7,7 @@ Postgres exclusion constraint forbids double-booking a provider.
 """
 
 import uuid
-from datetime import datetime, time
+from datetime import date, datetime, time
 from enum import Enum
 from typing import cast
 
@@ -233,6 +233,30 @@ class AvailabilityException(Base):
     kind: Mapped[str] = mapped_column(String(20))
     starts_at: Mapped[datetime]
     ends_at: Mapped[datetime]
+    reason: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class BusinessClosure(Base):
+    """A whole-business closure (BK-20): local days closed for every provider.
+
+    ``starts_on`` and ``ends_on`` are the organisation's calendar days, both
+    inclusive. Overlapping closures are allowed; each removes its own days.
+    """
+
+    __tablename__ = "business_closure"
+    __table_args__ = (
+        sa.CheckConstraint("ends_on >= starts_on", name="period"),
+        sa.Index("ix_business_closure_org_starts", "organisation_id", "starts_on"),
+        SCHEMA,
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id")
+    )
+    starts_on: Mapped[date]
+    ends_on: Mapped[date]
     reason: Mapped[str | None] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 

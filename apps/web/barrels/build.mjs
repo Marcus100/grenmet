@@ -71,7 +71,7 @@ writeFileSync(
   new URL("turnstile-config.mjs", output),
   `export const TURNSTILE_SITE_KEY = ${JSON.stringify(siteKey)};\n`
 );
-for (const file of ["style.css", "analytics.mjs", "forms.mjs"])
+for (const file of ["style.css", "analytics.mjs", "forms.mjs", "favicon.ico"])
   copyFileSync(new URL(file, directory), new URL(file, output));
 
 // Reuse the public apps' consent policy and Google transport without a framework.

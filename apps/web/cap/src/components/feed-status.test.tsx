@@ -44,6 +44,9 @@ describe("FeedStatus", () => {
       />
     );
     expect(screen.getAllByText(CLOCK_0959).length).toBeGreaterThan(0);
+    expect(
+      screen.getByText("18 Oct 2026, 09:59", { exact: false })
+    ).toBeInTheDocument();
   });
 });
 

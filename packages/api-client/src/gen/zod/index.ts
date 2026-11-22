@@ -1181,6 +1181,10 @@ export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
 export { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
+export { bookingClosureAffectedSchema } from "./bookingClosureAffectedSchema.js";
+export { bookingClosureCreatedSchema } from "./bookingClosureCreatedSchema.js";
+export { bookingClosureCreateSchema } from "./bookingClosureCreateSchema.js";
+export { bookingClosurePublicSchema } from "./bookingClosurePublicSchema.js";
 export { bookingEmailCodeConfirmSchema } from "./bookingEmailCodeConfirmSchema.js";
 export { bookingEmailCodeRequestSchema } from "./bookingEmailCodeRequestSchema.js";
 export { bookingEmailCodeSentSchema } from "./bookingEmailCodeSentSchema.js";
@@ -1299,6 +1303,20 @@ export {
   bookingsConfirmStudioBookingStatus422Schema,
 } from "./bookingsConfirmStudioBookingSchema.js";
 export {
+  bookingsCreateClosureBodySchema,
+  bookingsCreateClosureErrorSchema,
+  bookingsCreateClosureHeadersSchema,
+  bookingsCreateClosureHeaderXBarrelsOrganisationSchema,
+  bookingsCreateClosureResponseSchema,
+  bookingsCreateClosureStatus201Schema,
+  bookingsCreateClosureStatus400Schema,
+  bookingsCreateClosureStatus401Schema,
+  bookingsCreateClosureStatus403Schema,
+  bookingsCreateClosureStatus404Schema,
+  bookingsCreateClosureStatus409Schema,
+  bookingsCreateClosureStatus422Schema,
+} from "./bookingsCreateClosureSchema.js";
+export {
   bookingsCreateExceptionBodySchema,
   bookingsCreateExceptionErrorSchema,
   bookingsCreateExceptionHeadersSchema,
@@ -1388,6 +1406,21 @@ export {
   bookingsDeclineStudioBookingStatus409Schema,
   bookingsDeclineStudioBookingStatus422Schema,
 } from "./bookingsDeclineStudioBookingSchema.js";
+export {
+  bookingsDeleteClosureErrorSchema,
+  bookingsDeleteClosureHeadersSchema,
+  bookingsDeleteClosureHeaderXBarrelsOrganisationSchema,
+  bookingsDeleteClosurePathClosureIdSchema,
+  bookingsDeleteClosurePathSchema,
+  bookingsDeleteClosureResponseSchema,
+  bookingsDeleteClosureStatus204Schema,
+  bookingsDeleteClosureStatus400Schema,
+  bookingsDeleteClosureStatus401Schema,
+  bookingsDeleteClosureStatus403Schema,
+  bookingsDeleteClosureStatus404Schema,
+  bookingsDeleteClosureStatus409Schema,
+  bookingsDeleteClosureStatus422Schema,
+} from "./bookingsDeleteClosureSchema.js";
 export {
   bookingsDeleteExceptionErrorSchema,
   bookingsDeleteExceptionHeadersSchema,
@@ -1529,6 +1562,21 @@ export {
   bookingsGetWorkingHoursStatus422Schema,
 } from "./bookingsGetWorkingHoursSchema.js";
 export {
+  bookingsListClosuresErrorSchema,
+  bookingsListClosuresHeadersSchema,
+  bookingsListClosuresHeaderXBarrelsOrganisationSchema,
+  bookingsListClosuresQueryPageSchema,
+  bookingsListClosuresQuerySchema,
+  bookingsListClosuresQuerySizeSchema,
+  bookingsListClosuresResponseSchema,
+  bookingsListClosuresStatus200Schema,
+  bookingsListClosuresStatus400Schema,
+  bookingsListClosuresStatus401Schema,
+  bookingsListClosuresStatus403Schema,
+  bookingsListClosuresStatus404Schema,
+  bookingsListClosuresStatus422Schema,
+} from "./bookingsListClosuresSchema.js";
+export {
   bookingsListExceptionsErrorSchema,
   bookingsListExceptionsHeadersSchema,
   bookingsListExceptionsHeaderXBarrelsOrganisationSchema,
@@ -1547,6 +1595,7 @@ export {
 } from "./bookingsListExceptionsSchema.js";
 export {
   bookingsListMyBookingsErrorSchema,
+  bookingsListMyBookingsQueryCancelledSchema,
   bookingsListMyBookingsQueryPageSchema,
   bookingsListMyBookingsQuerySchema,
   bookingsListMyBookingsQuerySizeSchema,

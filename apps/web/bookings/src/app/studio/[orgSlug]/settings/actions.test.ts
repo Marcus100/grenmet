@@ -9,6 +9,8 @@ vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
 vi.mock("@/lib/studio-api", () => ({
+  completeLogoUpload: vi.fn(),
+  createLogoUpload: vi.fn(),
   createException: vi.fn(),
   createProvider: vi.fn(),
   createService: vi.fn(),
@@ -25,7 +27,9 @@ import { redirect } from "next/navigation";
 import { CONTACT_MESSAGES } from "@/lib/business-contact";
 import { getSession } from "@/lib/session";
 import {
+  completeLogoUpload,
   createException,
+  createLogoUpload,
   createProvider,
   createService,
   deleteException,
@@ -37,15 +41,18 @@ import {
   updateService,
 } from "@/lib/studio-api";
 import {
+  finishLogoUploadAction,
   removeTimeOffAction,
   saveHoursAction,
   saveProfileAction,
   saveProviderAction,
   saveServiceAction,
   saveTimeOffAction,
+  startLogoUploadAction,
 } from "./actions";
 
 const SLUG = "sea-salt";
+const ADMIN_ACCESS = /admin access/u;
 const IDLE = { status: "idle" } as const;
 const SERVICE_ID = "44444444-4444-4444-8444-444444444444";
 const EXCEPTION_ID = "55555555-5555-4555-8555-555555555555";
@@ -174,6 +181,8 @@ describe("profile", () => {
       contact_whatsapp: null,
       contact_instagram: null,
       contact_email: null,
+      brand_color: null,
+      logo_file_id: null,
     });
     expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
   });
@@ -310,6 +319,176 @@ describe("profile", () => {
       kind: "unavailable",
     });
     expect(reportError).toHaveBeenCalledWith(fault, "studio");
+  });
+});
+
+describe("brand", () => {
+  const LOGO = "6f1c2a3e-1b2c-4d5e-8f90-a1b2c3d4e5f6";
+
+  it("saves a valid colour in lower case with the logo", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, brandColor: " #0B63EE ", logoFileId: LOGO })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ brand_color: "#0b63ee", logo_file_id: LOGO })
+    );
+  });
+
+  it("clears the colour and the logo when they are blank", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, brandColor: "  ", logoFileId: "" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ brand_color: null, logo_file_id: null })
+    );
+  });
+
+  it.each(["0b63ee", "#0b63e", "#gggggg", "red"])(
+    "refuses %j without calling the API",
+    async (brandColor) => {
+      const result = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ ...PROFILE, brandColor })
+      );
+      expect(result).toMatchObject({
+        status: "error",
+        message: "Use a colour like #0b63ee: a # and six hex digits.",
+      });
+      expect(saveProfile).not.toHaveBeenCalled();
+    }
+  );
+
+  it("refuses a logo id that is not a UUID", async () => {
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, logoFileId: "../../x" })
+    );
+    expect(result).toMatchObject({ status: "error" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("shows the API's plain 409 when the logo is not a finished upload", async () => {
+    vi.mocked(saveProfile).mockRejectedValue(
+      apiError(409, {
+        detail: "That logo is not a finished upload for this business",
+      })
+    );
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, logoFileId: LOGO })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      kind: "conflict",
+      message: "That logo did not finish uploading for this business.",
+    });
+  });
+
+  it("refuses a member before any upload is started", async () => {
+    org("member");
+    const result = await startLogoUploadAction(SLUG, {
+      contentType: "image/png",
+      sizeBytes: 1000,
+    });
+    expect(result).toEqual({
+      ok: false,
+      message: expect.stringMatching(ADMIN_ACCESS),
+    });
+    expect(createLogoUpload).not.toHaveBeenCalled();
+  });
+
+  it("starts a booking-logo upload for the resolved organisation", async () => {
+    vi.mocked(createLogoUpload).mockResolvedValue({
+      id: LOGO,
+      url: "https://storage.test/put",
+      headers: { "Content-Type": "image/png" },
+      expires_at: "2026-11-22T10:00:00Z",
+      max_bytes: 2_097_152,
+    } as never);
+    const result = await startLogoUploadAction(SLUG, {
+      contentType: "image/png",
+      sizeBytes: 1000,
+    });
+    expect(createLogoUpload).toHaveBeenCalledWith("tok", ORG_ID, {
+      content_type: "image/png",
+      size_bytes: 1000,
+    });
+    expect(result).toEqual({
+      ok: true,
+      target: {
+        id: LOGO,
+        url: "https://storage.test/put",
+        headers: { "Content-Type": "image/png" },
+      },
+    });
+  });
+
+  it("refuses a file type or size the logo rules do not allow, before the API", async () => {
+    expect(
+      await startLogoUploadAction(SLUG, {
+        contentType: "image/svg+xml",
+        sizeBytes: 10,
+      })
+    ).toMatchObject({ ok: false });
+    expect(
+      await startLogoUploadAction(SLUG, {
+        contentType: "image/png",
+        sizeBytes: 3 * 1024 * 1024,
+      })
+    ).toMatchObject({ ok: false });
+    expect(createLogoUpload).not.toHaveBeenCalled();
+  });
+
+  it("shows the API's own words for a refused upload", async () => {
+    vi.mocked(createLogoUpload).mockRejectedValue(
+      apiError(422, { detail: "Only JPEG, PNG and WebP images are accepted" })
+    );
+    const result = await startLogoUploadAction(SLUG, {
+      contentType: "image/webp",
+      sizeBytes: 10,
+    });
+    expect(result).toEqual({
+      ok: false,
+      message:
+        "Only JPEG, PNG and WebP images are accepted. Choose a different image and try again.",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("confirms a finished upload and returns the stored file id", async () => {
+    vi.mocked(completeLogoUpload).mockResolvedValue({ id: LOGO } as never);
+    expect(await finishLogoUploadAction(SLUG, LOGO)).toEqual({
+      ok: true,
+      fileId: LOGO,
+    });
+    expect(completeLogoUpload).toHaveBeenCalledWith("tok", ORG_ID, LOGO);
+  });
+
+  it("reports a fault in the confirm step and keeps the message plain", async () => {
+    vi.mocked(completeLogoUpload).mockRejectedValue(apiError(503, {}));
+    const result = await finishLogoUploadAction(SLUG, LOGO);
+    expect(result).toMatchObject({ ok: false });
+    expect(reportError).toHaveBeenCalled();
+  });
+
+  it("refuses a malformed upload id before the API", async () => {
+    expect(await finishLogoUploadAction(SLUG, "x")).toMatchObject({
+      ok: false,
+    });
+    expect(completeLogoUpload).not.toHaveBeenCalled();
   });
 });
 

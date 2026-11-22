@@ -69,4 +69,8 @@ export type BookingPublicDetail = {
    * @description Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account.
    */
   account_invite_url?: string | null;
+  /**
+   * @description While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise.
+   */
+  hold_ends_at?: string | null;
 };

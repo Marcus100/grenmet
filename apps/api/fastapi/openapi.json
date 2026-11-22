@@ -10209,6 +10209,24 @@
             "description": "True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first."
           },
           {
+            "name": "cancelled",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "True: only cancelled bookings. False: every booking except the cancelled ones. Omit: all statuses. Combine with `upcoming` for the Upcoming list (upcoming=true, cancelled=false).",
+              "title": "Cancelled"
+            },
+            "description": "True: only cancelled bookings. False: every booking except the cancelled ones. Omit: all statuses. Combine with `upcoming` for the Upcoming list (upcoming=true, cancelled=false)."
+          },
+          {
             "name": "page",
             "in": "query",
             "required": false,
@@ -12029,6 +12047,363 @@
                 }
               }
             }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/closures": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "List whole-business closures",
+        "description": "Days the business is closed for every provider, earliest first.",
+        "operationId": "bookingsListClosures",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingClosurePublic"
+                  },
+                  "title": "Response Bookingslistclosures"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Close the business for whole days",
+        "description": "Closes local days for every provider (both ends inclusive, at most a year). The response lists the active bookings inside the closure, first name only, for the studio to follow up. Existing bookings are not cancelled.",
+        "operationId": "bookingsCreateClosure",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingClosureCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingClosureCreated"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/closures/{closure_id}": {
+      "delete": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Reopen the business for a closure",
+        "description": "Removes one closure. Deleting a closure already removed returns 204 again. Another business's closure answers 404.",
+        "operationId": "bookingsDeleteClosure",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "closure_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Closure Id"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "422": {
             "content": {
@@ -77078,6 +77453,170 @@
         "title": "BookingBusinessContact",
         "description": "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
       },
+      "BookingClosureAffected": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "customer_first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer First Name",
+            "description": "First name only. No email or phone is sent."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "starts_at",
+          "customer_first_name"
+        ],
+        "title": "BookingClosureAffected",
+        "description": "An existing booking inside a new closure: for the studio's follow-up only."
+      },
+      "BookingClosureCreate": {
+        "properties": {
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Starts On",
+            "description": "First closed day, the business's local date."
+          },
+          "ends_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Ends On",
+            "description": "Last closed day, inclusive, local date."
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "starts_on",
+          "ends_on"
+        ],
+        "title": "BookingClosureCreate"
+      },
+      "BookingClosureCreated": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Starts On"
+          },
+          "ends_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Ends On"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "affected_bookings": {
+            "items": {
+              "$ref": "#/components/schemas/BookingClosureAffected"
+            },
+            "type": "array",
+            "title": "Affected Bookings",
+            "description": "Active bookings (pending, confirmed, awaiting deposit) that fall inside the closure, earliest first. They are NOT cancelled: follow them up."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "starts_on",
+          "ends_on",
+          "reason",
+          "created_at"
+        ],
+        "title": "BookingClosureCreated"
+      },
+      "BookingClosurePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Starts On"
+          },
+          "ends_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Ends On"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "starts_on",
+          "ends_on",
+          "reason",
+          "created_at"
+        ],
+        "title": "BookingClosurePublic"
+      },
       "BookingEmailCodeConfirm": {
         "properties": {
           "service_id": {
@@ -77352,6 +77891,18 @@
               }
             ],
             "description": "What was paid when booking; null when nothing was due at booking (pay at the business)."
+          },
+          "manage_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manage Url",
+            "description": "The booking's manage page (Reschedule, Cancel, Add to calendar), with a signed link that works until a week after the booking ends. Null once that window has passed or the stored link was cleared."
           }
         },
         "type": "object",
@@ -77365,7 +77916,7 @@
           "business_slug"
         ],
         "title": "BookingMyBooking",
-        "description": "One of the caller's bookings, with the business it is with. Carries no\nmanage token, notes, or other customers' details."
+        "description": "One of the caller's bookings, with the business it is with. Carries no\nstored manage token, notes, or other customers' details; ``manage_url`` is a\nfreshly signed link to the booking's manage page, the same kind the booking\nemail carries."
       },
       "BookingMyBookingList": {
         "properties": {
@@ -78420,6 +78971,19 @@
             ],
             "title": "Account Invite Url",
             "description": "Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account."
+          },
+          "hold_ends_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hold Ends At",
+            "description": "While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise."
           }
         },
         "type": "object",
@@ -79020,6 +79584,30 @@
           "contact": {
             "$ref": "#/components/schemas/BookingBusinessContact"
           },
+          "brand_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Color",
+            "description": "The business's accent colour as `#rrggbb`, or null when it has not set one. Not checked for contrast: the page decides how to use it."
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url",
+            "description": "Public https address of the business logo, or null when there is no logo or no public API address is configured. Load it as an image."
+          },
           "services": {
             "items": {
               "$ref": "#/components/schemas/BookingPublicService"
@@ -79043,6 +79631,8 @@
           "currency",
           "cancel_cutoff_hours",
           "contact",
+          "brand_color",
+          "logo_url",
           "services",
           "providers"
         ],

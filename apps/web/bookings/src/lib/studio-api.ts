@@ -52,6 +52,10 @@ import {
   createClient,
   type ManualMethod,
   ResponseError,
+  type StoredFile,
+  storageCompleteUpload,
+  storageCreateUpload,
+  type UploadTicket,
 } from "@barrelsgd/api-client";
 import { cache } from "react";
 import { getAuthConfig } from "@/lib/auth-config";
@@ -60,6 +64,7 @@ import { DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
 /** Used only when the business has no profile yet; matches the Settings page. */
 const DEFAULT_CURRENCY = "XCD";
+const LOGO_PURPOSE = "booking-logo";
 const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 const TIMEOUT_MS = 10_000;
 
@@ -156,16 +161,21 @@ export function listServices(
 }
 
 /**
- * The business's timezone and currency from its booking profile: "today" is
- * the day on the business's calendar, and prices show in its currency. A
- * business without a profile yet has neither (404); both fall back to the
- * defaults instead of failing the page.
+ * The business's timezone, currency and public booking address (`publicSlug`,
+ * the path customers use; it can differ from the studio slug) from its booking
+ * profile: "today" is the day on the business's calendar, and prices show in
+ * its currency. A business without a profile yet has none of them (404); the
+ * defaults and a null address keep the page working instead of failing.
  */
 export async function getBusinessProfile(
   accessToken: string,
   organisationId: string
-): Promise<{ currency: string; timezone: string }> {
-  const fallback = { currency: DEFAULT_CURRENCY, timezone: DEFAULT_TIMEZONE };
+): Promise<{ currency: string; timezone: string; publicSlug: string | null }> {
+  const fallback = {
+    currency: DEFAULT_CURRENCY,
+    publicSlug: null,
+    timezone: DEFAULT_TIMEZONE,
+  };
   try {
     const profile = await bookingsGetProfile({
       client: studioClient(accessToken, organisationId),
@@ -174,6 +184,7 @@ export async function getBusinessProfile(
       .catch(redactRequest);
     return {
       currency: profile.currency ?? DEFAULT_CURRENCY,
+      publicSlug: profile.public_slug || null,
       timezone: profile.timezone ?? DEFAULT_TIMEZONE,
     };
   } catch (error) {
@@ -377,6 +388,34 @@ export function saveProfile(
   return bookingsUpsertProfile({
     client: studioClient(accessToken, organisationId),
     body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Step 1 of a logo upload: a presigned PUT for a `booking-logo` of this business. */
+export function createLogoUpload(
+  accessToken: string,
+  organisationId: string,
+  body: { content_type: string; size_bytes: number }
+): Promise<UploadTicket> {
+  return storageCreateUpload({
+    client: studioClient(accessToken, organisationId),
+    body: { app: "bookings", purpose: LOGO_PURPOSE, ...body },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Step 3 of a logo upload: the API confirms the bytes arrived; returns the file. */
+export function completeLogoUpload(
+  accessToken: string,
+  organisationId: string,
+  uploadId: string
+): Promise<StoredFile> {
+  return storageCompleteUpload({
+    client: studioClient(accessToken, organisationId),
+    path: { upload_id: uploadId },
   })
     .unwrap()
     .catch(redactRequest);

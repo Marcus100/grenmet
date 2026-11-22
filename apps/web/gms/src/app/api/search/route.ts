@@ -1,10 +1,5 @@
-import { contentHref, fetchPublishedContent } from "@/lib/cms";
-import type { SearchArticle } from "@/lib/search";
-
-const SECTION_LABEL: Record<string, string> = {
-  "desk-updates": "From the Desk",
-  stories: "Stories",
-};
+import { fetchPublishedContent } from "@/lib/cms";
+import { searchArticles } from "@/lib/search-articles";
 
 /**
  * Published CMS articles for site search. A read-only proxy of the public CMS
@@ -13,14 +8,8 @@ const SECTION_LABEL: Record<string, string> = {
  */
 export async function GET() {
   const result = await fetchPublishedContent();
-  const articles: SearchArticle[] = result.articles.map((content) => ({
-    title: content.title,
-    summary: content.summary ?? "",
-    href: contentHref(content),
-    section: SECTION_LABEL[content.collection] ?? "Stories",
-  }));
   return Response.json(
-    { articles, status: result.status },
+    { articles: searchArticles(result), status: result.status },
     { headers: { "Cache-Control": "public, max-age=60, s-maxage=300" } }
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AlertMap } from "@/components/alert-map";
 import { FeedStatus } from "@/components/feed-status";
 import { fetchActiveFeatures } from "@/lib/cap-api";
@@ -23,14 +24,31 @@ export default async function MapPage() {
         Alert map
       </h1>
       <FeedStatus now={now} result={result} />
-      {hasData && result.data.features.length === 0 ? (
-        <p className="text-body text-gm-text-secondary">
-          No weather alerts with a mapped area are in effect at the time shown
-          above.
-        </p>
-      ) : null}
       {/* Always draw the islands, so an empty map never looks like a failed one. */}
       {hasData ? <AlertMap features={result.data.features} /> : null}
+      {hasData && result.data.features.length === 0 ? (
+        <section
+          aria-labelledby="map-alerts-heading"
+          className="rounded-gm-card border-gm-border bg-gm-surface space-y-2 border p-4"
+        >
+          <h2
+            className="text-heading-sm text-gm-heading font-semibold"
+            id="map-alerts-heading"
+          >
+            Alerts on this map
+          </h2>
+          <ul className="text-body text-gm-text-secondary list-disc space-y-1 pl-5">
+            <li>No alert area is in effect at the time shown above.</li>
+            <li>
+              Warnings without a mapped area, if any, are listed on the{" "}
+              <Link className="text-gm-blue-ink underline" href="/">
+                active alerts
+              </Link>{" "}
+              page.
+            </li>
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import {
   OBSERVATION_STALE_AFTER_MS,
   observationNote,
   SATELLITE_STALE_AFTER_MS,
+  staleAgeWords,
   validityNote,
 } from "@/lib/freshness";
 
@@ -81,6 +82,22 @@ describe("clock skew", () => {
   });
 });
 
+describe("staleAgeWords", () => {
+  it("is null while the reading is fresh", () => {
+    expect(staleAgeWords("2026-11-10T13:30", NOW)).toBeNull();
+  });
+
+  it("gives the age of a stale reading in whole hours or days", () => {
+    expect(staleAgeWords("2026-11-10T11:00", NOW)).toBe("3 hours");
+    expect(staleAgeWords("2026-11-09T11:00", NOW)).toBe("1 day");
+  });
+
+  it("gives no age when the time cannot be read, so none is invented", () => {
+    expect(staleAgeWords(null, NOW)).toBeNull();
+    expect(staleAgeWords("2026-11-10T19:00", NOW)).toBeNull();
+  });
+});
+
 describe("observationNote", () => {
   it("is null while the reading is fresh", () => {
     expect(observationNote("2026-11-10T13:30", NOW)).toBeNull();
@@ -88,7 +105,7 @@ describe("observationNote", () => {
 
   it("says how long ago a stale reading was taken, in Grenada time", () => {
     expect(observationNote("2026-11-10T11:00", NOW)).toBe(
-      "Observed 3 hours ago (11:00 a.m. AST) — older than usual"
+      "Observed 3 hours ago (11:00 a.m. AST) — older than usual."
     );
   });
 

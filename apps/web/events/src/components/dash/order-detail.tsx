@@ -1,7 +1,7 @@
 import type { OrgOrderDetail } from "@barrelsgd/api-client";
 import { formatEventDate } from "@/lib/datetime";
 import {
-  formatOrderMoneyCode,
+  formatOrderMoney,
   humanise,
   orderBadge,
   PAYMENT_METHOD_LABEL,
@@ -40,7 +40,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
  * shown", never as "the buyer has no email".
  */
 export function OrderDetail({ order }: { order: OrgOrderDetail }) {
-  const money = (minor: number) => formatOrderMoneyCode(minor, order.currency);
+  const money = (minor: number) => formatOrderMoney(minor, order.currency);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">

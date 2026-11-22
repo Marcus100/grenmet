@@ -22,7 +22,13 @@ export const bookingMyBookingSchema = z
       .describe(
         "What was paid when booking; null when nothing was due at booking (pay at the business)."
       ),
+    manage_url: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "The booking's manage page (Reschedule, Cancel, Add to calendar), with a signed link that works until a week after the booking ends. Null once that window has passed or the stored link was cleared."
+      ),
   })
   .describe(
-    "One of the caller's bookings, with the business it is with. Carries no\nmanage token, notes, or other customers' details."
+    "One of the caller's bookings, with the business it is with. Carries no\nstored manage token, notes, or other customers' details; ``manage_url`` is a\nfreshly signed link to the booking's manage page, the same kind the booking\nemail carries."
   );

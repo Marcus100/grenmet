@@ -11,6 +11,9 @@ export interface InfoTableProps {
   rows: readonly (readonly ReactNode[])[];
 }
 
+/** Label for a cell whose column has no header text, so no card label is empty. */
+const UNLABELLED_COLUMN = "Value";
+
 /** A key for each row from its first text cell, numbered when two rows share one. */
 function rowKeys(rows: InfoTableProps["rows"]): string[] {
   const seen = new Map<string, number>();
@@ -22,7 +25,22 @@ function rowKeys(rows: InfoTableProps["rows"]): string[] {
   });
 }
 
-/** Bordered data table. Scrolls on its own so narrow screens never pan. */
+/**
+ * A key for each column position. Columns never reorder within a table, and
+ * header text can repeat or be empty, so the position is the stable key (never
+ * the header text).
+ */
+function columnKeys(columns: number): string[] {
+  return Array.from({ length: columns }, (_, position) => `column-${position}`);
+}
+
+/**
+ * Bordered data table. From `sm` up it is a real table in a scroll region that
+ * can take keyboard focus, so a wide table scrolls sideways without panning the
+ * page. On a phone each row becomes a card of label and value pairs, because a
+ * clipped table hides its later columns. Only one rendering is displayed at a
+ * time, so a cell's content is announced once.
+ */
 export function InfoTable({
   caption,
   headers,
@@ -30,51 +48,90 @@ export function InfoTable({
   rows,
 }: InfoTableProps) {
   const keys = rowKeys(rows);
+  const columns = columnKeys(
+    Math.max(headers.length, ...rows.map((row) => row.length))
+  );
   return (
     <section
       aria-label={caption ? `Table: ${caption}` : "Table"}
-      className="rounded-gm-card border-gm-border focus-visible:shadow-gm-focus overflow-x-auto border focus-visible:outline-none"
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: a region that scrolls sideways must be reachable by keyboard (WCAG 2.1.1)
-      tabIndex={0}
+      className="rounded-gm-card border-gm-border overflow-hidden border"
     >
-      <table className="w-full border-collapse text-left">
-        {caption && (
-          <caption className="border-gm-border bg-gm-surface text-gm-text-secondary text-label leading-label border-b px-4 py-2.5 lg:px-5">
-            {caption}
-          </caption>
-        )}
-        <thead className="bg-gm-surface">
-          <tr>
-            {headers.map((header) => (
-              <th
-                className="text-gm-heading text-label leading-label px-4 py-2.5 font-bold tracking-wider whitespace-nowrap uppercase lg:px-5 lg:py-3"
-                key={header}
-                scope="col"
-              >
-                {header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, rowIndex) => (
-            <tr className="border-gm-border border-t" key={keys[rowIndex]}>
+      {caption && (
+        <p className="border-gm-border bg-gm-surface text-gm-text-secondary text-label leading-label border-b px-4 py-2.5 sm:hidden">
+          {caption}
+        </p>
+      )}
+      <ul className="divide-gm-border divide-y sm:hidden">
+        {rows.map((row, rowIndex) => (
+          <li className="px-4 py-3" key={keys[rowIndex]}>
+            <dl className="grid gap-2">
               {row.map((cell, columnIndex) => (
-                <td
-                  className={cn(
-                    "text-body text-gm-text-secondary leading-body px-4 py-2.5 lg:px-5 lg:py-3",
-                    monoColumns?.includes(columnIndex) &&
-                      "font-mono tabular-nums"
-                  )}
-                  key={headers[columnIndex] ?? "extra"}
+                <div
+                  className="grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)] gap-x-3"
+                  key={columns[columnIndex]}
                 >
-                  {cell}
-                </td>
+                  <dt className="text-gm-heading text-label leading-label font-bold tracking-wider uppercase">
+                    {headers[columnIndex]?.trim() || UNLABELLED_COLUMN}
+                  </dt>
+                  <dd
+                    className={cn(
+                      "text-body text-gm-text-secondary leading-body",
+                      monoColumns?.includes(columnIndex) &&
+                        "font-mono tabular-nums"
+                    )}
+                  >
+                    {cell}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </li>
+        ))}
+      </ul>
+      <div
+        className="focus-visible:shadow-gm-focus hidden overflow-x-auto focus-visible:outline-none sm:block"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: the scroll region must be reachable by keyboard (WCAG 2.1.1); it exists only from sm up, where the table can scroll
+        tabIndex={0}
+      >
+        <table className="w-full border-collapse text-left">
+          {caption && (
+            <caption className="border-gm-border bg-gm-surface text-gm-text-secondary text-label leading-label border-b px-4 py-2.5 lg:px-5">
+              {caption}
+            </caption>
+          )}
+          <thead className="bg-gm-surface">
+            <tr>
+              {headers.map((header, columnIndex) => (
+                <th
+                  className="text-gm-heading text-label leading-label px-4 py-2.5 font-bold tracking-wider whitespace-nowrap uppercase lg:px-5 lg:py-3"
+                  key={columns[columnIndex]}
+                  scope="col"
+                >
+                  {header}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row, rowIndex) => (
+              <tr className="border-gm-border border-t" key={keys[rowIndex]}>
+                {row.map((cell, columnIndex) => (
+                  <td
+                    className={cn(
+                      "text-body text-gm-text-secondary leading-body px-4 py-2.5 lg:px-5 lg:py-3",
+                      monoColumns?.includes(columnIndex) &&
+                        "font-mono tabular-nums"
+                    )}
+                    key={columns[columnIndex]}
+                  >
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

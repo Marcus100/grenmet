@@ -26,6 +26,10 @@ export function MissingBooking({
             ? `This link does not match a booking with ${name}.`
             : "This link does not match a booking."}
         </p>
+        <p className="text-muted-foreground">
+          This link may have expired. Check the link in your email, or contact
+          the business directly.
+        </p>
       </header>
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">What you can do</h2>

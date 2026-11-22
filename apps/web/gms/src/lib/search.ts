@@ -1,5 +1,8 @@
 import { NAV_SECTIONS, type NavSection } from "@/lib/nav-sections";
 
+/** The longest query the search box and the `/search` page accept. */
+export const MAX_QUERY_LENGTH = 200;
+
 export interface SearchEntry {
   description: string;
   href: string;

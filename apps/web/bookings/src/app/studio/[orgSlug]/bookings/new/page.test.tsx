@@ -87,6 +87,7 @@ function role(value: "member" | "admin") {
 beforeEach(() => {
   vi.mocked(getBusinessProfile).mockResolvedValue({
     currency: "XCD",
+    publicSlug: "sea-salt",
     timezone: "America/Grenada",
   });
   role("admin");

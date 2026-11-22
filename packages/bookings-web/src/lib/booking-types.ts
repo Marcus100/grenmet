@@ -83,7 +83,11 @@ export interface BookingFlowActions {
 
 /** Calls the manage-a-booking page needs. The token identifies the booking. */
 export interface ManageBookingActions {
-  cancel: (token: string) => Promise<Outcome<BookingPublicDetail>>;
+  /** `reason` is the customer's optional note (null when left blank); the business sees it. */
+  cancel: (
+    token: string,
+    reason: string | null
+  ) => Promise<Outcome<BookingPublicDetail>>;
   loadSlots: (token: string, firstDay: string) => Promise<Outcome<SlotList>>;
   reschedule: (
     token: string,

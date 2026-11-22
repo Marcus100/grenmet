@@ -38,7 +38,7 @@ const ALREADY_WAITING = /already waiting/u;
 const RE_1 = /Only an order that is awaiting payment/u;
 const RE_2 = /nothing left to refund/iu;
 const RE_3 = /Payment recorded/u;
-const RE_4 = /Refund XCD 150\.00 to the buyer/u;
+const RE_4 = /Refund EC\$150\.00 to the buyer/u;
 const RE_5 = /between/u;
 const RE_6 = /Follow the event's refund policy/u;
 const RE_7 = /Full refunds until 2 days before the event/u;
@@ -245,7 +245,7 @@ describe("refund", () => {
     vi.mocked(refundOrder).mockResolvedValue({ ok: true, data: paid });
     render(<Actions order={paid} />);
     fireEvent.click(screen.getByRole("button", { name: "Partial amount" }));
-    fireEvent.change(screen.getByLabelText("Amount to refund (XCD)"), {
+    fireEvent.change(screen.getByLabelText("Amount to refund (EC$)"), {
       target: { value: "25.50" },
     });
     fireEvent.change(screen.getByLabelText("Reason"), {
@@ -262,7 +262,7 @@ describe("refund", () => {
   it("refuses an amount above what is refundable, without calling the API", () => {
     render(<Actions order={paid} />);
     fireEvent.click(screen.getByRole("button", { name: "Partial amount" }));
-    fireEvent.change(screen.getByLabelText("Amount to refund (XCD)"), {
+    fireEvent.change(screen.getByLabelText("Amount to refund (EC$)"), {
       target: { value: "999" },
     });
     fireEvent.change(screen.getByLabelText("Reason"), {

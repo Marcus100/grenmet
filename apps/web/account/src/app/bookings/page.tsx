@@ -4,8 +4,15 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AccountNav } from "@/components/account-nav";
 import { BookingList } from "@/components/my-bookings/booking-list";
+import { BookingTabs } from "@/components/my-bookings/booking-tabs";
 import { ListPager } from "@/components/my-bookings/list-pager";
 import { env } from "@/env";
+import {
+  type BookingTab,
+  PAGE_PARAM,
+  tabFor,
+  VIEW_PARAM,
+} from "@/lib/booking-tabs";
 import { getMyBookings, type MyBookingsQuery } from "@/lib/my-bookings-api";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
@@ -16,27 +23,21 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-/** Query parameters: each section's page number. */
-const UPCOMING_PARAM = "upcoming_page";
-const PAST_PARAM = "past_page";
 /**
  * Set on the return trip of a sign-in that this page started after a 401. If
  * the API refuses again, the page says so instead of sending the person round
  * the sign-in loop once more.
  */
 const REAUTH_PARAM = "reauth";
-const SECTION_PAGE_SIZE = 20;
-const PAST_PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 /** The API's largest page number. */
 const MAX_PAGE = 1_000_000;
-
-const SIGN_IN_AGAIN_RETURN = `/bookings?${REAUTH_PARAM}=1`;
 
 interface MyBookingsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-type SectionLoad =
+type ListLoad =
   | { ok: true; list: BookingMyBookingList }
   | { ok: false; reason: "refused" | "failed" };
 
@@ -52,25 +53,23 @@ function parsePage(raw: string | undefined): number {
 }
 
 /**
- * One section's bookings. A 401 sends the person to sign in once, with the
- * reauth marker in the return target. A 401 that arrives after that sign-in
- * is shown inline instead, so the page cannot loop. Other 4xx are shown inline
- * without a report; anything else (server or network failure, unreadable body)
- * is reported.
+ * One tab's bookings. A 401 sends the person to sign in once, with the reauth
+ * marker in the return target. A 401 that arrives after that sign-in is shown
+ * inline instead, so the page cannot loop. Other 4xx are shown inline without a
+ * report; anything else (server or network failure, unreadable body) is reported.
  */
-async function loadSection(
+async function loadList(
   accessToken: string,
   query: MyBookingsQuery,
-  afterReauth: boolean
-): Promise<SectionLoad> {
+  afterReauth: boolean,
+  returnTo: string
+): Promise<ListLoad> {
   try {
     return { ok: true, list: await getMyBookings(accessToken, query) };
   } catch (error) {
     if (isAuthApiError(error) && error.status === 401) {
       if (!afterReauth) {
-        redirect(
-          `/signin?${new URLSearchParams({ returnTo: SIGN_IN_AGAIN_RETURN })}`
-        );
+        redirect(`/signin?${new URLSearchParams({ returnTo })}`);
       }
       return { ok: false, reason: "refused" };
     }
@@ -83,51 +82,47 @@ async function loadSection(
 }
 
 function failureSentence(
-  section: "upcoming" | "past",
+  tab: BookingTab,
   reason: "refused" | "failed",
   afterReauth: boolean
 ): string {
   if (afterReauth && reason === "refused") {
     return "We could not load your bookings. Try again later.";
   }
-  return `Your ${section} bookings could not be loaded just now. Refresh the page to try again.`;
+  return `Your ${tab.name} bookings could not be loaded just now. Refresh the page to try again.`;
 }
 
 /**
- * The signed-in person's bookings with every business: upcoming (soonest first,
- * as the API orders them) and past (newest first). Both are paged and each
- * section fails on its own.
+ * The signed-in person's bookings with every business, one list per tab:
+ * Upcoming (soonest first), Past (newest first) and Cancelled. A cancelled
+ * booking is listed under Cancelled only. Each row links to its manage page.
  */
 export default async function MyBookingsPage({
   searchParams,
 }: MyBookingsPageProps) {
-  const session = await requireSession("/bookings");
   const params = await searchParams;
+  const tab = tabFor(first(params[VIEW_PARAM]));
+  const page = parsePage(first(params[PAGE_PARAM]));
   const afterReauth = first(params[REAUTH_PARAM]) === "1";
-  const upcomingPage = parsePage(first(params[UPCOMING_PARAM]));
-  const pastPage = parsePage(first(params[PAST_PARAM]));
+  const session = await requireSession(
+    `/bookings?${new URLSearchParams({ [VIEW_PARAM]: tab.key, [PAGE_PARAM]: String(page) })}`
+  );
+  const returnTo = `/bookings?${new URLSearchParams({
+    [VIEW_PARAM]: tab.key,
+    [REAUTH_PARAM]: "1",
+  })}`;
 
-  const [upcoming, past] = await Promise.all([
-    loadSection(
-      session.accessToken,
-      { upcoming: true, page: upcomingPage, size: SECTION_PAGE_SIZE },
-      afterReauth
-    ),
-    loadSection(
-      session.accessToken,
-      { upcoming: false, page: pastPage, size: PAST_PAGE_SIZE },
-      afterReauth
-    ),
-  ]);
+  const load = await loadList(
+    session.accessToken,
+    { ...tab.query, page, size: PAGE_SIZE },
+    afterReauth,
+    returnTo
+  );
   const bookingsBaseUrl = env.BOOKINGS_APP_URL;
-  const upcomingKeep: Record<string, string> =
-    pastPage > 1 ? { [PAST_PARAM]: String(pastPage) } : {};
-  const pastKeep: Record<string, string> =
-    upcomingPage > 1 ? { [UPCOMING_PARAM]: String(upcomingPage) } : {};
 
   return (
     <main
-      className="mx-auto flex w-full max-w-3xl flex-col gap-8 p-6"
+      className="mx-auto flex w-full max-w-3xl min-w-0 flex-col gap-8 p-6"
       id="main-content"
     >
       <AccountNav current="bookings" />
@@ -138,68 +133,30 @@ export default async function MyBookingsPage({
         <h1 className="text-2xl font-semibold tracking-tight">My bookings</h1>
       </header>
 
-      <section aria-labelledby="upcoming-heading" className="space-y-4">
-        <h2 className="text-lg font-semibold" id="upcoming-heading">
-          Upcoming
-        </h2>
-        {upcoming.ok ? (
-          <>
-            <BookingList
-              bookings={upcoming.list.data}
-              bookingsBaseUrl={bookingsBaseUrl}
-              emptyBody="Bookings you make while signed in appear here."
-              emptyTitle={
-                upcomingPage > 1
-                  ? "No upcoming bookings on this page"
-                  : "No upcoming bookings"
-              }
-            />
-            <ListPager
-              keep={upcomingKeep}
-              page={upcomingPage}
-              pageCount={Math.max(
-                1,
-                Math.ceil(upcoming.list.count / SECTION_PAGE_SIZE)
-              )}
-              pageParam={UPCOMING_PARAM}
-            />
-          </>
-        ) : (
-          <p className="text-muted-foreground" role="alert">
-            {failureSentence("upcoming", upcoming.reason, afterReauth)}
-          </p>
-        )}
-      </section>
+      <BookingTabs current={tab.key} />
 
-      <section aria-labelledby="past-heading" className="space-y-4">
-        <h2 className="text-lg font-semibold" id="past-heading">
-          Past
+      <section aria-labelledby="list-heading" className="min-w-0 space-y-4">
+        <h2 className="text-lg font-semibold" id="list-heading">
+          {tab.heading}
         </h2>
-        {past.ok ? (
+        {load.ok ? (
           <>
             <BookingList
-              bookings={past.list.data}
+              bookings={load.list.data}
               bookingsBaseUrl={bookingsBaseUrl}
-              emptyBody="Bookings you make while signed in appear here."
-              emptyTitle={
-                pastPage > 1
-                  ? "No past bookings on this page"
-                  : "No past bookings"
-              }
+              emptyBody={tab.emptyBody}
+              emptyTitle={page > 1 ? tab.emptyPageTitle : tab.emptyTitle}
             />
             <ListPager
-              keep={pastKeep}
-              page={pastPage}
-              pageCount={Math.max(
-                1,
-                Math.ceil(past.list.count / PAST_PAGE_SIZE)
-              )}
-              pageParam={PAST_PARAM}
+              keep={{ [VIEW_PARAM]: tab.key }}
+              page={page}
+              pageCount={Math.max(1, Math.ceil(load.list.count / PAGE_SIZE))}
+              pageParam={PAGE_PARAM}
             />
           </>
         ) : (
           <p className="text-muted-foreground" role="alert">
-            {failureSentence("past", past.reason, afterReauth)}
+            {failureSentence(tab, load.reason, afterReauth)}
           </p>
         )}
       </section>

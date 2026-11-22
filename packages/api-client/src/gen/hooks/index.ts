@@ -539,6 +539,11 @@ export {
   useBookingsConfirmStudioBooking,
 } from "./useBookingsConfirmStudioBooking.js";
 export {
+  bookingsCreateClosureMutationKey,
+  bookingsCreateClosureMutationOptions,
+  useBookingsCreateClosure,
+} from "./useBookingsCreateClosure.js";
+export {
   bookingsCreateExceptionMutationKey,
   bookingsCreateExceptionMutationOptions,
   useBookingsCreateException,
@@ -568,6 +573,11 @@ export {
   bookingsDeclineStudioBookingMutationOptions,
   useBookingsDeclineStudioBooking,
 } from "./useBookingsDeclineStudioBooking.js";
+export {
+  bookingsDeleteClosureMutationKey,
+  bookingsDeleteClosureMutationOptions,
+  useBookingsDeleteClosure,
+} from "./useBookingsDeleteClosure.js";
 export {
   bookingsDeleteExceptionMutationKey,
   bookingsDeleteExceptionMutationOptions,
@@ -623,6 +633,11 @@ export {
   bookingsGetWorkingHoursQueryOptions,
   useBookingsGetWorkingHours,
 } from "./useBookingsGetWorkingHours.js";
+export {
+  bookingsListClosuresQueryKey,
+  bookingsListClosuresQueryOptions,
+  useBookingsListClosures,
+} from "./useBookingsListClosures.js";
 export {
   bookingsListExceptionsQueryKey,
   bookingsListExceptionsQueryOptions,

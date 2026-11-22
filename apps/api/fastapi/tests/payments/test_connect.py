@@ -18,6 +18,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.feature_flags.keys import PAYMENTS_STRIPE_CONNECT
 from src.organisations.models import MembershipRole, PlatformOrganisation
 from src.payments.config import payments_settings
 from src.payments.connect.config import ConnectConfig, connect_settings
@@ -31,6 +32,7 @@ from tests.payments.conftest import (
     WEBHOOK_SIGNING_KEY,
     checkout_completed,
     provider_refund,
+    set_flag,
     signed,
 )
 from tests.payments.conftest import charge_refunded as charge_refunded_event
@@ -39,6 +41,12 @@ API = "/api/v1/payments"
 CONNECT_SIGNING_KEY = "whsec_connect_unit_test"
 ACCOUNT_ID = "acct_test_1"
 pytestmark = pytest.mark.asyncio
+
+
+@pytest.fixture(autouse=True)
+async def connect_flag_on(db_async: AsyncSession) -> None:
+    """Every test here runs with the Connect flag on; test_connect_flags.py covers off."""
+    await set_flag(db_async, PAYMENTS_STRIPE_CONNECT, enabled=True)
 
 
 @dataclass
