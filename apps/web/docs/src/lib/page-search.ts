@@ -1,3 +1,6 @@
+/** The longest query the search box and the `/search` page accept. */
+export const MAX_QUERY_LENGTH = 200;
+
 export interface DocPage {
   description: string;
   /** The public path, for example `/appendix/mbia-vehicles`. */

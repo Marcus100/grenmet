@@ -48,4 +48,11 @@ describe("docs /search", () => {
     const html = await renderSearch("vehicles");
     expect(html).toContain('value="vehicles"');
   });
+
+  it("limits the search box and the query it accepts to 200 characters", async () => {
+    const html = await renderSearch("a".repeat(300));
+    expect(html.toLowerCase()).toContain('maxlength="200"');
+    expect(html).toContain(`value="${"a".repeat(200)}"`);
+    expect(html).not.toContain("a".repeat(201));
+  });
 });

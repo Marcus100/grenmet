@@ -3,7 +3,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 
 import { DocsSearchForm } from "@/components/DocsSearchForm";
-import { type DocPage, searchPages } from "@/lib/page-search";
+import { type DocPage, MAX_QUERY_LENGTH, searchPages } from "@/lib/page-search";
 import { pagePath } from "@/lib/sitemap";
 
 export const metadata: Metadata = {
@@ -20,7 +20,8 @@ export default async function SearchPage({
   searchParams: Promise<{ q?: string | string[] }>;
 }) {
   const { q } = await searchParams;
-  const query = (Array.isArray(q) ? q[0] : q)?.trim().slice(0, 200) ?? "";
+  const query =
+    (Array.isArray(q) ? q[0] : q)?.trim().slice(0, MAX_QUERY_LENGTH) ?? "";
   const pages: DocPage[] = allHurricanepages.map((page) => ({
     description: page.description,
     path: pagePath(page._meta.path),
