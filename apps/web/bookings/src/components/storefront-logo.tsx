@@ -9,6 +9,8 @@ import { useState } from "react";
  * arrives. If it fails to load it is removed; the business name is already the
  * page heading, so the name stays on screen.
  *
+ * `referrerPolicy="no-referrer"`: the storage host gets no page address.
+ *
  * `unoptimized`: the logo is a storage URL, so it is shown as it is stored and
  * no `remotePatterns` entry is needed. The width and height here are only the
  * intrinsic aspect hint; `.storefront-logo` sets the rendered size.
@@ -28,6 +30,7 @@ export function StorefrontLogo({
       height={48}
       onError={() => setFailed(true)}
       priority
+      referrerPolicy="no-referrer"
       src={src}
       unoptimized
       width={160}

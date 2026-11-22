@@ -470,7 +470,7 @@ fieldset.notice {
   background: var(--secondary);
 }
 .btn-solid:active:not(:disabled) {
-  background: var(--primary);
+  background: var(--booking-accent, var(--primary));
   opacity: 0.85;
 }
 @media (hover: hover) and (pointer: fine) {
@@ -478,7 +478,7 @@ fieldset.notice {
     background: var(--secondary);
   }
   .btn-solid:hover:not(:disabled) {
-    background: var(--primary);
+    background: var(--booking-accent, var(--primary));
     opacity: 0.9;
   }
 }

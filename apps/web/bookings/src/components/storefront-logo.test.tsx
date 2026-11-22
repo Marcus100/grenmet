@@ -10,6 +10,7 @@ describe("StorefrontLogo", () => {
     const logo = screen.getByRole("img", { name: "Sea Salt Spa" });
     expect(logo).toHaveAttribute("src", SRC);
     expect(logo).not.toHaveAttribute("loading", "lazy");
+    expect(logo).toHaveAttribute("referrerpolicy", "no-referrer");
     expect(logo).toHaveClass("storefront-logo");
   });
 
