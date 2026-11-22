@@ -880,7 +880,7 @@ async def run_import(
     logger.info(
         "acuity import finished",
         extra={
-            "created": report.created,
+            "created_count": report.created,
             "already_imported": len(report.already_imported),
             "overlaps": len(report.overlaps),
             "applied": report.applied,

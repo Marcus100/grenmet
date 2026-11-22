@@ -94,5 +94,3 @@ Four optional profile columns (migration `bookingcontact20261115`): `contact_pho
 
 - **Turnstile and replays:** Turnstile is verified *inside* the idempotent handler (`create_once`, `router.py`): tokens are single-use, so a retry with the same `Idempotency-Key` and body replays the stored receipt without a second token; a new key must pass, and a failed check is not stored and releases the key (tests in `test_public_bookings.py`).
 
-- **Acuity import (one-off, owner decision 21 Nov 2026):** `acuity_import.py` (`python -m src.bookings.acuity_import`, dry run unless `--apply`) writes an Acuity export as confirmed bookings with source `studio` and `booking.idempotency_key = 'acuity:<appointment id>'` (rerun-safe; no migration, no webhook, no email unless `--notify`). Tests: `tests/bookings/test_acuity_import.py`; runbook: `docs/operations/babydoll-bookings-cutover.md`.
-
