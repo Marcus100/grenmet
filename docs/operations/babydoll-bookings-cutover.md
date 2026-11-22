@@ -455,6 +455,59 @@ stuck, a booking the salon cannot find, or a customer who cannot pay or book.
 5. Manage links in emails still work with the switch off, because `/booking/[token]`
    ignores the switch.
 
+## Importing from Acuity
+
+Owner decision (21 Nov 2026): the salon's future Acuity appointments are imported
+once, not re-entered by hand (this replaces the re-entry in section 3.6). The
+importer is `apps/api/fastapi/src/bookings/acuity_import.py`. It is rerunnable:
+each row keeps its Acuity appointment ID, so a second run adds only rows not yet
+imported.
+
+**Export (owner).** In Acuity, export the appointments list as CSV (the menu path
+is in the Acuity account). Save it as `private/acuity-export.csv` in the
+repository root. `private/` is gitignored. The file holds customer personal data:
+never commit it or paste its contents into a report.
+
+**Rules the importer applies.** Dry run is the default and writes nothing.
+Cancelled rows, rows before `--since` (default: now) and rows it cannot read
+(unknown service, unknown staff, bad time, no email or phone) are skipped, each
+with its row number. Services match by exact name, then case-insensitively, then
+`--service-map`. Customers match by email, else by phone, else a new contact is
+created. Imported bookings are `confirmed` with no deposit. No email is sent
+unless `--notify` is given (leave it off: customers already have Acuity
+confirmations), and no webhook is sent. An overlapping row is listed and left
+out; `--strict` stops the whole run instead.
+
+**Staging: dry run first (owner, or an agent with the owner's go).**
+
+```bash
+docker compose -p grenmet-staging cp private/acuity-export.csv api:/tmp/acuity-export.csv
+docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar
+docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar --apply
+docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar --apply
+docker compose -p grenmet-staging exec api rm /tmp/acuity-export.csv
+```
+
+Read the dry run's summary and its skipped rows before `--apply`. The second
+`--apply` is the rerun check: it must report "Created: 0".
+
+**Production (owner runs it on the host).** The same commands with `-p grenmet`,
+after the staging dry run has been reviewed and the salon has confirmed the
+skipped rows. Keep the dry-run output with the release notes.
+
+**From a local checkout** (no compose stack): from `apps/api/fastapi`, run
+`uv run --frozen --package fast-back python -m src.bookings.acuity_import --file ../../../private/acuity-export.csv --business babydoll-beauty-bar`,
+adding `--apply` when ready. This needs that checkout's database settings.
+
+**Options.** `--column-map @file.json` names the export's headers when they differ
+from Acuity's standard ones: a JSON object of field name to header, for example
+`{"email": "Client Email"}`. `--service-map @file.json` maps an Acuity service name
+to a Barrels service name. `--since 2026-12-01` sets the earliest start.
+`--strict` refuses the run if any row overlaps.
+
+**After.** The studio agenda shows the imported bookings with source `studio`.
+Reminders go out 24 hours ahead for them, as for any confirmed booking.
+
 ## 4. Deposits later
 
 Keep `deposit_minor = 0` on every service until a payment provider is approved in
