@@ -1207,7 +1207,7 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   hosted onboarding URL), `GET /payments/org/disputes` (disputes for the business; Barrels
   never answers them), and the Connect endpoint `POST /payments/public/webhooks/stripe-connect`
   (hidden; its own secret, events from connected accounts). Org routes need
-  `payments.connect.manage` (owners and admins hold it). `POST /payments/admin/connect/accounts/{organisation_id}/platform-fee`
+  `payments.connect.manage` (owners and admins hold it). While the `payments-stripe-connect` flag is off for a business (story 5.5), the three org Connect routes and the fee route answer 404 with no Stripe call, a card payment is the platform charge as before Connect, and the Connect webhook acknowledges (200) its account and dispute events without applying them; payments already on its account are still applied. `POST /payments/admin/connect/accounts/{organisation_id}/platform-fee`
   (superuser, `payments.connect.fees`) sets Barrels' fee in basis points, New Zealand only, at most the platform cap. Superuser reconciliation, ledger, balances and payouts under
   `/payments/admin/...` (each ledger entry also carries `source_type`, `source_id` and a `description` label, null for older payments), including `reconciliation.csv`. The ledger is append-only. A payout
   needs a client-generated `request_id`: repeating it returns the first entry (no double
