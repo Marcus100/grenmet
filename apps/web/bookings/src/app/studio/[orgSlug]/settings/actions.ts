@@ -264,29 +264,30 @@ function profileSection(formData: FormData): ProfileSection {
   return value === "contact" || value === "payments" ? value : "profile";
 }
 
-/** Every field of a stored profile, as the replace body the API takes. */
+/**
+ * Keys the API returns on a stored profile but never takes on write. Every
+ * other key is kept, so a field added to the profile later (listing, category,
+ * city, ...) survives a section save without this list being edited.
+ */
+const READ_ONLY_PROFILE_KEYS: readonly string[] = [
+  "id",
+  "organisation_id",
+  "created_at",
+  "updated_at",
+];
+
+/**
+ * Every writable field of a stored profile, as the replace body the API takes.
+ * Built from the stored object itself, so no field is dropped by omission.
+ */
 function storedFields(current: BookingProfilePublic): BookingProfileUpdate {
-  return {
-    public_slug: current.public_slug,
-    display_name: current.display_name,
-    enabled: current.enabled,
-    timezone: current.timezone,
-    currency: current.currency,
-    slot_step_min: current.slot_step_min,
-    lead_time_min: current.lead_time_min,
-    horizon_days: current.horizon_days,
-    cancel_cutoff_hours: current.cancel_cutoff_hours,
-    requires_confirmation: current.requires_confirmation,
-    notify_email: current.notify_email,
-    manage_url_template: current.manage_url_template,
-    contact_phone: current.contact_phone,
-    contact_whatsapp: current.contact_whatsapp,
-    contact_instagram: current.contact_instagram,
-    contact_email: current.contact_email,
-    payment_at_booking: current.payment_at_booking,
-    brand_color: current.brand_color,
-    logo_file_id: current.logo_file_id,
-  };
+  const body: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(current)) {
+    if (!READ_ONLY_PROFILE_KEYS.includes(key)) {
+      body[key] = value;
+    }
+  }
+  return body as BookingProfileUpdate;
 }
 
 /**

@@ -45,6 +45,9 @@ const CHIP =
 const CHIP_IDLE = "border-border bg-background text-foreground hover:bg-muted";
 const CHIP_ON = "border-primary bg-primary text-primary-foreground";
 
+/** How long the open times wait after the last change before they are asked for. */
+const TIMES_DEBOUNCE_MS = 300;
+
 const TIMES_UNAVAILABLE =
   "Open times could not be loaded. Type a time below instead.";
 
@@ -121,23 +124,28 @@ export function NewBookingForm({
     }
     let current = true;
     setTimes({ status: "loading" });
-    loadWalkInTimesAction(orgSlug, {
-      serviceId,
-      providerId: chosenProviderId,
-      date,
-    })
-      .then((result) => {
-        if (current) {
-          setTimes(result);
-        }
+    // A short pause lets a run of quick changes (typing a date, moving through
+    // the services) settle into one request, not one per change.
+    const timer = setTimeout(() => {
+      loadWalkInTimesAction(orgSlug, {
+        serviceId,
+        providerId: chosenProviderId,
+        date,
       })
-      .catch(() => {
-        if (current) {
-          setTimes({ status: "error", message: TIMES_UNAVAILABLE });
-        }
-      });
+        .then((result) => {
+          if (current) {
+            setTimes(result);
+          }
+        })
+        .catch(() => {
+          if (current) {
+            setTimes({ status: "error", message: TIMES_UNAVAILABLE });
+          }
+        });
+    }, TIMES_DEBOUNCE_MS);
     return () => {
       current = false;
+      clearTimeout(timer);
     };
   }, [orgSlug, serviceId, chosenProviderId, date]);
 

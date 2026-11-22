@@ -273,6 +273,63 @@ describe("profile", () => {
     });
   });
 
+  it("sends every writable stored key to the API from each section, including keys this build does not list", async () => {
+    const READ_ONLY = ["id", "organisation_id", "created_at", "updated_at"];
+    // Keys a later profile release adds (listing, category, city...) are stored too.
+    const stored: Record<string, unknown> = {
+      ...(STORED as Record<string, unknown>),
+      id: "66666666-6666-4666-8666-666666666666",
+      organisation_id: ORG_ID,
+      created_at: "2026-11-01T00:00:00Z",
+      updated_at: "2026-11-02T00:00:00Z",
+      listed: true,
+      category: "spa",
+      short_description: "Hands and feet",
+      city: "St George's",
+    };
+    vi.mocked(getProfile).mockResolvedValue(stored as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+
+    const writable = Object.entries(stored).filter(
+      ([key]) => !READ_ONLY.includes(key)
+    );
+    expect(writable.length).toBeGreaterThan(0);
+
+    await saveProfileAction(SLUG, IDLE, form({ section: "contact" }));
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", paymentAtBooking: "deposit" })
+    );
+    const [contactBody, paymentsBody] = vi
+      .mocked(saveProfile)
+      .mock.calls.map((call) => call[2] as Record<string, unknown>);
+    for (const [key, value] of writable) {
+      if (key.startsWith("contact_") || key === "payment_at_booking") {
+        // Owned by the section that saves them.
+        continue;
+      }
+      expect(contactBody).toHaveProperty(key, value);
+      expect(paymentsBody).toHaveProperty(key, value);
+    }
+    for (const key of READ_ONLY) {
+      expect(contactBody).not.toHaveProperty(key);
+      expect(paymentsBody).not.toHaveProperty(key);
+    }
+
+    // The Profile section owns its form fields; everything else it keeps.
+    await saveProfileAction(SLUG, IDLE, form(PROFILE));
+    const profileBody = vi.mocked(saveProfile).mock.calls.at(-1)?.[2] as Record<
+      string,
+      unknown
+    >;
+    expect(profileBody).toHaveProperty("listed", true);
+    expect(profileBody).toHaveProperty("category", "spa");
+    expect(profileBody).toHaveProperty("short_description", "Hands and feet");
+    expect(profileBody).toHaveProperty("city", "St George's");
+    expect(profileBody).not.toHaveProperty("id");
+  });
+
   it("keeps the stored contact options and payment choice when the profile section saves", async () => {
     vi.mocked(getProfile).mockResolvedValue(STORED);
     vi.mocked(saveProfile).mockResolvedValue({} as never);

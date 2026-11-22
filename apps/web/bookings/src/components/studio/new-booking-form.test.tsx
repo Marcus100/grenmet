@@ -158,6 +158,22 @@ describe("open times", () => {
     );
   });
 
+  it("asks once, for the last day, after a quick run of changes", async () => {
+    renderForm();
+    fireEvent.change(screen.getByLabelText("Date"), {
+      target: { value: "2026-10-22" },
+    });
+    fireEvent.change(screen.getByLabelText("Date"), {
+      target: { value: "2026-10-23" },
+    });
+    await waitFor(() => expect(loadWalkInTimesAction).toHaveBeenCalledTimes(1));
+    expect(loadWalkInTimesAction).toHaveBeenCalledWith("sea-salt", {
+      serviceId: S1,
+      providerId: "p1",
+      date: "2026-10-23",
+    });
+  });
+
   it("shows the open times as chips and fills the start time from one", async () => {
     loadWalkInTimesAction.mockResolvedValue({
       status: "ready",
