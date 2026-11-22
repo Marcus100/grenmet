@@ -133,7 +133,16 @@ async def _switched_off(session: AsyncSession, account_id: str) -> bool:
     )
     if organisation_id is None:
         return False
-    return not await accounts.connect_enabled(session, organisation_id)
+    try:
+        enabled = await accounts.read_connect_flag(session, organisation_id)
+    except Exception as error:
+        # A flag read must never make Stripe retry: the event is applied as normal.
+        logger.warning(
+            "connect flag lookup failed; event applied",
+            extra={"organisation_id": organisation_id, "error": type(error).__name__},
+        )
+        return False
+    return not enabled
 
 
 async def _account_row(

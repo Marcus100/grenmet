@@ -55,14 +55,30 @@ class ChargeRoute:
     application_fee_minor: int
 
 
+async def read_connect_flag(session: AsyncSession, organisation_id: str) -> bool:
+    """The Connect flag for this business. Raises when the lookup fails. The read runs
+    in a savepoint so a failed lookup does not abort the caller's transaction."""
+    async with session.begin_nested():
+        return await flag_service.is_enabled(
+            session, flag_keys.PAYMENTS_STRIPE_CONNECT, organisation_id=organisation_id
+        )
+
+
 async def connect_enabled(session: AsyncSession, organisation_id: str) -> bool:
     """Whether Connect is on for this business (flag ``payments-stripe-connect``).
 
     Off: the Connect routes answer 404 and every card payment is the platform charge.
-    Flag rows are runtime data (see ``src/feature_flags/AGENTS.md``)."""
-    return await flag_service.is_enabled(
-        session, flag_keys.PAYMENTS_STRIPE_CONNECT, organisation_id=organisation_id
-    )
+    Fails closed: a lookup error is logged and reads as off, so a card payment still
+    takes the platform charge instead of failing. Flag rows are runtime data (see
+    ``src/feature_flags/AGENTS.md``)."""
+    try:
+        return await read_connect_flag(session, organisation_id)
+    except Exception as error:
+        logger.warning(
+            "connect flag lookup failed; treated as off",
+            extra={"organisation_id": organisation_id, "error": type(error).__name__},
+        )
+        return False
 
 
 async def require_connect_enabled(session: AsyncSession, organisation_id: str) -> None:
