@@ -11,6 +11,8 @@ vi.mock("@/app/studio/[orgSlug]/settings/actions", () => ({
   saveProfileAction: vi.fn(),
   saveProviderAction: vi.fn(),
   saveServiceAction: vi.fn(),
+  startLogoUploadAction: vi.fn(),
+  finishLogoUploadAction: vi.fn(),
 }));
 
 import { CONTACT_MESSAGES } from "@/lib/business-contact";

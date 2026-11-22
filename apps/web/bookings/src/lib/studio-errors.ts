@@ -183,6 +183,14 @@ const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
     },
   },
   {
+    match: /finished upload/iu,
+    failure: {
+      kind: "conflict",
+      message: "That logo did not finish uploading for this business.",
+      nextStep: "Upload the logo again, then save the profile.",
+    },
+  },
+  {
     match: /overlap/iu,
     failure: {
       kind: "invalid",
@@ -240,5 +248,53 @@ export function settingsFailure(error: unknown): StudioFailure {
     }
     default:
       return unavailable;
+  }
+}
+
+/**
+ * A logo upload that failed at the start, the transfer or the confirm step. The
+ * API's own sentences are already plain ("The image has too many pixels"), so a
+ * 409 or 422 shows them; anything else is a generic retry.
+ */
+export function logoUploadFailure(error: unknown): StudioFailure {
+  const retry: StudioFailure = {
+    kind: "unavailable",
+    message: "The logo could not be uploaded.",
+    nextStep: "Try again in a moment.",
+  };
+  if (!ResponseError.is(error)) {
+    return retry;
+  }
+  switch (error.status) {
+    case 401:
+      return studioFailure(error);
+    case 403:
+      return SETTINGS_REFUSED;
+    case 409:
+    case 422: {
+      const text = detailText(error.data);
+      if (text === "") {
+        return {
+          ...retry,
+          nextStep:
+            error.status === 409
+              ? "Start the upload again."
+              : "Choose a different image and try again.",
+        };
+      }
+      return {
+        kind: error.status === 409 ? "conflict" : "invalid",
+        message: text.endsWith(".") ? text : `${text}.`,
+        nextStep: "Choose a different image and try again.",
+      };
+    }
+    case 503:
+      return {
+        kind: "unavailable",
+        message: "Logo uploads are not available right now.",
+        nextStep: "Save the profile without a new logo, or try again later.",
+      };
+    default:
+      return retry;
   }
 }
