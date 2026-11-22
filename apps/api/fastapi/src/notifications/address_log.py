@@ -11,7 +11,8 @@ Rules per row:
 - ``to_email`` becomes the anonymised account's placeholder (same random token, so
   it is not the address and cannot be reversed).
 - ``props``, ``html``, ``last_error`` and ``next_retry_at`` are cleared; ``subject``
-  becomes a generic line, since subjects can carry names.
+  becomes a generic line, since subjects can carry names. ``dedupe_key`` becomes
+  ``erased:<row id>`` (keys such as ``cap-job-failed:<job>:<address>`` carry the address).
 - A mail not yet final (pending, or failed with a retry still scheduled) becomes
   ``skipped``, so it is never sent to the placeholder. Its ``email.deliver`` outbox
   row then finds nothing to send.
@@ -92,6 +93,8 @@ async def _clear_log(session: AsyncSession, clean: str, placeholder: str) -> int
         else:
             row.last_error = None
         row.to_email = placeholder
+        if row.dedupe_key is not None:
+            row.dedupe_key = f"erased:{row.id}"
         row.subject = DELETED_SUBJECT
         row.props = {}
         row.html = None

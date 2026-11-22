@@ -71,7 +71,10 @@ async def _leaks(db: AsyncSession, needle: str) -> int:
     queue = await db.scalar(
         select(func.count())
         .select_from(Outbox)
-        .where(cast(Outbox.payload, String).contains(needle))
+        .where(
+            cast(Outbox.payload, String).contains(needle)
+            | Outbox.dedupe_key.contains(needle)
+        )
     )
     return int(log or 0) + int(queue or 0)
 
@@ -366,16 +369,7 @@ async def test_a_send_in_flight_during_deletion_leaves_no_address(
             dedupe_key=row.dedupe_key,
             attempts=row.attempts,
         )
-        if outcome == "sent":
-            await outbox_handlers.send_email(drain, message)
-            row.status = OutboxStatus.DONE.value
-        else:
-            await outbox_handlers._email_send_dead(
-                drain, message, RuntimeError("provider down")
-            )
-            row.status = OutboxStatus.DEAD.value
-        row.payload = {}
-
+        # Deletion starts while the drain holds the row, and must wait for it.
         deleted_user = await deletion.get(User, user_id)
         assert deleted_user is not None
         task = asyncio.create_task(
@@ -383,7 +377,20 @@ async def test_a_send_in_flight_during_deletion_leaves_no_address(
         )
         await asyncio.sleep(1)
         assert not task.done(), "deletion must wait for the in-flight send"
-        await drain.commit()
+
+        if outcome == "sent":
+            await outbox_handlers.send_email(drain, message)
+            # What outbox.drain does after a successful handler, then its commit.
+            row.status = OutboxStatus.DONE.value
+            row.payload = {}
+            await drain.commit()
+        else:
+            # The real failure path: a terminal failure goes dead at once, the dead
+            # handler writes the failed log row, and the payload is kept as production
+            # keeps it. _record_failure commits, which releases the lock.
+            await outbox._record_failure(
+                drain, message, outbox.TerminalFailure("provider down"), utc_now()
+            )
         await task
 
     async with async_session_factory() as check:
@@ -515,3 +522,57 @@ def test_skip_unsent_only_moves_mail_that_is_not_final(
         assert row.last_error == "Account deleted before sending"
     else:
         assert row.status == status
+
+
+@pytest.mark.usefixtures("db_async", "mail_configured")
+async def test_dedupe_keys_that_carry_the_address_are_erased(
+    db_async: AsyncSession,
+) -> None:
+    """Production writes the address into dedupe keys: the CAP failure mail
+    (outbound_email) and the webhook disabled mail (outbox, email.send). Both are
+    replaced, and the replacements stay unique."""
+    local, first_name = _names()
+    address = f"{local}@example.com"
+    user = await make_user(db_async, email=address)
+    await db_async.commit()
+    cap_key = f"cap-job-failed:{uuid.uuid4().hex}:{address}"
+    webhook_key = f"webhook-disabled:{uuid.uuid4().hex}:1700000000:{address}"
+    queued = await notification_service.enqueue_email_once(
+        session=db_async,
+        to_email=address,
+        subject=f"Job {first_name}",
+        dedupe_key=cap_key,
+        template="notification",
+        props={"firstName": first_name},
+    )
+    assert queued is True
+    await outbox_handlers.enqueue_email(
+        db_async,
+        to_email=address,
+        subject=f"Webhook {first_name}",
+        dedupe_key=webhook_key,
+        transactional=True,
+        html=f"<p>{first_name}</p>",
+    )
+    await db_async.commit()
+
+    await service.delete_user(session=db_async, user=user)
+
+    assert await _leaks(db_async, address) == 0
+    keys = (
+        await db_async.scalars(
+            select(OutboundEmail.dedupe_key).where(
+                OutboundEmail.dedupe_key.like("erased:%")
+            )
+        )
+    ).all()
+    queue_keys = (
+        await db_async.scalars(
+            select(Outbox.dedupe_key).where(Outbox.dedupe_key.like("erased:%"))
+        )
+    ).all()
+    assert len(keys) == 1
+    assert len(queue_keys) == 1
+    assert address not in keys[0]
+    assert address not in queue_keys[0]
+    assert keys[0] != queue_keys[0]
