@@ -9,6 +9,7 @@ import {
   formatMoney,
 } from "../lib/booking-format";
 import { paymentReceivedHeld } from "../lib/booking-payment";
+import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
 import type { ManageBookingActions, SlotList } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
@@ -38,6 +39,11 @@ const STATUS_TEXT: Record<string, string> = {
 };
 
 const ACTIVE = new Set(["pending", "pending_payment", "confirmed"]);
+/** The most a customer can write as a reason; the API refuses more. */
+const REASON_MAX = 300;
+
+const CANCELLED_NOTICE =
+  "Your booking is cancelled. We have emailed you a confirmation and told the business.";
 
 type Mode = "view" | "reschedule" | "confirm-cancel";
 
@@ -50,6 +56,7 @@ export function ManageBooking({
   const [booking, setBooking] = useState(initial);
   const [mode, setMode] = useState<Mode>("view");
   const [pick, setPick] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +78,7 @@ export function ManageBooking({
         setBooking(outcome.data);
         setMode("view");
         setPick(null);
+        setReason("");
         setNotice(onDone);
         return;
       }
@@ -124,6 +132,12 @@ export function ManageBooking({
       {booking.payment && (
         <PaymentStatus bookingId={booking.id} payment={booking.payment} />
       )}
+      {booking.status === "pending_payment" && booking.hold_ends_at ? (
+        <p>{holdEndsLine(booking.hold_ends_at, booking.timezone)}</p>
+      ) : null}
+      {editable ? (
+        <p>{cancellationPolicyLine(booking.cancel_cutoff_hours)}</p>
+      ) : null}
 
       {notice && (
         <p className="notice notice-ok" role="status">
@@ -186,22 +200,49 @@ export function ManageBooking({
       {editable && mode === "confirm-cancel" && (
         <fieldset className="notice confirm">
           <legend className="sr-only">Confirm cancellation</legend>
-          <p>Cancel this booking? This frees the time for someone else.</p>
+          <p>
+            <strong>Cancel this booking?</strong> This frees the time for
+            someone else. We will email you a confirmation.
+          </p>
+          <div className="field">
+            <label htmlFor="cancel-reason">
+              Reason for cancelling (optional)
+            </label>
+            <textarea
+              aria-describedby="cancel-reason-hint"
+              disabled={busy}
+              id="cancel-reason"
+              maxLength={REASON_MAX}
+              name="cancel-reason"
+              onChange={(event) => setReason(event.target.value)}
+              rows={3}
+              value={reason}
+            />
+            <p className="hint" id="cancel-reason-hint">
+              The business sees this reason. Leave it blank if you prefer.
+            </p>
+          </div>
           <div className="actions">
             <button
               className="btn btn-solid"
               disabled={busy}
               onClick={() =>
-                run(() => actions.cancel(token), "Your booking is cancelled.")
+                run(
+                  () => actions.cancel(token, reason.trim() || null),
+                  CANCELLED_NOTICE
+                )
               }
               type="button"
             >
-              {busy ? "Cancelling…" : "Yes, cancel it"}
+              {busy ? "Cancelling…" : "Yes, cancel my booking"}
             </button>
             <button
               className="btn"
               disabled={busy}
-              onClick={() => setMode("view")}
+              onClick={() => {
+                setReason("");
+                setMode("view");
+              }}
               type="button"
             >
               Keep my booking
