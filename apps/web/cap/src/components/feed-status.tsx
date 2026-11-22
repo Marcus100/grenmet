@@ -1,5 +1,10 @@
 import { StaleGuard } from "@/components/stale-guard";
-import { formatClock, freshness, STALE_AFTER_MINUTES } from "@/lib/alerts";
+import {
+  formatClock,
+  formatUpdated,
+  freshness,
+  STALE_AFTER_MINUTES,
+} from "@/lib/alerts";
 import type { FeedResult } from "@/lib/feed-client";
 
 /**
@@ -41,8 +46,10 @@ export function FeedStatus({
     <>
       <p className="text-body-sm text-gm-text-secondary">
         Last updated{" "}
-        <time dateTime={result.fetchedAt.toISOString()}>{clock}</time> (Grenada
-        time)
+        <time dateTime={result.fetchedAt.toISOString()}>
+          {formatUpdated(result.fetchedAt)}
+        </time>{" "}
+        (Grenada time)
       </p>
       <StaleGuard
         clock={clock}
