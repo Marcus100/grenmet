@@ -161,16 +161,21 @@ export function listServices(
 }
 
 /**
- * The business's timezone and currency from its booking profile: "today" is
- * the day on the business's calendar, and prices show in its currency. A
- * business without a profile yet has neither (404); both fall back to the
- * defaults instead of failing the page.
+ * The business's timezone, currency and public booking address (`publicSlug`,
+ * the path customers use; it can differ from the studio slug) from its booking
+ * profile: "today" is the day on the business's calendar, and prices show in
+ * its currency. A business without a profile yet has none of them (404); the
+ * defaults and a null address keep the page working instead of failing.
  */
 export async function getBusinessProfile(
   accessToken: string,
   organisationId: string
-): Promise<{ currency: string; timezone: string }> {
-  const fallback = { currency: DEFAULT_CURRENCY, timezone: DEFAULT_TIMEZONE };
+): Promise<{ currency: string; timezone: string; publicSlug: string | null }> {
+  const fallback = {
+    currency: DEFAULT_CURRENCY,
+    publicSlug: null,
+    timezone: DEFAULT_TIMEZONE,
+  };
   try {
     const profile = await bookingsGetProfile({
       client: studioClient(accessToken, organisationId),
@@ -179,6 +184,7 @@ export async function getBusinessProfile(
       .catch(redactRequest);
     return {
       currency: profile.currency ?? DEFAULT_CURRENCY,
+      publicSlug: profile.public_slug || null,
       timezone: profile.timezone ?? DEFAULT_TIMEZONE,
     };
   } catch (error) {

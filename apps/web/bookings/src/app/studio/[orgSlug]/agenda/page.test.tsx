@@ -16,7 +16,7 @@ vi.mock("@/lib/session", () => ({
 vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
   getAgenda: vi.fn(),
-  getBusinessTimezone: vi.fn(),
+  getBusinessProfile: vi.fn(),
   listProviders: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
@@ -31,12 +31,21 @@ vi.mock("next/navigation", () => ({
 import {
   findOrganisation,
   getAgenda,
-  getBusinessTimezone,
+  getBusinessProfile,
   listProviders,
 } from "@/lib/studio-api";
 import AgendaPage from "./page";
 
 const params = Promise.resolve({ orgSlug: "sea-salt" });
+/** The studio slug is "sea-salt"; customers book at a different public slug. */
+const PUBLIC_SLUG = "sea-salt-spa";
+
+function profile(
+  timezone: string,
+  publicSlug: string | null = PUBLIC_SLUG
+): { currency: string; publicSlug: string | null; timezone: string } {
+  return { currency: "XCD", publicSlug, timezone };
+}
 const search = (query: Record<string, string> = {}) => Promise.resolve(query);
 const ADA = /Ada Lovelace/u;
 const GRACE = /Grace Hopper/u;
@@ -92,7 +101,7 @@ beforeEach(() => {
     role: "member",
   });
   vi.mocked(getAgenda).mockReset();
-  vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+  vi.mocked(getBusinessProfile).mockResolvedValue(profile("America/Grenada"));
   vi.mocked(listProviders).mockResolvedValue([
     provider(PROVIDER_ID, "Maya"),
     provider("66666666-6666-4666-8666-666666666666", "Kofi"),
@@ -108,7 +117,9 @@ describe("studio agenda", () => {
     vi.setSystemTime(new Date("2026-10-22T02:30:00Z"));
     try {
       vi.mocked(getAgenda).mockResolvedValue(agenda([]));
-      vi.mocked(getBusinessTimezone).mockResolvedValue("Pacific/Auckland");
+      vi.mocked(getBusinessProfile).mockResolvedValue(
+        profile("Pacific/Auckland")
+      );
       render(await AgendaPage({ params, searchParams: search() }));
       expect(getAgenda).toHaveBeenLastCalledWith(
         "tok",
@@ -116,7 +127,9 @@ describe("studio agenda", () => {
         expect.objectContaining({ fromDate: "2026-10-22" })
       );
       cleanup();
-      vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+      vi.mocked(getBusinessProfile).mockResolvedValue(
+        profile("America/Grenada")
+      );
       render(await AgendaPage({ params, searchParams: search() }));
       expect(getAgenda).toHaveBeenLastCalledWith(
         "tok",
@@ -199,7 +212,8 @@ describe("studio agenda", () => {
     const second = screen.getByRole("link", { name: GRACE });
     expect(within(second).getByText("Awaiting deposit")).toBeInTheDocument();
     expect(within(second).getByText("Deposit due")).toBeInTheDocument();
-    expect(screen.queryByRole("button")).toBeNull();
+    // No actions on the list itself (the page header has its own Copy link button).
+    expect(first.closest("ul")?.querySelector("button")).toBeNull();
   });
 
   it("shows the whole week, quiet days included, and the provider filter", async () => {
@@ -276,7 +290,7 @@ describe("studio agenda", () => {
     ).rejects.toHaveProperty("message", "NEXT_NOT_FOUND");
   });
 
-  it("always renders all seven days for an empty week, with the set-up link", async () => {
+  it("always renders all seven days for an empty week, with the booking page link", async () => {
     vi.mocked(getAgenda).mockResolvedValue(agenda([]));
     render(
       await AgendaPage({
@@ -287,15 +301,62 @@ describe("studio agenda", () => {
     expect(screen.getByText("No bookings this week")).toBeInTheDocument();
     expect(screen.getAllByText("No bookings.")).toHaveLength(7);
     expect(
-      screen.getByRole("link", { name: "See how online booking works" })
-    ).toHaveAttribute("href", "/");
+      screen.getByRole("link", { name: "Open your booking page" })
+    ).toHaveAttribute("href", `/${PUBLIC_SLUG}`);
   });
 
-  it("links to how online booking works from an empty day", async () => {
+  it("sends an empty day to the customers' page, not the marketing home", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    const link = screen.getByRole("link", { name: "Open your booking page" });
+    expect(link).toHaveAttribute("href", `/${PUBLIC_SLUG}`);
+    expect(
+      screen.queryByRole("link", { name: "See how online booking works" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("sends an empty day to Settings until the booking page has an address", async () => {
+    vi.mocked(getBusinessProfile).mockResolvedValue(
+      profile("America/Grenada", null)
+    );
     vi.mocked(getAgenda).mockResolvedValue(agenda([]));
     render(await AgendaPage({ params, searchParams: search() }));
     expect(
-      screen.getByRole("link", { name: "See how online booking works" })
+      screen.getByRole("link", { name: "Set up your booking page" })
+    ).toHaveAttribute("href", "/studio/sea-salt/settings");
+    expect(
+      screen.queryByRole("heading", { name: "Your booking page" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the customers' address and says the studio address is for staff", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(
+      screen.getByRole("heading", { name: "Your booking page" })
+    ).toBeInTheDocument();
+    expect(screen.getByText(`/${PUBLIC_SLUG}`)).toBeInTheDocument();
+    expect(screen.getByText("/studio/sea-salt")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View my page" })).toHaveAttribute(
+      "href",
+      `/${PUBLIC_SLUG}`
+    );
+    expect(
+      screen.getByRole("button", { name: "Copy link" })
+    ).toBeInTheDocument();
+  });
+
+  it("keeps Day, Week and the date steps in one navigation row", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    const dates = screen.getByRole("navigation", { name: "Change date" });
+    const views = screen.getByRole("navigation", { name: "Agenda view" });
+    expect(dates.parentElement).toBe(views.parentElement);
+    expect(
+      within(dates).getByRole("link", { name: "Prev" })
+    ).toBeInTheDocument();
+    expect(
+      within(views).getByRole("link", { name: "Week" })
     ).toBeInTheDocument();
   });
 
