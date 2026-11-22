@@ -99,6 +99,8 @@ export type { AttendanceShiftPublic } from "./models/AttendanceShiftPublic.js";
 export type { AttendanceSubmit } from "./models/AttendanceSubmit.js";
 export type { AttendanceWeekPublic } from "./models/AttendanceWeekPublic.js";
 export type { AuditChangePublic } from "./models/AuditChangePublic.js";
+export type { AuditEntryAdminPage } from "./models/AuditEntryAdminPage.js";
+export type { AuditEntryAdminPublic } from "./models/AuditEntryAdminPublic.js";
 export type { AuditEntryPublic } from "./models/AuditEntryPublic.js";
 export type {
   AuditGetHistoryOptions,
@@ -111,6 +113,15 @@ export type {
   AuditGetHistoryStatus404,
   AuditGetHistoryStatus422,
 } from "./models/AuditGetHistory.js";
+export type {
+  AuditListAdminAuditEntriesOptions,
+  AuditListAdminAuditEntriesQuery,
+  AuditListAdminAuditEntriesResponse,
+  AuditListAdminAuditEntriesResponses,
+  AuditListAdminAuditEntriesStatus200,
+  AuditListAdminAuditEntriesStatus403,
+  AuditListAdminAuditEntriesStatus422,
+} from "./models/AuditListAdminAuditEntries.js";
 export type {
   AuthAcceptSuperuserInvitationBody,
   AuthAcceptSuperuserInvitationOptions,
@@ -10478,6 +10489,7 @@ export type { ZoneUpdate } from "./models/ZoneUpdate.js";
 export { almanacGetAstronomy } from "./clients/almanacGetAstronomy.js";
 export { almanacGetTides } from "./clients/almanacGetTides.js";
 export { auditGetHistory } from "./clients/auditGetHistory.js";
+export { auditListAdminAuditEntries } from "./clients/auditListAdminAuditEntries.js";
 export { authAcceptSuperuserInvitation } from "./clients/authAcceptSuperuserInvitation.js";
 export { authAccountEmailCodeStart } from "./clients/authAccountEmailCodeStart.js";
 export { authAccountEmailCodeVerify } from "./clients/authAccountEmailCodeVerify.js";
@@ -11298,6 +11310,11 @@ export {
   auditGetHistoryQueryOptions,
   useAuditGetHistory,
 } from "./hooks/useAuditGetHistory.js";
+export {
+  auditListAdminAuditEntriesQueryKey,
+  auditListAdminAuditEntriesQueryOptions,
+  useAuditListAdminAuditEntries,
+} from "./hooks/useAuditListAdminAuditEntries.js";
 export {
   authAcceptSuperuserInvitationMutationKey,
   authAcceptSuperuserInvitationMutationOptions,
@@ -15657,6 +15674,8 @@ export { attendanceShiftPublicSchema } from "./zod/attendanceShiftPublicSchema.j
 export { attendanceSubmitSchema } from "./zod/attendanceSubmitSchema.js";
 export { attendanceWeekPublicSchema } from "./zod/attendanceWeekPublicSchema.js";
 export { auditChangePublicSchema } from "./zod/auditChangePublicSchema.js";
+export { auditEntryAdminPageSchema } from "./zod/auditEntryAdminPageSchema.js";
+export { auditEntryAdminPublicSchema } from "./zod/auditEntryAdminPublicSchema.js";
 export { auditEntryPublicSchema } from "./zod/auditEntryPublicSchema.js";
 export {
   auditGetHistoryErrorSchema,
@@ -15672,6 +15691,22 @@ export {
   auditGetHistoryStatus404Schema,
   auditGetHistoryStatus422Schema,
 } from "./zod/auditGetHistorySchema.js";
+export {
+  auditListAdminAuditEntriesErrorSchema,
+  auditListAdminAuditEntriesQueryActionSchema,
+  auditListAdminAuditEntriesQueryActorIdSchema,
+  auditListAdminAuditEntriesQueryCreatedFromSchema,
+  auditListAdminAuditEntriesQueryCreatedToSchema,
+  auditListAdminAuditEntriesQueryCursorSchema,
+  auditListAdminAuditEntriesQueryEntityTypeSchema,
+  auditListAdminAuditEntriesQueryLimitSchema,
+  auditListAdminAuditEntriesQueryOrganisationIdSchema,
+  auditListAdminAuditEntriesQuerySchema,
+  auditListAdminAuditEntriesResponseSchema,
+  auditListAdminAuditEntriesStatus200Schema,
+  auditListAdminAuditEntriesStatus403Schema,
+  auditListAdminAuditEntriesStatus422Schema,
+} from "./zod/auditListAdminAuditEntriesSchema.js";
 export {
   authAcceptSuperuserInvitationBodySchema,
   authAcceptSuperuserInvitationErrorSchema,

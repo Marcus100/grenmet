@@ -29514,6 +29514,186 @@
         }
       }
     },
+    "/api/v1/audit/admin/entries": {
+      "get": {
+        "tags": [
+          "audit"
+        ],
+        "summary": "Read the global audit log",
+        "description": "Every change history entry, newest first, for the admin audit screen. Needs audit.entries.read. Filter by actor, action, entity type, organisation and created_from/created_to (timezone-aware). Pages are keyset: pass next_cursor back as cursor. Values of sensitive fields are masked unless the reader holds audit.view_sensitive. Read-only.",
+        "operationId": "auditListAdminAuditEntries",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "actor_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Actor Id"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 20
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action"
+            }
+          },
+          {
+            "name": "entity_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Entity Type"
+            }
+          },
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "created_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Created From"
+            }
+          },
+          {
+            "name": "created_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Created To"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditEntryAdminPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Missing audit.entries.read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/audit/{entity_type}/{entity_id}": {
       "get": {
         "tags": [
@@ -75422,6 +75602,149 @@
           "field"
         ],
         "title": "AuditChangePublic"
+      },
+      "AuditEntryAdminPage": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AuditEntryAdminPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "limit"
+        ],
+        "title": "AuditEntryAdminPage",
+        "description": "One keyset page, newest first. ``next_cursor`` is opaque; null on the last page."
+      },
+      "AuditEntryAdminPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "record_type": {
+            "type": "string",
+            "title": "Record Type"
+          },
+          "record_label": {
+            "type": "string",
+            "title": "Record Label"
+          },
+          "record_id": {
+            "type": "string",
+            "title": "Record Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "actor_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor User Id"
+          },
+          "actor_name": {
+            "type": "string",
+            "title": "Actor Name"
+          },
+          "actor_session": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Session"
+          },
+          "actor_app": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor App"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/AuditChangePublic"
+            },
+            "type": "array",
+            "title": "Changes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "title": "Entity Id"
+          },
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "record_type",
+          "record_label",
+          "record_id",
+          "action",
+          "actor_user_id",
+          "actor_name",
+          "changes",
+          "created_at",
+          "entity_type",
+          "entity_id"
+        ],
+        "title": "AuditEntryAdminPublic",
+        "description": "One row of the global admin audit log: the entry plus the subject it groups under."
       },
       "AuditEntryPublic": {
         "properties": {

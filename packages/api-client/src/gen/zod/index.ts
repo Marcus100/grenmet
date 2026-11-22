@@ -99,6 +99,8 @@ export { attendanceShiftPublicSchema } from "./attendanceShiftPublicSchema.js";
 export { attendanceSubmitSchema } from "./attendanceSubmitSchema.js";
 export { attendanceWeekPublicSchema } from "./attendanceWeekPublicSchema.js";
 export { auditChangePublicSchema } from "./auditChangePublicSchema.js";
+export { auditEntryAdminPageSchema } from "./auditEntryAdminPageSchema.js";
+export { auditEntryAdminPublicSchema } from "./auditEntryAdminPublicSchema.js";
 export { auditEntryPublicSchema } from "./auditEntryPublicSchema.js";
 export {
   auditGetHistoryErrorSchema,
@@ -114,6 +116,22 @@ export {
   auditGetHistoryStatus404Schema,
   auditGetHistoryStatus422Schema,
 } from "./auditGetHistorySchema.js";
+export {
+  auditListAdminAuditEntriesErrorSchema,
+  auditListAdminAuditEntriesQueryActionSchema,
+  auditListAdminAuditEntriesQueryActorIdSchema,
+  auditListAdminAuditEntriesQueryCreatedFromSchema,
+  auditListAdminAuditEntriesQueryCreatedToSchema,
+  auditListAdminAuditEntriesQueryCursorSchema,
+  auditListAdminAuditEntriesQueryEntityTypeSchema,
+  auditListAdminAuditEntriesQueryLimitSchema,
+  auditListAdminAuditEntriesQueryOrganisationIdSchema,
+  auditListAdminAuditEntriesQuerySchema,
+  auditListAdminAuditEntriesResponseSchema,
+  auditListAdminAuditEntriesStatus200Schema,
+  auditListAdminAuditEntriesStatus403Schema,
+  auditListAdminAuditEntriesStatus422Schema,
+} from "./auditListAdminAuditEntriesSchema.js";
 export {
   authAcceptSuperuserInvitationBodySchema,
   authAcceptSuperuserInvitationErrorSchema,

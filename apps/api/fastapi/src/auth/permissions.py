@@ -161,6 +161,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "See the values of sensitive fields (medical, address, contact) in change history",
     ),
     PermissionDef(
+        "audit.entries.read",
+        "Read the global audit log for the admin audit screen; sensitive values stay masked unless audit.view_sensitive is held",
+    ),
+    PermissionDef(
         "notifications.manage",
         "Configure organisation notifications: on/off, recipients, wording, timings",
     ),

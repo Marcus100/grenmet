@@ -104,6 +104,8 @@ export type { AttendanceShiftPublic } from "./AttendanceShiftPublic.js";
 export type { AttendanceSubmit } from "./AttendanceSubmit.js";
 export type { AttendanceWeekPublic } from "./AttendanceWeekPublic.js";
 export type { AuditChangePublic } from "./AuditChangePublic.js";
+export type { AuditEntryAdminPage } from "./AuditEntryAdminPage.js";
+export type { AuditEntryAdminPublic } from "./AuditEntryAdminPublic.js";
 export type { AuditEntryPublic } from "./AuditEntryPublic.js";
 export type {
   AuditGetHistoryOptions,
@@ -116,6 +118,15 @@ export type {
   AuditGetHistoryStatus404,
   AuditGetHistoryStatus422,
 } from "./AuditGetHistory.js";
+export type {
+  AuditListAdminAuditEntriesOptions,
+  AuditListAdminAuditEntriesQuery,
+  AuditListAdminAuditEntriesResponse,
+  AuditListAdminAuditEntriesResponses,
+  AuditListAdminAuditEntriesStatus200,
+  AuditListAdminAuditEntriesStatus403,
+  AuditListAdminAuditEntriesStatus422,
+} from "./AuditListAdminAuditEntries.js";
 export type {
   AuthAcceptSuperuserInvitationBody,
   AuthAcceptSuperuserInvitationOptions,
