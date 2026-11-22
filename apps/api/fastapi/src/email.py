@@ -72,10 +72,14 @@ def _display_name(value: str | None, limit: int = MAX_DISPLAY_NAME) -> str:
 
 
 def sender_header(from_name: str | None) -> str:
-    """The From header: the cleaned name (or the configured default when nothing
-    is left) with the verified sending address. ``formataddr`` quotes the name
+    """The From header: the cleaned name, or the configured default when none is
+    given, with the verified sending address. ``formataddr`` quotes the name
     where it must be, so no name can add a header or a second address."""
-    name = _display_name(from_name) or _display_name(email_settings.EMAILS_FROM_NAME)
+    name = _display_name(from_name)
+    if not name:
+        # The configured default is used verbatim, as before: it is our own
+        # setting, not business text, so it is not cleaned or re-quoted.
+        return f"{email_settings.EMAILS_FROM_NAME} <{email_settings.EMAILS_FROM_EMAIL}>"
     return formataddr((name, str(email_settings.EMAILS_FROM_EMAIL)))
 
 
