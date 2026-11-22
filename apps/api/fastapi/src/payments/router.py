@@ -245,9 +245,10 @@ async def save_merchant_account(
     *,
     session: SessionDep,
     org: PaymentsOrgAdmin,
-    provider: MerchantProvider,  # noqa: ARG001  (the route's path; WiPay is the only one)
+    provider: MerchantProvider,
     payload: schemas.MerchantAccountUpsert,
 ) -> Any:
+    del provider  # the path names the provider; WiPay is the only one
     result = await merchant_accounts.save(
         session, organisation_id=org.organisation_id, actor=org.user, payload=payload
     )
@@ -457,9 +458,10 @@ async def admin_set_live_approval(
     session: SessionDep,
     current_user: CurrentUser,
     organisation_id: str,
-    provider: MerchantProvider,  # noqa: ARG001  (the route's path; WiPay is the only one)
+    provider: MerchantProvider,
     payload: schemas.MerchantLiveApproval,
 ) -> Any:
+    del provider  # the path names the provider; WiPay is the only one
     require_permission(
         current_user=current_user, permission_key="payments.live.approve"
     )

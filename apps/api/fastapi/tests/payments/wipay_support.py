@@ -51,8 +51,9 @@ def org_secret_keys(monkeypatch: pytest.MonkeyPatch) -> list[str]:
 @pytest.fixture
 def wipay_env(
     monkeypatch: pytest.MonkeyPatch,
-    org_secret_keys: list[str],  # noqa: ARG001  (set up for its side effect)
+    org_secret_keys: list[str],
 ) -> WiPayStub:
+    del org_secret_keys  # the keys fixture only sets the organisation keys; it must run
     stub = WiPayStub()
 
     def handler(request: httpx.Request) -> httpx.Response:

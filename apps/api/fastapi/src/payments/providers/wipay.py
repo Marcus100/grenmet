@@ -326,8 +326,9 @@ class WiPayProvider:
         intent: Intent,
         /,
         *,
-        title: str | None = None,  # noqa: ARG002  (WiPay has no line-item name)
+        title: str | None = None,
     ) -> PaymentStart:
+        del title  # WiPay has no line-item name; the checkout shows the order only
         response_url = self._config.WIPAY_RESPONSE_URL
         if not response_url:
             raise ProviderUnavailableError("WiPay return address is not configured")
@@ -395,6 +396,7 @@ class WiPayProvider:
     async def list_refunds(
         self, _intent: Intent, /, *, stop: Any = None
     ) -> RefundListing:
+        del stop  # WiPay has no refund listing to page through
         return RefundListing(refunds=(), complete=False)
 
     @asynccontextmanager

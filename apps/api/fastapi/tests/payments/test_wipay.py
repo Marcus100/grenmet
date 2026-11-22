@@ -1,4 +1,3 @@
-# ruff: noqa: ARG001  (pytest fixtures requested for their side effects)
 """WiPay adapter (ADR-0027 amendment, 21 Nov 2026): hash, signatures, request, return.
 
 Pure cases need no database. The flow cases run the real routes against the test
@@ -13,6 +12,8 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.models import User
+from src.organisations.models import PlatformOrganisation
 from src.payments.config import PaymentsConfig, payments_settings
 from src.payments.exceptions import (
     InvalidCallbackError,
@@ -65,16 +66,18 @@ def _intent(**overrides: object) -> Intent:
     return Intent(**values)
 
 
-def _provider(**overrides: object) -> wipay.WiPayProvider:
-    values: dict[str, object] = {
-        "environment": "sandbox",
-        "account_number": WIPAY_ACCOUNT_NUMBER,
-        "api_key": WIPAY_API_KEY,
-        "webhook_secret": WIPAY_WEBHOOK_SECRET,
-        "config": PaymentsConfig(WIPAY_RESPONSE_URL=WIPAY_RESPONSE_URL),
-    }
-    values.update(overrides)
-    return wipay.WiPayProvider(**values)  # type: ignore[arg-type]
+def _provider(
+    *,
+    environment: str = "sandbox",
+    config: PaymentsConfig | None = None,
+) -> wipay.WiPayProvider:
+    return wipay.WiPayProvider(
+        environment=environment,
+        account_number=WIPAY_ACCOUNT_NUMBER,
+        api_key=WIPAY_API_KEY,
+        webhook_secret=WIPAY_WEBHOOK_SECRET,
+        config=config or PaymentsConfig(WIPAY_RESPONSE_URL=WIPAY_RESPONSE_URL),
+    )
 
 
 # --- amounts and the hash -----------------------------------------------------------
@@ -429,7 +432,7 @@ async def _org_with_wipay(
     environment: str = "sandbox",
     enabled: bool = True,
     webhook_secret: str | None = WIPAY_WEBHOOK_SECRET,
-) -> tuple[object, object, dict[str, str]]:
+) -> tuple[PlatformOrganisation, User, dict[str, str]]:
     from src.organisations.models import MembershipRole
 
     admin = await make_user(db)
@@ -455,20 +458,14 @@ async def _org_with_wipay(
     return org, admin, headers
 
 
-async def _checkout(
-    db: AsyncSession,
-    client: httpx.AsyncClient,
-    org: object,
-    admin: object,
-    headers: dict[str, str],
-) -> tuple[str, str]:
+async def _checkout(db: AsyncSession, org: PlatformOrganisation) -> tuple[str, str]:
     """A WiPay checkout made the way the Bookings deposit path makes it (the org route
     refuses WiPay on purpose; the service is the path)."""
     from src.payments import schemas as payment_schemas
     from src.payments import service as payments_service
     from src.payments.models import ProviderKey
 
-    org_id = org.id  # type: ignore[attr-defined]
+    org_id = org.id
     # The API wrote the account in its own session: refresh this session's copy.
     from src.payments.models import MerchantAccount
 
@@ -518,11 +515,13 @@ async def _charges(db: AsyncSession, intent_id: str) -> int:
     )
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_wipay_checkout_returns_the_hosted_url_and_records_the_environment(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
-    intent_id, url = await _checkout(db_async, async_client, org, admin, headers)
+    intent_id, url = await _checkout(db_async, org)
     assert url is not None
     assert url.startswith("https://gdsb.wipayfinancial.com/")
     row = await _intent_row(db_async, intent_id)
@@ -531,14 +530,13 @@ async def test_a_wipay_checkout_returns_the_hosted_url_and_records_the_environme
     assert row.checkout_url == url
 
 
+@pytest.mark.usefixtures("wipay_env", "stripe_return_fallbacks")
 async def test_the_return_credits_once_and_a_replay_is_a_no_op(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
-    wipay_env,
-    stripe_return_fallbacks: None,
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
-    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, org)
     row = await _intent_row(db_async, intent_id)
     params = return_query(
         order_id=row.id.hex, transaction_id=row.provider_ref or "", amount_minor=5000
@@ -556,11 +554,13 @@ async def test_the_return_credits_once_and_a_replay_is_a_no_op(
     assert (await _intent_row(db_async, intent_id)).status == "succeeded"
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_tampered_return_is_refused_and_credits_nothing(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
-    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, org)
     row = await _intent_row(db_async, intent_id)
     params = return_query(
         order_id=row.id.hex, transaction_id=row.provider_ref or "", amount_minor=5000
@@ -574,14 +574,13 @@ async def test_a_tampered_return_is_refused_and_credits_nothing(
     assert (await _intent_row(db_async, intent_id)).status == "processing"
 
 
+@pytest.mark.usefixtures("wipay_env", "stripe_return_fallbacks")
 async def test_a_cancelled_return_redirects_to_cancel_and_changes_nothing(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
-    wipay_env,
-    stripe_return_fallbacks: None,
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
-    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, org)
     row = await _intent_row(db_async, intent_id)
     params = return_query(
         order_id=row.id.hex,
@@ -597,11 +596,13 @@ async def test_a_cancelled_return_redirects_to_cancel_and_changes_nothing(
     assert (await _intent_row(db_async, intent_id)).status == "processing"
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_webhook_after_the_return_is_a_duplicate(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
-    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, org)
     row = await _intent_row(db_async, intent_id)
     tid = row.provider_ref or ""
     await async_client.get(
@@ -620,11 +621,13 @@ async def test_a_webhook_after_the_return_is_a_duplicate(
     assert await _charges(db_async, intent_id) == 1
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_webhook_credits_a_payment_whose_redirect_never_arrived(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
-    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, org)
     row = await _intent_row(db_async, intent_id)
     envelope = payment_webhook(
         "payment.success",
@@ -640,11 +643,13 @@ async def test_a_webhook_credits_a_payment_whose_redirect_never_arrived(
     assert await _charges(db_async, intent_id) == 1
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_webhook_with_a_bad_signature_is_refused(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
-    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, org)
     row = await _intent_row(db_async, intent_id)
     envelope = payment_webhook(
         "payment.success",
@@ -660,8 +665,9 @@ async def test_a_webhook_with_a_bad_signature_is_refused(
     assert await _charges(db_async, intent_id) == 0
 
 
+@pytest.mark.usefixtures("db_async", "wipay_env")
 async def test_a_webhook_for_an_unknown_order_is_acknowledged_and_ignored(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    async_client: httpx.AsyncClient,
 ) -> None:
     envelope = payment_webhook(
         "payment.success",
@@ -676,13 +682,15 @@ async def test_a_webhook_for_an_unknown_order_is_acknowledged_and_ignored(
     assert response.status_code == 200
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_webhook_without_a_configured_secret_is_503_so_wipay_retries(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
 ) -> None:
     org, admin, headers = await _org_with_wipay(
         db_async, async_client, webhook_secret=None
     )
-    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, org)
     row = await _intent_row(db_async, intent_id)
     envelope = payment_webhook(
         "payment.success",
@@ -702,7 +710,7 @@ async def test_a_disabled_merchant_cannot_start_a_checkout(
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client, enabled=False)
     with pytest.raises(ProviderUnavailableError):
-        await _checkout(db_async, async_client, org, admin, headers)
+        await _checkout(db_async, org)
     assert wipay_env.requests == []
 
 
@@ -713,16 +721,18 @@ async def test_live_mode_cannot_start_a_checkout_until_the_owner_approves(
         db_async, async_client, environment="live"
     )
     with pytest.raises(ProviderUnavailableError) as raised:
-        await _checkout(db_async, async_client, org, admin, headers)
+        await _checkout(db_async, org)
     assert "approved" in raised.value.message.lower()
     assert wipay_env.requests == []
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_wipay_refund_is_refused_and_records_nothing(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
 ) -> None:
     org, admin, headers = await _org_with_wipay(db_async, async_client)
-    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, org)
     row = await _intent_row(db_async, intent_id)
     await async_client.get(
         f"{API}/public/returns/wipay",
@@ -753,13 +763,15 @@ async def test_a_wipay_refund_is_refused_and_records_nothing(
     )
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_sandbox_capture_is_recorded_as_the_sandbox_test(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
 ) -> None:
     from src.payments.models import MerchantAccount
 
     org, admin, headers = await _org_with_wipay(db_async, async_client)
-    intent_id, _ = await _checkout(db_async, async_client, org, admin, headers)
+    intent_id, _ = await _checkout(db_async, org)
     row = await _intent_row(db_async, intent_id)
     await async_client.get(
         f"{API}/public/returns/wipay",
@@ -771,7 +783,7 @@ async def test_a_sandbox_capture_is_recorded_as_the_sandbox_test(
         follow_redirects=False,
     )
     account = await db_async.scalar(
-        select(MerchantAccount).where(MerchantAccount.organisation_id == org.id)  # type: ignore[attr-defined]
+        select(MerchantAccount).where(MerchantAccount.organisation_id == org.id)
     )
     assert account is not None
     assert account.sandbox_verified_at is not None

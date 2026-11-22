@@ -1,4 +1,3 @@
-# ruff: noqa: ARG001  (pytest fixtures requested for their side effects)
 """Bookings deposits by provider (21 Nov 2026): WiPay first, then the business's own
 payment link, then Stripe test mode, else no online deposit (paid in the salon)."""
 
@@ -106,10 +105,10 @@ async def test_the_business_payment_link_is_the_deposit_checkout(
     assert booking["payment"]["amount_minor"] == DEPOSIT
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_wipay_is_preferred_over_the_payment_link(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
-    wipay_env,
 ) -> None:
     studio = await _deposit_studio(db_async, async_client, deposit_payment_link=LINK)
     await _enable_wipay(async_client, studio)
@@ -122,10 +121,10 @@ async def test_wipay_is_preferred_over_the_payment_link(
     assert intent.provider == "wipay"
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_disabled_wipay_falls_back_to_the_payment_link(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
-    wipay_env,
 ) -> None:
     studio = await _deposit_studio(db_async, async_client, deposit_payment_link=LINK)
     await _enable_wipay(async_client, studio)
@@ -193,7 +192,8 @@ async def test_the_payment_link_survives_a_profile_save_that_leaves_it_out(
     profile = await db_async.scalar(
         select(BookingProfile).where(BookingProfile.organisation_id == studio.org_id)
     )
-    await db_async.refresh(profile)  # type: ignore[arg-type]
+    assert profile is not None
+    await db_async.refresh(profile)
     assert profile.deposit_payment_link == LINK
 
 
@@ -246,10 +246,10 @@ def test_a_valid_payment_link_is_kept_and_blank_clears_it(
 # --- WiPay confirms the deposit -------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_verified_wipay_return_confirms_the_deposit(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
-    wipay_env,
 ) -> None:
     studio = await _deposit_studio(db_async, async_client, deposit_payment_link=None)
     await _enable_wipay(async_client, studio)
@@ -277,10 +277,10 @@ async def test_a_verified_wipay_return_confirms_the_deposit(
     assert detail["deposit_captured_minor"] == DEPOSIT
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_tampered_wipay_return_leaves_the_deposit_unpaid(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
-    wipay_env,
 ) -> None:
     studio = await _deposit_studio(db_async, async_client, deposit_payment_link=None)
     await _enable_wipay(async_client, studio)
@@ -311,10 +311,10 @@ async def test_a_tampered_wipay_return_leaves_the_deposit_unpaid(
     assert charges is None
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_wipay_webhook_confirms_the_deposit_once(
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
-    wipay_env,
 ) -> None:
     studio = await _deposit_studio(db_async, async_client, deposit_payment_link=None)
     await _enable_wipay(async_client, studio)
@@ -390,8 +390,10 @@ async def test_asking_for_an_online_deposit_with_no_rail_fails_the_booking(
     assert raised.value.status_code == 409
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_a_refused_refund_is_noted_and_the_studio_is_emailed(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
 ) -> None:
     from src.bookings import deposits
     from src.bookings.models import Booking
@@ -443,8 +445,10 @@ async def test_a_refused_refund_is_noted_and_the_studio_is_emailed(
     assert len(queued) == 1
 
 
+@pytest.mark.usefixtures("wipay_env")
 async def test_the_refund_refused_email_is_queued_once_per_deposit(
-    db_async: AsyncSession, async_client: httpx.AsyncClient, wipay_env
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
 ) -> None:
     from src.bookings import deposits
     from src.bookings.models import Booking
