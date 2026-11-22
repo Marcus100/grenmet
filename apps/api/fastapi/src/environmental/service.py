@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import provider_health
 from src.utils.datetime import utc_now
 
 from . import parsing, providers
@@ -178,9 +179,12 @@ async def refresh_marine(
     now = now or datetime.now(UTC)
     start = now - MARINE_LOOKBACK
     end = now + timedelta(hours=config.ENVIRONMENT_FORECAST_HOURS)
-    waves, sst = await asyncio.to_thread(
-        providers.fetch_marine, config, start=start, end=end
-    )
+    with provider_health.watch(
+        "copernicus", "marine", errors=(providers.ProviderError,)
+    ):
+        waves, sst = await asyncio.to_thread(
+            providers.fetch_marine, config, start=start, end=end
+        )
     rows = parsing.parse_marine(waves, sst, POINTS, start=start, end=end)
     # The product does not expose the run time through a subset; use the newest
     # model step at or before the fetch.
@@ -212,7 +216,8 @@ async def refresh_air(
         return 0
     now = now or datetime.now(UTC)
     run = providers.latest_cams_run(now)
-    ds = await asyncio.to_thread(providers.fetch_cams, config, run=run)
+    with provider_health.watch("copernicus", "cams", errors=(providers.ProviderError,)):
+        ds = await asyncio.to_thread(providers.fetch_cams, config, run=run)
     rows = parsing.parse_cams(
         ds,
         POINTS,

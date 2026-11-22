@@ -17,6 +17,7 @@ from pathlib import Path
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import provider_health
 from src.storage.config import StorageConfig
 from src.storage.service import StorageService
 from src.utils.datetime import utc_now
@@ -103,8 +104,9 @@ async def _deliver(row: ERegisterSend, sink: Sink, max_attempts: int) -> None:
             row.next_retry_at = utc_now() + timedelta(
                 seconds=retry_delay_seconds(row.attempts)
             )
-        logger.warning("WIS2 transfer failed", extra={"send_id": str(row.id)})
+        provider_health.record_failure("wis2box", "transfer", exc)
         return
+    provider_health.record_success("wis2box", "transfer")
     row.status = STATUS_SENT
     row.sent_at = utc_now()
     row.last_error = None
