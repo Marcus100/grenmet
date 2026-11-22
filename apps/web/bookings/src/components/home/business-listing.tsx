@@ -71,6 +71,17 @@ function BusinessCard({ card }: Readonly<{ card: BookingPublicBusiness }>) {
   );
 }
 
+/** What an empty list says: a search with no match, a page past the last, or none yet. */
+function emptyMessage(filtered: boolean, page: number): string {
+  if (filtered) {
+    return "No businesses match that search. Try another word or category.";
+  }
+  if (page > 1) {
+    return "No businesses on this page.";
+  }
+  return "No businesses listed yet. Businesses appear here once they choose to be listed.";
+}
+
 export function BusinessListing({
   listing,
   query,
@@ -105,7 +116,7 @@ export function BusinessListing({
             id="home-search"
             maxLength={80}
             name="q"
-            placeholder="Search by name, service or town"
+            placeholder="Search by name, category or town"
             type="search"
           />
           {query.category && (
@@ -121,6 +132,12 @@ export function BusinessListing({
         <p className="text-muted-foreground" role="alert">
           Businesses cannot be loaded right now. Try again in a few minutes.
         </p>
+      )}
+
+      {listing && listing.categories.length === 0 && (
+        <nav aria-label="Categories">
+          <p className="text-muted-foreground text-sm">No categories yet.</p>
+        </nav>
       )}
 
       {listing && listing.categories.length > 0 && (
@@ -150,9 +167,7 @@ export function BusinessListing({
 
       {listing && listing.items.length === 0 && (
         <p className="text-muted-foreground">
-          {filtered
-            ? "No businesses match that search. Try another word or category."
-            : "No businesses listed yet. Businesses appear here once they choose to be listed."}
+          {emptyMessage(filtered, listing.page)}
         </p>
       )}
 

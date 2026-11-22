@@ -6,6 +6,8 @@ import { BusinessListing } from "./business-listing";
 const NO_LISTING = /No businesses listed yet/u;
 const NO_MATCH = /No businesses match that search/u;
 const CANNOT_LOAD = /cannot be loaded/u;
+const NO_PAGE = /No businesses on this page/u;
+const NO_CATEGORIES = /No categories yet/u;
 
 const TIDE = {
   slug: "tide-barbers",
@@ -61,6 +63,33 @@ describe("BusinessListing", () => {
 
     expect(screen.getByText(NO_LISTING)).toBeTruthy();
     expect(screen.queryByRole("article")).toBeNull();
+  });
+
+  it("says the page is empty past the last one, and keeps the way back", () => {
+    render(
+      <BusinessListing
+        listing={page({ items: [], page: 4, categories: [] })}
+        query={{ q: undefined, category: undefined, page: 4 }}
+      />
+    );
+
+    expect(screen.getByText(NO_PAGE)).toBeTruthy();
+    expect(screen.queryByText(NO_LISTING)).toBeNull();
+    expect(
+      screen.getByRole("link", { name: "Previous page" }).getAttribute("href")
+    ).toBe("/?page=3");
+  });
+
+  it("keeps the categories section and says none exist yet", () => {
+    render(
+      <BusinessListing
+        listing={page({ items: [], categories: [] })}
+        query={NO_QUERY}
+      />
+    );
+
+    const categories = screen.getByRole("navigation", { name: "Categories" });
+    expect(within(categories).getByText(NO_CATEGORIES)).toBeTruthy();
   });
 
   it("says no match when a search finds nothing", () => {
