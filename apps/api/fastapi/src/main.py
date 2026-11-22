@@ -630,12 +630,15 @@ if settings.ENVIRONMENT == "local":
         pass
 
 
-@app.get("/scalar", include_in_schema=False)
-def get_scalar_docs() -> Any:
-    return get_scalar_api_reference(
-        openapi_url=openapi_url,
-        title=settings.PROJECT_NAME,
-    )
+if settings.ENVIRONMENT in SHOW_DOCS_ENVIRONMENTS:
+    # Scalar renders the OpenAPI schema, which is only served in these
+    # environments; registering it elsewhere serves a page that cannot load.
+    @app.get("/scalar", include_in_schema=False)
+    def get_scalar_docs() -> Any:
+        return get_scalar_api_reference(
+            openapi_url=openapi_url,
+            title=settings.PROJECT_NAME,
+        )
 
 
 def _lift_inline_enums(schema: dict[str, Any]) -> None:
