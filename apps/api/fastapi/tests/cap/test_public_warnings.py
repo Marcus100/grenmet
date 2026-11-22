@@ -3,12 +3,34 @@ from uuid import uuid4
 
 import httpx
 import pytest
+from fakeredis import FakeAsyncRedis
 from pydantic import ValidationError
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.cap import service
+from src.cap import cache, public_queries, service
+from src.cap.models import (
+    CapAlert,
+    CapCertainty,
+    CapInfo,
+    CapLifecycleState,
+    CapMessageType,
+    CapScope,
+    CapSeverity,
+    CapStatus,
+    CapUrgency,
+)
 from src.cap.schemas import CapAlertPublic, CapInfoPublic
+from src.utils.datetime import utc_now
+from tests.factories import make_user
 
 NOW = datetime(2026, 9, 17, 12, tzinfo=UTC)
+
+
+@pytest.fixture(autouse=True)
+def no_shared_redis_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The warnings response is cached in Redis when REDIS_URL is set; keep
+    # each test on its own uncached path. Tests that need the cache opt in.
+    monkeypatch.setattr(cache, "_get_client", lambda: None)
 
 
 def info(**changes):
@@ -199,3 +221,116 @@ async def test_warning_query_excludes_restricted_records(
     ]
     assert public in identifiers
     assert private not in identifiers
+
+
+async def _seed_published(
+    db: AsyncSession,
+    *,
+    creator_id,
+    identifier: str,
+    effective: datetime,
+    expires: datetime,
+) -> None:
+    alert = CapAlert(
+        identifier=identifier,
+        sender="cap@example.com",
+        status=CapStatus.ACTUAL,
+        msg_type=CapMessageType.ALERT,
+        scope=CapScope.PUBLIC,
+        lifecycle_state=CapLifecycleState.PUBLISHED,
+        created_by_user_id=creator_id,
+    )
+    db.add(alert)
+    await db.flush()
+    db.add(
+        CapInfo(
+            alert_id=alert.id,
+            sequence=0,
+            event="Gale Warning",
+            urgency=CapUrgency.EXPECTED,
+            severity=CapSeverity.SEVERE,
+            certainty=CapCertainty.LIKELY,
+            headline="Gale winds",
+            description="Warning",
+            effective=effective,
+            expires=expires,
+            parameters=[],
+        )
+    )
+    await db.commit()
+
+
+async def test_warning_query_loads_only_alerts_in_effect(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Published alerts never move to EXPIRED by themselves, so the query must
+    # filter by time in SQL; otherwise every alert ever published is loaded.
+    creator = await make_user(db_async)
+    now = utc_now()
+    active = f"active-{uuid4()}"
+    expired = f"expired-{uuid4()}"
+    not_yet = f"not-yet-{uuid4()}"
+    await _seed_published(
+        db_async,
+        creator_id=creator.id,
+        identifier=active,
+        effective=now - timedelta(hours=1),
+        expires=now + timedelta(hours=1),
+    )
+    await _seed_published(
+        db_async,
+        creator_id=creator.id,
+        identifier=expired,
+        effective=now - timedelta(days=2),
+        expires=now - timedelta(days=1),
+    )
+    await _seed_published(
+        db_async,
+        creator_id=creator.id,
+        identifier=not_yet,
+        effective=now + timedelta(hours=1),
+        expires=now + timedelta(hours=2),
+    )
+
+    loaded: list[str] = []
+    original = public_queries._to_public_from_loaded
+
+    def record(alert, **kwargs):
+        loaded.append(alert.identifier)
+        return original(alert, **kwargs)
+
+    monkeypatch.setattr(public_queries, "_to_public_from_loaded", record)
+    result = await service.public_warnings(session=db_async)
+
+    assert active in loaded
+    assert expired not in loaded
+    assert not_yet not in loaded
+    shown = [item.identifier for group in result.groups for item in group.alerts]
+    assert active in shown
+    assert expired not in shown
+    assert not_yet not in shown
+
+
+async def test_public_warnings_response_is_cached_briefly(
+    async_client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake = FakeAsyncRedis(decode_responses=True)
+    monkeypatch.setattr(cache, "_get_client", lambda: fake)
+    calls = 0
+
+    async def selection(**_kwargs):
+        nonlocal calls
+        calls += 1
+        return service.select_public_warnings([alert(status="Exercise")], NOW)
+
+    monkeypatch.setattr(service, "public_warnings", selection)
+    first = await async_client.get("/api/cap/warnings")
+    second = await async_client.get("/api/cap/warnings")
+    assert first.status_code == second.status_code == 200
+    assert second.json()["activeCount"] == 0
+    assert second.headers["cache-control"] == "no-store"
+    assert calls == 1
+
+
+def test_public_warnings_cache_key_is_invalidated_on_publish_and_withdraw() -> None:
+    assert cache.PUBLIC_WARNINGS in cache.PUBLIC_FEED_KEYS
