@@ -14,6 +14,11 @@ export {
   useAuditGetHistory,
 } from "./useAuditGetHistory.js";
 export {
+  auditListAdminAuditEntriesQueryKey,
+  auditListAdminAuditEntriesQueryOptions,
+  useAuditListAdminAuditEntries,
+} from "./useAuditListAdminAuditEntries.js";
+export {
   authAcceptSuperuserInvitationMutationKey,
   authAcceptSuperuserInvitationMutationOptions,
   useAuthAcceptSuperuserInvitation,

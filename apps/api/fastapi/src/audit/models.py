@@ -22,6 +22,9 @@ class AuditEntry(Base):
     __tablename__ = "audit_entry"
     __table_args__ = (
         sa.Index("ix_audit_entry_entity", "entity_type", "entity_id", "created_at"),
+        # Global log, newest first with a keyset on (created_at, id): without it
+        # every page sorts the whole append-only table.
+        sa.Index("ix_audit_entry_created_id", "created_at", "id"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
