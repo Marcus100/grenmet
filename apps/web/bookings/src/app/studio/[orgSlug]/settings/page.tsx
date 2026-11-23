@@ -9,6 +9,7 @@ import {
   SettingsJumpMenu,
 } from "@/components/studio/settings/settings-sections";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import { exampleServiceFor } from "@/lib/deposit-rule";
 import { requireSession } from "@/lib/session";
 import { loadSettings, loadTimeOffByProvider } from "@/lib/settings-load";
 import { canManageBookings, DEFAULT_TIMEZONE } from "@/lib/studio-view";
@@ -26,16 +27,6 @@ interface SettingsPageProps {
  * Each section has its own form and Save button. Role only decides what is
  * drawn: each action and the API check it again.
  */
-/** The first active, priced service: the example the deposit preview works out. */
-function exampleService(
-  services: { name: string; active: boolean; price_minor: number }[]
-): { name: string; priceMinor: number } | null {
-  const service = services.find((s) => s.active && s.price_minor > 0);
-  return service
-    ? { name: service.name, priceMinor: service.price_minor }
-    : null;
-}
-
 export default async function SettingsPage({ params }: SettingsPageProps) {
   const { orgSlug } = await params;
   const here = `/studio/${orgSlug}/settings`;
@@ -107,7 +98,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         currency={data.profile?.currency ?? "XCD"}
         depositsAvailable={data.deposits_available}
         editable={editable}
-        example={exampleService(data.services)}
+        example={exampleServiceFor(data.services)}
         orgSlug={orgSlug}
         profile={data.profile}
       />

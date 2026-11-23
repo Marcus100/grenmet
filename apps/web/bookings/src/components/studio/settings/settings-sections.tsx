@@ -23,16 +23,14 @@ import {
 } from "@barrelsgd/ui/components/ui/empty";
 import Link from "next/link";
 import { ContactForm } from "@/components/studio/settings/contact-form";
-import {
-  DepositRuleForm,
-  type ExampleService,
-} from "@/components/studio/settings/deposit-rule-form";
+import { DepositRuleForm } from "@/components/studio/settings/deposit-rule-form";
 import { HoursForm } from "@/components/studio/settings/hours-form";
 import { PaymentsForm } from "@/components/studio/settings/payments-form";
 import { ProfileForm } from "@/components/studio/settings/profile-form";
 import { ProviderForm } from "@/components/studio/settings/provider-form";
 import { ServiceForm } from "@/components/studio/settings/service-form";
 import { TimeOffSection } from "@/components/studio/settings/time-off";
+import type { ExampleService } from "@/lib/deposit-rule";
 import { hhmm, periodsByDay, WEEKDAYS } from "@/lib/settings-view";
 
 /** The jump menu's targets, in the order the sections appear. */

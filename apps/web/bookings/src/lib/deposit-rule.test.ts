@@ -3,6 +3,7 @@ import {
   DEPOSIT_OFF,
   depositPreviewMinor,
   depositRuleFields,
+  exampleServiceFor,
 } from "./deposit-rule";
 
 const percentOn = (percentText: string) =>
@@ -63,7 +64,16 @@ describe("depositRuleFields", () => {
   });
 
   it("refuses a zero, negative or over-precise money amount", () => {
-    for (const text of ["", "0", "0.00", "-3", "1.234", "x"]) {
+    for (const text of [
+      "",
+      "0",
+      "0.00",
+      "-3",
+      "1.234",
+      "12.345",
+      "1,000",
+      "x",
+    ]) {
       expect(fixedOn(text).ok).toBe(false);
     }
   });
@@ -100,5 +110,78 @@ describe("depositPreviewMinor", () => {
 
   it("is zero for a free service", () => {
     expect(depositPreviewMinor(percent(50), 0)).toBe(0);
+  });
+});
+
+describe("depositPreviewMinor against the API formula", () => {
+  // Expected values follow deposit_payments.rule_deposit: a percentage rounds up
+  // to whole currency units, and the result never exceeds the price.
+  const percent = (value: number) => ({
+    deposit_mode: "percent" as const,
+    deposit_percent: value,
+    deposit_fixed_minor: null,
+  });
+
+  it.each([
+    [1, 1, 1],
+    [1, 15, 1],
+    [1, 50, 1],
+    [1, 100, 1],
+    [99, 1, 99],
+    [99, 15, 99],
+    [99, 50, 99],
+    [99, 100, 99],
+    [10_500, 1, 200],
+    [10_500, 15, 1600],
+    [10_500, 50, 5300],
+    [10_500, 100, 10_500],
+    [14_999, 1, 200],
+    [14_999, 15, 2300],
+    [14_999, 50, 7500],
+    [14_999, 100, 14_999],
+  ])("price %i minor at %i%% is %i minor", (price, value, expected) => {
+    expect(depositPreviewMinor(percent(value), price)).toBe(expected);
+  });
+});
+
+describe("exampleServiceFor", () => {
+  const service = (
+    name: string,
+    fields: Partial<{
+      active: boolean;
+      price_minor: number;
+      deposit_minor: number;
+    }> = {}
+  ) => ({
+    name,
+    active: true,
+    price_minor: 10_000,
+    deposit_minor: 0,
+    ...fields,
+  });
+
+  it("prefers the first active priced service with no deposit of its own", () => {
+    expect(
+      exampleServiceFor([
+        service("Facial", { deposit_minor: 2500 }),
+        service("Massage"),
+      ])
+    ).toEqual({ name: "Massage", priceMinor: 10_000, ownDepositMinor: 0 });
+  });
+
+  it("falls back to a service with its own deposit, which the preview labels", () => {
+    expect(
+      exampleServiceFor([service("Facial", { deposit_minor: 2500 })])
+    ).toEqual({ name: "Facial", priceMinor: 10_000, ownDepositMinor: 2500 });
+  });
+
+  it("skips inactive and free services", () => {
+    expect(
+      exampleServiceFor([
+        service("Retired", { active: false }),
+        service("Free", { price_minor: 0 }),
+      ])
+    ).toBeNull();
+    expect(exampleServiceFor([])).toBeNull();
   });
 });

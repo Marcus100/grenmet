@@ -4,6 +4,7 @@
 // rule so the owner sees what customers will be asked to pay.
 
 import type { BookingDepositMode } from "@barrelsgd/api-client";
+import { parseMoney } from "./settings-view";
 
 /** The three profile fields a deposit rule saves. */
 export interface DepositRuleFields {
@@ -21,8 +22,41 @@ export const DEPOSIT_OFF: DepositRuleFields = {
 /** The largest amount the API takes, in minor units. */
 const MAX_MINOR = 100_000_000;
 const WHOLE_NUMBER = /^\d+$/u;
-const MONEY_TEXT = /^\d+(\.\d{1,2})?$/u;
 const PER_HUNDRED_PERCENT = 10_000;
+
+/**
+ * The service the preview works out a sentence for. `ownDepositMinor` is the
+ * service's own deposit: when above zero it wins over the business rule.
+ */
+export interface ExampleService {
+  name: string;
+  ownDepositMinor: number;
+  priceMinor: number;
+}
+
+/**
+ * The example for the preview: the first active, priced service with no deposit
+ * of its own, else the first active priced service (its own deposit is then
+ * shown and labelled). Null when there is no priced service to show.
+ */
+export function exampleServiceFor(
+  services: {
+    name: string;
+    active: boolean;
+    price_minor: number;
+    deposit_minor: number;
+  }[]
+): ExampleService | null {
+  const priced = services.filter((s) => s.active && s.price_minor > 0);
+  const service = priced.find((s) => s.deposit_minor === 0) ?? priced[0];
+  return service
+    ? {
+        name: service.name,
+        priceMinor: service.price_minor,
+        ownDepositMinor: service.deposit_minor,
+      }
+    : null;
+}
 
 export type DepositRuleResult =
   | { ok: true; value: DepositRuleFields }
@@ -60,9 +94,8 @@ export function depositRuleFields(input: {
       },
     };
   }
-  const text = input.fixedText.trim();
-  const minor = Math.round(Number(text) * 100);
-  if (!MONEY_TEXT.test(text) || minor <= 0 || minor > MAX_MINOR) {
+  const minor = parseMoney(input.fixedText);
+  if (minor === null || minor <= 0 || minor > MAX_MINOR) {
     return {
       ok: false,
       message:

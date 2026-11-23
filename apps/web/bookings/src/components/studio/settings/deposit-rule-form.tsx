@@ -11,15 +11,37 @@ import {
   type DepositRuleFields,
   depositPreviewMinor,
   depositRuleFields,
+  type ExampleService,
 } from "@/lib/deposit-rule";
+import { moneyInput } from "@/lib/settings-view";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
 import { keepTyped, SettingsResult } from "./settings-ui";
 
-/** The service the preview is worked out for: the first priced, active one. */
-export interface ExampleService {
-  name: string;
-  priceMinor: number;
+/** The preview for a valid rule: one example service, or a prompt to add one. */
+function Preview({
+  cutoffHours,
+  currency,
+  example,
+  rule,
+}: {
+  cutoffHours: number | undefined;
+  currency: string;
+  example: ExampleService | null;
+  rule: DepositRuleFields;
+}) {
+  if (example === null) {
+    return (
+      <p className="text-muted-foreground text-sm">
+        Add a priced service to see an example.
+      </p>
+    );
+  }
+  return (
+    <p className="text-sm" data-testid="deposit-preview">
+      {previewSentence(example, rule, currency, cutoffHours)}
+    </p>
+  );
 }
 
 /** The preview sentence for the example service under the rule. */
@@ -29,8 +51,15 @@ export function previewSentence(
   currency: string,
   cutoffHours: number | undefined
 ): string {
-  const deposit = depositPreviewMinor(rule, example.priceMinor);
   const price = formatMoney(example.priceMinor, currency);
+  const refund =
+    cutoffHours === undefined ? "" : ` ${depositRefundLine(cutoffHours)}`;
+  if (example.ownDepositMinor > 0) {
+    // A service's own deposit wins over the business rule, so the rule is not shown.
+    const own = formatMoney(example.ownDepositMinor, currency);
+    return `${example.name} (${price}) has its own deposit of ${own}, which applies instead of this rule.${refund}`;
+  }
+  const deposit = depositPreviewMinor(rule, example.priceMinor);
   if (deposit <= 0) {
     return `${example.name} (${price}) is booked without a deposit.`;
   }
@@ -38,8 +67,6 @@ export function previewSentence(
     return `${example.name} (${price}): the full price is paid online to hold the booking.`;
   }
   const remaining = formatMoney(example.priceMinor - deposit, currency);
-  const refund =
-    cutoffHours === undefined ? "" : ` ${depositRefundLine(cutoffHours)}`;
   return `${example.name} (${price}): a deposit of ${formatMoney(deposit, currency)} is paid online, and the remaining ${remaining} is paid at the salon.${refund}`;
 }
 
@@ -80,7 +107,7 @@ export function DepositRuleForm({
   const [fixedText, setFixedText] = useState(
     profile.deposit_fixed_minor == null
       ? ""
-      : String(profile.deposit_fixed_minor / 100)
+      : moneyInput(profile.deposit_fixed_minor)
   );
 
   const parsed = depositRuleFields({ on, mode, percentText, fixedText });
@@ -165,15 +192,14 @@ export function DepositRuleForm({
                 />
               </Label>
             )}
-            {example ? (
-              <p className="text-sm" data-testid="deposit-preview">
-                {previewSentence(example, rule, currency, cutoffHours)}
-              </p>
-            ) : (
-              <p className="text-muted-foreground text-sm">
-                Add a priced service to see an example.
-              </p>
-            )}
+            {parsed.ok ? (
+              <Preview
+                currency={currency}
+                cutoffHours={cutoffHours}
+                example={example}
+                rule={rule}
+              />
+            ) : null}
             {depositsAvailable ? null : (
               <p className="text-muted-foreground text-sm">
                 Deposits are collected online only once this business has online

@@ -13,10 +13,18 @@ const TO_100 = /1 to 100/u;
 const COLLECTED = /Deposits are collected online only/u;
 const ADD_PRICED = /Add a priced service/u;
 const OFF = /Off: bookings take a deposit/u;
+const MONEY_RULE = /at most two decimal places/u;
+const NO_DEPOSIT = /booked without a deposit/u;
+const FIXED_CHOICE = /A fixed amount/u;
 const PERCENT = /Deposit percentage/u;
 const AMOUNT = /Deposit amount/u;
 const PREVIEW = "deposit-preview";
-const EXAMPLE = { name: "Classic full set", priceMinor: 21_000 };
+const EXAMPLE = {
+  name: "Classic full set",
+  priceMinor: 21_000,
+  ownDepositMinor: 0,
+};
+const OWN_DEPOSIT = { ...EXAMPLE, ownDepositMinor: 4000 };
 
 function profile(
   overrides: Partial<BookingProfilePublic> = {}
@@ -104,12 +112,38 @@ describe("DepositRuleForm", () => {
     );
   });
 
-  it("refuses an incomplete amount with a message, not a save", () => {
+  it("refuses an incomplete amount with a message, and shows no preview", () => {
     renderForm({ deposit_mode: "percent", deposit_percent: 50 });
     fireEvent.change(screen.getByLabelText(PERCENT), {
       target: { value: "150" },
     });
     expect(screen.getByRole("alert").textContent).toMatch(TO_100);
+    expect(screen.queryByTestId(PREVIEW)).toBeNull();
+    expect(screen.queryByText(NO_DEPOSIT)).toBeNull();
+  });
+
+  it("parses a typed amount with the shared money rules", () => {
+    renderForm({ deposit_mode: "percent", deposit_percent: 50 });
+    fireEvent.click(screen.getByLabelText(FIXED_CHOICE));
+    fireEvent.change(screen.getByLabelText(AMOUNT), {
+      target: { value: "12.345" },
+    });
+    expect(screen.getByRole("alert").textContent).toMatch(MONEY_RULE);
+    fireEvent.change(screen.getByLabelText(AMOUNT), {
+      target: { value: "0.5" },
+    });
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByTestId(PREVIEW).textContent).toContain("EC$0.50");
+  });
+
+  it("says a service's own deposit applies instead of the rule", () => {
+    renderForm(
+      { deposit_mode: "percent", deposit_percent: 50 },
+      { example: OWN_DEPOSIT }
+    );
+    expect(screen.getByTestId(PREVIEW).textContent).toBe(
+      "Classic full set (EC$210) has its own deposit of EC$40, which applies instead of this rule. Cancel at least 6 hours before to get your deposit back."
+    );
   });
 
   it("says deposits are collected online only when the business has payments", () => {
@@ -137,6 +171,25 @@ describe("DepositRuleForm", () => {
       "Cancel at least 48 hours before to get your deposit back."
     );
     expect(screen.getByTestId(PREVIEW).textContent).not.toContain("24 hours");
+  });
+});
+
+describe("previewSentence own deposit", () => {
+  it("names the service's own deposit and not the rule when it is set", () => {
+    expect(
+      previewSentence(
+        { name: "Facial", priceMinor: 9000, ownDepositMinor: 2500 },
+        {
+          deposit_mode: "percent",
+          deposit_percent: 50,
+          deposit_fixed_minor: null,
+        },
+        "XCD",
+        undefined
+      )
+    ).toBe(
+      "Facial (EC$90) has its own deposit of EC$25, which applies instead of this rule."
+    );
   });
 });
 
