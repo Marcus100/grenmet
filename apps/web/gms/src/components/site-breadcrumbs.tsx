@@ -37,7 +37,7 @@ export function SiteBreadcrumbs() {
                     </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink
-                      className="hover:text-gm-blue-ink underline-offset-4 hover:underline"
+                      className="hover:text-gm-blue-ink inline-flex min-h-11 items-center underline-offset-4 hover:underline"
                       render={<Link href={crumb.href as Route} />}
                     >
                       {crumb.label}

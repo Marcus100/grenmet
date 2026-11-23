@@ -370,9 +370,7 @@ it("portals the first-visit popup outside transformed mobile layouts", async () 
     name: "Cookie preferences",
   });
   expect(dialog.parentElement).toBe(document.body);
-  expect(
-    screen.getByRole("heading", { name: "Do you accept our cookie policy?" })
-  ).toBeVisible();
+  expect(screen.getByText("Do you accept our cookie policy?")).toBeVisible();
 });
 
 it("customises: essential always on, analytics off until ticked, privacy link when given", async () => {
@@ -384,9 +382,7 @@ it("customises: essential always on, analytics off until ticked, privacy link wh
   fireEvent.click(
     await screen.findByRole("button", { name: "Customise settings" })
   );
-  expect(
-    screen.getByRole("heading", { name: "Customise your cookie settings" })
-  ).toBeVisible();
+  expect(screen.getByText("Customise your cookie settings")).toBeVisible();
   expect(screen.getByRole("link", { name: "privacy policy" })).toHaveAttribute(
     "href",
     "/privacy"

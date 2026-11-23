@@ -48,6 +48,7 @@ from src.cap.schemas import (
     GmsCataloguePublic,
     PublicWarnings,
 )
+from src.config import settings
 from src.dependencies import CurrentUser, SessionDep
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND
@@ -954,11 +955,19 @@ async def read_cap_xml(*, session: SessionDep, identifier: str) -> Response:
     )
 
 
+def _absolute_link(path: str) -> str:
+    """Feed readers and the WMO Alert Hub need absolute links; API paths are rooted at the API host."""
+    if path.startswith(("http://", "https://")):
+        return path
+    base = str(settings.API_BASE_URL or "").rstrip("/")
+    return f"{base}{path}" if base else path
+
+
 def _rss_xml(alerts: list[CapAlertPublic]) -> str:
     rss = ET.Element("rss", version="2.0")
     channel = ET.SubElement(rss, "channel")
     ET.SubElement(channel, "title").text = "Grenada CAP Alerts"
-    ET.SubElement(channel, "link").text = "/api/cap/latest-active"
+    ET.SubElement(channel, "link").text = _absolute_link("/api/cap/latest-active")
     ET.SubElement(
         channel, "description"
     ).text = "Active CAP alerts and recent cancellation messages"
@@ -975,7 +984,7 @@ def _rss_xml(alerts: list[CapAlertPublic]) -> str:
             title = first_info.headline if first_info else alert.identifier
         ET.SubElement(item, "title").text = title
         ET.SubElement(item, "guid").text = alert.identifier
-        ET.SubElement(item, "link").text = (
+        ET.SubElement(item, "link").text = _absolute_link(
             alert.xml_url or f"/api/cap/{alert.identifier}.xml"
         )
         ET.SubElement(item, "pubDate").text = alert.sent.isoformat()

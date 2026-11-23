@@ -42,7 +42,7 @@ function BoardToggle({
         <button
           aria-selected={board === value}
           className={cn(
-            "flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+            "flex min-h-11 items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
             board === value
               ? "bg-gaa-gold text-gaa-navy-ink"
               : "text-white/70 hover:text-white"
@@ -72,7 +72,7 @@ function AirportToggle({
       {(Object.keys(AIRPORTS) as AirportCode[]).map((code) => (
         <button
           className={cn(
-            "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
+            "inline-flex min-h-11 items-center rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
             airport === code
               ? "border-gaa-gold bg-gaa-gold/15 text-gaa-gold"
               : "border-white/20 text-white/70 hover:border-white/40 hover:text-white"
