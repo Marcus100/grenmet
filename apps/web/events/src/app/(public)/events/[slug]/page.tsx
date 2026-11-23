@@ -1,3 +1,4 @@
+import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { breadcrumbList } from "@barrelsgd/ui/lib/seo";
@@ -84,6 +85,11 @@ export default async function EventPage({ params }: { params: Params }) {
       {structuredData.map((data) => (
         <JsonLd data={data} key={String(data["@type"])} />
       ))}
+      <FunnelEvent
+        app="events"
+        event="event_viewed"
+        properties={{ listing_id: event.id }}
+      />
       <article className="grid gap-8 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-6">
           <EventFlyer
@@ -168,6 +174,7 @@ export default async function EventPage({ params }: { params: Params }) {
             </div>
             {event.admission === "ticketed" ? (
               <TicketClaim
+                listingId={event.id}
                 refundTerms={event.refundTerms}
                 slug={event.slug}
                 tiers={event.tiers}

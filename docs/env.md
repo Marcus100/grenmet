@@ -18,10 +18,11 @@ and provider setup steps, see [Integration readiness](operations/integration-rea
 
 The web images are the same for staging and production (build once, promote by
 digest; see [release runbook](operations/release-runbook.md#build-once-promote-by-digest)),
-and eight public settings are read when the app runs, not when the image is built: `NEXT_PUBLIC_SITE_URL`,
+and eleven public settings are read when the app runs, not when the image is built: `NEXT_PUBLIC_SITE_URL`,
 `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_ENVIRONMENT`, `NEXT_PUBLIC_SENTRY_DSN`,
 `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `NEXT_PUBLIC_RELEASE`,
-`NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY` (auth app only).
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY` (auth app only) and the three cookieless funnel settings
+`NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY`, `NEXT_PUBLIC_FUNNEL_ANALYTICS_HOST` and `NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED` (see [Funnel analytics](#funnel-analytics-bookings-events-account)).
 
 - **Server code** reads them with `readPublicEnv(key)` from
   `@barrelsgd/ui/lib/public-env` (each app's `env.ts`, `instrumentation*.ts` and
@@ -51,6 +52,35 @@ and eight public settings are read when the app runs, not when the image is buil
   and source-map upload also use build arguments in `build-web-images.yml`.
 - **Check after a deploy.** `/runtime-env.js` on each app shows that environment's
   site, API, environment, Sentry and Turnstile values.
+
+## Funnel analytics (bookings, events, account)
+
+Cookieless PostHog events for the signed-in funnels (`@barrelsgd/ui/lib/funnel-analytics`).
+They are sent with `fetch` to `<host>/capture/`, with no cookie, no web storage
+and no SDK. Only ids and enums are sent (ADR-0037): organisation slug, service
+id, listing id, page name and the step. Names, emails, phone numbers and free
+text are never sent.
+
+- `NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY`: the PostHog project key (public, not a
+  secret). **Unset means off.** The value must look like a project key.
+- `NEXT_PUBLIC_FUNNEL_ANALYTICS_HOST`: `https://us.i.posthog.com` (default) or
+  `https://eu.i.posthog.com`. Any other host switches collection off.
+- `NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED`: the kill switch. `false`, `0`, `off`
+  or `no` (any case) turn collection off even when a key is set. Any other value
+  leaves it on.
+- **Production only, enforced in code.** Collection runs only when
+  `NEXT_PUBLIC_ENVIRONMENT=production` and the page is on `barrels.gd` or a
+  subdomain of it without a `staging` label. Staging, localhost and preview hosts
+  send nothing even with a key set.
+- Browsers with Do Not Track (`1` or `yes`) or Global Privacy Control send nothing.
+- The three settings are read at run time through `/runtime-env.js` like the
+  other public settings. Deployment wiring (passing them to the web containers
+  in `infra/docker/docker-compose.deploy.yml` and the GitHub environment) is a
+  separate change; until it lands they are unset and nothing is sent.
+- GA4 and the consent-gated PostHog provider on public sites are separate and
+  unchanged. Set the key only in production. Staging and previews must stay
+  without it, as the production-only browser analytics policy requires (see
+  `docs/operations/analytics-monitoring.md`).
 
 ## Local dev setup (one-time)
 
@@ -524,6 +554,7 @@ Barrels account (ADR-0057): a person's profile and profile photo. Every page nee
 | `ACCOUNT_SESSION_COOKIE_NAME` | Host-only session cookie (default `account_session`) |
 | `ACCOUNT_SSO_CLIENT_SECRET` | Same value as the API's registration for `account`; without it `/auth/callback` returns 503. Optional in deployment (empty keeps sign-in off). A GitHub environment secret passed by `deploy.yml` and rendered by `render-env.py` |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
+| `NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY` / `_HOST` / `_ENABLED` | Optional cookieless funnel events, off unless the key is set (see [Funnel analytics](#funnel-analytics-bookings-events-account)) |
 
 ### bookings (`apps/web/bookings`, optional)
 
@@ -537,6 +568,7 @@ Barrels Bookings. Only `/studio` needs sign-in; the public booking pages (`/[slu
 | `TRUSTED_WEB_SECRET` / `VISITOR_IP_PROXY_HOPS` | The visitor-address pair for the public booking form (see the FastAPI table) |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Same value as the API's registration for `bookings`; without it `/auth/callback` returns 503 and nobody can sign in. Optional in deployment (empty keeps sign-in off) |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
+| `NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY` / `_HOST` / `_ENABLED` | Optional cookieless funnel events, off unless the key is set (see [Funnel analytics](#funnel-analytics-bookings-events-account)) |
 
 ### signal (`apps/web/signal/.env.local`)
 
@@ -563,6 +595,7 @@ Barrels Events. No database; the Events API is called from the server at `AUTH_A
 | `EVENTS_SSO_CLIENT_SECRET` | Same value as the API's; 32+ characters; empty keeps sign-in off |
 | `TRUSTED_WEB_SECRET` / `VISITOR_IP_PROXY_HOPS` | The visitor-address pair (see the FastAPI table) |
 | `NEXT_PUBLIC_SITE_URL` | Canonical address for absolute links (run time; default `http://localhost:3009`) |
+| `NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY` / `_HOST` / `_ENABLED` | Optional cookieless funnel events, off unless the key is set (see [Funnel analytics](#funnel-analytics-bookings-events-account)) |
 
 ### MBIA (`apps/web/mbia/.env.local`, optional)
 
