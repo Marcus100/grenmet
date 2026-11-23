@@ -251,6 +251,18 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "printix.manage",
         "Printix ticket registry: events, ticket import, gate pairings (superuser with two-step sign-in only)",
     ),
+    # Barrels Commerce (ADR-0063, slice 0): organisation-bound, held by owners and
+    # admins through the implicit bundle; no role bundle grants them yet.
+    PermissionDef(
+        "commerce.sell",
+        "Read the organisation's products and prices at the till (organisation-bound, ADR-0063)",
+        binding="organisation",
+    ),
+    PermissionDef(
+        "commerce.catalogue.manage",
+        "Create products and set their prices for the organisation (organisation-bound, ADR-0063)",
+        binding="organisation",
+    ),
     # Printix organiser access (ADR-0060 amendment). The app key lets a person sign
     # in to the Printix app; the two organisation keys are held per organisation.
     PermissionDef("app.printix.access", "Sign in to Printix"),

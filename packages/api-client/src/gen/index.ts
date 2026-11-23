@@ -1032,6 +1032,7 @@ export type { BalanceImportResult } from "./models/BalanceImportResult.js";
 export type { BalanceImportRow } from "./models/BalanceImportRow.js";
 export type { BalanceImportRowPropertiesStatusEnum } from "./models/BalanceImportRowPropertiesStatusEnum.js";
 export type { BalanceInput } from "./models/BalanceInput.js";
+export type { BaseUnit } from "./models/BaseUnit.js";
 export type {
   BillingCreateAppSubscriptionCheckoutBody,
   BillingCreateAppSubscriptionCheckoutHeaders,
@@ -2450,6 +2451,72 @@ export type { ClockSiteCreate } from "./models/ClockSiteCreate.js";
 export type { ClockSiteIssued } from "./models/ClockSiteIssued.js";
 export type { ClockSitePublic } from "./models/ClockSitePublic.js";
 export type { ClockSitesPublic } from "./models/ClockSitesPublic.js";
+export type {
+  CommerceOrgAddPriceBody,
+  CommerceOrgAddPriceHeaders,
+  CommerceOrgAddPriceOptions,
+  CommerceOrgAddPricePath,
+  CommerceOrgAddPriceResponse,
+  CommerceOrgAddPriceResponses,
+  CommerceOrgAddPriceStatus201,
+  CommerceOrgAddPriceStatus400,
+  CommerceOrgAddPriceStatus401,
+  CommerceOrgAddPriceStatus403,
+  CommerceOrgAddPriceStatus404,
+  CommerceOrgAddPriceStatus409,
+  CommerceOrgAddPriceStatus422,
+} from "./models/CommerceOrgAddPrice.js";
+export type {
+  CommerceOrgCreateProductBody,
+  CommerceOrgCreateProductHeaders,
+  CommerceOrgCreateProductOptions,
+  CommerceOrgCreateProductResponse,
+  CommerceOrgCreateProductResponses,
+  CommerceOrgCreateProductStatus201,
+  CommerceOrgCreateProductStatus400,
+  CommerceOrgCreateProductStatus401,
+  CommerceOrgCreateProductStatus403,
+  CommerceOrgCreateProductStatus404,
+  CommerceOrgCreateProductStatus409,
+  CommerceOrgCreateProductStatus422,
+} from "./models/CommerceOrgCreateProduct.js";
+export type {
+  CommerceOrgGetProductHeaders,
+  CommerceOrgGetProductOptions,
+  CommerceOrgGetProductPath,
+  CommerceOrgGetProductResponse,
+  CommerceOrgGetProductResponses,
+  CommerceOrgGetProductStatus200,
+  CommerceOrgGetProductStatus401,
+  CommerceOrgGetProductStatus403,
+  CommerceOrgGetProductStatus404,
+  CommerceOrgGetProductStatus422,
+} from "./models/CommerceOrgGetProduct.js";
+export type {
+  CommerceOrgListPricesHeaders,
+  CommerceOrgListPricesOptions,
+  CommerceOrgListPricesPath,
+  CommerceOrgListPricesQuery,
+  CommerceOrgListPricesResponse,
+  CommerceOrgListPricesResponses,
+  CommerceOrgListPricesStatus200,
+  CommerceOrgListPricesStatus401,
+  CommerceOrgListPricesStatus403,
+  CommerceOrgListPricesStatus404,
+  CommerceOrgListPricesStatus422,
+} from "./models/CommerceOrgListPrices.js";
+export type {
+  CommerceOrgListProductsHeaders,
+  CommerceOrgListProductsOptions,
+  CommerceOrgListProductsQuery,
+  CommerceOrgListProductsResponse,
+  CommerceOrgListProductsResponses,
+  CommerceOrgListProductsStatus200,
+  CommerceOrgListProductsStatus401,
+  CommerceOrgListProductsStatus403,
+  CommerceOrgListProductsStatus404,
+  CommerceOrgListProductsStatus422,
+} from "./models/CommerceOrgListProducts.js";
 export type { ConnectFeePublic } from "./models/ConnectFeePublic.js";
 export type { ConnectOnboardingLinkPublic } from "./models/ConnectOnboardingLinkPublic.js";
 export type { ConnectPlatformFeeUpdate } from "./models/ConnectPlatformFeeUpdate.js";
@@ -2646,6 +2713,7 @@ export type {
 } from "./models/ContentSavePost.js";
 export type { ContractorCreate } from "./models/ContractorCreate.js";
 export type { ContractorUpdate } from "./models/ContractorUpdate.js";
+export type { Currency } from "./models/Currency.js";
 export type { CurrentOrganisationPublic } from "./models/CurrentOrganisationPublic.js";
 export type { CustomerCreate } from "./models/CustomerCreate.js";
 export type { CustomerListPublic } from "./models/CustomerListPublic.js";
@@ -7548,6 +7616,8 @@ export type { PaginatedResponseNotificationPublic } from "./models/PaginatedResp
 export type { PaginatedResponseOrgAttendee } from "./models/PaginatedResponseOrgAttendee.js";
 export type { PaginatedResponseOrgOrderRow } from "./models/PaginatedResponseOrgOrderRow.js";
 export type { PaginatedResponsePermissionPublic } from "./models/PaginatedResponsePermissionPublic.js";
+export type { PaginatedResponsePricePublic } from "./models/PaginatedResponsePricePublic.js";
+export type { PaginatedResponseProductPublic } from "./models/PaginatedResponseProductPublic.js";
 export type { PaginatedResponseRolePublic } from "./models/PaginatedResponseRolePublic.js";
 export type { PaginatedResponseStaffEventRow } from "./models/PaginatedResponseStaffEventRow.js";
 export type { PaginatedResponseStaffOrganiserRow } from "./models/PaginatedResponseStaffOrganiserRow.js";
@@ -7825,6 +7895,8 @@ export type { PostIn } from "./models/PostIn.js";
 export type { PostponeEvent } from "./models/PostponeEvent.js";
 export type { PostponeResult } from "./models/PostponeResult.js";
 export type { PreferencesUnsubscribeRequest } from "./models/PreferencesUnsubscribeRequest.js";
+export type { PriceCreate } from "./models/PriceCreate.js";
+export type { PricePublic } from "./models/PricePublic.js";
 export type { PrincipalPhase } from "./models/PrincipalPhase.js";
 export type { PrincipalPhasePropertiesPhaseEnum } from "./models/PrincipalPhasePropertiesPhaseEnum.js";
 export type { PrintixAccess } from "./models/PrintixAccess.js";
@@ -8295,11 +8367,13 @@ export type {
 export type { ProductAccessCurrent } from "./models/ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./models/ProductAccessInput.js";
 export type { ProductAccessPublic } from "./models/ProductAccessPublic.js";
+export type { ProductCreate } from "./models/ProductCreate.js";
 export type { ProductFeedError } from "./models/ProductFeedError.js";
 export type { ProductGuidance } from "./models/ProductGuidance.js";
 export type { ProductHistory } from "./models/ProductHistory.js";
 export type { ProductHistoryEntry } from "./models/ProductHistoryEntry.js";
 export type { ProductPreviewBody } from "./models/ProductPreviewBody.js";
+export type { ProductPublic } from "./models/ProductPublic.js";
 export type { ProductWriteBody } from "./models/ProductWriteBody.js";
 export type { ProfAppointmentType } from "./models/ProfAppointmentType.js";
 export type { ProfileAuditPublic } from "./models/ProfileAuditPublic.js";
@@ -10809,6 +10883,11 @@ export { capUpdateAlert } from "./clients/capUpdateAlert.js";
 export { capUpdateCapSettings } from "./clients/capUpdateCapSettings.js";
 export { capUpdateFeed } from "./clients/capUpdateFeed.js";
 export { capValidateAlert } from "./clients/capValidateAlert.js";
+export { commerceOrgAddPrice } from "./clients/commerceOrgAddPrice.js";
+export { commerceOrgCreateProduct } from "./clients/commerceOrgCreateProduct.js";
+export { commerceOrgGetProduct } from "./clients/commerceOrgGetProduct.js";
+export { commerceOrgListPrices } from "./clients/commerceOrgListPrices.js";
+export { commerceOrgListProducts } from "./clients/commerceOrgListProducts.js";
 export { contactSendContactMessage } from "./clients/contactSendContactMessage.js";
 export { contactSendDataRequest } from "./clients/contactSendDataRequest.js";
 export { contactSendSiteContactMessage } from "./clients/contactSendSiteContactMessage.js";
@@ -12411,6 +12490,31 @@ export {
   capValidateAlertMutationOptions,
   useCapValidateAlert,
 } from "./hooks/useCapValidateAlert.js";
+export {
+  commerceOrgAddPriceMutationKey,
+  commerceOrgAddPriceMutationOptions,
+  useCommerceOrgAddPrice,
+} from "./hooks/useCommerceOrgAddPrice.js";
+export {
+  commerceOrgCreateProductMutationKey,
+  commerceOrgCreateProductMutationOptions,
+  useCommerceOrgCreateProduct,
+} from "./hooks/useCommerceOrgCreateProduct.js";
+export {
+  commerceOrgGetProductQueryKey,
+  commerceOrgGetProductQueryOptions,
+  useCommerceOrgGetProduct,
+} from "./hooks/useCommerceOrgGetProduct.js";
+export {
+  commerceOrgListPricesQueryKey,
+  commerceOrgListPricesQueryOptions,
+  useCommerceOrgListPrices,
+} from "./hooks/useCommerceOrgListPrices.js";
+export {
+  commerceOrgListProductsQueryKey,
+  commerceOrgListProductsQueryOptions,
+  useCommerceOrgListProducts,
+} from "./hooks/useCommerceOrgListProducts.js";
 export {
   contactSendContactMessageMutationKey,
   contactSendContactMessageMutationOptions,
@@ -15536,6 +15640,7 @@ export { aviationDraftReadPropertiesKindEnum } from "./models/AviationDraftReadP
 export { aviationIssuePropertiesSeverityEnum } from "./models/AviationIssuePropertiesSeverityEnum.js";
 export { badgeKey } from "./models/BadgeKey.js";
 export { balanceImportRowPropertiesStatusEnum } from "./models/BalanceImportRowPropertiesStatusEnum.js";
+export { baseUnit } from "./models/BaseUnit.js";
 export { bookingDepositMode } from "./models/BookingDepositMode.js";
 export { bookingExceptionKind } from "./models/BookingExceptionKind.js";
 export { bookingPaymentKind } from "./models/BookingPaymentKind.js";
@@ -15574,6 +15679,7 @@ export { clockResultPropertiesActionEnum } from "./models/ClockResultPropertiesA
 export { connectionPublicPropertiesStateEnum } from "./models/ConnectionPublicPropertiesStateEnum.js";
 export { consentPurpose } from "./models/ConsentPurpose.js";
 export { contactSite } from "./models/ContactSite.js";
+export { currency } from "./models/Currency.js";
 export { dataFormat } from "./models/DataFormat.js";
 export { dataParameter } from "./models/DataParameter.js";
 export { deductionCategory } from "./models/DeductionCategory.js";
@@ -16761,6 +16867,7 @@ export { balanceImportResultSchema } from "./zod/balanceImportResultSchema.js";
 export { balanceImportRowPropertiesStatusEnumSchema } from "./zod/balanceImportRowPropertiesStatusEnumSchema.js";
 export { balanceImportRowSchema } from "./zod/balanceImportRowSchema.js";
 export { balanceInputSchema } from "./zod/balanceInputSchema.js";
+export { baseUnitSchema } from "./zod/baseUnitSchema.js";
 export {
   billingCreateAppSubscriptionCheckoutBodySchema,
   billingCreateAppSubscriptionCheckoutErrorSchema,
@@ -18215,6 +18322,81 @@ export { clockSiteCreateSchema } from "./zod/clockSiteCreateSchema.js";
 export { clockSiteIssuedSchema } from "./zod/clockSiteIssuedSchema.js";
 export { clockSitePublicSchema } from "./zod/clockSitePublicSchema.js";
 export { clockSitesPublicSchema } from "./zod/clockSitesPublicSchema.js";
+export {
+  commerceOrgAddPriceBodySchema,
+  commerceOrgAddPriceErrorSchema,
+  commerceOrgAddPriceHeaderIdempotencyKeySchema,
+  commerceOrgAddPriceHeaderXBarrelsOrganisationSchema,
+  commerceOrgAddPriceHeadersSchema,
+  commerceOrgAddPricePathProductIdSchema,
+  commerceOrgAddPricePathSchema,
+  commerceOrgAddPriceResponseSchema,
+  commerceOrgAddPriceStatus201Schema,
+  commerceOrgAddPriceStatus400Schema,
+  commerceOrgAddPriceStatus401Schema,
+  commerceOrgAddPriceStatus403Schema,
+  commerceOrgAddPriceStatus404Schema,
+  commerceOrgAddPriceStatus409Schema,
+  commerceOrgAddPriceStatus422Schema,
+} from "./zod/commerceOrgAddPriceSchema.js";
+export {
+  commerceOrgCreateProductBodySchema,
+  commerceOrgCreateProductErrorSchema,
+  commerceOrgCreateProductHeaderIdempotencyKeySchema,
+  commerceOrgCreateProductHeaderXBarrelsOrganisationSchema,
+  commerceOrgCreateProductHeadersSchema,
+  commerceOrgCreateProductResponseSchema,
+  commerceOrgCreateProductStatus201Schema,
+  commerceOrgCreateProductStatus400Schema,
+  commerceOrgCreateProductStatus401Schema,
+  commerceOrgCreateProductStatus403Schema,
+  commerceOrgCreateProductStatus404Schema,
+  commerceOrgCreateProductStatus409Schema,
+  commerceOrgCreateProductStatus422Schema,
+} from "./zod/commerceOrgCreateProductSchema.js";
+export {
+  commerceOrgGetProductErrorSchema,
+  commerceOrgGetProductHeaderXBarrelsOrganisationSchema,
+  commerceOrgGetProductHeadersSchema,
+  commerceOrgGetProductPathProductIdSchema,
+  commerceOrgGetProductPathSchema,
+  commerceOrgGetProductResponseSchema,
+  commerceOrgGetProductStatus200Schema,
+  commerceOrgGetProductStatus401Schema,
+  commerceOrgGetProductStatus403Schema,
+  commerceOrgGetProductStatus404Schema,
+  commerceOrgGetProductStatus422Schema,
+} from "./zod/commerceOrgGetProductSchema.js";
+export {
+  commerceOrgListPricesErrorSchema,
+  commerceOrgListPricesHeaderXBarrelsOrganisationSchema,
+  commerceOrgListPricesHeadersSchema,
+  commerceOrgListPricesPathProductIdSchema,
+  commerceOrgListPricesPathSchema,
+  commerceOrgListPricesQueryPageSchema,
+  commerceOrgListPricesQuerySchema,
+  commerceOrgListPricesQuerySizeSchema,
+  commerceOrgListPricesResponseSchema,
+  commerceOrgListPricesStatus200Schema,
+  commerceOrgListPricesStatus401Schema,
+  commerceOrgListPricesStatus403Schema,
+  commerceOrgListPricesStatus404Schema,
+  commerceOrgListPricesStatus422Schema,
+} from "./zod/commerceOrgListPricesSchema.js";
+export {
+  commerceOrgListProductsErrorSchema,
+  commerceOrgListProductsHeaderXBarrelsOrganisationSchema,
+  commerceOrgListProductsHeadersSchema,
+  commerceOrgListProductsQueryPageSchema,
+  commerceOrgListProductsQuerySchema,
+  commerceOrgListProductsQuerySizeSchema,
+  commerceOrgListProductsResponseSchema,
+  commerceOrgListProductsStatus200Schema,
+  commerceOrgListProductsStatus401Schema,
+  commerceOrgListProductsStatus403Schema,
+  commerceOrgListProductsStatus404Schema,
+  commerceOrgListProductsStatus422Schema,
+} from "./zod/commerceOrgListProductsSchema.js";
 export { connectFeePublicSchema } from "./zod/connectFeePublicSchema.js";
 export { connectOnboardingLinkPublicSchema } from "./zod/connectOnboardingLinkPublicSchema.js";
 export { connectPlatformFeeUpdateSchema } from "./zod/connectPlatformFeeUpdateSchema.js";
@@ -18426,6 +18608,7 @@ export {
 } from "./zod/contentSavePostSchema.js";
 export { contractorCreateSchema } from "./zod/contractorCreateSchema.js";
 export { contractorUpdateSchema } from "./zod/contractorUpdateSchema.js";
+export { currencySchema } from "./zod/currencySchema.js";
 export { currentOrganisationPublicSchema } from "./zod/currentOrganisationPublicSchema.js";
 export { customerCreateSchema } from "./zod/customerCreateSchema.js";
 export { customerListPublicSchema } from "./zod/customerListPublicSchema.js";
@@ -23389,6 +23572,8 @@ export { paginatedResponseNotificationPublicSchema } from "./zod/paginatedRespon
 export { paginatedResponseOrgAttendeeSchema } from "./zod/paginatedResponseOrgAttendeeSchema.js";
 export { paginatedResponseOrgOrderRowSchema } from "./zod/paginatedResponseOrgOrderRowSchema.js";
 export { paginatedResponsePermissionPublicSchema } from "./zod/paginatedResponsePermissionPublicSchema.js";
+export { paginatedResponsePricePublicSchema } from "./zod/paginatedResponsePricePublicSchema.js";
+export { paginatedResponseProductPublicSchema } from "./zod/paginatedResponseProductPublicSchema.js";
 export { paginatedResponseRolePublicSchema } from "./zod/paginatedResponseRolePublicSchema.js";
 export { paginatedResponseStaffEventRowSchema } from "./zod/paginatedResponseStaffEventRowSchema.js";
 export { paginatedResponseStaffOrganiserRowSchema } from "./zod/paginatedResponseStaffOrganiserRowSchema.js";
@@ -23684,6 +23869,8 @@ export { postInSchema } from "./zod/postInSchema.js";
 export { postponeEventSchema } from "./zod/postponeEventSchema.js";
 export { postponeResultSchema } from "./zod/postponeResultSchema.js";
 export { preferencesUnsubscribeRequestSchema } from "./zod/preferencesUnsubscribeRequestSchema.js";
+export { priceCreateSchema } from "./zod/priceCreateSchema.js";
+export { pricePublicSchema } from "./zod/pricePublicSchema.js";
 export { principalPhasePropertiesPhaseEnumSchema } from "./zod/principalPhasePropertiesPhaseEnumSchema.js";
 export { principalPhaseSchema } from "./zod/principalPhaseSchema.js";
 export { printixAccessSchema } from "./zod/printixAccessSchema.js";
@@ -24180,11 +24367,13 @@ export {
 export { productAccessCurrentSchema } from "./zod/productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./zod/productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./zod/productAccessPublicSchema.js";
+export { productCreateSchema } from "./zod/productCreateSchema.js";
 export { productFeedErrorSchema } from "./zod/productFeedErrorSchema.js";
 export { productGuidanceSchema } from "./zod/productGuidanceSchema.js";
 export { productHistoryEntrySchema } from "./zod/productHistoryEntrySchema.js";
 export { productHistorySchema } from "./zod/productHistorySchema.js";
 export { productPreviewBodySchema } from "./zod/productPreviewBodySchema.js";
+export { productPublicSchema } from "./zod/productPublicSchema.js";
 export { productWriteBodySchema } from "./zod/productWriteBodySchema.js";
 export { profAppointmentTypeSchema } from "./zod/profAppointmentTypeSchema.js";
 export { profileAuditPublicSchema } from "./zod/profileAuditPublicSchema.js";

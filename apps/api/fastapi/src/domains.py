@@ -20,6 +20,7 @@ from collections.abc import Callable, Iterable, Mapping
 from importlib import import_module
 from typing import Any
 
+from src.commerce.register import DOMAIN as COMMERCE
 from src.contacts.register import DOMAIN as CONTACTS
 from src.domain_manifest import Domain, Mount, WorkerJob, resolve_function
 from src.flights.register import DOMAIN as FLIGHTS
@@ -36,6 +37,7 @@ DOMAINS: tuple[Domain, ...] = (
     PROFILE_IMAGES,
     PRINTIX,
     MONITORING,
+    COMMERCE,
 )
 
 # Every router of the app, in mount order (legacy and registered alike).
@@ -117,6 +119,7 @@ MOUNT_ORDER: tuple[str, ...] = (
     "printix.org",
     "printix.me",
     "monitoring.admin",
+    "commerce.org",
 )
 
 

@@ -1043,6 +1043,8 @@ export type { BalanceImportRow } from "./BalanceImportRow.js";
 export type { BalanceImportRowPropertiesStatusEnum } from "./BalanceImportRowPropertiesStatusEnum.js";
 export { balanceImportRowPropertiesStatusEnum } from "./BalanceImportRowPropertiesStatusEnum.js";
 export type { BalanceInput } from "./BalanceInput.js";
+export type { BaseUnit } from "./BaseUnit.js";
+export { baseUnit } from "./BaseUnit.js";
 export type {
   BillingCreateAppSubscriptionCheckoutBody,
   BillingCreateAppSubscriptionCheckoutHeaders,
@@ -2496,6 +2498,72 @@ export type { ClockSiteCreate } from "./ClockSiteCreate.js";
 export type { ClockSiteIssued } from "./ClockSiteIssued.js";
 export type { ClockSitePublic } from "./ClockSitePublic.js";
 export type { ClockSitesPublic } from "./ClockSitesPublic.js";
+export type {
+  CommerceOrgAddPriceBody,
+  CommerceOrgAddPriceHeaders,
+  CommerceOrgAddPriceOptions,
+  CommerceOrgAddPricePath,
+  CommerceOrgAddPriceResponse,
+  CommerceOrgAddPriceResponses,
+  CommerceOrgAddPriceStatus201,
+  CommerceOrgAddPriceStatus400,
+  CommerceOrgAddPriceStatus401,
+  CommerceOrgAddPriceStatus403,
+  CommerceOrgAddPriceStatus404,
+  CommerceOrgAddPriceStatus409,
+  CommerceOrgAddPriceStatus422,
+} from "./CommerceOrgAddPrice.js";
+export type {
+  CommerceOrgCreateProductBody,
+  CommerceOrgCreateProductHeaders,
+  CommerceOrgCreateProductOptions,
+  CommerceOrgCreateProductResponse,
+  CommerceOrgCreateProductResponses,
+  CommerceOrgCreateProductStatus201,
+  CommerceOrgCreateProductStatus400,
+  CommerceOrgCreateProductStatus401,
+  CommerceOrgCreateProductStatus403,
+  CommerceOrgCreateProductStatus404,
+  CommerceOrgCreateProductStatus409,
+  CommerceOrgCreateProductStatus422,
+} from "./CommerceOrgCreateProduct.js";
+export type {
+  CommerceOrgGetProductHeaders,
+  CommerceOrgGetProductOptions,
+  CommerceOrgGetProductPath,
+  CommerceOrgGetProductResponse,
+  CommerceOrgGetProductResponses,
+  CommerceOrgGetProductStatus200,
+  CommerceOrgGetProductStatus401,
+  CommerceOrgGetProductStatus403,
+  CommerceOrgGetProductStatus404,
+  CommerceOrgGetProductStatus422,
+} from "./CommerceOrgGetProduct.js";
+export type {
+  CommerceOrgListPricesHeaders,
+  CommerceOrgListPricesOptions,
+  CommerceOrgListPricesPath,
+  CommerceOrgListPricesQuery,
+  CommerceOrgListPricesResponse,
+  CommerceOrgListPricesResponses,
+  CommerceOrgListPricesStatus200,
+  CommerceOrgListPricesStatus401,
+  CommerceOrgListPricesStatus403,
+  CommerceOrgListPricesStatus404,
+  CommerceOrgListPricesStatus422,
+} from "./CommerceOrgListPrices.js";
+export type {
+  CommerceOrgListProductsHeaders,
+  CommerceOrgListProductsOptions,
+  CommerceOrgListProductsQuery,
+  CommerceOrgListProductsResponse,
+  CommerceOrgListProductsResponses,
+  CommerceOrgListProductsStatus200,
+  CommerceOrgListProductsStatus401,
+  CommerceOrgListProductsStatus403,
+  CommerceOrgListProductsStatus404,
+  CommerceOrgListProductsStatus422,
+} from "./CommerceOrgListProducts.js";
 export type { ConnectFeePublic } from "./ConnectFeePublic.js";
 export type { ConnectionCreate } from "./ConnectionCreate.js";
 export type { ConnectionPublic } from "./ConnectionPublic.js";
@@ -2695,6 +2763,8 @@ export type {
 } from "./ContentSavePost.js";
 export type { ContractorCreate } from "./ContractorCreate.js";
 export type { ContractorUpdate } from "./ContractorUpdate.js";
+export type { Currency } from "./Currency.js";
+export { currency } from "./Currency.js";
 export type { CurrentOrganisationPublic } from "./CurrentOrganisationPublic.js";
 export type { CustomerCreate } from "./CustomerCreate.js";
 export type { CustomerListPublic } from "./CustomerListPublic.js";
@@ -7684,6 +7754,8 @@ export type { PaginatedResponseNotificationPublic } from "./PaginatedResponseNot
 export type { PaginatedResponseOrgAttendee } from "./PaginatedResponseOrgAttendee.js";
 export type { PaginatedResponseOrgOrderRow } from "./PaginatedResponseOrgOrderRow.js";
 export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
+export type { PaginatedResponsePricePublic } from "./PaginatedResponsePricePublic.js";
+export type { PaginatedResponseProductPublic } from "./PaginatedResponseProductPublic.js";
 export type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 export type { PaginatedResponseStaffEventRow } from "./PaginatedResponseStaffEventRow.js";
 export type { PaginatedResponseStaffOrganiserRow } from "./PaginatedResponseStaffOrganiserRow.js";
@@ -7973,6 +8045,8 @@ export type { PostIn } from "./PostIn.js";
 export type { PostponeEvent } from "./PostponeEvent.js";
 export type { PostponeResult } from "./PostponeResult.js";
 export type { PreferencesUnsubscribeRequest } from "./PreferencesUnsubscribeRequest.js";
+export type { PriceCreate } from "./PriceCreate.js";
+export type { PricePublic } from "./PricePublic.js";
 export type { PrincipalPhase } from "./PrincipalPhase.js";
 export type { PrincipalPhasePropertiesPhaseEnum } from "./PrincipalPhasePropertiesPhaseEnum.js";
 export { principalPhasePropertiesPhaseEnum } from "./PrincipalPhasePropertiesPhaseEnum.js";
@@ -8450,11 +8524,13 @@ export type {
 export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";
+export type { ProductCreate } from "./ProductCreate.js";
 export type { ProductFeedError } from "./ProductFeedError.js";
 export type { ProductGuidance } from "./ProductGuidance.js";
 export type { ProductHistory } from "./ProductHistory.js";
 export type { ProductHistoryEntry } from "./ProductHistoryEntry.js";
 export type { ProductPreviewBody } from "./ProductPreviewBody.js";
+export type { ProductPublic } from "./ProductPublic.js";
 export type { ProductWriteBody } from "./ProductWriteBody.js";
 export type { ProfAppointmentType } from "./ProfAppointmentType.js";
 export { profAppointmentType } from "./ProfAppointmentType.js";
