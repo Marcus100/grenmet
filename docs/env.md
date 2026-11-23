@@ -262,7 +262,6 @@ the API image and the local source mount contain the same migration assets.
 | `BILLING_STRIPE_WEBHOOK_SECRET` | Stripe endpoint signing secret; locally use the `whsec_...` value printed by `stripe listen` |
 | `BILLING_STRIPE_PRICE_ID` | Recurring Stripe Price used by subscription Checkout Sessions |
 | `BILLING_STRIPE_PRICES` | JSON object of app subscription prices (ADR-0065): `{"bookings-monthly:XCD": "price_..."}`. A plan with no entry answers 503 at checkout. Test-mode price ids only until the owner approves live mode |
-| `BILLING_APP_TRIAL_DAYS` | Optional JSON object of free trial days per plan, e.g. `{"bookings-monthly": 30}`; empty means no trial (ADR-0065) |
 | `BILLING_CHECKOUT_SUCCESS_URL` | Stripe-hosted Checkout success redirect; may contain the literal `{CHECKOUT_SESSION_ID}` placeholder |
 | `BILLING_CHECKOUT_CANCEL_URL` | Stripe-hosted Checkout cancellation redirect |
 | `BILLING_INVOICE_LEGAL_ENTITY_NAME` | **Provisional.** Name printed on invoices and snapshotted onto each invoice when it is issued (default `Barrels Grenada`) |

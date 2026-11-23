@@ -124,7 +124,6 @@ def real_gateway() -> Generator[StripeSdkGateway]:
 @pytest.fixture(autouse=True)
 def _price_config(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(billing_settings, "STRIPE_PRICES", {f"{PLAN}:XCD": PRICE_ID})
-    monkeypatch.setattr(billing_settings, "APP_TRIAL_DAYS", {})
 
 
 @pytest.fixture
@@ -352,20 +351,20 @@ async def test_checkout_passes_plan_and_organisation_to_the_gateway(
 
 
 @pytest.mark.usefixtures("plan_seed")
-async def test_optional_trial_days_reach_the_gateway(
+async def test_checkout_without_a_trial_grant_sends_no_trial(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     fake_gateway: FakeAppGateway,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(billing_settings, "APP_TRIAL_DAYS", {PLAN: 30})
+    """ADR-0065 amendment: no trial unless the organisation has a grant (see
+    ``test_app_subscriptions_studio.py`` for the granted cases)."""
     user, org = await _org(db_async, MembershipRole.ADMIN)
 
     await async_client.post(
         f"{API}/checkout", json={"plan_key": PLAN}, headers=headers_for(user, org.id)
     )
 
-    assert fake_gateway.calls[0]["trial_period_days"] == 30
+    assert fake_gateway.calls[0]["trial_period_days"] is None
 
 
 @pytest.mark.usefixtures("plan_seed")

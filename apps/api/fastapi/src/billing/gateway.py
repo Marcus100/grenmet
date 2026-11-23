@@ -69,6 +69,8 @@ class StripeGateway(Protocol):
         customer_id: str | None,
         customer_email: str | None,
         trial_period_days: int | None,
+        success_url: str,
+        cancel_url: str,
     ) -> CheckoutSessionResult: ...
 
     def get_app_subscription_checkout(
@@ -135,8 +137,13 @@ class StripeSdkGateway:
         customer_id: str | None,
         customer_email: str | None,
         trial_period_days: int | None,
+        success_url: str,
+        cancel_url: str,
     ) -> CheckoutSessionResult:
         """A subscription Checkout Session for one Barrels app plan (test mode only).
+
+        The return URLs are chosen by the service per organisation; this adapter never
+        reads a global return URL for app subscriptions.
 
         The key guard runs before the client exists, so a live key sends nothing."""
         secret_key = _require_test_key(self._config.STRIPE_SECRET_KEY)
@@ -151,13 +158,13 @@ class StripeSdkGateway:
         if trial_period_days:
             subscription_data["trial_period_days"] = trial_period_days
         params: dict[str, Any] = {
-            "cancel_url": str(self._config.CHECKOUT_CANCEL_URL),
+            "cancel_url": cancel_url,
             "client_reference_id": subscription_id,
             "line_items": [{"price": price_id, "quantity": 1}],
             "metadata": metadata,
             "mode": "subscription",
             "subscription_data": subscription_data,
-            "success_url": str(self._config.CHECKOUT_SUCCESS_URL),
+            "success_url": success_url,
         }
         if customer_id:
             params["customer"] = customer_id
