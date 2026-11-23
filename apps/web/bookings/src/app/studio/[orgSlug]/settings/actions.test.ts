@@ -992,3 +992,146 @@ describe("time off", () => {
     expect(reportError).not.toHaveBeenCalled();
   });
 });
+
+describe("deposit rule", () => {
+  it("saves the rule and keeps every other stored field as it is", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_mode: "none",
+      deposit_percent: null,
+      deposit_fixed_minor: null,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "percent",
+        depositPercent: "50",
+      })
+    );
+    expect(result).toMatchObject({
+      status: "success",
+      message: "Deposit rule saved.",
+    });
+    expect(saveProfile).toHaveBeenCalledWith("tok", ORG_ID, {
+      ...(STORED as object),
+      deposit_mode: "percent",
+      deposit_percent: 50,
+      deposit_fixed_minor: null,
+    });
+  });
+
+  it("saves a fixed amount in minor units and keeps the payment choice", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "fixed",
+        depositFixed: "25.50",
+      })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_mode: "fixed",
+        deposit_percent: null,
+        deposit_fixed_minor: 2550,
+        payment_at_booking: "full_price",
+        contact_phone: "+14734401234",
+      })
+    );
+  });
+
+  it("switches the rule off as none with no amounts when the switch is left off", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_mode: "percent",
+      deposit_percent: 50,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositMode: "percent", depositPercent: "50" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_mode: "none",
+        deposit_percent: null,
+        deposit_fixed_minor: null,
+      })
+    );
+  });
+
+  it("refuses a percentage or amount outside the rules without calling the API", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    const percent = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "percent",
+        depositPercent: "101",
+      })
+    );
+    expect(percent).toMatchObject({ status: "error", kind: "invalid" });
+    const amount = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "fixed",
+        depositFixed: "0",
+      })
+    );
+    expect(amount).toMatchObject({ status: "error", kind: "invalid" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("refuses a deposit before the business has a profile", async () => {
+    vi.mocked(getProfile).mockResolvedValue(null);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "percent",
+        depositPercent: "50",
+      })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      message: "Save the business profile first, then set a deposit.",
+    });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("refuses a member before any deposit is saved", async () => {
+    org("member");
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "percent",
+        depositPercent: "50",
+      })
+    );
+    expect(result).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+});

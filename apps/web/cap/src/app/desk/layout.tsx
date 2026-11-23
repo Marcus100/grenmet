@@ -31,11 +31,11 @@ export default async function DeskLayout({
           {gate.status === "staff" ? (
             <nav
               aria-label="Desk"
-              className="text-body-sm flex min-w-0 flex-wrap gap-x-4 gap-y-1"
+              className="text-body-sm flex min-w-0 flex-wrap gap-x-3 gap-y-1"
             >
               {deskNavItems(gate.permissions).map((item) => (
                 <Link
-                  className="text-info inline-flex items-center py-1 hover:underline"
+                  className="text-info inline-flex min-h-11 items-center px-1 hover:underline"
                   href={item.href}
                   key={item.href}
                 >

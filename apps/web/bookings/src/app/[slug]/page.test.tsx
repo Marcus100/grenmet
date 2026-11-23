@@ -162,6 +162,16 @@ describe("/[slug]", () => {
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
   });
 
+  it("offers a Report this listing mail link with the slug only", async () => {
+    vi.mocked(getStorefront).mockResolvedValue(storefront);
+    render(await BusinessBookingPage(params("sea-salt-spa")));
+    const link = screen.getByRole("link", { name: "Report this listing" });
+    expect(link).toHaveAttribute(
+      "href",
+      "mailto:support@barrels.gd?subject=Report%20listing%3A%20sea-salt-spa"
+    );
+  });
+
   it("is not found for an unknown slug", async () => {
     vi.mocked(getStorefront).mockResolvedValue(null);
     await expect(

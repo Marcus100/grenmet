@@ -1256,32 +1256,10 @@ section.block.flush-top {
   background: currentColor;
   border-radius: 50%;
 }
-.hours {
-  width: 100%;
-  margin-top: 14px;
-  font-variant-numeric: tabular-nums;
-  border-collapse: collapse;
-}
-.hours th {
-  font-weight: 400;
-  text-align: left;
-}
-.hours th,
-.hours td {
-  padding: 10px 0;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-}
-.hours td:last-child {
-  text-align: right;
-}
-.hours tr.closed th,
-.hours tr.closed td {
-  opacity: 0.6;
-}
-.hours-note {
-  margin-top: 12px;
-  font-size: 0.88rem;
-  opacity: 0.8;
+.appointment-note {
+  margin: 12px 0 20px;
+  font-size: 0.95rem;
+  opacity: 0.85;
 }
 .social {
   display: grid;

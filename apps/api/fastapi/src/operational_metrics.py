@@ -71,6 +71,7 @@ JOBS = frozenset(
     {
         "process_cap_jobs",
         "ingest_cap_feeds",
+        "expire_cap_alerts",
         "send_notification_emails",
         "run_notification_sweeps",
         "purge_scan_log",

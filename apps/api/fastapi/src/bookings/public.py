@@ -405,6 +405,7 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         business_phone=profile.contact_phone,
         accent=profile.brand_color,
         logo=emails.business_logo(profile.display_name, profile.logo_file_id),
+        payment_line=deposit_payments.payment_line(managed.booking),
     )
 
 
