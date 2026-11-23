@@ -10,10 +10,9 @@ import {
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
 import { revokeApiKeyAction } from "@/app/(console)/organisations/api-key-actions";
+import { ConfirmActionDialog } from "@/components/confirm-action-dialog";
 import { type KeyState, keyState } from "@/lib/api-key-form";
 
-const DANGER =
-  "rounded-md border border-destructive px-3 py-1.5 text-destructive text-sm hover:bg-muted";
 const DATE_LENGTH = 10;
 
 const STATE_BADGE: Record<
@@ -63,26 +62,14 @@ function KeyRow({
       </TableCell>
       <TableCell>
         {state === "revoked" ? null : (
-          <details>
-            <summary className="cursor-pointer text-sm">Revoke</summary>
-            <form action={revokeApiKeyAction} className="mt-2 grid gap-2">
-              <input
-                name="organisation_id"
-                type="hidden"
-                value={organisationId}
-              />
-              <input name="key_id" type="hidden" value={row.id} />
-              <p className="text-xs">
-                Revoking {row.key_prefix} stops it working at once and cannot be
-                undone.
-              </p>
-              <div>
-                <button className={DANGER} type="submit">
-                  Confirm revoke
-                </button>
-              </div>
-            </form>
-          </details>
+          <ConfirmActionDialog
+            action={revokeApiKeyAction}
+            confirmLabel="Confirm revoke"
+            description={`Revoking ${row.key_prefix} stops it working at once and cannot be undone.`}
+            fields={{ organisation_id: organisationId, key_id: row.id }}
+            title="Revoke this API key?"
+            triggerLabel="Revoke"
+          />
         )}
       </TableCell>
     </TableRow>
