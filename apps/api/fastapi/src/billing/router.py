@@ -2,14 +2,31 @@ from typing import Any
 
 from fastapi import APIRouter, Request, status
 
-from src.dependencies import CurrentUser
+from src.dependencies import CurrentUser, SessionDep
 from src.models import ApiError
+from src.openapi_responses import AUTHENTICATED, CONFLICT, NOT_FOUND
+from src.organisations.dependencies import OrgAdmin
 
-from . import service
-from .dependencies import StripeGatewayDep
-from .schemas import CheckoutSessionPublic, WebhookReceivedPublic
+from . import app_subscriptions, service
+from .dependencies import AppSubscriptionManager, StripeGatewayDep
+from .schemas import (
+    AppSubscriptionCheckoutCreate,
+    AppSubscriptionCheckoutPublic,
+    AppSubscriptionListPublic,
+    CheckoutSessionPublic,
+    WebhookReceivedPublic,
+)
 
 router = APIRouter(prefix="/billing")
+
+_APP_SUBSCRIPTION_WRITE_ERRORS = {
+    **AUTHENTICATED,
+    **NOT_FOUND,
+    **CONFLICT,
+    422: {"model": ApiError, "description": "This plan has no price in that currency"},
+    502: {"description": "Stripe request failed"},
+    503: {"description": "Billing is not configured or test mode is not in use"},
+}
 
 
 @router.post(
@@ -40,6 +57,63 @@ def create_subscription_checkout(
     )
 
 
+@router.get(
+    "/org/subscriptions",
+    response_model=AppSubscriptionListPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List the organisation's app subscriptions",
+    description=(
+        "Barrels app subscriptions of the organisation the request acts for, newest "
+        "first, with each plan's amount in XCD minor units (ADR-0065). Organisation "
+        "admins and owners only."
+    ),
+    operation_id="billingListAppSubscriptions",
+    tags=["billing"],
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def list_app_subscriptions(
+    *, session: SessionDep, _manager: AppSubscriptionManager, org: OrgAdmin
+) -> Any:
+    data = await app_subscriptions.list_subscriptions(
+        session, organisation_id=org.organisation_id
+    )
+    return AppSubscriptionListPublic(data=data)
+
+
+@router.post(
+    "/org/subscriptions/checkout",
+    response_model=AppSubscriptionCheckoutPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Start an app subscription checkout",
+    description=(
+        "Create a pending subscription for one plan and return the hosted Stripe "
+        "Checkout URL. Test mode only: a live Stripe key is refused with 503 before "
+        "anything is sent. Organisation admins and owners only; one live subscription "
+        "per organisation and app."
+    ),
+    operation_id="billingCreateAppSubscriptionCheckout",
+    tags=["billing"],
+    responses=_APP_SUBSCRIPTION_WRITE_ERRORS,
+)
+async def create_app_subscription_checkout(
+    *,
+    session: SessionDep,
+    _manager: AppSubscriptionManager,
+    org: OrgAdmin,
+    gateway: StripeGatewayDep,
+    payload: AppSubscriptionCheckoutCreate,
+) -> Any:
+    result = await app_subscriptions.start_checkout(
+        session,
+        gateway=gateway,
+        organisation_id=org.organisation_id,
+        user=org.user,
+        payload=payload,
+    )
+    await session.commit()
+    return result
+
+
 @router.post(
     "/webhooks/stripe",
     response_model=WebhookReceivedPublic,
@@ -59,12 +133,16 @@ def create_subscription_checkout(
     },
     include_in_schema=False,
 )
-async def receive_stripe_webhook(*, request: Request, gateway: StripeGatewayDep) -> Any:
+async def receive_stripe_webhook(
+    *, request: Request, session: SessionDep, gateway: StripeGatewayDep
+) -> Any:
     payload = await request.body()
     signature = request.headers.get("stripe-signature", "")
-    service.handle_stripe_webhook(
+    await service.handle_stripe_webhook(
+        session=session,
         payload=payload,
         signature=signature,
         gateway=gateway,
     )
+    await session.commit()
     return WebhookReceivedPublic(received=True)

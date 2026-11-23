@@ -17,6 +17,10 @@ class BillingConfig(BaseSettings):
     STRIPE_SECRET_KEY: str | None = None
     STRIPE_WEBHOOK_SECRET: str | None = None
     STRIPE_PRICE_ID: str | None = None
+    #: App subscription prices (ADR-0065): ``"<plan_key>:<currency>": "<Stripe price id>"``.
+    STRIPE_PRICES: dict[str, str] = Field(default_factory=dict)
+    #: Optional free trial per plan, in days: ``{"<plan_key>": <days>}``. Empty = none.
+    APP_TRIAL_DAYS: dict[str, int] = Field(default_factory=dict)
     CHECKOUT_SUCCESS_URL: HttpUrl = HttpUrl(
         "http://localhost:8000/scalar?checkout=success&session_id={CHECKOUT_SESSION_ID}"
     )

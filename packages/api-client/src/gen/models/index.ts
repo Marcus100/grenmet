@@ -82,6 +82,14 @@ export type { AppPublic } from "./AppPublic.js";
 export type { ApprovalAuthorityPublic } from "./ApprovalAuthorityPublic.js";
 export type { ApprovalAuthorityUpdate } from "./ApprovalAuthorityUpdate.js";
 export type { ApprovalLine } from "./ApprovalLine.js";
+export type { AppSubscriptionChannel } from "./AppSubscriptionChannel.js";
+export { appSubscriptionChannel } from "./AppSubscriptionChannel.js";
+export type { AppSubscriptionCheckoutCreate } from "./AppSubscriptionCheckoutCreate.js";
+export type { AppSubscriptionCheckoutPublic } from "./AppSubscriptionCheckoutPublic.js";
+export type { AppSubscriptionListPublic } from "./AppSubscriptionListPublic.js";
+export type { AppSubscriptionPublic } from "./AppSubscriptionPublic.js";
+export type { AppSubscriptionStatus } from "./AppSubscriptionStatus.js";
+export { appSubscriptionStatus } from "./AppSubscriptionStatus.js";
 export type { ArchiveBulletin } from "./ArchiveBulletin.js";
 export type { ArchiveEdition } from "./ArchiveEdition.js";
 export type { ArchiveHistory } from "./ArchiveHistory.js";
@@ -1034,6 +1042,21 @@ export type { BalanceImportRowPropertiesStatusEnum } from "./BalanceImportRowPro
 export { balanceImportRowPropertiesStatusEnum } from "./BalanceImportRowPropertiesStatusEnum.js";
 export type { BalanceInput } from "./BalanceInput.js";
 export type {
+  BillingCreateAppSubscriptionCheckoutBody,
+  BillingCreateAppSubscriptionCheckoutHeaders,
+  BillingCreateAppSubscriptionCheckoutOptions,
+  BillingCreateAppSubscriptionCheckoutResponse,
+  BillingCreateAppSubscriptionCheckoutResponses,
+  BillingCreateAppSubscriptionCheckoutStatus201,
+  BillingCreateAppSubscriptionCheckoutStatus401,
+  BillingCreateAppSubscriptionCheckoutStatus403,
+  BillingCreateAppSubscriptionCheckoutStatus404,
+  BillingCreateAppSubscriptionCheckoutStatus409,
+  BillingCreateAppSubscriptionCheckoutStatus422,
+  BillingCreateAppSubscriptionCheckoutStatus502,
+  BillingCreateAppSubscriptionCheckoutStatus503,
+} from "./BillingCreateAppSubscriptionCheckout.js";
+export type {
   BillingCreateCustomerBody,
   BillingCreateCustomerOptions,
   BillingCreateCustomerResponse,
@@ -1134,6 +1157,17 @@ export type {
   BillingIssueInvoiceStatus409,
   BillingIssueInvoiceStatus422,
 } from "./BillingIssueInvoice.js";
+export type {
+  BillingListAppSubscriptionsHeaders,
+  BillingListAppSubscriptionsOptions,
+  BillingListAppSubscriptionsResponse,
+  BillingListAppSubscriptionsResponses,
+  BillingListAppSubscriptionsStatus200,
+  BillingListAppSubscriptionsStatus401,
+  BillingListAppSubscriptionsStatus403,
+  BillingListAppSubscriptionsStatus404,
+  BillingListAppSubscriptionsStatus422,
+} from "./BillingListAppSubscriptions.js";
 export type {
   BillingListCustomersOptions,
   BillingListCustomersQuery,
