@@ -15175,6 +15175,67 @@
         ]
       }
     },
+    "/api/v1/hr/me/organisations": {
+      "get": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "List my HR organisations",
+        "description": "Returns the signed-in staff member's organisations and effective scope from live employment and role assignments.",
+        "operationId": "hrGetMyOrganisations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HrMeOrganisationPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Hrgetmyorganisations"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/organisations/{organisation_id}": {
       "patch": {
         "tags": [
@@ -66856,6 +66917,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Single sign-on is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -66961,6 +67032,16 @@
           },
           "403": {
             "description": "Account cannot use this app",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Single sign-on is not configured",
             "content": {
               "application/json": {
                 "schema": {
@@ -92051,6 +92132,33 @@
         ],
         "title": "HrDashboardPublic"
       },
+      "HrMeOrganisationPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/RoleAssignmentScope"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "scope"
+        ],
+        "title": "HrMeOrganisationPublic"
+      },
       "HrRolePublic": {
         "properties": {
           "name": {
@@ -99660,6 +99768,17 @@
           "name": {
             "type": "string",
             "title": "Name"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
           }
         },
         "type": "object",

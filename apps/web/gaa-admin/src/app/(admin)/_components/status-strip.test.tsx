@@ -5,6 +5,12 @@ const loadAlerts = vi.fn();
 const loadProducts = vi.fn();
 const loadImagery = vi.fn();
 const loadHr = vi.fn();
+const cutover = vi.hoisted(() => ({
+  deskUrl: undefined as string | undefined,
+}));
+vi.mock("@/lib/env", () => ({
+  getCapDeskCutoverUrl: () => cutover.deskUrl,
+}));
 
 vi.mock("./home-loaders", () => ({
   loadAlerts: () => loadAlerts(),
@@ -16,12 +22,16 @@ vi.mock("./home-loaders", () => ({
 const { StatusStrip } = await import("./status-strip");
 
 const ok = <T,>(data: T) => ({ data, ok: true as const });
+const ACTIVE_CAP_ALERTS = /Active CAP alerts/u;
 const failed = (message: string) => ({ message, ok: false as const });
 
 beforeEach(() => {
   vi.setSystemTime(new Date("2026-09-09T14:00:00Z"));
 });
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  cutover.deskUrl = undefined;
+  vi.useRealTimers();
+});
 
 async function renderStrip() {
   render(await StatusStrip());
@@ -55,6 +65,23 @@ describe("StatusStrip", () => {
       screen.getByText("Today's product types in the live feed")
     ).toBeInTheDocument();
     expect(screen.queryByText("Pending")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: ACTIVE_CAP_ALERTS })
+    ).toHaveAttribute("href", "/cap");
+  });
+
+  it("links the CAP status tile directly to the desk when cutover is on", async () => {
+    cutover.deskUrl = "https://cap.test/desk";
+    loadAlerts.mockResolvedValue(ok({ count: 0, data: [] }));
+    loadProducts.mockResolvedValue(ok([]));
+    loadImagery.mockResolvedValue(ok([]));
+    loadHr.mockResolvedValue(ok({ approvals: [], open_requests: 0 }));
+
+    await renderStrip();
+
+    expect(
+      screen.getByRole("link", { name: ACTIVE_CAP_ALERTS })
+    ).toHaveAttribute("href", "https://cap.test/desk");
   });
 
   it("degrades each tile independently when its source is down", async () => {

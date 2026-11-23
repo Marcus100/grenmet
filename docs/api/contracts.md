@@ -687,6 +687,10 @@ ordinary staff tokens without an `app` claim. `POST /auth/sessions` ignores an
 `app_name` that names any registered app. The cookie-authenticated routes read
 GAA Admin's host-only cookie, `admin_session` (`BROWSER_SESSION_COOKIE_NAME`).
 
+Barrels HR registers as the `hr` staff client. Its handoff and redeem endpoints
+return 503 while `HR_SSO_CLIENT_SECRET` is empty. An approved staff account gets an
+ordinary staff bearer token, with the same permission checks as other staff sessions.
+
 **Public accounts (ADR-0017 step 4).** Any active account can sign in at
 auth.barrels.gd (`POST /auth/sessions`, Google) and hold an *account session*:
 a session that belongs to no registered app. Its token has no `app` claim, but
@@ -2017,8 +2021,18 @@ See the [GAA governance launch procedure](../operations/gaa-governance-launch.md
 ### HR organisation ownership
 
 `GET /api/v1/hr/organisations` lists the authenticated user's available organisation
-contexts. Employment, department, document and role-assignment responses include
-`organisation_id`; departments also expose their organisation-scoped `code`.
+contexts. `OrganisationPublic` includes the platform organisation's `slug` when
+a platform row shares its ID. Employment, department, document and role-assignment
+responses include `organisation_id`. Departments also expose their
+organisation-scoped `code`.
+
+`GET /api/v1/hr/me/organisations` lists the signed-in staff member's routable HR
+organisations. Each entry has `id`, `slug`, `name` and effective `scope` (`SELF`,
+`DEPARTMENT` or `ALL`). Live employment supplies `SELF`, and the broadest live
+assignment in that organisation takes precedence. The list is based on the
+caller's employment and assignments, including for superusers. It takes no
+organisation input and omits employers whose platform slug is missing. Individual
+HR operations continue to enforce their own permissions.
 
 Department lists, employee-document lists and document employee choices accept
 `organisation_id`; document uploads accept it as a multipart field. Omitting it is

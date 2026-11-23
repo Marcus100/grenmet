@@ -391,6 +391,7 @@ export { hrGetHrProfileMe } from "./hrGetHrProfileMe.js";
 export { hrGetInbox } from "./hrGetInbox.js";
 export { hrGetInstance } from "./hrGetInstance.js";
 export { hrGetMyLeaveRequests } from "./hrGetMyLeaveRequests.js";
+export { hrGetMyOrganisations } from "./hrGetMyOrganisations.js";
 export { hrGetMySignature } from "./hrGetMySignature.js";
 export { hrGetMySignedDocuments } from "./hrGetMySignedDocuments.js";
 export { hrGetMyTimesheets } from "./hrGetMyTimesheets.js";
