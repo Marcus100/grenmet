@@ -935,36 +935,98 @@ def test_legacy_checkout_refuses_a_live_key_before_any_call(
 
 
 @pytest.mark.usefixtures("plan_seed")
-async def test_same_second_event_after_an_applied_one_is_ignored(
+async def test_same_second_created_then_active_applies_the_active_status(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     real_gateway: StripeSdkGateway,
 ) -> None:
-    """Issue #1723 item 6: the stale check is ``<=``, so an event in the same second
-    as the last applied one does not overwrite it."""
+    """Issue #1723 review: a subscription's created (incomplete) and updated (active)
+    events often share one Stripe second. The later one must still apply, or a paid
+    subscription stays incomplete."""
     _ = real_gateway
     _, org = await _org(db_async, MembershipRole.ADMIN)
     row_id = await _row(db_async, org.id)
     now = int(time.time())
-    first = _event(
-        "evt_same_second_a",
-        "customer.subscription.updated",
-        _subscription(row_id, sub_id="sub_same_1", status="active"),
+    created = _event(
+        "evt_tie_incomplete",
+        "customer.subscription.created",
+        _subscription(row_id, sub_id="sub_tie_1", status="incomplete"),
         created=now,
     )
-    second = _event(
-        "evt_same_second_b",
+    updated = _event(
+        "evt_tie_active",
         "customer.subscription.updated",
-        _subscription(row_id, sub_id="sub_same_1", status="past_due"),
+        _subscription(row_id, sub_id="sub_tie_1", status="active"),
         created=now,
     )
-    assert (await _post_event(async_client, first)).status_code == 200
+    assert (await _post_event(async_client, created)).status_code == 200
 
-    response = await _post_event(async_client, second)
+    response = await _post_event(async_client, updated)
 
     assert response.status_code == 200
     assert (await _fresh(db_async, row_id)).status == "active"
-    assert len(await _recorded(db_async, "evt_same_second_b")) == 1
+    assert len(await _recorded(db_async, "evt_tie_active")) == 1
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_same_second_active_after_canceled_is_refused_by_the_state_machine(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    real_gateway: StripeSdkGateway,
+) -> None:
+    """A canceled row has no way out, so a same-second active event cannot revive it."""
+    _ = real_gateway
+    _, org = await _org(db_async, MembershipRole.ADMIN)
+    row_id = await _row(
+        db_async, org.id, status="active", stripe_subscription_id="sub_tie_2"
+    )
+    now = int(time.time())
+    deleted = _event(
+        "evt_tie_deleted",
+        "customer.subscription.deleted",
+        _subscription(row_id, sub_id="sub_tie_2", status="canceled"),
+        created=now,
+    )
+    revived = _event(
+        "evt_tie_revive",
+        "customer.subscription.updated",
+        _subscription(row_id, sub_id="sub_tie_2", status="active"),
+        created=now,
+    )
+    assert (await _post_event(async_client, deleted)).status_code == 200
+
+    response = await _post_event(async_client, revived)
+
+    assert response.status_code == 200
+    assert (await _fresh(db_async, row_id)).status == "canceled"
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_event_older_than_the_retry_window_is_recorded_and_ignored(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    real_gateway: StripeSdkGateway,
+) -> None:
+    """Issue #1723 review: an event that names a row which does not exist and is more
+    than two hours old (for example, another environment's row) is not retried for
+    days. It is recorded and answered 200."""
+    _ = real_gateway
+    _, org = await _org(db_async, MembershipRole.ADMIN)
+    row_id = uuid.uuid4()
+    old = int(time.time()) - 3 * 3600
+    event = _event(
+        "evt_too_old_1",
+        "customer.subscription.created",
+        _subscription(row_id, sub_id="sub_too_old_1", status="active"),
+        created=old,
+    )
+
+    response = await _post_event(async_client, event)
+
+    assert response.status_code == 200
+    assert len(await _recorded(db_async, "evt_too_old_1")) == 1
+    assert await db_async.get(AppSubscription, row_id) is None
+    _ = org
 
 
 @pytest.mark.usefixtures("plan_seed")

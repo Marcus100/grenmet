@@ -10,7 +10,7 @@ Service functions flush and never commit; the router commits.
 import logging
 import uuid
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi.concurrency import run_in_threadpool
@@ -372,13 +372,29 @@ def _names_our_row(obj: Mapping[str, Any]) -> bool:
 
 
 def _is_stale(subscription: AppSubscription, event_time: datetime) -> bool:
-    """An event at or before the newest applied one's second is stale. Stripe times are
-    whole seconds, so a same-second event is treated as already applied rather than
-    applied out of order (issue #1723 item 6)."""
+    """An event strictly older than the newest applied one is stale. A same-second
+    event is not stale: Stripe's times are whole seconds, and a subscription's created
+    and updated events often share one. Same-second events apply in delivery order;
+    the transition table refuses a backward move (a canceled row stays canceled) and a
+    repeat of the same status is a no-op."""
     return (
         subscription.last_event_at is not None
-        and event_time <= subscription.last_event_at
+        and event_time < subscription.last_event_at
     )
+
+
+#: A Stripe event that names one of our rows but finds no row is answered 503 (Stripe
+#: retries) only this long after Stripe created it. Later than that, the row is in
+#: another environment or was never written, so the event is recorded and ignored.
+_RETRY_WINDOW = timedelta(hours=2)
+
+
+def _past_retry_window(event: WebhookEventResult) -> bool:
+    """True when the event is too old to wait for its row (or its age is unknown)."""
+    if not event.created:
+        return True
+    created = _from_unix(event.created)
+    return datetime.now(UTC).replace(tzinfo=None) - created > _RETRY_WINDOW
 
 
 def _move(subscription: AppSubscription, target: AppSubscriptionStatus) -> None:
@@ -550,6 +566,13 @@ async def apply_stripe_event(session: AsyncSession, event: WebhookEventResult) -
             return "duplicate"
 
         result = await _apply_event(session, event, obj)
+        if result == _RETRY and _past_retry_window(event):
+            logger.warning(
+                "Stripe event names a subscription row that does not exist and is too "
+                "old to wait for; recorded and ignored",
+                extra={"stripe_event_type": event.type},
+            )
+            result = "ignored"
         if result == _RETRY:
             logger.info(
                 "Stripe event waits for its subscription row; Stripe will retry",

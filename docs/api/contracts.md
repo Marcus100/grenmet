@@ -1436,10 +1436,11 @@ The Checkout Session carries `client_reference_id` and metadata
 the Subscription. The webhook `POST /api/v1/billing/webhooks/stripe` (hidden from
 OpenAPI) applies `checkout.session.completed`, `checkout.session.expired`,
 `customer.subscription.created|updated|deleted` and `invoice.payment_failed`
-once per event id. An event whose time is at or before the last applied event's
-second is ignored (Stripe times are whole seconds). A live-mode event is refused
-with 503 and not recorded, since the product is test-only. An event that names one
-of our rows that is not written yet is answered 503 and not recorded, so Stripe
+once per event id. An event strictly older than the last applied event is ignored;
+a same-second event is applied in delivery order (the transition table refuses a
+backward move). A live-mode event is refused with 503 and not recorded, since the
+product is test-only. An event that names one of our rows that is not written yet
+is answered 503 and not recorded for up to two hours after Stripe created it, so Stripe
 sends it again. A canceled subscription stays canceled.
 
 ## Change history and notifications (platform core)

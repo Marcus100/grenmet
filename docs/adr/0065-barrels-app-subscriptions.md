@@ -10,8 +10,8 @@ Live money stays gated by ADR-0027 ("Open before live money").
 Amended 22 November 2026 (issue #1723, follow-ups to the slice 1 review): access is
 the organisation role alone, not a global key; a repeat checkout resumes an open
 Checkout instead of being refused for 24 hours; webhook rows are locked; live-mode
-events are refused; a same-second event is treated as stale; and an event for a row
-not yet written is retried by Stripe rather than recorded. The amendments are in
+events are refused; an event for a row not yet written is retried by Stripe for two
+hours rather than recorded; and same-second events are applied in order, not dropped. The amendments are in
 the Decision section below.
 
 ## Context
@@ -98,13 +98,16 @@ events tickets, not for Barrels' subscriptions.
   through `src/billing/app_subscription_transitions.py`. A canceled subscription stays
   canceled. One live subscription per organisation and app (partial unique index).
 - **Idempotency:** Stripe event ids are recorded in `billing.stripe_event` in the same
-  transaction as their effect; repeats change nothing. Stripe times are whole
-  seconds, so an event at or before the last applied event's second is ignored
-  (`<=`). This drops a second, different event in that same second; the next Stripe
-  event for the subscription carries the current state. A follow-up could retrieve
-  the subscription from Stripe on a tie. An event that names one of our rows
-  (`app_subscription_id` metadata) when that row does not exist yet is not recorded
-  and is answered 503, so Stripe sends it again. The row lookups for webhook events
+  transaction as their effect; repeats change nothing. An event strictly older than
+  the last applied event is ignored. Stripe times are whole seconds, so a same-second
+  event is applied in delivery order and is not treated as stale: a subscription's
+  created and updated events often share a second, and dropping the later one would
+  leave a paid subscription incomplete. The transition table settles the rest: a
+  backward move is refused (a canceled row stays canceled) and a repeat status is a
+  no-op. An event that names one of our rows (`app_subscription_id` metadata) when
+  that row does not exist yet is not recorded and is answered 503, so Stripe sends it
+  again, for up to two hours after Stripe created it; an older event is recorded and
+  ignored with 200 so that rows from another environment do not retry for days. The row lookups for webhook events
   take a row lock (`FOR UPDATE`), so a concurrent pair for one subscription waits
   instead of hitting the unique index on `stripe_subscription_id`.
 - **Naming:** the domain is `billing`. The word "subscriptions" in routes is the
