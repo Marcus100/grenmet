@@ -14,11 +14,13 @@ fast-back python -m scripts.fetch_iwxxm_schemas``); the Docker and CI steps do t
 
 Download resilience (the image build runs this as its last layer, and raw.githubusercontent
 .com sometimes answers 503 or 429): each file is tried up to 5 times. Retries happen on
-HTTP 5xx, HTTP 429 and connection or timeout errors; any other 4xx fails at once. The wait
-is exponential (1 s, 2 s, 4 s, 8 s, capped at 60 s) with equal jitter, and a Retry-After
-header (seconds or HTTP date) is honoured as a minimum wait, capped at 60 s. At most 8
-requests run at once. When the retries are spent the script exits 1 and names the file and
-the last status or error. Nothing about what is fetched changes: the same pinned tag, the
+HTTP 5xx, HTTP 429 and transport errors (connection, timeout, server disconnect); any other
+4xx, and client-side protocol errors (an unsupported URL), fail at once. The wait is
+exponential (1 s, 2 s, 4 s, 8 s, capped at 60 s) with equal jitter, and a Retry-After header
+(seconds or HTTP date) is honoured as a minimum wait, capped at 60 s. At most 8 requests run
+at once. When the retries are spent the script exits 1 and names the file and the last
+status or error. The first file to fail stops the others: waiting downloads wake up and
+stop, so a failing run ends promptly. Nothing about what is fetched changes: the same pinned tag, the
 same 100 files, each checked against its SHA-256 before anything is installed.
 """
 
@@ -30,6 +32,7 @@ import random
 import shutil
 import sys
 import tempfile
+import threading
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -53,6 +56,11 @@ MAX_PARALLEL_DOWNLOADS = 8
 
 class DownloadError(ValueError):
     """A pinned file could not be downloaded; the message names the file."""
+
+
+def wait_unless_stopped(seconds: float, stop: threading.Event) -> None:
+    """Back-off wait that ends early when another file has already failed."""
+    stop.wait(seconds)
 
 
 def load_manifest() -> dict[str, Any]:
@@ -111,17 +119,22 @@ def fetch_one(
     relative: str,
     url: str,
     *,
-    sleep: Callable[[float], None],
+    sleep: Callable[[float, threading.Event], None],
     clock: Callable[[], float],
     jitter: Callable[[], float],
+    stop: threading.Event,
 ) -> bytes:
     """One file, with the retry rules in the module docstring."""
     last = "no response"
     for attempt in range(1, RETRY_ATTEMPTS + 1):
+        if stop.is_set():
+            raise DownloadError(f"{relative} stopped: another pinned file failed")
         response: httpx.Response | None = None
         try:
             response = client.get(url)
-        except (httpx.NetworkError, httpx.TimeoutException) as error:
+        except (httpx.UnsupportedProtocol, httpx.LocalProtocolError) as error:
+            raise DownloadError(f"{relative} not retried: {error}") from error
+        except httpx.TransportError as error:
             last = f"{type(error).__name__}: {error}"
         else:
             if response.status_code < 400:
@@ -139,7 +152,7 @@ def fetch_one(
         advised = retry_after_seconds(response, clock) if response is not None else None
         if advised is not None:
             delay = max(delay, min(advised, RETRY_CAP_SECONDS))
-        sleep(delay)
+        sleep(delay, stop)
     raise DownloadError(
         f"{relative} failed after {RETRY_ATTEMPTS} attempts; last status {last}"
     )
@@ -149,7 +162,7 @@ def download_pinned(
     manifest: dict[str, Any],
     *,
     transport: httpx.BaseTransport | None = None,
-    sleep: Callable[[float], None] = time.sleep,
+    sleep: Callable[[float, threading.Event], None] = wait_unless_stopped,
     clock: Callable[[], float] = time.time,
     jitter: Callable[[], float] = random.random,
 ) -> dict[str, bytes]:
@@ -161,6 +174,7 @@ def download_pinned(
     """
     base: str = manifest["raw_base"]
     found: dict[str, bytes] = {}
+    stop = threading.Event()
     with (
         httpx.Client(
             transport=transport,
@@ -180,6 +194,7 @@ def download_pinned(
                 sleep=sleep,
                 clock=clock,
                 jitter=jitter,
+                stop=stop,
             ): relative
             for relative in manifest["files"]
         }
@@ -187,7 +202,8 @@ def download_pinned(
             for future in as_completed(futures):
                 found[futures[future]] = future.result()
         finally:
-            # On the first failure, drop the queued downloads instead of running them all.
+            # On the first failure, wake the waiting downloads and drop the queued ones.
+            stop.set()
             for future in futures:
                 future.cancel()
     return found

@@ -6,9 +6,11 @@ instead of performed. The real manifest is used where the file list matters.
 
 import hashlib
 import json
+import sys
 import threading
 import time
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -35,7 +37,7 @@ class Recorder:
     def __init__(self) -> None:
         self.delays: list[float] = []
 
-    def __call__(self, seconds: float) -> None:
+    def __call__(self, seconds: float, stop: threading.Event | None = None) -> None:
         self.delays.append(seconds)
 
 
@@ -81,8 +83,9 @@ def test_503_then_200_succeeds_after_one_retry() -> None:
         httpx.Response(429),
         httpx.ConnectError("connection refused"),
         httpx.ReadTimeout("timed out"),
+        httpx.RemoteProtocolError("Server disconnected without sending a response."),
     ],
-    ids=["500", "502", "429", "connect-error", "timeout"],
+    ids=["500", "502", "429", "connect-error", "timeout", "server-disconnect"],
 )
 def test_other_transient_failures_are_retried(transient: Any) -> None:
     calls = 0
@@ -293,3 +296,192 @@ def test_oversized_file_is_rejected_by_name() -> None:
             {"raw_base": RAW_BASE, "files": {"IWXXM/a.xsd": "0" * 64}},
             lambda request: httpx.Response(200, content=big),
         )
+
+
+def test_server_disconnect_then_200_succeeds() -> None:
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise httpx.RemoteProtocolError(
+                "Server disconnected without sending a response."
+            )
+        return httpx.Response(200, content=b"alpha")
+
+    assert run(manifest_for(ALPHA), handler) == ALPHA
+    assert calls == 2
+
+
+def test_persistent_server_disconnect_fails_after_five_attempts() -> None:
+    calls = 0
+    sleep = Recorder()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        raise httpx.RemoteProtocolError(
+            "Server disconnected without sending a response."
+        )
+
+    with pytest.raises(
+        fetcher.DownloadError, match=r"IWXXM/a\.xsd.*RemoteProtocolError"
+    ):
+        run(manifest_for(ALPHA), handler, sleep)
+    assert calls == 5
+    assert len(sleep.delays) == 4
+
+
+def test_unsupported_protocol_is_not_retried() -> None:
+    calls = 0
+    sleep = Recorder()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        raise httpx.UnsupportedProtocol("Request URL has an unsupported protocol.")
+
+    with pytest.raises(fetcher.DownloadError, match=r"IWXXM/a\.xsd.*not retried"):
+        run(manifest_for(ALPHA), handler, sleep)
+    assert calls == 1
+    assert sleep.delays == []
+
+
+def test_a_stopped_download_makes_no_request() -> None:
+    calls = 0
+    stop = threading.Event()
+    stop.set()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(200, content=b"alpha")
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(fetcher.DownloadError, match="stopped"):
+            fetcher.fetch_one(
+                client,
+                "IWXXM/a.xsd",
+                RAW_BASE + "IWXXM/a.xsd",
+                sleep=Recorder(),
+                clock=lambda: 0.0,
+                jitter=lambda: 0.0,
+                stop=stop,
+            )
+    assert calls == 0
+
+
+def test_a_failure_elsewhere_ends_a_waiting_retry() -> None:
+    calls = 0
+    stop = threading.Event()
+
+    def stop_while_waiting(seconds: float, event: threading.Event | None) -> None:
+        # Another file fails while this one is in its back-off wait.
+        stop.set()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(503)
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(fetcher.DownloadError, match="stopped"):
+            fetcher.fetch_one(
+                client,
+                "IWXXM/a.xsd",
+                RAW_BASE + "IWXXM/a.xsd",
+                sleep=stop_while_waiting,
+                clock=lambda: 0.0,
+                jitter=lambda: 0.0,
+                stop=stop,
+            )
+    assert calls == 1  # no further attempt once the run has failed
+
+
+def install_fake_fetch(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    contents: dict[str, bytes],
+    handler: Callable[[httpx.Request], httpx.Response],
+) -> Path:
+    """Point main() at a fake manifest and a temporary destination, with no network."""
+    destination = tmp_path / "installed"
+    manifest = manifest_for(contents)
+    real_download = fetcher.download_pinned
+    monkeypatch.setattr(fetcher, "DESTINATION", destination)
+    monkeypatch.setattr(fetcher, "load_manifest", lambda: manifest)
+    monkeypatch.setattr(
+        fetcher,
+        "download_pinned",
+        lambda manifest_arg: real_download(
+            manifest_arg,
+            transport=httpx.MockTransport(handler),
+            sleep=Recorder(),
+            jitter=lambda: 0.0,
+        ),
+    )
+    monkeypatch.setattr(sys, "argv", ["fetch_iwxxm_schemas"])
+    return destination
+
+
+def test_main_exits_1_and_names_the_file_when_retries_are_spent(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    destination = install_fake_fetch(
+        monkeypatch, tmp_path, ALPHA, lambda request: httpx.Response(503)
+    )
+    assert fetcher.main() == 1
+    err = capsys.readouterr().err
+    assert "could not install the IWXXM schemas" in err
+    assert "IWXXM/a.xsd" in err
+    assert "5 attempts" in err
+    assert not destination.exists()
+
+
+def test_main_fails_the_run_when_one_file_fails_among_many(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    contents = {
+        f"IWXXM/file{index:02d}.xsd": f"body {index}".encode() for index in range(10)
+    }
+    calls: dict[str, int] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        relative = str(request.url).removeprefix(RAW_BASE)
+        calls[relative] = calls.get(relative, 0) + 1
+        if relative == "IWXXM/file03.xsd":
+            return httpx.Response(404)
+        return httpx.Response(200, content=contents[relative])
+
+    destination = install_fake_fetch(monkeypatch, tmp_path, contents, handler)
+    assert fetcher.main() == 1
+    err = capsys.readouterr().err
+    assert "IWXXM/file03.xsd" in err
+    assert "404" in err
+    assert not destination.exists()
+    assert calls["IWXXM/file03.xsd"] == 1  # a 404 is never retried
+
+
+def test_main_fails_when_one_file_keeps_returning_503_among_many(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    contents = {
+        f"IWXXM/file{index:02d}.xsd": f"body {index}".encode() for index in range(10)
+    }
+    calls: dict[str, int] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        relative = str(request.url).removeprefix(RAW_BASE)
+        calls[relative] = calls.get(relative, 0) + 1
+        if relative == "IWXXM/file07.xsd":
+            return httpx.Response(503)
+        return httpx.Response(200, content=contents[relative])
+
+    destination = install_fake_fetch(monkeypatch, tmp_path, contents, handler)
+    assert fetcher.main() == 1
+    err = capsys.readouterr().err
+    assert "IWXXM/file07.xsd" in err
+    assert "HTTP 503" in err
+    assert not destination.exists()
+    assert calls["IWXXM/file07.xsd"] == fetcher.RETRY_ATTEMPTS
