@@ -30,7 +30,8 @@ export type CspApp =
   | "events"
   | "gaa-admin"
   | "gms"
-  | "gmsdash";
+  | "gmsdash"
+  | "hr";
 
 /**
  * The PostHog ingest hosts the signed-in funnels may reach. Defined here, not
@@ -106,6 +107,13 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
   account: {
     script: [],
     connect: [...POSTHOG_INGEST_HOSTS],
+    img: [],
+    frame: [],
+  },
+  // Staff HR app (hr.barrels.gd): server-rendered, no third-party scripts.
+  hr: {
+    script: [],
+    connect: [],
     img: [],
     frame: [],
   },

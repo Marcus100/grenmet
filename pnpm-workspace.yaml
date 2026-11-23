@@ -75,6 +75,10 @@ catalog:
   tailwindcss: "^4.3.5"
   "@tailwindcss/postcss": "^4.3.5"
 
+  # HR app (apps/web/hr; owner approved 22 Nov 2026): typed forms and error boundaries.
+  "@tanstack/react-form": ^1.33.5
+  react-error-boundary: ^6.1.6
+
   # Weather and GIS maps
   "maplibre-gl": ^6.19.0
   "react-map-gl": "^8.1.3"
