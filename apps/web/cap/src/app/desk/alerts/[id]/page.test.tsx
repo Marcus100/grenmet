@@ -87,10 +87,54 @@ describe("/desk/alerts/[id] audit history", () => {
       name: "Audit history for this alert",
     });
     expect(section).toHaveTextContent("emergency_publish");
-    expect(section).toHaveTextContent("Actor: 33333333");
-    expect(section).toHaveTextContent("DRAFT → PUBLISHED");
+    expect(section).toHaveTextContent("Actor: Staff member");
+    expect(section).not.toHaveTextContent(REVIEWER);
+    expect(section).toHaveTextContent("Draft → Published");
     expect(section).toHaveTextContent("Flooding reported on the east coast");
     expect(api.getAlertAudit).toHaveBeenCalledWith(expect.any(String), ID);
+  });
+
+  it("reads a system action and a first draft in words, never 'None' or a raw id", async () => {
+    api.getAlert.mockResolvedValue(deskAlert({ id: ID }));
+    api.getAlertAudit.mockResolvedValue({
+      count: 2,
+      data: [
+        {
+          action: "expire",
+          actor_user_id: null,
+          alert_id: ID,
+          created_at: "2026-10-31T12:00:00Z",
+          id: "55555555-5555-4555-8555-555555555555",
+          next_state: "EXPIRED",
+          note: null,
+          payload: {},
+          previous_state: "PUBLISHED",
+        },
+        {
+          action: "create",
+          actor_user_id: REVIEWER,
+          alert_id: ID,
+          created_at: "2026-10-30T11:00:00Z",
+          id: "44444444-4444-4444-8444-444444444444",
+          next_state: "DRAFT",
+          note: null,
+          payload: {},
+          previous_state: null,
+        },
+      ],
+      page: 1,
+      size: 50,
+    });
+    render(await page());
+    const section = screen.getByRole("region", {
+      name: "Audit history for this alert",
+    });
+    expect(section).toHaveTextContent("Actor: System");
+    expect(section).toHaveTextContent("Published → Expired");
+    expect(section).toHaveTextContent("Actor: Staff member");
+    expect(section).toHaveTextContent("Created as a draft");
+    expect(section).not.toHaveTextContent("None");
+    expect(section).not.toHaveTextContent(REVIEWER);
   });
 
   it("says so when the alert has no history, instead of hiding the section", async () => {
