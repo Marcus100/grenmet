@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   type CapAlertImportRequest,
+  type CapEscalationCreate,
   type CapLifecycleState,
   type CapProfileDraftRequest,
   type CapProfileSave,
@@ -9,6 +10,8 @@ import {
   capAlertPublicSchema,
   capAuditEventListPublicSchema,
   capCatalogsPublicSchema,
+  capEscalationLookupSchema,
+  capEscalationPublicSchema,
   capFeedImportPublicSchema,
   capGetHazardProfilesResponseSchema,
   capGetIbfMatrixResponseSchema,
@@ -19,6 +22,7 @@ import {
   capStatisticsPublicSchema,
   capSuggestIbfResponseSchema,
   gmsCataloguePublicSchema,
+  publishedProductsSchema,
 } from "@barrelsgd/api-client";
 import { authApiFetch, authApiFetchResponse } from "@barrelsgd/auth/server";
 import { z } from "zod";
@@ -239,6 +243,41 @@ export function draftAlertFromHazardProfile(
     `/cap/hazard-profiles/${encodeURIComponent(profileId)}/draft`,
     body,
     capAlertPublicSchema
+  );
+}
+
+/** Current published GMS products (in force, not withdrawn). Staff may read them. */
+export function listPublishedProducts(accessToken: string) {
+  return read(
+    accessToken,
+    "/wxproducts/public/products",
+    publishedProductsSchema
+  );
+}
+
+/** Which open or published warning, if any, was raised from one GMS alert. */
+export function getEscalation(accessToken: string, productId: string) {
+  const query = new URLSearchParams({ product_id: productId });
+  return read(
+    accessToken,
+    `/cap/escalations?${query}`,
+    capEscalationLookupSchema
+  );
+}
+
+/**
+ * Raises one saved GMS alert to a CAP warning draft. A repeat raise returns the
+ * open draft that already exists (`created: false`), so a double click is safe.
+ */
+export function raiseEscalation(
+  accessToken: string,
+  body: CapEscalationCreate
+) {
+  return write(
+    accessToken,
+    "/cap/escalations",
+    body,
+    capEscalationPublicSchema
   );
 }
 
