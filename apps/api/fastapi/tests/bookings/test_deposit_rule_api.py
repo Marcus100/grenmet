@@ -381,3 +381,24 @@ async def test_a_full_prepayment_says_paid_in_full(
     ]
     assert "Paid in full, XCD 210.00." in json.dumps(confirmation[0].payload)
     assert "at the salon" not in json.dumps(confirmation[0].payload)
+
+
+async def test_full_price_without_stripe_keeps_the_business_rule_deposit(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """Without a Stripe test key, ``full_price`` acts as ``deposit``: the business
+    rule's deposit still applies on the deposit path, not the full price."""
+    assert not deposit_payments.stripe_available()
+    studio = await _ruled(
+        db_async,
+        async_client,
+        payment_at_booking="full_price",
+        deposit_mode="percent",
+        deposit_percent=50,
+    )
+    response = await _book_with_proof(db_async, async_client, studio)
+    assert response.status_code == 201, response.text
+    booking = response.json()["booking"]
+    assert booking["status"] == "pending_payment"
+    assert booking["deposit_minor"] == 10500
+    assert booking["price_minor"] == PRICE

@@ -888,6 +888,7 @@ class BookingPaymentSummary(BaseModel):
     amount_minor: int = Field(description="What was due at booking.")
     paid_minor: int
     refunded_minor: int
+    # Clients show balance_at_salon_minor only when status is `paid`.
     balance_at_salon_minor: int = Field(
         description=(
             "What is still to pay at the business once the deposit is paid: the "

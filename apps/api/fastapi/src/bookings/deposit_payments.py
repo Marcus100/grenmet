@@ -103,7 +103,8 @@ def planned_deposit(svc: Service, rule: DepositRule) -> int:
 
 
 def balance_at_salon(price_minor: int, deposit_minor: int) -> int:
-    """What is still to pay at the business once the deposit is paid."""
+    """What is still to pay at the business once the deposit is paid. Clients show
+    it only when the deposit state is ``paid``; while due or unpaid it is not owed yet."""
     return max(price_minor - deposit_minor, 0)
 
 
