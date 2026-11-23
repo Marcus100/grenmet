@@ -2,6 +2,7 @@ import type { CapAuditEventPublic } from "@barrelsgd/api-client";
 import type { Route } from "next";
 import Link from "next/link";
 import { grenadaTime } from "@/components/desk/desk-panels";
+import { auditActorLabel, auditTransitionLabel } from "@/lib/desk/audit-labels";
 
 export interface AlertAuditTrailProps {
   alertId: string;
@@ -50,10 +51,10 @@ export function AlertAuditTrail({
               <p className="font-semibold">{event.action}</p>
               <p className="text-body-sm">
                 {grenadaTime(event.created_at)} · Actor:{" "}
-                {event.actor_user_id ?? "Not recorded"}
+                {auditActorLabel(event.actor_user_id)}
               </p>
               <p className="text-body-sm">
-                {event.previous_state ?? "None"} → {event.next_state ?? "None"}
+                {auditTransitionLabel(event.previous_state, event.next_state)}
               </p>
               {event.note ? (
                 <p className="text-body-sm whitespace-pre-wrap">{event.note}</p>
