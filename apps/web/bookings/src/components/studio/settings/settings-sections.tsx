@@ -23,6 +23,10 @@ import {
 } from "@barrelsgd/ui/components/ui/empty";
 import Link from "next/link";
 import { ContactForm } from "@/components/studio/settings/contact-form";
+import {
+  DepositRuleForm,
+  type ExampleService,
+} from "@/components/studio/settings/deposit-rule-form";
 import { HoursForm } from "@/components/studio/settings/hours-form";
 import { PaymentsForm } from "@/components/studio/settings/payments-form";
 import { ProfileForm } from "@/components/studio/settings/profile-form";
@@ -352,12 +356,18 @@ export function HoursSection({
 
 export function PaymentsSection({
   cardPaymentsAvailable,
+  currency,
+  depositsAvailable,
   editable,
+  example,
   orgSlug,
   profile,
 }: {
   cardPaymentsAvailable: boolean;
+  currency: string;
+  depositsAvailable: boolean;
   editable: boolean;
+  example: ExampleService | null;
   orgSlug: string;
   profile: BookingProfilePublic | null;
 }) {
@@ -380,6 +390,15 @@ export function PaymentsSection({
       {profile !== null && editable ? (
         <PaymentsForm
           cardPaymentsAvailable={cardPaymentsAvailable}
+          orgSlug={orgSlug}
+          profile={profile}
+        />
+      ) : null}
+      {profile !== null && editable ? (
+        <DepositRuleForm
+          currency={currency}
+          depositsAvailable={depositsAvailable}
+          example={example}
           orgSlug={orgSlug}
           profile={profile}
         />

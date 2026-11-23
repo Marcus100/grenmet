@@ -15,6 +15,17 @@ export function cancellationPolicyLine(cutoffHours: number): string {
 }
 
 /**
+ * The refund rule for a deposit, in one sentence. The cutoff comes from the
+ * business (`cancel_cutoff_hours`), never a fixed number of hours.
+ */
+export function depositRefundLine(cutoffHours: number): string {
+  if (cutoffHours <= 0) {
+    return "Cancel before your appointment starts to get your deposit back.";
+  }
+  return `Cancel at least ${formatHours(cutoffHours)} before to get your deposit back.`;
+}
+
+/**
  * When an unpaid hold is released, in the business's timezone. Shown only while
  * the booking waits for payment.
  */

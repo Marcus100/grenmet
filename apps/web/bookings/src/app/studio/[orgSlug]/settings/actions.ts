@@ -19,6 +19,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isLogoFileId, LOGO_MAX_BYTES, LOGO_TYPES } from "@/lib/brand-logo";
 import { checkContacts, contactFieldErrors } from "@/lib/business-contact";
+import { depositRuleFields } from "@/lib/deposit-rule";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import { parseHours, parseMoney } from "@/lib/settings-view";
@@ -257,11 +258,13 @@ function moneyField(text: string): number | null {
  * replaces the whole profile on every write, so a section sends the stored
  * values for everything it does not own (see `keptFields`).
  */
-type ProfileSection = "profile" | "contact" | "payments";
+type ProfileSection = "profile" | "contact" | "payments" | "deposit";
 
 function profileSection(formData: FormData): ProfileSection {
   const value = field(formData, "section");
-  return value === "contact" || value === "payments" ? value : "profile";
+  return value === "contact" || value === "payments" || value === "deposit"
+    ? value
+    : "profile";
 }
 
 /**
@@ -313,6 +316,7 @@ const SECTION_SAVED: Record<ProfileSection, string> = {
   profile: "Business profile saved.",
   contact: "Contact options saved.",
   payments: "Payment choice saved.",
+  deposit: "Deposit rule saved.",
 };
 
 /**
@@ -334,6 +338,9 @@ export async function saveProfileAction(
 
   if (section === "payments") {
     return savePaymentsSection(orgSlug, auth, formData);
+  }
+  if (section === "deposit") {
+    return saveDepositSection(orgSlug, auth, formData);
   }
   if (section === "contact") {
     return saveContactSection(orgSlug, auth, formData);
@@ -472,6 +479,39 @@ async function savePaymentsSection(
     return failed(orgSlug, error);
   }
   return saved(orgSlug, SECTION_SAVED.payments);
+}
+
+/**
+ * The business-wide deposit rule. Off saves `none` with no amounts; the API
+ * refuses an incomplete rule, so the form's own checks run first.
+ */
+async function saveDepositSection(
+  orgSlug: string,
+  auth: Granted,
+  formData: FormData
+): Promise<ProfileState> {
+  const rule = depositRuleFields({
+    on: formData.get("depositRequired") === "on",
+    mode: formData.get("depositMode") === "fixed" ? "fixed" : "percent",
+    percentText: field(formData, "depositPercent"),
+    fixedText: field(formData, "depositFixed"),
+  });
+  if (!rule.ok) {
+    return invalid(rule.message);
+  }
+  try {
+    const current = await currentProfile(auth);
+    if (!current) {
+      return invalid("Save the business profile first, then set a deposit.");
+    }
+    await saveProfile(auth.accessToken, auth.organisationId, {
+      ...storedFields(current),
+      ...rule.value,
+    });
+  } catch (error) {
+    return failed(orgSlug, error);
+  }
+  return saved(orgSlug, SECTION_SAVED.deposit);
 }
 
 export interface LogoTarget {

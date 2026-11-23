@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { cancellationPolicyLine, holdEndsLine } from "./booking-policy";
+import {
+  cancellationPolicyLine,
+  depositRefundLine,
+  holdEndsLine,
+} from "./booking-policy";
 
 const HOLD_SENTENCE =
   /^Your time is held until .*\. It is released if the payment has not arrived by then\.$/u;
@@ -28,5 +32,25 @@ describe("holdEndsLine", () => {
     expect(line).toContain("9:00 am");
     expect(line).toContain("5 January 2027");
     expect(line).toMatch(HOLD_SENTENCE);
+  });
+});
+
+describe("depositRefundLine", () => {
+  it("is built from the business cutoff", () => {
+    expect(depositRefundLine(24)).toBe(
+      "Cancel at least 24 hours before to get your deposit back."
+    );
+    expect(depositRefundLine(48)).toBe(
+      "Cancel at least 48 hours before to get your deposit back."
+    );
+    expect(depositRefundLine(1)).toBe(
+      "Cancel at least 1 hour before to get your deposit back."
+    );
+  });
+
+  it("says before the start when there is no cutoff", () => {
+    expect(depositRefundLine(0)).toBe(
+      "Cancel before your appointment starts to get your deposit back."
+    );
   });
 });
