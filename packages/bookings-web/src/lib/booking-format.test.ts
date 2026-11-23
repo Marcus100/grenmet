@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addDays,
+  currencyPrefix,
   formatDateTime,
   formatDuration,
   formatHours,
@@ -104,5 +105,13 @@ describe("booking-format", () => {
       "Buenos Aires"
     );
     expect(timeZonePlace("UTC")).toBe("UTC");
+  });
+});
+
+describe("currencyPrefix", () => {
+  it("names XCD as EC$ and leaves other codes as the code", () => {
+    expect(currencyPrefix("XCD")).toBe("EC$");
+    expect(currencyPrefix(" xcd ")).toBe("EC$");
+    expect(currencyPrefix("GBP")).toBe("GBP");
   });
 });

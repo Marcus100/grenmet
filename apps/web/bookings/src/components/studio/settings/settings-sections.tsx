@@ -371,7 +371,7 @@ export function PaymentsSection({
 }) {
   return (
     <Section
-      description="How an online booking is paid for. Deposits are set on each service under Services."
+      description="How an online booking is paid. A service's own deposit always wins over the business-wide deposit rule, which covers services without one."
       id="payments"
       title="Payments"
     >

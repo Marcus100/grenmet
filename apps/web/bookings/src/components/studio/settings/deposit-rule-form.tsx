@@ -1,7 +1,10 @@
 "use client";
 
 import type { BookingProfilePublic } from "@barrelsgd/api-client";
-import { formatMoney } from "@barrelsgd/bookings-web/lib/booking-format";
+import {
+  currencyPrefix,
+  formatMoney,
+} from "@barrelsgd/bookings-web/lib/booking-format";
 import { depositRefundLine } from "@barrelsgd/bookings-web/lib/booking-policy";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Label } from "@barrelsgd/ui/components/ui/label";
@@ -18,40 +21,64 @@ import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
 import { keepTyped, SettingsResult } from "./settings-ui";
 
-/** The preview for a valid rule: one example service, or a prompt to add one. */
+/**
+ * The preview for a valid rule: one example service, or a prompt to add one. It
+ * sits in its own box at body size so it reads as an example, not a footnote.
+ */
 function Preview({
   cutoffHours,
   currency,
+  depositsAvailable,
   example,
   rule,
 }: {
   cutoffHours: number | undefined;
   currency: string;
+  depositsAvailable: boolean;
   example: ExampleService | null;
   rule: DepositRuleFields;
 }) {
   if (example === null) {
     return (
-      <p className="text-muted-foreground text-sm">
+      <p className="text-muted-foreground text-base">
         Add a priced service to see an example.
       </p>
     );
   }
   return (
-    <p className="text-sm" data-testid="deposit-preview">
-      {previewSentence(example, rule, currency, cutoffHours)}
-    </p>
+    <div className="border-border bg-muted/40 space-y-1 rounded-md border p-3">
+      <p className="text-caption text-muted-foreground font-medium">
+        Example for one booking
+      </p>
+      <p className="text-base" data-testid="deposit-preview">
+        {previewSentence(
+          example,
+          rule,
+          currency,
+          cutoffHours,
+          depositsAvailable
+        )}
+      </p>
+    </div>
   );
 }
 
-/** The preview sentence for the example service under the rule. */
+/**
+ * The preview sentence for the example service under the rule. Without a
+ * payment route (`depositsAvailable` false) nothing is paid online, so the
+ * sentence says the booking is paid at the salon, whatever the rule says.
+ */
 export function previewSentence(
   example: ExampleService,
   rule: DepositRuleFields,
   currency: string,
-  cutoffHours: number | undefined
+  cutoffHours: number | undefined,
+  depositsAvailable = true
 ): string {
   const price = formatMoney(example.priceMinor, currency);
+  if (!depositsAvailable) {
+    return `${example.name} (${price}) is paid at the salon: online deposits need this business to have online payments switched on.`;
+  }
   const refund =
     cutoffHours === undefined ? "" : ` ${depositRefundLine(cutoffHours)}`;
   if (example.ownDepositMinor > 0) {
@@ -68,6 +95,60 @@ export function previewSentence(
   }
   const remaining = formatMoney(example.priceMinor - deposit, currency);
   return `${example.name} (${price}): a deposit of ${formatMoney(deposit, currency)} is paid online, and the remaining ${remaining} is paid at the salon.${refund}`;
+}
+
+/**
+ * A percentage or amount typed into the rule. The label sits above the input
+ * (never beside it, which squeezed the input at 375 px), the hint is linked, and
+ * an invalid value marks the input and points at the error.
+ */
+function AmountField({
+  errorId,
+  hint,
+  id,
+  inputMode,
+  invalid,
+  label,
+  name,
+  onChange,
+  placeholder,
+  value,
+}: {
+  errorId: string;
+  hint: string;
+  id: string;
+  inputMode: "decimal" | "numeric";
+  invalid: boolean;
+  label: string;
+  name: string;
+  onChange: (text: string) => void;
+  placeholder: string;
+  value: string;
+}) {
+  const hintId = `${id}-hint`;
+  return (
+    <div className="grid gap-1.5">
+      <Label className="flex-col items-start gap-1.5" htmlFor={id}>
+        {label}
+      </Label>
+      <input
+        aria-describedby={invalid ? `${hintId} ${errorId}` : hintId}
+        aria-invalid={invalid || undefined}
+        autoComplete="off"
+        className="border-border min-h-11 w-full rounded-md border px-3 text-base"
+        id={id}
+        inputMode={inputMode}
+        name={name}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        type="text"
+        value={value}
+      />
+      <p className="text-muted-foreground text-sm" id={hintId}>
+        {hint}
+      </p>
+    </div>
+  );
 }
 
 /**
@@ -111,6 +192,7 @@ export function DepositRuleForm({
   );
 
   const parsed = depositRuleFields({ on, mode, percentText, fixedText });
+  const errorId = "deposit-rule-error";
   const rule: DepositRuleFields = parsed.ok
     ? parsed.value
     : {
@@ -124,15 +206,16 @@ export function DepositRuleForm({
       <input name="section" type="hidden" value="deposit" />
       <fieldset className="border-border space-y-3 border-t pt-4">
         <legend className="pt-4 font-medium">Deposit for each booking</legend>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           A deposit is paid online when the customer books, and it counts toward
-          the price. A service with its own deposit keeps that amount.
+          the price. A service&apos;s own deposit always wins over this rule. To
+          change a service&apos;s own deposit, edit that service under Services.
         </p>
         <Label className="min-h-11 items-center gap-3">
           <input
             aria-checked={on}
             checked={on}
-            className="accent-primary size-5"
+            className="accent-primary size-5 shrink-0"
             name="depositRequired"
             onChange={(event) => setOn(event.target.checked)}
             role="switch"
@@ -157,7 +240,7 @@ export function DepositRuleForm({
                 >
                   <input
                     checked={mode === choice.value}
-                    className="accent-primary size-5"
+                    className="accent-primary size-5 shrink-0"
                     name="depositMode"
                     onChange={() =>
                       setMode(choice.value as "percent" | "fixed")
@@ -170,44 +253,54 @@ export function DepositRuleForm({
               ))}
             </div>
             {mode === "percent" ? (
-              <Label className="space-y-1">
-                <span>Deposit percentage (1 to 100)</span>
-                <input
-                  className="border-border min-h-11 w-full rounded-md border px-3"
-                  inputMode="numeric"
-                  name="depositPercent"
-                  onChange={(event) => setPercentText(event.target.value)}
-                  value={percentText}
-                />
-              </Label>
+              <AmountField
+                errorId={errorId}
+                hint="A whole number from 1 to 100, for example 25."
+                id="deposit-percent"
+                inputMode="numeric"
+                invalid={!parsed.ok}
+                label="Deposit percentage (1 to 100)"
+                name="depositPercent"
+                onChange={setPercentText}
+                placeholder="25"
+                value={percentText}
+              />
             ) : (
-              <Label className="space-y-1">
-                <span>Deposit amount ({currency})</span>
-                <input
-                  className="border-border min-h-11 w-full rounded-md border px-3"
-                  inputMode="decimal"
-                  name="depositFixed"
-                  onChange={(event) => setFixedText(event.target.value)}
-                  value={fixedText}
-                />
-              </Label>
+              <AmountField
+                errorId={errorId}
+                hint={`The amount in ${currencyPrefix(currency)}, for example 50 or 50.50.`}
+                id="deposit-fixed"
+                inputMode="decimal"
+                invalid={!parsed.ok}
+                label={`Deposit amount (${currencyPrefix(currency)})`}
+                name="depositFixed"
+                onChange={setFixedText}
+                placeholder="50.00"
+                value={fixedText}
+              />
             )}
             {parsed.ok ? (
               <Preview
                 currency={currency}
                 cutoffHours={cutoffHours}
+                depositsAvailable={depositsAvailable}
                 example={example}
                 rule={rule}
               />
             ) : null}
             {depositsAvailable ? null : (
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-base">
                 Deposits are collected online only once this business has online
-                payments switched on. Until then bookings are made without one.
+                payments switched on. Until then a booking is not paid online:
+                the customer pays at the salon.
               </p>
             )}
             {parsed.ok ? null : (
-              <p className="text-destructive text-sm" role="alert">
+              <p
+                className="text-destructive text-base font-medium"
+                id={errorId}
+                role="alert"
+              >
                 {parsed.message}
               </p>
             )}

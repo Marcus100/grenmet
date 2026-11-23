@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
@@ -78,6 +78,18 @@ describe("AlertBoardFilter", () => {
     expect(
       screen.getByRole("button", { name: "Awaiting approval (0)" })
     ).toBeInTheDocument();
+  });
+
+  it("makes every filter chip at least 44px tall", () => {
+    render(<AlertBoardFilter sections={board()} />);
+    const chips = within(
+      screen.getByRole("group", { name: "Filter by stage" })
+    ).getAllByRole("button");
+    expect(chips.length).toBeGreaterThanOrEqual(5);
+    for (const chip of chips) {
+      expect(chip.classList.contains("h-11")).toBe(true);
+      expect(chip.classList.contains("min-h-11")).toBe(true);
+    }
   });
 
   it("narrows to one stage when its chip is chosen, and says so", () => {

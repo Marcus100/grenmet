@@ -71,6 +71,15 @@ function renderForm(
   );
 }
 
+const TOUCH_RE_1 = /Deposit amount \(EC\$\)/u;
+const TOUCH_RE_2 = /\(XCD\)/u;
+const TOUCH_RE_3 = /-hint/u;
+const TOUCH_RE_4 = /The amount in EC\$/u;
+const TOUCH_RE_5 = /text-base/u;
+const TOUCH_RE_6 = /A service's own deposit always wins over this rule/u;
+const TOUCH_RE_7 = /edit that service under Services/u;
+const TOUCH_RE_8 = /pays at the salon/u;
+
 describe("DepositRuleForm", () => {
   it("is off by default and asks for nothing until it is switched on", () => {
     renderForm();
@@ -171,6 +180,74 @@ describe("DepositRuleForm", () => {
       "Cancel at least 48 hours before to get your deposit back."
     );
     expect(screen.getByTestId(PREVIEW).textContent).not.toContain("24 hours");
+  });
+});
+
+describe("DepositRuleForm touch and accessibility", () => {
+  it("labels the amount in EC$, the same word as the preview", () => {
+    renderForm({ deposit_mode: "fixed", deposit_fixed_minor: 30_000 });
+    expect(screen.getByLabelText(TOUCH_RE_1)).toHaveProperty("value", "300");
+    expect(screen.queryByText(TOUCH_RE_2)).toBeNull();
+  });
+
+  it("gives the percentage and amount a placeholder and a linked hint", () => {
+    renderForm({ deposit_mode: "percent", deposit_percent: 50 });
+    const percent = screen.getByLabelText(PERCENT);
+    expect(percent).toHaveAttribute("placeholder", "25");
+    expect(percent.getAttribute("aria-describedby")).toMatch(TOUCH_RE_3);
+    fireEvent.click(screen.getByLabelText(FIXED_CHOICE));
+    const amount = screen.getByLabelText(AMOUNT);
+    expect(amount).toHaveAttribute("placeholder", "50.00");
+    expect(screen.getByText(TOUCH_RE_4)).toBeTruthy();
+  });
+
+  it("marks an invalid input and points it at the error", () => {
+    renderForm({ deposit_mode: "percent", deposit_percent: 50 });
+    const percent = screen.getByLabelText(PERCENT);
+    expect(percent).not.toHaveAttribute("aria-invalid");
+    fireEvent.change(percent, { target: { value: "150" } });
+    expect(percent).toHaveAttribute("aria-invalid", "true");
+    const alert = screen.getByRole("alert");
+    expect(alert.id).toBeTruthy();
+    expect(percent.getAttribute("aria-describedby")).toContain(alert.id);
+    expect(alert.className).toMatch(TOUCH_RE_5);
+  });
+
+  it("says a service's own deposit wins and where to change it", () => {
+    renderForm({ deposit_mode: "percent", deposit_percent: 50 });
+    expect(screen.getByText(TOUCH_RE_6)).toBeTruthy();
+    expect(screen.getByText(TOUCH_RE_7)).toBeTruthy();
+  });
+
+  it("says the booking is paid at the salon when no payment route exists", () => {
+    renderForm(
+      { deposit_mode: "percent", deposit_percent: 50 },
+      { depositsAvailable: false }
+    );
+    expect(screen.getByTestId(PREVIEW).textContent).toBe(
+      "Classic full set (EC$210) is paid at the salon: online deposits need this business to have online payments switched on."
+    );
+    expect(screen.getByText(COLLECTED).textContent).toMatch(TOUCH_RE_8);
+  });
+});
+
+describe("previewSentence without a payment route", () => {
+  it("does not promise an online deposit or a refund", () => {
+    expect(
+      previewSentence(
+        { name: "Facial", priceMinor: 9000, ownDepositMinor: 2500 },
+        {
+          deposit_mode: "percent",
+          deposit_percent: 50,
+          deposit_fixed_minor: null,
+        },
+        "XCD",
+        6,
+        false
+      )
+    ).toBe(
+      "Facial (EC$90) is paid at the salon: online deposits need this business to have online payments switched on."
+    );
   });
 });
 
