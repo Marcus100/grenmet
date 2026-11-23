@@ -21,8 +21,17 @@ Configured does not mean Google has received an event. Browser analytics is prod
 
 Weather, Docs, MBIA, Signal, Elections and public Events discovery pages mount the shared consent provider.
 Barrels' static build emits the same consent policy and Google transport as
-browser modules, with no framework dependency. Events collects only home, event and group discovery pages; its organiser console,
-member pages and sign-in remain excluded alongside Auth, Admin and CMS.
+browser modules, with no framework dependency. The consent provider (GA4 and the
+consent-gated PostHog provider) collects only home, event and group discovery pages on
+Events; its organiser console, member pages and sign-in remain excluded from it, alongside
+Auth, Admin and CMS. The owner's 22 Nov 2026 decision supersedes that exclusion for the
+cookieless signed-in funnels only, described in
+[Signed-in funnels](#signed-in-funnels-cookieless-posthog). Those funnels send only
+the named events listed there, from the bookings business pages, the Events event page,
+ticket checkout and order confirmation, and the account sign-in pages. They carry only
+allow-listed ids and enums. They never send names, emails, free text or URLs, and they run only on
+production `barrels.gd` hosts with the production build. The consent provider and GA4 stay
+as they were.
 
 For each additional public site, create/select its own GA4 property and web
 stream, record its `G-…` ID and exact origin under the production environment
@@ -135,6 +144,37 @@ Auth, GAA Admin and CMS have no browser GA4. Availability and Sentry cover those
 operational services. Personal and NISA sites remain outside this repository.
 Deploy the rebuilt Docker sites through staging and production; deploy Barrels
 and Elections through their separate Cloudflare Pages projects before claiming activation.
+
+## Signed-in funnels (cookieless PostHog)
+
+Owner decision, 22 Nov 2026: the signed-in funnels in bookings, events and
+account use cookieless PostHog. This section is the policy. The allowed events
+are exactly these, and nothing else is sent from these pages:
+
+| App | Pages | Events |
+| --- | --- | --- |
+| bookings | business booking page | `page_view` (page `business`), `service_selected`, `slot_selected`, `booking_submitted`, `booking_confirmed` |
+| events | event page; ticket checkout and order confirmation | `page_view` (page `event`), `event_viewed`, `checkout_started`, `order_completed` |
+| account | sign-in hand-off | `sign_in_started`, `sign_in_completed` |
+
+Each event carries only allow-listed ids and enums: the business slug, service
+id, listing id, the page name and the app. Never a name, email, phone number,
+free text, query string, path or URL. Unknown keys are dropped.
+Events of the signed-in pages do not run unless the build is production
+(`NEXT_PUBLIC_ENVIRONMENT=production`) on a production `barrels.gd` host. Staging,
+localhost and preview hosts send nothing. Do Not Track (`1` or `yes`) and Global
+Privacy Control switch collection off.
+
+The funnels are sent with `@barrelsgd/ui/lib/funnel-analytics`: a `fetch` to
+PostHog's capture endpoint, with no SDK, no cookie and no web storage. The
+kill switch is `NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED` set to `false`, `0`, `off`
+or `no` (any case). Nothing is stored on the device, so the consent provider
+above is not involved. Whether that is enough in each market is the owner's
+decision. PostHog still receives each request's IP address; `$geoip_disable`
+stops the location lookup, not the receipt of the address. The key belongs to
+production only. Settings and the deploy note are in
+[docs/env.md](../env.md#funnel-analytics-bookings-events-account). This does not
+change the PostHog mappings in the service catalogue, which stay empty.
 
 ## Operational collection
 

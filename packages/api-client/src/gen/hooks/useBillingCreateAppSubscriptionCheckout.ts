@@ -61,7 +61,7 @@ export function billingCreateAppSubscriptionCheckoutMutationOptions<
 }
 
 /**
- * @description Create a pending subscription for one plan and return the hosted Stripe Checkout URL. Test mode only: a live Stripe key is refused with 503 before anything is sent. Organisation admins and owners only; one live subscription per organisation and app.
+ * @description Create a pending subscription for one plan and return the hosted Stripe Checkout URL. A repeat call while that Checkout is still open returns the same id and URL (201), so an abandoned checkout does not block the customer; once it has expired, a fresh Checkout replaces it. 409 when the organisation already has a live subscription to the app, or when the first checkout is paid and Stripe has not reported it yet. Test mode only: a live Stripe key is refused with 503 before anything is sent. Organisation admins and owners only, signed in with an account or the bookings studio session. Stripe returns the customer to the organisation's studio plan page.
  * @summary Start an app subscription checkout
  * {@link /api/v1/billing/org/subscriptions/checkout}
  */

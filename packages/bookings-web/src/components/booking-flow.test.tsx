@@ -293,6 +293,46 @@ describe("BookingFlow form", () => {
     spy.mockRestore();
   });
 
+  it("records each funnel step with ids only, never the visitor's details", async () => {
+    const user = userEvent.setup();
+    const track = vi.fn();
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: true,
+      data: { booking, manageToken: "tok" },
+    });
+    render(
+      <BookingFlow
+        actions={actions}
+        managePath="/booking"
+        storefront={storefront}
+        studioName={STUDIO}
+        track={track}
+        turnstileSiteKey=""
+      />
+    );
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+    await waitFor(() =>
+      expect(track).toHaveBeenCalledWith("booking_confirmed", expect.anything())
+    );
+
+    expect(track.mock.calls.map(([event]) => event)).toEqual([
+      "service_selected",
+      "slot_selected",
+      "booking_submitted",
+      "booking_confirmed",
+    ]);
+    for (const [, properties] of track.mock.calls) {
+      expect(Object.keys(properties)).toEqual(["service_id"]);
+    }
+    const sent = JSON.stringify(track.mock.calls);
+    expect(sent).not.toContain("Ada");
+    expect(sent).not.toContain("@");
+  });
+
   it("explains a taken slot, clears the choice and reloads the times", async () => {
     const user = userEvent.setup();
     vi.mocked(submitBooking).mockResolvedValue({

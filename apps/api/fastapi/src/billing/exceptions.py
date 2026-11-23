@@ -93,3 +93,15 @@ class AppSubscriptionStateError(AppException):
 
     def __init__(self, message: str) -> None:
         super().__init__(message, status.HTTP_409_CONFLICT)
+
+
+class AppSubscriptionNotYetWrittenError(AppException):
+    """A Stripe event names a subscription row this database does not have yet. The
+    event id is not recorded, and a non-2xx answer makes Stripe send it again (issue
+    #1723)."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "The subscription for this Stripe event is not available yet",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )

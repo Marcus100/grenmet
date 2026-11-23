@@ -1,12 +1,13 @@
-import { BookingFlow } from "@barrelsgd/bookings-web/components/booking-flow";
 import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contact";
 import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
+import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
 import { StorefrontLogo } from "@/components/storefront-logo";
+import { TrackedBookingFlow } from "@/components/tracked-booking-flow";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
 import { signInPath, signUpHref } from "@/lib/sign-in-links";
@@ -79,6 +80,11 @@ export default async function BusinessBookingPage({
       className="booking space-y-10"
       style={brandStyle(storefront.brand_color)}
     >
+      <FunnelEvent
+        app="bookings"
+        event="page_view"
+        properties={{ organisation: slug, page: "business" }}
+      />
       <JsonLd
         data={storefrontJsonLd(
           env.NEXT_PUBLIC_SITE_URL ?? "https://bookings.barrels.gd",
@@ -150,7 +156,7 @@ export default async function BusinessBookingPage({
           <h2 className="text-lg font-semibold" id="book-title">
             Book online
           </h2>
-          <BookingFlow
+          <TrackedBookingFlow
             accountInvite={accountInvite}
             actions={{
               confirmEmailCode: confirmEmailCode.bind(null, slug),
@@ -162,6 +168,7 @@ export default async function BusinessBookingPage({
             ManageLink={BookingLink}
             managePath={`/${slug}/booking`}
             signedIn={visitor?.signedIn}
+            slug={slug}
             storefront={storefront}
             studioName={storefront.display_name}
             turnstileSiteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}

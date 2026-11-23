@@ -5,6 +5,8 @@ from fastapi import Depends
 from src.auth.models import User
 from src.auth.policy import require_permission
 from src.dependencies import CurrentUser
+from src.organisations.dependencies import OrgContext, require_org_role_session
+from src.organisations.models import MembershipRole
 
 from .gateway import StripeGateway, stripe_gateway
 
@@ -24,14 +26,9 @@ async def get_billing_manager(current_user: CurrentUser) -> User:
 
 BillingManager = Annotated[User, Depends(get_billing_manager)]
 
-
-async def get_app_subscription_manager(current_user: CurrentUser) -> User:
-    """Holders of ``billing.subscriptions.manage`` (superusers always). Checked before
-    the organisation role, so a caller without the key gets 403 whatever their role."""
-    require_permission(
-        current_user=current_user, permission_key="billing.subscriptions.manage"
-    )
-    return current_user
-
-
-AppSubscriptionManager = Annotated[User, Depends(get_app_subscription_manager)]
+#: Organisation admin or owner, signed in with an account or the bookings studio
+#: (ADR-0065). No entitlement check: subscribing is how the app is bought.
+BillingOrgAdmin = Annotated[
+    OrgContext,
+    Depends(require_org_role_session(MembershipRole.ADMIN, session_app="bookings")),
+]

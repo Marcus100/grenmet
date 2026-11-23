@@ -31,6 +31,16 @@ class CheckoutSessionResult:
 
 
 @dataclass(frozen=True)
+class CheckoutSessionState:
+    """A Checkout Session as Stripe reports it now: ``open``, ``complete`` or
+    ``expired``. ``url`` is set while the session is open."""
+
+    id: str
+    status: str
+    url: str | None
+
+
+@dataclass(frozen=True)
 class WebhookEventResult:
     id: str
     type: str
@@ -39,6 +49,8 @@ class WebhookEventResult:
     created: int = 0
     #: ``data.object`` of the event, as Stripe sent it (no expansion).
     data_object: dict[str, Any] = field(default_factory=dict)
+    #: Stripe ``livemode``; ``None`` when the event does not say.
+    livemode: bool | None = None
 
 
 class StripeGateway(Protocol):
@@ -57,7 +69,13 @@ class StripeGateway(Protocol):
         customer_id: str | None,
         customer_email: str | None,
         trial_period_days: int | None,
+        success_url: str,
+        cancel_url: str,
     ) -> CheckoutSessionResult: ...
+
+    def get_app_subscription_checkout(
+        self, *, session_id: str
+    ) -> CheckoutSessionState: ...
 
     def construct_webhook_event(
         self, *, payload: bytes, signature: str
@@ -119,8 +137,13 @@ class StripeSdkGateway:
         customer_id: str | None,
         customer_email: str | None,
         trial_period_days: int | None,
+        success_url: str,
+        cancel_url: str,
     ) -> CheckoutSessionResult:
         """A subscription Checkout Session for one Barrels app plan (test mode only).
+
+        The return URLs are chosen by the service per organisation; this adapter never
+        reads a global return URL for app subscriptions.
 
         The key guard runs before the client exists, so a live key sends nothing."""
         secret_key = _require_test_key(self._config.STRIPE_SECRET_KEY)
@@ -135,13 +158,13 @@ class StripeSdkGateway:
         if trial_period_days:
             subscription_data["trial_period_days"] = trial_period_days
         params: dict[str, Any] = {
-            "cancel_url": str(self._config.CHECKOUT_CANCEL_URL),
+            "cancel_url": cancel_url,
             "client_reference_id": subscription_id,
             "line_items": [{"price": price_id, "quantity": 1}],
             "metadata": metadata,
             "mode": "subscription",
             "subscription_data": subscription_data,
-            "success_url": str(self._config.CHECKOUT_SUCCESS_URL),
+            "success_url": success_url,
         }
         if customer_id:
             params["customer"] = customer_id
@@ -163,6 +186,20 @@ class StripeSdkGateway:
             raise BillingProviderError("Stripe did not return a Checkout URL")
         return CheckoutSessionResult(id=session.id, url=session.url)
 
+    def get_app_subscription_checkout(self, *, session_id: str) -> CheckoutSessionState:
+        """Read a Checkout Session back from Stripe (test mode only, ADR-0027)."""
+        secret_key = _require_test_key(self._config.STRIPE_SECRET_KEY)
+        try:
+            client = stripe.StripeClient(secret_key, max_network_retries=2)
+            session = client.v1.checkout.sessions.retrieve(session_id)
+        except stripe.StripeError as exc:
+            raise BillingProviderError("Stripe Checkout request failed") from exc
+        return CheckoutSessionState(
+            id=session.id,
+            status=session.status or "",
+            url=session.url if session.status == "open" else None,
+        )
+
     def construct_webhook_event(
         self, *, payload: bytes, signature: str
     ) -> WebhookEventResult:
@@ -183,12 +220,14 @@ class StripeSdkGateway:
         data_object = data.get("object", {}) if isinstance(data, dict) else {}
         object_id = data_object.get("id") if isinstance(data_object, dict) else None
         created = event_data.get("created")
+        livemode = event_data.get("livemode")
         return WebhookEventResult(
             id=event.id,
             type=event.type,
             object_id=object_id if isinstance(object_id, str) else None,
             created=created if isinstance(created, int) else 0,
             data_object=data_object if isinstance(data_object, dict) else {},
+            livemode=livemode if isinstance(livemode, bool) else None,
         )
 
 
