@@ -93,7 +93,7 @@ export function MobileNavigation({ header }: { header: React.ReactNode }) {
     <IsInsideMobileNavigationContext.Provider value={true}>
       <button
         aria-label="Toggle navigation"
-        className="relative flex size-6 items-center justify-center rounded-md transition hover:bg-zinc-900/5 dark:hover:bg-white/5"
+        className="relative flex size-11 items-center justify-center rounded-md transition hover:bg-zinc-900/5 dark:hover:bg-white/5"
         onClick={toggle}
         type="button"
       >
