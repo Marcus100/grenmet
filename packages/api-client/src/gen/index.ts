@@ -76,6 +76,12 @@ export type { AppPhoneCodeStart } from "./models/AppPhoneCodeStart.js";
 export type { AppPhoneCodeStartPropertiesChannelEnum } from "./models/AppPhoneCodeStartPropertiesChannelEnum.js";
 export type { AppPhoneCodeVerify } from "./models/AppPhoneCodeVerify.js";
 export type { AppPublic } from "./models/AppPublic.js";
+export type { AppSubscriptionChannel } from "./models/AppSubscriptionChannel.js";
+export type { AppSubscriptionCheckoutCreate } from "./models/AppSubscriptionCheckoutCreate.js";
+export type { AppSubscriptionCheckoutPublic } from "./models/AppSubscriptionCheckoutPublic.js";
+export type { AppSubscriptionListPublic } from "./models/AppSubscriptionListPublic.js";
+export type { AppSubscriptionPublic } from "./models/AppSubscriptionPublic.js";
+export type { AppSubscriptionStatus } from "./models/AppSubscriptionStatus.js";
 export type { ApprovalAuthorityPublic } from "./models/ApprovalAuthorityPublic.js";
 export type { ApprovalAuthorityUpdate } from "./models/ApprovalAuthorityUpdate.js";
 export type { ApprovalLine } from "./models/ApprovalLine.js";
@@ -1027,6 +1033,21 @@ export type { BalanceImportRow } from "./models/BalanceImportRow.js";
 export type { BalanceImportRowPropertiesStatusEnum } from "./models/BalanceImportRowPropertiesStatusEnum.js";
 export type { BalanceInput } from "./models/BalanceInput.js";
 export type {
+  BillingCreateAppSubscriptionCheckoutBody,
+  BillingCreateAppSubscriptionCheckoutHeaders,
+  BillingCreateAppSubscriptionCheckoutOptions,
+  BillingCreateAppSubscriptionCheckoutResponse,
+  BillingCreateAppSubscriptionCheckoutResponses,
+  BillingCreateAppSubscriptionCheckoutStatus201,
+  BillingCreateAppSubscriptionCheckoutStatus401,
+  BillingCreateAppSubscriptionCheckoutStatus403,
+  BillingCreateAppSubscriptionCheckoutStatus404,
+  BillingCreateAppSubscriptionCheckoutStatus409,
+  BillingCreateAppSubscriptionCheckoutStatus422,
+  BillingCreateAppSubscriptionCheckoutStatus502,
+  BillingCreateAppSubscriptionCheckoutStatus503,
+} from "./models/BillingCreateAppSubscriptionCheckout.js";
+export type {
   BillingCreateCustomerBody,
   BillingCreateCustomerOptions,
   BillingCreateCustomerResponse,
@@ -1127,6 +1148,17 @@ export type {
   BillingIssueInvoiceStatus409,
   BillingIssueInvoiceStatus422,
 } from "./models/BillingIssueInvoice.js";
+export type {
+  BillingListAppSubscriptionsHeaders,
+  BillingListAppSubscriptionsOptions,
+  BillingListAppSubscriptionsResponse,
+  BillingListAppSubscriptionsResponses,
+  BillingListAppSubscriptionsStatus200,
+  BillingListAppSubscriptionsStatus401,
+  BillingListAppSubscriptionsStatus403,
+  BillingListAppSubscriptionsStatus404,
+  BillingListAppSubscriptionsStatus422,
+} from "./models/BillingListAppSubscriptions.js";
 export type {
   BillingListCustomersOptions,
   BillingListCustomersQuery,
@@ -10655,6 +10687,7 @@ export { authUpdateRole } from "./clients/authUpdateRole.js";
 export { authUpdateRoleAssignment } from "./clients/authUpdateRoleAssignment.js";
 export { authUpdateUser } from "./clients/authUpdateUser.js";
 export { authUpdateUserMe } from "./clients/authUpdateUserMe.js";
+export { billingCreateAppSubscriptionCheckout } from "./clients/billingCreateAppSubscriptionCheckout.js";
 export { billingCreateCustomer } from "./clients/billingCreateCustomer.js";
 export { billingCreateInvoice } from "./clients/billingCreateInvoice.js";
 export { billingCreateSubscriptionCheckout } from "./clients/billingCreateSubscriptionCheckout.js";
@@ -10664,6 +10697,7 @@ export { billingGetCustomer } from "./clients/billingGetCustomer.js";
 export { billingGetInvoice } from "./clients/billingGetInvoice.js";
 export { billingGetReceivables } from "./clients/billingGetReceivables.js";
 export { billingIssueInvoice } from "./clients/billingIssueInvoice.js";
+export { billingListAppSubscriptions } from "./clients/billingListAppSubscriptions.js";
 export { billingListCustomers } from "./clients/billingListCustomers.js";
 export { billingListInvoices } from "./clients/billingListInvoices.js";
 export { billingRecordPayment } from "./clients/billingRecordPayment.js";
@@ -11823,6 +11857,11 @@ export {
   useAuthUpdateUserMe,
 } from "./hooks/useAuthUpdateUserMe.js";
 export {
+  billingCreateAppSubscriptionCheckoutMutationKey,
+  billingCreateAppSubscriptionCheckoutMutationOptions,
+  useBillingCreateAppSubscriptionCheckout,
+} from "./hooks/useBillingCreateAppSubscriptionCheckout.js";
+export {
   billingCreateCustomerMutationKey,
   billingCreateCustomerMutationOptions,
   useBillingCreateCustomer,
@@ -11867,6 +11906,11 @@ export {
   billingIssueInvoiceMutationOptions,
   useBillingIssueInvoice,
 } from "./hooks/useBillingIssueInvoice.js";
+export {
+  billingListAppSubscriptionsQueryKey,
+  billingListAppSubscriptionsQueryOptions,
+  useBillingListAppSubscriptions,
+} from "./hooks/useBillingListAppSubscriptions.js";
 export {
   billingListCustomersQueryKey,
   billingListCustomersQueryOptions,
@@ -15464,6 +15508,8 @@ export { activityEntryPropertiesActorCapacityEnum } from "./models/ActivityEntry
 export { ageingBucket } from "./models/AgeingBucket.js";
 export { almanacGetAstronomyParametersSchemaEnum } from "./models/AlmanacGetAstronomyParametersSchemaEnum.js";
 export { appPhoneCodeStartPropertiesChannelEnum } from "./models/AppPhoneCodeStartPropertiesChannelEnum.js";
+export { appSubscriptionChannel } from "./models/AppSubscriptionChannel.js";
+export { appSubscriptionStatus } from "./models/AppSubscriptionStatus.js";
 export { areaCreatePropertiesSpaceTypeAnyOfEnum } from "./models/AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
 export { attemptStatus } from "./models/AttemptStatus.js";
 export { aviationDraftReadPropertiesKindEnum } from "./models/AviationDraftReadPropertiesKindEnum.js";
@@ -15769,6 +15815,12 @@ export { appPhoneCodeStartPropertiesChannelEnumSchema } from "./zod/appPhoneCode
 export { appPhoneCodeStartSchema } from "./zod/appPhoneCodeStartSchema.js";
 export { appPhoneCodeVerifySchema } from "./zod/appPhoneCodeVerifySchema.js";
 export { appPublicSchema } from "./zod/appPublicSchema.js";
+export { appSubscriptionChannelSchema } from "./zod/appSubscriptionChannelSchema.js";
+export { appSubscriptionCheckoutCreateSchema } from "./zod/appSubscriptionCheckoutCreateSchema.js";
+export { appSubscriptionCheckoutPublicSchema } from "./zod/appSubscriptionCheckoutPublicSchema.js";
+export { appSubscriptionListPublicSchema } from "./zod/appSubscriptionListPublicSchema.js";
+export { appSubscriptionPublicSchema } from "./zod/appSubscriptionPublicSchema.js";
+export { appSubscriptionStatusSchema } from "./zod/appSubscriptionStatusSchema.js";
 export { approvalAuthorityPublicSchema } from "./zod/approvalAuthorityPublicSchema.js";
 export { approvalAuthorityUpdateSchema } from "./zod/approvalAuthorityUpdateSchema.js";
 export { approvalLineSchema } from "./zod/approvalLineSchema.js";
@@ -16689,6 +16741,21 @@ export { balanceImportRowPropertiesStatusEnumSchema } from "./zod/balanceImportR
 export { balanceImportRowSchema } from "./zod/balanceImportRowSchema.js";
 export { balanceInputSchema } from "./zod/balanceInputSchema.js";
 export {
+  billingCreateAppSubscriptionCheckoutBodySchema,
+  billingCreateAppSubscriptionCheckoutErrorSchema,
+  billingCreateAppSubscriptionCheckoutHeaderXBarrelsOrganisationSchema,
+  billingCreateAppSubscriptionCheckoutHeadersSchema,
+  billingCreateAppSubscriptionCheckoutResponseSchema,
+  billingCreateAppSubscriptionCheckoutStatus201Schema,
+  billingCreateAppSubscriptionCheckoutStatus401Schema,
+  billingCreateAppSubscriptionCheckoutStatus403Schema,
+  billingCreateAppSubscriptionCheckoutStatus404Schema,
+  billingCreateAppSubscriptionCheckoutStatus409Schema,
+  billingCreateAppSubscriptionCheckoutStatus422Schema,
+  billingCreateAppSubscriptionCheckoutStatus502Schema,
+  billingCreateAppSubscriptionCheckoutStatus503Schema,
+} from "./zod/billingCreateAppSubscriptionCheckoutSchema.js";
+export {
   billingCreateCustomerBodySchema,
   billingCreateCustomerErrorSchema,
   billingCreateCustomerResponseSchema,
@@ -16787,6 +16854,17 @@ export {
   billingIssueInvoiceStatus409Schema,
   billingIssueInvoiceStatus422Schema,
 } from "./zod/billingIssueInvoiceSchema.js";
+export {
+  billingListAppSubscriptionsErrorSchema,
+  billingListAppSubscriptionsHeaderXBarrelsOrganisationSchema,
+  billingListAppSubscriptionsHeadersSchema,
+  billingListAppSubscriptionsResponseSchema,
+  billingListAppSubscriptionsStatus200Schema,
+  billingListAppSubscriptionsStatus401Schema,
+  billingListAppSubscriptionsStatus403Schema,
+  billingListAppSubscriptionsStatus404Schema,
+  billingListAppSubscriptionsStatus422Schema,
+} from "./zod/billingListAppSubscriptionsSchema.js";
 export {
   billingListCustomersErrorSchema,
   billingListCustomersQueryPageSchema,

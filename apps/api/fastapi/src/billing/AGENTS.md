@@ -18,8 +18,16 @@
 - **Settings** (`BILLING_INVOICE_*` in `config.py`, `docs/env.md`): legal entity name, default VAT 15%, number prefix and padding are **provisional** until the registration and tax advice are confirmed. Currency XCD and net 30 are owner decisions.
 - Service functions `flush` and never `commit`; routers commit (reminders commit themselves, as the worker owns that transaction).
 
+## App subscriptions (ADR-0065, slice 1)
+- Barrels sells its own app plans through Stripe Billing (NZ account, Barrels' subscriptions only). Test mode only: every Stripe call goes through `_require_test_key` (in `gateway.py`), which refuses a non-`sk_test_` key with 503 before any request.
+- Tables in `billing`: `plan`, `plan_price` (minor units; `bookings-monthly` XCD 3000 seeded), `app_subscription` (one live row per organisation and app, partial unique index; `status` moves only through `app_subscription_transitions.py`), `stripe_event` (applied event ids; the primary key makes a replay a no-op), `customer.stripe_customer_id`.
+- Routes (`router.py`, ADR-0025 zone `org`): `GET /billing/org/subscriptions`, `POST /billing/org/subscriptions/checkout` (`OrgAdmin`: admin and owner; 404 for an outsider's organisation). The webhook `POST /billing/webhooks/stripe` applies events through `app_subscriptions.apply_stripe_event`: insert the event id first, then apply; an event older than `last_event_at` is ignored; a status the table refuses is logged and the webhook still answers 2xx.
+- `checkout.session.completed` links the Stripe ids and does **not** move `last_event_at` (Stripe may send the subscription's earlier event after it). Status comes from the subscription events.
+- Checkout inserts the pending row after the refusals and before the provider call, with a per-subscription idempotency key. Settings: `BILLING_STRIPE_PRICES` (`plan_key:currency` -> price id), `BILLING_APP_TRIAL_DAYS`.
+- Not built: the entitlement link (an organisation's app access). Do not add it without the owner's go and a flag that is off by default.
+
 ## Tests
-`tests/billing/test_billing.py` (Stripe) and `tests/billing/test_invoicing.py` (totals and rounding, numbering under concurrency and rollback, status machine, payments, receivables, reminder idempotency, permissions, audit).
+`tests/billing/test_billing.py` (Stripe) and `tests/billing/test_invoicing.py` (totals and rounding, numbering under concurrency and rollback, status machine, payments, receivables, reminder idempotency, permissions, audit). `tests/billing/test_app_subscriptions.py` (checkout price and metadata, roles and cross-organisation denial, live-key refusal with nothing sent, one live row per app, Stripe report handling: replay, order, cancel, failed invoice; transition table; migration rehearsal).
 
 ## Related
 `docs/operations/provider-integrations.md`, `docs/exec-plans/barrels-foundations-plan.md` (P1-P3), `src/notifications/AGENTS.md` (outbox), `src/worker/AGENTS.md`.

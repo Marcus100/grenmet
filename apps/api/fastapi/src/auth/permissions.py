@@ -173,6 +173,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "billing.manage",
         "Manage Barrels invoicing: customers, invoices, manual payments and receivables",
     ),
+    PermissionDef(
+        "billing.subscriptions.manage",
+        "Start Barrels app subscription checkouts and see subscription status for an organisation (ADR-0065)",
+    ),
     # Platform — Barrels rewards
     PermissionDef(
         "rewards.manage",

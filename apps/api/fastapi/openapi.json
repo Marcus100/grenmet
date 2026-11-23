@@ -2591,6 +2591,206 @@
         ]
       }
     },
+    "/api/v1/billing/org/subscriptions": {
+      "get": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "List the organisation's app subscriptions",
+        "description": "Barrels app subscriptions of the organisation the request acts for, newest first, with each plan's amount in XCD minor units (ADR-0065). Organisation admins and owners only.",
+        "operationId": "billingListAppSubscriptions",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSubscriptionListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/billing/org/subscriptions/checkout": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Start an app subscription checkout",
+        "description": "Create a pending subscription for one plan and return the hosted Stripe Checkout URL. Test mode only: a live Stripe key is refused with 503 before anything is sent. Organisation admins and owners only; one live subscription per organisation and app.",
+        "operationId": "billingCreateAppSubscriptionCheckout",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppSubscriptionCheckoutCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSubscriptionCheckoutPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "This plan has no price in that currency",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Stripe request failed"
+          },
+          "503": {
+            "description": "Billing is not configured or test mode is not in use"
+          }
+        }
+      }
+    },
     "/api/v1/billing/customers": {
       "get": {
         "tags": [
@@ -75018,6 +75218,163 @@
           "methods"
         ],
         "title": "AppPublic"
+      },
+      "AppSubscriptionChannel": {
+        "type": "string",
+        "enum": [
+          "stripe",
+          "invoice"
+        ],
+        "title": "AppSubscriptionChannel"
+      },
+      "AppSubscriptionCheckoutCreate": {
+        "properties": {
+          "plan_key": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Plan Key"
+          },
+          "currency": {
+            "type": "string",
+            "const": "XCD",
+            "title": "Currency",
+            "default": "XCD"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_key"
+        ],
+        "title": "AppSubscriptionCheckoutCreate"
+      },
+      "AppSubscriptionCheckoutPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "url"
+        ],
+        "title": "AppSubscriptionCheckoutPublic"
+      },
+      "AppSubscriptionListPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AppSubscriptionPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "AppSubscriptionListPublic"
+      },
+      "AppSubscriptionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "app_key": {
+            "type": "string",
+            "title": "App Key"
+          },
+          "plan_key": {
+            "type": "string",
+            "title": "Plan Key"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/AppSubscriptionChannel"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AppSubscriptionStatus"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor"
+          },
+          "current_period_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Period End"
+          },
+          "cancel_at_period_end": {
+            "type": "boolean",
+            "title": "Cancel At Period End"
+          },
+          "trial_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trial End"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "app_key",
+          "plan_key",
+          "channel",
+          "status",
+          "currency",
+          "amount_minor",
+          "current_period_end",
+          "cancel_at_period_end",
+          "trial_end",
+          "created_at"
+        ],
+        "title": "AppSubscriptionPublic"
+      },
+      "AppSubscriptionStatus": {
+        "type": "string",
+        "enum": [
+          "incomplete",
+          "active",
+          "past_due",
+          "canceled",
+          "unpaid"
+        ],
+        "title": "AppSubscriptionStatus"
       },
       "ApprovalAuthorityPublic": {
         "properties": {

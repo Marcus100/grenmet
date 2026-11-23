@@ -1415,6 +1415,28 @@ Reminder emails (7 days before due, on the due date, 7 days overdue) are sent by
 the worker once per invoice and stage. The legal entity name, VAT rate and number
 format are provisional settings (`docs/env.md`).
 
+### Barrels app subscriptions (ADR-0065)
+
+Barrels sells its own app plans (first plan: `bookings-monthly`, XCD 30.00 a month)
+through Stripe Billing. Test mode only: a live Stripe key is refused with 503
+before any request is sent. Organisation-zone routes: an organisation admin or
+owner (`OrgAdmin`); a member gets 403 and an organisation the caller does not
+belong to gets 404. No entitlement changes: app access is still set by the
+organisation routes.
+
+| Endpoint | Operation id | Contract |
+| --- | --- | --- |
+| `GET /api/v1/billing/org/subscriptions` | `billingListAppSubscriptions` | `{"data": [...]}`, newest first. Each item: `id`, `app_key`, `plan_key`, `channel` (`stripe`), `status` (`incomplete`, `active`, `past_due`, `canceled`, `unpaid`), `currency`, `amount_minor`, `current_period_end`, `cancel_at_period_end`, `trial_end`, `created_at` |
+| `POST /api/v1/billing/org/subscriptions/checkout` | `billingCreateAppSubscriptionCheckout` | Body `{"plan_key": "bookings-monthly", "currency": "XCD"}`. 201 with `{"id": "<subscription id>", "url": "https://checkout.stripe.com/..."}`. 404 unknown plan, 422 no price in that currency, 409 a live subscription to the same app already exists, 503 no Stripe price configured or a live key |
+
+The Checkout Session carries `client_reference_id` and metadata
+(`organisation_id`, `app_subscription_id`, `plan_key`, `app_key`) on the Session and
+the Subscription. The webhook `POST /api/v1/billing/webhooks/stripe` (hidden from
+OpenAPI) applies `checkout.session.completed`, `checkout.session.expired`,
+`customer.subscription.created|updated|deleted` and `invoice.payment_failed`
+once per event id; an older event than the last applied one is ignored. A canceled
+subscription stays canceled.
+
 ## Change history and notifications (platform core)
 
 Shared services (ADR-0009) that any module can use; HR is the first. Both require an
