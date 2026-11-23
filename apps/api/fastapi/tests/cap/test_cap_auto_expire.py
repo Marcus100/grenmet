@@ -5,7 +5,9 @@ from datetime import timedelta
 from uuid import UUID, uuid4
 
 import pytest
+from redis.exceptions import RedisError
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap import cache, escalation, expiry
@@ -260,3 +262,59 @@ async def test_the_worker_runs_the_expiry_job_on_a_schedule() -> None:
         if job.coroutine.__name__ == "expire_cap_alerts"
     ]
     assert scheduled == ["expire_cap_alerts"]
+
+
+async def test_one_failing_alert_does_not_block_the_others(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bad_id = (await seed(db_async, expires=[-PAST])).id
+    good_ids = [(await seed(db_async, expires=[-PAST])).id for _ in range(2)]
+    original = expiry._expire_one
+
+    async def flaky(*, session, alert_id, now):
+        if alert_id == bad_id:
+            raise SQLAlchemyError("constraint violation")
+        return await original(session=session, alert_id=alert_id, now=now)
+
+    monkeypatch.setattr(expiry, "_expire_one", flaky)
+    assert await expiry.expire_due_alerts(session=db_async) == len(good_ids)
+    for alert_id in good_ids:
+        assert (await reload(db_async, alert_id)).lifecycle_state == (
+            CapLifecycleState.EXPIRED
+        )
+    assert (await reload(db_async, bad_id)).lifecycle_state == (
+        CapLifecycleState.PUBLISHED
+    )
+
+
+async def test_a_cache_failure_after_the_commit_still_counts_as_expired(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    alert = await seed(db_async, expires=[-PAST])
+
+    async def broken(*keys: str) -> None:
+        raise RedisError("connection refused")
+
+    monkeypatch.setattr(cache, "invalidate", broken)
+    assert await expiry.expire_due_alerts(session=db_async) == 1
+    assert (await reload(db_async, alert.id)).lifecycle_state == (
+        CapLifecycleState.EXPIRED
+    )
+    assert len(await audit_rows(db_async, alert.id)) == 1
+
+
+async def test_a_run_where_every_attempt_fails_raises(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    alert_ids = [(await seed(db_async, expires=[-PAST])).id for _ in range(2)]
+
+    async def always_fails(*, session, alert_id, now):
+        raise SQLAlchemyError("database unavailable")
+
+    monkeypatch.setattr(expiry, "_expire_one", always_fails)
+    with pytest.raises(RuntimeError, match="every attempt failed"):
+        await expiry.expire_due_alerts(session=db_async)
+    for alert_id in alert_ids:
+        assert (await reload(db_async, alert_id)).lifecycle_state == (
+            CapLifecycleState.PUBLISHED
+        )

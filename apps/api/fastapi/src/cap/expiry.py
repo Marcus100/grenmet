@@ -22,12 +22,15 @@ import uuid
 from datetime import datetime
 
 import sqlalchemy as sa
+from redis.exceptions import RedisError
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap import cache, service
 from src.cap.cache import public_xml_key
 from src.cap.common import _record_audit
+from src.cap.exceptions import CapStateError
 from src.cap.models import CapAlert, CapInfo, CapLifecycleState, CapMessageType
 from src.utils.datetime import utc_now
 
@@ -85,7 +88,15 @@ async def _expire_one(
     )
     identifier = alert.identifier
     await session.commit()
-    await cache.invalidate(*cache.PUBLIC_FEED_KEYS, public_xml_key(identifier))
+    # The expiry is committed. A cache failure must not roll it back or count
+    # as a failed alert; the public caches age out on their own TTL.
+    try:
+        await cache.invalidate(*cache.PUBLIC_FEED_KEYS, public_xml_key(identifier))
+    except RedisError, OSError:
+        logger.exception(
+            "CAP cache invalidation failed after system expiry",
+            extra={"alert_id": str(alert_id)},
+        )
     return True
 
 
@@ -94,29 +105,44 @@ async def expire_due_alerts(
 ) -> int:
     """Expire every eligible alert, up to ``MAX_BATCHES_PER_RUN`` batches.
 
-    Returns the number expired by this run. Calling it again with nothing due
-    returns 0.
+    One failing alert is logged, rolled back and left for a later run; it does
+    not stop the others. Returns the number expired by this run. Raises
+    RuntimeError only when every attempted alert failed, so a systemic fault
+    still reaches Sentry while a single bad row does not.
     """
     moment = now or utc_now()
     expired = 0
+    attempted = 0
+    failed_ids: list[uuid.UUID] = []
     for _ in range(MAX_BATCHES_PER_RUN):
+        stmt = select(CapAlert.id).where(*_eligible(moment))
+        if failed_ids:
+            stmt = stmt.where(CapAlert.id.not_in(failed_ids))
         ids = list(
             (
                 await session.execute(
-                    select(CapAlert.id)
-                    .where(*_eligible(moment))
-                    .order_by(CapAlert.created_at, CapAlert.id)
-                    .limit(BATCH_SIZE)
+                    stmt.order_by(CapAlert.created_at, CapAlert.id).limit(BATCH_SIZE)
                 )
             )
             .scalars()
             .all()
         )
         for alert_id in ids:
-            if await _expire_one(session=session, alert_id=alert_id, now=moment):
-                expired += 1
+            attempted += 1
+            try:
+                if await _expire_one(session=session, alert_id=alert_id, now=moment):
+                    expired += 1
+            except SQLAlchemyError, CapStateError, OSError:
+                await session.rollback()
+                failed_ids.append(alert_id)
+                logger.exception(
+                    "CAP alert could not be expired by the system",
+                    extra={"alert_id": str(alert_id)},
+                )
         if len(ids) < BATCH_SIZE:
             break
+    if attempted and len(failed_ids) == attempted:
+        raise RuntimeError(f"CAP system expiry: every attempt failed ({attempted})")
     if expired:
         logger.info("CAP alerts expired by the system", extra={"count": expired})
     return expired
