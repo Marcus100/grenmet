@@ -1,12 +1,48 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { votesMargin } from "@/components/election/declared-result";
 import { PartyDot, SeatSquare } from "@/components/party-chip";
-import type { SeatOutlook } from "@/data/election-2026";
+import type { DeclaredSeat, SeatOutlook } from "@/data/election-2026";
 import { leanLabel } from "@/data/model";
 import { partyInfo } from "@/data/parties";
 
 /** One constituency at a glance; the whole card links to its page. */
-export function ConstituencyCard({ seat }: { seat: SeatOutlook }) {
+export function ConstituencyCard({
+  seat,
+  won,
+}: {
+  seat: SeatOutlook;
+  /** The provisional 2026 winner, once the result is declared. */
+  won?: DeclaredSeat;
+}) {
+  if (won)
+    return (
+      <Link
+        className="group bg-background hover:bg-el-paper-2 flex h-full gap-3 p-4"
+        href={seat.href as Route}
+      >
+        <SeatSquare
+          className="size-8 shrink-0"
+          code={seat.code}
+          label={`Won by ${partyInfo(won.winner.party).name} (provisional)`}
+          party={won.winner.party}
+        />
+        <span className="min-w-0 flex-1">
+          <b className="block font-serif text-lg leading-tight font-bold group-hover:underline">
+            {seat.name}
+          </b>
+          <span className="text-el-ink-2 mt-1 block text-base">
+            <PartyDot party={won.winner.party} />
+            {won.winner.name}, {won.winner.party}
+          </span>
+          <span className="text-el-muted mt-1 block text-base tabular-nums">
+            2026 (provisional): won {votesMargin(won.majority)}
+            {won.was.party !== won.winner.party &&
+              ` · held by ${won.was.party} at dissolution`}
+          </span>
+        </span>
+      </Link>
+    );
   return (
     <Link
       className="group bg-background hover:bg-el-paper-2 flex h-full gap-3 p-4"
@@ -41,12 +77,21 @@ export function ConstituencyCard({ seat }: { seat: SeatOutlook }) {
 }
 
 /** All 15 constituencies as compact cards. */
-export function ConstituencyGrid({ seats }: { seats: SeatOutlook[] }) {
+export function ConstituencyGrid({
+  seats,
+  declared,
+}: {
+  seats: SeatOutlook[];
+  declared?: DeclaredSeat[];
+}) {
   return (
     <ul className="border-el-rule bg-el-rule grid gap-px border sm:grid-cols-2 lg:grid-cols-3">
       {seats.map((seat) => (
         <li key={seat.code}>
-          <ConstituencyCard seat={seat} />
+          <ConstituencyCard
+            seat={seat}
+            won={declared?.find((row) => row.code === seat.code)}
+          />
         </li>
       ))}
     </ul>

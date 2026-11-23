@@ -47,9 +47,13 @@ describe("Results atlas navigation", () => {
       Node.DOCUMENT_POSITION_FOLLOWING
     );
     expect(
-      within(timeline).getByRole("button", { name: "2022" })
+      within(timeline).getByRole("button", { name: "2026" })
     ).toHaveAttribute("aria-pressed", "true");
     expect(within(timeline).getByRole("button", { name: NEXT })).toBeDisabled();
+    fireEvent.click(within(timeline).getByRole("button", { name: PREVIOUS }));
+    expect(
+      within(timeline).getByRole("button", { name: "2022" })
+    ).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(within(timeline).getByRole("button", { name: PREVIOUS }));
     expect(
       within(timeline).getByRole("button", { name: "2018 referendum" })
@@ -280,7 +284,7 @@ it("distinguishes House seats from referendum vote shares in the national summar
   const summary = screen.getByRole("region", { name: "National result" });
   expect(summary).toHaveTextContent("8 seats needed for a majority");
   expect(within(summary).getByRole("img")).toHaveAccessibleName(
-    "NDC 9 seats, NNP 6 seats"
+    "NDC 14 seats, NNP 1 seat"
   );
   fireEvent.click(
     within(timeline).getByRole("button", { name: "2018 referendum" })
