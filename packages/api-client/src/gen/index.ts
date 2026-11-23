@@ -4877,6 +4877,17 @@ export type {
   HrGetInstanceStatus422,
 } from "./models/HrGetInstance.js";
 export type {
+  HrGetMyEmploymentOptions,
+  HrGetMyEmploymentQuery,
+  HrGetMyEmploymentResponse,
+  HrGetMyEmploymentResponses,
+  HrGetMyEmploymentStatus200,
+  HrGetMyEmploymentStatus401,
+  HrGetMyEmploymentStatus403,
+  HrGetMyEmploymentStatus404,
+  HrGetMyEmploymentStatus422,
+} from "./models/HrGetMyEmployment.js";
+export type {
   HrGetMyLeaveRequestsOptions,
   HrGetMyLeaveRequestsQuery,
   HrGetMyLeaveRequestsResponse,
@@ -5625,6 +5636,8 @@ export type {
   HrLoadProvisionalHolidaysStatus403,
   HrLoadProvisionalHolidaysStatus422,
 } from "./models/HrLoadProvisionalHolidays.js";
+export type { HrMeEmploymentPublic } from "./models/HrMeEmploymentPublic.js";
+export type { HrMeLeaveBalancePublic } from "./models/HrMeLeaveBalancePublic.js";
 export type { HrMeOrganisationPublic } from "./models/HrMeOrganisationPublic.js";
 export type {
   HrOffboardStaffOptions,
@@ -10991,6 +11004,7 @@ export { hrGetHrEmployment } from "./clients/hrGetHrEmployment.js";
 export { hrGetHrProfileMe } from "./clients/hrGetHrProfileMe.js";
 export { hrGetInbox } from "./clients/hrGetInbox.js";
 export { hrGetInstance } from "./clients/hrGetInstance.js";
+export { hrGetMyEmployment } from "./clients/hrGetMyEmployment.js";
 export { hrGetMyLeaveRequests } from "./clients/hrGetMyLeaveRequests.js";
 export { hrGetMyOrganisations } from "./clients/hrGetMyOrganisations.js";
 export { hrGetMySignature } from "./clients/hrGetMySignature.js";
@@ -13376,6 +13390,11 @@ export {
   hrGetInstanceQueryOptions,
   useHrGetInstance,
 } from "./hooks/useHrGetInstance.js";
+export {
+  hrGetMyEmploymentQueryKey,
+  hrGetMyEmploymentQueryOptions,
+  useHrGetMyEmployment,
+} from "./hooks/useHrGetMyEmployment.js";
 export {
   hrGetMyLeaveRequestsQueryKey,
   hrGetMyLeaveRequestsQueryOptions,
@@ -20665,6 +20684,17 @@ export {
   hrGetInstanceStatus422Schema,
 } from "./zod/hrGetInstanceSchema.js";
 export {
+  hrGetMyEmploymentErrorSchema,
+  hrGetMyEmploymentQueryOrganisationIdSchema,
+  hrGetMyEmploymentQuerySchema,
+  hrGetMyEmploymentResponseSchema,
+  hrGetMyEmploymentStatus200Schema,
+  hrGetMyEmploymentStatus401Schema,
+  hrGetMyEmploymentStatus403Schema,
+  hrGetMyEmploymentStatus404Schema,
+  hrGetMyEmploymentStatus422Schema,
+} from "./zod/hrGetMyEmploymentSchema.js";
+export {
   hrGetMyLeaveRequestsErrorSchema,
   hrGetMyLeaveRequestsQueryPageSchema,
   hrGetMyLeaveRequestsQuerySchema,
@@ -21442,6 +21472,8 @@ export {
   hrLoadProvisionalHolidaysStatus403Schema,
   hrLoadProvisionalHolidaysStatus422Schema,
 } from "./zod/hrLoadProvisionalHolidaysSchema.js";
+export { hrMeEmploymentPublicSchema } from "./zod/hrMeEmploymentPublicSchema.js";
+export { hrMeLeaveBalancePublicSchema } from "./zod/hrMeLeaveBalancePublicSchema.js";
 export { hrMeOrganisationPublicSchema } from "./zod/hrMeOrganisationPublicSchema.js";
 export {
   hrOffboardStaffErrorSchema,

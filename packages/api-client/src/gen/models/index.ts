@@ -4963,6 +4963,17 @@ export type {
   HrGetInstanceStatus422,
 } from "./HrGetInstance.js";
 export type {
+  HrGetMyEmploymentOptions,
+  HrGetMyEmploymentQuery,
+  HrGetMyEmploymentResponse,
+  HrGetMyEmploymentResponses,
+  HrGetMyEmploymentStatus200,
+  HrGetMyEmploymentStatus401,
+  HrGetMyEmploymentStatus403,
+  HrGetMyEmploymentStatus404,
+  HrGetMyEmploymentStatus422,
+} from "./HrGetMyEmployment.js";
+export type {
   HrGetMyLeaveRequestsOptions,
   HrGetMyLeaveRequestsQuery,
   HrGetMyLeaveRequestsResponse,
@@ -5712,6 +5723,8 @@ export type {
   HrLoadProvisionalHolidaysStatus403,
   HrLoadProvisionalHolidaysStatus422,
 } from "./HrLoadProvisionalHolidays.js";
+export type { HrMeEmploymentPublic } from "./HrMeEmploymentPublic.js";
+export type { HrMeLeaveBalancePublic } from "./HrMeLeaveBalancePublic.js";
 export type { HrMeOrganisationPublic } from "./HrMeOrganisationPublic.js";
 export type {
   HrOffboardStaffOptions,

@@ -2046,6 +2046,17 @@ caller's employment and assignments, including for superusers. It takes no
 organisation input and omits employers whose platform slug is missing. Individual
 HR operations continue to enforce their own permissions.
 
+`GET /api/v1/hr/me/employment?organisation_id=<id>` returns the caller's own live
+employment in that organisation: `status`, `position`, `department_name`,
+`employment_type`, `start_date`, `end_date` and `leave_balances` (`leave_type`,
+`balance_days`, for every type with a ledger entry). No permission key applies
+because only the caller's record is read; there is no user parameter, and
+superusers get no shortcut. Leave balances are held per person, not per
+organisation. Each person has at most one employment record, so the balances
+belong to this one. An unknown organisation, an organisation with no live
+employment (ended or inactive employment is not live) and no employment at all
+return the same 404.
+
 Department lists, employee-document lists and document employee choices accept
 `organisation_id`; document uploads accept it as a multipart field. Omitting it is
 supported only when the caller's context is unique. Explicit inaccessible context

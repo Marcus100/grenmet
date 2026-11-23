@@ -4926,6 +4926,17 @@ export {
   hrGetInstanceStatus422Schema,
 } from "./hrGetInstanceSchema.js";
 export {
+  hrGetMyEmploymentErrorSchema,
+  hrGetMyEmploymentQueryOrganisationIdSchema,
+  hrGetMyEmploymentQuerySchema,
+  hrGetMyEmploymentResponseSchema,
+  hrGetMyEmploymentStatus200Schema,
+  hrGetMyEmploymentStatus401Schema,
+  hrGetMyEmploymentStatus403Schema,
+  hrGetMyEmploymentStatus404Schema,
+  hrGetMyEmploymentStatus422Schema,
+} from "./hrGetMyEmploymentSchema.js";
+export {
   hrGetMyLeaveRequestsErrorSchema,
   hrGetMyLeaveRequestsQueryPageSchema,
   hrGetMyLeaveRequestsQuerySchema,
@@ -5703,6 +5714,8 @@ export {
   hrLoadProvisionalHolidaysStatus403Schema,
   hrLoadProvisionalHolidaysStatus422Schema,
 } from "./hrLoadProvisionalHolidaysSchema.js";
+export { hrMeEmploymentPublicSchema } from "./hrMeEmploymentPublicSchema.js";
+export { hrMeLeaveBalancePublicSchema } from "./hrMeLeaveBalancePublicSchema.js";
 export { hrMeOrganisationPublicSchema } from "./hrMeOrganisationPublicSchema.js";
 export {
   hrOffboardStaffErrorSchema,

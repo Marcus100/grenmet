@@ -15236,6 +15236,84 @@
         ]
       }
     },
+    "/api/v1/hr/me/employment": {
+      "get": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Get my employment in an organisation",
+        "description": "Returns the signed-in staff member's own live employment in one organisation, with their leave balances. No permission is needed: only the caller's own record is read, and no user ID is accepted.",
+        "operationId": "hrGetMyEmployment",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrMeEmploymentPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No live employment for the caller in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/organisations/{organisation_id}": {
       "patch": {
         "tags": [
@@ -92131,6 +92209,100 @@
           "shift_types"
         ],
         "title": "HrDashboardPublic"
+      },
+      "HrMeEmploymentPublic": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EmploymentStatus"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "department_name": {
+            "type": "string",
+            "title": "Department Name"
+          },
+          "employment_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmploymentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "leave_balances": {
+            "items": {
+              "$ref": "#/components/schemas/HrMeLeaveBalancePublic"
+            },
+            "type": "array",
+            "title": "Leave Balances"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "status",
+          "department_name",
+          "leave_balances"
+        ],
+        "title": "HrMeEmploymentPublic",
+        "description": "The caller's own live employment in one organisation.\n\nLeave balances are held per person, not per organisation. A person has at\nmost one employment record, so the balances are those of this employment.\nThey are returned only while the caller has live employment in the\nrequested organisation."
+      },
+      "HrMeLeaveBalancePublic": {
+        "properties": {
+          "leave_type": {
+            "type": "string",
+            "title": "Leave Type"
+          },
+          "balance_days": {
+            "type": "string",
+            "title": "Balance Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "leave_type",
+          "balance_days"
+        ],
+        "title": "HrMeLeaveBalancePublic"
       },
       "HrMeOrganisationPublic": {
         "properties": {
