@@ -33,7 +33,11 @@ ownership").
   slug gets "No access to this organisation", with the same wording whether or
   not the organisation exists.
 - A failed read says "could not load" and calls
-  `reportError(error, "hr-organisations")`. It never looks like an empty list.
+  `reportError(error, "hr-organisations")`.
+- `src/lib/organisation-access.ts` is the one slug check every organisation page
+  uses. Staff: `src/lib/hr-staff.ts` reads `GET /api/v1/hr/setup/staff?organisation_id=`
+  (`hr.setup.manage` in that organisation). A 403 is "HR administrators only", a
+  404 is the same no-access wording as a foreign slug; neither is reported. It never looks like an empty list.
 - Scope wording lives in `src/lib/organisation-scope.ts` (SELF, DEPARTMENT, ALL).
 
 ## Rules
@@ -55,6 +59,7 @@ ownership").
 src/app/
   page.tsx                 ← organisation picker (server read)
   [orgSlug]/page.tsx       ← one organisation's home (server read, slug checked)
+  [orgSlug]/staff/page.tsx ← staff list for HR admins (read-only; API decides access)
   signin/page.tsx          ← hand-off to auth; `sign_in=expired` says so
   auth/start|callback|logout
   api/health/route.ts
