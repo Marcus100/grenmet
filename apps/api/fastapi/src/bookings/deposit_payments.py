@@ -24,6 +24,7 @@ Rules (ADR-0027, ADR-0024):
 
 import logging
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
@@ -41,6 +42,7 @@ from src.payments.models import Intent, IntentStatus, ProviderKey
 from .config import bookings_settings
 from .models import (
     Booking,
+    BookingDepositMode,
     BookingPaymentMode,
     BookingProfile,
     BookingStatus,
@@ -59,20 +61,77 @@ def intent_key(booking_id: object) -> str:
     return f"bookings.deposit:{booking_id}"
 
 
+@dataclass(frozen=True)
+class DepositRule:
+    """The business-wide deposit rule, as the profile stores it."""
+
+    mode: str = BookingDepositMode.NONE.value
+    percent: int | None = None
+    fixed_minor: int | None = None
+
+
+def deposit_rule_of(profile: BookingProfile) -> DepositRule:
+    return DepositRule(
+        mode=profile.deposit_mode,
+        percent=profile.deposit_percent,
+        fixed_minor=profile.deposit_fixed_minor,
+    )
+
+
+def rule_deposit(price_minor: int, rule: DepositRule) -> int:
+    """Pure: the business rule's deposit for a service priced ``price_minor``.
+
+    A percentage is rounded up to whole currency units (``100`` minor each), so a
+    priced service never rounds to nothing; a fixed amount is taken as given. The
+    result never exceeds the price."""
+    if price_minor <= 0:
+        return 0
+    if rule.mode == BookingDepositMode.PERCENT.value and rule.percent:
+        whole_units = -(-price_minor * rule.percent // (100 * 100))
+        return min(whole_units * 100, price_minor)
+    if rule.mode == BookingDepositMode.FIXED.value and rule.fixed_minor:
+        return min(rule.fixed_minor, price_minor)
+    return 0
+
+
+def planned_deposit(svc: Service, rule: DepositRule) -> int:
+    """Pure: the deposit a booking of ``svc`` carries, before entitlement. The
+    service's own deposit wins when set; otherwise the business rule applies."""
+    if svc.deposit_minor > 0:
+        return svc.deposit_minor
+    return rule_deposit(svc.price_minor, rule)
+
+
+def balance_at_salon(price_minor: int, deposit_minor: int) -> int:
+    """What is still to pay at the business once the deposit is paid. Clients show
+    it only when the deposit state is ``paid``; while due or unpaid it is not owed yet."""
+    return max(price_minor - deposit_minor, 0)
+
+
+def money_text(minor: int, currency: str) -> str:
+    """ "XCD 1,234.56", the money style customers see in mail."""
+    whole, cents = divmod(abs(minor), 100)
+    sign = "-" if minor < 0 else ""
+    return f"{currency} {sign}{whole:,}.{cents:02d}"
+
+
 async def effective_deposit(
-    session: AsyncSession, organisation_id: str, svc: Service
+    session: AsyncSession,
+    profile: BookingProfile,
+    svc: Service,
 ) -> int:
     """The deposit to collect for ``svc``: zero unless the organisation is
     entitled to ``payments`` (logged once per booking, never an error)."""
-    if svc.deposit_minor <= 0:
+    amount = planned_deposit(svc, deposit_rule_of(profile))
+    if amount <= 0:
         return 0
     if await organisation_service.is_app_enabled(
-        session, organisation_id=organisation_id, app_key="payments"
+        session, organisation_id=profile.organisation_id, app_key="payments"
     ):
-        return svc.deposit_minor
+        return amount
     logger.info(
         "booking deposit skipped: organisation has no payments entitlement",
-        extra={"organisation_id": organisation_id, "service_id": str(svc.id)},
+        extra={"organisation_id": profile.organisation_id, "service_id": str(svc.id)},
     )
     return 0
 
@@ -91,13 +150,17 @@ def charges_full_price(profile: BookingProfile) -> bool:
     )
 
 
-def due_for(svc: Service, *, full_price: bool, entitled: bool) -> int:
-    """Pure rule: what a booking of ``svc`` pays when it is made (0 = nothing)."""
+def due_for(
+    svc: Service, *, full_price: bool, entitled: bool, rule: DepositRule
+) -> int:
+    """Pure rule: what a booking of ``svc`` pays when it is made (0 = nothing).
+    ``full_price`` charges the price; otherwise the planned deposit (service
+    override first, then the business rule). Nothing without the entitlement."""
     if not entitled:
         return 0
     if full_price and svc.price_minor > 0:
         return svc.price_minor
-    return max(svc.deposit_minor, 0)
+    return planned_deposit(svc, rule)
 
 
 async def amount_due(
@@ -106,7 +169,8 @@ async def amount_due(
     """What an online booking of ``svc`` pays when it is made (0 = nothing).
 
     ``full_price`` charges the price only while Stripe is available and the
-    organisation holds ``payments``; otherwise the service deposit rule applies."""
+    organisation holds ``payments``; otherwise the service deposit or the business
+    deposit rule applies."""
     full_price = charges_full_price(profile)
     if (
         profile.payment_at_booking == BookingPaymentMode.FULL_PRICE.value
@@ -120,8 +184,10 @@ async def amount_due(
         entitled = await organisation_service.is_app_enabled(
             session, organisation_id=profile.organisation_id, app_key="payments"
         )
-        return due_for(svc, full_price=True, entitled=entitled)
-    return await effective_deposit(session, profile.organisation_id, svc)
+        return due_for(
+            svc, full_price=True, entitled=entitled, rule=deposit_rule_of(profile)
+        )
+    return await effective_deposit(session, profile, svc)
 
 
 async def due_by_service(
@@ -132,8 +198,9 @@ async def due_by_service(
         session, organisation_id=profile.organisation_id, app_key="payments"
     )
     full_price = charges_full_price(profile)
+    rule = deposit_rule_of(profile)
     return {
-        svc.id: due_for(svc, full_price=full_price, entitled=entitled)
+        svc.id: due_for(svc, full_price=full_price, entitled=entitled, rule=rule)
         for svc in services
     }
 
@@ -151,6 +218,27 @@ def payment_noun(booking: Booking) -> str:
     return (
         "Payment" if payment_kind(booking) is BookingPaymentKind.PAYMENT else "Deposit"
     )
+
+
+def payment_line(booking: Booking) -> str | None:
+    """The mail line for a payment that is in and the booking stands: "Deposit paid
+    XCD x, remaining XCD y at the salon", or "Paid in full" when the deposit is the
+    whole price. None for every other booking."""
+    if booking.deposit_minor <= 0:
+        return None
+    if booking.status not in (
+        BookingStatus.PENDING.value,
+        BookingStatus.CONFIRMED.value,
+    ):
+        return None
+    paid = money_text(booking.deposit_minor, booking.currency)
+    if payment_kind(booking) is BookingPaymentKind.PAYMENT:
+        # A deposit equal to the price is a full prepayment: nothing is left to pay.
+        return f"Paid in full, {paid}."
+    remaining = money_text(
+        balance_at_salon(booking.price_minor, booking.deposit_minor), booking.currency
+    )
+    return f"Deposit paid {paid}, remaining {remaining} at the salon."
 
 
 def checkout_title(
@@ -293,6 +381,9 @@ def _summary(
         amount_minor=booking.deposit_minor,
         paid_minor=paid,
         refunded_minor=refunded,
+        balance_at_salon_minor=balance_at_salon(
+            booking.price_minor, booking.deposit_minor
+        ),
         currency=booking.currency,
         checkout_url=link,
     )

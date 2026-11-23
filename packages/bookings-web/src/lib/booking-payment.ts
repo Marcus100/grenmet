@@ -5,6 +5,7 @@
 
 import type { BookingPaymentSummary } from "@barrelsgd/api-client";
 import { formatMoney } from "./booking-format";
+import { depositRefundLine } from "./booking-policy";
 
 /** One line for the manage page and the confirmation. */
 export function paymentLine(payment: BookingPaymentSummary): string {
@@ -13,9 +14,15 @@ export function paymentLine(payment: BookingPaymentSummary): string {
     case "due":
       return `Payment of ${amount} not received yet. Your time is held until it arrives.`;
     case "paid":
-      return payment.refunded_minor > 0
-        ? `Paid ${formatMoney(payment.paid_minor, payment.currency)}; ${formatMoney(payment.refunded_minor, payment.currency)} refunded.`
-        : `Paid ${formatMoney(payment.paid_minor, payment.currency)}. Thank you.`;
+      if (payment.refunded_minor > 0) {
+        return `Paid ${formatMoney(payment.paid_minor, payment.currency)}; ${formatMoney(payment.refunded_minor, payment.currency)} refunded.`;
+      }
+      // The balance is stated only once the deposit is paid; a full prepayment
+      // leaves nothing to pay at the business.
+      if (payment.balance_at_salon_minor > 0) {
+        return `Deposit paid ${formatMoney(payment.paid_minor, payment.currency)}, remaining ${formatMoney(payment.balance_at_salon_minor, payment.currency)} at the salon.`;
+      }
+      return `Paid ${formatMoney(payment.paid_minor, payment.currency)}. Thank you.`;
     case "refunded":
       return `Your payment of ${formatMoney(payment.paid_minor, payment.currency)} was refunded.`;
     default:
@@ -31,15 +38,20 @@ export function paymentLine(payment: BookingPaymentSummary): string {
 export function payNowLine(
   dueMinor: number,
   priceMinor: number,
-  currency: string
+  currency: string,
+  cutoffHours?: number
 ): string | null {
   if (dueMinor <= 0) {
     return null;
   }
   const due = formatMoney(dueMinor, currency);
-  return dueMinor < priceMinor
-    ? `You pay a deposit of ${due} now to hold this booking. The rest is paid at the business.`
-    : `You pay the full price, ${due}, now to hold this booking.`;
+  if (dueMinor >= priceMinor) {
+    return `You pay the full price, ${due}, now to hold this booking.`;
+  }
+  const deposit = `You pay a deposit of ${due} now to hold this booking. The rest is paid at the business.`;
+  return cutoffHours === undefined
+    ? deposit
+    : `${deposit} ${depositRefundLine(cutoffHours)}`;
 }
 
 /** The status text for a held booking: paid but not yet confirmed says so. */

@@ -44,6 +44,7 @@ describe("BookingList", () => {
       amount_minor: 1500,
       paid_minor: 1500,
       refunded_minor: 0,
+      balance_at_salon_minor: 0,
       currency: "XCD",
       checkout_url: null,
     };

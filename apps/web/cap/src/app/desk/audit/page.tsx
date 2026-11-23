@@ -8,6 +8,7 @@ import {
   grenadaTime,
 } from "@/components/desk/desk-panels";
 import { listAuditEvents } from "@/lib/desk/api";
+import { auditActorLabel, auditTransitionLabel } from "@/lib/desk/audit-labels";
 import { AUDIT_PAGE_SIZE, parseAuditQuery } from "@/lib/desk/audit-query";
 import { requireDeskGate } from "@/lib/desk/gate";
 import { reportError } from "@/lib/report-error";
@@ -82,10 +83,10 @@ export default async function AuditPage({
               <h2 className="font-semibold">{event.action}</h2>
               <p className="text-body-sm">
                 {grenadaTime(event.created_at)} · Actor:{" "}
-                {event.actor_user_id ?? "Not recorded"}
+                {auditActorLabel(event.actor_user_id)}
               </p>
               <p className="text-body-sm">
-                {event.previous_state ?? "None"} → {event.next_state ?? "None"}
+                {auditTransitionLabel(event.previous_state, event.next_state)}
               </p>
               {event.note ? (
                 <p className="text-body-sm whitespace-pre-wrap">{event.note}</p>

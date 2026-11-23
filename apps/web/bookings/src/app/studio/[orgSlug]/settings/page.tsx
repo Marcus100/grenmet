@@ -9,6 +9,7 @@ import {
   SettingsJumpMenu,
 } from "@/components/studio/settings/settings-sections";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import { exampleServiceFor } from "@/lib/deposit-rule";
 import { requireSession } from "@/lib/session";
 import { loadSettings, loadTimeOffByProvider } from "@/lib/settings-load";
 import { canManageBookings, DEFAULT_TIMEZONE } from "@/lib/studio-view";
@@ -94,7 +95,10 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       />
       <PaymentsSection
         cardPaymentsAvailable={data.card_payments_available ?? false}
+        currency={data.profile?.currency ?? "XCD"}
+        depositsAvailable={data.deposits_available}
         editable={editable}
+        example={exampleServiceFor(data.services)}
         orgSlug={orgSlug}
         profile={data.profile}
       />
