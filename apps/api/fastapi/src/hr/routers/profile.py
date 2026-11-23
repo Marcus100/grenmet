@@ -6,6 +6,7 @@ from fastapi import APIRouter, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr import organisations
 from src.hr.schemas import (
+    HrMeEmploymentPublic,
     HrMeOrganisationPublic,
     OrganisationCreate,
     OrganisationPublic,
@@ -62,6 +63,32 @@ async def read_my_organisations(
     *, session: SessionDep, current_user: CurrentUser
 ) -> list[HrMeOrganisationPublic]:
     return await organisations.my_organisations(session, current_user)
+
+
+@router.get(
+    "/me/employment",
+    response_model=HrMeEmploymentPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Get my employment in an organisation",
+    description=(
+        "Returns the signed-in staff member's own live employment in one "
+        "organisation, with their leave balances. No permission is needed: only "
+        "the caller's own record is read, and no user ID is accepted."
+    ),
+    responses={
+        **AUTHENTICATED,
+        404: {
+            "model": ApiError,
+            "description": "No live employment for the caller in this organisation",
+        },
+    },
+)
+async def read_my_employment(
+    *, session: SessionDep, current_user: CurrentUser, organisation_id: str
+) -> HrMeEmploymentPublic:
+    return await service.my_employment(
+        session=session, current_user=current_user, organisation_id=organisation_id
+    )
 
 
 @router.post(
