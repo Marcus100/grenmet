@@ -1,7 +1,9 @@
 """Commerce tables in the ``commerce`` schema (ADR-0063, section 3).
 
 Every row carries ``organisation_id``; services filter on it in SQL. Prices are
-history: a row is never edited, a new price starts a new row.
+history: a row is never edited (trigger ``price_append_only``, migration
+``commerce20261123``); a delete is allowed only as part of erasing the owning
+organisation.
 """
 
 import uuid
@@ -61,12 +63,12 @@ class Price(Base):
         ForeignKey("org.organisation.id", ondelete="CASCADE"), index=True
     )
     product_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("commerce.product.id", ondelete="RESTRICT"), index=True
+        ForeignKey("commerce.product.id", ondelete="CASCADE"), index=True
     )
     amount_minor: Mapped[int] = mapped_column(BigInteger)
     currency: Mapped[str] = mapped_column(String(3), default=Currency.XCD.value)
     effective_from: Mapped[datetime]
-    created_by: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("user.id", ondelete="SET NULL")
-    )
+    #: Who made the row, kept as an id only: no foreign key, so erasing a user
+    #: never has to UPDATE an append-only price row.
+    created_by: Mapped[uuid.UUID | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)

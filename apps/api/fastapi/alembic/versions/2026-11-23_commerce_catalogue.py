@@ -1,7 +1,11 @@
 """Commerce catalogue: products and price history (ADR-0063, slice 0).
 
 Additive: a new ``commerce`` schema with ``product`` and ``price``. Nothing else
-in the database changes. Prices are history: rows are inserted, never updated.
+in the database changes. A trigger makes ``commerce.price`` append-only (ADR-0063
+section 3, as ADR-0027's rewards ledger): UPDATE is refused, and DELETE is allowed
+only when the owning organisation no longer exists (erasure cascade). ``price``
+keeps ``created_by`` as a plain id, with no foreign key, so user deletion never
+updates a price row. Products are deleted only through the organisation cascade.
 
 Revision ID: commerce20261123
 Revises: billingappstrial20261123
@@ -76,12 +80,6 @@ def upgrade() -> None:
             name=op.f("price_amount_range_check"),
         ),
         sa.ForeignKeyConstraint(
-            ["created_by"],
-            ["user.id"],
-            name=op.f("price_created_by_fkey"),
-            ondelete="SET NULL",
-        ),
-        sa.ForeignKeyConstraint(
             ["organisation_id"],
             ["org.organisation.id"],
             name=op.f("price_organisation_id_fkey"),
@@ -91,7 +89,7 @@ def upgrade() -> None:
             ["product_id"],
             [f"{SCHEMA}.product.id"],
             name=op.f("price_product_id_fkey"),
-            ondelete="RESTRICT",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("price_pkey")),
         sa.UniqueConstraint(
@@ -113,9 +111,30 @@ def upgrade() -> None:
         unique=False,
         schema=SCHEMA,
     )
+    op.execute(
+        """
+        CREATE FUNCTION commerce.price_is_append_only() RETURNS trigger AS $$
+        BEGIN
+          -- Erasing an organisation cascades to its prices after the organisation
+          -- row is gone; only that case may delete a price row.
+          IF TG_OP = 'DELETE' AND NOT EXISTS (
+            SELECT 1 FROM org.organisation WHERE id = OLD.organisation_id
+          ) THEN
+            RETURN OLD;
+          END IF;
+          RAISE EXCEPTION 'commerce.price is append-only';
+        END;
+        $$ LANGUAGE plpgsql;
+        CREATE TRIGGER price_append_only
+          BEFORE UPDATE OR DELETE ON commerce.price
+          FOR EACH ROW EXECUTE FUNCTION commerce.price_is_append_only();
+        """
+    )
 
 
 def downgrade() -> None:
+    op.execute("DROP TRIGGER price_append_only ON commerce.price")
+    op.execute("DROP FUNCTION commerce.price_is_append_only()")
     op.drop_index(
         op.f("commerce_price_product_id_idx"), table_name="price", schema=SCHEMA
     )

@@ -323,3 +323,43 @@ async def test_superuser_without_membership_gets_no_bypass(
     superuser = await make_user(db_async, superuser=True)
     resp = await async_client.get(PRODUCTS_URL, headers=org_headers(superuser, org))
     assert resp.status_code == 404, resp.text
+
+
+@pytest.mark.parametrize(
+    "effective_from",
+    [
+        "0001-01-01T00:00:00+05:00",
+        "0001-01-01T00:00:00Z",
+        "9999-12-31T23:59:59-05:00",
+        "2000-01-01T00:00:00Z",
+        "2100-01-01T00:00:00Z",
+    ],
+)
+async def test_effective_from_outside_the_window_is_422_not_500(
+    effective_from: str, async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    owner, org = await entitled_org(db_async, "Window Co")
+    product = await create_product(async_client, owner, org)
+    resp = await async_client.post(
+        _prices_url(product["id"]),
+        headers=org_headers(owner, org, **{"Idempotency-Key": f"win-{effective_from}"}),
+        json={"amount_minor": 100, "effective_from": effective_from},
+    )
+    assert resp.status_code == 422, resp.text
+
+
+async def test_effective_from_inside_the_window_is_accepted(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    owner, org = await entitled_org(db_async, "Window Ok Co")
+    product = await create_product(async_client, owner, org)
+    now = utc_now()
+    for index, when in enumerate(
+        (now - timedelta(days=360), now + timedelta(days=365 * 4))
+    ):
+        resp = await async_client.post(
+            _prices_url(product["id"]),
+            headers=org_headers(owner, org, **{"Idempotency-Key": f"ok-{index}"}),
+            json={"amount_minor": 100, "effective_from": when.isoformat() + "Z"},
+        )
+        assert resp.status_code == 201, resp.text

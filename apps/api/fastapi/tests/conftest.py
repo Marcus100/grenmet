@@ -260,6 +260,7 @@ _APPEND_ONLY = (
     ("hr.pay_line", "pay_line_locked"),
     ("hr.pay_deduction_line", "pay_deduction_line_locked"),
     ("hr.payslip", "payslip_append_only"),
+    ("commerce.price", "price_append_only"),
 )
 _clear_sql: str | None = None
 
