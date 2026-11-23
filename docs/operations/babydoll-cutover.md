@@ -195,12 +195,10 @@ recorded run. Record result, date and who ran it.
   catalogue.
 - **Better Stack:** `scripts/monitoring/betterstack.json` has `Production ·
   Bookings` (`bookings.barrels.gd/babydoll-beauty-bar`, id 5279837, created by
-  the owner on 22 Nov 2026) and the API readiness monitors. There is **no monitor for `babydoll.barrels.gd`** (Q5), and none for
-  the studio's booking page. Add one for
-  `bookings.barrels.gd/babydoll-beauty-bar` (expects 200) once production is
-  seeded, plus a heartbeat check on the
-  worker if one exists for the two booking jobs (neither job is in the Redis
-  telemetry `JOBS` set or wrapped in a Sentry cron monitor).
+  the owner on 22 Nov 2026) and the API readiness monitors. There is **no
+  monitor for `babydoll.barrels.gd`** (Q5); the probe runner covers it. The two
+  booking jobs still have no worker heartbeat of their own (neither job is in
+  the Redis telemetry `JOBS` set or wrapped in a Sentry cron monitor).
 - **Daily for seven days (read-only):** bookings per day by status; `platform.outbox`
   rows with `dedupe_key LIKE 'booking-%'` not `done`; reminder counts versus
   confirmed bookings within 24 hours; worker log lines for the two jobs; 5xx on

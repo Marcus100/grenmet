@@ -223,13 +223,17 @@ It does not pretend that an empty production error query proves working delivery
 ## Production monitoring as code (2026-10-20)
 
 All resources live in [`scripts/monitoring/betterstack.json`](../../scripts/monitoring/betterstack.json).
-Production monitors and the production probe-runner and backup heartbeats are on (`paused: false`);
-the worker-poll heartbeat and the deferred monitors stay paused.
+Production monitors and all three production heartbeats (probe runner, backup,
+worker poll) are declared on (`paused: false`); the deferred monitors stay paused.
+The owner unpauses the worker-poll heartbeat in Better Stack (22 Nov 2026).
+The catalogue records each adopted ID in `availability.monitorId` and
+`operations.production.*.heartbeatId`; `test_monitoring.py` fails if they drift.
 
 | Kind | Name (`Production · …`) | Target | Check |
 | --- | --- | --- | --- |
 | Monitor | GAA API readiness | `https://api.barrels.gd/api/v1/utils/ready/` | keyword `"status":"ready"` |
-| Monitor | Barrels ID (auth), GAA staff portal, GMS weather, CAP alert hub, GMS dashboard, MBIA health | `https://{auth,admin,weather,cap,gmsdash,mbia}.barrels.gd/api/health` | HTTP 2xx |
+| Monitor | Barrels ID (auth), GAA staff portal, GMS weather, CAP alert hub, GMS dashboard, MBIA health | `https://{auth,gms,weather,cap,gmsdash,mbia}.barrels.gd/api/health` | HTTP 2xx |
+| Monitor | Bookings (5279837) | `https://bookings.barrels.gd/babydoll-beauty-bar` (the storefront) | HTTP 2xx |
 | Monitor (to create) | CMS readiness, Events health | `cms…/api/ready`, `events…/api/health` | created paused, then unpaused (see Swap below) |
 | Monitor (deferred) | GMS docs, Signal, Elections health, Barrels homepage | `docs…/api/health`, `signal…/api/health`, `https://elections.barrels.gd/` (static on Cloudflare Pages), `https://barrels.gd/` | covered by the probe runner until quota allows |
 | Heartbeat | probe runner | `PROBE_HEARTBEAT_URL` | 5 min + 10 min grace |
@@ -243,10 +247,12 @@ certificate expiry (`ssl_expiration`); email and phone push (the owner's channel
 deleted that day, so staging availability is covered by the probe runner and its
 heartbeat only, and `limitsVerified` is true. `deferred: true`
 resources are validated but never created; remove the flag when a slot frees up.
-`apps/web/admin` (Barrels control plane) is deployed with the 2026-10-21 admin host move and has no
-monitor yet (the staff-portal monitor now probes `gms.barrels.gd`). Babydoll
-(`babydoll.barrels.gd`, Cloudflare Pages client site, no Sentry) is in the service
-catalogue and covered by the probe runner only.
+`apps/web/admin` (Barrels control plane, `admin.barrels.gd`) has no Better Stack
+monitor (the staff-portal monitor probes `gms.barrels.gd`); it is covered by the
+probe runner and reports to the shared Sentry projects (`SENTRY_DSN_ADMIN`, rendered
+from the environment's DSN secret). Babydoll (`babydoll.barrels.gd`), Commit
+(`commit.barrels.gd`) and the Printix scanner (`scan.barrels.gd`) are Cloudflare
+Pages sites without Sentry, in the service catalogue and covered by the probe runner only.
 
 **Apply:** after checking the Better Stack plan, set `"limitsVerified": true`,
 then dispatch **Monitoring provider configuration** from a production release tag
@@ -260,7 +266,9 @@ and Elections give their slots to CMS, Events and Bookings, which are
 server-hosted and transactional. Paused monitors still count against the plan,
 so first delete the three old monitors in Better Stack (IDs 5237467 GMS docs,
 5237469 Signal, 5237470 Elections; the plan refuses the creates until they are
-gone), then run the preview and apply above and adopt the three new IDs. Until
+gone), then run the preview and apply above and adopt the new IDs. Bookings was
+adopted as the storefront monitor 5279837 (created in Better Stack, 22 Nov 2026),
+so only CMS and Events remain to create. Until
 then, and for the three retired sites afterwards, the probe runner is their only
 uptime check. Unpause the new monitors as the Apply paragraph says.
 

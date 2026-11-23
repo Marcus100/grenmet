@@ -135,8 +135,9 @@ async def read_escalation(
     summary="Raise a saved GMS alert to a CAP warning draft",
     description=(
         "Creates a pre-filled CAP draft from one saved GMS alert revision, linked to it "
-        "through the GMS source parameters. Returns 200 with the existing draft when an "
-        "open (draft, submitted or approved) CAP alert already links the product. "
+        "through the GMS source parameters. Returns 200 with the existing warning when a "
+        "draft, submitted, approved or published CAP alert already links the product; an "
+        "expired or cancelled one does not block. "
         "Needs cap.alert.create and product access to the alert's kind."
     ),
     responses={**AUTHENTICATED, **NOT_FOUND},

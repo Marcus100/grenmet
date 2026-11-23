@@ -81,7 +81,7 @@ describe("RaiseToWarningForm", () => {
   it("raises through the action and opens the draft's edit page", async () => {
     action.raiseToWarningAction.mockResolvedValue({
       alertId: ALERT_ID,
-      created: true,
+      editable: true,
       ok: true,
     });
     renderForm({ colour: "orange", kind: "suggested" });
@@ -101,15 +101,30 @@ describe("RaiseToWarningForm", () => {
     });
   });
 
-  it("sends no reason when none is typed and the colour matches", async () => {
+  it("opens the read view when the warning is already in force", async () => {
     action.raiseToWarningAction.mockResolvedValue({
       alertId: ALERT_ID,
-      created: false,
+      editable: false,
       ok: true,
     });
     renderForm({ colour: "orange", kind: "suggested" });
     fireEvent.click(screen.getByRole("button", { name: RAISE }));
-    await waitFor(() => expect(router.push).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(router.push).toHaveBeenCalledWith(`/desk/alerts/${ALERT_ID}`)
+    );
+  });
+
+  it("sends no reason when none is typed and the colour matches", async () => {
+    action.raiseToWarningAction.mockResolvedValue({
+      alertId: ALERT_ID,
+      editable: false,
+      ok: true,
+    });
+    renderForm({ colour: "orange", kind: "suggested" });
+    fireEvent.click(screen.getByRole("button", { name: RAISE }));
+    await waitFor(() =>
+      expect(router.push).toHaveBeenCalledWith(`/desk/alerts/${ALERT_ID}`)
+    );
     expect(action.raiseToWarningAction).toHaveBeenCalledWith(
       expect.objectContaining({
         awarenessLevel: "orange",

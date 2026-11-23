@@ -26,7 +26,7 @@ import { readCatalogue, validateCatalogue } from "./catalogue.mjs";
 test("all services have isolated dev/staging/production coverage", () => {
   const data = readCatalogue();
   assert.deepEqual(validateCatalogue(data), []);
-  assert.equal(data.services.length, 20);
+  assert.equal(data.services.length, 22);
   assert.equal(
     data.services.filter(
       (s) => s.environments.production.availability.kind === "direct"
