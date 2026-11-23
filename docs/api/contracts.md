@@ -2114,21 +2114,23 @@ only severity see the same level.
 
 ### CAP escalation from a GMS alert (ADR-0051, proposed)
 
-GMS alerts are green only. `POST /api/v1/cap/escalations` with
-`{product_id, revision, awareness_level: yellow|orange|red}` creates a CAP draft
-pre-filled from that saved alert revision (event, severity from the colour,
-certainty from likelihood, onset and expiry in UTC, synopsis, impacts and
-response) with `GMS:product` Warning, `awareness_level` and the three
-`GMS:source-bulletin-*` parameters. It requires `cap.alert.create` and product
-access to the alert's kind, and only hazard alert kinds are accepted (422
-otherwise; 404 for an unknown revision). It is idempotent per product: when a
-draft, submitted, approved or published (in force) CAP alert already links the
-product, it returns 200 with that alert and `created: false`; an expired or
-cancelled one does not block, and a new draft returns 201. A published warning blocks a new raise until it is expired or cancelled, even after its expires time, because expiry is manual today. The draft areas
-are left empty and the wording needs GMS sign-off. `GET /api/v1/cap/escalations?product_id=`
-(`cap.alert.read`) returns the open or published linked alert, or nulls. The
-green alert is never changed or withdrawn by either route; a forecaster withdraws
-it. Both databases are read or written separately, with no shared transaction.
+GMS alerts are green only. `POST /api/v1/cap/escalations` with `{product_id,
+revision, awareness_level: yellow|orange|red}` creates a CAP draft pre-filled
+from that saved alert revision (event, severity from the colour, certainty from
+likelihood, onset and expiry in UTC, synopsis, impacts and response) with
+`GMS:product` Warning, `awareness_level` and the three `GMS:source-bulletin-*`
+parameters. It requires `cap.alert.create` and product access to the alert's
+kind, and only hazard alert kinds are accepted (422 otherwise; 404 for an
+unknown revision). It is idempotent per product: when a draft, submitted,
+approved or published (in force) CAP alert already links the product, it returns
+200 with that alert and `created: false`; an expired or cancelled one does not
+block, and a new draft returns 201. A published warning blocks a new raise until
+it is expired or cancelled, even after its expires time, because expiry is
+manual today. The draft areas are left empty and the wording needs GMS sign-off.
+`GET /api/v1/cap/escalations?product_id=` (`cap.alert.read`) returns the open or
+published linked alert, or nulls. The green alert is never changed or withdrawn
+by either route; a forecaster withdraws it. Both databases are read or written
+separately, with no shared transaction.
 
 
 ### Employee training history

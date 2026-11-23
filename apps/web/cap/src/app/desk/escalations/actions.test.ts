@@ -178,6 +178,23 @@ describe("raiseToWarningAction", () => {
     );
   });
 
+  it("lands on the read view when the state read fails with a non-auth error", async () => {
+    mocks.getDeskGate.mockResolvedValue(STAFF);
+    mocks.raiseEscalation.mockResolvedValue({
+      alert_id: ALERT_ID,
+      created: false,
+      source: { kind: "flood", product_id: PRODUCT_ID, revision: 3 },
+    });
+    const failure = new TypeError("fetch failed");
+    mocks.getAlert.mockRejectedValue(failure);
+    const outcome = await raiseToWarningAction(VALID);
+    expect(outcome).toEqual({ alertId: ALERT_ID, editable: false, ok: true });
+    expect(mocks.reportError).toHaveBeenCalledWith(
+      failure,
+      "cap-desk-escalations"
+    );
+  });
+
   it("shows the API's refusal, such as a missing reason", async () => {
     mocks.getDeskGate.mockResolvedValue(STAFF);
     mocks.raiseEscalation.mockRejectedValue(

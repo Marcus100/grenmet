@@ -47,7 +47,8 @@ async function editableAfterRaise(
   try {
     return isEditable(await getAlert(accessToken, result.alert_id));
   } catch (error) {
-    if (!isAuthApiError(error)) throw error;
+    // Any failure (network, timeout, parse) lands on the read view: the raise
+    // already succeeded, so the forecaster must not see error.tsx for it.
     reportError(error, "cap-desk-escalations");
     return false;
   }
