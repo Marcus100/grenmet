@@ -35,7 +35,8 @@ function matrixLine(suggestion: MatrixSuggestion): string {
 
 /**
  * Raises one GMS alert to a CAP warning draft in a chosen colour. On success
- * the forecaster lands on the draft's edit page. Nothing is submitted, approved,
+ * the forecaster lands on the draft's edit page, or on the read view when the
+ * warning is already in force. Nothing is submitted, approved,
  * published or sent here; FastAPI checks the permission and the reason again.
  */
 export function RaiseToWarningForm({
@@ -77,7 +78,11 @@ export function RaiseToWarningForm({
         setError(outcome.error);
         return;
       }
-      router.push(`/desk/alerts/${outcome.alertId}/edit`);
+      router.push(
+        outcome.editable
+          ? `/desk/alerts/${outcome.alertId}/edit`
+          : `/desk/alerts/${outcome.alertId}`
+      );
     });
   }
 
