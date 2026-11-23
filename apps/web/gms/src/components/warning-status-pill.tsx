@@ -17,7 +17,7 @@ import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
  * an icon alone (owner, 10 Nov 2026). Screen readers always hear the words.
  */
 const PILL =
-  "h-10 items-center gap-2 whitespace-nowrap rounded-md px-3 font-bold text-body leading-body";
+  "h-11 items-center gap-2 whitespace-nowrap rounded-md px-3 font-bold text-body leading-body";
 
 /**
  * The pill's place-holder while the feed has not answered: same box, so the
