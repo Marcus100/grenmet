@@ -38,6 +38,18 @@ beforeEach(() => {
 });
 
 describe("organisation home (/<orgSlug>)", () => {
+  it("links to the staff list of the organisation it shows", async () => {
+    vi.mocked(loadMyOrganisations).mockResolvedValue({
+      ok: true,
+      organisations: [GAA, GMS],
+    });
+    render(await OrganisationHomePage(params("gaa")));
+
+    expect(
+      screen.getByRole("link", { name: "View the staff list" })
+    ).toHaveAttribute("href", "/gaa/staff");
+  });
+
   it("shows the organisation the person belongs to, with their access", async () => {
     vi.mocked(loadMyOrganisations).mockResolvedValue({
       ok: true,
