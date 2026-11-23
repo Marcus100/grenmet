@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 // signs the person in with their Barrels account and returns them to /admin.
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  title: "Sign in | GMS content",
   description: "Sign in to GMS content with your Barrels account.",
 };
 
