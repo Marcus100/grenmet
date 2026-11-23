@@ -41,7 +41,9 @@ export default async function DeskAlertPage({
     reportError(error, "cap-desk-alert");
     return <DeskUnavailable what="This alert" />;
   }
-  // The trail only adds the format-problem notice; the page works without it.
+  // One audit read feeds two things: the history panel and the format-problem
+  // notice. If it fails, the page still loads: the history shows as
+  // unavailable and the notice is left out.
   const audit = await getAlertAudit(gate.accessToken, id).catch((error) => {
     reportError(error, "cap-desk-audit");
     return null;

@@ -1,8 +1,10 @@
+import { AuthApiError } from "@barrelsgd/auth";
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getEscalation: vi.fn(),
+  getProductAccess: vi.fn(),
   listPublishedProducts: vi.fn(),
   reportError: vi.fn(),
   requireDeskGate: vi.fn(),
@@ -11,6 +13,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/desk/gate", () => ({ requireDeskGate: mocks.requireDeskGate }));
 vi.mock("@/lib/desk/api", () => ({
   getEscalation: mocks.getEscalation,
+  getProductAccess: mocks.getProductAccess,
   listPublishedProducts: mocks.listPublishedProducts,
   suggestIbf: mocks.suggestIbf,
 }));
@@ -78,10 +81,13 @@ const ALREADY_RAISED_TEXT =
   /A warning was already raised from this alert, and it is waiting for approval/u;
 const CHECK_FAILED_TEXT =
   /Could not check whether a warning was already raised/u;
+const NOT_ALLOWED_TEXT = /Your GMS grade does not allow you to author Flood/u;
+const NEEDS_READ_HEADING = { name: "You need read access to CAP warnings" };
 
 describe("GMS alerts page", () => {
   beforeEach(() => {
     mocks.getEscalation.mockReset();
+    mocks.getProductAccess.mockReset();
     mocks.listPublishedProducts.mockReset();
     mocks.reportError.mockReset();
     mocks.requireDeskGate.mockReset();
@@ -91,7 +97,73 @@ describe("GMS alerts page", () => {
       alert_id: null,
       lifecycle_state: null,
     });
+    mocks.getProductAccess.mockResolvedValue({
+      allowed_kinds: ["flood", "wind"],
+    });
     mocks.suggestIbf.mockResolvedValue({ colour: "orange" });
+  });
+
+  it("says plainly that read access is needed when the account has none", async () => {
+    mocks.requireDeskGate.mockResolvedValue({
+      ...STAFF,
+      permissions: { create: true, read: false },
+    });
+    await renderPage();
+    expect(screen.getByRole("heading", NEEDS_READ_HEADING)).toBeInTheDocument();
+    expect(mocks.listPublishedProducts).not.toHaveBeenCalled();
+  });
+
+  it("shows no form, and no Sentry report, when the product kind is not allowed", async () => {
+    mocks.getProductAccess.mockResolvedValue({ allowed_kinds: ["wind"] });
+    mocks.listPublishedProducts.mockResolvedValue({ products: [FLOOD] });
+    await renderPage();
+    expect(screen.getByText(NOT_ALLOWED_TEXT)).toBeInTheDocument();
+    expect(screen.queryByText(FORM_STUB_TEXT)).not.toBeInTheDocument();
+    expect(mocks.suggestIbf).not.toHaveBeenCalled();
+    expect(mocks.reportError).not.toHaveBeenCalled();
+  });
+
+  it("still shows an already-raised warning for a kind the account may not author", async () => {
+    mocks.getProductAccess.mockResolvedValue({ allowed_kinds: ["wind"] });
+    mocks.listPublishedProducts.mockResolvedValue({ products: [FLOOD] });
+    mocks.getEscalation.mockResolvedValue({
+      alert_id: ALERT_ID,
+      lifecycle_state: "PUBLISHED",
+    });
+    await renderPage();
+    expect(
+      screen.getByRole("link", { name: "Open the warning" })
+    ).toHaveAttribute("href", `/desk/alerts/${ALERT_ID}`);
+    expect(screen.queryByText(NOT_ALLOWED_TEXT)).not.toBeInTheDocument();
+  });
+
+  it("says the product access could not be loaded, and offers no raise", async () => {
+    mocks.listPublishedProducts.mockResolvedValue({ products: [FLOOD] });
+    mocks.getProductAccess.mockRejectedValue(new Error("down"));
+    await renderPage();
+    expect(
+      screen.getByRole("heading", {
+        name: "Your GMS product access could not be loaded",
+      })
+    ).toBeInTheDocument();
+    expect(screen.queryByText(FORM_STUB_TEXT)).not.toBeInTheDocument();
+    expect(mocks.reportError).toHaveBeenCalledWith(
+      expect.any(Error),
+      "cap-desk-escalations"
+    );
+  });
+
+  it("explains a 403 on the lookup as missing read access, without a Sentry report", async () => {
+    mocks.listPublishedProducts.mockResolvedValue({ products: [FLOOD] });
+    mocks.getEscalation.mockRejectedValue(
+      new AuthApiError(403, "CAP read permission required")
+    );
+    await renderPage();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "You need read access to CAP warnings"
+    );
+    expect(screen.queryByText(FORM_STUB_TEXT)).not.toBeInTheDocument();
+    expect(mocks.reportError).not.toHaveBeenCalled();
   });
 
   it("shows the refused panel to a signed-in account without warning access", async () => {

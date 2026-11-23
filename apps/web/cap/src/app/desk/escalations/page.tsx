@@ -2,12 +2,14 @@ import type {
   CapLifecycleState,
   PublicPublishedProduct,
 } from "@barrelsgd/api-client";
+import { isAuthApiError } from "@barrelsgd/auth";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DeskRefused, DeskUnavailable } from "@/components/desk/desk-panels";
 import { RaiseToWarningForm } from "@/components/desk/raise-to-warning-form";
 import {
   getEscalation,
+  getProductAccess,
   listPublishedProducts,
   suggestIbf,
 } from "@/lib/desk/api";
@@ -27,6 +29,8 @@ export const dynamic = "force-dynamic";
 type RowStatus =
   | { kind: "ready"; suggestion: MatrixSuggestion }
   | { alertId: string; kind: "raised"; state: CapLifecycleState }
+  | { kind: "no-read" }
+  | { kind: "not-allowed" }
   | { kind: "unknown" };
 
 const STATE_WORDS: Partial<Record<CapLifecycleState, string>> = {
@@ -59,15 +63,25 @@ async function suggestionFor(
   }
 }
 
-/** Never throws: a failed check becomes the "could not check" state for that alert. */
+/**
+ * Never throws. Order: a warning already raised from the alert is shown first
+ * (it is read-only and needs no product access); then the product-access
+ * pre-check, so an account without the kind gets a plain message and no form.
+ * A 403 on the lookup is expected for an account without read access: it is
+ * explained on the card and not sent to Sentry.
+ */
 async function statusFor(
   accessToken: string,
-  product: PublicPublishedProduct
+  product: PublicPublishedProduct,
+  allowed: boolean
 ): Promise<RowStatus> {
   let lookup: Awaited<ReturnType<typeof getEscalation>>;
   try {
     lookup = await getEscalation(accessToken, product.id);
   } catch (error) {
+    if (isAuthApiError(error) && error.status === 403) {
+      return { kind: "no-read" };
+    }
     reportError(error, "cap-desk-escalations");
     return { kind: "unknown" };
   }
@@ -78,6 +92,7 @@ async function statusFor(
       state: lookup.lifecycle_state,
     };
   }
+  if (!allowed) return { kind: "not-allowed" };
   return {
     kind: "ready",
     suggestion: await suggestionFor(accessToken, product),
@@ -127,6 +142,20 @@ function AlertCard({
           </Link>
         </p>
       ) : null}
+      {status.kind === "not-allowed" ? (
+        <p className="text-body-sm" role="status">
+          Your GMS grade does not allow you to author {label} alerts, so a
+          warning cannot be raised from this one. Ask a GMS administrator if you
+          need access to this kind of product.
+        </p>
+      ) : null}
+      {status.kind === "no-read" ? (
+        <p className="text-destructive text-body-sm font-medium" role="alert">
+          You need read access to CAP warnings to check whether a warning was
+          already raised from this alert. It is not raised here until you have
+          it.
+        </p>
+      ) : null}
       {status.kind === "unknown" ? (
         <p className="text-destructive text-body-sm font-medium" role="alert">
           Could not check whether a warning was already raised from this alert.
@@ -137,10 +166,27 @@ function AlertCard({
   );
 }
 
+/** Read access is needed to see which alerts already have a warning. */
+function NeedsReadAccess() {
+  return (
+    <section className="space-y-3 py-10" role="alert">
+      <h1 className="text-2xl font-semibold">
+        You need read access to CAP warnings
+      </h1>
+      <p className="text-muted-foreground">
+        This page checks which GMS alerts already have a warning, which needs
+        the CAP read permission (cap.alert.read). Ask a GMS administrator to add
+        it.
+      </p>
+    </section>
+  );
+}
+
 /** Current GMS hazard alerts, each with a Raise to warning action or its state. */
 export default async function GmsAlertsPage() {
   const gate = await requireDeskGate("/desk/escalations");
   if (gate.status === "refused") return <DeskRefused email={gate.email} />;
+  if (!gate.permissions.read) return <NeedsReadAccess />;
   if (!gate.permissions.create) {
     return <DeskRefused email={gate.email} />;
   }
@@ -153,10 +199,21 @@ export default async function GmsAlertsPage() {
     reportError(error, "cap-desk-escalations");
     return <DeskUnavailable what="The GMS alert list" />;
   }
+  let allowedKinds: readonly string[];
+  try {
+    allowedKinds = (await getProductAccess(gate.accessToken)).allowed_kinds;
+  } catch (error) {
+    reportError(error, "cap-desk-escalations");
+    return <DeskUnavailable what="Your GMS product access" />;
+  }
   const rows = await Promise.all(
     products.map(async (product) => ({
       product,
-      status: await statusFor(gate.accessToken, product),
+      status: await statusFor(
+        gate.accessToken,
+        product,
+        allowedKinds.includes(product.kind)
+      ),
     }))
   );
   return (

@@ -22,6 +22,7 @@ import {
   capStatisticsPublicSchema,
   capSuggestIbfResponseSchema,
   gmsCataloguePublicSchema,
+  productAccessCurrentSchema,
   publishedProductsSchema,
 } from "@barrelsgd/api-client";
 import { authApiFetch, authApiFetchResponse } from "@barrelsgd/auth/server";
@@ -253,6 +254,14 @@ export function listPublishedProducts(accessToken: string) {
     "/wxproducts/public/products",
     publishedProductsSchema
   );
+}
+
+/**
+ * Which GMS product kinds the signed-in account may author (grade policy). The
+ * raise form needs this for each alert; the API checks it again on raise.
+ */
+export function getProductAccess(accessToken: string) {
+  return read(accessToken, "/hr/product-access/me", productAccessCurrentSchema);
 }
 
 /** Which open or published warning, if any, was raised from one GMS alert. */
