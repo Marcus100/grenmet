@@ -1,4 +1,8 @@
 import type { AppSubscriptionPublic } from "@barrelsgd/api-client";
+import {
+  BARRELS_SUPPORT_EMAIL,
+  BARRELS_SUPPORT_HREF,
+} from "@barrelsgd/ui/lib/support";
 import type { Metadata } from "next";
 import { StartSubscriptionButton } from "@/components/studio/plan/start-subscription-button";
 import { StudioAlert } from "@/components/studio/studio-alert";
@@ -127,6 +131,16 @@ export default async function PlanPage({
           <div className="space-y-1">
             <p className="font-semibold">{copy.heading}</p>
             <p className="text-muted-foreground">{copy.detail}</p>
+            {copy.supportLink ? (
+              <p>
+                <a
+                  className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
+                  href={BARRELS_SUPPORT_HREF}
+                >
+                  Email {BARRELS_SUPPORT_EMAIL}
+                </a>
+              </p>
+            ) : null}
           </div>
         ) : (
           <div

@@ -14,6 +14,7 @@ import {
 } from "@/lib/billing-plan";
 
 const NOW = new Date("2026-11-23T12:00:00Z");
+const NO_ACCESS_CLAIM = /stop|stopped|without|lose|lost|no longer/u;
 const CONFIRMS = /once Stripe confirms/u;
 const NOTHING_CHARGED = /Nothing was charged/u;
 
@@ -140,6 +141,20 @@ describe("planCopy", () => {
       expect(copy.heading.length).toBeGreaterThan(0);
       expect(copy.detail.length).toBeGreaterThan(0);
     }
+  });
+
+  it("does not say bookings stop without the plan", () => {
+    const detail = planCopy({ kind: "none" }).detail;
+    expect(detail).not.toMatch(NO_ACCESS_CLAIM);
+  });
+
+  it("offers the support mailbox only for overdue and unpaid plans", () => {
+    expect(planCopy({ kind: "past_due" }).supportLink).toBe(true);
+    expect(planCopy({ kind: "unpaid" }).supportLink).toBe(true);
+    expect(planCopy({ kind: "none" }).supportLink).toBeUndefined();
+    expect(
+      planCopy({ kind: "active", renewsOn: null }).supportLink
+    ).toBeUndefined();
   });
 
   it("names the free trial end date and the price after it", () => {
