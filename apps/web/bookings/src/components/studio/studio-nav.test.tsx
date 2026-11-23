@@ -54,4 +54,29 @@ describe("studio nav", () => {
       "aria-current"
     );
   });
+
+  it("links Plan & billing for owners and admins only", () => {
+    pathname.value = "/studio/sea-salt/agenda";
+    const { unmount } = render(<StudioNav canPlan orgSlug="sea-salt" />);
+    expect(
+      screen.getByRole("link", { name: "Plan & billing" })
+    ).toHaveAttribute("href", "/studio/sea-salt/plan");
+    unmount();
+
+    render(<StudioNav orgSlug="sea-salt" />);
+    expect(
+      screen.queryByRole("link", { name: "Plan & billing" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("marks Plan & billing as the current page on its own address", () => {
+    pathname.value = "/studio/sea-salt/plan";
+    render(<StudioNav canPlan orgSlug="sea-salt" />);
+    expect(
+      screen.getByRole("link", { name: "Plan & billing" })
+    ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Settings" })).not.toHaveAttribute(
+      "aria-current"
+    );
+  });
 });
