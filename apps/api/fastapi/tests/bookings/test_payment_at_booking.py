@@ -178,6 +178,7 @@ async def test_full_price_opens_a_stripe_checkout_for_the_price(
         "amount_minor": PRICE,
         "paid_minor": 0,
         "refunded_minor": 0,
+        "balance_at_salon_minor": 0,
         "currency": "XCD",
         "checkout_url": "https://checkout.stripe.com/c/pay/cs_test_1",
     }
@@ -244,6 +245,7 @@ async def test_the_manage_page_shows_due_then_paid(
         "amount_minor": PRICE,
         "paid_minor": PRICE,
         "refunded_minor": 0,
+        "balance_at_salon_minor": 0,
         "currency": "XCD",
         "checkout_url": None,
     }
@@ -449,6 +451,7 @@ async def test_my_bookings_carry_the_payment_and_only_the_callers(
         "amount_minor": PRICE,
         "paid_minor": PRICE,
         "refunded_minor": 0,
+        "balance_at_salon_minor": 0,
         "currency": "XCD",
         "checkout_url": None,
     }

@@ -49,6 +49,19 @@ class BookingPaymentMode(str, Enum):
     FULL_PRICE = "full_price"
 
 
+class BookingDepositMode(str, Enum):
+    """The business-wide deposit rule (owner request 23 Nov 2026), used for a
+    service only when its own ``deposit_minor`` is 0.
+
+    ``none`` (default): no rule. ``percent``: ``deposit_percent`` of the price,
+    rounded up to whole currency units. ``fixed``: ``deposit_fixed_minor`` per
+    booking. Either way the deposit never exceeds the price."""
+
+    NONE = "none"
+    PERCENT = "percent"
+    FIXED = "fixed"
+
+
 class BookingSource(str, Enum):
     ONLINE = "online"
     STUDIO = "studio"
@@ -81,6 +94,18 @@ class BookingProfile(Base):
         sa.CheckConstraint(
             f"payment_at_booking IN ({_values(BookingPaymentMode)})",
             name="payment_at_booking",
+        ),
+        sa.CheckConstraint(
+            f"deposit_mode IN ({_values(BookingDepositMode)})",
+            name="deposit_mode",
+        ),
+        sa.CheckConstraint(
+            "deposit_mode = 'none'"
+            " OR (deposit_mode = 'percent' AND deposit_percent IS NOT NULL"
+            " AND deposit_percent BETWEEN 1 AND 100)"
+            " OR (deposit_mode = 'fixed' AND deposit_fixed_minor IS NOT NULL"
+            " AND deposit_fixed_minor > 0)",
+            name="deposit_rule",
         ),
         sa.CheckConstraint(
             "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
@@ -136,6 +161,17 @@ class BookingProfile(Base):
     #: The business's own https payment link (21 Nov 2026), the deposit checkout when no
     #: online provider is ready. Staff confirm the payment when it arrives.
     deposit_payment_link: Mapped[str | None] = mapped_column(String(2000))
+    #: ``BookingDepositMode``: the business-wide deposit rule. ``none`` by default,
+    #: so existing businesses keep their per-service deposits and nothing else.
+    deposit_mode: Mapped[str] = mapped_column(
+        String(10),
+        default=BookingDepositMode.NONE.value,
+        server_default=BookingDepositMode.NONE.value,
+    )
+    #: 1 to 100, used when ``deposit_mode`` is ``percent``.
+    deposit_percent: Mapped[int | None] = mapped_column(default=None)
+    #: Minor units per booking, used when ``deposit_mode`` is ``fixed``.
+    deposit_fixed_minor: Mapped[int | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

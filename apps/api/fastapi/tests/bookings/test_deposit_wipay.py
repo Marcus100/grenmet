@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
 from src.bookings import deposit_payments
-from src.bookings.models import BookingProfile
+from src.bookings.models import BookingProfile, Service
 from src.bookings.schemas import BookingProfileUpdate
 from src.payments.models import LedgerEntry, LedgerKind
 from tests.bookings.test_deposits import (
@@ -488,3 +488,64 @@ async def test_the_refund_refused_email_is_queued_once_per_deposit(
     )
     assert len(queued) == 1
     assert queued[0].dedupe_key == f"booking-refund-refused:{booking_id}:{intent.id}"
+
+
+# --- the business-wide deposit rule and the payment route (21 Nov 2026) -----------------
+
+
+async def _rule_only_studio(
+    db: AsyncSession, client: httpx.AsyncClient, **profile: object
+) -> Studio:
+    """A studio whose only deposit source is the business-wide rule: the service's own
+    deposit is zeroed so the rule decides the amount."""
+    studio = await _deposit_studio(db, client, **profile)
+    service = await db.get(Service, uuid.UUID(studio.service_id))
+    assert service is not None
+    service.deposit_minor = 0
+    await db.commit()
+    return studio
+
+
+async def test_a_rule_deposit_is_none_without_a_payment_route(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _rule_only_studio(
+        db_async,
+        async_client,
+        deposit_payment_link=None,
+        deposit_mode="percent",
+        deposit_percent=10,
+    )
+    receipt = await _book_deposit(async_client, studio, db=db_async, verify=False)
+
+    booking = receipt["booking"]
+    assert booking["deposit_minor"] == 0
+    assert receipt["payment_required"] is False
+    assert receipt["checkout_url"] is None
+    assert booking["status"] != "pending_payment"
+    assert await _intent(db_async, booking["id"]) is None
+
+
+@pytest.mark.usefixtures("wipay_env")
+async def test_a_percent_rule_with_wipay_creates_the_rule_deposit_intent(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _rule_only_studio(
+        db_async,
+        async_client,
+        deposit_payment_link=None,
+        deposit_mode="percent",
+        deposit_percent=10,
+    )
+    await _enable_wipay(async_client, studio)
+    receipt = await _book_deposit(async_client, studio, db=db_async)
+
+    booking = receipt["booking"]
+    # 10% of the 21000 minor-unit price is 2100, already whole currency units.
+    assert booking["deposit_minor"] == 2100
+    assert receipt["payment_required"] is True
+    assert booking["status"] == "pending_payment"
+    assert booking["payment"]["amount_minor"] == 2100
+    intent = await _intent(db_async, booking["id"])
+    assert intent is not None
+    assert intent.provider == "wipay"

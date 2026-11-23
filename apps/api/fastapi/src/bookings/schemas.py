@@ -16,6 +16,7 @@ from src.utils.timezones import is_valid_timezone
 from . import contact
 from .availability import MAX_CLOSURE_DAYS
 from .models import (
+    BookingDepositMode,
     BookingExceptionKind,
     BookingPaymentMode,
     BookingSource,
@@ -220,6 +221,24 @@ class BookingProfileUpdate(BaseModel):
             "is kept."
         ),
     )
+    deposit_mode: BookingDepositMode = Field(
+        default=BookingDepositMode.NONE,
+        description=(
+            "Business-wide deposit rule, used for a service only when its own "
+            "deposit is 0. `none`: no rule (the default). `percent`: "
+            "`deposit_percent` of the price, rounded up to whole currency units. "
+            "`fixed`: `deposit_fixed_minor` per booking. Never more than the price. "
+            "Left out, the stored value is kept."
+        ),
+    )
+    deposit_percent: Annotated[int, Field(ge=1, le=100)] | None = Field(
+        default=None,
+        description="The percentage for `deposit_mode` `percent` (1 to 100).",
+    )
+    deposit_fixed_minor: Annotated[int, Field(ge=1, le=100_000_000)] | None = Field(
+        default=None,
+        description="The amount in minor units for `deposit_mode` `fixed`.",
+    )
     brand_color: str | None = Field(
         default=None,
         max_length=7,
@@ -334,6 +353,20 @@ class BookingProfileUpdate(BaseModel):
         if not is_valid_timezone(value):
             raise ValueError("Unknown IANA timezone")
         return value
+
+    @model_validator(mode="after")
+    def _deposit_rule_has_its_amount(self) -> Self:
+        if (
+            self.deposit_mode is BookingDepositMode.PERCENT
+            and self.deposit_percent is None
+        ):
+            raise ValueError("A percentage deposit needs deposit_percent (1 to 100)")
+        if (
+            self.deposit_mode is BookingDepositMode.FIXED
+            and self.deposit_fixed_minor is None
+        ):
+            raise ValueError("A fixed deposit needs deposit_fixed_minor (above 0)")
+        return self
 
 
 class BookingProfilePublic(BookingProfileUpdate):
@@ -651,6 +684,9 @@ class BookingStudioDetail(BaseModel):
     price_minor: int
     deposit_minor: int
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
+    balance_at_salon_minor: int = Field(
+        description="The price less the deposit: what is still to pay at the business."
+    )
     currency: str
     notes: str | None
     cancel_reason: str | None
@@ -893,6 +929,13 @@ class BookingPaymentSummary(BaseModel):
     amount_minor: int = Field(description="What was due at booking.")
     paid_minor: int
     refunded_minor: int
+    # Clients show balance_at_salon_minor only when status is `paid`.
+    balance_at_salon_minor: int = Field(
+        description=(
+            "What is still to pay at the business once the deposit is paid: the "
+            "service price less the deposit. 0 when the whole price was paid online."
+        ),
+    )
     currency: str
     checkout_url: str | None = Field(
         default=None,

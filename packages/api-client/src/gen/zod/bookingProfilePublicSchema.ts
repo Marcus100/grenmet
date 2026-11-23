@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingDepositModeSchema } from "./bookingDepositModeSchema.js";
 import { bookingPaymentModeSchema } from "./bookingPaymentModeSchema.js";
 
 export const bookingProfilePublicSchema = z.object({
@@ -64,6 +65,20 @@ export const bookingProfilePublicSchema = z.object({
     .describe(
       "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept."
     ),
+  deposit_mode: bookingDepositModeSchema
+    .optional()
+    .default("none")
+    .describe(
+      "Business-wide deposit rule, used for a service only when its own deposit is 0. `none`: no rule (the default). `percent`: `deposit_percent` of the price, rounded up to whole currency units. `fixed`: `deposit_fixed_minor` per booking. Never more than the price. Left out, the stored value is kept."
+    ),
+  deposit_percent: z
+    .union([z.int().min(1).max(100), z.null()])
+    .optional()
+    .describe("The percentage for `deposit_mode` `percent` (1 to 100)."),
+  deposit_fixed_minor: z
+    .union([z.int().min(1).max(100000000), z.null()])
+    .optional()
+    .describe("The amount in minor units for `deposit_mode` `fixed`."),
   brand_color: z
     .union([z.string().max(7), z.null()])
     .optional()

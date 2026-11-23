@@ -1256,6 +1256,8 @@ export type { BookingClosureAffected } from "./BookingClosureAffected.js";
 export type { BookingClosureCreate } from "./BookingClosureCreate.js";
 export type { BookingClosureCreated } from "./BookingClosureCreated.js";
 export type { BookingClosurePublic } from "./BookingClosurePublic.js";
+export type { BookingDepositMode } from "./BookingDepositMode.js";
+export { bookingDepositMode } from "./BookingDepositMode.js";
 export type { BookingEmailCodeConfirm } from "./BookingEmailCodeConfirm.js";
 export type { BookingEmailCodeRequest } from "./BookingEmailCodeRequest.js";
 export type { BookingEmailCodeSent } from "./BookingEmailCodeSent.js";

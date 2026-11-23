@@ -1219,6 +1219,7 @@ export { bookingClosureAffectedSchema } from "./bookingClosureAffectedSchema.js"
 export { bookingClosureCreatedSchema } from "./bookingClosureCreatedSchema.js";
 export { bookingClosureCreateSchema } from "./bookingClosureCreateSchema.js";
 export { bookingClosurePublicSchema } from "./bookingClosurePublicSchema.js";
+export { bookingDepositModeSchema } from "./bookingDepositModeSchema.js";
 export { bookingEmailCodeConfirmSchema } from "./bookingEmailCodeConfirmSchema.js";
 export { bookingEmailCodeRequestSchema } from "./bookingEmailCodeRequestSchema.js";
 export { bookingEmailCodeSentSchema } from "./bookingEmailCodeSentSchema.js";

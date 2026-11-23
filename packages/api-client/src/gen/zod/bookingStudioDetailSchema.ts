@@ -28,6 +28,11 @@ export const bookingStudioDetailSchema = z
     payment_kind: bookingPaymentKindSchema.describe(
       '`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.'
     ),
+    balance_at_salon_minor: z
+      .int()
+      .describe(
+        "The price less the deposit: what is still to pay at the business."
+      ),
     currency: z.string(),
     notes: z.union([z.string(), z.null()]),
     cancel_reason: z.union([z.string(), z.null()]),

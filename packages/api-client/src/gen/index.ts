@@ -1245,6 +1245,7 @@ export type { BookingClosureAffected } from "./models/BookingClosureAffected.js"
 export type { BookingClosureCreate } from "./models/BookingClosureCreate.js";
 export type { BookingClosureCreated } from "./models/BookingClosureCreated.js";
 export type { BookingClosurePublic } from "./models/BookingClosurePublic.js";
+export type { BookingDepositMode } from "./models/BookingDepositMode.js";
 export type { BookingEmailCodeConfirm } from "./models/BookingEmailCodeConfirm.js";
 export type { BookingEmailCodeRequest } from "./models/BookingEmailCodeRequest.js";
 export type { BookingEmailCodeSent } from "./models/BookingEmailCodeSent.js";
@@ -15616,6 +15617,7 @@ export { aviationDraftReadPropertiesKindEnum } from "./models/AviationDraftReadP
 export { aviationIssuePropertiesSeverityEnum } from "./models/AviationIssuePropertiesSeverityEnum.js";
 export { badgeKey } from "./models/BadgeKey.js";
 export { balanceImportRowPropertiesStatusEnum } from "./models/BalanceImportRowPropertiesStatusEnum.js";
+export { bookingDepositMode } from "./models/BookingDepositMode.js";
 export { bookingExceptionKind } from "./models/BookingExceptionKind.js";
 export { bookingPaymentKind } from "./models/BookingPaymentKind.js";
 export { bookingPaymentMode } from "./models/BookingPaymentMode.js";
@@ -17059,6 +17061,7 @@ export { bookingClosureAffectedSchema } from "./zod/bookingClosureAffectedSchema
 export { bookingClosureCreateSchema } from "./zod/bookingClosureCreateSchema.js";
 export { bookingClosureCreatedSchema } from "./zod/bookingClosureCreatedSchema.js";
 export { bookingClosurePublicSchema } from "./zod/bookingClosurePublicSchema.js";
+export { bookingDepositModeSchema } from "./zod/bookingDepositModeSchema.js";
 export { bookingEmailCodeConfirmSchema } from "./zod/bookingEmailCodeConfirmSchema.js";
 export { bookingEmailCodeRequestSchema } from "./zod/bookingEmailCodeRequestSchema.js";
 export { bookingEmailCodeSentSchema } from "./zod/bookingEmailCodeSentSchema.js";

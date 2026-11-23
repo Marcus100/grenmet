@@ -52,6 +52,8 @@ class BookingEmail:
     #: The business's brand: accent (falls back to navy when too pale) and logo.
     accent: str | None = None
     logo: layout.Logo | None = None
+    #: "Deposit paid XCD x, remaining XCD y at the salon." once a deposit is paid.
+    payment_line: str | None = None
 
     @property
     def when(self) -> str:
@@ -80,6 +82,8 @@ def _rows(mail: BookingEmail, *extra: layout.Row) -> tuple[layout.Row, ...]:
     ]
     if mail.reference:
         rows.append(layout.Row("Reference", mail.reference))
+    if mail.payment_line:
+        rows.append(layout.Row("Payment", mail.payment_line))
     return (*rows, *extra)
 
 

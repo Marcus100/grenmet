@@ -93,6 +93,26 @@ async def process_cap_jobs(ctx: dict[str, Any]) -> int:
 
 
 @monitored(schedule="*/5 * * * *", checkin_margin=5, max_runtime=5)
+async def expire_cap_alerts(ctx: dict[str, Any]) -> int:
+    """Expire published CAP warnings whose every info block has ended (idempotent)."""
+    from src.cap import expiry
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await expiry.expire_due_alerts(session=session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"), "expire_cap_alerts", str(ctx.get("job_id", "")), False
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "expire_cap_alerts", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
+@monitored(schedule="*/5 * * * *", checkin_margin=5, max_runtime=5)
 async def ingest_cap_feeds(ctx: dict[str, Any]) -> int:
     from src.cap import service as cap_service
     from src.database import async_session_factory
@@ -846,6 +866,7 @@ class WorkerSettings:
     functions = [
         process_cap_jobs,
         ingest_cap_feeds,
+        expire_cap_alerts,
         send_notification_emails,
         send_outbound_emails,
         drain_outbox,
@@ -887,6 +908,8 @@ class WorkerSettings:
             second=set(range(0, 60, worker_settings.CAP_JOB_POLL_SECONDS)),
             run_at_startup=True,
         ),
+        # Expire published warnings whose every info block has ended, every 5 minutes.
+        cron(expire_cap_alerts, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Poll external CAP feeds every 5 minutes.
         cron(
             ingest_cap_feeds,
