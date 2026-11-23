@@ -84,6 +84,17 @@ export default async function OrganisationHomePage({
           View the staff list
         </Link>
       </section>
+      <section aria-labelledby="my-record-link-heading" className="space-y-2">
+        <h2 className="text-lg font-semibold" id="my-record-link-heading">
+          My record
+        </h2>
+        <Link
+          className="inline-flex min-h-11 items-center font-medium underline-offset-4 hover:underline"
+          href={`/${organisation.slug}/me` as Route}
+        >
+          View my employment and leave balances
+        </Link>
+      </section>
       <section aria-labelledby="modules-heading" className="space-y-2">
         <h2 className="text-lg font-semibold" id="modules-heading">
           HR work
