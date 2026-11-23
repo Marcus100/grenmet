@@ -14,6 +14,7 @@ vi.mock("@/lib/use-hydrated", () => ({
 
 vi.mock("@/app/studio/[orgSlug]/bookings/new/actions", () => ({
   createBookingAction: vi.fn(),
+  loadWalkInTimesAction: vi.fn(() => Promise.resolve({ status: "closed" })),
 }));
 
 import { NewBookingForm } from "./new-booking-form";

@@ -14,7 +14,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -44,6 +44,7 @@ from . import (
     service,
     transitions,
 )
+from .config import bookings_settings
 from .exceptions import BookingConflictError, BookingNotFoundError
 from .models import (
     ACTIVE_STATUSES,
@@ -109,6 +110,31 @@ def signed_manage_url(managed: Managed) -> str | None:
         return None
     token = manage_link.mint(managed.booking.id, managed.booking.ends_at)
     return manage_url(managed.profile, token)
+
+
+def my_manage_url(slug: str, booking: Booking, now: datetime) -> str | None:
+    """The Barrels manage page for one of the account's bookings, with a signed
+    link minted now (nothing is stored). None when the stored token was cleared
+    (retention) or the signed link has lapsed (a week after the booking ends)."""
+    if booking.manage_token_hash is None:
+        return None
+    token = manage_link.mint(booking.id, booking.ends_at)
+    if manage_link.verify(token, now=now) is None:
+        return None
+    base = bookings_settings.APP_URL.rstrip("/")
+    return f"{base}/{quote(slug, safe='')}/booking/{token}"
+
+
+def hold_ends_at(booking: Booking) -> datetime | None:
+    """When an unpaid hold is released: the same clock the expiry sweeper uses
+    (``created_at`` plus the deposit hold). None for a booking not waiting for payment."""
+    if booking.status != BookingStatus.PENDING_PAYMENT.value:
+        return None
+    if booking.created_at is None:
+        return None
+    return booking.created_at + timedelta(
+        minutes=bookings_settings.DEPOSIT_HOLD_MINUTES
+    )
 
 
 def _single_line(value: str) -> str:
@@ -293,6 +319,7 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         can_cancel=_can_cancel(booking, profile, now),
         contact=BookingBusinessContact(**service.business_contact(profile)),
         account_invite_url=account_invite_for(profile, managed.contact),
+        hold_ends_at=hold_ends_at(booking),
     )
 
 
@@ -378,6 +405,7 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         business_phone=profile.contact_phone,
         accent=profile.brand_color,
         logo=emails.business_logo(profile.display_name, profile.logo_file_id),
+        payment_line=deposit_payments.payment_line(managed.booking),
     )
 
 
@@ -656,6 +684,11 @@ async def _create_booking(
             contact,
             booking_email=str(payload.customer_email),
             user_id=payer.id,
+        )
+        # The name typed on the booking is the name the booking, the confirmation
+        # and My bookings show. A stored name would otherwise win over it.
+        contacts_service.take_name_from_linked_account(
+            contact, name=_single_line(payload.customer_name), user_id=payer.id
         )
     token, token_hash = new_manage_token()
     ends_at = starts_at + timedelta(minutes=svc.duration_min)

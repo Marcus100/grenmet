@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NoOrganisationNotice } from "@/components/no-access-notice";
 import { getAccessStatus, listMyOrganisations } from "@/lib/api";
 import {
   canRequestAccess,
@@ -39,12 +40,12 @@ export default async function AccessPage({ searchParams }: PageProps) {
 
   if (!organisation) {
     return (
-      <section className="space-y-2">
+      <section className="space-y-4">
         <h1 className="text-2xl font-semibold">Access</h1>
-        <p className="text-muted-foreground max-w-2xl">
-          You are not a member of an organisation yet. Ask an organisation owner
-          to invite you; access is requested per organisation.
-        </p>
+        <section className="space-y-3">
+          <h2 className="text-xl font-semibold">Your organisations</h2>
+          <NoOrganisationNotice />
+        </section>
       </section>
     );
   }

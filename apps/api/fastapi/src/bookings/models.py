@@ -7,7 +7,7 @@ Postgres exclusion constraint forbids double-booking a provider.
 """
 
 import uuid
-from datetime import datetime, time
+from datetime import date, datetime, time
 from enum import Enum
 from typing import cast
 
@@ -49,6 +49,19 @@ class BookingPaymentMode(str, Enum):
     FULL_PRICE = "full_price"
 
 
+class BookingDepositMode(str, Enum):
+    """The business-wide deposit rule (owner request 23 Nov 2026), used for a
+    service only when its own ``deposit_minor`` is 0.
+
+    ``none`` (default): no rule. ``percent``: ``deposit_percent`` of the price,
+    rounded up to whole currency units. ``fixed``: ``deposit_fixed_minor`` per
+    booking. Either way the deposit never exceeds the price."""
+
+    NONE = "none"
+    PERCENT = "percent"
+    FIXED = "fixed"
+
+
 class BookingSource(str, Enum):
     ONLINE = "online"
     STUDIO = "studio"
@@ -81,6 +94,18 @@ class BookingProfile(Base):
         sa.CheckConstraint(
             f"payment_at_booking IN ({_values(BookingPaymentMode)})",
             name="payment_at_booking",
+        ),
+        sa.CheckConstraint(
+            f"deposit_mode IN ({_values(BookingDepositMode)})",
+            name="deposit_mode",
+        ),
+        sa.CheckConstraint(
+            "deposit_mode = 'none'"
+            " OR (deposit_mode = 'percent' AND deposit_percent IS NOT NULL"
+            " AND deposit_percent BETWEEN 1 AND 100)"
+            " OR (deposit_mode = 'fixed' AND deposit_fixed_minor IS NOT NULL"
+            " AND deposit_fixed_minor > 0)",
+            name="deposit_rule",
         ),
         sa.CheckConstraint(
             "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
@@ -119,12 +144,31 @@ class BookingProfile(Base):
     brand_color: Mapped[str | None] = mapped_column(String(7))
     #: A completed ``booking-logo`` upload (``src/storage``); no cross-database FK.
     logo_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
+    #: Opt-in to the Barrels Bookings home page listing (off by default). The
+    #: listing shows only enabled, entitled, active businesses with a service.
+    listed: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
+    #: Listing text: a short category (chips on the home page), a one-line
+    #: description and a city. Blank means not shown.
+    category: Mapped[str | None] = mapped_column(String(80))
+    short_description: Mapped[str | None] = mapped_column(String(160))
+    city: Mapped[str | None] = mapped_column(String(80))
     #: ``BookingPaymentMode``: what an online booking pays when it is made.
     payment_at_booking: Mapped[str] = mapped_column(
         String(20),
         default=BookingPaymentMode.DEPOSIT.value,
         server_default=BookingPaymentMode.DEPOSIT.value,
     )
+    #: ``BookingDepositMode``: the business-wide deposit rule. ``none`` by default,
+    #: so existing businesses keep their per-service deposits and nothing else.
+    deposit_mode: Mapped[str] = mapped_column(
+        String(10),
+        default=BookingDepositMode.NONE.value,
+        server_default=BookingDepositMode.NONE.value,
+    )
+    #: 1 to 100, used when ``deposit_mode`` is ``percent``.
+    deposit_percent: Mapped[int | None] = mapped_column(default=None)
+    #: Minor units per booking, used when ``deposit_mode`` is ``fixed``.
+    deposit_fixed_minor: Mapped[int | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 
@@ -233,6 +277,30 @@ class AvailabilityException(Base):
     kind: Mapped[str] = mapped_column(String(20))
     starts_at: Mapped[datetime]
     ends_at: Mapped[datetime]
+    reason: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class BusinessClosure(Base):
+    """A whole-business closure (BK-20): local days closed for every provider.
+
+    ``starts_on`` and ``ends_on`` are the organisation's calendar days, both
+    inclusive. Overlapping closures are allowed; each removes its own days.
+    """
+
+    __tablename__ = "business_closure"
+    __table_args__ = (
+        sa.CheckConstraint("ends_on >= starts_on", name="period"),
+        sa.Index("ix_business_closure_org_starts", "organisation_id", "starts_on"),
+        SCHEMA,
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id")
+    )
+    starts_on: Mapped[date]
+    ends_on: Mapped[date]
     reason: Mapped[str | None] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 

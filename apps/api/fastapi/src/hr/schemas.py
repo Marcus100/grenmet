@@ -66,6 +66,38 @@ class OrganisationPublic(BaseModel):
     id: str
     code: str
     name: str
+    slug: str | None = None
+
+
+class HrMeOrganisationPublic(BaseModel):
+    id: str
+    slug: str
+    name: str
+    scope: RoleAssignmentScope
+
+
+class HrMeLeaveBalancePublic(BaseModel):
+    leave_type: str
+    balance_days: Decimal
+
+
+class HrMeEmploymentPublic(BaseModel):
+    """The caller's own live employment in one organisation.
+
+    Leave balances are held per person, not per organisation. A person has at
+    most one employment record, so the balances are those of this employment.
+    They are returned only while the caller has live employment in the
+    requested organisation.
+    """
+
+    organisation_id: str
+    status: EmploymentStatus
+    position: str | None = None
+    department_name: str
+    employment_type: EmploymentType | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    leave_balances: list[HrMeLeaveBalancePublic]
 
 
 class DepartmentPublic(BaseModel):

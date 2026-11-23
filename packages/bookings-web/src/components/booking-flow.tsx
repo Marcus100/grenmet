@@ -18,6 +18,7 @@ import {
   type FieldErrors,
   type FieldKey,
   fingerprint,
+  sameEmail,
   stillWrong,
   validateBooking,
 } from "../lib/booking-form";
@@ -29,6 +30,7 @@ import {
   timeZonePlace,
 } from "../lib/booking-format";
 import { payNowLine } from "../lib/booking-payment";
+import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
 import type { Booked, BookingFlowActions } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
@@ -80,6 +82,17 @@ export interface BookAgainChoice {
   serviceId: string;
 }
 
+/** Funnel steps the host may record (cookieless analytics). Ids only. */
+export type BookingTrackEvent =
+  | "service_selected"
+  | "slot_selected"
+  | "booking_submitted"
+  | "booking_confirmed";
+
+export interface BookingTrackProperties {
+  service_id?: string;
+}
+
 export interface BookingFlowProps {
   /**
    * An invitation shown after booking to a visitor who is not signed in. Never
@@ -108,6 +121,14 @@ export interface BookingFlowProps {
   storefront: BookingStorefront;
   /** The studio's name, used in the marketing opt-in wording. */
   studioName: string;
+  /**
+   * Records a funnel step. The host binds its app and business slug and sends
+   * nothing else. Omit it to record nothing.
+   */
+  track?: (
+    event: BookingTrackEvent,
+    properties: BookingTrackProperties
+  ) => void;
   /** Cloudflare Turnstile public key; empty means no widget. */
   turnstileSiteKey: string;
 }
@@ -210,6 +231,10 @@ function BookingDone({
           Thank you, {booking.customer_name.split(" ")[0]}
         </h2>
         <p>{statusLine(booking.status)}</p>
+        {booking.hold_ends_at ? (
+          <p>{holdEndsLine(booking.hold_ends_at, booking.timezone)}</p>
+        ) : null}
+        <p>{cancellationPolicyLine(booking.cancel_cutoff_hours)}</p>
         <dl className="summary">
           <div>
             <dt>Service</dt>
@@ -525,6 +550,7 @@ export function BookingFlow({
   signedIn,
   studioName,
   storefront,
+  track,
   turnstileSiteKey,
 }: BookingFlowProps) {
   const [serviceId, setServiceId] = useState<string | null>(null);
@@ -563,11 +589,15 @@ export function BookingFlow({
   const reviseErrors = (change: Partial<BookingFields>) =>
     setErrors((previous) => stillWrong(previous, { ...fieldsNow, ...change }));
   const pickService = (id: string) => {
+    track?.("service_selected", { service_id: id });
     setServiceId(id);
     setStartsAt(null);
     reviseErrors({ serviceId: id, startsAt: null });
   };
   const pickStart = (value: string | null) => {
+    if (value && serviceId) {
+      track?.("slot_selected", { service_id: serviceId });
+    }
     setStartsAt(value);
     reviseErrors({ startsAt: value });
   };
@@ -596,14 +626,20 @@ export function BookingFlow({
 
   useFocusWhen(summaryRef, showSummary);
 
+  // A signed-in visitor who types their own account email needs no code: the
+  // API takes the verified account as the proof (ADR-0018). A refusal from the
+  // API still forces the code step (`codeForced`).
+  const ownAccountEmail =
+    signedIn !== undefined && sameEmail(email, signedIn.email);
   const needsCode =
-    dueAtBooking(service) > 0 ||
+    (dueAtBooking(service) > 0 && !ownAccountEmail) ||
     (serviceId !== null && codeForced === serviceId);
   const payNow = service
     ? payNowLine(
         dueAtBooking(service),
         service.price_minor,
-        storefront.currency
+        storefront.currency,
+        storefront.cancel_cutoff_hours
       )
     : null;
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
@@ -681,6 +717,7 @@ export function BookingFlow({
       attempt.current = { print, key: crypto.randomUUID() };
     }
     setSubmitting(true);
+    track?.("booking_submitted", { service_id: serviceId });
     try {
       const outcome = await actions.submitBooking({
         idempotencyKey: attempt.current.key,
@@ -697,6 +734,7 @@ export function BookingFlow({
       });
       if (outcome.ok) {
         attempt.current = null;
+        track?.("booking_confirmed", { service_id: serviceId });
         setBooked(outcome.data);
         return;
       }
@@ -959,6 +997,14 @@ export function BookingFlow({
         {service && payNow && (
           <p className="notice payment-notice" role="status">
             {payNow}
+          </p>
+        )}
+        {service && dueAtBooking(service) === 0 && (
+          <p className="muted">No payment online. You pay when you visit.</p>
+        )}
+        {service?.description && (
+          <p className="muted">
+            Note for {service.name}: {service.description}
           </p>
         )}
         <p className="muted">

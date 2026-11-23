@@ -16,7 +16,7 @@ Static site at `babydoll.barrels.gd` (production only, no staging), on Cloudflar
 
 ## Content rules
 
-- All client-editable content (booking link, address, hours, services and prices,
+- All client-editable content (booking link, address, appointment wording, services and prices,
   packages, reviews, socials, courses, portfolio slots) lives in `src/data/site.ts`.
   Pages render from it; do not hard-code prices or the address in components.
 - Prices mirror the client's Acuity booking page (`babydollgnd.as.me`). Do not
@@ -39,6 +39,8 @@ Static site at `babydoll.barrels.gd` (production only, no staging), on Cloudflar
   (inactive panels are `hidden`), so prices are indexable.
 - Light theme only (client decision): no dark palette, no `prefers-color-scheme`,
   no theme toggle. `src/theme.test.ts` fails if one is added back.
+- No opening hours anywhere: Jeriann works by appointment only (owner, 23 Nov
+  2026). Do not add hours, a `table` of days, or `openingHours` structured data.
 - Phone first: the fixed `BookBar` shows under 820px; keep the page's bottom
   padding (`--bar-h`) when changing it.
 - Tests: `pnpm vitest run` from this directory.

@@ -4,6 +4,7 @@ import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import { SkipLink } from "@barrelsgd/ui/components/ui/skip-link";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { SignInCompletedMarker } from "@/components/sign-in-completed-marker";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html className={inter.variable} lang="en">
       <body className="bg-background text-foreground min-h-screen font-sans antialiased">
         <PublicEnvScript />
+        <SignInCompletedMarker />
         <SkipLink />
         {children}
       </body>

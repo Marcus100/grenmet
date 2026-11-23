@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingDepositMode } from "./BookingDepositMode.js";
 import type { BookingPaymentMode } from "./BookingPaymentMode.js";
 
 export type BookingProfilePublic = {
@@ -92,6 +93,20 @@ export type BookingProfilePublic = {
    */
   payment_at_booking?: BookingPaymentMode;
   /**
+   * @description Business-wide deposit rule, used for a service only when its own deposit is 0. `none`: no rule (the default). `percent`: `deposit_percent` of the price, rounded up to whole currency units. `fixed`: `deposit_fixed_minor` per booking. Never more than the price. Left out, the stored value is kept.
+   * @default 'none'
+   * @type string | undefined
+   */
+  deposit_mode?: BookingDepositMode;
+  /**
+   * @description The percentage for `deposit_mode` `percent` (1 to 100).
+   */
+  deposit_percent?: number | null;
+  /**
+   * @description The amount in minor units for `deposit_mode` `fixed`.
+   */
+  deposit_fixed_minor?: number | null;
+  /**
    * @description The business's accent colour in its emails, as `#rrggbb`. Blank clears it. Mail uses the Barrels navy instead when the colour is too pale for white text. Left out, the stored value is kept.
    */
   brand_color?: string | null;
@@ -99,6 +114,24 @@ export type BookingProfilePublic = {
    * @description A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept.
    */
   logo_file_id?: string | null;
+  /**
+   * @description Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept.
+   * @default false
+   * @type boolean | undefined
+   */
+  listed?: boolean;
+  /**
+   * @description Short category for the home page, such as Hair or Nails; it is the filter chip a visitor taps. Blank clears it. Left out, the stored value is kept.
+   */
+  category?: string | null;
+  /**
+   * @description One line for the home page card. Blank clears it. Left out, the stored value is kept.
+   */
+  short_description?: string | null;
+  /**
+   * @description Town or city for the home page card. Blank clears it. Left out, the stored value is kept.
+   */
+  city?: string | null;
   /**
    * @description
    * Format: `uuid`

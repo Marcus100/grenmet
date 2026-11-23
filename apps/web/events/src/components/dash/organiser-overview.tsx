@@ -65,17 +65,52 @@ export function overviewOrder(
   return [...upcoming, ...ended];
 }
 
-/** Totals across the ticketed events' settlement summaries (no online revenue here). */
+/**
+ * Totals across the ticketed events' settlement summaries (no online revenue
+ * here). `active` is the valid tickets (`claimed`): issued minus refunded and
+ * minus holder-cancelled. The three statuses are exclusive, so nothing is
+ * subtracted twice.
+ */
 export function salesTotals(rows: readonly SettlementSummary[]) {
   let issued = 0;
+  let active = 0;
+  let refunded = 0;
+  let cancelledTickets = 0;
   let admitted = 0;
   let cashMinor = 0;
   for (const row of rows) {
     issued += row.issued;
+    active += row.claimed;
+    refunded += row.refunded;
+    cancelledTickets += row.cancelled;
     admitted += row.admitted;
     cashMinor += row.cashCollectedMinor;
   }
-  return { admitted, cashMinor, issued };
+  return {
+    active,
+    admitted,
+    cancelledTickets,
+    cashMinor,
+    issued,
+    refunded,
+  };
+}
+
+/** The active and issued counts are always shown. Zero adjustments are omitted. */
+export function issuedBreakdown(totals: {
+  active: number;
+  cancelledTickets: number;
+  issued: number;
+  refunded: number;
+}): string {
+  const parts = [`${totals.active} active`, `${totals.issued} issued`];
+  if (totals.refunded > 0) {
+    parts.push(`${totals.refunded} refunded`);
+  }
+  if (totals.cancelledTickets > 0) {
+    parts.push(`${totals.cancelledTickets} cancelled`);
+  }
+  return parts.join(" · ");
 }
 
 const RECENT_LIMIT = 5;
@@ -83,9 +118,11 @@ const RECENT_LIMIT = 5;
 function CountTile({
   label,
   value,
+  detail,
 }: {
   label: string;
   value: number | string;
+  detail?: string;
 }) {
   return (
     <div className="border-border bg-card rounded-2xl border p-4">
@@ -93,6 +130,11 @@ function CountTile({
       <p className="text-heading-base mt-1 font-semibold tabular-nums">
         {value}
       </p>
+      {detail ? (
+        <p className="text-caption text-muted-foreground mt-1 tabular-nums">
+          {detail}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -110,7 +152,8 @@ function SettlementPanel({ rows }: { rows: readonly SettlementSummary[] }) {
           <thead className="text-muted-foreground">
             <tr>
               <th className="py-1 font-medium">Event</th>
-              <th className="py-1 font-medium">Issued</th>
+              <th className="py-1 font-medium">Active</th>
+              <th className="py-1 font-medium">Issued (all)</th>
               <th className="py-1 font-medium">Admitted</th>
               <th className="py-1 font-medium">Cash</th>
               <th className="py-1 font-medium">Issues</th>
@@ -127,6 +170,7 @@ function SettlementPanel({ rows }: { rows: readonly SettlementSummary[] }) {
                     {row.title}
                   </Link>
                 </td>
+                <td className="py-1.5 tabular-nums">{row.claimed}</td>
                 <td className="py-1.5 tabular-nums">{row.issued}</td>
                 <td className="py-1.5 tabular-nums">{row.admitted}</td>
                 <td className="py-1.5 tabular-nums">
@@ -170,7 +214,11 @@ function SalesPanel({ rows }: { rows: readonly SettlementSummary[] }) {
       ) : (
         <>
           <div className="grid grid-cols-3 gap-3">
-            <CountTile label="Tickets issued" value={totals.issued} />
+            <CountTile
+              detail={issuedBreakdown(totals)}
+              label="Tickets active"
+              value={totals.active}
+            />
             <CountTile label="Admitted" value={totals.admitted} />
             <CountTile
               label="Cash at the till"

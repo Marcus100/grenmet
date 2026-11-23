@@ -15,6 +15,8 @@ import { FileBarChart, LayoutGrid, Search } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
+import { capDeskHref } from "@/lib/cap-desk-paths";
+import { useCapDeskUrl } from "@/navigation/cap-desk-navigation";
 import { type NavMainItem, sidebarItems } from "@/navigation/sidebar-items";
 
 interface SearchItem {
@@ -106,6 +108,7 @@ export function SearchDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const deskUrl = useCapDeskUrl();
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -130,10 +133,11 @@ export function SearchDialog() {
       return;
     }
     handleOpenChange(false);
+    const href = capDeskHref(item.url, deskUrl);
     if (item.newTab) {
-      window.open(item.url, "_blank", "noopener,noreferrer");
+      window.open(href, "_blank", "noopener,noreferrer");
     } else {
-      router.push(item.url as Route);
+      router.push(href as Route);
     }
   };
 

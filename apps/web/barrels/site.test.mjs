@@ -1,8 +1,14 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import test from "node:test";
+import test, { before } from "node:test";
 import { NOINDEX_ROBOTS } from "./build.mjs";
+
+// Every test below reads dist/, so build it first (with no Turnstile key, the
+// default state) instead of relying on a previous run having left it behind.
+before(() => {
+  execFileSync("node", [new URL("./build.mjs", import.meta.url).pathname, ""]);
+});
 
 const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/su;
 const PRIVACY_DIALOG = /<section[^>]*role="dialog"/su;
@@ -313,8 +319,40 @@ test("static modules share the reader policy and CSP permits only the required e
     ),
     "connect-src allows the Barrels API origin"
   );
+  // GA4 measurement hits (/g/collect) go to this host; without it the homepage
+  // analytics are blocked by the policy.
+  assert.ok(
+    allowsOrigin(
+      directiveSources(csp, "connect-src"),
+      "https://www.google.com"
+    ),
+    "connect-src allows the GA4 measurement host"
+  );
   assert.ok(csp.includes("form-action 'none'"));
   assert.ok(!csp.includes("unsafe-inline"));
+});
+
+test("CSP allows the cookieless Cloudflare Web Analytics beacon the edge injects", () => {
+  const config = JSON.parse(
+    readFileSync(new URL("./vercel.json", import.meta.url), "utf8")
+  );
+  const csp = config.headers[0].headers.find(
+    (header) => header.key === "Content-Security-Policy"
+  ).value;
+  assert.ok(
+    allowsOrigin(
+      directiveSources(csp, "script-src"),
+      "https://static.cloudflareinsights.com"
+    ),
+    "script-src allows the beacon script"
+  );
+  assert.ok(
+    allowsOrigin(
+      directiveSources(csp, "connect-src"),
+      "https://cloudflareinsights.com"
+    ),
+    "connect-src allows the beacon endpoint"
+  );
 });
 
 test("CSP allows Cloudflare Turnstile for scripts, frames and connections only", () => {
@@ -771,4 +809,53 @@ test("noindex is found in either attribute order and any case, and only there", 
     '<meta name="description" content="noindex is not a robots tag">',
   ])
     assert.ok(!NOINDEX_ROBOTS.test(tag), `ignores ${tag}`);
+});
+
+test("the CSP lets the site load its own favicon and images", () => {
+  const config = JSON.parse(
+    readFileSync(new URL("./vercel.json", import.meta.url), "utf8")
+  );
+  const csp = config.headers[0].headers.find(
+    (header) => header.key === "Content-Security-Policy"
+  ).value;
+  // The favicon is an image request: img-src must allow the same origin.
+  assert.ok(
+    directiveSources(csp, "img-src").includes("'self'"),
+    "img-src allows 'self' so /favicon.ico loads"
+  );
+});
+
+test("every page links the favicon, and the built site ships it as an ICO", () => {
+  for (const page of PAGES) {
+    assert.ok(
+      read(page).includes('<link href="/favicon.ico" rel="icon" sizes="any">'),
+      `${page} links /favicon.ico`
+    );
+  }
+  const icon = readFileSync(new URL("./dist/favicon.ico", import.meta.url));
+  // ICO header: reserved 0, type 1 (icon), at least one image.
+  assert.deepEqual([...icon.subarray(0, 4)], [0, 0, 1, 0]);
+});
+
+test("security headers: HSTS without subdomains or preload, frame and permissions limits", () => {
+  const config = JSON.parse(
+    readFileSync(new URL("./vercel.json", import.meta.url), "utf8")
+  );
+  const headers = Object.fromEntries(
+    config.headers[0].headers.map((header) => [header.key, header.value])
+  );
+  assert.equal(
+    headers["Strict-Transport-Security"],
+    "max-age=31536000",
+    "HSTS is one year with no includeSubDomains and no preload"
+  );
+  assert.equal(headers["X-Frame-Options"], "DENY");
+  assert.equal(
+    headers["Permissions-Policy"],
+    "camera=(), microphone=(), geolocation=(), payment=()"
+  );
+  // The static host copies the same lines (checked above), so the policy
+  // cannot drift between the Vercel and Cloudflare Pages outputs.
+  const lines = read("_headers").split("\n");
+  assert.ok(lines.includes("  Strict-Transport-Security: max-age=31536000"));
 });

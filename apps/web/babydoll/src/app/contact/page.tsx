@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Address, Hours } from "@/components/hours";
+import { Address, Appointments } from "@/components/appointments";
 import { NewTabNote } from "@/components/new-tab-note";
 import { PageHead } from "@/components/sections";
 import { INSTAGRAM_DM_URL, MAPS_URL, SOCIALS } from "@/data/site";
@@ -73,8 +73,8 @@ export default function ContactPage() {
               </p>
             </div>
             <div>
-              <h2>Hours</h2>
-              <Hours />
+              <h2>Appointments</h2>
+              <Appointments />
             </div>
           </div>
         </div>

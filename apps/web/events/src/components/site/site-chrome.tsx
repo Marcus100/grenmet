@@ -49,7 +49,7 @@ export function SiteHeader({ viewer }: { viewer: Profile }) {
               Sign in
             </a>
           )}
-          <MobileNav />
+          <MobileNav signedIn={isSignedIn(viewer)} />
         </div>
       </div>
     </header>

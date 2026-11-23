@@ -6,7 +6,10 @@ import {
 } from "@barrelsgd/ui/lib/support";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BusinessListing } from "@/components/home/business-listing";
 import { env } from "@/env";
+import { listingQuery } from "@/lib/business-listing-query";
+import { getPublicBusinesses } from "@/lib/public-businesses";
 
 export const metadata: Metadata = {
   title: "Online appointments in Grenada",
@@ -15,10 +18,20 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default function HomePage() {
+// Every link here is a 44 px target (`min-h-11`), phone first.
+const LINK =
+  "inline-flex min-h-11 items-center font-medium underline underline-offset-4";
+
+export default async function HomePage({
+  searchParams,
+}: Readonly<{
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}>) {
+  const query = listingQuery(await searchParams);
+  const listing = await getPublicBusinesses(query);
   return (
     <main
-      className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center gap-4 p-6"
+      className="mx-auto flex min-h-screen max-w-2xl flex-col gap-10 p-6"
       id="main-content"
     >
       <JsonLd
@@ -28,26 +41,46 @@ export default function HomePage() {
           description: "Online appointments for Grenada businesses.",
         })}
       />
-      <p className="text-muted-foreground text-sm font-medium">
-        Barrels Bookings
-      </p>
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Online appointments for Grenada businesses
-      </h1>
-      <p className="text-muted-foreground">
-        Each business has its own booking page. Businesses manage their
-        services, hours and appointments in the studio, after signing in with a
-        Barrels account.
-      </p>
-      <p>
-        <Link className="underline underline-offset-4" href="/studio">
-          Open the studio
+      <header className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-muted-foreground text-sm font-medium">
+          Barrels Bookings
+        </p>
+        <Link className={LINK} href="/studio">
+          For businesses
         </Link>
-      </p>
+      </header>
+
+      <section className="flex flex-col gap-4">
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Online appointments for Grenada businesses
+        </h1>
+        <p className="text-muted-foreground">
+          Each business has its own booking page, with its services, prices and
+          open times. Pick a business below, or open the booking page the
+          business sent you.
+        </p>
+      </section>
+
+      <BusinessListing listing={listing} query={query} />
+
+      <section
+        aria-labelledby="for-businesses-heading"
+        className="flex flex-col gap-2"
+      >
+        <h2 className="text-lg font-semibold" id="for-businesses-heading">
+          For businesses
+        </h2>
+        <p className="text-muted-foreground">
+          Set up your services, hours and appointments in the studio. Sign in
+          with a Barrels account to open it. A business chooses whether it is
+          listed here.
+        </p>
+      </section>
+
       <p className="text-muted-foreground text-sm">
         Questions about Barrels Bookings? Email Barrels Grenada support at{" "}
         <a
-          className="text-foreground underline underline-offset-4"
+          className="text-foreground inline-flex min-h-11 items-center underline underline-offset-4"
           href={BARRELS_SUPPORT_HREF}
         >
           {BARRELS_SUPPORT_EMAIL}

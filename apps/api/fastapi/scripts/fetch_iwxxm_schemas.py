@@ -11,15 +11,32 @@ files into src/eregister/iwxxm_xsd/2025-2, which is gitignored.
 
 Run it from apps/api/fastapi with the project environment (``uv run --frozen --package
 fast-back python -m scripts.fetch_iwxxm_schemas``); the Docker and CI steps do that.
+
+Download resilience (the image build runs this as its last layer, and raw.githubusercontent
+.com sometimes answers 503 or 429): each file is tried up to 5 times. Retries happen on
+HTTP 5xx, HTTP 429 and transport errors (connection, timeout, server disconnect); any other
+4xx, and client-side protocol errors (an unsupported URL), fail at once. The wait is
+exponential (1 s, 2 s, 4 s, 8 s, capped at 60 s) with equal jitter, and a Retry-After header
+(seconds or HTTP date) is honoured as a minimum wait, capped at 60 s. At most 8 requests run
+at once. When the retries are spent the script exits 1 and names the file and the last
+status or error. The first file to fail stops the others: waiting downloads wake up and
+stop, so a failing run ends promptly. Nothing about what is fetched changes: the same pinned tag, the
+same 100 files, each checked against its SHA-256 before anything is installed.
 """
 
 import argparse
 import hashlib
 import json
 import os
+import random
 import shutil
 import sys
 import tempfile
+import threading
+import time
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +48,19 @@ DESTINATION = API_ROOT / "src" / "eregister" / "iwxxm_xsd" / "2025-2"
 TIMEOUT_SECONDS = 60
 MAX_FILE_BYTES = 8 * 1024 * 1024
 CHUNK_BYTES = 1024 * 1024
+RETRY_ATTEMPTS = 5
+RETRY_BASE_SECONDS = 1.0
+RETRY_CAP_SECONDS = 60.0
+MAX_PARALLEL_DOWNLOADS = 8
+
+
+class DownloadError(ValueError):
+    """A pinned file could not be downloaded; the message names the file."""
+
+
+def wait_unless_stopped(seconds: float, stop: threading.Event) -> None:
+    """Back-off wait that ends early when another file has already failed."""
+    stop.wait(seconds)
 
 
 def load_manifest() -> dict[str, Any]:
@@ -58,22 +88,124 @@ def installed_problems(files: dict[str, str]) -> list[str]:
     return problems
 
 
-def download_pinned(manifest: dict[str, Any]) -> dict[str, bytes]:
+def is_retryable(status: int) -> bool:
+    return status == 429 or status >= 500
+
+
+def backoff_seconds(attempt: int, jitter: Callable[[], float]) -> float:
+    """Equal jitter: between half and all of the exponential step for this attempt."""
+    step = min(RETRY_CAP_SECONDS, RETRY_BASE_SECONDS * 2 ** (attempt - 1))
+    return step / 2 + jitter() * step / 2
+
+
+def retry_after_seconds(
+    response: httpx.Response, clock: Callable[[], float]
+) -> float | None:
+    value = response.headers.get("Retry-After")
+    if value is None:
+        return None
+    value = value.strip()
+    if value.isdigit():
+        return float(value)
+    try:
+        when = parsedate_to_datetime(value)
+    except TypeError, ValueError:
+        return None
+    return max(0.0, when.timestamp() - clock())
+
+
+def fetch_one(
+    client: httpx.Client,
+    relative: str,
+    url: str,
+    *,
+    sleep: Callable[[float, threading.Event], None],
+    clock: Callable[[], float],
+    jitter: Callable[[], float],
+    stop: threading.Event,
+) -> bytes:
+    """One file, with the retry rules in the module docstring."""
+    last = "no response"
+    for attempt in range(1, RETRY_ATTEMPTS + 1):
+        if stop.is_set():
+            raise DownloadError(f"{relative} stopped: another pinned file failed")
+        response: httpx.Response | None = None
+        try:
+            response = client.get(url)
+        except (httpx.UnsupportedProtocol, httpx.LocalProtocolError) as error:
+            raise DownloadError(f"{relative} not retried: {error}") from error
+        except httpx.TransportError as error:
+            last = f"{type(error).__name__}: {error}"
+        else:
+            if response.status_code < 400:
+                if len(response.content) > MAX_FILE_BYTES:
+                    raise DownloadError(f"{relative} is larger than the allowed size")
+                return response.content
+            if not is_retryable(response.status_code):
+                raise DownloadError(
+                    f"{relative} returned HTTP {response.status_code}; not retried"
+                )
+            last = f"HTTP {response.status_code}"
+        if attempt == RETRY_ATTEMPTS:
+            break
+        delay = backoff_seconds(attempt, jitter)
+        advised = retry_after_seconds(response, clock) if response is not None else None
+        if advised is not None:
+            delay = max(delay, min(advised, RETRY_CAP_SECONDS))
+        sleep(delay, stop)
+    raise DownloadError(
+        f"{relative} failed after {RETRY_ATTEMPTS} attempts; last status {last}"
+    )
+
+
+def download_pinned(
+    manifest: dict[str, Any],
+    *,
+    transport: httpx.BaseTransport | None = None,
+    sleep: Callable[[float, threading.Event], None] = wait_unless_stopped,
+    clock: Callable[[], float] = time.time,
+    jitter: Callable[[], float] = random.random,
+) -> dict[str, bytes]:
     """Every pinned file, fetched one by one from the tag (the release archive omits
-    externalSchema through .gitattributes export-ignore, so it cannot be used)."""
+    externalSchema through .gitattributes export-ignore, so it cannot be used).
+
+    At most MAX_PARALLEL_DOWNLOADS requests run at once. ``transport``, ``sleep``,
+    ``clock`` and ``jitter`` exist so the tests can run without a network or waiting.
+    """
     base: str = manifest["raw_base"]
     found: dict[str, bytes] = {}
-    with httpx.Client(
-        timeout=TIMEOUT_SECONDS,
-        follow_redirects=True,
-        headers={"User-Agent": "barrels-eregister-iwxxm"},
-    ) as client:
-        for relative in manifest["files"]:
-            response = client.get(base + relative)
-            response.raise_for_status()
-            if len(response.content) > MAX_FILE_BYTES:
-                raise ValueError(f"{relative} is larger than the allowed size")
-            found[relative] = response.content
+    stop = threading.Event()
+    with (
+        httpx.Client(
+            transport=transport,
+            timeout=TIMEOUT_SECONDS,
+            follow_redirects=True,
+            headers={"User-Agent": "barrels-eregister-iwxxm"},
+            limits=httpx.Limits(max_connections=MAX_PARALLEL_DOWNLOADS),
+        ) as client,
+        ThreadPoolExecutor(max_workers=MAX_PARALLEL_DOWNLOADS) as pool,
+    ):
+        futures = {
+            pool.submit(
+                fetch_one,
+                client,
+                relative,
+                base + relative,
+                sleep=sleep,
+                clock=clock,
+                jitter=jitter,
+                stop=stop,
+            ): relative
+            for relative in manifest["files"]
+        }
+        try:
+            for future in as_completed(futures):
+                found[futures[future]] = future.result()
+        finally:
+            # On the first failure, wake the waiting downloads and drop the queued ones.
+            stop.set()
+            for future in futures:
+                future.cancel()
     return found
 
 

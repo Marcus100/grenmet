@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   // Absolute base for share-preview links; set per environment at build time.
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: {
-    default: "Grenada Signal — Know what going on.",
+    default: "Grenada Signal — Know what is going on.",
     template: "%s | Grenada Signal",
   },
   description:

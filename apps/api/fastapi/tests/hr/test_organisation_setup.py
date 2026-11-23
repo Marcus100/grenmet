@@ -28,7 +28,7 @@ async def test_organisation_routes_require_superuser_and_preserve_stable_identit
         "/api/v1/hr/organisations", headers=superuser_token_headers_async, json=payload
     )
     assert created.status_code == 201
-    assert created.json() == payload
+    assert created.json() == {**payload, "slug": "route-employer"}
     duplicate = await async_client.post(
         "/api/v1/hr/organisations", headers=superuser_token_headers_async, json=payload
     )
@@ -39,7 +39,11 @@ async def test_organisation_routes_require_superuser_and_preserve_stable_identit
         json={"name": "Updated Route Employer"},
     )
     assert renamed.status_code == 200
-    assert renamed.json() == {**payload, "name": "Updated Route Employer"}
+    assert renamed.json() == {
+        **payload,
+        "name": "Updated Route Employer",
+        "slug": "route-employer",
+    }
     denied_rename = await async_client.patch(
         "/api/v1/hr/organisations/route_employer",
         headers=normal_user_token_headers_async,

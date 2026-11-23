@@ -35,6 +35,6 @@ footer credit). Source: `apps/web/babydoll/src/app/globals.css`.
   "Visit the studio" band; a numbered lash calendar (a real sequence).
 - **Booking first:** every page reaches the Acuity booking page in one tap.
   Phones get a fixed "Book me" bar; every bookable service has its own Book link.
-  "By appointment only" sits with the opening hours everywhere they appear.
+  "By appointment only" sits with the Book online action wherever appointments are shown. The site lists no opening hours (owner, 23 Nov 2026).
 - Light theme only (the client's one colour scheme): there is no dark mode and the
   site ignores the system setting.

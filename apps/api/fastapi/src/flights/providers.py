@@ -8,6 +8,8 @@ from typing import Any, Literal, Protocol
 
 import httpx
 
+from src import provider_health
+
 from .config import FlightsConfig, flights_settings
 from .schemas import FlightRow
 
@@ -113,21 +115,26 @@ class OpenSkyProvider:
             timeout=self._config.OPENSKY_TIMEOUT_SECONDS
         )
         try:
-            headers = await self._auth_headers(client)
-            response = await client.get(
-                f"{self._config.OPENSKY_API_URL}/flights/{path}",
-                params={
-                    "airport": airport,
-                    "begin": int(begin.timestamp()),
-                    "end": int(end.timestamp()),
-                },
-                headers=headers,
-            )
-            if response.status_code == httpx.codes.NOT_FOUND:
-                # OpenSky answers 404 when it holds no flights for the window.
-                return []
-            response.raise_for_status()
-            return parse_opensky_flights(response.json(), board=board)
+            with provider_health.watch(
+                "opensky",
+                "movements",
+                errors=(httpx.HTTPError, ValueError, KeyError),
+            ):
+                headers = await self._auth_headers(client)
+                response = await client.get(
+                    f"{self._config.OPENSKY_API_URL}/flights/{path}",
+                    params={
+                        "airport": airport,
+                        "begin": int(begin.timestamp()),
+                        "end": int(end.timestamp()),
+                    },
+                    headers=headers,
+                )
+                if response.status_code == httpx.codes.NOT_FOUND:
+                    # OpenSky answers 404 when it holds no flights for the window.
+                    return []
+                response.raise_for_status()
+                return parse_opensky_flights(response.json(), board=board)
         except (httpx.HTTPError, ValueError, KeyError) as exc:
             raise FlightProviderError(f"OpenSky {path} failed: {exc}") from exc
         finally:

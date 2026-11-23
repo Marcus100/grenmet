@@ -36,7 +36,8 @@ export default async function SessionsPage() {
               Sign out everywhere
             </h3>
             <p className="text-muted-foreground text-sm">
-              Ends every session, including this one.
+              Ends every session on every device, including this one. You will
+              need to sign in again here.
             </p>
           </div>
           <form action={signOutEverywhereAction}>
@@ -44,7 +45,7 @@ export default async function SessionsPage() {
               className="border-destructive/30 text-destructive hover:bg-destructive/10 rounded-lg border px-3 py-1.5 text-sm font-medium transition"
               type="submit"
             >
-              Sign out everywhere
+              Sign out every device, including this one
             </button>
           </form>
         </div>

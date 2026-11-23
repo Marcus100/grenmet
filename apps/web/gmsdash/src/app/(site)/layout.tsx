@@ -32,7 +32,7 @@ export default async function SiteLayout({
               className="underline-offset-4 hover:underline"
               href="/meteogram"
             >
-              Meteogram
+              {session ? "Meteogram" : "Meteogram (sign in first)"}
             </Link>
             <Link className="underline-offset-4 hover:underline" href="/access">
               Access

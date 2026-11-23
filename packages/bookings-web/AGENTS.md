@@ -36,6 +36,9 @@ Backed by Barrels Bookings (`apps/api/fastapi/src/bookings`, ADR-0024).
   maps a generated-client `ResponseError` to it; that mapper stays in the app
   so this package does not depend on the client at runtime.
 
+- **Signed-in code step:** a signed-in visitor whose typed email is their own account email (`sameEmail`: case and spaces ignored) gets no emailed-code step; the button says "Request my booking" and the API takes the verified account as the proof. A refusal from the API (`email_unverified`) still forces the code step.
+- **Rules on the confirmation and manage page:** `lib/booking-policy.ts` gives the cancellation sentence from `cancel_cutoff_hours` (zero: "until it starts") and, while `pending_payment`, when the hold ends (`hold_ends_at`, business timezone).
+- **Cancel with a reason:** the manage page asks "Reason for cancelling (optional)" (max 300, the business sees it) behind a confirm step. `ManageBookingActions.cancel(token, reason)` takes `reason: string | null` (null when blank). The result is a status line: "Your booking is cancelled. We have emailed you a confirmation and told the business."
 - **Payment at booking** (Stripe test mode, #1372): `booking.payment`
   (`BookingPaymentSummary`) drives `components/payment-status.tsx` on the
   confirmation and the manage page: the state in words

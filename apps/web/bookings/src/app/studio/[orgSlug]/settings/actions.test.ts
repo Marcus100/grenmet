@@ -9,12 +9,15 @@ vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
 vi.mock("@/lib/studio-api", () => ({
+  completeLogoUpload: vi.fn(),
+  createLogoUpload: vi.fn(),
   createException: vi.fn(),
   createProvider: vi.fn(),
   createService: vi.fn(),
   deleteException: vi.fn(),
   findOrganisation: vi.fn(),
   getBusinessTimezone: vi.fn(),
+  getProfile: vi.fn(),
   replaceHours: vi.fn(),
   saveProfile: vi.fn(),
   updateProvider: vi.fn(),
@@ -25,27 +28,33 @@ import { redirect } from "next/navigation";
 import { CONTACT_MESSAGES } from "@/lib/business-contact";
 import { getSession } from "@/lib/session";
 import {
+  completeLogoUpload,
   createException,
+  createLogoUpload,
   createProvider,
   createService,
   deleteException,
   findOrganisation,
   getBusinessTimezone,
+  getProfile,
   replaceHours,
   saveProfile,
   updateProvider,
   updateService,
 } from "@/lib/studio-api";
 import {
+  finishLogoUploadAction,
   removeTimeOffAction,
   saveHoursAction,
   saveProfileAction,
   saveProviderAction,
   saveServiceAction,
   saveTimeOffAction,
+  startLogoUploadAction,
 } from "./actions";
 
 const SLUG = "sea-salt";
+const ADMIN_ACCESS = /admin access/u;
 const IDLE = { status: "idle" } as const;
 const SERVICE_ID = "44444444-4444-4444-8444-444444444444";
 const EXCEPTION_ID = "55555555-5555-4555-8555-555555555555";
@@ -75,12 +84,36 @@ function org(role: MembershipRole) {
   });
 }
 
+/** A saved profile: what a section keeps when it does not own a field. */
+const STORED = {
+  public_slug: "sea-salt",
+  display_name: "Sea Salt Spa",
+  enabled: true,
+  timezone: "America/Grenada",
+  currency: "XCD",
+  slot_step_min: 30,
+  lead_time_min: 120,
+  horizon_days: 60,
+  cancel_cutoff_hours: 24,
+  requires_confirmation: true,
+  notify_email: "ops@seasalt.example",
+  manage_url_template: null,
+  contact_phone: "+14734401234",
+  contact_whatsapp: "14734405678",
+  contact_instagram: "seasaltspa",
+  contact_email: "hello@seasalt.example",
+  payment_at_booking: "full_price",
+  brand_color: "#0b63ee",
+  logo_file_id: null,
+} as never;
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(redirect).mockImplementation((to: string) => {
     throw new Error(`NEXT_REDIRECT ${to}`);
   });
   vi.mocked(getSession).mockResolvedValue(session);
+  vi.mocked(getProfile).mockResolvedValue(null);
   org("admin");
 });
 
@@ -174,17 +207,64 @@ describe("profile", () => {
       contact_whatsapp: null,
       contact_instagram: null,
       contact_email: null,
+      brand_color: null,
+      logo_file_id: null,
+      listed: false,
+      category: null,
+      short_description: null,
+      city: null,
     });
     expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/settings`);
   });
 
-  it("saves the full-price choice and treats anything else as deposit", async () => {
+  it("saves the home page listing switch and its text, blank as null", async () => {
     vi.mocked(saveProfile).mockResolvedValue({} as never);
-    await saveProfileAction(
+    const result = await saveProfileAction(
       SLUG,
       IDLE,
-      form({ ...PROFILE, paymentAtBooking: "full_price" })
+      form({
+        ...PROFILE,
+        listed: "on",
+        category: " Hair ",
+        shortDescription: "Cuts and colour",
+        city: "  ",
+      })
     );
+    expect(result).toMatchObject({ status: "success" });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        listed: true,
+        category: "Hair",
+        short_description: "Cuts and colour",
+        city: null,
+      })
+    );
+  });
+
+  it("keeps the business off the home page unless the switch is on", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(SLUG, IDLE, form({ ...PROFILE, listed: "" }));
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ listed: false })
+    );
+  });
+
+  it("saves the payment choice in the payments section and treats anything else as deposit", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", paymentAtBooking: "full_price" })
+    );
+    expect(result).toMatchObject({
+      status: "success",
+      message: "Payment choice saved.",
+    });
     expect(saveProfile).toHaveBeenLastCalledWith(
       "tok",
       ORG_ID,
@@ -193,7 +273,7 @@ describe("profile", () => {
     await saveProfileAction(
       SLUG,
       IDLE,
-      form({ ...PROFILE, paymentAtBooking: "everything" })
+      form({ section: "payments", paymentAtBooking: "everything" })
     );
     expect(saveProfile).toHaveBeenLastCalledWith(
       "tok",
@@ -202,24 +282,161 @@ describe("profile", () => {
     );
   });
 
-  it("saves the contact options in the form the public page links to", async () => {
+  it("keeps the stored profile when the payments section saves", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", paymentAtBooking: "deposit" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith("tok", ORG_ID, {
+      public_slug: "sea-salt",
+      display_name: "Sea Salt Spa",
+      enabled: true,
+      timezone: "America/Grenada",
+      currency: "XCD",
+      slot_step_min: 30,
+      lead_time_min: 120,
+      horizon_days: 60,
+      cancel_cutoff_hours: 24,
+      requires_confirmation: true,
+      notify_email: "ops@seasalt.example",
+      manage_url_template: null,
+      contact_phone: "+14734401234",
+      contact_whatsapp: "14734405678",
+      contact_instagram: "seasaltspa",
+      contact_email: "hello@seasalt.example",
+      payment_at_booking: "deposit",
+      brand_color: "#0b63ee",
+      logo_file_id: null,
+    });
+  });
+
+  it("sends every writable stored key to the API from each section, including keys this build does not list", async () => {
+    const READ_ONLY = ["id", "organisation_id", "created_at", "updated_at"];
+    // Keys a later profile release adds (listing, category, city...) are stored too.
+    const stored: Record<string, unknown> = {
+      ...(STORED as Record<string, unknown>),
+      id: "66666666-6666-4666-8666-666666666666",
+      organisation_id: ORG_ID,
+      created_at: "2026-11-01T00:00:00Z",
+      updated_at: "2026-11-02T00:00:00Z",
+      listed: true,
+      category: "spa",
+      short_description: "Hands and feet",
+      city: "St George's",
+    };
+    vi.mocked(getProfile).mockResolvedValue(stored as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+
+    const writable = Object.entries(stored).filter(
+      ([key]) => !READ_ONLY.includes(key)
+    );
+    expect(writable.length).toBeGreaterThan(0);
+
+    await saveProfileAction(SLUG, IDLE, form({ section: "contact" }));
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", paymentAtBooking: "deposit" })
+    );
+    const [contactBody, paymentsBody] = vi
+      .mocked(saveProfile)
+      .mock.calls.map((call) => call[2] as Record<string, unknown>);
+    for (const [key, value] of writable) {
+      if (key.startsWith("contact_") || key === "payment_at_booking") {
+        // Owned by the section that saves them.
+        continue;
+      }
+      expect(contactBody).toHaveProperty(key, value);
+      expect(paymentsBody).toHaveProperty(key, value);
+    }
+    for (const key of READ_ONLY) {
+      expect(contactBody).not.toHaveProperty(key);
+      expect(paymentsBody).not.toHaveProperty(key);
+    }
+
+    // The Profile section owns its form fields (the listing ones included, read
+    // from the form); the Profile section keeps the contact options and payment.
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        ...PROFILE,
+        listed: "on",
+        category: "Spa",
+        shortDescription: "Hands and feet",
+        city: "St George's",
+      })
+    );
+    const profileBody = vi.mocked(saveProfile).mock.calls.at(-1)?.[2] as Record<
+      string,
+      unknown
+    >;
+    expect(profileBody).toHaveProperty("listed", true);
+    expect(profileBody).toHaveProperty("category", "Spa");
+    expect(profileBody).toHaveProperty("short_description", "Hands and feet");
+    expect(profileBody).toHaveProperty("city", "St George's");
+    expect(profileBody).toHaveProperty("contact_phone", "+14734401234");
+    expect(profileBody).toHaveProperty("payment_at_booking", "full_price");
+    expect(profileBody).not.toHaveProperty("id");
+  });
+
+  it("keeps the stored contact options and payment choice when the profile section saves", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, displayName: "Sea Salt" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        display_name: "Sea Salt",
+        contact_phone: "+14734401234",
+        contact_email: "hello@seasalt.example",
+        payment_at_booking: "full_price",
+      })
+    );
+  });
+
+  it("refuses a contact or payment save before the business has a profile", async () => {
+    expect(
+      await saveProfileAction(SLUG, IDLE, form({ section: "contact" }))
+    ).toMatchObject({ status: "error", kind: "invalid" });
+    expect(
+      await saveProfileAction(SLUG, IDLE, form({ section: "payments" }))
+    ).toMatchObject({ status: "error", kind: "invalid" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("saves the contact options in the contact section, keeping the rest of the profile", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
     vi.mocked(saveProfile).mockResolvedValue({} as never);
     const result = await saveProfileAction(
       SLUG,
       IDLE,
       form({
-        ...PROFILE,
+        section: "contact",
         contactPhone: "+1 (473) 440-1234",
         contactWhatsapp: "+1 473 440 5678",
         contactInstagram: "https://www.instagram.com/seasaltspa/",
         contactEmail: " hello@seasalt.example ",
       })
     );
-    expect(result).toMatchObject({ status: "success" });
+    expect(result).toMatchObject({
+      status: "success",
+      message: "Contact options saved.",
+    });
     expect(saveProfile).toHaveBeenCalledWith(
       "tok",
       ORG_ID,
       expect.objectContaining({
+        display_name: "Sea Salt Spa",
+        payment_at_booking: "full_price",
         contact_phone: "+14734401234",
         contact_whatsapp: "14734405678",
         contact_instagram: "seasaltspa",
@@ -228,12 +445,29 @@ describe("profile", () => {
     );
   });
 
+  it("clears a contact option that the contact section leaves blank", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(SLUG, IDLE, form({ section: "contact" }));
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        contact_phone: null,
+        contact_whatsapp: null,
+        contact_instagram: null,
+        contact_email: null,
+      })
+    );
+  });
+
   it("names each wrong contact option without calling the API", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
     const result = await saveProfileAction(
       SLUG,
       IDLE,
       form({
-        ...PROFILE,
+        section: "contact",
         contactPhone: "473 440 1234",
         contactWhatsapp: "call me",
         contactInstagram: "https://facebook.com/seasalt",
@@ -255,6 +489,7 @@ describe("profile", () => {
   });
 
   it("points at the contact option the API refused", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
     vi.mocked(saveProfile).mockRejectedValue(
       apiError(422, {
         detail: "Validation error",
@@ -266,7 +501,11 @@ describe("profile", () => {
         ],
       })
     );
-    const result = await saveProfileAction(SLUG, IDLE, form(PROFILE));
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "contact", contactInstagram: "seasaltspa" })
+    );
     expect(result).toMatchObject({
       status: "error",
       message: "Check the highlighted contact options.",
@@ -310,6 +549,176 @@ describe("profile", () => {
       kind: "unavailable",
     });
     expect(reportError).toHaveBeenCalledWith(fault, "studio");
+  });
+});
+
+describe("brand", () => {
+  const LOGO = "6f1c2a3e-1b2c-4d5e-8f90-a1b2c3d4e5f6";
+
+  it("saves a valid colour in lower case with the logo", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, brandColor: " #0B63EE ", logoFileId: LOGO })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ brand_color: "#0b63ee", logo_file_id: LOGO })
+    );
+  });
+
+  it("clears the colour and the logo when they are blank", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, brandColor: "  ", logoFileId: "" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ brand_color: null, logo_file_id: null })
+    );
+  });
+
+  it.each(["0b63ee", "#0b63e", "#gggggg", "red"])(
+    "refuses %j without calling the API",
+    async (brandColor) => {
+      const result = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ ...PROFILE, brandColor })
+      );
+      expect(result).toMatchObject({
+        status: "error",
+        message: "Use a colour like #0b63ee: a # and six hex digits.",
+      });
+      expect(saveProfile).not.toHaveBeenCalled();
+    }
+  );
+
+  it("refuses a logo id that is not a UUID", async () => {
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, logoFileId: "../../x" })
+    );
+    expect(result).toMatchObject({ status: "error" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("shows the API's plain 409 when the logo is not a finished upload", async () => {
+    vi.mocked(saveProfile).mockRejectedValue(
+      apiError(409, {
+        detail: "That logo is not a finished upload for this business",
+      })
+    );
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, logoFileId: LOGO })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      kind: "conflict",
+      message: "That logo did not finish uploading for this business.",
+    });
+  });
+
+  it("refuses a member before any upload is started", async () => {
+    org("member");
+    const result = await startLogoUploadAction(SLUG, {
+      contentType: "image/png",
+      sizeBytes: 1000,
+    });
+    expect(result).toEqual({
+      ok: false,
+      message: expect.stringMatching(ADMIN_ACCESS),
+    });
+    expect(createLogoUpload).not.toHaveBeenCalled();
+  });
+
+  it("starts a booking-logo upload for the resolved organisation", async () => {
+    vi.mocked(createLogoUpload).mockResolvedValue({
+      id: LOGO,
+      url: "https://storage.test/put",
+      headers: { "Content-Type": "image/png" },
+      expires_at: "2026-11-22T10:00:00Z",
+      max_bytes: 2_097_152,
+    } as never);
+    const result = await startLogoUploadAction(SLUG, {
+      contentType: "image/png",
+      sizeBytes: 1000,
+    });
+    expect(createLogoUpload).toHaveBeenCalledWith("tok", ORG_ID, {
+      content_type: "image/png",
+      size_bytes: 1000,
+    });
+    expect(result).toEqual({
+      ok: true,
+      target: {
+        id: LOGO,
+        url: "https://storage.test/put",
+        headers: { "Content-Type": "image/png" },
+      },
+    });
+  });
+
+  it("refuses a file type or size the logo rules do not allow, before the API", async () => {
+    expect(
+      await startLogoUploadAction(SLUG, {
+        contentType: "image/svg+xml",
+        sizeBytes: 10,
+      })
+    ).toMatchObject({ ok: false });
+    expect(
+      await startLogoUploadAction(SLUG, {
+        contentType: "image/png",
+        sizeBytes: 3 * 1024 * 1024,
+      })
+    ).toMatchObject({ ok: false });
+    expect(createLogoUpload).not.toHaveBeenCalled();
+  });
+
+  it("shows the API's own words for a refused upload", async () => {
+    vi.mocked(createLogoUpload).mockRejectedValue(
+      apiError(422, { detail: "Only JPEG, PNG and WebP images are accepted" })
+    );
+    const result = await startLogoUploadAction(SLUG, {
+      contentType: "image/webp",
+      sizeBytes: 10,
+    });
+    expect(result).toEqual({
+      ok: false,
+      message:
+        "Only JPEG, PNG and WebP images are accepted. Choose a different image and try again.",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("confirms a finished upload and returns the stored file id", async () => {
+    vi.mocked(completeLogoUpload).mockResolvedValue({ id: LOGO } as never);
+    expect(await finishLogoUploadAction(SLUG, LOGO)).toEqual({
+      ok: true,
+      fileId: LOGO,
+    });
+    expect(completeLogoUpload).toHaveBeenCalledWith("tok", ORG_ID, LOGO);
+  });
+
+  it("reports a fault in the confirm step and keeps the message plain", async () => {
+    vi.mocked(completeLogoUpload).mockRejectedValue(apiError(503, {}));
+    const result = await finishLogoUploadAction(SLUG, LOGO);
+    expect(result).toMatchObject({ ok: false });
+    expect(reportError).toHaveBeenCalled();
+  });
+
+  it("refuses a malformed upload id before the API", async () => {
+    expect(await finishLogoUploadAction(SLUG, "x")).toMatchObject({
+      ok: false,
+    });
+    expect(completeLogoUpload).not.toHaveBeenCalled();
   });
 });
 
@@ -581,5 +990,148 @@ describe("time off", () => {
       await removeTimeOffAction(SLUG, EXCEPTION_ID, IDLE, form({}))
     ).toMatchObject({ status: "error", kind: "not_found" });
     expect(reportError).not.toHaveBeenCalled();
+  });
+});
+
+describe("deposit rule", () => {
+  it("saves the rule and keeps every other stored field as it is", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_mode: "none",
+      deposit_percent: null,
+      deposit_fixed_minor: null,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "percent",
+        depositPercent: "50",
+      })
+    );
+    expect(result).toMatchObject({
+      status: "success",
+      message: "Deposit rule saved.",
+    });
+    expect(saveProfile).toHaveBeenCalledWith("tok", ORG_ID, {
+      ...(STORED as object),
+      deposit_mode: "percent",
+      deposit_percent: 50,
+      deposit_fixed_minor: null,
+    });
+  });
+
+  it("saves a fixed amount in minor units and keeps the payment choice", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "fixed",
+        depositFixed: "25.50",
+      })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_mode: "fixed",
+        deposit_percent: null,
+        deposit_fixed_minor: 2550,
+        payment_at_booking: "full_price",
+        contact_phone: "+14734401234",
+      })
+    );
+  });
+
+  it("switches the rule off as none with no amounts when the switch is left off", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_mode: "percent",
+      deposit_percent: 50,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositMode: "percent", depositPercent: "50" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_mode: "none",
+        deposit_percent: null,
+        deposit_fixed_minor: null,
+      })
+    );
+  });
+
+  it("refuses a percentage or amount outside the rules without calling the API", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    const percent = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "percent",
+        depositPercent: "101",
+      })
+    );
+    expect(percent).toMatchObject({ status: "error", kind: "invalid" });
+    const amount = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "fixed",
+        depositFixed: "0",
+      })
+    );
+    expect(amount).toMatchObject({ status: "error", kind: "invalid" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("refuses a deposit before the business has a profile", async () => {
+    vi.mocked(getProfile).mockResolvedValue(null);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "percent",
+        depositPercent: "50",
+      })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      message: "Save the business profile first, then set a deposit.",
+    });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("refuses a member before any deposit is saved", async () => {
+    org("member");
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "deposit",
+        depositRequired: "on",
+        depositMode: "percent",
+        depositPercent: "50",
+      })
+    );
+    expect(result).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(saveProfile).not.toHaveBeenCalled();
   });
 });

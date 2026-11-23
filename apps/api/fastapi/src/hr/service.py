@@ -56,6 +56,7 @@ from .models import (
     UserAddress,
     UserProfile,
     UserStatus,
+    live_employment_clause,
 )
 from .schemas import (
     AddressPublic,
@@ -68,6 +69,8 @@ from .schemas import (
     EmploymentCreate,
     EmploymentPublic,
     EmploymentUpdate,
+    HrMeEmploymentPublic,
+    HrMeLeaveBalancePublic,
     HrRolePublic,
     LeavePublic,
     ProfileAuditPublic,
@@ -201,6 +204,45 @@ async def get_employment_for_user(
     if not employment:
         raise EmploymentNotFoundError()
     return employment
+
+
+async def my_employment(
+    *, session: AsyncSession, current_user: User, organisation_id: str
+) -> HrMeEmploymentPublic:
+    """The caller's own live employment in one organisation, with leave balances.
+
+    Reads only the caller's record: there is no user parameter and no superuser
+    shortcut. An organisation with no live employment for the caller, including
+    an unknown one, raises the same 404.
+    """
+    row = (
+        await session.execute(
+            select(EmploymentRecord, Department.name)
+            .join(Department, Department.id == EmploymentRecord.department_id)
+            .where(
+                EmploymentRecord.user_id == current_user.id,
+                EmploymentRecord.organisation_id == organisation_id,
+                live_employment_clause(local_today()),
+            )
+        )
+    ).first()
+    if row is None:
+        raise EmploymentNotFoundError()
+    employment, department_name = row
+    balances = await ledger.balances(session, current_user.id)
+    return HrMeEmploymentPublic(
+        organisation_id=employment.organisation_id,
+        status=employment.status,
+        position=employment.position,
+        department_name=department_name,
+        employment_type=employment.employment_type,
+        start_date=employment.start_date,
+        end_date=employment.end_date,
+        leave_balances=[
+            HrMeLeaveBalancePublic(leave_type=leave_type, balance_days=balance)
+            for leave_type, balance in sorted(balances.items())
+        ],
+    )
 
 
 async def list_departments(

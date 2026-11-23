@@ -1,20 +1,20 @@
-import { BookingFlow } from "@barrelsgd/bookings-web/components/booking-flow";
 import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contact";
-import {
-  formatDuration,
-  formatMoney,
-  timeZonePlace,
-} from "@barrelsgd/bookings-web/lib/booking-format";
+import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
+import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
+import { ReportListingLink } from "@/components/report-listing-link";
+import { StorefrontLogo } from "@/components/storefront-logo";
+import { TrackedBookingFlow } from "@/components/tracked-booking-flow";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
 import { signInPath, signUpHref } from "@/lib/sign-in-links";
 import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
+import { brandStyle, safeLogoUrl } from "@/lib/storefront-brand";
 import { storefrontJsonLd } from "@/lib/storefront-jsonld";
 import {
   confirmEmailCode,
@@ -63,6 +63,9 @@ export default async function BusinessBookingPage({
     notFound();
   }
   const { providers, services } = storefront;
+  // Older cached payloads may lack these fields: both fall back to the shared
+  // tokens and no logo. The accent is checked for contrast before it is used.
+  const logo = safeLogoUrl(storefront.logo_url);
   // A signed-in person gets their own details prefilled and shortcuts from
   // their own earlier bookings here; a guest gets a blank form, the invitation
   // to create an account or sign in, and a quiet sign-in link.
@@ -74,7 +77,15 @@ export default async function BusinessBookingPage({
       };
 
   return (
-    <div className="booking space-y-10">
+    <div
+      className="booking space-y-10"
+      style={brandStyle(storefront.brand_color)}
+    >
+      <FunnelEvent
+        app="bookings"
+        event="page_view"
+        properties={{ organisation: slug, page: "business" }}
+      />
       <JsonLd
         data={storefrontJsonLd(
           env.NEXT_PUBLIC_SITE_URL ?? "https://bookings.barrels.gd",
@@ -82,6 +93,7 @@ export default async function BusinessBookingPage({
         )}
       />
       <header className="space-y-2">
+        {logo && <StorefrontLogo name={storefront.display_name} src={logo} />}
         <h1 className="text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] font-bold tracking-tight">
           {storefront.display_name}
         </h1>
@@ -93,7 +105,7 @@ export default async function BusinessBookingPage({
           <p className="text-muted-foreground">
             Have a Barrels account?{" "}
             <a
-              className="text-foreground inline-flex min-h-11 items-center underline underline-offset-4"
+              className="brand-link inline-flex min-h-11 items-center underline underline-offset-4"
               href={signInPath(slug)}
             >
               Sign in
@@ -102,40 +114,20 @@ export default async function BusinessBookingPage({
           </p>
         )}
         <ContactStrip contact={storefront.contact} />
+        {services.length > 0 && (
+          <p>
+            <a className="btn btn-solid" href="#book-online">
+              Book now
+            </a>
+          </p>
+        )}
       </header>
 
-      <section aria-labelledby="services-title" className="space-y-3">
-        <h2 className="text-lg font-semibold" id="services-title">
-          Services
-        </h2>
-        {services.length === 0 ? (
-          <p className="text-muted-foreground">
-            Online booking is not open for this business yet.
-          </p>
-        ) : (
-          <ul className="divide-border border-border divide-y rounded-lg border">
-            {services.map((service) => (
-              <li
-                className="flex items-start justify-between gap-4 px-4 py-3"
-                key={service.id}
-              >
-                <div>
-                  <p className="font-medium">{service.name}</p>
-                  <p className="text-muted-foreground text-sm">
-                    {formatDuration(service.duration_min)}
-                    {service.deposit_minor > 0
-                      ? ` · ${formatMoney(service.deposit_minor, storefront.currency)} deposit`
-                      : ""}
-                  </p>
-                </div>
-                <p className="font-semibold">
-                  {formatMoney(service.price_minor, storefront.currency)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {services.length === 0 && (
+        <p className="text-muted-foreground">
+          Online booking is not open for this business yet.
+        </p>
+      )}
 
       {providers.length > 0 && (
         <section aria-labelledby="providers-title" className="space-y-3">
@@ -156,11 +148,16 @@ export default async function BusinessBookingPage({
       )}
 
       {services.length > 0 && (
-        <section aria-labelledby="book-title" className="space-y-3">
+        <section
+          aria-labelledby="book-title"
+          className="scroll-mt-6 space-y-3"
+          id="book-online"
+          tabIndex={-1}
+        >
           <h2 className="text-lg font-semibold" id="book-title">
             Book online
           </h2>
-          <BookingFlow
+          <TrackedBookingFlow
             accountInvite={accountInvite}
             actions={{
               confirmEmailCode: confirmEmailCode.bind(null, slug),
@@ -172,12 +169,15 @@ export default async function BusinessBookingPage({
             ManageLink={BookingLink}
             managePath={`/${slug}/booking`}
             signedIn={visitor?.signedIn}
+            slug={slug}
             storefront={storefront}
             studioName={storefront.display_name}
             turnstileSiteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
           />
         </section>
       )}
+
+      <ReportListingLink slug={slug} />
     </div>
   );
 }

@@ -15,7 +15,9 @@ import jwt
 import resend
 from jinja2 import Template
 from jwt.exceptions import InvalidTokenError
+from resend.exceptions import ResendError
 
+from src import provider_health
 from src.auth.config import auth_settings
 from src.config import settings
 from src.email_config import email_settings
@@ -259,7 +261,10 @@ def send_email(
             params["text"] = text_content
         if reply:
             params["reply_to"] = reply
-        result = resend.Emails.send(params)
+        with provider_health.watch(
+            "resend", "send", errors=(ResendError, httpx.HTTPError, OSError)
+        ):
+            result = resend.Emails.send(params)
         logger.info("Email sent via Resend to %s (id=%s)", email_to, result.get("id"))
         return
 

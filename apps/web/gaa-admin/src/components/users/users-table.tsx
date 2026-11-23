@@ -30,8 +30,9 @@ import {
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { flexRender } from "@tanstack/react-table";
 import type { LegacyReactTable } from "@tanstack/react-table/legacy";
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
 
+import { RowCards } from "@/components/data-table/row-cards";
 import type { UserRow } from "./users-row";
 
 function preventPaginationNavigation(event: MouseEvent<HTMLAnchorElement>) {
@@ -50,7 +51,14 @@ function getPageNumbers(currentPage: number, pageCount: number) {
   return [currentPage - 1, currentPage, currentPage + 1];
 }
 
-export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
+export function UsersTable({
+  emptyState,
+  table,
+}: {
+  /** What an empty list says (no staff yet, or no match). */
+  emptyState: ReactNode;
+  table: LegacyReactTable<UserRow>;
+}) {
   const pageCount = Math.max(table.getPageCount(), 1);
   const currentPage = Math.min(
     table.getState().pagination.pageIndex + 1,
@@ -61,7 +69,7 @@ export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
 
   return (
     <div className="flex flex-1 flex-col gap-4" data-content-width="wide">
-      <div>
+      <div className="hidden md:block">
         <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
           <TableHeader className="[&_tr]:border-t">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -101,16 +109,18 @@ export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
             ) : (
               <TableRow>
                 <TableCell
-                  className="h-24 text-center"
+                  className="p-4"
                   colSpan={table.getVisibleLeafColumns().length}
                 >
-                  No results.
+                  {emptyState}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      <RowCards empty={emptyState} table={table} />
 
       <Separator />
 
@@ -160,6 +170,7 @@ export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
                   preventPaginationNavigation(event);
                   table.previousPage();
                 }}
+                size="icon"
                 text=""
               />
             </PaginationItem>
@@ -201,6 +212,7 @@ export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
                   preventPaginationNavigation(event);
                   table.nextPage();
                 }}
+                size="icon"
                 text=""
               />
             </PaginationItem>

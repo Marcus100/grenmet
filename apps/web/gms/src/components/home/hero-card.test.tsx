@@ -36,6 +36,7 @@ const issuedDay = (
 });
 
 const LAST_OBSERVED = /Last observed/u;
+const OUT_OF_DATE = /Out of date/u;
 
 describe("<NowCard> on the homepage weather box", () => {
   it("labels a reading within two hours as Now", () => {
@@ -76,6 +77,32 @@ describe("<NowCard> on the homepage weather box", () => {
       />
     );
     expect(screen.getByText("Now · MBIA")).toBeInTheDocument();
+  });
+
+  it("shows an Out of date badge with the age of a reading over two hours old", () => {
+    render(
+      <NowCard
+        current={currentConditions(observation("2026-11-10T11:00"))}
+        fallbackTemperature={null}
+        now={NOW}
+        station="MBIA"
+      />
+    );
+    expect(
+      screen.getByText("Out of date · 3 hours old", { exact: false })
+    ).toBeInTheDocument();
+  });
+
+  it("shows no Out of date badge for a fresh reading", () => {
+    render(
+      <NowCard
+        current={currentConditions(observation("2026-11-10T13:00"))}
+        fallbackTemperature={null}
+        now={NOW}
+        station="MBIA"
+      />
+    );
+    expect(screen.queryByText(OUT_OF_DATE)).toBeNull();
   });
 });
 

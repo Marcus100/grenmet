@@ -51,6 +51,12 @@ export type AuthAppHandoffStartStatus422 = ValidationErrorResponse;
 
 export type AuthAppHandoffStartStatus429 = ApiError | ErrorMessage;
 
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppHandoffStartStatus503 = ApiError;
+
 export type AuthAppHandoffStartBody = AppHandoffStart;
 
 export type AuthAppHandoffStartOptions = {
@@ -68,6 +74,7 @@ export type AuthAppHandoffStartResponses = {
   "409": AuthAppHandoffStartStatus409;
   "422": AuthAppHandoffStartStatus422;
   "429": AuthAppHandoffStartStatus429;
+  "503": AuthAppHandoffStartStatus503;
 };
 
 /**

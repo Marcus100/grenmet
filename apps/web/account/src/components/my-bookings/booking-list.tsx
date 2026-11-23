@@ -1,8 +1,5 @@
 import type { BookingMyBooking } from "@barrelsgd/api-client";
-import { bookingPaymentLine } from "@/lib/booking-payment";
-import { bookingStatusLabel } from "@/lib/booking-status";
-import { businessPageUrl } from "@/lib/bookings-site";
-import { LocalBookingWhen } from "./local-booking-when";
+import { BookingDayList } from "./booking-day-list";
 
 interface BookingListProps {
   bookings: readonly BookingMyBooking[];
@@ -12,7 +9,7 @@ interface BookingListProps {
   emptyTitle: string;
 }
 
-/** Rows for one section, or the empty state, which is always shown. */
+/** Rows grouped by day, or the empty state with guidance (always shown). */
 export function BookingList({
   bookings,
   bookingsBaseUrl,
@@ -27,32 +24,7 @@ export function BookingList({
       </div>
     );
   }
-
   return (
-    <ul className="divide-y rounded-md border">
-      {bookings.map((booking) => (
-        <li className="flex flex-col gap-1 p-4" key={booking.id}>
-          <a
-            className="w-fit font-semibold underline-offset-4 hover:underline"
-            href={businessPageUrl(bookingsBaseUrl, booking.business_slug)}
-          >
-            {booking.business_name}
-          </a>
-          <p>{booking.service_name}</p>
-          <p className="text-muted-foreground text-sm">
-            <LocalBookingWhen
-              endsAt={booking.ends_at}
-              startsAt={booking.starts_at}
-            />
-          </p>
-          <p className="text-sm">{bookingStatusLabel(booking.status)}</p>
-          {booking.payment ? (
-            <p className="text-muted-foreground text-sm">
-              {bookingPaymentLine(booking.payment)}
-            </p>
-          ) : null}
-        </li>
-      ))}
-    </ul>
+    <BookingDayList bookings={bookings} bookingsBaseUrl={bookingsBaseUrl} />
   );
 }

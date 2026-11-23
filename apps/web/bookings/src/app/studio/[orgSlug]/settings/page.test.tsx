@@ -1,5 +1,5 @@
 import type { BookingSettings } from "@barrelsgd/api-client";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiError, ORG_ID, PROVIDER_ID, session } from "@/test/studio";
 
@@ -41,6 +41,7 @@ const params = Promise.resolve({ orgSlug: "sea-salt" });
 const NO_SERVICES = /No services yet/u;
 const NO_PROVIDERS = /No providers yet/u;
 const NOT_YET = /Extra hours and menu order/u;
+const NO_HOURS = /No providers, so no hours yet/u;
 const NO_TIME_OFF = /No time off planned/u;
 const TIME_OFF_ROW = /Time off: .*9:00/u;
 const TIME_OFF_REASON = /annual leave/u;
@@ -187,8 +188,68 @@ describe("settings page", () => {
     role("member");
     vi.mocked(getSettings).mockResolvedValue(EMPTY);
     render(await SettingsPage({ params }));
-    expect(screen.getByText(NO_PROFILE)).toBeInTheDocument();
+    // Profile, Payments and Contact each say so: none can be saved yet.
+    expect(screen.getAllByText(NO_PROFILE)).toHaveLength(3);
     expect(screen.getByText(NO_SERVICES)).toBeInTheDocument();
+  });
+});
+
+describe("settings sections", () => {
+  it("offers a jump menu to every section, in order", async () => {
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    render(await SettingsPage({ params }));
+    const menu = screen.getByRole("navigation", { name: "Settings sections" });
+    const links = within(menu).getAllByRole("link");
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "#profile",
+      "#hours",
+      "#services",
+      "#people",
+      "#payments",
+      "#contact",
+    ]);
+    for (const id of [
+      "profile",
+      "hours",
+      "services",
+      "people",
+      "payments",
+      "contact",
+    ]) {
+      expect(document.getElementById(id)).toBeInTheDocument();
+    }
+  });
+
+  it("gives each section its own save button for an owner", async () => {
+    role("owner");
+    vi.mocked(getSettings).mockResolvedValue(FULL);
+    render(await SettingsPage({ params }));
+    expect(
+      screen.getByRole("button", { name: "Save profile" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Save contact options" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Save payment choice" })
+    ).toBeInTheDocument();
+  });
+
+  it("says where to add hours when there are no providers", async () => {
+    vi.mocked(getSettings).mockResolvedValue({ ...FULL, providers: [] });
+    render(await SettingsPage({ params }));
+    expect(screen.getByText(NO_HOURS)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Add a provider under People" })
+    ).toHaveAttribute("href", "#people");
+  });
+
+  it("points the payments and contact empty states at the profile", async () => {
+    vi.mocked(getSettings).mockResolvedValue(EMPTY);
+    render(await SettingsPage({ params }));
+    expect(
+      screen.getAllByRole("link", { name: "Save the business profile first" })
+    ).toHaveLength(2);
   });
 });
 

@@ -7,8 +7,10 @@ Task dependencies are imported inside each job: the worker health probe loads
 from typing import Any
 
 from src import operational_metrics
+from src.worker.cron_monitor import monitored
 
 
+@monitored(schedule="40 3 * * *", checkin_margin=30, max_runtime=60)
 async def purge_scan_log(ctx: dict[str, Any]) -> int:
     """Delete scan-log rows of events closed more than 90 days ago (ADR-0060)."""
     from src.database import async_session_factory

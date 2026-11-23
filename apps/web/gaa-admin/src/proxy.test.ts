@@ -1,11 +1,18 @@
 import { NextRequest } from "next/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Matcher tests do not need deployment credentials or the auth service.
 vi.mock("@/lib/auth-config", () => ({
   getAuthApiBaseUrl: () => "http://trusted-api:8000",
   getAuthApiPrefix: () => "/api/v1",
   getSessionCookieName: () => "test-session",
+}));
+
+const cutover = vi.hoisted(() => ({
+  deskUrl: undefined as string | undefined,
+}));
+vi.mock("@/lib/env", () => ({
+  getCapDeskCutoverUrl: () => cutover.deskUrl,
 }));
 
 import { config, proxy } from "./proxy";
@@ -93,4 +100,72 @@ describe("single sign-on routes", () => {
       "https://admin.test/signin?returnTo=%2Fhr"
     );
   });
+});
+
+const ALERT_ID = "11111111-2222-4333-8444-555555555555";
+const CAP_ORIGIN = "https://cap.test";
+
+function adminRequest(path: string, signedIn = false): NextRequest {
+  const request = new NextRequest(`https://admin.test${path}`);
+  if (signedIn) request.cookies.set("test-session", "staff");
+  return request;
+}
+
+describe("CAP desk cutover", () => {
+  beforeEach(() => {
+    cutover.deskUrl = `${CAP_ORIGIN}/desk/`;
+  });
+  afterEach(() => {
+    cutover.deskUrl = undefined;
+  });
+
+  it.each([
+    ["/cap", "/desk"],
+    ["/cap/admin/new", "/desk/new"],
+    [`/cap/admin/${ALERT_ID}`, `/desk/alerts/${ALERT_ID}`],
+    [
+      "/cap/alerts/urn:example%2Fupdated",
+      "/desk/alerts/by-identifier/urn%3Aexample%2Fupdated",
+    ],
+    ["/cap/profiles", "/desk/profiles"],
+    ["/cap/settings", "/desk/settings"],
+    ["/cap/areas", "/desk/areas"],
+    ["/cap/feeds", "/desk/feeds"],
+    ["/cap/import", "/desk/import"],
+    ["/cap/audit", "/desk/audit"],
+    ["/cap/integrations", "/desk/integrations"],
+    ["/cap/other/subpage", "/desk"],
+  ])("redirects %s to %s with HTTP 307", (from, to) => {
+    const response = proxy(adminRequest(from));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(CAP_ORIGIN + to);
+  });
+
+  it("keeps the complete query string", () => {
+    const query = "?page=2&tag=a%2Fb&tag=c";
+    const response = proxy(adminRequest(`/cap/audit${query}`));
+    expect(response.headers.get("location")).toBe(
+      `${CAP_ORIGIN}/desk/audit${query}`
+    );
+  });
+
+  it.each(["/hr/forms", "/wxwatch", "/wxproducts", "/salesbus", "/capture"])(
+    "leaves the existing proxy behavior for %s",
+    (path) => {
+      expect(
+        proxy(adminRequest(path, true)).headers.get("location")
+      ).toBeNull();
+      expect(proxy(adminRequest(path)).headers.get("location")).toBe(
+        `https://admin.test/signin?returnTo=${encodeURIComponent(path)}`
+      );
+    }
+  );
+});
+
+it("keeps legacy CAP routing when cutover is off", () => {
+  const path = "/cap/admin/new";
+  expect(proxy(adminRequest(path, true)).headers.get("location")).toBeNull();
+  expect(proxy(adminRequest(path)).headers.get("location")).toBe(
+    "https://admin.test/signin?returnTo=%2Fcap%2Fadmin%2Fnew"
+  );
 });

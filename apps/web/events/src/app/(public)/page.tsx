@@ -181,6 +181,12 @@ export default async function HomePage() {
       ) : null}
 
       <Section href="/groups" title="Groups you might like">
+        {suggested.length === 0 ? (
+          <div className="border-border bg-card text-body text-muted-foreground rounded-2xl border border-dashed p-5">
+            No groups to suggest right now. Browse every group to find one that
+            fits.
+          </div>
+        ) : null}
         <div className="grid gap-4 md:grid-cols-3">
           {suggested.map((group) => {
             const { icon: Icon, tone } = CATEGORY_STYLE[group.category];

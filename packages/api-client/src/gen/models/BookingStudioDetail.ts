@@ -57,6 +57,11 @@ export type BookingStudioDetail = {
    * @type string
    */
   payment_kind: BookingPaymentKind;
+  /**
+   * @description The price less the deposit: what is still to pay at the business.
+   * @type integer
+   */
+  balance_at_salon_minor: number;
   currency: string;
   notes: string | null;
   cancel_reason: string | null;

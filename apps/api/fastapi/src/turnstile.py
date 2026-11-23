@@ -29,6 +29,7 @@ import httpx
 from fastapi import Request, status
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from src import provider_health
 from src.exceptions import AppException
 from src.rate_limit import visitor_ip
 
@@ -113,9 +114,11 @@ async def verify_turnstile(
             response = await client.post(SITEVERIFY_URL, data=data)
         response.raise_for_status()
         body = response.json()
-    except httpx.HTTPError, ValueError:
-        logger.warning("Turnstile siteverify unreachable or invalid; failing closed")
+    except (httpx.HTTPError, ValueError) as exc:
+        # Fails closed. A rejected token is a normal outcome, not a provider failure.
+        provider_health.record_failure("turnstile", "siteverify", exc)
         return False
+    provider_health.record_success("turnstile", "siteverify")
     return isinstance(body, dict) and body.get("success") is True
 
 

@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import AboutPage from "@/app/about/page";
@@ -18,6 +18,12 @@ import {
 import { bookingLink, siteBookingLink } from "@/lib/book-link";
 
 const APPOINTMENT = /appointment/iu;
+const BOOK_ONLINE = /Book online/u;
+const APPOINTMENT_NOTE =
+  "Book online and choose a time that suits you. Walk-ins can't be seen.";
+// Clock times, day names and the words that used to head the hours table.
+const HOURS_TEXT =
+  /\d{1,2}(:\d{2})? ?[ap]m|\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Opening|hours|Closed)\b/iu;
 const OLD_LISTING = /True Blue|Fresha/u;
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/services" }));
@@ -49,13 +55,21 @@ describe("pages", () => {
     expect(screen.getByText("By appointment only")).toBeInTheDocument();
   });
 
-  it("contact lists hours under By appointment only", () => {
+  it("contact explains appointments and lists no opening hours", () => {
     render(<ContactPage />);
-    const table = screen.getByRole("table", { name: "Opening hours" });
     expect(
-      within(table).getByRole("rowheader", { name: "Sunday" })
+      screen.getByRole("heading", { level: 2, name: "Appointments" })
     ).toBeInTheDocument();
+    expect(screen.getByText(APPOINTMENT_NOTE)).toBeInTheDocument();
     expect(screen.getByText("By appointment only")).toBeInTheDocument();
+    for (const link of screen.getAllByRole("link", { name: BOOK_ONLINE }))
+      expect(link).toHaveAttribute("href", siteBookingLink().href);
+  });
+
+  it.each(PAGES)("%s page shows no opening hours", (_, Page) => {
+    const { container } = render(<Page />);
+    expect(container.querySelector("table")).toBeNull();
+    expect(container.textContent).not.toMatch(HOURS_TEXT);
   });
 });
 

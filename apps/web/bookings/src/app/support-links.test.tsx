@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { getPublicBusinesses } from "@/lib/public-businesses";
 import BusinessError from "./[slug]/error";
 import BusinessLayout from "./[slug]/layout";
 import HomePage from "./page";
+
+vi.mock("@/lib/public-businesses", () => ({ getPublicBusinesses: vi.fn() }));
 
 vi.mock("next/link", () => ({
   default: ({
@@ -41,8 +44,14 @@ describe("Barrels support address on bookings pages", () => {
     );
   });
 
-  it("links the mailbox from the Barrels Bookings home page", () => {
-    render(<HomePage />);
+  it("links the mailbox from the Barrels Bookings home page", async () => {
+    vi.mocked(getPublicBusinesses).mockResolvedValue({
+      items: [],
+      page: 1,
+      has_more: false,
+      categories: [],
+    });
+    render(await HomePage({ searchParams: Promise.resolve({}) }));
     expect(screen.getByRole("link", { name: SUPPORT })).toHaveAttribute(
       "href",
       "mailto:support@barrels.gd"

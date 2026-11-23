@@ -1,5 +1,6 @@
 """Raise a saved GMS alert to a CAP warning draft (ADR-0051)."""
 
+import asyncio
 from uuid import UUID, uuid4
 
 import httpx
@@ -105,7 +106,12 @@ async def test_creates_a_linked_prefilled_draft_and_repeats_idempotently(
     assert again.json()["created"] is False
 
 
-async def test_a_closed_warning_does_not_block_a_new_one(
+@pytest.mark.parametrize(
+    "state",
+    [CapLifecycleState.EXPIRED, CapLifecycleState.CANCELLED],
+)
+async def test_an_ended_warning_does_not_block_a_new_one(
+    state: CapLifecycleState,
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     weather_sessions,
@@ -119,7 +125,7 @@ async def test_a_closed_warning_does_not_block_a_new_one(
     await db_async.execute(
         update(CapAlert)
         .where(CapAlert.id == UUID(first.json()["alert_id"]))
-        .values(lifecycle_state=CapLifecycleState.PUBLISHED)
+        .values(lifecycle_state=state)
     )
     await db_async.commit()
     second = await async_client.post(
@@ -127,6 +133,109 @@ async def test_a_closed_warning_does_not_block_a_new_one(
     )
     assert second.status_code == 201, second.text
     assert second.json()["alert_id"] != first.json()["alert_id"]
+    assert second.json()["created"] is True
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        CapLifecycleState.DRAFT,
+        CapLifecycleState.SUBMITTED,
+        CapLifecycleState.APPROVED,
+        CapLifecycleState.PUBLISHED,
+    ],
+)
+async def test_a_repeat_raise_returns_the_warning_in_force_or_open(
+    state: CapLifecycleState,
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    weather_sessions,
+    actor,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """Open states and a published warning all block a second draft (CAP AGENTS.md)."""
+    product_id = await saved_alert(weather_sessions, actor)
+    first = await async_client.post(
+        URL, headers=superuser_token_headers_async, json=request(product_id)
+    )
+    await db_async.execute(
+        update(CapAlert)
+        .where(CapAlert.id == UUID(first.json()["alert_id"]))
+        .values(lifecycle_state=state)
+    )
+    await db_async.commit()
+    again = await async_client.post(
+        URL, headers=superuser_token_headers_async, json=request(product_id, "red")
+    )
+    assert again.status_code == 200, again.text
+    assert again.json() == {
+        "alert_id": first.json()["alert_id"],
+        "created": False,
+        "source": {
+            "product_id": str(product_id),
+            "revision": 1,
+            "kind": "marine",
+        },
+    }
+    found = await async_client.get(
+        URL,
+        headers=superuser_token_headers_async,
+        params={"product_id": str(product_id)},
+    )
+    assert found.json() == {
+        "alert_id": first.json()["alert_id"],
+        "lifecycle_state": state.value,
+    }
+
+
+async def test_a_published_warning_blocks_a_second_raise_under_concurrent_clicks(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    weather_sessions,
+    actor,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """Two raises at once, with the first warning already published, make no draft."""
+    product_id = await saved_alert(weather_sessions, actor)
+    first = await async_client.post(
+        URL, headers=superuser_token_headers_async, json=request(product_id)
+    )
+    await db_async.execute(
+        update(CapAlert)
+        .where(CapAlert.id == UUID(first.json()["alert_id"]))
+        .values(lifecycle_state=CapLifecycleState.PUBLISHED)
+    )
+    await db_async.commit()
+    replies = await asyncio.gather(
+        *(
+            async_client.post(
+                URL, headers=superuser_token_headers_async, json=request(product_id)
+            )
+            for _ in range(2)
+        )
+    )
+    assert [r.status_code for r in replies] == [200, 200]
+    assert {r.json()["alert_id"] for r in replies} == {first.json()["alert_id"]}
+    assert all(r.json()["created"] is False for r in replies)
+
+
+async def test_concurrent_first_raises_make_one_draft(
+    async_client: httpx.AsyncClient,
+    weather_sessions,
+    actor,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    product_id = await saved_alert(weather_sessions, actor)
+    replies = await asyncio.gather(
+        *(
+            async_client.post(
+                URL, headers=superuser_token_headers_async, json=request(product_id)
+            )
+            for _ in range(2)
+        )
+    )
+    assert sorted(r.status_code for r in replies) == [200, 201]
+    assert len({r.json()["alert_id"] for r in replies}) == 1
 
 
 async def test_needs_cap_create_permission(

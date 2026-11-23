@@ -3,8 +3,9 @@
 import asyncio
 import hashlib
 import logging
+from collections.abc import Awaitable
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urlsplit
 
 import httpx
@@ -70,6 +71,7 @@ JOBS = frozenset(
     {
         "process_cap_jobs",
         "ingest_cap_feeds",
+        "expire_cap_alerts",
         "send_notification_emails",
         "run_notification_sweeps",
         "purge_scan_log",
@@ -214,3 +216,57 @@ async def worker_completed(redis: Any) -> None:
                 await client.get(url)
     except RedisError, TimeoutError, OSError, httpx.HTTPError:
         return
+
+
+# Last successful run of each ingest feed (UTC ISO time). The worker writes it when a
+# run finishes without error; the monitoring freshness endpoint reads it. A feed that
+# was never recorded has no field; no value means telemetry is off or Redis is down.
+FEEDS = frozenset(
+    {
+        "cap_feeds",
+        "opensky_flights",
+        "copernicus_marine",
+        "copernicus_cams",
+        "model_guidance",
+        "wis2box_publications",
+    }
+)
+
+
+def _feed_key() -> str:
+    return f"telemetry:v1:{settings.ENVIRONMENT}:feed-success"
+
+
+async def record_feed_success(redis: Any, feed: str) -> None:
+    if redis is None or feed not in FEEDS or not _enabled():
+        return
+    try:
+        async with asyncio.timeout(0.25):
+            await redis.hset(_feed_key(), feed, datetime.now(UTC).isoformat())
+            await redis.expire(_feed_key(), TTL)
+    except RedisError, TimeoutError, OSError:
+        return
+
+
+async def feed_successes() -> dict[str, datetime] | None:
+    """Last success per feed, or None when telemetry is off or Redis is unreachable."""
+    if not _enabled():
+        return None
+    client = _shared_client()
+    try:
+        async with asyncio.timeout(0.5):
+            # redis-py types hgetall as sync-or-async; this client is the asyncio one.
+            raw = await cast(Awaitable[dict[Any, Any]], client.hgetall(_feed_key()))
+    except RedisError, TimeoutError, OSError:
+        return None
+    found: dict[str, datetime] = {}
+    for name, value in raw.items():
+        feed = name.decode() if isinstance(name, bytes) else str(name)
+        text = value.decode() if isinstance(value, bytes) else str(value)
+        if feed not in FEEDS:
+            continue
+        try:
+            found[feed] = datetime.fromisoformat(text)
+        except ValueError:
+            continue
+    return found

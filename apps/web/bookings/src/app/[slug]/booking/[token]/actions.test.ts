@@ -83,18 +83,34 @@ describe("cancelMyBooking", () => {
     vi.mocked(cancelBooking).mockResolvedValue({
       status: "cancelled",
     } as never);
-    expect(await cancelMyBooking("tok")).toEqual({
+    expect(await cancelMyBooking("tok", null)).toEqual({
       ok: true,
       data: { status: "cancelled" },
     });
-    expect(cancelBooking).toHaveBeenCalledWith("tok");
+    expect(cancelBooking).toHaveBeenCalledWith("tok", null);
+  });
+
+  it("passes the customer's reason on to the API", async () => {
+    vi.mocked(cancelBooking).mockResolvedValue({
+      status: "cancelled",
+    } as never);
+    await cancelMyBooking("tok", "Flight changed");
+    expect(cancelBooking).toHaveBeenCalledWith("tok", "Flight changed");
+  });
+
+  it("refuses a reason longer than the API keeps, without calling it", async () => {
+    vi.mocked(cancelBooking).mockClear();
+    expect(await cancelMyBooking("tok", "x".repeat(301))).toMatchObject({
+      ok: false,
+    });
+    expect(cancelBooking).not.toHaveBeenCalled();
   });
 
   it("maps an API refusal to a failure", async () => {
     vi.mocked(cancelBooking).mockRejectedValue(
       apiError(409, "Too late to cancel online")
     );
-    expect(await cancelMyBooking("tok")).toMatchObject({ ok: false });
+    expect(await cancelMyBooking("tok", null)).toMatchObject({ ok: false });
   });
 });
 

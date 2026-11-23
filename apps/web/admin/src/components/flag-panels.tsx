@@ -2,11 +2,9 @@ import type { FeatureFlagAdmin } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Skeleton } from "@barrelsgd/ui/components/ui/skeleton";
 import { deleteFlagAction } from "@/app/(console)/flags/actions";
+import { ConfirmActionDialog } from "@/components/confirm-action-dialog";
 import { FlagForm } from "@/components/flag-form";
 import { audienceSummary, instantToDate } from "@/lib/flag-form";
-
-const DANGER =
-  "rounded-md border border-destructive px-3 py-1.5 text-destructive text-sm hover:bg-muted";
 
 /** The 30-second cache caveat, shown above the list and in the form. */
 export function PropagationWarning() {
@@ -48,13 +46,15 @@ function FlagRow({ flag, stale }: { flag: FeatureFlagAdmin; stale: boolean }) {
           Edit {flag.key}
         </summary>
         <FlagForm flag={flag} />
-        <form action={deleteFlagAction} className="mt-3">
-          <input name="flag_id" type="hidden" value={flag.id} />
-          <button className={DANGER} type="submit">
-            Delete flag
-          </button>
-        </form>
       </details>
+      <ConfirmActionDialog
+        action={deleteFlagAction}
+        confirmLabel="Confirm delete"
+        description={`This permanently removes the ${flag.key} feature flag.`}
+        fields={{ flag_id: flag.id }}
+        title="Delete this feature flag?"
+        triggerLabel="Delete flag"
+      />
     </li>
   );
 }

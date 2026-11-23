@@ -38,6 +38,7 @@ from src.organisations.models import MembershipRole
 from src.pagination import PaginationDep
 from src.rate_limit import limiter
 from src.turnstile import require_turnstile
+from src.utils.datetime import utc_now
 
 from . import deposit_payments, public, service, studio
 from .models import BookingStatus
@@ -45,6 +46,9 @@ from .schemas import (
     BookingAgenda,
     BookingAgendaItem,
     BookingAvailability,
+    BookingClosureCreate,
+    BookingClosureCreated,
+    BookingClosurePublic,
     BookingEmailCodeConfirm,
     BookingEmailCodeRequest,
     BookingEmailCodeSent,
@@ -62,6 +66,7 @@ from .schemas import (
     BookingProviderCreate,
     BookingProviderPublic,
     BookingProviderUpdate,
+    BookingPublicBusinessPage,
     BookingPublicCancelBody,
     BookingPublicCreate,
     BookingPublicDetail,
@@ -187,10 +192,25 @@ async def list_my_bookings(
             )
         ),
     ] = None,
+    cancelled: Annotated[
+        bool | None,
+        Query(
+            description=(
+                "True: only cancelled bookings. False: every booking except the "
+                "cancelled ones. Omit: all statuses. Combine with `upcoming` for the "
+                "Upcoming list (upcoming=true, cancelled=false)."
+            )
+        ),
+    ] = None,
 ) -> Any:
     _ = request  # the rate limiter reads it
+    moment = utc_now()
     rows, total = await service.list_my_bookings(
-        session, current_user.id, upcoming=upcoming, pagination=pagination
+        session,
+        current_user.id,
+        upcoming=upcoming,
+        cancelled=cancelled,
+        pagination=pagination,
     )
     payments = await deposit_payments.payment_summaries(
         session, [booking for booking, *_ in rows]
@@ -206,6 +226,7 @@ async def list_my_bookings(
                 business_name=business_name,
                 business_slug=business_slug,
                 payment=payments[booking.id],
+                manage_url=public.my_manage_url(business_slug, booking, moment),
             )
             for booking, service_name, business_name, business_slug in rows
         ],
@@ -540,6 +561,69 @@ async def list_bookings(
 BookingId = Annotated[uuid.UUID, Path(description="The booking's id.")]
 
 
+# --- organisation: business closures (BK-20) -------------------------------------------
+
+
+@router.get(
+    "/org/closures",
+    response_model=list[BookingClosurePublic],
+    summary="List whole-business closures",
+    description="Days the business is closed for every provider, earliest first.",
+    operation_id="bookingsListClosures",
+    responses=READ_ERRORS,
+)
+async def list_closures(
+    *, session: SessionDep, org: BookingsOrgRead, pagination: PaginationDep
+) -> Any:
+    return await service.list_closures(
+        session,
+        org.organisation_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
+
+
+@router.post(
+    "/org/closures",
+    response_model=BookingClosureCreated,
+    status_code=status.HTTP_201_CREATED,
+    summary="Close the business for whole days",
+    description=(
+        "Closes local days for every provider (both ends inclusive, at most a year). "
+        "The response lists the active bookings inside the closure, first name only, "
+        "for the studio to follow up. Existing bookings are not cancelled."
+    ),
+    operation_id="bookingsCreateClosure",
+    responses=WRITE_ERRORS,
+)
+async def create_closure(
+    *, session: SessionDep, org: BookingsOrgAdmin, payload: BookingClosureCreate
+) -> Any:
+    result = await service.create_closure(session, org.organisation_id, payload)
+    await session.commit()
+    return result
+
+
+@router.delete(
+    "/org/closures/{closure_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Reopen the business for a closure",
+    description=(
+        "Removes one closure. Deleting a closure already removed returns 204 again. "
+        "Another business's closure answers 404."
+    ),
+    operation_id="bookingsDeleteClosure",
+    responses=WRITE_ERRORS,
+)
+async def delete_closure(
+    *, session: SessionDep, org: BookingsOrgAdmin, closure_id: uuid.UUID
+) -> None:
+    await service.delete_closure(
+        session, closure_id, organisation_id=org.organisation_id
+    )
+    await session.commit()
+
+
 @router.get(
     "/org/agenda",
     response_model=BookingAgenda,
@@ -840,6 +924,34 @@ async def complete_studio_booking(
 
 
 # --- public ----------------------------------------------------------------------------
+
+
+@router.get(
+    "/public/businesses",
+    response_model=BookingPublicBusinessPage,
+    summary="List businesses on the Barrels Bookings home page",
+    description=(
+        "Businesses that opted in to the home page and are open for booking, 24 to a "
+        "page. `q` searches the name, category, description and city; `category` "
+        "keeps one category. Each card has public fields only. `categories` lists "
+        "the filter chips. Needs no sign-in."
+    ),
+    operation_id="bookingsListPublicBusinesses",
+    responses={429: {"model": RateLimitedBody, "description": "Too many requests"}},
+)
+@limiter.limit("60/minute")
+async def list_public_businesses(
+    *,
+    request: Request,
+    session: SessionDep,
+    q: Annotated[str | None, Query(max_length=80)] = None,
+    category: Annotated[str | None, Query(max_length=80)] = None,
+    page: Annotated[int, Query(ge=1, le=1000)] = 1,
+) -> Any:
+    _ = request  # the rate limiter reads it
+    return await service.list_public_businesses(
+        session, q=q, category=category, page=page
+    )
 
 
 @router.get(

@@ -18,6 +18,16 @@ export const bookingStorefrontSchema = z
     contact: bookingBusinessContactSchema.describe(
       "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
     ),
+    brand_color: z
+      .union([z.string(), z.null()])
+      .describe(
+        "The business's accent colour as `#rrggbb`, or null when it has not set one. Not checked for contrast: the page decides how to use it."
+      ),
+    logo_url: z
+      .union([z.string(), z.null()])
+      .describe(
+        "Public https address of the business logo, or null when there is no logo or no public API address is configured. Load it as an image."
+      ),
     services: z.array(bookingPublicServiceSchema),
     providers: z.array(bookingPublicProviderSchema),
   })

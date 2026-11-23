@@ -15,6 +15,7 @@ from uuid import uuid4
 from arq import cron
 from arq.connections import RedisSettings
 
+from src import provider_health
 from src.worker.config import worker_settings
 from src.worker.main import startup
 from src.wxwatch.config import wxwatch_settings
@@ -283,9 +284,10 @@ async def drain_requests(_ctx: dict[Any, Any]) -> None:
         task.cancel()
         await asyncio.gather(task, return_exceptions=True)
         raise
-    except Exception:
+    except Exception as exc:
         task.cancel()
         await asyncio.gather(task, return_exceptions=True)
+        provider_health.record_failure("nhc", "request", exc)
         logger.exception("NHC operator request failed")
         result, status, error = (
             None,

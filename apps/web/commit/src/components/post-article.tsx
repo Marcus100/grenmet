@@ -38,7 +38,10 @@ function PostHeader({ post }: { post: Post }) {
       </div>
       <ContentWrapper>
         <div className="flex items-center gap-x-3">
-          <a className="inline-flex xl:hidden" href={anchor}>
+          <a
+            className="inline-flex min-h-11 items-center xl:hidden"
+            href={anchor}
+          >
             <FormattedDate
               className="text-2xs/4 font-medium text-gray-500 xl:hidden dark:text-white/50"
               date={post.date}
