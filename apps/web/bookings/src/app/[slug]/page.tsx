@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BookingLink } from "@/components/booking-link";
+import { ReportListingLink } from "@/components/report-listing-link";
 import { StorefrontLogo } from "@/components/storefront-logo";
 import { TrackedBookingFlow } from "@/components/tracked-booking-flow";
 import { env } from "@/env";
@@ -175,6 +176,8 @@ export default async function BusinessBookingPage({
           />
         </section>
       )}
+
+      <ReportListingLink slug={slug} />
     </div>
   );
 }
