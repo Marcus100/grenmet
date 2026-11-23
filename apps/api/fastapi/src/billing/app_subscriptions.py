@@ -26,12 +26,19 @@ from .app_subscription_transitions import move_app_subscription
 from .config import billing_settings
 from .exceptions import (
     AppSubscriptionAlreadyExistsError,
+    AppSubscriptionNotYetWrittenError,
     AppSubscriptionPlanNotFoundError,
     AppSubscriptionPriceNotConfiguredError,
     AppSubscriptionPriceNotFoundError,
     AppSubscriptionStateError,
+    BillingLiveModeRefusedError,
 )
-from .gateway import CheckoutSessionResult, StripeGateway, WebhookEventResult
+from .gateway import (
+    CheckoutSessionResult,
+    CheckoutSessionState,
+    StripeGateway,
+    WebhookEventResult,
+)
 from .models import (
     LIVE_APP_SUBSCRIPTION_STATUSES,
     AppSubscription,
@@ -120,6 +127,60 @@ async def list_subscriptions(
     return [_view(subscription, amount) for subscription, amount in rows]
 
 
+async def _resume_pending(
+    session: AsyncSession,
+    *,
+    gateway: StripeGateway,
+    pending: AppSubscription,
+    plan_key: str,
+    currency: str,
+) -> AppSubscriptionCheckoutPublic | None:
+    """Answer a repeat checkout while a live row exists (issue #1723 item 2).
+
+    Only an unpaid pending row with a stored Checkout Session can be resumed. An open
+    session returns its own URL (same id), so nothing new is created and the customer
+    is not blocked. An expired session cancels the pending row and returns ``None``, so
+    the caller creates a fresh row. A session Stripe reports as complete (paid, webhook
+    not yet applied) is refused, so a second payment cannot start."""
+    if (
+        pending.status != _INCOMPLETE.value
+        or pending.stripe_subscription_id is not None
+        or pending.plan_key != plan_key
+        or pending.currency != currency
+        or not pending.checkout_session_id
+    ):
+        raise AppSubscriptionAlreadyExistsError()
+
+    state: CheckoutSessionState = await run_in_threadpool(
+        gateway.get_app_subscription_checkout,
+        session_id=pending.checkout_session_id,
+    )
+    if state.status == "open" and state.url:
+        logger.info(
+            "App subscription checkout resumed",
+            extra={
+                "organisation_id": pending.organisation_id,
+                "target_id": str(pending.id),
+            },
+        )
+        return AppSubscriptionCheckoutPublic.model_validate(
+            {"id": pending.id, "url": state.url}
+        )
+    if state.status != "expired":
+        raise AppSubscriptionAlreadyExistsError()
+
+    move_app_subscription(pending, _CANCELED)
+    await session.flush()
+    logger.info(
+        "Expired app subscription checkout replaced",
+        extra={
+            "organisation_id": pending.organisation_id,
+            "target_id": str(pending.id),
+        },
+    )
+    return None
+
+
 async def start_checkout(
     session: AsyncSession,
     *,
@@ -145,16 +206,25 @@ async def start_checkout(
         raise AppSubscriptionPriceNotConfiguredError()
 
     live = await session.scalar(
-        select(AppSubscription.id)
+        select(AppSubscription)
         .where(
             AppSubscription.organisation_id == organisation_id,
             AppSubscription.app_key == plan.app_key,
             AppSubscription.status.in_(LIVE_APP_SUBSCRIPTION_STATUSES),
         )
         .limit(1)
+        .with_for_update()
     )
     if live is not None:
-        raise AppSubscriptionAlreadyExistsError()
+        resumed = await _resume_pending(
+            session,
+            gateway=gateway,
+            pending=live,
+            plan_key=plan.key,
+            currency=payload.currency,
+        )
+        if resumed is not None:
+            return resumed
 
     customer = await session.scalar(
         select(Customer).where(Customer.organisation_id == organisation_id)
@@ -189,6 +259,7 @@ async def start_checkout(
         channel=AppSubscriptionChannel.STRIPE.value,
         currency=payload.currency,
         status=_INCOMPLETE.value,
+        checkout_session_id=checkout.id,
         cancel_at_period_end=False,
     )
     session.add(subscription)
@@ -246,13 +317,20 @@ def _period_end(subscription: Mapping[str, Any]) -> object:
     return None
 
 
+#: Returned by a handler when the row an event names is not written yet: the event is
+#: not recorded and the webhook answers 503, so Stripe sends it again (issue #1723).
+_RETRY = "retry"
+
+
 async def _by_subscription_id(
     session: AsyncSession, stripe_subscription_id: str
 ) -> AppSubscription | None:
+    # Row lock: a concurrent pair of events for one subscription waits here instead of
+    # both inserting the same stripe_subscription_id (issue #1723 item 3).
     subscription: AppSubscription | None = await session.scalar(
-        select(AppSubscription).where(
-            AppSubscription.stripe_subscription_id == stripe_subscription_id
-        )
+        select(AppSubscription)
+        .where(AppSubscription.stripe_subscription_id == stripe_subscription_id)
+        .with_for_update()
     )
     return subscription
 
@@ -261,7 +339,7 @@ async def _by_app_subscription_id(
     session: AsyncSession, obj: Mapping[str, Any]
 ) -> AppSubscription | None:
     """The row named in our metadata (``app_subscription_id``), or the checkout's
-    ``client_reference_id``, which is the same id."""
+    ``client_reference_id``, which is the same id. Locked like ``_by_subscription_id``."""
     raw = _text(_metadata(obj).get("app_subscription_id")) or _text(
         obj.get("client_reference_id")
     )
@@ -271,16 +349,35 @@ async def _by_app_subscription_id(
         subscription_id = uuid.UUID(raw)
     except ValueError:
         return None
-    subscription: AppSubscription | None = await session.get(
-        AppSubscription, subscription_id
+    subscription: AppSubscription | None = await session.scalar(
+        select(AppSubscription)
+        .where(AppSubscription.id == subscription_id)
+        .with_for_update()
     )
     return subscription
 
 
+def _names_our_row(obj: Mapping[str, Any]) -> bool:
+    """True when the object carries our ``app_subscription_id`` metadata, on the object
+    itself or on an invoice's ``subscription_details``. Such an event belongs to a row
+    we should have, so a missing row means "not written yet", not "not ours".
+    ``client_reference_id`` is not enough: the invoicing-era checkout puts a user id
+    there."""
+    if _text(_metadata(obj).get("app_subscription_id")) is not None:
+        return True
+    details = obj.get("subscription_details")
+    if isinstance(details, dict):
+        return _text(_metadata(details).get("app_subscription_id")) is not None
+    return False
+
+
 def _is_stale(subscription: AppSubscription, event_time: datetime) -> bool:
+    """An event at or before the newest applied one's second is stale. Stripe times are
+    whole seconds, so a same-second event is treated as already applied rather than
+    applied out of order (issue #1723 item 6)."""
     return (
         subscription.last_event_at is not None
-        and event_time < subscription.last_event_at
+        and event_time <= subscription.last_event_at
     )
 
 
@@ -304,7 +401,7 @@ async def _checkout_completed(session: AsyncSession, obj: Mapping[str, Any]) -> 
     the subscription's own event with an earlier timestamp)."""
     subscription = await _by_app_subscription_id(session, obj)
     if subscription is None:
-        return "ignored"
+        return _RETRY if _names_our_row(obj) else "ignored"
     stripe_subscription_id = _text(obj.get("subscription"))
     if stripe_subscription_id and subscription.stripe_subscription_id is None:
         subscription.stripe_subscription_id = stripe_subscription_id
@@ -324,7 +421,9 @@ async def _checkout_expired(
     session: AsyncSession, obj: Mapping[str, Any], event_time: datetime
 ) -> str:
     subscription = await _by_app_subscription_id(session, obj)
-    if subscription is None or _is_stale(subscription, event_time):
+    if subscription is None:
+        return _RETRY if _names_our_row(obj) else "ignored"
+    if _is_stale(subscription, event_time):
         return "ignored"
     if subscription.stripe_subscription_id is None:
         _move(subscription, _CANCELED)
@@ -347,7 +446,9 @@ async def _subscription_event(
     )
     if subscription is None:
         subscription = await _by_app_subscription_id(session, obj)
-    if subscription is None or _is_stale(subscription, event_time):
+    if subscription is None:
+        return _RETRY if _names_our_row(obj) else "ignored"
+    if _is_stale(subscription, event_time):
         return "ignored"
     if subscription.stripe_subscription_id is None and stripe_subscription_id:
         subscription.stripe_subscription_id = stripe_subscription_id
@@ -379,51 +480,81 @@ async def _invoice_payment_failed(
     if stripe_subscription_id is None:
         return "ignored"
     subscription = await _by_subscription_id(session, stripe_subscription_id)
-    if subscription is None or _is_stale(subscription, event_time):
+    if subscription is None:
+        return _RETRY if _names_our_row(obj) else "ignored"
+    if _is_stale(subscription, event_time):
         return "ignored"
     _move(subscription, _PAST_DUE)
     subscription.last_event_at = event_time
     return "applied"
 
 
-async def apply_stripe_event(session: AsyncSession, event: WebhookEventResult) -> str:
-    """Apply one verified Stripe event exactly once.
-
-    The event id is inserted first (ON CONFLICT DO NOTHING) in the caller's
-    transaction, so a repeat delivery finds it and changes nothing, and a failure
-    leaves no id behind to suppress a retry. Returns ``duplicate``, ``applied`` or
-    ``ignored``."""
-    recorded = await session.scalar(
-        pg_insert(StripeEvent)
-        .values(event_id=event.id, received_at=datetime.now(UTC).replace(tzinfo=None))
-        .on_conflict_do_nothing(index_elements=["event_id"])
-        .returning(StripeEvent.event_id)
-    )
-    if recorded is None:
-        logger.info(
-            "Stripe event already applied", extra={"stripe_event_type": event.type}
-        )
-        return "duplicate"
-
-    obj = event.data_object
+async def _apply_event(
+    session: AsyncSession, event: WebhookEventResult, obj: Mapping[str, Any]
+) -> str:
     event_time = _from_unix(event.created) if event.created else None
-    result = "ignored"
     if event.type == "checkout.session.completed":
-        result = await _checkout_completed(session, obj)
-    elif event.type == "checkout.session.expired" and event_time is not None:
-        result = await _checkout_expired(session, obj, event_time)
-    elif event.type in _SUBSCRIPTION_EVENTS and event_time is not None:
-        result = await _subscription_event(
+        return await _checkout_completed(session, obj)
+    if event.type == "checkout.session.expired" and event_time is not None:
+        return await _checkout_expired(session, obj, event_time)
+    if event.type in _SUBSCRIPTION_EVENTS and event_time is not None:
+        return await _subscription_event(
             session,
             obj,
             event_time,
             deleted=event.type == "customer.subscription.deleted",
         )
-    elif event.type == "invoice.payment_failed" and event_time is not None:
-        result = await _invoice_payment_failed(session, obj, event_time)
-    else:
-        logger.info(
-            "Stripe event type not used by app subscriptions",
+    if event.type == "invoice.payment_failed" and event_time is not None:
+        return await _invoice_payment_failed(session, obj, event_time)
+    logger.info(
+        "Stripe event type not used by app subscriptions",
+        extra={"stripe_event_type": event.type},
+    )
+    return "ignored"
+
+
+async def apply_stripe_event(session: AsyncSession, event: WebhookEventResult) -> str:
+    """Apply one verified Stripe event exactly once.
+
+    A live-mode event is refused (503) before anything is written: the product is
+    test-only (ADR-0027), and the refusal leaves the event unrecorded so a later
+    delivery can still be applied.
+
+    The event id is inserted first (ON CONFLICT DO NOTHING) inside a savepoint, so a
+    repeat delivery finds it and changes nothing. An event whose row is not written yet
+    returns ``retry``: the savepoint is rolled back, the id is not kept, and the caller
+    answers 503 so Stripe sends it again (issue #1723). Returns ``duplicate``,
+    ``applied`` or ``ignored``."""
+    if event.livemode is True:
+        logger.warning(
+            "Live-mode Stripe event refused: app subscriptions are test-only",
             extra={"stripe_event_type": event.type},
         )
+        raise BillingLiveModeRefusedError()
+
+    obj = event.data_object
+    async with session.begin_nested():
+        recorded = await session.scalar(
+            pg_insert(StripeEvent)
+            .values(
+                event_id=event.id, received_at=datetime.now(UTC).replace(tzinfo=None)
+            )
+            .on_conflict_do_nothing(index_elements=["event_id"])
+            .returning(StripeEvent.event_id)
+        )
+        if recorded is None:
+            logger.info(
+                "Stripe event already applied",
+                extra={"stripe_event_type": event.type},
+            )
+            return "duplicate"
+
+        result = await _apply_event(session, event, obj)
+        if result == _RETRY:
+            logger.info(
+                "Stripe event waits for its subscription row; Stripe will retry",
+                extra={"stripe_event_type": event.type},
+            )
+            # Raising rolls the savepoint back, so the id insert above is undone too.
+            raise AppSubscriptionNotYetWrittenError()
     return result

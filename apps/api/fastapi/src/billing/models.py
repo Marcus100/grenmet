@@ -165,6 +165,9 @@ class AppSubscription(Base):
         String(20), default=AppSubscriptionStatus.INCOMPLETE.value
     )
     stripe_subscription_id: Mapped[str | None] = mapped_column(String(255), unique=True)
+    #: The hosted Checkout Session of a pending row, so a repeat checkout can resume it
+    #: (issue #1723). Null on rows written before that was stored.
+    checkout_session_id: Mapped[str | None] = mapped_column(String(255))
     current_period_end: Mapped[datetime | None]
     cancel_at_period_end: Mapped[bool] = mapped_column(default=False)
     trial_end: Mapped[datetime | None]

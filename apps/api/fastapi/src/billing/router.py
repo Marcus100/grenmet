@@ -8,7 +8,7 @@ from src.openapi_responses import AUTHENTICATED, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgAdmin
 
 from . import app_subscriptions, service
-from .dependencies import AppSubscriptionManager, StripeGatewayDep
+from .dependencies import StripeGatewayDep
 from .schemas import (
     AppSubscriptionCheckoutCreate,
     AppSubscriptionCheckoutPublic,
@@ -71,9 +71,7 @@ def create_subscription_checkout(
     tags=["billing"],
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
-async def list_app_subscriptions(
-    *, session: SessionDep, _manager: AppSubscriptionManager, org: OrgAdmin
-) -> Any:
+async def list_app_subscriptions(*, session: SessionDep, org: OrgAdmin) -> Any:
     data = await app_subscriptions.list_subscriptions(
         session, organisation_id=org.organisation_id
     )
@@ -87,9 +85,12 @@ async def list_app_subscriptions(
     summary="Start an app subscription checkout",
     description=(
         "Create a pending subscription for one plan and return the hosted Stripe "
-        "Checkout URL. Test mode only: a live Stripe key is refused with 503 before "
-        "anything is sent. Organisation admins and owners only; one live subscription "
-        "per organisation and app."
+        "Checkout URL. A repeat call while that Checkout is still open returns the "
+        "same id and URL (201), so an abandoned checkout does not block the customer; "
+        "once it has expired, a fresh Checkout replaces it. 409 when the organisation "
+        "already has a live subscription to the app, or when the first checkout is paid "
+        "and Stripe has not reported it yet. Test mode only: a live Stripe key is "
+        "refused with 503 before anything is sent. Organisation admins and owners only."
     ),
     operation_id="billingCreateAppSubscriptionCheckout",
     tags=["billing"],
@@ -98,7 +99,6 @@ async def list_app_subscriptions(
 async def create_app_subscription_checkout(
     *,
     session: SessionDep,
-    _manager: AppSubscriptionManager,
     org: OrgAdmin,
     gateway: StripeGatewayDep,
     payload: AppSubscriptionCheckoutCreate,
@@ -128,7 +128,10 @@ async def create_app_subscription_checkout(
             "description": "Invalid webhook",
         },
         status.HTTP_503_SERVICE_UNAVAILABLE: {
-            "description": "Billing is not configured"
+            "description": (
+                "Billing is not configured, a live-mode event is refused, or the "
+                "subscription row is not written yet (Stripe sends the event again)"
+            )
         },
     },
     include_in_schema=False,

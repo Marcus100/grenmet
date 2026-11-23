@@ -22,7 +22,7 @@ from alembic.config import Config
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
 from alembic.script import ScriptDirectory
-from sqlalchemy import select, text
+from sqlalchemy import event, select, text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,6 +31,7 @@ from src.billing.config import BillingConfig, billing_settings
 from src.billing.dependencies import get_stripe_gateway
 from src.billing.gateway import (
     CheckoutSessionResult,
+    CheckoutSessionState,
     StripeSdkGateway,
     WebhookEventResult,
 )
@@ -43,7 +44,7 @@ from src.billing.models import (
     StripeEvent,
 )
 from src.config import settings
-from src.database import engine
+from src.database import async_engine, engine
 from src.main import app
 from src.organisations.models import MembershipRole
 from tests.database_target import require_owned_database
@@ -60,17 +61,31 @@ LIVE_KEY = "sk_live_must_never_be_used"
 
 
 class FakeAppGateway:
-    """Records checkout calls; never reaches Stripe."""
+    """Records checkout calls; never reaches Stripe. Each created session gets a new
+    id; a session is ``open`` unless a test sets its status in ``session_status``."""
 
     def __init__(self) -> None:
         self.calls: list[dict[str, Any]] = []
+        self.retrieved: list[str] = []
+        self.session_status: dict[str, str] = {}
 
     def create_app_subscription_checkout(self, **kwargs: Any) -> CheckoutSessionResult:
         self.calls.append(kwargs)
+        session_id = f"cs_test_app_fake_{len(self.calls)}"
         return CheckoutSessionResult(
-            id="cs_test_app_fake",
-            url="https://checkout.stripe.com/c/pay/cs_test_app_fake",
+            id=session_id,
+            url=f"https://checkout.stripe.com/c/pay/{session_id}",
         )
+
+    def get_app_subscription_checkout(self, *, session_id: str) -> CheckoutSessionState:
+        self.retrieved.append(session_id)
+        status = self.session_status.get(session_id, "open")
+        url = (
+            f"https://checkout.stripe.com/c/pay/{session_id}"
+            if status == "open"
+            else None
+        )
+        return CheckoutSessionState(id=session_id, status=status, url=url)
 
     def create_subscription_checkout(self, **kwargs: Any) -> CheckoutSessionResult:
         raise AssertionError("the invoicing-era checkout is not used here")
@@ -132,8 +147,9 @@ async def plan_seed(db_async: AsyncSession) -> AsyncGenerator[None]:
 async def _org(
     db: AsyncSession, role: MembershipRole, *, superuser: bool = True
 ) -> tuple[Any, Any]:
-    """A caller and an organisation. Superusers hold ``billing.subscriptions.manage``;
-    a plain account does not, so the permission gate refuses it before the role."""
+    """A caller and an organisation. The routes are gated by the organisation role
+    (``OrgAdmin``), so ``superuser`` does not change a member's access; it shows that
+    a superuser gets no bypass."""
     user = await make_user(db, superuser=superuser)
     org = await make_org(db, "Subscriber Co", members=((user, role),))
     return user, org
@@ -143,12 +159,14 @@ async def _row(
     db: AsyncSession,
     organisation_id: str,
     *,
+    row_id: uuid.UUID | None = None,
     status: str = "incomplete",
     stripe_subscription_id: str | None = None,
+    checkout_session_id: str | None = None,
     last_event_at: Any = None,
 ) -> uuid.UUID:
     row = AppSubscription(
-        id=uuid.uuid4(),
+        id=row_id or uuid.uuid4(),
         organisation_id=organisation_id,
         plan_key=PLAN,
         app_key="bookings",
@@ -156,6 +174,7 @@ async def _row(
         currency="XCD",
         status=status,
         stripe_subscription_id=stripe_subscription_id,
+        checkout_session_id=checkout_session_id,
         cancel_at_period_end=False,
         last_event_at=last_event_at,
     )
@@ -201,14 +220,25 @@ def _event(
     obj: dict[str, Any],
     *,
     created: int | None = None,
+    livemode: bool = False,
 ) -> dict[str, Any]:
     return {
         "id": event_id,
         "object": "event",
         "type": event_type,
         "created": created if created is not None else int(time.time()),
+        "livemode": livemode,
         "data": {"object": obj},
     }
+
+
+async def _recorded(db: AsyncSession, event_id: str) -> list[StripeEvent]:
+    rows = await db.scalars(
+        select(StripeEvent)
+        .where(StripeEvent.event_id == event_id)
+        .execution_options(populate_existing=True)
+    )
+    return list(rows.all())
 
 
 def _subscription(
@@ -357,21 +387,44 @@ async def test_member_is_refused_with_403(
 
 
 @pytest.mark.usefixtures("plan_seed")
-async def test_org_admin_without_the_permission_is_refused(
+@pytest.mark.parametrize("role", [MembershipRole.ADMIN, MembershipRole.OWNER])
+async def test_business_admin_and_owner_without_superuser_can_list_and_checkout(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     fake_gateway: FakeAppGateway,
+    role: MembershipRole,
 ) -> None:
-    """The org role alone is not enough: the permission key gates the route."""
-    user, org = await _org(db_async, MembershipRole.ADMIN, superuser=False)
+    """Issue #1723 item 1: the organisation role is the gate, not a global key."""
+    user, org = await _org(db_async, role, superuser=False)
 
     listing = await async_client.get(API, headers=headers_for(user, org.id))
     checkout = await async_client.post(
         f"{API}/checkout", json={"plan_key": PLAN}, headers=headers_for(user, org.id)
     )
 
-    assert listing.status_code == 403
-    assert checkout.status_code == 403
+    assert listing.status_code == 200
+    assert listing.json() == {"data": []}
+    assert checkout.status_code == 201
+    assert len(fake_gateway.calls) == 1
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_superuser_who_is_not_a_member_gets_404_not_a_bypass(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_gateway: FakeAppGateway,
+) -> None:
+    """No superuser bypass: a superuser outside the organisation sees nothing."""
+    _, org = await _org(db_async, MembershipRole.OWNER)
+    outsider = await make_user(db_async, superuser=True)
+
+    response = await async_client.post(
+        f"{API}/checkout",
+        json={"plan_key": PLAN},
+        headers=headers_for(outsider, org.id),
+    )
+
+    assert response.status_code == 404
     assert fake_gateway.calls == []
 
 
@@ -428,11 +481,12 @@ async def test_live_key_is_refused_before_anything_is_sent(
 
 
 @pytest.mark.usefixtures("plan_seed")
-async def test_second_live_subscription_to_the_same_app_is_refused(
+async def test_repeat_checkout_while_the_session_is_open_resumes_it(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     fake_gateway: FakeAppGateway,
 ) -> None:
+    """Issue #1723 item 2: an abandoned Checkout must not block a new one for 24 hours."""
     user, org = await _org(db_async, MembershipRole.ADMIN)
     headers = headers_for(user, org.id)
     first = await async_client.post(
@@ -443,8 +497,101 @@ async def test_second_live_subscription_to_the_same_app_is_refused(
     )
 
     assert first.status_code == 201
-    assert second.status_code == 409
+    assert second.status_code == 201
+    assert second.json() == first.json()
     assert len(fake_gateway.calls) == 1
+    assert fake_gateway.retrieved == ["cs_test_app_fake_1"]
+    rows = await db_async.scalars(
+        select(AppSubscription).where(AppSubscription.organisation_id == org.id)
+    )
+    assert len(rows.all()) == 1
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_repeat_checkout_after_the_session_expired_replaces_the_pending_row(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_gateway: FakeAppGateway,
+) -> None:
+    user, org = await _org(db_async, MembershipRole.ADMIN)
+    headers = headers_for(user, org.id)
+    first = await async_client.post(
+        f"{API}/checkout", json={"plan_key": PLAN}, headers=headers
+    )
+    fake_gateway.session_status["cs_test_app_fake_1"] = "expired"
+
+    second = await async_client.post(
+        f"{API}/checkout", json={"plan_key": PLAN}, headers=headers
+    )
+
+    assert second.status_code == 201
+    assert second.json()["id"] != first.json()["id"]
+    assert second.json()["url"].endswith("cs_test_app_fake_2")
+    old = await _fresh(db_async, uuid.UUID(first.json()["id"]))
+    new = await _fresh(db_async, uuid.UUID(second.json()["id"]))
+    assert old.status == "canceled"
+    assert new.status == "incomplete"
+    assert new.checkout_session_id == "cs_test_app_fake_2"
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_repeat_checkout_after_payment_is_refused_until_stripe_reports_it(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_gateway: FakeAppGateway,
+) -> None:
+    """A paid session whose webhook has not arrived yet is not replaced."""
+    user, org = await _org(db_async, MembershipRole.ADMIN)
+    headers = headers_for(user, org.id)
+    await async_client.post(f"{API}/checkout", json={"plan_key": PLAN}, headers=headers)
+    fake_gateway.session_status["cs_test_app_fake_1"] = "complete"
+
+    response = await async_client.post(
+        f"{API}/checkout", json={"plan_key": PLAN}, headers=headers
+    )
+
+    assert response.status_code == 409
+    assert len(fake_gateway.calls) == 1
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_an_active_subscription_still_blocks_a_new_checkout(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_gateway: FakeAppGateway,
+) -> None:
+    user, org = await _org(db_async, MembershipRole.ADMIN)
+    await _row(
+        db_async, org.id, status="active", stripe_subscription_id="sub_already_live"
+    )
+
+    response = await async_client.post(
+        f"{API}/checkout", json={"plan_key": PLAN}, headers=headers_for(user, org.id)
+    )
+
+    assert response.status_code == 409
+    assert fake_gateway.calls == []
+    assert fake_gateway.retrieved == []
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_a_pending_row_without_a_session_id_is_not_resumed(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_gateway: FakeAppGateway,
+) -> None:
+    """Rows written before the session id was stored cannot be resumed; Stripe's
+    expiry event cancels them."""
+    user, org = await _org(db_async, MembershipRole.ADMIN)
+    await _row(db_async, org.id)
+
+    response = await async_client.post(
+        f"{API}/checkout", json={"plan_key": PLAN}, headers=headers_for(user, org.id)
+    )
+
+    assert response.status_code == 409
+    assert fake_gateway.calls == []
+    assert fake_gateway.retrieved == []
 
 
 @pytest.mark.usefixtures("plan_seed")
@@ -787,6 +934,264 @@ def test_legacy_checkout_refuses_a_live_key_before_any_call(
         )
 
 
+@pytest.mark.usefixtures("plan_seed")
+async def test_same_second_event_after_an_applied_one_is_ignored(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    real_gateway: StripeSdkGateway,
+) -> None:
+    """Issue #1723 item 6: the stale check is ``<=``, so an event in the same second
+    as the last applied one does not overwrite it."""
+    _ = real_gateway
+    _, org = await _org(db_async, MembershipRole.ADMIN)
+    row_id = await _row(db_async, org.id)
+    now = int(time.time())
+    first = _event(
+        "evt_same_second_a",
+        "customer.subscription.updated",
+        _subscription(row_id, sub_id="sub_same_1", status="active"),
+        created=now,
+    )
+    second = _event(
+        "evt_same_second_b",
+        "customer.subscription.updated",
+        _subscription(row_id, sub_id="sub_same_1", status="past_due"),
+        created=now,
+    )
+    assert (await _post_event(async_client, first)).status_code == 200
+
+    response = await _post_event(async_client, second)
+
+    assert response.status_code == 200
+    assert (await _fresh(db_async, row_id)).status == "active"
+    assert len(await _recorded(db_async, "evt_same_second_b")) == 1
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_live_mode_event_is_refused_and_not_recorded(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    real_gateway: StripeSdkGateway,
+) -> None:
+    """Issue #1723 item 4: while the product is test-only, a livemode event changes
+    nothing and its id is not recorded, so a later retry can still be applied."""
+    _ = real_gateway
+    _, org = await _org(db_async, MembershipRole.ADMIN)
+    row_id = await _row(db_async, org.id)
+    event = _event(
+        "evt_live_refused",
+        "customer.subscription.created",
+        _subscription(row_id, sub_id="sub_live_refused", status="active"),
+        livemode=True,
+    )
+
+    response = await _post_event(async_client, event)
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Only Stripe test mode is permitted"}
+    row = await _fresh(db_async, row_id)
+    assert row.status == "incomplete"
+    assert row.stripe_subscription_id is None
+    assert await _recorded(db_async, "evt_live_refused") == []
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_event_for_a_row_not_written_yet_is_retried_and_not_recorded(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    real_gateway: StripeSdkGateway,
+) -> None:
+    """Issue #1723 item 5: when the row is not there yet, the id is not recorded and
+    Stripe gets a non-2xx answer, so the same event is applied on the retry."""
+    _ = real_gateway
+    _, org = await _org(db_async, MembershipRole.ADMIN)
+    row_id = uuid.uuid4()
+    event = _event(
+        "evt_not_yet",
+        "customer.subscription.created",
+        _subscription(row_id, sub_id="sub_not_yet", status="active"),
+    )
+
+    first = await _post_event(async_client, event)
+
+    assert first.status_code == 503
+    assert await _recorded(db_async, "evt_not_yet") == []
+
+    await _row(db_async, org.id, row_id=row_id)
+    retry = await _post_event(async_client, event)
+
+    assert retry.status_code == 200
+    assert (await _fresh(db_async, row_id)).status == "active"
+    assert len(await _recorded(db_async, "evt_not_yet")) == 1
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_checkout_completed_for_a_row_not_written_yet_is_retried(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    real_gateway: StripeSdkGateway,
+) -> None:
+    _ = real_gateway
+    row_id = uuid.uuid4()
+    event = _event(
+        "evt_checkout_not_yet",
+        "checkout.session.completed",
+        {
+            "id": "cs_test_not_yet",
+            "object": "checkout.session",
+            "client_reference_id": str(row_id),
+            "metadata": {"app_subscription_id": str(row_id)},
+            "subscription": "sub_not_yet_2",
+        },
+    )
+
+    response = await _post_event(async_client, event)
+
+    assert response.status_code == 503
+    assert await _recorded(db_async, "evt_checkout_not_yet") == []
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_event_for_an_unknown_subscription_without_our_metadata_is_recorded(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    real_gateway: StripeSdkGateway,
+) -> None:
+    """Another product's subscription on the same Stripe account is not ours to retry."""
+    _ = real_gateway
+    event = _event(
+        "evt_foreign_sub",
+        "customer.subscription.created",
+        {"id": "sub_foreign_1", "object": "subscription", "status": "active"},
+    )
+
+    response = await _post_event(async_client, event)
+
+    assert response.status_code == 200
+    assert len(await _recorded(db_async, "evt_foreign_sub")) == 1
+
+
+@pytest.mark.usefixtures("plan_seed")
+async def test_webhook_locks_the_subscription_row_it_applies(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    real_gateway: StripeSdkGateway,
+) -> None:
+    """Issue #1723 item 3: every subscription lookup in the webhook takes a row lock,
+    so a concurrent pair for one subscription waits instead of hitting a unique
+    violation."""
+    _ = real_gateway
+    _, org = await _org(db_async, MembershipRole.ADMIN)
+    row_id = await _row(db_async, org.id, stripe_subscription_id="sub_lock_1")
+    statements: list[str] = []
+
+    def record(
+        _conn: object,
+        _cursor: object,
+        statement: str,
+        _parameters: object,
+        _context: object,
+        _executemany: bool,
+    ) -> None:
+        if "billing.app_subscription" in statement:
+            statements.append(statement)
+
+    event.listen(async_engine.sync_engine, "before_cursor_execute", record)
+    try:
+        response = await _post_event(
+            async_client,
+            _event(
+                "evt_lock_1",
+                "customer.subscription.updated",
+                _subscription(row_id, sub_id="sub_lock_1", status="active"),
+            ),
+        )
+    finally:
+        event.remove(async_engine.sync_engine, "before_cursor_execute", record)
+
+    assert response.status_code == 200
+    selects = [s for s in statements if s.lstrip().upper().startswith("SELECT")]
+    assert selects
+    assert all("FOR UPDATE" in s.upper() for s in selects)
+
+
+def _retrieving_client(
+    monkeypatch: pytest.MonkeyPatch, status: str, seen: list[str]
+) -> None:
+    class Sessions:
+        # Same shape as the SDK: retrieve(session, params, options).
+        def retrieve(
+            self,
+            session_id: str,
+            params: object = None,
+            options: object = None,
+        ) -> SimpleNamespace:
+            seen.append(session_id)
+            return SimpleNamespace(
+                id=session_id,
+                status=status,
+                url=f"https://checkout.stripe.com/c/pay/{session_id}",
+            )
+
+    def client(*_args: object, **_kwargs: object) -> SimpleNamespace:
+        return SimpleNamespace(
+            v1=SimpleNamespace(checkout=SimpleNamespace(sessions=Sessions()))
+        )
+
+    monkeypatch.setattr(stripe, "StripeClient", client)
+
+
+def test_retrieve_returns_the_url_of_an_open_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[str] = []
+    _retrieving_client(monkeypatch, "open", seen)
+    gateway = StripeSdkGateway(
+        BillingConfig(_env_file=None, STRIPE_SECRET_KEY=TEST_KEY)
+    )
+
+    state = gateway.get_app_subscription_checkout(session_id="cs_open_1")
+
+    assert state == CheckoutSessionState(
+        id="cs_open_1",
+        status="open",
+        url="https://checkout.stripe.com/c/pay/cs_open_1",
+    )
+    assert seen == ["cs_open_1"]
+
+
+@pytest.mark.parametrize("status", ["expired", "complete"])
+def test_retrieve_hides_the_url_once_the_session_is_not_open(
+    monkeypatch: pytest.MonkeyPatch, status: str
+) -> None:
+    _retrieving_client(monkeypatch, status, [])
+    gateway = StripeSdkGateway(
+        BillingConfig(_env_file=None, STRIPE_SECRET_KEY=TEST_KEY)
+    )
+
+    state = gateway.get_app_subscription_checkout(session_id="cs_done_1")
+
+    assert state.status == status
+    assert state.url is None
+
+
+def test_retrieve_refuses_a_live_key_before_any_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src.billing.exceptions import BillingLiveModeRefusedError
+
+    def must_not_be_called(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("a live key reached the Stripe client")
+
+    monkeypatch.setattr(stripe, "StripeClient", must_not_be_called)
+    gateway = StripeSdkGateway(
+        BillingConfig(_env_file=None, STRIPE_SECRET_KEY=LIVE_KEY)
+    )
+
+    with pytest.raises(BillingLiveModeRefusedError):
+        gateway.get_app_subscription_checkout(session_id="cs_live_1")
+
+
 # --- Transition table (no database) ------------------------------------------------
 
 
@@ -934,3 +1339,34 @@ def test_downgrade_drops_what_the_revision_added(before_migration: Any) -> None:
         )
     ).scalar()
     assert column is None
+
+
+CHECKOUT_REVISION = "billingappcheckout20261122"
+
+
+def test_checkout_session_column_is_added_and_removed(
+    before_migration: Any,
+) -> None:
+    """Issue #1723 item 2: the pending row remembers its Checkout Session (additive)."""
+    connection, migration = before_migration
+    migration.upgrade()
+    scripts = ScriptDirectory.from_config(Config("alembic.ini"))
+    checkout = scripts.get_revision(CHECKOUT_REVISION)
+    assert checkout is not None
+    assert checkout.down_revision == REVISION
+
+    def has_column() -> bool:
+        return bool(
+            connection.execute(
+                text(
+                    "SELECT 1 FROM information_schema.columns WHERE table_schema = "
+                    "'billing' AND table_name = 'app_subscription' AND column_name = "
+                    "'checkout_session_id'"
+                )
+            ).scalar()
+        )
+
+    checkout.module.upgrade()
+    assert has_column()
+    checkout.module.downgrade()
+    assert not has_column()

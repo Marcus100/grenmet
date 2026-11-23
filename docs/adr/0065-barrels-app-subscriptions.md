@@ -7,6 +7,13 @@ plans, prices, subscriptions, Stripe reports) is in `src/billing`. The entitleme
 link is decided here but **not built**: it needs its own slice and an owner go.
 Live money stays gated by ADR-0027 ("Open before live money").
 
+Amended 22 November 2026 (issue #1723, follow-ups to the slice 1 review): access is
+the organisation role alone, not a global key; a repeat checkout resumes an open
+Checkout instead of being refused for 24 hours; webhook rows are locked; live-mode
+events are refused; a same-second event is treated as stale; and an event for a row
+not yet written is retried by Stripe rather than recorded. The amendments are in
+the Decision section below.
+
 ## Context
 
 Barrels sells per-app subscriptions, Bookings first (owner direction, 22 November
@@ -63,7 +70,19 @@ events tickets, not for Barrels' subscriptions.
   not built).
 - **Test mode:** every Stripe call is refused with 503 unless the secret key starts
   with `sk_test_`. The refusal happens before any request. Live mode starts only when
-  the owner says so and the ADR-0027 live gate is met.
+  the owner says so and the ADR-0027 live gate is met. Webhook events that Stripe
+  marks `livemode: true` are refused with 503 before anything is written or recorded,
+  so a live event is never applied by accident and can be delivered again later.
+- **Access:** the checkout and listing routes are gated by the organisation role
+  alone (`OrgAdmin`: owner or admin of the organisation). A superuser who is not a
+  member gets 404 (no bypass). No global permission key is used; see ADR-0044 for
+  why organisation-bound keys would need a product entitlement that this slice does
+  not have.
+- **Resume:** a repeat checkout while a pending row exists returns that row's open
+  Checkout Session (same id and URL). A session Stripe reports as expired cancels the
+  pending row (`incomplete` to `canceled`), and a new row replaces it. A session
+  Stripe reports as complete is refused (409) until the webhook moves the row. The
+  session id is stored on the row (`checkout_session_id`, additive).
 - **Currency:** XCD only for now. USD may appear as a converted note, never as a
   charge.
 - **Prices:** `BILLING_STRIPE_PRICES` maps `plan_key:currency` to a Stripe price id.
@@ -79,8 +98,15 @@ events tickets, not for Barrels' subscriptions.
   through `src/billing/app_subscription_transitions.py`. A canceled subscription stays
   canceled. One live subscription per organisation and app (partial unique index).
 - **Idempotency:** Stripe event ids are recorded in `billing.stripe_event` in the same
-  transaction as their effect; repeats change nothing. Events older than the last
-  applied event for a subscription are ignored.
+  transaction as their effect; repeats change nothing. Stripe times are whole
+  seconds, so an event at or before the last applied event's second is ignored
+  (`<=`). This drops a second, different event in that same second; the next Stripe
+  event for the subscription carries the current state. A follow-up could retrieve
+  the subscription from Stripe on a tie. An event that names one of our rows
+  (`app_subscription_id` metadata) when that row does not exist yet is not recorded
+  and is answered 503, so Stripe sends it again. The row lookups for webhook events
+  take a row lock (`FOR UPDATE`), so a concurrent pair for one subscription waits
+  instead of hitting the unique index on `stripe_subscription_id`.
 - **Naming:** the domain is `billing`. The word "subscriptions" in routes is the
   product name; it does not belong to `src/subscriptions` (mailing lists).
 
@@ -92,5 +118,10 @@ events tickets, not for Barrels' subscriptions.
   the PR and in `docs/api/contracts.md`).
 - Live mode needs: the ADR-0027 gate, the XCD presentment check, the fee statement,
   the tax treatment for Barrels' own sales (accountant), and a reconciliation exercise.
-- The older `POST /billing/checkout-sessions` route has no test-key guard. It is
-  unchanged here and should be guarded or removed before live mode (see the PR).
+- The older `POST /billing/checkout-sessions` route (the invoicing-era one-off
+  Checkout for the signed-in user, `src/billing/service.py`) is **guarded now**: it
+  goes through the same `_require_test_key` check in `gateway.py`, so a live key is
+  refused with 503 before any request (test in `tests/billing/test_app_subscriptions.py`).
+  It is not an app subscription: it creates no row and no `app_subscription_id`
+  metadata, so its webhook events are not applied here. It stays for compatibility
+  and must be removed or moved onto the app subscription flow before live mode.
