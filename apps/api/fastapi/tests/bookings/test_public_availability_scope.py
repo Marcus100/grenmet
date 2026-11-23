@@ -1,10 +1,18 @@
 """Public availability is scoped to one organisation and to the selected service.
 
-Regression tests for ``GET /bookings/public/{slug}/availability``: another
-organisation's providers, hours, time off, closures and bookings never change a
-slug's slots; a service from another organisation is refused; a provider that
-does not offer the selected service never contributes slots; a switched-off
+Regression tests for ``GET /bookings/public/{slug}/availability``. Another
+organisation's providers, hours, time off, extra hours, closures and bookings
+never change a slug's slots; a service from another organisation is refused; a
+provider who does not offer the selected service adds no slots; a switched-off
 page answers 404.
+
+Which filter each assertion guards: the closure step fails if the closure query
+loses its ``organisation_id`` filter (checked by hand, see the PR). The booking,
+time-off, extra-hours and hours steps, and the providers query, are defence in
+depth: the engine reads those rows per provider id, and the provider ids come only
+from this organisation's services, so removing one filter would not, by itself,
+change the answer. Those steps stay as regression guards, not as proof of the
+filter.
 """
 
 import uuid
@@ -123,10 +131,31 @@ def _starts(slots: list[dict[str, object]]) -> list[object]:
     return [slot["starts_at"] for slot in slots]
 
 
+async def _add_exception(
+    client: httpx.AsyncClient,
+    owner: User,
+    org_id: str,
+    provider_id: str,
+    *,
+    kind: str,
+    starts_at: str,
+    ends_at: str,
+) -> None:
+    response = await client.post(
+        f"{API}/org/providers/{provider_id}/exceptions",
+        headers=headers_for(owner, org_id),
+        json={"kind": kind, "starts_at": starts_at, "ends_at": ends_at},
+    )
+    assert response.status_code == 201, response.text
+
+
 @pytest.mark.asyncio
-async def test_another_organisations_hours_bookings_and_closures_never_leak(
+async def test_another_organisations_data_never_changes_this_slug(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
+    """Each step adds one kind of another organisation's data that overlaps this
+    organisation's Monday windows (09:30-12:30 and 13:30-17:30 local), then
+    checks this slug's slots are exactly as they were before the step."""
     slug_a, slug_b = _slug(), _slug()
     owner_a, _, org_a = await _studio(db_async)
     service_a, provider_a = await _configure(async_client, owner_a, org_a, slug_a)
@@ -134,7 +163,7 @@ async def test_another_organisations_hours_bookings_and_closures_never_leak(
     owner_b, _, org_b = await _studio(db_async)
     await _profile(async_client, owner_b, org_b, slug_b)
     service_b = await _service(
-        async_client, owner_b, org_b, name="Gel nails", duration_min=60
+        async_client, owner_b, org_b, name="Gel nails", duration_min=120
     )
     provider_b = await _provider(
         async_client,
@@ -142,46 +171,64 @@ async def test_another_organisations_hours_bookings_and_closures_never_leak(
         org_b,
         name="Other",
         service_ids=[service_b],
-        periods=[(0, "08:00", "10:00")],
+        periods=[(0, "09:30", "12:30")],
     )
 
+    # Hours and providers: B's provider works the same window as A's and must
+    # never appear in A's answer. Defence in depth: the providers query is
+    # filtered by organisation, and A's service only links A's providers.
     before = await _slots(async_client, slug_a, service_a)
     assert _starts(before)[0] == utc_iso(9, 30)
-    assert utc_iso(8) not in _starts(before)
     assert all(slot["provider_ids"] == [provider_a] for slot in before)
 
-    b_slots = await _slots(async_client, slug_b, service_b)
-    assert _starts(b_slots)[0] == utc_iso(8)
-    assert all(slot["provider_ids"] == [provider_b] for slot in b_slots)
-
-    # Organisation B's time off (extra hours), booking and closure, each in turn.
-    extra = await async_client.post(
-        f"{API}/org/providers/{provider_b}/exceptions",
-        headers=headers_for(owner_b, org_b),
-        json={
-            "kind": "extra_hours",
-            "starts_at": utc_iso(14),
-            "ends_at": utc_iso(18),
-        },
-    )
-    assert extra.status_code == 201, extra.text
+    # Bookings: a 10:00 booking for 120 minutes on B's provider overlaps A's
+    # 09:30-12:30 slots. Defence in depth: the busy list is keyed by provider id.
     await _booking(
         db_async,
         org_id=org_b,
         service_id=service_b,
         provider_id=provider_b,
-        starts_at=utc_at(8),
-        minutes=60,
+        starts_at=utc_at(10),
+        minutes=120,
     )
+    assert await _slots(async_client, slug_a, service_a) == before
+
+    # Time off: B's provider cannot work 09:30-12:30 on Monday. Defence in depth:
+    # exceptions are read per provider id.
+    await _add_exception(
+        async_client,
+        owner_b,
+        org_b,
+        provider_b,
+        kind="time_off",
+        starts_at=utc_iso(9, 30),
+        ends_at=utc_iso(12, 30),
+    )
+    assert await _slots(async_client, slug_a, service_a) == before
+
+    # Extra hours: B's provider works 14:00-18:00 on Monday, inside A's afternoon
+    # window. Defence in depth, as for time off.
+    await _add_exception(
+        async_client,
+        owner_b,
+        org_b,
+        provider_b,
+        kind="extra_hours",
+        starts_at=utc_iso(14),
+        ends_at=utc_iso(18),
+    )
+    assert await _slots(async_client, slug_a, service_a) == before
+
+    # Closure: B closes Monday for the whole business. The closure query is
+    # filtered by organisation_id, so this step is the one that fails if that
+    # filter is removed (checked by hand, see the PR).
     closure = await async_client.post(
         f"{API}/org/closures",
         headers=headers_for(owner_b, org_b),
         json={"starts_on": MONDAY.isoformat(), "ends_on": MONDAY.isoformat()},
     )
     assert closure.status_code == 201, closure.text
-
-    after = await _slots(async_client, slug_a, service_a)
-    assert after == before
+    assert await _slots(async_client, slug_a, service_a) == before
     assert await _slots(async_client, slug_b, service_b) == []
 
 
