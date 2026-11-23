@@ -80,6 +80,31 @@ export const POSTHOG_INGEST_HOSTS = [
 ] as const;
 
 const KEY_PATTERN = /^[A-Za-z0-9_]{8,128}$/u;
+/** Values that switch collection off (case-insensitive). Anything else leaves it on. */
+const KILL_SWITCH_OFF: ReadonlySet<string> = new Set([
+  "false",
+  "0",
+  "off",
+  "no",
+]);
+/** Do Not Track values that mean "do not track" (`1` or `yes`). */
+const DNT_ON: ReadonlySet<string | null | undefined> = new Set(["1", "yes"]);
+
+function browserHostname(): string {
+  return typeof window === "undefined" ? "" : window.location.hostname;
+}
+
+/**
+ * `barrels.gd` and its subdomains, without a `staging` label. Local hosts and
+ * preview hosts (for example `*.pages.dev`, `*.vercel.app`) are not matched.
+ */
+export function isProductionHostname(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  return (
+    (host === "barrels.gd" || host.endsWith(".barrels.gd")) &&
+    !host.split(".").includes("staging")
+  );
+}
 const TRAILING_SLASHES = /\/+$/u;
 
 export interface FunnelSettings {
@@ -94,15 +119,24 @@ type PublicEnvReader = (key: PublicEnvKey) => string | undefined;
  * A host outside the allow-list also switches off, never falls back.
  */
 export function funnelSettings(
-  read: PublicEnvReader = readPublicEnv
+  read: PublicEnvReader = readPublicEnv,
+  hostname: string = browserHostname()
 ): FunnelSettings | null {
+  // Production only: a production build on a production host, never a staging
+  // host, localhost or a preview host (docs/operations/analytics-monitoring.md).
+  if (
+    read("NEXT_PUBLIC_ENVIRONMENT")?.trim() !== "production" ||
+    !isProductionHostname(hostname)
+  ) {
+    return null;
+  }
   const key = read("NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY")?.trim() ?? "";
   if (!KEY_PATTERN.test(key)) {
     return null;
   }
-  const killed =
-    read("NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED")?.trim().toLowerCase() ===
-    "false";
+  const killed = KILL_SWITCH_OFF.has(
+    (read("NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED") ?? "").trim().toLowerCase()
+  );
   if (killed) {
     return null;
   }
@@ -134,9 +168,9 @@ export function browserPrivacySignals(): PrivacySignals {
   const win = window as Window & { doNotTrack?: string };
   return {
     dnt:
-      nav.doNotTrack === "1" ||
-      nav.msDoNotTrack === "1" ||
-      win.doNotTrack === "1",
+      DNT_ON.has(nav.doNotTrack) ||
+      DNT_ON.has(nav.msDoNotTrack) ||
+      DNT_ON.has(win.doNotTrack),
     gpc: nav.globalPrivacyControl === true,
   };
 }

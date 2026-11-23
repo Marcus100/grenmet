@@ -65,9 +65,14 @@ text are never sent.
   secret). **Unset means off.** The value must look like a project key.
 - `NEXT_PUBLIC_FUNNEL_ANALYTICS_HOST`: `https://us.i.posthog.com` (default) or
   `https://eu.i.posthog.com`. Any other host switches collection off.
-- `NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED`: the kill switch. `false` turns
-  collection off even when a key is set. Any other value leaves it on.
-- Browsers with Do Not Track or Global Privacy Control send nothing.
+- `NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED`: the kill switch. `false`, `0`, `off`
+  or `no` (any case) turn collection off even when a key is set. Any other value
+  leaves it on.
+- **Production only, enforced in code.** Collection runs only when
+  `NEXT_PUBLIC_ENVIRONMENT=production` and the page is on `barrels.gd` or a
+  subdomain of it without a `staging` label. Staging, localhost and preview hosts
+  send nothing even with a key set.
+- Browsers with Do Not Track (`1` or `yes`) or Global Privacy Control send nothing.
 - The three settings are read at run time through `/runtime-env.js` like the
   other public settings. Deployment wiring (passing them to the web containers
   in `infra/docker/docker-compose.deploy.yml` and the GitHub environment) is a

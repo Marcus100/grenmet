@@ -38,46 +38,109 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe("funnelSettings (kill switch and key)", () => {
+const PRODUCTION = { NEXT_PUBLIC_ENVIRONMENT: "production" };
+const PRODUCTION_HOST = "account.barrels.gd";
+const ON = { ...PRODUCTION, NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY: KEY };
+
+describe("funnelSettings (production only, kill switch and key)", () => {
   it("is off when no project key is set", () => {
-    expect(funnelSettings(settingsFrom({}))).toBeNull();
     expect(
-      funnelSettings(settingsFrom({ NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY: "  " }))
+      funnelSettings(settingsFrom(PRODUCTION), PRODUCTION_HOST)
+    ).toBeNull();
+    expect(
+      funnelSettings(
+        settingsFrom({ ...PRODUCTION, NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY: "  " }),
+        PRODUCTION_HOST
+      )
     ).toBeNull();
   });
 
   it("rejects a malformed key", () => {
     expect(
       funnelSettings(
-        settingsFrom({ NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY: "not a key!" })
+        settingsFrom({
+          ...PRODUCTION,
+          NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY: "not a key!",
+        }),
+        PRODUCTION_HOST
       )
     ).toBeNull();
   });
 
-  it("is off when the kill switch is false, even with a key", () => {
+  it("sends on a production build on a production host", () => {
+    expect(funnelSettings(settingsFrom(ON), PRODUCTION_HOST)).toEqual({
+      host: "https://us.i.posthog.com",
+      key: KEY,
+    });
+    expect(funnelSettings(settingsFrom(ON), "barrels.gd")).not.toBeNull();
+    expect(
+      funnelSettings(settingsFrom(ON), "events.barrels.gd")
+    ).not.toBeNull();
+  });
+
+  it("sends nothing on a staging host, even with a production build", () => {
+    expect(
+      funnelSettings(settingsFrom(ON), "bookings.staging.barrels.gd")
+    ).toBeNull();
+    expect(funnelSettings(settingsFrom(ON), "staging.barrels.gd")).toBeNull();
+  });
+
+  it("sends nothing on localhost or a preview host", () => {
+    expect(funnelSettings(settingsFrom(ON), "localhost")).toBeNull();
+    expect(funnelSettings(settingsFrom(ON), "127.0.0.1")).toBeNull();
+    expect(
+      funnelSettings(settingsFrom(ON), "bookings-abc123.pages.dev")
+    ).toBeNull();
+    expect(
+      funnelSettings(settingsFrom(ON), "bookings-abc.vercel.app")
+    ).toBeNull();
+    expect(funnelSettings(settingsFrom(ON), "notbarrels.gd")).toBeNull();
+  });
+
+  it("sends nothing when the build is not production, even on a production host", () => {
     expect(
       funnelSettings(
-        settingsFrom({
-          NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED: "false",
-          NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY: KEY,
-        })
+        settingsFrom({ ...ON, NEXT_PUBLIC_ENVIRONMENT: "staging" }),
+        PRODUCTION_HOST
+      )
+    ).toBeNull();
+    expect(
+      funnelSettings(
+        settingsFrom({ NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY: KEY }),
+        PRODUCTION_HOST
       )
     ).toBeNull();
   });
 
-  it("defaults to the US ingest host", () => {
+  it.each(["false", "0", "off", "no", "OFF", " No "])(
+    "is off when the kill switch is %j, even with a key",
+    (value) => {
+      expect(
+        funnelSettings(
+          settingsFrom({ ...ON, NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED: value }),
+          PRODUCTION_HOST
+        )
+      ).toBeNull();
+    }
+  );
+
+  it("stays on for any other kill-switch value", () => {
     expect(
-      funnelSettings(settingsFrom({ NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY: KEY }))
-    ).toEqual({ host: "https://us.i.posthog.com", key: KEY });
+      funnelSettings(
+        settingsFrom({ ...ON, NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED: "true" }),
+        PRODUCTION_HOST
+      )
+    ).not.toBeNull();
   });
 
   it("accepts the EU host and trims a trailing slash", () => {
     expect(
       funnelSettings(
         settingsFrom({
+          ...ON,
           NEXT_PUBLIC_FUNNEL_ANALYTICS_HOST: "https://eu.i.posthog.com/",
-          NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY: KEY,
-        })
+        }),
+        PRODUCTION_HOST
       )
     ).toEqual({ host: "https://eu.i.posthog.com", key: KEY });
   });
@@ -86,9 +149,10 @@ describe("funnelSettings (kill switch and key)", () => {
     expect(
       funnelSettings(
         settingsFrom({
+          ...ON,
           NEXT_PUBLIC_FUNNEL_ANALYTICS_HOST: "https://evil.example",
-          NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY: KEY,
-        })
+        }),
+        PRODUCTION_HOST
       )
     ).toBeNull();
   });
@@ -99,6 +163,15 @@ describe("privacy signals (DNT and GPC)", () => {
     expect(refusesTracking({ dnt: true, gpc: false })).toBe(true);
     expect(refusesTracking({ dnt: false, gpc: true })).toBe(true);
     expect(refusesTracking({ dnt: false, gpc: false })).toBe(false);
+  });
+
+  it('treats Do Not Track value "yes" as on', async () => {
+    vi.stubGlobal("navigator", { doNotTrack: "yes" });
+    vi.stubGlobal("window", {});
+    const { browserPrivacySignals, refusesTracking: refuses } = await import(
+      "./funnel-analytics"
+    );
+    expect(refuses(browserPrivacySignals())).toBe(true);
   });
 
   it("sends nothing when Do Not Track is on", () => {
