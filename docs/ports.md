@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-18
+**Last updated:** 2026-11-22
 
 Canonical port map for the monorepo. **This file is the single source of truth** —
 when a port changes, update it here first, then propagate to the locations listed
@@ -57,6 +57,7 @@ is allocated by category.
 | bookings | `@barrelsgd/web-bookings` | 3015 |
 | account | `@barrelsgd/web-account` | 3018 |
 | commit | `@barrelsgd/web-commit` | 3019 |
+| hr | `@barrelsgd/web-hr` | 3016 |
 
 ### Reserved and planned
 
@@ -65,7 +66,6 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | Port | App | Status |
 | --- | --- | --- |
 | 3008 | `@barrelsgd/web-shop` (`shop.barrels.gd`) | Reserved; see `docs/exec-plans/barrelsgd-migration-plan.md` |
-| 3016 | `@barrelsgd/web-hr` (`hr.barrels.gd`) | Planned: separate multi-organisation HR app, organisation in the path (decision 2026-10-21) |
 | 3017 | `@barrelsgd/web-business` | Reserved |
 | 3020 | `@barrelsgd/web-developers` (`developers.barrels.gd`) | Reserved (platform) |
 | 3021 | `@barrelsgd/web-status` (`status.barrels.gd`) | Reserved (platform) |
@@ -184,7 +184,7 @@ the Status says so.
 | --- | --- | --- | --- |
 | `admin.barrels.gd` | Barrels staff and superuser console (`apps/web/admin`) | 3012 | Live: the Barrels console (`apps/web/admin`) |
 | `gms.barrels.gd` | Met office staff portal (today's gaa-admin) | 3001 | Live: the GMS/GAA staff portal (`apps/web/gaa-admin`). Old `gms.*` links meant the retired public weather site (now `weather.*`) |
-| `hr.barrels.gd` | Barrels HR: separate multi-organisation app, organisation in the path (`hr.barrels.gd/<orgSlug>/...`) | 3016 | Planned, not built (stays in gaa-admin until then) |
+| `hr.barrels.gd` | Barrels HR: separate multi-organisation app, organisation in the path (`hr.barrels.gd/<orgSlug>/...`) | 3016 | Scaffolded (`apps/web/hr`), not deployed. HR screens stay in gaa-admin until they move |
 | `shop.barrels.gd` | Shopkeeping: the merchant-facing shop and stores app | 3008 | Reserved |
 | `education.barrels.gd` | Sector product (Education cluster) | 3035 | Reserved; building is gated on validated demand |
 | `automotive.barrels.gd` | Sector product (Automotive cluster) | 3036 | Reserved; building is gated on validated demand |

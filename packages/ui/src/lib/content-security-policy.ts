@@ -30,7 +30,8 @@ export type CspApp =
   | "events"
   | "gaa-admin"
   | "gms"
-  | "gmsdash";
+  | "gmsdash"
+  | "hr";
 
 const GA_SCRIPT = ["https://www.googletagmanager.com"] as const;
 const GA_CONNECT = [
@@ -93,6 +94,13 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
   // redirect to presigned object storage; that storage origin must be added to
   // img-src before this policy is enforced (follow-up, see apps/web/account).
   account: {
+    script: [],
+    connect: [],
+    img: [],
+    frame: [],
+  },
+  // Staff HR app (hr.barrels.gd): server-rendered, no third-party scripts.
+  hr: {
     script: [],
     connect: [],
     img: [],
