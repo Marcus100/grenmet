@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { render, screen } from "@testing-library/react";
-import { expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 const session = vi.hoisted(() => vi.fn().mockResolvedValue("password-session"));
 vi.mock("@/lib/session", () => ({
@@ -52,7 +52,7 @@ vi.mock("@/lib/app-links", () => ({ getAppHrefs: vi.fn() }));
 vi.mock("@/lib/auth-config", () => ({ getAuthConfig: vi.fn() }));
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 
-import Home from "./page";
+import Home, { generateMetadata } from "./page";
 
 it("shows a fresh sign-in despite an existing session when MFA reauthentication is requested", async () => {
   const returnTo = "/continue?app=gaa-admin&state=verified-handoff-state";
@@ -148,4 +148,26 @@ it("shows nothing for an unknown notice code and never echoes it", async () => {
   );
   expect(screen.queryByRole("status")).toBeNull();
   expect(document.body.textContent).not.toContain("alert(1)");
+});
+
+describe("sign-in page title", () => {
+  it("is 'Sign in to <app>' for a signed-out visitor, the same wording as the heading", async () => {
+    session.mockResolvedValueOnce(null);
+    await expect(
+      generateMetadata({
+        searchParams: Promise.resolve({ app: "gaa-admin" }),
+      })
+    ).resolves.toEqual({ title: "Sign in to GAA Admin" });
+  });
+
+  it("is 'Your account' when a session cookie is present, but sign-in on reauthentication", async () => {
+    session.mockResolvedValueOnce("password-session");
+    await expect(
+      generateMetadata({ searchParams: Promise.resolve({}) })
+    ).resolves.toEqual({ title: "Your account" });
+    session.mockResolvedValueOnce("password-session");
+    await expect(
+      generateMetadata({ searchParams: Promise.resolve({ reauth: "1" }) })
+    ).resolves.toEqual({ title: "Sign in to GAA Admin" });
+  });
 });

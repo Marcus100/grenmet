@@ -16,7 +16,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   // Staff-only: keep it out of search engines.
   robots: { index: false, follow: false },
-  title: "Barrels sign-in",
+  title: {
+    default: "Barrels sign-in",
+    template: "%s | Barrels sign-in",
+  },
   description: "Sign in to your Barrels account and the apps that use it.",
   icons: {
     icon: [
