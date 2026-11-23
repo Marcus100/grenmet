@@ -97,6 +97,7 @@ LOGO_PURPOSE = "booking-logo"
 #: one out keeps the stored value.
 KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
     "payment_at_booking",
+    "deposit_payment_link",
     "deposit_mode",
     "deposit_percent",
     "deposit_fixed_minor",

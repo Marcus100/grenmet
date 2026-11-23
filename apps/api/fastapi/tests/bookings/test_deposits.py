@@ -31,6 +31,7 @@ from tests.payments import conftest as payments_conftest
 import_module("src.bookings.outbox_handlers")  # registers bookings.deposit_paid
 stripe_env = payments_conftest.stripe_env
 DEPOSIT = 5000
+DEPOSIT_LINK = "https://pay.example.test/deposit/salon"
 PAYMENTS = "/api/v1/payments"
 
 
@@ -41,6 +42,9 @@ async def _deposit_studio(
     apps: tuple[str, ...] = ("bookings", "payments"),
     **profile: object,
 ) -> Studio:
+    # A business with no online rail takes no deposit (21 Nov 2026). These tests
+    # cover the staff-recorded path, so the studio gets a payment link by default.
+    profile.setdefault("deposit_payment_link", DEPOSIT_LINK)
     studio = await _studio(db, client, apps=apps, **profile)
     # The service route is behind the bookings entitlement; set the deposit in SQL
     # so the helper works whatever `apps` holds.
@@ -133,7 +137,8 @@ async def test_deposit_booking_waits_for_payment_and_holds_the_slot(
     receipt = await _book_deposit(async_client, studio, db=db_async)
 
     assert receipt["payment_required"] is True
-    assert receipt["checkout_url"] is None  # no Stripe key: the studio records it
+    # No Stripe key: the business's payment link is the checkout; staff record it.
+    assert receipt["checkout_url"] == DEPOSIT_LINK
     booking = receipt["booking"]
     assert booking["status"] == "pending_payment"
     assert booking["deposit_minor"] == DEPOSIT

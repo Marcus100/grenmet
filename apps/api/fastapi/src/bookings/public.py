@@ -295,7 +295,11 @@ async def full_detail(
 ) -> BookingPublicDetail:
     """``detail`` plus what the customer paid at booking (needs the payments rows)."""
     result = detail(managed, now)
-    result.payment = await deposit_payments.payment_summary(session, managed.booking)
+    result.payment = await deposit_payments.payment_summary(
+        session,
+        managed.booking,
+        payment_link=managed.profile.deposit_payment_link,
+    )
     return result
 
 
@@ -434,6 +438,21 @@ async def queue_customer_email(
         organisation_id=managed.booking.organisation_id,
         from_name=sender.from_name,
         reply_to=sender.reply_to,
+    )
+
+
+async def refund_refused_notice(session: AsyncSession, managed: Managed) -> None:
+    """Tell the studio, by email, that a deposit refund must be made by hand (WiPay has
+    no refund call). The history note is written by the caller. Once per booking and
+    deposit intent: a repeat refusal for the same deposit queues nothing new."""
+    mail = build_mail(managed)
+    intent = await deposit_payments.find_deposit(session, managed.booking)
+    intent_part = str(intent.id) if intent is not None else "none"
+    await queue_studio_email(
+        session,
+        managed,
+        emails.studio_notice(mail, event="refund"),
+        f"booking-refund-refused:{managed.booking.id}:{intent_part}",
     )
 
 
@@ -750,6 +769,7 @@ async def _create_booking(
             booking,
             contact.email,
             title=deposit_payments.checkout_title(booking, svc, profile, deposit),
+            profile=profile,
         )
     else:
         mail = build_mail(managed, token)
@@ -898,6 +918,8 @@ async def cancel_booking(
             BookingStatus.CANCELLED,
             note=money,
         )
+        if deposit_payments.REFUND_BY_HAND in money:
+            await refund_refused_notice(session, managed)
     await emit_webhook(
         session,
         booking,

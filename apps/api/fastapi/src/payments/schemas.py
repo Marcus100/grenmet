@@ -12,6 +12,7 @@ from .models import (
     AttemptStatus,
     IntentStatus,
     LedgerKind,
+    MerchantEnvironment,
     ProviderKey,
     RefundStatus,
 )
@@ -25,6 +26,9 @@ class ManualMethod(str, Enum):
     CASH = "cash"
     BANK_TRANSFER = "bank_transfer"
     CHEQUE = "cheque"
+    #: A card payment the customer made on the business's own payment link, which
+    #: staff confirm when they see it (no provider callback reaches Barrels).
+    PAYMENT_LINK = "payment_link"
 
 
 class PaymentIntentCreate(BaseModel):
@@ -284,3 +288,54 @@ class DisputeListPublic(BaseModel):
     count: int
     page: int
     size: int
+
+
+# --- a business's own online-payment account (ADR-0027 amendment, 21 Nov 2026) ---------
+
+
+class MerchantAccountUpsert(BaseModel):
+    """Set the business's WiPay account. A blank (omitted) secret keeps the stored one;
+    a new account needs its ``api_key``. Secrets are never returned."""
+
+    environment: MerchantEnvironment = Field(
+        description="`sandbox` for test payments; `live` only after the owner approves it."
+    )
+    enabled: bool = Field(default=False, description="Off: no checkout is started.")
+    account_number: Annotated[str, Field(pattern=r"^[0-9]{1,12}$")] | None = Field(
+        default=None, description="The WiPay merchant account number (digits)."
+    )
+    api_key: (
+        Annotated[str, Field(min_length=8, max_length=200, pattern=r"^\S+$")] | None
+    ) = Field(
+        default=None,
+        description="The WiPay API key, used only on the server to verify returns.",
+    )
+    webhook_secret: (
+        Annotated[str, Field(min_length=8, max_length=200, pattern=r"^\S+$")] | None
+    ) = Field(
+        default=None,
+        description="The signing secret WiPay shows once for the webhook endpoint.",
+    )
+
+
+class MerchantAccountPublic(BaseModel):
+    provider: ProviderKey
+    environment: MerchantEnvironment
+    enabled: bool
+    has_credentials: bool
+    has_webhook_secret: bool
+    sandbox_verified_at: UtcDateTime | None = Field(
+        description="When a sandbox test payment was verified; live needs this."
+    )
+    live_approved_at: UtcDateTime | None = Field(
+        description="When the owner approved live payments; null when not approved."
+    )
+    updated_at: UtcDateTime
+
+
+class MerchantAccountListPublic(BaseModel):
+    data: list[MerchantAccountPublic]
+
+
+class MerchantLiveApproval(BaseModel):
+    approved: bool

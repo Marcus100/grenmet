@@ -158,6 +158,9 @@ class BookingProfile(Base):
         default=BookingPaymentMode.DEPOSIT.value,
         server_default=BookingPaymentMode.DEPOSIT.value,
     )
+    #: The business's own https payment link (21 Nov 2026), the deposit checkout when no
+    #: online provider is ready. Staff confirm the payment when it arrives.
+    deposit_payment_link: Mapped[str | None] = mapped_column(String(2000))
     #: ``BookingDepositMode``: the business-wide deposit rule. ``none`` by default,
     #: so existing businesses keep their per-service deposits and nothing else.
     deposit_mode: Mapped[str] = mapped_column(

@@ -6804,6 +6804,11 @@ export { membershipGrantCreateSchema } from "./membershipGrantCreateSchema.js";
 export { membershipGrantPublicSchema } from "./membershipGrantPublicSchema.js";
 export { membershipRoleSchema } from "./membershipRoleSchema.js";
 export { membershipStatusSchema } from "./membershipStatusSchema.js";
+export { merchantAccountListPublicSchema } from "./merchantAccountListPublicSchema.js";
+export { merchantAccountPublicSchema } from "./merchantAccountPublicSchema.js";
+export { merchantAccountUpsertSchema } from "./merchantAccountUpsertSchema.js";
+export { merchantEnvironmentSchema } from "./merchantEnvironmentSchema.js";
+export { merchantLiveApprovalSchema } from "./merchantLiveApprovalSchema.js";
 export { messageCreateSchema } from "./messageCreateSchema.js";
 export { messagePublicSchema } from "./messagePublicSchema.js";
 export { messageSchema } from "./messageSchema.js";
@@ -7751,6 +7756,19 @@ export {
   paymentsAdminListLedgerStatus422Schema,
 } from "./paymentsAdminListLedgerSchema.js";
 export {
+  paymentsAdminSetLiveApprovalBodySchema,
+  paymentsAdminSetLiveApprovalErrorSchema,
+  paymentsAdminSetLiveApprovalPathOrganisationIdSchema,
+  paymentsAdminSetLiveApprovalPathProviderSchema,
+  paymentsAdminSetLiveApprovalPathSchema,
+  paymentsAdminSetLiveApprovalResponseSchema,
+  paymentsAdminSetLiveApprovalStatus200Schema,
+  paymentsAdminSetLiveApprovalStatus401Schema,
+  paymentsAdminSetLiveApprovalStatus403Schema,
+  paymentsAdminSetLiveApprovalStatus409Schema,
+  paymentsAdminSetLiveApprovalStatus422Schema,
+} from "./paymentsAdminSetLiveApprovalSchema.js";
+export {
   paymentsAdminSetPlatformFeeBodySchema,
   paymentsAdminSetPlatformFeeErrorSchema,
   paymentsAdminSetPlatformFeePathOrganisationIdSchema,
@@ -7873,6 +7891,16 @@ export {
   paymentsListIntentsStatus422Schema,
 } from "./paymentsListIntentsSchema.js";
 export {
+  paymentsListMerchantAccountsErrorSchema,
+  paymentsListMerchantAccountsHeadersSchema,
+  paymentsListMerchantAccountsHeaderXBarrelsOrganisationSchema,
+  paymentsListMerchantAccountsResponseSchema,
+  paymentsListMerchantAccountsStatus200Schema,
+  paymentsListMerchantAccountsStatus401Schema,
+  paymentsListMerchantAccountsStatus403Schema,
+  paymentsListMerchantAccountsStatus422Schema,
+} from "./paymentsListMerchantAccountsSchema.js";
+export {
   paymentsRecordManualPaymentBodySchema,
   paymentsRecordManualPaymentErrorSchema,
   paymentsRecordManualPaymentHeadersSchema,
@@ -7888,6 +7916,37 @@ export {
   paymentsRecordManualPaymentStatus409Schema,
   paymentsRecordManualPaymentStatus422Schema,
 } from "./paymentsRecordManualPaymentSchema.js";
+export {
+  paymentsSaveMerchantAccountBodySchema,
+  paymentsSaveMerchantAccountErrorSchema,
+  paymentsSaveMerchantAccountHeadersSchema,
+  paymentsSaveMerchantAccountHeaderXBarrelsOrganisationSchema,
+  paymentsSaveMerchantAccountPathProviderSchema,
+  paymentsSaveMerchantAccountPathSchema,
+  paymentsSaveMerchantAccountResponseSchema,
+  paymentsSaveMerchantAccountStatus200Schema,
+  paymentsSaveMerchantAccountStatus400Schema,
+  paymentsSaveMerchantAccountStatus401Schema,
+  paymentsSaveMerchantAccountStatus403Schema,
+  paymentsSaveMerchantAccountStatus404Schema,
+  paymentsSaveMerchantAccountStatus409Schema,
+  paymentsSaveMerchantAccountStatus422Schema,
+  paymentsSaveMerchantAccountStatus503Schema,
+} from "./paymentsSaveMerchantAccountSchema.js";
+export {
+  paymentsStartWipayTestCheckoutErrorSchema,
+  paymentsStartWipayTestCheckoutHeadersSchema,
+  paymentsStartWipayTestCheckoutHeaderXBarrelsOrganisationSchema,
+  paymentsStartWipayTestCheckoutResponseSchema,
+  paymentsStartWipayTestCheckoutStatus201Schema,
+  paymentsStartWipayTestCheckoutStatus400Schema,
+  paymentsStartWipayTestCheckoutStatus401Schema,
+  paymentsStartWipayTestCheckoutStatus403Schema,
+  paymentsStartWipayTestCheckoutStatus404Schema,
+  paymentsStartWipayTestCheckoutStatus409Schema,
+  paymentsStartWipayTestCheckoutStatus422Schema,
+  paymentsStartWipayTestCheckoutStatus503Schema,
+} from "./paymentsStartWipayTestCheckoutSchema.js";
 export { payPeriodAmountsPublicSchema } from "./payPeriodAmountsPublicSchema.js";
 export { payPeriodCreateSchema } from "./payPeriodCreateSchema.js";
 export { payPeriodDetailSchema } from "./payPeriodDetailSchema.js";

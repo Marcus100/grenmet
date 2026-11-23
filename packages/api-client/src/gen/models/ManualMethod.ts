@@ -7,6 +7,7 @@ export const manualMethod = {
   cash: "cash",
   bank_transfer: "bank_transfer",
   cheque: "cheque",
+  payment_link: "payment_link",
 } as const;
 
 export type ManualMethod = (typeof manualMethod)[keyof typeof manualMethod];

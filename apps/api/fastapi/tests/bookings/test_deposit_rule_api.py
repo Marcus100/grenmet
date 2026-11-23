@@ -27,6 +27,8 @@ from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
 
 PRICE = 21000
+#: A payment route for the studio: the rule applies only when one is available.
+ROUTE_LINK = "https://pay.example.test/deposit/salon"
 
 
 async def _ruled(
@@ -37,7 +39,9 @@ async def _ruled(
     **rule: object,
 ) -> Studio:
     """A studio whose profile carries the deposit rule and whose service has no
-    deposit of its own (the helper's service does not set one)."""
+    deposit of its own (the helper's service does not set one). It has a payment
+    route (the business's link), because the rule applies only with one (21 Nov 2026)."""
+    rule.setdefault("deposit_payment_link", ROUTE_LINK)
     return await _studio(db, client, apps=apps, **rule)
 
 
@@ -260,7 +264,12 @@ async def test_default_off_regression_charges_nothing_without_a_service_deposit(
 ) -> None:
     """Regression: a business that never set the rule books a priced service with
     no deposit, as before this change, and keeps its per-service deposit."""
-    studio = await _studio(db_async, async_client, apps=("bookings", "payments"))
+    studio = await _studio(
+        db_async,
+        async_client,
+        apps=("bookings", "payments"),
+        deposit_payment_link=ROUTE_LINK,
+    )
     starts_at = (await _slots(async_client, studio))[0]
     response = await _book(async_client, studio, starts_at)
     assert response.status_code == 201, response.text
@@ -274,7 +283,12 @@ async def test_default_off_regression_charges_nothing_without_a_service_deposit(
 async def test_default_off_keeps_a_service_deposit(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
-    studio = await _studio(db_async, async_client, apps=("bookings", "payments"))
+    studio = await _studio(
+        db_async,
+        async_client,
+        apps=("bookings", "payments"),
+        deposit_payment_link=ROUTE_LINK,
+    )
     service = await db_async.get(Service, uuid.UUID(studio.service_id))
     assert service is not None
     service.deposit_minor = 5000
@@ -341,7 +355,12 @@ async def test_one_business_rule_is_never_read_by_another(
     ours = await _ruled(
         db_async, async_client, deposit_mode="percent", deposit_percent=50
     )
-    theirs = await _studio(db_async, async_client, apps=("bookings", "payments"))
+    theirs = await _studio(
+        db_async,
+        async_client,
+        apps=("bookings", "payments"),
+        deposit_payment_link=ROUTE_LINK,
+    )
     assert (await _settings(async_client, theirs))["deposit_mode"] == "none"
     assert (await _settings(async_client, ours))["deposit_mode"] == "percent"
 

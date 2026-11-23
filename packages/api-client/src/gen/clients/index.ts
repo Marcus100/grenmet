@@ -611,6 +611,7 @@ export { paymentsAdminGetReconciliationCsv } from "./paymentsAdminGetReconciliat
 export { paymentsAdminListBalances } from "./paymentsAdminListBalances.js";
 export { paymentsAdminListIntents } from "./paymentsAdminListIntents.js";
 export { paymentsAdminListLedger } from "./paymentsAdminListLedger.js";
+export { paymentsAdminSetLiveApproval } from "./paymentsAdminSetLiveApproval.js";
 export { paymentsAdminSetPlatformFee } from "./paymentsAdminSetPlatformFee.js";
 export { paymentsCreateConnectOnboardingLink } from "./paymentsCreateConnectOnboardingLink.js";
 export { paymentsCreateIntent } from "./paymentsCreateIntent.js";
@@ -620,7 +621,10 @@ export { paymentsGetConnectStatus } from "./paymentsGetConnectStatus.js";
 export { paymentsGetIntent } from "./paymentsGetIntent.js";
 export { paymentsListDisputes } from "./paymentsListDisputes.js";
 export { paymentsListIntents } from "./paymentsListIntents.js";
+export { paymentsListMerchantAccounts } from "./paymentsListMerchantAccounts.js";
 export { paymentsRecordManualPayment } from "./paymentsRecordManualPayment.js";
+export { paymentsSaveMerchantAccount } from "./paymentsSaveMerchantAccount.js";
+export { paymentsStartWipayTestCheckout } from "./paymentsStartWipayTestCheckout.js";
 export { printixAddMember } from "./printixAddMember.js";
 export { printixAdmitTicket } from "./printixAdmitTicket.js";
 export { printixCloseEvent } from "./printixCloseEvent.js";

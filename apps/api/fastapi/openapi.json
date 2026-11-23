@@ -9257,6 +9257,323 @@
         }
       }
     },
+    "/api/v1/payments/org/merchant-accounts": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "List the business's own payment accounts",
+        "description": "Each online provider the business set up, with its environment and switches. Never returns a credential.",
+        "operationId": "paymentsListMerchantAccounts",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MerchantAccountListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/org/merchant-accounts/{provider}": {
+      "put": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Save the business's own WiPay account",
+        "description": "Stores the business's WiPay account number, API key and webhook secret, encrypted. A blank secret keeps the stored one. 503 while the platform has no secret keys. Live payments need the owner's approval before a checkout starts.",
+        "operationId": "paymentsSaveMerchantAccount",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "const": "wipay",
+              "type": "string",
+              "title": "Provider"
+            }
+          },
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MerchantAccountUpsert"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MerchantAccountPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The payment provider is not available"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/org/merchant-accounts/wipay/test-checkout": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Start the business's WiPay sandbox test checkout",
+        "description": "Creates a sandbox checkout of 1.00 XCD with no booking or customer. Its verified success records the sandbox proof that live approval needs. The account must be set to sandbox and enabled.",
+        "operationId": "paymentsStartWipayTestCheckout",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentCheckoutPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The payment provider is not available"
+          }
+        }
+      }
+    },
     "/api/v1/payments/org/connect/onboarding-links": {
       "post": {
         "tags": [
@@ -9514,6 +9831,104 @@
           },
           "403": {
             "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/admin/merchant-accounts/{organisation_id}/{provider}/live-approval": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Approve or withdraw live payments for a business",
+        "description": "The owner's switch. Approval needs a verified sandbox payment first (409 otherwise). Withdrawing it stops new live checkouts at once.",
+        "operationId": "paymentsAdminSetLiveApproval",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "const": "wipay",
+              "type": "string",
+              "title": "Provider"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MerchantLiveApproval"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MerchantAccountPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
             "content": {
               "application/json": {
                 "schema": {
@@ -79068,6 +79483,19 @@
             "title": "City",
             "description": "Town or city for the home page card. Blank clears it. Left out, the stored value is kept."
           },
+          "deposit_payment_link": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Payment Link",
+            "description": "The business's own https payment link (for example a bank's e-commerce page or a PayPal.me address). Used as the deposit checkout while no online provider is ready; staff record the payment when it arrives. Blank clears it; left out, the stored link is kept."
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -79349,6 +79777,19 @@
             ],
             "title": "City",
             "description": "Town or city for the home page card. Blank clears it. Left out, the stored value is kept."
+          },
+          "deposit_payment_link": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Payment Link",
+            "description": "The business's own https payment link (for example a bank's e-commerce page or a PayPal.me address). Used as the deposit checkout while no online provider is ready; staff record the payment when it arrives. Blank clears it; left out, the stored link is kept."
           }
         },
         "type": "object",
@@ -96562,7 +97003,8 @@
         "enum": [
           "cash",
           "bank_transfer",
-          "cheque"
+          "cheque",
+          "payment_link"
         ],
         "title": "ManualMethod"
       },
@@ -96982,6 +97424,171 @@
           "removed"
         ],
         "title": "MembershipStatus"
+      },
+      "MerchantAccountListPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/MerchantAccountPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "MerchantAccountListPublic"
+      },
+      "MerchantAccountPublic": {
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/ProviderKey"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/MerchantEnvironment"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "has_credentials": {
+            "type": "boolean",
+            "title": "Has Credentials"
+          },
+          "has_webhook_secret": {
+            "type": "boolean",
+            "title": "Has Webhook Secret"
+          },
+          "sandbox_verified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sandbox Verified At",
+            "description": "When a sandbox test payment was verified; live needs this."
+          },
+          "live_approved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Live Approved At",
+            "description": "When the owner approved live payments; null when not approved."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "environment",
+          "enabled",
+          "has_credentials",
+          "has_webhook_secret",
+          "sandbox_verified_at",
+          "live_approved_at",
+          "updated_at"
+        ],
+        "title": "MerchantAccountPublic"
+      },
+      "MerchantAccountUpsert": {
+        "properties": {
+          "environment": {
+            "$ref": "#/components/schemas/MerchantEnvironment",
+            "description": "`sandbox` for test payments; `live` only after the owner approves it."
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "Off: no checkout is started.",
+            "default": false
+          },
+          "account_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{1,12}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Number",
+            "description": "The WiPay merchant account number (digits)."
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 8,
+                "pattern": "^\\S+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key",
+            "description": "The WiPay API key, used only on the server to verify returns."
+          },
+          "webhook_secret": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 8,
+                "pattern": "^\\S+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Secret",
+            "description": "The signing secret WiPay shows once for the webhook endpoint."
+          }
+        },
+        "type": "object",
+        "required": [
+          "environment"
+        ],
+        "title": "MerchantAccountUpsert",
+        "description": "Set the business's WiPay account. A blank (omitted) secret keeps the stored one;\na new account needs its ``api_key``. Secrets are never returned."
+      },
+      "MerchantEnvironment": {
+        "type": "string",
+        "enum": [
+          "sandbox",
+          "live"
+        ],
+        "title": "MerchantEnvironment"
+      },
+      "MerchantLiveApproval": {
+        "properties": {
+          "approved": {
+            "type": "boolean",
+            "title": "Approved"
+          }
+        },
+        "type": "object",
+        "required": [
+          "approved"
+        ],
+        "title": "MerchantLiveApproval"
       },
       "Message": {
         "properties": {
@@ -107858,7 +108465,8 @@
         "type": "string",
         "enum": [
           "manual",
-          "stripe"
+          "stripe",
+          "wipay"
         ],
         "title": "ProviderKey"
       },

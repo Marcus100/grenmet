@@ -33,6 +33,13 @@ class IntentStatus(str, Enum):
 class ProviderKey(str, Enum):
     MANUAL = "manual"
     STRIPE = "stripe"
+    #: WiPay (Grenada, ADR-0027 amendment 21 Nov 2026): the business's own WiPay account.
+    WIPAY = "wipay"
+
+
+class MerchantEnvironment(str, Enum):
+    SANDBOX = "sandbox"
+    LIVE = "live"
 
 
 class AttemptStatus(str, Enum):
@@ -68,6 +75,11 @@ class Intent(Base):
         sa.CheckConstraint(f"provider IN ({_values(ProviderKey)})", name="provider"),
         sa.CheckConstraint("amount_minor > 0", name="amount_positive"),
         sa.CheckConstraint("currency ~ '^[A-Z]{3}$'", name="currency_format"),
+        sa.CheckConstraint(
+            "provider_environment IS NULL"
+            f" OR provider_environment IN ({_values(MerchantEnvironment)})",
+            name="provider_environment",
+        ),
         sa.UniqueConstraint(
             "organisation_id", "idempotency_key", name="intent_org_idempotency_key"
         ),
@@ -94,6 +106,9 @@ class Intent(Base):
     source_id: Mapped[str | None] = mapped_column(String(120))
     #: The hosted checkout page, kept so a retried request can return it.
     checkout_url: Mapped[str | None] = mapped_column(String(2000))
+    #: The environment an online rail took the payment in (``sandbox`` or ``live``);
+    #: NULL for rails with none. Set when the intent is created.
+    provider_environment: Mapped[str | None] = mapped_column(String(10))
     #: SHA-256 hex of the normalised payer email, never the address itself.
     customer_email_hash: Mapped[str | None] = mapped_column(String(64))
     #: Free-form labels from the consumer. Must not hold personal data.
@@ -155,6 +170,49 @@ class Refund(Base):
     status: Mapped[str] = mapped_column(String(10), default=RefundStatus.PENDING.value)
     provider_ref: Mapped[str | None] = mapped_column(String(200))
     created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class MerchantAccount(Base):
+    """A business's own online-payment account (ADR-0027 amendment, 21 Nov 2026).
+
+    The business is the seller: money goes to its own provider account, never to
+    Barrels. One row per organisation and provider. The provider credentials are one
+    encrypted blob (``utils.secret_box``, organisation keys), never plain columns.
+    ``sandbox_verified_at`` is set by a verified sandbox payment; ``live_approved_at``
+    is the owner's switch and needs that proof first.
+    """
+
+    __tablename__ = "merchant_account"
+    __table_args__ = (
+        sa.CheckConstraint(
+            f"provider IN ('{ProviderKey.WIPAY.value}')", name="provider"
+        ),
+        sa.CheckConstraint(
+            f"environment IN ({_values(MerchantEnvironment)})", name="environment"
+        ),
+        sa.UniqueConstraint(
+            "organisation_id", "provider", name="merchant_account_org_provider"
+        ),
+        {"schema": "payments"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id"), index=True
+    )
+    provider: Mapped[str] = mapped_column(String(20))
+    environment: Mapped[str] = mapped_column(String(10))
+    #: The business's own switch: off means no checkout is started with this account.
+    enabled: Mapped[bool] = mapped_column(default=False)
+    #: ``fernet:v1:`` blob of the account number, API key and webhook secret.
+    credentials_encrypted: Mapped[str] = mapped_column(sa.Text)
+    sandbox_verified_at: Mapped[datetime | None] = mapped_column(default=None)
+    live_approved_at: Mapped[datetime | None] = mapped_column(default=None)
+    live_approved_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("user.id", ondelete="SET NULL")
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)

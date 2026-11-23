@@ -6,6 +6,7 @@
 export const providerKey = {
   manual: "manual",
   stripe: "stripe",
+  wipay: "wipay",
 } as const;
 
 export type ProviderKey = (typeof providerKey)[keyof typeof providerKey];

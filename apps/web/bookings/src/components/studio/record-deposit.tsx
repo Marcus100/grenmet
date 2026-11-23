@@ -45,6 +45,7 @@ const METHOD_LABEL: Record<ManualMethod, string> = {
   cash: "Cash",
   bank_transfer: "Bank transfer",
   cheque: "Cheque",
+  payment_link: "Payment link",
 };
 const METHODS = Object.keys(METHOD_LABEL) as ManualMethod[];
 

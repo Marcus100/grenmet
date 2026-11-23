@@ -2,6 +2,7 @@ import uuid
 from datetime import date, time
 from enum import Enum
 from typing import Annotated, Self
+from urllib.parse import urlsplit
 
 from pydantic import EmailStr, Field, RootModel, field_validator, model_validator
 
@@ -121,6 +122,30 @@ class BookingMyBookingList(BaseModel):
 
 
 # --- profile ---------------------------------------------------------------------
+
+_PAYMENT_LINK_MAX = 2000
+
+
+def normalise_payment_link(value: object) -> str | None:
+    """The business's deposit payment link: https only, no spaces, no login in the
+    address, a real host. Blank clears it (21 Nov 2026)."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError("A payment link is text")
+    text = value.strip()
+    if not text:
+        return None
+    if len(text) > _PAYMENT_LINK_MAX:
+        raise ValueError("A payment link is at most 2000 characters")
+    if any(character.isspace() for character in text):
+        raise ValueError("A payment link must not contain spaces")
+    parts = urlsplit(text)
+    if parts.scheme != "https" or not parts.hostname:
+        raise ValueError("A payment link must be an https address")
+    if parts.username is not None or parts.password is not None:
+        raise ValueError("A payment link must not contain a login")
+    return text
 
 
 class BookingProfileUpdate(BaseModel):
@@ -276,6 +301,22 @@ class BookingProfileUpdate(BaseModel):
         if isinstance(value, str):
             return value.strip() or None
         return value
+
+    deposit_payment_link: str | None = Field(
+        default=None,
+        max_length=_PAYMENT_LINK_MAX,
+        description=(
+            "The business's own https payment link (for example a bank's e-commerce "
+            "page or a PayPal.me address). Used as the deposit checkout while no online "
+            "provider is ready; staff record the payment when it arrives. Blank clears "
+            "it; left out, the stored link is kept."
+        ),
+    )
+
+    @field_validator("deposit_payment_link", mode="before")
+    @classmethod
+    def _payment_link(cls, value: object) -> str | None:
+        return normalise_payment_link(value)
 
     @field_validator("contact_phone", mode="before")
     @classmethod

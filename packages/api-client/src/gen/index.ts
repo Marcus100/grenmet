@@ -6750,6 +6750,11 @@ export type { MembershipGrantCreate } from "./models/MembershipGrantCreate.js";
 export type { MembershipGrantPublic } from "./models/MembershipGrantPublic.js";
 export type { MembershipRole } from "./models/MembershipRole.js";
 export type { MembershipStatus } from "./models/MembershipStatus.js";
+export type { MerchantAccountListPublic } from "./models/MerchantAccountListPublic.js";
+export type { MerchantAccountPublic } from "./models/MerchantAccountPublic.js";
+export type { MerchantAccountUpsert } from "./models/MerchantAccountUpsert.js";
+export type { MerchantEnvironment } from "./models/MerchantEnvironment.js";
+export type { MerchantLiveApproval } from "./models/MerchantLiveApproval.js";
 export type { Message } from "./models/Message.js";
 export type { MessageCreate } from "./models/MessageCreate.js";
 export type { MessagePublic } from "./models/MessagePublic.js";
@@ -7672,6 +7677,18 @@ export type {
   PaymentsAdminListLedgerStatus422,
 } from "./models/PaymentsAdminListLedger.js";
 export type {
+  PaymentsAdminSetLiveApprovalBody,
+  PaymentsAdminSetLiveApprovalOptions,
+  PaymentsAdminSetLiveApprovalPath,
+  PaymentsAdminSetLiveApprovalResponse,
+  PaymentsAdminSetLiveApprovalResponses,
+  PaymentsAdminSetLiveApprovalStatus200,
+  PaymentsAdminSetLiveApprovalStatus401,
+  PaymentsAdminSetLiveApprovalStatus403,
+  PaymentsAdminSetLiveApprovalStatus409,
+  PaymentsAdminSetLiveApprovalStatus422,
+} from "./models/PaymentsAdminSetLiveApproval.js";
+export type {
   PaymentsAdminSetPlatformFeeBody,
   PaymentsAdminSetPlatformFeeOptions,
   PaymentsAdminSetPlatformFeePath,
@@ -7785,6 +7802,16 @@ export type {
   PaymentsListIntentsStatus422,
 } from "./models/PaymentsListIntents.js";
 export type {
+  PaymentsListMerchantAccountsHeaders,
+  PaymentsListMerchantAccountsOptions,
+  PaymentsListMerchantAccountsResponse,
+  PaymentsListMerchantAccountsResponses,
+  PaymentsListMerchantAccountsStatus200,
+  PaymentsListMerchantAccountsStatus401,
+  PaymentsListMerchantAccountsStatus403,
+  PaymentsListMerchantAccountsStatus422,
+} from "./models/PaymentsListMerchantAccounts.js";
+export type {
   PaymentsRecordManualPaymentBody,
   PaymentsRecordManualPaymentHeaders,
   PaymentsRecordManualPaymentOptions,
@@ -7799,6 +7826,36 @@ export type {
   PaymentsRecordManualPaymentStatus409,
   PaymentsRecordManualPaymentStatus422,
 } from "./models/PaymentsRecordManualPayment.js";
+export type {
+  PaymentsSaveMerchantAccountBody,
+  PaymentsSaveMerchantAccountHeaders,
+  PaymentsSaveMerchantAccountOptions,
+  PaymentsSaveMerchantAccountPath,
+  PaymentsSaveMerchantAccountResponse,
+  PaymentsSaveMerchantAccountResponses,
+  PaymentsSaveMerchantAccountStatus200,
+  PaymentsSaveMerchantAccountStatus400,
+  PaymentsSaveMerchantAccountStatus401,
+  PaymentsSaveMerchantAccountStatus403,
+  PaymentsSaveMerchantAccountStatus404,
+  PaymentsSaveMerchantAccountStatus409,
+  PaymentsSaveMerchantAccountStatus422,
+  PaymentsSaveMerchantAccountStatus503,
+} from "./models/PaymentsSaveMerchantAccount.js";
+export type {
+  PaymentsStartWipayTestCheckoutHeaders,
+  PaymentsStartWipayTestCheckoutOptions,
+  PaymentsStartWipayTestCheckoutResponse,
+  PaymentsStartWipayTestCheckoutResponses,
+  PaymentsStartWipayTestCheckoutStatus201,
+  PaymentsStartWipayTestCheckoutStatus400,
+  PaymentsStartWipayTestCheckoutStatus401,
+  PaymentsStartWipayTestCheckoutStatus403,
+  PaymentsStartWipayTestCheckoutStatus404,
+  PaymentsStartWipayTestCheckoutStatus409,
+  PaymentsStartWipayTestCheckoutStatus422,
+  PaymentsStartWipayTestCheckoutStatus503,
+} from "./models/PaymentsStartWipayTestCheckout.js";
 export type { PayrollDepartmentSettingPublic } from "./models/PayrollDepartmentSettingPublic.js";
 export type { PayrollDepartmentSettingUpdate } from "./models/PayrollDepartmentSettingUpdate.js";
 export type { PayrollDepartmentSettingsPublic } from "./models/PayrollDepartmentSettingsPublic.js";
@@ -11226,6 +11283,7 @@ export { paymentsAdminGetReconciliationCsv } from "./clients/paymentsAdminGetRec
 export { paymentsAdminListBalances } from "./clients/paymentsAdminListBalances.js";
 export { paymentsAdminListIntents } from "./clients/paymentsAdminListIntents.js";
 export { paymentsAdminListLedger } from "./clients/paymentsAdminListLedger.js";
+export { paymentsAdminSetLiveApproval } from "./clients/paymentsAdminSetLiveApproval.js";
 export { paymentsAdminSetPlatformFee } from "./clients/paymentsAdminSetPlatformFee.js";
 export { paymentsCreateConnectOnboardingLink } from "./clients/paymentsCreateConnectOnboardingLink.js";
 export { paymentsCreateIntent } from "./clients/paymentsCreateIntent.js";
@@ -11235,7 +11293,10 @@ export { paymentsGetConnectStatus } from "./clients/paymentsGetConnectStatus.js"
 export { paymentsGetIntent } from "./clients/paymentsGetIntent.js";
 export { paymentsListDisputes } from "./clients/paymentsListDisputes.js";
 export { paymentsListIntents } from "./clients/paymentsListIntents.js";
+export { paymentsListMerchantAccounts } from "./clients/paymentsListMerchantAccounts.js";
 export { paymentsRecordManualPayment } from "./clients/paymentsRecordManualPayment.js";
+export { paymentsSaveMerchantAccount } from "./clients/paymentsSaveMerchantAccount.js";
+export { paymentsStartWipayTestCheckout } from "./clients/paymentsStartWipayTestCheckout.js";
 export { printixAddMember } from "./clients/printixAddMember.js";
 export { printixAdmitTicket } from "./clients/printixAdmitTicket.js";
 export { printixCloseEvent } from "./clients/printixCloseEvent.js";
@@ -14497,6 +14558,11 @@ export {
   usePaymentsAdminListLedger,
 } from "./hooks/usePaymentsAdminListLedger.js";
 export {
+  paymentsAdminSetLiveApprovalMutationKey,
+  paymentsAdminSetLiveApprovalMutationOptions,
+  usePaymentsAdminSetLiveApproval,
+} from "./hooks/usePaymentsAdminSetLiveApproval.js";
+export {
   paymentsAdminSetPlatformFeeMutationKey,
   paymentsAdminSetPlatformFeeMutationOptions,
   usePaymentsAdminSetPlatformFee,
@@ -14542,10 +14608,25 @@ export {
   usePaymentsListIntents,
 } from "./hooks/usePaymentsListIntents.js";
 export {
+  paymentsListMerchantAccountsQueryKey,
+  paymentsListMerchantAccountsQueryOptions,
+  usePaymentsListMerchantAccounts,
+} from "./hooks/usePaymentsListMerchantAccounts.js";
+export {
   paymentsRecordManualPaymentMutationKey,
   paymentsRecordManualPaymentMutationOptions,
   usePaymentsRecordManualPayment,
 } from "./hooks/usePaymentsRecordManualPayment.js";
+export {
+  paymentsSaveMerchantAccountMutationKey,
+  paymentsSaveMerchantAccountMutationOptions,
+  usePaymentsSaveMerchantAccount,
+} from "./hooks/usePaymentsSaveMerchantAccount.js";
+export {
+  paymentsStartWipayTestCheckoutMutationKey,
+  paymentsStartWipayTestCheckoutMutationOptions,
+  usePaymentsStartWipayTestCheckout,
+} from "./hooks/usePaymentsStartWipayTestCheckout.js";
 export {
   printixAddMemberMutationKey,
   printixAddMemberMutationOptions,
@@ -15638,6 +15719,7 @@ export { manifestRowPropertiesChannelEnum } from "./models/ManifestRowProperties
 export { manualMethod } from "./models/ManualMethod.js";
 export { membershipRole } from "./models/MembershipRole.js";
 export { membershipStatus } from "./models/MembershipStatus.js";
+export { merchantEnvironment } from "./models/MerchantEnvironment.js";
 export { movementKind } from "./models/MovementKind.js";
 export { myProfilePropertiesIntentsItemsEnum } from "./models/MyProfilePropertiesIntentsItemsEnum.js";
 export { myProfilePropertiesVisibilityEnum } from "./models/MyProfilePropertiesVisibilityEnum.js";
@@ -22564,6 +22646,11 @@ export { membershipGrantCreateSchema } from "./zod/membershipGrantCreateSchema.j
 export { membershipGrantPublicSchema } from "./zod/membershipGrantPublicSchema.js";
 export { membershipRoleSchema } from "./zod/membershipRoleSchema.js";
 export { membershipStatusSchema } from "./zod/membershipStatusSchema.js";
+export { merchantAccountListPublicSchema } from "./zod/merchantAccountListPublicSchema.js";
+export { merchantAccountPublicSchema } from "./zod/merchantAccountPublicSchema.js";
+export { merchantAccountUpsertSchema } from "./zod/merchantAccountUpsertSchema.js";
+export { merchantEnvironmentSchema } from "./zod/merchantEnvironmentSchema.js";
+export { merchantLiveApprovalSchema } from "./zod/merchantLiveApprovalSchema.js";
 export { messageCreateSchema } from "./zod/messageCreateSchema.js";
 export { messagePublicSchema } from "./zod/messagePublicSchema.js";
 export { messageSchema } from "./zod/messageSchema.js";
@@ -23521,6 +23608,19 @@ export {
   paymentsAdminListLedgerStatus422Schema,
 } from "./zod/paymentsAdminListLedgerSchema.js";
 export {
+  paymentsAdminSetLiveApprovalBodySchema,
+  paymentsAdminSetLiveApprovalErrorSchema,
+  paymentsAdminSetLiveApprovalPathOrganisationIdSchema,
+  paymentsAdminSetLiveApprovalPathProviderSchema,
+  paymentsAdminSetLiveApprovalPathSchema,
+  paymentsAdminSetLiveApprovalResponseSchema,
+  paymentsAdminSetLiveApprovalStatus200Schema,
+  paymentsAdminSetLiveApprovalStatus401Schema,
+  paymentsAdminSetLiveApprovalStatus403Schema,
+  paymentsAdminSetLiveApprovalStatus409Schema,
+  paymentsAdminSetLiveApprovalStatus422Schema,
+} from "./zod/paymentsAdminSetLiveApprovalSchema.js";
+export {
   paymentsAdminSetPlatformFeeBodySchema,
   paymentsAdminSetPlatformFeeErrorSchema,
   paymentsAdminSetPlatformFeePathOrganisationIdSchema,
@@ -23643,6 +23743,16 @@ export {
   paymentsListIntentsStatus422Schema,
 } from "./zod/paymentsListIntentsSchema.js";
 export {
+  paymentsListMerchantAccountsErrorSchema,
+  paymentsListMerchantAccountsHeaderXBarrelsOrganisationSchema,
+  paymentsListMerchantAccountsHeadersSchema,
+  paymentsListMerchantAccountsResponseSchema,
+  paymentsListMerchantAccountsStatus200Schema,
+  paymentsListMerchantAccountsStatus401Schema,
+  paymentsListMerchantAccountsStatus403Schema,
+  paymentsListMerchantAccountsStatus422Schema,
+} from "./zod/paymentsListMerchantAccountsSchema.js";
+export {
   paymentsRecordManualPaymentBodySchema,
   paymentsRecordManualPaymentErrorSchema,
   paymentsRecordManualPaymentHeaderXBarrelsOrganisationSchema,
@@ -23658,6 +23768,37 @@ export {
   paymentsRecordManualPaymentStatus409Schema,
   paymentsRecordManualPaymentStatus422Schema,
 } from "./zod/paymentsRecordManualPaymentSchema.js";
+export {
+  paymentsSaveMerchantAccountBodySchema,
+  paymentsSaveMerchantAccountErrorSchema,
+  paymentsSaveMerchantAccountHeaderXBarrelsOrganisationSchema,
+  paymentsSaveMerchantAccountHeadersSchema,
+  paymentsSaveMerchantAccountPathProviderSchema,
+  paymentsSaveMerchantAccountPathSchema,
+  paymentsSaveMerchantAccountResponseSchema,
+  paymentsSaveMerchantAccountStatus200Schema,
+  paymentsSaveMerchantAccountStatus400Schema,
+  paymentsSaveMerchantAccountStatus401Schema,
+  paymentsSaveMerchantAccountStatus403Schema,
+  paymentsSaveMerchantAccountStatus404Schema,
+  paymentsSaveMerchantAccountStatus409Schema,
+  paymentsSaveMerchantAccountStatus422Schema,
+  paymentsSaveMerchantAccountStatus503Schema,
+} from "./zod/paymentsSaveMerchantAccountSchema.js";
+export {
+  paymentsStartWipayTestCheckoutErrorSchema,
+  paymentsStartWipayTestCheckoutHeaderXBarrelsOrganisationSchema,
+  paymentsStartWipayTestCheckoutHeadersSchema,
+  paymentsStartWipayTestCheckoutResponseSchema,
+  paymentsStartWipayTestCheckoutStatus201Schema,
+  paymentsStartWipayTestCheckoutStatus400Schema,
+  paymentsStartWipayTestCheckoutStatus401Schema,
+  paymentsStartWipayTestCheckoutStatus403Schema,
+  paymentsStartWipayTestCheckoutStatus404Schema,
+  paymentsStartWipayTestCheckoutStatus409Schema,
+  paymentsStartWipayTestCheckoutStatus422Schema,
+  paymentsStartWipayTestCheckoutStatus503Schema,
+} from "./zod/paymentsStartWipayTestCheckoutSchema.js";
 export { payrollDepartmentSettingPublicSchema } from "./zod/payrollDepartmentSettingPublicSchema.js";
 export { payrollDepartmentSettingUpdateSchema } from "./zod/payrollDepartmentSettingUpdateSchema.js";
 export { payrollDepartmentSettingsPublicSchema } from "./zod/payrollDepartmentSettingsPublicSchema.js";

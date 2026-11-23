@@ -45,9 +45,20 @@ async def confirm_paid(
     booking, profile = managed.booking, managed.profile
     status = BookingStatus(booking.status)
     if status is BookingStatus.CANCELLED:
-        await deposit_payments.refund_deposit(
+        refunded = await deposit_payments.refund_deposit(
             session, booking, reason="Booking was cancelled before payment arrived"
         )
+        if not refunded:
+            # WiPay has no refund call: the business refunds it by hand, and staff are told.
+            public.record_event(
+                session,
+                booking,
+                BookingStatus.CANCELLED,
+                BookingStatus.CANCELLED,
+                note=f"Payment arrived after cancellation; deposit {deposit_payments.REFUND_BY_HAND}",
+            )
+            await public.refund_refused_notice(session, managed)
+        await session.flush()
         return "refunded"
     if status is not BookingStatus.PENDING_PAYMENT:
         return "ignored"

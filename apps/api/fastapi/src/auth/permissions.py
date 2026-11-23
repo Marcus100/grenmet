@@ -226,6 +226,12 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "payments.connect.fees",
         "Set the Barrels platform fee on an organisation's card payments (New Zealand only)",
     ),
+    # Barrels-side: switch a business's WiPay live payments on or off (the owner only;
+    # approval needs a verified sandbox payment first; ADR-0027 amendment, 21 Nov 2026).
+    PermissionDef(
+        "payments.live.approve",
+        "Approve or withdraw live online payments for an organisation (owner only)",
+    ),
     PermissionDef(
         "webhooks.read", "API key: read Barrels Webhooks data", binding="organisation"
     ),

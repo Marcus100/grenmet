@@ -10,10 +10,14 @@ Rules (ADR-0027, ADR-0024):
 - One intent per booking: ``source_type="bookings.deposit"``, ``source_id`` the
   booking id, idempotency key ``bookings.deposit:<booking id>``. No user acts,
   so the intent records ``created_by_user_id`` as NULL.
-- The card rail is Stripe in TEST mode only: it is used when
-  ``PAYMENTS_STRIPE_SECRET_KEY`` is an ``sk_test_`` key. Otherwise, or when Stripe
-  cannot start a checkout, a manual intent is created and the studio records
-  the payment (``checkout_url`` is then None).
+- Which rail takes the deposit online (``deposit_route``, 21 Nov 2026), in order:
+  the business's own WiPay account when it is ready (``wipay``); the Stripe TEST
+  rail when ``PAYMENTS_STRIPE_SECRET_KEY`` is an ``sk_test_`` key (as before); the
+  business's own payment link when it has one (``payment_link``: a manual intent,
+  the checkout is the link, staff record the payment); otherwise no online deposit at
+  all (``none``): the booking is paid in the salon and takes no hold.
+- Stripe Checkout (test mode) or a WiPay checkout that cannot start falls back to a
+  manual intent for staff, as before.
 - ``profile.payment_at_booking == "full_price"`` charges the service price instead
   of its deposit, but only while that card rail is available: without Stripe keys
   the profile acts as ``deposit``, so nothing changes for anyone. The amount is
@@ -26,7 +30,8 @@ import logging
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from urllib.parse import urlencode
+from enum import Enum
+from urllib.parse import quote, urlencode
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,6 +45,7 @@ from src.payments.config import payments_settings
 from src.payments.models import Intent, IntentStatus, ProviderKey
 
 from .config import bookings_settings
+from .exceptions import BookingConflictError
 from .models import (
     Booking,
     BookingDepositMode,
@@ -55,6 +61,20 @@ logger = logging.getLogger(__name__)
 SOURCE_TYPE = "bookings.deposit"
 PAID_TOPIC = "bookings.deposit_paid"
 _TEST_KEY_PREFIX = "sk_test_"
+#: The history note's wording when a deposit refund cannot be made here (WiPay has no
+#: refund call): the studio is told by note and by email (public.refund_refused_notice).
+REFUND_BY_HAND = "refund failed; refund it by hand"
+#: Providers whose hosted checkout the customer is sent to (their summary links it).
+ONLINE_PROVIDERS = (ProviderKey.STRIPE, ProviderKey.WIPAY)
+
+
+class DepositRoute(str, Enum):
+    """Which rail takes a booking's deposit online (see the module rules)."""
+
+    WIPAY = "wipay"
+    STRIPE_TEST = "stripe_test"
+    PAYMENT_LINK = "payment_link"
+    NONE = "none"
 
 
 def intent_key(booking_id: object) -> str:
@@ -115,6 +135,19 @@ def money_text(minor: int, currency: str) -> str:
     return f"{currency} {sign}{whole:,}.{cents:02d}"
 
 
+async def deposit_route(session: AsyncSession, profile: BookingProfile) -> DepositRoute:
+    """The rail for this business's deposits right now. A WiPay account that is ready
+    wins; the Stripe test rail comes next; then the business's own payment link; with
+    none of them the booking takes no online deposit."""
+    if await payments_service.wipay_ready(session, profile.organisation_id):
+        return DepositRoute.WIPAY
+    if stripe_available():
+        return DepositRoute.STRIPE_TEST
+    if profile.deposit_payment_link:
+        return DepositRoute.PAYMENT_LINK
+    return DepositRoute.NONE
+
+
 async def effective_deposit(
     session: AsyncSession,
     profile: BookingProfile,
@@ -170,7 +203,14 @@ async def amount_due(
 
     ``full_price`` charges the price only while Stripe is available and the
     organisation holds ``payments``; otherwise the service deposit or the business
-    deposit rule applies."""
+    deposit rule applies.
+    With no online rail at all the booking takes nothing up front (paid in the salon)."""
+    if await deposit_route(session, profile) is DepositRoute.NONE:
+        logger.info(
+            "no online deposit route; the booking is paid in the salon",
+            extra={"organisation_id": profile.organisation_id},
+        )
+        return 0
     full_price = charges_full_price(profile)
     if (
         profile.payment_at_booking == BookingPaymentMode.FULL_PRICE.value
@@ -194,6 +234,8 @@ async def due_by_service(
     session: AsyncSession, profile: BookingProfile, services: list[Service]
 ) -> dict[object, int]:
     """``amount_due`` for a whole storefront, with one entitlement query."""
+    if await deposit_route(session, profile) is DepositRoute.NONE:
+        return {svc.id: 0 for svc in services}
     entitled = await organisation_service.is_app_enabled(
         session, organisation_id=profile.organisation_id, app_key="payments"
     )
@@ -266,6 +308,26 @@ def _return_address(source_id: str | None) -> return_urls.ReturnAddress | None:
 
 return_urls.register(SOURCE_TYPE, _return_address)
 
+#: The business's sandbox test checkout (payments, ADR-0027 amendment): the customer
+#: returns to the studio settings page of the business. The source id is the
+#: organisation's slug, so the page is built from settings and the slug only.
+TEST_SOURCE_TYPE = "payments.wipay-test"
+
+
+def _test_return_address(source_id: str | None) -> return_urls.ReturnAddress | None:
+    if not source_id:
+        return None
+    base = bookings_settings.APP_URL.rstrip("/")
+
+    def url(result: str) -> str:
+        query = urlencode({"wipay_test": result})
+        return f"{base}/studio/{quote(source_id, safe='')}/settings?{query}"
+
+    return return_urls.ReturnAddress(url("paid"), url("cancelled"))
+
+
+return_urls.register(TEST_SOURCE_TYPE, _test_return_address)
+
 
 def _payload(
     booking: Booking,
@@ -320,9 +382,45 @@ async def start_deposit(
     customer_email: str | None,
     *,
     title: str | None = None,
+    profile: BookingProfile | None = None,
 ) -> str | None:
-    """Create the deposit intent. Returns the hosted checkout URL, or None when
-    the studio must record a manual payment."""
+    """Create the deposit intent. Returns where the customer pays: the hosted checkout
+    URL (WiPay, Stripe test), the business's payment link, or None when the studio
+    must record a manual payment."""
+    if profile is None:
+        profile = await session.scalar(
+            select(BookingProfile).where(
+                BookingProfile.organisation_id == booking.organisation_id
+            )
+        )
+        assert profile is not None
+    route = await deposit_route(session, profile)
+    if route is DepositRoute.WIPAY:
+        # No fallback to another rail: a failed WiPay checkout fails the booking,
+        # and the customer tries again (the amount is the same either way).
+        result = await payments_service.create_intent(
+            session,
+            organisation_id=booking.organisation_id,
+            actor=None,
+            payload=_payload(booking, ProviderKey.WIPAY, customer_email, title),
+            checkout_title=title,
+        )
+        return result.checkout_url
+    if route is DepositRoute.PAYMENT_LINK:
+        # Staff confirm the payment when it arrives (manual-deposit, method payment_link).
+        await payments_service.create_intent(
+            session,
+            organisation_id=booking.organisation_id,
+            actor=None,
+            payload=_payload(booking, ProviderKey.MANUAL, customer_email, title),
+        )
+        return profile.deposit_payment_link
+    if route is DepositRoute.NONE:
+        # Asked for an online deposit with no rail (the rail changed after the amount was
+        # set): fail the booking. No manual intent is silently created in its place.
+        raise BookingConflictError(
+            "Online payment for this deposit is not available right now; try again"
+        )
     if stripe_available():
         try:
             async with session.begin_nested():
@@ -354,6 +452,7 @@ def _summary(
     booking: Booking,
     intent: payment_schemas.PaymentIntentPublic | None,
     checkout_url: str | None,
+    payment_link: str | None = None,
 ) -> BookingPaymentSummary | None:
     if booking.deposit_minor <= 0:
         return None
@@ -372,8 +471,11 @@ def _summary(
         or intent.status in (IntentStatus.REQUIRES_PAYMENT, IntentStatus.PROCESSING)
     ):
         status = BookingPaymentStatus.DUE
-        if intent is not None and intent.provider is ProviderKey.STRIPE:
+        if intent is not None and intent.provider in ONLINE_PROVIDERS:
             link = checkout_url
+        else:
+            # The business's own payment link, when it has one (manual intent).
+            link = payment_link
     else:
         status = BookingPaymentStatus.UNPAID
     return BookingPaymentSummary(
@@ -390,31 +492,36 @@ def _summary(
 
 
 async def payment_summary(
-    session: AsyncSession, booking: Booking
+    session: AsyncSession,
+    booking: Booking,
+    *,
+    payment_link: str | None = None,
 ) -> BookingPaymentSummary | None:
     """The money side of a booking as its customer sees it; None when nothing
-    was due at booking. ``checkout_url`` is set only while the slot is still held
-    for an unpaid online checkout, so the customer can return to it."""
+    was due at booking. ``checkout_url`` is the place to pay while the slot is still
+    held: the online checkout (WiPay, Stripe test) or, for a manual deposit, the
+    business's ``payment_link``."""
     if booking.deposit_minor <= 0:
         return None
     intent = await find_deposit(session, booking)
     checkout_url: str | None = None
     if (
         intent is not None
-        and intent.provider is ProviderKey.STRIPE
+        and intent.provider in ONLINE_PROVIDERS
         and booking.status == BookingStatus.PENDING_PAYMENT.value
     ):
         checkout_url = await session.scalar(
             select(Intent.checkout_url).where(Intent.id == intent.id)
         )
-    return _summary(booking, intent, checkout_url)
+    return _summary(booking, intent, checkout_url, payment_link)
 
 
 async def payment_summaries(
     session: AsyncSession, bookings: list[Booking]
 ) -> dict[uuid.UUID, BookingPaymentSummary | None]:
-    """``payment_summary`` for many bookings in two queries at most (the intents
-    with their totals, then the checkout links of the ones still due)."""
+    """``payment_summary`` for many bookings in three queries at most (the intents
+    with their totals, the checkout links of the ones still due, and the businesses'
+    payment links)."""
     owing = [b for b in bookings if b.deposit_minor > 0]
     intents = await payments_service.find_by_idempotency_keys(
         session,
@@ -427,7 +534,7 @@ async def payment_summaries(
         intent.id
         for b in owing
         if (intent := found[b.id]) is not None
-        and intent.provider is ProviderKey.STRIPE
+        and intent.provider in ONLINE_PROVIDERS
         and b.status == BookingStatus.PENDING_PAYMENT.value
     ]
     links: dict[uuid.UUID, str | None] = {}
@@ -441,10 +548,33 @@ async def payment_summaries(
             .tuples()
             .all()
         )
+    payment_links: dict[object, str | None] = {}
+    if owing:
+        payment_links = dict(
+            (
+                await session.execute(
+                    select(
+                        BookingProfile.organisation_id,
+                        BookingProfile.deposit_payment_link,
+                    ).where(
+                        BookingProfile.organisation_id.in_(
+                            {b.organisation_id for b in owing}
+                        )
+                    )
+                )
+            )
+            .tuples()
+            .all()
+        )
     result: dict[uuid.UUID, BookingPaymentSummary | None] = {}
     for b in bookings:
         intent = found.get(b.id)
-        result[b.id] = _summary(b, intent, links.get(intent.id) if intent else None)
+        result[b.id] = _summary(
+            b,
+            intent,
+            links.get(intent.id) if intent else None,
+            payment_link=payment_links.get(b.organisation_id),
+        )
     return result
 
 
@@ -524,4 +654,4 @@ async def settle_cancellation(
     if not refund:
         return f"{noun} kept"
     done = await refund_deposit(session, booking, reason="Booking cancelled")
-    return f"{noun} refunded" if done else f"{noun} refund failed; refund it by hand"
+    return f"{noun} refunded" if done else f"{noun} {REFUND_BY_HAND}"

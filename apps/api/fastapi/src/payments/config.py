@@ -1,3 +1,6 @@
+from typing import Literal
+
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,6 +37,35 @@ class PaymentsConfig(BaseSettings):
     #: A payment's listing stops paging (incomplete, totals not compared) once less
     #: than this much of the run's budget is left.
     REFUND_RECONCILE_PAGE_MARGIN_SECONDS: float = 20.0
+
+    # --- WiPay (Grenada; ADR-0027 amendment, 21 Nov 2026) ---------------------------
+    #: The HTTPS address WiPay sends the customer back to (the public return route).
+    #: Unset = WiPay checkouts are refused (503), never started without a return path.
+    WIPAY_RESPONSE_URL: str | None = None
+    #: Who pays WiPay's fee: ``merchant_absorb`` keeps the deposit the customer sees.
+    WIPAY_FEE_STRUCTURE: Literal["customer_pay", "merchant_absorb", "split"] = (
+        "merchant_absorb"
+    )
+    WIPAY_METHOD: Literal["credit_card_co", "3co_simple"] = "credit_card_co"
+    #: The WiPay processing platform (Grenada). CARICOM platforms come later.
+    WIPAY_COUNTRY_CODE: str = "GD"
+    #: The ``origin`` label WiPay echoes back (letters, digits, hyphens, underscores).
+    WIPAY_ORIGIN: str = "BarrelsBookings"
+
+    # --- Barrels platform fee (owner decision 21 Nov 2026) --------------------------
+    #: Off. No Barrels fee is charged on Grenada payments until the legal reading of
+    #: the Payment System and Services Act 2025 is in. Turning it on is refused here:
+    #: nothing implements it yet, so it cannot be switched on by configuration.
+    GRENADA_PLATFORM_FEE_ENABLED: bool = False
+
+    @model_validator(mode="after")
+    def _no_platform_fee_yet(self) -> PaymentsConfig:
+        if self.GRENADA_PLATFORM_FEE_ENABLED:
+            raise ValueError(
+                "The Grenada platform fee is not built; the legal reading of the "
+                "Payment System and Services Act 2025 is pending"
+            )
+        return self
 
 
 payments_settings = PaymentsConfig()

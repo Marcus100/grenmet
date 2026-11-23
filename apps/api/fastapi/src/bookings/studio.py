@@ -307,6 +307,8 @@ async def _cancel(
     money = await deposit_payments.settle_cancellation(
         session, booking, managed.profile, previous=previous, refund=refund, now=now
     )
+    if money and deposit_payments.REFUND_BY_HAND in money:
+        await public.refund_refused_notice(session, managed)
     if money:
         public.record_event(
             session,
