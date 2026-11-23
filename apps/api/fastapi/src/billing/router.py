@@ -5,10 +5,9 @@ from fastapi import APIRouter, Request, status
 from src.dependencies import CurrentUser, SessionDep
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, CONFLICT, NOT_FOUND
-from src.organisations.dependencies import OrgAdmin
 
 from . import app_subscriptions, service
-from .dependencies import StripeGatewayDep
+from .dependencies import BillingOrgAdmin, StripeGatewayDep
 from .schemas import (
     AppSubscriptionCheckoutCreate,
     AppSubscriptionCheckoutPublic,
@@ -65,13 +64,14 @@ def create_subscription_checkout(
     description=(
         "Barrels app subscriptions of the organisation the request acts for, newest "
         "first, with each plan's amount in XCD minor units (ADR-0065). Organisation "
-        "admins and owners only."
+        "admins and owners only, signed in with an account or the bookings studio "
+        "session. Needs no app entitlement: the plan screen is how it is bought."
     ),
     operation_id="billingListAppSubscriptions",
     tags=["billing"],
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
-async def list_app_subscriptions(*, session: SessionDep, org: OrgAdmin) -> Any:
+async def list_app_subscriptions(*, session: SessionDep, org: BillingOrgAdmin) -> Any:
     data = await app_subscriptions.list_subscriptions(
         session, organisation_id=org.organisation_id
     )
@@ -90,7 +90,9 @@ async def list_app_subscriptions(*, session: SessionDep, org: OrgAdmin) -> Any:
         "once it has expired, a fresh Checkout replaces it. 409 when the organisation "
         "already has a live subscription to the app, or when the first checkout is paid "
         "and Stripe has not reported it yet. Test mode only: a live Stripe key is "
-        "refused with 503 before anything is sent. Organisation admins and owners only."
+        "refused with 503 before anything is sent. Organisation admins and owners only, "
+        "signed in with an account or the bookings studio session. Stripe returns the "
+        "customer to the organisation's studio plan page."
     ),
     operation_id="billingCreateAppSubscriptionCheckout",
     tags=["billing"],
@@ -99,7 +101,7 @@ async def list_app_subscriptions(*, session: SessionDep, org: OrgAdmin) -> Any:
 async def create_app_subscription_checkout(
     *,
     session: SessionDep,
-    org: OrgAdmin,
+    org: BillingOrgAdmin,
     gateway: StripeGatewayDep,
     payload: AppSubscriptionCheckoutCreate,
 ) -> Any:
@@ -107,6 +109,7 @@ async def create_app_subscription_checkout(
         session,
         gateway=gateway,
         organisation_id=org.organisation_id,
+        organisation_slug=org.organisation.slug,
         user=org.user,
         payload=payload,
     )

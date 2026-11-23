@@ -14,6 +14,11 @@ events are refused; an event for a row not yet written is retried by Stripe for 
 hours rather than recorded; and same-second events are applied in order, not dropped. The amendments are in
 the Decision section below.
 
+Amended 23 November 2026 (studio Plan & billing screen, PR 1729 follow-ups): the two
+organisation routes also accept the bookings studio session; the return URLs are per
+organisation (the studio plan page); the trial is per organisation, not per plan. The
+amendments are in the Decision section below.
+
 ## Context
 
 Barrels sells per-app subscriptions, Bookings first (owner direction, 22 November
@@ -74,10 +79,14 @@ events tickets, not for Barrels' subscriptions.
   marks `livemode: true` are refused with 503 before anything is written or recorded,
   so a live event is never applied by accident and can be delivered again later.
 - **Access:** the checkout and listing routes are gated by the organisation role
-  alone (`OrgAdmin`: owner or admin of the organisation). A superuser who is not a
-  member gets 404 (no bypass). No global permission key is used; see ADR-0044 for
-  why organisation-bound keys would need a product entitlement that this slice does
-  not have.
+  alone (owner or admin of the organisation). A superuser who is not a member gets
+  404 (no bypass). No global permission key is used; see ADR-0044 for why
+  organisation-bound keys would need a product entitlement that this slice does not
+  have. The routes accept an account token or the bookings studio session (`app`
+  claim `bookings`), and refuse any other app's token with 401. They do not require
+  the `bookings` entitlement: the studio is where the app is bought, so an
+  entitlement check would block the first purchase. The dependency is
+  `require_org_role_session` (`src/organisations/dependencies.py`), used only here.
 - **Resume:** a repeat checkout while a pending row exists returns that row's open
   Checkout Session (same id and URL). A session Stripe reports as expired cancels the
   pending row (`incomplete` to `canceled`), and a new row replaces it. A session
@@ -88,9 +97,24 @@ events tickets, not for Barrels' subscriptions.
 - **Prices:** `BILLING_STRIPE_PRICES` maps `plan_key:currency` to a Stripe price id.
   The plan's amount lives in `billing.plan_price` in minor units. Bookings is
   `bookings-monthly` at XCD 3000.
-- **Trials:** optional per plan (`BILLING_APP_TRIAL_DAYS`). Babydoll's first month
-  free is an owner decision for its plan, to be configured when the Babydoll plan is
-  added.
+- **Return URLs (amended 23 Nov):** the success and cancel URLs are per organisation:
+  `<BOOKINGS_APP_URL>/studio/<organisation slug>/plan?checkout=success|cancelled`.
+  The service builds them from server settings; the request cannot set them. The
+  global `BILLING_CHECKOUT_*` URLs are the fallback when the organisation has no slug
+  or the bookings address is unset. The per-organisation URL has no
+  `session_id` placeholder, so the plan page is meant to read the subscription state
+  from `GET /billing/org/subscriptions`.
+- **Trials (amended 23 Nov):** per organisation, not per plan. An
+  `app_subscription_trial` grant (organisation, plan, `trial_days`) is the only source,
+  and no grant means no trial, so the default for every business is 0 days. The
+  global `BILLING_APP_TRIAL_DAYS` setting is removed (it gave every business the same
+  trial). Babydoll's first 30 days are seeded by `src/bookings/seed.py`, create-only,
+  so the trial is enabled by running the Babydoll seed once after the migration.
+  Tradeoffs: a grant is an allow-list row in the database, not a Stripe Price or a
+  second plan, so the Stripe dashboard does not show it, and there is no admin API
+  to set one yet (a later slice can add one under `billing.manage`). A grant is used
+  once per organisation and plan: a cancelled subscription does not earn another
+  free month. An abandoned Checkout keeps its trial.
 - **Entitlement link (not built):** a later slice may switch an organisation's
   `org.organisation_app` entitlement on an active subscription, behind an
   off-by-default flag. Until then no subscription changes app access.

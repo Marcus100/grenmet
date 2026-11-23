@@ -12,6 +12,7 @@ import uuid
 from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from urllib.parse import quote
 
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import and_, select
@@ -21,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.auth.models import User
+from src.bookings.config import bookings_settings
 
 from .app_subscription_transitions import move_app_subscription
 from .config import billing_settings
@@ -44,6 +46,7 @@ from .models import (
     AppSubscription,
     AppSubscriptionChannel,
     AppSubscriptionStatus,
+    AppSubscriptionTrial,
     Customer,
     Plan,
     PlanPrice,
@@ -181,11 +184,79 @@ async def _resume_pending(
     return None
 
 
+def checkout_return_urls(organisation_slug: str | None) -> tuple[str, str]:
+    """``(success_url, cancel_url)`` for one organisation's app checkout (ADR-0065).
+
+    They are the organisation's studio plan page at the bookings app address
+    (``BOOKINGS_APP_URL``), with ``checkout=success`` or ``checkout=cancelled``. The
+    global Checkout settings are the fallback when the organisation has no slug or the
+    address is unset. Built here from server settings only: a request cannot set them."""
+    base = bookings_settings.APP_URL.rstrip("/")
+    if not organisation_slug or not base:
+        return (
+            str(billing_settings.CHECKOUT_SUCCESS_URL),
+            str(billing_settings.CHECKOUT_CANCEL_URL),
+        )
+    plan_page = f"{base}/studio/{quote(organisation_slug, safe='')}/plan"
+    return f"{plan_page}?checkout=success", f"{plan_page}?checkout=cancelled"
+
+
+async def grant_trial(
+    session: AsyncSession, *, organisation_id: str, plan_key: str, trial_days: int
+) -> bool:
+    """Give an organisation a free trial on one plan. Create-only: an existing grant is
+    kept, so a repeat seed never changes it. Returns True when this call created it.
+    Flushes; the caller commits."""
+    created = await session.scalar(
+        pg_insert(AppSubscriptionTrial)
+        .values(
+            organisation_id=organisation_id,
+            plan_key=plan_key,
+            trial_days=trial_days,
+            created_at=datetime.now(UTC).replace(tzinfo=None),
+        )
+        .on_conflict_do_nothing(index_elements=["organisation_id", "plan_key"])
+        .returning(AppSubscriptionTrial.plan_key)
+    )
+    await session.flush()
+    return created is not None
+
+
+async def _trial_days(
+    session: AsyncSession, *, organisation_id: str, plan_key: str
+) -> int | None:
+    """The organisation's trial days for this plan, given once per organisation.
+
+    No grant means no trial. A grant is not used again once a Stripe subscription was
+    ever started for this plan, so a cancelled subscription does not earn a second free
+    month. An abandoned Checkout never reached Stripe as a subscription, so it keeps
+    its trial."""
+    trial_days = await session.scalar(
+        select(AppSubscriptionTrial.trial_days).where(
+            AppSubscriptionTrial.organisation_id == organisation_id,
+            AppSubscriptionTrial.plan_key == plan_key,
+        )
+    )
+    if trial_days is None:
+        return None
+    started = await session.scalar(
+        select(AppSubscription.id)
+        .where(
+            AppSubscription.organisation_id == organisation_id,
+            AppSubscription.plan_key == plan_key,
+            AppSubscription.stripe_subscription_id.is_not(None),
+        )
+        .limit(1)
+    )
+    return None if started is not None else int(trial_days)
+
+
 async def start_checkout(
     session: AsyncSession,
     *,
     gateway: StripeGateway,
     organisation_id: str,
+    organisation_slug: str | None,
     user: User,
     payload: AppSubscriptionCheckoutCreate,
 ) -> AppSubscriptionCheckoutPublic:
@@ -194,7 +265,8 @@ async def start_checkout(
     Every refusal (unknown plan, no price, no Stripe price id, a live subscription
     already) happens before the provider is called. The billing customer row (if
     new) is flushed before the call and the subscription row after it. If the call
-    fails the router does not commit, so neither row is kept."""
+    fails the router does not commit, so neither row is kept. The return URLs are
+    this organisation's studio plan page (``checkout_return_urls``)."""
     plan = await session.get(Plan, payload.plan_key)
     if plan is None or not plan.active:
         raise AppSubscriptionPlanNotFoundError()
@@ -239,6 +311,10 @@ async def start_checkout(
         await session.flush()
 
     subscription_id = uuid.uuid4()
+    success_url, cancel_url = checkout_return_urls(organisation_slug)
+    trial_days = await _trial_days(
+        session, organisation_id=organisation_id, plan_key=plan.key
+    )
     checkout: CheckoutSessionResult = await run_in_threadpool(
         gateway.create_app_subscription_checkout,
         subscription_id=str(subscription_id),
@@ -248,7 +324,9 @@ async def start_checkout(
         price_id=price_id,
         customer_id=customer.stripe_customer_id,
         customer_email=None if customer.stripe_customer_id else customer.billing_email,
-        trial_period_days=billing_settings.APP_TRIAL_DAYS.get(plan.key) or None,
+        trial_period_days=trial_days,
+        success_url=success_url,
+        cancel_url=cancel_url,
     )
 
     subscription = AppSubscription(

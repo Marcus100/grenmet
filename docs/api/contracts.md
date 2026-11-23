@@ -1420,11 +1420,17 @@ format are provisional settings (`docs/env.md`).
 Barrels sells its own app plans (first plan: `bookings-monthly`, XCD 30.00 a month)
 through Stripe Billing. Test mode only: a live Stripe key is refused with 503
 before any request is sent. Access is gated by the organisation role alone: an
-organisation admin or owner (`OrgAdmin`) passes whether or not they are a
-superuser, and no global permission key applies. A member gets 403, and an
-organisation the caller does not belong to gets 404 (a superuser outside the
-organisation gets 404 too). No entitlement changes: app access is still set by the
-organisation routes.
+organisation admin or owner passes whether or not they are a superuser, and no
+global permission key applies. A member gets 403, and an organisation the caller
+does not belong to gets 404 (a superuser outside the organisation gets 404 too).
+Both routes accept an account token or the bookings studio session (`app` claim
+`bookings`, ADR-0065 amendment, 23 Nov 2026); any other app's token gets 401. They
+need no entitlement, because buying the app is how it becomes entitled. No
+entitlement changes: app access is still set by the organisation routes.
+Checkout returns the customer to `<BOOKINGS_APP_URL>/studio/<organisation slug>/plan`
+(`?checkout=success` or `?checkout=cancelled`); the client cannot set the URL. A
+free trial applies only where the organisation has a grant (Babydoll's first 30
+days), once per organisation and plan.
 
 | Endpoint | Operation id | Contract |
 | --- | --- | --- |

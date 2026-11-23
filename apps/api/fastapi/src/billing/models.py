@@ -177,6 +177,30 @@ class AppSubscription(Base):
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 
 
+class AppSubscriptionTrial(Base):
+    """Free trial days for one organisation on one plan (ADR-0065 amendment).
+
+    No row means no trial, which is the default for every business. A row is written
+    by the Babydoll seed (``src.bookings.seed``) through ``grant_trial``, create-only;
+    checkout only reads it. ``trial_days`` is 1 to 365.
+    """
+
+    __tablename__ = "app_subscription_trial"
+    __table_args__ = (
+        sa.CheckConstraint("trial_days BETWEEN 1 AND 365", name="trial_days_range"),
+        {"schema": "billing"},
+    )
+
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id"), primary_key=True
+    )
+    plan_key: Mapped[str] = mapped_column(
+        String(64), ForeignKey("billing.plan.key"), primary_key=True
+    )
+    trial_days: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
 class StripeEvent(Base):
     """Every Stripe webhook event id applied once; the primary key makes replays no-ops."""
 
