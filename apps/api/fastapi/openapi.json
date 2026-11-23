@@ -78288,6 +78288,16 @@
         ],
         "title": "BookingClosurePublic"
       },
+      "BookingDepositMode": {
+        "type": "string",
+        "enum": [
+          "none",
+          "percent",
+          "fixed"
+        ],
+        "title": "BookingDepositMode",
+        "description": "The business-wide deposit rule (owner request 23 Nov 2026), used for a\nservice only when its own ``deposit_minor`` is 0.\n\n``none`` (default): no rule. ``percent``: ``deposit_percent`` of the price,\nrounded up to whole currency units. ``fixed``: ``deposit_fixed_minor`` per\nbooking. Either way the deposit never exceeds the price."
+      },
       "BookingEmailCodeConfirm": {
         "properties": {
           "service_id": {
@@ -78773,6 +78783,11 @@
             "type": "integer",
             "title": "Refunded Minor"
           },
+          "balance_at_salon_minor": {
+            "type": "integer",
+            "title": "Balance At Salon Minor",
+            "description": "What is still to pay at the business once the deposit is paid: the service price less the deposit. 0 when the whole price was paid online."
+          },
           "currency": {
             "type": "string",
             "title": "Currency"
@@ -78796,6 +78811,7 @@
           "amount_minor",
           "paid_minor",
           "refunded_minor",
+          "balance_at_salon_minor",
           "currency"
         ],
         "title": "BookingPaymentSummary",
@@ -78947,6 +78963,39 @@
             "$ref": "#/components/schemas/BookingPaymentMode",
             "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
             "default": "deposit"
+          },
+          "deposit_mode": {
+            "$ref": "#/components/schemas/BookingDepositMode",
+            "description": "Business-wide deposit rule, used for a service only when its own deposit is 0. `none`: no rule (the default). `percent`: `deposit_percent` of the price, rounded up to whole currency units. `fixed`: `deposit_fixed_minor` per booking. Never more than the price. Left out, the stored value is kept.",
+            "default": "none"
+          },
+          "deposit_percent": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Percent",
+            "description": "The percentage for `deposit_mode` `percent` (1 to 100)."
+          },
+          "deposit_fixed_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Fixed Minor",
+            "description": "The amount in minor units for `deposit_mode` `fixed`."
           },
           "brand_color": {
             "anyOf": [
@@ -79196,6 +79245,39 @@
             "$ref": "#/components/schemas/BookingPaymentMode",
             "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
             "default": "deposit"
+          },
+          "deposit_mode": {
+            "$ref": "#/components/schemas/BookingDepositMode",
+            "description": "Business-wide deposit rule, used for a service only when its own deposit is 0. `none`: no rule (the default). `percent`: `deposit_percent` of the price, rounded up to whole currency units. `fixed`: `deposit_fixed_minor` per booking. Never more than the price. Left out, the stored value is kept.",
+            "default": "none"
+          },
+          "deposit_percent": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Percent",
+            "description": "The percentage for `deposit_mode` `percent` (1 to 100)."
+          },
+          "deposit_fixed_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Fixed Minor",
+            "description": "The amount in minor units for `deposit_mode` `fixed`."
           },
           "brand_color": {
             "anyOf": [
@@ -80743,6 +80825,11 @@
             "$ref": "#/components/schemas/BookingPaymentKind",
             "description": "`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say \"Deposit\" or \"Payment\" by it."
           },
+          "balance_at_salon_minor": {
+            "type": "integer",
+            "title": "Balance At Salon Minor",
+            "description": "The price less the deposit: what is still to pay at the business."
+          },
           "currency": {
             "type": "string",
             "title": "Currency"
@@ -80831,6 +80918,7 @@
           "price_minor",
           "deposit_minor",
           "payment_kind",
+          "balance_at_salon_minor",
           "currency",
           "notes",
           "cancel_reason",

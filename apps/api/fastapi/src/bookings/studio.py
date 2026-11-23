@@ -91,6 +91,9 @@ async def _detail(
         price_minor=booking.price_minor,
         deposit_minor=booking.deposit_minor,
         payment_kind=deposit_payments.payment_kind(booking),
+        balance_at_salon_minor=deposit_payments.balance_at_salon(
+            booking.price_minor, booking.deposit_minor
+        ),
         currency=booking.currency,
         notes=booking.notes,
         cancel_reason=booking.cancel_reason,

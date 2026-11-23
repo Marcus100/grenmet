@@ -42,6 +42,7 @@ from .models import (
     ACTIVE_STATUSES,
     AvailabilityException,
     Booking,
+    BookingDepositMode,
     BookingProfile,
     BookingStatus,
     BusinessClosure,
@@ -96,6 +97,9 @@ LOGO_PURPOSE = "booking-logo"
 #: one out keeps the stored value.
 KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
     "payment_at_booking",
+    "deposit_mode",
+    "deposit_percent",
+    "deposit_fixed_minor",
     "brand_color",
     "logo_file_id",
     "listed",
@@ -130,6 +134,7 @@ async def upsert_profile(
             if name not in payload.model_fields_set and profile is not None
         },
     )
+    _require_deposit_rule(profile, values)
     if "logo_file_id" in values:
         # JSON gives a string; the column takes the UUID the request validated.
         values["logo_file_id"] = payload.logo_file_id
@@ -142,6 +147,31 @@ async def upsert_profile(
             setattr(profile, key, value)
     await session.flush()
     return profile
+
+
+def _require_deposit_rule(
+    profile: BookingProfile | None, values: dict[str, Any]
+) -> None:
+    """A request that leaves one deposit field out keeps the stored one, so the mode
+    and its amount can disagree (a percentage mode with no percentage). Refuse that
+    as 422 rather than let the database check fail."""
+    mode = values.get("deposit_mode", profile.deposit_mode if profile else "none")
+    percent = values.get(
+        "deposit_percent", profile.deposit_percent if profile else None
+    )
+    fixed = values.get(
+        "deposit_fixed_minor", profile.deposit_fixed_minor if profile else None
+    )
+    if mode == BookingDepositMode.PERCENT.value and not (
+        percent is not None and 1 <= percent <= 100
+    ):
+        raise BookingValidationError(
+            "A percentage deposit needs deposit_percent (1 to 100)"
+        )
+    if mode == BookingDepositMode.FIXED.value and not (fixed is not None and fixed > 0):
+        raise BookingValidationError(
+            "A fixed deposit needs deposit_fixed_minor (above 0)"
+        )
 
 
 async def _require_logo(

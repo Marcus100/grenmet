@@ -14,6 +14,11 @@ export const bookingPaymentSummarySchema = z
     amount_minor: z.int().describe("What was due at booking."),
     paid_minor: z.int(),
     refunded_minor: z.int(),
+    balance_at_salon_minor: z
+      .int()
+      .describe(
+        "What is still to pay at the business once the deposit is paid: the service price less the deposit. 0 when the whole price was paid online."
+      ),
     currency: z.string(),
     checkout_url: z
       .union([z.string(), z.null()])
