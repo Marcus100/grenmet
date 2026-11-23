@@ -96,20 +96,21 @@ export function salesTotals(rows: readonly SettlementSummary[]) {
   };
 }
 
-/** "50 issued, 4 refunded, 2 cancelled"; zero parts after "issued" are omitted. */
+/** The active and issued counts are always shown. Zero adjustments are omitted. */
 export function issuedBreakdown(totals: {
+  active: number;
   cancelledTickets: number;
   issued: number;
   refunded: number;
 }): string {
-  const parts = [`${totals.issued} issued`];
+  const parts = [`${totals.active} active`, `${totals.issued} issued`];
   if (totals.refunded > 0) {
     parts.push(`${totals.refunded} refunded`);
   }
   if (totals.cancelledTickets > 0) {
     parts.push(`${totals.cancelledTickets} cancelled`);
   }
-  return parts.join(", ");
+  return parts.join(" · ");
 }
 
 const RECENT_LIMIT = 5;
@@ -151,7 +152,8 @@ function SettlementPanel({ rows }: { rows: readonly SettlementSummary[] }) {
           <thead className="text-muted-foreground">
             <tr>
               <th className="py-1 font-medium">Event</th>
-              <th className="py-1 font-medium">Issued</th>
+              <th className="py-1 font-medium">Active</th>
+              <th className="py-1 font-medium">Issued (all)</th>
               <th className="py-1 font-medium">Admitted</th>
               <th className="py-1 font-medium">Cash</th>
               <th className="py-1 font-medium">Issues</th>
@@ -168,6 +170,7 @@ function SettlementPanel({ rows }: { rows: readonly SettlementSummary[] }) {
                     {row.title}
                   </Link>
                 </td>
+                <td className="py-1.5 tabular-nums">{row.claimed}</td>
                 <td className="py-1.5 tabular-nums">{row.issued}</td>
                 <td className="py-1.5 tabular-nums">{row.admitted}</td>
                 <td className="py-1.5 tabular-nums">
