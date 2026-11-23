@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { unstable_noStore as noStore } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -197,6 +198,29 @@ function signedOutNotice(
     return "Your email address has changed. Sign in with the new address.";
   }
   return null;
+}
+
+/**
+ * This URL is the sign-in form when signed out and the profile when signed in,
+ * so the title follows the session cookie. Presence only: no second session
+ * exchange here (the page does that once, below).
+ */
+export async function generateMetadata({
+  searchParams,
+}: PageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const reauthenticating = readQueryParam(params.reauth) === "1";
+  const hasSessionCookie = await readSessionCookie();
+  if (hasSessionCookie && !reauthenticating) {
+    return { title: "Your account" };
+  }
+  const appLabel = getAppDisplayName(
+    getRequestedAppName(
+      readQueryParam(params.app),
+      getSafeReturnTo(readQueryParam(params.returnTo))
+    )
+  );
+  return { title: appLabel ? `Sign in to ${appLabel}` : "Sign in" };
 }
 
 export default async function Home({ searchParams }: PageProps) {

@@ -69,6 +69,22 @@ describe("CopyLinkButton", () => {
     expect(reportError).not.toHaveBeenCalled();
   });
 
+  it("copies one slash between the origin and the path when the origin ends in one", async () => {
+    render(
+      <CopyLinkButton
+        origin="https://bookings.barrels.gd/"
+        path="/sea-salt-spa"
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(
+        "https://bookings.barrels.gd/sea-salt-spa"
+      )
+    );
+    expect(writeText.mock.calls[0]?.[0]).not.toContain("//sea-salt-spa");
+  });
+
   it("falls back to this page's origin when none is configured", async () => {
     render(<CopyLinkButton path="/sea-salt-spa" />);
     fireEvent.click(screen.getByRole("button", { name: "Copy link" }));

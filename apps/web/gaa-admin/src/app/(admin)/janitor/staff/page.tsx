@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { NeedsAccess } from "@/components/access/needs-access";
 import { JanitorHeader } from "@/components/janitorial/portal";
 import { StaffManager } from "@/components/janitorial/staff-manager";
 import {
@@ -20,7 +20,14 @@ export const dynamic = "force-dynamic";
 export default async function JanitorStaffPage() {
   // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
   const access = await getJanitorialAccess();
-  if (!access.canView) notFound();
+  if (!access.canView) {
+    return (
+      <NeedsAccess
+        ask="Ask a Janitorial administrator for a janitorial role. Field staff use the janitor app."
+        module="Janitor"
+      />
+    );
+  }
   const [people, grants, catalogue] = await Promise.all([
     getJanitorialStaff(),
     access.canManageScope ? getJanitorialGrants() : Promise.resolve(null),

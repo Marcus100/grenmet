@@ -18,6 +18,7 @@ vi.mock("@/lib/studio-api", () => ({
 }));
 vi.mock("@/app/studio/[orgSlug]/bookings/new/actions", () => ({
   createBookingAction: vi.fn(),
+  loadWalkInTimesAction: vi.fn(() => Promise.resolve({ status: "closed" })),
 }));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
@@ -115,9 +116,10 @@ describe("new booking page", () => {
     ]);
     vi.mocked(listProviders).mockResolvedValue([provider([S1])]);
     render(await NewBookingPage({ params }));
-    expect(screen.getByRole("option", { name: MASSAGE })).toBeInTheDocument();
+    // Services are chosen from a searchable list of buttons.
+    expect(screen.getByRole("button", { name: MASSAGE })).toBeInTheDocument();
     expect(
-      screen.queryByRole("option", { name: FACIAL })
+      screen.queryByRole("button", { name: FACIAL })
     ).not.toBeInTheDocument();
   });
 

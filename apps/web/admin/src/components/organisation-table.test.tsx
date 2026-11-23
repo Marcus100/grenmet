@@ -48,10 +48,25 @@ describe("OrganisationTable", () => {
     ).toBeTruthy();
   });
 
-  it("says so when nothing matches", () => {
-    render(<OrganisationTable rows={[]} />);
-    expect(screen.getByRole("status").textContent).toBe(
-      "No organisations match."
+  it("explains a filtered empty list and offers clear filters and a new organisation", () => {
+    render(<OrganisationTable filtered rows={[]} />);
+    expect(screen.getByRole("status").textContent).toContain(
+      "No organisations match"
     );
+    expect(
+      screen.getByRole("link", { name: "Clear filters" }).getAttribute("href")
+    ).toBe("/organisations");
+    expect(
+      screen
+        .getByRole("link", { name: "New organisation" })
+        .getAttribute("href")
+    ).toBe("/organisations/new");
+  });
+
+  it("explains an empty platform without offering to clear anything", () => {
+    render(<OrganisationTable rows={[]} />);
+    expect(screen.getByText("No organisations yet")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Clear filters" })).toBeNull();
+    expect(screen.getByRole("link", { name: "New organisation" })).toBeTruthy();
   });
 });

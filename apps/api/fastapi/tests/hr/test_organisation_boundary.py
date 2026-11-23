@@ -9,9 +9,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.auth.models import Role, RoleAssignmentScope
+from src.auth.models import Role, RoleAssignmentScope, User
 from src.auth.permissions import seed_permissions_and_roles_async
 from src.auth.policy import can_act_on_user
+from src.auth.utils import create_access_token
 from src.dependencies import get_current_user
 from src.exceptions import AppException
 from src.hr.documents import service
@@ -20,7 +21,10 @@ from src.hr.documents.schemas import DocumentUpload, EmployeeDocumentCreate
 from src.hr.models import Department, Organisation
 from src.hr.organisations import resolve_organisation
 from src.main import app
+from src.organisations import service as platform_organisations
+from src.organisations.models import PlatformOrganisation
 from src.utils.datetime import utc_now
+from src.utils.timezones import local_today
 from tests.factories import (
     assign_role,
     make_department,
@@ -67,6 +71,103 @@ def storage_and_auth(monkeypatch: pytest.MonkeyPatch):
     yield
     app.dependency_overrides.clear()
     app.dependency_overrides.update(previous)
+
+
+MY_ORGANISATIONS = "/api/v1/hr/me/organisations"
+
+
+def _staff_headers(user: User) -> dict[str, str]:
+    token = create_access_token(user.id, expires_delta=timedelta(minutes=5))
+    return {"Authorization": f"Bearer {token}"}
+
+
+async def test_my_hr_organisations_ignores_requested_tenant_and_expired_grants(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+):
+    actor, _, _, _, other, _, role, _ = await setup_pair(db_async)
+    platform = await db_async.get(PlatformOrganisation, "gaa")
+    assert platform is not None
+    platform.slug = "gaa-staff-test"
+    await platform_organisations.ensure_for_hr_organisation(
+        db_async, organisation_id=other.organisation_id, name="Other organisation"
+    )
+    expired = await assign_role(
+        db_async,
+        user=actor,
+        role=role,
+        scope=RoleAssignmentScope.ALL,
+        organisation_id=other.organisation_id,
+    )
+    expired.effective_to = utc_now()
+    await db_async.commit()
+
+    headers = _staff_headers(actor)
+    response = await async_client.get(
+        MY_ORGANISATIONS,
+        params={"organisation_id": other.organisation_id},
+        headers={**headers, "X-Barrels-Organisation": other.organisation_id},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json() == [
+        {"id": "gaa", "slug": "gaa-staff-test", "name": platform.name, "scope": "ALL"}
+    ]
+    legacy = await async_client.get("/api/v1/hr/organisations", headers=headers)
+    assert legacy.status_code == 200, legacy.text
+    assert [org["slug"] for org in legacy.json()] == ["gaa-staff-test"]
+
+
+async def test_my_hr_organisations_has_no_global_superuser_shortcut(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+):
+    _, _, _, _, other, _, role, _ = await setup_pair(db_async)
+    platform = await platform_organisations.ensure_for_hr_organisation(
+        db_async, organisation_id=other.organisation_id, name="Other organisation"
+    )
+    actor = await make_user(db_async, superuser=True)
+    headers = _staff_headers(actor)
+    empty = await async_client.get(MY_ORGANISATIONS, headers=headers)
+    assert empty.status_code == 200
+    assert empty.json() == []
+
+    await assign_role(
+        db_async,
+        user=actor,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=other.id,
+        organisation_id=other.organisation_id,
+    )
+    response = await async_client.get(MY_ORGANISATIONS, headers=headers)
+    assert response.status_code == 200, response.text
+    assert response.json() == [
+        {
+            "id": other.organisation_id,
+            "slug": platform.slug,
+            "name": "Other organisation",
+            "scope": "DEPARTMENT",
+        }
+    ]
+
+
+async def test_my_hr_organisations_uses_the_last_day_of_employment(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+):
+    _, _, outsider, _, other, employment, _, _ = await setup_pair(db_async)
+    await platform_organisations.ensure_for_hr_organisation(
+        db_async, organisation_id=other.organisation_id, name="Other organisation"
+    )
+    today = local_today()
+    employment.end_date = today
+    await db_async.commit()
+    active = await async_client.get(MY_ORGANISATIONS, headers=_staff_headers(outsider))
+    assert active.status_code == 200
+    assert [(org["id"], org["scope"]) for org in active.json()] == [("other", "SELF")]
+
+    employment.end_date = today - timedelta(days=1)
+    await db_async.commit()
+    ended = await async_client.get(MY_ORGANISATIONS, headers=_staff_headers(outsider))
+    assert ended.status_code == 200
+    assert ended.json() == []
 
 
 async def test_all_scope_stays_inside_organisation(db_async: AsyncSession):

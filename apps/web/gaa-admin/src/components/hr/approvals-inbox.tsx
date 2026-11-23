@@ -35,6 +35,7 @@ import { Check, CornerUpLeft, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { TableSkeleton } from "@/components/data-table/table-skeleton";
 import { ruleWarningsFrom } from "./roster/rule-codes";
 import { RuleOverrideDialog } from "./roster/rule-override-dialog";
 import { SwapRuleWarnings } from "./shift/swap-rule-warnings";
@@ -161,8 +162,8 @@ export function ApprovalsInbox() {
 
   if (inboxQuery.isLoading) {
     return (
-      <div className="bg-card text-muted-foreground flex items-center gap-2 rounded-xl border p-6 text-sm">
-        <Spinner className="size-4" /> Loading your approvals…
+      <div className="bg-card rounded-xl border p-4">
+        <TableSkeleton columns={3} label="Loading your approvals" rows={3} />
       </div>
     );
   }

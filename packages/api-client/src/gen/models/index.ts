@@ -82,6 +82,14 @@ export type { AppPublic } from "./AppPublic.js";
 export type { ApprovalAuthorityPublic } from "./ApprovalAuthorityPublic.js";
 export type { ApprovalAuthorityUpdate } from "./ApprovalAuthorityUpdate.js";
 export type { ApprovalLine } from "./ApprovalLine.js";
+export type { AppSubscriptionChannel } from "./AppSubscriptionChannel.js";
+export { appSubscriptionChannel } from "./AppSubscriptionChannel.js";
+export type { AppSubscriptionCheckoutCreate } from "./AppSubscriptionCheckoutCreate.js";
+export type { AppSubscriptionCheckoutPublic } from "./AppSubscriptionCheckoutPublic.js";
+export type { AppSubscriptionListPublic } from "./AppSubscriptionListPublic.js";
+export type { AppSubscriptionPublic } from "./AppSubscriptionPublic.js";
+export type { AppSubscriptionStatus } from "./AppSubscriptionStatus.js";
+export { appSubscriptionStatus } from "./AppSubscriptionStatus.js";
 export type { ArchiveBulletin } from "./ArchiveBulletin.js";
 export type { ArchiveEdition } from "./ArchiveEdition.js";
 export type { ArchiveHistory } from "./ArchiveHistory.js";
@@ -265,6 +273,7 @@ export type {
   AuthAppHandoffRedeemStatus404,
   AuthAppHandoffRedeemStatus422,
   AuthAppHandoffRedeemStatus429,
+  AuthAppHandoffRedeemStatus503,
 } from "./AuthAppHandoffRedeem.js";
 export type {
   AuthAppHandoffStartBody,
@@ -279,6 +288,7 @@ export type {
   AuthAppHandoffStartStatus409,
   AuthAppHandoffStartStatus422,
   AuthAppHandoffStartStatus429,
+  AuthAppHandoffStartStatus503,
 } from "./AuthAppHandoffStart.js";
 export type {
   AuthAppPasswordLoginBody,
@@ -1034,6 +1044,21 @@ export type { BalanceImportRowPropertiesStatusEnum } from "./BalanceImportRowPro
 export { balanceImportRowPropertiesStatusEnum } from "./BalanceImportRowPropertiesStatusEnum.js";
 export type { BalanceInput } from "./BalanceInput.js";
 export type {
+  BillingCreateAppSubscriptionCheckoutBody,
+  BillingCreateAppSubscriptionCheckoutHeaders,
+  BillingCreateAppSubscriptionCheckoutOptions,
+  BillingCreateAppSubscriptionCheckoutResponse,
+  BillingCreateAppSubscriptionCheckoutResponses,
+  BillingCreateAppSubscriptionCheckoutStatus201,
+  BillingCreateAppSubscriptionCheckoutStatus401,
+  BillingCreateAppSubscriptionCheckoutStatus403,
+  BillingCreateAppSubscriptionCheckoutStatus404,
+  BillingCreateAppSubscriptionCheckoutStatus409,
+  BillingCreateAppSubscriptionCheckoutStatus422,
+  BillingCreateAppSubscriptionCheckoutStatus502,
+  BillingCreateAppSubscriptionCheckoutStatus503,
+} from "./BillingCreateAppSubscriptionCheckout.js";
+export type {
   BillingCreateCustomerBody,
   BillingCreateCustomerOptions,
   BillingCreateCustomerResponse,
@@ -1134,6 +1159,17 @@ export type {
   BillingIssueInvoiceStatus409,
   BillingIssueInvoiceStatus422,
 } from "./BillingIssueInvoice.js";
+export type {
+  BillingListAppSubscriptionsHeaders,
+  BillingListAppSubscriptionsOptions,
+  BillingListAppSubscriptionsResponse,
+  BillingListAppSubscriptionsResponses,
+  BillingListAppSubscriptionsStatus200,
+  BillingListAppSubscriptionsStatus401,
+  BillingListAppSubscriptionsStatus403,
+  BillingListAppSubscriptionsStatus404,
+  BillingListAppSubscriptionsStatus422,
+} from "./BillingListAppSubscriptions.js";
 export type {
   BillingListCustomersOptions,
   BillingListCustomersQuery,
@@ -1248,6 +1284,8 @@ export type { BookingProviderCreate } from "./BookingProviderCreate.js";
 export type { BookingProviderPublic } from "./BookingProviderPublic.js";
 export type { BookingProviderSettings } from "./BookingProviderSettings.js";
 export type { BookingProviderUpdate } from "./BookingProviderUpdate.js";
+export type { BookingPublicBusiness } from "./BookingPublicBusiness.js";
+export type { BookingPublicBusinessPage } from "./BookingPublicBusinessPage.js";
 export type { BookingPublicCancel } from "./BookingPublicCancel.js";
 export type { BookingPublicCancelBody } from "./BookingPublicCancelBody.js";
 export type { BookingPublicCreate } from "./BookingPublicCreate.js";
@@ -1640,6 +1678,15 @@ export type {
   BookingsListProvidersStatus404,
   BookingsListProvidersStatus422,
 } from "./BookingsListProviders.js";
+export type {
+  BookingsListPublicBusinessesOptions,
+  BookingsListPublicBusinessesQuery,
+  BookingsListPublicBusinessesResponse,
+  BookingsListPublicBusinessesResponses,
+  BookingsListPublicBusinessesStatus200,
+  BookingsListPublicBusinessesStatus422,
+  BookingsListPublicBusinessesStatus429,
+} from "./BookingsListPublicBusinesses.js";
 export type {
   BookingsListServicesHeaders,
   BookingsListServicesOptions,
@@ -2697,6 +2744,7 @@ export { documentSensitivity } from "./DocumentSensitivity.js";
 export type { EditionAsset } from "./EditionAsset.js";
 export type { EffectiveAccess } from "./EffectiveAccess.js";
 export type { EmailConfirm } from "./EmailConfirm.js";
+export type { EmailOutboxBacklog } from "./EmailOutboxBacklog.js";
 export type { EmailRequest } from "./EmailRequest.js";
 export type { EmergencyContactPublic } from "./EmergencyContactPublic.js";
 export type { EmergencyContactUpdate } from "./EmergencyContactUpdate.js";
@@ -4019,6 +4067,9 @@ export type {
   FeedbackSendPageFeedbackStatus400,
   FeedbackSendPageFeedbackStatus422,
 } from "./FeedbackSendPageFeedback.js";
+export type { FeedFreshness } from "./FeedFreshness.js";
+export type { FeedStatus } from "./FeedStatus.js";
+export { feedStatus } from "./FeedStatus.js";
 export type { FileAccess } from "./FileAccess.js";
 export type { FlagPublic } from "./FlagPublic.js";
 export type { FlagReason } from "./FlagReason.js";
@@ -4045,6 +4096,7 @@ export type { ForecastSource } from "./ForecastSource.js";
 export type { ForecastSourcePropertiesKindEnum } from "./ForecastSourcePropertiesKindEnum.js";
 export { forecastSourcePropertiesKindEnum } from "./ForecastSourcePropertiesKindEnum.js";
 export type { Frequency } from "./Frequency.js";
+export type { FreshnessReport } from "./FreshnessReport.js";
 export type { Gender } from "./Gender.js";
 export { gender } from "./Gender.js";
 export type { GmsCataloguePublic } from "./GmsCataloguePublic.js";
@@ -4911,6 +4963,17 @@ export type {
   HrGetInstanceStatus422,
 } from "./HrGetInstance.js";
 export type {
+  HrGetMyEmploymentOptions,
+  HrGetMyEmploymentQuery,
+  HrGetMyEmploymentResponse,
+  HrGetMyEmploymentResponses,
+  HrGetMyEmploymentStatus200,
+  HrGetMyEmploymentStatus401,
+  HrGetMyEmploymentStatus403,
+  HrGetMyEmploymentStatus404,
+  HrGetMyEmploymentStatus422,
+} from "./HrGetMyEmployment.js";
+export type {
   HrGetMyLeaveRequestsOptions,
   HrGetMyLeaveRequestsQuery,
   HrGetMyLeaveRequestsResponse,
@@ -4920,6 +4983,15 @@ export type {
   HrGetMyLeaveRequestsStatus403,
   HrGetMyLeaveRequestsStatus422,
 } from "./HrGetMyLeaveRequests.js";
+export type {
+  HrGetMyOrganisationsOptions,
+  HrGetMyOrganisationsResponse,
+  HrGetMyOrganisationsResponses,
+  HrGetMyOrganisationsStatus200,
+  HrGetMyOrganisationsStatus401,
+  HrGetMyOrganisationsStatus403,
+  HrGetMyOrganisationsStatus422,
+} from "./HrGetMyOrganisations.js";
 export type {
   HrGetMySignatureOptions,
   HrGetMySignatureResponse,
@@ -5651,6 +5723,9 @@ export type {
   HrLoadProvisionalHolidaysStatus403,
   HrLoadProvisionalHolidaysStatus422,
 } from "./HrLoadProvisionalHolidays.js";
+export type { HrMeEmploymentPublic } from "./HrMeEmploymentPublic.js";
+export type { HrMeLeaveBalancePublic } from "./HrMeLeaveBalancePublic.js";
+export type { HrMeOrganisationPublic } from "./HrMeOrganisationPublic.js";
 export type {
   HrOffboardStaffOptions,
   HrOffboardStaffPath,
@@ -6870,6 +6945,15 @@ export type {
   ModelsListOrganisationsStatus403,
   ModelsListOrganisationsStatus422,
 } from "./ModelsListOrganisations.js";
+export type {
+  MonitoringGetFreshnessOptions,
+  MonitoringGetFreshnessResponse,
+  MonitoringGetFreshnessResponses,
+  MonitoringGetFreshnessStatus200,
+  MonitoringGetFreshnessStatus401,
+  MonitoringGetFreshnessStatus403,
+  MonitoringGetFreshnessStatus422,
+} from "./MonitoringGetFreshness.js";
 export type { MovementKind } from "./MovementKind.js";
 export { movementKind } from "./MovementKind.js";
 export type { MyDeductionPublic } from "./MyDeductionPublic.js";

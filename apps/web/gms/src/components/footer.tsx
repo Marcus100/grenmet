@@ -114,7 +114,8 @@ const LEGAL_LINKS = [
   { label: "Disclaimer", href: "/disclaimer" },
 ] as const;
 
-const LINK = "hover:text-gm-text-inverse hover:underline";
+const LINK =
+  "hover:text-gm-text-inverse inline-flex min-h-11 items-center hover:underline";
 
 /**
  * Bold sky footer: navy, brand block and four link columns. The navy band is
@@ -192,7 +193,7 @@ export function Footer() {
             <br />A department of the Grenada Airports Authority. Maurice Bishop
             International Airport, St. George.
           </p>
-          <address className="text-body-sm leading-body-sm lg:text-body lg:leading-body flex flex-col not-italic [&>a]:flex [&>a]:min-h-7 [&>a]:items-center">
+          <address className="text-body-sm leading-body-sm lg:text-body lg:leading-body flex flex-col not-italic [&>a]:flex [&>a]:min-h-11 [&>a]:items-center">
             <a className={LINK} href={`tel:${GMS_CONTACTS.mainLine.tel}`}>
               Main line {GMS_CONTACTS.mainLine.label}
             </a>
@@ -208,7 +209,7 @@ export function Footer() {
               <li key={s.label}>
                 <a
                   aria-label={`GMS on ${s.label}`}
-                  className="border-gm-border text-caption leading-caption hover:bg-gm-text-inverse/10 flex size-9 items-center justify-center rounded-full border font-bold"
+                  className="border-gm-border text-caption leading-caption hover:bg-gm-text-inverse/10 flex size-11 items-center justify-center rounded-full border font-bold"
                   href={s.href}
                   rel="noopener noreferrer"
                   target="_blank"

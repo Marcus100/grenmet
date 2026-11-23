@@ -1,6 +1,9 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { SeverityBadge } from "@/components/cap/severity-badge";
 import { type CapPublicAlert, primaryInfo } from "@/lib/cap-api";
+import { capDeskHref } from "@/lib/cap-desk-paths";
+import { getCapDeskCutoverUrl } from "@/lib/env";
 import { relativeTime } from "./home-data";
 import { loadAlerts } from "./home-loaders";
 import { Panel, PanelEmpty, PanelUnavailable } from "./panel";
@@ -9,16 +12,20 @@ const MAX_ALERTS = 4;
 
 export async function AlertsPanel({ className }: { className?: string }) {
   const alerts = await loadAlerts();
+  const deskUrl = getCapDeskCutoverUrl();
 
   return (
     <Panel
-      action={{ href: "/cap", label: "CAP composer" }}
+      action={{ href: capDeskHref("/cap", deskUrl), label: "CAP composer" }}
       className={className}
       description="Public alerts currently in effect for Grenada"
       title="Active alerts"
     >
       {alerts.ok ? (
-        <AlertRows alerts={alerts.data.data.slice(0, MAX_ALERTS)} />
+        <AlertRows
+          alerts={alerts.data.data.slice(0, MAX_ALERTS)}
+          deskUrl={deskUrl}
+        />
       ) : (
         <PanelUnavailable message={alerts.message} />
       )}
@@ -26,7 +33,13 @@ export async function AlertsPanel({ className }: { className?: string }) {
   );
 }
 
-function AlertRows({ alerts }: { alerts: CapPublicAlert[] }) {
+function AlertRows({
+  alerts,
+  deskUrl,
+}: {
+  alerts: CapPublicAlert[];
+  deskUrl: string | undefined;
+}) {
   if (alerts.length === 0) {
     return <PanelEmpty>No alerts in effect. All clear.</PanelEmpty>;
   }
@@ -39,7 +52,12 @@ function AlertRows({ alerts }: { alerts: CapPublicAlert[] }) {
           <li key={alert.id}>
             <Link
               className="hover:bg-muted focus-visible:ring-ring -mx-2 flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors outline-none focus-visible:ring-2"
-              href={`/cap/alerts/${encodeURIComponent(alert.identifier)}`}
+              href={
+                capDeskHref(
+                  `/cap/alerts/${encodeURIComponent(alert.identifier)}`,
+                  deskUrl
+                ) as Route
+              }
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">

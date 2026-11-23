@@ -2591,6 +2591,206 @@
         ]
       }
     },
+    "/api/v1/billing/org/subscriptions": {
+      "get": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "List the organisation's app subscriptions",
+        "description": "Barrels app subscriptions of the organisation the request acts for, newest first, with each plan's amount in XCD minor units (ADR-0065). Organisation admins and owners only, signed in with an account or the bookings studio session. Needs no app entitlement: the plan screen is how it is bought.",
+        "operationId": "billingListAppSubscriptions",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSubscriptionListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/billing/org/subscriptions/checkout": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Start an app subscription checkout",
+        "description": "Create a pending subscription for one plan and return the hosted Stripe Checkout URL. A repeat call while that Checkout is still open returns the same id and URL (201), so an abandoned checkout does not block the customer; once it has expired, a fresh Checkout replaces it. 409 when the organisation already has a live subscription to the app, or when the first checkout is paid and Stripe has not reported it yet. Test mode only: a live Stripe key is refused with 503 before anything is sent. Organisation admins and owners only, signed in with an account or the bookings studio session. Stripe returns the customer to the organisation's studio plan page.",
+        "operationId": "billingCreateAppSubscriptionCheckout",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppSubscriptionCheckoutCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSubscriptionCheckoutPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "This plan has no price in that currency",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Stripe request failed"
+          },
+          "503": {
+            "description": "Billing is not configured or test mode is not in use"
+          }
+        }
+      }
+    },
     "/api/v1/billing/customers": {
       "get": {
         "tags": [
@@ -13670,6 +13870,104 @@
         }
       }
     },
+    "/api/v1/bookings/public/businesses": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "List businesses on the Barrels Bookings home page",
+        "description": "Businesses that opted in to the home page and are open for booking, 24 to a page. `q` searches the name, category, description and city; `category` keeps one category. Each card has public fields only. `categories` lists the filter chips. Needs no sign-in.",
+        "operationId": "bookingsListPublicBusinesses",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingPublicBusinessPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Bookingslistpublicbusinesses"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/bookings/public/{slug}": {
       "get": {
         "tags": [
@@ -14875,6 +15173,145 @@
             "OAuth2PasswordBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/hr/me/organisations": {
+      "get": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "List my HR organisations",
+        "description": "Returns the signed-in staff member's organisations and effective scope from live employment and role assignments.",
+        "operationId": "hrGetMyOrganisations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HrMeOrganisationPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Hrgetmyorganisations"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/me/employment": {
+      "get": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Get my employment in an organisation",
+        "description": "Returns the signed-in staff member's own live employment in one organisation, with their leave balances. No permission is needed: only the caller's own record is read, and no user ID is accepted.",
+        "operationId": "hrGetMyEmployment",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrMeEmploymentPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No live employment for the caller in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/hr/organisations/{organisation_id}": {
@@ -39419,7 +39856,7 @@
           "cap"
         ],
         "summary": "Raise a saved GMS alert to a CAP warning draft",
-        "description": "Creates a pre-filled CAP draft from one saved GMS alert revision, linked to it through the GMS source parameters. Returns 200 with the existing draft when an open (draft, submitted or approved) CAP alert already links the product. Needs cap.alert.create and product access to the alert's kind.",
+        "description": "Creates a pre-filled CAP draft from one saved GMS alert revision, linked to it through the GMS source parameters. Returns 200 with the existing warning when a draft, submitted, approved or published CAP alert already links the product; an expired or cancelled one does not block. Needs cap.alert.create and product access to the alert's kind.",
         "operationId": "capCreateEscalation",
         "security": [
           {
@@ -66558,6 +66995,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Single sign-on is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -66663,6 +67110,16 @@
           },
           "403": {
             "description": "Account cannot use this app",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Single sign-on is not configured",
             "content": {
               "application/json": {
                 "schema": {
@@ -72621,6 +73078,63 @@
           }
         ]
       }
+    },
+    "/api/v1/monitoring/admin/freshness": {
+      "get": {
+        "tags": [
+          "monitoring"
+        ],
+        "summary": "Read ingest freshness and the email outbox backlog",
+        "description": "For staff (the monitoring screen). Each ingest feed reports its last successful run and whether that is inside its window; the email outbox reports pending, overdue and recently dead rows. `healthy` is true only when every enabled feed is fresh and the email backlog is within threshold. Needs monitoring.freshness.read. It is not an uptime monitor target: a signed-in token expires within an hour. Counts and times only; no recipients, payloads or error text.",
+        "operationId": "monitoringGetFreshness",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FreshnessReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing monitoring.freshness.read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -74782,6 +75296,163 @@
           "methods"
         ],
         "title": "AppPublic"
+      },
+      "AppSubscriptionChannel": {
+        "type": "string",
+        "enum": [
+          "stripe",
+          "invoice"
+        ],
+        "title": "AppSubscriptionChannel"
+      },
+      "AppSubscriptionCheckoutCreate": {
+        "properties": {
+          "plan_key": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Plan Key"
+          },
+          "currency": {
+            "type": "string",
+            "const": "XCD",
+            "title": "Currency",
+            "default": "XCD"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_key"
+        ],
+        "title": "AppSubscriptionCheckoutCreate"
+      },
+      "AppSubscriptionCheckoutPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "url"
+        ],
+        "title": "AppSubscriptionCheckoutPublic"
+      },
+      "AppSubscriptionListPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AppSubscriptionPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "AppSubscriptionListPublic"
+      },
+      "AppSubscriptionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "app_key": {
+            "type": "string",
+            "title": "App Key"
+          },
+          "plan_key": {
+            "type": "string",
+            "title": "Plan Key"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/AppSubscriptionChannel"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AppSubscriptionStatus"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor"
+          },
+          "current_period_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Period End"
+          },
+          "cancel_at_period_end": {
+            "type": "boolean",
+            "title": "Cancel At Period End"
+          },
+          "trial_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trial End"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "app_key",
+          "plan_key",
+          "channel",
+          "status",
+          "currency",
+          "amount_minor",
+          "current_period_end",
+          "cancel_at_period_end",
+          "trial_end",
+          "created_at"
+        ],
+        "title": "AppSubscriptionPublic"
+      },
+      "AppSubscriptionStatus": {
+        "type": "string",
+        "enum": [
+          "incomplete",
+          "active",
+          "past_due",
+          "canceled",
+          "unpaid"
+        ],
+        "title": "AppSubscriptionStatus"
       },
       "ApprovalAuthorityPublic": {
         "properties": {
@@ -78303,6 +78974,51 @@
             "title": "Logo File Id",
             "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
           },
+          "listed": {
+            "type": "boolean",
+            "title": "Listed",
+            "description": "Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept.",
+            "default": false
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Short category for the home page, such as Hair or Nails; it is the filter chip a visitor taps. Blank clears it. Left out, the stored value is kept."
+          },
+          "short_description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Description",
+            "description": "One line for the home page card. Blank clears it. Left out, the stored value is kept."
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City",
+            "description": "Town or city for the home page card. Blank clears it. Left out, the stored value is kept."
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -78506,6 +79222,51 @@
             ],
             "title": "Logo File Id",
             "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+          },
+          "listed": {
+            "type": "boolean",
+            "title": "Listed",
+            "description": "Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept.",
+            "default": false
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Short category for the home page, such as Hair or Nails; it is the filter chip a visitor taps. Blank clears it. Left out, the stored value is kept."
+          },
+          "short_description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Description",
+            "description": "One line for the home page card. Blank clears it. Left out, the stored value is kept."
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City",
+            "description": "Town or city for the home page card. Blank clears it. Left out, the stored value is kept."
           }
         },
         "type": "object",
@@ -78732,6 +79493,125 @@
         },
         "type": "object",
         "title": "BookingProviderUpdate"
+      },
+      "BookingPublicBusiness": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug",
+            "description": "The business's booking page is /<slug>."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "short_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Description"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "brand_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Color",
+            "description": "The business's accent as `#rrggbb`, or null."
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url",
+            "description": "Public https address of the logo, or null when there is no finished logo upload or no public API address is configured. Load it as an image."
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "category",
+          "short_description",
+          "city",
+          "brand_color",
+          "logo_url"
+        ],
+        "title": "BookingPublicBusiness",
+        "description": "One card on the Barrels Bookings home page. Public fields only: no contact\ndetails, owner data or emails."
+      },
+      "BookingPublicBusinessPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BookingPublicBusiness"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when a later page holds more businesses."
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Categories",
+            "description": "The distinct categories of every listed business, case folded, for the filter chips. Not narrowed by the search."
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "has_more",
+          "categories"
+        ],
+        "title": "BookingPublicBusinessPage"
       },
       "BookingPublicCancel": {
         "properties": {
@@ -87190,6 +88070,39 @@
         ],
         "title": "EmailConfirm"
       },
+      "EmailOutboxBacklog": {
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "title": "Pending"
+          },
+          "stale_pending": {
+            "type": "integer",
+            "title": "Stale Pending"
+          },
+          "dead_last_window": {
+            "type": "integer",
+            "title": "Dead Last Window"
+          },
+          "dead_window_hours": {
+            "type": "integer",
+            "title": "Dead Window Hours"
+          },
+          "stale_after_minutes": {
+            "type": "integer",
+            "title": "Stale After Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pending",
+          "stale_pending",
+          "dead_last_window",
+          "dead_window_hours",
+          "stale_after_minutes"
+        ],
+        "title": "EmailOutboxBacklog"
+      },
       "EmailRequest": {
         "properties": {
           "email": {
@@ -89440,6 +90353,58 @@
         "title": "FeatureFlagUpdate",
         "description": "Partial update; send ``null`` to clear a nullable field. The key is immutable."
       },
+      "FeedFreshness": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FeedStatus"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "max_age_minutes": {
+            "type": "integer",
+            "title": "Max Age Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "enabled",
+          "last_success_at",
+          "max_age_minutes"
+        ],
+        "title": "FeedFreshness"
+      },
+      "FeedStatus": {
+        "type": "string",
+        "enum": [
+          "fresh",
+          "stale",
+          "never",
+          "unknown",
+          "disabled"
+        ],
+        "title": "FeedStatus",
+        "description": "fresh: last success within its window. stale: older than the window.\nnever: no success recorded yet. unknown: telemetry off or Redis unreachable.\ndisabled: the feed's flag is off, so it is not expected to run."
+      },
       "FileAccess": {
         "properties": {
           "url": {
@@ -89867,6 +90832,42 @@
           "periodUnit"
         ],
         "title": "Frequency"
+      },
+      "FreshnessReport": {
+        "properties": {
+          "healthy": {
+            "type": "boolean",
+            "title": "Healthy"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          },
+          "telemetry_available": {
+            "type": "boolean",
+            "title": "Telemetry Available"
+          },
+          "feeds": {
+            "items": {
+              "$ref": "#/components/schemas/FeedFreshness"
+            },
+            "type": "array",
+            "title": "Feeds"
+          },
+          "email_outbox": {
+            "$ref": "#/components/schemas/EmailOutboxBacklog"
+          }
+        },
+        "type": "object",
+        "required": [
+          "healthy",
+          "checked_at",
+          "telemetry_available",
+          "feeds",
+          "email_outbox"
+        ],
+        "title": "FreshnessReport"
       },
       "Gender": {
         "type": "string",
@@ -91208,6 +92209,127 @@
           "shift_types"
         ],
         "title": "HrDashboardPublic"
+      },
+      "HrMeEmploymentPublic": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EmploymentStatus"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "department_name": {
+            "type": "string",
+            "title": "Department Name"
+          },
+          "employment_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmploymentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "leave_balances": {
+            "items": {
+              "$ref": "#/components/schemas/HrMeLeaveBalancePublic"
+            },
+            "type": "array",
+            "title": "Leave Balances"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "status",
+          "department_name",
+          "leave_balances"
+        ],
+        "title": "HrMeEmploymentPublic",
+        "description": "The caller's own live employment in one organisation.\n\nLeave balances are held per person, not per organisation. A person has at\nmost one employment record, so the balances are those of this employment.\nThey are returned only while the caller has live employment in the\nrequested organisation."
+      },
+      "HrMeLeaveBalancePublic": {
+        "properties": {
+          "leave_type": {
+            "type": "string",
+            "title": "Leave Type"
+          },
+          "balance_days": {
+            "type": "string",
+            "title": "Balance Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "leave_type",
+          "balance_days"
+        ],
+        "title": "HrMeLeaveBalancePublic"
+      },
+      "HrMeOrganisationPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/RoleAssignmentScope"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "scope"
+        ],
+        "title": "HrMeOrganisationPublic"
       },
       "HrRolePublic": {
         "properties": {
@@ -98818,6 +99940,17 @@
           "name": {
             "type": "string",
             "title": "Name"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
           }
         },
         "type": "object",
@@ -114306,6 +115439,10 @@
             "type": "integer",
             "title": "Cancelled"
           },
+          "refunded": {
+            "type": "integer",
+            "title": "Refunded"
+          },
           "cash_collected_minor": {
             "type": "integer",
             "title": "Cash Collected Minor"
@@ -114338,6 +115475,7 @@
           "claimed",
           "admitted",
           "cancelled",
+          "refunded",
           "cash_collected_minor",
           "cash_expected_minor",
           "cash_counted_minor",

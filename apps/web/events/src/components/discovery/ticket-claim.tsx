@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import { createFunnel } from "@barrelsgd/ui/lib/funnel-analytics";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { Check, Clock, Minus, Plus, Ticket } from "lucide-react";
 import Link from "next/link";
@@ -59,6 +60,8 @@ export const ACTION_BLOCK_CLASS = cn(
   "max-md:standalone:bottom-[calc(3.5rem_+_env(safe-area-inset-bottom))] max-lg:standalone:pb-3"
 );
 
+const funnel = createFunnel("events");
+
 /**
  * Claim tickets. Free and registration tiers issue at once. A paid tier
  * creates an order that holds the stock: the buyer is sent to the payment
@@ -66,10 +69,13 @@ export const ACTION_BLOCK_CLASS = cn(
  * reserved. Guests can see the tiers; claiming sends them to sign in.
  */
 export function TicketClaim({
+  listingId,
   refundTerms,
   slug,
   tiers,
 }: {
+  /** Internal listing id for the checkout funnel event (never the slug). */
+  listingId?: string;
   slug: string;
   tiers: readonly Tier[];
   /** The event's refund terms, shown above the pay button when a tier is paid. */
@@ -142,6 +148,7 @@ export function TicketClaim({
       const url = safeCheckoutUrl(order.checkoutUrl);
       if (url) {
         setOutcome({ kind: "redirecting" });
+        funnel.capture("checkout_started", { listing_id: listingId });
         goToCheckout(url);
         return;
       }
@@ -206,7 +213,7 @@ export function TicketClaim({
       {tiers.some((tier) => tier.price.amountMinor > 0) ? (
         <RefundTermsLine terms={refundTerms} />
       ) : null}
-      <div className={ACTION_BLOCK_CLASS}>
+      <div className={ACTION_BLOCK_CLASS} data-buy-bar="">
         <p className="text-body flex items-baseline justify-between gap-3">
           <span className="font-medium" data-testid="ticket-summary">
             {total === 0

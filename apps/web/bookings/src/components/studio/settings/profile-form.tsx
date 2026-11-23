@@ -9,8 +9,6 @@ import { TIMEZONE_SUGGESTIONS } from "@/lib/settings-view";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
 import { BrandSection } from "./brand-section";
-import { ContactOptions } from "./contact-options";
-import { PaymentOption } from "./payment-option";
 import {
   INPUT,
   keepTyped,
@@ -19,14 +17,16 @@ import {
   SettingsResult,
 } from "./settings-ui";
 
+/**
+ * The business profile section: name, address, timezone, prices, notices,
+ * brand and the booking-page switch. Contact options and the payment choice
+ * have their own forms and Save buttons (ContactForm, PaymentsForm).
+ */
 export function ProfileForm({
-  cardPaymentsAvailable = false,
   orgSlug,
   profile,
   suggestedName,
 }: {
-  /** The platform takes card payments online (Stripe test mode). */
-  cardPaymentsAvailable?: boolean;
   orgSlug: string;
   profile: BookingProfilePublic | null;
   /** Prefills the business name for a first-time profile. */
@@ -50,6 +50,7 @@ export function ProfileForm({
   const hydrated = useHydrated();
   return (
     <form className="space-y-5" onSubmit={keepTyped(formAction)}>
+      <input name="section" type="hidden" value="profile" />
       <div className="grid gap-5 lg:grid-cols-2">
         <SettingsField id="profile-displayName" label="Business name">
           {() => (
@@ -202,6 +203,54 @@ export function ProfileForm({
           )}
         </SettingsField>
         <SettingsField
+          hint="Shown on your card on the Barrels bookings home page, and a word people can search."
+          id="profile-category"
+          label="Category (optional)"
+        >
+          {(describedBy) => (
+            <Input
+              aria-describedby={describedBy}
+              className={INPUT}
+              defaultValue={profile?.category ?? ""}
+              id="profile-category"
+              maxLength={80}
+              name="category"
+            />
+          )}
+        </SettingsField>
+        <SettingsField
+          hint="One line on your card on the home page."
+          id="profile-shortDescription"
+          label="Short description (optional)"
+        >
+          {(describedBy) => (
+            <Input
+              aria-describedby={describedBy}
+              className={INPUT}
+              defaultValue={profile?.short_description ?? ""}
+              id="profile-shortDescription"
+              maxLength={160}
+              name="shortDescription"
+            />
+          )}
+        </SettingsField>
+        <SettingsField
+          hint="Shown on your card on the home page."
+          id="profile-city"
+          label="Town or city (optional)"
+        >
+          {(describedBy) => (
+            <Input
+              aria-describedby={describedBy}
+              className={INPUT}
+              defaultValue={profile?.city ?? ""}
+              id="profile-city"
+              maxLength={80}
+              name="city"
+            />
+          )}
+        </SettingsField>
+        <SettingsField
           hint="Where new-booking alerts go. Leave empty for none."
           id="profile-notifyEmail"
           label="Notification email (optional)"
@@ -243,14 +292,6 @@ export function ProfileForm({
         onUploadingChange={setLogoUploading}
         orgSlug={orgSlug}
       />
-      <ContactOptions
-        errors={state.status === "error" ? state.fields : undefined}
-        profile={profile}
-      />
-      <PaymentOption
-        cardPaymentsAvailable={cardPaymentsAvailable}
-        profile={profile}
-      />
       <div className="space-y-1">
         <SettingsCheck
           defaultChecked={profile?.requires_confirmation ?? false}
@@ -261,6 +302,11 @@ export function ProfileForm({
           defaultChecked={profile?.enabled ?? false}
           label="Online booking is open (customers can book on the public page)"
           name="enabled"
+        />
+        <SettingsCheck
+          defaultChecked={profile?.listed ?? false}
+          label="Show my business on the Barrels bookings home page"
+          name="listed"
         />
       </div>
       <SettingsResult pending={pending} state={state} />

@@ -17,6 +17,7 @@ const BASE = "http://localhost";
 const SAVE_ONE_LABEL = /Save \(1\)/u;
 const APPROVED_ABSENCE_LABEL = /scheduled E, Approved absence/u;
 const NOT_SCHEDULED = /, not scheduled$/u;
+const WEEK_LABEL = /^Week \d+ of \d+$/u;
 
 const CATALOG = {
   data: [
@@ -314,6 +315,23 @@ describe("DutyRoster (wired)", () => {
     for (const button of screen.getAllByRole("button")) {
       expect(button).toHaveAccessibleName();
     }
+  });
+
+  it("offers a phone week view: one week at a time, picked by day", async () => {
+    renderRoster();
+    expect(await screen.findByText("G. Tamar")).toBeInTheDocument();
+    const picker = screen.getByRole("group", { name: "Choose a day" });
+    const days = within(picker).getAllByRole("button");
+    expect(days.length).toBeGreaterThanOrEqual(1);
+    expect(days.length).toBeLessThanOrEqual(7);
+    const pressed = days.filter(
+      (day) => day.getAttribute("aria-pressed") === "true"
+    );
+    expect(pressed).toHaveLength(1);
+
+    const weekLabel = screen.getByText(WEEK_LABEL).textContent;
+    fireEvent.click(screen.getByRole("button", { name: "Next week" }));
+    expect(screen.getByText(WEEK_LABEL).textContent).not.toBe(weekLabel);
   });
 
   it("renders members, legend from the catalog, and saved assignments", async () => {

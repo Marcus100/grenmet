@@ -1,6 +1,6 @@
 """Read-only queries behind the public CAP feeds and warnings."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import sqlalchemy as sa
 from sqlalchemy import select
@@ -325,18 +325,35 @@ def select_public_warnings(
 
 
 async def public_warnings(*, session: AsyncSession) -> PublicWarnings:
-    from datetime import UTC
-
+    # One clock for the SQL filter and the Python selection, so they agree.
+    clock = datetime.now(UTC)
+    now = clock.replace(tzinfo=None)
+    # Published alerts are never moved to EXPIRED by time, so every alert ever
+    # published stays PUBLISHED. Filter to those with an information block in
+    # effect now in SQL; loading the rest (with their areas) made this slow.
+    # select_public_warnings still applies the same rules and is the authority.
+    in_effect = (
+        select(CapInfo.id)
+        .where(
+            CapInfo.alert_id == CapAlert.id,
+            sa.or_(CapInfo.effective.is_(None), CapInfo.effective <= now),
+            sa.or_(CapInfo.expires.is_(None), CapInfo.expires > now),
+        )
+        .exists()
+    )
     statement = (
         select(CapAlert)
         .where(
             CapAlert.lifecycle_state == CapLifecycleState.PUBLISHED,
             CapAlert.scope == CapScope.PUBLIC,
+            CapAlert.msg_type.in_({CapMessageType.ALERT, CapMessageType.UPDATE}),
+            CapAlert.sent <= now,
+            in_effect,
         )
         .options(*_alert_selectinload_options())
     )
     rows = (await session.execute(statement)).scalars().all()
     return select_public_warnings(
         [_to_public_from_loaded(row, redact_internal=True) for row in rows],
-        datetime.now(UTC),
+        clock,
     )

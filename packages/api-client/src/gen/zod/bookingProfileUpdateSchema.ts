@@ -77,5 +77,30 @@ export const bookingProfileUpdateSchema = z
       .describe(
         "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
       ),
+    listed: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept."
+      ),
+    category: z
+      .union([z.string().max(80), z.null()])
+      .optional()
+      .describe(
+        "Short category for the home page, such as Hair or Nails; it is the filter chip a visitor taps. Blank clears it. Left out, the stored value is kept."
+      ),
+    short_description: z
+      .union([z.string().max(160), z.null()])
+      .optional()
+      .describe(
+        "One line for the home page card. Blank clears it. Left out, the stored value is kept."
+      ),
+    city: z
+      .union([z.string().max(80), z.null()])
+      .optional()
+      .describe(
+        "Town or city for the home page card. Blank clears it. Left out, the stored value is kept."
+      ),
   })
   .describe("Create or replace the organisation's booking profile.");

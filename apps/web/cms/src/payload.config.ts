@@ -42,6 +42,9 @@ export default buildConfig({
   }),
   admin: {
     user: "users",
+    // Payload's default is Gravatar, which sends each staff member's email hash
+    // to a third party on every admin page. The initials avatar keeps it local.
+    avatar: "default",
     components: {
       logout: { Button: "/components/logout-button#LogoutButton" },
     },

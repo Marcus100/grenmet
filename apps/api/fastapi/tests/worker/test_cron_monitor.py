@@ -173,3 +173,56 @@ def test_booking_jobs_keep_their_names() -> None:
     for job in (main.enqueue_booking_reminders, main.expire_unpaid_bookings):
         assert hasattr(job, "__wrapped__")
         assert job.__name__ == job.__wrapped__.__name__
+
+
+def test_every_scheduled_arq_job_reports_check_ins() -> None:
+    """A scheduled job with no monitor fails silently, so every cron job has one."""
+    unmonitored = sorted(
+        job.coroutine.__name__
+        for job in main.WorkerSettings.cron_jobs
+        if job.coroutine.__name__ not in cron_monitor.MONITORED
+    )
+    assert unmonitored == []
+
+
+def test_manifest_scheduled_jobs_report_check_ins() -> None:
+    from src.domains import worker_jobs
+
+    manifest_jobs = {function.__name__ for function, job in worker_jobs() if job.cron}
+    assert {"poll_flights", "purge_scan_log"} <= manifest_jobs
+    assert manifest_jobs <= set(cron_monitor.MONITORED)
+
+
+def test_monitor_schedules_are_utc_crontabs_without_seconds() -> None:
+    for name, config in cron_monitor.MONITORED.items():
+        assert config["schedule"]["type"] == "crontab", name
+        assert config["timezone"] == "UTC", name
+        assert len(config["schedule"]["value"].split()) == 5, name
+
+
+def test_sub_minute_jobs_are_scheduled_once_a_minute() -> None:
+    """Jobs that run every 30 seconds report at most once a minute (min interval)."""
+    for function in (
+        main.send_notification_emails,
+        main.send_outbound_emails,
+        main.send_wis2_publications,
+    ):
+        config = cron_monitor.MONITORED[function.__name__]
+        assert config["schedule"]["value"] == "* * * * *", function.__name__
+
+
+async def test_database_free_job_checks_in_with_its_schedule(
+    monkeypatch: pytest.MonkeyPatch, checkins: list[dict[str, Any]]
+) -> None:
+    from src.environmental.config import environmental_settings
+
+    # Marine is off in this run, so the job returns before any provider call.
+    monkeypatch.setattr(
+        type(environmental_settings), "marine_enabled", property(lambda _s: False)
+    )
+    _enable(monkeypatch)
+
+    assert await main.fetch_marine_environment({}) == 0
+    assert [c["status"] for c in checkins] == ["in_progress", "ok"]
+    assert checkins[0]["monitor_slug"] == "production-worker-fetch-marine-environment"
+    assert checkins[0]["monitor_config"]["schedule"]["value"] == ("20 1,7,13,19 * * *")

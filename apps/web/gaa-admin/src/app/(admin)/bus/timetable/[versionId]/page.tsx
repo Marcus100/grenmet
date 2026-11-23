@@ -1,6 +1,7 @@
 import { Card } from "@barrelsgd/ui/components/ui/card";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { NeedsAccess } from "@/components/access/needs-access";
 import { DraftEditor } from "@/components/bus/draft-editor";
 import {
   BusHeader,
@@ -37,7 +38,14 @@ export default async function TimetableVersionPage({
 
   // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
   const access = await getTransportAccess();
-  if (!access.canView) notFound();
+  if (!access.canView) {
+    return (
+      <NeedsAccess
+        ask="Ask a Transport officer for a transport role. The timetable in force is still available to all staff."
+        module="Bus"
+      />
+    );
+  }
   const [detail, catalogue] = await Promise.all([
     getTimetableVersion(versionId),
     getTransportCatalogue(),

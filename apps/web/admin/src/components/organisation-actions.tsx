@@ -1,3 +1,7 @@
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
+import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import {
   editOrganisationAction,
   setAppAction,
@@ -5,6 +9,7 @@ import {
   unverifyAction,
   verifyAction,
 } from "@/app/(console)/organisations/actions";
+import { ConfirmActionDialog } from "@/components/confirm-action-dialog";
 import { KINDS } from "@/lib/organisation-form";
 
 export interface ActionOrganisation {
@@ -17,11 +22,6 @@ export interface ActionOrganisation {
   status: string;
   verified_at?: string | null;
 }
-
-const FIELD = "rounded-md border bg-background px-2.5 py-1.5";
-const BUTTON = "rounded-md border px-3 py-1.5 text-sm hover:bg-muted";
-const DANGER =
-  "rounded-md border border-destructive px-3 py-1.5 text-destructive text-sm hover:bg-muted";
 
 function Disclosure({
   children,
@@ -54,8 +54,7 @@ function ReasonForm({
       <input name="organisation_id" type="hidden" value={id} />
       <label className="grid gap-1 text-sm">
         {label}
-        <textarea
-          className={FIELD}
+        <Textarea
           maxLength={500}
           minLength={3}
           name="reason"
@@ -67,9 +66,9 @@ function ReasonForm({
         The reason is recorded in the organisation&apos;s history.
       </p>
       <div>
-        <button className={BUTTON} type="submit">
+        <Button type="submit" variant="outline">
           {submit}
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -114,8 +113,7 @@ export function OrganisationActions({
           <input name="organisation_id" type="hidden" value={organisation.id} />
           <label className="grid gap-1 text-sm">
             Name
-            <input
-              className={FIELD}
+            <Input
               defaultValue={organisation.name}
               maxLength={255}
               name="name"
@@ -124,8 +122,8 @@ export function OrganisationActions({
           </label>
           <label className="grid gap-1 text-sm">
             Slug
-            <input
-              className={`${FIELD} font-mono`}
+            <Input
+              className="font-mono"
               defaultValue={organisation.slug}
               maxLength={100}
               name="slug"
@@ -135,45 +133,54 @@ export function OrganisationActions({
           </label>
           <label className="grid gap-1 text-sm">
             Kind
-            <select
-              className={FIELD}
-              defaultValue={organisation.kind}
-              name="kind"
-            >
+            <NativeSelect defaultValue={organisation.kind} name="kind">
               {KINDS.map((kind) => (
                 <option key={kind} value={kind}>
                   {kind}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <div>
-            <button className={BUTTON} type="submit">
+            <Button type="submit" variant="outline">
               Save changes
-            </button>
+            </Button>
           </div>
         </form>
       </Disclosure>
 
       <Disclosure label={suspended ? "Reactivate" : "Suspend"}>
-        <form action={setStatusAction} className="grid max-w-md gap-3">
-          <input name="organisation_id" type="hidden" value={organisation.id} />
-          <input
-            name="status"
-            type="hidden"
-            value={suspended ? "active" : "suspended"}
-          />
+        <div className="grid max-w-md gap-3">
           <p className="text-sm">
             {suspended
               ? "Members will be able to act for this organisation again."
               : "Every organisation-scoped request from its members is refused until it is reactivated. Nothing is deleted."}
           </p>
           <div>
-            <button className={suspended ? BUTTON : DANGER} type="submit">
-              {suspended ? "Confirm reactivate" : "Confirm suspend"}
-            </button>
+            <ConfirmActionDialog
+              action={setStatusAction}
+              confirmLabel={
+                suspended ? "Reactivate organisation" : "Suspend organisation"
+              }
+              description={
+                suspended
+                  ? `${organisation.name} becomes active again and its members can act for it.`
+                  : `${organisation.name} is suspended at once. Its members are refused until it is reactivated. Nothing is deleted.`
+              }
+              destructive={!suspended}
+              fields={{
+                organisation_id: organisation.id,
+                status: suspended ? "active" : "suspended",
+              }}
+              title={
+                suspended
+                  ? "Reactivate this organisation?"
+                  : "Suspend this organisation?"
+              }
+              triggerLabel={suspended ? "Reactivate" : "Suspend"}
+            />
           </div>
-        </form>
+        </div>
       </Disclosure>
     </section>
   );
@@ -226,9 +233,9 @@ export function AppEntitlements({
                   type="hidden"
                   value={enabled === true ? "false" : "true"}
                 />
-                <button className={BUTTON} type="submit">
+                <Button size="sm" type="submit" variant="outline">
                   {enabled === true ? "Disable" : "Enable"}
-                </button>
+                </Button>
               </form>
             </li>
           );

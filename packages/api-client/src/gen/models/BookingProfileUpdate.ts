@@ -103,4 +103,22 @@ export type BookingProfileUpdate = {
    * @description A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept.
    */
   logo_file_id?: string | null;
+  /**
+   * @description Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept.
+   * @default false
+   * @type boolean | undefined
+   */
+  listed?: boolean;
+  /**
+   * @description Short category for the home page, such as Hair or Nails; it is the filter chip a visitor taps. Blank clears it. Left out, the stored value is kept.
+   */
+  category?: string | null;
+  /**
+   * @description One line for the home page card. Blank clears it. Left out, the stored value is kept.
+   */
+  short_description?: string | null;
+  /**
+   * @description Town or city for the home page card. Blank clears it. Left out, the stored value is kept.
+   */
+  city?: string | null;
 };

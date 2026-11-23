@@ -7,8 +7,10 @@ Task dependencies are imported inside each job: the worker health probe loads
 from typing import Any
 
 from src import operational_metrics
+from src.worker.cron_monitor import monitored
 
 
+@monitored(schedule="5,35 * * * *", checkin_margin=10, max_runtime=10)
 async def poll_flights(ctx: dict[str, Any]) -> int:
     """Refresh cached OpenSky movements. Does nothing unless the flag is on."""
     from src.flights import service as flights_service
@@ -22,4 +24,8 @@ async def poll_flights(ctx: dict[str, Any]) -> int:
     await operational_metrics.record_job(
         ctx.get("redis"), "poll_flights", str(ctx.get("job_id", "")), healthy
     )
+    if healthy:
+        await operational_metrics.record_feed_success(
+            ctx.get("redis"), "opensky_flights"
+        )
     return sum(result.values())

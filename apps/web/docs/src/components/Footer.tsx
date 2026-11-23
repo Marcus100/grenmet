@@ -88,19 +88,31 @@ function SmallPrint() {
         &copy; Copyright {new Date().getFullYear()}. All rights reserved.
       </p>
       <div className="flex flex-wrap gap-4">
-        <Link className="text-sm underline" href="/errors">
+        <Link
+          className="inline-flex min-h-11 items-center text-sm underline"
+          href="/errors"
+        >
           Help
         </Link>
-        <Link className="text-sm underline" href="/webhooks">
+        <Link
+          className="inline-flex min-h-11 items-center text-sm underline"
+          href="/webhooks"
+        >
           Data feeds
         </Link>
-        <Link className="text-sm underline" href="/quickstart">
+        <Link
+          className="inline-flex min-h-11 items-center text-sm underline"
+          href="/quickstart"
+        >
           Staff guide
         </Link>
-        <a className="text-sm underline" href={BARRELS_SUPPORT_HREF}>
+        <a
+          className="inline-flex min-h-11 items-center text-sm underline"
+          href={BARRELS_SUPPORT_HREF}
+        >
           Contact support
         </a>
-        <CookieSettingsButton className="cursor-pointer text-sm underline" />
+        <CookieSettingsButton className="inline-flex min-h-11 cursor-pointer items-center text-sm underline" />
       </div>
     </div>
   );

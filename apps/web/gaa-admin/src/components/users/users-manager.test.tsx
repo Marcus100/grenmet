@@ -1,6 +1,12 @@
 import { configureApiClient } from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import {
@@ -166,10 +172,21 @@ function renderUsers() {
 }
 
 describe("UsersManager", () => {
+  it("shows a desktop table and a phone card list, without bulk checkboxes in the cards", async () => {
+    renderUsers();
+    await screen.findAllByText("Gerard Tamar");
+    const cards = screen.getByRole("list", { name: "Results" });
+    expect(cards.className).toContain("md:hidden");
+    const tableWrapper = screen.getByRole("table").closest(".hidden");
+    expect(tableWrapper?.className).toContain("md:block");
+    expect(within(cards).queryAllByRole("checkbox")).toHaveLength(0);
+    expect(screen.getAllByRole("checkbox").length).toBeGreaterThan(0);
+  });
+
   it("hides global account creation for scoped managers", async () => {
     actor.is_superuser = false;
     renderUsers();
-    await screen.findByText("Gerard Tamar");
+    await screen.findAllByText("Gerard Tamar");
     expect(
       screen.queryByRole("button", { name: NEW_USER_LABEL })
     ).not.toBeInTheDocument();
@@ -180,22 +197,24 @@ describe("UsersManager", () => {
   it("lists users with roles, status pills, and superuser badge; filters by search", async () => {
     renderUsers();
 
-    expect(await screen.findByText("Gerard Tamar")).toBeInTheDocument();
-    expect(screen.getByText("Eugine Whint")).toBeInTheDocument();
-    expect(screen.getByText("superuser")).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText("Gerard Tamar")).at(0)
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Eugine Whint").at(0)).toBeInTheDocument();
+    expect(screen.getAllByText("superuser").at(0)).toBeInTheDocument();
 
     // Roles are joined client-side from the role-assignments query.
-    expect(await screen.findByText("staff")).toBeInTheDocument();
-    expect(screen.getByText("hr-admin")).toBeInTheDocument();
+    expect((await screen.findAllByText("staff")).at(0)).toBeInTheDocument();
+    expect(screen.getAllByText("hr-admin").at(0)).toBeInTheDocument();
 
     // Status pills reflect is_active (u-3 is deactivated).
     expect(screen.getAllByText("Active").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText("Deactivated")).toBeInTheDocument();
+    expect(screen.getAllByText("Deactivated").at(0)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Search users"), {
       target: { value: "tamar" },
     });
-    expect(screen.getByText("Gerard Tamar")).toBeInTheDocument();
+    expect(screen.getAllByText("Gerard Tamar").at(0)).toBeInTheDocument();
     expect(screen.queryByText("Eugine Whint")).not.toBeInTheDocument();
   });
 
@@ -248,7 +267,7 @@ describe("UsersManager", () => {
     );
 
     renderUsers();
-    await screen.findByText("Gerard Tamar");
+    await screen.findAllByText("Gerard Tamar");
 
     fireEvent.click(screen.getByRole("button", { name: NEW_USER_LABEL }));
     fireEvent.change(await screen.findByLabelText("First name"), {
@@ -391,7 +410,7 @@ it("closes creation after an account is saved but its role assignment fails", as
     })
   );
   renderUsers();
-  await screen.findByText("Gerard Tamar");
+  await screen.findAllByText("Gerard Tamar");
   fireEvent.click(screen.getByRole("button", { name: NEW_USER_LABEL }));
   await screen.findByLabelText("First name");
   await screen.findByRole("option", { name: "Forecaster (Senior Supervisor)" });
@@ -457,6 +476,8 @@ it("shows a recoverable error instead of an empty directory when loading fails",
     http.get(`${BASE}/api/v1/auth/users`, () => HttpResponse.json(USERS))
   );
   fireEvent.click(screen.getByRole("button", { name: "Try again" }));
-  expect(await screen.findByText("Gerard Tamar")).toBeInTheDocument();
+  expect(
+    (await screen.findAllByText("Gerard Tamar")).at(0)
+  ).toBeInTheDocument();
   expect(screen.getByRole("button", { name: NEW_USER_LABEL })).toBeEnabled();
 });

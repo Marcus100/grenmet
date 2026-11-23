@@ -15,7 +15,7 @@ export function SiteHeader({ status }: { status: React.ReactNode }) {
       <div className="mx-auto flex min-h-16 max-w-[1240px] flex-wrap items-center gap-1 px-4 sm:gap-4 sm:px-6 xl:gap-6">
         <Link
           aria-label="Elections Grenada home"
-          className="text-el-ink flex shrink-0 items-baseline font-serif text-[1.375rem] leading-none font-bold tracking-[-0.02em]"
+          className="text-el-ink flex min-h-11 shrink-0 items-center font-serif text-[1.375rem] leading-none font-bold tracking-[-0.02em]"
           href="/"
         >
           Elections <span className="font-normal italic">Grenada</span>

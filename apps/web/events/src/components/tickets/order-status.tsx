@@ -1,5 +1,6 @@
 "use client";
 
+import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { Check, Clock, RotateCcw, TimerOff } from "lucide-react";
@@ -92,6 +93,9 @@ export function OrderStatus({ order }: { order: MyOrder }) {
 
   return (
     <div className="space-y-4" role="status">
+      {order.status === "confirmed" && (
+        <FunnelEvent app="events" event="order_completed" />
+      )}
       {order.status === "pending_payment" ? (
         <Panel
           icon={<Clock className="text-primary size-5" />}
