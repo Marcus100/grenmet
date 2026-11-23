@@ -33,7 +33,11 @@ export function Intro() {
   return (
     <>
       <div>
-        <Link aria-label="Commit home" href="/">
+        <Link
+          aria-label="Commit home"
+          className="inline-flex min-h-11 items-center"
+          href="/"
+        >
           <Logo className="inline-block h-8 w-auto" />
         </Link>
       </div>
