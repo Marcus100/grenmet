@@ -60,6 +60,7 @@ src/app/
   page.tsx                 ← organisation picker (server read)
   [orgSlug]/page.tsx       ← one organisation's home (server read, slug checked)
   [orgSlug]/staff/page.tsx ← staff list for HR admins (read-only; API decides access)
+  [orgSlug]/me/page.tsx    ← own employment and leave balances (slug checked first)
   signin/page.tsx          ← hand-off to auth; `sign_in=expired` says so
   auth/start|callback|logout
   api/health/route.ts
