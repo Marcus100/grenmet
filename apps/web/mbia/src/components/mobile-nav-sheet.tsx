@@ -63,7 +63,7 @@ export function MobileNavSheet({
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
               <Link
-                className="font-display text-gaa-navy mb-2 block text-sm font-bold tracking-wide uppercase"
+                className="font-display text-gaa-navy mb-2 flex min-h-11 items-center text-sm font-bold tracking-wide uppercase"
                 data-analytics-event="navigation_category_selected"
                 href={group.href as Route}
                 onClick={close}
@@ -73,7 +73,7 @@ export function MobileNavSheet({
               <div className="border-gaa-rule flex flex-col border-l">
                 {group.links.map((link) => (
                   <Link
-                    className="text-gaa-muted hover:text-gaa-navy px-3 py-1.5 text-sm"
+                    className="text-gaa-muted hover:text-gaa-navy flex min-h-11 items-center px-3 py-1.5 text-sm"
                     data-analytics-event="navigation_category_selected"
                     href={link.href as Route}
                     key={link.href}
@@ -86,7 +86,7 @@ export function MobileNavSheet({
             </div>
           ))}
           <Link
-            className="text-gaa-navy text-sm font-semibold"
+            className="text-gaa-navy flex min-h-11 items-center text-sm font-semibold"
             data-analytics-event="navigation_category_selected"
             href="/contact"
             onClick={close}
