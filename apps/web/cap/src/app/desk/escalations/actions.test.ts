@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => {
   }
   return {
     FakeAuthApiError,
+    getAlert: vi.fn(),
     getDeskGate: vi.fn(),
     raiseEscalation: vi.fn(),
     reportError: vi.fn(),
@@ -22,7 +23,10 @@ vi.mock("@barrelsgd/auth", () => ({
   isAuthApiError: (error: unknown) => error instanceof mocks.FakeAuthApiError,
 }));
 vi.mock("@/lib/desk/gate", () => ({ getDeskGate: mocks.getDeskGate }));
-vi.mock("@/lib/desk/api", () => ({ raiseEscalation: mocks.raiseEscalation }));
+vi.mock("@/lib/desk/api", () => ({
+  getAlert: mocks.getAlert,
+  raiseEscalation: mocks.raiseEscalation,
+}));
 vi.mock("@/lib/report-error", () => ({ reportError: mocks.reportError }));
 
 import { raiseToWarningAction } from "./actions";
@@ -38,6 +42,9 @@ const STAFF = {
   status: "staff",
   userId: "u1",
 };
+function alertIn(lifecycle_state: string) {
+  return { allowed_actions: [], lifecycle_state } as never;
+}
 const VALID = {
   awarenessLevel: "orange",
   overrideReason: null,
@@ -47,6 +54,7 @@ const VALID = {
 
 describe("raiseToWarningAction", () => {
   beforeEach(() => {
+    mocks.getAlert.mockReset();
     mocks.getDeskGate.mockReset();
     mocks.raiseEscalation.mockReset();
     mocks.reportError.mockReset();
@@ -100,7 +108,8 @@ describe("raiseToWarningAction", () => {
       ...VALID,
       overrideReason: "  Radar shows a band over the island.  ",
     });
-    expect(outcome).toEqual({ alertId: ALERT_ID, created: true, ok: true });
+    expect(outcome).toEqual({ alertId: ALERT_ID, editable: true, ok: true });
+    expect(mocks.getAlert).not.toHaveBeenCalled();
     expect(mocks.raiseEscalation).toHaveBeenCalledWith("token-abc", {
       awareness_level: "orange",
       override_reason: "Radar shows a band over the island.",
@@ -116,14 +125,56 @@ describe("raiseToWarningAction", () => {
       created: false,
       source: { kind: "flood", product_id: PRODUCT_ID, revision: 3 },
     });
+    mocks.getAlert.mockResolvedValue(alertIn("DRAFT"));
     const outcome = await raiseToWarningAction({
       ...VALID,
       overrideReason: "   ",
     });
-    expect(outcome).toMatchObject({ ok: true, created: false });
+    expect(outcome).toEqual({ alertId: ALERT_ID, editable: true, ok: true });
     expect(mocks.raiseEscalation).toHaveBeenCalledWith(
       "token-abc",
       expect.objectContaining({ override_reason: null })
+    );
+  });
+
+  it("opens the read view for an existing warning that is in force", async () => {
+    mocks.getDeskGate.mockResolvedValue(STAFF);
+    mocks.raiseEscalation.mockResolvedValue({
+      alert_id: ALERT_ID,
+      created: false,
+      source: { kind: "flood", product_id: PRODUCT_ID, revision: 3 },
+    });
+    mocks.getAlert.mockResolvedValue(alertIn("PUBLISHED"));
+    const outcome = await raiseToWarningAction(VALID);
+    expect(mocks.getAlert).toHaveBeenCalledWith("token-abc", ALERT_ID);
+    expect(outcome).toEqual({ alertId: ALERT_ID, editable: false, ok: true });
+  });
+
+  it("opens the editor for an existing open draft", async () => {
+    mocks.getDeskGate.mockResolvedValue(STAFF);
+    mocks.raiseEscalation.mockResolvedValue({
+      alert_id: ALERT_ID,
+      created: false,
+      source: { kind: "flood", product_id: PRODUCT_ID, revision: 3 },
+    });
+    mocks.getAlert.mockResolvedValue(alertIn("SUBMITTED"));
+    const outcome = await raiseToWarningAction(VALID);
+    expect(outcome).toEqual({ alertId: ALERT_ID, editable: true, ok: true });
+  });
+
+  it("falls back to the read view and reports when the state cannot be read", async () => {
+    mocks.getDeskGate.mockResolvedValue(STAFF);
+    mocks.raiseEscalation.mockResolvedValue({
+      alert_id: ALERT_ID,
+      created: false,
+      source: { kind: "flood", product_id: PRODUCT_ID, revision: 3 },
+    });
+    mocks.getAlert.mockRejectedValue(new FakeAuthApiError(503, "down"));
+    const outcome = await raiseToWarningAction(VALID);
+    expect(outcome).toEqual({ alertId: ALERT_ID, editable: false, ok: true });
+    expect(mocks.reportError).toHaveBeenCalledWith(
+      expect.any(FakeAuthApiError),
+      "cap-desk-escalations"
     );
   });
 
