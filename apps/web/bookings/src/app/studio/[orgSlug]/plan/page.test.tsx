@@ -32,7 +32,7 @@ const SLUG = "sea-salt";
 const params = Promise.resolve({ orgSlug: SLUG });
 const NO_ACCESS = /Only the business owner or an admin can manage the plan/u;
 const USD_NOTE = /about USD 11\.11 a month, for reference/u;
-const FREE_MONTH_2099 = /Your free month ends on 23 December 2099/u;
+const FREE_TRIAL_2099 = /Your free trial ends on 23 December 2099/u;
 const ACTIVE_UNTIL = /Active until 23 December 2026/u;
 const CONFIRMS_PAYMENT = /once Stripe confirms the payment/u;
 const NOTHING_CHARGED = /Nothing was charged/u;
@@ -117,13 +117,13 @@ describe("/studio/[orgSlug]/plan", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows the free month end date during a trial", async () => {
+  it("shows the free trial end date during a trial", async () => {
     vi.mocked(listAppSubscriptions).mockResolvedValue([
       row({ trial_end: "2099-12-23T12:00:00Z" }),
     ]);
     await renderPage();
-    expect(screen.getByText("Free month")).toBeInTheDocument();
-    expect(screen.getByText(FREE_MONTH_2099)).toBeInTheDocument();
+    expect(screen.getByText("Free trial")).toBeInTheDocument();
+    expect(screen.getByText(FREE_TRIAL_2099)).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Start subscription" })
     ).not.toBeInTheDocument();

@@ -64,7 +64,7 @@ describe("planState", () => {
     });
   });
 
-  it("is a free month while a trial end is still ahead", () => {
+  it("is a free trial while a trial end is still ahead", () => {
     expect(planState(row({ trial_end: "2026-12-23T12:00:00Z" }), NOW)).toEqual({
       kind: "trial",
       endsOn: "2026-12-23T12:00:00Z",
@@ -142,11 +142,11 @@ describe("planCopy", () => {
     }
   });
 
-  it("names the free month end date and the price after it", () => {
+  it("names the free trial end date and the price after it", () => {
     expect(
       planCopy({ kind: "trial", endsOn: "2026-12-23T12:00:00Z" }).detail
     ).toBe(
-      "Your free month ends on 23 December 2026. After that the plan costs XCD 30 a month."
+      "Your free trial ends on 23 December 2026. Then the plan costs XCD 30 a month."
     );
   });
 

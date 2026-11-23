@@ -3,9 +3,9 @@
 // the page, the action and the tests share one reading of the API's fields.
 //
 // Owner decisions (22 November 2026): the plan is XCD 30 a month; XCD only, with
-// USD as a converted note, never a charge; Stripe test mode only for now. The
-// Babydoll free month is a plan trial (`trial_end` on the subscription), set on the
-// server; this file only reads it.
+// USD as a converted note, never a charge; Stripe test mode only for now. A free
+// trial is per organisation (`trial_end` on the row, set by the server). This file
+// only reads that field: it never assumes a trial exists for any business.
 
 import type {
   AppSubscriptionPublic,
@@ -121,8 +121,8 @@ export function planCopy(state: PlanState): PlanCopy {
       };
     case "trial":
       return {
-        heading: "Free month",
-        detail: `Your free month ends on ${formatPlanDay(state.endsOn)}. After that the plan costs ${planPriceLabel()}.`,
+        heading: "Free trial",
+        detail: `Your free trial ends on ${formatPlanDay(state.endsOn)}. Then the plan costs ${planPriceLabel()}.`,
       };
     case "active":
       return {
