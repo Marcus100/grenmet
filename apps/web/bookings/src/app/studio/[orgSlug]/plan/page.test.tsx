@@ -31,6 +31,7 @@ import PlanPage from "./page";
 const SLUG = "sea-salt";
 const params = Promise.resolve({ orgSlug: SLUG });
 const NO_ACCESS = /Only the business owner or an admin can manage the plan/u;
+const SUPPORT_LINK = "Email support@barrels.gd";
 const USD_NOTE = /about USD 11\.11 a month, for reference/u;
 const FREE_TRIAL_2099 = /Your free trial ends on 23 December 2099/u;
 const ACTIVE_UNTIL = /Active until 23 December 2026/u;
@@ -152,6 +153,10 @@ describe("/studio/[orgSlug]/plan", () => {
     ]);
     await renderPage();
     expect(screen.getByText("Payment overdue")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: SUPPORT_LINK })).toHaveAttribute(
+      "href",
+      "mailto:support@barrels.gd"
+    );
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
@@ -161,6 +166,10 @@ describe("/studio/[orgSlug]/plan", () => {
     ]);
     await renderPage();
     expect(screen.getByText("Unpaid")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: SUPPORT_LINK })).toHaveAttribute(
+      "href",
+      "mailto:support@barrels.gd"
+    );
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 

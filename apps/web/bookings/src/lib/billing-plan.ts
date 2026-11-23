@@ -19,6 +19,11 @@ export const BOOKINGS_PLAN_KEY = "bookings-monthly";
 export const BOOKINGS_APP_KEY = "bookings";
 
 /** The plan price in XCD minor units (cents): XCD 30.00 a month. */
+// The price is set in three places, change all of them together: this constant
+// (the label), `billing.plan_price` (the row the API reads for the amount), and the
+// Stripe price id under the key `bookings-monthly:XCD` in the API's
+// `BILLING_STRIPE_PRICES` setting (the price Checkout charges). The label is not
+// read from Stripe, so a mismatch would show the wrong amount.
 export const PLAN_PRICE_MINOR = 3000;
 /** XCD is pegged to USD at 2.70 per USD; the USD figure is a note, not a charge. */
 const XCD_PER_USD = 2.7;
@@ -103,6 +108,8 @@ export function formatPlanDay(iso: string): string {
 export interface PlanCopy {
   detail: string;
   heading: string;
+  /** True when the page should offer the support mailbox beside the detail. */
+  supportLink?: boolean;
 }
 
 /** The status in plain words. Every state has a heading, so the section is never empty. */
@@ -111,7 +118,8 @@ export function planCopy(state: PlanState): PlanCopy {
     case "none":
       return {
         heading: "No subscription yet",
-        detail: "Start the plan to keep online bookings for your business.",
+        detail:
+          "Start the Bookings plan when you are ready. Payment is on a secure Stripe page.",
       };
     case "pending":
       return {
@@ -142,13 +150,15 @@ export function planCopy(state: PlanState): PlanCopy {
       return {
         heading: "Payment overdue",
         detail:
-          "The last payment did not go through. Contact Barrels to sort it out.",
+          "The last payment did not go through. Email support to sort it out.",
+        supportLink: true,
       };
     case "unpaid":
       return {
         heading: "Unpaid",
         detail:
-          "Payments have stopped, so the plan is paused. Contact Barrels to restart it.",
+          "Payments have stopped, so the plan is paused. Email support to restart it.",
+        supportLink: true,
       };
     case "cancelled":
       return {
@@ -159,7 +169,8 @@ export function planCopy(state: PlanState): PlanCopy {
       // Unreachable with the union above; kept so a new state never shows a blank section.
       return {
         heading: "No subscription yet",
-        detail: "Start the plan to keep online bookings for your business.",
+        detail:
+          "Start the Bookings plan when you are ready. Payment is on a secure Stripe page.",
       };
   }
 }
