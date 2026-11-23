@@ -13,6 +13,7 @@
  * Public sites keep their consent-gated GA4 and PostHog provider
  * (`posthog-provider.tsx`). This module is separate and does not run there.
  */
+import { POSTHOG_INGEST_HOSTS } from "./content-security-policy";
 import { type PublicEnvKey, readPublicEnv } from "./public-env";
 
 export const FUNNEL_APPS = ["bookings", "events", "account"] as const;
@@ -72,12 +73,6 @@ export function sanitizeFunnelProperties(
   }
   return safe;
 }
-
-/** The only PostHog ingest hosts this funnel may use (US and EU cloud). */
-export const POSTHOG_INGEST_HOSTS = [
-  "https://us.i.posthog.com",
-  "https://eu.i.posthog.com",
-] as const;
 
 const KEY_PATTERN = /^[A-Za-z0-9_]{8,128}$/u;
 /** Values that switch collection off (case-insensitive). Anything else leaves it on. */

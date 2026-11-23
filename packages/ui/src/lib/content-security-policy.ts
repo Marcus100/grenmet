@@ -15,8 +15,6 @@
  * `'unsafe-eval'` and websockets for HMR, and dev reports would only add noise.
  */
 
-import { POSTHOG_INGEST_HOSTS } from "./funnel-analytics";
-
 export type CspApp =
   | "docs"
   | "signal"
@@ -33,6 +31,17 @@ export type CspApp =
   | "gaa-admin"
   | "gms"
   | "gmsdash";
+
+/**
+ * The PostHog ingest hosts the signed-in funnels may reach. Defined here, not
+ * in funnel-analytics.ts, because next.config loads this file under Node ESM,
+ * which cannot resolve extensionless relative imports. funnel-analytics.ts
+ * imports the constant from here.
+ */
+export const POSTHOG_INGEST_HOSTS = [
+  "https://us.i.posthog.com",
+  "https://eu.i.posthog.com",
+] as const;
 
 const GA_SCRIPT = ["https://www.googletagmanager.com"] as const;
 const GA_CONNECT = [
