@@ -25,6 +25,7 @@ import {
   Users,
   Waves,
 } from "lucide-react";
+import { capDeskHref } from "@/lib/cap-desk-paths";
 
 export type NavBadge = "new" | "soon";
 
@@ -282,3 +283,28 @@ export const sidebarItems: NavGroup[] = [
     ],
   },
 ];
+
+export function sidebarItemsForCapDesk(
+  deskUrl: string | undefined
+): NavGroup[] {
+  if (!deskUrl) return sidebarItems;
+
+  return sidebarItems.map((group) => ({
+    ...group,
+    items: group.items.map((item) => {
+      if (item.id === "cap-administration" && item.subItems) {
+        return {
+          ...item,
+          subItems: item.subItems.map((subItem) => ({
+            ...subItem,
+            url: capDeskHref(subItem.url, deskUrl),
+          })),
+        };
+      }
+      if (item.id === "cap-composer" && "url" in item) {
+        return { ...item, url: capDeskHref(item.url, deskUrl) };
+      }
+      return item;
+    }),
+  }));
+}

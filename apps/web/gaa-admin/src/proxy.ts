@@ -5,6 +5,8 @@ import {
   getAuthApiPrefix,
   getSessionCookieName,
 } from "@/lib/auth-config";
+import { capDeskDestination } from "@/lib/cap-desk-paths";
+import { getCapDeskCutoverUrl } from "@/lib/env";
 
 const PUBLIC_PATHS = [
   "/signin",
@@ -24,6 +26,12 @@ function isPublicPath(pathname: string): boolean {
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const path = pathname === "" ? "/" : pathname;
+  const desk = capDeskDestination(path, getCapDeskCutoverUrl());
+  if (desk) {
+    desk.search = search;
+    return NextResponse.redirect(desk, 307);
+  }
+
   // Runtime routing only: FastAPI validates cookies and CSRF. This avoids
   // baking environment-specific API hosts into the standalone build.
   let upstreamPath: string | null = null;

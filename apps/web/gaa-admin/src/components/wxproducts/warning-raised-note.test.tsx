@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
+import { CapDeskNavigation } from "@/navigation/cap-desk-navigation";
 import { WarningRaisedNote } from "./warning-raised-note";
 
 // A plain function, not vi.fn: vi.fn observes returned promises, which would
@@ -24,6 +25,22 @@ it("links to the CAP alert raised from this alert", async () => {
   const link = await screen.findByRole("link", { name: "open the CAP alert" });
   expect(link).toHaveAttribute("href", "/cap/admin/alert-9");
   expect(screen.getByRole("status")).toHaveTextContent("Warning raised");
+});
+
+it("links to the standalone desk when cutover is on", async () => {
+  const alertId = "11111111-2222-4333-8444-555555555555";
+  lookup.impl = () =>
+    Promise.resolve({ alert_id: alertId, lifecycle_state: "DRAFT" });
+  render(
+    <CapDeskNavigation deskUrl="https://cap.test/desk">
+      <WarningRaisedNote productId="p-1" />
+    </CapDeskNavigation>
+  );
+  const link = await screen.findByRole("link", { name: "open the CAP alert" });
+  expect(link).toHaveAttribute(
+    "href",
+    `https://cap.test/desk/alerts/${alertId}`
+  );
 });
 
 it("shows nothing when no warning was raised", async () => {
