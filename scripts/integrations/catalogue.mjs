@@ -9,6 +9,7 @@ export function readCatalogue() {
 const SHARED_SENTRY_APPS = new Set([
   "elections",
   "auth",
+  "admin",
   "gaa-admin",
   "docs",
   "gms",

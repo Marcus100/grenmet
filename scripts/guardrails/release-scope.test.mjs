@@ -288,6 +288,6 @@ test("every web image resolves a build-time Sentry DSN, or is deliberately unrou
       assert.ok(config.sentry_dsn, `${image.image} would fail the DSN gate`);
     }
   }
-  // admin is intentionally not routed to Sentry yet (service catalogue).
-  assert.deepEqual(unrouted, ["web-admin"]);
+  // Every web image is routed (admin since 22 Nov 2026, service catalogue).
+  assert.deepEqual(unrouted, []);
 });

@@ -1228,7 +1228,7 @@ when the value is empty.
 | `BACKUP_GATE_BUCKET`, `BACKUP_GATE_ENDPOINT`, `BACKUP_GATE_REGION`, `BACKUP_GATE_ACCESS_KEY_ID`, `BACKUP_GATE_SECRET_ACCESS_KEY` | `deploy.yml` | The backup gate's view of the `DO_SPACES_*` bucket, using the read-only key |
 | `CORE_POSTGRES_DATA_MOUNT` | `render-env.py` | Data directory inside the database container, derived from the image major (`/var/lib/postgresql/data` for 17, `/var/lib/postgresql` for 18); never set by hand |
 | `CMS_DATABASE_URL`, `EREGISTER_DATABASE_URL`, `WXWATCH_DB_URL`, `WXPRODUCTS_DB_URL`, `JANITORIAL_DB_URL`, `TRANSPORT_DB_URL` | `render-env.py` | Database URLs built from the committed names and users and the GitHub passwords (URL-encoded) |
-| `SENTRY_DSN_API`, `SENTRY_DSN_WORKER`, `SENTRY_DSN_AUTH`, `SENTRY_DSN_ACCOUNT`, `SENTRY_DSN_BOOKINGS`, `SENTRY_DSN_CAP`, `SENTRY_DSN_CMS`, `SENTRY_DSN_DOCS`, `SENTRY_DSN_EVENTS`, `SENTRY_DSN_GAA_ADMIN`, `SENTRY_DSN_GMS`, `SENTRY_DSN_GMSDASH`, `SENTRY_DSN_MBIA`, `SENTRY_DSN_SIGNAL` | `render-env.py` | Each service's Sentry DSN, chosen from the environment's DSN secret by the service catalogue |
+| `SENTRY_DSN_API`, `SENTRY_DSN_WORKER`, `SENTRY_DSN_AUTH`, `SENTRY_DSN_ACCOUNT`, `SENTRY_DSN_ADMIN`, `SENTRY_DSN_BOOKINGS`, `SENTRY_DSN_CAP`, `SENTRY_DSN_CMS`, `SENTRY_DSN_DOCS`, `SENTRY_DSN_EVENTS`, `SENTRY_DSN_GAA_ADMIN`, `SENTRY_DSN_GMS`, `SENTRY_DSN_GMSDASH`, `SENTRY_DSN_MBIA`, `SENTRY_DSN_SIGNAL` | `render-env.py` | Each service's Sentry DSN, chosen from the environment's DSN secret by the service catalogue |
 | `TRAEFIK_*`, `VISITOR_IP_PROXY_HOPS` | `render-env.py` | Edge settings derived from `CLOUDFLARE_PROXY_ENABLED` (see "Staging and production") |
 
 ### GitHub names nothing in the deploy reads
