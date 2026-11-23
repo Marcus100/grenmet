@@ -1,5 +1,5 @@
-// Everything the client may change lives here: booking link, address, hours,
-// services and prices, packages, reviews and social links. Prices mirror the
+// Everything the client may change lives here: booking link, address,
+// appointment wording, services and prices, packages, reviews and social links. Prices mirror the
 // client's Acuity booking page (babydollgnd.as.me); keep them in step.
 
 export const SITE_URL = "https://babydoll.barrels.gd";
@@ -37,11 +37,12 @@ export const BUSINESS = {
 
 export const RATING = { score: "5.0", count: 41 } as const;
 
-export const HOURS = [
-  { days: "Monday – Friday", time: "9:30 am – 5:30 pm" },
-  { days: "Saturday", time: "9:00 am – 5:30 pm" },
-  { days: "Sunday", time: "Closed", closed: true },
-] as const;
+/** The studio works by appointment only: there are no opening hours to show. */
+export const APPOINTMENTS = {
+  heading: "Appointments",
+  note: "Book online and choose a time that suits you. Walk-ins can't be seen.",
+  action: "Book online",
+} as const;
 
 export const SOCIALS = [
   {
