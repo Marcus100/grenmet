@@ -125,6 +125,7 @@ export type TurnoutSource =
   | "gazette-valid"
   | "newsletter"
   | "wikipedia"
+  | "peo-provisional"
   | "none"
   | "certificate";
 
@@ -261,6 +262,7 @@ export function eventNational(data: Data, id: string): NationalEvent {
     };
   }
   const t = tally(CODES.map((c) => eventResult(data, id, c)));
+  const recorded = data.results.national[e.id];
   return {
     seats: t.seats,
     votes: t.votes,
@@ -268,7 +270,15 @@ export function eventNational(data: Data, id: string): NationalEvent {
     cast: t.cast,
     rejected: t.rejected,
     races: t.races,
-    ...mappedTurnout(e.year, t),
+    // Provisional results publish turnout and registration for the whole
+    // country only; constituency ballots cast stay empty.
+    ...(recorded?.provisional
+      ? {
+          registered: recorded.registered,
+          turnout: recorded.turnout,
+          turnoutSource: "peo-provisional" as const,
+        }
+      : mappedTurnout(e.year, t)),
   };
 }
 
@@ -277,6 +287,8 @@ export function turnoutNote(source: TurnoutSource): string {
   switch (source) {
     case "wikipedia":
       return "Turnout from Wikipedia (secondary)";
+    case "peo-provisional":
+      return "Registration and turnout are the national figures on the Parliamentary Elections Office’s provisional results page; ballots cast are not published by constituency";
     case "peo-valid":
       return "Turnout is valid votes ÷ registered voters (PEO); rejected ballots aren’t in the PEO table";
     case "gazette-valid":
@@ -328,6 +340,11 @@ export function eventSource(
         e.id === "2016r"
           ? "Parliamentary Elections Office, certificates of the results of the constitutional referendum, 24 November 2016"
           : data.referendum["2018"].source,
+    };
+  if (data.results.national[e.id]?.provisional)
+    return {
+      official: true,
+      text: "Parliamentary Elections Office, provisional results (elections.gd/2026), 23 November 2026; provisional until officially certified",
     };
   if (e.year >= 2013)
     return {
@@ -393,7 +410,7 @@ export interface EventDivision {
 /** Place names by division from the general-election station lists, for referendum stations without one. */
 function placeByDivision(data: Data): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const year of ["2013", "2018", "2022"])
+  for (const year of ["2013", "2018", "2022", "2026"])
     for (const rows of Object.values(data.results.stations[year] ?? {}))
       for (const row of rows ?? []) if (row[2]) out[row[0]] = row[2];
   return out;
@@ -509,6 +526,10 @@ export function resultNotes(result: EventResult, year: number): string[] {
   if (result.derived)
     notes.push(
       "Derived: the report leaves out this constituency’s total and division P06(b). Every figure here is the PEO national summary minus the other 14 constituencies."
+    );
+  if (result.provisional)
+    notes.push(
+      "Provisional: published by the PEO before official certification. Ballots cast and rejected ballots are published nationally only, so turnout is not calculated here."
     );
   if (result.note) notes.push(result.note);
   if (result.castIsValid)

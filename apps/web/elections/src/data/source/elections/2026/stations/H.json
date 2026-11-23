@@ -1,0 +1,323 @@
+[
+  [
+    "H01",
+    "a",
+    "Vendomme R.C. School",
+    229,
+    null,
+    null,
+    {
+      "NDC": 74,
+      "NNP": 64,
+      "GRP": 3,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H01",
+    "b",
+    "Vendomme R.C. School",
+    248,
+    null,
+    null,
+    {
+      "NDC": 99,
+      "NNP": 53,
+      "GRP": 0,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H02",
+    "a",
+    "New Hampshire Methodist Church",
+    455,
+    null,
+    null,
+    {
+      "NDC": 189,
+      "NNP": 88,
+      "GRP": 0,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H02",
+    "b",
+    "New Hampshire Methodist Church",
+    446,
+    null,
+    null,
+    {
+      "NDC": 181,
+      "NNP": 84,
+      "GSDP": 2,
+      "GRP": 0
+    }
+  ],
+  [
+    "H03",
+    null,
+    "Constantine Methodist School",
+    180,
+    null,
+    null,
+    {
+      "NDC": 61,
+      "NNP": 49,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H04",
+    "a",
+    "Boca Secondary School",
+    407,
+    null,
+    null,
+    {
+      "NDC": 209,
+      "NNP": 57,
+      "GSDP": 1,
+      "GRP": 0
+    }
+  ],
+  [
+    "H04",
+    "b",
+    "Boca Secondary School",
+    370,
+    null,
+    null,
+    {
+      "NDC": 173,
+      "NNP": 57,
+      "GSDP": 1,
+      "GRP": 1
+    }
+  ],
+  [
+    "H05",
+    "a",
+    "Beaulieu R.C. School",
+    423,
+    null,
+    null,
+    {
+      "NDC": 170,
+      "NNP": 58,
+      "GSDP": 0,
+      "GRP": 0
+    }
+  ],
+  [
+    "H05",
+    "b",
+    "Beaulieu R.C. School, Pre-School Department",
+    402,
+    null,
+    null,
+    {
+      "NDC": 178,
+      "NNP": 85,
+      "GRP": 0,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H05",
+    "c",
+    "Beaulieu R.C. School, Pre-School Department",
+    439,
+    null,
+    null,
+    {
+      "NDC": 172,
+      "NNP": 81,
+      "GRP": 0,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H06",
+    "a",
+    "L.A. Purcell's Building, La Mode",
+    400,
+    null,
+    null,
+    {
+      "NDC": 155,
+      "NNP": 86,
+      "GSDP": 1,
+      "GRP": 0
+    }
+  ],
+  [
+    "H06",
+    "b",
+    "L.A. Purcell's Building, La Mode",
+    378,
+    null,
+    null,
+    {
+      "NDC": 172,
+      "NNP": 32,
+      "GSDP": 6,
+      "GRP": 0
+    }
+  ],
+  [
+    "H07",
+    "a",
+    "St. Mary's R.C. School, Tempe",
+    374,
+    null,
+    null,
+    {
+      "NDC": 154,
+      "NNP": 65,
+      "GSDP": 1,
+      "GRP": 0
+    }
+  ],
+  [
+    "H07",
+    "b",
+    "St. Mary's R.C. School, Tempe",
+    417,
+    null,
+    null,
+    {
+      "NDC": 163,
+      "NNP": 74,
+      "GSDP": 0,
+      "GRP": 0
+    }
+  ],
+  [
+    "H07",
+    "c",
+    "St. Mary's R.C. School, Tempe",
+    418,
+    null,
+    null,
+    {
+      "NDC": 157,
+      "NNP": 72,
+      "GRP": 0,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H07",
+    "d",
+    "St. Mary's R.C. School, Tempe (Police Included)",
+    474,
+    null,
+    null,
+    {
+      "NDC": 181,
+      "NNP": 95,
+      "GSDP": 1,
+      "GRP": 0
+    }
+  ],
+  [
+    "H07",
+    "e",
+    "St. Mary's R.C. School, Tempe ",
+    398,
+    null,
+    null,
+    {
+      "NDC": 177,
+      "NNP": 68,
+      "GRP": 0,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H08",
+    "a",
+    "Alpha Junior School, Mt. Parnassus",
+    378,
+    null,
+    null,
+    {
+      "NDC": 165,
+      "NNP": 66,
+      "GRP": 0,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H08",
+    "b",
+    "Alpha Junior School, Mt. Parnassus",
+    376,
+    null,
+    null,
+    {
+      "NDC": 166,
+      "NNP": 57,
+      "GSDP": 1,
+      "GRP": 0
+    }
+  ],
+  [
+    "H08",
+    "c",
+    "Alpha Junior School, Mt. Parnassus",
+    380,
+    null,
+    null,
+    {
+      "NDC": 154,
+      "NNP": 81,
+      "GRP": 0,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H09",
+    "a",
+    "St. Paul's Government School",
+    338,
+    null,
+    null,
+    {
+      "NDC": 166,
+      "NNP": 51,
+      "GSDP": 3,
+      "GRP": 0
+    }
+  ],
+  [
+    "H09",
+    "b",
+    "St. Paul's Government School",
+    351,
+    null,
+    null,
+    {
+      "NDC": 160,
+      "NNP": 71,
+      "GRP": 0,
+      "GSDP": 0
+    }
+  ],
+  [
+    "H09",
+    "c",
+    "St. Paul's Government School",
+    339,
+    null,
+    null,
+    {
+      "NDC": 152,
+      "NNP": 54,
+      "GSDP": 2,
+      "GRP": 0
+    }
+  ]
+]

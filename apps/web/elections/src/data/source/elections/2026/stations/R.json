@@ -1,0 +1,210 @@
+[
+  [
+    "R01",
+    "a",
+    "Hermitage S.D.A. Church, Downstairs (Police Included)",
+    313,
+    null,
+    null,
+    {
+      "NDC": 122,
+      "NNP": 99,
+      "DPM": 1
+    }
+  ],
+  [
+    "R01",
+    "b",
+    "Hermitage S.D.A. Church, Downstairs",
+    236,
+    null,
+    null,
+    {
+      "NDC": 108,
+      "NNP": 54,
+      "DPM": 2
+    }
+  ],
+  [
+    "R02",
+    "a",
+    "Mt. Rich Pre Primary School",
+    305,
+    null,
+    null,
+    {
+      "NDC": 138,
+      "NNP": 72,
+      "DPM": 1
+    }
+  ],
+  [
+    "R02",
+    "b",
+    "Mt. Rich Pre Primary School",
+    311,
+    null,
+    null,
+    {
+      "NDC": 136,
+      "NNP": 86,
+      "DPM": 4
+    }
+  ],
+  [
+    "R03",
+    "a",
+    "TAMCC , St. Patrick's Campus",
+    301,
+    null,
+    null,
+    {
+      "NDC": 118,
+      "NNP": 53,
+      "DPM": 11
+    }
+  ],
+  [
+    "R03",
+    "b",
+    "TAMCC , St. Patrick's Campus",
+    323,
+    null,
+    null,
+    {
+      "NDC": 135,
+      "NNP": 46,
+      "DPM": 1
+    }
+  ],
+  [
+    "R04",
+    null,
+    "St. Patrick's R.C. School",
+    341,
+    null,
+    null,
+    {
+      "NDC": 152,
+      "NNP": 36,
+      "DPM": 4
+    }
+  ],
+  [
+    "R05",
+    "a",
+    "Mac Donald College",
+    327,
+    null,
+    null,
+    {
+      "NDC": 125,
+      "NNP": 64,
+      "DPM": 0
+    }
+  ],
+  [
+    "R05",
+    "b",
+    "Mac Donald College",
+    308,
+    null,
+    null,
+    {
+      "NDC": 140,
+      "NNP": 54,
+      "DPM": 3
+    }
+  ],
+  [
+    "R06",
+    "a",
+    "Fond Community Centre",
+    365,
+    null,
+    null,
+    {
+      "NDC": 139,
+      "NNP": 70,
+      "DPM": 8
+    }
+  ],
+  [
+    "R06",
+    "b",
+    "Fond Community Centre",
+    373,
+    null,
+    null,
+    {
+      "NDC": 146,
+      "NNP": 74,
+      "DPM": 4
+    }
+  ],
+  [
+    "R07",
+    null,
+    "Mt. Alexander Pentecostal Church, Prospect",
+    350,
+    null,
+    null,
+    {
+      "NDC": 168,
+      "NNP": 73,
+      "DPM": 4
+    }
+  ],
+  [
+    "R08",
+    "a",
+    "Chantimelle R.C. School",
+    389,
+    null,
+    null,
+    {
+      "NDC": 163,
+      "NNP": 106,
+      "DPM": 2
+    }
+  ],
+  [
+    "R08",
+    "b",
+    "Chantimelle R.C. School",
+    396,
+    null,
+    null,
+    {
+      "NDC": 144,
+      "NNP": 110,
+      "DPM": 5
+    }
+  ],
+  [
+    "R09",
+    null,
+    "Presbyterian Church Hall, Samaritan",
+    289,
+    null,
+    null,
+    {
+      "NDC": 163,
+      "NNP": 46,
+      "DPM": 1
+    }
+  ],
+  [
+    "R03",
+    "c",
+    "TAMCC, St. Patrick Campus",
+    301,
+    null,
+    null,
+    {
+      "NDC": 148,
+      "NNP": 42,
+      "DPM": 2
+    }
+  ]
+]

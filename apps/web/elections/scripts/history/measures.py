@@ -3,6 +3,11 @@
 
 def source_of(y, e):
     s = e.get("src")
+    if s == "peo-provisional":
+        return (
+            f"PEO provisional results {y} (elections.gd/{y}), captured 23 November 2026",
+            None,
+        )
     if s == "peo":
         return (
             "PEO Final Report, Elections 2013"
@@ -32,6 +37,8 @@ def source_of(y, e):
 
 
 def status_of(e):
+    if e.get("provisional"):
+        return "provisional"
     fl = [k[3] if len(k) > 3 else "official" for k in e["c"]]
     if "check" in fl:
         return "conflict"
