@@ -1,13 +1,41 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { DeskApiClient } from "@/components/desk/api-client";
 import { getDeskGate } from "@/lib/desk/gate";
+import type { DeskPermissions } from "@/lib/desk/permissions";
 
 export const metadata: Metadata = {
   robots: { follow: false, index: false },
   title: { default: "Warning desk", template: "%s | Warning desk" },
 };
+
+interface NavItem {
+  href: Route;
+  label: string;
+  /** Shown only when this returns true; no entry means every signed-in staff member. */
+  need?: (permissions: DeskPermissions) => boolean;
+}
+
+const NAV_ITEMS: readonly NavItem[] = [
+  { href: "/desk", label: "Board" },
+  { href: "/desk/new", label: "New warning", need: (p) => p.create },
+  { href: "/desk/escalations", label: "GMS alerts", need: (p) => p.create },
+  { href: "/desk/areas", label: "Areas", need: (p) => p.read },
+  { href: "/desk/audit", label: "Audit", need: (p) => p.read },
+  { href: "/desk/statistics", label: "Statistics", need: (p) => p.read },
+  { href: "/desk/feeds", label: "Feeds", need: (p) => p.feedsManage },
+  {
+    href: "/desk/integrations",
+    label: "Integrations",
+    need: (p) => p.integrationsManage,
+  },
+  { href: "/desk/settings", label: "Settings", need: (p) => p.settingsManage },
+  { href: "/desk/matrix", label: "Impact matrix" },
+  { href: "/desk/profiles", label: "Hazard profiles" },
+  { href: "/desk/import", label: "Import", need: (p) => p.create },
+  { href: "/", label: "Public alerts" },
+];
 
 /**
  * The staff warning desk's chrome. Each page checks the gate itself (layouts
@@ -29,67 +57,17 @@ export default async function DeskLayout({
           </Link>
           {gate.status === "staff" ? (
             <nav aria-label="Desk" className="text-body-sm flex gap-4">
-              <Link className="text-info hover:underline" href="/desk">
-                Board
-              </Link>
-              {gate.permissions.create ? (
-                <Link className="text-info hover:underline" href="/desk/new">
-                  New warning
-                </Link>
-              ) : null}
-              {gate.permissions.read ? (
-                <Link className="text-info hover:underline" href="/desk/areas">
-                  Areas
-                </Link>
-              ) : null}
-              {gate.permissions.read ? (
-                <Link className="text-info hover:underline" href="/desk/audit">
-                  Audit
-                </Link>
-              ) : null}
-              {gate.permissions.read ? (
+              {NAV_ITEMS.filter(
+                (item) => !item.need || item.need(gate.permissions)
+              ).map((item) => (
                 <Link
                   className="text-info hover:underline"
-                  href="/desk/statistics"
+                  href={item.href}
+                  key={item.href}
                 >
-                  Statistics
+                  {item.label}
                 </Link>
-              ) : null}
-              {gate.permissions.feedsManage ? (
-                <Link className="text-info hover:underline" href="/desk/feeds">
-                  Feeds
-                </Link>
-              ) : null}
-              {gate.permissions.integrationsManage ? (
-                <Link
-                  className="text-info hover:underline"
-                  href="/desk/integrations"
-                >
-                  Integrations
-                </Link>
-              ) : null}
-              {gate.permissions.settingsManage ? (
-                <Link
-                  className="text-info hover:underline"
-                  href="/desk/settings"
-                >
-                  Settings
-                </Link>
-              ) : null}
-              <Link className="text-info hover:underline" href="/desk/matrix">
-                Impact matrix
-              </Link>
-              <Link className="text-info hover:underline" href="/desk/profiles">
-                Hazard profiles
-              </Link>
-              {gate.permissions.create ? (
-                <Link className="text-info hover:underline" href="/desk/import">
-                  Import
-                </Link>
-              ) : null}
-              <Link className="text-info hover:underline" href="/">
-                Public alerts
-              </Link>
+              ))}
             </nav>
           ) : null}
           {gate.status === "signed-out" ? null : (

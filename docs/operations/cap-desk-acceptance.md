@@ -2,7 +2,7 @@
 
 **Status:** Draft test script for the parallel run; nothing here has been run yet  
 **Owner:** GMS (sign-off); maintained by Barrels Grenada engineering  
-**Last updated:** 2026-11-05  
+**Last updated:** 2026-11-23  
 **Applies to:** staging only
 
 The new warning desk lives at `https://cap.staging.barrels.gd/desk`. The
@@ -44,7 +44,7 @@ difference is written down and accepted.
 | 10 | Publish | Publish CAP alert | **Publish** → **Publish now** | A confirmation is asked first. The alert appears on `cap.staging.barrels.gd` labelled as an exercise. |
 | 11 | Schema refusal | — | Publish an alert that fails the CAP 1.2 schema (ask Barrels for a test case) | "Not published: the CAP XML does not follow the official CAP 1.2 schema", with each problem on its own line. Nothing is published. |
 | 12 | Issue update | not available | Published alert → **Issue update** | A new draft opens with the same content, type Update, and "replaces <identifier> when published". Change the colour to Red and extend the expiry. Approve and publish. The original moves to the past list on the public site with "replaced by". Clicking Issue update twice opens the same draft, not a second one. |
-| 13 | Raise to warning | GMS alerts → Raise to warning | — | Raise from a saved GMS alert in GAA Admin (wxproducts). The new draft appears under Drafts on the new board too and can be edited and published there. Its source-bulletin link is kept after editing. |
+| 13 | Raise to warning | GAA Admin, GMS alerts → Raise to warning | **GMS alerts** (`/desk/escalations`) → **Raise to warning** on a hazard alert in force → pick Yellow, Orange or Red (a reason of at least 10 characters if it differs from the matrix suggestion) → **Raise to warning** | The page opens the new draft's edit page. Raising the same alert again does not make a second draft: the page shows "already raised" with a link to the warning and its state. The draft appears under Drafts on the board, can be edited and published there, and its source-bulletin link is kept after editing. Nothing is submitted, approved or sent by the raise. |
 | 14 | Imported alert | Import | (import still in GAA Admin) | Import a partner alert in GAA Admin. On the new board it shows **Imported**. On its page, Publish and Emergency publish stay off until you tick "I have checked this imported alert against its source". A non-conforming import shows its schema problems. Issue update is not offered for it. |
 | 15 | Emergency publish | Emergency publish | Note: write a reason → **Emergency publish** → confirm | Needs a reason. Publishes a DRAFT without approval. The audit history shows `emergency_publish` with the reason. |
 | 16 | Emergency with a format problem | — | Emergency publish the schema test case from step 11 | The warning goes out. The page says "Published with a CAP format problem" with the problem, and after reloading the red banner "This alert went out with a CAP format problem" stays. The duty supervisor gets the notification. |
@@ -77,14 +77,40 @@ line of defence. That rule changes only when the owner re-runs
 `cloudflare-cache-rules.py --apply` for the environment; until then rely on the
 check above.
 
+## What the new desk does
+
+The warning desk at `cap.<environment>/desk` covers the whole warning flow, so
+the old desk is needed only for the side-by-side run:
+
+- **Warnings:** the board, new warning, edit draft, validate, submit, review,
+  approve, publish, emergency publish, cancel, mark expired and issue update,
+  with each alert's page showing its audit history and any schema problem.
+- **GMS alerts:** the list of hazard alerts in force, with **Raise to warning**
+  (step 13). It shows the matrix's colour, asks for a reason when the colour
+  differs, and says when a warning already exists from that alert.
+- **Import:** a partner CAP alert from a public address or pasted XML, flagged
+  as imported (step 14).
+- **Impact matrix and hazard profiles:** the read-only matrix, and hazard
+  profile versions with approval and warning drafts (steps 21 to 24).
+- **Admin screens:** sender settings, predefined areas, external feeds,
+  integrations, the audit trail (`/desk/audit`) and statistics.
+
+Settings and feeds are changed on the desk by staff with the matching
+permission; the API checks each change again.
+
 ## What the new desk does not do yet
 
-Settings, areas, feeds, integrations, imports and the audit page stay in GAA
-Admin for now. Hazard profiles can be edited on the desk (rows 22 to 24); the
-impact matrix a profile uses is edited there too. Editing a profile on either
-desk makes a draft version, so the two desks can never change an approved
-version. New warnings are always created as an Alert:
-an Update comes from **Issue update** and a Cancel from **Cancel alert**.
+- **Raise to warning** only lists GMS alerts that are in force now. An alert
+  that is withdrawn or has expired is not listed, and it cannot be raised.
+- A raised warning is never green. A GMS alert stays green until a forecaster
+  withdraws it; this desk does not withdraw it.
+- The GMS alerts page shows each alert's validity times and the matrix colour
+  only. The full wording of the GMS alert stays in the GMS desk.
+- GAA Admin's CAP screens remain in place until the owner signs off this
+  run. Nothing in GAA Admin has been switched off.
+
+New warnings are always created as an Alert. An Update comes from **Issue
+update** and a Cancel from **Cancel alert**.
 
 ## Rollback
 
