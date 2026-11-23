@@ -461,6 +461,7 @@ Totals: 678 paths and 814 operations.
 | PATCH | `/api/v1/hr/leave-requests/{leave_request_id}/action` | — | yes | Action leave request | `hrActionLeaveRequest` |
 | POST | `/api/v1/hr/leave-requests/{leave_request_id}/submit` | — | yes | Submit a draft leave request | `hrSubmitLeaveRequest` |
 | GET | `/api/v1/hr/leave/working-days` | — | yes | Working days between two dates | `hrGetWorkingDays` |
+| GET | `/api/v1/hr/me/organisations` | me | yes | List my HR organisations | `hrGetMyOrganisations` |
 | GET | `/api/v1/hr/organisation` | — | yes | Read GAA position catalogue | `hrGetOrganisationCatalogue` |
 | GET | `/api/v1/hr/organisations` | — | yes | List accessible organisations | `hrGetOrganisations` |
 | POST | `/api/v1/hr/organisations` | — | yes | Register an HR organisation | `hrCreateOrganisation` |

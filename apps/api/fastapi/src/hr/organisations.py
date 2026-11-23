@@ -12,9 +12,17 @@ from src.audit import service as audit_service
 from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AppException
 from src.hr.exceptions import DepartmentNotFoundError
-from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Organisation
+from src.hr.models import (
+    Department,
+    EmploymentRecord,
+    EmploymentStatus,
+    Organisation,
+    live_employment_clause,
+)
+from src.hr.schemas import HrMeOrganisationPublic, OrganisationPublic
 from src.organisations import service as organisations_service
-from src.utils.timezones import GRENADA
+from src.organisations.models import PlatformOrganisation
+from src.utils.timezones import GRENADA, local_today
 
 
 async def active_assignments(
@@ -66,6 +74,69 @@ async def organisation_choices(
     return list(
         (await session.execute(statement.order_by(Organisation.name))).scalars().all()
     )
+
+
+async def public_organisations(
+    session: AsyncSession, organisations: list[Organisation]
+) -> list[OrganisationPublic]:
+    """Add platform slugs to the existing HR organisation responses."""
+    rows = await session.execute(
+        select(PlatformOrganisation.id, PlatformOrganisation.slug).where(
+            PlatformOrganisation.id.in_(
+                [organisation.id for organisation in organisations]
+            )
+        )
+    )
+    slugs = dict(rows.tuples().all())
+    return [
+        OrganisationPublic(
+            id=organisation.id,
+            code=organisation.code,
+            name=organisation.name,
+            slug=slugs.get(organisation.id),
+        )
+        for organisation in organisations
+    ]
+
+
+_SCOPE_RANK = {
+    RoleAssignmentScope.SELF: 0,
+    RoleAssignmentScope.DEPARTMENT: 1,
+    RoleAssignmentScope.ALL: 2,
+}
+
+
+async def my_organisations(
+    session: AsyncSession, actor: User
+) -> list[HrMeOrganisationPublic]:
+    """List the caller's live HR contexts, without a global superuser shortcut."""
+    employment_ids = await session.scalars(
+        select(EmploymentRecord.organisation_id).where(
+            EmploymentRecord.user_id == actor.id,
+            live_employment_clause(local_today()),
+        )
+    )
+    scopes = dict.fromkeys(employment_ids, RoleAssignmentScope.SELF)
+    for assignment in await active_assignments(session, actor.id):
+        org_id = assignment.organisation_id
+        scopes[org_id] = max(
+            scopes.get(org_id, RoleAssignmentScope.SELF),
+            assignment.scope,
+            key=_SCOPE_RANK.__getitem__,
+        )
+    if not scopes:
+        return []
+
+    rows = await session.execute(
+        select(Organisation.id, PlatformOrganisation.slug, Organisation.name)
+        .join(PlatformOrganisation, PlatformOrganisation.id == Organisation.id)
+        .where(Organisation.id.in_(scopes))
+        .order_by(Organisation.name, Organisation.id)
+    )
+    return [
+        HrMeOrganisationPublic(id=org_id, slug=slug, name=name, scope=scopes[org_id])
+        for org_id, slug, name in rows
+    ]
 
 
 async def resolve_organisation(

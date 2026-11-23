@@ -51,6 +51,12 @@ export type AuthAppHandoffRedeemStatus422 = ValidationErrorResponse;
 
 export type AuthAppHandoffRedeemStatus429 = ApiError | ErrorMessage;
 
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppHandoffRedeemStatus503 = ApiError;
+
 export type AuthAppHandoffRedeemBody = AppHandoffRedeem;
 
 export type AuthAppHandoffRedeemOptions = {
@@ -68,6 +74,7 @@ export type AuthAppHandoffRedeemResponses = {
   "404": AuthAppHandoffRedeemStatus404;
   "422": AuthAppHandoffRedeemStatus422;
   "429": AuthAppHandoffRedeemStatus429;
+  "503": AuthAppHandoffRedeemStatus503;
 };
 
 /**

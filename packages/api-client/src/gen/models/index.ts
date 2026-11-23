@@ -265,6 +265,7 @@ export type {
   AuthAppHandoffRedeemStatus404,
   AuthAppHandoffRedeemStatus422,
   AuthAppHandoffRedeemStatus429,
+  AuthAppHandoffRedeemStatus503,
 } from "./AuthAppHandoffRedeem.js";
 export type {
   AuthAppHandoffStartBody,
@@ -279,6 +280,7 @@ export type {
   AuthAppHandoffStartStatus409,
   AuthAppHandoffStartStatus422,
   AuthAppHandoffStartStatus429,
+  AuthAppHandoffStartStatus503,
 } from "./AuthAppHandoffStart.js";
 export type {
   AuthAppPasswordLoginBody,
@@ -4937,6 +4939,15 @@ export type {
   HrGetMyLeaveRequestsStatus422,
 } from "./HrGetMyLeaveRequests.js";
 export type {
+  HrGetMyOrganisationsOptions,
+  HrGetMyOrganisationsResponse,
+  HrGetMyOrganisationsResponses,
+  HrGetMyOrganisationsStatus200,
+  HrGetMyOrganisationsStatus401,
+  HrGetMyOrganisationsStatus403,
+  HrGetMyOrganisationsStatus422,
+} from "./HrGetMyOrganisations.js";
+export type {
   HrGetMySignatureOptions,
   HrGetMySignatureResponse,
   HrGetMySignatureResponses,
@@ -5667,6 +5678,7 @@ export type {
   HrLoadProvisionalHolidaysStatus403,
   HrLoadProvisionalHolidaysStatus422,
 } from "./HrLoadProvisionalHolidays.js";
+export type { HrMeOrganisationPublic } from "./HrMeOrganisationPublic.js";
 export type {
   HrOffboardStaffOptions,
   HrOffboardStaffPath,
