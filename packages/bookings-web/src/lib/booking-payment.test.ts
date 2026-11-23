@@ -14,6 +14,7 @@ const due: BookingPaymentSummary = {
   amount_minor: 21_000,
   paid_minor: 0,
   refunded_minor: 0,
+  balance_at_salon_minor: 0,
   currency: "XCD",
   checkout_url: "https://checkout.stripe.com/c/pay/cs_test_1",
 };
