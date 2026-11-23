@@ -11,6 +11,7 @@ import {
 } from "@barrelsgd/ui/components/ui/alert-dialog";
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import { useId, useState } from "react";
@@ -18,7 +19,9 @@ import {
   GmsCatalogueBoundary,
   useGmsCatalogue,
 } from "@/components/cap/gms-catalogue";
+import { capDeskHref } from "@/lib/cap-desk-paths";
 import { colourLabel } from "@/lib/cap-levels";
+import { useCapDeskUrl } from "@/navigation/cap-desk-navigation";
 import { useIbfSuggestion } from "./use-ibf-suggestion";
 
 export const WARNING_LEVELS = ["yellow", "orange", "red"] as const;
@@ -54,6 +57,7 @@ function RaiseToWarningDialogContent({
 }) {
   const catalogue = useGmsCatalogue();
   const router = useRouter();
+  const deskUrl = useCapDeskUrl();
   const [level, setLevel] = useState<WarningLevel>("yellow");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -78,6 +82,11 @@ function RaiseToWarningDialogContent({
       trimmedReason.length < MIN_OVERRIDE_REASON;
   const suggestionLoading = state.status === "loading";
 
+  function openWarningDraft(alertId: string) {
+    onOpenChange(false);
+    router.push(capDeskHref(`/cap/admin/${alertId}`, deskUrl) as Route);
+  }
+
   async function confirm() {
     if (reasonMissing || suggestionLoading) return;
     setPending(true);
@@ -93,8 +102,7 @@ function RaiseToWarningDialogContent({
         setExistingAlertId(result.existingAlertId ?? "");
         return;
       }
-      onOpenChange(false);
-      router.push(`/cap/admin/${result.alertId}`);
+      openWarningDraft(result.alertId);
     } finally {
       setPending(false);
     }
@@ -172,10 +180,7 @@ function RaiseToWarningDialogContent({
         {existingAlertId ? (
           <button
             className="text-left text-sm underline"
-            onClick={() => {
-              onOpenChange(false);
-              router.push(`/cap/admin/${existingAlertId}`);
-            }}
+            onClick={() => openWarningDraft(existingAlertId)}
             type="button"
           >
             Open the existing warning draft

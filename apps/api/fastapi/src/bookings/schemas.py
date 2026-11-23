@@ -6,6 +6,7 @@ from urllib.parse import urlsplit
 
 from pydantic import EmailStr, Field, RootModel, field_validator, model_validator
 
+from src.email_colour import normalise_hex
 from src.models import BaseModel, UtcDateTime
 from src.organisations.models import MembershipRole
 from src.payments.schemas import ManualPaymentCreate
@@ -13,6 +14,7 @@ from src.utils.reserved_names import is_reserved
 from src.utils.timezones import is_valid_timezone
 
 from . import contact
+from .availability import MAX_CLOSURE_DAYS
 from .models import (
     BookingExceptionKind,
     BookingPaymentMode,
@@ -25,6 +27,9 @@ Slug = Annotated[str, Field(pattern=r"^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$")]
 Minutes = Annotated[int, Field(ge=0, le=1440)]
 Minor = Annotated[int, Field(ge=0, le=100_000_000)]
 Currency = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
+#: Path words of this domain's public routes that a business may not take as its
+#: slug: ``/bookings/public/businesses`` is the home page listing, not a storefront.
+LISTING_PATH_WORDS = frozenset({"businesses"})
 
 
 # --- caller's organisations -------------------------------------------------------
@@ -44,7 +49,9 @@ class BookingMyOrganisation(BaseModel):
 
 class BookingMyBooking(BaseModel):
     """One of the caller's bookings, with the business it is with. Carries no
-    manage token, notes, or other customers' details."""
+    stored manage token, notes, or other customers' details; ``manage_url`` is a
+    freshly signed link to the booking's manage page, the same kind the booking
+    email carries."""
 
     id: uuid.UUID
     status: BookingStatus
@@ -58,6 +65,14 @@ class BookingMyBooking(BaseModel):
         description=(
             "What was paid when booking; null when nothing was due at booking "
             "(pay at the business)."
+        ),
+    )
+    manage_url: str | None = Field(
+        default=None,
+        description=(
+            "The booking's manage page (Reschedule, Cancel, Add to calendar), "
+            "with a signed link that works until a week after the booking ends. "
+            "Null once that window has passed or the stored link was cleared."
         ),
     )
 
@@ -205,6 +220,68 @@ class BookingProfileUpdate(BaseModel):
             "is kept."
         ),
     )
+    brand_color: str | None = Field(
+        default=None,
+        max_length=7,
+        description=(
+            "The business's accent colour in its emails, as `#rrggbb`. Blank clears "
+            "it. Mail uses the Barrels navy instead when the colour is too pale for "
+            "white text. Left out, the stored value is kept."
+        ),
+    )
+    logo_file_id: uuid.UUID | None = Field(
+        default=None,
+        description=(
+            "A completed `booking-logo` upload of this business (see "
+            "`POST /storage/uploads`), shown at the top of its emails. Null clears "
+            "it. Left out, the stored logo is kept."
+        ),
+    )
+    listed: bool = Field(
+        default=False,
+        description=(
+            "Show this business on the Barrels Bookings home page. Off by default. "
+            "Only an enabled business that is open for booking is listed. Left out, "
+            "the stored value is kept."
+        ),
+    )
+    category: str | None = Field(
+        default=None,
+        max_length=80,
+        description=(
+            "Short category for the home page, such as Hair or Nails; it is the "
+            "filter chip a visitor taps. Blank clears it. Left out, the stored value "
+            "is kept."
+        ),
+    )
+    short_description: str | None = Field(
+        default=None,
+        max_length=160,
+        description=(
+            "One line for the home page card. Blank clears it. Left out, the stored "
+            "value is kept."
+        ),
+    )
+    city: str | None = Field(
+        default=None,
+        max_length=80,
+        description=(
+            "Town or city for the home page card. Blank clears it. Left out, the "
+            "stored value is kept."
+        ),
+    )
+
+    @field_validator("brand_color", mode="before")
+    @classmethod
+    def _brand_color(cls, value: object) -> str | None:
+        return normalise_hex(value)
+
+    @field_validator("category", "short_description", "city", mode="before")
+    @classmethod
+    def _listing_text(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip() or None
+        return value
 
     deposit_payment_link: str | None = Field(
         default=None,
@@ -247,7 +324,7 @@ class BookingProfileUpdate(BaseModel):
     def _not_reserved(cls, value: str) -> str:
         # Platform reserved names (ADR-0043) cover the web app's top-level routes
         # (studio, signin, auth, api) and the /bookings/public path word.
-        if is_reserved(value):
+        if is_reserved(value) or value in LISTING_PATH_WORDS:
             raise ValueError("That booking address is reserved")
         return value
 
@@ -398,6 +475,53 @@ class BookingExceptionPublic(BaseModel):
     starts_at: UtcDateTime
     ends_at: UtcDateTime
     reason: str | None
+
+
+class BookingClosureCreate(BaseModel):
+    starts_on: date = Field(description="First closed day, the business's local date.")
+    ends_on: date = Field(description="Last closed day, inclusive, local date.")
+    reason: Annotated[str, Field(max_length=200)] | None = None
+
+    @field_validator("reason")
+    @classmethod
+    def _blank_reason_is_none(cls, value: str | None) -> str | None:
+        return (value or "").strip() or None
+
+    @model_validator(mode="after")
+    def _period(self) -> Self:
+        if self.ends_on < self.starts_on:
+            raise ValueError("ends_on must not be before starts_on")
+        if (self.ends_on - self.starts_on).days + 1 > MAX_CLOSURE_DAYS:
+            raise ValueError(f"A closure covers at most {MAX_CLOSURE_DAYS} days")
+        return self
+
+
+class BookingClosurePublic(BaseModel):
+    id: uuid.UUID
+    starts_on: date
+    ends_on: date
+    reason: str | None
+    created_at: UtcDateTime
+
+
+class BookingClosureAffected(BaseModel):
+    """An existing booking inside a new closure: for the studio's follow-up only."""
+
+    id: uuid.UUID
+    starts_at: UtcDateTime
+    customer_first_name: str | None = Field(
+        description="First name only. No email or phone is sent."
+    )
+
+
+class BookingClosureCreated(BookingClosurePublic):
+    affected_bookings: list[BookingClosureAffected] = Field(
+        default_factory=list,
+        description=(
+            "Active bookings (pending, confirmed, awaiting deposit) that fall inside "
+            "the closure, earliest first. They are NOT cancelled: follow them up."
+        ),
+    )
 
 
 # --- organisation agenda -----------------------------------------------------------
@@ -590,8 +714,52 @@ class BookingStorefront(BaseModel):
     currency: str
     cancel_cutoff_hours: int
     contact: BookingBusinessContact
+    brand_color: str | None = Field(
+        description=(
+            "The business's accent colour as `#rrggbb`, or null when it has not set "
+            "one. Not checked for contrast: the page decides how to use it."
+        ),
+    )
+    logo_url: str | None = Field(
+        description=(
+            "Public https address of the business logo, or null when there is no "
+            "logo or no public API address is configured. Load it as an image."
+        ),
+    )
     services: list[BookingPublicService]
     providers: list[BookingPublicProvider]
+
+
+class BookingPublicBusiness(BaseModel):
+    """One card on the Barrels Bookings home page. Public fields only: no contact
+    details, owner data or emails."""
+
+    slug: str = Field(description="The business's booking page is /<slug>.")
+    name: str
+    category: str | None
+    short_description: str | None
+    city: str | None
+    brand_color: str | None = Field(
+        description="The business's accent as `#rrggbb`, or null."
+    )
+    logo_url: str | None = Field(
+        description=(
+            "Public https address of the logo, or null when there is no finished logo "
+            "upload or no public API address is configured. Load it as an image."
+        ),
+    )
+
+
+class BookingPublicBusinessPage(BaseModel):
+    items: list[BookingPublicBusiness]
+    page: int = Field(ge=1)
+    has_more: bool = Field(description="True when a later page holds more businesses.")
+    categories: list[str] = Field(
+        description=(
+            "The distinct categories of every listed business, case folded, for the "
+            "filter chips. Not narrowed by the search."
+        ),
+    )
 
 
 class BookingSlot(BaseModel):
@@ -771,6 +939,13 @@ class BookingPublicDetail(BaseModel):
             "Where a guest can create a free account or sign in, so this booking "
             "is listed under My bookings. Null once the booking's contact is linked "
             "to an account."
+        ),
+    )
+    hold_ends_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "While `status` is `pending_payment`: when the unpaid hold is released "
+            "if the payment has not arrived. Null otherwise."
         ),
     )
 

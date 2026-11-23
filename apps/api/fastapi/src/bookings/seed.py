@@ -2,7 +2,8 @@
 
 Creates the ``babydoll`` client organisation, its ``bookings`` and ``contacts``
 entitlements, the booking profile (``babydoll-beauty-bar``), the services the
-site lists, one provider with weekly hours and the ``babydoll`` public site.
+site lists, one provider with weekly hours, the ``babydoll`` public site and the
+first-month trial on ``bookings-monthly`` (ADR-0065 amendment).
 
 Idempotent and create-only: a second run adds nothing and never overwrites what
 the studio has edited since. Run it from ``apps/api/fastapi``::
@@ -31,6 +32,8 @@ from pydantic import EmailStr, TypeAdapter, ValidationError
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.billing import app_subscriptions as billing_subscriptions
+from src.billing.models import Plan
 from src.organisations import service as organisation_service
 from src.organisations.models import (
     OrganisationApp,
@@ -58,6 +61,9 @@ PUBLIC_SLUG = "babydoll-beauty-bar"
 PRODUCTION_APP_URL = "https://bookings.barrels.gd"
 SITE_KEY = "babydoll"
 PROVIDER_NAME = "Jeriann"
+#: Owner decision 22 Nov 2026: Babydoll's first month of Bookings is free; XCD 30 after.
+TRIAL_PLAN_KEY = "bookings-monthly"
+TRIAL_DAYS = 30
 ENTITLEMENTS = ("bookings", "contacts")
 _LOCK_ID = 73190507
 
@@ -255,6 +261,19 @@ async def seed_babydoll(
         result.created.append("public_site")
     elif site.organisation_id != ORGANISATION_ID:
         raise ValueError(f"Public site '{SITE_KEY}' belongs to another organisation")
+
+    # ADR-0065 amendment: the first month is free for Babydoll only. Create-only.
+    if await session.get(Plan, TRIAL_PLAN_KEY) is None:
+        result.notes.append(
+            f"trial not set: plan {TRIAL_PLAN_KEY} is missing (run the billing migration)"
+        )
+    elif await billing_subscriptions.grant_trial(
+        session,
+        organisation_id=ORGANISATION_ID,
+        plan_key=TRIAL_PLAN_KEY,
+        trial_days=TRIAL_DAYS,
+    ):
+        result.created.append(f"trial:{TRIAL_PLAN_KEY}")
     await session.flush()
     return result
 

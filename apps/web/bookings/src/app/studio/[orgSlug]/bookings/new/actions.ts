@@ -10,12 +10,14 @@ import { ResponseError } from "@barrelsgd/api-client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { getAvailability } from "@/lib/booking-api";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import type { ActionState } from "@/lib/studio-action-state";
 import {
   createStudioBooking,
   findOrganisation,
+  getBusinessProfile,
   getBusinessTimezone,
 } from "@/lib/studio-api";
 import {
@@ -30,6 +32,7 @@ import {
   isUuid,
   zonedToUtcIso,
 } from "@/lib/studio-view";
+import { type WalkInTime, walkInTimes } from "@/lib/walk-in-times";
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/u;
 
@@ -191,4 +194,116 @@ export async function createBookingAction(
   }
   revalidatePath(`/studio/${orgSlug}/agenda`);
   redirect(`/studio/${orgSlug}/bookings/${bookingId}`);
+}
+
+/** What the New booking form shows for its time chips. */
+export type WalkInTimesState =
+  | { status: "ready"; times: WalkInTime[] }
+  /** The booking page is closed or has no address, so its public times are not served. */
+  | { status: "closed" }
+  | { status: "error"; message: string };
+
+const TIMES_UNAVAILABLE =
+  "Open times could not be loaded. Type a time below instead.";
+
+/**
+ * Open start times for one service, provider and day, from the same public
+ * availability the booking page uses. The business's own address is read here,
+ * never taken from the form. The chips are a shortcut, not a limit: staff can
+ * still type any time, and the API does not check opening hours for staff.
+ */
+export async function loadWalkInTimesAction(
+  orgSlug: string,
+  input: { serviceId: string; providerId: string; date: string }
+): Promise<WalkInTimesState> {
+  const refusal = walkInRefusal(orgSlug, input);
+  if (refusal) {
+    return refusal;
+  }
+  const session = await getSession();
+  if (!session) {
+    redirect(
+      `/signin?${new URLSearchParams({ returnTo: walkInPath(orgSlug) })}`
+    );
+  }
+  try {
+    return await readWalkInTimes(session.accessToken, orgSlug, input);
+  } catch (error) {
+    return walkInTimesFailure(error, orgSlug);
+  }
+}
+
+const walkInPath = (orgSlug: string) => `/studio/${orgSlug}/bookings/new`;
+
+/** A request the form could never make: a bad business slug, service, provider or day. */
+function walkInRefusal(
+  orgSlug: string,
+  input: { serviceId: string; providerId: string; date: string }
+): WalkInTimesState | null {
+  if (!SLUG.test(orgSlug)) {
+    return { status: "error", message: "We could not find that business." };
+  }
+  const idsAndDay =
+    isUuid(input.serviceId) &&
+    isDay(input.date) &&
+    (input.providerId === "" || isUuid(input.providerId));
+  if (!idsAndDay) {
+    return {
+      status: "error",
+      message: "Choose a service and a date to see open times.",
+    };
+  }
+  return null;
+}
+
+/** The organisation, its role and its public address, then the public times. */
+async function readWalkInTimes(
+  accessToken: string,
+  orgSlug: string,
+  input: { serviceId: string; providerId: string; date: string }
+): Promise<WalkInTimesState> {
+  const org = await findOrganisation(accessToken, orgSlug);
+  if (!org) {
+    return { status: "error", message: "We could not find that business." };
+  }
+  if (!canManageBookings(org.role)) {
+    return { status: "error", message: ADMIN_REQUIRED.message };
+  }
+  const profile = await getBusinessProfile(accessToken, org.id);
+  if (!profile.publicSlug) {
+    return { status: "closed" };
+  }
+  const availability = await getAvailability(
+    profile.publicSlug,
+    input.serviceId,
+    input.date,
+    input.providerId || undefined
+  );
+  return {
+    status: "ready",
+    times: walkInTimes(
+      availability.slots,
+      availability.timezone || profile.timezone,
+      input.date
+    ),
+  };
+}
+
+/**
+ * A failed read as chips' state: a lapsed session goes to sign-in, a switched-off
+ * booking page is "closed", and anything else is reported (faults) and shown plainly.
+ */
+function walkInTimesFailure(error: unknown, orgSlug: string): WalkInTimesState {
+  if (ResponseError.is(error) && error.status === 401) {
+    redirect(
+      `/signin?${new URLSearchParams({ returnTo: walkInPath(orgSlug) })}`
+    );
+  }
+  if (ResponseError.is(error) && error.status === 404) {
+    return { status: "closed" };
+  }
+  if (!ResponseError.is(error) || error.status >= 500) {
+    reportError(error, "studio");
+  }
+  return { status: "error", message: TIMES_UNAVAILABLE };
 }

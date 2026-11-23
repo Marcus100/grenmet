@@ -7,7 +7,7 @@ Postgres exclusion constraint forbids double-booking a provider.
 """
 
 import uuid
-from datetime import datetime, time
+from datetime import date, datetime, time
 from enum import Enum
 from typing import cast
 
@@ -82,6 +82,10 @@ class BookingProfile(Base):
             f"payment_at_booking IN ({_values(BookingPaymentMode)})",
             name="payment_at_booking",
         ),
+        sa.CheckConstraint(
+            "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
+            name="brand_color",
+        ),
         SCHEMA,
     )
 
@@ -110,6 +114,19 @@ class BookingProfile(Base):
     contact_whatsapp: Mapped[str | None] = mapped_column(String(15))
     contact_instagram: Mapped[str | None] = mapped_column(String(30))
     contact_email: Mapped[str | None] = mapped_column(String(254))
+    #: The business's accent in its emails: ``#rrggbb``, lower case. Mail falls back to
+    #: the Barrels navy when it fails 4.5:1 against white (``src/email_colour.py``).
+    brand_color: Mapped[str | None] = mapped_column(String(7))
+    #: A completed ``booking-logo`` upload (``src/storage``); no cross-database FK.
+    logo_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
+    #: Opt-in to the Barrels Bookings home page listing (off by default). The
+    #: listing shows only enabled, entitled, active businesses with a service.
+    listed: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
+    #: Listing text: a short category (chips on the home page), a one-line
+    #: description and a city. Blank means not shown.
+    category: Mapped[str | None] = mapped_column(String(80))
+    short_description: Mapped[str | None] = mapped_column(String(160))
+    city: Mapped[str | None] = mapped_column(String(80))
     #: ``BookingPaymentMode``: what an online booking pays when it is made.
     payment_at_booking: Mapped[str] = mapped_column(
         String(20),
@@ -227,6 +244,30 @@ class AvailabilityException(Base):
     kind: Mapped[str] = mapped_column(String(20))
     starts_at: Mapped[datetime]
     ends_at: Mapped[datetime]
+    reason: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class BusinessClosure(Base):
+    """A whole-business closure (BK-20): local days closed for every provider.
+
+    ``starts_on`` and ``ends_on`` are the organisation's calendar days, both
+    inclusive. Overlapping closures are allowed; each removes its own days.
+    """
+
+    __tablename__ = "business_closure"
+    __table_args__ = (
+        sa.CheckConstraint("ends_on >= starts_on", name="period"),
+        sa.Index("ix_business_closure_org_starts", "organisation_id", "starts_on"),
+        SCHEMA,
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id")
+    )
+    starts_on: Mapped[date]
+    ends_on: Mapped[date]
     reason: Mapped[str | None] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 

@@ -25,16 +25,25 @@ export function SiteFooter() {
           aria-label="Learning and evidence"
           className="flex flex-wrap gap-4"
         >
-          <Link className="underline" href="/learn">
+          <Link
+            className="inline-flex min-h-11 items-center underline"
+            href="/learn"
+          >
             Learning guides
           </Link>
-          <Link className="underline" href="/search">
+          <Link
+            className="inline-flex min-h-11 items-center underline"
+            href="/search"
+          >
             Search the site
           </Link>
-          <Link className="underline" href="/sources">
+          <Link
+            className="inline-flex min-h-11 items-center underline"
+            href="/sources"
+          >
             Sources and methods
           </Link>
-          <CookieSettingsButton className="cursor-pointer underline" />
+          <CookieSettingsButton className="inline-flex min-h-11 cursor-pointer items-center underline" />
         </nav>
         <p>
           Elections Grenada is an independent Barrels Grenada project. It is not
@@ -43,13 +52,18 @@ export function SiteFooter() {
         </p>
         <p>
           Questions about this site? Email Barrels Grenada support at{" "}
-          <a className="underline" href={BARRELS_SUPPORT_HREF}>
+          <a
+            className="inline-flex min-h-11 items-center underline"
+            href={BARRELS_SUPPORT_HREF}
+          >
             {BARRELS_SUPPORT_EMAIL}
           </a>
           .
         </p>
         <details>
-          <summary className="cursor-pointer">Evidence marks</summary>
+          <summary className="inline-flex min-h-11 cursor-pointer items-center">
+            Evidence marks
+          </summary>
           <dl className="mt-2 space-y-1">
             {MARKS.map(([mark, meaning]) => (
               <div className="flex gap-3" key={mark}>

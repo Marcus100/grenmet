@@ -11,6 +11,9 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import {
   CalendarDays,
   Compass,
+  LayoutDashboard,
+  Lightbulb,
+  LogIn,
   type LucideIcon,
   Menu,
   MessageSquare,
@@ -69,8 +72,12 @@ export function HeaderNav() {
   );
 }
 
-/** Phone menu for the website; the installed app uses BottomNav instead. */
-export function MobileNav() {
+/**
+ * Phone menu for the website; the installed app uses BottomNav instead. The
+ * organiser, sign-in and suggestion links are here because the header shows
+ * them only from the tablet breakpoint up.
+ */
+export function MobileNav({ signedIn = false }: { signedIn?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -108,6 +115,38 @@ export function MobileNav() {
               </Link>
             );
           })}
+        </nav>
+        <nav
+          aria-label="Organisers and account"
+          className="border-border mt-4 flex flex-col gap-1 border-t px-4 pt-4"
+        >
+          <Link
+            className="text-body text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium"
+            href="/dash/events"
+            onClick={() => setOpen(false)}
+          >
+            <LayoutDashboard className="size-5" />
+            For organisers
+          </Link>
+          <Link
+            className="text-body text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium"
+            href="/events/suggest"
+            onClick={() => setOpen(false)}
+          >
+            <Lightbulb className="size-5" />
+            Suggest an event
+          </Link>
+          {signedIn ? null : (
+            // A plain link: /sign-in redirects to the Barrels account host, and
+            // a Next client fetch of that redirect fails the connect-src check.
+            <a
+              className="text-body text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium"
+              href="/sign-in"
+            >
+              <LogIn className="size-5" />
+              Sign in
+            </a>
+          )}
         </nav>
       </SheetContent>
     </Sheet>

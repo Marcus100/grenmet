@@ -40,7 +40,7 @@ function TopLevelNavItem({
   return (
     <li className="md:hidden">
       <Link
-        className="block py-1 text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+        className="flex min-h-11 items-center py-1 text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
         data-analytics-event="navigation_category_selected"
         href={href as Route}
         onClick={close}
@@ -70,7 +70,7 @@ function NavLink({
     <Link
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex justify-between gap-2 py-1 pr-3 text-sm transition",
+        "flex min-h-11 items-center justify-between gap-2 py-1 pr-3 text-sm transition",
         isAnchorLink ? "pl-7" : "pl-4",
         active
           ? "text-zinc-900 dark:text-white"
@@ -178,12 +178,13 @@ function NavigationGroup({
 
   return (
     <li className={cn("relative mt-6", className)}>
-      <motion.h2
+      {/* A group label, not a heading: the sidebar comes before the page h1. */}
+      <motion.p
         className="text-xs font-semibold text-zinc-900 dark:text-white"
         layout="position"
       >
         {group.title}
-      </motion.h2>
+      </motion.p>
       <div className="relative mt-3 pl-2">
         <AnimatePresence initial={!isInsideMobileNavigation}>
           {isActiveGroup && (

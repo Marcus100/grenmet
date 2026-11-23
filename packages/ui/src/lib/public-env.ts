@@ -19,6 +19,10 @@ export const PUBLIC_ENV_KEYS = [
   "NEXT_PUBLIC_RELEASE",
   "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
   "NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY",
+  // Cookieless funnel analytics (bookings, events, account); see funnel-analytics.ts.
+  "NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY",
+  "NEXT_PUBLIC_FUNNEL_ANALYTICS_HOST",
+  "NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED",
 ] as const;
 
 export type PublicEnvKey = (typeof PUBLIC_ENV_KEYS)[number];

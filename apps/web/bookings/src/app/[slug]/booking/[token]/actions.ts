@@ -69,11 +69,18 @@ export async function loadRescheduleSlots(
   }
 }
 
+/** The API keeps at most 300 characters of a reason; longer is refused here. */
+const REASON_MAX = 300;
+
 export async function cancelMyBooking(
-  token: string
+  token: string,
+  reason: string | null
 ): Promise<Outcome<BookingPublicDetail>> {
+  if (reason !== null && reason.length > REASON_MAX) {
+    return invalid;
+  }
   try {
-    return { ok: true, data: await cancelBooking(token) };
+    return { ok: true, data: await cancelBooking(token, reason) };
   } catch (error) {
     return failureFrom(error, "cancel");
   }

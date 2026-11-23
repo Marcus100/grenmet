@@ -7,9 +7,14 @@ it complete. Reads never expose bucket URLs: members get a short presigned GET,
 and purposes flagged public are served through a cached redirect by file id.
 
 Service functions flush and never commit; the router owns the transaction.
-Dimension checks are not done: Pillow is not a declared dependency.
+Pixel limits apply only where a purpose sets ``strip_metadata``: those images are
+decoded by Pillow at completion (``image_metadata.py``) and refused above the purpose's
+``max_pixels`` (per purpose), re-encoded without their metadata, and refused when the
+bytes are not the image type they declared. Any failure there deletes the object and
+answers 422.
 """
 
+import functools
 import uuid
 from dataclasses import dataclass
 from datetime import timedelta
@@ -22,8 +27,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import apps as auth_apps
 from src.database import async_session_factory
 from src.exceptions import AppException, NotFoundError
+from src.storage import image_metadata, transitions
 from src.storage import service as storage
-from src.storage import transitions
 from src.storage.dependencies import UploadContext
 from src.storage.models import OrgUpload, UploadStatus
 from src.storage.schemas import UploadRequest
@@ -42,17 +47,44 @@ PUBLIC_REDIRECT_SECONDS = 300
 PUBLIC_CACHE_SECONDS = 120
 
 
+#: Decoded-size caps (width times height, in pixels) for the metadata step. A booking
+#: logo is shown at 40 to 64 pixels, so 4 megapixels is generous. Organiser logos keep
+#: the 16 megapixels they had before the metadata step (phone photos of 3000 by 2000
+#: pixels and more are accepted). Pillow's decompression-bomb guard stays on in both.
+BOOKING_LOGO_MAX_PIXELS = 4_000_000
+ORGANISER_LOGO_MAX_PIXELS = 16_000_000
+
+
 @dataclass(frozen=True)
 class Purpose:
     app: str
     max_bytes: int
     #: Public purposes are served unauthenticated by file id (marketing images).
     public: bool
+    #: Re-encode the stored image without its metadata (EXIF location, camera serial)
+    #: when the upload completes. Removes metadata from honest uploads; a presigned PUT
+    #: stays valid for 15 minutes, so the object can still be overwritten afterwards.
+    strip_metadata: bool = False
+    #: Decoded-size cap for the metadata step (width times height, in pixels).
+    max_pixels: int = ORGANISER_LOGO_MAX_PIXELS
 
 
 PURPOSES: dict[str, Purpose] = {
-    "organiser-logo": Purpose(app="events", max_bytes=2 * 1024 * 1024, public=True),
+    "organiser-logo": Purpose(
+        app="events",
+        max_bytes=2 * 1024 * 1024,
+        public=True,
+        strip_metadata=True,
+        max_pixels=ORGANISER_LOGO_MAX_PIXELS,
+    ),
     "listing-image": Purpose(app="events", max_bytes=5 * 1024 * 1024, public=True),
+    "booking-logo": Purpose(
+        app="bookings",
+        max_bytes=2 * 1024 * 1024,
+        public=True,
+        strip_metadata=True,
+        max_pixels=BOOKING_LOGO_MAX_PIXELS,
+    ),
 }
 
 
@@ -159,6 +191,34 @@ async def _own_upload(
     return row
 
 
+async def _strip_metadata(row: OrgUpload, max_pixels: int) -> int:
+    """Re-encode the stored image without its metadata; return the new size.
+
+    A file that is not the image type it declared is deleted, as a size mismatch is.
+    """
+    raw = await run_in_threadpool(storage.storage_service.get_object, row.object_key)
+    try:
+        clean = await run_in_threadpool(
+            functools.partial(
+                image_metadata.strip_metadata,
+                raw,
+                row.content_type,
+                max_pixels=max_pixels,
+            )
+        )
+    except image_metadata.ImageRejectedError as error:
+        await run_in_threadpool(storage.storage_service.delete_object, row.object_key)
+        raise UploadRejectedError(str(error)) from error
+    if clean != raw:
+        await run_in_threadpool(
+            storage.storage_service.put_object,
+            row.object_key,
+            clean,
+            content_type=row.content_type,
+        )
+    return len(clean)
+
+
 async def complete_upload(
     session: AsyncSession, context: UploadContext, upload_id: uuid.UUID
 ) -> OrgUpload:
@@ -180,6 +240,9 @@ async def complete_upload(
     ):
         await run_in_threadpool(storage.storage_service.delete_object, row.object_key)
         raise UploadRejectedError("The uploaded file does not match what was requested")
+    purpose = PURPOSES.get(row.purpose)
+    if purpose is not None and purpose.strip_metadata:
+        row.size_bytes = await _strip_metadata(row, purpose.max_pixels)
     transitions.move_upload(row, "complete")
     row.completed_at = utc_now()
     await session.flush()

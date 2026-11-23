@@ -153,9 +153,11 @@ function PublicAnalytics({
       >
         {view === "ask" ? (
           <>
-            <h2 className="text-2xl leading-tight font-bold text-balance">
+            {/* A dialog title, not a page heading: a heading here would
+                skip levels on pages whose h1 comes later. */}
+            <p className="text-2xl leading-tight font-bold text-balance">
               Do you accept our cookie policy?
-            </h2>
+            </p>
             <p>
               We use essential cookies to run this site and, only if you accept,
               analytics cookies to measure how people use it. No advertising or
@@ -199,9 +201,11 @@ function PublicAnalytics({
           </>
         ) : (
           <>
-            <h2 className="text-2xl leading-tight font-bold text-balance">
+            {/* A dialog title, not a page heading: a heading here would
+                skip levels on pages whose h1 comes later. */}
+            <p className="text-2xl leading-tight font-bold text-balance">
               Customise your cookie settings
-            </h2>
+            </p>
             {privacyHref ? (
               <p>
                 Read our{" "}

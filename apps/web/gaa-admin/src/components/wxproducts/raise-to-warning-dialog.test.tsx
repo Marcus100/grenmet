@@ -3,6 +3,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
+import { CapDeskNavigation } from "@/navigation/cap-desk-navigation";
 import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { RaiseToWarningDialog } from "./raise-to-warning-dialog";
 
@@ -29,7 +30,10 @@ beforeAll(() => {
   configureApiClient({ baseURL: "http://localhost" });
   server.listen({ onUnhandledRequest: "error" });
 });
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  push.mockClear();
+});
 afterAll(() => server.close());
 
 const push = vi.hoisted(() => vi.fn());
@@ -49,7 +53,6 @@ it("raises the chosen colour and opens the CAP composer on the new draft", async
 });
 
 it("stays open and shows the error when the warning draft cannot be made", async () => {
-  push.mockClear();
   const onRaise = vi.fn().mockResolvedValue({ error: "No CAP permission" });
   render(
     <RaiseToWarningDialog onOpenChange={vi.fn()} onRaise={onRaise} open />
@@ -62,7 +65,6 @@ it("stays open and shows the error when the warning draft cannot be made", async
 });
 
 it("tells the user an open warning exists and offers to open it", async () => {
-  push.mockClear();
   const onRaise = vi.fn().mockResolvedValue({
     error:
       "An open warning already exists for this alert; change its colour in CAP.",
@@ -81,8 +83,39 @@ it("tells the user an open warning exists and offers to open it", async () => {
   expect(push).toHaveBeenCalledWith("/cap/admin/alert-9");
 });
 
+it.each([false, true])(
+  "opens the standalone desk draft when cutover is on (existing draft: %s)",
+  async (existing) => {
+    const alertId = "11111111-2222-4333-8444-555555555555";
+    const onRaise = vi
+      .fn()
+      .mockResolvedValue(
+        existing
+          ? { error: "Warning already exists", existingAlertId: alertId }
+          : { alertId }
+      );
+    render(
+      <CapDeskNavigation deskUrl="https://cap.test/desk">
+        <RaiseToWarningDialog onOpenChange={vi.fn()} onRaise={onRaise} open />
+      </CapDeskNavigation>
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Raise to warning" }));
+    if (existing) {
+      fireEvent.click(
+        await screen.findByRole("button", {
+          name: "Open the existing warning draft",
+        })
+      );
+    }
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith(
+        `https://cap.test/desk/alerts/${alertId}`
+      )
+    );
+  }
+);
+
 it("pre-selects the matrix colour and needs no reason while it is kept", async () => {
-  push.mockClear();
   const onRaise = vi.fn().mockResolvedValue({ alertId: "alert-2" });
   render(
     <RaiseToWarningDialog

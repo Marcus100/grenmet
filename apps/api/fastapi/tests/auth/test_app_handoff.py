@@ -14,6 +14,7 @@ from src.auth.models import User
 from src.auth.modern_models import AuthChallenge
 from src.auth.utils import ALGORITHM, get_password_hash
 from src.utils.datetime import utc_now
+from tests.factories import make_department, make_employee
 
 BASE = "/api/v1/auth/apps/events"
 CLIENT_SECRET = "events-test-client-secret"
@@ -28,6 +29,7 @@ async def seeded(monkeypatch, db_async):
     monkeypatch.setattr(auth_settings, "GAA_ADMIN_SSO_CLIENT_SECRET", CLIENT_SECRET)
     monkeypatch.setattr(auth_settings, "BARRELS_ADMIN_SSO_CLIENT_SECRET", CLIENT_SECRET)
     monkeypatch.setattr(auth_settings, "CAP_SSO_CLIENT_SECRET", CLIENT_SECRET)
+    monkeypatch.setattr(auth_settings, "HR_SSO_CLIENT_SECRET", CLIENT_SECRET)
     monkeypatch.setattr(app_service, "new_code", lambda: "123456")
     monkeypatch.setattr(app_service, "send_email", lambda **_: None)
 
@@ -428,3 +430,55 @@ async def test_cap_desk_redeem_needs_its_own_secret(async_client, db_async, seed
         secret="not-the-cap-desk-secret",
     )
     assert wrong.status_code in {401, 403}, wrong.text
+
+
+HR = "/api/v1/auth/apps/hr"
+
+
+@pytest.mark.asyncio
+async def test_hr_handoff_and_redeem_return_503_without_a_secret(
+    async_client, db_async, seeded, monkeypatch
+):
+    _ = seeded
+    monkeypatch.setattr(auth_settings, "HR_SSO_CLIENT_SECRET", "")
+    secret = await _account_session(db_async)
+    started = await _start(async_client, secret, _state(), base=HR)
+    assert started.status_code == 503
+    redeemed = await _redeem(async_client, "x" * 32, _state(), base=HR)
+    assert redeemed.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_hr_signs_in_approved_gaa_staff_with_staff_tokens(
+    async_client, db_async, seeded, monkeypatch
+):
+    _ = seeded
+    monkeypatch.setattr(auth_settings, "HR_APP_URL", "https://hr.example.com/")
+    email = "hr-staff@example.com"
+    secret = await _account_session(db_async, email=email)
+    user = await service.get_user_by_email(session=db_async, email=email)
+    assert user is not None
+    department = await make_department(
+        db_async, "hr-handoff-test", organisation_id="gaa"
+    )
+    await make_employee(db_async, user=user, department_id=department.id)
+
+    state = _state()
+    started = await _start(async_client, secret, state, base=HR)
+    assert started.status_code == 200, started.text
+    assert started.json()["callback_url"] == "https://hr.example.com/auth/callback"
+
+    redeemed = await _redeem(async_client, started.json()["code"], state, base=HR)
+    assert redeemed.status_code == 200, redeemed.text
+    body = redeemed.json()
+    assert body["session"]["app_name"] == "hr"
+    claims = jwt.decode(
+        body["access_token"], auth_settings.SECRET_KEY, algorithms=[ALGORITHM]
+    )
+    assert "app" not in claims
+    response = await async_client.get(
+        "/api/v1/hr/me/organisations",
+        headers={"Authorization": f"Bearer {body['access_token']}"},
+    )
+    assert response.status_code == 200, response.text
+    assert [(org["id"], org["scope"]) for org in response.json()] == [("gaa", "SELF")]

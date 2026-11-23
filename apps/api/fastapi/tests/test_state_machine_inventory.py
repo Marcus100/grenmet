@@ -95,6 +95,9 @@ INVENTORY: dict[str, Decision] = {
         "the source agency's label for a tide prediction"
     ),
     "src/billing/models.py:Invoice.status": _table("src/billing/transitions.py"),
+    "src/billing/models.py:AppSubscription.status": _table(
+        "src/billing/app_subscription_transitions.py"
+    ),
     "src/billing/models.py:InvoiceReminder.stage": _attribute(
         "which reminder was sent; one row per stage, never updated"
     ),

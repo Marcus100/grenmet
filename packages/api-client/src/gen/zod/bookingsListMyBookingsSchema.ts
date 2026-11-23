@@ -16,6 +16,13 @@ export const bookingsListMyBookingsQueryUpcomingSchema = z
     "True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first."
   );
 
+export const bookingsListMyBookingsQueryCancelledSchema = z
+  .union([z.boolean(), z.null()])
+  .optional()
+  .describe(
+    "True: only cancelled bookings. False: every booking except the cancelled ones. Omit: all statuses. Combine with `upcoming` for the Upcoming list (upcoming=true, cancelled=false)."
+  );
+
 export const bookingsListMyBookingsQueryPageSchema = z
   .int()
   .min(1)
@@ -68,6 +75,12 @@ export const bookingsListMyBookingsQuerySchema = z.object({
     .optional()
     .describe(
       "True: starting now or later, soonest first (starts_at, then id, ascending). False: earlier, newest first. Omit: all, newest first."
+    ),
+  cancelled: z
+    .union([z.boolean(), z.null()])
+    .optional()
+    .describe(
+      "True: only cancelled bookings. False: every booking except the cancelled ones. Omit: all statuses. Combine with `upcoming` for the Upcoming list (upcoming=true, cancelled=false)."
     ),
   page: z
     .int()

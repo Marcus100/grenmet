@@ -92,10 +92,14 @@ async def invalidate(*keys: str) -> None:
 PUBLIC_LATEST_ACTIVE = "cap:public:latest-active"
 PUBLIC_GEOJSON = "cap:public:geojson"
 PUBLIC_RSS = "cap:public:rss"
+# The public warnings page (GET /api/cap/warnings). Short TTL: an alert can also
+# stop being in effect by time alone, which no invalidation call covers.
+PUBLIC_WARNINGS = "cap:public:warnings"
+PUBLIC_WARNINGS_TTL_SECONDS = 30
 
 
 def public_xml_key(identifier: str) -> str:
     return f"cap:public:xml:{identifier}"
 
 
-PUBLIC_FEED_KEYS = (PUBLIC_LATEST_ACTIVE, PUBLIC_GEOJSON, PUBLIC_RSS)
+PUBLIC_FEED_KEYS = (PUBLIC_LATEST_ACTIVE, PUBLIC_GEOJSON, PUBLIC_RSS, PUBLIC_WARNINGS)

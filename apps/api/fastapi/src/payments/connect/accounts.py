@@ -11,13 +11,16 @@ the Stripe adapter refuses anything but an ``sk_test_`` key before a request is 
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.feature_flags import keys as flag_keys
+from src.feature_flags import service as flag_service
+from src.feature_flags.exceptions import FeatureOffError
 from src.organisations.models import PlatformOrganisation
 from src.payments import schemas
 from src.payments.exceptions import (
@@ -39,6 +42,9 @@ NEW_ZEALAND = "NZ"
 #: The currency a New Zealand connected account charges in.
 CHARGE_CURRENCY = "NZD"
 BPS_DENOMINATOR = 10000
+#: A stored account state this recent is trusted at checkout: no live Stripe read
+#: (issue 1658). A webhook or a status read keeps it current.
+STATE_FRESH_FOR = timedelta(seconds=60)
 
 
 @dataclass(frozen=True)
@@ -47,6 +53,38 @@ class ChargeRoute:
 
     connected_account_id: str
     application_fee_minor: int
+
+
+async def read_connect_flag(session: AsyncSession, organisation_id: str) -> bool:
+    """The Connect flag for this business. Raises when the lookup fails. The read runs
+    in a savepoint so a failed lookup does not abort the caller's transaction."""
+    async with session.begin_nested():
+        return await flag_service.is_enabled(
+            session, flag_keys.PAYMENTS_STRIPE_CONNECT, organisation_id=organisation_id
+        )
+
+
+async def connect_enabled(session: AsyncSession, organisation_id: str) -> bool:
+    """Whether Connect is on for this business (flag ``payments-stripe-connect``).
+
+    Off: the Connect routes answer 404 and every card payment is the platform charge.
+    Fails closed: a lookup error is logged and reads as off, so a card payment still
+    takes the platform charge instead of failing. Flag rows are runtime data (see
+    ``src/feature_flags/AGENTS.md``)."""
+    try:
+        return await read_connect_flag(session, organisation_id)
+    except Exception as error:
+        logger.warning(
+            "connect flag lookup failed; treated as off",
+            extra={"organisation_id": organisation_id, "error": type(error).__name__},
+        )
+        return False
+
+
+async def require_connect_enabled(session: AsyncSession, organisation_id: str) -> None:
+    """Raise the 404 that a switched-off Connect route answers."""
+    if not await connect_enabled(session, organisation_id):
+        raise FeatureOffError()
 
 
 def _provider() -> StripeProvider:
@@ -111,11 +149,15 @@ async def _refresh(session: AsyncSession, row: ConnectedAccount) -> bool:
             extra={"organisation_id": row.organisation_id},
         )
         return False
+    # populate_existing: the row may already be in this session's identity map with
+    # the state from before a webhook committed, and the check below must see the
+    # newest state_as_of, not the stale copy.
     locked = (
         await session.execute(
             select(ConnectedAccount)
             .where(ConnectedAccount.id == row.id)
             .with_for_update()
+            .execution_options(populate_existing=True)
         )
     ).scalar_one()
     if as_of > locked.state_as_of:
@@ -127,6 +169,16 @@ async def _refresh(session: AsyncSession, row: ConnectedAccount) -> bool:
             extra={"organisation_id": row.organisation_id},
         )
     return True
+
+
+async def _refresh_if_stale(session: AsyncSession, row: ConnectedAccount) -> bool:
+    """Read the account from Stripe only when the stored state is older than
+    ``STATE_FRESH_FOR``. True when the state is current or was read."""
+    # A state dated in the future (clock skew) is not fresh: only 0 <= age < window.
+    age = utc_now() - row.state_as_of
+    if timedelta(0) <= age < STATE_FRESH_FOR:
+        return True
+    return await _refresh(session, row)
 
 
 async def ensure_account(session: AsyncSession, *, organisation_id: str) -> str:
@@ -224,20 +276,23 @@ async def charge_route(
 ) -> ChargeRoute | None:
     """Where a card payment for the business is charged, or None for the platform.
 
-    None (the platform charge, as before Connect) when the business has no connected
-    account, when its account cannot take charges yet (checked live once when the
-    stored state says not yet), or when the charge is not in New Zealand dollars.
+    None (the platform charge, as before Connect) when the Connect flag is off, when
+    the business has no connected account, when its account cannot take charges yet
+    (checked live when the stored state says not yet and is older than a minute), or
+    when the charge is not in New Zealand dollars.
     Otherwise a direct charge on the business's account, with the platform fee: the
     fee is the stored rate capped at the platform cap, at charge time, and must be
     less than the charge.
     """
+    if not await connect_enabled(session, organisation_id):
+        return None
     if currency != CHARGE_CURRENCY:
         return None
     row = await _row(session, organisation_id)
     if row is None:
         return None
     if not row.charges_enabled:
-        await _refresh(session, row)
+        await _refresh_if_stale(session, row)
     if not row.charges_enabled:
         return None
     rate = min(row.platform_fee_bps, connect_settings.CONNECT_PLATFORM_FEE_CAP_BPS)

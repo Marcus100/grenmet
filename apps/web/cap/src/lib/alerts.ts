@@ -218,6 +218,19 @@ export function formatClock(date: Date): string {
   }).format(date);
 }
 
+/** "18 Oct 2026, 10:05" in Grenada time: the date and time a feed was read. */
+export function formatUpdated(date: Date): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+    month: "short",
+    timeZone: GRENADA_TIME_ZONE,
+    year: "numeric",
+  }).format(date);
+}
+
 /** "Mon 19 Oct, 14:32" in Grenada time; "Not set" when absent. */
 export function formatWhen(iso: string | null): string {
   if (!iso) {

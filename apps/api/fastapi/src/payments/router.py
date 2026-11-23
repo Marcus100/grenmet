@@ -17,6 +17,8 @@ from fastapi.responses import RedirectResponse
 
 from src.auth.policy import require_permission
 from src.dependencies import AdminUser, CurrentUser, SessionDep
+from src.feature_flags.dependencies import require_org_flag
+from src.feature_flags.keys import PAYMENTS_STRIPE_CONNECT
 from src.models import ApiError
 from src.openapi_responses import (
     AUTHENTICATED,
@@ -53,6 +55,10 @@ PaymentsOrgAdmin = Annotated[
 ConnectOrgManager = Annotated[
     OrgContext, Depends(require_org_permission("payments.connect.manage"))
 ]
+
+# Stripe Connect routes are gated by the ``payments-stripe-connect`` flag (story 5.5):
+# 404 while it is off, so a switched-off feature looks like it does not exist.
+_CONNECT_FLAG = require_org_flag(PAYMENTS_STRIPE_CONNECT)
 
 WRITE_ERRORS: ResponseMap = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 _UNAVAILABLE: ResponseMap = {
@@ -293,6 +299,7 @@ async def start_wipay_test_checkout(
     ),
     operation_id="paymentsCreateConnectOnboardingLink",
     responses={**AUTHENTICATED, **_UNAVAILABLE, **_BAD_GATEWAY},
+    dependencies=[Depends(_CONNECT_FLAG)],
 )
 async def create_connect_onboarding_link(
     *, session: SessionDep, org: ConnectOrgManager
@@ -318,6 +325,7 @@ async def create_connect_onboarding_link(
     ),
     operation_id="paymentsGetConnectStatus",
     responses={**AUTHENTICATED, **_UNAVAILABLE},
+    dependencies=[Depends(_CONNECT_FLAG)],
 )
 async def get_connect_status(*, session: SessionDep, org: ConnectOrgManager) -> Any:
     result = await connect_accounts.status_for(
@@ -337,6 +345,7 @@ async def get_connect_status(*, session: SessionDep, org: ConnectOrgManager) -> 
     ),
     operation_id="paymentsListDisputes",
     responses={**AUTHENTICATED},
+    dependencies=[Depends(_CONNECT_FLAG)],
 )
 async def list_disputes(
     *, session: SessionDep, org: ConnectOrgManager, pagination: PaginationDep
@@ -362,7 +371,9 @@ async def list_disputes(
     summary="Receive a Stripe Connect event",
     description=(
         "Events from connected accounts, verified with the Connect endpoint's own secret. "
-        "Idempotent: a replayed event changes nothing and still answers 200."
+        "Idempotent: a replayed event changes nothing and still answers 200. While Connect "
+        "is switched off for a business, its account and dispute events are acknowledged "
+        "and not applied; payments already taken on its account are still reconciled."
     ),
     operation_id="paymentsReceiveConnectWebhook",
     responses={
@@ -566,6 +577,8 @@ async def admin_set_platform_fee(
     require_permission(
         current_user=current_user, permission_key="payments.connect.fees"
     )
+    # Checked for the business the fee is set on, not the caller.
+    await connect_accounts.require_connect_enabled(session, organisation_id)
     row = await connect_accounts.set_platform_fee(
         session,
         organisation_id=organisation_id,

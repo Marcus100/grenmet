@@ -7,14 +7,22 @@ import { usePathname } from "next/navigation";
 interface StudioNavProps {
   /** Owners and admins only; the page and API enforce it too. */
   canCreate?: boolean;
+  /** Plan & billing is for owners and admins only; the page and API enforce it too. */
+  canPlan?: boolean;
   orgSlug: string;
 }
 
 /**
- * Left navigation on desktop, a top tab row on phones. Agenda, New booking and Settings
- * are the screens in this release. Settings is shown to every member (read-only for non-admins).
+ * Left navigation on desktop, a top tab row on phones. Agenda, New booking,
+ * Services, People, Settings and Plan & billing. Every member sees the management
+ * screens (read-only for non-admins); New booking and Plan & billing are for
+ * owners and admins only.
  */
-export function StudioNav({ canCreate = false, orgSlug }: StudioNavProps) {
+export function StudioNav({
+  canCreate = false,
+  canPlan = false,
+  orgSlug,
+}: StudioNavProps) {
   const pathname = usePathname();
   const items = [
     {
@@ -35,10 +43,29 @@ export function StudioNav({ canCreate = false, orgSlug }: StudioNavProps) {
         ]
       : []),
     {
+      label: "Services",
+      href: `/studio/${orgSlug}/services`,
+      active: pathname.startsWith(`/studio/${orgSlug}/services`),
+    },
+    {
+      label: "People",
+      href: `/studio/${orgSlug}/people`,
+      active: pathname.startsWith(`/studio/${orgSlug}/people`),
+    },
+    {
       label: "Settings",
       href: `/studio/${orgSlug}/settings`,
       active: pathname.startsWith(`/studio/${orgSlug}/settings`),
     },
+    ...(canPlan
+      ? [
+          {
+            label: "Plan & billing",
+            href: `/studio/${orgSlug}/plan`,
+            active: pathname.startsWith(`/studio/${orgSlug}/plan`),
+          },
+        ]
+      : []),
   ];
   return (
     <nav aria-label="Studio" className="border-border border-b md:border-b-0">

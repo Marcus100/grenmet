@@ -63,6 +63,13 @@ IBF_LIBRARY = "GMS:ibf-library"
 LIKELIHOOD_PARAMETER = "GMS:likelihood"
 IMPACT_PARAMETER = "GMS:impact"
 MIN_OVERRIDE_REASON = 10
+# A raise is refused while one of these warnings from the same GMS alert exists:
+# an open draft (not yet published) or a warning in force. An ended warning
+# (expired or cancelled) does not block a new one. The desk hides Raise to
+# warning in the same cases (apps/web/cap/src/app/desk/escalations).
+RAISE_BLOCKING_STATES: frozenset[CapLifecycleState] = OPEN_STATES | {
+    CapLifecycleState.PUBLISHED
+}
 
 # Hazard alert kinds only; forecasts and the outlook are never raised.
 EVENTS = {
@@ -172,22 +179,12 @@ async def find_linked_alert(
     return None
 
 
-async def find_open_alert(
-    session: AsyncSession, product_id: uuid.UUID
-) -> uuid.UUID | None:
-    """The newest Draft, Submitted or Approved alert linked to this product."""
-    found = await find_linked_alert(session, product_id)
-    return found[0] if found else None
-
-
 async def lookup(
     session: AsyncSession, current_user: User, product_id: uuid.UUID
 ) -> CapEscalationLookup:
     """Which warning (if any) was raised from this GMS alert; for the desk note."""
     require_permission(current_user=current_user, permission_key="cap.alert.read")
-    found = await find_linked_alert(
-        session, product_id, OPEN_STATES | {CapLifecycleState.PUBLISHED}
-    )
+    found = await find_linked_alert(session, product_id, RAISE_BLOCKING_STATES)
     if found is None:
         return CapEscalationLookup(alert_id=None, lifecycle_state=None)
     return CapEscalationLookup(alert_id=found[0], lifecycle_state=found[1])
@@ -266,10 +263,12 @@ async def escalate(
         text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
         {"key": f"cap-escalation:{body.product_id}"},
     )
-    existing = await find_open_alert(cap_session, body.product_id)
+    existing = await find_linked_alert(
+        cap_session, body.product_id, RAISE_BLOCKING_STATES
+    )
     if existing is not None:
         return CapEscalationPublic(
-            alert_id=existing, created=False, source=public_source
+            alert_id=existing[0], created=False, source=public_source
         )
     requested = GmsColour(body.awareness_level)
     parameters = await _matrix_parameters(

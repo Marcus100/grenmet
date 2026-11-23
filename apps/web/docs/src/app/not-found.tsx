@@ -1,4 +1,5 @@
 import { Button } from "@/components/Button";
+import { DocsSearchForm } from "@/components/DocsSearchForm";
 import { HeroPattern } from "@/components/HeroPattern";
 
 export default function NotFound() {
@@ -15,7 +16,10 @@ export default function NotFound() {
         <p className="mt-2 text-base text-zinc-600 dark:text-zinc-400">
           Sorry, we couldn’t find the page you’re looking for.
         </p>
-        <Button arrow="right" className="mt-8" href="/">
+        <div className="mt-8 w-full">
+          <DocsSearchForm id="not-found-docs-search" />
+        </div>
+        <Button arrow="right" className="mt-6" href="/">
           Back to docs
         </Button>
       </div>

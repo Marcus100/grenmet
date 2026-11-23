@@ -45,6 +45,11 @@ export interface WeatherSnapshot {
   current: CurrentConditions | null;
   days: ForecastDayData[];
   label: string;
+  /**
+   * The latest issue time across the forecast (UTC ISO), even when today has
+   * no issue yet. Null or absent when no issue time is known.
+   */
+  lastIssuedAt?: string | null;
   /** Midday product temperature; the fallback when no register reading. */
   observation: { temperature: number; observedAt: string } | null;
   /** Today's issues, oldest first; the last is `days[0]`. */

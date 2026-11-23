@@ -1,7 +1,7 @@
 "use client";
 import type { SecuritySessionPublic } from "@barrelsgd/api-client";
 import { MonitorIcon, SmartphoneIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/account-layout";
 import { formatRelative } from "@/lib/profile";
@@ -10,6 +10,22 @@ import { revokeSecuritySession } from "../security/actions";
 
 const outlineButton =
   "rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted disabled:opacity-50";
+
+/**
+ * The current time, known only after the first browser render. Relative times
+ * ("5 minutes ago") depend on it, so the server and the first client render
+ * leave them out; reading Date.now() during render made the server HTML and
+ * the browser disagree (React error 418).
+ */
+export function useMountedNow(): number | null {
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  return now;
+}
 
 export function SessionsList({
   currentSessionId,
@@ -20,6 +36,7 @@ export function SessionsList({
 }) {
   const [sessions, setSessions] = useState(initialSessions);
   const [busy, setBusy] = useState<string | null>(null);
+  const now = useMountedNow();
   // This browser first, then most recently used.
   const ordered = [...sessions].sort((a, b) => {
     if (a.id === currentSessionId) return -1;
@@ -41,19 +58,20 @@ export function SessionsList({
     setSessions((items) => items.filter((item) => !revoked.includes(item.id)));
     if (revoked.length === ids.length) {
       toast.success(
-        revoked.length === 1
-          ? "Session signed out"
-          : "Other sessions signed out"
+        revoked.length === 1 ? "Device signed out" : "Other devices signed out"
       );
     } else {
-      toast.error("Some sessions couldn't be signed out. Try again.");
+      toast.error("Some devices couldn't be signed out. Try again.");
     }
   }
+
+  const otherCount = others.length;
+  const otherLabel = `Sign out the other ${otherCount} ${otherCount === 1 ? "device" : "devices"}`;
 
   return (
     <div className="space-y-4">
       {others.length > 0 ? (
-        <div className="flex justify-end">
+        <div className="flex flex-col items-end gap-1">
           <button
             className={outlineButton}
             disabled={busy !== null}
@@ -64,8 +82,11 @@ export function SessionsList({
             }}
             type="button"
           >
-            {busy === "others" ? "Signing out…" : "Sign out other sessions"}
+            {busy === "others" ? "Signing out…" : otherLabel}
           </button>
+          <p className="text-muted-foreground text-xs">
+            Keeps this device signed in.
+          </p>
         </div>
       ) : null}
       <ul className="divide-border border-border divide-y border-y">
@@ -73,12 +94,14 @@ export function SessionsList({
           const device = describeDevice(session.user_agent);
           const Icon = device.mobile ? SmartphoneIcon : MonitorIcon;
           const isCurrent = session.id === currentSessionId;
+          const lastActive =
+            now === null ? null : formatRelative(session.last_used_at, now);
           const detail = [
             session.app_name,
             session.ip_address,
             isCurrent
               ? "Active now"
-              : `Last active ${formatRelative(session.last_used_at)}`,
+              : lastActive && `Last active ${lastActive}`,
           ]
             .filter(Boolean)
             .join(" · ");
@@ -100,7 +123,9 @@ export function SessionsList({
               </div>
               {isCurrent ? null : (
                 <button
-                  aria-label={`Sign out ${device.label}`}
+                  // Names the device and its details so each button is unique
+                  // to a screen reader user, not just "Sign out" nine times.
+                  aria-label={`Sign out ${device.label}, ${detail}`}
                   className={outlineButton}
                   disabled={busy !== null}
                   onClick={async () => {

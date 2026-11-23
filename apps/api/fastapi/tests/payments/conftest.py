@@ -8,11 +8,42 @@ from urllib.parse import parse_qs
 
 import httpx
 import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.feature_flags import service as flag_service
+from src.feature_flags.models import FeatureFlag
 from src.payments.config import payments_settings
 from src.payments.providers import stripe as stripe_module
 
 WEBHOOK_SIGNING_KEY = "whsec_unit_test_secret"
+
+
+async def set_flag(
+    db: AsyncSession,
+    key: str,
+    *,
+    enabled: bool,
+    organisation_ids: list[str] | None = None,
+) -> None:
+    """Create or update a runtime flag row, as the owner does in admin. Tests use the
+    audience ``everyone`` unless organisations are named. Clears the 30 s snapshot so
+    the change is seen at once (the snapshot is process-wide)."""
+    audience: dict[str, object] = (
+        {"organisation_ids": organisation_ids}
+        if organisation_ids is not None
+        else {"everyone": True}
+    )
+    row = (
+        await db.scalars(select(FeatureFlag).where(FeatureFlag.key == key))
+    ).one_or_none()
+    if row is None:
+        db.add(FeatureFlag(key=key, enabled=enabled, audience=audience))
+    else:
+        row.enabled = enabled
+        row.audience = audience
+    await db.commit()
+    flag_service.clear_cache()
 
 
 @dataclass

@@ -20,7 +20,7 @@ The provider checks are the only drop in this file. It widens the list the expan
 ``wipay``), so it is declared as the contract step for that expand, dated after it.
 
 Revision ID: paymentswipay20261121
-Revises: paymentsconnect20261121
+Revises: billingappstrial20261123
 """
 
 import sqlalchemy as sa
@@ -28,7 +28,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "paymentswipay20261121"
-down_revision = "paymentsconnect20261121"
+down_revision = "billingappstrial20261123"
 branch_labels = None
 depends_on = None
 CONTRACT = {"expand_revision": "payments20261020", "contract_after": "2026-11-21"}

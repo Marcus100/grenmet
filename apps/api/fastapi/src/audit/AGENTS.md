@@ -7,6 +7,7 @@
 - For changes outside the ORM flush, call `src.audit.service.record_change`.
 - Each row records the actor's sign-in: `actor_session` (`account`/`app`) and `actor_app`. The sign-in dependency sets them with `service.set_actor_session` (per session, not reset by `set_actor`). Rows written without a sign-in dependency keep them NULL.
 - `GET /api/v1/audit/{entity_type}/{entity_id}`: paginated, newest first; readable by anyone who may read the record. Sensitive fields return `masked: true` unless the reader holds `audit.view_sensitive`.
+- `GET /api/v1/audit/admin/entries`: the global log for the admin screen (`audit.entries.read`); keyset on `(created_at, id)` desc with an opaque cursor, limit 1–200, same masking. Declared before the record route; index `ix_audit_entry_created_id`.
 
 ## Invariants
 - Never re-derive access or masking client-side; the API is authoritative.

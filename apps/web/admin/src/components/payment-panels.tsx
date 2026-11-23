@@ -3,6 +3,15 @@ import type {
   PaymentLedgerEntryPublic,
   PaymentReconciliationPublic,
 } from "@barrelsgd/api-client";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@barrelsgd/ui/components/ui/empty";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import { Skeleton } from "@barrelsgd/ui/components/ui/skeleton";
 import {
   Table,
@@ -14,6 +23,7 @@ import {
 } from "@barrelsgd/ui/components/ui/table";
 import Link from "next/link";
 import { recordPayoutAction } from "@/app/(console)/payments/actions";
+import { ConsolePager } from "@/components/console-pager";
 import {
   formatXcd,
   LEDGER_KINDS,
@@ -21,8 +31,6 @@ import {
   type Period,
 } from "@/lib/payment-form";
 
-const FIELD = "rounded-md border bg-background px-2.5 py-1.5";
-const BUTTON = "rounded-md border px-3 py-1.5 text-sm hover:bg-muted";
 const DATE_LENGTH = 10;
 
 function OrgLink({ id }: { id: string }) {
@@ -59,9 +67,15 @@ export function BalancesPanel({ rows }: { rows: PaymentBalancePublic[] }) {
     <section aria-labelledby="balances-heading" className="space-y-2">
       <PaymentsHeading id="balances-heading" title="Balances owed" />
       {rows.length === 0 ? (
-        <p className="text-muted-foreground text-sm" role="status">
-          No organisation has a ledger balance yet.
-        </p>
+        <Empty className="p-4" role="status">
+          <EmptyHeader>
+            <EmptyTitle>No balances owed</EmptyTitle>
+            <EmptyDescription>
+              No organisation has a ledger balance yet. Balances appear once a
+              booking deposit or event order is paid.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <Table>
           <TableHeader>
@@ -117,8 +131,8 @@ export function LedgerPanel({
       >
         <label className="grid gap-1 text-sm">
           Organisation id
-          <input
-            className={`${FIELD} font-mono`}
+          <Input
+            className="font-mono"
             defaultValue={organisationId ?? ""}
             maxLength={100}
             name="ledger_organisation_id"
@@ -126,23 +140,28 @@ export function LedgerPanel({
         </label>
         <label className="grid gap-1 text-sm">
           Kind
-          <select className={FIELD} defaultValue={kind ?? ""} name="kind">
+          <NativeSelect defaultValue={kind ?? ""} name="kind">
             <option value="">Any</option>
             {LEDGER_KINDS.map((value) => (
               <option key={value} value={value}>
                 {value}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
-        <button className={BUTTON} type="submit">
+        <Button type="submit" variant="outline">
           Filter ledger
-        </button>
+        </Button>
       </form>
       {rows.length === 0 ? (
-        <p className="text-muted-foreground text-sm" role="status">
-          No ledger entries match.
-        </p>
+        <Empty className="p-4" role="status">
+          <EmptyHeader>
+            <EmptyTitle>No ledger entries match</EmptyTitle>
+            <EmptyDescription>
+              Clear the organisation id or kind filter to see every entry.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <Table>
           <TableHeader>
@@ -175,24 +194,16 @@ export function LedgerPanel({
           </TableBody>
         </Table>
       )}
-      <nav
-        aria-label="Ledger pages"
-        className="flex items-center gap-4 text-sm"
-      >
-        <span className="text-muted-foreground">
-          {count} total, page {Math.min(page, lastPage)} of {lastPage}
-        </span>
-        {previousHref ? (
-          <Link className="underline" href={previousHref as "/payments"}>
-            Previous
-          </Link>
-        ) : null}
-        {nextHref ? (
-          <Link className="underline" href={nextHref as "/payments"}>
-            Next
-          </Link>
-        ) : null}
-      </nav>
+      {count > 0 ? (
+        <ConsolePager
+          count={count}
+          label="Ledger pages"
+          lastPage={lastPage}
+          nextHref={nextHref}
+          page={page}
+          previousHref={previousHref}
+        />
+      ) : null}
     </section>
   );
 }
@@ -242,8 +253,7 @@ export function ReconciliationForm({
     >
       <label className="grid gap-1 text-sm">
         From (Grenada day)
-        <input
-          className={FIELD}
+        <Input
           defaultValue={period?.start ?? ""}
           name="from"
           required
@@ -252,8 +262,7 @@ export function ReconciliationForm({
       </label>
       <label className="grid gap-1 text-sm">
         To (inclusive)
-        <input
-          className={FIELD}
+        <Input
           defaultValue={period?.end ?? ""}
           name="to"
           required
@@ -262,16 +271,16 @@ export function ReconciliationForm({
       </label>
       <label className="grid gap-1 text-sm">
         Organisation id (empty for all)
-        <input
-          className={`${FIELD} font-mono`}
+        <Input
+          className="font-mono"
           defaultValue={organisationId ?? ""}
           maxLength={100}
           name="recon_organisation_id"
         />
       </label>
-      <button className={BUTTON} type="submit">
+      <Button type="submit" variant="outline">
         Reconcile
-      </button>
+      </Button>
     </form>
   );
 }
@@ -312,9 +321,15 @@ export function ReconciliationPanel({
             ) : null}
           </div>
           {report.rows.length === 0 ? (
-            <p className="text-muted-foreground text-sm" role="status">
-              No ledger activity or balance in that period.
-            </p>
+            <Empty className="p-4" role="status">
+              <EmptyHeader>
+                <EmptyTitle>No activity in that period</EmptyTitle>
+                <EmptyDescription>
+                  No ledger entries or balances fall between these two days,
+                  both included. Try a wider range.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <Table>
               <TableHeader>
@@ -393,8 +408,8 @@ export function PayoutForm() {
       <form action="/payments" className="grid max-w-md gap-3" method="get">
         <label className="grid gap-1 text-sm">
           Organisation id
-          <input
-            className={`${FIELD} font-mono`}
+          <Input
+            className="font-mono"
             maxLength={100}
             name="payout_organisation_id"
             required
@@ -402,8 +417,7 @@ export function PayoutForm() {
         </label>
         <label className="grid gap-1 text-sm">
           Amount (XCD, for example 1250.50)
-          <input
-            className={FIELD}
+          <Input
             inputMode="decimal"
             name="payout_amount"
             pattern="\d{1,12}(\.\d{1,2})?"
@@ -412,21 +426,16 @@ export function PayoutForm() {
         </label>
         <label className="grid gap-1 text-sm">
           Reference (bank transfer or cheque number)
-          <input
-            className={FIELD}
-            maxLength={200}
-            name="payout_reference"
-            required
-          />
+          <Input maxLength={200} name="payout_reference" required />
         </label>
         <label className="grid gap-1 text-sm">
           Note (optional)
-          <input className={FIELD} maxLength={500} name="payout_note" />
+          <Input maxLength={500} name="payout_note" />
         </label>
         <div>
-          <button className={BUTTON} type="submit">
+          <Button type="submit" variant="outline">
             Review payout
-          </button>
+          </Button>
         </div>
       </form>
     </section>
@@ -490,9 +499,9 @@ export function PayoutConfirm({
           <input name="reference" type="hidden" value={payout.reference} />
           <input name="note" type="hidden" value={payout.note ?? ""} />
           <input name="request_id" type="hidden" value={requestId} />
-          <button className={BUTTON} type="submit">
+          <Button type="submit" variant="outline">
             Confirm and record payout
-          </button>
+          </Button>
         </form>
         <Link className="text-sm underline" href="/payments">
           Cancel

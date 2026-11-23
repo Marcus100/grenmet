@@ -4,6 +4,12 @@ import type {
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@barrelsgd/ui/components/ui/empty";
+import {
   Table,
   TableBody,
   TableCell,
@@ -37,10 +43,19 @@ const STATUS_VARIANT = {
   rejected: "light-error",
 } as const;
 
+const EMPTY_TITLE: Record<ModerationStatus, string> = {
+  pending: "Nobody is waiting for review",
+  approved: "Nobody has been approved yet",
+  rejected: "Nobody has been rejected",
+};
+
 const EMPTY_TEXT: Record<ModerationStatus, string> = {
-  pending: "No organisers are waiting for review.",
-  approved: "No organisers have been approved yet.",
-  rejected: "No organisers have been rejected.",
+  pending:
+    "New requests to be verified for Events appear here, oldest first. There are none right now.",
+  approved:
+    "Organisers approved here can publish listings. Switch to Pending to see requests waiting.",
+  rejected:
+    "Rejected requests stay here with the reason sent to the owners. Nothing is rejected yet.",
 };
 
 export function StatusBadge({ status }: { status: ModerationStatus }) {
@@ -76,9 +91,12 @@ export function CaseTable({
 }) {
   if (rows.length === 0) {
     return (
-      <p className="text-muted-foreground" role="status">
-        {EMPTY_TEXT[status]}
-      </p>
+      <Empty role="status">
+        <EmptyHeader>
+          <EmptyTitle>{EMPTY_TITLE[status]}</EmptyTitle>
+          <EmptyDescription>{EMPTY_TEXT[status]}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
   return (

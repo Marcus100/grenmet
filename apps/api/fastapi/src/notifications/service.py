@@ -801,6 +801,22 @@ def normalise_email(email: str) -> str:
     return email_hash_util.normalise_email(email)
 
 
+async def has_account(*, session: AsyncSession, email: str) -> bool:
+    """True when an active user account holds this address (case-insensitive).
+
+    Used by the jobs that mail addresses from configuration or from a stored
+    webhook recipient list (issue 1629): an address with no account is never
+    mailed. A deleted account keeps a placeholder address, so it matches nothing.
+    """
+    clean = normalise_email(email)
+    found = await session.scalar(
+        select(User.id)
+        .where(func.lower(User.email) == clean, User.is_active.is_(True))
+        .limit(1)
+    )
+    return found is not None
+
+
 async def suppress_email(
     *,
     session: AsyncSession,

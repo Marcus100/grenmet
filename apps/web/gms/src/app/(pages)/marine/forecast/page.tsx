@@ -9,7 +9,10 @@ export default function MarineForecastPage() {
         description="The daily Marine Forecast (05:00 to 05:00) and current marine bulletins from the Grenada Meteorological Service."
         title="Marine forecast"
       />
-      <PublishedProducts kinds={["marine-forecast", "marine"]} />
+      <PublishedProducts
+        emptyNotice="No marine forecast or marine bulletin has been published yet. Check back after the next issue."
+        kinds={["marine-forecast", "marine"]}
+      />
     </div>
   );
 }

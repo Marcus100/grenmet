@@ -69,7 +69,7 @@ describe("moderation pages", () => {
       "rejected",
       1
     );
-    expect(screen.getByText("No organisers have been rejected.")).toBeTruthy();
+    expect(screen.getByText("Nobody has been rejected")).toBeTruthy();
   });
 
   it("shows both decisions for a pending case", async () => {

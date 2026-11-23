@@ -102,6 +102,9 @@ async def enqueue_due_reminders(
                 ends_at=listing.ends_at,
                 venue=listing.venue,
                 tickets_url=tickets_url,
+                brand=emails.brand(
+                    organiser.name, organiser.brand_color, organiser.logo_file_id
+                ),
             )
             if await enqueue_email(
                 db,

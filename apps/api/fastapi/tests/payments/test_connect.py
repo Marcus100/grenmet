@@ -18,6 +18,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.feature_flags.keys import PAYMENTS_STRIPE_CONNECT
 from src.organisations.models import MembershipRole, PlatformOrganisation
 from src.payments.config import payments_settings
 from src.payments.connect.config import ConnectConfig, connect_settings
@@ -31,6 +32,7 @@ from tests.payments.conftest import (
     WEBHOOK_SIGNING_KEY,
     checkout_completed,
     provider_refund,
+    set_flag,
     signed,
 )
 from tests.payments.conftest import charge_refunded as charge_refunded_event
@@ -39,6 +41,12 @@ API = "/api/v1/payments"
 CONNECT_SIGNING_KEY = "whsec_connect_unit_test"
 ACCOUNT_ID = "acct_test_1"
 pytestmark = pytest.mark.asyncio
+
+
+@pytest.fixture(autouse=True)
+async def connect_flag_on(db_async: AsyncSession) -> None:
+    """Every test here runs with the Connect flag on; test_connect_flags.py covers off."""
+    await set_flag(db_async, PAYMENTS_STRIPE_CONNECT, enabled=True)
 
 
 @dataclass
@@ -1096,3 +1104,111 @@ async def test_refund_reported_on_a_connected_charge_is_recorded_once(
     assert await _ledger_total(db_async, org.id) == 4000
     assert (await _post_connect(async_client, event)).status_code == 200
     assert await _ledger_total(db_async, org.id) == 4000
+
+
+# --- refresh race and read throttle (issue 1658) ----------------------------------------
+
+
+async def test_a_slow_stripe_read_never_overwrites_a_newer_webhook_state(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Two sessions: this session loads the row, then a webhook (its own session)
+    stores newer state while this session's Stripe read is in flight. The stale read
+    must not be applied: the identity map here must not keep the old state_as_of."""
+    from datetime import timedelta
+
+    from src.database import async_session_factory
+    from src.payments.connect import accounts
+    from src.utils.datetime import utc_now
+
+    org, user = await _org(db_async)
+    await _ready(async_client, org, user, connect_env)
+    connect_env.charges_enabled = False  # Stripe's read below says "not yet"
+    row = await accounts._row(db_async, org.id)
+    assert row is not None and row.charges_enabled is True
+
+    class SlowRead:
+        async def retrieve_connected_account(self, account_id: str) -> dict[str, Any]:
+            # A webhook lands while the read is in flight.
+            async with async_session_factory() as other:
+                newer = await accounts._row(other, org.id)
+                assert newer is not None
+                accounts.apply_snapshot(
+                    newer,
+                    {**connect_env.snapshot(), "charges_enabled": True},
+                    utc_now() + timedelta(seconds=5),
+                )
+                await other.commit()
+            return connect_env.snapshot()  # stale: charges_enabled False
+
+    monkeypatch.setattr(accounts, "_provider", lambda: SlowRead())
+    applied = await accounts._refresh(db_async, row)
+    await db_async.commit()
+
+    assert applied is True
+    stored = await _stored_row(db_async, org.id)
+    assert stored.charges_enabled is True
+
+
+async def test_charge_route_skips_the_live_read_when_state_is_fresh(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+) -> None:
+    org, user = await _org(db_async)
+    assert (await _onboard(async_client, org, user)).status_code == 200
+    # Stored state is just written (not charges_enabled): no live read per checkout.
+    response = await _checkout(async_client, org, user)
+    assert response.status_code == 201, response.text
+    assert connect_env.find("GET", f"/v1/accounts/{ACCOUNT_ID}") == []
+
+
+async def test_charge_route_reads_stripe_when_state_is_older_than_a_minute(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+) -> None:
+    from datetime import timedelta
+
+    from src.utils.datetime import utc_now
+
+    org, user = await _org(db_async)
+    assert (await _onboard(async_client, org, user)).status_code == 200
+    row = await _stored_row(db_async, org.id)
+    row.state_as_of = utc_now() - timedelta(seconds=61)
+    await db_async.commit()
+    connect_env.charges_enabled = True
+
+    response = await _checkout(async_client, org, user)
+
+    assert response.status_code == 201, response.text
+    assert len(connect_env.find("GET", f"/v1/accounts/{ACCOUNT_ID}")) == 1
+    checkout = connect_env.find("POST", "/v1/checkout/sessions")
+    assert "Stripe-Account" in connect_env.requests[checkout[0]].headers
+
+
+async def test_a_future_dated_state_does_not_suppress_the_live_read(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    connect_env: ConnectStub,
+) -> None:
+    """A stored state_as_of in the future (clock skew, or a webhook timestamp ahead of
+    our clock) is not "fresh": it must not stop the live read."""
+    from datetime import timedelta
+
+    from src.utils.datetime import utc_now
+
+    org, user = await _org(db_async)
+    assert (await _onboard(async_client, org, user)).status_code == 200
+    row = await _stored_row(db_async, org.id)
+    row.state_as_of = utc_now() + timedelta(hours=1)
+    await db_async.commit()
+    connect_env.charges_enabled = True
+
+    response = await _checkout(async_client, org, user)
+
+    assert response.status_code == 201, response.text
+    assert len(connect_env.find("GET", f"/v1/accounts/{ACCOUNT_ID}")) == 1

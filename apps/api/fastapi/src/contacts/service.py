@@ -219,6 +219,24 @@ async def _record_account_marker(
     )
 
 
+def take_name_from_linked_account(
+    contact: Contact, *, name: str, user_id: uuid.UUID
+) -> bool:
+    """Rename ``contact`` to the name a verified account typed on its own booking.
+
+    Only for a contact already linked to ``user_id`` (the link itself checked the
+    account's verified email), and never for an erased contact. Every other caller
+    keeps the stored name (``upsert_contact``). Names are not audited. Returns True
+    when the name changed.
+    """
+    if not name or contact.erased_at is not None or contact.user_id != user_id:
+        return False
+    if contact.name == name:
+        return False
+    contact.name = name
+    return True
+
+
 async def link_verified_account(
     session: AsyncSession,
     contact: Contact,

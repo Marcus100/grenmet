@@ -1,5 +1,9 @@
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ConsolePager } from "@/components/console-pager";
 import { OrganisationTable } from "@/components/organisation-table";
 import { StaffOnly } from "@/components/staff-only";
 import { listOrganisations, ORGANISATIONS_PAGE_SIZE } from "@/lib/api";
@@ -60,7 +64,7 @@ export default async function OrganisationsPage({
     if (status) next.set("status", status);
     if (kind) next.set("kind", kind);
     next.set("page", String(target));
-    return `/organisations?${next}` as const;
+    return `/organisations?${next}`;
   };
 
   return (
@@ -74,80 +78,72 @@ export default async function OrganisationsPage({
             Every organisation on the platform.
           </p>
         </div>
-        <Link
-          className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
-          href="/organisations/new"
+        <Button
+          nativeButton={false}
+          render={<Link href="/organisations/new" />}
+          variant="outline"
         >
           New organisation
-        </Link>
+        </Button>
       </div>
 
-      <form className="flex flex-wrap items-end gap-3" method="get">
-        <label className="grid gap-1 text-sm">
+      <form
+        aria-label="Filter organisations"
+        className="flex flex-wrap items-end gap-3"
+        method="get"
+      >
+        <label className="grid w-full gap-1 text-sm sm:w-64">
           Search
-          <input
-            className="bg-background rounded-md border px-2.5 py-1.5"
+          <Input
             defaultValue={q}
             maxLength={100}
             name="q"
+            placeholder="Name or slug"
             type="search"
           />
         </label>
         <label className="grid gap-1 text-sm">
           Status
-          <select
-            className="bg-background rounded-md border px-2.5 py-1.5"
-            defaultValue={status ?? ""}
-            name="status"
-          >
+          <NativeSelect defaultValue={status ?? ""} name="status">
             <option value="">Any</option>
             {STATUSES.map((value) => (
               <option key={value} value={value}>
                 {value}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="grid gap-1 text-sm">
           Kind
-          <select
-            className="bg-background rounded-md border px-2.5 py-1.5"
-            defaultValue={kind ?? ""}
-            name="kind"
-          >
+          <NativeSelect defaultValue={kind ?? ""} name="kind">
             <option value="">Any</option>
             {KINDS.map((value) => (
               <option key={value} value={value}>
                 {value}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
-        <button
-          className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
-          type="submit"
-        >
+        <Button type="submit" variant="outline">
           Filter
-        </button>
+        </Button>
       </form>
 
-      <OrganisationTable rows={list.data} />
+      <OrganisationTable
+        filtered={Boolean(q || status || kind)}
+        rows={list.data}
+      />
 
-      <nav aria-label="Pages" className="flex items-center gap-4 text-sm">
-        <span className="text-muted-foreground">
-          {list.count} total, page {Math.min(page, lastPage)} of {lastPage}
-        </span>
-        {page > 1 ? (
-          <Link className="underline" href={linkTo(page - 1)}>
-            Previous
-          </Link>
-        ) : null}
-        {page < lastPage ? (
-          <Link className="underline" href={linkTo(page + 1)}>
-            Next
-          </Link>
-        ) : null}
-      </nav>
+      {list.count > 0 ? (
+        <ConsolePager
+          count={list.count}
+          label="Organisation pages"
+          lastPage={lastPage}
+          nextHref={page < lastPage ? linkTo(page + 1) : undefined}
+          page={page}
+          previousHref={page > 1 ? linkTo(page - 1) : undefined}
+        />
+      ) : null}
     </>
   );
 }

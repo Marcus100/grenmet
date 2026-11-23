@@ -6,13 +6,23 @@ named ("Grenada time"). Links come from the profile's ``manage_url_template``;
 nothing here knows a site's address. No ticket codes or QR tokens appear here; the signed manage link is the one token a mail carries.
 """
 
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from src import email_layout as layout
+from src.email_colour import safe_accent
+from src.storage.public_url import public_file_url
 from src.utils.timezones import utc_to_local
+
+
+def business_logo(name: str, file_id: uuid.UUID | None) -> layout.Logo | None:
+    """The business logo for the card header, alt text being the business name.
+    None when the business has no logo, or no public API address is configured."""
+    url = public_file_url(file_id)
+    return layout.Logo(url, alt=name) if url and name else None
 
 
 @dataclass(frozen=True)
@@ -39,6 +49,9 @@ class BookingEmail:
     #: The business's own contact details, shown in the footer when set.
     business_email: str | None = None
     business_phone: str | None = None
+    #: The business's brand: accent (falls back to navy when too pale) and logo.
+    accent: str | None = None
+    logo: layout.Logo | None = None
 
     @property
     def when(self) -> str:
@@ -130,6 +143,8 @@ def _card(mail: BookingEmail, **fields: Any) -> layout.EmailCard:
     """A customer card for this booking; ``fields`` override the defaults."""
     base: dict[str, Any] = {
         "eyebrow": mail.business,
+        "accent": safe_accent(mail.accent),
+        "logo": mail.logo,
         "greeting": f"Hello {layout.first_name(mail.customer_name)},",
         "rows": _rows(mail),
         "footer": _footer(
@@ -379,6 +394,8 @@ def studio_notice(mail: BookingEmail, *, event: str) -> layout.EmailCard:
         layout.Row("Notes", mail.notes or ""),
     )
     card = layout.EmailCard(
+        accent=safe_accent(mail.accent),
+        logo=mail.logo,
         eyebrow=mail.business,
         chip=chip,
         title=f"{headline} from {mail.customer_name}",

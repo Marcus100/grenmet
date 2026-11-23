@@ -2,7 +2,7 @@
 
 import type { Route } from "next";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { signInAction } from "@/app/actions";
 import { initialSignInState } from "@/app/actions-types";
 import { CodeField } from "@/components/code-field";
@@ -40,6 +40,16 @@ export function SignInForm({ appName, codeHref, returnTo }: SignInFormProps) {
   // each action — the authenticator step resubmits it.
   const [password, setPassword] = useState("");
   const needsCode = state.next === "mfa";
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  // The submit button is disabled while the request runs, which drops focus to
+  // the page. After a refusal put it back in the password field so the person
+  // can correct it and press Enter again. The error box is announced (role=alert).
+  useEffect(() => {
+    if (state.error && !needsCode) {
+      passwordRef.current?.focus();
+    }
+  }, [state, needsCode]);
 
   return (
     <div className="space-y-6">
@@ -85,6 +95,7 @@ export function SignInForm({ appName, codeHref, returnTo }: SignInFormProps) {
           <PasswordField
             autoComplete="current-password"
             id="password"
+            inputRef={passwordRef}
             label="Password"
             labelAside={
               <Link

@@ -29,10 +29,28 @@
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
+/*
+  The business accent. The public page's `.booking` wrapper sets
+  --booking-accent, --booking-accent-text and --booking-link inline, only from a
+  colour that passes 4.5:1 against white (`lib/storefront-brand.ts`). With none
+  set, these fall back to the shared tokens.
+*/
 .btn-solid {
-  color: var(--primary-foreground);
-  background: var(--primary);
-  border-color: var(--primary);
+  color: var(--booking-accent-text, var(--primary-foreground));
+  background: var(--booking-accent, var(--primary));
+  border-color: var(--booking-accent, var(--primary));
+}
+.brand-link,
+.contact-link {
+  color: var(--booking-link, var(--foreground));
+}
+/* The business logo: a fixed height reserves its space; width follows. */
+.storefront-logo {
+  display: block;
+  width: auto;
+  max-width: 12rem;
+  height: 3rem;
+  object-fit: contain;
 }
 .btn-small {
   min-height: 44px;
@@ -356,7 +374,6 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--foreground);
   overflow-wrap: anywhere;
   text-decoration: underline;
   text-underline-offset: 4px;
@@ -453,7 +470,7 @@ fieldset.notice {
   background: var(--secondary);
 }
 .btn-solid:active:not(:disabled) {
-  background: var(--primary);
+  background: var(--booking-accent, var(--primary));
   opacity: 0.85;
 }
 @media (hover: hover) and (pointer: fine) {
@@ -461,7 +478,7 @@ fieldset.notice {
     background: var(--secondary);
   }
   .btn-solid:hover:not(:disabled) {
-    background: var(--primary);
+    background: var(--booking-accent, var(--primary));
     opacity: 0.9;
   }
 }

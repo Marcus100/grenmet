@@ -64,6 +64,43 @@ export const bookingProfilePublicSchema = z.object({
     .describe(
       "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept."
     ),
+  brand_color: z
+    .union([z.string().max(7), z.null()])
+    .optional()
+    .describe(
+      "The business's accent colour in its emails, as `#rrggbb`. Blank clears it. Mail uses the Barrels navy instead when the colour is too pale for white text. Left out, the stored value is kept."
+    ),
+  logo_file_id: z
+    .union([z.uuid(), z.null()])
+    .optional()
+    .describe(
+      "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+    ),
+  listed: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept."
+    ),
+  category: z
+    .union([z.string().max(80), z.null()])
+    .optional()
+    .describe(
+      "Short category for the home page, such as Hair or Nails; it is the filter chip a visitor taps. Blank clears it. Left out, the stored value is kept."
+    ),
+  short_description: z
+    .union([z.string().max(160), z.null()])
+    .optional()
+    .describe(
+      "One line for the home page card. Blank clears it. Left out, the stored value is kept."
+    ),
+  city: z
+    .union([z.string().max(80), z.null()])
+    .optional()
+    .describe(
+      "Town or city for the home page card. Blank clears it. Left out, the stored value is kept."
+    ),
   deposit_payment_link: z
     .union([z.string().max(2000), z.null()])
     .optional()

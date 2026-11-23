@@ -21,15 +21,13 @@ from typing import Any, NamedTuple
 from urllib.parse import urlencode, urlsplit
 
 from src import email as email_module
+from src.email_colour import NAVY, safe_accent
 from src.email_config import email_settings
 
 logger = logging.getLogger(__name__)
 
-NAVY = "#0b132b"
-MIN_CONTRAST = 4.5
 PAGE_BACKGROUND = "#f3f8fc"
 _FONT = "Arial,Helvetica,sans-serif"
-_HEX = re.compile(r"#[0-9a-fA-F]{6}")
 _UNSAFE_URL_CHARS = re.compile(r"[\x00-\x20\x7f]")
 _CALENDAR = "https://calendar.google.com/calendar/render"
 BODY_TEXT = "font-size:16px;line-height:24px;color:#374151;"
@@ -136,27 +134,6 @@ def safe_url(value: str | None) -> str | None:
     if parts.scheme not in ("http", "https") or not parts.netloc:
         return None
     return value
-
-
-def _luminance(colour: str) -> float:
-    def channel(index: int) -> float:
-        value = int(colour[index : index + 2], 16) / 255
-        if value <= 0.03928:
-            return value / 12.92
-        return float(((value + 0.055) / 1.055) ** 2.4)
-
-    return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5)
-
-
-def contrast_with_white(colour: str) -> float:
-    return 1.05 / (_luminance(colour) + 0.05)
-
-
-def safe_accent(value: str | None) -> str:
-    """A six-digit hex accent that clears 4.5:1 against white, else the navy."""
-    if value and _HEX.fullmatch(value) and contrast_with_white(value) >= MIN_CONTRAST:
-        return value.lower()
-    return NAVY
 
 
 def first_name(full: str | None) -> str:

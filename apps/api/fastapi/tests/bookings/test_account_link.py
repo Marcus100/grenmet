@@ -6,7 +6,7 @@ phone never link, and an existing link to another account is never changed.
 """
 
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import httpx
 import pytest
@@ -18,6 +18,7 @@ from src.auth import service as auth_service
 from src.auth.models import User
 from src.auth.schemas import UserUpdateMe
 from src.bookings import public
+from src.bookings.config import bookings_settings
 from src.bookings.models import Booking, BookingStatus
 from src.contacts import service as contacts_service
 from src.contacts.models import Contact
@@ -43,6 +44,7 @@ ROW_KEYS = {
     "business_name",
     "business_slug",
     "payment",
+    "manage_url",
 }
 
 
@@ -855,3 +857,126 @@ async def test_upcoming_ties_on_the_same_start_page_by_id(
         starts.add(row["starts_at"])
     assert len(starts) == 1, "both bookings must share one start for this test"
     assert [row["id"] for row in seen] == sorted([a, b])
+
+
+async def test_a_verified_signed_in_booking_uses_the_typed_name_everywhere(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    # A contact already holds an older name (from an earlier booking or the
+    # studio). The verified account's own booking renames it to the typed name,
+    # and the receipt (confirmation) carries that name too.
+    studio = await _studio(db_async, async_client)
+    account = await make_user(
+        db_async, email=f"typed-{uuid.uuid4().hex[:6]}@example.com"
+    )
+    await contacts_service.upsert_contact(
+        db_async,
+        studio.org_id,
+        email=account.email,
+        name="Staging Test Customer",
+        source="bookings",
+    )
+    await db_async.commit()
+    resp = await _signed_in_book(
+        async_client,
+        studio,
+        headers_for(account),
+        customer_email=account.email,
+        customer_name="Marcus Test",
+    )
+    assert resp.status_code == 201, resp.text
+    assert resp.json()["booking"]["customer_name"] == "Marcus Test"
+    contact = await _contact_for(db_async, studio.org_id, account.email)
+    assert contact.name == "Marcus Test"
+    assert contact.user_id == account.id
+
+
+async def test_a_guest_booking_keeps_the_stored_name(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    # Only a verified account may rename a contact: a guest typing another name
+    # with the same email keeps the stored one (contacts keeps curated names).
+    studio = await _studio(db_async, async_client)
+    email = f"guest-{uuid.uuid4().hex[:6]}@example.com"
+    await contacts_service.upsert_contact(
+        db_async, studio.org_id, email=email, name="Stored Name", source="bookings"
+    )
+    await db_async.commit()
+    slots = await _slots(async_client, studio)
+    resp = await async_client.post(
+        f"{API}/public/{studio.slug}/bookings",
+        headers={"Idempotency-Key": uuid.uuid4().hex},
+        json=_body(studio, slots[0], customer_email=email, customer_name="Typed Name"),
+    )
+    assert resp.status_code == 201, resp.text
+    contact = await _contact_for(db_async, studio.org_id, email)
+    assert contact.name == "Stored Name"
+
+
+async def test_my_bookings_cancelled_filter_keeps_cancelled_out_of_upcoming(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"tabs-{uuid.uuid4().hex[:6]}@example.com")
+    headers = headers_for(ada)
+    kept_id = await _book_in(async_client, studio, ada, slot=0)
+    cancelled_resp = await _signed_in_book(
+        async_client, studio, headers, slot=-1, customer_email=ada.email
+    )
+    assert cancelled_resp.status_code == 201, cancelled_resp.text
+    cancelled_id = str(cancelled_resp.json()["booking"]["id"])
+    cancel = await async_client.post(
+        f"{API}/public/bookings/{cancelled_resp.json()['manage_token']}/cancel",
+        json={"reason": "Changed plans"},
+    )
+    assert cancel.status_code == 200, cancel.text
+
+    def ids(resp: httpx.Response) -> set[str]:
+        assert resp.status_code == 200, resp.text
+        return {row["id"] for row in resp.json()["data"]}
+
+    upcoming = await async_client.get(
+        f"{API}/me/bookings",
+        headers=headers,
+        params={"upcoming": "true", "cancelled": "false"},
+    )
+    assert ids(upcoming) == {kept_id}
+    only_cancelled = await async_client.get(
+        f"{API}/me/bookings", headers=headers, params={"cancelled": "true"}
+    )
+    assert ids(only_cancelled) == {cancelled_id}
+    # Omitting the filter keeps the old behaviour: every status.
+    everything = await async_client.get(f"{API}/me/bookings", headers=headers)
+    assert ids(everything) == {kept_id, cancelled_id}
+
+
+async def test_my_bookings_row_manage_url_opens_the_booking(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _studio(db_async, async_client)
+    ada = await make_user(db_async, email=f"link-{uuid.uuid4().hex[:6]}@example.com")
+    booking_id = await _book_in(async_client, studio, ada, slot=0)
+    resp = await async_client.get(
+        f"{API}/me/bookings", headers=headers_for(ada), params={"upcoming": "true"}
+    )
+    assert resp.status_code == 200, resp.text
+    row = next(item for item in resp.json()["data"] if item["id"] == booking_id)
+    manage_url = row["manage_url"]
+    assert manage_url is not None
+    base = bookings_settings.APP_URL.rstrip("/")
+    assert manage_url.startswith(f"{base}/{studio.slug}/booking/")
+    token = manage_url.rsplit("/", 1)[1]
+    # The signed link is the booking's own manage token: the public read accepts it.
+    read = await async_client.get(f"{API}/public/bookings/{token}")
+    assert read.status_code == 200, read.text
+    assert read.json()["id"] == booking_id
+
+
+def test_hold_ends_at_is_the_sweeper_clock_for_unpaid_holds() -> None:
+    created = datetime(2026, 11, 22, 12, 0, 0)
+    held = Booking(status=BookingStatus.PENDING_PAYMENT.value, created_at=created)
+    assert public.hold_ends_at(held) == created + timedelta(
+        minutes=bookings_settings.DEPOSIT_HOLD_MINUTES
+    )
+    paid = Booking(status=BookingStatus.CONFIRMED.value, created_at=created)
+    assert public.hold_ends_at(paid) is None

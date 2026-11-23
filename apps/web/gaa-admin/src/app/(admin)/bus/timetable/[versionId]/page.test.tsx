@@ -73,7 +73,6 @@ describe("TimetableVersionPage", () => {
   it.each([
     ["an invalid id", "abc", fullAccess, draft()],
     ["an unknown version", "404", fullAccess, null],
-    ["a user without portal access", "9", staffAccess, draft()],
   ])("is not found for %s", async (_case, id, access, version) => {
     queries.getTransportAccess.mockResolvedValue(access);
     queries.getTimetableVersion.mockResolvedValue(version);
@@ -84,5 +83,15 @@ describe("TimetableVersionPage", () => {
       thrown = error;
     }
     expect((thrown as Error).message).toBe("NEXT_NOT_FOUND");
+  });
+
+  it("explains the missing role for a user without portal access, instead of a 404", async () => {
+    queries.getTransportAccess.mockResolvedValue(staffAccess);
+    queries.getTimetableVersion.mockResolvedValue(draft());
+    render(await load("9"));
+    expect(
+      screen.getByRole("heading", { name: "Bus access needed" })
+    ).toBeTruthy();
+    expect(notFound).not.toHaveBeenCalled();
   });
 });

@@ -51,7 +51,7 @@ export const eventsUpdateOrganiserProfileErrorSchema = z.union([
 
 export const eventsUpdateOrganiserProfileBodySchema =
   organiserProfileUpdateSchema.describe(
-    "Partial edit of an approved organiser's public profile: send only what changes.\n\nThe slug is not editable here, so an unknown field (such as ``slug``) is a 422.\nNull is refused for both fields; leave a field out to keep it."
+    "Partial edit of an approved organiser's public profile: send only what changes.\n\nThe slug is not editable here, so an unknown field (such as ``slug``) is a 422.\nNull is refused for name and bio; leave a field out to keep it. Null or blank\nclears ``brand_color``."
   );
 
 export const eventsUpdateOrganiserProfileQuerySchema = z.object({
