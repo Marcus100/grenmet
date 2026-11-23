@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertActions } from "@/components/desk/alert-actions";
+import { AlertAuditTrail } from "@/components/desk/alert-audit-trail";
 import {
   AlertBadges,
   DeskRefused,
@@ -68,14 +69,15 @@ export default async function DeskAlertPage({
         ) : null}
       </div>
       <FormatProblemBanner problems={formatProblems(audit?.data ?? [])} />
-      {audit === null ? (
-        <p className="text-body-sm text-muted-foreground" role="status">
-          The audit history could not be loaded, so a format problem from an
-          emergency publish or cancellation would not show here.
-        </p>
-      ) : null}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-        <SavedAlert alert={alert} />
+        <div className="space-y-6">
+          <SavedAlert alert={alert} />
+          <AlertAuditTrail
+            alertId={alert.id}
+            events={audit ? audit.data : null}
+            total={audit ? audit.count : 0}
+          />
+        </div>
         <div className="space-y-6">
           <AlertActions
             alert={alert}
