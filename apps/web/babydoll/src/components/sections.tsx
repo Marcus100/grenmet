@@ -1,4 +1,4 @@
-import { Address, Hours } from "@/components/hours";
+import { Address, Appointments } from "@/components/appointments";
 import { NewTabNote } from "@/components/new-tab-note";
 import {
   GOOGLE_PROFILE_URL,
@@ -116,11 +116,8 @@ export function VisitSection() {
           </a>
         </div>
         <div>
-          <p className="eyebrow">Hours</p>
-          <Hours />
-          <p className="hours-note">
-            Book online before you come. Walk-ins can't be seen.
-          </p>
+          <p className="eyebrow">Appointments</p>
+          <Appointments />
         </div>
         <div>
           <p className="eyebrow">Follow along</p>
