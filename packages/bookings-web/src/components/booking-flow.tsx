@@ -638,7 +638,8 @@ export function BookingFlow({
     ? payNowLine(
         dueAtBooking(service),
         service.price_minor,
-        storefront.currency
+        storefront.currency,
+        storefront.cancel_cutoff_hours
       )
     : null;
   const tokenMissing = Boolean(turnstileSiteKey) && !token;

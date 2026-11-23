@@ -89,3 +89,59 @@ describe("paymentReceivedHeld", () => {
     expect(paymentReceivedHeld("pending_payment", null)).toBe(false);
   });
 });
+
+describe("deposit wording on the manage page", () => {
+  const deposit = {
+    status: "paid" as const,
+    amount_minor: 15_000,
+    paid_minor: 6000,
+    refunded_minor: 0,
+    balance_at_salon_minor: 15_000,
+    currency: "XCD",
+    checkout_url: null,
+  };
+
+  it("states the balance only once the deposit is paid", () => {
+    expect(paymentLine(deposit)).toBe(
+      "Deposit paid EC$60, remaining EC$150 at the salon."
+    );
+  });
+
+  it("does not state a balance while the payment is still due", () => {
+    expect(paymentLine({ ...due, balance_at_salon_minor: 15_000 })).toBe(
+      "Payment of EC$210 not received yet. Your time is held until it arrives."
+    );
+  });
+
+  it("keeps the existing wording when nothing is left to pay", () => {
+    expect(paymentLine({ ...deposit, balance_at_salon_minor: 0 })).toBe(
+      "Paid EC$60. Thank you."
+    );
+  });
+});
+
+describe("payNowLine refund sentence", () => {
+  it("names the business cutoff for a deposit, never a fixed 24 hours", () => {
+    expect(payNowLine(6000, 21_000, "XCD", 6)).toBe(
+      "You pay a deposit of EC$60 now to hold this booking. The rest is paid at the business. Cancel at least 6 hours before to get your deposit back."
+    );
+    expect(payNowLine(6000, 21_000, "XCD", 1)).toContain(
+      "Cancel at least 1 hour before to get your deposit back."
+    );
+  });
+
+  it("says cancel before the start when the cutoff is zero", () => {
+    expect(payNowLine(6000, 21_000, "XCD", 0)).toContain(
+      "Cancel before your appointment starts to get your deposit back."
+    );
+  });
+
+  it("adds no refund sentence for the full price, or when no cutoff is given", () => {
+    expect(payNowLine(21_000, 21_000, "XCD", 6)).toBe(
+      "You pay the full price, EC$210, now to hold this booking."
+    );
+    expect(payNowLine(6000, 21_000, "XCD")).not.toContain(
+      "get your deposit back"
+    );
+  });
+});
