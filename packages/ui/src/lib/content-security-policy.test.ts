@@ -130,8 +130,10 @@ describe("contentSecurityPolicyHeaders", () => {
   });
 });
 
+const POSTHOG_HOSTS = "https://us.i.posthog.com https://eu.i.posthog.com";
+
 describe("bookings policy", () => {
-  // No analytics; Turnstile guards the public booking form.
+  // Turnstile guards the public booking form; funnel events go to PostHog.
   function expectedBookings(sentry: boolean): string {
     return [
       "default-src 'self'",
@@ -139,7 +141,7 @@ describe("bookings policy", () => {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self'",
-      `connect-src 'self' https://cloudflareinsights.com https://challenges.cloudflare.com${sentry ? " https://o1.ingest.sentry.io" : ""}`,
+      `connect-src 'self' https://cloudflareinsights.com https://challenges.cloudflare.com ${POSTHOG_HOSTS}${sentry ? " https://o1.ingest.sentry.io" : ""}`,
       "frame-src https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
@@ -339,7 +341,7 @@ const NEW_APP_EXTRAS: Record<
   cms: NO_EXTRAS,
   events: {
     script: GA_SCRIPT,
-    connect: GA_CONNECT,
+    connect: `${GA_CONNECT} ${POSTHOG_HOSTS}`,
     img: GA_IMG,
     frame: "",
   },
@@ -499,6 +501,24 @@ describe("Google Analytics measurement host", () => {
       expect(policy["connect-src"]).toContain("https://www.google.com");
     }
   );
+
+  it("lists the PostHog ingest hosts only for the funnel apps", () => {
+    for (const app of ["bookings", "events", "account"] as const) {
+      const policy = directivesOf(buildContentSecurityPolicy({ app }));
+      expect(policy["connect-src"]).toContain("https://us.i.posthog.com");
+      expect(policy["connect-src"]).toContain("https://eu.i.posthog.com");
+      // Connect only: no PostHog script is loaded from any origin.
+      expect(
+        (policy["script-src"] ?? []).some((v) => v.includes("posthog"))
+      ).toBe(false);
+    }
+    for (const app of ["babydoll", "gms", "elections", "mbia"] as const) {
+      const policy = directivesOf(buildContentSecurityPolicy({ app }));
+      expect(
+        (policy["connect-src"] ?? []).some((v) => v.includes("posthog"))
+      ).toBe(false);
+    }
+  });
 
   it("does not add www.google.com to apps without analytics", () => {
     const policy = directivesOf(

@@ -1,6 +1,9 @@
 "use client";
 
+import { createFunnel } from "@barrelsgd/ui/lib/funnel-analytics";
 import { useEffect } from "react";
+
+const funnel = createFunnel("account");
 
 /**
  * "Taking you to sign in": shown while the browser moves to the single sign-on
@@ -10,6 +13,7 @@ import { useEffect } from "react";
  */
 export function SignInHandOff({ href }: { href: string }) {
   useEffect(() => {
+    funnel.capture("sign_in_started");
     window.location.replace(href);
   }, [href]);
 

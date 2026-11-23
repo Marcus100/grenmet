@@ -136,6 +136,22 @@ operational services. Personal and NISA sites remain outside this repository.
 Deploy the rebuilt Docker sites through staging and production; deploy Barrels
 and Elections through their separate Cloudflare Pages projects before claiming activation.
 
+## Signed-in funnels (cookieless PostHog)
+
+Bookings, events and account send a fixed set of named funnel events with
+`@barrelsgd/ui/lib/funnel-analytics`: a `fetch` to PostHog's capture endpoint,
+with no SDK, no cookie and no web storage. The distinct id is random and lives
+in memory for one page load. Payloads carry ids and enums only (organisation
+slug, service id, listing id, page, step); ADR-0037 applies. Do Not Track and
+Global Privacy Control switch collection off, and the kill switch is
+`NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED=false`. Nothing is stored on the device,
+so the consent provider above is not involved. Whether that is enough in each
+market is the owner's decision. PostHog still receives each request's IP
+address; `$geoip_disable` stops the location lookup, not the receipt of the
+address. The key belongs to production only. Settings and the deploy note are in
+[docs/env.md](../env.md#funnel-analytics-bookings-events-account). This does not
+change the PostHog mappings in the service catalogue, which stay empty.
+
 ## Operational collection
 
 FastAPI request logs now use registered route templates, status and duration;

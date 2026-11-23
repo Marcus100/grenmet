@@ -15,6 +15,8 @@
  * `'unsafe-eval'` and websockets for HMR, and dev reports would only add noise.
  */
 
+import { POSTHOG_INGEST_HOSTS } from "./funnel-analytics";
+
 export type CspApp =
   | "docs"
   | "signal"
@@ -60,9 +62,9 @@ interface AppSources {
 
 /**
  * Per-app extra sources, added to the shared baseline. Later apps add one
- * entry. PostHog is deliberately absent: service-catalogue.json maps no
- * PostHog project for these apps, so the loader never starts. Add
- * `https://us.i.posthog.com` to connect-src if that changes.
+ * entry. The PostHog ingest hosts are listed only for the signed-in funnel
+ * apps (bookings, events, account), which send cookieless funnel events
+ * (`funnel-analytics.ts`). Other apps stay without PostHog.
  */
 export const APP_SOURCES: Record<CspApp, AppSources> = {
   docs: {
@@ -77,24 +79,24 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
     img: GA_IMG,
     frame: [TURNSTILE],
   },
-  // No analytics (publicAnalytics false in the catalogue). Turnstile guards the
-  // public booking form.
   // TODO(#1622): the business logo (storefront `logo_url`) and the studio logo
   // preview are presigned storage URLs. Add that storage origin to img (and the
   // browser PUT origin to connect) before this policy is enforced; the origin is
   // deployment config, as for apps/web/events, so no constant exists yet.
+  // Cookieless funnel events to PostHog (connect only; no script loads).
   bookings: {
     script: [TURNSTILE],
-    connect: [TURNSTILE],
+    connect: [TURNSTILE, ...POSTHOG_INGEST_HOSTS],
     img: [],
     frame: [TURNSTILE],
   },
-  // No analytics. Profile photos are served through the same-origin proxy and
-  // redirect to presigned object storage; that storage origin must be added to
-  // img-src before this policy is enforced (follow-up, see apps/web/account).
+  // Cookieless funnel events to PostHog (connect only). Profile photos are
+  // served through the same-origin proxy and redirect to presigned object
+  // storage; that storage origin must be added to img-src before this policy
+  // is enforced (follow-up, see apps/web/account).
   account: {
     script: [],
-    connect: [],
+    connect: [...POSTHOG_INGEST_HOSTS],
     img: [],
     frame: [],
   },
@@ -157,13 +159,14 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
     img: [],
     frame: [],
   },
-  // GA4 in production (service-catalogue `events`); no PostHog project and no
+  // GA4 in production (service-catalogue `events`); no consent-gated PostHog and no
   // Turnstile widget. Event images and avatars are same-origin /files/<id>
   // links that redirect to object storage. That storage origin is deployment
   // config, so it is not listed here (follow-up, as for apps/web/account).
+  // Cookieless funnel events to PostHog (connect only; no script loads).
   events: {
     script: [...GA_SCRIPT],
-    connect: [...GA_CONNECT],
+    connect: [...GA_CONNECT, ...POSTHOG_INGEST_HOSTS],
     img: GA_IMG,
     frame: [],
   },

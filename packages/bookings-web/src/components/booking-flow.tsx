@@ -82,6 +82,17 @@ export interface BookAgainChoice {
   serviceId: string;
 }
 
+/** Funnel steps the host may record (cookieless analytics). Ids only. */
+export type BookingTrackEvent =
+  | "service_selected"
+  | "slot_selected"
+  | "booking_submitted"
+  | "booking_confirmed";
+
+export interface BookingTrackProperties {
+  service_id?: string;
+}
+
 export interface BookingFlowProps {
   /**
    * An invitation shown after booking to a visitor who is not signed in. Never
@@ -110,6 +121,14 @@ export interface BookingFlowProps {
   storefront: BookingStorefront;
   /** The studio's name, used in the marketing opt-in wording. */
   studioName: string;
+  /**
+   * Records a funnel step. The host binds its app and business slug and sends
+   * nothing else. Omit it to record nothing.
+   */
+  track?: (
+    event: BookingTrackEvent,
+    properties: BookingTrackProperties
+  ) => void;
   /** Cloudflare Turnstile public key; empty means no widget. */
   turnstileSiteKey: string;
 }
@@ -531,6 +550,7 @@ export function BookingFlow({
   signedIn,
   studioName,
   storefront,
+  track,
   turnstileSiteKey,
 }: BookingFlowProps) {
   const [serviceId, setServiceId] = useState<string | null>(null);
@@ -569,11 +589,15 @@ export function BookingFlow({
   const reviseErrors = (change: Partial<BookingFields>) =>
     setErrors((previous) => stillWrong(previous, { ...fieldsNow, ...change }));
   const pickService = (id: string) => {
+    track?.("service_selected", { service_id: id });
     setServiceId(id);
     setStartsAt(null);
     reviseErrors({ serviceId: id, startsAt: null });
   };
   const pickStart = (value: string | null) => {
+    if (value && serviceId) {
+      track?.("slot_selected", { service_id: serviceId });
+    }
     setStartsAt(value);
     reviseErrors({ startsAt: value });
   };
@@ -692,6 +716,7 @@ export function BookingFlow({
       attempt.current = { print, key: crypto.randomUUID() };
     }
     setSubmitting(true);
+    track?.("booking_submitted", { service_id: serviceId });
     try {
       const outcome = await actions.submitBooking({
         idempotencyKey: attempt.current.key,
@@ -708,6 +733,7 @@ export function BookingFlow({
       });
       if (outcome.ok) {
         attempt.current = null;
+        track?.("booking_confirmed", { service_id: serviceId });
         setBooked(outcome.data);
         return;
       }
