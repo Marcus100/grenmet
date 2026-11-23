@@ -1419,23 +1419,29 @@ format are provisional settings (`docs/env.md`).
 
 Barrels sells its own app plans (first plan: `bookings-monthly`, XCD 30.00 a month)
 through Stripe Billing. Test mode only: a live Stripe key is refused with 503
-before any request is sent. Organisation-zone routes: an organisation admin or
-owner (`OrgAdmin`); a member gets 403 and an organisation the caller does not
-belong to gets 404. No entitlement changes: app access is still set by the
+before any request is sent. Access is gated by the organisation role alone: an
+organisation admin or owner (`OrgAdmin`) passes whether or not they are a
+superuser, and no global permission key applies. A member gets 403, and an
+organisation the caller does not belong to gets 404 (a superuser outside the
+organisation gets 404 too). No entitlement changes: app access is still set by the
 organisation routes.
 
 | Endpoint | Operation id | Contract |
 | --- | --- | --- |
 | `GET /api/v1/billing/org/subscriptions` | `billingListAppSubscriptions` | `{"data": [...]}`, newest first. Each item: `id`, `app_key`, `plan_key`, `channel` (`stripe`), `status` (`incomplete`, `active`, `past_due`, `canceled`, `unpaid`), `currency`, `amount_minor`, `current_period_end`, `cancel_at_period_end`, `trial_end`, `created_at` |
-| `POST /api/v1/billing/org/subscriptions/checkout` | `billingCreateAppSubscriptionCheckout` | Body `{"plan_key": "bookings-monthly", "currency": "XCD"}`. 201 with `{"id": "<subscription id>", "url": "https://checkout.stripe.com/..."}`. 404 unknown plan, 422 no price in that currency, 409 a live subscription to the same app already exists, 503 no Stripe price configured or a live key |
+| `POST /api/v1/billing/org/subscriptions/checkout` | `billingCreateAppSubscriptionCheckout` | Body `{"plan_key": "bookings-monthly", "currency": "XCD"}`. 201 with `{"id": "<subscription id>", "url": "https://checkout.stripe.com/..."}`. A repeat call while the pending Checkout is still open returns the same `id` and `url` (201, no second Stripe session). Once that Checkout has expired, the pending row is canceled and a new one is created (new `id`). 404 unknown plan, 409 the app already has a live subscription, or the first Checkout is paid and Stripe has not reported it yet, 422 no price in that currency, 503 no Stripe price configured or a live key |
 
 The Checkout Session carries `client_reference_id` and metadata
 (`organisation_id`, `app_subscription_id`, `plan_key`, `app_key`) on the Session and
 the Subscription. The webhook `POST /api/v1/billing/webhooks/stripe` (hidden from
 OpenAPI) applies `checkout.session.completed`, `checkout.session.expired`,
 `customer.subscription.created|updated|deleted` and `invoice.payment_failed`
-once per event id; an older event than the last applied one is ignored. A canceled
-subscription stays canceled.
+once per event id. An event strictly older than the last applied event is ignored;
+a same-second event is applied in delivery order (the transition table refuses a
+backward move). A live-mode event is refused with 503 and not recorded, since the
+product is test-only. An event that names one of our rows that is not written yet
+is answered 503 and not recorded for up to two hours after Stripe created it, so Stripe
+sends it again. A canceled subscription stays canceled.
 
 ## Change history and notifications (platform core)
 
