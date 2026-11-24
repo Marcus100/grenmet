@@ -207,11 +207,12 @@ class AsyncSafeLimiter(Limiter):
                 registered = self._route_limits.get(
                     f"{func.__module__}.{func.__name__}", []
                 )
-                # slowapi exposes ``scope`` read-only and keeps it name-mangled. The
-                # key test (tests/bookings/test_calendar_feed.py) fails if this stops
-                # taking effect after a slowapi upgrade.
+                # slowapi exposes ``scope`` read-only and keeps it name-mangled, so
+                # it is set in the instance dictionary. The key test
+                # (tests/bookings/test_calendar_feed.py) fails if this stops taking
+                # effect after a slowapi upgrade.
                 for item in registered[-1:]:
-                    setattr(item, "_Limit__scope", scope)  # noqa: B010
+                    vars(item)["_Limit__scope"] = scope
             if not inspect.iscoroutinefunction(func):
                 return decorated
             positional = list(inspect.signature(func).parameters).index("request")

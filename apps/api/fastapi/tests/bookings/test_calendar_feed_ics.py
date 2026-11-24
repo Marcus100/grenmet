@@ -6,7 +6,9 @@ name in ``X-WR-CALNAME``, one VEVENT per booking, CRLF line ends only, and no
 content line over 75 octets.
 """
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from src.bookings import ics
 
@@ -14,20 +16,19 @@ STAMP = datetime(2026, 11, 23, 12, 0, tzinfo=UTC)
 START = datetime(2026, 11, 25, 13, 30, tzinfo=UTC)
 
 
-def _event(uid: str, **overrides: object) -> ics.CalendarEvent:
-    values: dict[str, object] = {
-        "uid": uid,
-        "starts_at": START,
-        "ends_at": START + timedelta(hours=2),
-        "summary": "Classic full set - Ada",
-        "stamp": STAMP,
-        "description": "Provider: Jeriann",
-        "location": "St. George's",
-        "status": "CONFIRMED",
-        "sequence": 0,
-    }
-    values.update(overrides)
-    return ics.CalendarEvent(**values)  # type: ignore[arg-type]
+def _event(uid: str, **overrides: Any) -> ics.CalendarEvent:
+    base = ics.CalendarEvent(
+        uid=uid,
+        starts_at=START,
+        ends_at=START + timedelta(hours=2),
+        summary="Classic full set - Ada",
+        stamp=STAMP,
+        description="Provider: Jeriann",
+        location="St. George's",
+        status="CONFIRMED",
+        sequence=0,
+    )
+    return replace(base, **overrides)
 
 
 def test_feed_has_one_calendar_with_the_business_name_and_one_event_each() -> None:

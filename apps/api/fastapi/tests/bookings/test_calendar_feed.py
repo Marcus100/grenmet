@@ -478,7 +478,12 @@ async def test_feed_token_never_reaches_the_logs(
     url = await _create_feed(async_client, salon)
     token = _token_of(url)
     assert (await async_client.get(_feed_path(url))).status_code == 200
-    assert token not in caplog.text
+    # The test client (httpx) logs its own request URL; only the server's logs
+    # count here.
+    server_lines = [
+        record.getMessage() for record in caplog.records if record.name != "httpx"
+    ]
+    assert not [line for line in server_lines if token in line]
 
 
 def test_feed_route_carries_its_rate_limit() -> None:
