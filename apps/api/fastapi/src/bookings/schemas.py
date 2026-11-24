@@ -158,6 +158,24 @@ class BookingProfileUpdate(BaseModel):
     horizon_days: Annotated[int, Field(ge=1, le=365)] = 60
     cancel_cutoff_hours: Annotated[int, Field(ge=0, le=720)] = 24
     requires_confirmation: bool = False
+    pending_expiry_hours: Annotated[int, Field(ge=1, le=168)] | None = Field(
+        default=24,
+        description=(
+            "Hours a booking request waits for the business to confirm it before it "
+            "expires (the customer is told and the slot is released). Null means it "
+            "expires only at its start time. A request whose start has passed always "
+            "expires. Left out, the stored value is kept."
+        ),
+    )
+    max_open_per_customer: Annotated[int, Field(ge=1, le=20)] = Field(
+        default=3,
+        description=(
+            "How many future bookings (requested, awaiting payment or confirmed) one "
+            "customer may hold with this business. A public booking beyond it is "
+            "refused with 409. Staff entries are not refused. Left out, the stored "
+            "value is kept."
+        ),
+    )
     notify_email: EmailStr | None = None
     manage_url_template: (
         Annotated[

@@ -169,8 +169,13 @@ async def transition(
     actor_user_id: uuid.UUID | None = None,
     note: str | None = None,
     now: datetime | None = None,
+    earns_reward: bool = True,
 ) -> None:
-    """Move a booking along ``transitions.TRANSITIONS`` and record a BookingEvent."""
+    """Move a booking along ``transitions.TRANSITIONS`` and record a BookingEvent.
+
+    Completing a booking earns the customer's reward (``bookings.completed``) unless
+    ``earns_reward`` is false: the system's own completion (``lifecycle``) passes
+    false, so only a completion the business marks by hand earns."""
     current = BookingStatus(booking.status)
     if not transitions.can_transition(current, target):
         raise BookingConflictError(
@@ -185,7 +190,7 @@ async def transition(
         session, booking, current, target, actor_user_id=actor_user_id, note=note
     )
     await session.flush()
-    if target is BookingStatus.COMPLETED:
+    if target is BookingStatus.COMPLETED and earns_reward:
         await _emit_completed_reward(session, booking)
 
 
@@ -726,6 +731,49 @@ async def create_booking(
         raise
 
 
+#: Statuses that count towards a customer's open-request cap (future bookings only).
+OPEN_CAP_STATUSES = tuple(
+    status.value
+    for status in (
+        BookingStatus.PENDING_PAYMENT,
+        BookingStatus.PENDING,
+        BookingStatus.CONFIRMED,
+    )
+)
+
+
+def open_cap_message(open_count: int) -> str:
+    noun = "booking" if open_count == 1 else "bookings"
+    return (
+        f"You already have {open_count} upcoming {noun} with this business. "
+        "Manage them from your booking emails before booking again."
+    )
+
+
+async def _require_under_open_cap(
+    session: AsyncSession,
+    profile: BookingProfile,
+    customer: Customer,
+    now: datetime,
+) -> None:
+    """Refuse a public booking when the customer already holds the business's
+    ``max_open_per_customer`` future bookings. The customer row is locked first, so
+    two racing requests from one person are counted one after the other."""
+    await session.execute(
+        select(Customer.id).where(Customer.id == customer.id).with_for_update()
+    )
+    open_count = await session.scalar(
+        select(func.count(Booking.id)).where(
+            Booking.customer_id == customer.id,
+            Booking.organisation_id == profile.organisation_id,
+            Booking.status.in_(OPEN_CAP_STATUSES),
+            Booking.starts_at > now,
+        )
+    )
+    if (open_count or 0) >= profile.max_open_per_customer:
+        raise BookingConflictError(open_cap_message(open_count or 0))
+
+
 async def _create_booking(
     session: AsyncSession,
     profile: BookingProfile,
@@ -752,6 +800,7 @@ async def _create_booking(
         raise BookingConflictError(SLOT_TAKEN)
 
     customer, contact = await _upsert_customer(session, profile, payload, moment)
+    await _require_under_open_cap(session, profile, customer, moment)
     if payer is not None:
         # Ties the organisation's contact to the account that booked with it,
         # only on a verified email match (contacts owns the rule).
