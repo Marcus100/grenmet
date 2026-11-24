@@ -1253,6 +1253,8 @@ export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
 export type { BookingBusinessContact } from "./BookingBusinessContact.js";
+export type { BookingBusinessType } from "./BookingBusinessType.js";
+export { bookingBusinessType } from "./BookingBusinessType.js";
 export type { BookingCalendarFeedLink } from "./BookingCalendarFeedLink.js";
 export type { BookingCalendarFeedStatus } from "./BookingCalendarFeedStatus.js";
 export type { BookingClosureAffected } from "./BookingClosureAffected.js";

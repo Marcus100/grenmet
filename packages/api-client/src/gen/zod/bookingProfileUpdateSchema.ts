@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
 import { bookingDepositModeSchema } from "./bookingDepositModeSchema.js";
 import { bookingPaymentModeSchema } from "./bookingPaymentModeSchema.js";
 
@@ -117,6 +118,18 @@ export const bookingProfileUpdateSchema = z
       .optional()
       .describe(
         "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+      ),
+    cover_file_id: z
+      .union([z.uuid(), z.null()])
+      .optional()
+      .describe(
+        "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept."
+      ),
+    business_type: z
+      .union([bookingBusinessTypeSchema, z.null()])
+      .optional()
+      .describe(
+        "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, tours, events, other). Null clears it. Left out, the stored value is kept."
       ),
     listed: z
       .boolean()

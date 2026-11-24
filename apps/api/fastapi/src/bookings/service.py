@@ -7,13 +7,14 @@ Service functions flush; routers commit. Every query is filtered by
 import logging
 import uuid
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy import ColumnElement, delete, func, or_, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from src.auth.models import User
 from src.contacts.models import Contact
@@ -44,6 +45,7 @@ from .models import (
     AvailabilityException,
     Booking,
     BookingAddOn,
+    BookingBusinessType,
     BookingDepositMode,
     BookingProfile,
     BookingStatus,
@@ -93,8 +95,9 @@ CONTACT_FIELDS = frozenset(
 )
 logger = logging.getLogger(__name__)
 
-#: The logo's upload purpose (``src/storage/uploads.py``).
+#: The logo's and the cover photo's upload purposes (``src/storage/uploads.py``).
 LOGO_PURPOSE = "booking-logo"
+COVER_PURPOSE = "booking-cover"
 #: Profile fields an older client (or the seed) may not send; a PUT that leaves
 #: one out keeps the stored value.
 KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
@@ -108,6 +111,8 @@ KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
     "booking_policy",
     "brand_color",
     "logo_file_id",
+    "cover_file_id",
+    "business_type",
     "listed",
     "category",
     "short_description",
@@ -145,6 +150,9 @@ async def upsert_profile(
         # JSON gives a string; the column takes the UUID the request validated.
         values["logo_file_id"] = payload.logo_file_id
         await _require_logo(organisation_id, payload.logo_file_id, profile)
+    if "cover_file_id" in values:
+        values["cover_file_id"] = payload.cover_file_id
+        await _require_cover(organisation_id, payload.cover_file_id, profile)
     if profile is None:
         profile = BookingProfile(organisation_id=organisation_id, **values)
         session.add(profile)
@@ -183,15 +191,46 @@ def _require_deposit_rule(
 async def _require_logo(
     organisation_id: str, file_id: uuid.UUID | None, profile: BookingProfile | None
 ) -> None:
-    """A new logo must be a finished upload of this business. An unchanged one is
-    not checked again, so a logo stored before a later rule stays valid."""
-    if file_id is None or (profile is not None and profile.logo_file_id == file_id):
+    """A new logo must be a finished upload of this business."""
+    await _require_image(
+        organisation_id,
+        file_id,
+        current=profile.logo_file_id if profile is not None else None,
+        purpose=LOGO_PURPOSE,
+        noun="logo",
+    )
+
+
+async def _require_cover(
+    organisation_id: str, file_id: uuid.UUID | None, profile: BookingProfile | None
+) -> None:
+    """A new cover photo must be a finished upload of this business."""
+    await _require_image(
+        organisation_id,
+        file_id,
+        current=profile.cover_file_id if profile is not None else None,
+        purpose=COVER_PURPOSE,
+        noun="cover photo",
+    )
+
+
+async def _require_image(
+    organisation_id: str,
+    file_id: uuid.UUID | None,
+    *,
+    current: uuid.UUID | None,
+    purpose: str,
+    noun: str,
+) -> None:
+    """An unchanged image is not checked again, so one stored before a later rule
+    stays valid."""
+    if file_id is None or current == file_id:
         return
     if not await uploads.file_is_usable(
-        file_id, organisation_id=organisation_id, purpose=LOGO_PURPOSE
+        file_id, organisation_id=organisation_id, purpose=purpose
     ):
         raise BookingConflictError(
-            "That logo is not a finished upload for this business"
+            f"That {noun} is not a finished upload for this business"
         )
 
 
@@ -715,46 +754,82 @@ def business_contact(profile: BookingProfile) -> dict[str, str | None]:
     }
 
 
-async def _logo_is_complete(session: AsyncSession, profile: BookingProfile) -> bool:
-    """The same rule as ``uploads.file_is_usable``, read on the request session:
-    a complete booking-logo upload of this business."""
+async def _upload_is_complete(
+    session: AsyncSession,
+    profile: BookingProfile,
+    file_id: uuid.UUID | None,
+    purpose: str,
+) -> bool:
+    """The same rule as ``uploads.file_is_usable``, read on the request session: a
+    complete upload of ``purpose`` for this business."""
     found = await session.scalar(
         select(OrgUpload.id).where(
-            OrgUpload.id == profile.logo_file_id,
+            OrgUpload.id == file_id,
             OrgUpload.organisation_id == profile.organisation_id,
-            OrgUpload.purpose == LOGO_PURPOSE,
+            OrgUpload.purpose == purpose,
             OrgUpload.status == UploadStatus.COMPLETE.value,
         )
     )
     return found is not None
 
 
-async def _public_logo_url(
-    session: AsyncSession, profile: BookingProfile
-) -> str | None:
-    """The business logo's public address, shown only while the file is still a
-    complete booking-logo upload of this business and the API address is https.
-    The mail builds its image from the same address (``public_file_url``).
+async def _logo_is_complete(session: AsyncSession, profile: BookingProfile) -> bool:
+    return await _upload_is_complete(
+        session, profile, profile.logo_file_id, LOGO_PURPOSE
+    )
 
-    Fails closed: any error reading the logo answers None, so the public page
-    still loads with its colour. A savepoint keeps a database error from aborting
-    the storefront's own transaction."""
-    if profile.logo_file_id is None:
+
+async def _cover_is_complete(session: AsyncSession, profile: BookingProfile) -> bool:
+    return await _upload_is_complete(
+        session, profile, profile.cover_file_id, COVER_PURPOSE
+    )
+
+
+async def _public_image_url(
+    session: AsyncSession,
+    profile: BookingProfile,
+    file_id: uuid.UUID | None,
+    is_complete: Callable[[AsyncSession, BookingProfile], Awaitable[bool]],
+) -> str | None:
+    """A public image's address, shown only while the file is still a complete upload
+    of this business and the API address is https. The mail builds its image from the
+    same address (``public_file_url``).
+
+    Fails closed: any error reading the file answers None, so the public page still
+    loads. A savepoint keeps a database error from aborting the storefront's own
+    transaction."""
+    if file_id is None:
         return None
     try:
         async with session.begin_nested():
-            complete = await _logo_is_complete(session, profile)
+            complete = await is_complete(session, profile)
     except Exception as error:  # fail closed: a public page must still load
         logger.warning(
-            "Storefront logo check failed for %s; showing no logo",
+            "Storefront image check failed for %s; showing no image",
             profile.public_slug,
             extra={"error_type": type(error).__name__},
         )
         return None
     if not complete:
         return None
-    url = public_file_url(profile.logo_file_id)
+    url = public_file_url(file_id)
     return url if url is not None and url.startswith("https://") else None
+
+
+async def _public_logo_url(
+    session: AsyncSession, profile: BookingProfile
+) -> str | None:
+    return await _public_image_url(
+        session, profile, profile.logo_file_id, _logo_is_complete
+    )
+
+
+async def _public_cover_url(
+    session: AsyncSession, profile: BookingProfile
+) -> str | None:
+    return await _public_image_url(
+        session, profile, profile.cover_file_id, _cover_is_complete
+    )
 
 
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
@@ -786,6 +861,8 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         "contact": business_contact(profile),
         "brand_color": profile.brand_color,
         "logo_url": await _public_logo_url(session, profile),
+        "cover_url": await _public_cover_url(session, profile),
+        "business_type": profile.business_type,
         "services": [
             {
                 **BookingPublicService.model_validate(
@@ -884,10 +961,18 @@ def _open_for_listing() -> list[ColumnElement[bool]]:
     ]
 
 
-def _listing_card(profile: BookingProfile, logo_id: uuid.UUID | None) -> dict[str, Any]:
-    """A home page card. ``logo_id`` is set only for a finished booking-logo upload
-    of this business (joined in SQL); the address must be https."""
-    logo_url = public_file_url(logo_id) if logo_id is not None else None
+def _https_or_none(file_id: uuid.UUID | None) -> str | None:
+    url = public_file_url(file_id) if file_id is not None else None
+    return url if url is not None and url.startswith("https://") else None
+
+
+def _listing_card(
+    profile: BookingProfile,
+    logo_id: uuid.UUID | None,
+    cover_id: uuid.UUID | None,
+) -> dict[str, Any]:
+    """A home page card. ``logo_id`` and ``cover_id`` are set only for a finished
+    upload of that purpose for this business (joined in SQL); addresses must be https."""
     return {
         "slug": profile.public_slug,
         "name": profile.display_name,
@@ -895,21 +980,25 @@ def _listing_card(profile: BookingProfile, logo_id: uuid.UUID | None) -> dict[st
         "short_description": profile.short_description,
         "city": profile.city,
         "brand_color": profile.brand_color,
-        "logo_url": (
-            logo_url
-            if logo_url is not None and logo_url.startswith("https://")
-            else None
-        ),
+        "logo_url": _https_or_none(logo_id),
+        "cover_url": _https_or_none(cover_id),
+        "business_type": profile.business_type,
     }
 
 
 async def list_public_businesses(
-    session: AsyncSession, *, q: str | None, category: str | None, page: int
+    session: AsyncSession,
+    *,
+    q: str | None,
+    category: str | None,
+    page: int,
+    business_type: BookingBusinessType | None = None,
 ) -> dict[str, Any]:
     """One page of the businesses that opted in to the home page, the search
-    (name, category, description or city) and the category filter, plus the
-    categories for the filter chips. Everything is filtered, joined and paged in
-    SQL; the page holds one row more than it shows, to learn whether more follow."""
+    (name, category, description or city), the category filter and the business type
+    filter, plus the categories and the business types on offer. Everything is
+    filtered, joined and paged in SQL; the page holds one row more than it shows, to
+    learn whether more follow."""
     conditions: list[ColumnElement[bool]] = _open_for_listing()
     needle = (q or "").strip()
     if needle:
@@ -925,15 +1014,26 @@ async def list_public_businesses(
     chosen = (category or "").strip()
     if chosen:
         conditions.append(func.lower(BookingProfile.category) == chosen.lower())
+    if business_type is not None:
+        conditions.append(BookingProfile.business_type == business_type.value)
 
+    logo = aliased(OrgUpload)
+    cover = aliased(OrgUpload)
     rows = await session.execute(
-        select(BookingProfile, OrgUpload.id)
+        select(BookingProfile, logo.id, cover.id)
         .outerjoin(
-            OrgUpload,
-            (OrgUpload.id == BookingProfile.logo_file_id)
-            & (OrgUpload.organisation_id == BookingProfile.organisation_id)
-            & (OrgUpload.purpose == LOGO_PURPOSE)
-            & (OrgUpload.status == UploadStatus.COMPLETE.value),
+            logo,
+            (logo.id == BookingProfile.logo_file_id)
+            & (logo.organisation_id == BookingProfile.organisation_id)
+            & (logo.purpose == LOGO_PURPOSE)
+            & (logo.status == UploadStatus.COMPLETE.value),
+        )
+        .outerjoin(
+            cover,
+            (cover.id == BookingProfile.cover_file_id)
+            & (cover.organisation_id == BookingProfile.organisation_id)
+            & (cover.purpose == COVER_PURPOSE)
+            & (cover.status == UploadStatus.COMPLETE.value),
         )
         .where(*conditions)
         .order_by(func.lower(BookingProfile.display_name), BookingProfile.id)
@@ -951,14 +1051,29 @@ async def list_public_businesses(
         .order_by(func.min(BookingProfile.category))
         .limit(PUBLIC_LISTING_CATEGORY_LIMIT)
     )
+    # Every type a visible listed business has, in the fixed list's order. The set is
+    # at most eleven values, so ordering it here costs nothing.
+    present = set(
+        await session.scalars(
+            select(BookingProfile.business_type)
+            .where(
+                *_open_for_listing(),
+                BookingProfile.business_type.is_not(None),
+            )
+            .distinct()
+        )
+    )
     return {
         "items": [
-            _listing_card(profile, logo_id)
-            for profile, logo_id in found[:PUBLIC_LISTING_PAGE_SIZE]
+            _listing_card(profile, logo_id, cover_id)
+            for profile, logo_id, cover_id in found[:PUBLIC_LISTING_PAGE_SIZE]
         ],
         "page": page,
         "has_more": len(found) > PUBLIC_LISTING_PAGE_SIZE,
         "categories": list(categories),
+        "types_available": [
+            member for member in BookingBusinessType if member.value in present
+        ],
     }
 
 

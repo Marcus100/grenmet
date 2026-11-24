@@ -60,7 +60,7 @@ export function bookingsListPublicBusinessesQueryOptions(
 }
 
 /**
- * @description Businesses that opted in to the home page and are open for booking, 24 to a page. `q` searches the name, category, description and city; `category` keeps one category. Each card has public fields only. `categories` lists the filter chips. Needs no sign-in.
+ * @description Businesses that opted in to the home page and are open for booking, 24 to a page. `q` searches the name, category, description and city; `category` keeps one category; `type` keeps one business type (a fixed list, 422 for anything else). Each card has public fields only. `categories` lists the filter chips and `types_available` the business types on offer. Needs no sign-in.
  * @summary List businesses on the Barrels Bookings home page
  * {@link /api/v1/bookings/public/businesses}
  */

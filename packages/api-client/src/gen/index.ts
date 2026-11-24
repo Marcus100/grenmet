@@ -1242,6 +1242,7 @@ export type { BookingAgendaDay } from "./models/BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./models/BookingAgendaItem.js";
 export type { BookingAvailability } from "./models/BookingAvailability.js";
 export type { BookingBusinessContact } from "./models/BookingBusinessContact.js";
+export type { BookingBusinessType } from "./models/BookingBusinessType.js";
 export type { BookingCalendarFeedLink } from "./models/BookingCalendarFeedLink.js";
 export type { BookingCalendarFeedStatus } from "./models/BookingCalendarFeedStatus.js";
 export type { BookingClosureAffected } from "./models/BookingClosureAffected.js";
@@ -15612,6 +15613,7 @@ export { aviationDraftReadPropertiesKindEnum } from "./models/AviationDraftReadP
 export { aviationIssuePropertiesSeverityEnum } from "./models/AviationIssuePropertiesSeverityEnum.js";
 export { badgeKey } from "./models/BadgeKey.js";
 export { balanceImportRowPropertiesStatusEnum } from "./models/BalanceImportRowPropertiesStatusEnum.js";
+export { bookingBusinessType } from "./models/BookingBusinessType.js";
 export { bookingDepositMode } from "./models/BookingDepositMode.js";
 export { bookingExceptionKind } from "./models/BookingExceptionKind.js";
 export { bookingPaymentKind } from "./models/BookingPaymentKind.js";
@@ -17052,6 +17054,7 @@ export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./zod/bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./zod/bookingAvailabilitySchema.js";
 export { bookingBusinessContactSchema } from "./zod/bookingBusinessContactSchema.js";
+export { bookingBusinessTypeSchema } from "./zod/bookingBusinessTypeSchema.js";
 export { bookingCalendarFeedLinkSchema } from "./zod/bookingCalendarFeedLinkSchema.js";
 export { bookingCalendarFeedStatusSchema } from "./zod/bookingCalendarFeedStatusSchema.js";
 export { bookingClosureAffectedSchema } from "./zod/bookingClosureAffectedSchema.js";
@@ -17549,6 +17552,7 @@ export {
   bookingsListPublicBusinessesQueryPageSchema,
   bookingsListPublicBusinessesQueryQSchema,
   bookingsListPublicBusinessesQuerySchema,
+  bookingsListPublicBusinessesQueryTypeSchema,
   bookingsListPublicBusinessesResponseSchema,
   bookingsListPublicBusinessesStatus200Schema,
   bookingsListPublicBusinessesStatus422Schema,

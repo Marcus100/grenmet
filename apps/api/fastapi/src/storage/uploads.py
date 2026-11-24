@@ -52,6 +52,8 @@ PUBLIC_CACHE_SECONDS = 120
 #: the 16 megapixels they had before the metadata step (phone photos of 3000 by 2000
 #: pixels and more are accepted). Pillow's decompression-bomb guard stays on in both.
 BOOKING_LOGO_MAX_PIXELS = 4_000_000
+#: A home page cover is a wide photo shown across a card; 8 megapixels is generous.
+BOOKING_COVER_MAX_PIXELS = 8_000_000
 ORGANISER_LOGO_MAX_PIXELS = 16_000_000
 
 
@@ -84,6 +86,13 @@ PURPOSES: dict[str, Purpose] = {
         public=True,
         strip_metadata=True,
         max_pixels=BOOKING_LOGO_MAX_PIXELS,
+    ),
+    "booking-cover": Purpose(
+        app="bookings",
+        max_bytes=5 * 1024 * 1024,
+        public=True,
+        strip_metadata=True,
+        max_pixels=BOOKING_COVER_MAX_PIXELS,
     ),
 }
 

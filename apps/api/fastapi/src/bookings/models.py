@@ -67,6 +67,24 @@ class BookingSource(str, Enum):
     STUDIO = "studio"
 
 
+class BookingBusinessType(str, Enum):
+    """The fixed business types a home page visitor filters by (owner request
+    24 Nov 2026). Null on the profile means not chosen. Free-text ``category`` is
+    separate and unchanged."""
+
+    BEAUTY = "beauty"
+    HAIR = "hair"
+    HEALTH = "health"
+    FITNESS = "fitness"
+    AUTO = "auto"
+    HOME_SERVICES = "home_services"
+    LESSONS = "lessons"
+    PROFESSIONAL = "professional"
+    TOURS = "tours"
+    EVENTS = "events"
+    OTHER = "other"
+
+
 #: Statuses that hold a provider's time.
 ACTIVE_STATUSES = (
     BookingStatus.PENDING_PAYMENT,
@@ -119,6 +137,10 @@ class BookingProfile(Base):
             "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
             name="brand_color",
         ),
+        sa.CheckConstraint(
+            f"business_type IS NULL OR business_type IN ({_values(BookingBusinessType)})",
+            name="business_type",
+        ),
         SCHEMA,
     )
 
@@ -152,6 +174,11 @@ class BookingProfile(Base):
     brand_color: Mapped[str | None] = mapped_column(String(7))
     #: A completed ``booking-logo`` upload (``src/storage``); no cross-database FK.
     logo_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
+    #: A completed ``booking-cover`` upload: the wide photo of the home page card and
+    #: storefront. No cross-database FK, same as the logo.
+    cover_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
+    #: ``BookingBusinessType``, the home page filter; null until chosen.
+    business_type: Mapped[str | None] = mapped_column(String(20), default=None)
     #: Add-ons (owner request 23 Nov 2026): off by default. While off, add-on
     #: services are never offered or accepted, so nothing changes for the business.
     add_ons_enabled: Mapped[bool] = mapped_column(
