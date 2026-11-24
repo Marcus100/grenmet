@@ -10,7 +10,7 @@ import {
   it,
   vi,
 } from "vitest";
-import { loadOrganisationStaff } from "@/lib/hr-staff";
+import { loadOrganisationGrades, loadOrganisationStaff } from "@/lib/hr-staff";
 import { reportError } from "@/lib/report-error";
 
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
@@ -121,6 +121,95 @@ describe("loadOrganisationStaff", () => {
     const load = await loadOrganisationStaff("tok-1", ORGANISATION_ID);
 
     expect(load).toEqual({ ok: false, reason: "unavailable" });
+    expect(reportError).toHaveBeenCalledTimes(1);
+  });
+});
+
+const URL_GRADES = "http://localhost:8000/api/v1/hr/setup/grades";
+const GRADE = {
+  id: "grade-1",
+  department_id: "dep-1",
+  code: "OFFICER",
+  label: "Officer II",
+  rank: 3,
+  establishment_band: null,
+  is_active: true,
+};
+
+describe("loadOrganisationGrades", () => {
+  let gradesReply: () => Response = () => HttpResponse.json([GRADE]);
+  let gradesSeen: Request[] = [];
+
+  beforeEach(() => {
+    server.use(
+      http.get(URL_GRADES, ({ request }) => {
+        gradesSeen.push(request);
+        return gradesReply();
+      })
+    );
+  });
+  afterEach(() => {
+    gradesReply = () => HttpResponse.json([GRADE]);
+    gradesSeen = [];
+  });
+
+  it("reads one organisation's grades with the bearer token and the organisation id", async () => {
+    const load = await loadOrganisationGrades("tok-1", ORGANISATION_ID);
+
+    expect(gradesSeen).toHaveLength(1);
+    const url = new URL(gradesSeen[0]?.url ?? "");
+    expect(url.searchParams.get("organisation_id")).toBe(ORGANISATION_ID);
+    expect(gradesSeen[0]?.headers.get("authorization")).toBe("Bearer tok-1");
+    expect(load).toMatchObject({ ok: true, grades: [GRADE] });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("says not-admin for a 403 without reporting it", async () => {
+    gradesReply = () =>
+      HttpResponse.json(
+        { detail: "Permission denied", code: "forbidden", errors: [] },
+        { status: 403 }
+      );
+    expect(await loadOrganisationGrades("tok-1", ORGANISATION_ID)).toEqual({
+      ok: false,
+      reason: "not-admin",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("says not-found for a 404 without reporting it", async () => {
+    gradesReply = () =>
+      HttpResponse.json(
+        { detail: "Organisation not found", code: "not_found", errors: [] },
+        { status: 404 }
+      );
+    expect(await loadOrganisationGrades("tok-1", ORGANISATION_ID)).toEqual({
+      ok: false,
+      reason: "not-found",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("reports a server failure under its own area and never presents it as an empty list", async () => {
+    gradesReply = () =>
+      HttpResponse.json(
+        { detail: "boom", code: "internal", errors: [] },
+        { status: 500 }
+      );
+    expect(await loadOrganisationGrades("tok-1", ORGANISATION_ID)).toEqual({
+      ok: false,
+      reason: "unavailable",
+    });
+    expect(reportError).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(reportError).mock.calls[0]?.[1]).toBe("hr-staff-grades");
+  });
+
+  it("reports a response that does not match the generated schema", async () => {
+    gradesReply = () => HttpResponse.json([{ label: "No ids" }]);
+    expect(await loadOrganisationGrades("tok-1", ORGANISATION_ID)).toEqual({
+      ok: false,
+      reason: "unavailable",
+    });
     expect(reportError).toHaveBeenCalledTimes(1);
   });
 });

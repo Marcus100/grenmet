@@ -61,6 +61,16 @@ export const EVIDENCE = {
     published: null,
     note: "General registration guidance. Election-period suspension and correction deadlines require the current dated PEO notice.",
   },
+  peoResults2026: {
+    title: "General Election 2026: provisional results",
+    publisher: "PEO",
+    url: "https://elections.gd/2026/",
+    kind: "official",
+    locator:
+      "Results by constituency and polling division; national totals (registered 97,077; valid 61,317)",
+    published: "2026-11-23",
+    note: "Captured 23 November 2026. The page states that all data is provisional until officially certified. Ballots cast (61,511), rejected (194) and spoiled (145) are published for the whole country only, so no constituency or division values are given for them.",
+  },
   report2022: {
     title: "General Election Report 2022",
     publisher: "PEO",
@@ -132,6 +142,7 @@ export function sourceKind([label, url]: SourceRef): EvidenceKind {
       "grenadaparliament.gd",
       "gov.gd",
       "gazettes.gov.gd",
+      "elections.gd",
       "stats.gov.gd",
     ].includes(host)
   )
@@ -234,11 +245,20 @@ export function metricEvidence(
   if (id === "2016r")
     note =
       "Yes/No totals combine seven questions and are not counts of unique voters. Per-bill results are secondary; turnout uses people, not combined responses.";
+  // Provisional figures are official but not yet certified: official-only
+  // comparisons withhold them until the PEO certifies the result.
+  const provisional = rows.some((row) => row.provisional);
+  if (provisional) {
+    official = false;
+    note =
+      "Provisional results from the Parliamentary Elections Office, not yet certified. Official-only comparisons leave them out until certification.";
+  }
+  let label = "Calculated from mixed / secondary records";
+  if (official) label = "Calculated from official records";
+  else if (provisional) label = "Calculated from provisional official records";
   return {
     official,
-    label: official
-      ? "Calculated from official records"
-      : "Calculated from mixed / secondary records",
+    label,
     formula,
     source: eventSource(data, id).text,
     note,

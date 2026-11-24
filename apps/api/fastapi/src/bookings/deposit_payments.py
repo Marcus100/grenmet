@@ -68,6 +68,8 @@ class DepositRule:
     mode: str = BookingDepositMode.NONE.value
     percent: int | None = None
     fixed_minor: int | None = None
+    #: Services priced below this take no deposit from the rule; None = no minimum.
+    min_price_minor: int | None = None
 
 
 def deposit_rule_of(profile: BookingProfile) -> DepositRule:
@@ -75,6 +77,7 @@ def deposit_rule_of(profile: BookingProfile) -> DepositRule:
         mode=profile.deposit_mode,
         percent=profile.deposit_percent,
         fixed_minor=profile.deposit_fixed_minor,
+        min_price_minor=profile.deposit_min_price_minor,
     )
 
 
@@ -83,8 +86,11 @@ def rule_deposit(price_minor: int, rule: DepositRule) -> int:
 
     A percentage is rounded up to whole currency units (``100`` minor each), so a
     priced service never rounds to nothing; a fixed amount is taken as given. The
-    result never exceeds the price."""
+    result never exceeds the price. A service priced below the rule's minimum
+    takes nothing from it."""
     if price_minor <= 0:
+        return 0
+    if rule.min_price_minor and price_minor < rule.min_price_minor:
         return 0
     if rule.mode == BookingDepositMode.PERCENT.value and rule.percent:
         whole_units = -(-price_minor * rule.percent // (100 * 100))
@@ -459,9 +465,21 @@ async def start_manual_deposit(session: AsyncSession, booking: Booking) -> None:
     )
 
 
-def refund_by_policy(booking: Booking, profile: BookingProfile, now: datetime) -> bool:
+def refund_by_policy(
+    booking: Booking,
+    profile: BookingProfile,
+    now: datetime,
+    *,
+    previous: BookingStatus,
+) -> bool:
     """Deposits come back when the booking is cancelled at least
-    ``cancel_cutoff_hours`` before it starts; inside the cutoff they are kept."""
+    ``cancel_cutoff_hours`` before it starts; inside the cutoff they are kept.
+
+    A booking made on non-refundable terms (its own snapshot, never the current
+    profile) keeps its deposit once it was confirmed. A request the business has not
+    accepted yet (``pending``) is refunded under the cutoff rule."""
+    if booking.deposit_non_refundable and previous is BookingStatus.CONFIRMED:
+        return False
     return booking.starts_at - now >= timedelta(hours=profile.cancel_cutoff_hours)
 
 
@@ -520,7 +538,7 @@ async def settle_cancellation(
             return f"Unpaid {noun.lower()} cancelled"
         refund = True
     if refund is None:
-        refund = refund_by_policy(booking, profile, now)
+        refund = refund_by_policy(booking, profile, now, previous=previous)
     if not refund:
         return f"{noun} kept"
     done = await refund_deposit(session, booking, reason="Booking cancelled")

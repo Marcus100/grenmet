@@ -33,11 +33,20 @@ const GALE: PublicAlert = {
 describe("AlertGroups", () => {
   it("states each warning's level in words, matching the header pill", () => {
     render(<AlertGroups result={result([GALE])} />);
-    // Severe is take-action everywhere (severityLevel), never amber here.
-    expect(screen.getByText("Take action now")).toBeInTheDocument();
+    // Severe is Orange "Be prepared" everywhere (severityLevel), never red.
+    expect(screen.getByText("Orange · Be prepared")).toBeInTheDocument();
     expect(screen.getByText("Grenada, Carriacou")).toBeInTheDocument();
     expect(screen.getByText("Until further notice")).toBeInTheDocument();
     expect(screen.getByRole("link")).toHaveAttribute("href", "/alerts/gale-1");
+  });
+
+  it("shows an unstated severity as grey words, never a colour", () => {
+    const { container } = render(
+      <AlertGroups result={result([{ ...GALE, severity: "Unknown" }])} />
+    );
+    expect(screen.getByText("Severity not stated")).toBeInTheDocument();
+    expect(container.querySelector(".bg-gm-warning-red-bg")).toBeNull();
+    expect(container.querySelector(".bg-gm-warning-grey-bg")).not.toBeNull();
   });
 
   it("says plainly when nothing is in effect", () => {
@@ -58,7 +67,7 @@ describe("WarningStatusBand", () => {
       <WarningStatusBand alerts={result([GALE])} checkedAt={CHECKED_AT} />
     );
     expect(screen.getByRole("status")).toHaveTextContent(
-      "Take action now · 1 active"
+      "Be prepared · 1 active"
     );
     expect(
       screen.getByText("Last checked 16:40 AST · CAP feed OK", {
@@ -81,13 +90,14 @@ describe("WarningStatusBand", () => {
 });
 
 describe("WarningLegend", () => {
-  it("names all five levels", () => {
+  it("names every level, with the colour beside each swatch", () => {
     render(<WarningLegend />);
     for (const label of [
       "No active alerts",
-      "Be aware",
-      "Be prepared",
-      "Take action now",
+      "Green alert",
+      "Yellow · Be aware",
+      "Orange · Be prepared",
+      "Red · Take action now",
       "Status unavailable",
     ]) {
       // "No active alerts" is both the label and its guidance line.

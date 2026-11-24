@@ -17,10 +17,15 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import {
+  BOOKING_POLICY_MAX,
+  cleanPolicy,
+  policyLength,
+} from "@/lib/booking-policy-text";
 import { isLogoFileId, LOGO_MAX_BYTES, LOGO_TYPES } from "@/lib/brand-logo";
 import { checkContacts, contactFieldErrors } from "@/lib/business-contact";
 import type { CalendarFeedState } from "@/lib/calendar-feed";
-import { depositRuleFields } from "@/lib/deposit-rule";
+import { depositRuleFields, minimumPriceFields } from "@/lib/deposit-rule";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import { parseHours, parseMoney } from "@/lib/settings-view";
@@ -261,11 +266,14 @@ function moneyField(text: string): number | null {
  * replaces the whole profile on every write, so a section sends the stored
  * values for everything it does not own (see `keptFields`).
  */
-type ProfileSection = "profile" | "contact" | "payments" | "deposit";
+type ProfileSection = "profile" | "contact" | "payments" | "deposit" | "policy";
 
 function profileSection(formData: FormData): ProfileSection {
   const value = field(formData, "section");
-  return value === "contact" || value === "payments" || value === "deposit"
+  return value === "contact" ||
+    value === "payments" ||
+    value === "deposit" ||
+    value === "policy"
     ? value
     : "profile";
 }
@@ -320,6 +328,7 @@ const SECTION_SAVED: Record<ProfileSection, string> = {
   contact: "Contact options saved.",
   payments: "Payment choice saved.",
   deposit: "Deposit rule saved.",
+  policy: "Booking policy saved.",
 };
 
 /**
@@ -344,6 +353,9 @@ export async function saveProfileAction(
   }
   if (section === "deposit") {
     return saveDepositSection(orgSlug, auth, formData);
+  }
+  if (section === "policy") {
+    return savePolicySection(orgSlug, auth, formData);
   }
   if (section === "contact") {
     return saveContactSection(orgSlug, auth, formData);
@@ -493,14 +505,23 @@ async function saveDepositSection(
   auth: Granted,
   formData: FormData
 ): Promise<ProfileState> {
+  const on = formData.get("depositRequired") === "on";
   const rule = depositRuleFields({
-    on: formData.get("depositRequired") === "on",
+    on,
     mode: formData.get("depositMode") === "fixed" ? "fixed" : "percent",
     percentText: field(formData, "depositPercent"),
     fixedText: field(formData, "depositFixed"),
   });
   if (!rule.ok) {
     return invalid(rule.message);
+  }
+  // The minimum is only on the form while the rule is on, so a rule switched off
+  // keeps the stored minimum (it is not on the page to be changed).
+  const minimum = on
+    ? minimumPriceFields(field(formData, "depositMinPrice"))
+    : null;
+  if (minimum && !minimum.ok) {
+    return invalid(minimum.message);
   }
   try {
     const current = await currentProfile(auth);
@@ -510,11 +531,45 @@ async function saveDepositSection(
     await saveProfile(auth.accessToken, auth.organisationId, {
       ...storedFields(current),
       ...rule.value,
+      ...(minimum?.ok ? { deposit_min_price_minor: minimum.value } : {}),
+      deposit_non_refundable: formData.get("depositNonRefundable") === "on",
     });
   } catch (error) {
     return failed(orgSlug, error);
   }
   return saved(orgSlug, SECTION_SAVED.deposit);
+}
+
+/**
+ * The booking policy: plain text, at most 1000 characters, shown before the
+ * customer confirms and in the confirmation. Blank clears it.
+ */
+async function savePolicySection(
+  orgSlug: string,
+  auth: Granted,
+  formData: FormData
+): Promise<ProfileState> {
+  const text = field(formData, "bookingPolicy");
+  if (policyLength(text) > BOOKING_POLICY_MAX) {
+    return invalid(
+      `The booking policy is at most ${BOOKING_POLICY_MAX} characters.`
+    );
+  }
+  try {
+    const current = await currentProfile(auth);
+    if (!current) {
+      return invalid(
+        "Save the business profile first, then add a booking policy."
+      );
+    }
+    await saveProfile(auth.accessToken, auth.organisationId, {
+      ...storedFields(current),
+      booking_policy: cleanPolicy(text),
+    });
+  } catch (error) {
+    return failed(orgSlug, error);
+  }
+  return saved(orgSlug, SECTION_SAVED.policy);
 }
 
 export interface LogoTarget {

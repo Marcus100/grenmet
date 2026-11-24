@@ -92,7 +92,7 @@ export default async function OrganisationStaffPage({
         <h2 className="text-lg font-semibold" id="staff-heading">
           Staff list
         </h2>
-        <StaffListBody load={load} />
+        <StaffListBody load={load} orgSlug={organisation.slug} />
       </section>
       <p className="text-muted-foreground text-sm">
         Staff onboarding and changes are still made in the GAA staff portal
@@ -104,8 +104,10 @@ export default async function OrganisationStaffPage({
 
 function StaffListBody({
   load,
+  orgSlug,
 }: {
   load: Awaited<ReturnType<typeof loadOrganisationStaff>>;
+  orgSlug: string;
 }) {
   if (!load.ok) {
     if (load.reason === "not-admin") {
@@ -139,7 +141,7 @@ function StaffListBody({
           ? "1 staff record"
           : `${load.staff.length} staff records`}
       </p>
-      <StaffList staff={load.staff} />
+      <StaffList orgSlug={orgSlug} staff={load.staff} />
     </>
   );
 }

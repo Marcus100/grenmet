@@ -12,6 +12,7 @@ import {
   SIGNUP_RESULTS,
 } from "@/lib/alert-signup";
 import { reportError } from "@/lib/report-error";
+import { useHydrated } from "@/lib/use-hydrated";
 
 /** Outcome of the emailed confirm or unsubscribe link, from `?result=`. */
 export function AlertSignupResult() {
@@ -34,6 +35,7 @@ export function AlertSignupResult() {
  * email (double opt-in) and answers the same for every address.
  */
 export function AlertEmailSignup() {
+  const hydrated = useHydrated();
   const [state, setState] = useState<FormState>({ status: "idle" });
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -121,9 +123,18 @@ export function AlertEmailSignup() {
           cancels a weather alert. I can unsubscribe at any time.
         </span>
       </label>
-      <Button disabled={state.status === "submitting"} type="submit">
+      <Button
+        disabled={!hydrated || state.status === "submitting"}
+        type="submit"
+      >
         {state.status === "submitting" ? "Sending…" : "Email me alerts"}
       </Button>
+      <noscript>
+        <p className="text-body-sm text-gm-text-secondary">
+          This form needs JavaScript. Turn it on in your browser, or contact us
+          another way.
+        </p>
+      </noscript>
       {state.status === "error" && (
         <p className="text-body-base text-destructive font-medium" role="alert">
           {state.message}

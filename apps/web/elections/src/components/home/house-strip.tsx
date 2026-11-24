@@ -6,11 +6,17 @@ import { MAJORITY, SEATS } from "@/data/model";
 import { partyInfo } from "@/data/parties";
 
 /**
- * The House as it stood at dissolution: 15 squares grouped by the party that
+ * The House as it stood at dissolution (or, with `title`, after the declared result): 15 squares grouped by the party that
  * held each seat, with a tick after the eighth for a majority. Each square
  * links to its constituency, and a key names every letter.
  */
-export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
+export function HouseStrip({
+  seats,
+  title = "The House at dissolution",
+}: {
+  seats: SeatOutlook[];
+  title?: string;
+}) {
   const house = currentHouse(seats);
   const order = Object.entries(house).sort((a, b) => b[1] - a[1]);
   const rank = Object.fromEntries(order.map(([party], i) => [party, i]));
@@ -23,7 +29,9 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
   return (
     <figure className="m-0">
       <figcaption className="text-el-muted mb-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm font-semibold tracking-[0.07em] uppercase">
-        <span>The House at dissolution · {SEATS} seats</span>
+        <span>
+          {title} · {SEATS} seats
+        </span>
         <span className="whitespace-nowrap">{MAJORITY} for a majority</span>
       </figcaption>
       <div className="relative grid grid-cols-15 gap-[3px]">

@@ -15,6 +15,17 @@ export const bookingStorefrontSchema = z
     timezone: z.string(),
     currency: z.string(),
     cancel_cutoff_hours: z.int(),
+    deposit_non_refundable: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe("True when a paid deposit is never refunded on cancellation."),
+    booking_policy: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "The business's plain-text booking policy, or null when it has none."
+      ),
     contact: bookingBusinessContactSchema.describe(
       "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
     ),

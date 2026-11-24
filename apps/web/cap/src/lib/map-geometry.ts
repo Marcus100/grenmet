@@ -137,7 +137,7 @@ export function toShape(
   projection: Projection
 ): MapShape {
   const severity = toSeverity(feature.properties.severity);
-  const level = severity === "Unknown" ? "unknown" : severityLevel(severity);
+  const level = severityLevel(severity);
   const geometry = feature.geometry;
   const empty = {
     d: null,

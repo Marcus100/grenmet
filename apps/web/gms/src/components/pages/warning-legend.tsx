@@ -2,20 +2,21 @@ import { ArrowRightIcon, BellIcon } from "lucide-react";
 import Link from "next/link";
 import {
   WARNING_LEVEL_GUIDANCE,
-  WARNING_LEVEL_LABEL,
   WARNING_LEVEL_SWATCH,
   type WarningLevel,
+  warningLevelHeading,
 } from "@/lib/warning-level";
 
 const LEVELS: WarningLevel[] = [
   "none",
+  "green",
   "be-aware",
   "be-prepared",
   "take-action",
   "unknown",
 ];
 
-/** The five levels with swatch, name and guidance, then onward actions. */
+/** The six levels with swatch, name and guidance, then onward actions. */
 export function WarningLegend() {
   return (
     <aside
@@ -37,7 +38,7 @@ export function WarningLegend() {
             />
             <span className="text-body-sm leading-body-sm">
               <b className="text-gm-heading block">
-                {WARNING_LEVEL_LABEL[level]}
+                {warningLevelHeading(level)}
               </b>
               {WARNING_LEVEL_GUIDANCE[level]}
             </span>

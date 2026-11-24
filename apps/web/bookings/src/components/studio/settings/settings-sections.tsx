@@ -22,6 +22,7 @@ import {
   EmptyTitle,
 } from "@barrelsgd/ui/components/ui/empty";
 import Link from "next/link";
+import { BookingPolicyForm } from "@/components/studio/settings/booking-policy-form";
 import { ContactForm } from "@/components/studio/settings/contact-form";
 import { DepositRuleForm } from "@/components/studio/settings/deposit-rule-form";
 import { HoursForm } from "@/components/studio/settings/hours-form";
@@ -401,6 +402,9 @@ export function PaymentsSection({
           orgSlug={orgSlug}
           profile={profile}
         />
+      ) : null}
+      {profile !== null && editable ? (
+        <BookingPolicyForm orgSlug={orgSlug} profile={profile} />
       ) : null}
       {profile !== null && !editable ? (
         <dl className="grid gap-3">

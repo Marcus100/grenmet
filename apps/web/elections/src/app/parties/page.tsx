@@ -28,8 +28,8 @@ export default function PartiesPage() {
   return (
     <>
       <PageHead
-        deck="The historical record from 1951 to 2022: elections contested, seats won and recorded vote share. Current campaign coverage is on the 2026 candidate pages."
-        eyebrow="Parties · 1951 to 2022"
+        deck="The historical record from 1951 to 2026: elections contested, seats won and recorded vote share. The 2026 figures are provisional results from the Parliamentary Elections Office."
+        eyebrow="Parties · 1951 to 2026"
         learning="parties"
         title="Grenada’s political parties"
       />

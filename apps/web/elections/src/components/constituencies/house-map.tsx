@@ -9,10 +9,12 @@ export function HouseMap({
   geo,
   seats,
   className,
+  label = "Party holding each seat today",
 }: {
   geo: GeoFile;
   seats: SeatOutlook[];
   className?: string;
+  label?: string;
 }) {
   const house = Object.entries(currentHouse(seats)).sort((a, b) => b[1] - a[1]);
   return (
@@ -25,7 +27,7 @@ export function HouseMap({
           title: `${seat.name}: ${seat.sitting.name}, ${partyInfo(seat.sitting.party).name}`,
         }))}
         geo={geo}
-        label="Party holding each seat today"
+        label={label}
         unavailableReason="Members of Parliament represent whole constituencies, so this measure has no polling-division view."
       />
       <figcaption className="mt-2 text-base">

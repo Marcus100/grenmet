@@ -3,7 +3,7 @@
 
 def station_rows(R, REF):
     stations = []
-    for y in ("2013", "2018", "2022"):
+    for y in ("2013", "2018", "2022", "2026"):
         for c, rows in R["stations"][y].items():
             for div, sub, place, reg, cast, rej, votes in rows:
                 for party, v in votes.items():
@@ -19,7 +19,9 @@ def station_rows(R, REF):
                             "rejected": rej,
                             "option": party,
                             "votes": v,
-                            "source": f"PEO report {y}",
+                            "source": f"PEO provisional results {y}"
+                            if y == "2026"
+                            else f"PEO report {y}",
                             "division_numbering": "current",
                         }
                     )
