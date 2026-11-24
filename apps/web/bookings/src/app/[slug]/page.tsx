@@ -2,6 +2,7 @@ import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contac
 import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
 import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -17,6 +18,7 @@ import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
 import { brandStyle, safeLogoUrl } from "@/lib/storefront-brand";
 import { storefrontJsonLd } from "@/lib/storefront-jsonld";
+import { businessTransitionStyle } from "@/lib/view-transition";
 import {
   confirmEmailCode,
   loadSlots,
@@ -72,6 +74,7 @@ export default async function BusinessBookingPage({
   // Older cached payloads may lack these fields: both fall back to the shared
   // tokens and no logo. The accent is checked for contrast before it is used.
   const logo = safeLogoUrl(storefront.logo_url);
+  const transition = businessTransitionStyle(slug);
   // A signed-in person gets their own details prefilled and shortcuts from
   // their own earlier bookings here; a guest gets a blank form, the invitation
   // to create an account or sign in, and a quiet sign-in link.
@@ -100,7 +103,13 @@ export default async function BusinessBookingPage({
       />
       <header className="space-y-2">
         {logo && <StorefrontLogo name={storefront.display_name} src={logo} />}
-        <h1 className="text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] font-bold tracking-tight">
+        <h1
+          className={cn(
+            transition ? "vt-biz" : undefined,
+            "text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] font-bold tracking-tight"
+          )}
+          style={transition}
+        >
           {storefront.display_name}
         </h1>
         <p className="text-muted-foreground">

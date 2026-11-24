@@ -18,6 +18,7 @@ const EMPTY: BookingPublicBusinessPage = {
   page: 1,
   has_more: false,
   categories: [],
+  types_available: [],
 };
 
 async function renderHome(params: Record<string, string> = {}) {
@@ -56,6 +57,8 @@ describe("bookings home page", () => {
           city: "Gouyave",
           brand_color: null,
           logo_url: null,
+          cover_url: null,
+          business_type: null,
         },
       ],
       categories: ["Barbers"],
@@ -75,6 +78,7 @@ describe("bookings home page", () => {
     expect(getPublicBusinesses).toHaveBeenCalledWith({
       q: "fade",
       category: "Barbers",
+      type: undefined,
       page: 3,
     });
   });
@@ -92,39 +96,67 @@ describe("bookings home page", () => {
     ).toBeTruthy();
   });
 
-  it("has exactly one h1, and it is the first heading on the page", async () => {
+  it("marks Home as the current page in the rail and the bottom bar, icons named by label", async () => {
     vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
     await renderHome();
 
-    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getAllByRole("heading")[0]?.tagName).toBe("H1");
-  });
-
-  it("marks Home as the current page in both navigation bars", async () => {
-    vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
-    await renderHome();
-
-    for (const name of ["Main", "Quick links"]) {
-      const nav = screen.getByRole("navigation", { name });
+    const rail = screen.getByRole("navigation", { name: "Main" });
+    const bottom = screen.getByRole("navigation", { name: "Quick links" });
+    expect(rail.getAttribute("class")).toContain("hidden");
+    expect(rail.getAttribute("class")).toContain("md:flex");
+    expect(bottom.getAttribute("class")).toContain("md:hidden");
+    for (const nav of [rail, bottom]) {
       const home = within(nav).getByRole("link", { name: "Home" });
       expect(home.getAttribute("href")).toBe("/");
       expect(home.getAttribute("aria-current")).toBe("page");
+      expect(
+        within(nav)
+          .getByRole("link", { name: "Types of business" })
+          .getAttribute("href")
+      ).toBe("/#types");
+      expect(
+        within(nav)
+          .getByRole("link", { name: "For businesses" })
+          .getAttribute("href")
+      ).toBe("/studio");
     }
-    const quick = within(
-      screen.getByRole("navigation", { name: "Quick links" })
-    );
+    expect(bottom.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(3);
     expect(
-      quick.getByRole("link", { name: "Studio" }).getAttribute("href")
-    ).toBe("/studio");
+      within(bottom).getByRole("link", { name: "Sign in" }).getAttribute("href")
+    ).toBe("/signin?returnTo=%2F");
+  });
+
+  it("has one h1, the hero's Find a business link and the line under the hero", async () => {
+    vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
+    const { container } = await renderHome();
+
+    expect(container.querySelectorAll("h1")).toHaveLength(1);
     expect(
-      document.querySelectorAll(
-        'nav[aria-label="Quick links"] svg[aria-hidden="true"]'
+      container
+        .querySelector("h1")
+        ?.compareDocumentPosition(container.querySelector("h2") as Node)
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      screen.getByRole("link", { name: "Find a business" }).getAttribute("href")
+    ).toBe("#businesses");
+    expect(
+      screen.getByText(
+        "Pick a business below, or open the booking page the business sent you."
       )
-    ).toHaveLength(3);
+    ).toBeTruthy();
+  });
+
+  it("gives the hero its entrance and drifting shapes, hidden from assistive tech", async () => {
+    vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
+    const { container } = await renderHome();
+
     expect(
-      within(screen.getByRole("navigation", { name: "Quick links" }))
-        .getByRole("link", { name: "Search" })
-        .getAttribute("href")
-    ).toBe("/#home-search");
+      container.querySelector("h1")?.closest("section")?.className
+    ).toContain("enter");
+    for (const shape of [".drift-a", ".drift-b"]) {
+      const node = container.querySelector(shape);
+      expect(node?.getAttribute("aria-hidden")).toBe("true");
+      expect(node?.getAttribute("class")).toContain("pointer-events-none");
+    }
   });
 });

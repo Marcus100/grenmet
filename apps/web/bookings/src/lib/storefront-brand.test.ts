@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandStyle, safeLogoUrl } from "./storefront-brand";
+import { brandStyle, safeCoverUrl, safeLogoUrl } from "./storefront-brand";
 
 describe("brandStyle", () => {
   it("sets the accent custom properties from a passing colour", () => {
@@ -40,5 +40,25 @@ describe("safeLogoUrl", () => {
     ["undefined", undefined],
   ])("shows no logo for %s", (_label, value) => {
     expect(safeLogoUrl(value)).toBeNull();
+  });
+});
+
+describe("safeCoverUrl", () => {
+  it("shows only an https address", () => {
+    expect(safeCoverUrl("https://cdn.example.test/c.jpg")).toBe(
+      "https://cdn.example.test/c.jpg"
+    );
+    for (const value of [
+      "http://cdn.example.test/c.jpg",
+      "javascript:alert(1)",
+      "https://user:pass@cdn.example.test/c.jpg",
+      "https://user@cdn.example.test/c.jpg",
+      "not a url",
+      "",
+      null,
+      undefined,
+    ]) {
+      expect(safeCoverUrl(value)).toBeNull();
+    }
   });
 });

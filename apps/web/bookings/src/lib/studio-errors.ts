@@ -196,8 +196,8 @@ const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
     match: /finished upload/iu,
     failure: {
       kind: "conflict",
-      message: "That logo did not finish uploading for this business.",
-      nextStep: "Upload the logo again, then save the profile.",
+      message: "That image did not finish uploading for this business.",
+      nextStep: "Upload the image again, then save the profile.",
     },
   },
   {
@@ -266,10 +266,13 @@ export function settingsFailure(error: unknown): StudioFailure {
  * API's own sentences are already plain ("The image has too many pixels"), so a
  * 409 or 422 shows them; anything else is a generic retry.
  */
-export function logoUploadFailure(error: unknown): StudioFailure {
+export function logoUploadFailure(
+  error: unknown,
+  what: "logo" | "cover photo" = "logo"
+): StudioFailure {
   const retry: StudioFailure = {
     kind: "unavailable",
-    message: "The logo could not be uploaded.",
+    message: `The ${what} could not be uploaded.`,
     nextStep: "Try again in a moment.",
   };
   if (!ResponseError.is(error)) {
@@ -301,8 +304,8 @@ export function logoUploadFailure(error: unknown): StudioFailure {
     case 503:
       return {
         kind: "unavailable",
-        message: "Logo uploads are not available right now.",
-        nextStep: "Save the profile without a new logo, or try again later.",
+        message: `${what === "logo" ? "Logo" : "Cover photo"} uploads are not available right now.`,
+        nextStep: `Save the profile without a new ${what}, or try again later.`,
       };
     default:
       return retry;

@@ -1,68 +1,107 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 // Real destinations only. "My bookings" and "Account" live in the account app,
 // whose address this app has no typed setting for, so they are not linked yet.
+// Icons only, each link named by `aria-label`.
 const ICONS = {
-  home: <path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" />,
-  search: (
+  home: <path d="M12 3l9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9z" />,
+  types: (
     <>
-      <circle cx="11" cy="11" r="7" />
-      <path d="M20 20l-3.5-3.5" />
+      <rect height="8" rx="2" width="8" x="3" y="3" />
+      <rect height="8" rx="2" width="8" x="13" y="3" />
+      <rect height="8" rx="2" width="8" x="3" y="13" />
+      <rect height="8" rx="2" width="8" x="13" y="13" />
     </>
   ),
   studio: (
-    <>
-      <rect height="15" rx="3" width="16" x="4" y="5" />
-      <path d="M4 10h16M9 3v4M15 3v4" />
-    </>
+    <path
+      d="M4 9l1.5-5h13L20 9M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9M4 9h16M9 20v-6h6v6"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2.2"
+    />
   ),
 };
 
 const ITEMS = [
   {
     label: "Home",
-    phone: "Home",
     icon: ICONS.home,
     href: { pathname: "/" as const },
     current: true,
   },
   {
-    label: "Search",
-    phone: "Search",
-    icon: ICONS.search,
-    href: { pathname: "/" as const, hash: "home-search" },
+    label: "Types of business",
+    icon: ICONS.types,
+    href: { pathname: "/" as const, hash: "types" },
     current: false,
   },
   {
     label: "For businesses",
-    phone: "Studio",
     icon: ICONS.studio,
     href: { pathname: "/studio" as const },
     current: false,
   },
 ];
 
-const PILL =
-  "inline-flex min-h-11 items-center justify-center rounded-full px-4 text-sm font-semibold focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
+const SIGN_IN = { pathname: "/signin" as const, query: { returnTo: "/" } };
 
-/** Pill navigation in the header on laptops (Search is the box on the page). */
-export function HeaderNav() {
+// No display utility here: `hidden` and `inline-flex` in one string both apply and
+// the later one in the stylesheet wins, which showed the laptop mark on phones.
+const ITEM_BASE =
+  "press items-center justify-center rounded-full focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none";
+const ITEM = `${ITEM_BASE} inline-flex`;
+
+function Icon({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <nav
-      aria-label="Main"
-      className="bg-background hidden gap-1 rounded-full p-1 shadow-xs md:flex"
+    <svg
+      aria-hidden="true"
+      className="size-6"
+      fill="currentColor"
+      viewBox="0 0 24 24"
     >
-      {ITEMS.filter((item) => item.label !== "Search").map((item) => (
-        <Link
-          aria-current={item.current ? "page" : undefined}
-          className={`${PILL} ${item.current ? "bg-primary text-primary-foreground" : "text-foreground"}`}
-          href={item.href}
-          key={item.label}
-        >
-          {item.label}
-        </Link>
-      ))}
-    </nav>
+      {children}
+    </svg>
+  );
+}
+
+/** Floating left rail on laptops: the home mark, the icons and a Sign in pill. */
+export function SideRail() {
+  return (
+    <>
+      <Link
+        aria-label="Barrels Bookings home"
+        className={`${ITEM_BASE} bg-primary text-primary-foreground fixed top-5 left-5 z-30 hidden size-14 rounded-[18px] text-2xl font-extrabold shadow-lg md:inline-flex`}
+        href={{ pathname: "/" }}
+      >
+        B
+      </Link>
+      <nav
+        aria-label="Main"
+        className="bg-background fixed top-1/2 left-5 z-30 hidden -translate-y-1/2 flex-col items-center gap-1.5 rounded-full p-1.5 shadow-lg md:flex"
+      >
+        {ITEMS.map((item) => (
+          <Link
+            aria-current={item.current ? "page" : undefined}
+            aria-label={item.label}
+            className={`${ITEM} size-12 ${item.current ? "bg-foreground/10 text-foreground" : "text-muted-foreground"}`}
+            href={item.href}
+            key={item.label}
+          >
+            <Icon>{item.icon}</Icon>
+          </Link>
+        ))}
+      </nav>
+      <Link
+        className={`${ITEM_BASE} bg-background text-secondary-foreground fixed bottom-5 left-5 z-30 hidden h-14 w-14 text-center text-xs leading-tight font-semibold shadow-lg md:inline-flex`}
+        href={SIGN_IN}
+      >
+        Sign in
+      </Link>
+    </>
   );
 }
 
@@ -71,31 +110,25 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Quick links"
-      className="bg-background fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 flex gap-1 rounded-full p-2 shadow-lg md:hidden"
+      className="bg-background fixed inset-x-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 flex items-center justify-between rounded-full p-2 shadow-lg md:hidden"
     >
       {ITEMS.map((item) => (
         <Link
           aria-current={item.current ? "page" : undefined}
-          className={`${PILL} min-h-12 flex-1 flex-col gap-0.5 px-2 text-xs ${item.current ? "bg-primary/10 text-primary" : "text-foreground"}`}
+          aria-label={item.label}
+          className={`${ITEM} h-12 w-16 ${item.current ? "bg-foreground/10 text-foreground" : "text-muted-foreground"}`}
           href={item.href}
           key={item.label}
         >
-          <svg
-            aria-hidden="true"
-            fill="none"
-            height="22"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            width="22"
-          >
-            {item.icon}
-          </svg>
-          {item.phone}
+          <Icon>{item.icon}</Icon>
         </Link>
       ))}
+      <Link
+        className={`${ITEM} text-secondary-foreground h-12 px-3 text-[13px] font-semibold`}
+        href={SIGN_IN}
+      >
+        Sign in
+      </Link>
     </nav>
   );
 }
