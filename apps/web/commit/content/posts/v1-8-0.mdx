@@ -1,0 +1,56 @@
+---
+title: Plans and billing for Bookings, the first HR screens, and a stronger warning desk
+summary: Version 1.8.0 adds a Plan and billing page and app subscriptions in test mode, the first screens of the new HR app, more of the weather warning desk, cookieless funnel analytics, and business-wide deposits for Bookings.
+date: 2026-11-23
+release: 1.8.0
+---
+
+Version 1.8.0 carries the work merged after v1.7.0. It has six database
+changes, and each one only adds: new tables, new columns that are optional or
+have defaults, and one seed row. The previous release still runs against the
+new schema.
+
+### Bookings
+
+- **Plan and billing:** Studio has a Plan and billing page. It shows the
+  current subscription in plain words, the monthly price, and a button to
+  start or continue checkout. Billing runs in test mode only, and the page says
+  so until billing is switched on.
+- **App subscriptions:** subscriptions follow clear states, with a signed
+  webhook, replay protection and a safe retry window. Free trials are set per
+  business.
+- **Business-wide deposits:** a business can ask for a deposit as a percentage
+  or a fixed amount that counts toward the price. It is off by default and
+  applies only when a payment route exists. Studio Settings shows a live
+  preview, the booking page says when the deposit is refunded, and the manage
+  page shows what was paid and what remains.
+- **Finding businesses:** the Bookings home page can list businesses that opt
+  in. Studio staff actions are audited, My bookings has tabs, and every public
+  business page has a "Report this listing" link.
+
+### Weather warning desk
+
+- **Audit history** on each alert, and a Raise to warning button on a plain
+  alert.
+- **One raise at a time:** a published warning blocks a second raise on the
+  server.
+- **Automatic expiry:** a published warning now expires once every end time
+  has passed, and is recorded as expired by the system.
+- **Easier to tap:** desk menu links are at least 44 px tall, and the audit
+  history shows readable labels instead of raw ids.
+
+### The HR app
+
+- **A new app:** it starts with sign-in, an organisation picker, a staff list
+  for organisation administrators, and My record, where each person sees their
+  own employment details and leave balance. It is not deployed yet.
+
+### Platform
+
+- **Cookieless funnel analytics** for Bookings, Events and Account: no cookies,
+  no storage, only allow-listed ids, and only on production hosts. It stays off
+  until a key is set.
+- **Events** shows active tickets next to issued tickets, and the admin console
+  asks before revoking a key or deleting a feature flag.
+- **Patched images:** container images were moved to newer patch releases
+  after a staging scan found them one patch behind.
