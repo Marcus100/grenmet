@@ -455,6 +455,99 @@ stuck, a booking the salon cannot find, or a customer who cannot pay or book.
 5. Manage links in emails still work with the switch off, because `/booking/[token]`
    ignores the switch.
 
+## Importing from Acuity
+
+Owner decision (21 Nov 2026): the salon's future Acuity appointments are imported
+once, not re-entered by hand (this replaces the re-entry in section 3.6). The
+importer is `apps/api/fastapi/src/bookings/acuity_import.py`. It is rerunnable:
+each row keeps its Acuity appointment ID, so a second run adds only rows not yet
+imported.
+
+**Export (owner).** In Acuity, export the appointments list as CSV (the menu path
+is in the Acuity account). Save it as `private/acuity-export.csv` in the
+repository root. `private/` is gitignored. The file holds customer personal data:
+never commit it, and never paste its contents, customer names or the importer's
+unmatched values into a chat, a ticket or a release note. Keep counts only.
+
+**Rules the importer applies.** Dry run is the default and writes nothing.
+Cancelled rows, rows before `--since` (default: now) and rows it cannot read
+(unknown service, unknown staff, bad time, no email or phone, a name or phone
+too long for the database, an erased person) are skipped, each with its row
+number. Services match by exact name, then case-insensitively, then
+`--service-map`. A customer is matched by email. A row without an email matches
+a contact only when the phone and the full name both agree (case, accents and
+spacing are ignored); otherwise it gets a new contact, so a shared phone such as
+a family's landline never joins two people. A row with an email never writes
+that email onto an existing contact. The same email always merges into one
+contact (ADR-0028). Imported bookings are `confirmed` with no deposit. No email
+is sent unless `--notify` is given (leave it off: customers already have Acuity
+confirmations), and no webhook is sent. With `--notify`, the confirmation emails
+include the Acuity notes. An overlapping row is listed and left out; `--strict`
+stops the whole run instead.
+
+**Cancelled in Acuity after the first import.** The import is a one-off copy,
+not a sync. An appointment cancelled in Acuity after the first import stays
+`confirmed` in Barrels and keeps its reminders. Cancel it in Barrels as well
+(studio cancel, which emails the customer) before the reminders are due.
+
+**Unmatched values.** The report prints unmatched service and calendar names
+only when they are short and carry no `@` and no run of six digits. Anything
+else prints as `<redacted: check --column-map>`. A wrong column map is the usual
+cause, so check the dry run's output before keeping it anywhere.
+
+**Notes.** Acuity notes are copied into the booking's notes, cut to 1000
+characters. Notes can appear in customer emails. Before the import, the owner
+confirms that every note in the export is safe to show the customer; if not,
+clear that column first.
+
+**Reminders.** The importer cannot stop the hourly reminder job for these
+bookings: the job keys only on status, time and the contact's email. So switch
+Acuity's own reminders off before `--apply`. The first Barrels email to a
+customer is then the 24-hour reminder, which carries a manage link.
+
+**Export encoding.** The default is UTF-8, with or without a byte-order mark.
+A file in another encoding is refused with a message; re-save it as CSV UTF-8,
+or pass `--encoding cp1252` (or the file's real encoding).
+
+**Staging: dry run first (owner, or an agent with the owner's go).** Each
+command runs in one shell, and a trap removes the copied file from the container
+when the shell exits, even if a step fails:
+
+```bash
+set -e
+docker compose -p grenmet-staging cp private/acuity-export.csv api:/tmp/acuity-export.csv
+trap 'docker compose -p grenmet-staging exec -T api rm -f /tmp/acuity-export.csv' EXIT
+docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar
+docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar --apply --confirm-production --expect-count <N from the dry run>
+docker compose -p grenmet-staging exec api python -m src.bookings.acuity_import --file /tmp/acuity-export.csv --business babydoll-beauty-bar --apply --confirm-production --expect-count 0
+```
+
+Read the dry run's summary and its skipped rows before `--apply`. `--expect-count`
+makes the apply refuse unless exactly that many bookings would be created, so a
+changed file or database cannot slip through. The last command is the rerun
+check: it must report "Created: 0" and succeed.
+
+**Production (owner runs it on the host).** The same commands with `-p grenmet`,
+after the staging dry run has been reviewed and the salon has confirmed the
+skipped rows. Outside the local environment `--apply` also needs
+`--confirm-production`. Every run prints its target first: the environment, the
+database host, the business name and the organisation ID. Check that line before
+the apply.
+
+**From a local checkout** (no compose stack): from `apps/api/fastapi`, run
+`uv run --frozen --package fast-back python -m src.bookings.acuity_import --file ../../../private/acuity-export.csv --business babydoll-beauty-bar`,
+adding `--apply` when ready. This needs that checkout's database settings.
+
+**Options.** `--column-map @file.json` names the export's headers when they differ
+from Acuity's standard ones: a JSON object of field name to header, for example
+`{"email": "Client Email"}`. `--service-map @file.json` maps an Acuity service name
+to a Barrels service name. `--since 2026-12-01` sets the earliest start.
+`--strict` refuses the run if any row overlaps. `--encoding` sets the file's text
+encoding. `--expect-count N` and `--confirm-production` are described above.
+
+**After.** The studio agenda shows the imported bookings with source `studio`.
+Reminders go out 24 hours ahead for them, as for any confirmed booking.
+
 ## 4. Deposits later
 
 Keep `deposit_minor = 0` on every service until a payment provider is approved in
