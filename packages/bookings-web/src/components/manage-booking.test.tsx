@@ -33,6 +33,7 @@ const KEEP_IN_ONE_PLACE = "Keep your bookings in one place";
 const LISTED_UNDER_MY_BOOKINGS = /listed under My bookings/u;
 const PAYMENT_DUE = /Payment of EC\$225 not received yet/u;
 const DIRECTLY = /please contact the business directly\./u;
+const NAMED = /please contact Babydoll Beauty Bar/u;
 const CUTOFF =
   "Bookings can be cancelled online up to 24 hours before they start. Please contact the studio.";
 
@@ -246,6 +247,34 @@ describe("ManageBooking", () => {
 
   it("states the rules line while the booking can still change", () => {
     renderManage();
+    expect(
+      screen.getByText(
+        "No deposit for this service. Change or cancel online up to 24 hours before; after that, contact the business."
+      )
+    ).toBeVisible();
+  });
+
+  it("names the business in the rules line and the closed-changes notice", () => {
+    const { unmount } = renderManage({
+      ...booking,
+      business_name: "Babydoll Beauty Bar",
+    });
+    expect(
+      screen.getByText(
+        "No deposit for this service. Change or cancel online up to 24 hours before; after that, contact Babydoll Beauty Bar."
+      )
+    ).toBeVisible();
+    unmount();
+    renderManage({
+      ...booking,
+      business_name: "Babydoll Beauty Bar",
+      can_cancel: false,
+    });
+    expect(screen.getByText(NAMED)).toBeVisible();
+  });
+
+  it("falls back to the business when the name is empty", () => {
+    renderManage({ ...booking, business_name: "  " });
     expect(
       screen.getByText(
         "No deposit for this service. Change or cancel online up to 24 hours before; after that, contact the business."
