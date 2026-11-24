@@ -1,9 +1,6 @@
 "use client";
 
-import type {
-  BookingPublicService,
-  BookingStorefront,
-} from "@barrelsgd/api-client";
+import type { BookingStorefront } from "@barrelsgd/api-client";
 import {
   type ComponentType,
   type ReactNode,
@@ -29,12 +26,13 @@ import {
   formatMoney,
   timeZonePlace,
 } from "../lib/booking-format";
-import { payNowLine } from "../lib/booking-payment";
+import { dueAtBooking, payNowLine } from "../lib/booking-payment";
 import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
 import type { Booked, BookingFlowActions } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
 import { PaymentStatus } from "./payment-status";
+import { ServiceList } from "./service-list";
 import { SlotPicker } from "./slot-picker";
 import { Turnstile } from "./turnstile";
 import {
@@ -147,15 +145,6 @@ const FIELD_IDS: Record<FieldKey, string> = {
 
 const CODE_ID = "book-code";
 
-function byCategory(services: BookingPublicService[]) {
-  const groups = new Map<string, BookingPublicService[]>();
-  for (const service of services) {
-    const key = service.category ?? "Services";
-    groups.set(key, [...(groups.get(key) ?? []), service]);
-  }
-  return [...groups];
-}
-
 function buttonLabel(
   submitting: boolean,
   codeBusy: "send" | "verify" | null,
@@ -178,21 +167,6 @@ function statusLine(status: string): string {
     return "Your time is held while you pay. It is released if the payment does not arrive in time.";
   }
   return "Your request is in. The studio will confirm it by email.";
-}
-
-/**
- * Money an online booking of the service pays when it is made (a deposit, or
- * the full price when the business takes it by card); more than 0 needs the
- * emailed code first. Older storefront data without the field falls back to
- * the deposit.
- */
-function dueAtBooking(
-  service: { deposit_minor: number; due_at_booking_minor?: number } | null
-): number {
-  if (!service) {
-    return 0;
-  }
-  return service.due_at_booking_minor ?? service.deposit_minor;
 }
 
 /** Moves focus to an element when it appears (error summary, confirmation). */
@@ -541,6 +515,7 @@ function CodePanel({
   );
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: pre-existing size of the booking flow; splitting it is a separate change
 export function BookingFlow({
   accountInvite,
   actions,
@@ -674,6 +649,7 @@ export function BookingFlow({
     }
   };
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: pre-existing submit branches; splitting is a separate change
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (submitting || emailCode.busy) {
@@ -813,39 +789,13 @@ export function BookingFlow({
             selected={serviceId}
             storefront={storefront}
           />
-          {byCategory(storefront.services).map(([category, list]) => (
-            <div className="service-group" key={category}>
-              <h3>{category}</h3>
-              {list.map((item) => (
-                <label className="service-option" key={item.id}>
-                  <input
-                    checked={item.id === serviceId}
-                    name="service"
-                    onChange={() => pickService(item.id)}
-                    type="radio"
-                    value={item.id}
-                  />
-                  <span className="service-text">
-                    <span className="service-name">{item.name}</span>
-                    <span className="muted">
-                      {formatDuration(item.duration_min)}
-                      {item.description ? ` · ${item.description}` : ""}
-                    </span>
-                    {dueAtBooking(item) > 0 && (
-                      <span className="muted">
-                        {dueAtBooking(item) < item.price_minor
-                          ? `Deposit ${formatMoney(dueAtBooking(item), storefront.currency)} paid now`
-                          : "Paid now"}
-                      </span>
-                    )}
-                  </span>
-                  <span className="service-price">
-                    {formatMoney(item.price_minor, storefront.currency)}
-                  </span>
-                </label>
-              ))}
-            </div>
-          ))}
+          <ServiceList
+            bookAgainIds={bookAgain.map((choice) => choice.serviceId)}
+            currency={storefront.currency}
+            onPick={pickService}
+            selectedId={serviceId}
+            services={storefront.services}
+          />
           {storefront.services.length === 0 && (
             <div className="muted">
               <p>
