@@ -391,7 +391,7 @@ describe("money with add-ons ticked", () => {
     await pickService(user);
     expect(screen.getByText(RE_1)).toBeVisible();
     await tick(user, 1);
-    expect(screen.getByText(ON_TOTAL)).toBeVisible();
+    expect(await screen.findByText(ON_TOTAL)).toBeVisible();
     expect(screen.queryByText(RE_1)).toBeNull();
     expect(screen.queryByText(RE_2)).toBeNull();
     await tick(user, 1);
@@ -420,7 +420,7 @@ describe("money with add-ons ticked", () => {
     expect(screen.getByText(RE_5)).toBeVisible();
     await tick(user, 1);
     expect(screen.queryByText(RE_6)).toBeNull();
-    expect(screen.getByText(ON_TOTAL)).toBeVisible();
+    expect(await screen.findByText(ON_TOTAL)).toBeVisible();
   });
 
   it("recovers when the API still wants an emailed code: details kept, code asked for next", async () => {
