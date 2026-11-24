@@ -115,11 +115,39 @@ checks each value against the shared globals.
 - Spacing follows the shared scale (`spacing.unit` 4 px). Section gaps are
   `section-y` (40 px) on public pages.
 
+## Home page (`/`)
+
+A shop.app feel for every kind of business, not only beauty. The page sits on a
+soft grey ground (new token `--color-ground`, `#f4f5f8`, class `bg-ground`,
+declared in the app's `globals.css`); content is white cards on it with large
+radii (`rounded-3xl`, 20 px, for cards and the "Run a business?" panel;
+`rounded-2xl` for the logo tile; `rounded-full` for the search box, chips,
+buttons and navigation). No other new token: ink, `primary` and `background`
+are the shared ones.
+
+- Header: "Barrels Bookings" wordmark; on laptops (md and up) a pill navigation
+  (Home, For businesses). On phones a floating pill bar at the bottom (Home,
+  Search, For businesses), 48 px targets, padded for the safe area; the page
+  keeps bottom padding so it never covers the last line. Home carries
+  `aria-current="page"`. "My bookings" and "Account" are added once the account
+  app's address is a typed setting of this app.
+- Search is a pill GET form (`q`, hidden `category`) and works without script.
+- Categories come from the API, not a fixed list: white pill chips, the chosen
+  one navy; one scrolling row on phones, wrapped on laptops. Empty says "No
+  categories yet."
+- Businesses: the first as a large card with a "Book" pill (decoration inside
+  the one card link), the rest two across on phones and an auto-fill grid
+  (min 240 px) on laptops. The tile is a light tint of the brand colour with
+  ink text (so contrast holds for any colour), the logo when there is one, else
+  the first letter.
+
 ## Contrast (WCAG 2.1)
 
 ink/paper 17.74, secondary/paper 7.56, muted/paper 4.83, muted/surface 4.52,
 primary/paper 16.88, paper/primary 16.88, negative/paper 5.81, positive/paper
-4.81. Small text uses ink, secondary or muted only. `focus` (4.16 on paper) is
+4.81. On the home page ground (`#f4f5f8`): ink 16.4, primary 15.7; muted
+is 4.43 there, so muted text never sits directly on the ground (use ink, or a
+white card). Small text uses ink, secondary or muted only. `focus` (4.16 on paper) is
 for rings and text of 18 px or more. `sky` is decorative and never carries
 text on paper.
 

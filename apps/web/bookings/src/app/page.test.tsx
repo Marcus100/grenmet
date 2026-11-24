@@ -1,10 +1,11 @@
 import type { BookingPublicBusinessPage } from "@barrelsgd/api-client";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getPublicBusinesses } from "@/lib/public-businesses";
 import HomePage from "./page";
 
 const NO_LISTING = /No businesses listed yet/u;
+const TIDE_NAME = /^Tide Barbers/u;
 const CANNOT_LOAD = /cannot be loaded/u;
 
 vi.mock("@/env", () => ({
@@ -34,7 +35,12 @@ describe("bookings home page", () => {
 
     expect(screen.getByText(NO_LISTING)).toBeTruthy();
     expect(
-      screen.getByRole("link", { name: "For businesses" }).getAttribute("href")
+      screen
+        .getAllByRole("link", { name: "For businesses" })
+        .every((link) => link.getAttribute("href") === "/studio")
+    ).toBe(true);
+    expect(
+      screen.getByRole("link", { name: "Open the studio" }).getAttribute("href")
     ).toBe("/studio");
   });
 
@@ -57,7 +63,7 @@ describe("bookings home page", () => {
     await renderHome();
 
     expect(
-      screen.getByRole("link", { name: "Tide Barbers" }).getAttribute("href")
+      screen.getByRole("link", { name: TIDE_NAME }).getAttribute("href")
     ).toBe("/tide-barbers");
     expect(screen.queryByText(NO_LISTING)).toBeNull();
   });
@@ -80,8 +86,37 @@ describe("bookings home page", () => {
     expect(screen.getByRole("alert").textContent).toMatch(CANNOT_LOAD);
     expect(
       screen.getByRole("heading", {
-        name: "Online appointments for Grenada businesses",
+        level: 1,
+        name: "Book any appointment in Grenada",
       })
     ).toBeTruthy();
+  });
+
+  it("marks Home as the current page in both navigation bars", async () => {
+    vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
+    await renderHome();
+
+    for (const name of ["Main", "Quick links"]) {
+      const nav = screen.getByRole("navigation", { name });
+      const home = within(nav).getByRole("link", { name: "Home" });
+      expect(home.getAttribute("href")).toBe("/");
+      expect(home.getAttribute("aria-current")).toBe("page");
+    }
+    const quick = within(
+      screen.getByRole("navigation", { name: "Quick links" })
+    );
+    expect(
+      quick.getByRole("link", { name: "Studio" }).getAttribute("href")
+    ).toBe("/studio");
+    expect(
+      document.querySelectorAll(
+        'nav[aria-label="Quick links"] svg[aria-hidden="true"]'
+      )
+    ).toHaveLength(3);
+    expect(
+      within(screen.getByRole("navigation", { name: "Quick links" }))
+        .getByRole("link", { name: "Search" })
+        .getAttribute("href")
+    ).toBe("/#home-search");
   });
 });
