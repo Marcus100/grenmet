@@ -309,8 +309,11 @@ returns `healthy: true` only when every enabled ingest feed ran inside its windo
 the email outbox has no stale or dead rows. It is for staff and a future staff screen,
 not for an uptime monitor: it needs a signed-in superuser token, and those tokens expire
 within an hour, so a monitor that sent one would alarm. Success times need
-`TELEMETRY_ENABLED=true` on the worker and API (they live in Redis). A token-free
-monitoring check is tracked in a GitHub issue (see the PR for #1713).
+`TELEMETRY_ENABLED=true` on the worker and API (they live in Redis). The uptime monitor
+uses `GET /api/v1/monitoring/admin/freshness/probe` with a bearer secret in
+`MONITORING_PROBE_TOKEN` (issue #1718): HTTP 200 when healthy, 503 naming the failing
+checks otherwise. Better Stack keyword `"healthy":true` also works, but a 503 alone already
+alarms.
 
 Create these alert rules in each Sentry project (`grenmet-staging`,
 `grenmet-production`), email to the owner:

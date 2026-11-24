@@ -7011,6 +7011,18 @@ export type {
   MonitoringGetFreshnessStatus403,
   MonitoringGetFreshnessStatus422,
 } from "./MonitoringGetFreshness.js";
+export type {
+  MonitoringGetProbeHeaders,
+  MonitoringGetProbeOptions,
+  MonitoringGetProbeResponse,
+  MonitoringGetProbeResponses,
+  MonitoringGetProbeStatus200,
+  MonitoringGetProbeStatus401,
+  MonitoringGetProbeStatus404,
+  MonitoringGetProbeStatus422,
+  MonitoringGetProbeStatus429,
+  MonitoringGetProbeStatus503,
+} from "./MonitoringGetProbe.js";
 export type { MovementKind } from "./MovementKind.js";
 export { movementKind } from "./MovementKind.js";
 export type { MyDeductionPublic } from "./MyDeductionPublic.js";
@@ -8502,6 +8514,7 @@ export type {
   PrintixVoidTicketStatus409,
   PrintixVoidTicketStatus422,
 } from "./PrintixVoidTicket.js";
+export type { ProbeReport } from "./ProbeReport.js";
 export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";

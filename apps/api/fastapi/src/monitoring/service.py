@@ -23,7 +23,13 @@ from src.outbox import Outbox, OutboxStatus
 from src.utils.datetime import utc_now
 from src.worker.config import worker_settings
 
-from .schemas import EmailOutboxBacklog, FeedFreshness, FeedStatus, FreshnessReport
+from .schemas import (
+    EmailOutboxBacklog,
+    FeedFreshness,
+    FeedStatus,
+    FreshnessReport,
+    ProbeReport,
+)
 
 FRESHNESS_PERMISSION = "monitoring.freshness.read"
 EMAIL_TOPICS = ("email.send", "email.deliver")
@@ -173,4 +179,28 @@ async def freshness_report(
         telemetry_available=telemetry_available,
         feeds=feeds,
         email_outbox=backlog,
+    )
+
+
+def failing_checks(report: FreshnessReport) -> list[str]:
+    """Names of the checks behind a red verdict; empty when healthy."""
+    names: list[str] = []
+    if not report.telemetry_available:
+        names.append("telemetry")
+    for feed in report.feeds:
+        if feed.status not in {FeedStatus.FRESH, FeedStatus.DISABLED}:
+            names.append(f"feed:{feed.name}")
+    if report.email_outbox.stale_pending > worker_settings.OUTBOX_ALERT_THRESHOLD:
+        names.append("email_outbox.stale_pending")
+    if report.email_outbox.dead_last_window > worker_settings.OUTBOX_ALERT_THRESHOLD:
+        names.append("email_outbox.dead_last_window")
+    return names
+
+
+def probe_report(report: FreshnessReport) -> ProbeReport:
+    failing = failing_checks(report)
+    return ProbeReport(
+        healthy=report.healthy and not failing,
+        checked_at=report.checked_at,
+        failing_checks=failing,
     )
