@@ -46,15 +46,22 @@ export default async function HomePage({
           <HeaderNav />
         </header>
 
-        <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
-          Book any appointment in Grenada
-        </h1>
+        <BusinessListing
+          intro={
+            <>
+              <h1 className="text-3xl font-bold tracking-tight md:max-w-2xl md:text-[44px] md:leading-[1.08]">
+                Book any appointment in Grenada
+              </h1>
 
-        <p className="text-foreground -mt-2">
-          Pick a business below, or open the booking page the business sent you.
-        </p>
-
-        <BusinessListing listing={listing} query={query} />
+              <p className="text-foreground md:max-w-xl">
+                Pick a business below, or open the booking page the business
+                sent you.
+              </p>
+            </>
+          }
+          listing={listing}
+          query={query}
+        />
 
         <section
           aria-labelledby="for-businesses-heading"

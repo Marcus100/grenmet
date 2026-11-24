@@ -102,6 +102,17 @@ describe("bookings home page", () => {
       expect(home.getAttribute("href")).toBe("/");
       expect(home.getAttribute("aria-current")).toBe("page");
     }
+    const quick = within(
+      screen.getByRole("navigation", { name: "Quick links" })
+    );
+    expect(
+      quick.getByRole("link", { name: "Studio" }).getAttribute("href")
+    ).toBe("/studio");
+    expect(
+      document.querySelectorAll(
+        'nav[aria-label="Quick links"] svg[aria-hidden="true"]'
+      )
+    ).toHaveLength(3);
     expect(
       within(screen.getByRole("navigation", { name: "Quick links" }))
         .getByRole("link", { name: "Search" })

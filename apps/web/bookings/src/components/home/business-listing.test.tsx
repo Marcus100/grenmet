@@ -256,9 +256,20 @@ describe("BusinessListing", () => {
 
     const items = screen.getAllByRole("listitem");
     expect(items).toHaveLength(3);
-    expect(items[0]?.textContent).toContain("Book");
     expect(items[0]?.textContent).toContain("Fades and beards");
-    expect(items[1]?.textContent).not.toContain("Book");
+    // Every card has the decorative pill; on phones only the first shows it.
+    const pills = items.map((item) =>
+      within(item).getByText("Book").getAttribute("class")
+    );
+    expect(pills[0]).not.toContain("hidden");
+    expect(pills[1]).toContain("hidden md:inline-flex");
+    expect(pills.every(Boolean)).toBe(true);
+    expect(
+      items.every(
+        (item) =>
+          within(item).getByText("Book").getAttribute("aria-hidden") === "true"
+      )
+    ).toBe(true);
   });
 
   it("keeps the chosen category in a hidden field of the search form", () => {
