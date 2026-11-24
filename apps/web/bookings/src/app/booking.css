@@ -17,9 +17,9 @@
   border-radius: var(--radius);
   transition:
     transform 140ms var(--ease-out),
-    background-color 150ms var(--ease-out),
-    border-color 150ms var(--ease-out),
-    opacity 150ms var(--ease-out);
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    opacity 120ms ease-out;
 }
 .btn:focus-visible,
 .chip:has(input:focus-visible),
@@ -208,9 +208,9 @@
   border-radius: calc(var(--radius) + 4px);
   transition:
     transform 140ms var(--ease-out),
-    background-color 150ms var(--ease-out),
-    border-color 150ms var(--ease-out),
-    opacity 150ms var(--ease-out);
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    opacity 120ms ease-out;
 }
 .service-option:active {
   border-color: var(--primary);
@@ -280,6 +280,15 @@
 .chip {
   position: relative;
   cursor: pointer;
+  transition: transform 140ms var(--ease-out);
+}
+/*
+  Pressed feedback scales the label, never the span inside it: a transformed
+  span would paint above the invisible radio input that covers the chip, and a
+  tap would no longer land on the input (browser tests then retry forever).
+*/
+.chip:active {
+  transform: scale(var(--press-scale));
 }
 /* The focus ring is drawn on the label: give it the chip's rounded corners. */
 .chip:has(input:focus-visible) {
@@ -305,14 +314,12 @@
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 4px);
   transition:
-    transform 140ms var(--ease-out),
-    background-color 150ms var(--ease-out),
-    border-color 150ms var(--ease-out),
-    opacity 150ms var(--ease-out);
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    opacity 120ms ease-out;
 }
 .chip:active span {
   border-color: var(--primary);
-  transform: scale(var(--press-scale));
 }
 @media (hover: hover) and (pointer: fine) {
   .chip:hover span {
@@ -602,6 +609,10 @@ fieldset.notice {
 .book-phone-only {
   display: none;
 }
+/* Cancels the form's grid gap while the widget is empty (it was inside the fieldset before). */
+.book-turnstile {
+  margin-top: -1.5rem;
+}
 .book-sr-only {
   position: absolute;
   width: 1px;
@@ -678,9 +689,22 @@ fieldset.notice {
   .book-continue[aria-disabled="true"]:active {
     transform: none;
   }
+  /* One line tall always, so a changed summary cannot make anything jump. */
   .book-recap-bar {
     min-height: 1.5em;
-    animation: book-fade-in 150ms var(--ease-out) both;
+  }
+  /*
+    Turnstile must never sit in a display: none box (it may not solve there).
+    On steps 1 and 2 it keeps a layout box but is invisible and out of the way;
+    on step 3 it is in normal flow, so a challenge can be answered. Its negative
+    top margin cancels the grid gap while it is empty, as before.
+  */
+  .book-form[data-steps="on"] .book-turnstile[data-hidden="true"] {
+    position: absolute;
+    visibility: hidden;
+    width: 300px;
+    height: 65px;
+    pointer-events: none;
   }
   .book-recap {
     margin: 0;
@@ -688,18 +712,50 @@ fieldset.notice {
   }
   /* Sticks to the foot of the screen on steps 1 and 2 (step 3 has no bar, so
      the keyboard never covers a field). */
+  .book-hint {
+    margin: 0;
+    font-size: 0.875rem;
+  }
   .book-bar {
     position: sticky;
     bottom: 0;
     z-index: 10;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 0.125rem;
+    column-gap: 0.75rem;
+    align-items: center;
+    padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
     background: var(--background);
     border-top: 1px solid var(--border);
   }
-  .book-hint {
-    margin: 0;
-    font-size: 0.875rem;
+  /* One line with an ellipsis; the Continue button sits beside it. */
+  .book-bar .book-recap {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .book-bar .book-hint {
+    grid-column: 1;
+  }
+  .book-bar .book-continue {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+  }
+  /* A control scrolled into view (a tap target, or a test) is never left under the bar. */
+  .book-form[data-steps="on"] .chip,
+  .book-form[data-steps="on"] .service-option,
+  .book-form[data-steps="on"] .btn {
+    scroll-margin-bottom: 6rem;
+  }
+  /* The date range on its own line, the two paging buttons side by side below it. */
+  .slots-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .slots-nav > span {
+    grid-column: 1 / -1;
+    order: -1;
+    text-align: center;
   }
   .book-continue[aria-disabled="true"] {
     cursor: not-allowed;
@@ -751,32 +807,29 @@ fieldset.notice {
     transform: none;
   }
 }
-@keyframes book-draw {
+@keyframes book-reveal {
   from {
-    stroke-dashoffset: 1;
+    clip-path: inset(0 100% 0 0);
   }
   to {
-    stroke-dashoffset: 0;
+    clip-path: inset(0);
   }
 }
-/* The confirmation: the tick is drawn, then the heading rises into place. */
+/* The confirmation: the tick is revealed and the heading rises in together. */
 .book-tick {
   display: block;
   margin-bottom: 0.5rem;
+  clip-path: inset(0 100% 0 0);
   stroke: var(--success);
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-.book-tick path {
-  stroke-dasharray: 1;
-  animation: book-draw 400ms var(--ease-out) both;
+  animation: book-reveal 400ms var(--ease-out) both;
 }
 .book-done .notice-ok h2 {
-  animation: book-rise-in 350ms var(--ease-out) 300ms both;
+  animation: book-rise-in 350ms var(--ease-out) both;
 }
 @media (prefers-reduced-motion: reduce) {
-  .book-form[data-direction] .book-pane[data-active="true"],
-  .book-recap-bar {
+  .book-form[data-direction] .book-pane[data-active="true"] {
     animation: book-fade-in 150ms linear both;
   }
   .book-dot::after {
@@ -785,8 +838,8 @@ fieldset.notice {
   :root {
     --press-scale: 1;
   }
-  .book-tick path {
-    stroke-dasharray: none;
+  .book-tick {
+    clip-path: none;
     animation: book-fade-in 150ms linear both;
   }
   .book-done .notice-ok h2 {

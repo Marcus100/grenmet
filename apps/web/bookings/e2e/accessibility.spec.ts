@@ -51,11 +51,18 @@ test("the manage-booking page has no WCAG 2.1 A/AA violations axe can find at 37
   const form = page.getByRole("form", { name: "Book an appointment" });
   const times = form.getByRole("group", { exact: true, name: "Time" });
   // The radio is controlled by React, so `toPass` retries until hydration sticks.
+  // At 375 px the form shows one step at a time: choosing a service moves to
+  // the time step at once and hides the service list, so a retry must not look
+  // for the radio again once the times are showing.
   await expect(async () => {
-    await chooseService(form, CATEGORY, SERVICE);
+    if (!(await times.isVisible())) {
+      await chooseService(form, CATEGORY, SERVICE);
+    }
     await expect(times).toBeVisible({ timeout: 5000 });
   }).toPass();
   await times.getByRole("radio").first().check();
+  // Step 2 to step 3: Continue is available once a time is chosen.
+  await form.getByRole("button", { name: "Continue" }).click();
   await form.getByLabel("Name", { exact: true }).fill("Axe Scan");
   await form.getByLabel("Email", { exact: true }).fill(email);
   await form.getByRole("button", { name: "Request my booking" }).click();

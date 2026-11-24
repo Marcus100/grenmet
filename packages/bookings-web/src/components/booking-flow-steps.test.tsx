@@ -2,7 +2,7 @@ import type {
   BookingPublicAddOn,
   BookingStorefront,
 } from "@barrelsgd/api-client";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BookingFlowActions } from "../lib/booking-types";
@@ -91,7 +91,11 @@ const slots = {
   },
 };
 
-function renderFlow(shown = shop(), initialServiceId?: string) {
+function renderFlow(
+  shown = shop(),
+  initialServiceId?: string,
+  turnstileSiteKey = ""
+) {
   return render(
     <BookingFlow
       actions={actions}
@@ -99,8 +103,16 @@ function renderFlow(shown = shop(), initialServiceId?: string) {
       managePath="/booking"
       storefront={shown}
       studioName="Test Studio"
-      turnstileSiteKey=""
+      turnstileSiteKey={turnstileSiteKey}
     />
+  );
+}
+
+/** Pretends the screen is a phone, for the parts that act only there. */
+function onAPhone() {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({ matches: true }))
   );
 }
 
@@ -110,7 +122,8 @@ type User = ReturnType<typeof userEvent.setup>;
 function activePanes(): string[] {
   return [...document.querySelectorAll<HTMLElement>("[data-pane]")]
     .filter((pane) => pane.dataset.active === "true")
-    .map((pane) => pane.dataset.pane ?? "");
+    .map((pane) => pane.dataset.pane ?? "")
+    .filter((step, index, all) => all.indexOf(step) === index);
 }
 
 const heading = (text: string) =>
@@ -126,6 +139,7 @@ async function chooseTime(user: User) {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  window.history.replaceState(null, "");
   vi.mocked(loadSlots).mockResolvedValue(slots);
 });
 
@@ -365,5 +379,312 @@ describe("step direction", () => {
     await user.click(screen.getByRole("button", BOOK));
     await waitFor(() => expect(activePanes()).toEqual(["2"]));
     expect(form()).toHaveAttribute("data-direction", "back");
+  });
+});
+
+const PAYLOAD_KEYS = [
+  "email",
+  "idempotencyKey",
+  "marketingConsent",
+  "name",
+  "notes",
+  "phone",
+  "serviceId",
+  "startsAt",
+  "turnstileToken",
+  "website",
+];
+
+async function reachDetails(user: User) {
+  await chooseLashes(user);
+  await chooseTime(user);
+  await user.click(screen.getByRole("button", CONTINUE));
+  await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+  await user.type(screen.getByLabelText("Email"), "ada@example.com");
+}
+
+describe("phone path to a booking", () => {
+  it("sends one booking with the usual payload", async () => {
+    const user = userEvent.setup();
+    submitBooking.mockResolvedValue({
+      ok: true,
+      data: {
+        booking: {
+          id: "b1",
+          status: "pending",
+          service_id: LASHES,
+          service_name: "Classic lashes",
+          provider_id: "p1",
+          provider_name: "Jeriann",
+          starts_at: TUE,
+          ends_at: "2027-01-05T14:30:00Z",
+          timezone: "America/Grenada",
+          customer_name: "Ada Lovelace",
+          price_minor: 7000,
+          deposit_minor: 0,
+          currency: "XCD",
+          cancel_cutoff_hours: 24,
+          can_cancel: true,
+          contact: NO_CONTACT,
+        },
+        manageToken: "tok",
+      },
+    });
+    renderFlow();
+    await reachDetails(user);
+    await user.click(screen.getByRole("button", BOOK));
+    await screen.findByRole("heading", { name: "Thank you, Ada" });
+    expect(submitBooking).toHaveBeenCalledTimes(1);
+    const sent = submitBooking.mock.calls[0]?.[0];
+    expect(Object.keys(sent ?? {}).sort()).toEqual(PAYLOAD_KEYS);
+    expect(sent).toMatchObject({
+      serviceId: LASHES,
+      startsAt: TUE,
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      marketingConsent: false,
+      website: "",
+    });
+  });
+
+  it("does nothing when a disabled Continue is pressed", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await user.click(screen.getByRole("button", CONTINUE));
+    expect(heading("Step 1 of 3: Service")).toBeInTheDocument();
+    expect(activePanes()).toEqual(["1"]);
+  });
+
+  it("shows the email-code request on step 3 when the API wants a code", async () => {
+    const user = userEvent.setup();
+    submitBooking.mockResolvedValue({
+      ok: false,
+      code: "email_unverified",
+      message: "We need to confirm your email again.",
+    });
+    renderFlow();
+    await reachDetails(user);
+    await user.click(screen.getByRole("button", BOOK));
+    expect(
+      await screen.findByText("We need to confirm your email again.")
+    ).toBeVisible();
+    expect(activePanes()).toEqual(["3"]);
+    expect(
+      screen.getByRole("button", { name: "Email me a verification code" })
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    ["rate_limited", "Too many tries. Please wait a few minutes."],
+    ["invalid", "Please check your details and try again."],
+  ] as const)(
+    "keeps step 3 and shows the summary for %s",
+    async (code, message) => {
+      const user = userEvent.setup();
+      submitBooking.mockResolvedValue({ ok: false, code, message });
+      renderFlow();
+      await reachDetails(user);
+      await user.click(screen.getByRole("button", BOOK));
+      expect(await screen.findByRole("alert")).toHaveTextContent(message);
+      expect(activePanes()).toEqual(["3"]);
+      expect(heading("Step 3 of 3: Details")).toBeInTheDocument();
+    }
+  );
+
+  it("returns to the time step with the message when add-ons are gone", async () => {
+    const user = userEvent.setup();
+    const message = "Add-ons are not available for this booking any more.";
+    submitBooking.mockResolvedValue({
+      ok: false,
+      code: "add_ons_unavailable",
+      message,
+    });
+    renderFlow(shop([addOn]));
+    await chooseLashes(user);
+    await user.click(screen.getByRole("checkbox", { name: EXTRA_LASH }));
+    await user.click(screen.getByRole("button", CONTINUE));
+    await chooseTime(user);
+    await user.click(screen.getByRole("button", CONTINUE));
+    await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    await user.click(screen.getByRole("button", BOOK));
+    expect((await screen.findAllByText(message)).length).toBeGreaterThan(0);
+    await waitFor(() => expect(activePanes()).toEqual(["2"]));
+  });
+});
+
+describe("implicit submit on a phone", () => {
+  it("moves to the next step instead of validating hidden fields", async () => {
+    const user = userEvent.setup();
+    onAPhone();
+    try {
+      renderFlow(shop([addOn]));
+      fireEvent.submit(screen.getByRole("form"));
+      expect(activePanes()).toEqual(["1"]);
+      expect(screen.queryByRole("alert")).toBeNull();
+
+      await chooseLashes(user);
+      expect(activePanes()).toEqual(["1"]);
+      fireEvent.submit(screen.getByRole("form"));
+      expect(await screen.findByText(RECAP_LASHES)).toBeInTheDocument();
+      expect(activePanes()).toEqual(["2"]);
+      expect(screen.queryByRole("alert")).toBeNull();
+
+      fireEvent.submit(screen.getByRole("form"));
+      expect(activePanes()).toEqual(["2"]);
+      expect(submitBooking).not.toHaveBeenCalled();
+      expect(screen.queryByRole("alert")).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
+describe("Turnstile placement", () => {
+  const widget = { remove: vi.fn(), render: vi.fn(() => "w1"), reset: vi.fn() };
+
+  it("is rendered on every step, never inside a hidden pane", async () => {
+    const user = userEvent.setup();
+    window.turnstile = widget;
+    try {
+      renderFlow(shop(), undefined, "site-key");
+      const box = () => {
+        const found = document.querySelector<HTMLElement>(".book-turnstile");
+        if (!found) {
+          throw new Error("no Turnstile container");
+        }
+        return found;
+      };
+      expect(box().closest(".book-pane")).toBeNull();
+      expect(box()).toHaveAttribute("data-hidden", "true");
+      await chooseLashes(user);
+      expect(box().closest(".book-pane")).toBeNull();
+      expect(box()).toHaveAttribute("data-hidden", "true");
+      await chooseTime(user);
+      await user.click(screen.getByRole("button", CONTINUE));
+      expect(box().closest(".book-pane")).toBeNull();
+      expect(box()).toHaveAttribute("data-hidden", "false");
+      expect(widget.render).toHaveBeenCalledTimes(1);
+    } finally {
+      window.turnstile = undefined;
+    }
+  });
+});
+
+describe("browser Back on a phone", () => {
+  it("steps back through the flow and keeps what was chosen", async () => {
+    const user = userEvent.setup();
+    onAPhone();
+    try {
+      renderFlow();
+      await chooseLashes(user);
+      expect(window.history.state).toEqual({ bookingStep: 2 });
+      await chooseTime(user);
+      await user.click(screen.getByRole("button", CONTINUE));
+      expect(window.history.state).toEqual({ bookingStep: 3 });
+      await user.type(screen.getByLabelText("Name"), "Ada");
+
+      window.history.back();
+      await waitFor(() => expect(activePanes()).toEqual(["2"]));
+      expect(screen.getByRole("radio", { name: "9:30 am" })).toBeChecked();
+      expect(document.querySelector("form")).toHaveAttribute(
+        "data-direction",
+        "back"
+      );
+
+      await user.click(screen.getByRole("button", { name: "Back" }));
+      await waitFor(() => expect(activePanes()).toEqual(["1"]));
+      expect(screen.getByRole("radio", { name: LASHES_NAME })).toBeChecked();
+      await user.click(screen.getByRole("button", CONTINUE));
+      await user.click(screen.getByRole("button", CONTINUE));
+      expect(screen.getByLabelText("Name")).toHaveValue("Ada");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("adds no history entries away from a phone", async () => {
+    const user = userEvent.setup();
+    const before = window.history.length;
+    renderFlow();
+    await chooseLashes(user);
+    await chooseTime(user);
+    await user.click(screen.getByRole("button", CONTINUE));
+    expect(window.history.length).toBe(before);
+  });
+
+  it("keeps showing the confirmation when Back is pressed after booking", async () => {
+    const user = userEvent.setup();
+    onAPhone();
+    submitBooking.mockResolvedValue({
+      ok: true,
+      data: {
+        booking: {
+          id: "b1",
+          status: "pending",
+          service_id: LASHES,
+          service_name: "Classic lashes",
+          provider_id: "p1",
+          provider_name: "Jeriann",
+          starts_at: TUE,
+          ends_at: "2027-01-05T14:30:00Z",
+          timezone: "America/Grenada",
+          customer_name: "Ada Lovelace",
+          price_minor: 7000,
+          deposit_minor: 0,
+          currency: "XCD",
+          cancel_cutoff_hours: 24,
+          can_cancel: true,
+          contact: NO_CONTACT,
+        },
+        manageToken: "tok",
+      },
+    });
+    try {
+      renderFlow();
+      await reachDetails(user);
+      await user.click(screen.getByRole("button", BOOK));
+      await screen.findByRole("heading", { name: "Thank you, Ada" });
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(
+        screen.getByRole("heading", { name: "Thank you, Ada" })
+      ).toBeInTheDocument();
+      expect(screen.queryByLabelText("Name")).toBeNull();
+      expect(submitBooking).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
+describe("service links and disappearing services", () => {
+  it("starts at step 1 for a linked service that has add-ons", () => {
+    renderFlow(shop([addOn]), LASHES);
+    expect(heading("Step 1 of 3: Service")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: LASHES_NAME })).toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: EXTRA_LASH })
+    ).toBeInTheDocument();
+  });
+
+  it("goes back to step 1 when the chosen service is no longer offered", async () => {
+    const user = userEvent.setup();
+    const view = renderFlow();
+    await chooseLashes(user);
+    expect(activePanes()).toEqual(["2"]);
+    const without = shop();
+    without.services = without.services.filter((s) => s.id !== LASHES);
+    view.rerender(
+      <BookingFlow
+        actions={actions}
+        managePath="/booking"
+        storefront={without}
+        studioName="Test Studio"
+        turnstileSiteKey=""
+      />
+    );
+    await waitFor(() => expect(activePanes()).toEqual(["1"]));
+    expect(heading("Step 1 of 3: Service")).toBeInTheDocument();
   });
 });

@@ -20,7 +20,7 @@ export const STEP_NAMES: Record<BookingStep, string> = {
 const PHONE_QUERY = "(max-width: 767px)";
 
 /** True on a phone-sized screen; false where matchMedia is missing (tests, old browsers). */
-function onPhone(): boolean {
+export function onPhone(): boolean {
   return (
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
@@ -28,11 +28,28 @@ function onPhone(): boolean {
   );
 }
 
+/** The step an entry of this flow's own history stands for, if it is one. */
+function stepOfEntry(state: unknown): BookingStep | null {
+  if (
+    typeof state !== "object" ||
+    state === null ||
+    !("bookingStep" in state)
+  ) {
+    return null;
+  }
+  const value = state.bookingStep;
+  return value === 2 || value === 3 ? value : null;
+}
+
 /**
  * Which of the three steps is showing. The state works at any width; only the
  * host CSS applies it, and only below `md` (and only once `enhanced`, so a page
  * whose JavaScript has not loaded shows every section). Nothing chosen lives
  * here: the flow keeps every choice, so moving between steps loses nothing.
+ *
+ * On phones each move forward also pushes a history entry (same URL), so the
+ * browser's or phone's Back goes to the previous step instead of leaving the
+ * page and losing what was typed. From `md` up no entry is pushed.
  */
 export function useBookingSteps({
   hasService,
@@ -48,9 +65,15 @@ export function useBookingSteps({
   // Unset until the first change, so nothing animates on page load.
   const [direction, setDirection] = useState<StepDirection | undefined>();
   const headingRef = useRef<HTMLHeadingElement>(null);
-  // Focus moves only after a step change the person made, not after an
-  // automatic return to an earlier step (the error summary owns focus then).
-  const moveFocus = useRef(false);
+  // Counts moves the person made; focus moves to the heading after each one,
+  // but not after an automatic return to an earlier step (the error summary
+  // owns focus then).
+  const [focusTick, setFocusTick] = useState(0);
+  const latest = useRef({ hasService, hasTime, step });
+  latest.current = { hasService, hasTime, step };
+  // The step the first entry of this flow's history stands for.
+  const baseStep = useRef<BookingStep>(initialStep);
+  const pushed = useRef(false);
 
   useEffect(() => {
     setEnhanced(true);
@@ -61,35 +84,78 @@ export function useBookingSteps({
     if (step === 3 && !hasTime) {
       setDirection("back");
       setStep(2);
+      if (onPhone() && stepOfEntry(window.history.state) === 3) {
+        // Drop the entry for the step we just left; popstate lands on step 2.
+        window.history.back();
+      }
     } else if (step !== 1 && !hasService) {
       setDirection("back");
       setStep(1);
     }
   }, [hasService, hasTime, step]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: runs after each step change
   useEffect(() => {
-    if (!moveFocus.current) {
-      return;
-    }
-    moveFocus.current = false;
-    if (!onPhone()) {
+    if (focusTick === 0 || !onPhone()) {
       return;
     }
     headingRef.current?.focus();
     headingRef.current?.scrollIntoView?.({ block: "start" });
-  }, [step]);
+  }, [focusTick]);
 
-  const current = useRef(step);
-  current.current = step;
-  const goTo = useCallback((next: BookingStep) => {
-    if (next === current.current) {
+  const move = useCallback((next: BookingStep) => {
+    const from = latest.current.step;
+    if (next === from) {
       return;
     }
-    moveFocus.current = true;
-    setDirection(next > current.current ? "forward" : "back");
+    setFocusTick((n) => n + 1);
+    setDirection(next > from ? "forward" : "back");
     setStep(next);
   }, []);
 
-  return { direction, enhanced, goTo, headingRef, step };
+  const goTo = useCallback(
+    (next: BookingStep) => {
+      const from = latest.current.step;
+      if (next > from && onPhone()) {
+        if (stepOfEntry(window.history.state) === null) {
+          baseStep.current = from;
+        }
+        window.history.pushState({ bookingStep: next }, "");
+        pushed.current = true;
+      }
+      move(next);
+    },
+    [move]
+  );
+
+  // The in-page Back: undo the entry this flow pushed, else just change step.
+  const goBack = useCallback(() => {
+    const from = latest.current.step;
+    if (onPhone() && stepOfEntry(window.history.state) === from) {
+      window.history.back();
+      return;
+    }
+    move(from === 3 ? 2 : 1);
+  }, [move]);
+
+  // The browser's or phone's own Back and Forward.
+  useEffect(() => {
+    const onPop = (event: PopStateEvent) => {
+      if (!pushed.current) {
+        return;
+      }
+      let target = stepOfEntry(event.state) ?? baseStep.current;
+      const { hasService: gotService, hasTime: gotTime } = latest.current;
+      if (target === 3 && !gotTime) {
+        target = 2;
+      }
+      if (target !== 1 && !gotService) {
+        target = 1;
+      }
+      move(target);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [move]);
+
+  return { direction, enhanced, goBack, goTo, headingRef, step };
 }

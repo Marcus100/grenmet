@@ -56,7 +56,7 @@ import { ServiceList } from "./service-list";
 import { SlotPicker } from "./slot-picker";
 import { Turnstile } from "./turnstile";
 import { useAddOns } from "./use-add-ons";
-import { useBookingSteps } from "./use-booking-steps";
+import { onPhone, useBookingSteps } from "./use-booking-steps";
 import {
   CODE_LENGTH,
   TOKEN_LOADING_MESSAGE,
@@ -253,12 +253,7 @@ function BookingDone({
           width="40"
         >
           <circle cx="20" cy="20" fill="none" r="18" strokeWidth="2.5" />
-          <path
-            d="M11 21l6 6 12-13"
-            fill="none"
-            pathLength={1}
-            strokeWidth="3"
-          />
+          <path d="M11 21l6 6 12-13" fill="none" strokeWidth="3" />
         </svg>
         <h2 id="book-done" ref={headingRef} tabIndex={-1}>
           Thank you, {booking.customer_name.split(" ")[0]}
@@ -881,11 +876,17 @@ export function BookingFlow({
       : null
   );
   const [startsAt, setStartsAt] = useState<string | null>(null);
+  const service = storefront.services.find((s) => s.id === serviceId) ?? null;
   const steps = useBookingSteps({
-    hasService: serviceId !== null,
+    hasService: service !== null,
     hasTime: startsAt !== null,
-    initialStep: serviceId === null ? 1 : 2,
+    // A linked service starts at the time step, unless it has add-ons to offer.
+    initialStep:
+      service === null || addOnsFor(storefront.add_ons, service.id).length > 0
+        ? 1
+        : 2,
   });
+  const { step } = steps;
   const addOns = useAddOns({
     addOns: storefront.add_ons,
     serviceId,
@@ -967,7 +968,6 @@ export function BookingFlow({
     reviseErrors({ notes: value });
   };
 
-  const service = storefront.services.find((s) => s.id === serviceId) ?? null;
   const totals = service
     ? addOnTotals(service, addOns.offered, addOns.ids)
     : null;
@@ -1050,6 +1050,16 @@ export function BookingFlow({
     if (submitting || emailCode.busy) {
       return;
     }
+    // Enter on a radio or checkbox in step 1 or 2 submits the form: on a phone
+    // that means "next step", never a validation of fields that are not shown.
+    if (steps.enhanced && step !== 3 && onPhone()) {
+      if (step === 1 && service) {
+        steps.goTo(2);
+      } else if (step === 2 && startsAt) {
+        steps.goTo(3);
+      }
+      return;
+    }
     if (timesBusy && startsAt) {
       setFormError(TIMES_UPDATING);
       return;
@@ -1068,6 +1078,14 @@ export function BookingFlow({
     });
     setErrors(found);
     setFormError(null);
+    // A problem in a part that is not on screen: take the person to it.
+    if (steps.enhanced && onPhone()) {
+      if (found.service) {
+        steps.goTo(1);
+      } else if (found.time) {
+        steps.goTo(2);
+      }
+    }
     const gate = submitGate({
       found,
       serviceId,
@@ -1148,7 +1166,6 @@ export function BookingFlow({
     );
   }
 
-  const { step } = steps;
   const recap = recapLine({
     currency: storefront.currency,
     dueMinor: knownDue,
@@ -1172,7 +1189,7 @@ export function BookingFlow({
         {steps.enhanced && (
           <StepHeader
             headingRef={steps.headingRef}
-            onBack={() => steps.goTo(step === 3 ? 2 : 1)}
+            onBack={steps.goBack}
             step={step}
           />
         )}
@@ -1310,14 +1327,26 @@ export function BookingFlow({
                 />
               </label>
             </div>
+          </fieldset>
+        </StepPane>
 
+        {/* Outside the panes on purpose: Cloudflare cannot be trusted to solve
+            in a `display: none` box, so on phone steps 1 and 2 it is kept in
+            layout but invisible (see `.book-turnstile` in the host CSS). */}
+        {turnstileSiteKey ? (
+          <div
+            className="book-turnstile"
+            data-hidden={steps.enhanced && step !== 3}
+          >
             <Turnstile
               onToken={setToken}
               resetKey={resetKey}
               siteKey={turnstileSiteKey}
             />
-          </fieldset>
+          </div>
+        ) : null}
 
+        <StepPane active={step === 3} step={3}>
           {stepOpen && (
             <CodePanel
               busy={emailCode.busy}

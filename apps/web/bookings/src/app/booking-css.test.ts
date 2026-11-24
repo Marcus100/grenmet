@@ -93,8 +93,10 @@ describe("booking.css motion", () => {
     expect(css).toContain("--press-scale: 0.97");
     expect(css).toContain("scale(var(--press-scale))");
     expect(css).toContain("transform 140ms var(--ease-out)");
-    expect(css).toContain("book-draw 400ms var(--ease-out) both");
-    expect(css).toContain("book-rise-in 350ms var(--ease-out) 300ms both");
+    expect(css).toContain("book-reveal 400ms var(--ease-out) both");
+    expect(css).toContain("clip-path: inset(0 100% 0 0)");
+    expect(css).toContain("book-rise-in 350ms var(--ease-out) both");
+    expect(css).not.toContain("stroke-dashoffset");
   });
 
   it("falls back to a plain fade under reduced motion", () => {
@@ -105,5 +107,30 @@ describe("booking.css motion", () => {
     expect(reduced).toContain(".book-dot::after {\n    transition: none;");
     expect(reduced).toContain("--press-scale: 1");
     expect(reduced).not.toContain("translateX");
+  });
+});
+
+describe("booking.css Turnstile on phones", () => {
+  it("hides the widget without display: none so it stays solvable", () => {
+    const block = blockFor(
+      '.book-form[data-steps="on"] .book-turnstile[data-hidden="true"]'
+    );
+    expect(block).toContain("visibility: hidden");
+    expect(block).toContain("position: absolute");
+    expect(block).toContain("pointer-events: none");
+    expect(block).not.toContain("display");
+  });
+
+  it("keeps original colour transition timings and gives transform its own", () => {
+    expect(css).toContain("background-color 120ms ease-out");
+    expect(css).not.toContain("background-color 150ms");
+  });
+});
+
+describe("booking.css chips", () => {
+  it("scales the label on press, never the span over the radio input", () => {
+    expect(blockFor(".chip:active")).toContain("scale(var(--press-scale))");
+    expect(blockFor(".chip span")).not.toContain("transform");
+    expect(blockFor(".chip:active span")).not.toContain("transform");
   });
 });

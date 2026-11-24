@@ -123,9 +123,7 @@ export function StepBar({
 }) {
   return (
     <div className="book-bar book-phone-only">
-      <p className="book-recap book-recap-bar" key={recap}>
-        {recap}
-      </p>
+      <p className="book-recap book-recap-bar">{recap}</p>
       {!canContinue && (
         <p className="book-hint muted" id="book-continue-hint">
           {hintFor(step)}
