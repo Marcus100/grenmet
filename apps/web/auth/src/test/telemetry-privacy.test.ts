@@ -117,3 +117,33 @@ it("opts out of every Sentry 11 customer-content collection category", () => {
     frameContextLines: 0,
   });
 });
+
+const PERSONAL_TEXT = /jane|Jane|555/u;
+
+it("keeps a masked message for runtime error types only", () => {
+  const result = scrubSentryEvent({
+    exception: {
+      values: [
+        {
+          type: "TypeError",
+          value: "Cannot read properties of undefined (reading 'name')",
+        },
+        {
+          type: "TypeError",
+          value:
+            "Failed to fetch https://api.example.test/u/jane@example.test?t=1 for 'Jane Doe' +1 473 555 0100 a1b2c3d4e5f6a7b8c9d0e1f2",
+        },
+        { type: "Error", value: "Jane Doe could not book" },
+      ],
+    },
+  });
+  const [kept, masked, appThrown] = result.exception.values;
+  expect(kept?.value).toBe(
+    "Cannot read properties of undefined (reading 'name')"
+  );
+  expect(masked?.value).toBe(
+    "Failed to fetch <url> for '<text>' <number> <id>"
+  );
+  expect(appThrown?.value).toBe("[redacted]");
+  expect(JSON.stringify(result)).not.toMatch(PERSONAL_TEXT);
+});

@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from src.telemetry import scrub_sentry_event, sentry_options
+from src.telemetry import safe_error_text, scrub_sentry_event, sentry_options
 
 
 class PrivacyTests(unittest.TestCase):
@@ -87,3 +87,38 @@ class PrivacyTests(unittest.TestCase):
     def test_transactions_are_intentionally_dropped(self):
         before_send_transaction = sentry_options()["before_send_transaction"]
         self.assertIsNone(before_send_transaction({"type": "transaction"}, {}))
+
+
+class SafeErrorTextTests(unittest.TestCase):
+    def _event(self, value: str) -> dict:
+        return {"exception": {"values": [{"type": "X", "value": value}]}}
+
+    def test_keeps_a_masked_message_for_our_own_errors(self):
+        from src.exceptions import AppException
+
+        error = AppException(
+            "Booking for 'Jane Doe' at https://x.test/a?t=1 by jane@example.test "
+            "+1 473 555 0100 token a1b2c3d4e5f6a7b8c9d0e1f2 is not in 'pending'",
+            409,
+        )
+        result = scrub_sentry_event(
+            self._event(error.message), {"exc_info": (AppException, error, None)}
+        )
+        self.assertEqual(
+            result["exception"]["values"][0]["value"],
+            "Booking for '<text>' at <url> by <email> <number> token <id> is not in 'pending'",
+        )
+
+    def test_other_errors_stay_redacted(self):
+        error = ValueError("Jane Doe")
+        result = scrub_sentry_event(
+            self._event("Jane Doe"), {"exc_info": (ValueError, error, None)}
+        )
+        self.assertEqual(result["exception"]["values"][0]["value"], "[redacted]")
+
+    def test_without_a_hint_everything_stays_redacted(self):
+        result = scrub_sentry_event(self._event("Jane Doe"), {})
+        self.assertEqual(result["exception"]["values"][0]["value"], "[redacted]")
+
+    def test_long_messages_are_cut(self):
+        self.assertEqual(len(safe_error_text("word " * 100)), 200)

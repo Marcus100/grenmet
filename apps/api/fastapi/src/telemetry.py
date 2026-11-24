@@ -24,7 +24,51 @@ def _tag_allowed(key: str, value: object) -> bool:
     return key != "user_id" or _OPAQUE_ID.fullmatch(value) is not None
 
 
-def scrub_sentry_event(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str, Any]:
+_URL_TEXT = re.compile(r"\b[a-z][a-z0-9+.-]*://\S+", re.IGNORECASE)
+# Long tokens with at least one digit (IDs, keys); long code words have none.
+_TOKEN_TEXT = re.compile(r"\b(?=[A-Za-z_-]*\d)[A-Za-z0-9_-]{20,}\b")
+_QUOTED_TEXT = re.compile(r"([\"'`])([^\"'`]*)\1")
+_IDENTIFIER = re.compile(r"[A-Za-z_][\w.]{0,40}")
+SAFE_TEXT_LIMIT = 200
+
+
+def safe_error_text(text: str) -> str:
+    """Our own error message with anything that could be customer content masked.
+
+    Links, emails, long numbers, tokens and quoted text other than a code name
+    become placeholders. Mirrors ``safeErrorText`` in
+    packages/ui/src/lib/sentry-privacy.ts.
+    """
+    text = _URL_TEXT.sub("<url>", text)
+    text = _EMAIL.sub("<email>", text)
+    text = _TOKEN_TEXT.sub("<id>", text)
+    text = _LONG_NUMBER.sub("<number>", text)
+    text = _QUOTED_TEXT.sub(
+        lambda m: (
+            m.group(0)
+            if _IDENTIFIER.fullmatch(m.group(2))
+            else f"{m.group(1)}<text>{m.group(1)}"
+        ),
+        text,
+    )
+    return text[:SAFE_TEXT_LIMIT]
+
+
+def _own_error(hint: dict[str, Any]) -> bool:
+    """True when the event's exception is one of ours (an ``AppException``).
+
+    Our messages are fixed sentences written in this code base, so they are kept
+    after masking; any other exception's text may carry request data.
+    """
+    from src.exceptions import AppException
+
+    exc_info = hint.get("exc_info") if isinstance(hint, dict) else None
+    if not isinstance(exc_info, tuple) or len(exc_info) < 2:
+        return False
+    return isinstance(exc_info[1], AppException)
+
+
+def scrub_sentry_event(event: dict[str, Any], hint: dict[str, Any]) -> dict[str, Any]:
     """Retain error types/stacks, never request payloads, locals or draft content."""
     had_logentry = bool(event.get("logentry"))
     tags = event.get("tags")
@@ -50,9 +94,15 @@ def scrub_sentry_event(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str
         event["message"] = "[redacted]"
     elif had_logentry:
         event["message"] = "Log event (details redacted)"
-    for exception in event.get("exception", {}).get("values", []):
+    values = event.get("exception", {}).get("values", [])
+    own = _own_error(hint)
+    for index, exception in enumerate(values):
         if exception.get("value"):
-            exception["value"] = "[redacted]"
+            # Sentry lists chained exceptions oldest first; the raised one is last.
+            keep = own and index == len(values) - 1
+            exception["value"] = (
+                safe_error_text(exception["value"]) if keep else "[redacted]"
+            )
         for frame in exception.get("stacktrace", {}).get("frames", []):
             frame.pop("vars", None)
     return event

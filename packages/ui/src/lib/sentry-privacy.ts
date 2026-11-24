@@ -85,6 +85,49 @@ function keepSafeTags(tags: unknown): Record<string, string> | undefined {
   return Object.keys(kept).length > 0 ? kept : undefined;
 }
 
+/**
+ * Error types the JavaScript engine or browser raises itself. Their messages are
+ * written by the runtime (for example "Cannot read properties of undefined
+ * (reading 'name')"), so after masking they are kept: without them an error
+ * cannot be diagnosed. Messages of every other type, including app-thrown
+ * `Error`s that may carry customer text, stay "[redacted]".
+ */
+const RUNTIME_ERROR_TYPES = new Set([
+  "AbortError",
+  "ChunkLoadError",
+  "EvalError",
+  "RangeError",
+  "ReferenceError",
+  "SyntaxError",
+  "TimeoutError",
+  "TypeError",
+  "URIError",
+]);
+const SAFE_TEXT_LIMIT = 200;
+const URL_TEXT = /\b[a-z][a-z0-9+.-]*:\/\/\S+/giu;
+const EMAIL_TEXT = /[^\s@<>"'`]+@[^\s@<>"'`]+\.[a-z]{2,}/giu;
+// Long tokens with at least one digit (IDs, keys); long code words have none.
+const TOKEN_TEXT = /\b(?=[A-Za-z_-]*\d)[A-Za-z0-9_-]{20,}\b/gu;
+const LONG_NUMBER_TEXT = /\+?\d(?:[\s().-]*\d){6,}/gu;
+const QUOTED_TEXT = /(["'`])([^"'`]*)\1/gu;
+const IDENTIFIER = /^[A-Za-z_$][\w$.]{0,40}$/u;
+
+/**
+ * A runtime error message with anything that could be customer content masked:
+ * links, emails, long numbers, tokens and quoted text other than a code name.
+ */
+export function safeErrorText(text: string): string {
+  return text
+    .replace(URL_TEXT, "<url>")
+    .replace(EMAIL_TEXT, "<email>")
+    .replace(TOKEN_TEXT, "<id>")
+    .replace(LONG_NUMBER_TEXT, "<number>")
+    .replace(QUOTED_TEXT, (match, quote: string, inner: string) =>
+      IDENTIFIER.test(inner) ? match : `${quote}<text>${quote}`
+    )
+    .slice(0, SAFE_TEXT_LIMIT);
+}
+
 /** Keep error types and stack locations, excluding customer content and identity. */
 export function scrubSentryEvent<T extends ErrorEvent>(event: T): T {
   event.user = keepUserId(event.user);
@@ -97,7 +140,12 @@ export function scrubSentryEvent<T extends ErrorEvent>(event: T): T {
   event.transaction = undefined;
   if (event.message) event.message = "[redacted]";
   for (const exception of event.exception?.values ?? []) {
-    if (exception.value) exception.value = "[redacted]";
+    if (exception.value) {
+      exception.value =
+        exception.type && RUNTIME_ERROR_TYPES.has(exception.type)
+          ? safeErrorText(exception.value)
+          : "[redacted]";
+    }
     for (const frame of exception.stacktrace?.frames ?? [])
       frame.vars = undefined;
   }
