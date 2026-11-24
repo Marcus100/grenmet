@@ -92,6 +92,14 @@ describe("bookings home page", () => {
     ).toBeTruthy();
   });
 
+  it("has exactly one h1, and it is the first heading on the page", async () => {
+    vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
+    await renderHome();
+
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getAllByRole("heading")[0]?.tagName).toBe("H1");
+  });
+
   it("marks Home as the current page in both navigation bars", async () => {
     vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
     await renderHome();

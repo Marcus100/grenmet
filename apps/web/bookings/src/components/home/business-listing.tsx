@@ -14,8 +14,11 @@ import { safeLogoUrl } from "@/lib/storefront-brand";
 const LINK =
   "inline-flex min-h-11 items-center rounded-full px-2 font-medium underline underline-offset-4 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
 const CHIP =
-  "inline-flex min-h-11 shrink-0 items-center rounded-full bg-background md:bg-ground px-4 text-sm font-medium shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
-const CHIP_CHOSEN = "bg-primary text-primary-foreground md:bg-primary";
+  "inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
+// One background per chip: the two never share a class list, so the result
+// does not depend on the order of the rules in the stylesheet.
+const CHIP_IDLE = "bg-background md:bg-ground";
+const CHIP_CHOSEN = "bg-primary text-primary-foreground";
 const CARD =
   "bg-background text-foreground rounded-[1.75rem] shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
 
@@ -40,6 +43,10 @@ export function listingHref(query: Partial<ListingQuery>): {
   return Object.keys(params).length > 0
     ? { pathname: "/", query: params }
     : { pathname: "/" };
+}
+
+function chipClass(selected: boolean): string {
+  return `${CHIP} ${selected ? CHIP_CHOSEN : CHIP_IDLE}`;
 }
 
 /** Initial shown when a business has no logo. */
@@ -86,7 +93,7 @@ function BusinessCard({
       </span>
       <span className="flex flex-1 flex-col gap-2 px-1 pb-1 md:px-1.5 md:pb-1.5">
         <span
-          className={`flex items-center gap-3 ${first ? "" : "flex-col items-stretch"} md:flex-col md:items-stretch`}
+          className={`flex gap-3 ${first ? "items-center" : "flex-col items-stretch"} md:flex-col md:items-stretch`}
         >
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <h3
@@ -144,10 +151,6 @@ export function BusinessListing({
       aria-labelledby="businesses-heading"
       className="flex flex-col gap-4"
     >
-      <h2 className="sr-only" id="businesses-heading">
-        Businesses
-      </h2>
-
       <div className="md:bg-background flex flex-col gap-6 md:items-center md:gap-5 md:rounded-[2rem] md:px-8 md:py-12 md:text-center md:shadow-xs">
         {intro}
         <search className="w-full md:flex md:justify-center">
@@ -199,7 +202,7 @@ export function BusinessListing({
           >
             <Link
               aria-current={query.category ? undefined : "page"}
-              className={`${CHIP} ${query.category ? "" : CHIP_CHOSEN}`}
+              className={chipClass(!query.category)}
               href={listingHref({ q: query.q })}
             >
               All
@@ -209,7 +212,7 @@ export function BusinessListing({
               return (
                 <Link
                   aria-current={selected ? "page" : undefined}
-                  className={`${CHIP} ${selected ? CHIP_CHOSEN : ""}`}
+                  className={chipClass(selected)}
                   href={listingHref({ q: query.q, category })}
                   key={category}
                 >
@@ -220,6 +223,11 @@ export function BusinessListing({
           </nav>
         )}
       </div>
+
+      {/* After the intro, so the page's h1 comes first in the document. */}
+      <h2 className="sr-only" id="businesses-heading">
+        Businesses
+      </h2>
 
       {listing && listing.items.length === 0 && (
         <p className="text-foreground">
