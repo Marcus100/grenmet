@@ -7,8 +7,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DepositBadge, StatusBadge } from "@/components/studio/badges";
 import { BookingActions } from "@/components/studio/booking-actions";
+import { ContactButtons } from "@/components/studio/contact-buttons";
 import { RecordDeposit } from "@/components/studio/record-deposit";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import {
+  CARD,
+  CARD_LINK,
+  StudioPageHeader,
+} from "@/components/studio/studio-ui";
 import { requireSession } from "@/lib/session";
 import { getBooking } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
@@ -79,18 +85,15 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
 
   return (
     <article className="space-y-6">
-      <div className="space-y-1">
-        <Link
-          className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
-          href={{ pathname: agendaHref }}
-        >
+      <div className="space-y-2">
+        <Link className={CARD_LINK} href={{ pathname: agendaHref }}>
           Back to the agenda
         </Link>
-        <h1 className="text-2xl font-semibold">{booking.service_name}</h1>
-        <p className="text-muted-foreground">
-          {formatDateTime(booking.starts_at, zone)} with {booking.provider_name}
-        </p>
-        <div className="flex flex-wrap gap-2 pt-1">
+        <StudioPageHeader
+          description={`${formatDateTime(booking.starts_at, zone)} with ${booking.provider_name}`}
+          title={booking.service_name}
+        />
+        <div className="flex flex-wrap gap-2">
           <StatusBadge kind={kind} status={booking.status} />
           <DepositBadge kind={kind} state={deposit} />
         </div>
@@ -127,9 +130,12 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
       <div className="grid gap-4 md:grid-cols-2">
         <section
           aria-labelledby="customer-title"
-          className="border-border space-y-2 rounded-lg border p-4"
+          className={`${CARD} space-y-2`}
         >
-          <h2 className="text-lg font-semibold" id="customer-title">
+          <h2
+            className="text-foreground text-lg font-semibold"
+            id="customer-title"
+          >
             Customer
           </h2>
           <dl className="space-y-1">
@@ -165,13 +171,17 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
               }
             />
           </dl>
+          <ContactButtons phone={booking.customer.phone} />
         </section>
 
         <section
           aria-labelledby="payment-title"
-          className="border-border space-y-2 rounded-lg border p-4"
+          className={`${CARD} space-y-2`}
         >
-          <h2 className="text-lg font-semibold" id="payment-title">
+          <h2
+            className="text-foreground text-lg font-semibold"
+            id="payment-title"
+          >
             {kind === "payment" ? "Price and payment" : "Price and deposit"}
           </h2>
           <dl className="space-y-1">
@@ -209,11 +219,11 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
         </section>
       </div>
 
-      <section
-        aria-labelledby="details-title"
-        className="border-border space-y-2 rounded-lg border p-4"
-      >
-        <h2 className="text-lg font-semibold" id="details-title">
+      <section aria-labelledby="details-title" className={`${CARD} space-y-2`}>
+        <h2
+          className="text-foreground text-lg font-semibold"
+          id="details-title"
+        >
           Details
         </h2>
         <dl className="space-y-1">
@@ -228,25 +238,28 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
         </dl>
       </section>
 
-      <section aria-labelledby="timeline-title" className="space-y-2">
-        <h2 className="text-lg font-semibold" id="timeline-title">
+      <section aria-labelledby="timeline-title" className={`${CARD} space-y-2`}>
+        <h2
+          className="text-foreground text-lg font-semibold"
+          id="timeline-title"
+        >
           Timeline
         </h2>
         {booking.events.length === 0 ? (
-          <p className="text-muted-foreground">
+          <p className="text-foreground/80">
             No status changes yet. Changes to this booking will be listed here.
           </p>
         ) : (
           <ol className="space-y-2">
             {booking.events.map((event) => (
               <li
-                className="border-border rounded-lg border p-3"
+                className="border-border rounded-xl border p-3"
                 key={`${event.created_at}-${event.to_status}`}
               >
                 <p className="font-medium">
                   {eventLabel(event.from_status, event.to_status, kind)}
                 </p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-foreground/80 text-sm">
                   {formatDateTime(event.created_at, zone)}
                 </p>
                 {event.note ? <p className="text-sm">{event.note}</p> : null}
@@ -262,7 +275,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[8rem_1fr] gap-2">
-      <dt className="text-muted-foreground">{label}</dt>
+      <dt className="text-foreground/80">{label}</dt>
       <dd className="min-w-0 break-words">{value}</dd>
     </div>
   );

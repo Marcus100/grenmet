@@ -1,8 +1,6 @@
 import Link from "next/link";
+import { CARD, CARD_LINK } from "@/components/studio/studio-ui";
 import type { SetupStep } from "@/lib/setup-checklist";
-
-const LINK =
-  "text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4";
 
 /**
  * "Complete your setup" on the agenda for an owner or admin. Each step either
@@ -15,10 +13,7 @@ export function SetupChecklist({
 }: Readonly<{ orgSlug: string; steps: SetupStep[] }>) {
   const done = steps.filter((step) => step.done).length;
   return (
-    <section
-      aria-labelledby="setup-heading"
-      className="border-border space-y-3 rounded-lg border p-4"
-    >
+    <section aria-labelledby="setup-heading" className={`${CARD} space-y-3`}>
       <div className="space-y-1">
         <h2 className="text-base font-semibold" id="setup-heading">
           Complete your setup
@@ -39,7 +34,7 @@ export function SetupChecklist({
               <>
                 <span>{step.label}</span>
                 <Link
-                  className={LINK}
+                  className={CARD_LINK}
                   href={`/studio/${orgSlug}/${step.target}`}
                 >
                   Do this

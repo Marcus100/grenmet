@@ -1,37 +1,15 @@
-import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { session } from "@/test/studio";
-
-vi.mock("@/lib/session", () => ({
-  getSession: vi.fn(),
-  requireSession: vi.fn(() => {
-    throw new Error("layout must not redirect");
-  }),
-}));
-
-import { getSession } from "@/lib/session";
-import StudioLayout from "./layout";
-
-beforeEach(() => {
-  vi.mocked(getSession).mockReset();
-});
+import { describe, expect, it } from "vitest";
+import StudioLayout, { metadata, viewport } from "./layout";
 
 describe("studio layout", () => {
-  it("shows the name and Sign out for a signed-in person", async () => {
-    vi.mocked(getSession).mockResolvedValue(session);
-    render(await StudioLayout({ children: <p>Page</p> }));
-    expect(screen.getByText("Maya")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Sign out" })
-    ).toBeInTheDocument();
-    expect(screen.getByText("Page")).toBeInTheDocument();
+  it("passes the page through: each area draws its own frame", () => {
+    const page = <p>Page</p>;
+    expect(StudioLayout({ children: page })).toBe(page);
   });
 
-  it("leaves the header out, and does not redirect, without a session", async () => {
-    vi.mocked(getSession).mockResolvedValue(null);
-    render(await StudioLayout({ children: <p>Page</p> }));
-    expect(screen.queryByRole("banner")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
-    expect(screen.getByText("Page")).toBeInTheDocument();
+  it("is never indexed and links the install manifest and theme colour", () => {
+    expect(metadata.robots).toEqual({ index: false, follow: false });
+    expect(metadata.manifest).toBe("/studio-manifest.webmanifest");
+    expect(viewport.themeColor).toBe("#15006b");
   });
 });
