@@ -1,6 +1,9 @@
 "use client";
 
-import type { BookingStorefront } from "@barrelsgd/api-client";
+import type {
+  BookingPublicService,
+  BookingStorefront,
+} from "@barrelsgd/api-client";
 import {
   type ComponentType,
   type ReactNode,
@@ -28,7 +31,11 @@ import {
 } from "../lib/booking-format";
 import { dueAtBooking, payNowLine } from "../lib/booking-payment";
 import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
-import type { Booked, BookingFlowActions } from "../lib/booking-types";
+import type {
+  Booked,
+  BookingFlowActions,
+  BookingInput,
+} from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { ContactLinks } from "./business-contact";
 import { PaymentStatus } from "./payment-status";
@@ -515,7 +522,247 @@ function CodePanel({
   );
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: pre-existing size of the booking flow; splitting it is a separate change
+/**
+ * What a submit does next: stop on an invalid form, ask for the emailed code
+ * first, wait for the Turnstile token, or send the booking with its chosen
+ * service and time (narrowed here, so the request types them as strings).
+ */
+type SubmitGate =
+  | { kind: "stop" }
+  | { kind: "code" }
+  | { kind: "token" }
+  | { kind: "send"; serviceId: string; startsAt: string };
+
+function submitGate(input: {
+  found: FieldErrors;
+  serviceId: string | null;
+  startsAt: string | null;
+  needsCode: boolean;
+  isVerified: boolean;
+  tokenMissing: boolean;
+}): SubmitGate {
+  if (
+    Object.keys(input.found).length > 0 ||
+    !input.serviceId ||
+    !input.startsAt
+  ) {
+    return { kind: "stop" };
+  }
+  if (input.needsCode && !input.isVerified) {
+    return { kind: "code" };
+  }
+  if (input.tokenMissing) {
+    return { kind: "token" };
+  }
+  return { kind: "send", serviceId: input.serviceId, startsAt: input.startsAt };
+}
+
+/** The idempotency attempt for a submission: the same request keeps its key, a changed one gets a new key. */
+function attemptFor(
+  previous: { print: string; key: string } | null,
+  print: string
+): { print: string; key: string } {
+  return previous?.print === print
+    ? previous
+    : { print, key: crypto.randomUUID() };
+}
+
+/** The request body; the emailed-code proof is sent only when one was verified. */
+function requestInput(
+  base: Omit<BookingInput, "emailProof">,
+  proof: string | null
+): BookingInput {
+  return proof ? { ...base, emailProof: proof } : base;
+}
+
+/** The error summary above the form: links to the fields, the form message and contact links. */
+function ErrorSummary({
+  contact,
+  errorList,
+  errors,
+  formError,
+  summaryRef,
+}: {
+  contact: BookingStorefront["contact"];
+  errorList: FieldKey[];
+  errors: FieldErrors;
+  formError: string | null;
+  summaryRef: RefObject<HTMLDivElement | null>;
+}) {
+  return (
+    <div
+      aria-labelledby="book-errors-title"
+      className="notice notice-error"
+      ref={summaryRef}
+      role="alert"
+      tabIndex={-1}
+    >
+      <h2 id="book-errors-title">
+        {errorList.length > 0
+          ? "Please fix the following"
+          : "We couldn't book that"}
+      </h2>
+      {errorList.length > 0 && (
+        <ul>
+          {errorList.map((key) => (
+            <li key={key}>
+              <a href={`#${FIELD_IDS[key]}`}>{errors[key]}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {formError && <p>{formError}</p>}
+      {tellsToContact(formError) && <ContactLinks contact={contact} />}
+    </div>
+  );
+}
+
+/** Step 1: the service choice. */
+function ServicesStep({
+  bookAgain,
+  errors,
+  onPick,
+  selectedId,
+  storefront,
+}: {
+  bookAgain: BookAgainChoice[];
+  errors: FieldErrors;
+  onPick: (serviceId: string) => void;
+  selectedId: string | null;
+  storefront: BookingStorefront;
+}) {
+  return (
+    <fieldset
+      aria-describedby={groupErrorId("service", errors)}
+      className="step"
+      id={FIELD_IDS.service}
+    >
+      <legend>1. Choose a service</legend>
+      <GroupError errors={errors} field="service" />
+      <BookAgain
+        choices={bookAgain}
+        onChoose={onPick}
+        selected={selectedId}
+        storefront={storefront}
+      />
+      <ServiceList
+        bookAgainIds={bookAgain.map((choice) => choice.serviceId)}
+        currency={storefront.currency}
+        onPick={onPick}
+        selectedId={selectedId}
+        services={storefront.services}
+      />
+      {storefront.services.length === 0 && (
+        <div className="muted">
+          <p>
+            No services are open for online booking yet. Please contact the
+            business{contactEnding(storefront.contact)}
+          </p>
+          <ContactLinks contact={storefront.contact} />
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+/** Step 2: the day and time, once a service is chosen. */
+function TimeStep({
+  actions,
+  errors,
+  onChange,
+  reloadKey,
+  service,
+  startsAt,
+  storefront,
+}: {
+  actions: BookingFlowActions;
+  errors: FieldErrors;
+  onChange: (value: string | null) => void;
+  reloadKey: number;
+  service: BookingPublicService | null;
+  startsAt: string | null;
+  storefront: BookingStorefront;
+}) {
+  return (
+    <fieldset
+      aria-describedby={groupErrorId("time", errors)}
+      className="step"
+      id={FIELD_IDS.time}
+    >
+      <legend>2. Pick a day and time</legend>
+      <p className="muted">
+        Times are in {timeZonePlace(storefront.timezone)} time.
+      </p>
+      <GroupError errors={errors} field="time" />
+      {service ? (
+        <SlotPicker
+          key={service.id}
+          load={(firstDay) => actions.loadSlots(service.id, firstDay)}
+          onChange={onChange}
+          reloadKey={reloadKey}
+          timeZone={storefront.timezone}
+          value={startsAt}
+        />
+      ) : (
+        <p className="muted">Choose a service to see open times.</p>
+      )}
+      {service && startsAt && (
+        <p className="chosen" role="status">
+          {service.name}: {formatDateTime(startsAt, storefront.timezone)}
+        </p>
+      )}
+    </fieldset>
+  );
+}
+
+/** Shown once the code is verified, or when no code is needed. */
+function VerifiedNotice({ proof }: { proof: string | null }) {
+  return (
+    <p className="notice notice-ok" role="status">
+      {proof
+        ? "Your email is verified."
+        : "No email code is needed for this booking."}{" "}
+      Press Request my booking to finish.
+    </p>
+  );
+}
+
+/** The code can be resent only after the cooldown, with no request in flight and a token. */
+function codeResendBlocked(
+  cooldown: number,
+  busy: "send" | "verify" | null,
+  tokenMissing: boolean
+): boolean {
+  return cooldown > 0 || busy !== null || tokenMissing;
+}
+
+/** What is paid online for the chosen service, and its description. */
+function ServiceNotes({
+  payNow,
+  service,
+}: {
+  payNow: string | null;
+  service: BookingPublicService | null;
+}) {
+  return (
+    <>
+      {service && payNow && (
+        <p className="notice payment-notice" role="status">
+          {payNow}
+        </p>
+      )}
+      {service && dueAtBooking(service) === 0 && (
+        <p className="muted">No payment online. You pay when you visit.</p>
+      )}
+      {service?.description && (
+        <p className="muted">
+          Note for {service.name}: {service.description}
+        </p>
+      )}
+    </>
+  );
+}
+
 export function BookingFlow({
   accountInvite,
   actions,
@@ -649,7 +896,6 @@ export function BookingFlow({
     }
   };
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: pre-existing submit branches; splitting is a separate change
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (submitting || emailCode.busy) {
@@ -669,48 +915,57 @@ export function BookingFlow({
     });
     setErrors(found);
     setFormError(null);
-    if (Object.keys(found).length > 0 || !serviceId || !startsAt) {
-      return;
-    }
-    if (needsCode && !isVerified) {
-      await emailCode.start();
-      return;
-    }
-    if (tokenMissing) {
-      setFormError(TOKEN_LOADING_MESSAGE);
-      return;
-    }
-    const print = fingerprint({
+    const gate = submitGate({
+      found,
       serviceId,
       startsAt,
+      needsCode,
+      isVerified,
+      tokenMissing,
+    });
+    if (gate.kind !== "send") {
+      if (gate.kind === "code") {
+        await emailCode.start();
+      } else if (gate.kind === "token") {
+        setFormError(TOKEN_LOADING_MESSAGE);
+      }
+      return;
+    }
+    const chosenId = gate.serviceId;
+    const chosenStart = gate.startsAt;
+    const print = fingerprint({
+      serviceId: chosenId,
+      startsAt: chosenStart,
       name,
       email,
       phone,
       notes,
       marketing,
     });
-    if (attempt.current?.print !== print) {
-      attempt.current = { print, key: crypto.randomUUID() };
-    }
+    attempt.current = attemptFor(attempt.current, print);
     setSubmitting(true);
-    track?.("booking_submitted", { service_id: serviceId });
+    track?.("booking_submitted", { service_id: chosenId });
     try {
-      const outcome = await actions.submitBooking({
-        idempotencyKey: attempt.current.key,
-        serviceId,
-        startsAt,
-        name,
-        email,
-        ...(emailCode.proof ? { emailProof: emailCode.proof } : {}),
-        phone,
-        notes,
-        marketingConsent: marketing,
-        website,
-        turnstileToken: token ?? "",
-      });
+      const outcome = await actions.submitBooking(
+        requestInput(
+          {
+            idempotencyKey: attempt.current.key,
+            serviceId: chosenId,
+            startsAt: chosenStart,
+            name,
+            email,
+            phone,
+            notes,
+            marketingConsent: marketing,
+            website,
+            turnstileToken: token ?? "",
+          },
+          emailCode.proof
+        )
+      );
       if (outcome.ok) {
         attempt.current = null;
-        track?.("booking_confirmed", { service_id: serviceId });
+        track?.("booking_confirmed", { service_id: chosenId });
         setBooked(outcome.data);
         return;
       }
@@ -748,93 +1003,32 @@ export function BookingFlow({
         onSubmit={submit}
       >
         {showSummary && (
-          <div
-            aria-labelledby="book-errors-title"
-            className="notice notice-error"
-            ref={summaryRef}
-            role="alert"
-            tabIndex={-1}
-          >
-            <h2 id="book-errors-title">
-              {errorList.length > 0
-                ? "Please fix the following"
-                : "We couldn't book that"}
-            </h2>
-            {errorList.length > 0 && (
-              <ul>
-                {errorList.map((key) => (
-                  <li key={key}>
-                    <a href={`#${FIELD_IDS[key]}`}>{errors[key]}</a>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {formError && <p>{formError}</p>}
-            {tellsToContact(formError) && (
-              <ContactLinks contact={storefront.contact} />
-            )}
-          </div>
+          <ErrorSummary
+            contact={storefront.contact}
+            errorList={errorList}
+            errors={errors}
+            formError={formError}
+            summaryRef={summaryRef}
+          />
         )}
 
-        <fieldset
-          aria-describedby={groupErrorId("service", errors)}
-          className="step"
-          id={FIELD_IDS.service}
-        >
-          <legend>1. Choose a service</legend>
-          <GroupError errors={errors} field="service" />
-          <BookAgain
-            choices={bookAgain}
-            onChoose={pickService}
-            selected={serviceId}
-            storefront={storefront}
-          />
-          <ServiceList
-            bookAgainIds={bookAgain.map((choice) => choice.serviceId)}
-            currency={storefront.currency}
-            onPick={pickService}
-            selectedId={serviceId}
-            services={storefront.services}
-          />
-          {storefront.services.length === 0 && (
-            <div className="muted">
-              <p>
-                No services are open for online booking yet. Please contact the
-                business{contactEnding(storefront.contact)}
-              </p>
-              <ContactLinks contact={storefront.contact} />
-            </div>
-          )}
-        </fieldset>
+        <ServicesStep
+          bookAgain={bookAgain}
+          errors={errors}
+          onPick={pickService}
+          selectedId={serviceId}
+          storefront={storefront}
+        />
 
-        <fieldset
-          aria-describedby={groupErrorId("time", errors)}
-          className="step"
-          id={FIELD_IDS.time}
-        >
-          <legend>2. Pick a day and time</legend>
-          <p className="muted">
-            Times are in {timeZonePlace(storefront.timezone)} time.
-          </p>
-          <GroupError errors={errors} field="time" />
-          {service ? (
-            <SlotPicker
-              key={service.id}
-              load={(firstDay) => actions.loadSlots(service.id, firstDay)}
-              onChange={pickStart}
-              reloadKey={reloadKey}
-              timeZone={storefront.timezone}
-              value={startsAt}
-            />
-          ) : (
-            <p className="muted">Choose a service to see open times.</p>
-          )}
-          {service && startsAt && (
-            <p className="chosen" role="status">
-              {service.name}: {formatDateTime(startsAt, storefront.timezone)}
-            </p>
-          )}
-        </fieldset>
+        <TimeStep
+          actions={actions}
+          errors={errors}
+          onChange={pickStart}
+          reloadKey={reloadKey}
+          service={service}
+          startsAt={startsAt}
+          storefront={storefront}
+        />
 
         <fieldset className="step">
           <legend>3. Your details</legend>
@@ -930,33 +1124,16 @@ export function BookingFlow({
             onChangeEmail={changeEmail}
             onCode={emailCode.setCode}
             onResend={emailCode.resend}
-            resendBlocked={
-              emailCode.cooldown > 0 || emailCode.busy !== null || tokenMissing
-            }
+            resendBlocked={codeResendBlocked(
+              emailCode.cooldown,
+              emailCode.busy,
+              tokenMissing
+            )}
           />
         )}
-        {isVerified && needsCode && (
-          <p className="notice notice-ok" role="status">
-            {emailCode.proof
-              ? "Your email is verified."
-              : "No email code is needed for this booking."}{" "}
-            Press Request my booking to finish.
-          </p>
-        )}
+        {isVerified && needsCode && <VerifiedNotice proof={emailCode.proof} />}
 
-        {service && payNow && (
-          <p className="notice payment-notice" role="status">
-            {payNow}
-          </p>
-        )}
-        {service && dueAtBooking(service) === 0 && (
-          <p className="muted">No payment online. You pay when you visit.</p>
-        )}
-        {service?.description && (
-          <p className="muted">
-            Note for {service.name}: {service.description}
-          </p>
-        )}
+        <ServiceNotes payNow={payNow} service={service} />
         <p className="muted">
           By appointment only. You can change or cancel online until{" "}
           {formatHours(storefront.cancel_cutoff_hours)} before your visit.

@@ -53,7 +53,7 @@ Backed by Barrels Bookings (`apps/api/fastapi/src/bookings`, ADR-0024).
 
 - Class names only (`slots`, `btn`, `btn-solid`, `notice`, `summary`, `field`,
   `step`, ...). The host app supplies the CSS. No `--gm-*` tokens and no brand
-  colours in this package. Services group by `category` (`components/service-list.tsx`): one category stays flat, two or more are `<details>` disclosures.
+  colours in this package. Service categories: `service-list.tsx` (`<details>` when two or more).
 
 ## Import paths
 
