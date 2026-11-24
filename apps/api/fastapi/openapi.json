@@ -14336,7 +14336,7 @@
           "bookings"
         ],
         "summary": "List open booking slots",
-        "description": "Open start times for a service between two local dates (at most 14 days), optionally for one provider. Times are UTC; `timezone` is the business's local zone for display.",
+        "description": "Open start times for a service between two local dates (at most 14 days), optionally for one provider and with `add_on_ids`, which make the slot longer. Times are UTC; `timezone` is the business's local zone for display.",
         "operationId": "bookingsGetAvailability",
         "parameters": [
           {
@@ -14393,6 +14393,27 @@
                 }
               ],
               "title": "Provider Id"
+            }
+          },
+          {
+            "name": "add_on_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "maxItems": 5
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Add On Ids"
             }
           }
         ],
@@ -78262,6 +78283,30 @@
         ],
         "title": "Body_printixImportTickets"
       },
+      "BookingAddOnLine": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "duration_min",
+          "price_minor"
+        ],
+        "title": "BookingAddOnLine",
+        "description": "An add-on on a booking, as it was priced and timed when booked."
+      },
       "BookingAgenda": {
         "properties": {
           "timezone": {
@@ -78395,6 +78440,13 @@
           "currency": {
             "type": "string",
             "title": "Currency"
+          },
+          "add_on_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Add On Names"
           }
         },
         "type": "object",
@@ -79409,6 +79461,12 @@
             "title": "Contact Email",
             "description": "Email address customers can write to; blank clears it."
           },
+          "add_ons_enabled": {
+            "type": "boolean",
+            "title": "Add Ons Enabled",
+            "description": "Offer add-on services (for example a brow wax with a lash set) on the booking page. Off by default; while off, add-ons are neither shown nor accepted. Left out, the stored value is kept.",
+            "default": false
+          },
           "payment_at_booking": {
             "$ref": "#/components/schemas/BookingPaymentMode",
             "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
@@ -79723,6 +79781,12 @@
             ],
             "title": "Contact Email",
             "description": "Email address customers can write to; blank clears it."
+          },
+          "add_ons_enabled": {
+            "type": "boolean",
+            "title": "Add Ons Enabled",
+            "description": "Offer add-on services (for example a brow wax with a lash set) on the booking page. Off by default; while off, add-ons are neither shown nor accepted. Left out, the stored value is kept.",
+            "default": false
           },
           "payment_at_booking": {
             "$ref": "#/components/schemas/BookingPaymentMode",
@@ -80092,6 +80156,60 @@
         "type": "object",
         "title": "BookingProviderUpdate"
       },
+      "BookingPublicAddOn": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min",
+            "description": "Minutes added to the main service."
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor",
+            "description": "Added to the main service's price."
+          },
+          "service_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Service Ids",
+            "description": "The main services this add-on can be booked with."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "duration_min",
+          "price_minor",
+          "service_ids"
+        ],
+        "title": "BookingPublicAddOn",
+        "description": "An add-on a customer can add to one of the main services it follows."
+      },
       "BookingPublicBusiness": {
         "properties": {
           "slug": {
@@ -80303,6 +80421,16 @@
             ],
             "title": "Notes"
           },
+          "add_on_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Add On Ids",
+            "description": "Add-ons to book with the service, from the storefront's `add_ons`. Prices and lengths are read on the server."
+          },
           "marketing_consent": {
             "type": "boolean",
             "title": "Marketing Consent",
@@ -80480,6 +80608,14 @@
             ],
             "title": "Hold Ends At",
             "description": "While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise."
+          },
+          "add_ons": {
+            "items": {
+              "$ref": "#/components/schemas/BookingAddOnLine"
+            },
+            "type": "array",
+            "title": "Add Ons",
+            "description": "The add-ons booked with the service. `starts_at`..`ends_at` include them."
           }
         },
         "type": "object",
@@ -80738,6 +80874,30 @@
             "minimum": 0.0,
             "title": "Sort Order",
             "default": 0
+          },
+          "is_add_on": {
+            "type": "boolean",
+            "title": "Is Add On",
+            "description": "An add-on is booked with a main service, never alone.",
+            "default": false
+          },
+          "add_on_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Add On Categories",
+            "description": "For an add-on: offer it only with main services in these categories. Null or empty means any main service. Ignored for a main service."
           }
         },
         "type": "object",
@@ -80807,6 +80967,25 @@
           "sort_order": {
             "type": "integer",
             "title": "Sort Order"
+          },
+          "is_add_on": {
+            "type": "boolean",
+            "title": "Is Add On",
+            "default": false
+          },
+          "add_on_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Add On Categories"
           }
         },
         "type": "object",
@@ -80952,6 +81131,34 @@
               }
             ],
             "title": "Sort Order"
+          },
+          "is_add_on": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Add On"
+          },
+          "add_on_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Add On Categories"
           }
         },
         "type": "object",
@@ -81135,6 +81342,14 @@
             },
             "type": "array",
             "title": "Providers"
+          },
+          "add_ons": {
+            "items": {
+              "$ref": "#/components/schemas/BookingPublicAddOn"
+            },
+            "type": "array",
+            "title": "Add Ons",
+            "description": "Empty unless the business offers add-ons."
           }
         },
         "type": "object",
@@ -81458,6 +81673,13 @@
             },
             "type": "array",
             "title": "Events"
+          },
+          "add_ons": {
+            "items": {
+              "$ref": "#/components/schemas/BookingAddOnLine"
+            },
+            "type": "array",
+            "title": "Add Ons"
           }
         },
         "type": "object",

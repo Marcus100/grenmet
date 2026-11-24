@@ -27,6 +27,10 @@ Slug = Annotated[str, Field(pattern=r"^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$")]
 Minutes = Annotated[int, Field(ge=0, le=1440)]
 Minor = Annotated[int, Field(ge=0, le=100_000_000)]
 Currency = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
+AddOnCategories = Annotated[
+    list[Annotated[str, Field(min_length=1, max_length=80)]] | None,
+    Field(max_length=20),
+]
 #: Path words of this domain's public routes that a business may not take as its
 #: slug: ``/bookings/public/businesses`` is the home page listing, not a storefront.
 LISTING_PATH_WORDS = frozenset({"businesses"})
@@ -196,6 +200,14 @@ class BookingProfileUpdate(BaseModel):
         default=None,
         max_length=254,
         description="Email address customers can write to; blank clears it.",
+    )
+    add_ons_enabled: bool = Field(
+        default=False,
+        description=(
+            "Offer add-on services (for example a brow wax with a lash set) on the "
+            "booking page. Off by default; while off, add-ons are neither shown nor "
+            "accepted. Left out, the stored value is kept."
+        ),
     )
     payment_at_booking: BookingPaymentMode = Field(
         default=BookingPaymentMode.DEPOSIT,
@@ -391,6 +403,17 @@ class BookingServiceCreate(BaseModel):
     deposit_minor: Minor = 0
     active: bool = True
     sort_order: Annotated[int, Field(ge=0, le=10_000)] = 0
+    is_add_on: bool = Field(
+        default=False,
+        description="An add-on is booked with a main service, never alone.",
+    )
+    add_on_categories: AddOnCategories = Field(
+        default=None,
+        description=(
+            "For an add-on: offer it only with main services in these categories. "
+            "Null or empty means any main service. Ignored for a main service."
+        ),
+    )
 
     @model_validator(mode="after")
     def _deposit_within_price(self) -> Self:
@@ -410,6 +433,8 @@ class BookingServiceUpdate(BaseModel):
     deposit_minor: Minor | None = None
     active: bool | None = None
     sort_order: Annotated[int, Field(ge=0, le=10_000)] | None = None
+    is_add_on: bool | None = None
+    add_on_categories: AddOnCategories = None
 
 
 class BookingServicePublic(BaseModel):
@@ -424,6 +449,8 @@ class BookingServicePublic(BaseModel):
     deposit_minor: int
     active: bool
     sort_order: int
+    is_add_on: bool = False
+    add_on_categories: list[str] | None = None
 
 
 # --- providers and hours ---------------------------------------------------------
@@ -607,6 +634,7 @@ class BookingAgendaItem(BaseModel):
     deposit_minor: int
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
+    add_on_names: list[str] = Field(default_factory=list)
 
 
 class BookingAgendaDay(BaseModel):
@@ -726,6 +754,7 @@ class BookingStudioDetail(BaseModel):
     deposit_captured_minor: int
     deposit_refunded_minor: int
     events: list[BookingStudioEvent]
+    add_ons: list[BookingAddOnLine] = Field(default_factory=list)
 
 
 # --- public ------------------------------------------------------------------------
@@ -747,6 +776,27 @@ class BookingPublicService(BaseModel):
             "More than 0 means the emailed-code step comes first."
         ),
     )
+
+
+class BookingPublicAddOn(BaseModel):
+    """An add-on a customer can add to one of the main services it follows."""
+
+    id: uuid.UUID
+    name: str
+    description: str | None
+    duration_min: int = Field(description="Minutes added to the main service.")
+    price_minor: int = Field(description="Added to the main service's price.")
+    service_ids: list[uuid.UUID] = Field(
+        description="The main services this add-on can be booked with."
+    )
+
+
+class BookingAddOnLine(BaseModel):
+    """An add-on on a booking, as it was priced and timed when booked."""
+
+    name: str
+    duration_min: int
+    price_minor: int
 
 
 class BookingPublicProvider(BaseModel):
@@ -800,6 +850,10 @@ class BookingStorefront(BaseModel):
     )
     services: list[BookingPublicService]
     providers: list[BookingPublicProvider]
+    add_ons: list[BookingPublicAddOn] = Field(
+        default_factory=list,
+        description="Empty unless the business offers add-ons.",
+    )
 
 
 class BookingPublicBusiness(BaseModel):
@@ -863,6 +917,14 @@ class BookingPublicCreate(BaseModel):
     customer_email: EmailStr = Field(max_length=254)
     customer_phone: str | None = Field(default=None, max_length=40)
     notes: str | None = Field(default=None, max_length=1000)
+    add_on_ids: list[uuid.UUID] = Field(
+        default_factory=list,
+        max_length=5,
+        description=(
+            "Add-ons to book with the service, from the storefront's `add_ons`. "
+            "Prices and lengths are read on the server."
+        ),
+    )
     marketing_consent: bool = False
     email_proof: str | None = Field(
         default=None,
@@ -1037,6 +1099,10 @@ class BookingPublicDetail(BaseModel):
             "While `status` is `pending_payment`: when the unpaid hold is released "
             "if the payment has not arrived. Null otherwise."
         ),
+    )
+    add_ons: list[BookingAddOnLine] = Field(
+        default_factory=list,
+        description="The add-ons booked with the service. `starts_at`..`ends_at` include them.",
     )
 
 

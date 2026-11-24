@@ -37,6 +37,7 @@ from .models import (
     Service,
 )
 from .schemas import (
+    BookingAddOnLine,
     BookingAgenda,
     BookingAgendaDay,
     BookingAgendaItem,
@@ -113,6 +114,14 @@ async def _detail(
             )
             for e in events
         ],
+        add_ons=[
+            BookingAddOnLine(
+                name=line.name,
+                duration_min=line.duration_min,
+                price_minor=line.price_minor,
+            )
+            for line in managed.add_ons
+        ],
     )
 
 
@@ -154,15 +163,20 @@ async def agenda(
         )
         or 0
     )
-    rows = await session.execute(
-        select(Booking, Service.name, func.coalesce(Contact.name, ""))
-        .join(Service, Service.id == Booking.service_id)
-        .join(Customer, Customer.id == Booking.customer_id)
-        .join(Contact, Contact.id == Customer.contact_id)
-        .where(*conditions)
-        .order_by(Booking.starts_at, Booking.id)
-        .limit(limit)
-        .offset(offset)
+    rows = (
+        await session.execute(
+            select(Booking, Service.name, func.coalesce(Contact.name, ""))
+            .join(Service, Service.id == Booking.service_id)
+            .join(Customer, Customer.id == Booking.customer_id)
+            .join(Contact, Contact.id == Customer.contact_id)
+            .where(*conditions)
+            .order_by(Booking.starts_at, Booking.id)
+            .limit(limit)
+            .offset(offset)
+        )
+    ).all()
+    add_on_lines = await service.booking_add_on_lines(
+        session, [booking.id for booking, _, _ in rows]
     )
     days: dict[date, list[BookingAgendaItem]] = {}
     for booking, service_name, customer_name in rows:
@@ -183,6 +197,7 @@ async def agenda(
                 deposit_minor=booking.deposit_minor,
                 payment_kind=deposit_payments.payment_kind(booking),
                 currency=booking.currency,
+                add_on_names=[line.name for line in add_on_lines.get(booking.id, [])],
             )
         )
     return BookingAgenda(

@@ -31,6 +31,7 @@ export type BookingsGetAvailabilityQuery = {
    */
   last_day: string;
   provider_id?: string | null;
+  add_on_ids?: string[] | null;
 };
 
 export type BookingsGetAvailabilityStatus200 = BookingAvailability;

@@ -58,4 +58,14 @@ export type BookingServiceCreate = {
    * @type integer | undefined
    */
   sort_order?: number;
+  /**
+   * @description An add-on is booked with a main service, never alone.
+   * @default false
+   * @type boolean | undefined
+   */
+  is_add_on?: boolean;
+  /**
+   * @description For an add-on: offer it only with main services in these categories. Null or empty means any main service. Ignored for a main service.
+   */
+  add_on_categories?: string[] | null;
 };

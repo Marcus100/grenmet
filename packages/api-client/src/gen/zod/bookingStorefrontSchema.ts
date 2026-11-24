@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
+import { bookingPublicAddOnSchema } from "./bookingPublicAddOnSchema.js";
 import { bookingPublicProviderSchema } from "./bookingPublicProviderSchema.js";
 import { bookingPublicServiceSchema } from "./bookingPublicServiceSchema.js";
 
@@ -41,5 +42,9 @@ export const bookingStorefrontSchema = z
       ),
     services: z.array(bookingPublicServiceSchema),
     providers: z.array(bookingPublicProviderSchema),
+    add_ons: z
+      .array(bookingPublicAddOnSchema)
+      .optional()
+      .describe("Empty unless the business offers add-ons."),
   })
   .describe("What a client site needs to render its booking page.");

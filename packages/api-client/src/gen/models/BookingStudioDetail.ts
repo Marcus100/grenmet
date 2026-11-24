@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingAddOnLine } from "./BookingAddOnLine.js";
 import type { BookingPaymentKind } from "./BookingPaymentKind.js";
 import type { BookingSource } from "./BookingSource.js";
 import type { BookingStatus } from "./BookingStatus.js";
@@ -85,4 +86,5 @@ export type BookingStudioDetail = {
   deposit_captured_minor: number;
   deposit_refunded_minor: number;
   events: BookingStudioEvent[];
+  add_ons?: BookingAddOnLine[];
 };

@@ -41,6 +41,11 @@ export type BookingPublicCreate = {
   customer_phone?: string | null;
   notes?: string | null;
   /**
+   * @description Add-ons to book with the service, from the storefront's `add_ons`. Prices and lengths are read on the server.
+   * @type array | undefined
+   */
+  add_on_ids?: string[];
+  /**
    * @default false
    * @type boolean | undefined
    */

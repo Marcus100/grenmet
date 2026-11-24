@@ -59,6 +59,13 @@ export const bookingProfilePublicSchema = z.object({
     .union([z.email().max(254), z.null()])
     .optional()
     .describe("Email address customers can write to; blank clears it."),
+  add_ons_enabled: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Offer add-on services (for example a brow wax with a lash set) on the booking page. Off by default; while off, add-ons are neither shown nor accepted. Left out, the stored value is kept."
+    ),
   payment_at_booking: bookingPaymentModeSchema
     .optional()
     .default("deposit")

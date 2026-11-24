@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingAddOnLineSchema } from "./bookingAddOnLineSchema.js";
 import { bookingPaymentKindSchema } from "./bookingPaymentKindSchema.js";
 import { bookingSourceSchema } from "./bookingSourceSchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
@@ -53,6 +54,7 @@ export const bookingStudioDetailSchema = z
     deposit_captured_minor: z.int(),
     deposit_refunded_minor: z.int(),
     events: z.array(bookingStudioEventSchema),
+    add_ons: z.array(bookingAddOnLineSchema).optional(),
   })
   .describe(
     "A booking as the business sees it, with the customer's contact details."

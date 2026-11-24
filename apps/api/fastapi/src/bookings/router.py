@@ -1041,8 +1041,9 @@ async def get_storefront(*, request: Request, session: SessionDep, slug: str) ->
     summary="List open booking slots",
     description=(
         "Open start times for a service between two local dates (at most 14 "
-        "days), optionally for one provider. Times are UTC; `timezone` is the "
-        "business's local zone for display."
+        "days), optionally for one provider and with `add_on_ids`, which make "
+        "the slot longer. Times are UTC; `timezone` is the business's local zone "
+        "for display."
     ),
     operation_id="bookingsGetAvailability",
     responses={**BAD_REQUEST, **NOT_FOUND},
@@ -1057,6 +1058,7 @@ async def get_availability(
     first_day: date,
     last_day: date,
     provider_id: Annotated[uuid.UUID | None, Query()] = None,
+    add_on_ids: Annotated[list[uuid.UUID] | None, Query(max_length=5)] = None,
 ) -> Any:
     _ = request
     profile = await service.get_public_profile(session, slug)
@@ -1067,6 +1069,7 @@ async def get_availability(
         provider_id=provider_id,
         first_day=first_day,
         last_day=last_day,
+        add_on_ids=add_on_ids or [],
     )
     return BookingAvailability(
         timezone=profile.timezone,

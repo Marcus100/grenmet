@@ -91,6 +91,12 @@ export type BookingProfileUpdate = {
    */
   contact_email?: string | null;
   /**
+   * @description Offer add-on services (for example a brow wax with a lash set) on the booking page. Off by default; while off, add-ons are neither shown nor accepted. Left out, the stored value is kept.
+   * @default false
+   * @type boolean | undefined
+   */
+  add_ons_enabled?: boolean;
+  /**
    * @description What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.
    * @default 'deposit'
    * @type string | undefined
