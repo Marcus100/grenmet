@@ -4,6 +4,7 @@ after the commit (#1679 review). Uses the byte-keeping store from test_booking_l
 
 import asyncio
 import uuid
+from collections.abc import Iterator
 
 import httpx
 import pytest
@@ -11,18 +12,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import async_session_factory
 from src.organisations.models import MembershipRole
+from src.storage import service as storage
 from src.storage import uploads
 from src.storage.models import OrgUpload
 from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
-from tests.storage.test_booking_logo import (  # noqa: F401 (byte_store is a fixture)
-    ByteStore,
-    _jpeg_with_location,
-    _upload,
-    byte_store,
-)
+from tests.storage.test_booking_logo import ByteStore, _jpeg_with_location, _upload
 
 UPLOADS = "/api/v1/storage/uploads"
+
+
+@pytest.fixture
+def byte_store(monkeypatch: pytest.MonkeyPatch) -> Iterator[ByteStore]:
+    """The byte-keeping store from test_booking_logo, installed for this module."""
+    fake = ByteStore()
+    monkeypatch.setattr(storage, "storage_service", fake)
+    yield fake
 
 
 async def _bookings_owner(db: AsyncSession, name: str):
@@ -34,7 +39,10 @@ async def _bookings_owner(db: AsyncSession, name: str):
 
 
 async def test_two_concurrent_completions_write_one_served_copy(
-    async_client: httpx.AsyncClient, db_async: AsyncSession, byte_store: ByteStore
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    byte_store: ByteStore,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Completion locks the row: the second call waits, then sees it complete and
     writes nothing."""
@@ -50,7 +58,7 @@ async def test_two_concurrent_completions_write_one_served_copy(
         served_writes.append(key)
         real_put(key, data, content_type=content_type)
 
-    byte_store.put_object = counting_put  # type: ignore[method-assign]
+    monkeypatch.setattr(byte_store, "put_object", counting_put)
     first, second = await asyncio.gather(
         async_client.post(f"{UPLOADS}/{upload_id}/complete", headers=headers),
         async_client.post(f"{UPLOADS}/{upload_id}/complete", headers=headers),
