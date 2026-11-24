@@ -504,6 +504,17 @@ BYPASS_NAMES = [
     "BarreIs Spa",
     "Adm\u0131n Spa",
     "Supporters Desk",
+    # a short term with letters or digits attached (security review of #1807)
+    "GAAs Taxi",
+    "GAA2 Tours",
+    "GMS1 Weather",
+    "2GAA Shuttle",
+    "GAAOfficial",
+    "GMSjam Events",
+    "theGAA Desk",
+    "MyGMS Alerts",
+    "XGMS Weather",
+    "GAAGMS",
 ]
 
 
