@@ -1350,6 +1350,8 @@ the main service plus add-ons; the deposit rule applies to the combined price, a
 main service's own deposit wins (add-on deposits are ignored). `BookingPublicDetail`
 and the studio detail carry `add_ons` (name, duration, price as booked); the agenda
 items carry `add_on_names`. Reschedules keep the add-ons. Mails and the ICS list them.
+`BookingPublicDetail.business_name` is the business's display name, the same one
+the storefront shows as `display_name`, so the manage page can name who to contact.
 
 Deposits: when a service has a deposit (its own, or the business `deposit_mode` rule
 when the service has none) and the organisation holds the `payments`

@@ -21,6 +21,12 @@ export type BookingPublicDetail = {
   id: string;
   status: BookingStatus;
   /**
+   * @description The business's display name, as its public booking page shows it.
+   * @default ''
+   * @type string | undefined
+   */
+  business_name?: string;
+  /**
    * @description
    * Format: `uuid`
    * @type string

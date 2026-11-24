@@ -13,6 +13,13 @@ export const bookingPublicDetailSchema = z
   .object({
     id: z.uuid(),
     status: bookingStatusSchema,
+    business_name: z
+      .string()
+      .optional()
+      .default("")
+      .describe(
+        "The business's display name, as its public booking page shows it."
+      ),
     service_id: z.uuid(),
     service_name: z.string(),
     provider_id: z.uuid(),
