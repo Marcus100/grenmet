@@ -45,6 +45,9 @@ const SEND_CODE = "Email me a verification code";
 const PAY_30 = /You pay a deposit of EC\$30 now/u;
 const PAY_18 = /You pay a deposit of EC\$18 now/u;
 const NO_DEPOSIT = /No deposit for this service/u;
+const WORKING_OUT = /Working out what is due/u;
+const PAY_36 = /You pay a deposit of EC\$36 now/u;
+const TIMES_REMOVED = /We couldn't load times with those add-ons/u;
 const STEP = /Add to your appointment/u;
 const ANY_EXTRA = /Extra/u;
 const YOUR_APPOINTMENT = /Your appointment:/u;
@@ -519,7 +522,7 @@ describe("the amount due comes from the availability response", () => {
   const MAIN_100 = { price_minor: 10_000 };
   const FIFTY = { ...addOn(1), price_minor: 5000 };
 
-  it("percent deposit: shows the API's figure for the service plus add-on, after a fallback while loading", async () => {
+  it("percent deposit: shows the API's figure for the service plus add-on, after a neutral line while loading", async () => {
     const user = userEvent.setup();
     renderFlow(
       storefront([FIFTY], { ...MAIN_100, due_at_booking_minor: 3000 })
@@ -534,7 +537,7 @@ describe("the amount due comes from the availability response", () => {
       })
     );
     await tick(user, 1);
-    expect(screen.getByText(ON_TOTAL)).toBeVisible();
+    expect(screen.getByText(WORKING_OUT)).toBeVisible();
     release(quoteSlots(4500, true));
     expect(await screen.findByText(PAY_45)).toBeVisible();
     expect(screen.getByText(PERCENT_LINE)).toBeVisible();
@@ -609,11 +612,57 @@ describe("the amount due comes from the availability response", () => {
       });
       await tick(user, 1);
       expect(
-        (await screen.findAllByText(NOT_AVAILABLE)).length
+        (await screen.findAllByText(TIMES_REMOVED)).length
       ).toBeGreaterThan(0);
       await waitFor(() => expect(screen.queryByText(STEP)).toBeNull());
       expect(screen.queryByText(ON_TOTAL)).toBeNull();
       expect(screen.getByLabelText("Name")).toHaveValue("Ada Lovelace");
     }
   );
+
+  it("says it is working out the amount while loading, and the fallback only if it could not be fetched", async () => {
+    const user = userEvent.setup();
+    renderFlow(storefront([FIFTY], { ...MAIN_100 }));
+    await pickService(user);
+    let release: (value: ReturnType<typeof quoteSlots>) => void = () =>
+      undefined;
+    vi.mocked(loadSlots).mockReturnValue(
+      new Promise((resolve) => {
+        release = resolve;
+      })
+    );
+    await tick(user, 1);
+    expect(screen.getByText(WORKING_OUT)).toBeVisible();
+    expect(screen.queryByText(ON_TOTAL)).toBeNull();
+    // Fetched, but with no figure: the fallback sentence.
+    release({ ok: true, data: slotList(TUE, LATER).data } as never);
+    expect(await screen.findByText(ON_TOTAL)).toBeVisible();
+    expect(screen.queryByText(WORKING_OUT)).toBeNull();
+  });
+
+  it("ignores a late failure that belongs to an older selection", async () => {
+    const user = userEvent.setup();
+    const two = { ...addOn(2), price_minor: 2000 };
+    renderFlow(storefront([FIFTY, two], { ...MAIN_100 }));
+    await pickService(user);
+    let fail: (value: {
+      ok: false;
+      code: "not_found";
+      message: string;
+    }) => void = () => undefined;
+    vi.mocked(loadSlots).mockReturnValueOnce(
+      new Promise((resolve) => {
+        fail = resolve;
+      })
+    );
+    await tick(user, 1);
+    vi.mocked(loadSlots).mockResolvedValue(quoteSlots(3600, true));
+    await tick(user, 2);
+    expect(await screen.findByText(PAY_36)).toBeVisible();
+    fail({ ok: false, code: "not_found", message: "We couldn't find that." });
+    await waitFor(() => expect(box(1)).toBeChecked());
+    expect(box(2)).toBeChecked();
+    expect(screen.queryByText(TIMES_REMOVED)).toBeNull();
+    expect(screen.getByText(PAY_36)).toBeVisible();
+  });
 });

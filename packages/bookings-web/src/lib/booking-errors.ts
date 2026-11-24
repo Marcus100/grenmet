@@ -160,6 +160,10 @@ function emailUnverified(
 export const ADD_ONS_GONE_MESSAGE =
   "Add-ons are not available for this booking any more, so we removed them. Check the total, pick a time again, then book.";
 
+/** Said when times could not be loaded with the ticked add-ons (404 or bad request). */
+export const ADD_ONS_TIMES_MESSAGE =
+  "We couldn't load times with those add-ons, so we removed them. Pick a time again, then book.";
+
 /** The API's 422 sentences about add-ons (switched off, gone, not offered here). */
 const ADD_ON_REFUSAL =
   /does not offer add-ons|add-ons is not available|is not offered with this service/iu;

@@ -19,6 +19,7 @@ import {
 } from "../lib/add-ons";
 import {
   ADD_ONS_GONE_MESSAGE,
+  ADD_ONS_TIMES_MESSAGE,
   type Failure,
   tellsToContact,
 } from "../lib/booking-errors";
@@ -700,6 +701,7 @@ function TimeStep({
   errors,
   onAddOnsGone,
   onBusyChange,
+  currentKey,
   onChange,
   onQuote,
   onUnavailable,
@@ -714,6 +716,8 @@ function TimeStep({
   errors: FieldErrors;
   onAddOnsGone: (message: string) => void;
   onBusyChange: (busy: boolean) => void;
+  /** The key of the selection on screen now, read when an answer arrives. */
+  currentKey: () => string;
   onChange: (value: string | null) => void;
   onQuote: (quote: Quote) => void;
   onUnavailable: () => void;
@@ -738,11 +742,13 @@ function TimeStep({
         <SlotPicker
           key={service.id}
           load={async (firstDay) => {
+            const sentKey = selectionKey(service.id, addOnIds);
             const outcome =
               addOnIds.length > 0
                 ? await actions.loadSlots(service.id, firstDay, addOnIds)
                 : await actions.loadSlots(service.id, firstDay);
-            if (addOnIds.length > 0) {
+            // A late answer for an older selection must not touch this one.
+            if (addOnIds.length > 0 && currentKey() === sentKey) {
               if (outcome.ok) {
                 onQuote({
                   key: selectionKey(service.id, addOnIds),
@@ -754,8 +760,8 @@ function TimeStep({
                 // itself cannot take add-ons: drop them, keep what was typed.
                 onAddOnsGone(
                   outcome.code === "add_ons_unavailable"
-                    ? outcome.message
-                    : ADD_ONS_GONE_MESSAGE
+                    ? ADD_ONS_GONE_MESSAGE
+                    : ADD_ONS_TIMES_MESSAGE
                 );
               }
             }
@@ -869,6 +875,7 @@ export function BookingFlow({
   // time chosen before that may no longer fit, so it cannot be submitted yet.
   const [timesBusy, setTimesBusy] = useState(false);
   const [quote, setQuote] = useState<Quote | null>(null);
+  const keyRef = useRef("");
   const [booked, setBooked] = useState<Booked | null>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   // One key per submission: a retry of the same request replays it.
@@ -940,6 +947,7 @@ export function BookingFlow({
   // With add-ons ticked the API may charge on the combined price, which this
   // form cannot work out: then no figure is shown, and a code the API demands
   // anyway is asked for through `codeForced` with the typed details kept.
+  keyRef.current = selectionKey(serviceId, addOns.ids);
   const quoted =
     quote?.key === selectionKey(serviceId, addOns.ids) &&
     quote.dueMinor !== undefined &&
@@ -1134,9 +1142,7 @@ export function BookingFlow({
             currency={storefront.currency}
             offered={addOns.offered}
             onToggle={(id) => {
-              if (startsAt) {
-                setTimesBusy(true);
-              }
+              setTimesBusy(true);
               addOns.choose(id);
             }}
             service={service}
@@ -1146,6 +1152,7 @@ export function BookingFlow({
         <TimeStep
           actions={actions}
           addOnIds={addOns.ids}
+          currentKey={() => keyRef.current}
           errors={errors}
           onAddOnsGone={(message) => {
             addOns.gone(message);
@@ -1276,7 +1283,8 @@ export function BookingFlow({
             businessName: storefront.display_name,
             currency: storefront.currency,
             cutoffHours: storefront.cancel_cutoff_hours,
-            depositOnTotal: service !== null && knownDue === null,
+            amountLoading: service !== null && knownDue === null && timesBusy,
+            depositOnTotal: service !== null && knownDue === null && !timesBusy,
             dueMinor: knownDue ?? undefined,
             nonRefundable: storefront.deposit_non_refundable,
             ownDepositMinor: service?.deposit_minor,
