@@ -16,6 +16,7 @@ from src.bookings.config import bookings_settings
 from src.bookings.models import Booking, BookingEvent, BookingStatus
 from src.notifications import outbox_handlers
 from src.outbox import Outbox
+from src.payments.models import Refund
 from src.worker import main as worker
 from tests.bookings.test_deposits import _book_deposit, _deposit_studio
 from tests.bookings.test_public_bookings import (
@@ -269,6 +270,83 @@ async def test_expiry_is_idempotent_and_mails_once(
         )
     )
     assert count == 1
+
+
+async def test_a_request_past_its_start_expires_without_a_mail(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """On the first run after deploy an old request must not mail a time gone by:
+    it is still cancelled and the history records it, but no customer email."""
+    studio, booking_id, _ = await _pending(
+        db_async, async_client, pending_expiry_hours=24
+    )
+    booking = await _booking_for(db_async, booking_id)
+    assert (
+        await lifecycle.expire_stale_requests(
+            db_async,
+            now=booking.starts_at + timedelta(minutes=1),
+            organisation_id=studio.org_id,
+        )
+        == 1
+    )
+    await db_async.commit()
+    assert (
+        await _booking_for(db_async, booking_id)
+    ).status == BookingStatus.CANCELLED.value
+    assert (await _events(db_async, booking_id))[-1].note == EXPIRED_NOTE
+    assert await _expiry_mails(db_async, booking_id) == []
+
+
+async def test_an_expired_paid_request_refunds_the_captured_deposit_once(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    from tests.bookings.test_deposit_policy import _paid
+    from tests.bookings.test_deposits import DEPOSIT, _intent, _refunded
+
+    studio, receipt = await _paid(
+        db_async,
+        async_client,
+        requires_confirmation=True,
+        pending_expiry_hours=1,
+    )
+    booking_id = receipt["booking"]["id"]
+    booking = await _booking_for(db_async, booking_id)
+    assert booking.status == BookingStatus.PENDING.value
+    assert await _refunded(db_async, booking_id) == 0
+
+    later = booking.created_at + timedelta(hours=2)
+    assert (
+        await lifecycle.expire_stale_requests(
+            db_async, now=later, organisation_id=studio.org_id
+        )
+        == 1
+    )
+    await db_async.commit()
+    assert await _refunded(db_async, booking_id) == -DEPOSIT
+    assert (
+        await _booking_for(db_async, booking_id)
+    ).status == BookingStatus.CANCELLED.value
+    notes = [event.note for event in await _events(db_async, booking_id)]
+    assert EXPIRED_NOTE in notes
+    assert "Deposit refunded" in notes
+    intent = await _intent(db_async, booking_id)
+    assert intent is not None
+    refunds = (
+        await db_async.scalars(select(Refund).where(Refund.intent_id == intent.id))
+    ).all()
+    assert [(r.amount_minor, r.reason) for r in refunds] == [
+        (DEPOSIT, "Booking cancelled")
+    ]
+
+    # A second sweep finds nothing pending and refunds nothing more.
+    assert (
+        await lifecycle.expire_stale_requests(
+            db_async, now=later, organisation_id=studio.org_id
+        )
+        == 0
+    )
+    await db_async.commit()
+    assert await _refunded(db_async, booking_id) == -DEPOSIT
 
 
 def test_the_expiry_job_is_registered_and_tracked() -> None:

@@ -742,12 +742,13 @@ OPEN_CAP_STATUSES = tuple(
 )
 
 
-def open_cap_message(open_count: int) -> str:
-    noun = "booking" if open_count == 1 else "bookings"
-    return (
-        f"You already have {open_count} upcoming {noun} with this business. "
-        "Manage them from your booking emails before booking again."
-    )
+#: The same text whatever the count, so a refusal does not reveal that bookings exist
+#: for an address (security review, MEDIUM-2). The cap limits careless repeat bookings;
+#: it is not abuse protection (the rate limit and Turnstile are).
+OPEN_CAP_MESSAGE = (
+    "We can't take another online booking for this email right now. "
+    "Please contact the business to book."
+)
 
 
 async def _require_under_open_cap(
@@ -771,7 +772,7 @@ async def _require_under_open_cap(
         )
     )
     if (open_count or 0) >= profile.max_open_per_customer:
-        raise BookingConflictError(open_cap_message(open_count or 0))
+        raise BookingConflictError(OPEN_CAP_MESSAGE)
 
 
 async def _create_booking(

@@ -26,7 +26,8 @@ from . import deposit_payments, emails, public
 from .config import bookings_settings
 from .models import Booking, BookingProfile, BookingStatus
 
-EXPIRY_BATCH = 100
+#: A small batch: a deposit refund calls the provider inside the locked transaction.
+EXPIRY_BATCH = 25
 COMPLETION_BATCH = 500
 #: How long after a booking ends the system closes it as completed.
 COMPLETE_AFTER = timedelta(hours=48)
@@ -106,14 +107,17 @@ async def expire_stale_requests(
             "booking.cancelled",
             event_id=f"booking.cancelled:{booking.id}",
         )
-        await public.queue_customer_email(
-            session,
-            managed,
-            emails.customer_expired(
-                public.build_mail(managed), book_again_url(managed.profile)
-            ),
-            f"booking-expired:{booking.id}",
-        )
+        # A request whose start has already passed gets no mail: on the first run after
+        # deploy an old request would otherwise mail a customer about a time gone by.
+        if booking.starts_at > moment:
+            await public.queue_customer_email(
+                session,
+                managed,
+                emails.customer_expired(
+                    public.build_mail(managed), book_again_url(managed.profile)
+                ),
+                f"booking-expired:{booking.id}",
+            )
         expired += 1
     await session.flush()
     return expired

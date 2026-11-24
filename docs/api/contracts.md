@@ -1360,9 +1360,15 @@ them. A booking request the business does not confirm in time is cancelled by th
 worker job `expire_pending_bookings` (every 5 minutes; a request whose start has passed
 always expires). The slot is released and the customer gets a short email with a link
 to book again (no business email needed); pending payments are not touched. The public
-create answers 409 with "You already have N upcoming bookings with this business..." when
-the same customer already holds `max_open_per_customer` future pending, pending-payment or
-confirmed bookings; staff and walk-in entries are not refused. Confirmed bookings that
+create answers 409 with the generic text "We can't take another online booking for this
+email right now. Please contact the business to book." (the same whatever the count, so
+it does not reveal that bookings exist for an address) when the same customer (addresses
+compare case-insensitively) already holds `max_open_per_customer` future pending,
+pending-payment or confirmed bookings; staff and walk-in entries are not refused. The cap
+limits careless repeat bookings. It is not abuse protection: plus-addressing
+(`name+tag@...`) gives a fresh customer, and someone who uses another person's email can
+hold slots until those requests expire. The rate limit and Turnstile remain the abuse
+controls. Confirmed bookings that
 ended more than 48 hours ago become `completed` through the hourly job
 `complete_finished_bookings`, recorded as the system's own move: no reward, email or
 webhook (a completion the business marks by hand still earns rewards).
