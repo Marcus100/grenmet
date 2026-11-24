@@ -54,7 +54,8 @@ export function payNowLine(
   dueMinor: number,
   priceMinor: number,
   currency: string,
-  cutoffHours?: number
+  cutoffHours?: number,
+  nonRefundable = false
 ): string | null {
   if (dueMinor <= 0) {
     return null;
@@ -66,7 +67,7 @@ export function payNowLine(
   const deposit = `You pay a deposit of ${due} now to hold this booking. The rest is paid at the business.`;
   return cutoffHours === undefined
     ? deposit
-    : `${deposit} ${depositRefundLine(cutoffHours)}`;
+    : `${deposit} ${depositRefundLine(cutoffHours, nonRefundable)}`;
 }
 
 /** The status text for a held booking: paid but not yet confirmed says so. */

@@ -286,3 +286,69 @@ describe("previewSentence", () => {
     ).toBe("Classic full set (EC$210) is booked without a deposit.");
   });
 });
+
+const NON_REFUNDABLE = /Non-refundable deposit/u;
+const KEPT_IF_CANCELLED = /a paid deposit is kept if the booking is cancelled/u;
+const DECLINE_REFUNDED = /A booking you decline/u;
+const MIN_PRICE = /Lowest service price that takes a deposit \(EC\$\)/u;
+const MIN_OVER_PRICE = /below the lowest price for a deposit/u;
+const NON_REFUNDABLE_SENTENCE =
+  /Your deposit is non-refundable once your booking is confirmed\. You can move your booking up to 6 hours before; it stays with your booking\./u;
+
+describe("DepositRuleForm deposit options", () => {
+  it("shows the non-refundable switch off by default, with a plain explanation", () => {
+    renderForm();
+    const toggle = screen.getByLabelText(NON_REFUNDABLE);
+    expect((toggle as HTMLInputElement).checked).toBe(false);
+    expect(screen.getByText(KEPT_IF_CANCELLED)).toBeTruthy();
+    expect(screen.getByText(DECLINE_REFUNDED)).toBeTruthy();
+  });
+
+  it("shows the switch on for a stored non-refundable deposit", () => {
+    renderForm({
+      deposit_non_refundable: true,
+    } as Partial<BookingProfilePublic>);
+    expect(
+      (screen.getByLabelText(NON_REFUNDABLE) as HTMLInputElement).checked
+    ).toBe(true);
+  });
+
+  it("asks for the lowest price in EC$ once the rule is on", () => {
+    renderForm({ deposit_mode: "fixed", deposit_fixed_minor: 4000 });
+    expect(screen.getByLabelText(MIN_PRICE)).toBeTruthy();
+  });
+
+  it("previews the non-refundable promise in place of the refund promise", () => {
+    expect(
+      previewSentence(
+        EXAMPLE,
+        {
+          deposit_mode: "fixed",
+          deposit_percent: null,
+          deposit_fixed_minor: 4000,
+        },
+        "XCD",
+        6,
+        true,
+        true
+      )
+    ).toMatch(NON_REFUNDABLE_SENTENCE);
+  });
+
+  it("says a service below the lowest price takes no deposit, and why", () => {
+    const cheap = { ...EXAMPLE, priceMinor: 1500 };
+    const sentence = previewSentence(
+      cheap,
+      {
+        deposit_mode: "fixed",
+        deposit_percent: null,
+        deposit_fixed_minor: 4000,
+        deposit_min_price_minor: 5000,
+      },
+      "XCD",
+      6
+    );
+    expect(sentence).toMatch(NO_DEPOSIT);
+    expect(sentence).toMatch(MIN_OVER_PRICE);
+  });
+});

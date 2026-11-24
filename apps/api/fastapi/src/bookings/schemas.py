@@ -123,6 +123,17 @@ class BookingMyBookingList(BaseModel):
 # --- profile ---------------------------------------------------------------------
 
 
+def normalise_policy(value: object) -> object:
+    """A booking policy as plain text: line endings become ``\\n``, control
+    characters go (tabs and line breaks stay), and the ends are trimmed. Blank is
+    None. Nothing is interpreted as HTML; every surface renders it as text."""
+    if not isinstance(value, str):
+        return value
+    text = value.replace("\r\n", "\n").replace("\r", "\n")
+    kept = "".join(ch for ch in text if ch in "\n\t" or ch.isprintable())
+    return kept.strip() or None
+
+
 class BookingProfileUpdate(BaseModel):
     """Create or replace the organisation's booking profile."""
 
@@ -214,6 +225,32 @@ class BookingProfileUpdate(BaseModel):
         default=None,
         description="The amount in minor units for `deposit_mode` `fixed`.",
     )
+    deposit_min_price_minor: Annotated[int, Field(ge=1, le=100_000_000)] | None = Field(
+        default=None,
+        description=(
+            "The lowest service price (minor units) that takes the business-wide "
+            "deposit rule. Cheaper services take no deposit from it. Null means no "
+            "minimum. A service's own deposit is never affected. Left out, the stored "
+            "value is kept."
+        ),
+    )
+    deposit_non_refundable: bool = Field(
+        default=False,
+        description=(
+            "When true, a paid deposit is kept when the booking is cancelled, by the "
+            "customer or by the business without a refund choice. A move keeps it "
+            "with the booking. Declines still refund. Left out, the stored value is kept."
+        ),
+    )
+    booking_policy: Annotated[str, Field(max_length=1000)] | None = Field(
+        default=None,
+        description=(
+            "Plain-text booking policy, such as a late fee, up to 1000 characters. "
+            "Shown on the booking page before the customer confirms and in the "
+            "confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, "
+            "the stored value is kept."
+        ),
+    )
     brand_color: str | None = Field(
         default=None,
         max_length=7,
@@ -276,6 +313,11 @@ class BookingProfileUpdate(BaseModel):
         if isinstance(value, str):
             return value.strip() or None
         return value
+
+    @field_validator("booking_policy", mode="before")
+    @classmethod
+    def _policy_text(cls, value: object) -> object:
+        return normalise_policy(value)
 
     @field_validator("contact_phone", mode="before")
     @classmethod
@@ -642,6 +684,14 @@ class BookingStudioDetail(BaseModel):
     timezone: str
     price_minor: int
     deposit_minor: int
+    deposit_non_refundable: bool = Field(
+        default=False,
+        description=(
+            "This booking's deposit terms: true when a confirmed booking keeps its "
+            "deposit on cancellation. Set when the booking was made; later profile "
+            "changes do not change it."
+        ),
+    )
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     balance_at_salon_minor: int = Field(
         description="The price less the deposit: what is still to pay at the business."
@@ -708,6 +758,14 @@ class BookingStorefront(BaseModel):
     timezone: str
     currency: str
     cancel_cutoff_hours: int
+    deposit_non_refundable: bool = Field(
+        default=False,
+        description="True when a paid deposit is never refunded on cancellation.",
+    )
+    booking_policy: str | None = Field(
+        default=None,
+        description="The business's plain-text booking policy, or null when it has none.",
+    )
     contact: BookingBusinessContact
     brand_color: str | None = Field(
         description=(
@@ -925,6 +983,17 @@ class BookingPublicDetail(BaseModel):
     deposit_minor: int
     currency: str
     cancel_cutoff_hours: int
+    deposit_non_refundable: bool = Field(
+        default=False,
+        description=(
+            "This booking's terms: true when a deposit paid on a confirmed booking is "
+            "kept on cancellation. Set when the booking was made."
+        ),
+    )
+    booking_policy: str | None = Field(
+        default=None,
+        description="The business's plain-text booking policy, or null when it has none.",
+    )
     can_cancel: bool = Field(
         description="True while the booking is active and before the cancellation cutoff."
     )

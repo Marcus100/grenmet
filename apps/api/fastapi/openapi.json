@@ -78997,6 +78997,39 @@
             "title": "Deposit Fixed Minor",
             "description": "The amount in minor units for `deposit_mode` `fixed`."
           },
+          "deposit_min_price_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Min Price Minor",
+            "description": "The lowest service price (minor units) that takes the business-wide deposit rule. Cheaper services take no deposit from it. Null means no minimum. A service's own deposit is never affected. Left out, the stored value is kept."
+          },
+          "deposit_non_refundable": {
+            "type": "boolean",
+            "title": "Deposit Non Refundable",
+            "description": "When true, a paid deposit is kept when the booking is cancelled, by the customer or by the business without a refund choice. A move keeps it with the booking. Declines still refund. Left out, the stored value is kept.",
+            "default": false
+          },
+          "booking_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Policy",
+            "description": "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+          },
           "brand_color": {
             "anyOf": [
               {
@@ -79278,6 +79311,39 @@
             ],
             "title": "Deposit Fixed Minor",
             "description": "The amount in minor units for `deposit_mode` `fixed`."
+          },
+          "deposit_min_price_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Min Price Minor",
+            "description": "The lowest service price (minor units) that takes the business-wide deposit rule. Cheaper services take no deposit from it. Null means no minimum. A service's own deposit is never affected. Left out, the stored value is kept."
+          },
+          "deposit_non_refundable": {
+            "type": "boolean",
+            "title": "Deposit Non Refundable",
+            "description": "When true, a paid deposit is kept when the booking is cancelled, by the customer or by the business without a refund choice. A move keeps it with the booking. Declines still refund. Left out, the stored value is kept.",
+            "default": false
+          },
+          "booking_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Policy",
+            "description": "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
           },
           "brand_color": {
             "anyOf": [
@@ -79901,6 +79967,24 @@
           "cancel_cutoff_hours": {
             "type": "integer",
             "title": "Cancel Cutoff Hours"
+          },
+          "deposit_non_refundable": {
+            "type": "boolean",
+            "title": "Deposit Non Refundable",
+            "description": "This booking's terms: true when a deposit paid on a confirmed booking is kept on cancellation. Set when the booking was made.",
+            "default": false
+          },
+          "booking_policy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Policy",
+            "description": "The business's plain-text booking policy, or null when it has none."
           },
           "can_cancel": {
             "type": "boolean",
@@ -80543,6 +80627,24 @@
             "type": "integer",
             "title": "Cancel Cutoff Hours"
           },
+          "deposit_non_refundable": {
+            "type": "boolean",
+            "title": "Deposit Non Refundable",
+            "description": "True when a paid deposit is never refunded on cancellation.",
+            "default": false
+          },
+          "booking_policy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Policy",
+            "description": "The business's plain-text booking policy, or null when it has none."
+          },
           "contact": {
             "$ref": "#/components/schemas/BookingBusinessContact"
           },
@@ -80820,6 +80922,12 @@
           "deposit_minor": {
             "type": "integer",
             "title": "Deposit Minor"
+          },
+          "deposit_non_refundable": {
+            "type": "boolean",
+            "title": "Deposit Non Refundable",
+            "description": "This booking's deposit terms: true when a confirmed booking keeps its deposit on cancellation. Set when the booking was made; later profile changes do not change it.",
+            "default": false
           },
           "payment_kind": {
             "$ref": "#/components/schemas/BookingPaymentKind",

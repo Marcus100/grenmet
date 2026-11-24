@@ -54,6 +54,13 @@ class BookingEmail:
     logo: layout.Logo | None = None
     #: "Deposit paid XCD x, remaining XCD y at the salon." once a deposit is paid.
     payment_line: str | None = None
+    #: The business's plain-text policy; each line is shown as its own line.
+    booking_policy: str | None = None
+    #: The booking's own deposit terms: a paid deposit is kept on cancellation once
+    #: the booking is confirmed (the mail says so beside the payment).
+    deposit_non_refundable: bool = False
+    #: The business has confirmed the booking; otherwise the promise waits for it.
+    booking_confirmed: bool = False
 
     @property
     def when(self) -> str:
@@ -107,13 +114,38 @@ def _calendar(mail: BookingEmail) -> tuple[layout.Action, ...]:
 
 
 def _policy(mail: BookingEmail) -> tuple[str, ...]:
+    """The cutoff line, the non-refundable line once a deposit is paid, then the
+    business's own policy text, one line per line of the text."""
+    lines: list[str] = []
     hours = mail.cancel_cutoff_hours
+    if hours and hours > 0:
+        noun = "hour" if hours == 1 else "hours"
+        lines.append(
+            f"Changes made less than {hours} {noun} before the start are arranged "
+            f"with {mail.business}."
+        )
+    if mail.deposit_non_refundable and mail.payment_line:
+        lines.append(_non_refundable_line(hours, mail.booking_confirmed))
+    lines.extend(
+        line.strip() for line in (mail.booking_policy or "").split("\n") if line.strip()
+    )
+    return tuple(lines)
+
+
+def _non_refundable_line(hours: int | None, confirmed: bool) -> str:
+    """The same promise the booking page and manage page make. Before the business
+    confirms, the deposit is still refundable, so the sentence says it waits."""
+    lead = (
+        "Your deposit is non-refundable"
+        if confirmed
+        else "Your deposit is non-refundable once your booking is confirmed"
+    )
     if not hours or hours <= 0:
-        return ()
+        return f"{lead}. You can move your booking at any time before it starts; it stays with your booking."
     noun = "hour" if hours == 1 else "hours"
     return (
-        f"Changes made less than {hours} {noun} before the start are arranged "
-        f"with {mail.business}.",
+        f"{lead}. You can move your booking up to {hours} {noun} before; it stays "
+        "with your booking."
     )
 
 
@@ -200,6 +232,7 @@ def customer_received(mail: BookingEmail, *, confirmed: bool) -> layout.EmailCar
             title="We received your booking request",
             paragraphs=(f"We will email you once {mail.business} confirms it.",),
             primary=_manage(mail),
+            policy=_policy(mail),
             **_invite(mail),
         ),
     )
