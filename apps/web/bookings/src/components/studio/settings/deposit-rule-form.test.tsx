@@ -76,7 +76,7 @@ const TOUCH_RE_2 = /\(XCD\)/u;
 const TOUCH_RE_3 = /-hint/u;
 const TOUCH_RE_4 = /The amount in EC\$/u;
 const TOUCH_RE_5 = /text-base/u;
-const TOUCH_RE_6 = /A service's own deposit always wins over this rule/u;
+const TOUCH_RE_6 = /that amount is used instead of this rule/u;
 const TOUCH_RE_7 = /edit that service under Services/u;
 const TOUCH_RE_8 = /pays at the salon/u;
 
@@ -288,8 +288,8 @@ describe("previewSentence", () => {
 });
 
 const NON_REFUNDABLE = /Non-refundable deposit/u;
-const KEPT_IF_CANCELLED = /a paid deposit is kept if the booking is cancelled/u;
-const DECLINE_REFUNDED = /A booking you decline/u;
+const KEPT_IF_CANCELLED = /if a customer cancels, you keep the deposit/u;
+const DECLINE_REFUNDED = /a booking you decline/u;
 const MIN_PRICE = /Lowest service price that takes a deposit \(EC\$\)/u;
 const MIN_OVER_PRICE = /below the lowest price for a deposit/u;
 const NON_REFUNDABLE_SENTENCE =

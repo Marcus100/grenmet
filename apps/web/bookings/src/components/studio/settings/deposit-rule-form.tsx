@@ -247,9 +247,10 @@ export function DepositRuleForm({
       <fieldset className="border-border space-y-3 border-t pt-4">
         <legend className="pt-4 font-medium">Deposit for each booking</legend>
         <p className="text-muted-foreground text-base">
-          A deposit is paid online when the customer books, and it counts toward
-          the price. A service&apos;s own deposit always wins over this rule. To
-          change a service&apos;s own deposit, edit that service under Services.
+          A deposit is paid online when the customer books. It counts toward the
+          price, and the customer pays the rest at the salon. If a service has
+          its own deposit, that amount is used instead of this rule. To change a
+          service&apos;s own deposit, edit that service under Services.
         </p>
         <Label className="min-h-11 items-center gap-3">
           <input
@@ -321,7 +322,7 @@ export function DepositRuleForm({
             )}
             <AmountField
               errorId={errorId}
-              hint="Services priced below this take no deposit from this rule. Leave blank for no minimum. A service's own deposit still applies."
+              hint="A service priced below this takes no deposit from this rule. Leave blank for no minimum. A service's own deposit still applies."
               id="deposit-min-price"
               inputMode="decimal"
               invalid={!minimum.ok}
@@ -376,11 +377,11 @@ export function DepositRuleForm({
           Non-refundable deposit
         </Label>
         <p className="text-muted-foreground text-base">
-          When this is on, a paid deposit is kept if the booking is cancelled,
-          unless you choose to refund it on that booking. A customer can still
-          move the booking up to the cutoff, and the deposit moves with it.
-          Moves inside the cutoff are not allowed online. A booking you decline
-          is always refunded.
+          On: if a customer cancels, you keep the deposit, unless you choose to
+          refund it on that booking. Off: the customer gets the deposit back
+          when they cancel before the cancellation cutoff. Either way, a
+          customer can move a booking until the cutoff and the deposit moves
+          with it, and a booking you decline is always refunded.
         </p>
       </fieldset>
       <SettingsResult pending={pending} state={state} />
