@@ -105,7 +105,6 @@ export function DataRequestForm() {
         state.status === "error" ? "data-request-error" : undefined
       }
       className="max-w-2xl space-y-5"
-      method="post"
       noValidate
       onSubmit={handleSubmit}
     >
@@ -266,6 +265,12 @@ export function DataRequestForm() {
       >
         {state.status === "submitting" ? "Sending…" : "Send request"}
       </Button>
+      <noscript>
+        <p className="text-body-sm text-gm-text-secondary">
+          This form needs JavaScript. Turn it on in your browser, or contact us
+          another way.
+        </p>
+      </noscript>
       {state.status === "error" && (
         <p
           className="text-body-base text-destructive font-medium"

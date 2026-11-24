@@ -99,12 +99,7 @@ export function AlertEmailSignup() {
   }
 
   return (
-    <form
-      className="max-w-xl space-y-4"
-      method="post"
-      noValidate
-      onSubmit={handleSubmit}
-    >
+    <form className="max-w-xl space-y-4" noValidate onSubmit={handleSubmit}>
       <div className="space-y-2">
         <Label htmlFor="alert-email">Email address</Label>
         <Input
@@ -134,6 +129,12 @@ export function AlertEmailSignup() {
       >
         {state.status === "submitting" ? "Sending…" : "Email me alerts"}
       </Button>
+      <noscript>
+        <p className="text-body-sm text-gm-text-secondary">
+          This form needs JavaScript. Turn it on in your browser, or contact us
+          another way.
+        </p>
+      </noscript>
       {state.status === "error" && (
         <p className="text-body-base text-destructive font-medium" role="alert">
           {state.message}
