@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SubscribeForm } from "@/components/subscribe-form";
 
@@ -74,5 +75,20 @@ describe("SubscribeForm", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Too many attempts."
     );
+  });
+});
+
+const FORM_POST_TAG = /<form[^>]*method="post"/u;
+const BUTTON_TAG = /<button\b[^>]*>/gu;
+
+describe("SubscribeForm before the page script runs", () => {
+  it("posts as a form and keeps submit off until hydration", () => {
+    const html = renderToString(<SubscribeForm />);
+    expect(html).toMatch(FORM_POST_TAG);
+    const submit = (html.match(BUTTON_TAG) ?? []).find((tag) =>
+      tag.includes('type="submit"')
+    );
+    expect(submit).toBeDefined();
+    expect(submit).toContain('disabled=""');
   });
 });
