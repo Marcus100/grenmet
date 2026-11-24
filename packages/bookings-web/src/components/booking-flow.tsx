@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { addOnTotals } from "../lib/add-ons";
 import { type Failure, tellsToContact } from "../lib/booking-errors";
 import {
   type BookingFields,
@@ -36,12 +37,14 @@ import type {
   BookingInput,
 } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
+import { AddOnStep, BookedAddOns } from "./add-on-step";
 import { BookingRules } from "./booking-policy-text";
 import { ContactLinks } from "./business-contact";
 import { PaymentStatus } from "./payment-status";
 import { ServiceList } from "./service-list";
 import { SlotPicker } from "./slot-picker";
 import { Turnstile } from "./turnstile";
+import { useAddOns } from "./use-add-ons";
 import {
   CODE_LENGTH,
   TOKEN_LOADING_MESSAGE,
@@ -225,8 +228,9 @@ function BookingDone({
             <dt>When</dt>
             <dd>{formatDateTime(booking.starts_at, booking.timezone)}</dd>
           </div>
+          <BookedAddOns currency={currency} lines={booking.add_ons} />
           <div>
-            <dt>Price</dt>
+            <dt>{booking.add_ons?.length ? "Total" : "Price"}</dt>
             <dd>{formatMoney(booking.price_minor, currency)}</dd>
           </div>
         </dl>
@@ -668,20 +672,28 @@ function ServicesStep({
 /** Step 2: the day and time, once a service is chosen. */
 function TimeStep({
   actions,
+  addOnIds,
   errors,
+  onAddOnsGone,
   onChange,
+  onUnavailable,
   reloadKey,
   service,
   startsAt,
   storefront,
+  timeNote,
 }: {
   actions: BookingFlowActions;
+  addOnIds: readonly string[];
   errors: FieldErrors;
+  onAddOnsGone: (message: string) => void;
   onChange: (value: string | null) => void;
+  onUnavailable: () => void;
   reloadKey: number;
   service: BookingPublicService | null;
   startsAt: string | null;
   storefront: BookingStorefront;
+  timeNote: string | null;
 }) {
   return (
     <fieldset
@@ -697,8 +709,18 @@ function TimeStep({
       {service ? (
         <SlotPicker
           key={service.id}
-          load={(firstDay) => actions.loadSlots(service.id, firstDay)}
+          load={async (firstDay) => {
+            const outcome =
+              addOnIds.length > 0
+                ? await actions.loadSlots(service.id, firstDay, addOnIds)
+                : await actions.loadSlots(service.id, firstDay);
+            if (!outcome.ok && outcome.code === "add_ons_unavailable") {
+              onAddOnsGone(outcome.message);
+            }
+            return outcome;
+          }}
           onChange={onChange}
+          onUnavailable={onUnavailable}
           reloadKey={reloadKey}
           timeZone={storefront.timezone}
           value={startsAt}
@@ -706,6 +728,11 @@ function TimeStep({
       ) : (
         <p className="muted">Choose a service to see open times.</p>
       )}
+      {timeNote ? (
+        <p className="notice" role="status">
+          {timeNote}
+        </p>
+      ) : null}
       {service && startsAt && (
         <p className="chosen" role="status">
           {service.name}: {formatDateTime(startsAt, storefront.timezone)}
@@ -777,6 +804,11 @@ export function BookingFlow({
 }: BookingFlowProps) {
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [startsAt, setStartsAt] = useState<string | null>(null);
+  const addOns = useAddOns({
+    addOns: storefront.add_ons,
+    serviceId,
+    startsAt,
+  });
   const [name, setName] = useState(signedIn?.name ?? "");
   const [email, setEmail] = useState(signedIn?.email ?? "");
   const [phone, setPhone] = useState(signedIn?.phone ?? "");
@@ -814,6 +846,7 @@ export function BookingFlow({
     track?.("service_selected", { service_id: id });
     setServiceId(id);
     setStartsAt(null);
+    addOns.reset();
     reviseErrors({ serviceId: id, startsAt: null });
   };
   const pickStart = (value: string | null) => {
@@ -821,6 +854,9 @@ export function BookingFlow({
       track?.("slot_selected", { service_id: serviceId });
     }
     setStartsAt(value);
+    if (value) {
+      addOns.clearNote();
+    }
     reviseErrors({ startsAt: value });
   };
   const editName = (value: string) => {
@@ -841,6 +877,9 @@ export function BookingFlow({
   };
 
   const service = storefront.services.find((s) => s.id === serviceId) ?? null;
+  const totals = service
+    ? addOnTotals(service, addOns.offered, addOns.ids)
+    : null;
   const errorList = (Object.keys(errors) as FieldKey[]).filter(
     (key) => errors[key]
   );
@@ -888,6 +927,10 @@ export function BookingFlow({
       // The proof was used, expired or never accepted: ask for a new code.
       emailCode.dropProof();
       setCodeForced(serviceId);
+    }
+    if (outcome.code === "add_ons_unavailable") {
+      addOns.gone(outcome.message);
+      setStartsAt(null);
     }
     if (outcome.code === "slot_taken") {
       setStartsAt(null);
@@ -940,6 +983,7 @@ export function BookingFlow({
       phone,
       notes,
       marketing,
+      addOnIds: addOns.ids,
     });
     attempt.current = attemptFor(attempt.current, print);
     setSubmitting(true);
@@ -956,6 +1000,7 @@ export function BookingFlow({
             phone,
             notes,
             marketingConsent: marketing,
+            ...(addOns.ids.length > 0 ? { addOnIds: addOns.ids } : {}),
             website,
             turnstileToken: token ?? "",
           },
@@ -1019,14 +1064,31 @@ export function BookingFlow({
           storefront={storefront}
         />
 
+        {service && addOns.offered.length > 0 ? (
+          <AddOnStep
+            chosen={addOns.ids}
+            currency={storefront.currency}
+            offered={addOns.offered}
+            onToggle={addOns.choose}
+            service={service}
+          />
+        ) : null}
+
         <TimeStep
           actions={actions}
+          addOnIds={addOns.ids}
           errors={errors}
+          onAddOnsGone={(message) => {
+            addOns.gone(message);
+            setStartsAt(null);
+          }}
           onChange={pickStart}
-          reloadKey={reloadKey}
+          onUnavailable={addOns.timeNoLongerFits}
+          reloadKey={reloadKey + addOns.reloads}
           service={service}
           startsAt={startsAt}
           storefront={storefront}
+          timeNote={addOns.note}
         />
 
         <fieldset className="step">
@@ -1142,7 +1204,7 @@ export function BookingFlow({
             dueMinor: service ? dueAtBooking(service) : undefined,
             nonRefundable: storefront.deposit_non_refundable,
             ownDepositMinor: service?.deposit_minor,
-            priceMinor: service?.price_minor,
+            priceMinor: totals?.priceMinor,
           }}
         />
         {!stepOpen && (

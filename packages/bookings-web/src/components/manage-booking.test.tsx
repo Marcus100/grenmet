@@ -436,4 +436,25 @@ describe("ManageBooking", () => {
     });
     expect(link.getAttribute("href")).not.toContain(TOKEN);
   });
+
+  it("lists the add-ons with their prices and the total", () => {
+    renderManage({
+      ...booking,
+      price_minor: 7000,
+      add_ons: [
+        { name: "Lash tint", duration_min: 15, price_minor: 1000 },
+        { name: "Brow wax", duration_min: 30, price_minor: 2000 },
+      ],
+    });
+    expect(screen.getByText("Lash tint: +15 min, +EC$10")).toBeVisible();
+    expect(screen.getByText("Brow wax: +30 min, +EC$20")).toBeVisible();
+    expect(screen.getByText("Total")).toBeVisible();
+    expect(screen.getByText("EC$70")).toBeVisible();
+  });
+
+  it("keeps the plain Price row when there are no add-ons", () => {
+    renderManage({ ...booking, add_ons: [] });
+    expect(screen.getByText("Price")).toBeVisible();
+    expect(screen.queryByText("Add-ons")).toBeNull();
+  });
 });
