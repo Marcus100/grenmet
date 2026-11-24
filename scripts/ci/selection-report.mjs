@@ -61,7 +61,7 @@ export function findWrongSkips(records, runsBySha) {
             check: run.name,
             conclusion: run.conclusion,
           });
-      }
+    }
   }
   return wrong;
 }
@@ -181,14 +181,18 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   console.log(
     `${records.length} recorded pull request heads; ${skipped} would have skipped something.`
   );
-  if (!wrong.length) {
-    console.log("No wrong skips: every check selection would have skipped passed.");
-  } else {
-    console.log(`${wrong.length} wrong skip(s). Keep CI_PATH_SELECTION=shadow.`);
+  if (wrong.length) {
+    console.log(
+      `${wrong.length} wrong skip(s). Keep CI_PATH_SELECTION=shadow.`
+    );
     for (const item of wrong)
       console.log(
         `- PR #${item.pr} ${item.headSha.slice(0, 9)}: ${item.check} ${item.conclusion} (group ${item.group})`
       );
     process.exitCode = 1;
+  } else {
+    console.log(
+      "No wrong skips: every check selection would have skipped passed."
+    );
   }
 }
