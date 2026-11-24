@@ -79064,6 +79064,43 @@
         ],
         "title": "BookingExceptionPublic"
       },
+      "BookingFeaturedService": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor",
+            "description": "The service price in minor units."
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "The business's currency, such as `XCD`."
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "price_minor",
+          "currency",
+          "duration_min"
+        ],
+        "title": "BookingFeaturedService",
+        "description": "A service shown on a home page card. Public fields only."
+      },
       "BookingManualDepositCreate": {
         "properties": {
           "method": {
@@ -80406,6 +80443,14 @@
               }
             ],
             "description": "The business's type (the `type` filter), or null when not chosen."
+          },
+          "featured_services": {
+            "items": {
+              "$ref": "#/components/schemas/BookingFeaturedService"
+            },
+            "type": "array",
+            "title": "Featured Services",
+            "description": "Up to three bookable services (active, not add-ons) in the order the business's booking page lists them; empty when it has none."
           }
         },
         "type": "object",
