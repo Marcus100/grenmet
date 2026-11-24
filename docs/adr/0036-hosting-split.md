@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (owner decision, 2026-10-20).
+Accepted (owner decision, 2026-10-20). Amended 2026-10-27 (Cloudflare Pages)
+and by ADR-0061 (browser-only apps that sign in; see the last amendment).
 
 ## Amendment (owner decision, 2026-10-27)
 
@@ -19,6 +20,16 @@ Accepted (owner decision, 2026-10-20).
 - **Elections dropped Barrels sign-in** (#792), so it now meets rule 2.
 - Read "Vercel" in rules 1, 3 and 4 as "static hosting (Cloudflare Pages, or
   Vercel for sites not yet moved)".
+
+## Amended by ADR-0061 (noted 24 Nov 2026)
+
+Rule 2 no longer covers browser-only apps. ADR-0061 (accepted 16 Nov 2026)
+lets a phone app in `apps/pwa/*` sign people in from its own pages while it is
+served as static files from Cloudflare Pages. The Printix scanner does this
+today at `scan.barrels.gd`, and ADR-0063 plans the same for Shop Keeper and
+Salesbus. The API, its data and the sessions stay on the droplets; the app holds
+no secret and calls the API with the person's own token. Apps with a server part
+(Next.js apps that sign in) still run on the droplets.
 
 ## Context
 

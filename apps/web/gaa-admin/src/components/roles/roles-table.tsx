@@ -31,8 +31,9 @@ import {
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { flexRender } from "@tanstack/react-table";
 import type { LegacyReactTable, LegacyRow } from "@tanstack/react-table/legacy";
-import { Fragment, type MouseEvent } from "react";
+import { Fragment, type MouseEvent, type ReactNode } from "react";
 
+import { RowCards } from "@/components/data-table/row-cards";
 import type { RoleRow, RoleRowType } from "./roles-row";
 
 function preventPaginationNavigation(event: MouseEvent<HTMLAnchorElement>) {
@@ -76,7 +77,14 @@ function groupRows(rows: LegacyRow<RoleRow>[]): RoleGroup[] {
   })).filter((group) => group.rows.length > 0);
 }
 
-export function RolesTable({ table }: { table: LegacyReactTable<RoleRow> }) {
+export function RolesTable({
+  emptyState,
+  table,
+}: {
+  /** What an empty list says (no role matches the filters). */
+  emptyState: ReactNode;
+  table: LegacyReactTable<RoleRow>;
+}) {
   const rows = table.getRowModel().rows;
   const columnCount = table.getVisibleLeafColumns().length;
   const pageCount = Math.max(table.getPageCount(), 1);
@@ -93,7 +101,7 @@ export function RolesTable({ table }: { table: LegacyReactTable<RoleRow> }) {
 
   return (
     <div className="flex flex-1 flex-col gap-4" data-content-width="wide">
-      <div>
+      <div className="hidden md:block">
         <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
           <TableHeader className="[&_tr]:border-t">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -158,16 +166,18 @@ export function RolesTable({ table }: { table: LegacyReactTable<RoleRow> }) {
             ) : (
               <TableRow>
                 <TableCell
-                  className="h-24 text-center"
+                  className="p-4"
                   colSpan={table.getVisibleLeafColumns().length}
                 >
-                  No results.
+                  {emptyState}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      <RowCards empty={emptyState} table={table} />
 
       <Separator />
 
@@ -219,6 +229,7 @@ export function RolesTable({ table }: { table: LegacyReactTable<RoleRow> }) {
                   preventPaginationNavigation(event);
                   table.previousPage();
                 }}
+                size="icon"
                 text=""
               />
             </PaginationItem>
@@ -260,6 +271,7 @@ export function RolesTable({ table }: { table: LegacyReactTable<RoleRow> }) {
                   preventPaginationNavigation(event);
                   table.nextPage();
                 }}
+                size="icon"
                 text=""
               />
             </PaginationItem>

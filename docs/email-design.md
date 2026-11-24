@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-21
+**Last updated:** 2026-11-24
 
 React Email is the single design source for every email. The shared layout is
 `EmailLayout` in `packages/email-templates/src/components/layout.tsx`; the generic
@@ -38,6 +38,23 @@ are omitted, never shown blank.
 - Buttons and chips set the background on the table cell (`bgcolor` and
   `background-color`), so dark-mode clients and Outlook keep them.
 
+## Business brand (issue #1622)
+
+- A business sets `brand_color` (`#rrggbb`) and a logo: the booking profile
+  (`bookings.profile`) and the events organiser (`events.organisers`). Booking and
+  event mail pass them as the card's `accent` and `logo`; the rule is the same in
+  Python (`src/email_colour.py`) and React (`components/colour.ts`).
+- The logo is a completed `booking-logo` (or `organiser-logo`) upload, linked through
+  its public redirect (`/api/v1/storage/public/{id}`). It shows at the top at 40px,
+  with the business name as alt text. The name is also in the eyebrow, so a mail
+  with images blocked still names the sender. No logo is printed without
+  `API_BASE_URL`, and never a non-https one.
+- Logo uploads (`booking-logo`, `organiser-logo`) are re-encoded without metadata when
+  they complete (`src/storage/image_metadata.py`), keeping transparency and flattening
+  animated files to the first frame. This removes metadata from honest uploads; it is
+  not a defence against a hostile uploader. A presigned PUT stays valid for 15 minutes,
+  so the object can be overwritten after completion (follow-up: re-key on completion).
+
 ## Accessibility and safety
 
 - Body text at least 4.5:1 against its background; large text at least 3:1.
@@ -68,6 +85,19 @@ Python fallback renders it, and a send failure retries through the outbox as bef
 `EMAIL_RENDER_URL` is not set or the render call fails. It is correct and readable,
 not pixel-matched to React Email. Keep the two in step on structure and wording,
 not on pixels.
+
+### Known gap: the named account emails keep the old Jinja look
+
+Five account emails are named React Email templates on `EmailLayout`, not cards:
+`welcome`, `reset-password`, `organisation-invitation`, `superuser-invitation` and
+`subscription-confirm`. When the render service is off or fails, they fall back to
+the Jinja files in `apps/api/fastapi/email-templates/build/` (`email.py`, and
+`_OUTBOUND_JINJA` in `notifications/dispatch.py`). Those files carry the same facts
+(names, links, expiry) in the old layout, so a fallback mail is correct but does not
+match the card look. This is accepted for now: the fallback is a rare outage path.
+Closing the gap means moving each of the five to a Python card builder (then
+`render_fallback` covers it), not restyling the Jinja files. When you change the
+wording or facts of one of these emails, change its Jinja file too.
 
 ## Adding a card
 

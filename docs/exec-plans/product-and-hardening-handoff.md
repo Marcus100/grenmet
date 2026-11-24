@@ -2,7 +2,7 @@
 
 **Status:** Working plan  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-14 (reconciled; the plan itself is from 2026-10-20)
+**Last updated:** 2026-11-21 (payments, Babydoll and release rules; reconciled 2026-11-14; the plan itself is from 2026-10-20)
 
 > **Reconciled on 14 Nov 2026.** Checked against `origin/dev` and GitHub and
 > marked in place with "(14 Nov 2026)": the owner-decision rows on Babydoll's
@@ -27,13 +27,13 @@ product item is blocked.
 | # | Question | Decision |
 | --- | --- | --- |
 | 1 | Next real pilot | **Babydoll Bookings go-live** |
-| 2 | How Babydoll clients pay | Online deposits, eventually; **launch without them** (pay in salon) |
-| 3–4 | Deposit provider | Owner has a **Stripe New Zealand** account; Stripe likely does not support Grenada businesses, and taking another business's money on it may break Stripe's terms. Owner will ask Stripe and contact **Republic Bank (ePay)**. Build provider-neutral; no live rail until one is approved in writing. **Direction of 13 Nov 2026** (issue #1372, no code yet): try both Stripe and Republic Bank's e-commerce service; each business is paid directly through its own merchant account and Barrels charges a subscription, so Barrels does not hold client funds; online payment for bookings is optional and customers may pay in the salon |
+| 2 | How Babydoll clients pay | Online deposits, eventually; **launch without them** (pay in salon). **21 Nov 2026:** launch on Sat 29 Nov 2026 with an online deposit only if a Grenada gateway is live and tested by 28 Nov; otherwise pay in the salon |
+| 3–4 | Deposit provider | Owner has a **Stripe New Zealand** account; Stripe likely does not support Grenada businesses, and taking another business's money on it may break Stripe's terms. Owner will ask Stripe and contact **Republic Bank (ePay)**. Build provider-neutral; no live rail until one is approved in writing. **Decision of 21 Nov 2026** (owner; issue #1372): the business is the seller and Barrels never holds funds. One provider per country: Grenada via WiPay or Republic Bank ePay (both are being pursued; the first one approved wins), New Zealand via Stripe Connect. Stripe cannot serve Grenada businesses. Online payment for bookings is optional and customers may pay in the salon |
 | 5 | Launch order | **Launch booking now**, deposits later per service |
 | 6–7 | Where screens live | New app **`bookings.barrels.gd`**: `/{business}` public booking page for any tenant, `/studio` staff area on Barrels sign-in. Babydoll keeps `babydoll.barrels.gd/book`. One Bookings API behind every frontend. **Changed 13 Nov 2026:** the Babydoll site is static and takes no bookings; its Book buttons will open `bookings.barrels.gd/babydoll-beauty-bar` and `/book` redirects there |
 | 8 | Who maintains services, prices, hours | **The business**, in `/studio` settings |
 | 9–10 | Notifications | Email at launch (built). Then a **channel-neutral engagement platform**: WhatsApp first, then newsletter, CMS for business sites, social posting |
-| 11 | Acuity data | **Fresh start**: no import; staff re-enter upcoming appointments |
+| 11 | Acuity data | **Fresh start**: no import; staff re-enter upcoming appointments. **Changed 21 Nov 2026:** a one-off import of future Acuity appointments is being built |
 | 12 | Next product after Babydoll + WhatsApp | **Events pilot** |
 | 13 | Events pilot shape | **One or two small events first**, Spicemas 2027 later |
 
@@ -50,12 +50,14 @@ Settings (time off per provider since v1.0.8), and the shared
 `packages/bookings-web` flow. The bookings app is live on production (deployed
 before v1.0.8). The on-site flow at `babydoll.barrels.gd/book` and the
 `BABYDOLL_ONLINE_BOOKING` switch were removed on 13 Nov 2026 (static site).
-Babydoll is seeded on staging, where a test booking was made and confirmed; it
-is **not** seeded on production (the seed's dry run passed there on v1.0.8). The
-studio confirmed its 14 services, prices and durations. Left for go-live:
-release `dev`, run the production seed with `--notify-email`, give the studio
-owner an account and ownership of the organisation, one real test booking, then
-switch the site's Book buttons. Current checklist:
+Babydoll is seeded on staging, where a test booking was made and confirmed,
+and on production since 15 Nov 2026 (organisation, profile, 14 services,
+provider, public site); the site's Book buttons open
+`bookings.barrels.gd/babydoll-beauty-bar` since v1.2.0 (21 Nov 2026). The
+studio confirmed its 14 services, prices and durations. Left for go-live on
+Saturday 29 Nov 2026: give the studio owner an account and ownership of the
+organisation, record one real test booking, and bring over future Acuity
+appointments (a one-off import is being built). Current checklist:
 [babydoll-cutover.md](../operations/babydoll-cutover.md).
 
 As written on 2026-10-20 (the `babydoll.barrels.gd/book` page and the
@@ -106,12 +108,15 @@ switch). Missing:
 
 ## A2. Payment provider for Grenada (owner-led, then build)
 
-**Direction of 13 Nov 2026 (owner; issue #1372, no code yet).** Try both Stripe
-and Republic Bank's e-commerce service. Each business is paid directly through
-its own merchant account, and Barrels charges a subscription; Barrels does not
-hold client funds, so the merchant-of-record question below changes. Online
-payment for bookings is optional; customers may pay in the salon. The bullets
-below are the 20 Oct 2026 plan.
+**Decision of 21 Nov 2026 (owner; issue #1372).** The business is the seller
+and Barrels never holds funds, so the merchant-of-record question below is
+settled: each business is paid through its own merchant account. One provider
+per country: in Grenada WiPay or Republic Bank ePay (both are being pursued;
+the first one approved wins), in New Zealand Stripe Connect. Stripe cannot
+serve Grenada businesses. Online payment for bookings is optional; customers
+may pay in the salon. Babydoll launches on Sat 29 Nov 2026 with an online
+deposit only if a gateway is live and tested by 28 Nov. The bullets below are
+the 20 Oct 2026 plan.
 
 - Owner: written answer from Stripe on whether the NZ account may take
   deposits for a Grenada business (likely only via Connect, which may not
@@ -163,8 +168,14 @@ events with a trusted organiser, then Spicemas 2027.
 ## Rules for whoever picks this up
 
 - One PR into `dev` per item. Never push to `dev`, `staging` or `main`
-  directly. The owner merges `dev → staging` and `staging → main`.
-- Run `pnpm verify:changed` before every push. Discard `pnpm-lock.yaml`
+  directly. Agents merge their own PR into `dev` once CI is green and a fresh
+  review is clean (`docs/agents/workflow.md`). Today the owner merges
+  `dev → staging` and `staging → main`; automatic staging deploys on a green
+  `dev` are being built, after which the owner's only release action will be
+  approving production (21 Nov 2026).
+- GitHub CI is the gate: check the files you touch and run the tests of the
+  code you changed; do not re-run the full `check:ci` or type check locally
+  before pushing (21 Nov 2026). Discard `pnpm-lock.yaml`
   churn from installs (`git checkout -- pnpm-lock.yaml`); never commit it.
 - Deploy files (`infra/docker/docker-compose.deploy.yml`,
   `.github/workflows/deploy.yml`, `scripts/production/*`) are risk tier high:

@@ -1,23 +1,137 @@
 const deferredPath = /^(surface|wis2box|geonetcast|wxwatch|gms-ingest)\//u;
-const zeroSha = /^0+$/u;
 const workspaceManifest = /^(apps\/[^/]+\/[^/]+\/package\.json)$/u;
 const rootMarkdown = /^[^/]+\.md$/u;
 const nonImagePath =
   /^(docs\/|\.devcontainer\/|\.vscode\/|\.agents\/|\.claude\/|\.codex\/)/u;
 
 import { execFileSync } from "node:child_process";
-import { appendFileSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { changedPaths } from "./changed-paths.mjs";
+import {
+  narrowJobs,
+  selectChecks,
+  writeShadowRecord,
+} from "./select-checks.mjs";
 import { promotionVerified } from "./promotion-verified.mjs";
 import { releaseScope, weatherImages, webImages } from "./release-scope.mjs";
 
+export { changedPaths } from "./changed-paths.mjs";
 export { weatherImages, webImages } from "./release-scope.mjs";
 
-// Unknown inputs invalidate every image. Shared packages conservatively
-// invalidate all Node consumers, including indirect dependencies.
+// Unknown inputs invalidate every image. A shared package invalidates the web
+// images whose app depends on it, directly or through another workspace
+// package (the pnpm workspace graph below). Dockerfiles copy exactly that
+// dependency closure, so nothing outside it enters an image.
 const allImages = releaseScope;
 const noImages = { web: [], weather: [], api: false };
+
+const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
+const dependencyFields = [
+  "dependencies",
+  "devDependencies",
+  "peerDependencies",
+  "optionalDependencies",
+];
+
+// Workspace packages keyed by directory, with the workspace packages each one
+// declares. Read from the package.json files in the checkout.
+export function workspaceGraph(root = repoRoot) {
+  const packages = new Map();
+  for (const parent of ["packages", "apps/web", "apps/pwa"]) {
+    const base = join(root, parent);
+    if (!existsSync(base)) continue;
+    for (const entry of readdirSync(base, { withFileTypes: true })) {
+      const manifest = join(base, entry.name, "package.json");
+      if (!(entry.isDirectory() && existsSync(manifest))) continue;
+      packages.set(`${parent}/${entry.name}`, {
+        ...JSON.parse(readFileSync(manifest, "utf8")),
+      });
+    }
+  }
+  const names = new Map(
+    [...packages].map(([dir, manifest]) => [manifest.name, dir])
+  );
+  const dependencies = new Map();
+  for (const [dir, manifest] of packages)
+    dependencies.set(
+      dir,
+      new Set(
+        dependencyFields
+          .flatMap((field) => Object.keys(manifest[field] ?? {}))
+          .map((name) => names.get(name))
+          .filter(Boolean)
+      )
+    );
+  return { dependencies, dirs: [...packages.keys()] };
+}
+
+// Every workspace directory that depends on `dir`, directly or indirectly.
+export function dependentsOf(dir, graph) {
+  const found = new Set();
+  const queue = [dir];
+  while (queue.length) {
+    const current = queue.pop();
+    for (const [candidate, deps] of graph.dependencies)
+      if (deps.has(current) && !found.has(candidate)) {
+        found.add(candidate);
+        queue.push(candidate);
+      }
+  }
+  return found;
+}
+
+// Packages whose sources an image's Dockerfile copies (`COPY packages/x/ ...`).
+// Some enter only through the Dockerfile (cms builds cms-migrations without
+// declaring it), so the Dockerfile is read as well as package.json. A missing
+// Dockerfile means unknown inputs: null selects the image for every package.
+export function dockerfilePackages(image, root = repoRoot) {
+  const file = join(root, image.path, "Dockerfile");
+  if (!existsSync(file)) return null;
+  const copied = new Set();
+  // Joined continuation lines, so a multi-line COPY is read as one instruction.
+  const lines = readFileSync(file, "utf8")
+    .replace(/\\\r?\n/gu, " ")
+    .split("\n");
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/u);
+    if (!/^(COPY|ADD)$/iu.test(parts[0] ?? "") || !line.includes("packages"))
+      continue;
+    const flags = parts.slice(1).filter((part) => part.startsWith("--"));
+    const sources = parts
+      .slice(1)
+      .filter((part) => !part.startsWith("--"))
+      .slice(0, -1);
+    const fromStage = flags.some((flag) => flag.startsWith("--from="));
+    for (const source of sources) {
+      if (!source.includes("packages")) continue;
+      const match = /^(?:\/app\/)?(packages\/[^/\s]+)(?:\/|$)/u.exec(source);
+      if (!match || /^ADD$/iu.test(parts[0])) return null;
+      // A bare manifest from the build context only feeds the install layer.
+      if (!fromStage && source === `${match[1]}/package.json`) continue;
+      copied.add(match[1]);
+    }
+  }
+  return copied;
+}
+
+let cachedGraph;
+function packageImages(path) {
+  const match = /^(packages\/[^/]+)\//u.exec(path);
+  if (!match) return null;
+  cachedGraph ??= workspaceGraph();
+  // A manifest change alters the install layer every image shares.
+  if (path === `${match[1]}/package.json`) return webImages;
+  if (!cachedGraph.dirs.includes(match[1])) return webImages;
+  const dependents = dependentsOf(match[1], cachedGraph);
+  return webImages.filter((image) => {
+    if (dependents.has(image.path)) return true;
+    const copied = dockerfilePackages(image);
+    return !copied || copied.has(match[1]);
+  });
+}
 function imagesForPath(path) {
   // Python workspace metadata is copied by both API and collector builds.
   // Check it before narrowing a path to its owning application.
@@ -25,8 +139,9 @@ function imagesForPath(path) {
     return allImages;
   if (nonImagePath.test(path) || rootMarkdown.test(path)) return noImages;
   if (deferredPath.test(path)) return noImages;
-  if (path.startsWith("packages/") || workspaceManifest.test(path))
-    return { ...noImages, web: webImages };
+  if (workspaceManifest.test(path)) return { ...noImages, web: webImages };
+  const shared = packageImages(path);
+  if (shared) return { ...noImages, web: shared };
   // Elections, Babydoll (Vercel), Commit (Cloudflare Pages) and the phone
   // apps under apps/pwa deploy independently. Their manifests still affect
   // Docker installation layers above, but their source does not enter them.
@@ -134,21 +249,6 @@ export function selectJobs(paths, mode = "affected") {
   return { python: code, collectors, webtests: code, storage: code };
 }
 
-export function changedPaths(
-  event,
-  git = (args) => execFileSync("git", args, { encoding: "utf8" })
-) {
-  let base = event.before;
-  const head = event.pull_request?.head?.sha ?? event.after;
-  if (event.pull_request)
-    base = git(["merge-base", event.pull_request.base.sha, head]).trim();
-  if (!(base && head) || zeroSha.test(base))
-    throw new Error("No trustworthy comparison base");
-  return git(["diff", "--no-renames", "--name-only", "-z", base, head])
-    .split("\0")
-    .filter(Boolean);
-}
-
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   // Standalone CI entry point; never reads application secrets.
   const {
@@ -197,14 +297,26 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     // Deployment builds own their checks; every other mode needs the diff,
     // at least for the SURFACE selection.
-    const paths =
-      mode === "deployment"
-        ? []
-        : changedPaths(JSON.parse(readFileSync(eventPath, "utf8")));
+    const event =
+      mode === "deployment" ? {} : JSON.parse(readFileSync(eventPath, "utf8"));
+    const paths = mode === "deployment" ? [] : changedPaths(event);
     selection = selectImages(paths, mode);
     coverage = selectCoverage(paths, mode);
     surface = selectSurface(paths, mode);
-    jobs = selectJobs(paths, mode);
+    // Pull requests into dev narrow the suites further (select-checks.mjs).
+    // Under CI_PATH_SELECTION=shadow (the default) or off this changes nothing
+    // and shadow mode records what `on` would skip.
+    const rollout = process.env.CI_PATH_SELECTION;
+    jobs = narrowJobs(selectJobs(paths, mode), paths, event, mode, rollout);
+    writeShadowRecord(
+      selectChecks(paths, {
+        mode,
+        baseRef: event.pull_request?.base?.ref,
+        labels: (event.pull_request?.labels ?? []).map((l) => l.name),
+        rollout,
+      }),
+      event
+    );
   } catch {
     console.error("Image comparison unavailable; checking every image.");
     selection = selectImages([], "full");

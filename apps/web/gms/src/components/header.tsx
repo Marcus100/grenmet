@@ -79,13 +79,13 @@ export function Header({ alerts, green }: HeaderProps) {
                 status sits here instead — it is never hidden. */}
             <WithStatus
               alerts={alerts}
-              fallback={<CheckingStatusPill className="flex h-7 xl:hidden" />}
+              fallback={<CheckingStatusPill className="flex h-11 xl:hidden" />}
               green={green}
             >
               {(result, outlook) => (
                 <WarningStatusPill
                   alerts={result}
-                  className="flex h-7 xl:hidden"
+                  className="flex h-11 xl:hidden"
                   green={outlook}
                   wordsFrom="lg"
                 />

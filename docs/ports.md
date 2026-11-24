@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-18
+**Last updated:** 2026-11-22
 
 Canonical port map for the monorepo. **This file is the single source of truth** —
 when a port changes, update it here first, then propagate to the locations listed
@@ -28,8 +28,8 @@ is allocated by category.
 | --- | --- | --- |
 | `3000–3019` | Legacy, frozen | Arrival-ordered. 3008 shop, 3016 hr, 3017 business, 3018 account, 3019 commit; **3011 was never used and is never assigned** |
 | `3020–3029` | Platform surfaces | 3020 developers, 3021 status |
-| `3030–3059` | Barrels products | 3030 salesbus POS, 3031 tickets, 3032 passport, 3033 pay, 3034 media, 3035-3041 sector products (education, automotive, delivery, bus, park, taxi, homegrown) |
-| `3060–3089` | Client-dedicated apps | 3060 gaa corporate, 3061 janitor PWA, 3062 bus PWA, 3063 gms PWA, 3064 Printix scanner PWA |
+| `3030–3059` | Barrels products | 3030 salesbus POS, 3031 tickets, 3032 passport, 3033 pay, 3034 media, 3035-3041 sector products (education, automotive, delivery, bus, park, taxi, homegrown), 3042 health (ADR-0062), 3043 shopkeeper (ADR-0063) |
+| `3060–3089` | Client-dedicated apps | 3060 gaa corporate, 3061 janitor PWA, 3062 bus PWA, 3063 gms PWA, 3064 Printix scanner PWA (now a Barrels collaboration; kept here, ports are never renumbered) |
 | `3090–3099` | Dev tools | 3090 UI gallery, 3091 email preview |
 | `4000–4099` | Retired (Hono API) | Never reuse |
 | `8000–8019` | Barrels Python services | 8000 FastAPI, 8010 ai-gateway |
@@ -57,6 +57,7 @@ is allocated by category.
 | bookings | `@barrelsgd/web-bookings` | 3015 |
 | account | `@barrelsgd/web-account` | 3018 |
 | commit | `@barrelsgd/web-commit` | 3019 |
+| hr | `@barrelsgd/web-hr` | 3016 |
 
 ### Reserved and planned
 
@@ -65,11 +66,10 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | Port | App | Status |
 | --- | --- | --- |
 | 3008 | `@barrelsgd/web-shop` (`shop.barrels.gd`) | Reserved; see `docs/exec-plans/barrelsgd-migration-plan.md` |
-| 3016 | `@barrelsgd/web-hr` (`hr.barrels.gd`) | Planned: separate multi-organisation HR app, organisation in the path (decision 2026-10-21) |
 | 3017 | `@barrelsgd/web-business` | Reserved |
 | 3020 | `@barrelsgd/web-developers` (`developers.barrels.gd`) | Reserved (platform) |
 | 3021 | `@barrelsgd/web-status` (`status.barrels.gd`) | Reserved (platform) |
-| 3030 | `@barrelsgd/web-salesbus` (point of sale; no host yet: `salesbus` and `sales` are retired hosts) | Reserved (product) |
+| 3030 | `@barrelsgd/web-salesbus` (point of sale; ADR-0063 brings back the `salesbus` host for `apps/pwa/salesbus`; `sales` stays retired) | Reserved (product) |
 | 3031 | `@barrelsgd/web-tickets` | Reserved (product) |
 | 3032 | `@barrelsgd/web-passport` | Reserved (product) |
 | 3033 | `@barrelsgd/web-pay` | Reserved (product) |
@@ -81,11 +81,13 @@ Claimed, not built (no Compose service, Traefik route, image or DNS record).
 | 3039 | `@barrelsgd/web-park` (`park.barrels.gd`) | Reserved (sector product, not built) |
 | 3040 | `@barrelsgd/web-taxi` (`taxi.barrels.gd`) | Reserved (sector product, not built) |
 | 3041 | `@barrelsgd/web-homegrown` (`homegrown.barrels.gd`) | Reserved (sector product, not built) |
+| 3042 | `@barrelsgd/web-health` (Barrels Health, ADR-0062) | Reserved (product, not built; the host and reserved-name move land with ADR-0062 build step 1) |
+| 3043 | `@barrelsgd/pwa-shopkeeper` (Shop Keeper, `apps/pwa/shopkeeper`, ADR-0063) | Reserved (product, not built; the host and reserved name land with the app) |
 | 3060 | `@barrelsgd/web-gaa` (GAA corporate site) | Reserved (client) |
 | 3061 | `@barrelsgd/web-janitor` (janitor PWA) | Reserved (client) |
 | 3062 | `@barrelsgd/web-gaa-bus` (bus PWA) | Reserved (client) |
 | 3063 | `@barrelsgd/web-gms-pwa` (GMS PWA) | Reserved (client) |
-| 3064 | `@barrelsgd/pwa-printix` (Printix ticket scanner PWA, `apps/pwa/printix`) | Live at `scan.barrels.gd` (client) |
+| 3064 | `@barrelsgd/pwa-printix` (Printix ticket scanner PWA, `apps/pwa/printix`) | Live at `scan.barrels.gd`. Filed as a client app; Printix is now a Barrels collaboration (ADR-0064), but the port stays because ports are never renumbered |
 | 3090 | `ui-gallery` (UI gallery, dev only) | Reserved (dev tool) |
 | 3091 | `email-preview` (email preview, dev only) | Reserved (dev tool) |
 
@@ -140,6 +142,7 @@ entry there or its image build fails.
 | account (Barrels account) | `localhost:3018` | 3018 | `account.staging.barrels.gd` | `account.barrels.gd` | `/api/health` |
 | FastAPI | `localhost:8000` | 8000 | `api.staging.barrels.gd` | `api.barrels.gd` | `/api/v1/utils/health-check/` |
 | Adminer (password) | `localhost:8080` | 8080 | `adminer.staging.barrels.gd` | `adminer.barrels.gd` (reserved; the Adminer service runs under the staging profile only and is never deployed to production) | — |
+| Hosts with no app yet (Traefik's `unused-planned` router: temporary redirect to `https://barrels.gd/`, issue #1657) | — | built in (`noop@internal`) | `shop.staging.barrels.gd`, `bus.staging.barrels.gd`, `mail.staging.barrels.gd`, `status.staging.barrels.gd` | `shop.barrels.gd`, `bus.barrels.gd`, `mail.barrels.gd`, `status.barrels.gd` | — |
 | Traefik dashboard (password) | `localhost:8090` | built in (`api@internal`) | SSH tunnel to port 8080 on the droplet (loopback only) | SSH tunnel to port 8080 on the droplet (loopback only) | — |
 
 Internal only (no hostname): Postgres 5432 (also on the private IP, above),
@@ -158,6 +161,13 @@ release scope: `web-admin` is the console, `web-gmsadmin` is the portal.
 The table above is what Compose routes today. `scripts/ci/check-ports.mjs`
 fails when its hostnames disagree with the ``Host(`<label>.${BASE_DOMAIN}`)``
 rules in `infra/docker/docker-compose.deploy.yml`.
+
+Any other host that reaches Traefik (the `*.barrels.gd` wildcard sends every
+name there) matches the lowest-priority `unused-host` router and gets the same
+redirect, but only on Traefik's default certificate: Cloudflare (Full strict)
+still answers 526 for such a name until the owner picks a certificate option
+(issue #1657). When an app is built for a host in the redirect row, give it its
+own row and remove it from the `unused-planned` router in the same change.
 
 ### Hosted on Cloudflare Pages (production only, no staging)
 
@@ -182,17 +192,17 @@ the Status says so.
 | --- | --- | --- | --- |
 | `admin.barrels.gd` | Barrels staff and superuser console (`apps/web/admin`) | 3012 | Live: the Barrels console (`apps/web/admin`) |
 | `gms.barrels.gd` | Met office staff portal (today's gaa-admin) | 3001 | Live: the GMS/GAA staff portal (`apps/web/gaa-admin`). Old `gms.*` links meant the retired public weather site (now `weather.*`) |
-| `hr.barrels.gd` | Barrels HR: separate multi-organisation app, organisation in the path (`hr.barrels.gd/<orgSlug>/...`) | 3016 | Planned, not built (stays in gaa-admin until then) |
-| `shop.barrels.gd` | Shopkeeping: the merchant-facing shop and stores app | 3008 | Reserved |
+| `hr.barrels.gd` | Barrels HR: separate multi-organisation app, organisation in the path (`hr.barrels.gd/<orgSlug>/...`) | 3016 | Scaffolded (`apps/web/hr`), not deployed. HR screens stay in gaa-admin until they move |
+| `shop.barrels.gd` | Shopkeeping: the merchant-facing shop and stores app | 3008 | Reserved; redirects to the homepage until built (#1657) |
 | `education.barrels.gd` | Sector product (Education cluster) | 3035 | Reserved; building is gated on validated demand |
 | `automotive.barrels.gd` | Sector product (Automotive cluster) | 3036 | Reserved; building is gated on validated demand |
 | `delivery.barrels.gd` | Sector product (Mobility cluster) | 3037 | Reserved; building is gated on validated demand |
-| `bus.barrels.gd` | Sector product (Mobility cluster) | 3038 | Reserved; building is gated on validated demand |
+| `bus.barrels.gd` | Sector product (Mobility cluster) | 3038 | Reserved; building is gated on validated demand; redirects to the homepage until built (#1657) |
 | `park.barrels.gd` | Sector product (Mobility cluster) | 3039 | Reserved; building is gated on validated demand |
 | `taxi.barrels.gd` | Sector product (Mobility cluster) | 3040 | Reserved; building is gated on validated demand |
 | `homegrown.barrels.gd` | Sector product (Commerce cluster) | 3041 | Reserved; building is gated on validated demand |
 | `developers.barrels.gd` | Developer portal | 3020 | Reserved |
-| `status.barrels.gd` | Status page | 3021 | Reserved |
+| `status.barrels.gd` | Status page | 3021 | Reserved; redirects to the homepage until built (#1657) |
 
 ### Host classes and rules
 
@@ -203,9 +213,10 @@ the Status says so.
   and `stores` API domains already exist), Education, Automotive. Reserving a
   name costs nothing; building an app is gated on validated demand. All sector
   products stay on `barrels.gd`: no per-sector domains.
-- **Salesbus:** the `salesbus` host is retired and never reassigned. The point
-  of sale keeps port 3030 and the reserved name, and gets its host (or lives as
-  a module of `shop`) when it is built.
+- **Salesbus:** the `salesbus` host was retired by ADR-0043. ADR-0063 (21 Nov
+  2026) brings it back for the Salesbus app (`apps/pwa/salesbus`, port 3030) by
+  owner exception; `sales` stays retired. The host moves out of the retired
+  table when the app is built.
 
 - **Audience/control:** `auth` (Barrels ID); `admin` (Barrels staff and
   superuser console, port 3012); `gms` (Met office staff portal, port 3001).
@@ -246,7 +257,7 @@ Old CORS lists in `infra/docker/.env.*.example` still name some of them.
 | `gmsadmin.*` | `gms.*` (Met office staff portal) | Retired |
 | `gaa-admin.*` | `gms.*` | Retired |
 | `wxwatch.*`, `wxproducts.*` | modules inside gaa-admin | Retired |
-| `salesbus.*`, `sales.*` | modules inside gaa-admin; the point-of-sale app (port 3030) will choose a new host | Retired |
+| `salesbus.*`, `sales.*` | modules inside gaa-admin; ADR-0063 brings `salesbus` back for the Salesbus app (port 3030) when it is built; `sales` stays retired | Retired |
 | `hurricane.*` | docs (redirect-only during the rename) | Retired |
 | `spice.*` | retired Spice weather app | Retired |
 | `proxy.*` | retired Hono weather-data proxy (port 4000 range) | Retired |

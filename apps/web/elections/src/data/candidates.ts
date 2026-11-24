@@ -75,6 +75,8 @@ export interface Race {
   eventId: string;
   of: number;
   party: string;
+  /** Published as provisional, before official certification. */
+  provisional?: boolean;
   rank: number;
   share: number;
   verification: Verification | undefined;
@@ -174,6 +176,7 @@ export function buildPeople(data: ResultsFile): Person[] {
           rank: i + 1,
           of: r.c.length,
           verification: row[3],
+          ...(r.provisional ? { provisional: true } : {}),
         });
       });
     }

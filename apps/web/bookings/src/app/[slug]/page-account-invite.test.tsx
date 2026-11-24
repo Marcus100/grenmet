@@ -53,6 +53,8 @@ const storefront: BookingStorefront = {
   cancel_cutoff_hours: 24,
   contact: { phone: null, whatsapp: null, instagram: null, email: null },
   providers: [],
+  brand_color: null,
+  logo_url: null,
   services: [
     {
       id: "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10",
@@ -67,7 +69,10 @@ const storefront: BookingStorefront = {
 };
 
 const NOT_NEEDED = /You do not need one to book/u;
-const params = { params: Promise.resolve({ slug: "sea-salt-spa" }) };
+const params = {
+  params: Promise.resolve({ slug: "sea-salt-spa" }),
+  searchParams: Promise.resolve({}),
+};
 
 beforeEach(() => {
   vi.mocked(getStorefront).mockReset().mockResolvedValue(storefront);

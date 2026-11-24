@@ -15,6 +15,8 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
   changedPaths,
+  dependentsOf,
+  dockerfilePackages,
   selectCoverage,
   selectImages,
   selectJobs,
@@ -40,13 +42,62 @@ test("app changes include its runtime and migration targets", () => {
     ["auth"]
   );
 });
-test("shared packages and copied manifests invalidate every Node consumer", () => {
+test("copied manifests and package manifests invalidate every Node consumer", () => {
   for (const path of [
-    "packages/auth/src/index.ts",
     "apps/web/cms/package.json",
     "apps/web/elections/package.json",
+    "packages/bookings-web/package.json",
+    "packages/auth/package.json",
   ])
     assert.deepEqual(selectImages([path]).web, webImages);
+});
+
+test("shared package source selects only the images that depend on it", () => {
+  const apps = (path) =>
+    selectImages([path])
+      .web.map((image) => image.app)
+      .sort();
+  // Only the Bookings app depends on bookings-web.
+  assert.deepEqual(apps("packages/bookings-web/src/components/x.tsx"), [
+    "bookings",
+  ]);
+  assert.deepEqual(
+    selectCoverage(["packages/bookings-web/src/x.ts"]).map(
+      (image) => image.app
+    ),
+    ["bookings"]
+  );
+  // The CMS migration image and its package move together.
+  assert.deepEqual(apps("packages/cms-migrations/src/index.ts"), [
+    "cms",
+    "cms-migrate",
+  ]);
+  // A package every app uses still selects all of them.
+  assert.deepEqual(
+    selectImages(["packages/ui/src/button.tsx"]).web,
+    webImages
+  );
+  // Unknown package directories stay conservative.
+  assert.deepEqual(
+    selectImages(["packages/new-thing/src/a.ts"]).web,
+    webImages
+  );
+});
+
+test("workspace graph follows indirect dependents", () => {
+  const graph = {
+    dependencies: new Map([
+      ["packages/a", new Set(["packages/b"])],
+      ["packages/b", new Set()],
+      ["apps/web/x", new Set(["packages/a"])],
+      ["apps/web/y", new Set()],
+    ]),
+    dirs: [],
+  };
+  assert.deepEqual(
+    [...dependentsOf("packages/b", graph)].sort(),
+    ["apps/web/x", "packages/a"]
+  );
 });
 test("Elections source deploys independently while mixed changes retain core checks", () => {
   for (const path of [
@@ -416,5 +467,66 @@ test("a promotion PR that cannot be matched to a passing dev commit runs everyth
     );
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("Dockerfile COPY lines name the packages an image builds, even undeclared ones", () => {
+  const root = mkdtempSync(join(tmpdir(), "dockerfile-"));
+  try {
+    mkdirSync(join(root, "apps/web/x"), { recursive: true });
+    writeFileSync(
+      join(root, "apps/web/x/Dockerfile"),
+      [
+        "COPY packages/ui/package.json packages/ui/",
+        "COPY packages/ui/ packages/ui/",
+        "COPY --chown=1:1 packages/hidden/ packages/hidden/",
+        "COPY apps/web/x/ apps/web/x/",
+      ].join("\n")
+    );
+    assert.deepEqual(
+      [...dockerfilePackages({ path: "apps/web/x" }, root)].sort(),
+      ["packages/hidden", "packages/ui"]
+    );
+    writeFileSync(
+      join(root, "apps/web/x/Dockerfile"),
+      "COPY --from=source /app/packages/gms/src ./node_modules/gms/src\n"
+    );
+    assert.deepEqual([...dockerfilePackages({ path: "apps/web/x" }, root)], [
+      "packages/gms",
+    ]);
+    // Manifest-only copies do not make a package a source input.
+    writeFileSync(
+      join(root, "apps/web/x/Dockerfile"),
+      "COPY packages/ui/package.json packages/ui/\n"
+    );
+    assert.deepEqual([...dockerfilePackages({ path: "apps/web/x" }, root)], []);
+    // Instructions the parser cannot read make the image unknown.
+    for (const line of [
+      "COPY packages/ ./packages/",
+      "COPY packages/ui/src ./src packages/ ./",
+      "ADD packages/ui/ packages/ui/",
+    ]) {
+      writeFileSync(join(root, "apps/web/x/Dockerfile"), `${line}\n`);
+      assert.equal(dockerfilePackages({ path: "apps/web/x" }, root), null, line);
+    }
+    // No Dockerfile: unknown inputs.
+    assert.equal(dockerfilePackages({ path: "apps/web/none" }, root), null);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("every web image Dockerfile's packages references are parsed", () => {
+  for (const image of webImages) {
+    const copied = dockerfilePackages(image);
+    assert.notEqual(copied, null, `${image.path}/Dockerfile is unreadable`);
+    const text = readFileSync(`${image.path}/Dockerfile`, "utf8");
+    const mentioned = new Set(
+      [...text.matchAll(/^COPY\s+(?:--\S+\s+)*(packages\/[^/\s]+)\//gmu)].map(
+        (m) => m[1]
+      )
+    );
+    for (const dir of copied) assert.ok(mentioned.has(dir));
+    assert.ok(copied.size > 0, image.path);
   }
 });

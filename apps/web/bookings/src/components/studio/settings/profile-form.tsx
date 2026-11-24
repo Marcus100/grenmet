@@ -8,8 +8,8 @@ import { saveProfileAction } from "@/app/studio/[orgSlug]/settings/actions";
 import { TIMEZONE_SUGGESTIONS } from "@/lib/settings-view";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
-import { ContactOptions } from "./contact-options";
-import { PaymentOption } from "./payment-option";
+import { BrandSection } from "./brand-section";
+import { ListingSection } from "./listing-section";
 import {
   INPUT,
   keepTyped,
@@ -18,14 +18,16 @@ import {
   SettingsResult,
 } from "./settings-ui";
 
+/**
+ * The business profile section: name, address, timezone, prices, notices,
+ * brand and the booking-page switch. Contact options and the payment choice
+ * have their own forms and Save buttons (ContactForm, PaymentsForm).
+ */
 export function ProfileForm({
-  cardPaymentsAvailable = false,
   orgSlug,
   profile,
   suggestedName,
 }: {
-  /** The platform takes card payments online (Stripe test mode). */
-  cardPaymentsAvailable?: boolean;
   orgSlug: string;
   profile: BookingProfilePublic | null;
   /** Prefills the business name for a first-time profile. */
@@ -35,6 +37,9 @@ export function ProfileForm({
     saveProfileAction.bind(null, orgSlug),
     IDLE
   );
+  // True while a logo is uploading: Save waits so it cannot keep the old logo.
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const [zone, setZone] = useState(profile?.timezone ?? "America/Grenada");
   const [currency, setCurrency] = useState(profile?.currency ?? "XCD");
   const zoneChanged =
@@ -47,6 +52,7 @@ export function ProfileForm({
   const hydrated = useHydrated();
   return (
     <form className="space-y-5" onSubmit={keepTyped(formAction)}>
+      <input name="section" type="hidden" value="profile" />
       <div className="grid gap-5 lg:grid-cols-2">
         <SettingsField id="profile-displayName" label="Business name">
           {() => (
@@ -199,6 +205,54 @@ export function ProfileForm({
           )}
         </SettingsField>
         <SettingsField
+          hint="Shown on your card on the Barrels bookings home page, and a word people can search."
+          id="profile-category"
+          label="Category (optional)"
+        >
+          {(describedBy) => (
+            <Input
+              aria-describedby={describedBy}
+              className={INPUT}
+              defaultValue={profile?.category ?? ""}
+              id="profile-category"
+              maxLength={80}
+              name="category"
+            />
+          )}
+        </SettingsField>
+        <SettingsField
+          hint="One line on your card on the home page."
+          id="profile-shortDescription"
+          label="Short description (optional)"
+        >
+          {(describedBy) => (
+            <Input
+              aria-describedby={describedBy}
+              className={INPUT}
+              defaultValue={profile?.short_description ?? ""}
+              id="profile-shortDescription"
+              maxLength={160}
+              name="shortDescription"
+            />
+          )}
+        </SettingsField>
+        <SettingsField
+          hint="Shown on your card on the home page."
+          id="profile-city"
+          label="Town or city (optional)"
+        >
+          {(describedBy) => (
+            <Input
+              aria-describedby={describedBy}
+              className={INPUT}
+              defaultValue={profile?.city ?? ""}
+              id="profile-city"
+              maxLength={80}
+              name="city"
+            />
+          )}
+        </SettingsField>
+        <SettingsField
           hint="Where new-booking alerts go. Leave empty for none."
           id="profile-notifyEmail"
           label="Notification email (optional)"
@@ -233,13 +287,19 @@ export function ProfileForm({
           )}
         </SettingsField>
       </div>
-      <ContactOptions
-        errors={state.status === "error" ? state.fields : undefined}
-        profile={profile}
+      <ListingSection
+        businessName={profile?.display_name ?? suggestedName}
+        businessType={profile?.business_type ?? null}
+        coverFileId={profile?.cover_file_id ?? null}
+        onUploadingChange={setCoverUploading}
+        orgSlug={orgSlug}
       />
-      <PaymentOption
-        cardPaymentsAvailable={cardPaymentsAvailable}
-        profile={profile}
+      <BrandSection
+        brandColour={profile?.brand_color ?? null}
+        businessName={profile?.display_name ?? suggestedName}
+        logoFileId={profile?.logo_file_id ?? null}
+        onUploadingChange={setLogoUploading}
+        orgSlug={orgSlug}
       />
       <div className="space-y-1">
         <SettingsCheck
@@ -252,11 +312,16 @@ export function ProfileForm({
           label="Online booking is open (customers can book on the public page)"
           name="enabled"
         />
+        <SettingsCheck
+          defaultChecked={profile?.listed ?? false}
+          label="Show my business on the Barrels bookings home page"
+          name="listed"
+        />
       </div>
       <SettingsResult pending={pending} state={state} />
       <Button
         className="min-h-11 w-full sm:w-auto"
-        disabled={pending || !hydrated}
+        disabled={pending || !hydrated || logoUploading || coverUploading}
         size="touch"
         type="submit"
       >

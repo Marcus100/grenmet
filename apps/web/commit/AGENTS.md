@@ -5,8 +5,9 @@ Port **3019** (local dev only). Static export (`output: "export"`, written to
 staging (ADR-0036 amendment). Response headers live in `public/_headers`. Lane
 spec: `docs/design/commit.md`.
 
-Commit is the Barrels Grenada engineering blog: one post per release (starting
-with 1.0.0) on the technical implementation of the platform. It is a Barrels
+Commit is the Barrels Grenada engineering blog: a post every week (it started with
+one post per release from 1.0.0; release notes still ship with every release)
+on the technical implementation of the platform. It is a Barrels
 property; never add GAA or GMS marks, and never publish anything that is not
 already public (release notes, merged PRs, public docs). No client-confidential
 detail, personal data or internal hostnames.

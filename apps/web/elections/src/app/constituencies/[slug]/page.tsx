@@ -1,6 +1,10 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import {
+  ProvisionalSource,
+  votesMargin,
+} from "@/components/election/declared-result";
 import { Flag } from "@/components/flag";
 import { LevelMap } from "@/components/map/level-map";
 import { PartyDot } from "@/components/party-chip";
@@ -37,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = results.cons[code][0];
   return {
     title: name,
-    description: `${name}: who held the seat at dissolution, reported 2026 selections, and every result since 1972 down to the polling division.`,
+    description: `${name}: the provisional 2026 result, who held the seat at dissolution, reported 2026 selections, and every result since 1972 down to the polling division.`,
     alternates: { canonical: constituencyHref(results, code) },
   };
 }
@@ -56,6 +60,9 @@ export default async function ConstituencyPage({ params }: Props) {
   const contest = generalResult(results, "2022", code);
   if (!(seat && contest)) notFound();
   const stats = contestStats(contest);
+  const contest2026 = generalResult(results, "2026", code);
+  const stats2026 = contest2026 ? contestStats(contest2026) : null;
+  const winner2026 = stats2026?.winner;
   const history = seatHistory(results, code).reverse();
   const divisions = divisionResults(results, "2022", code);
   const roll = registerHistory(code);
@@ -65,7 +72,7 @@ export default async function ConstituencyPage({ params }: Props) {
   return (
     <>
       <PageHead
-        deck={`Held at the October 2026 dissolution by ${seat.sitting.name} (${partyInfo(seat.sitting.party).name})${seat.sitting.was ? `, elected for the ${seat.sitting.was} in 2022` : ""}. ${seat.winner2022.party} won it by ${(seat.margin2022 * 100).toFixed(1)} points in 2022.`}
+        deck={`${winner2026 && stats2026 ? `Won by ${winner2026[0]} (${partyInfo(winner2026[1]).name}) on 5 November 2026, ${votesMargin(stats2026.majority)} (provisional results). ` : ""}Held at the October 2026 dissolution by ${seat.sitting.name} (${partyInfo(seat.sitting.party).name})${seat.sitting.was ? `, elected for the ${seat.sitting.was} in 2022` : ""}. ${seat.winner2022.party} won it by ${(seat.margin2022 * 100).toFixed(1)} points in 2022.`}
         eyebrow={`Constituency ${code}${seat.lean == null ? "" : ` · leans ${leanLabel(seat.lean)}`}`}
         learning="constituency"
         photo={CONSTITUENCY_PHOTOS[code]}
@@ -78,7 +85,79 @@ export default async function ConstituencyPage({ params }: Props) {
         </p>
       </PageHead>
 
-      <Section id="standing" title="Reported 2026 selections">
+      {contest2026 && stats2026 && winner2026 && (
+        <Section id="result-2026" title="2026 result (provisional)">
+          <p className="font-serif text-xl leading-snug font-bold">
+            <PartyDot party={winner2026[1]} />
+            {winner2026[0]}, {partyInfo(winner2026[1]).name}, won{" "}
+            {votesMargin(stats2026.majority)}.
+          </p>
+          <table className="mt-3 w-full max-w-2xl text-base">
+            <caption className="sr-only">
+              2026 candidates and votes (provisional)
+            </caption>
+            <tbody>
+              {contest2026.c.map((row, i) => (
+                <tr className="border-el-rule border-b" key={row[0]}>
+                  <th className="py-2 pr-3 text-left font-normal" scope="row">
+                    <b className={i === 0 ? "font-semibold" : "font-normal"}>
+                      {row[0]}
+                    </b>
+                    <span className="text-el-muted block text-base">
+                      <PartyDot party={row[1]} />
+                      {partyInfo(row[1]).name}
+                      {i === 0 && " · won"}
+                    </span>
+                    <span className="bg-el-paper-2 mt-1 block h-1.5">
+                      <span
+                        className="block h-full"
+                        style={{
+                          width: `${(row[2] / stats2026.valid) * 100}%`,
+                          background: partyColor(row[1]),
+                        }}
+                      />
+                    </span>
+                  </th>
+                  <td className="py-2 text-right tabular-nums">
+                    <b>{pct(row[2] / stats2026.valid)}</b>
+                    <span className="text-el-muted block text-base">
+                      {fmt(row[2])}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <dl className="mt-4 grid max-w-2xl grid-cols-3 gap-3 text-base">
+            {[
+              ["Margin", votesMargin(stats2026.majority)],
+              ["Valid votes", fmt(stats2026.valid)],
+              ["Registered", fmt(contest2026.reg)],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <dt className={LABEL}>{label}</dt>
+                <dd className="text-lg font-semibold tabular-nums">{value}</dd>
+              </div>
+            ))}
+          </dl>
+          {contest2026.note && (
+            <p className="text-el-muted mt-3 text-base leading-relaxed">
+              {contest2026.note}
+            </p>
+          )}
+          <ProvisionalSource className="text-el-muted mt-3 text-base leading-relaxed" />
+        </Section>
+      )}
+
+      <Section
+        id="standing"
+        intro={
+          contest2026
+            ? "Named before polling day, as reported then. The result is above."
+            : undefined
+        }
+        title="Reported 2026 selections"
+      >
         <ul className="border-el-rule bg-el-rule grid gap-px border sm:grid-cols-3">
           {(["NDC", "NNP", "DPM"] as const).map((party) => {
             const named = seat.candidates.find((c) => c.party === party);
@@ -268,6 +347,9 @@ export default async function ConstituencyPage({ params }: Props) {
               <span className="min-w-0 flex-1">
                 <PartyDot party={h.winner.party} />
                 {h.winner.name}, {h.winner.party}
+                {results.results[String(h.year)]?.[code]?.provisional && (
+                  <span className="text-el-muted"> (provisional)</span>
+                )}
                 {h.runnerUp && (
                   <span className="text-el-muted">
                     {" "}

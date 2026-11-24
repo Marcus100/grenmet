@@ -64,7 +64,7 @@ export function bookingsGetAvailabilityQueryOptions(
 }
 
 /**
- * @description Open start times for a service between two local dates (at most 14 days), optionally for one provider. Times are UTC; `timezone` is the business's local zone for display.
+ * @description Open start times for a service between two local dates (at most 14 days), optionally for one provider and with `add_on_ids`, which make the slot longer. Times are UTC; `timezone` is the business's local zone for display. `due_at_booking_minor` is what booking this service with those add-ons charges now, so the storefront can show the real amount.
  * @summary List open booking slots
  * {@link /api/v1/bookings/public/:slug/availability}
  */

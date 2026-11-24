@@ -111,7 +111,8 @@ export async function getAvailability(
   slug: string,
   serviceId: string,
   firstDay: string,
-  providerId?: string
+  providerId?: string,
+  addOnIds: readonly string[] = []
 ): Promise<BookingAvailability> {
   const { lastDay } = windowFrom(firstDay);
   return bookingsGetAvailability({
@@ -122,6 +123,7 @@ export async function getAvailability(
       first_day: firstDay,
       last_day: lastDay,
       ...(providerId ? { provider_id: providerId } : {}),
+      ...(addOnIds.length > 0 ? { add_on_ids: [...addOnIds] } : {}),
     },
   })
     .unwrap()
@@ -129,6 +131,7 @@ export async function getAvailability(
 }
 
 export interface NewBooking {
+  add_on_ids?: string[];
   customer_email: string;
   customer_name: string;
   customer_phone?: string;
@@ -202,13 +205,15 @@ export async function getBooking(
   }
 }
 
+/** Cancels the booking; `reason` is the customer's optional note (the business sees it). */
 export async function cancelBooking(
-  token: string
+  token: string,
+  reason: string | null
 ): Promise<BookingPublicDetail> {
   return bookingsCancelPublicBooking({
     ...(await options()),
     path: { token },
-    body: {},
+    body: reason ? { reason } : {},
   })
     .unwrap()
     .catch(redactRequest);

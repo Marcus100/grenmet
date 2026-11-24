@@ -17,6 +17,8 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { getCapDeskCutoverUrl } from "@/lib/env";
+import { CapDeskNavigation } from "@/navigation/cap-desk-navigation";
 import { AppSidebar } from "./app-sidebar";
 import { LayoutControls } from "./layout-controls";
 import type { NavUserData } from "./nav-user";
@@ -39,7 +41,7 @@ export async function AppShell({
   ]);
 
   return (
-    <>
+    <CapDeskNavigation deskUrl={getCapDeskCutoverUrl()}>
       <SkipLink />
       <SidebarProvider
         defaultOpen={defaultOpen}
@@ -93,6 +95,6 @@ export async function AppShell({
           </div>
         </SidebarInset>
       </SidebarProvider>
-    </>
+    </CapDeskNavigation>
   );
 }

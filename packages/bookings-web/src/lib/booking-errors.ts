@@ -11,6 +11,8 @@ export type FailureCode =
   | "rate_limited"
   | "invalid"
   | "unavailable"
+  // Add-ons were switched off or removed while the customer was booking (422).
+  | "add_ons_unavailable"
   // The emailed-code step before a deposit booking (#471, #495).
   | "email_unverified"
   | "code_rejected"
@@ -154,6 +156,28 @@ function emailUnverified(
   return null;
 }
 
+/** Said when add-ons were refused or cannot be used with the chosen service. */
+export const ADD_ONS_GONE_MESSAGE =
+  "Add-ons are not available for this booking any more, so we removed them. Check the total, pick a time again, then book.";
+
+/** Said when times could not be loaded with the ticked add-ons (404 or bad request). */
+export const ADD_ONS_TIMES_MESSAGE =
+  "We couldn't load times with those add-ons, so we removed them. Pick a time again, then book.";
+
+/** The API's 422 sentences about add-ons (switched off, gone, not offered here). */
+const ADD_ON_REFUSAL =
+  /does not offer add-ons|add-ons is not available|is not offered with this service/iu;
+
+function addOnRefusal(
+  status: number,
+  detail: string | undefined
+): Failure | null {
+  if (status !== 422 || detail === undefined || !ADD_ON_REFUSAL.test(detail)) {
+    return null;
+  }
+  return failure("add_ons_unavailable", ADD_ONS_GONE_MESSAGE);
+}
+
 /**
  * Maps an API status to a message a customer can act on. A message that sends
  * people to the business says so in words (`tellsToContact`); the component
@@ -171,6 +195,10 @@ export function classifyFailure(
   if (unverified) {
     return unverified;
   }
+  const addOns = addOnRefusal(status, detail);
+  if (addOns) {
+    return addOns;
+  }
   if (status === 409) {
     if (detail?.includes(SLOT_TAKEN_MARK)) {
       return failure(
@@ -180,6 +208,12 @@ export function classifyFailure(
     }
     if (detail?.includes(CUTOFF_MARK)) {
       return failure("cutoff", detail);
+    }
+    // The API's own refusal that sends people to the business (for example
+    // the limit on open bookings per email) is shown as written, so the
+    // business's contact links appear under it.
+    if (action === "create" && detail && tellsToContact(detail)) {
+      return failure("conflict", detail);
     }
     if (action === "create") {
       return failure(

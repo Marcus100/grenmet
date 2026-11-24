@@ -1,0 +1,362 @@
+[
+  [
+    "F01",
+    "a",
+    "Gospel Hall, Perdmontemps",
+    248,
+    null,
+    null,
+    {
+      "NDC": 112,
+      "NNP": 45
+    }
+  ],
+  [
+    "F02",
+    "a",
+    "St. Dominic's R.C. Church Centre",
+    395,
+    null,
+    null,
+    {
+      "NDC": 186,
+      "NNP": 70
+    }
+  ],
+  [
+    "F02",
+    "b",
+    "St. Dominic's R.C. Church Centre",
+    401,
+    null,
+    null,
+    {
+      "NDC": 209,
+      "NNP": 60
+    }
+  ],
+  [
+    "F03",
+    "a",
+    "St. Dominic's R.C. School",
+    297,
+    null,
+    null,
+    {
+      "NDC": 132,
+      "NNP": 74
+    }
+  ],
+  [
+    "F03",
+    "b",
+    "St. Dominic's R.C. School",
+    292,
+    null,
+    null,
+    {
+      "NDC": 140,
+      "NNP": 49
+    }
+  ],
+  [
+    "F04",
+    "a",
+    "Minorca Pre School, Windsor Forest",
+    359,
+    null,
+    null,
+    {
+      "NDC": 184,
+      "NNP": 69
+    }
+  ],
+  [
+    "F04",
+    "b",
+    "Minorca Pre School, Windsor Forest",
+    365,
+    null,
+    null,
+    {
+      "NDC": 172,
+      "NNP": 71
+    }
+  ],
+  [
+    "F04",
+    "c",
+    "Minorca Pre School, Windsor Forest",
+    353,
+    null,
+    null,
+    {
+      "NDC": 173,
+      "NNP": 72
+    }
+  ],
+  [
+    "F05",
+    "a",
+    "St. Theresa's R.C. School, Vincennes",
+    427,
+    null,
+    null,
+    {
+      "NDC": 229,
+      "NNP": 55
+    }
+  ],
+  [
+    "F05",
+    "b",
+    "St. Theresa's R.C. School, Vincennes",
+    412,
+    null,
+    null,
+    {
+      "NDC": 216,
+      "NNP": 71
+    }
+  ],
+  [
+    "F06",
+    "a",
+    "Corinth Government School",
+    409,
+    null,
+    null,
+    {
+      "NDC": 198,
+      "NNP": 77
+    }
+  ],
+  [
+    "F06",
+    "b",
+    "Corinth Government School",
+    421,
+    null,
+    null,
+    {
+      "NDC": 178,
+      "NNP": 90
+    }
+  ],
+  [
+    "F06",
+    "c",
+    "Corinth Government School",
+    416,
+    null,
+    null,
+    {
+      "NDC": 214,
+      "NNP": 49
+    }
+  ],
+  [
+    "F06",
+    "d",
+    "Corinth Government School",
+    396,
+    null,
+    null,
+    {
+      "NDC": 169,
+      "NNP": 99
+    }
+  ],
+  [
+    "F07",
+    "a",
+    "St. David's R.C. School",
+    240,
+    null,
+    null,
+    {
+      "NDC": 138,
+      "NNP": 21
+    }
+  ],
+  [
+    "F08",
+    "a",
+    "Magistrate's Court, St. David's ",
+    458,
+    null,
+    null,
+    {
+      "NDC": 216,
+      "NNP": 89
+    }
+  ],
+  [
+    "F08",
+    "b",
+    "Magistrate's Court, St. David's (Police Included)",
+    571,
+    null,
+    null,
+    {
+      "NDC": 276,
+      "NNP": 126
+    }
+  ],
+  [
+    "F09",
+    "a",
+    "Berean Pre-School, Marlmount",
+    326,
+    null,
+    null,
+    {
+      "NDC": 123,
+      "NNP": 86
+    }
+  ],
+  [
+    "F09",
+    "b",
+    "Berean Pre-School, Marlmount",
+    322,
+    null,
+    null,
+    {
+      "NDC": 120,
+      "NNP": 70
+    }
+  ],
+  [
+    "F10",
+    "a",
+    "Pomme Rose R.C. School",
+    417,
+    null,
+    null,
+    {
+      "NDC": 180,
+      "NNP": 106
+    }
+  ],
+  [
+    "F10",
+    "b",
+    "Pomme Rose R.C. School",
+    419,
+    null,
+    null,
+    {
+      "NDC": 195,
+      "NNP": 100
+    }
+  ],
+  [
+    "F11",
+    "a",
+    "Candida Patrice Place, La Tante Junction ",
+    420,
+    null,
+    null,
+    {
+      "NDC": 191,
+      "NNP": 72
+    }
+  ],
+  [
+    "F11",
+    "b",
+    "Candida Patrice Place, La Tante Junction ",
+    413,
+    null,
+    null,
+    {
+      "NDC": 167,
+      "NNP": 89
+    }
+  ],
+  [
+    "F12",
+    "a",
+    "Westerhall Secondary School",
+    420,
+    null,
+    null,
+    {
+      "NDC": 188,
+      "NNP": 73
+    }
+  ],
+  [
+    "F12",
+    "b",
+    "Westerhall Secondary School",
+    403,
+    null,
+    null,
+    {
+      "NDC": 188,
+      "NNP": 67
+    }
+  ],
+  [
+    "F12",
+    "c",
+    "Westerhall Secondary School",
+    448,
+    null,
+    null,
+    {
+      "NDC": 198,
+      "NNP": 69
+    }
+  ],
+  [
+    "F12",
+    "d",
+    "Westerhall Secondary School",
+    409,
+    null,
+    null,
+    {
+      "NDC": 166,
+      "NNP": 68
+    }
+  ],
+  [
+    "F01",
+    "b",
+    "Gospel Hall, Perdmontemps",
+    247,
+    null,
+    null,
+    {
+      "NDC": 110,
+      "NNP": 58
+    }
+  ],
+  [
+    "F02",
+    "c",
+    "St. Dominic’s Church Centre",
+    379,
+    null,
+    null,
+    {
+      "NDC": 176,
+      "NNP": 64
+    }
+  ],
+  [
+    "F07",
+    "b",
+    "St. David's R.C. School",
+    233,
+    null,
+    null,
+    {
+      "NDC": 123,
+      "NNP": 29
+    }
+  ]
+]

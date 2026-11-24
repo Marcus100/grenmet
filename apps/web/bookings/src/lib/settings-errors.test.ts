@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { apiError } from "@/test/studio";
-import { settingsFailure } from "./studio-errors";
+import { logoUploadFailure, settingsFailure } from "./studio-errors";
 
 describe("settings failures", () => {
   it("maps the API's own strings", () => {
@@ -88,5 +88,77 @@ describe("settings failures", () => {
     expect(settingsFailure(new Error("network"))).toMatchObject({
       kind: "unavailable",
     });
+  });
+});
+
+describe("add-on failures", () => {
+  it("explains the 409 for a service with upcoming bookings", () => {
+    expect(
+      settingsFailure(
+        apiError(409, {
+          detail:
+            "This service has upcoming bookings, so it cannot become an add-on yet",
+        })
+      )
+    ).toEqual({
+      kind: "conflict",
+      message:
+        "This service has upcoming bookings, so it cannot become an add-on yet.",
+      nextStep:
+        "Move or cancel those bookings, or keep it as a main service, then save again.",
+    });
+  });
+});
+
+describe("logo upload failures", () => {
+  it("shows the API's own plain sentence for a refused image", () => {
+    expect(
+      logoUploadFailure(
+        apiError(422, { detail: "The image has too many pixels" })
+      ).message
+    ).toBe("The image has too many pixels.");
+  });
+
+  it("asks for a new start when the upload link has expired", () => {
+    expect(
+      logoUploadFailure(
+        apiError(409, {
+          detail: "The upload link expired; start the upload again",
+        })
+      )
+    ).toMatchObject({
+      kind: "conflict",
+      message: "The upload link expired; start the upload again.",
+    });
+  });
+
+  it("says uploads are off when storage is not configured", () => {
+    expect(logoUploadFailure(apiError(503, {}))).toMatchObject({
+      kind: "unavailable",
+      message: "Logo uploads are not available right now.",
+    });
+  });
+
+  it("refuses a member in plain words", () => {
+    expect(logoUploadFailure(apiError(403, {})).message).toBe(
+      "This business can't change booking settings right now."
+    );
+  });
+
+  it("keeps a generic retry for anything else", () => {
+    expect(logoUploadFailure(new Error("boom"))).toMatchObject({
+      kind: "unavailable",
+      message: "The logo could not be uploaded.",
+    });
+  });
+
+  it("names a settings save that used a logo that never finished", () => {
+    expect(
+      settingsFailure(
+        apiError(409, {
+          detail: "That logo is not a finished upload for this business",
+        })
+      ).message
+    ).toBe("That image did not finish uploading for this business.");
   });
 });

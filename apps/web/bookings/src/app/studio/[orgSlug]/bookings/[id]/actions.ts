@@ -153,6 +153,8 @@ function refundFailed(detail: BookingStudioDetail): boolean {
 }
 
 function refresh(orgSlug: string, bookingId: string) {
+  // The shell's "waiting to be confirmed" count lives in the business layout.
+  revalidatePath(`/studio/${orgSlug}`, "layout");
   revalidatePath(`/studio/${orgSlug}/agenda`);
   revalidatePath(`/studio/${orgSlug}/bookings/${bookingId}`);
 }

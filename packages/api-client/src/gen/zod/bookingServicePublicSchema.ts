@@ -17,4 +17,6 @@ export const bookingServicePublicSchema = z.object({
   deposit_minor: z.int(),
   active: z.boolean(),
   sort_order: z.int(),
+  is_add_on: z.boolean().optional().default(false),
+  add_on_categories: z.union([z.array(z.string()), z.null()]).optional(),
 });

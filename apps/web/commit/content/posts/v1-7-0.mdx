@@ -1,0 +1,55 @@
+---
+title: Emails from the business, a staff audit log, and Stripe Connect in test mode
+summary: Version 1.7.0 sends booking and event emails in the business's own name and colours, adds a global audit log for staff, starts Stripe Connect for New Zealand businesses in test mode, and clears a deleted person's address from the email log.
+date: 2026-11-22
+release: 1.7.0
+---
+
+Version 1.7.0 carries the work merged after v1.6.0. It has three database
+changes, and each one only adds: new optional columns, two new tables and an
+index. The previous release still runs against the new schema.
+
+### Emails
+
+- **From the business, via Barrels:** booking and event emails are now sent as
+  "Business via Barrels". A reply address is added only when it is the verified
+  sign-in email of an active member of that business. Names that try to look
+  like Barrels, a government body, a bank or a web address fall back to the
+  default sender.
+- **One layout for everything:** invoices, reminders, contact-form replies,
+  data requests and sign-in notices now share the same card layout, with a
+  plain-text version and checked links.
+- **Brand colour and logo:** a business can have its own colour and, in
+  Bookings, a logo. Emails use the colour for buttons and links. When a colour
+  is too pale to read against white text, the email falls back to Barrels navy.
+- **Cleaner uploads:** logos are re-encoded when they are uploaded, which strips
+  camera and location data from the image.
+
+### Privacy
+
+- **Deletion reaches the email log:** deleting an account now also clears the
+  person's email address from the email outbox and delivery log.
+- **No mail to closed accounts:** alert-failure and webhook notices no longer
+  go to an address that has no active account.
+
+### Staff console
+
+- **A global audit log:** staff can search every audited action by person,
+  action, record type, organisation and date. Sensitive values are masked. Only
+  superusers can read it for now.
+- **Planned admin roles:** a decision record sets out the admin roles still to
+  come (developer, staff, admin and superuser), with step-up checks and a
+  second approver.
+
+### Payments (test mode)
+
+- **Stripe Connect for New Zealand businesses:** charges go straight to the
+  business's own Stripe account through hosted onboarding, with refunds and
+  dispute records. Barrels takes no fee, and money on a connected account
+  never enters Barrels' own balances. Live keys are refused while this is in
+  test mode.
+
+### Sign-in
+
+- **A bot check at sign-in:** the bot check on the production sign-in page
+  switched on with this release.

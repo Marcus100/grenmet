@@ -26,6 +26,12 @@ from src.worker.config import worker_settings
 logger = logging.getLogger(__name__)
 
 
+# Every job that ``monitored`` wraps, by function name, with its monitor config.
+# ``tests/worker/test_cron_monitor.py`` checks that each ARQ cron job is here, so a
+# new scheduled job cannot ship without a check-in.
+MONITORED: dict[str, dict[str, Any]] = {}
+
+
 def slug(job_name: str, environment: str) -> str:
     return f"{environment}-worker-{job_name.replace('_', '-')}"[:50]
 
@@ -78,6 +84,7 @@ def monitored[**P, R](
         fn: Callable[P, Coroutine[Any, Any, R]],
     ) -> Callable[P, Coroutine[Any, Any, R]]:
         last_reported = float("-inf")
+        MONITORED[fn.__name__] = config
 
         @wraps(fn)
         async def inner(*args: P.args, **kwargs: P.kwargs) -> R:

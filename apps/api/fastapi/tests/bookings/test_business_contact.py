@@ -231,11 +231,16 @@ async def test_manage_page_carries_the_booking_businesss_contacts(
     assert created.status_code == 201, created.text
     receipt = created.json()
     assert receipt["booking"]["contact"] == STORED
+    storefront = await async_client.get(f"{API}/public/{studio.slug}")
+    name = storefront.json()["display_name"]
+    assert name
+    assert receipt["booking"]["business_name"] == name
 
     token = receipt["manage_token"]
     detail = await async_client.get(f"{API}/public/bookings/{token}")
     assert detail.status_code == 200
     assert detail.json()["contact"] == STORED
+    assert detail.json()["business_name"] == name
 
 
 async def test_another_business_contacts_never_show(

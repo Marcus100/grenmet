@@ -9,6 +9,7 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.billing.models import Plan
 from src.bookings import seed
 from src.bookings.models import (
     BookingProfile,
@@ -227,6 +228,23 @@ async def test_seeded_buffer_is_honoured_by_slots(
     assert any(s.startswith(f"{day}T15:00") for s in after)
 
 
+@pytest.fixture
+async def bookings_plan(db_async: AsyncSession) -> None:
+    """The billing migration seeds this plan; the test database is cleared per test.
+    Without it the seed notes that the Babydoll trial was not set."""
+    db_async.add(
+        Plan(
+            key="bookings-monthly",
+            app_key="bookings",
+            interval="month",
+            active=True,
+            name="Bookings monthly",
+        )
+    )
+    await db_async.commit()
+
+
+@pytest.mark.usefixtures("bookings_plan")
 async def test_notify_email_sets_the_profile_on_a_fresh_seed(
     db_async: AsyncSession,
 ) -> None:
@@ -242,6 +260,7 @@ async def test_notify_email_sets_the_profile_on_a_fresh_seed(
     assert result.notes == []
 
 
+@pytest.mark.usefixtures("bookings_plan")
 async def test_notify_email_is_ignored_when_the_profile_exists(
     db_async: AsyncSession,
 ) -> None:

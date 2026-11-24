@@ -19,7 +19,15 @@ API = "https://api.cloudflare.com/client/v4"
 # Hostname prefixes (before BASE_DOMAIN) of the routers in docker-compose.deploy.yml.
 # cloudflare-proxy.test.mjs fails when a router's host is in neither list.
 PUBLIC_HOSTS = ("weather", "events", "bookings", "cap", "gmsdash", "signal", "mbia", "docs")
-PRIVATE_HOSTS = ("api", "auth", "account", "admin", "gms", "cms", "adminer")
+PRIVATE_HOSTS = ("api", "auth", "account", "admin", "gms", "cms", "adminer") + (
+    # Planned hosts with no app yet: Traefik's unused-planned router redirects
+    # them to the homepage (#1657). Never cached; listed so the origin header
+    # reaches them. Move a host to its class when its app is built.
+    "shop",
+    "bus",
+    "mail",
+    "status",
+)
 KEPT_FIELDS = ("id", "ref", "expression", "action", "action_parameters", "description", "enabled", "logging")
 
 

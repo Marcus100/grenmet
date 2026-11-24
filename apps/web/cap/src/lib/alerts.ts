@@ -1,18 +1,16 @@
 import type { CapAlertPublicView } from "@barrelsgd/api-client";
+import {
+  severityLevel,
+  WARNING_LEVEL_LABEL,
+  WARNING_SEVERITY_RANK,
+  type WarningLevel,
+} from "@barrelsgd/gms/warning-levels";
 
 // Pure mapping helpers for the public alert hub. Safe in Server and Client
 // Components; fetching and the last-known-good store live in cap-api.ts.
 
 export type Severity = "Extreme" | "Severe" | "Moderate" | "Minor" | "Unknown";
 export type Urgency = "Immediate" | "Expected" | "Future" | "Past" | "Unknown";
-
-const SEVERITY_RANK: Record<Severity, number> = {
-  Extreme: 0,
-  Severe: 1,
-  Moderate: 2,
-  Minor: 3,
-  Unknown: 4,
-};
 
 const URGENCY_RANK: Record<Urgency, number> = {
   Immediate: 0,
@@ -22,39 +20,18 @@ const URGENCY_RANK: Record<Urgency, number> = {
   Unknown: 4,
 };
 
-/** Impact-based level the public sees; the same four steps as the GMS site. */
-export type WarningLevel =
-  | "none"
-  | "be-aware"
-  | "be-prepared"
-  | "take-action"
-  | "unknown";
-
-export const WARNING_LEVEL_LABEL: Record<WarningLevel, string> = {
-  none: "No active alerts",
-  "be-aware": "Be aware",
-  "be-prepared": "Be prepared",
-  "take-action": "Take action now",
-  unknown: "Status unavailable",
-};
-
-export const WARNING_LEVEL_SURFACE: Record<WarningLevel, string> = {
-  none: "bg-gm-warning-green-bg text-gm-warning-green-fg",
-  "be-aware": "bg-gm-warning-yellow-bg text-gm-warning-yellow-fg",
-  "be-prepared": "bg-gm-warning-amber-bg text-gm-warning-amber-fg",
-  "take-action": "bg-gm-warning-red-bg text-gm-warning-red-fg",
-  unknown: "bg-gm-warning-grey-bg text-gm-warning-grey-fg",
-};
-
-export function severityLevel(severity: Severity): WarningLevel {
-  if (severity === "Extreme" || severity === "Severe") {
-    return "take-action";
-  }
-  if (severity === "Moderate") {
-    return "be-prepared";
-  }
-  return "be-aware";
-}
+// The level mapping is shared with the GMS site so the public sees exactly
+// the colour the forecaster issued: Minor Green, Moderate Yellow "Be aware",
+// Severe Orange "Be prepared", Extreme Red "Take action now".
+export {
+  severityLevel,
+  WARNING_LEVEL_COLOUR_NAME,
+  WARNING_LEVEL_LABEL,
+  WARNING_LEVEL_MAP_FILL,
+  WARNING_LEVEL_SURFACE,
+  type WarningLevel,
+  warningLevelHeading,
+} from "@barrelsgd/gms/warning-levels";
 
 /** What one alert looks like on a card, flattened from CAP's nested shape. */
 export interface AlertView {
@@ -62,18 +39,41 @@ export interface AlertView {
   certainty: string;
   description: string;
   effective: string | null;
+  /** When it ended, if the record says (cancel or expiry time); else null. */
+  endedAt: string | null;
   event: string;
   expires: string | null;
   headline: string;
   identifier: string;
   instruction: string | null;
   level: WarningLevel;
+  lifecycle: string;
   msgType: string;
   onset: string | null;
+  /** Identifier of the warning that replaced this one, if any. */
+  replacedBy: string | null;
   sent: string;
   severity: Severity;
   status: string;
   urgency: Urgency;
+}
+
+/** When a cancelled or expired alert ended; null while the record gives none. */
+function endedAtOf(
+  alert: CapAlertPublicView,
+  expires: string | null
+): string | null {
+  if (alert.lifecycle_state === "CANCELLED" || alert.msg_type === "Cancel") {
+    return alert.expired_at ?? alert.updated_at ?? null;
+  }
+  if (alert.lifecycle_state === "EXPIRED") {
+    return alert.expired_at ?? expires;
+  }
+  if (alert.replaced_by_identifier) {
+    // The page swaps in the replacement's sent time when it can read it.
+    return alert.updated_at ?? null;
+  }
+  return null;
 }
 
 /**
@@ -102,8 +102,11 @@ export function toAlertView(alert: CapAlertPublicView): AlertView | null {
     headline: info.headline,
     identifier: alert.identifier,
     instruction: info.instruction ?? null,
+    endedAt: endedAtOf(alert, info.expires ?? null),
     level: severityLevel(info.severity ?? "Unknown"),
+    lifecycle: alert.lifecycle_state,
     msgType: alert.msg_type,
+    replacedBy: alert.replaced_by_identifier ?? null,
     onset: info.onset ?? null,
     sent: alert.sent,
     severity: info.severity ?? "Unknown",
@@ -115,7 +118,7 @@ export function toAlertView(alert: CapAlertPublicView): AlertView | null {
 /** Most severe first, then most urgent, then most recently sent. */
 export function compareAlerts(a: AlertView, b: AlertView): number {
   return (
-    SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
+    WARNING_SEVERITY_RANK[a.severity] - WARNING_SEVERITY_RANK[b.severity] ||
     URGENCY_RANK[a.urgency] - URGENCY_RANK[b.urgency] ||
     Date.parse(b.sent) - Date.parse(a.sent)
   );
@@ -136,13 +139,21 @@ export function sortNewestFirst(views: AlertView[]): AlertView[] {
  * lists it: last-known-good data must not resurrect an ended warning.
  */
 export function isInForce(view: AlertView, now: Date): boolean {
-  if (view.msgType === "Cancel") {
+  if (view.msgType === "Cancel" || view.replacedBy) {
+    return false;
+  }
+  if (view.lifecycle === "EXPIRED" || view.lifecycle === "CANCELLED") {
     return false;
   }
   if (view.expires && Date.parse(view.expires) <= now.getTime()) {
     return false;
   }
   return true;
+}
+
+/** The time to show beside "Ended": the recorded end, else the expiry. */
+export function endedTime(view: AlertView): string | null {
+  return view.endedAt ?? view.expires;
 }
 
 export interface ActiveSplit {
@@ -215,6 +226,19 @@ export function formatClock(date: Date): string {
     hour12: false,
     minute: "2-digit",
     timeZone: GRENADA_TIME_ZONE,
+  }).format(date);
+}
+
+/** "18 Oct 2026, 10:05" in Grenada time: the date and time a feed was read. */
+export function formatUpdated(date: Date): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+    month: "short",
+    timeZone: GRENADA_TIME_ZONE,
+    year: "numeric",
   }).format(date);
 }
 

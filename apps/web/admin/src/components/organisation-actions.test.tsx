@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
   AppEntitlements,
@@ -69,13 +69,21 @@ describe("OrganisationActions", () => {
     expect(
       screen.getByText("Reactivate", { selector: "summary" })
     ).toBeTruthy();
-    expect(screen.getByText("Confirm reactivate")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Reactivate" }));
+    expect(
+      screen.getByRole("button", { name: "Reactivate organisation" })
+    ).toBeTruthy();
   });
 
-  it("states the effect of suspending before the confirm button", () => {
+  it("states the effect of suspending, and asks in a dialog before it happens", () => {
     render(<OrganisationActions organisation={base} />);
-    expect(screen.getByText("Confirm suspend")).toBeTruthy();
     expect(screen.getByText(REFUSED_TEXT)).toBeTruthy();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Suspend" }));
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Suspend organisation" })
+    ).toBeTruthy();
   });
 });
 

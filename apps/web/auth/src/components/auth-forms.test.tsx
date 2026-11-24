@@ -27,6 +27,7 @@ vi.mock("react", async (importOriginal) => {
   };
 });
 vi.mock("@/app/actions", () => ({
+  forgotPasswordAction: vi.fn(),
   resetPasswordAction: vi.fn(),
   signInAction: vi.fn(),
 }));
@@ -42,6 +43,7 @@ vi.mock("@/components/code-field", () => ({
 }));
 
 import { EmailCodeForm } from "./EmailCodeForm";
+import { ForgotPasswordForm } from "./ForgotPasswordForm";
 import { ResetPasswordForm } from "./ResetPasswordForm";
 import { SignInForm } from "./SignInForm";
 
@@ -108,6 +110,65 @@ describe("SignInForm (password)", () => {
     expect(
       screen.queryByRole("link", { name: "Verify your email" })
     ).toBeNull();
+  });
+
+  it("announces a wrong password and puts focus back in the password field", () => {
+    setState({
+      email: "jane@example.com",
+      error: "Incorrect email or password",
+      next: null,
+    });
+    render(<SignInForm appName={null} codeHref={CODE_HREF} returnTo={null} />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Incorrect email or password"
+    );
+    expect(screen.getByLabelText("Password")).toHaveFocus();
+  });
+
+  it("does not move focus when there is no error", () => {
+    setState({ next: null });
+    render(<SignInForm appName={null} codeHref={CODE_HREF} returnTo={null} />);
+    expect(screen.getByLabelText("Password")).not.toHaveFocus();
+  });
+});
+
+describe("ForgotPasswordForm", () => {
+  it("says to check your email once the reset link is sent", () => {
+    setState({ email: "jane@example.com", error: null, success: true });
+    render(<ForgotPasswordForm />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Check your email");
+    expect(screen.getByRole("status")).toHaveTextContent("jane@example.com");
+    expect(
+      screen.getByRole("link", { name: "Back to sign in" })
+    ).toHaveAttribute("href", "/");
+  });
+
+  it("shows a refusal inline, tied to the email field, with focus on it", () => {
+    setState({
+      email: "not-sent@example.com",
+      error: "Too many reset requests. Try again later.",
+      success: false,
+    });
+    render(<ForgotPasswordForm />);
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("Too many reset requests");
+    const email = screen.getByLabelText("Email address");
+    expect(email).toHaveAttribute("aria-invalid", "true");
+    expect(email).toHaveAttribute("aria-describedby", alert.id);
+    expect(email).toHaveFocus();
+  });
+
+  it("shows no error state before anything is submitted", () => {
+    setState({});
+    render(<ForgotPasswordForm />);
+
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByLabelText("Email address")).not.toHaveAttribute(
+      "aria-invalid"
+    );
   });
 });
 

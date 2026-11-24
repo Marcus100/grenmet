@@ -83,9 +83,16 @@ vi.mock("@/lib/content", () => {
       articles.filter((article) => article.section === section),
   };
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 describe("editorial reader", () => {
   it("leads with the dated briefing, then stories, collection and archive", () => {
+    // The fixture briefing is from 13 June 2026; read the clock on that day so
+    // it still counts as the daily briefing.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-06-13T12:00:00Z"));
     const { container } = render(<HomePage />);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "Daily Signal"
@@ -104,6 +111,20 @@ describe("editorial reader", () => {
     expect(screen.getAllByRole("img").length).toBeGreaterThan(0);
     expect(screen.queryByText("Sport →")).not.toBeInTheDocument();
   });
+
+  it("says Last updated, not Daily Signal, once the briefing is more than two days old", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-06-16T12:00:00Z"));
+    render(<HomePage />);
+    expect(screen.getByText("Last updated")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "The latest from Signal"
+    );
+    expect(screen.getByRole("heading", { level: 1 })).not.toHaveTextContent(
+      "Daily Signal"
+    );
+  });
+
   it("has working navigation without inactive signup or social links", () => {
     render(
       <>

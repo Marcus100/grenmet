@@ -48,6 +48,7 @@ from src.cap.schemas import (
     GmsCataloguePublic,
     PublicWarnings,
 )
+from src.config import settings
 from src.dependencies import CurrentUser, SessionDep
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND
@@ -134,8 +135,9 @@ async def read_escalation(
     summary="Raise a saved GMS alert to a CAP warning draft",
     description=(
         "Creates a pre-filled CAP draft from one saved GMS alert revision, linked to it "
-        "through the GMS source parameters. Returns 200 with the existing draft when an "
-        "open (draft, submitted or approved) CAP alert already links the product. "
+        "through the GMS source parameters. Returns 200 with the existing warning when a "
+        "draft, submitted, approved or published CAP alert already links the product; an "
+        "expired or cancelled one does not block. "
         "Needs cap.alert.create and product access to the alert's kind."
     ),
     responses={**AUTHENTICATED, **NOT_FOUND},
@@ -767,17 +769,23 @@ def _public_list_view(result: CapAlertListPublic) -> CapAlertListPublicView:
     summary="List public CAP warnings",
     description="Returns the public warning feed without requiring authentication.",
 )
-async def read_public_warnings(
-    *, session: SessionDep, response: Response
-) -> PublicWarnings:
+async def read_public_warnings(*, session: SessionDep, response: Response) -> Any:
     from pydantic import ValidationError
     from sqlalchemy.exc import SQLAlchemyError
 
     from src.exceptions import AppException
 
+    async def _produce() -> dict[str, Any]:
+        result = await service.public_warnings(session=session)
+        return result.model_dump(mode="json")
+
     response.headers["Cache-Control"] = "no-store"
     try:
-        return await service.public_warnings(session=session)
+        # Server-side only (the browser is told no-store). Publish and withdraw
+        # invalidate the key; the TTL covers alerts that end by time alone.
+        return await cache.cached_json(
+            cache.PUBLIC_WARNINGS, cache.PUBLIC_WARNINGS_TTL_SECONDS, _produce
+        )
     except SQLAlchemyError, OSError, TimeoutError, ValidationError:
         raise AppException("Warning information is unavailable", 503)
 
@@ -948,11 +956,19 @@ async def read_cap_xml(*, session: SessionDep, identifier: str) -> Response:
     )
 
 
+def _absolute_link(path: str) -> str:
+    """Feed readers and the WMO Alert Hub need absolute links; API paths are rooted at the API host."""
+    if path.startswith(("http://", "https://")):
+        return path
+    base = str(settings.API_BASE_URL or "").rstrip("/")
+    return f"{base}{path}" if base else path
+
+
 def _rss_xml(alerts: list[CapAlertPublic]) -> str:
     rss = ET.Element("rss", version="2.0")
     channel = ET.SubElement(rss, "channel")
     ET.SubElement(channel, "title").text = "Grenada CAP Alerts"
-    ET.SubElement(channel, "link").text = "/api/cap/latest-active"
+    ET.SubElement(channel, "link").text = _absolute_link("/api/cap/latest-active")
     ET.SubElement(
         channel, "description"
     ).text = "Active CAP alerts and recent cancellation messages"
@@ -969,7 +985,7 @@ def _rss_xml(alerts: list[CapAlertPublic]) -> str:
             title = first_info.headline if first_info else alert.identifier
         ET.SubElement(item, "title").text = title
         ET.SubElement(item, "guid").text = alert.identifier
-        ET.SubElement(item, "link").text = (
+        ET.SubElement(item, "link").text = _absolute_link(
             alert.xml_url or f"/api/cap/{alert.identifier}.xml"
         )
         ET.SubElement(item, "pubDate").text = alert.sent.isoformat()

@@ -25,7 +25,7 @@ from src.payments.models import IntentStatus, ProviderKey
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, utc_to_local, zone
 
-from . import deposit_payments, emails, public, service
+from . import deposit_payments, emails, lifecycle, public, service
 from .exceptions import BookingConflictError, BookingValidationError
 from .models import (
     Booking,
@@ -37,6 +37,7 @@ from .models import (
     Service,
 )
 from .schemas import (
+    BookingAddOnLine,
     BookingAgenda,
     BookingAgendaDay,
     BookingAgendaItem,
@@ -90,7 +91,11 @@ async def _detail(
         timezone=managed.profile.timezone,
         price_minor=booking.price_minor,
         deposit_minor=booking.deposit_minor,
+        deposit_non_refundable=booking.deposit_non_refundable,
         payment_kind=deposit_payments.payment_kind(booking),
+        balance_at_salon_minor=deposit_payments.balance_at_salon(
+            booking.price_minor, booking.deposit_minor
+        ),
         currency=booking.currency,
         notes=booking.notes,
         cancel_reason=booking.cancel_reason,
@@ -108,6 +113,14 @@ async def _detail(
                 created_at=e.created_at,
             )
             for e in events
+        ],
+        add_ons=[
+            BookingAddOnLine(
+                name=line.name,
+                duration_min=line.duration_min,
+                price_minor=line.price_minor,
+            )
+            for line in managed.add_ons
         ],
     )
 
@@ -150,15 +163,20 @@ async def agenda(
         )
         or 0
     )
-    rows = await session.execute(
-        select(Booking, Service.name, func.coalesce(Contact.name, ""))
-        .join(Service, Service.id == Booking.service_id)
-        .join(Customer, Customer.id == Booking.customer_id)
-        .join(Contact, Contact.id == Customer.contact_id)
-        .where(*conditions)
-        .order_by(Booking.starts_at, Booking.id)
-        .limit(limit)
-        .offset(offset)
+    rows = (
+        await session.execute(
+            select(Booking, Service.name, func.coalesce(Contact.name, ""))
+            .join(Service, Service.id == Booking.service_id)
+            .join(Customer, Customer.id == Booking.customer_id)
+            .join(Contact, Contact.id == Customer.contact_id)
+            .where(*conditions)
+            .order_by(Booking.starts_at, Booking.id)
+            .limit(limit)
+            .offset(offset)
+        )
+    ).all()
+    add_on_lines = await service.booking_add_on_lines(
+        session, [booking.id for booking, _, _ in rows]
     )
     days: dict[date, list[BookingAgendaItem]] = {}
     for booking, service_name, customer_name in rows:
@@ -179,6 +197,8 @@ async def agenda(
                 deposit_minor=booking.deposit_minor,
                 payment_kind=deposit_payments.payment_kind(booking),
                 currency=booking.currency,
+                add_on_names=[line.name for line in add_on_lines.get(booking.id, [])],
+                expires_at=lifecycle.pending_expires_at(booking, profile),
             )
         )
     return BookingAgenda(

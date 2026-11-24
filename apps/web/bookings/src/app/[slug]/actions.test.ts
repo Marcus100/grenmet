@@ -176,6 +176,118 @@ describe("submitBooking", () => {
   });
 });
 
+describe("add-ons", () => {
+  const ADD_ON = "7a6c0a52-7c12-4c53-9e0f-9d8f2b2f0001";
+  const ADD_ON_2 = "7a6c0a52-7c12-4c53-9e0f-9d8f2b2f0002";
+
+  it("asks for times with the add-on ids", async () => {
+    vi.mocked(getAvailability).mockResolvedValue({
+      timezone: "America/Grenada",
+      slots: [],
+    } as never);
+    await loadSlots(SLUG, input.serviceId, "2027-01-05", [ADD_ON, ADD_ON_2]);
+    expect(getAvailability).toHaveBeenCalledWith(
+      SLUG,
+      input.serviceId,
+      "2027-01-05",
+      undefined,
+      [ADD_ON, ADD_ON_2]
+    );
+  });
+
+  it("refuses more than five, or ids that are not uuids, without calling the API", async () => {
+    const six = Array.from(
+      { length: 6 },
+      (_, n) => `7a6c0a52-7c12-4c53-9e0f-9d8f2b2f000${n}`
+    );
+    expect(
+      await loadSlots(SLUG, input.serviceId, "2027-01-05", six)
+    ).toMatchObject({ ok: false, code: "invalid" });
+    expect(
+      await loadSlots(SLUG, input.serviceId, "2027-01-05", ["x"])
+    ).toMatchObject({ ok: false, code: "invalid" });
+    expect(getAvailability).not.toHaveBeenCalled();
+  });
+
+  it("passes the API's amount due and code requirement on with the times", async () => {
+    vi.mocked(getAvailability).mockResolvedValue({
+      timezone: "America/Grenada",
+      slots: [],
+      due_at_booking_minor: 4500,
+      email_code_required: true,
+    } as never);
+    expect(
+      await loadSlots(SLUG, input.serviceId, "2027-01-05", [ADD_ON])
+    ).toEqual({
+      ok: true,
+      data: {
+        timezone: "America/Grenada",
+        dueAtBookingMinor: 4500,
+        emailCodeRequired: true,
+        slots: [],
+      },
+    });
+  });
+
+  it("sends the add-ons with the emailed-code request", async () => {
+    vi.mocked(requestCode).mockResolvedValue({
+      required: true,
+      expires_in_seconds: 600,
+    } as never);
+    await requestEmailCode(SLUG, {
+      addOnIds: [ADD_ON],
+      email: "ada@example.com",
+      serviceId: input.serviceId,
+      startsAt: input.startsAt,
+      turnstileToken: "",
+    });
+    expect(requestCode).toHaveBeenCalledWith(
+      SLUG,
+      expect.objectContaining({ add_on_ids: [ADD_ON] }),
+      undefined
+    );
+  });
+
+  it("sends add_on_ids when booking, and none when none were chosen", async () => {
+    vi.mocked(createBooking).mockResolvedValue({
+      booking: {} as never,
+      manage_token: "tok",
+      manage_url: null,
+    });
+    await submitBooking(SLUG, { ...input, addOnIds: [ADD_ON] });
+    expect(createBooking).toHaveBeenLastCalledWith(
+      SLUG,
+      expect.objectContaining({ add_on_ids: [ADD_ON] }),
+      input.idempotencyKey,
+      undefined
+    );
+    await submitBooking(SLUG, { ...input, addOnIds: [] });
+    expect(vi.mocked(createBooking).mock.calls[1]?.[1]).not.toHaveProperty(
+      "add_on_ids"
+    );
+  });
+
+  it("refuses six add-ons when booking", async () => {
+    const six = Array.from(
+      { length: 6 },
+      (_, n) => `7a6c0a52-7c12-4c53-9e0f-9d8f2b2f000${n}`
+    );
+    expect(
+      await submitBooking(SLUG, { ...input, addOnIds: six })
+    ).toMatchObject({ ok: false, code: "invalid" });
+    expect(createBooking).not.toHaveBeenCalled();
+  });
+
+  it("maps the 422 for switched-off add-ons to a plain recovery message", async () => {
+    vi.mocked(createBooking).mockRejectedValue(
+      apiError(422, "This business does not offer add-ons")
+    );
+    expect(
+      await submitBooking(SLUG, { ...input, addOnIds: [ADD_ON] })
+    ).toMatchObject({ ok: false, code: "add_ons_unavailable" });
+  });
+});
+
 describe("loadSlots", () => {
   it("rejects bad ids and days", async () => {
     expect(await loadSlots(SLUG, "nope", "2027-01-05")).toMatchObject({
@@ -200,7 +312,9 @@ describe("loadSlots", () => {
     expect(getAvailability).toHaveBeenCalledWith(
       SLUG,
       input.serviceId,
-      "2027-01-05"
+      "2027-01-05",
+      undefined,
+      []
     );
     expect(outcome).toEqual({
       ok: true,

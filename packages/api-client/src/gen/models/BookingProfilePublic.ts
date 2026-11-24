@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { BookingBusinessType } from "./BookingBusinessType.js";
+import type { BookingDepositMode } from "./BookingDepositMode.js";
 import type { BookingPaymentMode } from "./BookingPaymentMode.js";
 
 export type BookingProfilePublic = {
@@ -67,6 +69,19 @@ export type BookingProfilePublic = {
    * @type boolean | undefined
    */
   requires_confirmation?: boolean;
+  /**
+   * @description Hours a booking request waits for the business to confirm it before it expires (the customer is told and the slot is released). Null means it expires only at its start time. A request whose start has passed always expires. Left out, the stored value is kept.
+   * @default 24
+   */
+  pending_expiry_hours?: number | null;
+  /**
+   * @description How many future bookings (requested, awaiting payment or confirmed) one customer may hold with this business. A public booking beyond it is refused with 409. Staff entries are not refused. Left out, the stored value is kept.
+   * @minimum 1
+   * @maximum 20
+   * @default 3
+   * @type integer | undefined
+   */
+  max_open_per_customer?: number;
   notify_email?: string | null;
   manage_url_template?: string | null;
   /**
@@ -86,11 +101,79 @@ export type BookingProfilePublic = {
    */
   contact_email?: string | null;
   /**
+   * @description Offer add-on services (for example a brow wax with a lash set) on the booking page. Off by default; while off, add-ons are neither shown nor accepted. Left out, the stored value is kept.
+   * @default false
+   * @type boolean | undefined
+   */
+  add_ons_enabled?: boolean;
+  /**
    * @description What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.
    * @default 'deposit'
    * @type string | undefined
    */
   payment_at_booking?: BookingPaymentMode;
+  /**
+   * @description Business-wide deposit rule, used for a service only when its own deposit is 0. `none`: no rule (the default). `percent`: `deposit_percent` of the price, rounded up to whole currency units. `fixed`: `deposit_fixed_minor` per booking. Never more than the price. Left out, the stored value is kept.
+   * @default 'none'
+   * @type string | undefined
+   */
+  deposit_mode?: BookingDepositMode;
+  /**
+   * @description The percentage for `deposit_mode` `percent` (1 to 100).
+   */
+  deposit_percent?: number | null;
+  /**
+   * @description The amount in minor units for `deposit_mode` `fixed`.
+   */
+  deposit_fixed_minor?: number | null;
+  /**
+   * @description The lowest service price (minor units) that takes the business-wide deposit rule. Cheaper services take no deposit from it. Null means no minimum. A service's own deposit is never affected. Left out, the stored value is kept.
+   */
+  deposit_min_price_minor?: number | null;
+  /**
+   * @description When true, a paid deposit is kept when the booking is cancelled, by the customer or by the business without a refund choice. A move keeps it with the booking. Declines still refund. Left out, the stored value is kept.
+   * @default false
+   * @type boolean | undefined
+   */
+  deposit_non_refundable?: boolean;
+  /**
+   * @description Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept.
+   */
+  booking_policy?: string | null;
+  /**
+   * @description The business's accent colour in its emails, as `#rrggbb`. Blank clears it. Mail uses the Barrels navy instead when the colour is too pale for white text. Left out, the stored value is kept.
+   */
+  brand_color?: string | null;
+  /**
+   * @description A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept.
+   */
+  logo_file_id?: string | null;
+  /**
+   * @description A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept.
+   */
+  cover_file_id?: string | null;
+  /**
+   * @description The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, tours, events, other). Null clears it. Left out, the stored value is kept.
+   */
+  business_type?: BookingBusinessType | null;
+  /**
+   * @description Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept.
+   * @default false
+   * @type boolean | undefined
+   */
+  listed?: boolean;
+  /**
+   * @description Short category for the home page, such as Hair or Nails; it is the filter chip a visitor taps. Blank clears it. Left out, the stored value is kept.
+   */
+  category?: string | null;
+  /**
+   * @description One line for the home page card. Blank clears it. Left out, the stored value is kept.
+   */
+  short_description?: string | null;
+  /**
+   * @description Town or city for the home page card. Blank clears it. Left out, the stored value is kept.
+   */
+  city?: string | null;
   /**
    * @description
    * Format: `uuid`

@@ -3,8 +3,9 @@
 import type { BookingServicePublic } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
+import { Label } from "@barrelsgd/ui/components/ui/label";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { saveServiceAction } from "@/app/studio/[orgSlug]/settings/actions";
 import { moneyInput } from "@/lib/settings-view";
 import { IDLE } from "@/lib/studio-action-state";
@@ -19,11 +20,17 @@ import {
 
 /** Adds a service, or edits `service` when given. Prices are typed in whole currency units. */
 export function ServiceForm({
+  addOnCategories = [],
+  addOnsEnabled = false,
   currency,
   depositsAvailable,
   orgSlug,
   service,
 }: {
+  /** Categories of the main services, to choose which one an add-on follows. */
+  addOnCategories?: string[];
+  /** The business has add-ons switched on (the form still saves the flag when off). */
+  addOnsEnabled?: boolean;
   currency: string;
   depositsAvailable: boolean;
   orgSlug: string;
@@ -36,6 +43,7 @@ export function ServiceForm({
   const formRef = useRef<HTMLFormElement>(null);
   const submitLabel = service ? "Save service" : "Add service";
   const prefix = `service-${service?.id ?? "new"}`;
+  const [isAddOn, setIsAddOn] = useState(service?.is_add_on ?? false);
 
   useEffect(() => {
     // An add form starts blank again once the service is saved.
@@ -166,6 +174,13 @@ export function ServiceForm({
           )}
         </SettingsField>
       </div>
+      <AddOnFields
+        addOnsEnabled={addOnsEnabled}
+        categories={addOnCategories}
+        isAddOn={isAddOn}
+        onChange={setIsAddOn}
+        selected={service?.add_on_categories ?? []}
+      />
       <SettingsCheck
         defaultChecked={service?.active ?? true}
         label="Offered to customers (untick to stop new bookings)"
@@ -181,5 +196,77 @@ export function ServiceForm({
         {pending ? "Saving..." : submitLabel}
       </Button>
     </form>
+  );
+}
+
+/**
+ * "This is an add-on" and which main-service categories it is offered with.
+ * Categories show only for an add-on; none ticked means every main service.
+ */
+function AddOnFields({
+  addOnsEnabled,
+  categories,
+  isAddOn,
+  onChange,
+  selected,
+}: {
+  addOnsEnabled: boolean;
+  categories: string[];
+  isAddOn: boolean;
+  onChange: (value: boolean) => void;
+  selected: string[];
+}) {
+  // A category the add-on already follows stays listed even if no main service uses it now.
+  const choices = [...new Set([...categories, ...selected])];
+  return (
+    <fieldset className="border-border space-y-2 border-t pt-4">
+      <legend className="pt-4 font-medium">Add-on</legend>
+      <Label className="min-h-11 items-center gap-3">
+        <input
+          checked={isAddOn}
+          className="accent-primary size-5"
+          name="isAddOn"
+          onChange={(event) => onChange(event.target.checked)}
+          type="checkbox"
+        />
+        This is an add-on
+      </Label>
+      <p className="text-muted-foreground text-sm">
+        {addOnsEnabled
+          ? "An add-on is never booked alone. Customers tick it after choosing a main service, and its time and price are added to the booking. Its own deposit is not used."
+          : "An add-on is never booked alone. Customers will not see it until you switch add-ons on under Services. Its own deposit is not used."}
+      </p>
+      {isAddOn ? (
+        <fieldset className="space-y-1">
+          <legend className="font-medium">
+            Offer it with these categories
+          </legend>
+          {choices.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              Your main services have no categories yet, so this add-on is
+              offered with every main service.
+            </p>
+          ) : (
+            <>
+              {choices.map((category) => (
+                <Label className="min-h-11 items-center gap-3" key={category}>
+                  <input
+                    className="accent-primary size-5"
+                    defaultChecked={selected.includes(category)}
+                    name="addOnCategory"
+                    type="checkbox"
+                    value={category}
+                  />
+                  {category}
+                </Label>
+              ))}
+              <p className="text-muted-foreground text-sm">
+                Tick none to offer it with every main service.
+              </p>
+            </>
+          )}
+        </fieldset>
+      ) : null}
+    </fieldset>
   );
 }

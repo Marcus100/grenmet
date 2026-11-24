@@ -12,6 +12,13 @@ export const bookingEmailCodeRequestSchema = z
       .datetime()
       .describe("The slot being booked; the proof is bound to it."),
     customer_email: z.email().max(254),
+    add_on_ids: z
+      .array(z.uuid())
+      .max(5)
+      .optional()
+      .describe(
+        "The add-ons the booking will include, so the code is asked for when the combined price is a deposit. Same ids as the booking's `add_on_ids`."
+      ),
     turnstile_token: z.union([z.string().max(2048), z.null()]).optional(),
   })
   .describe("Ask for a code to be emailed before a deposit booking.");

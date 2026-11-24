@@ -101,6 +101,8 @@ export function DutyRoster() {
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [departmentId, setDepartmentId] = useState<string>();
+  // Phone only: the day picked in the week view (ISO date); null means today.
+  const [phoneDayIso, setPhoneDayIso] = useState<string | null>(null);
   const [pendingEdits, setPendingEdits] = useState<Record<string, string>>({});
 
   const departmentsQuery = useHrListDepartments();
@@ -173,6 +175,30 @@ export function DutyRoster() {
   // column reproduces that gap. Every colSpan has to count those spacers too.
   const weekGaps = days.filter((d, i) => d.isSunday && i > 0).length;
   const totalColumns = daysInMonth + weekGaps + 1;
+
+  // Sunday-first week blocks: block n holds the days from one Sunday to the next.
+  // The phone view shows one block at a time; the desktop grid shows the month.
+  const weekBlocks = days.reduce<number[]>((blocks, d, i) => {
+    const previous = blocks[i - 1] ?? 0;
+    blocks.push(d.isSunday && i > 0 ? previous + 1 : previous);
+    return blocks;
+  }, []);
+  const blockCount = (weekBlocks.at(-1) ?? 0) + 1;
+  const todayIso = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Grenada",
+  }).format(new Date());
+  const phoneIndex = Math.max(
+    0,
+    days.findIndex((d) => d.iso === (phoneDayIso ?? todayIso))
+  );
+  const phoneBlock = weekBlocks[phoneIndex] ?? 0;
+  /** Below md, columns outside the chosen week are hidden; desktop shows all. */
+  const phoneHidden = (index: number) =>
+    weekBlocks[index] === phoneBlock ? undefined : "hidden md:table-cell";
+  function goToBlock(block: number) {
+    const first = days.find((_, index) => weekBlocks[index] === block);
+    if (first) setPhoneDayIso(first.iso);
+  }
   const monthLabel = monthDate.toLocaleDateString("en-GB", {
     month: "long",
     year: "numeric",
@@ -475,6 +501,57 @@ export function DutyRoster() {
         </div>
       )}
 
+      <div className="grid gap-2 md:hidden">
+        <div className="flex items-center justify-between gap-2">
+          <Button
+            className="min-h-11"
+            disabled={phoneBlock === 0}
+            onClick={() => goToBlock(phoneBlock - 1)}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            Previous week
+          </Button>
+          <span className="text-muted-foreground text-sm tabular-nums">
+            Week {phoneBlock + 1} of {blockCount}
+          </span>
+          <Button
+            className="min-h-11"
+            disabled={phoneBlock >= blockCount - 1}
+            onClick={() => goToBlock(phoneBlock + 1)}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            Next week
+          </Button>
+        </div>
+        <fieldset
+          aria-label="Choose a day"
+          className="m-0 grid min-w-0 grid-cols-7 gap-1 border-0 p-0"
+        >
+          {days.map((d, index) =>
+            weekBlocks[index] === phoneBlock ? (
+              <Button
+                aria-label={`${d.weekday} ${d.day}`}
+                aria-pressed={index === phoneIndex}
+                className="min-h-11 flex-col px-0 text-xs"
+                key={d.iso}
+                onClick={() => setPhoneDayIso(d.iso)}
+                size="sm"
+                type="button"
+                variant={index === phoneIndex ? "default" : "outline"}
+              >
+                <span aria-hidden="true">{d.weekday}</span>
+                <span aria-hidden="true" className="font-semibold">
+                  {d.day}
+                </span>
+              </Button>
+            ) : null
+          )}
+        </fieldset>
+      </div>
       <div className="overflow-x-auto rounded-xl border">
         <table className="w-full border-collapse text-center text-xs">
           <thead className="bg-muted/50">
@@ -488,12 +565,16 @@ export function DutyRoster() {
               {days.map((d, i) => (
                 <Fragment key={`wk-${d.day}`}>
                   {d.isSunday && i > 0 ? (
-                    <td aria-hidden="true" className="bg-background w-2" />
+                    <td
+                      aria-hidden="true"
+                      className="bg-background hidden w-2 md:table-cell"
+                    />
                   ) : null}
                   <th
                     className={cn(
                       "border-border w-7 border-l py-0.5 font-medium",
-                      d.isSunday && "text-destructive"
+                      d.isSunday && "text-destructive",
+                      phoneHidden(i)
                     )}
                   >
                     {d.weekday}
@@ -505,12 +586,16 @@ export function DutyRoster() {
               {days.map((d, i) => (
                 <Fragment key={`day-${d.day}`}>
                   {d.isSunday && i > 0 ? (
-                    <td aria-hidden="true" className="bg-background w-2" />
+                    <td
+                      aria-hidden="true"
+                      className="bg-background hidden w-2 md:table-cell"
+                    />
                   ) : null}
                   <th
                     className={cn(
                       "border-border border-t border-l py-0.5 font-semibold",
-                      d.isSunday && "text-destructive"
+                      d.isSunday && "text-destructive",
+                      phoneHidden(i)
                     )}
                   >
                     {d.day}
@@ -565,10 +650,15 @@ export function DutyRoster() {
                             {d.isSunday && i > 0 ? (
                               <td
                                 aria-hidden="true"
-                                className="bg-background"
+                                className="bg-background hidden md:table-cell"
                               />
                             ) : null}
-                            <td className="border-border border-l p-0">
+                            <td
+                              className={cn(
+                                "border-border border-l p-0",
+                                phoneHidden(i)
+                              )}
+                            >
                               <button
                                 // Every cell names its person, day and duty, so an
                                 // empty cell is never just "button".

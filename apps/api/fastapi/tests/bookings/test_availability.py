@@ -9,6 +9,7 @@ from src.bookings.availability import (
     ScheduleException,
     SlotRules,
     WorkingPeriod,
+    closure_interval,
     merge,
     open_slots,
     provider_slots,
@@ -198,3 +199,16 @@ def test_open_slots_union_providers_and_days() -> None:
     assert by_start[datetime(2026, 11, 2, 11, 0)] == ["b"]
     assert by_start[datetime(2026, 11, 3, 9, 0)] == ["b"]
     assert [s.starts_at for s in slots] == sorted(s.starts_at for s in slots)
+
+
+def test_closure_covers_whole_grenada_days_inclusive() -> None:
+    # Grenada is UTC-4: local midnight is 04:00 UTC, so a Monday closure runs
+    # from Monday 04:00 UTC to Tuesday 04:00 UTC, and a two-day one one day longer.
+    assert closure_interval(MONDAY, MONDAY, GRENADA) == (
+        datetime(2026, 11, 2, 4),
+        datetime(2026, 11, 3, 4),
+    )
+    assert closure_interval(MONDAY, MONDAY + timedelta(days=1), GRENADA) == (
+        datetime(2026, 11, 2, 4),
+        datetime(2026, 11, 4, 4),
+    )

@@ -301,6 +301,11 @@ test("staging and production pass integrations to the intended services", () => 
         api.SENTRY_DSN,
         env[`SENTRY_DSN_${deploymentEnvironment.toUpperCase()}`]
       );
+      // Admin reports to the same environment's shared Sentry project.
+      assert.equal(
+        model.services["web-admin"].environment.NEXT_PUBLIC_SENTRY_DSN,
+        env[`SENTRY_DSN_${deploymentEnvironment.toUpperCase()}`]
+      );
       assert.equal(api.REDIS_URL, "redis://redis:6379/0");
       assert.equal(api.EMAIL_RENDER_URL, "http://web-auth:3000");
       const baseDomain =
@@ -1476,4 +1481,131 @@ test("deploy.yml passes the volume switch under a name Compose never reads from 
     "utf8"
   );
   assert.ok(compose.includes("- pgdata:${CORE_POSTGRES_DATA_MOUNT:?"));
+});
+
+// Application storage reads STORAGE_* everywhere (issue #1146); staging may fall
+// back to its old DO_SPACES_* names, passed by deploy.yml as LEGACY_DO_SPACES_*.
+const STORAGE = {
+  STORAGE_ENDPOINT_URL: "https://new.example.test",
+  STORAGE_REGION: "new-region",
+  STORAGE_BUCKET: "new-bucket",
+  STORAGE_ACCESS_KEY_ID: "new-key-id",
+  STORAGE_SECRET_ACCESS_KEY: "new-secret-DO-NOT-ECHO",
+};
+const LEGACY_STORAGE = {
+  LEGACY_DO_SPACES_ENDPOINT: "https://old.example.test",
+  LEGACY_DO_SPACES_REGION: "old-region",
+  LEGACY_DO_SPACES_BUCKET: "old-bucket",
+  LEGACY_DO_SPACES_ACCESS_KEY_ID: "old-key-id",
+  LEGACY_DO_SPACES_SECRET_ACCESS_KEY: "old-secret-DO-NOT-ECHO",
+};
+const STORAGE_NOTICE = /^::warning title=Deprecated deploy setting::/mu;
+const UNSET_STORAGE = Object.fromEntries(
+  [...Object.keys(STORAGE), ...Object.keys(LEGACY_STORAGE)].map((key) => [
+    key,
+    undefined,
+  ])
+);
+
+function renderStorage(environment, change) {
+  const directory = mkdtempSync(join(tmpdir(), "delivery-storage-"));
+  const summary = join(directory, "summary.md");
+  writeFileSync(summary, "");
+  try {
+    const { result, output } = renderFor(environment, {
+      ...UNSET_STORAGE,
+      GITHUB_STEP_SUMMARY: summary,
+      ...change,
+    });
+    const storage = Object.fromEntries(
+      Object.keys(STORAGE).map((key) => [
+        key,
+        JSON.parse(
+          GENERATED_LINE(output, key)?.split("=").slice(1).join("=") ?? '""'
+        ),
+      ])
+    );
+    return { result, storage, summary: readFileSync(summary, "utf8") };
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+
+test("application storage uses STORAGE_* when set, without a notice", () => {
+  for (const environment of ["staging", "production"]) {
+    const { result, storage, summary } = renderStorage(environment, {
+      ...STORAGE,
+      ...LEGACY_STORAGE,
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(storage, STORAGE, environment);
+    assert.equal(summary, "");
+    assert.equal(result.stdout.includes("Deprecated"), false);
+  }
+});
+
+test("staging falls back to DO_SPACES_* and says so by name only", () => {
+  const { result, storage, summary } = renderStorage("staging", LEGACY_STORAGE);
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(storage, {
+    STORAGE_ENDPOINT_URL: "https://old.example.test",
+    STORAGE_REGION: "old-region",
+    STORAGE_BUCKET: "old-bucket",
+    STORAGE_ACCESS_KEY_ID: "old-key-id",
+    STORAGE_SECRET_ACCESS_KEY: "old-secret-DO-NOT-ECHO",
+  });
+  assert.match(result.stdout, STORAGE_NOTICE);
+  assert.ok(summary.includes("DO_SPACES_BUCKET"), summary);
+  assert.ok(summary.includes("STORAGE_SECRET_ACCESS_KEY"), summary);
+  for (const text of [result.stdout, result.stderr, summary])
+    assert.equal(text.includes("DO-NOT-ECHO") || text.includes("old-"), false);
+});
+
+test("production never reads DO_SPACES_* as application storage", () => {
+  const { result, storage, summary } = renderStorage(
+    "production",
+    LEGACY_STORAGE
+  );
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(Object.values(storage).every((value) => value === ""));
+  assert.equal(summary, "");
+});
+
+test("with neither STORAGE_* nor DO_SPACES_* set, storage stays off without a notice", () => {
+  for (const environment of ["staging", "production"]) {
+    const { result, storage, summary } = renderStorage(environment, {});
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(Object.values(storage).every((value) => value === ""));
+    assert.equal(summary, "");
+    assert.equal(result.stdout.includes("Deprecated"), false);
+  }
+});
+
+test("deploy.yml passes STORAGE_* as is and the old names on staging only; core.sh lets the rendered file decide", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  for (const [key, old] of [
+    ["STORAGE_ENDPOINT_URL", "DO_SPACES_ENDPOINT"],
+    ["STORAGE_REGION", "DO_SPACES_REGION"],
+    ["STORAGE_BUCKET", "DO_SPACES_BUCKET"],
+    ["STORAGE_ACCESS_KEY_ID", "DO_SPACES_ACCESS_KEY_ID"],
+    ["STORAGE_SECRET_ACCESS_KEY", "DO_SPACES_SECRET_ACCESS_KEY"],
+  ]) {
+    assert.ok(
+      workflow.includes(`          ${key}: \${{ secrets.${key} }}\n`),
+      `${key} in deploy.yml`
+    );
+    assert.ok(
+      workflow.includes(
+        `          LEGACY_${old}: \${{ inputs.environment == 'staging' && secrets.${old} || '' }}\n`
+      ),
+      `LEGACY_${old} in deploy.yml`
+    );
+  }
+  const core = readFileSync("scripts/production/core.sh", "utf8");
+  const render = core.indexOf("render-env.py");
+  const unset = core.indexOf(
+    "unset STORAGE_ENDPOINT_URL STORAGE_REGION STORAGE_BUCKET STORAGE_ACCESS_KEY_ID STORAGE_SECRET_ACCESS_KEY"
+  );
+  assert.ok(render > 0 && unset > render, "unset follows render-env.py");
+  assert.ok(unset < core.indexOf("--env-file runtime/.env.local"));
 });

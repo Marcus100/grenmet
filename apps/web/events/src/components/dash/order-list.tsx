@@ -2,7 +2,7 @@ import type { OrgOrderRow } from "@barrelsgd/api-client";
 import Link from "next/link";
 import { formatEventDate } from "@/lib/datetime";
 import {
-  formatOrderMoneyCode,
+  formatOrderMoney,
   ORDER_STATUSES,
   orderBadge,
   orderStatus,
@@ -78,7 +78,7 @@ export function OrderList({
                 </span>
                 <span className="flex flex-wrap items-center gap-2 sm:justify-end">
                   <span className="font-medium tabular-nums">
-                    {formatOrderMoneyCode(order.total_minor, order.currency)}
+                    {formatOrderMoney(order.total_minor, order.currency)}
                   </span>
                   <StatusBadge status={orderBadge(order)} />
                 </span>

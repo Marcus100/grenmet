@@ -39,6 +39,8 @@ class AuthConfig(BaseSettings):
     # ordinary staff tokens, so the /api/v1/cap/* permission checks apply.
     CAP_APP_URL: str = "http://localhost:3010"
     CAP_SSO_CLIENT_SECRET: str = ""
+    HR_APP_URL: str = "http://localhost:3016"
+    HR_SSO_CLIENT_SECRET: str = ""
     CMS_APP_URL: str = "http://localhost:3006"
     CMS_SSO_CLIENT_SECRET: str = ""
     # Public sites with "Sign in" (ADR-0017 step 4); members join automatically.

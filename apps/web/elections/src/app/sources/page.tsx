@@ -174,7 +174,7 @@ export default function SourcesPage() {
             [
               "Candidate figures verified",
               pct((cv.official ?? 0) / total, 0),
-              `${fmt(cv.official)} of ${fmt(total)}; ${fmt(cv.corroborated ?? 0)} †, ${fmt(cv.unverified ?? 0)} ✱, ${fmt(cv.check ?? 0)} ✱✱`,
+              `${fmt(cv.official)} of ${fmt(total)}; ${fmt(cv.corroborated ?? 0)} †, ${fmt(cv.unverified ?? 0)} ✱, ${fmt(cv.check ?? 0)} ✱✱, ${fmt(cv.provisional ?? 0)} provisional (2026)`,
             ],
           ].map(([label, value, note]) => (
             <div key={label}>

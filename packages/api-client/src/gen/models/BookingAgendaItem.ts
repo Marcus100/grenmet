@@ -56,4 +56,9 @@ export type BookingAgendaItem = {
    */
   payment_kind: BookingPaymentKind;
   currency: string;
+  add_on_names?: string[];
+  /**
+   * @description For a request waiting for confirmation (`pending`): when it cancels itself if not confirmed, the earlier of `pending_expiry_hours` after it was made and its start. Null for any other status.
+   */
+  expires_at?: string | null;
 };

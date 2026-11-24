@@ -10,6 +10,8 @@ import type { LucideIcon } from "lucide-react";
 import { AlertTriangle, CloudSun, Inbox, Radar } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { capDeskHref } from "@/lib/cap-desk-paths";
+import { getCapDeskCutoverUrl } from "@/lib/env";
 import { grenadaToday, summarizeImagery, summarizeProducts } from "./home-data";
 import { loadAlerts, loadHr, loadImagery, loadProducts } from "./home-loaders";
 
@@ -32,7 +34,7 @@ function alertTile(alerts: Awaited<ReturnType<typeof loadAlerts>>): Tile {
   const count = alerts.ok ? alerts.data.data.length : null;
   return {
     hint: alerts.ok ? "Currently in effect" : alerts.message,
-    href: "/cap",
+    href: capDeskHref("/cap", getCapDeskCutoverUrl()),
     icon: AlertTriangle,
     id: "alerts",
     label: "Active CAP alerts",

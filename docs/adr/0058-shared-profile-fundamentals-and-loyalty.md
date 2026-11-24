@@ -13,6 +13,8 @@ not contain it).
 
 Built:
 
+- The account-deletion fix (issue #1375, PR #1429): deletion anonymises the
+  account instead of hard-deleting it (noted 21 Nov 2026).
 - A booking made while signed in links to the person's account (#1383).
 - `GET /api/v1/bookings/me/bookings` accepts a full account token or the account
   app's session, and lists upcoming bookings soonest first (#1386).
@@ -23,7 +25,6 @@ Not built:
 - The claim flow for past guest bookings.
 - The stamp card on bookings.
 - Member numbers and the QR pass (slice 2).
-- The account-deletion fix (issue #1375).
 - The `profiles` module.
 
 ## Context
@@ -64,7 +65,8 @@ people. The first user of this is the bookings product; Events comes next.
   membership or employer (`profile_images/service.py`). A business's customers
   are contacts, not members, so business staff do not see customer photos.
 - **Account deletion:** `DELETE /auth/users/me` hard-deletes the user
-  (`auth.service.delete_user`).
+  (`auth.service.delete_user`). (Context as of 13 Nov 2026; since PR #1429 it
+  anonymises the account.)
 
 **Interpretation**
 

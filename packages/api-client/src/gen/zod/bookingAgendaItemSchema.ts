@@ -25,4 +25,11 @@ export const bookingAgendaItemSchema = z.object({
     '`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.'
   ),
   currency: z.string(),
+  add_on_names: z.array(z.string()).optional(),
+  expires_at: z
+    .union([z.iso.datetime(), z.null()])
+    .optional()
+    .describe(
+      "For a request waiting for confirmation (`pending`): when it cancels itself if not confirmed, the earlier of `pending_expiry_hours` after it was made and its start. Null for any other status."
+    ),
 });

@@ -25,8 +25,10 @@ from typing import Any
 
 import httpx
 
+from src import provider_health
 from src.payments import return_urls
 from src.payments.config import PaymentsConfig, payments_settings
+from src.payments.connect.config import connect_settings
 from src.payments.exceptions import (
     InvalidCallbackError,
     ProviderRequestError,
@@ -53,6 +55,12 @@ WHSEC_PREFIX = "whsec_"  # prefix of a Stripe webhook signing key
 _transport: httpx.AsyncBaseTransport | None = None
 #: Longest checkout line-item name we send.
 _TITLE_MAX = 120
+#: Accounts v2 and Account Links v2 are pinned to the Stripe API versions their
+#: reference pages show (2026-11-18); a new version is a deliberate change here.
+ACCOUNTS_V2_VERSION = "2026-11-18.endive"
+ACCOUNT_LINKS_V2_VERSION = "2026-11-18.preview"
+#: Longest display name we send for a connected account.
+_DISPLAY_NAME_MAX = 120
 #: Refunds per page when listing a payment's refunds (Stripe's maximum).
 REFUND_PAGE_SIZE = 100
 #: Pages read before a listing is reported incomplete (bounds a runaway loop).
@@ -288,35 +296,64 @@ class StripeProvider:
         data: dict[str, str] | None = None,
         params: dict[str, str] | None = None,
         idempotency_key: str | None = None,
+        account: str | None = None,
+        json_body: dict[str, Any] | None = None,
+        api_version: str | None = None,
     ) -> dict[str, Any]:
+        """One Stripe call. ``account`` sends ``Stripe-Account`` (a direct charge or
+        a read on a connected account); ``json_body`` sends a JSON body (Accounts v2
+        and Account Links v2); ``api_version`` pins a ``Stripe-Version``."""
         headers = {"Authorization": f"Bearer {self._secret_key}"}
         if idempotency_key:
             headers["Idempotency-Key"] = idempotency_key
+        if account:
+            headers["Stripe-Account"] = account
+        if api_version:
+            headers["Stripe-Version"] = api_version
         try:
             if self._client is not None:
                 response = await self._client.request(
-                    method, path, data=data, params=params, headers=headers
+                    method,
+                    path,
+                    data=data,
+                    params=params,
+                    json=json_body,
+                    headers=headers,
                 )
             else:
                 async with self._new_client() as client:
                     response = await client.request(
-                        method, path, data=data, params=params, headers=headers
+                        method,
+                        path,
+                        data=data,
+                        params=params,
+                        json=json_body,
+                        headers=headers,
                     )
-        except httpx.HTTPError:
-            logger.warning("Stripe request failed", extra={"path": path})
+        except httpx.HTTPError as exc:
+            provider_health.record_failure("stripe", "request", exc)
             raise ProviderRequestError() from None
         if response.status_code >= 400:
-            logger.warning(
-                "Stripe rejected a request",
-                extra={"path": path, "status_code": response.status_code},
-            )
+            # 5xx and 429 are provider trouble; other 4xx are our request's fault.
+            if response.status_code >= 500 or response.status_code == 429:
+                provider_health.record_failure(
+                    "stripe", "request", f"HTTP_{response.status_code}"
+                )
+            else:
+                logger.warning(
+                    "Stripe rejected a request",
+                    extra={"path": path, "status_code": response.status_code},
+                )
             raise ProviderRequestError()
         try:
             body = response.json()
         except ValueError:
+            provider_health.record_failure("stripe", "request", "InvalidJSON")
             raise ProviderRequestError() from None
         if not isinstance(body, dict):
+            provider_health.record_failure("stripe", "request", "UnexpectedBody")
             raise ProviderRequestError()
+        provider_health.record_success("stripe", "request")
         return body
 
     def _new_client(self) -> httpx.AsyncClient:
@@ -363,11 +400,18 @@ class StripeProvider:
             ]
             or intent.source_type,
         }
+        if intent.connected_account_id:
+            # Direct charge (ADR-0027, Connect): the Checkout Session lives on the
+            # business's account, and the platform fee is taken from that charge.
+            fee = intent.application_fee_minor or 0
+            if fee > 0:
+                data["payment_intent_data[application_fee_amount]"] = str(fee)
         body = await self._request(
             "POST",
             "/v1/checkout/sessions",
             data=data,
             idempotency_key=f"intent-{intent_id}",
+            account=intent.connected_account_id,
         )
         session_id = _str(body.get("id"))
         url = _str(body.get("url"))
@@ -400,16 +444,24 @@ class StripeProvider:
     ) -> RefundResult:
         if not intent.provider_payment_ref:
             raise ProviderRequestError("The payment has not been captured")
+        data = {
+            "payment_intent": intent.provider_payment_ref,
+            "amount": str(amount_minor),
+            "metadata[refund_id]": str(refund_id),
+            "metadata[intent_id]": str(intent.id),
+        }
+        if intent.connected_account_id:
+            # The refund belongs to the business's account; the platform fee is
+            # refunded only when the owner's setting says so (default: kept).
+            data["refund_application_fee"] = (
+                "true" if connect_settings.CONNECT_REFUND_APPLICATION_FEE else "false"
+            )
         body = await self._request(
             "POST",
             "/v1/refunds",
-            data={
-                "payment_intent": intent.provider_payment_ref,
-                "amount": str(amount_minor),
-                "metadata[refund_id]": str(refund_id),
-                "metadata[intent_id]": str(intent.id),
-            },
+            data=data,
             idempotency_key=f"refund-{refund_id}",
+            account=intent.connected_account_id,
         )
         status = _str(body.get("status"))
         if status in {"failed", "canceled"}:
@@ -423,7 +475,9 @@ class StripeProvider:
         if not intent.provider_ref:
             return ProviderStatus(status=intent.status)
         body = await self._request(
-            "GET", f"/v1/checkout/sessions/{intent.provider_ref}"
+            "GET",
+            f"/v1/checkout/sessions/{intent.provider_ref}",
+            account=intent.connected_account_id,
         )
         if body.get("payment_status") == "paid":
             return ProviderStatus(status=IntentStatus.SUCCEEDED.value)
@@ -446,7 +500,12 @@ class StripeProvider:
             "limit": str(REFUND_PAGE_SIZE),
         }
         for _ in range(REFUND_MAX_PAGES):
-            body = await self._request("GET", "/v1/refunds", params=params)
+            body = await self._request(
+                "GET",
+                "/v1/refunds",
+                params=params,
+                account=intent.connected_account_id,
+            )
             data = body.get("data")
             if not isinstance(data, list):
                 raise ProviderRequestError()
@@ -476,3 +535,68 @@ class StripeProvider:
             extra={"intent_id": str(intent.id), "pages": REFUND_MAX_PAGES},
         )
         return RefundListing(refunds=tuple(refunds), complete=False)
+
+    # --- Stripe Connect (ADR-0027, New Zealand, test mode) ----------------------
+
+    async def create_connected_account(
+        self, *, display_name: str, organisation_id: str
+    ) -> str:
+        """Create the business's connected account (Accounts v2) as the seller. Stripe
+        collects payment fees and negative balances from that account, and the
+        business gets the full Stripe Dashboard. Keyed by organisation, so a retry
+        returns the same account. Sends no personal data: no contact email."""
+        body = await self._request(
+            "POST",
+            "/v2/core/accounts",
+            json_body={
+                "display_name": display_name.strip()[:_DISPLAY_NAME_MAX] or "Business",
+                "identity": {"country": "nz"},
+                "configuration": {
+                    "merchant": {"capabilities": {"card_payments": {"requested": True}}}
+                },
+                "defaults": {
+                    "responsibilities": {
+                        "fees_collector": "stripe",
+                        "losses_collector": "stripe",
+                    }
+                },
+                "dashboard": "full",
+                "include": ["configuration.merchant", "identity", "defaults"],
+                "metadata": {"organisation_id": organisation_id},
+            },
+            idempotency_key=f"connect-account-{organisation_id}",
+            api_version=ACCOUNTS_V2_VERSION,
+        )
+        account_id = _str(body.get("id"))
+        if account_id is None:
+            raise ProviderRequestError()
+        return account_id
+
+    async def create_account_link(self, account_id: str, *, return_url: str) -> str:
+        """A hosted onboarding page for the account. Stripe returns the business to
+        ``return_url`` when it finishes, or when the link has expired."""
+        body = await self._request(
+            "POST",
+            "/v2/core/account_links",
+            json_body={
+                "account": account_id,
+                "use_case": {
+                    "type": "account_onboarding",
+                    "account_onboarding": {
+                        "collection_options": {"fields": "eventually_due"},
+                        "return_url": return_url,
+                        "refresh_url": return_url,
+                    },
+                },
+            },
+            api_version=ACCOUNT_LINKS_V2_VERSION,
+        )
+        url = _str(body.get("url"))
+        if url is None:
+            raise ProviderRequestError()
+        return url
+
+    async def retrieve_connected_account(self, account_id: str) -> dict[str, Any]:
+        """The account's state as an Accounts v1 object. Stripe answers a v2 account
+        with the v1 shape on the v1 endpoint, so one reader covers both."""
+        return await self._request("GET", f"/v1/accounts/{account_id}")

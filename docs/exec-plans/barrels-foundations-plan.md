@@ -63,7 +63,7 @@ authoritative for priority. Tenancy follows
 | Bookings | One shared, organisation-scoped appointments API in FastAPI for every app; Babydoll Beauty Bar is the first tenant ([ADR-0024](../adr/0024-bookings-domain.md)) |
 | Booking engine | Port Easy!Appointments' model and availability rules into a native domain (clean-room; GPL code is never copied); no external engine |
 | Studio | Each client manages bookings in a signed-in `/studio` area of its own site (Barrels ID, organisation admin) |
-| Deposits | Taken on Barrels' merchant account through the provider-neutral adapter; Stripe and Republic Bank ePay (owner approaching the bank); whichever onboards first ships first. **Direction of 13 Nov 2026** (owner; issue #1372, no code yet): try both Stripe and Republic Bank's e-commerce service; each business is paid directly through its own merchant account and Barrels charges a subscription (Barrels does not hold client funds); online payment for bookings is optional, customers may pay in the salon |
+| Deposits | Originally (19 Oct 2026): taken on Barrels' merchant account through the provider-neutral adapter. **Superseded 21 Nov 2026** (owner; issue #1372): the business is the seller and Barrels never holds funds. One provider per country: Grenada via WiPay or Republic Bank ePay (both being pursued; the first approved wins), New Zealand via Stripe Connect; Stripe cannot serve Grenada businesses. Online payment for bookings is optional; customers may pay in the salon |
 
 ## 30-day plan (2026-10-18 to 2026-11-17)
 
@@ -116,7 +116,7 @@ section decides.
 | Topic | Decision |
 | --- | --- |
 | Acceptance of GMS public pages | Owner approves; GMS informed |
-| Release cadence | The agent opens the `dev` → `staging` PR right after every successful `dev` push, with a summary and checklist; the owner merges. Production on the owner's go |
+| Release cadence | Changed since 18 Oct 2026: agents open the `dev` → `staging` PR only when the owner asks, and the owner merges `staging` and `main` (`AGENTS.md`). Automatic staging deploys on a green `dev` are being built; after that the owner's only release action is approving production (21 Nov 2026) |
 | Staging breakage | Agent fixes forward on `dev` with tests; read-only checks on VMs only |
 | Order inside GMS | CAP first (weeks 1–2: hub, authoring move, signing seam, channels, Alert Hub paperwork; week 3: drill), pages in parallel weeks 2–4 |
 

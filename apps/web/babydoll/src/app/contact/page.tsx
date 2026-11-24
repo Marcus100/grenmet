@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
-import { Address, Hours } from "@/components/hours";
+import { Address, Appointments } from "@/components/appointments";
 import { NewTabNote } from "@/components/new-tab-note";
 import { PageHead } from "@/components/sections";
-import { INSTAGRAM_DM_URL, MAPS_URL, SOCIALS } from "@/data/site";
+import { CONTACT_CHANNELS, MAPS_URL, SOCIALS } from "@/data/site";
 import { type CtaLink, siteBookingLink } from "@/lib/book-link";
 
-/** Links to Instagram and the socials always open in a new tab. */
-const external = (href: string): CtaLink => ({
+/** One contact card. Web links open a new tab; phone and email do not. */
+interface Channel {
+  detail: string;
+  href: string;
+  newTab: boolean;
+  title: string;
+}
+
+/** Links to WhatsApp, Instagram and the socials always open in a new tab. */
+const external = (title: string, detail: string, href: string): Channel => ({
+  title,
+  detail,
   href,
-  target: "_blank",
-  rel: "noopener",
+  newTab: true,
 });
 
 export const metadata: Metadata = {
@@ -20,22 +29,25 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  const channels: { title: string; detail: string; link: CtaLink }[] = [
+  // Book online uses the shared booking link, so every Book call-to-action agrees.
+  const booking: CtaLink = siteBookingLink();
+  const channels: Channel[] = [
     {
       title: "Book online",
       detail: "Choose a service and a time that suits you",
-      link: siteBookingLink(),
+      href: booking.href,
+      newTab: true,
     },
-    {
-      title: "Message on Instagram",
-      detail: "@babydoll.gnd · the quickest way to reach us",
-      link: external(INSTAGRAM_DM_URL),
-    },
-    ...SOCIALS.slice(1).map((social) => ({
-      title: social.name,
-      detail: social.handle,
-      link: external(social.href),
+    // The same four channels as the Training page, from one shared list.
+    ...CONTACT_CHANNELS.map(({ title, detail, href, newTab }) => ({
+      title,
+      detail,
+      href,
+      newTab,
     })),
+    ...SOCIALS.slice(1).map((social) =>
+      external(social.name, social.handle, social.href)
+    ),
   ];
   return (
     <>
@@ -49,10 +61,16 @@ export default function ContactPage() {
         <div className="wrap split">
           <div className="channels">
             {channels.map((channel) => (
-              <a className="channel" key={channel.title} {...channel.link}>
-                <b>{channel.title}</b>
-                <span>{channel.detail}</span>
-                <NewTabNote />
+              <a
+                className="channel"
+                href={channel.href}
+                key={channel.title}
+                {...(channel.newTab
+                  ? { rel: "noopener", target: "_blank" }
+                  : {})}
+              >
+                <b>{channel.title}</b> <span>{channel.detail}</span>
+                {channel.newTab && <NewTabNote />}
                 <i aria-hidden="true">→</i>
               </a>
             ))}
@@ -73,8 +91,8 @@ export default function ContactPage() {
               </p>
             </div>
             <div>
-              <h2>Hours</h2>
-              <Hours />
+              <h2>Appointments</h2>
+              <Appointments />
             </div>
           </div>
         </div>

@@ -14,7 +14,10 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 
-from src.dependencies import AdminUser, SessionDep
+from src.auth.policy import require_permission
+from src.dependencies import AdminUser, CurrentUser, SessionDep
+from src.feature_flags.dependencies import require_org_flag
+from src.feature_flags.keys import PAYMENTS_STRIPE_CONNECT
 from src.models import ApiError
 from src.openapi_responses import (
     AUTHENTICATED,
@@ -23,11 +26,18 @@ from src.openapi_responses import (
     NOT_FOUND,
     ResponseMap,
 )
-from src.organisations.dependencies import OrgContext, require_org_app
+from src.organisations.dependencies import (
+    OrgContext,
+    require_org_app,
+    require_org_permission,
+)
 from src.organisations.models import MembershipRole
 from src.pagination import PaginationDep
 
 from . import schemas, service
+from .connect import accounts as connect_accounts
+from .connect import disputes as connect_disputes
+from .connect import webhook as connect_webhook
 from .models import IntentStatus, LedgerKind
 
 router = APIRouter(prefix="/payments", tags=["payments"])
@@ -36,6 +46,14 @@ router = APIRouter(prefix="/payments", tags=["payments"])
 PaymentsOrgAdmin = Annotated[
     OrgContext, Depends(require_org_app("payments", MembershipRole.ADMIN))
 ]
+# Stripe Connect set-up for the business: owners and admins hold the key by default.
+ConnectOrgManager = Annotated[
+    OrgContext, Depends(require_org_permission("payments.connect.manage"))
+]
+
+# Stripe Connect routes are gated by the ``payments-stripe-connect`` flag (story 5.5):
+# 404 while it is off, so a switched-off feature looks like it does not exist.
+_CONNECT_FLAG = require_org_flag(PAYMENTS_STRIPE_CONNECT)
 
 WRITE_ERRORS: ResponseMap = {**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND, **CONFLICT}
 _UNAVAILABLE: ResponseMap = {
@@ -194,6 +212,112 @@ async def create_refund(
 
 
 @router.post(
+    "/org/connect/onboarding-links",
+    response_model=schemas.ConnectOnboardingLinkPublic,
+    summary="Start or resume Stripe onboarding",
+    description=(
+        "Creates the business's connected Stripe account on first use (New Zealand, the "
+        "business as seller, full Stripe Dashboard) and returns a hosted onboarding link. "
+        "Test mode only."
+    ),
+    operation_id="paymentsCreateConnectOnboardingLink",
+    responses={**AUTHENTICATED, **_UNAVAILABLE, **_BAD_GATEWAY},
+    dependencies=[Depends(_CONNECT_FLAG)],
+)
+async def create_connect_onboarding_link(
+    *, session: SessionDep, org: ConnectOrgManager
+) -> Any:
+    account_id = await connect_accounts.ensure_account(
+        session, organisation_id=org.organisation_id
+    )
+    # Save the account before asking Stripe for a link: if the link request fails,
+    # the account is kept and the retry reuses it.
+    await session.commit()
+    url = await connect_accounts.onboarding_link(account_id)
+    return schemas.ConnectOnboardingLinkPublic(url=url)
+
+
+@router.get(
+    "/org/connect",
+    response_model=schemas.ConnectStatusPublic,
+    summary="Card payment set-up status",
+    description=(
+        "Whether the business can take card payments, what Stripe still needs from it, and "
+        "the platform fee. Reads Stripe when the business has an account; `synced` is false "
+        "when Stripe could not be read and the last stored state is shown."
+    ),
+    operation_id="paymentsGetConnectStatus",
+    responses={**AUTHENTICATED, **_UNAVAILABLE},
+    dependencies=[Depends(_CONNECT_FLAG)],
+)
+async def get_connect_status(*, session: SessionDep, org: ConnectOrgManager) -> Any:
+    result = await connect_accounts.status_for(
+        session, organisation_id=org.organisation_id
+    )
+    await session.commit()
+    return result
+
+
+@router.get(
+    "/org/disputes",
+    response_model=schemas.DisputeListPublic,
+    summary="Card disputes against the organisation",
+    description=(
+        "Disputes Stripe reported on the business's payments, newest first. Barrels does "
+        "not answer or reverse them; the business responds in its Stripe Dashboard."
+    ),
+    operation_id="paymentsListDisputes",
+    responses={**AUTHENTICATED},
+    dependencies=[Depends(_CONNECT_FLAG)],
+)
+async def list_disputes(
+    *, session: SessionDep, org: ConnectOrgManager, pagination: PaginationDep
+) -> Any:
+    rows, total = await connect_disputes.list_disputes(
+        session,
+        organisation_id=org.organisation_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
+    return schemas.DisputeListPublic(
+        data=rows, count=total, page=pagination.page, size=pagination.size
+    )
+
+
+# --- Stripe Connect webhook -----------------------------------------------------------
+
+
+@router.post(
+    "/public/webhooks/stripe-connect",
+    response_model=schemas.PaymentCallbackAck,
+    status_code=status.HTTP_200_OK,
+    summary="Receive a Stripe Connect event",
+    description=(
+        "Events from connected accounts, verified with the Connect endpoint's own secret. "
+        "Idempotent: a replayed event changes nothing and still answers 200. While Connect "
+        "is switched off for a business, its account and dispute events are acknowledged "
+        "and not applied; payments already taken on its account are still reconciled."
+    ),
+    operation_id="paymentsReceiveConnectWebhook",
+    responses={
+        400: {"model": ApiError, "description": "Invalid or stale signature"},
+        503: {"description": "Stripe Connect is not configured or is unsafe"},
+    },
+    include_in_schema=False,
+)
+async def receive_connect_webhook(*, session: SessionDep, request: Request) -> Any:
+    body = await request.body()
+    await connect_webhook.process_connect_webhook(
+        session, headers=request.headers, body=body
+    )
+    await session.commit()
+    return schemas.PaymentCallbackAck()
+
+
+# --- provider callbacks ---------------------------------------------------------------
+
+
+@router.post(
     "/public/webhooks/{provider}",
     response_model=schemas.PaymentCallbackAck,
     status_code=status.HTTP_200_OK,
@@ -292,6 +416,38 @@ async def admin_list_ledger(
 )
 async def admin_list_balances(*, session: SessionDep, _admin: AdminUser) -> Any:
     return schemas.PaymentBalanceListPublic(data=await service.balances(session, None))
+
+
+@router.post(
+    "/admin/connect/accounts/{organisation_id}/platform-fee",
+    response_model=schemas.ConnectFeePublic,
+    summary="Set the Barrels platform fee for a business",
+    description=(
+        "The fee taken from each card payment, in basis points, at most the platform cap. "
+        "New Zealand businesses only. The business keeps the rest and Stripe's own fees."
+    ),
+    operation_id="paymentsAdminSetPlatformFee",
+    responses={**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND},
+)
+async def admin_set_platform_fee(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: str,
+    payload: schemas.ConnectPlatformFeeUpdate,
+) -> Any:
+    require_permission(
+        current_user=current_user, permission_key="payments.connect.fees"
+    )
+    # Checked for the business the fee is set on, not the caller.
+    await connect_accounts.require_connect_enabled(session, organisation_id)
+    row = await connect_accounts.set_platform_fee(
+        session,
+        organisation_id=organisation_id,
+        fee_bps=payload.platform_fee_bps,
+    )
+    await session.commit()
+    return connect_accounts.fee_public(row)
 
 
 @router.post(

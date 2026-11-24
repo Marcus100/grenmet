@@ -6,6 +6,8 @@ Accepted (owner decision, 2026-10-20). Records the rules as practised; the enfor
 
 Amended by [ADR-0042](0042-agents-merge-into-dev.md) (2026-10-20): decisions 1 and 2, and the first enforcement bullet, no longer apply to merging into `dev`. Agents now merge their own PRs into `dev` under conditions the hook enforces. Everything else here stands.
 
+Amended by owner decision, 21 Nov 2026 (noted 24 Nov 2026): decision 4 no longer applies to agent-rule files. An agent may merge a PR into `dev` that changes skills, role briefs, `docs/agents/`, the root `AGENTS.md` or the guardrail tests when the PR body carries a clean security-review line and a clean Codex-review line for the exact head; `.claude/hooks/block-dangerous-git.mjs` checks both. Enforcement files (hooks, settings, `.codex/`, CI workflows, rulesets, `.husky/`, the root `package.json`, the lockfile and the guardrail scripts) are still merged by the owner, and agents still never edit hooks, settings or Codex rules (root `AGENTS.md`, Git section).
+
 ## Context
 
 Barrels Grenada builds software for clients, including a public repository that holds client-facing systems. Clients are trusting AI-built software, so the owner needs to be able to say that a person decided every change that reached a shared branch, and to show how that is enforced. The rules are spread across `AGENTS.md`, [routines.md](../agents/routines.md), [factory.md](../agents/factory.md) and [workflow.md](../agents/workflow.md).

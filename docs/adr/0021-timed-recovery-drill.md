@@ -25,7 +25,10 @@ Differences from the plan below, found while building it:
   recovery time stays unverified.
 - The row-count floors file does not exist yet; the first run reports counts and a
   human records the floors afterwards.
-- Persistent-failure issue creation is not built.
+- Persistent-failure issue creation is not built. (Note, 21 Nov 2026: a failed
+  scheduled run does open one issue, and later failures comment on it, from the
+  `restore-drill.yml` issue job. What is not built is any escalation beyond that
+  single issue.)
 
 ## Context
 

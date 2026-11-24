@@ -2,6 +2,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChartViewport } from "@/components/chart-viewport";
+import { ProvisionalSource } from "@/components/election/declared-result";
 import { Flag } from "@/components/flag";
 import { PartyDot } from "@/components/party-chip";
 import { PageHead, Section } from "@/components/section";
@@ -55,6 +56,7 @@ export default async function PersonPage({ params }: Props) {
   if (!person) notFound();
   const races = [...person.races].sort((a, b) => b.year - a.year);
   const next = standing2026(person);
+  const result2026 = person.races.find((r) => r.provisional && r.year === 2026);
   const W = 560;
   const H = 160;
   const years = person.races.map((r) => r.year);
@@ -85,8 +87,35 @@ export default async function PersonPage({ params }: Props) {
         </p>
       </PageHead>
 
+      {result2026 && (
+        <Section id="result-2026" title="2026 result (provisional)">
+          <p className="text-base leading-relaxed">
+            <PartyDot party={result2026.party} />
+            {result2026.won
+              ? "Won"
+              : `Placed ${result2026.rank} of ${result2026.of} in`}{" "}
+            <Link
+              className="underline underline-offset-2"
+              href={constituencyHref(results, result2026.code ?? "A") as Route}
+            >
+              {result2026.constituency}
+            </Link>{" "}
+            for the {partyInfo(result2026.party).name}, with{" "}
+            {fmt(result2026.votes)} votes ({pct(result2026.share)}).
+          </p>
+          <ProvisionalSource className="text-el-muted mt-2 text-base leading-relaxed" />
+        </Section>
+      )}
+
       {next.length > 0 && (
-        <Section id="2026" title="Standing in 2026">
+        <Section
+          id="2026"
+          title={
+            result2026
+              ? "Named for 2026 before polling day"
+              : "Standing in 2026"
+          }
+        >
           <ul className="text-base">
             {next.map((n) => (
               <li key={`${n.party}${n.code}`}>
@@ -254,6 +283,11 @@ export default async function PersonPage({ params }: Props) {
                     </td>
                     <td className="py-2 pr-3">
                       {r.won ? <b>Won</b> : `${r.rank} of ${r.of}`}
+                      {r.provisional && (
+                        <span className="text-el-muted block text-base">
+                          provisional
+                        </span>
+                      )}
                     </td>
                   </tr>
                 );

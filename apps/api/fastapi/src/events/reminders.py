@@ -33,12 +33,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import email_layout as layout
 from src.auth.models import User
+from src.email import business_sender_name
 from src.notifications.config import notification_settings
 from src.notifications.outbox_handlers import enqueue_email
 from src.utils.datetime import utc_now
 
 from . import emails
-from .models import Listing, Ticket
+from .models import Listing, Organiser, Ticket
 from .order_fulfilment import my_tickets_url
 
 HORIZON = timedelta(hours=24)
@@ -66,9 +67,10 @@ async def enqueue_due_reminders(
         .subquery()
     )
     base = (
-        select(Listing, User)
+        select(Listing, User, Organiser)
         .join(audience, audience.c.listing_id == Listing.id)
         .join(User, User.id == audience.c.user_id)
+        .join(Organiser, Organiser.id == Listing.organiser_id)
         .where(
             Listing.status == "published",
             Listing.starts_at > moment,
@@ -90,7 +92,7 @@ async def enqueue_due_reminders(
                 > tuple_(literal(after[0]), literal(after[1]))
             )
         rows = (await db.execute(query)).all()
-        for listing, user in rows:
+        for listing, user, organiser in rows:
             if not user.email or not notification_settings.email_allowed(user.email):
                 continue
             message = emails.event_reminder(
@@ -100,6 +102,9 @@ async def enqueue_due_reminders(
                 ends_at=listing.ends_at,
                 venue=listing.venue,
                 tickets_url=tickets_url,
+                brand=emails.brand(
+                    organiser.name, organiser.brand_color, organiser.logo_file_id
+                ),
             )
             if await enqueue_email(
                 db,
@@ -109,6 +114,7 @@ async def enqueue_due_reminders(
                 props=layout.to_props(message),
                 transactional=False,  # a reminder: skips suppressed addresses
                 dedupe_key=reminder_key(listing.id, user.id, listing.starts_at),
+                from_name=business_sender_name(organiser.name) or None,
             ):
                 queued += 1
         if len(rows) < PAGE_SIZE:
@@ -119,6 +125,6 @@ async def enqueue_due_reminders(
                 "are queued by the next hourly run",
                 PAGE_SIZE * MAX_PAGES,
             )
-        last_listing, last_user = rows[-1]
+        last_listing, last_user, _ = rows[-1]
         after = (last_listing.id, last_user.id)
     return queued

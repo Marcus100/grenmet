@@ -1,9 +1,10 @@
 "use client";
 
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
+import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useState } from "react";
-
-const FIELD = "min-h-11 rounded-md border bg-background px-2.5 py-1.5";
-const BUTTON = "min-h-11 rounded-md border px-3 py-1.5 text-sm hover:bg-muted";
 
 /**
  * Add a person to the organisation. Client-side only for "Add myself", which
@@ -36,9 +37,8 @@ export function AddMemberForm({
       <input name="organisation_id" type="hidden" value={organisationId} />
       <label className="grid gap-1 text-sm">
         Email or account id
-        <input
+        <Input
           autoComplete="off"
-          className={FIELD}
           name="user"
           onChange={(event) => setUser(event.target.value)}
           required
@@ -46,28 +46,27 @@ export function AddMemberForm({
         />
       </label>
       <div>
-        <button
-          className={BUTTON}
+        <Button
           onClick={() => setUser(selfEmail)}
           type="button"
+          variant="outline"
         >
           Add myself
-        </button>
+        </Button>
       </div>
       <label className="grid gap-1 text-sm">
         Role
-        <select className={FIELD} defaultValue="member" name="role" required>
+        <NativeSelect defaultValue="member" name="role" required>
           {roles.map((role) => (
             <option key={role} value={role}>
               {role}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </label>
       <label className="grid gap-1 text-sm">
         Reason (10 to 500 characters)
-        <textarea
-          className={FIELD}
+        <Textarea
           maxLength={500}
           minLength={10}
           name="reason"
@@ -76,9 +75,9 @@ export function AddMemberForm({
         />
       </label>
       <div>
-        <button className={BUTTON} type="submit">
+        <Button type="submit" variant="outline">
           Add member
-        </button>
+        </Button>
       </div>
     </form>
   );

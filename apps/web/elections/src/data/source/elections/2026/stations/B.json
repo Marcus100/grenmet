@@ -1,0 +1,210 @@
+[
+  [
+    "B01",
+    "a",
+    "Telescope Primary School",
+    463,
+    null,
+    null,
+    {
+      "NNP": 163,
+      "NDC": 160,
+      "DPM": 1
+    }
+  ],
+  [
+    "B01",
+    "b",
+    "Telescope Primary School",
+    465,
+    null,
+    null,
+    {
+      "NNP": 190,
+      "NDC": 151,
+      "DPM": 2
+    }
+  ],
+  [
+    "B01",
+    "c",
+    "Telescope Primary School",
+    460,
+    null,
+    null,
+    {
+      "NDC": 164,
+      "NNP": 148,
+      "DPM": 1
+    }
+  ],
+  [
+    "B02",
+    "a",
+    "St. Andrew's Methodist School (Police Included)",
+    387,
+    null,
+    null,
+    {
+      "NDC": 161,
+      "NNP": 110,
+      "DPM": 0
+    }
+  ],
+  [
+    "B02",
+    "b",
+    "St. Andrew's Methodist School",
+    317,
+    null,
+    null,
+    {
+      "NDC": 124,
+      "NNP": 77,
+      "DPM": 0
+    }
+  ],
+  [
+    "B03",
+    null,
+    "Dark Knight's Shop, (Blast), Soubise",
+    346,
+    null,
+    null,
+    {
+      "NDC": 124,
+      "NNP": 102,
+      "DPM": 3
+    }
+  ],
+  [
+    "B04",
+    null,
+    "Mr. Owen Neckles Shop, Post Royal",
+    282,
+    null,
+    null,
+    {
+      "NDC": 103,
+      "NNP": 94,
+      "DPM": 1
+    }
+  ],
+  [
+    "B05",
+    null,
+    "Marquis Pre-School",
+    455,
+    null,
+    null,
+    {
+      "NNP": 171,
+      "NDC": 163,
+      "DPM": 0
+    }
+  ],
+  [
+    "B06",
+    "a",
+    "Fort View, Mt. Carmel",
+    353,
+    null,
+    null,
+    {
+      "NDC": 162,
+      "NNP": 102,
+      "DPM": 1
+    }
+  ],
+  [
+    "B06",
+    "b",
+    "Fort View, Mt. Carmel",
+    351,
+    null,
+    null,
+    {
+      "NDC": 145,
+      "NNP": 99,
+      "DPM": 1
+    }
+  ],
+  [
+    "B07",
+    "a",
+    "Grenada Baptist Church, Grand Bacolet",
+    244,
+    null,
+    null,
+    {
+      "NNP": 94,
+      "NDC": 78,
+      "DPM": 1
+    }
+  ],
+  [
+    "B07",
+    "b",
+    "Grenada Baptist Church, Grand Bacolet",
+    239,
+    null,
+    null,
+    {
+      "NNP": 123,
+      "NDC": 62,
+      "DPM": 0
+    }
+  ],
+  [
+    "B08",
+    null,
+    "Crochu R.C. School",
+    258,
+    null,
+    null,
+    {
+      "NNP": 103,
+      "NDC": 90,
+      "DPM": 2
+    }
+  ],
+  [
+    "B09",
+    "a",
+    "Crochu R.C. School",
+    269,
+    null,
+    null,
+    {
+      "NDC": 99,
+      "NNP": 85,
+      "DPM": 3
+    }
+  ],
+  [
+    "B09",
+    "b",
+    "Crochu R.C. School",
+    264,
+    null,
+    null,
+    {
+      "NDC": 124,
+      "NNP": 67,
+      "DPM": 2
+    }
+  ],
+  [
+    "B10",
+    null,
+    "Mamma Cannes Community Centre",
+    280,
+    null,
+    null,
+    {
+      "NNP": 120,
+      "NDC": 102,
+      "DPM": 1
+    }
+  ]
+]

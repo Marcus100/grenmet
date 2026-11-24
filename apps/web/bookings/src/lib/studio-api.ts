@@ -7,7 +7,11 @@
 import "server-only";
 
 import {
+  type AppSubscriptionCheckoutPublic,
+  type AppSubscriptionPublic,
   type BookingAgenda,
+  type BookingCalendarFeedLink,
+  type BookingCalendarFeedStatus,
   type BookingExceptionCreate,
   type BookingExceptionPublic,
   type BookingMyOrganisation,
@@ -25,9 +29,12 @@ import {
   type BookingStudioDetail,
   type BookingWorkingPeriodIn,
   type BookingWorkingPeriodPublic,
+  billingCreateAppSubscriptionCheckout,
+  billingListAppSubscriptions,
   bookingsCancelStudioBooking,
   bookingsCompleteStudioBooking,
   bookingsConfirmStudioBooking,
+  bookingsCreateCalendarFeed,
   bookingsCreateException,
   bookingsCreateProvider,
   bookingsCreateService,
@@ -35,6 +42,7 @@ import {
   bookingsDeclineStudioBooking,
   bookingsDeleteException,
   bookingsGetAgenda,
+  bookingsGetCalendarFeedStatus,
   bookingsGetProfile,
   bookingsGetSettings,
   bookingsGetStudioBooking,
@@ -46,12 +54,17 @@ import {
   bookingsRecordManualDeposit,
   bookingsReplaceWorkingHours,
   bookingsRescheduleStudioBooking,
+  bookingsRotateCalendarFeed,
   bookingsUpdateProvider,
   bookingsUpdateService,
   bookingsUpsertProfile,
   createClient,
   type ManualMethod,
   ResponseError,
+  type StoredFile,
+  storageCompleteUpload,
+  storageCreateUpload,
+  type UploadTicket,
 } from "@barrelsgd/api-client";
 import { cache } from "react";
 import { getAuthConfig } from "@/lib/auth-config";
@@ -60,6 +73,8 @@ import { DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
 /** Used only when the business has no profile yet; matches the Settings page. */
 const DEFAULT_CURRENCY = "XCD";
+const LOGO_PURPOSE = "booking-logo";
+const COVER_PURPOSE = "booking-cover";
 const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 const TIMEOUT_MS = 10_000;
 
@@ -100,6 +115,40 @@ export async function findOrganisation(
 ): Promise<BookingMyOrganisation | null> {
   const organisations = await listMyOrganisations(accessToken);
   return organisations.find((item) => item.slug === slug) ?? null;
+}
+
+/**
+ * The organisation's Barrels app subscriptions (ADR-0065), newest first. The list
+ * also holds other apps' rows, so callers pick their own app. Organisation admins
+ * and owners only (FastAPI decides).
+ */
+export async function listAppSubscriptions(
+  accessToken: string,
+  organisationId: string
+): Promise<AppSubscriptionPublic[]> {
+  const result = await billingListAppSubscriptions({
+    client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
+  return result.data;
+}
+
+/**
+ * Starts (or resumes, while the Checkout is open) the plan's hosted Checkout and
+ * returns its URL. The caller redirects; this never follows the link itself.
+ */
+export function startAppSubscriptionCheckout(
+  accessToken: string,
+  organisationId: string,
+  planKey: string
+): Promise<AppSubscriptionCheckoutPublic> {
+  return billingCreateAppSubscriptionCheckout({
+    body: { plan_key: planKey, currency: "XCD" },
+    client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
 }
 
 export interface AgendaQuery {
@@ -156,16 +205,21 @@ export function listServices(
 }
 
 /**
- * The business's timezone and currency from its booking profile: "today" is
- * the day on the business's calendar, and prices show in its currency. A
- * business without a profile yet has neither (404); both fall back to the
- * defaults instead of failing the page.
+ * The business's timezone, currency and public booking address (`publicSlug`,
+ * the path customers use; it can differ from the studio slug) from its booking
+ * profile: "today" is the day on the business's calendar, and prices show in
+ * its currency. A business without a profile yet has none of them (404); the
+ * defaults and a null address keep the page working instead of failing.
  */
 export async function getBusinessProfile(
   accessToken: string,
   organisationId: string
-): Promise<{ currency: string; timezone: string }> {
-  const fallback = { currency: DEFAULT_CURRENCY, timezone: DEFAULT_TIMEZONE };
+): Promise<{ currency: string; timezone: string; publicSlug: string | null }> {
+  const fallback = {
+    currency: DEFAULT_CURRENCY,
+    publicSlug: null,
+    timezone: DEFAULT_TIMEZONE,
+  };
   try {
     const profile = await bookingsGetProfile({
       client: studioClient(accessToken, organisationId),
@@ -174,6 +228,7 @@ export async function getBusinessProfile(
       .catch(redactRequest);
     return {
       currency: profile.currency ?? DEFAULT_CURRENCY,
+      publicSlug: profile.public_slug || null,
       timezone: profile.timezone ?? DEFAULT_TIMEZONE,
     };
   } catch (error) {
@@ -189,6 +244,29 @@ export async function getBusinessTimezone(
   organisationId: string
 ): Promise<string> {
   return (await getBusinessProfile(accessToken, organisationId)).timezone;
+}
+
+/**
+ * The whole saved booking profile, or null when the business has none yet
+ * (404). Section saves read it first: the API's profile write replaces every
+ * field, so a section must send the stored values of the sections it leaves out.
+ */
+export async function getProfile(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingProfilePublic | null> {
+  try {
+    return await bookingsGetProfile({
+      client: studioClient(accessToken, organisationId),
+    })
+      .unwrap()
+      .catch(redactRequest);
+  } catch (error) {
+    if (ResponseError.is(error) && error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 /** Enters a phone or walk-in booking. The key makes a retry safe. */
@@ -377,6 +455,87 @@ export function saveProfile(
   return bookingsUpsertProfile({
     client: studioClient(accessToken, organisationId),
     body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Whether the business has a calendar feed (owners and admins only; no address). */
+export function getCalendarFeedStatus(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingCalendarFeedStatus> {
+  return bookingsGetCalendarFeedStatus({
+    client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Makes the calendar feed. The address comes back here and nowhere else. */
+export function createCalendarFeed(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingCalendarFeedLink> {
+  return bookingsCreateCalendarFeed({
+    client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Replaces the feed's address; the old one stops working at once. */
+export function rotateCalendarFeed(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingCalendarFeedLink> {
+  return bookingsRotateCalendarFeed({
+    client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Step 1 of a logo upload: a presigned PUT for a `booking-logo` of this business. */
+export function createLogoUpload(
+  accessToken: string,
+  organisationId: string,
+  body: { content_type: string; size_bytes: number }
+): Promise<UploadTicket> {
+  return storageCreateUpload({
+    client: studioClient(accessToken, organisationId),
+    body: { app: "bookings", purpose: LOGO_PURPOSE, ...body },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Step 1 of a cover photo upload: a presigned PUT for a `booking-cover` of this business. */
+export function createCoverUpload(
+  accessToken: string,
+  organisationId: string,
+  body: { content_type: string; size_bytes: number }
+): Promise<UploadTicket> {
+  return storageCreateUpload({
+    client: studioClient(accessToken, organisationId),
+    body: { app: "bookings", purpose: COVER_PURPOSE, ...body },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/**
+ * Step 3 of a logo or cover photo upload: the API confirms the bytes arrived;
+ * returns the file. (The confirm call is the same for every purpose.)
+ */
+export function completeLogoUpload(
+  accessToken: string,
+  organisationId: string,
+  uploadId: string
+): Promise<StoredFile> {
+  return storageCompleteUpload({
+    client: studioClient(accessToken, organisationId),
+    path: { upload_id: uploadId },
   })
     .unwrap()
     .catch(redactRequest);

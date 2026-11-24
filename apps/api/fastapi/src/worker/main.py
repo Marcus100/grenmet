@@ -93,6 +93,26 @@ async def process_cap_jobs(ctx: dict[str, Any]) -> int:
 
 
 @monitored(schedule="*/5 * * * *", checkin_margin=5, max_runtime=5)
+async def expire_cap_alerts(ctx: dict[str, Any]) -> int:
+    """Expire published CAP warnings whose every info block has ended (idempotent)."""
+    from src.cap import expiry
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await expiry.expire_due_alerts(session=session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"), "expire_cap_alerts", str(ctx.get("job_id", "")), False
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "expire_cap_alerts", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
+@monitored(schedule="*/5 * * * *", checkin_margin=5, max_runtime=5)
 async def ingest_cap_feeds(ctx: dict[str, Any]) -> int:
     from src.cap import service as cap_service
     from src.database import async_session_factory
@@ -108,9 +128,13 @@ async def ingest_cap_feeds(ctx: dict[str, Any]) -> int:
         await operational_metrics.record_job(
             ctx.get("redis"), "ingest_cap_feeds", str(ctx.get("job_id", "")), True
         )
+        await operational_metrics.record_feed_success(ctx.get("redis"), "cap_feeds")
         return result
 
 
+@monitored(
+    schedule="* * * * *", checkin_margin=2, max_runtime=5, min_interval_seconds=60
+)
 async def send_notification_emails(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.notifications import dispatch as notification_dispatch
@@ -135,6 +159,9 @@ async def send_notification_emails(ctx: dict[str, Any]) -> int:
         return result
 
 
+@monitored(
+    schedule="* * * * *", checkin_margin=2, max_runtime=5, min_interval_seconds=60
+)
 async def send_outbound_emails(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.notifications import dispatch as notification_dispatch
@@ -219,6 +246,7 @@ async def enqueue_booking_reminders(ctx: dict[str, Any]) -> int:
     return result
 
 
+@monitored(schedule="12 * * * *", checkin_margin=10, max_runtime=10)
 async def enqueue_event_reminders(ctx: dict[str, Any]) -> int:
     """Queue 24-hour reminders for Events ticket holders (idempotent)."""
     from src.database import async_session_factory
@@ -270,6 +298,63 @@ async def expire_unpaid_bookings(ctx: dict[str, Any]) -> int:
     return result
 
 
+@monitored(
+    schedule="4,9,14,19,24,29,34,39,44,49,54,59 * * * *",
+    checkin_margin=5,
+    max_runtime=5,
+)
+async def expire_pending_bookings(ctx: dict[str, Any]) -> int:
+    """Expire booking requests the business did not confirm in time (idempotent)."""
+    from src.bookings import lifecycle
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await lifecycle.expire_stale_requests(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "expire_pending_bookings",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "expire_pending_bookings", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+@monitored(schedule="27 * * * *", checkin_margin=10, max_runtime=10)
+async def complete_finished_bookings(ctx: dict[str, Any]) -> int:
+    """Close bookings that ended more than 48 hours ago (idempotent; no rewards)."""
+    from src.bookings import lifecycle
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await lifecycle.complete_finished_bookings(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "complete_finished_bookings",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "complete_finished_bookings", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+@monitored(
+    schedule="3,8,13,18,23,28,33,38,43,48,53,58 * * * *",
+    checkin_margin=5,
+    max_runtime=5,
+)
 async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
     """Cancel paid-tier orders left unpaid past the hold; releases stock (idempotent)."""
     from src.database import async_session_factory
@@ -333,6 +418,7 @@ async def reconcile_provider_refunds(ctx: dict[str, Any]) -> int:
     return run.changed
 
 
+@monitored(schedule="30 11 * * *", checkin_margin=30, max_runtime=60)
 async def send_daily_newsletter(ctx: dict[str, Any]) -> int:
     """Daily climate newsletter at 07:30 Grenada time; queues nothing until switched on."""
     from src.database import async_session_factory
@@ -355,6 +441,7 @@ async def send_daily_newsletter(ctx: dict[str, Any]) -> int:
     return result
 
 
+@monitored(schedule="* * * * *", checkin_margin=2, max_runtime=5)
 async def release_social_posts(ctx: dict[str, Any]) -> int:
     """Queue social posts whose publish time has passed (ADR-0026 outbox; dry run)."""
     from src.content_distribution import service as content_service
@@ -378,14 +465,18 @@ async def release_social_posts(ctx: dict[str, Any]) -> int:
     return result
 
 
+@monitored(
+    schedule="* * * * *", checkin_margin=2, max_runtime=5, min_interval_seconds=60
+)
 async def send_wis2_publications(ctx: dict[str, Any]) -> int:
     """Move queued eRegister CSV files to wis2box; no-op unless configured."""
     from src.database import async_session_factory
     from src.eregister import publisher
+    from src.eregister.config import wis2box_settings
 
     async with async_session_factory() as session:
         try:
-            result = await publisher.process_due_publications(session=session)
+            run = await publisher.run_due_publications(session=session)
         except Exception:
             await operational_metrics.record_job(
                 ctx.get("redis"),
@@ -397,9 +488,16 @@ async def send_wis2_publications(ctx: dict[str, Any]) -> int:
         await operational_metrics.record_job(
             ctx.get("redis"), "send_wis2_publications", str(ctx.get("job_id", "")), True
         )
-        return result
+        # Only a run in which every transfer landed counts as fresh. A row that
+        # failed (retrying or dead) leaves the timestamp where it was.
+        if wis2box_settings.sink is not None and run.failed == 0:
+            await operational_metrics.record_feed_success(
+                ctx.get("redis"), "wis2box_publications"
+            )
+        return run.handled
 
 
+@monitored(schedule="0 11 * * *", checkin_margin=30, max_runtime=30)
 async def send_invoice_reminders(ctx: dict[str, Any]) -> int:
     """Queue payment reminders for open invoices (7 days before, due day, 7 days after)."""
     from src.billing import reminders
@@ -422,6 +520,7 @@ async def send_invoice_reminders(ctx: dict[str, Any]) -> int:
         return result
 
 
+@monitored(schedule="10 4 * * *", checkin_margin=30, max_runtime=30)
 async def end_due_employment_records(ctx: dict[str, Any]) -> int:
     """End employment whose last day has passed; its roles end with it (#797).
 
@@ -453,6 +552,7 @@ async def end_due_employment_records(ctx: dict[str, Any]) -> int:
         return result
 
 
+@monitored(schedule="0 10 * * *", checkin_margin=30, max_runtime=30)
 async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.notifications import scheduler
@@ -477,6 +577,7 @@ async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
         return result
 
 
+@monitored(schedule="*/5 * * * *", checkin_margin=5, max_runtime=10)
 async def run_gms_notification_sweeps(ctx: dict[str, Any]) -> int:
     """Time-based GMS notifications (overdue forecast, expiring warning, missing hour...)."""
     from contextlib import AsyncExitStack
@@ -515,6 +616,7 @@ async def run_gms_notification_sweeps(ctx: dict[str, Any]) -> int:
         return result
 
 
+@monitored(schedule="*/5 * * * *", checkin_margin=5, max_runtime=5)
 async def check_nhc_failures(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.wxwatch import alerts, database
@@ -539,6 +641,7 @@ async def check_nhc_failures(ctx: dict[str, Any]) -> int:
         return result
 
 
+@monitored(schedule="12,42 * * * *", checkin_margin=10, max_runtime=5)
 async def check_feed_freshness(ctx: dict[str, Any]) -> int:
     """Tell people when a weather image collector has stopped finishing runs."""
     from src.database import async_session_factory
@@ -564,6 +667,7 @@ async def check_feed_freshness(ctx: dict[str, Any]) -> int:
         return result
 
 
+@monitored(schedule="0,15,30,45 * * * *", checkin_margin=5, max_runtime=5)
 async def check_alert_outbox(ctx: dict[str, Any]) -> int:
     """Fail loudly when due emails sit unsent, so job metrics show the alert path is stuck."""
     from datetime import timedelta
@@ -584,6 +688,7 @@ async def check_alert_outbox(ctx: dict[str, Any]) -> int:
     return 0
 
 
+@monitored(schedule="7,22,37,52 * * * *", checkin_margin=5, max_runtime=5)
 async def check_cap_job_failures(ctx: dict[str, Any]) -> int:
     """Log an error once per exhausted CAP job (nothing retries it).
 
@@ -626,6 +731,7 @@ async def check_cap_job_failures(ctx: dict[str, Any]) -> int:
     return len(jobs)
 
 
+@monitored(schedule="2,17,32,47 * * * *", checkin_margin=5, max_runtime=5)
 async def check_outbox_backlog(ctx: dict[str, Any]) -> int:
     """Gauge dead and overdue rows in the platform outbox; warn above the threshold."""
     from datetime import timedelta
@@ -731,6 +837,7 @@ async def clear_former_staff_personal_details(ctx: dict[str, Any]) -> int:
     return cleared
 
 
+@monitored(schedule="20 1,7,13,19 * * *", checkin_margin=30, max_runtime=15)
 async def fetch_marine_environment(ctx: dict[str, Any]) -> int:
     """Fetch Copernicus Marine series. No-op unless credentials are set."""
     from src.database import async_session_factory
@@ -741,9 +848,12 @@ async def fetch_marine_environment(ctx: dict[str, Any]) -> int:
     if not environmental_settings.marine_enabled:
         return 0
     async with async_session_factory() as session:
-        return await environmental_service.refresh_marine(session)
+        stored = await environmental_service.refresh_marine(session)
+    await operational_metrics.record_feed_success(ctx.get("redis"), "copernicus_marine")
+    return stored
 
 
+@monitored(schedule="30 10,22 * * *", checkin_margin=30, max_runtime=30)
 async def fetch_air_environment(ctx: dict[str, Any]) -> int:
     """Fetch CAMS UV and dust series. No-op unless ADS credentials are set."""
     from src.database import async_session_factory
@@ -754,9 +864,16 @@ async def fetch_air_environment(ctx: dict[str, Any]) -> int:
     if not environmental_settings.air_enabled:
         return 0
     async with async_session_factory() as session:
-        return await environmental_service.refresh_air(session)
+        stored = await environmental_service.refresh_air(session)
+    await operational_metrics.record_feed_success(ctx.get("redis"), "copernicus_cams")
+    return stored
 
 
+@monitored(
+    schedule=f"{guidance_settings.POLL_MINUTE} * * * *",
+    checkin_margin=10,
+    max_runtime=60,
+)
 async def fetch_model_guidance(ctx: dict[str, Any]) -> dict[str, str]:
     """Store the newest ECMWF/GFS runs not yet held. No-op unless enabled."""
     from src.database import async_session_factory
@@ -766,12 +883,17 @@ async def fetch_model_guidance(ctx: dict[str, Any]) -> dict[str, str]:
     if not guidance_settings.ENABLED:
         return {}
     outcomes = await ingest.refresh_all(async_session_factory)
+    healthy = "error" not in outcomes.values()
     await operational_metrics.record_job(
         ctx.get("redis"),
         "fetch_model_guidance",
         str(ctx.get("job_id", "")),
-        "error" not in outcomes.values(),
+        healthy,
     )
+    if healthy:
+        await operational_metrics.record_feed_success(
+            ctx.get("redis"), "model_guidance"
+        )
     return outcomes
 
 
@@ -796,12 +918,15 @@ class WorkerSettings:
     functions = [
         process_cap_jobs,
         ingest_cap_feeds,
+        expire_cap_alerts,
         send_notification_emails,
         send_outbound_emails,
         drain_outbox,
         enqueue_booking_reminders,
         enqueue_event_reminders,
         expire_unpaid_bookings,
+        expire_pending_bookings,
+        complete_finished_bookings,
         expire_unpaid_event_orders,
         reconcile_provider_refunds,
         send_wis2_publications,
@@ -837,6 +962,8 @@ class WorkerSettings:
             second=set(range(0, 60, worker_settings.CAP_JOB_POLL_SECONDS)),
             run_at_startup=True,
         ),
+        # Expire published warnings whose every info block has ended, every 5 minutes.
+        cron(expire_cap_alerts, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Poll external CAP feeds every 5 minutes.
         cron(
             ingest_cap_feeds,
@@ -862,6 +989,15 @@ class WorkerSettings:
             minute=set(range(2, 60, 5)),
             run_at_startup=False,
         ),
+        # Booking requests the business did not confirm in time expire (the
+        # profile's pending_expiry_hours, or at the start), every 5 minutes.
+        cron(
+            expire_pending_bookings,
+            minute=set(range(4, 60, 5)),
+            run_at_startup=False,
+        ),
+        # Confirmed bookings that ended 48 hours ago are closed as completed, hourly.
+        cron(complete_finished_bookings, minute={27}, run_at_startup=False),
         # Unpaid paid-tier orders (EVENTS_ORDER_HOLD_MINUTES, default 30) are
         # cancelled and their stock released, every 5 minutes.
         cron(

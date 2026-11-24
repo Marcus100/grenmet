@@ -179,7 +179,8 @@ async def test_history_with_another_business_is_not_shown(
 async def test_at_most_three_services_are_suggested(
     db_async: AsyncSession, async_client: httpx.AsyncClient
 ) -> None:
-    studio = await _studio(db_async, async_client)
+    # Four bookings for one customer: the open-request cap (default 3) is raised.
+    studio = await _studio(db_async, async_client, max_open_per_customer=10)
     extra = [
         await _second_service(async_client, studio, f"Extra {n}") for n in range(3)
     ]

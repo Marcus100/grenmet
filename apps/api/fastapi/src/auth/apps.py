@@ -3,13 +3,14 @@
 Two scopes:
 
 - ``app`` (self-service, e.g. Events): described below.
-- ``staff`` (GAA Admin, Barrels admin, the CAP warning desk): sessions come only from the auth.barrels.gd
+- ``staff`` (GAA Admin, Barrels admin, the CAP warning desk, Barrels HR): sessions come only from the auth.barrels.gd
   handoff, require an approved staff account, and mint ordinary staff tokens
   so existing staff routes keep working. "Join" asks for staff access; an
   administrator approves it.
 
 Every app asks "Join <app>?" once. Self-service apps join instantly; CMS is
-granted by a superuser and cannot be joined.
+granted by a superuser and cannot be joined. The account app (ADR-0057) asks
+no question: its default role is granted on first sign-in.
 
 An app-scoped session belongs to one app: its access tokens carry an ``app``
 claim, only that app's routes accept them, and staff (legacy) routes refuse
@@ -60,6 +61,10 @@ class AppDefinition:
     #: enrolment: the first authenticator needs an emailed code and a new enrolment
     #: ends their other sessions (ADR-0061). Sign-in enforcement is unchanged.
     privileged_members: bool = False
+    #: Whether a sign-in from a person without access asks "Join <app>?" first.
+    #: Off for the account app: every person belongs to it (ADR-0057), so its
+    #: default role is granted on first sign-in. Access rules are unchanged.
+    join_prompt: bool = True
 
     def allows(self, user: User) -> bool:
         """Whether this app's own rule admits an otherwise staff-eligible user."""
@@ -76,6 +81,11 @@ class AppDefinition:
     @property
     def callback_url(self) -> str:
         return f"{self.url}{self.callback_path}"
+
+
+#: Self-service apps whose sign-in grants the default role without a "Join" step.
+#: Only ``account``: it is every person's home (ADR-0057). Nothing else belongs here.
+_NO_JOIN_PROMPT = frozenset({"account"})
 
 
 def _apps() -> dict[str, AppDefinition]:
@@ -145,6 +155,17 @@ def _apps() -> dict[str, AppDefinition]:
         client_secret=auth_settings.CAP_SSO_CLIENT_SECRET,
         scope="staff",
     )
+    hr = AppDefinition(
+        key="hr",
+        label="Barrels HR",
+        url=auth_settings.HR_APP_URL.rstrip("/"),
+        self_signup=False,
+        default_role="",
+        google_redirect_uri="",
+        methods=frozenset(),
+        client_secret=auth_settings.HR_SSO_CLIENT_SECRET,
+        scope="staff",
+    )
     # Printix (ADR-0060 organiser amendment, ADR-0061): browser-only, no client
     # secret. Sign-in is by emailed code, and the enrolled authenticator is the
     # second factor. No self sign-up: a Barrels admin gives the printix-member role.
@@ -172,6 +193,7 @@ def _apps() -> dict[str, AppDefinition]:
             google_redirect_uri="",
             methods=frozenset(),
             client_secret=secret,
+            join_prompt=key not in _NO_JOIN_PROMPT,
         )
         for key, label, url, secret in (
             (
@@ -220,7 +242,16 @@ def _apps() -> dict[str, AppDefinition]:
     ]
     return {
         app.key: app
-        for app in (events, gaa_admin, barrels_admin, cap_desk, cms, printix, *sites)
+        for app in (
+            events,
+            gaa_admin,
+            barrels_admin,
+            cap_desk,
+            hr,
+            cms,
+            printix,
+            *sites,
+        )
     }
 
 
@@ -279,12 +310,13 @@ def authenticator_required_error(
     """
     if verify_again:
         message = (
-            f"Sign in to account.barrels.gd with your authenticator, then open "
+            f"Sign in on auth.barrels.gd with your authenticator, then open "
             f"{app.label} again."
         )
     else:
         message = (
-            f"Add an authenticator on account.barrels.gd to sign in to {app.label}."
+            f"Add an authenticator at auth.barrels.gd/security to sign in to "
+            f"{app.label}."
         )
     error = AppException(message, 403)
     error.extra = {"code": AUTHENTICATOR_REQUIRED_CODE}

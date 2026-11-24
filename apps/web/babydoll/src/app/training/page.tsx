@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChannelLinks } from "@/components/channel-links";
 import { PageHead } from "@/components/sections";
-import { COURSES, INSTAGRAM_DM_URL } from "@/data/site";
+import { COURSES } from "@/data/site";
 
 export const metadata: Metadata = {
   title: "Training",
@@ -41,28 +42,17 @@ export default function TrainingPage() {
             <p className="eyebrow">Register interest</p>
             <h2>Save your seat</h2>
             <p className="muted">
-              Send us a message with the course you want and your experience.
-              Class sizes are kept small.
+              Message us the course you want and your experience, whichever way
+              suits you. Class sizes are kept small.
             </p>
           </div>
-          <div className="channels">
-            <a
-              className="channel"
-              href={INSTAGRAM_DM_URL}
-              rel="noopener"
-              target="_blank"
-            >
-              <b>Message on Instagram</b>
-              <span>
-                @babydoll.gnd · tell us the course and your experience
-              </span>
-              <i aria-hidden="true">→</i>
-            </a>
-            <Link className="channel" href="/contact">
-              <b>Other ways to reach us</b>
-              <span>TikTok, Facebook and studio details</span>
-              <i aria-hidden="true">→</i>
-            </Link>
+          <div className="quick-block">
+            <ChannelLinks />
+            <p className="quick-more">
+              <Link href="/contact">
+                TikTok, Facebook and studio details on Contact us
+              </Link>
+            </p>
           </div>
         </div>
       </section>

@@ -47,9 +47,13 @@ describe("Results atlas navigation", () => {
       Node.DOCUMENT_POSITION_FOLLOWING
     );
     expect(
-      within(timeline).getByRole("button", { name: "2022" })
+      within(timeline).getByRole("button", { name: "2026" })
     ).toHaveAttribute("aria-pressed", "true");
     expect(within(timeline).getByRole("button", { name: NEXT })).toBeDisabled();
+    fireEvent.click(within(timeline).getByRole("button", { name: PREVIOUS }));
+    expect(
+      within(timeline).getByRole("button", { name: "2022" })
+    ).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(within(timeline).getByRole("button", { name: PREVIOUS }));
     expect(
       within(timeline).getByRole("button", { name: "2018 referendum" })
@@ -280,7 +284,7 @@ it("distinguishes House seats from referendum vote shares in the national summar
   const summary = screen.getByRole("region", { name: "National result" });
   expect(summary).toHaveTextContent("8 seats needed for a majority");
   expect(within(summary).getByRole("img")).toHaveAccessibleName(
-    "NDC 9 seats, NNP 6 seats"
+    "NDC 14 seats, NNP 1 seat"
   );
   fireEvent.click(
     within(timeline).getByRole("button", { name: "2018 referendum" })
@@ -342,4 +346,18 @@ it("opens a shared historical year without applying modern constituency selectio
   expect(
     screen.queryByRole("complementary", { name: "Results" })
   ).not.toBeInTheDocument();
+});
+
+it("shows a 2026 polling division without ballots cast or turnout, never 0", async () => {
+  await renderAtlas("/results?e=2026&level=div");
+  await screen.findAllByRole("button", { name: N01 });
+  const row = screen
+    .getAllByRole("button", { name: N01 })
+    .find((button) => button.hasAttribute("aria-pressed"));
+  if (!row) throw new Error("Expected the N01 list row");
+  fireEvent.click(row);
+  const text = document.body.textContent ?? "";
+  expect(text).toContain("ballots · turnout –");
+  expect(text).not.toContain("0 ballots");
+  expect(text).not.toContain("turnout 0.0%");
 });

@@ -5,7 +5,7 @@
 Accepted (2026-10-03). Applies to Barrels Events now; other apps migrate later,
 one at a time, each with its own review.
 
-Amended 2026-10-21 for app tokens on organisation routes (last section). Amended by ADR-0061 (browser-only apps sign in from their own pages). Amended by ADR-0017 (single sign-on handoff) on decision 1 ("no cross-app SSO"). Updated 2026-10-20: `src/auth/apps.py` now registers `events`, `gaa-admin`, `cms` and `barrels-admin`.
+Amended 2026-10-21 for app tokens on organisation routes (last section). Amended by ADR-0061 (browser-only apps sign in from their own pages). Amended by ADR-0017 (single sign-on handoff) on decision 1 ("no cross-app SSO"). Updated 2026-10-20: `src/auth/apps.py` now registers `events`, `gaa-admin`, `cms` and `barrels-admin`. Updated 21 Nov 2026: it also registers `cap`, `printix`, `bookings` and `account` (plus the public read-only apps `weather`, `mbia`, `signal`, `docs` and `gmsdash`). Updated 24 Nov 2026: it also registers `hr` (Barrels HR staff sign-in, added 22 Nov 2026). `src/auth/apps.py` is the current list.
 
 ## Context
 

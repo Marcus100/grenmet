@@ -1,5 +1,5 @@
 # API breaking-change gate
-# Compares the PR's apps/api/fastapi/openapi.json with the base branch and fails
+# Compares the PR's apps/api/fastapi/openapi.json with its merge base and fails
 # on changes that break existing clients. Label the PR `breaking-change` to
 # accept them (every consumer must then be updated in the same PR).
 # Two checks run: the hand-written check-api-breaking.mjs, then oasdiff's full
@@ -24,8 +24,32 @@ permissions:
   contents: read
 
 jobs:
+  # Whether this change can touch the API contract (docs/operations/release-runbook.md, pull-request check selection).
+  # Narrows only pull requests into dev; every other event selects everything
+  # (scripts/ci/select-checks.mjs). It never fails the run: an error there
+  # selects every check, and the job below also runs when this one did not succeed.
+  changes:
+    name: Select checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      apiContract: ${{ steps.select.outputs.apiContract }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - id: select
+        env:
+          # off | shadow | on; unset means shadow (docs/operations/release-runbook.md).
+          CI_PATH_SELECTION: ${{ vars.CI_PATH_SELECTION }}
+        run: node scripts/ci/select-checks.mjs
+
   breaking:
     name: API breaking changes
+    needs: [changes]
+    # Fail open: also runs when the selection job did not succeed.
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.apiContract == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -36,16 +60,29 @@ jobs:
       - name: Check openapi.json against the base branch
         env:
           BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           ALLOW_BREAKING: ${{ contains(github.event.pull_request.labels.*.name, 'breaking-change') }}
         run: |
           flags=()
           if [ "$ALLOW_BREAKING" = "true" ]; then flags+=(--allow-breaking); fi
-          node scripts/api/check-api-breaking.mjs --base "origin/${BASE_REF}" "${flags[@]}"
-      - name: Write the base branch openapi.json for oasdiff
+          # Both sides come from commits that belong to the PR: the checkout is the PR merged
+          # onto dev, so its openapi.json would include changes other PRs landed.
+          git show "${HEAD_SHA}:apps/api/fastapi/openapi.json" > "$RUNNER_TEMP/head-openapi.json"
+          node scripts/api/check-api-breaking.mjs --base "origin/${BASE_REF}" --head "$HEAD_SHA" --head-spec "$RUNNER_TEMP/head-openapi.json" "${flags[@]}"
+      # The merge base is what the PR changes; the branch tip would report
+      # operations other PRs added after this branch was cut as removed.
+      - name: Write the merge base openapi.json for oasdiff
         if: ${{ !cancelled() }}
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: git show "origin/${BASE_REF}:apps/api/fastapi/openapi.json" > .oasdiff-base-openapi.json
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if ! base="$(git merge-base "origin/${BASE_REF}" "$HEAD_SHA")"; then
+            echo "::warning::no merge base; comparing with the tip of ${BASE_REF}" >&2
+            base="origin/${BASE_REF}"
+          fi
+          git show "${base}:apps/api/fastapi/openapi.json" > .oasdiff-base-openapi.json
+          git show "${HEAD_SHA}:apps/api/fastapi/openapi.json" > .oasdiff-head-openapi.json
       # Docker action: paths are relative to the workspace. review/github-token
       # are off so no spec is uploaded to oasdiff.com and no PR comment is posted.
       - name: Check openapi.json with oasdiff
@@ -56,7 +93,7 @@ jobs:
           OASDIFF_CONFIG: scripts/api/oasdiff.yaml
         with:
           base: .oasdiff-base-openapi.json
-          revision: apps/api/fastapi/openapi.json
+          revision: .oasdiff-head-openapi.json
           fail-on: ERR
           review: "false"
           github-token: ""

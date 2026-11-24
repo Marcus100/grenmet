@@ -207,7 +207,44 @@ def core_postgres(config, environment):
     }
 
 
-def render(config, environment):
+# Application object storage (issue #1146): every environment reads STORAGE_*.
+# Staging first stored the same bucket as DO_SPACES_*, which deploy.yml passes as
+# LEGACY_DO_SPACES_* on staging only. Until the owner adds STORAGE_* there, each unset
+# STORAGE_* name falls back to its old name, with a deprecation notice. Production
+# never falls back: its DO_SPACES_* name the backup store, not the application's.
+STORAGE_FALLBACK = {
+    "STORAGE_ENDPOINT_URL": "DO_SPACES_ENDPOINT",
+    "STORAGE_REGION": "DO_SPACES_REGION",
+    "STORAGE_BUCKET": "DO_SPACES_BUCKET",
+    "STORAGE_ACCESS_KEY_ID": "DO_SPACES_ACCESS_KEY_ID",
+    "STORAGE_SECRET_ACCESS_KEY": "DO_SPACES_SECRET_ACCESS_KEY",
+}
+
+
+def app_storage(environment, deployment_environment):
+    """The STORAGE_* values and the old names used in their place (names only)."""
+    values = {key: environment.get(key, "") for key in STORAGE_FALLBACK}
+    used = []
+    if deployment_environment != "staging":
+        return values, used
+    for key, old in STORAGE_FALLBACK.items():
+        legacy = environment.get(f"LEGACY_{old}", "")
+        if not values[key] and legacy:
+            values[key] = legacy
+            used.append(old)
+    return values, used
+
+
+def storage_notice(used):
+    return (
+        "Deprecated: staging application storage read " + ", ".join(used)
+        + " because the matching STORAGE_* secrets are not set. Add STORAGE_ENDPOINT_URL,"
+        " STORAGE_REGION, STORAGE_BUCKET, STORAGE_ACCESS_KEY_ID and STORAGE_SECRET_ACCESS_KEY"
+        " to the staging environment (docs/env.md); keep DO_SPACES_* for the backup workflows."
+    )
+
+
+def render(config, environment, notices=None):
     required = REQUIRED_SECRETS
     values = {}
     for key in required:
@@ -220,7 +257,7 @@ def render(config, environment):
     # API ignores a shorter value, which silently pools all visitors in one bucket.
     if len(values["TRUSTED_WEB_SECRET"]) < 32:
         raise ValueError("TRUSTED_WEB_SECRET must contain at least 32 characters")
-    for key in ['WXWATCH_INGEST_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'AUTH_TURNSTILE_SECRET_KEY', 'NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET', 'BOOKINGS_SSO_CLIENT_SECRET', 'ACCOUNT_SSO_CLIENT_SECRET', 'BARRELS_ADMIN_SSO_CLIENT_SECRET', 'CAP_SSO_CLIENT_SECRET', 'PAYMENTS_STRIPE_SECRET_KEY', 'PAYMENTS_STRIPE_WEBHOOK_SECRET', 'PAYMENTS_STRIPE_SUCCESS_URL', 'PAYMENTS_STRIPE_CANCEL_URL', 'META_PAGE_ID', 'META_INSTAGRAM_ACCOUNT_ID', 'META_PAGE_ACCESS_TOKEN', 'SOCIAL_LINK_HOSTS', 'SOCIAL_IMAGE_HOSTS', 'CMS_DISTRIBUTION_SECRET']:
+    for key in ['WXWATCH_INGEST_TOKEN', 'MONITORING_PROBE_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'AUTH_TURNSTILE_SECRET_KEY', 'NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET', 'BOOKINGS_SSO_CLIENT_SECRET', 'ACCOUNT_SSO_CLIENT_SECRET', 'BARRELS_ADMIN_SSO_CLIENT_SECRET', 'CAP_SSO_CLIENT_SECRET', 'PAYMENTS_STRIPE_SECRET_KEY', 'PAYMENTS_STRIPE_WEBHOOK_SECRET', 'PAYMENTS_STRIPE_SUCCESS_URL', 'PAYMENTS_STRIPE_CANCEL_URL', 'META_PAGE_ID', 'META_INSTAGRAM_ACCOUNT_ID', 'META_PAGE_ACCESS_TOKEN', 'SOCIAL_LINK_HOSTS', 'SOCIAL_IMAGE_HOSTS', 'CMS_DISTRIBUTION_SECRET']:
         values[key] = environment.get(key, "")
     # Single sign-on (ADR-0017): staff apps can't sign in without theirs;
     # Events stays off until its secret is set.
@@ -321,7 +358,7 @@ def render(config, environment):
         entry = service["environments"].get(config.get("ENVIRONMENT"), {})
         sentry = entry.get("sentry", {})
         secret_ref = sentry.get("secretRef")
-        if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "cap", "gmsdash", "signal", "mbia", "events", "bookings", "account", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
+        if secret_ref and (service["id"] not in {"elections", "auth", "admin", "gaa-admin", "docs", "gms", "cap", "gmsdash", "signal", "mbia", "events", "bookings", "account", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
             raise ValueError("Invalid shared Sentry routing")
         values[f"SENTRY_DSN_{app}"] = environment.get(secret_ref, "") if secret_ref else sentry.get("dsn") or ""
     for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]:
@@ -354,6 +391,10 @@ def render(config, environment):
     deployment_environment = config.get("ENVIRONMENT")
     if deployment_environment not in {"staging", "production"}:
         raise ValueError("ENVIRONMENT must be staging or production")
+    storage, legacy_used = app_storage(environment, deployment_environment)
+    values.update(storage)
+    if legacy_used and notices is not None:
+        notices.append(storage_notice(legacy_used))
     for key in STAGING_ONLY_SECRETS:
         users = environment.get(key, "") if deployment_environment == "staging" else ""
         if deployment_environment == "staging" and not users:
@@ -408,12 +449,20 @@ def render(config, environment):
 
 if __name__ == "__main__":
     try:
-        content = render(read_config(sys.argv[1]), os.environ)
+        notices = []
+        content = render(read_config(sys.argv[1]), os.environ, notices)
         destination = Path(sys.argv[2])
         destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w") as output:
             output.write(content)
+        # Names only, never values: a log annotation and a line in the deploy summary.
+        for notice in notices:
+            print(f"::warning title=Deprecated deploy setting::{notice}")
+            summary = os.environ.get("GITHUB_STEP_SUMMARY")
+            if summary:
+                with open(summary, "a") as handle:
+                    handle.write(f"- {notice}\n")
     except (ValueError, KeyError, OSError) as error:
         # Messages contain variable names or paths only, never environment values.
         print(f"Deployment configuration rejected: {error}", file=sys.stderr)

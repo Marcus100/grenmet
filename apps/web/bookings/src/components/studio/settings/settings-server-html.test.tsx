@@ -13,6 +13,8 @@ vi.mock("@/app/studio/[orgSlug]/settings/actions", () => ({
   saveProfileAction: vi.fn(),
   saveProviderAction: vi.fn(),
   saveServiceAction: vi.fn(),
+  startLogoUploadAction: vi.fn(),
+  finishLogoUploadAction: vi.fn(),
 }));
 
 import { HoursForm } from "./hours-form";

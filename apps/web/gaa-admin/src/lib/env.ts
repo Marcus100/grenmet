@@ -21,6 +21,7 @@ export const env = createEnv({
       .url()
       .optional()
       .default("http://localhost:3010/desk"),
+    CAP_DESK_CUTOVER: z.enum(["true", "false"]).default("false"),
     // Janitor PWA origin; area QR labels link to `${JANITOR_APP_URL}/a/<code>`.
     // When unset, labels encode the bare area code.
     JANITOR_APP_URL: z.string().url().optional(),
@@ -50,6 +51,7 @@ export const env = createEnv({
     GAA_ADMIN_SSO_CLIENT_SECRET: process.env.GAA_ADMIN_SSO_CLIENT_SECRET,
     CAP_API_URL: process.env.CAP_API_URL,
     CAP_DESK_URL: process.env.CAP_DESK_URL,
+    CAP_DESK_CUTOVER: process.env.CAP_DESK_CUTOVER,
     JANITOR_APP_URL: process.env.JANITOR_APP_URL,
     NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE:
       process.env.NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE,
@@ -62,3 +64,7 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
 });
+
+export function getCapDeskCutoverUrl(): string | undefined {
+  return env.CAP_DESK_CUTOVER === "true" ? env.CAP_DESK_URL : undefined;
+}

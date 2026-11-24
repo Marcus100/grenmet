@@ -10,7 +10,7 @@ import { MotionProvider } from "@/components/motion-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { calendarFrom } from "@/data/election-2026";
-import { campaign } from "@/data/load";
+import { campaign, results } from "@/data/load";
 import "./globals.css";
 import { env } from "@/lib/env";
 
@@ -42,7 +42,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   // The status depends on today's date, so the browser works it out (see
   // src/lib/browser-today.ts); the masthead shows nothing until then.
-  const status = <ElectionStatus calendar={calendarFrom(campaign)} />;
+  const status = <ElectionStatus calendar={calendarFrom(campaign, results)} />;
 
   return (
     <html className={`${inter.variable} ${sourceSerif.variable}`} lang="en-GB">

@@ -1,6 +1,6 @@
 import { getSafeLocalReturnTo } from "@barrelsgd/auth/server";
-import type { Metadata, Route } from "next";
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { SignInHandOff } from "@/components/sign-in-hand-off";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -19,16 +19,19 @@ function first(value: string | string[] | undefined): string | null {
 }
 
 /**
- * Single sign-on (ADR-0017): /auth/start hands off to auth.barrels.gd. A failed
- * hand-off lands back here with `sign_in=expired`; redirecting again would
- * loop, so say what happened and let the person retry.
+ * Single sign-on (ADR-0017): /auth/start hands off to auth.barrels.gd. A normal
+ * visit shows "Taking you to sign in" while the browser makes that hop, rather
+ * than a blank page. A failed hand-off lands back here with `sign_in=expired`;
+ * moving on again would loop, so say what happened and let the person retry.
  */
 export default async function SignIn({ searchParams }: SignInPageProps) {
   const params = await searchParams;
   const returnTo = getSafeLocalReturnTo(first(params.returnTo)) ?? "/";
   const start = `/auth/start?${new URLSearchParams({ returnTo })}`;
 
-  if (first(params.sign_in) !== "expired") redirect(start as Route);
+  if (first(params.sign_in) !== "expired") {
+    return <SignInHandOff href={start} />;
+  }
 
   return (
     <main

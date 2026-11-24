@@ -223,10 +223,10 @@
     },
     {
       "date": "2026-09-30",
-      "text": "The DPM names Dishon Edwards for St. Patrick East and Rolanda McQueen for St. Andrew South East, bringing its slate to 10.",
+      "text": "The DPM names Dishon Edwards for St. Patrick East and Shirley Mc Queen (first reported as Rolanda McQueen) for St. Andrew South East, bringing its slate to 10.",
       "src": "mikey30sep",
       "flag": "unverified",
-      "note": "The linked report could not be independently checked; these two names remain provisional."
+      "note": "The linked report could not be independently checked; these two names remain provisional. The official 2026 ballot lists the St. Andrew South East candidate as Shirley Mc Queen."
     },
     {
       "date": "2026-10-02",
@@ -283,17 +283,17 @@
   "candidates": {
     "NNP": {
       "B": "Emmalin Pierre",
-      "D": "Kate Lewis",
+      "D": "Kate Lewis-Peters",
       "A": "Norland Cox",
-      "H": "Nimrod Ollivere",
-      "K": "Dwight Horsford",
+      "H": "Nimrod Oliver Ollivierre",
+      "K": "David Dwight Horsford",
       "R": "Jelani Glean",
-      "G": "Troy Noel",
-      "L": "Christopher DeAllie Jr",
-      "J": "Adrian Joseph",
-      "F": "Noleen Thompson",
-      "C": "Amanda Japal-George",
-      "N": "Myanna Charles",
+      "G": "Joel Troy Noel",
+      "L": "Christopher Kahrim De Allie",
+      "J": "Tawfiq Adrian Marlan Joseph",
+      "F": "Noleen Roxanne James-Thompson",
+      "C": "Amanda Sherine Mary Japal",
+      "N": "Mayanna Natalie Charles",
       "M": "Alvin Da Breo",
       "P": "Robert Whyte",
       "E": "Marcia Francis"
@@ -308,17 +308,17 @@
       "L": "Charmaine Gibbs",
       "A": "Christopher Cudjoe",
       "P": "Dishon Edwards",
-      "B": "Rolanda McQueen"
+      "B": "Shirley Mc Queen"
     },
     "NDC": {
       "P": "Carl Andall",
       "N": "Caris DeGannes",
       "A": "Tevin Andrews",
-      "K": "Phillip Telesford",
+      "K": "Philip Alfred Telesford",
       "F": "Dickon Mitchell",
       "R": "Joseph Andall",
       "L": "Andy Williams",
-      "J": "Nigel Degale",
+      "J": "Nigel Algernon Theodore De Gale",
       "D": "Niecal Joseph",
       "G": "Claudette Joseph",
       "H": "Ron Livingston Redhead",
@@ -335,8 +335,9 @@
   },
   "candidate_flags": {
     "NNP": {
-      "H": "Spelled “Ollivere” in The New Today and “Oliverre” elsewhere.",
-      "E": "Named as the NNP candidate (also as “Teacher Lisa”) in a DPB Global commentary in The New Today, April 2026. Not yet confirmed by the party."
+      "H": "Official ballot spelling “Nimrod Oliver Ollivierre”. Earlier reports spelled it “Ollivere” in The New Today and “Oliverre” elsewhere.",
+      "E": "Named as the NNP candidate (also as “Teacher Lisa”) in a DPB Global commentary in The New Today, April 2026. Not yet confirmed by the party.",
+      "C": "Official ballot name “Amanda Sherine Mary Japal”; earlier reports named her “Amanda Japal-George”."
     },
     "NDC": "All 15 NDC candidates are named, with sources and notes where public confirmation is still pending."
   },

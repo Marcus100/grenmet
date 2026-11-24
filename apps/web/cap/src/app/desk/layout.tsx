@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { DeskApiClient } from "@/components/desk/api-client";
 import { getDeskGate } from "@/lib/desk/gate";
+import { deskNavItems } from "@/lib/desk/nav";
 
 export const metadata: Metadata = {
   robots: { follow: false, index: false },
@@ -28,68 +29,19 @@ export default async function DeskLayout({
             GMS warning desk
           </Link>
           {gate.status === "staff" ? (
-            <nav aria-label="Desk" className="text-body-sm flex gap-4">
-              <Link className="text-info hover:underline" href="/desk">
-                Board
-              </Link>
-              {gate.permissions.create ? (
-                <Link className="text-info hover:underline" href="/desk/new">
-                  New warning
-                </Link>
-              ) : null}
-              {gate.permissions.read ? (
-                <Link className="text-info hover:underline" href="/desk/areas">
-                  Areas
-                </Link>
-              ) : null}
-              {gate.permissions.read ? (
-                <Link className="text-info hover:underline" href="/desk/audit">
-                  Audit
-                </Link>
-              ) : null}
-              {gate.permissions.read ? (
+            <nav
+              aria-label="Desk"
+              className="text-body-sm flex min-w-0 flex-wrap gap-x-3 gap-y-1"
+            >
+              {deskNavItems(gate.permissions).map((item) => (
                 <Link
-                  className="text-info hover:underline"
-                  href="/desk/statistics"
+                  className="text-info inline-flex min-h-11 items-center px-1 hover:underline"
+                  href={item.href}
+                  key={item.href}
                 >
-                  Statistics
+                  {item.label}
                 </Link>
-              ) : null}
-              {gate.permissions.feedsManage ? (
-                <Link className="text-info hover:underline" href="/desk/feeds">
-                  Feeds
-                </Link>
-              ) : null}
-              {gate.permissions.integrationsManage ? (
-                <Link
-                  className="text-info hover:underline"
-                  href="/desk/integrations"
-                >
-                  Integrations
-                </Link>
-              ) : null}
-              {gate.permissions.settingsManage ? (
-                <Link
-                  className="text-info hover:underline"
-                  href="/desk/settings"
-                >
-                  Settings
-                </Link>
-              ) : null}
-              <Link className="text-info hover:underline" href="/desk/matrix">
-                Impact matrix
-              </Link>
-              <Link className="text-info hover:underline" href="/desk/profiles">
-                Hazard profiles
-              </Link>
-              {gate.permissions.create ? (
-                <Link className="text-info hover:underline" href="/desk/import">
-                  Import
-                </Link>
-              ) : null}
-              <Link className="text-info hover:underline" href="/">
-                Public alerts
-              </Link>
+              ))}
             </nav>
           ) : null}
           {gate.status === "signed-out" ? null : (
@@ -101,7 +53,10 @@ export default async function DeskLayout({
               <span className="text-muted-foreground">
                 {gate.status === "staff" ? gate.name : gate.email}
               </span>
-              <button className="text-info underline" type="submit">
+              <button
+                className="text-info inline-flex min-h-11 items-center underline"
+                type="submit"
+              >
                 Log out
               </button>
             </form>

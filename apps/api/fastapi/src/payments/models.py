@@ -107,6 +107,11 @@ class Intent(Base):
     #: When the refund reconciliation job last compared this payment's refunds with
     #: the provider; the job takes the oldest (never checked first).
     refunds_checked_at: Mapped[datetime | None] = mapped_column(default=None)
+    #: Stripe Connect (ADR-0027): the connected account the direct charge runs on
+    #: (NULL for a charge on the platform account) and the platform fee in minor
+    #: units taken from it. Refunds and provider reads go to this account.
+    connected_account_id: Mapped[str | None] = mapped_column(String(100))
+    application_fee_minor: Mapped[int | None] = mapped_column(sa.Integer())
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

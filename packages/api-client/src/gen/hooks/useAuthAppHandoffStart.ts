@@ -20,6 +20,7 @@ import type {
   AuthAppHandoffStartStatus409,
   AuthAppHandoffStartStatus422,
   AuthAppHandoffStartStatus429,
+  AuthAppHandoffStartStatus503,
 } from "../models/AuthAppHandoffStart.js";
 
 export const authAppHandoffStartMutationKey = () =>
@@ -40,6 +41,7 @@ export function authAppHandoffStartMutationOptions<TContext = unknown>(
       | AuthAppHandoffStartStatus409
       | AuthAppHandoffStartStatus422
       | AuthAppHandoffStartStatus429
+      | AuthAppHandoffStartStatus503
     >,
     AuthAppHandoffStartOptions,
     TContext
@@ -72,6 +74,7 @@ export function useAuthAppHandoffStart<TContext>(
         | AuthAppHandoffStartStatus409
         | AuthAppHandoffStartStatus422
         | AuthAppHandoffStartStatus429
+        | AuthAppHandoffStartStatus503
       >,
       AuthAppHandoffStartOptions,
       TContext
@@ -97,6 +100,7 @@ export function useAuthAppHandoffStart<TContext>(
       | AuthAppHandoffStartStatus409
       | AuthAppHandoffStartStatus422
       | AuthAppHandoffStartStatus429
+      | AuthAppHandoffStartStatus503
     >,
     AuthAppHandoffStartOptions,
     TContext
@@ -111,6 +115,7 @@ export function useAuthAppHandoffStart<TContext>(
       | AuthAppHandoffStartStatus409
       | AuthAppHandoffStartStatus422
       | AuthAppHandoffStartStatus429
+      | AuthAppHandoffStartStatus503
     >,
     AuthAppHandoffStartOptions,
     TContext
@@ -130,6 +135,7 @@ export function useAuthAppHandoffStart<TContext>(
       | AuthAppHandoffStartStatus409
       | AuthAppHandoffStartStatus422
       | AuthAppHandoffStartStatus429
+      | AuthAppHandoffStartStatus503
     >,
     AuthAppHandoffStartOptions,
     TContext

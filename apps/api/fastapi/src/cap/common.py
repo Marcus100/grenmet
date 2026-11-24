@@ -43,17 +43,18 @@ def _record_audit(
     *,
     session: AsyncSession,
     alert_id: uuid.UUID | None,
-    actor: User,
+    actor: User | None,
     action: str,
     previous_state: str | None,
     next_state: str | None,
     note: str | None = None,
     payload: dict[str, object] | None = None,
 ) -> None:
+    # actor None is the system (src/cap/expiry.py); the payload says so.
     session.add(
         CapAuditEvent(
             alert_id=alert_id,
-            actor_user_id=actor.id,
+            actor_user_id=actor.id if actor is not None else None,
             action=action,
             previous_state=previous_state,
             next_state=next_state,

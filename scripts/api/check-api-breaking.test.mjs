@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { compareSpecs, typeSet } from "./check-api-breaking.mjs";
+import { compareSpecs, resolveBase, typeSet } from "./check-api-breaking.mjs";
 
 const json = (schema) => ({ content: { "application/json": { schema } } });
 
@@ -255,4 +258,106 @@ test("CLI requires --base", () => {
     { encoding: "utf8" }
   );
   assert.equal(result.status, 2);
+});
+
+test("resolveBase compares with the merge base, not the base branch tip", () => {
+  const calls = [];
+  const git = (args) => {
+    calls.push(args);
+    return { status: 0, stdout: "abc123\n" };
+  };
+  assert.equal(resolveBase("origin/dev", "pr-head", git), "abc123");
+  assert.deepEqual(calls, [["merge-base", "origin/dev", "pr-head"]]);
+});
+
+test("resolveBase falls back to the ref when no merge base exists", () => {
+  const git = () => ({ status: 1, stdout: "" });
+  assert.equal(resolveBase("origin/dev", "HEAD", git), "origin/dev");
+});
+
+test("CLI: an operation added to the base branch after the branch point is not 'removed'", () => {
+  const dir = mkdtempSync(join(tmpdir(), "api-base-"));
+  const run = (...args) =>
+    execFileSync("git", args, { cwd: dir, encoding: "utf8" }).trim();
+  const spec = (paths) =>
+    JSON.stringify({
+      openapi: "3.1.0",
+      paths: Object.fromEntries(
+        paths.map((path) => [path, { get: { operationId: path, responses: {} } }])
+      ),
+    });
+  const file = join(dir, "apps/api/fastapi/openapi.json");
+  try {
+    run("init", "-q", "-b", "dev");
+    run("config", "user.email", "ci@example.invalid");
+    run("config", "user.name", "CI");
+    mkdirSync(join(dir, "apps/api/fastapi"), { recursive: true });
+    writeFileSync(file, spec(["/a"]));
+    run("add", ".");
+    run("commit", "-qm", "base");
+    run("checkout", "-qb", "feature");
+    writeFileSync(file, spec(["/a", "/mine"]));
+    run("commit", "-qam", "feature adds /mine");
+    run("checkout", "-q", "dev");
+    writeFileSync(file, spec(["/a", "/theirs"]));
+    run("commit", "-qam", "dev adds /theirs");
+    run("checkout", "-q", "feature");
+    const cli = (...args) =>
+      spawnSync(
+        process.execPath,
+        [fileURLToPath(new URL("./check-api-breaking.mjs", import.meta.url)), ...args],
+        { cwd: dir, encoding: "utf8" }
+      );
+    // Against the tip of dev, /theirs looks removed; against the merge base it is fine.
+    assert.equal(cli("--base", "dev", "--head", "feature").status, 0);
+    assert.equal(cli("--base", "dev", "--head", "HEAD").status, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("CLI: --head-spec ignores changes that dev landed and merged into the checkout", () => {
+  const dir = mkdtempSync(join(tmpdir(), "api-merge-"));
+  const run = (...args) =>
+    execFileSync("git", args, { cwd: dir, encoding: "utf8" }).trim();
+  const spec = (paths) =>
+    JSON.stringify({
+      openapi: "3.1.0",
+      paths: Object.fromEntries(
+        paths.map((path) => [path, { get: { operationId: path, responses: {} } }])
+      ),
+    }, null, 2);
+  const file = join(dir, "apps/api/fastapi/openapi.json");
+  try {
+    run("init", "-q", "-b", "dev");
+    run("config", "user.email", "ci@example.invalid");
+    run("config", "user.name", "CI");
+    mkdirSync(join(dir, "apps/api/fastapi"), { recursive: true });
+    writeFileSync(file, spec(["/a", "/p1", "/p2", "/p3", "/b"]));
+    run("add", ".");
+    run("commit", "-qm", "base");
+    run("checkout", "-qb", "feature");
+    writeFileSync(file, spec(["/a", "/mine", "/p1", "/p2", "/p3", "/b"]));
+    run("commit", "-qam", "feature adds /mine");
+    const featureTip = run("rev-parse", "HEAD");
+    run("checkout", "-q", "dev");
+    writeFileSync(file, spec(["/a", "/p1", "/p2", "/p3"]));
+    run("commit", "-qam", "dev removes /b (labelled breaking there)");
+    // The CI checkout: the PR merged onto dev.
+    run("checkout", "-q", "-b", "merge", "dev");
+    run("merge", "-q", "--no-edit", featureTip);
+    const headSpec = join(dir, "head-openapi.json");
+    writeFileSync(headSpec, run("show", `${featureTip}:apps/api/fastapi/openapi.json`));
+    const cli = (...args) =>
+      spawnSync(
+        process.execPath,
+        [fileURLToPath(new URL("./check-api-breaking.mjs", import.meta.url)), "--base", "dev", "--head", featureTip, ...args],
+        { cwd: dir, encoding: "utf8" }
+      );
+    // The merged working tree lacks /b only because dev removed it.
+    assert.equal(cli().status, 1);
+    assert.equal(cli("--head-spec", headSpec).status, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

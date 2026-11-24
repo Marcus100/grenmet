@@ -11,7 +11,12 @@ import { SlateSources } from "@/components/slate-sources";
 import { findPerson, personHref } from "@/data/candidates";
 import { candidateNote, slateSources } from "@/data/election-2026";
 import { campaign, people, results } from "@/data/load";
-import { CODES, constituencyHref, constituencyName } from "@/data/model";
+import {
+  CODES,
+  constituencyHref,
+  constituencyName,
+  EVENTS,
+} from "@/data/model";
 import { partyInfo } from "@/data/parties";
 import type { ConstituencyCode } from "@/data/types";
 import { fmt, formatIsoDate } from "@/lib/format";
@@ -19,7 +24,7 @@ import { fmt, formatIsoDate } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Candidates",
   description:
-    "Who is standing in Grenada’s 2026 election, and everyone who has stood for the House since 1951, with each person’s record and sources.",
+    "Candidates in Grenada’s 2026 election, and everyone who has stood for the House since 1951, with each person’s record and sources.",
 };
 
 const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
@@ -56,7 +61,7 @@ export default function CandidatesPage() {
   return (
     <>
       <PageHead
-        deck={`${fmt(races)} candidacies at 17 general elections, by about ${fmt(everyone.length)} people, plus a separately labelled 2026 announcement directory.`}
+        deck={`${fmt(races)} candidacies at ${EVENTS.filter((e) => e.kind === "general").length} general elections (the 2026 results are provisional), by about ${fmt(everyone.length)} people, plus a separately labelled 2026 announcement directory.`}
         eyebrow="Candidates · 1951 to 2026"
         learning="people"
         title="Everyone who has stood for the House"

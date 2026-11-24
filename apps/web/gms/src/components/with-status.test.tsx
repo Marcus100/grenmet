@@ -47,7 +47,7 @@ describe("WithStatus: a slow GMS outlook never delays a warning", () => {
   it("shows the warning label at once, while the outlook never answers", async () => {
     await renderStatus(Promise.resolve(WARNING), NEVER);
     expect(
-      await screen.findByRole("link", { name: "Take action now · 1 active" })
+      await screen.findByRole("link", { name: "Be prepared · 1 active" })
     ).toBeInTheDocument();
     expect(screen.queryByText(CHECKING)).not.toBeInTheDocument();
   });

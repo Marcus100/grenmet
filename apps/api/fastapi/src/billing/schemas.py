@@ -2,12 +2,18 @@ import uuid
 from datetime import date
 from decimal import Decimal
 from enum import Enum
+from typing import Literal
 
 from pydantic import EmailStr, Field, HttpUrl, RootModel, field_validator
 
 from src.models import BaseModel, UtcDateTime
 
-from .models import InvoiceStatus, PaymentMethod
+from .models import (
+    AppSubscriptionChannel,
+    AppSubscriptionStatus,
+    InvoiceStatus,
+    PaymentMethod,
+)
 
 
 class CheckoutSessionPublic(BaseModel):
@@ -17,6 +23,39 @@ class CheckoutSessionPublic(BaseModel):
 
 class WebhookReceivedPublic(BaseModel):
     received: bool
+
+
+# --- App subscriptions (ADR-0065) -----------------------------------------------------
+
+
+class AppSubscriptionCheckoutCreate(BaseModel):
+    plan_key: str = Field(min_length=1, max_length=64)
+    #: Owner decision 2026-11-22: XCD only (USD is shown as a converted note, not charged).
+    currency: Literal["XCD"] = "XCD"
+
+
+class AppSubscriptionPublic(BaseModel):
+    id: uuid.UUID
+    app_key: str
+    plan_key: str
+    channel: AppSubscriptionChannel
+    status: AppSubscriptionStatus
+    currency: str
+    #: The plan's price in ``currency``, in minor units (XCD cents).
+    amount_minor: int
+    current_period_end: UtcDateTime | None
+    cancel_at_period_end: bool
+    trial_end: UtcDateTime | None
+    created_at: UtcDateTime
+
+
+class AppSubscriptionListPublic(BaseModel):
+    data: list[AppSubscriptionPublic]
+
+
+class AppSubscriptionCheckoutPublic(BaseModel):
+    id: uuid.UUID
+    url: HttpUrl
 
 
 # --- Invoicing -------------------------------------------------------------------

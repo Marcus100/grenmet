@@ -29,7 +29,7 @@ import { fmt, pct } from "@/lib/format";
 export const metadata: Metadata = {
   title: "How close was it?",
   description:
-    "Explore Grenada’s recorded results through 2022: a historical swing calculator, changes in polling-division vote shares, votes versus seats and source limitations.",
+    "Explore Grenada’s recorded results through 2026 (the 2026 results are provisional): a historical swing calculator, changes in polling-division vote shares, votes versus seats and source limitations.",
 };
 
 const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
@@ -279,7 +279,7 @@ export default function HowClosePage() {
     eventDivisions(data, id).flatMap((d) => {
       const [w, r] = d.c;
       const valid = d.c.reduce((a, x) => a + x[2], 0);
-      if (!(w && r && d.registered && valid)) return [];
+      if (!(w && r && d.registered && valid && d.cast != null)) return [];
       return [
         {
           d,
@@ -320,15 +320,15 @@ export default function HowClosePage() {
   return (
     <>
       <PageHead
-        deck="Explore winning margins, changes in vote share and the evidence behind recorded elections through 2022. The swing calculator changes historical results under stated assumptions; it does not measure current support or predict 2026."
-        eyebrow="Historical analysis · through 2022"
+        deck="Explore winning margins, changes in vote share and the evidence behind recorded elections through 2026 (the 2026 results are provisional). The swing calculator changes historical results under stated assumptions; it does not measure current support or predict 2026."
+        eyebrow="Historical analysis · through 2026"
         learning="statistics"
         title="How close was it?"
       />
 
       <Section
         id="swing"
-        intro="Choose a recorded election from 1990 to 2022, then add the same number of percentage points to one party’s share of all valid votes and subtract it from the other’s in every constituency. This uniform-swing scenario changes NDC and NNP shares while keeping other parties unchanged. It is an illustration, not a forecast; local changes need not be uniform."
+        intro="Choose a recorded election from 1990 to 2026, then add the same number of percentage points to one party’s share of all valid votes and subtract it from the other’s in every constituency. This uniform-swing scenario changes NDC and NNP shares while keeping other parties unchanged. It is an illustration, not a forecast; local changes need not be uniform."
         title="1 · Swing calculator"
       >
         <SwingCalculator

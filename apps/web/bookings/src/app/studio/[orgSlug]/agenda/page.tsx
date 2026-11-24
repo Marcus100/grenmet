@@ -4,26 +4,33 @@ import {
   formatMoney,
   formatTime,
 } from "@barrelsgd/bookings-web/lib/booking-format";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from "@barrelsgd/ui/components/ui/empty";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DepositBadge, StatusBadge } from "@/components/studio/badges";
+import { BookingAddress } from "@/components/studio/booking-address";
+import { NeedsConfirming } from "@/components/studio/needs-confirming";
+import { SetupChecklist } from "@/components/studio/setup-checklist";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import {
+  CARD,
+  CARD_LINK,
+  FOCUS,
+  PRIMARY_ACTION,
+  StudioPageHeader,
+} from "@/components/studio/studio-ui";
+import { env } from "@/env";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
+import { type SetupStep, setupSteps } from "@/lib/setup-checklist";
 import {
   getAgenda,
-  getBusinessTimezone,
+  getProfile,
+  getSettings,
   listProviders,
 } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
+import { loadBusinessProfile, loadPendingRequests } from "@/lib/studio-pending";
 import {
   type AgendaRange,
   agendaDepositView,
@@ -57,14 +64,26 @@ interface Href {
 }
 
 const CONTROL =
-  "inline-flex min-h-11 items-center justify-center rounded-md border border-border px-4 font-medium";
+  "inline-flex min-h-11 items-center justify-center rounded-full border border-border px-4 font-medium transition-colors duration-[120ms]";
 
 function pill(active: boolean): string {
   return cn(
     CONTROL,
+    FOCUS,
     active
       ? "border-primary bg-primary text-primary-foreground"
-      : "bg-background text-foreground hover:bg-muted"
+      : "bg-background text-foreground hover:bg-muted active:bg-muted"
+  );
+}
+
+/** The day and week controls share one row on a phone: narrower padding, still 44 px tall. */
+function compactPill(active: boolean): string {
+  return cn(
+    "border-border inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition-colors duration-[120ms]",
+    FOCUS,
+    active
+      ? "border-primary bg-primary text-primary-foreground"
+      : "bg-background text-foreground hover:bg-muted active:bg-muted"
   );
 }
 
@@ -90,20 +109,22 @@ export default async function AgendaPage({
   const organisationId = org.value.id;
 
   // "Today" is the day on the business's own calendar, so its zone comes first.
-  const zone = await guarded(
-    () => getBusinessTimezone(session.accessToken, organisationId),
+  // The same profile read gives the public booking address for the header.
+  const profile = await guarded(
+    () => loadBusinessProfile(session.accessToken, organisationId),
     base
   );
-  if (!zone.ok) {
-    return <StudioAlert backHref="/studio" failure={zone.failure} />;
+  if (!profile.ok) {
+    return <StudioAlert backHref="/studio" failure={profile.failure} />;
   }
-  const today = todayIn(zone.value);
+  const publicSlug = profile.value.publicSlug;
+  const today = todayIn(profile.value.timezone);
   const range = parseRange(
     { view: first(query.view), date: first(query.date) },
     today
   );
 
-  const [agenda, providers] = await Promise.all([
+  const [agenda, providers, setupSteps, pending, stored] = await Promise.all([
     guarded(
       () =>
         getAgenda(session.accessToken, organisationId, {
@@ -119,7 +140,28 @@ export default async function AgendaPage({
       reportError(error, "studio");
       return [];
     }),
+    setupChecklistSteps(
+      session.accessToken,
+      organisationId,
+      canManageBookings(org.value.role),
+      base
+    ),
+    guarded(
+      () =>
+        loadPendingRequests(
+          session.accessToken,
+          organisationId,
+          profile.value.timezone
+        ),
+      base
+    ),
+    // Only the expiry wording needs the stored profile; without it no line shows.
+    guarded(() => getProfile(session.accessToken, organisationId), base),
   ]);
+  const expiryHours = stored.ok
+    ? stored.value?.pending_expiry_hours
+    : undefined;
+  const showSetup = setupSteps.some((step) => !step.done);
 
   const link = (overrides: {
     date?: string;
@@ -149,53 +191,81 @@ export default async function AgendaPage({
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <p className="text-muted-foreground text-sm">{org.value.name}</p>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-semibold">Agenda</h1>
-          {canManageBookings(org.value.role) ? (
+      <StudioPageHeader
+        action={
+          canManageBookings(org.value.role) ? (
             <Link
-              className={pill(true)}
+              className={PRIMARY_ACTION}
               href={{ pathname: `/studio/${orgSlug}/bookings/new` }}
             >
               New booking
             </Link>
-          ) : null}
-        </div>
-      </header>
+          ) : null
+        }
+        title="Agenda"
+      />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <nav aria-label="Agenda view" className="flex gap-1">
+      <NeedsConfirming
+        expiryHours={expiryHours}
+        orgSlug={orgSlug}
+        pending={pending}
+      />
+
+      {showSetup ? (
+        <SetupChecklist orgSlug={orgSlug} steps={setupSteps} />
+      ) : null}
+
+      {publicSlug ? (
+        <BookingAddress
+          orgSlug={orgSlug}
+          publicSlug={publicSlug}
+          siteOrigin={env.NEXT_PUBLIC_SITE_URL}
+        />
+      ) : (
+        <p className={`${CARD} text-foreground text-sm`}>
+          Your booking page has no address yet.{" "}
+          <Link
+            className={CARD_LINK}
+            href={{ pathname: `/studio/${orgSlug}/settings` }}
+          >
+            Set it up in Settings
+          </Link>
+        </p>
+      )}
+
+      {/* One row on a phone: previous, today, next, then the day and week views. */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <nav aria-label="Change date" className="flex items-center gap-1">
+          <Link
+            className={compactPill(false)}
+            href={link({ date: stepDay(range, -1) })}
+          >
+            Prev
+          </Link>
+          <Link className={compactPill(false)} href={link({ date: today })}>
+            Today
+          </Link>
+          <Link
+            className={compactPill(false)}
+            href={link({ date: stepDay(range, 1) })}
+          >
+            Next
+          </Link>
+        </nav>
+        <nav aria-label="Agenda view" className="flex items-center gap-1">
           <Link
             aria-current={range.view === "day" ? "page" : undefined}
-            className={pill(range.view === "day")}
+            className={compactPill(range.view === "day")}
             href={link({ view: "day" })}
           >
             Day
           </Link>
           <Link
             aria-current={range.view === "week" ? "page" : undefined}
-            className={pill(range.view === "week")}
+            className={compactPill(range.view === "week")}
             href={link({ view: "week" })}
           >
             Week
-          </Link>
-        </nav>
-        <nav aria-label="Change date" className="flex gap-1">
-          <Link
-            className={pill(false)}
-            href={link({ date: stepDay(range, -1) })}
-          >
-            Previous
-          </Link>
-          <Link className={pill(false)} href={link({ date: today })}>
-            Today
-          </Link>
-          <Link
-            className={pill(false)}
-            href={link({ date: stepDay(range, 1) })}
-          >
-            Next
           </Link>
         </nav>
       </div>
@@ -222,7 +292,9 @@ export default async function AgendaPage({
         </nav>
       ) : null}
 
-      <h2 className="text-lg font-semibold">{rangeLabel(range)}</h2>
+      <h2 className="text-foreground text-lg font-semibold">
+        {rangeLabel(range)}
+      </h2>
 
       {agenda.ok ? (
         <AgendaDays
@@ -239,6 +311,7 @@ export default async function AgendaPage({
               : null
           }
           providerNames={providerNames}
+          publicSlug={publicSlug}
           range={range}
           timezone={agenda.value.timezone || DEFAULT_TIMEZONE}
           today={today}
@@ -255,11 +328,32 @@ export default async function AgendaPage({
   );
 }
 
+/**
+ * The checklist's steps for an owner or admin. A member gets none, and a failed
+ * settings read gives none (the agenda still shows); `guarded` reports the fault.
+ */
+async function setupChecklistSteps(
+  accessToken: string,
+  organisationId: string,
+  manages: boolean,
+  base: string
+): Promise<SetupStep[]> {
+  if (!manages) {
+    return [];
+  }
+  const settings = await guarded(
+    () => getSettings(accessToken, organisationId),
+    base
+  );
+  return settings.ok ? setupSteps(settings.value) : [];
+}
+
 function AgendaDays({
   days,
   nextHref,
   orgSlug,
   previousHref,
+  publicSlug,
   total: allMatching,
   providerNames,
   range,
@@ -270,6 +364,7 @@ function AgendaDays({
   nextHref: Href | null;
   orgSlug: string;
   previousHref: Href | null;
+  publicSlug: string | null;
   total: number;
   providerNames: Map<string, string>;
   range: AgendaRange;
@@ -279,30 +374,32 @@ function AgendaDays({
   const byDay = new Map(days.map((entry) => [entry.day, entry.bookings]));
   const total = days.reduce((sum, entry) => sum + entry.bookings.length, 0);
 
+  // The next step for an empty agenda is the business's own page (what
+  // customers see) or, until a profile exists, the Settings that create it.
+  const emptyLink = publicSlug
+    ? { href: { pathname: `/${publicSlug}` }, label: "Open your booking page" }
+    : {
+        href: { pathname: `/studio/${orgSlug}/settings` },
+        label: "Set up your booking page",
+      };
+
   const emptyNote =
     total === 0 ? (
-      <Empty className="border">
-        <EmptyHeader>
-          <EmptyTitle>
-            {range.view === "day"
-              ? `No bookings on ${formatDay(range.day, true)}`
-              : "No bookings this week"}
-          </EmptyTitle>
-          <EmptyDescription>
-            Bookings made on your booking page appear here as they come in. Try
-            another {range.view === "day" ? "day" : "week"}, or choose All
-            providers if a filter is on.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <Link
-            className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
-            href="/"
-          >
-            See how online booking works
-          </Link>
-        </EmptyContent>
-      </Empty>
+      <section className={`${CARD} space-y-2`}>
+        <h3 className="text-foreground text-lg font-semibold">
+          {range.view === "day"
+            ? `No bookings on ${formatDay(range.day, true)}`
+            : "No bookings this week"}
+        </h3>
+        <p className="text-foreground/80">
+          Bookings made on your booking page appear here as they come in. Try
+          another {range.view === "day" ? "day" : "week"}, or choose All
+          providers if a filter is on.
+        </p>
+        <Link className={CARD_LINK} href={emptyLink.href}>
+          {emptyLink.label}
+        </Link>
+      </section>
     ) : null;
 
   if (emptyNote && range.view === "day") {
@@ -312,7 +409,10 @@ function AgendaDays({
   const shown = range.view === "week" ? daysIn(range) : [range.day];
   const paging =
     allMatching > total || previousHref ? (
-      <p className="flex flex-wrap items-center gap-3" role="status">
+      <p
+        className={`${CARD} text-foreground flex flex-wrap items-center gap-3`}
+        role="status"
+      >
         <span>{`Showing ${total} of ${allMatching} bookings`}</span>
         {previousHref ? (
           <Link className={pill(false)} href={previousHref}>
@@ -336,17 +436,18 @@ function AgendaDays({
         return (
           <section aria-labelledby={`day-${day}`} key={day}>
             {range.view === "week" ? (
-              <h3 className="mb-2 font-semibold" id={`day-${day}`}>
+              <h3
+                className="text-foreground mb-2 font-semibold"
+                id={`day-${day}`}
+              >
                 {formatDay(day, true)}
                 {day === today ? " (today)" : ""}
               </h3>
             ) : null}
             {bookings.length === 0 ? (
-              <p className="border-border text-muted-foreground rounded-lg border border-dashed p-4">
-                No bookings.
-              </p>
+              <p className={`${CARD} text-foreground/80`}>No bookings.</p>
             ) : (
-              <ul className="space-y-2">
+              <ul className={cn(CARD, "divide-border divide-y p-2 sm:p-3")}>
                 {bookings.map((booking) => (
                   <li key={booking.id}>
                     <BookingRow
@@ -379,18 +480,18 @@ function BookingRow({
 }) {
   return (
     <Link
-      className="border-border hover:bg-muted grid min-h-11 gap-2 rounded-lg border p-4 md:grid-cols-[13rem_1fr_auto] md:items-center"
+      className={`${FOCUS} hover:bg-muted active:bg-muted grid min-h-14 gap-2 rounded-2xl p-3 transition-colors duration-[120ms] md:grid-cols-[13rem_1fr_auto] md:items-center`}
       href={{ pathname: `/studio/${orgSlug}/bookings/${booking.id}` }}
     >
-      <span className="font-semibold">
+      <span className="text-foreground font-semibold">
         {formatTime(booking.starts_at, timezone)} to{" "}
         {formatTime(booking.ends_at, timezone)}
       </span>
       <span className="min-w-0">
-        <span className="block font-medium break-words">
+        <span className="text-foreground block font-medium break-words">
           {booking.customer_name}
         </span>
-        <span className="text-muted-foreground block text-sm">
+        <span className="text-foreground/80 block text-sm">
           {booking.service_name}
           {providerName ? ` with ${providerName}` : ""}
           {`, ${formatMoney(booking.price_minor, booking.currency)}`}

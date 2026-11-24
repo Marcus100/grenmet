@@ -52,6 +52,9 @@ function AlertRow({ alert }: { alert: CapAlertPublic }) {
   );
 }
 
+/** Filter chips are at least 44 px tall (touch target), wider than the sm default. */
+const CHIP = "h-11 min-h-11 px-3";
+
 /**
  * The board's sections with a state filter and a text search. Both work on
  * the alerts already loaded on the server; nothing is fetched again. Chips
@@ -74,6 +77,7 @@ export function AlertBoardFilter({
         <legend className="sr-only">Filter by stage</legend>
         <Button
           aria-pressed={filter === ALL_STATES}
+          className={CHIP}
           onClick={() => setFilter(ALL_STATES)}
           size="sm"
           type="button"
@@ -86,6 +90,7 @@ export function AlertBoardFilter({
           return (
             <Button
               aria-pressed={filter === state}
+              className={CHIP}
               key={state}
               onClick={() => setFilter(filter === state ? ALL_STATES : state)}
               size="sm"
@@ -111,7 +116,7 @@ export function AlertBoardFilter({
         <p className="text-body-sm text-muted-foreground" role="status">
           Showing {filterLabel} only.{" "}
           <button
-            className="text-info underline"
+            className="text-info inline-flex min-h-11 items-center underline"
             onClick={() => setFilter(ALL_STATES)}
             type="button"
           >

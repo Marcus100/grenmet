@@ -6,6 +6,15 @@ const CUTOFF =
   "Bookings can be changed online up to 24 hours before they start. Please contact the studio.";
 
 describe("booking-errors", () => {
+  it("shows the API's open-bookings limit as written, with contact links", () => {
+    const cap =
+      "We can't take another online booking for this email right now. Please contact the business to book.";
+    const failed = classifyFailure(409, cap, "create");
+    expect(failed.code).toBe("conflict");
+    expect(failed.message).toBe(cap);
+    expect(tellsToContact(failed.message)).toBe(true);
+  });
+
   it("tells a taken slot from the cutoff", () => {
     expect(classifyFailure(409, SLOT, "create").code).toBe("slot_taken");
     expect(classifyFailure(409, SLOT, "reschedule").code).toBe("slot_taken");
@@ -92,5 +101,25 @@ describe("booking-errors", () => {
     expect(detailOf({ detail: "x" })).toBe("x");
     expect(detailOf({ detail: [{ msg: "x" }] })).toBeUndefined();
     expect(detailOf(null)).toBeUndefined();
+  });
+});
+
+describe("add-on refusals (422)", () => {
+  it.each([
+    "This business does not offer add-ons",
+    "One of the add-ons is not available",
+    "Lash tint is not offered with this service",
+  ])("tells the customer add-ons were removed: %s", (detail) => {
+    for (const action of ["create", "read"] as const) {
+      const failure = classifyFailure(422, detail, action);
+      expect(failure.code).toBe("add_ons_unavailable");
+      expect(failure.message).toContain("we removed them");
+    }
+  });
+
+  it("keeps the general message for any other 422", () => {
+    expect(classifyFailure(422, "Something else", "create").code).toBe(
+      "invalid"
+    );
   });
 });

@@ -5,7 +5,7 @@
 Accepted; amended by [ADR-0064](0064-one-ticket-registry-for-all-tickets.md) (one registry for every ticket). The owner chose pairing QR codes for gate staff on 15 Nov 2026. Built
 as the API side of the Printix registry (`apps/api/fastapi/src/printix/`). The
 scanner app and offline mode are built (#1529). The organiser-access amendment
-(16 Nov 2026) is accepted and not yet built. Revised after the security review of
+(16 Nov 2026) is accepted and built: organiser onboarding from the admin console, organiser screens, recent scans and scan-list export (PR #1569; checked 21 Nov 2026). Revised after the security review of
 PR #1463 (typed numbers off by default, scan caps, log and retention rules,
 audit trail).
 
@@ -284,6 +284,7 @@ use these actions, so it is recorded here.
    an authenticator on the Barrels account site (`account.barrels.gd`, ADR-0057),
    then sign in at `scan.barrels.gd`. Someone who signs in without an authenticator
    is told to add one there first.
+   (Note, 24 Nov 2026 (fact check; the decision is not changed): Today both are on the sign-in site: the Security page `auth.barrels.gd/security` (`apps/web/auth/src/app/security`) and the invitation link `auth.barrels.gd/organisations/accept`; ADR-0057 step 2 has not moved them to `account.barrels.gd`. The scanner app's text points to `auth.barrels.gd/security`.)
 7. **Sessions:** organisers sign in again when the tab closes; a session lasts at
    most 12 hours (ADR-0061).
 8. **Promoters** (the people running events who buy Printix tickets) get their own

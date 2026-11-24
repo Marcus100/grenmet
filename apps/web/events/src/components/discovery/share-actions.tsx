@@ -5,26 +5,25 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import { CalendarPlus, Link2, MessageCircle } from "lucide-react";
 import { useState } from "react";
 
-/** WhatsApp is how events spread in Grenada, so it leads. */
+/**
+ * WhatsApp is how events spread in Grenada, so it leads. `url` is the event's
+ * full https address, built on the server from the public site URL: a share
+ * text with a bare path has no link anyone can open.
+ */
 export function ShareActions({
   icsHref,
-  path,
   title,
+  url,
 }: {
   icsHref: string;
-  path: string;
   title: string;
+  url: string;
 }) {
   const [copied, setCopied] = useState(false);
 
-  const absoluteUrl = () =>
-    typeof window === "undefined"
-      ? path
-      : new URL(path, window.location.origin).toString();
-
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(absoluteUrl());
+      await navigator.clipboard.writeText(url);
       setCopied(true);
     } catch {
       setCopied(false);
@@ -38,10 +37,7 @@ export function ShareActions({
           buttonVariants({ variant: "outline", size: "lg" }),
           "h-11"
         )}
-        href={`https://wa.me/?text=${encodeURIComponent(`${title} ${path}`)}`}
-        onClick={(event) => {
-          event.currentTarget.href = `https://wa.me/?text=${encodeURIComponent(`${title} ${absoluteUrl()}`)}`;
-        }}
+        href={whatsappHref(title, url)}
         rel="noopener noreferrer"
         target="_blank"
       >
@@ -65,4 +61,9 @@ export function ShareActions({
       </a>
     </div>
   );
+}
+
+/** The WhatsApp share link for an event: the title, then the full address. */
+export function whatsappHref(title: string, url: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`;
 }

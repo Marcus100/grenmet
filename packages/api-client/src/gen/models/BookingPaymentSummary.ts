@@ -22,6 +22,11 @@ export type BookingPaymentSummary = {
   amount_minor: number;
   paid_minor: number;
   refunded_minor: number;
+  /**
+   * @description What is still to pay at the business once the deposit is paid: the service price less the deposit. 0 when the whole price was paid online.
+   * @type integer
+   */
+  balance_at_salon_minor: number;
   currency: string;
   /**
    * @description Hosted page to finish paying, only while `status` is `due` and the payment is online.

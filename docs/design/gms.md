@@ -296,9 +296,11 @@ matched pairs:
 |---|---|---|---|
 | Green | `#00843d` | `bg-gm-warning-green-bg` / `text-gm-warning-green-fg` | white 4.81:1 |
 | Yellow | `#ffe923` | `…-yellow-bg` / `…-yellow-fg` | dark 14.30:1 |
-| Amber | `#ff9900` | `…-amber-bg` / `…-amber-fg` | dark 8.29:1 |
+| Amber (Orange) | `#ff9900` | `…-amber-bg` / `…-amber-fg` | dark 8.29:1 |
 | Red | `#cc0033` | `…-red-bg` / `…-red-fg` | white 5.81:1 |
 | Grey | `#dcdcdc` | `…-grey-bg` / `…-grey-fg` | expired |
+
+The public shows exactly the issued colour (`@barrelsgd/gms/warning-levels`, owner, 23 Nov 2026): Green (Minor) "Green alert", Yellow (Moderate) "Be aware", Orange (Severe, amber token) "Be prepared", Red (Extreme) "Take action now"; the colour name is always printed beside the words. An ended or replaced warning gets a grey "Ended" strip with its end time and the issued colour as a small tag. An alert with no stated severity is neutral grey with the words "Severity not stated", never a warning colour, and never the red takeover.
 
 Public-guidance aliases: `gm-weather-severity-{low,be-aware,be-prepared,take-action,expired}`.
 

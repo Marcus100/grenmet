@@ -18,10 +18,11 @@ and provider setup steps, see [Integration readiness](operations/integration-rea
 
 The web images are the same for staging and production (build once, promote by
 digest; see [release runbook](operations/release-runbook.md#build-once-promote-by-digest)),
-and eight public settings are read when the app runs, not when the image is built: `NEXT_PUBLIC_SITE_URL`,
+and eleven public settings are read when the app runs, not when the image is built: `NEXT_PUBLIC_SITE_URL`,
 `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_ENVIRONMENT`, `NEXT_PUBLIC_SENTRY_DSN`,
 `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `NEXT_PUBLIC_RELEASE`,
-`NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY` (auth app only).
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY` (auth app only) and the three cookieless funnel settings
+`NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY`, `NEXT_PUBLIC_FUNNEL_ANALYTICS_HOST` and `NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED` (see [Funnel analytics](#funnel-analytics-bookings-events-account)).
 
 - **Server code** reads them with `readPublicEnv(key)` from
   `@barrelsgd/ui/lib/public-env` (each app's `env.ts`, `instrumentation*.ts` and
@@ -51,6 +52,35 @@ and eight public settings are read when the app runs, not when the image is buil
   and source-map upload also use build arguments in `build-web-images.yml`.
 - **Check after a deploy.** `/runtime-env.js` on each app shows that environment's
   site, API, environment, Sentry and Turnstile values.
+
+## Funnel analytics (bookings, events, account)
+
+Cookieless PostHog events for the signed-in funnels (`@barrelsgd/ui/lib/funnel-analytics`).
+They are sent with `fetch` to `<host>/capture/`, with no cookie, no web storage
+and no SDK. Only ids and enums are sent (ADR-0037): organisation slug, service
+id, listing id, page name and the step. Names, emails, phone numbers and free
+text are never sent.
+
+- `NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY`: the PostHog project key (public, not a
+  secret). **Unset means off.** The value must look like a project key.
+- `NEXT_PUBLIC_FUNNEL_ANALYTICS_HOST`: `https://us.i.posthog.com` (default) or
+  `https://eu.i.posthog.com`. Any other host switches collection off.
+- `NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED`: the kill switch. `false`, `0`, `off`
+  or `no` (any case) turn collection off even when a key is set. Any other value
+  leaves it on.
+- **Production only, enforced in code.** Collection runs only when
+  `NEXT_PUBLIC_ENVIRONMENT=production` and the page is on `barrels.gd` or a
+  subdomain of it without a `staging` label. Staging, localhost and preview hosts
+  send nothing even with a key set.
+- Browsers with Do Not Track (`1` or `yes`) or Global Privacy Control send nothing.
+- The three settings are read at run time through `/runtime-env.js` like the
+  other public settings. Deployment wiring (passing them to the web containers
+  in `infra/docker/docker-compose.deploy.yml` and the GitHub environment) is a
+  separate change; until it lands they are unset and nothing is sent.
+- GA4 and the consent-gated PostHog provider on public sites are separate and
+  unchanged. Set the key only in production. Staging and previews must stay
+  without it, as the production-only browser analytics policy requires (see
+  `docs/operations/analytics-monitoring.md`).
 
 ## Local dev setup (one-time)
 
@@ -176,6 +206,7 @@ the API image and the local source mount contain the same migration assets.
 | `BROWSER_SESSION_COOKIE_NAME` | GAA Admin's session cookie, read by the cookie-authenticated routes (default `admin_session`); must match gaa-admin's `ADMIN_SESSION_COOKIE_NAME` |
 | `GAA_ADMIN_APP_URL` / `CMS_APP_URL` | Public URLs of the staff apps for single sign-on callbacks (ADR-0017). Defaults `http://localhost:3001` / `http://localhost:3006` |
 | `CAP_APP_URL` / `CAP_SSO_CLIENT_SECRET` | CAP warning desk (`apps/web/cap`, pages under `/desk`, registry key `cap`, staff scope: ordinary staff tokens, so `/api/v1/cap/*` permissions apply). Default URL `http://localhost:3010`. Empty secret (the default) keeps the desk's sign-in off; the public alert pages are unaffected. Deployment sets the URL to `https://cap.${BASE_DOMAIN}` and passes the GitHub environment secret `CAP_SSO_CLIENT_SECRET` |
+| `HR_APP_URL` / `HR_SSO_CLIENT_SECRET` | Barrels HR (registry key `hr`, staff scope). Default URL `http://localhost:3016`. Set the deployed origin to `https://hr.${BASE_DOMAIN}` and configure the matching secret on the API and HR web server. An empty secret disables handoff and redeem with HTTP 503 |
 | `BARRELS_ADMIN_APP_URL` / `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels control plane (`apps/web/admin`, registry key `barrels-admin`, superusers only). Default URL `http://localhost:3012`. Empty secret (the default) leaves the app out of single sign-on; deployment sets the URL to `https://admin.${BASE_DOMAIN}` and passes the GitHub environment secret `BARRELS_ADMIN_SSO_CLIENT_SECRET` (docs/deployment.md, "Admin host move") |
 | `GAA_ADMIN_SSO_CLIENT_SECRET` / `CMS_SSO_CLIENT_SECRET` | Secrets the staff apps present to redeem single sign-on codes; at least 32 characters (`openssl rand -base64 32`). Required GitHub environment secrets in staging and production, set to the same value in the matching web app. Empty locally switches single sign-on off for that app |
 | `LOGIN_MAX_FAILED_ATTEMPTS` | Failed attempts allowed before lockout (default: `10`) |
@@ -237,7 +268,7 @@ the API image and the local source mount contain the same migration assets.
 | `TURNSTILE_SECRET_KEY` | Turnstile widget secret (free Cloudflare account). Secret: environment secret store only, never a committed file |
 | `AUTH_TURNSTILE_SECRET_KEY` | Turnstile secret for the emailed sign-in code start (`POST /api/v1/auth/email-code/start`, issue #959). Separate from `TURNSTILE_ENABLED`, which never turns it on. Unset (default): no check. Set: a missing or rejected `turnstile_token` is 400 "Verification failed" before any account lookup, the same for every address; the rate limits and resend cooldown still apply, and the retired `POST /api/v1/auth/users/signup` (which cannot carry a token) answers the same 400. Per-app sign-in (`/auth/apps/{app}/email-code/start`, Events) is not checked. Pairs with the auth app's `NEXT_PUBLIC_AUTH_TURNSTILE_SITE_KEY`: set the site key first, then this secret, or every code request is refused |
 | `EMAIL_HASH_PEPPER` | Secret key for the HMAC-SHA256 hash of suppressed and unsubscribed email addresses (`src/utils/email_hash.py`). Generate with `openssl rand -base64 32 | tr -d '\n'` and store it without a trailing newline (`gh secret set EMAIL_HASH_PEPPER --env <env> < pepper-file`); the deploy's render-config step rejects a multi-line value. Never reuse `SECRET_KEY`. Unset is allowed only when `ENVIRONMENT=local` (a fixed dev key is used); elsewhere hashing raises `EmailHashPepperMissingError` and the subscribe, suppression and email-dispatch paths fail, so set it in staging and production before this release. Rotating or losing it makes every stored hash unmatchable, so keep a copy with the other backed-up secrets. |
-| `CAP_DELIVERY_FAILURE_RECIPIENTS` | Worker. Comma-separated GMS addresses emailed (through the notifications outbox) when a warning delivery job (email, push, webhooks, PDF and so on) has failed on every attempt. One email per failed job and address, deduplicated by job id; it names the warning headline, channel, attempts and error class only. Empty (default): no email; the worker still logs an error that Sentry captures. |
+| `CAP_DELIVERY_FAILURE_RECIPIENTS` | Worker. Comma-separated GMS addresses emailed (through the notifications outbox) when a warning delivery job (email, push, webhooks, PDF and so on) has failed on every attempt. One email per failed job and address, deduplicated by job id; it names the warning headline, channel, attempts and error class only. Every recipient must hold an active Barrels account to receive the alert: an address with no account (a shared mailbox, for example) is skipped, and when every recipient is skipped the worker logs an error that Sentry captures (with the count and job id, no address). Empty (default): no email; the worker still logs an error that Sentry captures. |
 | `TRUSTED_WEB_SECRET` | Shared secret (at least 32 characters, `openssl rand -base64 32`) that Next.js web hosts send with `X-Visitor-IP` and `X-Visitor-Secret` so rate limits (`src/rate_limit.py`) key on the real visitor, not the web server. Empty or shorter than 32 characters (a startup warning is logged, never the value) ignores both headers and keys on the connecting address, as does a wrong or missing secret, a non-ASCII value, and every `/auth` route, so a spoofed header changes nothing. IPv6 visitors key on their /64; IPv4-mapped IPv6 maps to IPv4. Set the same value for the API, `apps/web/bookings`, `apps/web/events`, `apps/web/gms` and `apps/web/mbia` (mbia: the contact form; gms: the weather site's email and browser alert sign-ups; without it every visitor shares one bucket of 5 email and 10 push sign-ups a minute); a web-side value under 32 characters fails the bookings, Events, gms and mbia env validation (the auth app also reads it, but the API ignores the pair on every `/auth` route, so deployment does not pass it to `web-auth`). The owner sets it on web-gms. Deploys (`render-env.py`, `deploy.yml`, `docker-compose.deploy.yml`) require it for staging and production, at least 32 characters, different from `SECRET_KEY` and every `*_SSO_CLIENT_SECRET`, and pass it to `api`, `web-events`, `web-gms`, `web-mbia` and `web-bookings` only. Events forwards the pair on its server-side API calls (`apps/web/events/src/lib/api.ts`) but never on `/auth/email-code/*`, which the API ignores it on anyway. |
 | `VISITOR_IP_PROXY_HOPS` | The API, `apps/web/bookings`, `apps/web/events`, `apps/web/gms` and `apps/web/mbia` (whole number 1 to 5, anything else fails startup; default 1). Number of reverse proxies in front of the server that append to `x-forwarded-for` (1: the right-most entry, as written by a Traefik that does not trust its peer). Behind Cloudflare and a Traefik that trusts it (`trustedIPs`), 2. The visitor is counted from the right; leading entries are visitor-controlled and ignored, and `x-real-ip` is not used. On the API it sets the address that rate limits fall back to (`src/rate_limit.py` `connecting_address`; at 1 that is uvicorn's address, unchanged). Deploys set it from `CLOUDFLARE_PROXY_ENABLED` (`render-env.py`) for `api`, `web-events`, `web-gms`, `web-mbia` and `web-bookings`. Babydoll is a static site with no server and does not read it. The auth app has its own, `AUTH_VISITOR_PROXY_HOPS`. |
 | `DEFAULT_RATE_LIMIT_PER_MINUTE` | The API (whole number, default 1000; 0 turns it off). Requests a minute per client address, shared across every route that has no `@limiter.limit` of its own (`src/rate_limit.py` `DefaultRateLimitMiddleware`); 1000 leaves room for a venue where many people share one Wi-Fi address. Never counted: the health and readiness probes, the Stripe, Resend and payment-provider webhooks and the CMS hook (matched by route template), a direct call from our own containers on the compose network (no forwarding header), and a trusted web host's call that names no visitor. Unmatched paths and 405s are counted. Redis down: per-process counting, then allowed (fail open). |
@@ -260,6 +291,7 @@ the API image and the local source mount contain the same migration assets.
 | `BILLING_STRIPE_SECRET_KEY` | Stripe secret API key; use an `sk_test_...` key locally |
 | `BILLING_STRIPE_WEBHOOK_SECRET` | Stripe endpoint signing secret; locally use the `whsec_...` value printed by `stripe listen` |
 | `BILLING_STRIPE_PRICE_ID` | Recurring Stripe Price used by subscription Checkout Sessions |
+| `BILLING_STRIPE_PRICES` | JSON object of app subscription prices (ADR-0065): `{"bookings-monthly:XCD": "price_..."}`. A plan with no entry answers 503 at checkout. Test-mode price ids only until the owner approves live mode |
 | `BILLING_CHECKOUT_SUCCESS_URL` | Stripe-hosted Checkout success redirect; may contain the literal `{CHECKOUT_SESSION_ID}` placeholder |
 | `BILLING_CHECKOUT_CANCEL_URL` | Stripe-hosted Checkout cancellation redirect |
 | `BILLING_INVOICE_LEGAL_ENTITY_NAME` | **Provisional.** Name printed on invoices and snapshotted onto each invoice when it is issued (default `Barrels Grenada`) |
@@ -464,7 +496,8 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/
 | `NEXT_PUBLIC_API_URL` | FastAPI public URL for client-side requests |
 | `RESEND_API_KEY` | Email sending (server-side only) |
 | `CAP_API_URL` | FastAPI base URL for the consolidated CAP module |
-| `CAP_DESK_URL` | The new CAP warning desk, linked as "Try the new desk" on `/cap` during the parallel run (default `http://localhost:3010/desk`; `https://cap.${BASE_DOMAIN}/desk` in deployment) |
+| `CAP_DESK_URL` | CAP warning desk URL and cutover destination (default `http://localhost:3010/desk`; `https://cap.${BASE_DOMAIN}/desk` in deployment) |
+| `CAP_DESK_CUTOVER` | Server-only switch for GAA Admin. Set to `true` to redirect legacy CAP pages with HTTP 307 and link directly to the desk. Defaults to `false`. Set it back to `false` to restore portal routing |
 | `JANITOR_APP_URL` | Optional janitor PWA origin. Area QR labels encode `<origin>/a/<area code>`; unset, they encode the bare code |
 | `NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE` | `true` or `false` (code default `false`): whether weather images come from object storage. The Docker image build sets it to `true` (`ARG` in `apps/web/gaa-admin/Dockerfile`), so it is build-time |
 | `WXPRODUCTS_ACCESS_TOKEN` | Only `scripts/publish-local-forecasts.mjs`: personal access token of an authorised local author. Not read by the app |
@@ -521,6 +554,7 @@ Barrels account (ADR-0057): a person's profile and profile photo. Every page nee
 | `ACCOUNT_SESSION_COOKIE_NAME` | Host-only session cookie (default `account_session`) |
 | `ACCOUNT_SSO_CLIENT_SECRET` | Same value as the API's registration for `account`; without it `/auth/callback` returns 503. Optional in deployment (empty keeps sign-in off). A GitHub environment secret passed by `deploy.yml` and rendered by `render-env.py` |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
+| `NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY` / `_HOST` / `_ENABLED` | Optional cookieless funnel events, off unless the key is set (see [Funnel analytics](#funnel-analytics-bookings-events-account)) |
 
 ### bookings (`apps/web/bookings`, optional)
 
@@ -534,6 +568,7 @@ Barrels Bookings. Only `/studio` needs sign-in; the public booking pages (`/[slu
 | `TRUSTED_WEB_SECRET` / `VISITOR_IP_PROXY_HOPS` | The visitor-address pair for the public booking form (see the FastAPI table) |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Same value as the API's registration for `bookings`; without it `/auth/callback` returns 503 and nobody can sign in. Optional in deployment (empty keeps sign-in off) |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
+| `NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY` / `_HOST` / `_ENABLED` | Optional cookieless funnel events, off unless the key is set (see [Funnel analytics](#funnel-analytics-bookings-events-account)) |
 
 ### signal (`apps/web/signal/.env.local`)
 
@@ -560,6 +595,7 @@ Barrels Events. No database; the Events API is called from the server at `AUTH_A
 | `EVENTS_SSO_CLIENT_SECRET` | Same value as the API's; 32+ characters; empty keeps sign-in off |
 | `TRUSTED_WEB_SECRET` / `VISITOR_IP_PROXY_HOPS` | The visitor-address pair (see the FastAPI table) |
 | `NEXT_PUBLIC_SITE_URL` | Canonical address for absolute links (run time; default `http://localhost:3009`) |
+| `NEXT_PUBLIC_FUNNEL_ANALYTICS_KEY` / `_HOST` / `_ENABLED` | Optional cookieless funnel events, off unless the key is set (see [Funnel analytics](#funnel-analytics-bookings-events-account)) |
 
 ### MBIA (`apps/web/mbia/.env.local`, optional)
 
@@ -821,9 +857,11 @@ credentials into staging.
   `STORAGE_BUCKET`, `STORAGE_ENDPOINT_URL`, optionally `STORAGE_REGION`
   and `STORAGE_PUBLIC_BASE_URL`.
 
-The deploy workflow also accepts matching `DO_SPACES_ACCESS_KEY_ID`,
-`DO_SPACES_SECRET_ACCESS_KEY`, `DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT`, and
-`DO_SPACES_REGION` secrets when the corresponding `STORAGE_*` secret is absent.
+Every environment reads application storage from `STORAGE_*`. On staging only,
+and only until the owner adds the five `STORAGE_*` secrets there, the deploy falls
+back to the matching `DO_SPACES_*` secret for each unset name and writes a
+deprecation notice (names only) to the deploy summary. Production never falls
+back: its `DO_SPACES_*` secrets name the backup store.
 Keep the key ID and secret from the same Spaces key, and grant that key access
 to the configured bucket. A configured value only proves presence: a worker
 `head_bucket` response of HTTP 403 means storage access still needs correction.
@@ -1041,6 +1079,10 @@ The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter ru
 | `PAYMENTS_REQUEST_TIMEOUT_SECONDS` | Provider request timeout (default 10). |
 | `PAYMENTS_REFUND_RECONCILE_WINDOW_DAYS`, `PAYMENTS_REFUND_RECONCILE_BATCH` | The daily refund reconciliation job checks captured provider payments created in the last this-many days (default 180), at most this many per run (default 200). |
 | `PAYMENTS_REFUND_RECONCILE_BUDGET_SECONDS`, `PAYMENTS_REFUND_RECONCILE_PAGE_MARGIN_SECONDS` | The run stops cleanly after this long (default 240, under the worker's 300-second job limit); a payment's listing stops paging once less than the margin (default 20) of the budget is left. |
+| `PAYMENTS_STRIPE_CONNECT_WEBHOOK_SECRET` | Signing secret of the Stripe Connect webhook endpoint (`POST /api/v1/payments/public/webhooks/stripe-connect`, events from connected accounts). Separate from `PAYMENTS_STRIPE_WEBHOOK_SECRET`; 503 when unset. Test mode only (`whsec_`). |
+| `PAYMENTS_CONNECT_RETURN_URL` | HTTPS page a business returns to after Stripe onboarding, and where Stripe sends it when a link has expired. Onboarding answers 503 until it is set. |
+| `PAYMENTS_CONNECT_PLATFORM_FEE_CAP_BPS` | The most Barrels may take on a New Zealand business's card payments, in basis points (default `0`: no fee can be set until the owner sets a cap). |
+| `PAYMENTS_CONNECT_REFUND_APPLICATION_FEE` | Whether a refund on a connected charge also refunds Barrels' platform fee (default `false`: the fee is kept). |
 
 ## Deploy and GitHub settings
 
@@ -1168,9 +1210,10 @@ when the value is empty.
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | secrets | API; set together |
 | `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` | secrets (PEM contents) | API and worker; set together |
 | `CAP_SIGNING_KEY_REF` | variable | API and worker (default `cap-signing-key`) |
-| `STORAGE_*` (`ENDPOINT_URL`, `REGION`, `BUCKET`, `ACCESS_KEY_ID`, `SECRET_ACCESS_KEY`, `PUBLIC_BASE_URL`) | secrets | API, worker and nhc-worker. The `DO_SPACES_*` secrets are the fallback for all but `STORAGE_PUBLIC_BASE_URL`; the renderer rejects a partial bundle |
-| `DO_SPACES_ACCESS_KEY_ID`, `DO_SPACES_SECRET_ACCESS_KEY`, `DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT`, `DO_SPACES_REGION` | secrets | Storage fallback (above) and the backup, restore and monitoring workflows. The write key is separate from the read-only `DO_SPACES_READ_*` pair |
+| `STORAGE_*` (`ENDPOINT_URL`, `REGION`, `BUCKET`, `ACCESS_KEY_ID`, `SECRET_ACCESS_KEY`, `PUBLIC_BASE_URL`) | secrets | API, worker and nhc-worker, in every environment. Staging alone falls back to `DO_SPACES_*` (all but `STORAGE_PUBLIC_BASE_URL`) with a deprecation notice until its `STORAGE_*` are set; the renderer rejects a partial bundle |
+| `DO_SPACES_ACCESS_KEY_ID`, `DO_SPACES_SECRET_ACCESS_KEY`, `DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT`, `DO_SPACES_REGION` | secrets | The backup store for the backup, restore, monitoring and weather workflows and the deploy backup gate; on staging also the temporary storage fallback (above). The write key is separate from the read-only `DO_SPACES_READ_*` pair |
 | `WXWATCH_INGEST_TOKEN` | secret | API; the collector uses the same value |
+| `MONITORING_PROBE_TOKEN` | secret | API. Bearer secret (32+ characters, `openssl rand -hex 32`) for `GET /api/v1/monitoring/admin/freshness/probe`, sent by Better Stack as an `Authorization: Bearer` request header. Unset or shorter than 32 characters, the route answers 404. Rotate by setting a new value and redeploying the API |
 | `AUTH_PRIVILEGED_MFA_MODE`, `AUTH_TOTP_ENCRYPTION_KEYS` | variable, secret | API, worker and prestart. See "Privileged MFA rollout" |
 | `*_SSO_CLIENT_SECRET` (`GAA_ADMIN`, `CMS`, `EVENTS`, `BARRELS_ADMIN`, `CAP`, `MBIA`, `SIGNAL`, `DOCS`, `GMSDASH`, `BOOKINGS`, `ACCOUNT`, `WEATHER`) | secrets | The API and the matching web app. Each 32 or more characters, different per app and different from `TRUSTED_WEB_SECRET` and `SECRET_KEY` |
 | `TRUSTED_WEB_SECRET` | secret | API, `web-events`, `web-gms`, `web-mbia`, `web-bookings`; at least 32 characters |
@@ -1186,7 +1229,7 @@ when the value is empty.
 | `BACKUP_GATE_BUCKET`, `BACKUP_GATE_ENDPOINT`, `BACKUP_GATE_REGION`, `BACKUP_GATE_ACCESS_KEY_ID`, `BACKUP_GATE_SECRET_ACCESS_KEY` | `deploy.yml` | The backup gate's view of the `DO_SPACES_*` bucket, using the read-only key |
 | `CORE_POSTGRES_DATA_MOUNT` | `render-env.py` | Data directory inside the database container, derived from the image major (`/var/lib/postgresql/data` for 17, `/var/lib/postgresql` for 18); never set by hand |
 | `CMS_DATABASE_URL`, `EREGISTER_DATABASE_URL`, `WXWATCH_DB_URL`, `WXPRODUCTS_DB_URL`, `JANITORIAL_DB_URL`, `TRANSPORT_DB_URL` | `render-env.py` | Database URLs built from the committed names and users and the GitHub passwords (URL-encoded) |
-| `SENTRY_DSN_API`, `SENTRY_DSN_WORKER`, `SENTRY_DSN_AUTH`, `SENTRY_DSN_ACCOUNT`, `SENTRY_DSN_BOOKINGS`, `SENTRY_DSN_CAP`, `SENTRY_DSN_CMS`, `SENTRY_DSN_DOCS`, `SENTRY_DSN_EVENTS`, `SENTRY_DSN_GAA_ADMIN`, `SENTRY_DSN_GMS`, `SENTRY_DSN_GMSDASH`, `SENTRY_DSN_MBIA`, `SENTRY_DSN_SIGNAL` | `render-env.py` | Each service's Sentry DSN, chosen from the environment's DSN secret by the service catalogue |
+| `SENTRY_DSN_API`, `SENTRY_DSN_WORKER`, `SENTRY_DSN_AUTH`, `SENTRY_DSN_ACCOUNT`, `SENTRY_DSN_ADMIN`, `SENTRY_DSN_BOOKINGS`, `SENTRY_DSN_CAP`, `SENTRY_DSN_CMS`, `SENTRY_DSN_DOCS`, `SENTRY_DSN_EVENTS`, `SENTRY_DSN_GAA_ADMIN`, `SENTRY_DSN_GMS`, `SENTRY_DSN_GMSDASH`, `SENTRY_DSN_MBIA`, `SENTRY_DSN_SIGNAL` | `render-env.py` | Each service's Sentry DSN, chosen from the environment's DSN secret by the service catalogue |
 | `TRAEFIK_*`, `VISITOR_IP_PROXY_HOPS` | `render-env.py` | Edge settings derived from `CLOUDFLARE_PROXY_ENABLED` (see "Staging and production") |
 
 ### GitHub names nothing in the deploy reads
@@ -1198,7 +1241,7 @@ another workflow or script, or is a leftover that can be deleted by the owner:
 |---|---|
 | `BACKUP_HEARTBEAT_URL` | In use, from other environments: `backup-database.yml` (`production-backup`) and `monitoring-maintenance.yml` (`production`, `staging-backup`). The copy stored in the `staging` environment is read by nothing |
 | `BOOTSTRAP_CMS` | Leftover. Only `scripts/production/backup-core.py` reads it from the host shell, and no workflow sets it |
-| `EVENTS_DB_PASSWORD` | Leftover. Events lives in the main database; no code, compose file or script uses it. The environment settings manifest still lists it as required, so update the manifest when deleting it |
-| `SESSION_COOKIE_NAME` | Leftover. Only the retired prototype compose file used it; each app now has its own cookie name. The manifest still lists it as required |
+| `EVENTS_DB_PASSWORD` | Leftover. Events lives in the main database; no code, compose file or script uses it. The environment settings manifest lists it as pending ("leftover: delete from both environments"), so deleting it never fails the check |
+| `SESSION_COOKIE_NAME` | Leftover. Only the retired prototype compose file used it; each app now has its own cookie name. Pending in the manifest like `EVENTS_DB_PASSWORD` |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Inert. The gms image has a build argument for it, but no workflow passes a value |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Inert. See the PostHog note under "GitHub environment secret names" |

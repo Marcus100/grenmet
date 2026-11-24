@@ -8,11 +8,42 @@ from urllib.parse import parse_qs
 
 import httpx
 import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.feature_flags import service as flag_service
+from src.feature_flags.models import FeatureFlag
 from src.payments.config import payments_settings
 from src.payments.providers import stripe as stripe_module
 
 WEBHOOK_SIGNING_KEY = "whsec_unit_test_secret"
+
+
+async def set_flag(
+    db: AsyncSession,
+    key: str,
+    *,
+    enabled: bool,
+    organisation_ids: list[str] | None = None,
+) -> None:
+    """Create or update a runtime flag row, as the owner does in admin. Tests use the
+    audience ``everyone`` unless organisations are named. Clears the 30 s snapshot so
+    the change is seen at once (the snapshot is process-wide)."""
+    audience: dict[str, object] = (
+        {"organisation_ids": organisation_ids}
+        if organisation_ids is not None
+        else {"everyone": True}
+    )
+    row = (
+        await db.scalars(select(FeatureFlag).where(FeatureFlag.key == key))
+    ).one_or_none()
+    if row is None:
+        db.add(FeatureFlag(key=key, enabled=enabled, audience=audience))
+    else:
+        row.enabled = enabled
+        row.audience = audience
+    await db.commit()
+    flag_service.clear_cache()
 
 
 @dataclass
@@ -24,6 +55,20 @@ class StripeStub:
     #: Status Stripe reports for the refunds it creates (``pending`` settles later).
     refund_status: str = "succeeded"
     checkout_id: str = "cs_test_1"
+    #: Refunds Stripe actually created, by Idempotency-Key. A repeated key gets the
+    #: stored answer back, as Stripe replays it, and creates no second refund.
+    refunds_by_key: dict[str, dict[str, Any]] = field(default_factory=dict)
+
+    @property
+    def refunds_created(self) -> int:
+        return len(self.refunds_by_key)
+
+    def refund_keys(self) -> list[str | None]:
+        return [
+            request.headers.get("Idempotency-Key")
+            for request in self.requests
+            if request.method == "POST" and request.url.path == "/v1/refunds"
+        ]
 
     def form(self, index: int = -1) -> dict[str, str]:
         parsed = parse_qs(self.requests[index].content.decode())
@@ -49,9 +94,17 @@ def stripe_env(monkeypatch: pytest.MonkeyPatch) -> StripeStub:
         if request.method == "POST" and request.url.path == "/v1/refunds":
             if stub.fail_refund:
                 return httpx.Response(402, json={"error": {"message": "nope"}})
-            return httpx.Response(
-                200, json={"id": "re_test_1", "status": stub.refund_status}
-            )
+            key = request.headers.get("Idempotency-Key")
+            if key is not None and key in stub.refunds_by_key:
+                # Stripe replays the stored answer for a key it has seen.
+                return httpx.Response(200, json=stub.refunds_by_key[key])
+            refund = {
+                "id": f"re_test_{stub.refunds_created + 1}",
+                "status": stub.refund_status,
+            }
+            if key is not None:
+                stub.refunds_by_key[key] = refund
+            return httpx.Response(200, json=refund)
         if request.method == "GET" and request.url.path.startswith(
             "/v1/checkout/sessions/"
         ):

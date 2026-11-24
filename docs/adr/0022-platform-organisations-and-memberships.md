@@ -42,6 +42,8 @@ assignments, and would not be an additive change.
 5. **Events organisers are backed by platform organisations.** The Events
    database stores `organisers.organisation_id` (no cross-database foreign key);
    legacy `organiser_members` stays a compatibility read.
+   (Note, 21 Nov 2026 (fact check; the decision is not changed): Events is now a schema in the main
+   database, ADR-0003, not a separate database.)
 6. **Workspaces are deferred** until a product needs a scope below the
    organisation.
 
@@ -55,7 +57,7 @@ assignments, and would not be an additive change.
 - The GAA staff platform keeps working unchanged. The bridge is not evidence of
   tenant isolation for HR.
 
-## Amended by ADR-0050 (2026-10-22, Proposed)
+## Amended by ADR-0050 (2026-10-22; ADR-0050 accepted 2026-11-15)
 
 Decision 4 stays true for `OrgContext`: it resolves the organisation from
 `X-Barrels-Organisation`, checks membership and role, and has no bypass. What

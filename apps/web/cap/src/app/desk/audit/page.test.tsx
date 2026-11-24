@@ -13,8 +13,11 @@ import Loading from "./loading";
 import AuditPage from "./page";
 
 const ALERT = "11111111-2222-4333-8444-555555555555";
-const STATE_CHANGE = /APPROVED → PUBLISHED/u;
-const ACTOR = /Actor: 33333333/u;
+const STATE_CHANGE = /Approved → Published/u;
+const ACTOR = /Actor: Staff member/u;
+const SYSTEM_ACTOR = /Actor: System/u;
+const RAW_USER_ID = /33333333/u;
+const NONE_WORD = /None/u;
 
 function event(overrides: Record<string, unknown> = {}) {
   return {
@@ -120,5 +123,32 @@ describe("/desk/audit", () => {
       page: 1,
       size: 25,
     });
+  });
+
+  it("labels a system action and a first draft in words, with no raw id", async () => {
+    api.listAuditEvents.mockResolvedValue({
+      count: 2,
+      data: [
+        event({
+          action: "expire",
+          actor_user_id: null,
+          next_state: "EXPIRED",
+          previous_state: "PUBLISHED",
+        }),
+        event({
+          action: "create",
+          next_state: "DRAFT",
+          previous_state: null,
+        }),
+      ],
+      page: 1,
+      size: 25,
+    });
+    render(await page());
+    expect(screen.getByText(SYSTEM_ACTOR)).toBeInTheDocument();
+    expect(screen.getByText("Published → Expired")).toBeInTheDocument();
+    expect(screen.getByText("Created as a draft")).toBeInTheDocument();
+    expect(screen.queryByText(RAW_USER_ID)).toBeNull();
+    expect(screen.queryByText(NONE_WORD)).toBeNull();
   });
 });

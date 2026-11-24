@@ -9,8 +9,8 @@ import {
 import { Building2, ListChecks, MapPin, Timer } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Panel, PanelEmpty } from "@/app/(admin)/_components/panel";
+import { NeedsAccess } from "@/components/access/needs-access";
 import {
   AwaitingFieldData,
   JanitorHeader,
@@ -48,7 +48,14 @@ export default async function JanitorPage({
   const site = siteParam((await searchParams).site);
   // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
   const access = await getJanitorialAccess();
-  if (!access.canView) notFound();
+  if (!access.canView) {
+    return (
+      <NeedsAccess
+        ask="Ask a Janitorial administrator for a janitorial role. Field staff use the janitor app."
+        module="Janitor"
+      />
+    );
+  }
   const catalogue = await getJanitorialCatalogue(site);
   const { buildings } = catalogue;
   const rows = flattenAreas(buildings);

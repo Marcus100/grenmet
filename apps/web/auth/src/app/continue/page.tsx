@@ -1,6 +1,8 @@
+import { BARRELS_SUPPORT_EMAIL } from "@barrelsgd/ui/lib/support";
 import type { Metadata, Route } from "next";
 import { unstable_noStore as noStore } from "next/cache";
 import { redirect } from "next/navigation";
+import { signOutAction } from "@/app/actions";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
 import {
   continuePath,
@@ -86,10 +88,30 @@ export default async function ContinuePage({ searchParams }: PageProps) {
       );
     case "unavailable":
       return (
-        <Notice title="Single sign-on isn't available">
-          This app can't use your Barrels account yet. Go back and sign in
-          there.
-        </Notice>
+        <AuthShell>
+          <AuthHeading title="This app is not set up for Barrels sign-in yet">
+            This is not something you did wrong, and signing in again will not
+            fix it. The app you tried to open has not been connected to Barrels
+            sign-in yet. Email {BARRELS_SUPPORT_EMAIL} and tell us which app you
+            were opening ({request.app}).
+          </AuthHeading>
+          <div className="grid grid-cols-2 gap-3">
+            <a
+              className="border-border hover:bg-muted inline-flex h-11 items-center justify-center rounded-lg border text-sm font-medium"
+              href="/"
+            >
+              Go to your account
+            </a>
+            <form action={signOutAction}>
+              <button
+                className="border-border hover:bg-muted h-11 w-full rounded-lg border text-sm font-medium"
+                type="submit"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
+        </AuthShell>
       );
     case "pending":
       return (

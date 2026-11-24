@@ -13,7 +13,8 @@ import {
 } from "@barrelsgd/ui/components/ui/sidebar";
 import Link from "next/link";
 import { useShallow } from "zustand/react/shallow";
-import { sidebarItems } from "@/navigation/sidebar-items";
+import { useCapDeskUrl } from "@/navigation/cap-desk-navigation";
+import { sidebarItemsForCapDesk } from "@/navigation/sidebar-items";
 import { NavMain } from "./nav-main";
 import { NavUser, type NavUserData } from "./nav-user";
 
@@ -30,6 +31,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     }))
   );
 
+  const deskUrl = useCapDeskUrl();
   const variant = isSynced ? sidebarVariant : props.variant;
   const collapsible = isSynced ? sidebarCollapsible : props.collapsible;
 
@@ -38,7 +40,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton render={<Link href="/" />} size="lg">
+            <SidebarMenuButton
+              aria-label="GAA Admin home"
+              render={<Link href="/" />}
+              size="lg"
+            >
               <span className="hidden items-center group-data-[collapsible=icon]:flex">
                 <Logo className="size-7 shrink-0" variant="icon" />
               </span>
@@ -53,7 +59,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           still see there is more menu); the shared `no-scrollbar` class is
           not defined, so Windows drew a full-width bar. */}
       <SidebarContent className="[scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]">
-        <NavMain items={sidebarItems} />
+        <NavMain items={sidebarItemsForCapDesk(deskUrl)} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

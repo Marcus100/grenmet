@@ -8,6 +8,8 @@ that have no server part. First user: the Printix organiser screen in
 `apps/pwa/printix`. Partly built: the per-app session cap and authenticator
 requirement are in `apps/api/fastapi/src/auth/apps.py`, and the app keeps its
 session in `sessionStorage` (`apps/pwa/printix/src/organiser/session.ts`).
+Amended by ADR-0063 (21 Nov 2026): a registered Shop Keeper or Salesbus till
+may stay signed in (noted 21 Nov 2026).
 
 ## Context
 
@@ -88,6 +90,7 @@ What already exists and is reused:
 7. One-time steps that need the account site (accepting an invitation, adding an
    authenticator) stay on the Barrels account site, `account.barrels.gd`
    (ADR-0057; owner accepted this for Printix before December).
+   (Note, 24 Nov 2026 (fact check; the decision is not changed): Today both are on the sign-in site: the Security page `auth.barrels.gd/security` (`apps/web/auth/src/app/security`) and the invitation link `auth.barrels.gd/organisations/accept`; ADR-0057 step 2 has not moved them to `account.barrels.gd`.)
 8. The app's address is on the API's CORS allow-list (`BACKEND_CORS_ORIGINS`).
 
 ## Consequences

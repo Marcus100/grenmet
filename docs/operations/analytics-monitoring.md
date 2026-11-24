@@ -21,8 +21,17 @@ Configured does not mean Google has received an event. Browser analytics is prod
 
 Weather, Docs, MBIA, Signal, Elections and public Events discovery pages mount the shared consent provider.
 Barrels' static build emits the same consent policy and Google transport as
-browser modules, with no framework dependency. Events collects only home, event and group discovery pages; its organiser console,
-member pages and sign-in remain excluded alongside Auth, Admin and CMS.
+browser modules, with no framework dependency. The consent provider (GA4 and the
+consent-gated PostHog provider) collects only home, event and group discovery pages on
+Events; its organiser console, member pages and sign-in remain excluded from it, alongside
+Auth, Admin and CMS. The owner's 22 Nov 2026 decision supersedes that exclusion for the
+cookieless signed-in funnels only, described in
+[Signed-in funnels](#signed-in-funnels-cookieless-posthog). Those funnels send only
+the named events listed there, from the bookings business pages, the Events event page,
+ticket checkout and order confirmation, and the account sign-in pages. They carry only
+allow-listed ids and enums. They never send names, emails, free text or URLs, and they run only on
+production `barrels.gd` hosts with the production build. The consent provider and GA4 stay
+as they were.
 
 For each additional public site, create/select its own GA4 property and web
 stream, record its `G-…` ID and exact origin under the production environment
@@ -136,6 +145,37 @@ operational services. Personal and NISA sites remain outside this repository.
 Deploy the rebuilt Docker sites through staging and production; deploy Barrels
 and Elections through their separate Cloudflare Pages projects before claiming activation.
 
+## Signed-in funnels (cookieless PostHog)
+
+Owner decision, 22 Nov 2026: the signed-in funnels in bookings, events and
+account use cookieless PostHog. This section is the policy. The allowed events
+are exactly these, and nothing else is sent from these pages:
+
+| App | Pages | Events |
+| --- | --- | --- |
+| bookings | business booking page | `page_view` (page `business`), `service_selected`, `slot_selected`, `booking_submitted`, `booking_confirmed` |
+| events | event page; ticket checkout and order confirmation | `page_view` (page `event`), `event_viewed`, `checkout_started`, `order_completed` |
+| account | sign-in hand-off | `sign_in_started`, `sign_in_completed` |
+
+Each event carries only allow-listed ids and enums: the business slug, service
+id, listing id, the page name and the app. Never a name, email, phone number,
+free text, query string, path or URL. Unknown keys are dropped.
+Events of the signed-in pages do not run unless the build is production
+(`NEXT_PUBLIC_ENVIRONMENT=production`) on a production `barrels.gd` host. Staging,
+localhost and preview hosts send nothing. Do Not Track (`1` or `yes`) and Global
+Privacy Control switch collection off.
+
+The funnels are sent with `@barrelsgd/ui/lib/funnel-analytics`: a `fetch` to
+PostHog's capture endpoint, with no SDK, no cookie and no web storage. The
+kill switch is `NEXT_PUBLIC_FUNNEL_ANALYTICS_ENABLED` set to `false`, `0`, `off`
+or `no` (any case). Nothing is stored on the device, so the consent provider
+above is not involved. Whether that is enough in each market is the owner's
+decision. PostHog still receives each request's IP address; `$geoip_disable`
+stops the location lookup, not the receipt of the address. The key belongs to
+production only. Settings and the deploy note are in
+[docs/env.md](../env.md#funnel-analytics-bookings-events-account). This does not
+change the PostHog mappings in the service catalogue, which stay empty.
+
 ## Operational collection
 
 FastAPI request logs now use registered route templates, status and duration;
@@ -183,14 +223,18 @@ It does not pretend that an empty production error query proves working delivery
 ## Production monitoring as code (2026-10-20)
 
 All resources live in [`scripts/monitoring/betterstack.json`](../../scripts/monitoring/betterstack.json).
-Production monitors and the production probe-runner and backup heartbeats are on (`paused: false`);
-the worker-poll heartbeat and the deferred monitors stay paused.
+Production monitors and all three production heartbeats (probe runner, backup,
+worker poll) are declared on (`paused: false`); the deferred monitors stay paused.
+The owner unpauses the worker-poll heartbeat in Better Stack (22 Nov 2026).
+The catalogue records each adopted ID in `availability.monitorId` and
+`operations.production.*.heartbeatId`; `test_monitoring.py` fails if they drift.
 
 | Kind | Name (`Production · …`) | Target | Check |
 | --- | --- | --- | --- |
 | Monitor | GAA API readiness | `https://api.barrels.gd/api/v1/utils/ready/` | keyword `"status":"ready"` |
-| Monitor | Barrels ID (auth), GAA staff portal, GMS weather, CAP alert hub, GMS dashboard, MBIA health | `https://{auth,admin,weather,cap,gmsdash,mbia}.barrels.gd/api/health` | HTTP 2xx |
-| Monitor (to create) | CMS readiness, Events health, Bookings health | `cms…/api/ready`, `events…/api/health`, `bookings…/api/health` | created paused, then unpaused (see Swap below) |
+| Monitor | Barrels ID (auth), GAA staff portal, GMS weather, CAP alert hub, GMS dashboard, MBIA health | `https://{auth,gms,weather,cap,gmsdash,mbia}.barrels.gd/api/health` | HTTP 2xx |
+| Monitor | Bookings (5279837) | `https://bookings.barrels.gd/babydoll-beauty-bar` (the storefront) | HTTP 2xx |
+| Monitor (to create) | CMS readiness, Events health | `cms…/api/ready`, `events…/api/health` | created paused, then unpaused (see Swap below) |
 | Monitor (deferred) | GMS docs, Signal, Elections health, Barrels homepage | `docs…/api/health`, `signal…/api/health`, `https://elections.barrels.gd/` (static on Cloudflare Pages), `https://barrels.gd/` | covered by the probe runner until quota allows |
 | Heartbeat | probe runner | `PROBE_HEARTBEAT_URL` | 5 min + 10 min grace |
 | Heartbeat | verified core backup | `BACKUP_HEARTBEAT_URL` | 24 h + 2 h grace |
@@ -203,10 +247,12 @@ certificate expiry (`ssl_expiration`); email and phone push (the owner's channel
 deleted that day, so staging availability is covered by the probe runner and its
 heartbeat only, and `limitsVerified` is true. `deferred: true`
 resources are validated but never created; remove the flag when a slot frees up.
-`apps/web/admin` (Barrels control plane) is deployed with the 2026-10-21 admin host move and has no
-monitor yet (the staff-portal monitor now probes `gms.barrels.gd`). Babydoll
-(`babydoll.barrels.gd`, Cloudflare Pages client site, no Sentry) is in the service
-catalogue and covered by the probe runner only.
+`apps/web/admin` (Barrels control plane, `admin.barrels.gd`) has no Better Stack
+monitor (the staff-portal monitor probes `gms.barrels.gd`); it is covered by the
+probe runner and reports to the shared Sentry projects (`SENTRY_DSN_ADMIN`, rendered
+from the environment's DSN secret). Babydoll (`babydoll.barrels.gd`), Commit
+(`commit.barrels.gd`) and the Printix scanner (`scan.barrels.gd`) are Cloudflare
+Pages sites without Sentry, in the service catalogue and covered by the probe runner only.
 
 **Apply:** after checking the Better Stack plan, set `"limitsVerified": true`,
 then dispatch **Monitoring provider configuration** from a production release tag
@@ -220,7 +266,9 @@ and Elections give their slots to CMS, Events and Bookings, which are
 server-hosted and transactional. Paused monitors still count against the plan,
 so first delete the three old monitors in Better Stack (IDs 5237467 GMS docs,
 5237469 Signal, 5237470 Elections; the plan refuses the creates until they are
-gone), then run the preview and apply above and adopt the three new IDs. Until
+gone), then run the preview and apply above and adopt the new IDs. Bookings was
+adopted as the storefront monitor 5279837 (created in Better Stack, 22 Nov 2026),
+so only CMS and Events remain to create. Until
 then, and for the three retired sites afterwards, the probe runner is their only
 uptime check. Unpause the new monitors as the Apply paragraph says.
 
@@ -247,12 +295,25 @@ failures.
 `grenmet-<environment>`, matching `SENTRY_RELEASE` and `NEXT_PUBLIC_RELEASE`). It
 is skipped without `SENTRY_AUTH_TOKEN` and never fails a deploy.
 
-The worker sends Sentry Cron check-ins for `process_cap_jobs`, `ingest_cap_feeds`,
-`drain_outbox`, `purge_expired_data`, `enqueue_booking_reminders` and
-`expire_unpaid_bookings` (slugs
-`<environment>-worker-<job>`, e.g. `production-worker-drain-outbox`) only when
-`SENTRY_CRONS_ENABLED=true` reaches the worker; check the plan's included cron
-monitors first. Sentry creates the monitors from the first check-ins.
+The worker sends Sentry Cron check-ins for every scheduled job (slugs
+`<environment>-worker-<job>`, e.g. `production-worker-drain-outbox`; the list is
+the `MONITORED` registry in `src/worker/cron_monitor.py`, checked against the ARQ
+schedule by `tests/worker/test_cron_monitor.py`) only when
+`SENTRY_CRONS_ENABLED=true` reaches the worker. Each job is one Sentry cron monitor,
+so check the plan's included cron monitors before turning it on. Sentry creates the
+monitors from the first check-ins.
+
+Ingest freshness: `GET /api/v1/monitoring/admin/freshness` (see
+[contracts](../api/contracts.md#ingest-freshness-and-email-backlog-monitoring-22-nov-2026))
+returns `healthy: true` only when every enabled ingest feed ran inside its window and
+the email outbox has no stale or dead rows. It is for staff and a future staff screen,
+not for an uptime monitor: it needs a signed-in superuser token, and those tokens expire
+within an hour, so a monitor that sent one would alarm. Success times need
+`TELEMETRY_ENABLED=true` on the worker and API (they live in Redis). The uptime monitor
+uses `GET /api/v1/monitoring/admin/freshness/probe` with a bearer secret in
+`MONITORING_PROBE_TOKEN` (issue #1718): HTTP 200 when healthy, 503 naming the failing
+checks otherwise. Better Stack keyword `"healthy":true` also works, but a 503 alone already
+alarms.
 
 Create these alert rules in each Sentry project (`grenmet-staging`,
 `grenmet-production`), email to the owner:

@@ -9,3 +9,213 @@
    so the reused primitives' utilities are generated (docs/design-system.md). */
 @source "../../node_modules/@barrelsgd/ui/src";
 @source "../../node_modules/@barrelsgd/bookings-web/src";
+
+/* Home page ground (docs/design/bookings.md, "Home page"): the near-white the
+   cards sit on. Token: --color-ground. */
+@theme inline {
+  --color-ground: #fbfbfc;
+}
+
+/* The sticky search pill and the floating bottom bar on the home page must not
+   hide a focused control. */
+html {
+  scroll-padding-top: 6rem;
+}
+@media (max-width: 47.99rem) {
+  html {
+    scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Home page motion. CSS only; only transform and opacity ever animate. Curves
+   are tokens. Every element is clickable the moment it is visible (fill mode
+   `both`, no pointer-events tricks). Entrances: one per container. */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* Fade and move in from (--x, --y); both default to a plain 16 px rise. */
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translate(var(--x, 0), var(--y, 16px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes reveal-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes drift-a {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(18%, 12%);
+  }
+}
+@keyframes drift-b {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(-16%, -14%);
+  }
+}
+@keyframes search-lift {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The chosen type tile's inner ring is a pseudo-element, so it can fade. */
+.chosen-ring::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 3px #fff;
+}
+/* The stronger shadow under the sticky search pill, shown once scrolled. */
+.search-pill::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  border-radius: 9999px;
+  box-shadow: 0 10px 30px rgb(17 24 39 / 0.22);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Press feedback on cards, tiles and pills: a transition, not a keyframe. */
+  .press {
+    transition: transform 140ms var(--ease-out);
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
+  .lift:active {
+    transform: scale(0.97);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .lift:hover {
+      transform: translateY(-4px);
+      transition-duration: 200ms;
+    }
+    /* Pressing while hovered still presses (same specificity, later rule). */
+    .lift:hover:active {
+      transform: scale(0.97);
+    }
+  }
+
+  /* First load: the hero card enters as one thing; rail cards arrive from the
+     right with shrinking gaps (--d, --x, --y are set on each card). */
+  .enter {
+    animation: enter var(--dur, 500ms) var(--ease-out) var(--d, 0ms) both;
+  }
+  .enter-fade {
+    animation: fade var(--dur, 400ms) var(--ease-out) var(--d, 0ms) both;
+  }
+  .chosen-ring::after {
+    animation: fade 150ms var(--ease-out) both;
+  }
+
+  /* Two soft shapes drift in the hero once it has entered. */
+  .drift-a {
+    animation: drift-a 24s linear 600ms infinite alternate both;
+  }
+  .drift-b {
+    animation: drift-b 31s linear 600ms infinite alternate both;
+  }
+
+  .rail {
+    scroll-behavior: smooth;
+  }
+
+  /* Below the fold, shown once as they scroll into view. Where scroll-driven
+     animation is unsupported everything is simply at rest. --o shifts the end
+     of each of the first six tiles' range a little (shrinking gaps). */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-scale linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry calc(35% + var(--o, 13) * 1%);
+    }
+    .reveal-rise {
+      animation: reveal-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+    .search-pill::after {
+      animation: search-lift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 120px;
+    }
+  }
+
+  /* Moving between pages: a 200 ms cross-fade, the search pill stays put, and
+     a card's name glides to the business page's heading. */
+  @view-transition {
+    navigation: auto;
+  }
+  .vt-search {
+    view-transition-name: search;
+  }
+  .vt-biz {
+    view-transition-name: var(--vt);
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 200ms;
+    animation-timing-function: var(--ease-out);
+  }
+  ::view-transition-group(*) {
+    animation-duration: 350ms;
+    animation-timing-function: var(--ease-in-out);
+  }
+  ::view-transition-group(root) {
+    animation-duration: 200ms;
+  }
+}
+
+/* Reduced motion: no movement, no delays, no ambience, no named transitions.
+   The hero and the rail still settle with a short fade. */
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .enter-fade {
+    animation: fade 200ms var(--ease-out) both;
+  }
+}

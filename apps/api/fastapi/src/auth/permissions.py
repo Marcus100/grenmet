@@ -161,6 +161,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "See the values of sensitive fields (medical, address, contact) in change history",
     ),
     PermissionDef(
+        "audit.entries.read",
+        "Read the global audit log for the admin audit screen; sensitive values stay masked unless audit.view_sensitive is held",
+    ),
+    PermissionDef(
         "notifications.manage",
         "Configure organisation notifications: on/off, recipients, wording, timings",
     ),
@@ -168,6 +172,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef(
         "billing.manage",
         "Manage Barrels invoicing: customers, invoices, manual payments and receivables",
+    ),
+    PermissionDef(
+        "billing.subscriptions.manage",
+        "Start Barrels app subscription checkouts and see subscription status for an organisation (ADR-0065)",
     ),
     # Platform — Barrels rewards
     PermissionDef(
@@ -206,6 +214,18 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "API key: change Barrels Payments data",
         binding="organisation",
     ),
+    # Stripe Connect (ADR-0027, New Zealand, test mode): the business's own card
+    # setup and its disputes. Owners and admins hold it through entitlement.
+    PermissionDef(
+        "payments.connect.manage",
+        "Set up card payments for the organisation (Stripe onboarding and status) and see its disputes",
+        binding="organisation",
+    ),
+    # Barrels-side: the platform fee on a business's card payments (superusers).
+    PermissionDef(
+        "payments.connect.fees",
+        "Set the Barrels platform fee on an organisation's card payments (New Zealand only)",
+    ),
     PermissionDef(
         "webhooks.read", "API key: read Barrels Webhooks data", binding="organisation"
     ),
@@ -218,6 +238,12 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef(
         "feature_flags.manage",
         "Create, change and delete feature flags and their audience rules",
+    ),
+    # Platform — monitoring (ingest freshness and email backlog; counts and times only).
+    # No default role holds it: superusers read it, and staff gain it only by assignment.
+    PermissionDef(
+        "monitoring.freshness.read",
+        "Read ingest freshness and the email outbox backlog for uptime monitors and the staff monitoring screen",
     ),
     # Printix ticket registry (ADR-0060). Only superusers with two-step sign-in
     # reach the routes; a role holding this key does not reach them.

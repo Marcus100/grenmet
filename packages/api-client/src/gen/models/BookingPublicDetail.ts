@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingAddOnLine } from "./BookingAddOnLine.js";
 import type { BookingBusinessContact } from "./BookingBusinessContact.js";
 import type { BookingPaymentSummary } from "./BookingPaymentSummary.js";
 import type { BookingStatus } from "./BookingStatus.js";
@@ -19,6 +20,12 @@ export type BookingPublicDetail = {
    */
   id: string;
   status: BookingStatus;
+  /**
+   * @description The business's display name, as its public booking page shows it.
+   * @default ''
+   * @type string | undefined
+   */
+  business_name?: string;
   /**
    * @description
    * Format: `uuid`
@@ -52,6 +59,16 @@ export type BookingPublicDetail = {
   currency: string;
   cancel_cutoff_hours: number;
   /**
+   * @description This booking's terms: true when a deposit paid on a confirmed booking is kept on cancellation. Set when the booking was made.
+   * @default false
+   * @type boolean | undefined
+   */
+  deposit_non_refundable?: boolean;
+  /**
+   * @description The business's plain-text booking policy, or null when it has none.
+   */
+  booking_policy?: string | null;
+  /**
    * @description True while the booking is active and before the cancellation cutoff.
    * @type boolean
    */
@@ -69,4 +86,13 @@ export type BookingPublicDetail = {
    * @description Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account.
    */
   account_invite_url?: string | null;
+  /**
+   * @description While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise.
+   */
+  hold_ends_at?: string | null;
+  /**
+   * @description The add-ons booked with the service. `starts_at`..`ends_at` include them.
+   * @type array | undefined
+   */
+  add_ons?: BookingAddOnLine[];
 };

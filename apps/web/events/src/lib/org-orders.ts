@@ -3,6 +3,7 @@ import type {
   OrgOrderDetail,
   OrgOrderRow,
 } from "@barrelsgd/api-client";
+import { currencySymbol } from "@/domain/money";
 import type { RefundTerms } from "@/domain/types";
 import { refundSummary } from "@/lib/refund-terms";
 
@@ -102,9 +103,15 @@ const CODE_MONEY = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-/** The amount with its ISO code and no symbol: "XCD 150.00", "EUR 25.00". */
-export function formatOrderMoneyCode(minor: number, currency: string): string {
-  return `${currency} ${CODE_MONEY.format(minor / MINOR_PER_MAJOR)}`;
+/**
+ * Organiser money in the same form as the public site and tickets: "EC$150.00"
+ * for Eastern Caribbean dollars. A currency with no known symbol keeps its ISO
+ * code ("EUR 25.00"), so an unknown code is never given a guessed symbol.
+ */
+export function formatOrderMoney(minor: number, currency: string): string {
+  const symbol = currencySymbol(currency);
+  const amount = CODE_MONEY.format(minor / MINOR_PER_MAJOR);
+  return symbol ? `${symbol}${amount}` : `${currency} ${amount}`;
 }
 
 /** "stripe" -> "Stripe", "partially_refunded" -> "Partially refunded". */
@@ -273,7 +280,7 @@ export function friendlyOrgError(
     }
     const left = detail ? REFUND_LEFT.exec(detail) : null;
     if (left?.[1]) {
-      return `Only ${formatOrderMoneyCode(Number(left[1]), currency)} can still be refunded. Reload the page to see the current amount.`;
+      return `Only ${formatOrderMoney(Number(left[1]), currency)} can still be refunded. Reload the page to see the current amount.`;
     }
     return detail ?? "That can't be done in the order's current state.";
   }

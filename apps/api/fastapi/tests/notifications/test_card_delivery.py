@@ -56,7 +56,9 @@ async def test_card_row_is_sent_once_with_html_and_text_when_render_service_is_d
     _enable_email(monkeypatch)
     monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", "http://render.test")
 
-    async def boom(_template: str, _props: dict[str, object]) -> object:
+    async def boom(
+        _template: str, _props: dict[str, object], *, timeout_seconds: float = 10.0
+    ) -> object:
         raise RuntimeError("render service down")
 
     monkeypatch.setattr(email_module, "render_remote", boom)
@@ -86,7 +88,9 @@ async def test_card_row_uses_the_render_service_result_and_passes_its_text(
     _enable_email(monkeypatch)
     monkeypatch.setattr(email_settings, "EMAIL_RENDER_URL", "http://render.test")
 
-    async def fake_render(template: str, props: dict[str, object]) -> object:
+    async def fake_render(
+        template: str, props: dict[str, object], *, timeout_seconds: float = 10.0
+    ) -> object:
         assert template == layout.CARD_TEMPLATE
         assert props["title"] == "Your booking is confirmed"
         return SimpleNamespace(

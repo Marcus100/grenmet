@@ -16,7 +16,7 @@ import {
 import { QrCode } from "lucide-react";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { NeedsAccess } from "@/components/access/needs-access";
 import {
   AppaBadge,
   CadenceBadge,
@@ -65,7 +65,14 @@ export default async function JanitorAreasPage({
   };
   // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
   const access = await getJanitorialAccess();
-  if (!access.canView) notFound();
+  if (!access.canView) {
+    return (
+      <NeedsAccess
+        ask="Ask a Janitorial administrator for a janitorial role. Field staff use the janitor app."
+        module="Janitor"
+      />
+    );
+  }
   const { buildings } = await getJanitorialCatalogue(site);
   const all = flattenAreas(buildings);
   const active = all.filter((row) => row.active);

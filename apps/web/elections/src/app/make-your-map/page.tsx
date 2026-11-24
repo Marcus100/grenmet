@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PreElectionNote } from "@/components/election/pre-election-note";
 import {
   type PredictionSeat,
   PredictionTool,
@@ -60,6 +61,7 @@ export default function YourPredictionPage() {
 
   return (
     <>
+      <PreElectionNote />
       <PageHead
         deck={
           <>

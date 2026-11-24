@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NewsletterSignup } from "@/components/pages/newsletter-signup";
 
@@ -100,5 +101,28 @@ describe("NewsletterSignup", () => {
       "Too many attempts."
     );
     expect(captureEvent).not.toHaveBeenCalled();
+  });
+});
+
+const BUTTON_TAG = /<button\b[^>]*>/gu;
+const NEEDS_JS = /This form needs JavaScript/u;
+
+describe("NewsletterSignup before the page script runs", () => {
+  it("keeps submit off and says it needs JavaScript in the server markup", () => {
+    const html = renderToString(<NewsletterSignup />);
+    const submit = (html.match(BUTTON_TAG) ?? []).find((tag) =>
+      tag.includes('type="submit"')
+    );
+    expect(submit).toBeDefined();
+    expect(submit).toContain('disabled=""');
+    expect(html).toMatch(NEEDS_JS);
+  });
+
+  it("enables submit once the page has hydrated", async () => {
+    render(<NewsletterSignup />);
+    const button = screen.getByRole("button", {
+      name: "Email me the newsletter",
+    });
+    await waitFor(() => expect(button).toBeEnabled());
   });
 });

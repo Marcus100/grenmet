@@ -16,8 +16,15 @@ vi.mock("@/lib/session", () => ({
 vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
   getAgenda: vi.fn(),
-  getBusinessTimezone: vi.fn(),
+  getBusinessProfile: vi.fn(),
+  getProfile: vi.fn(),
+  getSettings: vi.fn(),
   listProviders: vi.fn(),
+}));
+vi.mock("@/lib/studio-pending", () => ({
+  loadBusinessProfile: (token: string, organisationId: string) =>
+    getBusinessProfile(token, organisationId),
+  loadPendingRequests: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
@@ -31,16 +38,36 @@ vi.mock("next/navigation", () => ({
 import {
   findOrganisation,
   getAgenda,
-  getBusinessTimezone,
+  getBusinessProfile,
+  getSettings,
   listProviders,
 } from "@/lib/studio-api";
+import { loadPendingRequests } from "@/lib/studio-pending";
 import AgendaPage from "./page";
 
+/** A business with nothing set up yet: every checklist step is open. */
+const NOTHING_SET_UP = {
+  profile: null,
+  services: [],
+  providers: [],
+  deposits_available: false,
+};
+
 const params = Promise.resolve({ orgSlug: "sea-salt" });
+/** The studio slug is "sea-salt"; customers book at a different public slug. */
+const PUBLIC_SLUG = "sea-salt-spa";
+
+function profile(
+  timezone: string,
+  publicSlug: string | null = PUBLIC_SLUG
+): { currency: string; publicSlug: string | null; timezone: string } {
+  return { currency: "XCD", publicSlug, timezone };
+}
 const search = (query: Record<string, string> = {}) => Promise.resolve(query);
 const ADA = /Ada Lovelace/u;
 const GRACE = /Grace Hopper/u;
 const RETIRED = /with Retired Rae/u;
+const CHECKLIST = /Complete your setup/u;
 const BOOKING = "22222222-2222-4222-8222-222222222222";
 
 function item(overrides: Partial<BookingAgendaItem> = {}): BookingAgendaItem {
@@ -92,12 +119,86 @@ beforeEach(() => {
     role: "member",
   });
   vi.mocked(getAgenda).mockReset();
-  vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+  vi.mocked(loadPendingRequests).mockReset();
+  vi.mocked(loadPendingRequests).mockResolvedValue({
+    ...agenda([]),
+    total: 0,
+  });
+  vi.mocked(getSettings).mockReset();
+  vi.mocked(getSettings).mockResolvedValue({
+    ...NOTHING_SET_UP,
+  } as never);
+  vi.mocked(getBusinessProfile).mockResolvedValue(profile("America/Grenada"));
   vi.mocked(listProviders).mockResolvedValue([
     provider(PROVIDER_ID, "Maya"),
     provider("66666666-6666-4666-8666-666666666666", "Kofi"),
     provider("88888888-8888-4888-8888-888888888888", "Retired Rae", false),
   ]);
+});
+
+describe("setup checklist", () => {
+  it("shows the open steps for an owner with nothing set up, each with a Do this link", async () => {
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    vi.mocked(getSettings).mockResolvedValue(NOTHING_SET_UP as never);
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.getByText(CHECKLIST)).toBeInTheDocument();
+    expect(screen.getByText("0 of 5 steps done.")).toBeInTheDocument();
+    const links = screen.getAllByRole("link", { name: "Do this" });
+    expect(links).toHaveLength(5);
+    expect(links[0]).toHaveAttribute("href", "/studio/sea-salt/services");
+    expect(links[1]).toHaveAttribute("href", "/studio/sea-salt/settings#hours");
+  });
+
+  it("is not shown to a member, and its settings are not read", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.queryByText(CHECKLIST)).not.toBeInTheDocument();
+    expect(getSettings).not.toHaveBeenCalled();
+  });
+
+  it("is not shown once every step is done", async () => {
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "admin",
+    });
+    vi.mocked(getSettings).mockResolvedValue({
+      profile: {
+        public_slug: "sea-salt-spa",
+        enabled: true,
+        brand_color: "#0b63ee",
+        logo_file_id: null,
+        payment_at_booking: "deposit",
+      },
+      services: [{ id: "s1" }],
+      providers: [{ id: PROVIDER_ID, working_hours: [{}] }],
+      deposits_available: false,
+    } as never);
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.queryByText(CHECKLIST)).not.toBeInTheDocument();
+  });
+
+  it("is left out, without hiding the agenda, when the settings cannot be read", async () => {
+    vi.mocked(findOrganisation).mockResolvedValue({
+      id: ORG_ID,
+      name: "Sea Salt Spa",
+      slug: "sea-salt",
+      role: "owner",
+    });
+    vi.mocked(getSettings).mockRejectedValue(apiError(500));
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(screen.queryByText(CHECKLIST)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Agenda" })).toBeInTheDocument();
+  });
 });
 
 describe("studio agenda", () => {
@@ -108,7 +209,9 @@ describe("studio agenda", () => {
     vi.setSystemTime(new Date("2026-10-22T02:30:00Z"));
     try {
       vi.mocked(getAgenda).mockResolvedValue(agenda([]));
-      vi.mocked(getBusinessTimezone).mockResolvedValue("Pacific/Auckland");
+      vi.mocked(getBusinessProfile).mockResolvedValue(
+        profile("Pacific/Auckland")
+      );
       render(await AgendaPage({ params, searchParams: search() }));
       expect(getAgenda).toHaveBeenLastCalledWith(
         "tok",
@@ -116,7 +219,9 @@ describe("studio agenda", () => {
         expect.objectContaining({ fromDate: "2026-10-22" })
       );
       cleanup();
-      vi.mocked(getBusinessTimezone).mockResolvedValue("America/Grenada");
+      vi.mocked(getBusinessProfile).mockResolvedValue(
+        profile("America/Grenada")
+      );
       render(await AgendaPage({ params, searchParams: search() }));
       expect(getAgenda).toHaveBeenLastCalledWith(
         "tok",
@@ -199,7 +304,8 @@ describe("studio agenda", () => {
     const second = screen.getByRole("link", { name: GRACE });
     expect(within(second).getByText("Awaiting deposit")).toBeInTheDocument();
     expect(within(second).getByText("Deposit due")).toBeInTheDocument();
-    expect(screen.queryByRole("button")).toBeNull();
+    // No actions on the list itself (the page header has its own Copy link button).
+    expect(first.closest("ul")?.querySelector("button")).toBeNull();
   });
 
   it("shows the whole week, quiet days included, and the provider filter", async () => {
@@ -276,7 +382,7 @@ describe("studio agenda", () => {
     ).rejects.toHaveProperty("message", "NEXT_NOT_FOUND");
   });
 
-  it("always renders all seven days for an empty week, with the set-up link", async () => {
+  it("always renders all seven days for an empty week, with the booking page link", async () => {
     vi.mocked(getAgenda).mockResolvedValue(agenda([]));
     render(
       await AgendaPage({
@@ -287,15 +393,62 @@ describe("studio agenda", () => {
     expect(screen.getByText("No bookings this week")).toBeInTheDocument();
     expect(screen.getAllByText("No bookings.")).toHaveLength(7);
     expect(
-      screen.getByRole("link", { name: "See how online booking works" })
-    ).toHaveAttribute("href", "/");
+      screen.getByRole("link", { name: "Open your booking page" })
+    ).toHaveAttribute("href", `/${PUBLIC_SLUG}`);
   });
 
-  it("links to how online booking works from an empty day", async () => {
+  it("sends an empty day to the customers' page, not the marketing home", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    const link = screen.getByRole("link", { name: "Open your booking page" });
+    expect(link).toHaveAttribute("href", `/${PUBLIC_SLUG}`);
+    expect(
+      screen.queryByRole("link", { name: "See how online booking works" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("sends an empty day to Settings until the booking page has an address", async () => {
+    vi.mocked(getBusinessProfile).mockResolvedValue(
+      profile("America/Grenada", null)
+    );
     vi.mocked(getAgenda).mockResolvedValue(agenda([]));
     render(await AgendaPage({ params, searchParams: search() }));
     expect(
-      screen.getByRole("link", { name: "See how online booking works" })
+      screen.getByRole("link", { name: "Set up your booking page" })
+    ).toHaveAttribute("href", "/studio/sea-salt/settings");
+    expect(
+      screen.queryByRole("heading", { name: "Your booking page" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the customers' address and says the studio address is for staff", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(
+      screen.getByRole("heading", { name: "Your booking page" })
+    ).toBeInTheDocument();
+    expect(screen.getByText(`/${PUBLIC_SLUG}`)).toBeInTheDocument();
+    expect(screen.getByText("/studio/sea-salt")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View my page" })).toHaveAttribute(
+      "href",
+      `/${PUBLIC_SLUG}`
+    );
+    expect(
+      screen.getByRole("button", { name: "Copy link" })
+    ).toBeInTheDocument();
+  });
+
+  it("keeps Day, Week and the date steps in one navigation row", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    const dates = screen.getByRole("navigation", { name: "Change date" });
+    const views = screen.getByRole("navigation", { name: "Agenda view" });
+    expect(dates.parentElement).toBe(views.parentElement);
+    expect(
+      within(dates).getByRole("link", { name: "Prev" })
+    ).toBeInTheDocument();
+    expect(
+      within(views).getByRole("link", { name: "Week" })
     ).toBeInTheDocument();
   });
 
@@ -369,5 +522,70 @@ describe("studio agenda", () => {
     render(await AgendaPage({ params, searchParams: search() }));
     expect(screen.getByRole("alert")).toHaveTextContent("Choose another day");
     expect(reportError).not.toHaveBeenCalled();
+  });
+});
+
+describe("needs confirming", () => {
+  const pendingItem = item({
+    id: "99999999-9999-4999-8999-999999999999",
+    customer_name: "Grace Hopper",
+    status: "pending",
+  });
+
+  it("says nothing is waiting, keeping the heading, when there are none", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(
+      screen.getByRole("heading", { name: "Needs confirming" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Nothing waiting.")).toBeInTheDocument();
+  });
+
+  it("lists waiting bookings above everything else, with the count and a link to each", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    vi.mocked(loadPendingRequests).mockResolvedValue({
+      ...agenda([{ day: "2026-10-21", bookings: [pendingItem] }]),
+      total: 1,
+    });
+    render(await AgendaPage({ params, searchParams: search() }));
+    const block = screen.getByRole("region", {
+      name: "Needs confirming (1)",
+    });
+    const row = within(block).getByRole("link", { name: GRACE });
+    expect(row).toHaveAttribute(
+      "href",
+      "/studio/sea-salt/bookings/99999999-9999-4999-8999-999999999999"
+    );
+    expect(row).toHaveTextContent("Deep tissue massage");
+    const headings = screen
+      .getAllByRole("heading")
+      .map((heading) => heading.textContent);
+    expect(headings.indexOf("Needs confirming (1)")).toBeLessThan(
+      headings.indexOf("Your booking page")
+    );
+  });
+
+  it("reads the waiting list on the business's own calendar", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    await AgendaPage({ params, searchParams: search() });
+    expect(loadPendingRequests).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      "America/Grenada"
+    );
+  });
+
+  it("keeps the agenda and explains when the waiting list cannot be read", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    vi.mocked(loadPendingRequests).mockRejectedValue(apiError(500));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(
+      screen.getByRole("heading", { name: "Needs confirming" })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(reportError).toHaveBeenCalledWith(expect.anything(), "studio");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Agenda"
+    );
   });
 });

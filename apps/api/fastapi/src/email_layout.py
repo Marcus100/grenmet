@@ -21,15 +21,13 @@ from typing import Any, NamedTuple
 from urllib.parse import urlencode, urlsplit
 
 from src import email as email_module
+from src.email_colour import NAVY, safe_accent
 from src.email_config import email_settings
 
 logger = logging.getLogger(__name__)
 
-NAVY = "#0b132b"
-MIN_CONTRAST = 4.5
 PAGE_BACKGROUND = "#f3f8fc"
 _FONT = "Arial,Helvetica,sans-serif"
-_HEX = re.compile(r"#[0-9a-fA-F]{6}")
 _UNSAFE_URL_CHARS = re.compile(r"[\x00-\x20\x7f]")
 _CALENDAR = "https://calendar.google.com/calendar/render"
 BODY_TEXT = "font-size:16px;line-height:24px;color:#374151;"
@@ -109,6 +107,9 @@ class RenderedEmail(NamedTuple):
 
 #: The React Email template every card is rendered with (packages/email-templates).
 CARD_TEMPLATE = "card"
+#: A hung render service must not hold up each card mail inside the outbox
+#: transaction; the Python fallback is the safety net.
+CARD_RENDER_TIMEOUT_SECONDS = 3.0
 
 
 # ── Values ────────────────────────────────────────────────────────────────────
@@ -133,27 +134,6 @@ def safe_url(value: str | None) -> str | None:
     if parts.scheme not in ("http", "https") or not parts.netloc:
         return None
     return value
-
-
-def _luminance(colour: str) -> float:
-    def channel(index: int) -> float:
-        value = int(colour[index : index + 2], 16) / 255
-        if value <= 0.03928:
-            return value / 12.92
-        return float(((value + 0.055) / 1.055) ** 2.4)
-
-    return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5)
-
-
-def contrast_with_white(colour: str) -> float:
-    return 1.05 / (_luminance(colour) + 0.05)
-
-
-def safe_accent(value: str | None) -> str:
-    """A six-digit hex accent that clears 4.5:1 against white, else the navy."""
-    if value and _HEX.fullmatch(value) and contrast_with_white(value) >= MIN_CONTRAST:
-        return value.lower()
-    return NAVY
 
 
 def first_name(full: str | None) -> str:
@@ -312,7 +292,11 @@ async def render_card(card: EmailCard) -> RenderedEmail:
     service being off, falls back to the Python rendering so the mail still goes."""
     if email_settings.EMAIL_RENDER_URL:
         try:
-            data = await email_module.render_remote(CARD_TEMPLATE, to_props(card))
+            data = await email_module.render_remote(
+                CARD_TEMPLATE,
+                to_props(card),
+                timeout_seconds=CARD_RENDER_TIMEOUT_SECONDS,
+            )
         except Exception:  # noqa: BLE001 - the fallback is the safety net
             logger.warning("React Email card render failed; using the Python fallback")
         else:
@@ -322,6 +306,12 @@ async def render_card(card: EmailCard) -> RenderedEmail:
 
 
 # ── Plain text ────────────────────────────────────────────────────────────────
+
+
+def _one_line(value: str) -> str:
+    """A value on one text line: control characters and newlines become spaces, so a
+    value cannot fake another label line in the plain-text part."""
+    return " ".join(value.split())
 
 
 def _usable(action: Action | None) -> str | None:
@@ -344,7 +334,9 @@ def render_text(card: EmailCard) -> str:
         lines += [f"Code: {card.code}", ""]
     lines += [*card.paragraphs, ""]
     details = [
-        f"{row.label}: {row.value}" for row in (*card.rows, *card.money) if row.value
+        f"{_one_line(row.label)}: {_one_line(row.value)}"
+        for row in (*card.rows, *card.money)
+        if row.value
     ]
     if details:
         lines += details + [""]

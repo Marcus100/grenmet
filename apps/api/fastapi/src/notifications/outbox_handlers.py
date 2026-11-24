@@ -42,10 +42,14 @@ async def enqueue_email(
     props: dict[str, Any] | None = None,
     organisation_id: str | None = None,
     run_at: datetime | None = None,
+    from_name: str | None = None,
+    reply_to: str | None = None,
 ) -> bool:
     """Queue an email through the outbox; no commit. Returns False for a repeat.
 
-    Structured mail passes ``template`` and ``props`` (rendered at delivery)."""
+    Structured mail passes ``template`` and ``props`` (rendered at delivery).
+    ``from_name`` and ``reply_to`` are the business sender identity (see
+    ``notifications.sender_identity.business_identity``); the sender cleans and checks both at send time."""
     if html is None and template is None:
         raise ValueError("An email needs html or a template")
     payload: dict[str, Any] = {
@@ -56,6 +60,10 @@ async def enqueue_email(
         "template": template,
         "props": props or {},
     }
+    if from_name:
+        payload["from_name"] = from_name
+    if reply_to:
+        payload["reply_to"] = reply_to
     return await outbox.enqueue(
         session,
         topic=EMAIL_SEND,
@@ -93,7 +101,13 @@ async def _email_send_dead(
 @outbox.handler(EMAIL_SEND, on_dead=_email_send_dead)
 async def send_email(session: AsyncSession, message: outbox.OutboxMessage) -> None:
     row = _log_row(message.payload)
-    await dispatch.send_outbound_row(session, row, attempts=message.attempts + 1)
+    await dispatch.send_outbound_row(
+        session,
+        row,
+        attempts=message.attempts + 1,
+        from_name=message.payload.get("from_name"),
+        reply_to=message.payload.get("reply_to"),
+    )
     session.add(row)
     await session.flush()
 

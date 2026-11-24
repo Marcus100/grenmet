@@ -202,8 +202,8 @@ sign-in) on the existing `rewards` APIs, not a separate app.
 3. Is flying an earn event? *Default:* not in version 1.
 4. Are staff excluded? *Default:* yes.
 5. Will concessionaires take part? Pilot one GAA service plus one concession.
-6. Does GAA's contract name Barrels as data controller (ADR-0033) before
-   passenger data is collected?
+6. Does GAA's contract name Barrels as data processor for GAA (ADR-0033,
+   amended 21 Nov 2026: GAA owns the data) before passenger data is collected?
 
 ## Build order (about five parallel lanes)
 

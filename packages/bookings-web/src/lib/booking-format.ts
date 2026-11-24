@@ -106,6 +106,16 @@ const CENTS_AMOUNT = new Intl.NumberFormat("en-US", {
  * separators ("EC$1,250"); a negative amount reads "-EC$210". The currency is required so no caller can fall
  * back to a hidden default.
  */
+/**
+ * The short prefix a money figure starts with, for a label or sentence:
+ * "EC$" for XCD, otherwise the code itself ("GBP"). Use it where an amount is
+ * named without a figure, so the studio says EC$ everywhere a symbol is meant.
+ */
+export function currencyPrefix(currency: string): string {
+  const code = currency.trim().toUpperCase();
+  return CURRENCY_PREFIX[code] ?? code;
+}
+
 export function formatMoney(minor: number, currency: string): string {
   const code = currency.trim().toUpperCase();
   // The sign goes before the currency: "-EC$210", never "EC$-210".
