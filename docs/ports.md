@@ -142,6 +142,7 @@ entry there or its image build fails.
 | account (Barrels account) | `localhost:3018` | 3018 | `account.staging.barrels.gd` | `account.barrels.gd` | `/api/health` |
 | FastAPI | `localhost:8000` | 8000 | `api.staging.barrels.gd` | `api.barrels.gd` | `/api/v1/utils/health-check/` |
 | Adminer (password) | `localhost:8080` | 8080 | `adminer.staging.barrels.gd` | `adminer.barrels.gd` (reserved; the Adminer service runs under the staging profile only and is never deployed to production) | — |
+| Hosts with no app yet (Traefik's `unused-planned` router: temporary redirect to `https://barrels.gd/`, issue #1657) | — | built in (`noop@internal`) | `shop.staging.barrels.gd`, `bus.staging.barrels.gd`, `mail.staging.barrels.gd`, `status.staging.barrels.gd` | `shop.barrels.gd`, `bus.barrels.gd`, `mail.barrels.gd`, `status.barrels.gd` | — |
 | Traefik dashboard (password) | `localhost:8090` | built in (`api@internal`) | SSH tunnel to port 8080 on the droplet (loopback only) | SSH tunnel to port 8080 on the droplet (loopback only) | — |
 
 Internal only (no hostname): Postgres 5432 (also on the private IP, above),
@@ -160,6 +161,13 @@ release scope: `web-admin` is the console, `web-gmsadmin` is the portal.
 The table above is what Compose routes today. `scripts/ci/check-ports.mjs`
 fails when its hostnames disagree with the ``Host(`<label>.${BASE_DOMAIN}`)``
 rules in `infra/docker/docker-compose.deploy.yml`.
+
+Any other host that reaches Traefik (the `*.barrels.gd` wildcard sends every
+name there) matches the lowest-priority `unused-host` router and gets the same
+redirect, but only on Traefik's default certificate: Cloudflare (Full strict)
+still answers 526 for such a name until the owner picks a certificate option
+(issue #1657). When an app is built for a host in the redirect row, give it its
+own row and remove it from the `unused-planned` router in the same change.
 
 ### Hosted on Cloudflare Pages (production only, no staging)
 
@@ -185,16 +193,16 @@ the Status says so.
 | `admin.barrels.gd` | Barrels staff and superuser console (`apps/web/admin`) | 3012 | Live: the Barrels console (`apps/web/admin`) |
 | `gms.barrels.gd` | Met office staff portal (today's gaa-admin) | 3001 | Live: the GMS/GAA staff portal (`apps/web/gaa-admin`). Old `gms.*` links meant the retired public weather site (now `weather.*`) |
 | `hr.barrels.gd` | Barrels HR: separate multi-organisation app, organisation in the path (`hr.barrels.gd/<orgSlug>/...`) | 3016 | Scaffolded (`apps/web/hr`), not deployed. HR screens stay in gaa-admin until they move |
-| `shop.barrels.gd` | Shopkeeping: the merchant-facing shop and stores app | 3008 | Reserved |
+| `shop.barrels.gd` | Shopkeeping: the merchant-facing shop and stores app | 3008 | Reserved; redirects to the homepage until built (#1657) |
 | `education.barrels.gd` | Sector product (Education cluster) | 3035 | Reserved; building is gated on validated demand |
 | `automotive.barrels.gd` | Sector product (Automotive cluster) | 3036 | Reserved; building is gated on validated demand |
 | `delivery.barrels.gd` | Sector product (Mobility cluster) | 3037 | Reserved; building is gated on validated demand |
-| `bus.barrels.gd` | Sector product (Mobility cluster) | 3038 | Reserved; building is gated on validated demand |
+| `bus.barrels.gd` | Sector product (Mobility cluster) | 3038 | Reserved; building is gated on validated demand; redirects to the homepage until built (#1657) |
 | `park.barrels.gd` | Sector product (Mobility cluster) | 3039 | Reserved; building is gated on validated demand |
 | `taxi.barrels.gd` | Sector product (Mobility cluster) | 3040 | Reserved; building is gated on validated demand |
 | `homegrown.barrels.gd` | Sector product (Commerce cluster) | 3041 | Reserved; building is gated on validated demand |
 | `developers.barrels.gd` | Developer portal | 3020 | Reserved |
-| `status.barrels.gd` | Status page | 3021 | Reserved |
+| `status.barrels.gd` | Status page | 3021 | Reserved; redirects to the homepage until built (#1657) |
 
 ### Host classes and rules
 
