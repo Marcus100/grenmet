@@ -46,10 +46,7 @@ function hiddenLogo(container: HTMLElement) {
 }
 
 function pick(file: File) {
-  const input = document.querySelector<HTMLInputElement>('input[type="file"]');
-  if (!input) {
-    throw new Error("no file input");
-  }
+  const input = screen.getByLabelText(CHOOSE_FILE);
   fireEvent.change(input, { target: { files: [file] } });
 }
 

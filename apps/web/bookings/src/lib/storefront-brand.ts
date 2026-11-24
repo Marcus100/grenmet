@@ -28,11 +28,11 @@ export function brandStyle(
 }
 
 /**
- * The logo address to show, or null. Only an https URL is shown; a missing,
- * malformed or other-scheme value (including older cached payloads without the
- * field) shows no logo.
+ * The image address to show (a logo or a cover photo), or null. Only an https
+ * URL is shown; a missing, malformed or other-scheme value (including older
+ * cached payloads without the field) shows no image.
  */
-export function safeLogoUrl(value: string | null | undefined): string | null {
+export function safeImageUrl(value: string | null | undefined): string | null {
   if (!value) {
     return null;
   }
@@ -43,3 +43,9 @@ export function safeLogoUrl(value: string | null | undefined): string | null {
     return null;
   }
 }
+
+/** The logo address to show, or null (see `safeImageUrl`). */
+export const safeLogoUrl = safeImageUrl;
+
+/** The cover photo address to show, or null (see `safeImageUrl`). */
+export const safeCoverUrl = safeImageUrl;

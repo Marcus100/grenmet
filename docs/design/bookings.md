@@ -131,15 +131,33 @@ are the shared ones.
   keeps bottom padding so it never covers the last line. Home carries
   `aria-current="page"`. "My bookings" and "Account" are added once the account
   app's address is a typed setting of this app.
-- Search is a pill GET form (`q`, hidden `category`) and works without script.
-- Categories come from the API, not a fixed list: white pill chips, the chosen
-  one navy; one scrolling row on phones, wrapped on laptops. Empty says "No
-  categories yet."
+- Search is a pill GET form (`q`, hidden `category` and `type`) and works
+  without script.
+- Type tiles (`<nav aria-label="Business types">`, under the search): an "All"
+  tile, then one tile per entry of the API's `types_available` (never a fixed
+  list; the order is the API's). Phones: a 4-column grid of white tiles, 84 px
+  tall, 20 px radius, a 26 px stroke icon above a 12.5 px semibold label. From
+  md up they are a centred wrapped row of ground-grey pills (icon beside the
+  label) inside the white hero card. The chosen tile is navy with white icon
+  and label and carries `aria-current="page"`. Choosing a tile keeps the search
+  words and clears the category and page. No types says "No business types
+  yet." The label words are Beauty, Hair, Health, Fitness, Auto, Home, Lessons,
+  Professional, Tours, Events, Other. The `type` address parameter is checked
+  against the API's list; an unknown value is ignored.
+- Categories (free text) come from the API, not a fixed list: white pill chips
+  under the tiles as a secondary row, the chosen one navy; one scrolling row on
+  phones, wrapped on laptops. They work alongside a chosen type. Empty says
+  "No categories yet."
 - Businesses: the first as a large card with a "Book" pill (decoration inside
   the one card link), the rest two across on phones and an auto-fill grid
   (min 240 px) on laptops. The tile is a light tint of the brand colour with
   ink text (so contrast holds for any colour), the logo when there is one, else
-  the first letter.
+  the first letter. A business with a cover photo (https only) shows it filling
+  the tile (`object-cover`, same height), with the logo, if any, as a small
+  white badge at the bottom left. The storefront page header is unchanged.
+- Studio, Settings > Profile > Home page: "Type of business" (a select with
+  Not set) and "Cover photo" (upload, preview, remove; JPEG, PNG or WebP, up
+  to 5 MB), saved with the profile.
 
 ## Contrast (WCAG 2.1)
 

@@ -32,6 +32,7 @@ import { ProfileForm } from "@/components/studio/settings/profile-form";
 import { ProviderForm } from "@/components/studio/settings/provider-form";
 import { ServiceForm } from "@/components/studio/settings/service-form";
 import { TimeOffSection } from "@/components/studio/settings/time-off";
+import { businessTypeLabel } from "@/lib/business-types";
 import type { ExampleService } from "@/lib/deposit-rule";
 import { hhmm, periodsByDay, WEEKDAYS } from "@/lib/settings-view";
 
@@ -547,6 +548,13 @@ function ProfileSummary({ profile }: { profile: BookingProfilePublic | null }) {
     ],
     ["Accent colour", profile.brand_color ?? "Not set"],
     ["Logo", profile.logo_file_id ? "Uploaded" : "Not set"],
+    [
+      "Type of business",
+      profile.business_type
+        ? businessTypeLabel(profile.business_type)
+        : "Not set",
+    ],
+    ["Cover photo", profile.cover_file_id ? "Uploaded" : "Not set"],
   ];
   return (
     <dl className="grid gap-3 sm:grid-cols-2">

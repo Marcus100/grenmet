@@ -1,4 +1,5 @@
 import type {
+  BookingBusinessType,
   BookingPublicBusiness,
   BookingPublicBusinessPage,
 } from "@barrelsgd/api-client";
@@ -7,15 +8,24 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { pageAccent } from "@/lib/brand-colour";
 import type { ListingQuery } from "@/lib/business-listing-query";
-import { safeLogoUrl } from "@/lib/storefront-brand";
+import { businessTypeLabel } from "@/lib/business-types";
+import { safeCoverUrl, safeLogoUrl } from "@/lib/storefront-brand";
+import { BusinessTypeIcon } from "./business-type-icon";
 
 // Server rendered: the search is a plain GET form and the chips and pages are
 // links, so the list works before any script loads. Every link is 44 px tall.
 const LINK =
   "inline-flex min-h-11 items-center rounded-full px-2 font-medium underline underline-offset-4 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
 const CHIP =
-  "inline-flex min-h-11 shrink-0 items-center rounded-full bg-background md:bg-ground px-4 text-sm font-medium shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
-const CHIP_CHOSEN = "bg-primary text-primary-foreground md:bg-primary";
+  "inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
+const CHIP_IDLE = "bg-background md:bg-ground";
+const CHIP_CHOSEN = "bg-primary text-primary-foreground";
+// Type tiles: a 4-column grid of white tiles on phones (icon above label), a
+// centred row of pills with the icon beside the label from md up.
+const TILE =
+  "flex min-h-11 h-[84px] flex-col items-center justify-center gap-1.5 rounded-[20px] text-[12.5px] font-semibold shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none md:h-11 md:flex-row md:gap-2 md:rounded-full md:px-4 md:text-sm md:shadow-none";
+const TILE_IDLE = "bg-background text-foreground md:bg-ground";
+const TILE_CHOSEN = "bg-primary text-primary-foreground";
 const CARD =
   "bg-background text-foreground rounded-[1.75rem] shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
 
@@ -33,6 +43,9 @@ export function listingHref(query: Partial<ListingQuery>): {
   }
   if (query.category) {
     params.category = query.category;
+  }
+  if (query.type) {
+    params.type = query.type;
   }
   if (query.page && query.page > 1) {
     params.page = String(query.page);
@@ -52,6 +65,7 @@ function BusinessCard({
   first = false,
 }: Readonly<{ card: BookingPublicBusiness; first?: boolean }>) {
   const logo = safeLogoUrl(card.logo_url);
+  const cover = safeCoverUrl(card.cover_url);
   const accent = pageAccent(card.brand_color);
   const where = [card.category, card.city].filter(Boolean).join(" · ");
   // The tile is a light tint of the brand colour with ink text, so the letter
@@ -67,26 +81,44 @@ function BusinessCard({
     >
       <span
         aria-hidden="true"
-        className={`${first ? "h-[170px] text-6xl" : "h-[104px] text-4xl"} bg-ground ring-border text-foreground flex w-full items-center justify-center overflow-hidden rounded-2xl font-bold ring-1 md:h-40 md:rounded-[1.25rem] md:text-[56px]`}
+        className={`${first ? "h-[170px] text-6xl" : "h-[104px] text-4xl"} bg-ground ring-border text-foreground relative flex w-full items-center justify-center overflow-hidden rounded-2xl font-bold ring-1 md:h-40 md:rounded-[1.25rem] md:text-[56px]`}
         style={tileStyle}
       >
+        {cover ? (
+          <Image
+            alt=""
+            className="absolute inset-0 size-full object-cover"
+            height={320}
+            referrerPolicy="no-referrer"
+            src={cover}
+            unoptimized
+            width={640}
+          />
+        ) : null}
         {logo ? (
           <Image
             alt=""
-            className="max-h-[60%] w-auto max-w-[80%] object-contain"
+            className={
+              cover
+                ? "bg-background absolute bottom-2 left-2 h-10 w-auto max-w-[40%] rounded-lg object-contain p-1"
+                : "max-h-[60%] w-auto max-w-[80%] object-contain"
+            }
             height={96}
             referrerPolicy="no-referrer"
             src={logo}
             unoptimized
             width={160}
           />
-        ) : (
-          firstLetter(card.name)
-        )}
+        ) : null}
+        {cover || logo ? null : firstLetter(card.name)}
       </span>
       <span className="flex flex-1 flex-col gap-2 px-1 pb-1 md:px-1.5 md:pb-1.5">
         <span
-          className={`flex items-center gap-3 ${first ? "" : "flex-col items-stretch"} md:flex-col md:items-stretch`}
+          className={
+            first
+              ? "flex items-center gap-3 md:flex-col md:items-stretch"
+              : "flex flex-col items-stretch gap-3"
+          }
         >
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <h3
@@ -115,6 +147,75 @@ function BusinessCard({
   );
 }
 
+function TypeTile({
+  chosen,
+  href,
+  label,
+  type,
+}: Readonly<{
+  chosen: boolean;
+  href: ReturnType<typeof listingHref>;
+  label: string;
+  type: BookingBusinessType | "all";
+}>) {
+  return (
+    <Link
+      aria-current={chosen ? "page" : undefined}
+      className={`${TILE} ${chosen ? TILE_CHOSEN : TILE_IDLE}`}
+      href={href}
+    >
+      <span className={chosen ? undefined : "text-primary"}>
+        <BusinessTypeIcon type={type} />
+      </span>
+      {label}
+    </Link>
+  );
+}
+
+/**
+ * One tile per type the API says has a listed business, in its order, after an
+ * "All" tile. A tile keeps the search words and clears the category and page.
+ */
+function TypeTiles({
+  available,
+  chosen,
+  q,
+}: Readonly<{
+  available: BookingBusinessType[];
+  chosen: BookingBusinessType | undefined;
+  q: string | undefined;
+}>) {
+  if (available.length === 0) {
+    return (
+      <nav aria-label="Business types">
+        <p className="text-foreground text-sm">No business types yet.</p>
+      </nav>
+    );
+  }
+  return (
+    <nav
+      aria-label="Business types"
+      className="grid w-full grid-cols-4 gap-2 md:flex md:flex-wrap md:justify-center"
+    >
+      <TypeTile
+        chosen={!chosen}
+        href={listingHref({ q })}
+        label="All"
+        type="all"
+      />
+      {available.map((type) => (
+        <TypeTile
+          chosen={type === chosen}
+          href={listingHref({ q, type })}
+          key={type}
+          label={businessTypeLabel(type)}
+          type={type}
+        />
+      ))}
+    </nav>
+  );
+}
+
 /** What an empty list says: a search with no match, a page past the last, or none yet. */
 function emptyMessage(filtered: boolean, page: number): string {
   if (filtered) {
@@ -138,16 +239,9 @@ export function BusinessListing({
   query: ListingQuery;
 }>) {
   const chosen = query.category?.toLowerCase();
-  const filtered = Boolean(query.q || query.category);
+  const filtered = Boolean(query.q || query.category || query.type);
   return (
-    <section
-      aria-labelledby="businesses-heading"
-      className="flex flex-col gap-4"
-    >
-      <h2 className="sr-only" id="businesses-heading">
-        Businesses
-      </h2>
-
+    <section aria-label="Businesses" className="flex flex-col gap-4">
       <div className="md:bg-background flex flex-col gap-6 md:items-center md:gap-5 md:rounded-[2rem] md:px-8 md:py-12 md:text-center md:shadow-xs">
         {intro}
         <search className="w-full md:flex md:justify-center">
@@ -171,6 +265,9 @@ export function BusinessListing({
             {query.category && (
               <input name="category" type="hidden" value={query.category} />
             )}
+            {query.type && (
+              <input name="type" type="hidden" value={query.type} />
+            )}
             <button
               className="bg-primary text-primary-foreground min-h-11 rounded-full px-5 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               type="submit"
@@ -186,6 +283,14 @@ export function BusinessListing({
           </p>
         )}
 
+        {listing && (
+          <TypeTiles
+            available={listing.types_available ?? []}
+            chosen={query.type}
+            q={query.q}
+          />
+        )}
+
         {listing && listing.categories.length === 0 && (
           <nav aria-label="Categories">
             <p className="text-foreground text-sm">No categories yet.</p>
@@ -199,8 +304,8 @@ export function BusinessListing({
           >
             <Link
               aria-current={query.category ? undefined : "page"}
-              className={`${CHIP} ${query.category ? "" : CHIP_CHOSEN}`}
-              href={listingHref({ q: query.q })}
+              className={`${CHIP} ${query.category ? CHIP_IDLE : CHIP_CHOSEN}`}
+              href={listingHref({ q: query.q, type: query.type })}
             >
               All
             </Link>
@@ -209,8 +314,8 @@ export function BusinessListing({
               return (
                 <Link
                   aria-current={selected ? "page" : undefined}
-                  className={`${CHIP} ${selected ? CHIP_CHOSEN : ""}`}
-                  href={listingHref({ q: query.q, category })}
+                  className={`${CHIP} ${selected ? CHIP_CHOSEN : CHIP_IDLE}`}
+                  href={listingHref({ q: query.q, category, type: query.type })}
                   key={category}
                 >
                   {category}
@@ -248,6 +353,7 @@ export function BusinessListing({
               href={listingHref({
                 q: query.q,
                 category: query.category,
+                type: query.type,
                 page: listing.page - 1,
               })}
               rel="prev"
@@ -263,6 +369,7 @@ export function BusinessListing({
               href={listingHref({
                 q: query.q,
                 category: query.category,
+                type: query.type,
                 page: listing.page + 1,
               })}
               rel="next"

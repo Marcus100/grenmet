@@ -9,6 +9,7 @@ const CANNOT_LOAD = /cannot be loaded/u;
 const NO_PAGE = /No businesses on this page/u;
 const TIDE_NAME = /^Tide Barbers/u;
 const NO_CATEGORIES = /No categories yet/u;
+const HIDDEN = /(^|\s)hidden(\s|$)/u;
 
 const TIDE = {
   slug: "tide-barbers",
@@ -18,6 +19,8 @@ const TIDE = {
   city: "Gouyave",
   brand_color: null,
   logo_url: null,
+  cover_url: null,
+  business_type: null,
 };
 
 function page(
@@ -28,11 +31,17 @@ function page(
     page: 1,
     has_more: false,
     categories: ["Barbers", "Hair"],
+    types_available: ["beauty", "hair", "home_services"],
     ...overrides,
   };
 }
 
-const NO_QUERY = { q: undefined, category: undefined, page: 1 };
+const NO_QUERY = {
+  q: undefined,
+  category: undefined,
+  type: undefined,
+  page: 1,
+};
 
 describe("BusinessListing", () => {
   it("makes the whole card one link to the business's own booking page", () => {
@@ -122,7 +131,7 @@ describe("BusinessListing", () => {
     render(
       <BusinessListing
         listing={page({ items: [], page: 4, categories: [] })}
-        query={{ q: undefined, category: undefined, page: 4 }}
+        query={{ q: undefined, category: undefined, type: undefined, page: 4 }}
       />
     );
 
@@ -149,7 +158,7 @@ describe("BusinessListing", () => {
     render(
       <BusinessListing
         listing={page({ items: [], categories: [] })}
-        query={{ q: "zzz", category: undefined, page: 1 }}
+        query={{ q: "zzz", category: undefined, type: undefined, page: 1 }}
       />
     );
 
@@ -161,7 +170,7 @@ describe("BusinessListing", () => {
     render(
       <BusinessListing
         listing={page()}
-        query={{ q: undefined, category: "barbers", page: 1 }}
+        query={{ q: undefined, category: "barbers", type: undefined, page: 1 }}
       />
     );
 
@@ -180,7 +189,7 @@ describe("BusinessListing", () => {
     render(
       <BusinessListing
         listing={page()}
-        query={{ q: "fade", category: "Barbers", page: 1 }}
+        query={{ q: "fade", category: "Barbers", type: undefined, page: 1 }}
       />
     );
 
@@ -201,7 +210,7 @@ describe("BusinessListing", () => {
     const { rerender } = render(
       <BusinessListing
         listing={page({ has_more: true })}
-        query={{ q: "fade", category: undefined, page: 1 }}
+        query={{ q: "fade", category: undefined, type: undefined, page: 1 }}
       />
     );
     expect(
@@ -212,7 +221,7 @@ describe("BusinessListing", () => {
     rerender(
       <BusinessListing
         listing={page({ page: 2, has_more: false })}
-        query={{ q: "fade", category: undefined, page: 2 }}
+        query={{ q: "fade", category: undefined, type: undefined, page: 2 }}
       />
     );
     expect(
@@ -261,9 +270,9 @@ describe("BusinessListing", () => {
     const pills = items.map((item) =>
       within(item).getByText("Book").getAttribute("class")
     );
-    expect(pills[0]).not.toContain("hidden");
-    expect(pills[1]).toContain("hidden md:inline-flex");
-    expect(pills.every(Boolean)).toBe(true);
+    expect(pills[0]).not.toMatch(HIDDEN);
+    expect(pills[1]).toMatch(HIDDEN);
+    expect(pills[2]).toMatch(HIDDEN);
     expect(
       items.every(
         (item) =>
@@ -276,7 +285,7 @@ describe("BusinessListing", () => {
     render(
       <BusinessListing
         listing={page()}
-        query={{ q: undefined, category: "Hair", page: 1 }}
+        query={{ q: undefined, category: "Hair", type: undefined, page: 1 }}
       />
     );
 
@@ -285,5 +294,207 @@ describe("BusinessListing", () => {
         .querySelector('search input[name="category"]')
         ?.getAttribute("value")
     ).toBe("Hair");
+  });
+
+  it("has exactly one h1, ahead of the businesses and the other headings", () => {
+    const { container } = render(
+      <BusinessListing
+        intro={<h1>Book any appointment</h1>}
+        listing={page()}
+        query={NO_QUERY}
+      />
+    );
+
+    const headings = Array.from(container.querySelectorAll("h1, h2, h3"));
+    expect(container.querySelectorAll("h1")).toHaveLength(1);
+    expect(headings[0]?.tagName).toBe("H1");
+    expect(screen.getByRole("region", { name: "Businesses" })).toBeTruthy();
+  });
+
+  describe("type tiles", () => {
+    function tiles() {
+      return screen.getByRole("navigation", { name: "Business types" });
+    }
+
+    it("shows All, then one tile per available type in the order given", () => {
+      render(<BusinessListing listing={page()} query={NO_QUERY} />);
+
+      const links = within(tiles()).getAllByRole("link");
+      expect(links.map((link) => link.textContent)).toEqual([
+        "All",
+        "Beauty",
+        "Hair",
+        "Home",
+      ]);
+      expect(links.map((link) => link.getAttribute("href"))).toEqual([
+        "/",
+        "/?type=beauty",
+        "/?type=hair",
+        "/?type=home_services",
+      ]);
+      expect(links[0]?.getAttribute("aria-current")).toBe("page");
+      expect(links[1]?.getAttribute("aria-current")).toBeNull();
+      expect(tiles().querySelectorAll("svg[aria-hidden='true']")).toHaveLength(
+        4
+      );
+    });
+
+    it("never shows a type the API did not list", () => {
+      render(
+        <BusinessListing
+          listing={page({ types_available: ["tours"] })}
+          query={NO_QUERY}
+        />
+      );
+
+      expect(within(tiles()).getByRole("link", { name: "Tours" })).toBeTruthy();
+      expect(
+        within(tiles()).queryByRole("link", { name: "Beauty" })
+      ).toBeNull();
+    });
+
+    it("marks the chosen tile and keeps the search words but not the category", () => {
+      render(
+        <BusinessListing
+          listing={page()}
+          query={{ q: "fade", category: "Barbers", type: "hair", page: 3 }}
+        />
+      );
+
+      const links = within(tiles()).getAllByRole("link");
+      const hair = links.find((link) => link.textContent === "Hair");
+      expect(hair?.getAttribute("aria-current")).toBe("page");
+      expect(hair?.getAttribute("href")).toBe("/?q=fade&type=hair");
+      expect(links[0]?.getAttribute("aria-current")).toBeNull();
+      expect(links[0]?.getAttribute("href")).toBe("/?q=fade");
+    });
+
+    it("keeps the type in the search form, the chips and the page links", () => {
+      render(
+        <BusinessListing
+          listing={page({ has_more: true })}
+          query={{ q: undefined, category: "Hair", type: "hair", page: 1 }}
+        />
+      );
+
+      expect(
+        document
+          .querySelector('search input[name="type"]')
+          ?.getAttribute("value")
+      ).toBe("hair");
+      const chips = screen.getByRole("navigation", { name: "Categories" });
+      expect(
+        within(chips)
+          .getByRole("link", { name: "Barbers" })
+          .getAttribute("href")
+      ).toBe("/?category=Barbers&type=hair");
+      expect(
+        within(chips).getByRole("link", { name: "All" }).getAttribute("href")
+      ).toBe("/?type=hair");
+      expect(
+        screen.getByRole("link", { name: "Next page" }).getAttribute("href")
+      ).toBe("/?category=Hair&type=hair&page=2");
+    });
+
+    it("says there are no types yet, instead of hiding the section", () => {
+      render(
+        <BusinessListing
+          listing={page({ types_available: [] })}
+          query={NO_QUERY}
+        />
+      );
+
+      expect(within(tiles()).getByText("No business types yet.")).toBeTruthy();
+      expect(within(tiles()).queryByRole("link")).toBeNull();
+    });
+
+    it("treats a missing types_available as none", () => {
+      render(
+        <BusinessListing
+          listing={page({ types_available: undefined })}
+          query={NO_QUERY}
+        />
+      );
+
+      expect(within(tiles()).getByText("No business types yet.")).toBeTruthy();
+    });
+
+    it("uses the no-match message when a type is chosen and nothing is listed", () => {
+      render(
+        <BusinessListing
+          listing={page({ items: [] })}
+          query={{ q: undefined, category: undefined, type: "tours", page: 1 }}
+        />
+      );
+
+      expect(screen.getByText(NO_MATCH)).toBeTruthy();
+    });
+  });
+
+  describe("cover photos", () => {
+    it("fills the tile with a safe https cover and puts the logo over it", () => {
+      const { container } = render(
+        <BusinessListing
+          listing={page({
+            items: [
+              {
+                ...TIDE,
+                cover_url: "https://cdn.example.test/cover.jpg",
+                logo_url: "https://cdn.example.test/logo.png",
+              },
+            ],
+          })}
+          query={NO_QUERY}
+        />
+      );
+
+      const images = Array.from(container.querySelectorAll("img"));
+      expect(images.map((image) => image.getAttribute("src"))).toEqual([
+        "https://cdn.example.test/cover.jpg",
+        "https://cdn.example.test/logo.png",
+      ]);
+      expect(images[0]?.getAttribute("alt")).toBe("");
+      expect(images[0]?.getAttribute("class")).toContain("object-cover");
+      expect(images[0]?.getAttribute("referrerpolicy")).toBe("no-referrer");
+      expect(screen.queryByText("T")).toBeNull();
+    });
+
+    it("shows the cover alone when there is no logo", () => {
+      const { container } = render(
+        <BusinessListing
+          listing={page({
+            items: [{ ...TIDE, cover_url: "https://cdn.example.test/c.webp" }],
+          })}
+          query={NO_QUERY}
+        />
+      );
+
+      expect(container.querySelectorAll("img")).toHaveLength(1);
+      expect(screen.queryByText("T")).toBeNull();
+    });
+
+    it("ignores a cover that is not https and keeps the brand tile", () => {
+      for (const cover_url of [
+        "http://cdn.example.test/c.jpg",
+        "javascript:alert(1)",
+        "data:image/png;base64,AAAA",
+        "not a url",
+        null,
+      ]) {
+        const { container, unmount } = render(
+          <BusinessListing
+            listing={page({
+              items: [{ ...TIDE, brand_color: "#8a1a45", cover_url }],
+            })}
+            query={NO_QUERY}
+          />
+        );
+        expect(container.querySelector("img")).toBeNull();
+        expect(screen.getByText("T").getAttribute("style")).toContain(
+          "color-mix"
+        );
+        unmount();
+      }
+    });
   });
 });
