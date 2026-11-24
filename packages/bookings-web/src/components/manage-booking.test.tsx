@@ -248,7 +248,7 @@ describe("ManageBooking", () => {
     renderManage();
     expect(
       screen.getByText(
-        "No deposit for this service. Change or cancel up to 24 hours before."
+        "No deposit for this service. Change or cancel online up to 24 hours before; after that, contact the business."
       )
     ).toBeVisible();
   });
@@ -261,7 +261,21 @@ describe("ManageBooking", () => {
     });
     expect(
       screen.getByText(
-        "EC$40 deposit, not refundable. Change or cancel up to 24 hours before."
+        "EC$40 deposit, not refundable. Change or cancel online up to 24 hours before; after that, contact the business."
+      )
+    ).toBeVisible();
+  });
+
+  it("says a pending booking's non-refundable deposit follows the cut-off rule", () => {
+    renderManage({
+      ...booking,
+      status: "pending",
+      deposit_minor: 4000,
+      deposit_non_refundable: true,
+    });
+    expect(
+      screen.getByText(
+        "EC$40 deposit, refunded if you cancel at least 24 hours before it starts. Change or cancel online up to 24 hours before; after that, contact the business."
       )
     ).toBeVisible();
   });

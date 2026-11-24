@@ -36,7 +36,7 @@ const HONEYPOT_LABEL = /Leave this field empty/u;
 const SERVICE_ID = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10";
 const TUE = "2027-01-05T13:30:00Z";
 const SLOT_TAKEN = "That time has just been taken. Please choose another.";
-const ONE_HOUR_CUTOFF = /Change or cancel up to 1 hour before\./u;
+const ONE_HOUR_CUTOFF = /Change or cancel online up to 1 hour before/u;
 const CONTACT_DIRECTLY = /Please contact the business directly\./u;
 const CONTACT_COLON = /Please contact the business:/u;
 const CONTACT_LIST = /contact/iu;
@@ -50,7 +50,7 @@ const EMAIL_ERROR = /Enter a valid email address/u;
 const HELD_WHILE_PAYING = /Your time is held while you pay/u;
 const NO_PAYMENT = /No payment online\. You pay when you visit\./u;
 const CANCEL_RULE =
-  /No deposit for this service\. Change or cancel up to 24 hours before\./u;
+  /No deposit for this service\. Change or cancel online up to 24 hours before; after that, contact Test Studio\./u;
 const CONSULTATION = /Note for Hybrid: Consultation required/u;
 const NOTE_PREFIX = /^Note for /u;
 
@@ -958,7 +958,11 @@ describe("BookingFlow rules line and full policy", () => {
 
   it("says only the change rule until a service is chosen", () => {
     renderFlow();
-    expect(RULES_LINE("Change or cancel up to 24 hours before.")).toBeVisible();
+    expect(
+      RULES_LINE(
+        "Change or cancel online up to 24 hours before; after that, contact Test Studio."
+      )
+    ).toBeVisible();
   });
 
   it("states a non-refundable deposit beside the Book button", async () => {
@@ -975,7 +979,7 @@ describe("BookingFlow rules line and full policy", () => {
     await chooseSlot(user);
     expect(
       RULES_LINE(
-        "EC$40 deposit, not refundable. Change or cancel up to 24 hours before."
+        "EC$40 deposit, not refundable once your booking is confirmed. Change or cancel online up to 24 hours before; after that, contact Test Studio."
       )
     ).toBeVisible();
   });
@@ -992,7 +996,7 @@ describe("BookingFlow rules line and full policy", () => {
     await chooseSlot(user);
     expect(
       RULES_LINE(
-        "EC$36 deposit, refundable. Change or cancel up to 24 hours before."
+        "EC$36 deposit, refunded if you cancel at least 24 hours before it starts. Change or cancel online up to 24 hours before; after that, contact Test Studio."
       )
     ).toBeVisible();
   });
@@ -1010,7 +1014,7 @@ describe("BookingFlow rules line and full policy", () => {
     await chooseSlot(user);
     expect(
       RULES_LINE(
-        "EC$30 deposit, paid at the salon. Change or cancel up to 24 hours before."
+        "EC$30 deposit, paid at the salon. Change or cancel online up to 24 hours before; after that, contact Test Studio."
       )
     ).toBeVisible();
   });

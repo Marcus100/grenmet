@@ -377,11 +377,13 @@ export function DepositRuleForm({
           Non-refundable deposit
         </Label>
         <p className="text-muted-foreground text-base">
-          On: if a customer cancels, you keep the deposit, unless you choose to
-          refund it on that booking. Off: the customer gets the deposit back
-          when they cancel before the cancellation cutoff. Either way, a
-          customer can move a booking until the cutoff and the deposit moves
-          with it, and a booking you decline is always refunded.
+          On: once you have confirmed a booking, the deposit is kept if the
+          customer cancels, unless you choose to refund it on that booking. A
+          request you have not confirmed yet is refunded if it is cancelled.
+          Off: the customer gets the deposit back when they cancel before the
+          cancellation cutoff. Either way, a customer can move a booking until
+          the cutoff and the deposit moves with it, and a booking you decline is
+          always refunded.
         </p>
       </fieldset>
       <SettingsResult pending={pending} state={state} />

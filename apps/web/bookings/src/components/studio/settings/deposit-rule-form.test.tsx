@@ -288,7 +288,7 @@ describe("previewSentence", () => {
 });
 
 const NON_REFUNDABLE = /Non-refundable deposit/u;
-const KEPT_IF_CANCELLED = /if a customer cancels, you keep the deposit/u;
+const KEPT_IF_CANCELLED = /the deposit is kept if the customer cancels/u;
 const DECLINE_REFUNDED = /a booking you decline/u;
 const MIN_PRICE = /Lowest service price that takes a deposit \(EC\$\)/u;
 const MIN_OVER_PRICE = /below the lowest price for a deposit/u;

@@ -139,6 +139,7 @@ export function ManageBooking({
       <BookingRules
         policy={booking.booking_policy}
         rules={{
+          bookingStatus: booking.status,
           currency: booking.currency,
           cutoffHours: booking.cancel_cutoff_hours,
           // The booking's own snapshot: what was set when it was made.

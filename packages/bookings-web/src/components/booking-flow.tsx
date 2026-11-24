@@ -1136,6 +1136,7 @@ export function BookingFlow({
         <BookingRules
           policy={storefront.booking_policy}
           rules={{
+            businessName: storefront.display_name,
             currency: storefront.currency,
             cutoffHours: storefront.cancel_cutoff_hours,
             dueMinor: service ? dueAtBooking(service) : undefined,
