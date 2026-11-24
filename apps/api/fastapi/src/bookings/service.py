@@ -11,7 +11,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import ColumnElement, delete, func, or_, select
+from sqlalchemy import ColumnElement, delete, func, null, or_, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
@@ -103,6 +103,8 @@ COVER_PURPOSE = "booking-cover"
 KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
     "add_ons_enabled",
     "payment_at_booking",
+    "pending_expiry_hours",
+    "max_open_per_customer",
     "deposit_mode",
     "deposit_percent",
     "deposit_fixed_minor",
@@ -154,6 +156,10 @@ async def upsert_profile(
         values["cover_file_id"] = payload.cover_file_id
         await _require_cover(organisation_id, payload.cover_file_id, profile)
     if profile is None:
+        if "pending_expiry_hours" in values and values["pending_expiry_hours"] is None:
+            # The ORM leaves a None out of an INSERT, so the column's server default
+            # (24) would win. A null window is written as SQL NULL here.
+            values["pending_expiry_hours"] = null()
         profile = BookingProfile(organisation_id=organisation_id, **values)
         session.add(profile)
     else:
@@ -912,6 +918,8 @@ def _public_add_ons(
 
 #: Businesses on one page of the home page listing.
 PUBLIC_LISTING_PAGE_SIZE = 24
+#: Services shown on each home page card, in the business's own order.
+PUBLIC_LISTING_FEATURED_SERVICES = 3
 #: Categories offered as filter chips; more stay reachable through search.
 PUBLIC_LISTING_CATEGORY_LIMIT = 50
 
@@ -966,10 +974,56 @@ def _https_or_none(file_id: uuid.UUID | None) -> str | None:
     return url if url is not None and url.startswith("https://") else None
 
 
+async def _featured_services(
+    session: AsyncSession, profiles: list[BookingProfile]
+) -> dict[str, list[dict[str, Any]]]:
+    """The first few bookable services of each business on the page, in one query:
+    active, not add-ons, in the order the booking page lists them."""
+    if not profiles:
+        return {}
+    rank = (
+        func.row_number()
+        .over(
+            partition_by=Service.organisation_id,
+            order_by=(Service.sort_order, Service.name, Service.id),
+        )
+        .label("rank")
+    )
+    ranked = (
+        select(Service, rank)
+        .where(
+            Service.organisation_id.in_([p.organisation_id for p in profiles]),
+            Service.active.is_(True),
+            Service.is_add_on.is_(False),
+        )
+        .subquery()
+    )
+    featured = aliased(Service, ranked)
+    rows = await session.execute(
+        select(featured)
+        .where(ranked.c.rank <= PUBLIC_LISTING_FEATURED_SERVICES)
+        .order_by(featured.organisation_id, ranked.c.rank)
+    )
+    currency = {p.organisation_id: p.currency for p in profiles}
+    result: dict[str, list[dict[str, Any]]] = {}
+    for service in rows.scalars():
+        result.setdefault(service.organisation_id, []).append(
+            {
+                "id": service.id,
+                "name": service.name,
+                "price_minor": service.price_minor,
+                "currency": currency[service.organisation_id],
+                "duration_min": service.duration_min,
+            }
+        )
+    return result
+
+
 def _listing_card(
     profile: BookingProfile,
     logo_id: uuid.UUID | None,
     cover_id: uuid.UUID | None,
+    featured: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """A home page card. ``logo_id`` and ``cover_id`` are set only for a finished
     upload of that purpose for this business (joined in SQL); addresses must be https."""
@@ -983,6 +1037,7 @@ def _listing_card(
         "logo_url": _https_or_none(logo_id),
         "cover_url": _https_or_none(cover_id),
         "business_type": profile.business_type,
+        "featured_services": featured or [],
     }
 
 
@@ -1063,10 +1118,14 @@ async def list_public_businesses(
             .distinct()
         )
     )
+    shown = found[:PUBLIC_LISTING_PAGE_SIZE]
+    featured = await _featured_services(session, [row[0] for row in shown])
     return {
         "items": [
-            _listing_card(profile, logo_id, cover_id)
-            for profile, logo_id, cover_id in found[:PUBLIC_LISTING_PAGE_SIZE]
+            _listing_card(
+                profile, logo_id, cover_id, featured.get(profile.organisation_id)
+            )
+            for profile, logo_id, cover_id in shown
         ],
         "page": page,
         "has_more": len(found) > PUBLIC_LISTING_PAGE_SIZE,

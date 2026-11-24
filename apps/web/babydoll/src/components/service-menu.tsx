@@ -58,6 +58,7 @@ export function ServiceMenu({ booking }: { booking: CtaLink }) {
           key={category.id}
           role="tabpanel"
         >
+          {category.intro && <p className="menu-intro">{category.intro}</p>}
           {category.groups.map((group) => (
             <div key={group.title}>
               <h2 className="cat-title">{group.title}</h2>

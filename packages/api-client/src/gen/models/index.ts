@@ -1271,6 +1271,7 @@ export type { BookingExceptionCreate } from "./BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./BookingExceptionKind.js";
 export { bookingExceptionKind } from "./BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./BookingExceptionPublic.js";
+export type { BookingFeaturedService } from "./BookingFeaturedService.js";
 export type { BookingManualDepositCreate } from "./BookingManualDepositCreate.js";
 export type { BookingMyBooking } from "./BookingMyBooking.js";
 export type { BookingMyBookingList } from "./BookingMyBookingList.js";

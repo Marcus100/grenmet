@@ -79064,6 +79064,43 @@
         ],
         "title": "BookingExceptionPublic"
       },
+      "BookingFeaturedService": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor",
+            "description": "The service price in minor units."
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "The business's currency, such as `XCD`."
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "price_minor",
+          "currency",
+          "duration_min"
+        ],
+        "title": "BookingFeaturedService",
+        "description": "A service shown on a home page card. Public fields only."
+      },
       "BookingManualDepositCreate": {
         "properties": {
           "method": {
@@ -79440,6 +79477,29 @@
             "title": "Requires Confirmation",
             "default": false
           },
+          "pending_expiry_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 168.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Expiry Hours",
+            "description": "Hours a booking request waits for the business to confirm it before it expires (the customer is told and the slot is released). Null means it expires only at its start time. A request whose start has passed always expires. Left out, the stored value is kept.",
+            "default": 24
+          },
+          "max_open_per_customer": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Open Per Customer",
+            "description": "How many future bookings (requested, awaiting payment or confirmed) one customer may hold with this business. A public booking beyond it is refused with 409. Staff entries are not refused. Left out, the stored value is kept.",
+            "default": 3
+          },
           "notify_email": {
             "anyOf": [
               {
@@ -79784,6 +79844,29 @@
             "type": "boolean",
             "title": "Requires Confirmation",
             "default": false
+          },
+          "pending_expiry_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 168.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Expiry Hours",
+            "description": "Hours a booking request waits for the business to confirm it before it expires (the customer is told and the slot is released). Null means it expires only at its start time. A request whose start has passed always expires. Left out, the stored value is kept.",
+            "default": 24
+          },
+          "max_open_per_customer": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Open Per Customer",
+            "description": "How many future bookings (requested, awaiting payment or confirmed) one customer may hold with this business. A public booking beyond it is refused with 409. Staff entries are not refused. Left out, the stored value is kept.",
+            "default": 3
           },
           "notify_email": {
             "anyOf": [
@@ -80406,6 +80489,14 @@
               }
             ],
             "description": "The business's type (the `type` filter), or null when not chosen."
+          },
+          "featured_services": {
+            "items": {
+              "$ref": "#/components/schemas/BookingFeaturedService"
+            },
+            "type": "array",
+            "title": "Featured Services",
+            "description": "Up to three bookable services (active, not add-ons) in the order the business's booking page lists them; empty when it has none."
           }
         },
         "type": "object",
