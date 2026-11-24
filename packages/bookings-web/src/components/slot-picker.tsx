@@ -146,19 +146,35 @@ export function SlotPicker({
     <div aria-busy={loaded.state === "loading"} className="slots">
       <div className="slots-nav">
         <button
-          className="btn btn-small"
+          aria-label="Earlier dates"
+          className="btn btn-small slots-nav-button"
           disabled={!canGoBack}
           onClick={() => move(-1)}
           type="button"
         >
-          Earlier dates
+          <span aria-hidden="true" className="slots-nav-arrow">
+            ‹
+          </span>
+          <span aria-hidden="true">
+            Earlier<span className="slots-nav-long"> dates</span>
+          </span>
         </button>
         {/* Announced when Earlier or Later dates changes the window. */}
         <span aria-live="polite" className="muted">
           {rangeLabel}
         </span>
-        <button className="btn btn-small" onClick={() => move(1)} type="button">
-          Later dates
+        <button
+          aria-label="Later dates"
+          className="btn btn-small slots-nav-button"
+          onClick={() => move(1)}
+          type="button"
+        >
+          <span aria-hidden="true">
+            Later<span className="slots-nav-long"> dates</span>
+          </span>
+          <span aria-hidden="true" className="slots-nav-arrow">
+            ›
+          </span>
         </button>
       </div>
 
