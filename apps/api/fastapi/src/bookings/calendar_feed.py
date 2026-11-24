@@ -21,6 +21,7 @@ import hmac
 import logging
 import re
 import secrets
+import unicodedata
 import uuid
 from collections.abc import Sequence
 from datetime import datetime, timedelta
@@ -62,6 +63,14 @@ NAME_MAX_CHARS = 24
 #: out of Redis and the in-memory fallback.
 RATE_LIMIT_SCOPE = "bookings-public-calendar"
 _TOKEN_SHAPE = re.compile(r"[A-Za-z0-9_-]{16,100}")
+#: A word that is a contact detail rather than a name: an address ("@", a
+#: domain such as ".com", "name(at)host"), a URL or "tel:" style scheme, or a
+#: run of seven or more digits (a phone number).
+_CONTACT_IN_NAME = re.compile(
+    r"@|\(at\)|\[at\]|\{at\}|://|\b(?:tel|mailto)\s*:|\bwww\."
+    r"|\.(?:com|net|org|edu|gov|io|co|me|info|biz)\b|\d{7,}",
+    re.IGNORECASE,
+)
 _LIVE_STATUSES = (
     BookingStatus.PENDING.value,
     BookingStatus.CONFIRMED.value,
@@ -91,16 +100,20 @@ def first_name(name: str | None) -> str | None:
     """The customer's first word, capped at ``NAME_MAX_CHARS``, or None.
 
     None when there is no name, or when the first word is not a name: an e-mail
-    address (contains "@") or a number such as a phone number (no letters). Such
-    a value was typed into the name field by mistake, so the event shows no name
-    rather than a contact detail."""
+    address, an obfuscated one ("name(at)host.com"), a phone number or a number
+    (no letters, or a run of 7+ digits). Such a value was typed into the name
+    field by mistake, so the event shows no name rather than a contact detail.
+    The text is NFKC-normalised first so full-width characters ("＠", "：") match
+    their ASCII forms."""
     if not name:
         return None
     words = name.split()
     if not words:
         return None
+    # Checked in NFKC form; the original spelling is what is shown.
     word = words[0]
-    if "@" in word or not any(char.isalpha() for char in word):
+    checked = unicodedata.normalize("NFKC", word)
+    if _CONTACT_IN_NAME.search(checked) or not any(c.isalpha() for c in checked):
         return None
     return word[:NAME_MAX_CHARS]
 

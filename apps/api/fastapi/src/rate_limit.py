@@ -211,7 +211,7 @@ class AsyncSafeLimiter(Limiter):
                 # it is set in the instance dictionary. The key test
                 # (tests/bookings/test_calendar_feed.py) fails if this stops taking
                 # effect after a slowapi upgrade.
-                for item in registered[-1:]:
+                for item in registered:
                     vars(item)["_Limit__scope"] = scope
             if not inspect.iscoroutinefunction(func):
                 return decorated

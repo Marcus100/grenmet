@@ -1258,6 +1258,16 @@ async def confirm_email_code(
     return await public.confirm_email_code(profile, payload)
 
 
+# The manage routes carry the booking's secret token in the path. slowapi keys a
+# limit by the request path unless it has a scope, which would put the token in
+# Redis and the in-memory fallback. Each route names a constant scope instead; a
+# shared scope means every token shares one bucket per client address per route.
+MANAGE_VIEW_SCOPE = "bookings-public-manage-view"
+MANAGE_CANCEL_SCOPE = "bookings-public-manage-cancel"
+MANAGE_RESCHEDULE_SCOPE = "bookings-public-manage-reschedule"
+MANAGE_ICS_SCOPE = "bookings-public-manage-ics"
+
+
 @router.get(
     "/public/bookings/{token}",
     response_model=BookingPublicDetail,
@@ -1269,7 +1279,7 @@ async def confirm_email_code(
     operation_id="bookingsGetPublicBooking",
     responses={**NOT_FOUND},
 )
-@limiter.limit("60/minute")
+@limiter.limit("60/minute", scope=MANAGE_VIEW_SCOPE)
 async def get_public_booking(
     *, request: Request, session: SessionDep, token: ManageToken
 ) -> Any:
@@ -1289,7 +1299,7 @@ async def get_public_booking(
     operation_id="bookingsCancelPublicBooking",
     responses={**NOT_FOUND, **CONFLICT},
 )
-@limiter.limit("20/minute")
+@limiter.limit("20/minute", scope=MANAGE_CANCEL_SCOPE)
 async def cancel_public_booking(
     *,
     request: Request,
@@ -1317,7 +1327,7 @@ async def cancel_public_booking(
     operation_id="bookingsReschedulePublicBooking",
     responses={**NOT_FOUND, **CONFLICT},
 )
-@limiter.limit("20/minute")
+@limiter.limit("20/minute", scope=MANAGE_RESCHEDULE_SCOPE)
 async def reschedule_public_booking(
     *,
     request: Request,
@@ -1345,7 +1355,7 @@ async def reschedule_public_booking(
         **NOT_FOUND,
     },
 )
-@limiter.limit("60/minute")
+@limiter.limit("60/minute", scope=MANAGE_ICS_SCOPE)
 async def get_public_booking_ics(
     *, request: Request, session: SessionDep, token: ManageToken
 ) -> Response:
