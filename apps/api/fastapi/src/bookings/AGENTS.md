@@ -28,7 +28,7 @@ Logic is in `public.py` (service.py keeps studio config and availability); route
 - Manage routes `/bookings/public/bookings/{token}` (`GET`), `/cancel`, `/reschedule`, `/ics`: unknown, expired, tampered, cleared and unentitled tokens answer one 404. `public.load_by_token` treats a token with a dot as a signed link, any other as the legacy token (its hash). Reschedule mails and the `booking.rescheduled` webhook are keyed to the move's own `BookingEvent` id (`record_event` returns it), so moving 10:00 to 11:00 and back notifies every time. Cancel and reschedule honour `profile.cancel_cutoff_hours` (409 inside it); a repeated cancel is a no-op; reschedule keeps provider, service, status and token, re-validates availability with `exclude_booking_id`, and writes a `BookingEvent` with equal from/to status. The slug `bookings` is reserved.
 - **Status machine:** `transitions.py` table; `public.transition` is the only place that changes status and it writes a `BookingEvent`. Studio actions (B5) must use it.
 - **Emails:** `emails.py` (pure) builds an `EmailCard` (`src/email_layout.py`, house style in `docs/email-design.md`); `public.py` queues `to_props(card)` as template `card` with `notifications.outbox_handlers.enqueue_email` (topic `email.send`, dedupe keys `booking-<kind>:<id>`), rendered at delivery. `reminders.enqueue_due_reminders` (job `enqueue_booking_reminders`, hourly at :07) queues `booking-reminder:<id>` once per booking for confirmed and `pending` bookings starting within 24 hours; a pending booking's mail says the business has not confirmed it yet. Every mail goes through `public.build_mail`. **Manage links:** create (legacy token), confirmed, deposit paid, reminder and both reschedules carry one; cancellation mails (customer, studio, decline) carry none, though a cancelled booking still opens read-only.
-- **ICS:** `ics.py` is a pure RFC 5545 writer (CRLF, 75-octet folding, escaping, UTC, `STATUS`, `SEQUENCE` = history length - 1).
+- **ICS:** `ics.py` is a pure RFC 5545 writer (`SEQUENCE` = history length - 1).
 - Deposits (`pending_payment`) are wired: see B6 below.
 
 ## Wiring (PF3, PF5, PF8)
@@ -76,8 +76,8 @@ Logic is in `public.py` (service.py keeps studio config and availability); route
 - **Logging:** a link appears only in outbox payloads and HTML, never in a log line (`test_no_manage_link_or_token_reaches_the_logs`). Do not add logging of mail bodies.
 - **Tests:** `tests/bookings/test_manage_link.py` (pure) and `test_manage_links.py` (mail links, 404s, revocation, read-only, invitation, logs).
 
-## Add-ons (off by default, `profile.add_ons_enabled`)
-- `add_ons.py` holds the pure rules; `service.resolve_add_ons` validates. Length, price and deposit use the combined totals (a service's own deposit wins; add-on deposits are ignored). Lines snapshot name, length and price. Tests: `test_add_ons.py`.
+## Add-ons (off by default)
+- `add_ons.py` rules; `service.resolve_add_ons` validates. Totals use the combined length and price. Tests: `test_add_ons*.py`.
 
 ## Monitoring (booking jobs)
 - `enqueue_booking_reminders` (`7 * * * *`) and `expire_unpaid_bookings` (`2,7,12,...,57 * * * *`, every 5 minutes) are `@monitored` (Sentry Cron check-ins, slug `<env>-worker-<job name>`) and listed in `operational_metrics.JOBS`. The schedules must match the ARQ `cron(...)` minutes in `src/worker/main.py`; `tests/worker/test_cron_monitor.py` checks the check-in schedule.

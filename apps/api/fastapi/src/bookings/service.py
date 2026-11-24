@@ -240,6 +240,22 @@ def _add_on_restriction(
 async def update_service(
     session: AsyncSession, service: Service, payload: BookingServiceUpdate
 ) -> Service:
+    if payload.is_add_on and not service.is_add_on:
+        # Customers reschedule through the main-service availability check, which
+        # refuses add-ons; a service with upcoming bookings must stay a main service.
+        upcoming = await session.scalar(
+            select(func.count())
+            .select_from(Booking)
+            .where(
+                Booking.service_id == service.id,
+                Booking.status.in_([s.value for s in ACTIVE_STATUSES]),
+                Booking.starts_at > as_naive_utc(utc_now()),
+            )
+        )
+        if upcoming:
+            raise BookingConflictError(
+                "This service has upcoming bookings, so it cannot become an add-on yet"
+            )
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(service, key, value)
     if service.deposit_minor > service.price_minor:
