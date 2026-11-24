@@ -55,6 +55,12 @@ CANCELLED_KEEP_DAYS = 14
 #: Safety cap on one feed. A busier business would need paging; the cap is far
 #: above a year of a small studio's bookings inside the window.
 MAX_EVENTS = 2000
+#: Longest first name shown in an event title.
+NAME_MAX_CHARS = 24
+#: The limiter scope of the public feed. Without a scope slowapi keys the route's
+#: limit by the request path, which carries the token; this scope keeps the token
+#: out of Redis and the in-memory fallback.
+RATE_LIMIT_SCOPE = "bookings-public-calendar"
 _TOKEN_SHAPE = re.compile(r"[A-Za-z0-9_-]{16,100}")
 _LIVE_STATUSES = (
     BookingStatus.PENDING.value,
@@ -82,11 +88,21 @@ def token_matches(token: str, stored_hash: str) -> bool:
 
 
 def first_name(name: str | None) -> str | None:
-    """The customer's first word only, or None when there is no name."""
+    """The customer's first word, capped at ``NAME_MAX_CHARS``, or None.
+
+    None when there is no name, or when the first word is not a name: an e-mail
+    address (contains "@") or a number such as a phone number (no letters). Such
+    a value was typed into the name field by mistake, so the event shows no name
+    rather than a contact detail."""
     if not name:
         return None
     words = name.split()
-    return words[0] if words else None
+    if not words:
+        return None
+    word = words[0]
+    if "@" in word or not any(char.isalpha() for char in word):
+        return None
+    return word[:NAME_MAX_CHARS]
 
 
 def feed_url(token: str) -> str:

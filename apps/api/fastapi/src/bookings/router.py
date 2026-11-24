@@ -1366,7 +1366,7 @@ async def get_public_booking_ics(
         429: {"model": RateLimitedBody, "description": "Too many requests"},
     },
 )
-@limiter.limit("60/minute")
+@limiter.limit("60/minute", scope=calendar_feed.RATE_LIMIT_SCOPE)
 async def get_public_calendar_feed(
     *, request: Request, session: SessionDep, token: str
 ) -> Response:

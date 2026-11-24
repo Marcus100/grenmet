@@ -494,6 +494,36 @@ def test_feed_route_carries_its_rate_limit() -> None:
     assert len(limits) == 1
     assert limits[0].limit.amount == 60
     assert limits[0].limit.get_expiry() == 60
+    assert limits[0].scope == calendar_feed.RATE_LIMIT_SCOPE
+
+
+@pytest.mark.usefixtures("db_async")
+async def test_limiter_identifiers_for_a_feed_request_hold_no_token(
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The keys slowapi builds for a feed request never contain the feed token.
+
+    The default scope is the request path, which holds the token; the route's
+    scope keeps it out of Redis and the in-memory fallback."""
+    seen: list[tuple[object, ...]] = []
+    real_hit = limiter.limiter.hit
+
+    def spy(item: object, *identifiers: object, **kwargs: object) -> bool:
+        seen.append(identifiers)
+        return bool(real_hit(item, *identifiers, **kwargs))
+
+    monkeypatch.setattr(limiter.limiter, "hit", spy)
+    token = calendar_feed.new_token()
+    limiter.enabled = True
+    try:
+        await async_client.get(f"{FEED_MARKER}{token}.ics")
+    finally:
+        limiter.enabled = False
+    assert seen, "the feed route did not consult the limiter"
+    assert any(calendar_feed.RATE_LIMIT_SCOPE in ids for ids in seen)
+    for identifiers in seen:
+        assert all(token not in str(part) for part in identifiers)
 
 
 # --- pure helpers -------------------------------------------------------------------------
@@ -525,4 +555,35 @@ def test_first_name_is_the_first_word_only() -> None:
     assert calendar_feed.first_name("  Ada Lovelace ") == "Ada"
     assert calendar_feed.first_name("Mónica") == "Mónica"
     assert calendar_feed.first_name("") is None
+    assert calendar_feed.first_name("   ") is None
     assert calendar_feed.first_name(None) is None
+
+
+def test_first_name_is_capped_at_24_characters() -> None:
+    long_name = "A" * 40 + " Surname"
+    assert calendar_feed.first_name(long_name) == "A" * calendar_feed.NAME_MAX_CHARS
+    assert calendar_feed.first_name("B" * 24) == "B" * 24
+
+
+def test_an_e_mail_or_number_in_the_name_field_shows_no_name() -> None:
+    assert calendar_feed.first_name("ada.private@example.com") is None
+    assert calendar_feed.first_name("ada@example.com Lovelace") is None
+    assert calendar_feed.first_name("+1 (473) 555-0199") is None
+    assert calendar_feed.first_name("4735550199") is None
+    assert calendar_feed.first_name("Ada2") == "Ada2"
+
+
+async def test_a_name_that_is_an_e_mail_never_reaches_the_feed(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    salon = await _salon(db_async, async_client)
+    url = await _create_feed(async_client, salon)
+    booking = await _book(
+        async_client, salon, _in_days(2), name="ada.private@example.com"
+    )
+
+    text = (await async_client.get(_feed_path(url))).text
+    event = _events(text)[_uid(booking)]
+    assert event["SUMMARY"] == "Classic full set"
+    assert "ada.private" not in text
+    assert "@example.com" not in text
