@@ -3,6 +3,7 @@ import type {
   BookingPublicBusiness,
   BookingPublicBusinessPage,
 } from "@barrelsgd/api-client";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
@@ -118,7 +119,10 @@ function BusinessCard({ card }: Readonly<{ card: BookingPublicBusiness }>) {
           </span>
         ) : null}
         <h3
-          className={`${transition ? "vt-biz" : ""}text-[30px] leading-[1.05] font-extrabold tracking-tight md:text-[32px]`}
+          className={cn(
+            transition ? "vt-biz" : undefined,
+            "text-[30px] leading-[1.05] font-extrabold tracking-tight md:text-[32px]"
+          )}
           style={transition}
         >
           {card.name}
@@ -402,7 +406,7 @@ export function BusinessListing({
         )}
 
         {listing && listing.items.length > 0 && (
-          <ul className="rail -mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pt-1 pb-4 md:mx-0 md:px-0">
+          <ul className="rail -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pt-1 pb-4 md:mx-0 md:scroll-px-0 md:px-0">
             {listing.items.map((card, index) => (
               <li
                 className="enter h-[470px] w-[316px] shrink-0 snap-start md:h-[500px] md:w-[330px]"

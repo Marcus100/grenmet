@@ -49,8 +49,11 @@ const ITEMS = [
 
 const SIGN_IN = { pathname: "/signin" as const, query: { returnTo: "/" } };
 
-const ITEM =
-  "press inline-flex items-center justify-center rounded-full focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none";
+// No display utility here: `hidden` and `inline-flex` in one string both apply and
+// the later one in the stylesheet wins, which showed the laptop mark on phones.
+const ITEM_BASE =
+  "press items-center justify-center rounded-full focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none";
+const ITEM = `${ITEM_BASE} inline-flex`;
 
 function Icon({ children }: Readonly<{ children: ReactNode }>) {
   return (
@@ -71,7 +74,7 @@ export function SideRail() {
     <>
       <Link
         aria-label="Barrels Bookings home"
-        className={`${ITEM} bg-primary text-primary-foreground fixed top-5 left-5 z-30 hidden size-14 rounded-[18px] text-2xl font-extrabold shadow-lg md:inline-flex`}
+        className={`${ITEM_BASE} bg-primary text-primary-foreground fixed top-5 left-5 z-30 hidden size-14 rounded-[18px] text-2xl font-extrabold shadow-lg md:inline-flex`}
         href={{ pathname: "/" }}
       >
         B
@@ -93,7 +96,7 @@ export function SideRail() {
         ))}
       </nav>
       <Link
-        className={`${ITEM} bg-background text-secondary-foreground fixed bottom-5 left-5 z-30 hidden h-14 w-14 text-center text-xs leading-tight font-semibold shadow-lg md:inline-flex`}
+        className={`${ITEM_BASE} bg-background text-secondary-foreground fixed bottom-5 left-5 z-30 hidden h-14 w-14 text-center text-xs leading-tight font-semibold shadow-lg md:inline-flex`}
         href={SIGN_IN}
       >
         Sign in

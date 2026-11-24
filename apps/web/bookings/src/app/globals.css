@@ -135,6 +135,10 @@ html {
       transform: translateY(-4px);
       transition-duration: 200ms;
     }
+    /* Pressing while hovered still presses (same specificity, later rule). */
+    .lift:hover:active {
+      transform: scale(0.97);
+    }
   }
 
   /* First load: the hero card enters as one thing; rail cards arrive from the

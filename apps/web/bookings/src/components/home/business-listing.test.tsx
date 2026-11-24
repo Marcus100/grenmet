@@ -601,7 +601,9 @@ describe("entrance timing", () => {
     expect(container.querySelectorAll(".reveal")).toHaveLength(4);
     const name = screen.getByRole("heading", { name: "Tide Barbers" });
     expect(name.style.getPropertyValue("--vt")).toBe("biz-tide-barbers");
-    expect(name.getAttribute("class")).toContain("vt-biz");
+    expect(name.classList.contains("vt-biz")).toBe(true);
+    // The size class must survive beside it (a missing space once glued them).
+    expect(name.classList.contains("text-[30px]")).toBe(true);
     expect(container.querySelector(".vt-search")).not.toBeNull();
   });
 
@@ -614,6 +616,7 @@ describe("entrance timing", () => {
     );
     const name = screen.getByRole("heading", { name: "Tide Barbers" });
     expect(name.getAttribute("style")).toBeNull();
-    expect(name.getAttribute("class")).not.toContain("vt-biz");
+    expect(name.classList.contains("vt-biz")).toBe(false);
+    expect(name.classList.contains("text-[30px]")).toBe(true);
   });
 });

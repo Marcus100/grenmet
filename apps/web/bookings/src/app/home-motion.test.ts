@@ -41,7 +41,8 @@ describe("home page motion (globals.css)", () => {
     expect(motion).toContain(HOVER);
     const hoverAt = motion.indexOf(HOVER);
     expect(motion.indexOf(":hover")).toBeGreaterThan(hoverAt);
-    expect(css.match(/:hover/gu)).toHaveLength(1);
+    // The lift, plus pressing while hovered.
+    expect(css.match(/:hover/gu)).toHaveLength(2);
   });
 
   it("puts scroll-driven reveals behind a support check", () => {

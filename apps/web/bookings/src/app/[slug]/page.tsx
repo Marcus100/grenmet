@@ -2,6 +2,7 @@ import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contac
 import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
 import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -97,7 +98,10 @@ export default async function BusinessBookingPage({
       <header className="space-y-2">
         {logo && <StorefrontLogo name={storefront.display_name} src={logo} />}
         <h1
-          className={`${transition ? "vt-biz" : ""}text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] font-bold tracking-tight`}
+          className={cn(
+            transition ? "vt-biz" : undefined,
+            "text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] font-bold tracking-tight"
+          )}
           style={transition}
         >
           {storefront.display_name}
