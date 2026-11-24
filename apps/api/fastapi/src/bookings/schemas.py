@@ -158,6 +158,24 @@ class BookingProfileUpdate(BaseModel):
     horizon_days: Annotated[int, Field(ge=1, le=365)] = 60
     cancel_cutoff_hours: Annotated[int, Field(ge=0, le=720)] = 24
     requires_confirmation: bool = False
+    pending_expiry_hours: Annotated[int, Field(ge=1, le=168)] | None = Field(
+        default=24,
+        description=(
+            "Hours a booking request waits for the business to confirm it before it "
+            "expires (the customer is told and the slot is released). Null means it "
+            "expires only at its start time. A request whose start has passed always "
+            "expires. Left out, the stored value is kept."
+        ),
+    )
+    max_open_per_customer: Annotated[int, Field(ge=1, le=20)] = Field(
+        default=3,
+        description=(
+            "How many future bookings (requested, awaiting payment or confirmed) one "
+            "customer may hold with this business. A public booking beyond it is "
+            "refused with 409. Staff entries are not refused. Left out, the stored "
+            "value is kept."
+        ),
+    )
     notify_email: EmailStr | None = None
     manage_url_template: (
         Annotated[
@@ -885,6 +903,16 @@ class BookingStorefront(BaseModel):
     )
 
 
+class BookingFeaturedService(BaseModel):
+    """A service shown on a home page card. Public fields only."""
+
+    id: uuid.UUID
+    name: str
+    price_minor: int = Field(description="The service price in minor units.")
+    currency: str = Field(description="The business's currency, such as `XCD`.")
+    duration_min: int
+
+
 class BookingPublicBusiness(BaseModel):
     """One card on the Barrels Bookings home page. Public fields only: no contact
     details, owner data or emails."""
@@ -913,6 +941,13 @@ class BookingPublicBusiness(BaseModel):
     business_type: BookingBusinessType | None = Field(
         default=None,
         description="The business's type (the `type` filter), or null when not chosen.",
+    )
+    featured_services: list[BookingFeaturedService] = Field(
+        default_factory=list,
+        description=(
+            "Up to three bookable services (active, not add-ons) in the order the "
+            "business's booking page lists them; empty when it has none."
+        ),
     )
 
 

@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
+import { bookingFeaturedServiceSchema } from "./bookingFeaturedServiceSchema.js";
 
 export const bookingPublicBusinessSchema = z
   .object({
@@ -32,6 +33,12 @@ export const bookingPublicBusinessSchema = z
       .optional()
       .describe(
         "The business's type (the `type` filter), or null when not chosen."
+      ),
+    featured_services: z
+      .array(bookingFeaturedServiceSchema)
+      .optional()
+      .describe(
+        "Up to three bookable services (active, not add-ons) in the order the business's booking page lists them; empty when it has none."
       ),
   })
   .describe(

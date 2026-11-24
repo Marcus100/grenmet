@@ -28,6 +28,22 @@ export const bookingProfilePublicSchema = z.object({
   horizon_days: z.int().min(1).max(365).optional().default(60),
   cancel_cutoff_hours: z.int().min(0).max(720).optional().default(24),
   requires_confirmation: z.boolean().optional().default(false),
+  pending_expiry_hours: z
+    .union([z.int().min(1).max(168), z.null()])
+    .optional()
+    .default(24)
+    .describe(
+      "Hours a booking request waits for the business to confirm it before it expires (the customer is told and the slot is released). Null means it expires only at its start time. A request whose start has passed always expires. Left out, the stored value is kept."
+    ),
+  max_open_per_customer: z
+    .int()
+    .min(1)
+    .max(20)
+    .optional()
+    .default(3)
+    .describe(
+      "How many future bookings (requested, awaiting payment or confirmed) one customer may hold with this business. A public booking beyond it is refused with 409. Staff entries are not refused. Left out, the stored value is kept."
+    ),
   notify_email: z.union([z.email(), z.null()]).optional(),
   manage_url_template: z
     .union([

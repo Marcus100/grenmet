@@ -73,6 +73,19 @@ export type BookingProfileUpdate = {
    * @type boolean | undefined
    */
   requires_confirmation?: boolean;
+  /**
+   * @description Hours a booking request waits for the business to confirm it before it expires (the customer is told and the slot is released). Null means it expires only at its start time. A request whose start has passed always expires. Left out, the stored value is kept.
+   * @default 24
+   */
+  pending_expiry_hours?: number | null;
+  /**
+   * @description How many future bookings (requested, awaiting payment or confirmed) one customer may hold with this business. A public booking beyond it is refused with 409. Staff entries are not refused. Left out, the stored value is kept.
+   * @minimum 1
+   * @maximum 20
+   * @default 3
+   * @type integer | undefined
+   */
+  max_open_per_customer?: number;
   notify_email?: string | null;
   manage_url_template?: string | null;
   /**

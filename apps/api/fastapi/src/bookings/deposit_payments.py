@@ -520,13 +520,15 @@ async def refund_deposit(
                 payload=payment_schemas.PaymentRefundCreate(reason=reason),
             )
     except AppException as error:
-        logger.warning(
-            "booking deposit refund failed",
+        # Error level so Sentry alerts: the money is still held and needs a refund by
+        # hand. Only ids, amounts and the status code are logged (no provider text).
+        logger.error(
+            "booking deposit refund failed; refund it by hand",
             extra={
                 "booking_id": str(booking.id),
                 "intent_id": str(intent.id),
+                "amount_minor": intent.captured_minor - intent.refunded_minor,
                 "status_code": error.status_code,
-                "reason": error.message,
             },
         )
         return False

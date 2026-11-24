@@ -6,7 +6,8 @@ const zeroSha = /^0+$/u;
 
 export function changedPaths(
   event,
-  git = (args) => execFileSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 })
+  git = (args) =>
+    execFileSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 })
 ) {
   let base = event.before;
   const head = event.pull_request?.head?.sha ?? event.after;

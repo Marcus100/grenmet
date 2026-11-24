@@ -11,14 +11,20 @@ import { BookBar } from "@/components/book-bar";
 import { SiteHeader } from "@/components/site-header";
 import {
   BOOKING_URL,
+  EMAIL,
   GOOGLE_REVIEW_URL,
+  PHONE,
   PORTFOLIO,
   SERVICE_MENU,
+  WHATSAPP_URL,
 } from "@/data/site";
 import { bookingLink, siteBookingLink } from "@/lib/book-link";
 
 const APPOINTMENT = /appointment/iu;
 const BOOK_ONLINE = /Book online/u;
+const WHATSAPP_LINK = /Message on WhatsApp/u;
+const CALL_LINK = /^Call/u;
+const EMAIL_LINK = /Email us/u;
 const QUICKEST = /quickest/iu;
 const APPOINTMENT_NOTE =
   "Book online and choose a time that suits you. Walk-ins can't be seen.";
@@ -178,5 +184,23 @@ describe("chrome", () => {
     expect(
       screen.getByRole("link", { name: "Book me (opens in a new tab)" })
     ).toHaveAttribute("href", BOOKING_URL);
+  });
+});
+
+describe("training contact channels", () => {
+  it("offers the same WhatsApp, phone and email as the Contact page", () => {
+    render(<TrainingPage />);
+    expect(screen.getByRole("link", { name: WHATSAPP_LINK })).toHaveAttribute(
+      "href",
+      WHATSAPP_URL
+    );
+    expect(screen.getByRole("link", { name: CALL_LINK })).toHaveAttribute(
+      "href",
+      PHONE.href
+    );
+    expect(screen.getByRole("link", { name: EMAIL_LINK })).toHaveAttribute(
+      "href",
+      EMAIL.href
+    );
   });
 });
