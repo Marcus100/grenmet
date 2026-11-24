@@ -77,12 +77,15 @@ async def complete_upload(
     session: SessionDep, context: UploadMember, upload_id: uuid.UUID
 ) -> StoredFile:
     try:
-        row = await uploads.complete_upload(session, context, upload_id)
+        row, superseded_key = await uploads.complete_upload(session, context, upload_id)
     except uploads.UploadRejectedError:
         # The mismatching object was deleted; keep the pending row for audit.
         await session.commit()
         raise
     await session.commit()
+    if superseded_key is not None:
+        # Only after the commit: if it failed, the row still points at this key.
+        await uploads.discard_superseded_object(superseded_key)
     return _stored(row)
 
 

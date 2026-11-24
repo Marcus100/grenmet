@@ -9,8 +9,11 @@ and purposes flagged public are served through a cached redirect by file id.
 Completion copies the bytes to a new key that the server picks. No presigned URL is
 ever issued for that key, so a presigned PUT (valid for 15 minutes) can still overwrite
 the original key but never the served object (#1679). The row is pointed at the copy,
-and the original is deleted on a best-effort basis. Only the bytes read and validated at
-completion are copied, so a swap between the HEAD and the GET is never served.
+and the router deletes the original on a best-effort basis after the commit, so a failed
+commit leaves the row pointing at an object that still exists. Completion holds a row
+lock until the commit, so concurrent calls write one copy. Only the bytes read and
+validated at completion are copied, so a swap between the HEAD and the GET is never
+served.
 
 Service functions flush and never commit; the router owns the transaction.
 Pixel limits apply only where a purpose sets ``strip_metadata``: those images are
@@ -196,13 +199,20 @@ async def create_upload(
 
 
 async def _own_upload(
-    session: AsyncSession, organisation_id: str, upload_id: uuid.UUID
+    session: AsyncSession,
+    organisation_id: str,
+    upload_id: uuid.UUID,
+    *,
+    lock: bool = False,
 ) -> OrgUpload:
-    row = await session.scalar(
-        select(OrgUpload).where(
-            OrgUpload.id == upload_id, OrgUpload.organisation_id == organisation_id
-        )
+    statement = select(OrgUpload).where(
+        OrgUpload.id == upload_id, OrgUpload.organisation_id == organisation_id
     )
+    if lock:
+        # Held until the router commits: a concurrent completion waits here, then
+        # reads the row as complete and writes nothing.
+        statement = statement.with_for_update()
+    row = await session.scalar(statement)
     if row is None:
         raise NotFoundError("File not found")
     return row
@@ -224,9 +234,13 @@ def _served_bytes(row: OrgUpload, raw: bytes, purpose: Purpose | None) -> bytes:
     return raw
 
 
-async def _discard_original(key: str) -> None:
-    """Delete the object the presigned PUT wrote. Best effort: the served copy is
-    already in place, and a leftover object is never served."""
+async def discard_superseded_object(key: str) -> None:
+    """Delete the original object after the row has moved to its served copy.
+
+    Called by the router after the commit, so a failed commit leaves the row pointing
+    at a key that still exists. Best effort: a leftover object is never served. Logs
+    the area only, never the key or the content.
+    """
     try:
         await run_in_threadpool(storage.storage_service.delete_object, key)
     except BotoCoreError, ClientError:
@@ -238,13 +252,15 @@ async def _discard_original(key: str) -> None:
 
 async def complete_upload(
     session: AsyncSession, context: UploadContext, upload_id: uuid.UUID
-) -> OrgUpload:
+) -> tuple[OrgUpload, str | None]:
+    """Complete an upload. Returns the row and the original key to discard once the
+    router has committed (``None`` when there is nothing to discard)."""
     _require_configured()
-    row = await _own_upload(session, context.org.organisation_id, upload_id)
+    row = await _own_upload(session, context.org.organisation_id, upload_id, lock=True)
     if context.token_app is not None and context.token_app != row.app:
         raise UploadAppError()
     if row.status == UploadStatus.COMPLETE.value:
-        return row
+        return row, None
     if row.expires_at < utc_now():
         raise UploadStateError("The upload link expired; start the upload again")
     head = await run_in_threadpool(storage.storage_service.head_object, row.object_key)
@@ -280,14 +296,13 @@ async def complete_upload(
             content_type=row.content_type,
         )
     )
-    original_key = row.object_key
+    superseded_key = row.object_key
     row.object_key = served_key
     row.size_bytes = len(clean)
-    await _discard_original(original_key)
     transitions.move_upload(row, "complete")
     row.completed_at = utc_now()
     await session.flush()
-    return row
+    return row, superseded_key
 
 
 def public_path(row: OrgUpload) -> str | None:
