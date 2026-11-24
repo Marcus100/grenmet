@@ -488,6 +488,25 @@ class BookingClosureCreate(BaseModel):
         return self
 
 
+class BookingCalendarFeedStatus(BaseModel):
+    """Whether the business has a calendar feed. The URL is never shown again."""
+
+    enabled: bool
+    created_at: UtcDateTime | None = None
+    rotated_at: UtcDateTime | None = None
+
+
+class BookingCalendarFeedLink(BaseModel):
+    url: str = Field(
+        description=(
+            "The private https address to subscribe to (webcal:// opens it in "
+            "Apple Calendar). Returned once: keep it, rotating ends it."
+        ),
+    )
+    created_at: UtcDateTime
+    rotated_at: UtcDateTime | None = None
+
+
 class BookingClosurePublic(BaseModel):
     id: uuid.UUID
     starts_on: date

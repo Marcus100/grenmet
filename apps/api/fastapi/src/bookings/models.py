@@ -305,6 +305,30 @@ class BusinessClosure(Base):
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
+class CalendarFeed(Base):
+    """The organisation's private calendar feed: one row per organisation.
+
+    Only the SHA-256 of the URL token is stored (the token is shown once, when
+    created or rotated). Rotating replaces ``token_hash``, so the old URL stops
+    matching.
+    """
+
+    __tablename__ = "calendar_feed"
+    __table_args__ = (
+        sa.UniqueConstraint("organisation_id", name="calendar_feed_organisation_key"),
+        sa.UniqueConstraint("token_hash", name="calendar_feed_token_hash_key"),
+        SCHEMA,
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id")
+    )
+    token_hash: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    rotated_at: Mapped[datetime | None]
+
+
 class Customer(Base):
     """A business's customer: the booking-side role of one contact (ADR-0028)."""
 

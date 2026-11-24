@@ -549,6 +549,11 @@ export {
   useBookingsConfirmStudioBooking,
 } from "./useBookingsConfirmStudioBooking.js";
 export {
+  bookingsCreateCalendarFeedMutationKey,
+  bookingsCreateCalendarFeedMutationOptions,
+  useBookingsCreateCalendarFeed,
+} from "./useBookingsCreateCalendarFeed.js";
+export {
   bookingsCreateClosureMutationKey,
   bookingsCreateClosureMutationOptions,
   useBookingsCreateClosure,
@@ -604,6 +609,11 @@ export {
   useBookingsGetAvailability,
 } from "./useBookingsGetAvailability.js";
 export {
+  bookingsGetCalendarFeedStatusQueryKey,
+  bookingsGetCalendarFeedStatusQueryOptions,
+  useBookingsGetCalendarFeedStatus,
+} from "./useBookingsGetCalendarFeedStatus.js";
+export {
   bookingsGetMyChoicesQueryKey,
   bookingsGetMyChoicesQueryOptions,
   useBookingsGetMyChoices,
@@ -623,6 +633,11 @@ export {
   bookingsGetPublicBookingIcsQueryOptions,
   useBookingsGetPublicBookingIcs,
 } from "./useBookingsGetPublicBookingIcs.js";
+export {
+  bookingsGetPublicCalendarFeedQueryKey,
+  bookingsGetPublicCalendarFeedQueryOptions,
+  useBookingsGetPublicCalendarFeed,
+} from "./useBookingsGetPublicCalendarFeed.js";
 export {
   bookingsGetSettingsQueryKey,
   bookingsGetSettingsQueryOptions,
@@ -723,6 +738,11 @@ export {
   bookingsRescheduleStudioBookingMutationOptions,
   useBookingsRescheduleStudioBooking,
 } from "./useBookingsRescheduleStudioBooking.js";
+export {
+  bookingsRotateCalendarFeedMutationKey,
+  bookingsRotateCalendarFeedMutationOptions,
+  useBookingsRotateCalendarFeed,
+} from "./useBookingsRotateCalendarFeed.js";
 export {
   bookingsUpdateProviderMutationKey,
   bookingsUpdateProviderMutationOptions,

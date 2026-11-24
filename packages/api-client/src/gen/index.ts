@@ -1241,6 +1241,8 @@ export type { BookingAgendaDay } from "./models/BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./models/BookingAgendaItem.js";
 export type { BookingAvailability } from "./models/BookingAvailability.js";
 export type { BookingBusinessContact } from "./models/BookingBusinessContact.js";
+export type { BookingCalendarFeedLink } from "./models/BookingCalendarFeedLink.js";
+export type { BookingCalendarFeedStatus } from "./models/BookingCalendarFeedStatus.js";
 export type { BookingClosureAffected } from "./models/BookingClosureAffected.js";
 export type { BookingClosureCreate } from "./models/BookingClosureCreate.js";
 export type { BookingClosureCreated } from "./models/BookingClosureCreated.js";
@@ -1365,6 +1367,19 @@ export type {
   BookingsConfirmStudioBookingStatus409,
   BookingsConfirmStudioBookingStatus422,
 } from "./models/BookingsConfirmStudioBooking.js";
+export type {
+  BookingsCreateCalendarFeedHeaders,
+  BookingsCreateCalendarFeedOptions,
+  BookingsCreateCalendarFeedResponse,
+  BookingsCreateCalendarFeedResponses,
+  BookingsCreateCalendarFeedStatus201,
+  BookingsCreateCalendarFeedStatus400,
+  BookingsCreateCalendarFeedStatus401,
+  BookingsCreateCalendarFeedStatus403,
+  BookingsCreateCalendarFeedStatus404,
+  BookingsCreateCalendarFeedStatus409,
+  BookingsCreateCalendarFeedStatus422,
+} from "./models/BookingsCreateCalendarFeed.js";
 export type {
   BookingsCreateClosureBody,
   BookingsCreateClosureHeaders,
@@ -1518,6 +1533,18 @@ export type {
   BookingsGetAvailabilityStatus422,
 } from "./models/BookingsGetAvailability.js";
 export type {
+  BookingsGetCalendarFeedStatusHeaders,
+  BookingsGetCalendarFeedStatusOptions,
+  BookingsGetCalendarFeedStatusResponse,
+  BookingsGetCalendarFeedStatusResponses,
+  BookingsGetCalendarFeedStatusStatus200,
+  BookingsGetCalendarFeedStatusStatus400,
+  BookingsGetCalendarFeedStatusStatus401,
+  BookingsGetCalendarFeedStatusStatus403,
+  BookingsGetCalendarFeedStatusStatus404,
+  BookingsGetCalendarFeedStatusStatus422,
+} from "./models/BookingsGetCalendarFeedStatus.js";
+export type {
   BookingsGetMyChoicesOptions,
   BookingsGetMyChoicesPath,
   BookingsGetMyChoicesResponse,
@@ -1559,6 +1586,16 @@ export type {
   BookingsGetPublicBookingIcsStatus404,
   BookingsGetPublicBookingIcsStatus422,
 } from "./models/BookingsGetPublicBookingIcs.js";
+export type {
+  BookingsGetPublicCalendarFeedOptions,
+  BookingsGetPublicCalendarFeedPath,
+  BookingsGetPublicCalendarFeedResponse,
+  BookingsGetPublicCalendarFeedResponses,
+  BookingsGetPublicCalendarFeedStatus200,
+  BookingsGetPublicCalendarFeedStatus404,
+  BookingsGetPublicCalendarFeedStatus422,
+  BookingsGetPublicCalendarFeedStatus429,
+} from "./models/BookingsGetPublicCalendarFeed.js";
 export type {
   BookingsGetSettingsHeaders,
   BookingsGetSettingsOptions,
@@ -1810,6 +1847,19 @@ export type {
   BookingsRescheduleStudioBookingStatus409,
   BookingsRescheduleStudioBookingStatus422,
 } from "./models/BookingsRescheduleStudioBooking.js";
+export type {
+  BookingsRotateCalendarFeedHeaders,
+  BookingsRotateCalendarFeedOptions,
+  BookingsRotateCalendarFeedResponse,
+  BookingsRotateCalendarFeedResponses,
+  BookingsRotateCalendarFeedStatus200,
+  BookingsRotateCalendarFeedStatus400,
+  BookingsRotateCalendarFeedStatus401,
+  BookingsRotateCalendarFeedStatus403,
+  BookingsRotateCalendarFeedStatus404,
+  BookingsRotateCalendarFeedStatus409,
+  BookingsRotateCalendarFeedStatus422,
+} from "./models/BookingsRotateCalendarFeed.js";
 export type {
   BookingsUpdateProviderBody,
   BookingsUpdateProviderHeaders,
@@ -10723,6 +10773,7 @@ export { bookingsCancelStudioBooking } from "./clients/bookingsCancelStudioBooki
 export { bookingsCompleteStudioBooking } from "./clients/bookingsCompleteStudioBooking.js";
 export { bookingsConfirmEmailCode } from "./clients/bookingsConfirmEmailCode.js";
 export { bookingsConfirmStudioBooking } from "./clients/bookingsConfirmStudioBooking.js";
+export { bookingsCreateCalendarFeed } from "./clients/bookingsCreateCalendarFeed.js";
 export { bookingsCreateClosure } from "./clients/bookingsCreateClosure.js";
 export { bookingsCreateException } from "./clients/bookingsCreateException.js";
 export { bookingsCreateProvider } from "./clients/bookingsCreateProvider.js";
@@ -10734,10 +10785,12 @@ export { bookingsDeleteClosure } from "./clients/bookingsDeleteClosure.js";
 export { bookingsDeleteException } from "./clients/bookingsDeleteException.js";
 export { bookingsGetAgenda } from "./clients/bookingsGetAgenda.js";
 export { bookingsGetAvailability } from "./clients/bookingsGetAvailability.js";
+export { bookingsGetCalendarFeedStatus } from "./clients/bookingsGetCalendarFeedStatus.js";
 export { bookingsGetMyChoices } from "./clients/bookingsGetMyChoices.js";
 export { bookingsGetProfile } from "./clients/bookingsGetProfile.js";
 export { bookingsGetPublicBooking } from "./clients/bookingsGetPublicBooking.js";
 export { bookingsGetPublicBookingIcs } from "./clients/bookingsGetPublicBookingIcs.js";
+export { bookingsGetPublicCalendarFeed } from "./clients/bookingsGetPublicCalendarFeed.js";
 export { bookingsGetSettings } from "./clients/bookingsGetSettings.js";
 export { bookingsGetStorefront } from "./clients/bookingsGetStorefront.js";
 export { bookingsGetStudioBooking } from "./clients/bookingsGetStudioBooking.js";
@@ -10758,6 +10811,7 @@ export { bookingsReplaceWorkingHours } from "./clients/bookingsReplaceWorkingHou
 export { bookingsRequestEmailCode } from "./clients/bookingsRequestEmailCode.js";
 export { bookingsReschedulePublicBooking } from "./clients/bookingsReschedulePublicBooking.js";
 export { bookingsRescheduleStudioBooking } from "./clients/bookingsRescheduleStudioBooking.js";
+export { bookingsRotateCalendarFeed } from "./clients/bookingsRotateCalendarFeed.js";
 export { bookingsUpdateProvider } from "./clients/bookingsUpdateProvider.js";
 export { bookingsUpdateService } from "./clients/bookingsUpdateService.js";
 export { bookingsUpsertProfile } from "./clients/bookingsUpsertProfile.js";
@@ -11982,6 +12036,11 @@ export {
   useBookingsConfirmStudioBooking,
 } from "./hooks/useBookingsConfirmStudioBooking.js";
 export {
+  bookingsCreateCalendarFeedMutationKey,
+  bookingsCreateCalendarFeedMutationOptions,
+  useBookingsCreateCalendarFeed,
+} from "./hooks/useBookingsCreateCalendarFeed.js";
+export {
   bookingsCreateClosureMutationKey,
   bookingsCreateClosureMutationOptions,
   useBookingsCreateClosure,
@@ -12037,6 +12096,11 @@ export {
   useBookingsGetAvailability,
 } from "./hooks/useBookingsGetAvailability.js";
 export {
+  bookingsGetCalendarFeedStatusQueryKey,
+  bookingsGetCalendarFeedStatusQueryOptions,
+  useBookingsGetCalendarFeedStatus,
+} from "./hooks/useBookingsGetCalendarFeedStatus.js";
+export {
   bookingsGetMyChoicesQueryKey,
   bookingsGetMyChoicesQueryOptions,
   useBookingsGetMyChoices,
@@ -12056,6 +12120,11 @@ export {
   bookingsGetPublicBookingIcsQueryOptions,
   useBookingsGetPublicBookingIcs,
 } from "./hooks/useBookingsGetPublicBookingIcs.js";
+export {
+  bookingsGetPublicCalendarFeedQueryKey,
+  bookingsGetPublicCalendarFeedQueryOptions,
+  useBookingsGetPublicCalendarFeed,
+} from "./hooks/useBookingsGetPublicCalendarFeed.js";
 export {
   bookingsGetSettingsQueryKey,
   bookingsGetSettingsQueryOptions,
@@ -12156,6 +12225,11 @@ export {
   bookingsRescheduleStudioBookingMutationOptions,
   useBookingsRescheduleStudioBooking,
 } from "./hooks/useBookingsRescheduleStudioBooking.js";
+export {
+  bookingsRotateCalendarFeedMutationKey,
+  bookingsRotateCalendarFeedMutationOptions,
+  useBookingsRotateCalendarFeed,
+} from "./hooks/useBookingsRotateCalendarFeed.js";
 export {
   bookingsUpdateProviderMutationKey,
   bookingsUpdateProviderMutationOptions,
@@ -16975,6 +17049,8 @@ export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./zod/bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./zod/bookingAvailabilitySchema.js";
 export { bookingBusinessContactSchema } from "./zod/bookingBusinessContactSchema.js";
+export { bookingCalendarFeedLinkSchema } from "./zod/bookingCalendarFeedLinkSchema.js";
+export { bookingCalendarFeedStatusSchema } from "./zod/bookingCalendarFeedStatusSchema.js";
 export { bookingClosureAffectedSchema } from "./zod/bookingClosureAffectedSchema.js";
 export { bookingClosureCreateSchema } from "./zod/bookingClosureCreateSchema.js";
 export { bookingClosureCreatedSchema } from "./zod/bookingClosureCreatedSchema.js";
@@ -17102,6 +17178,19 @@ export {
   bookingsConfirmStudioBookingStatus409Schema,
   bookingsConfirmStudioBookingStatus422Schema,
 } from "./zod/bookingsConfirmStudioBookingSchema.js";
+export {
+  bookingsCreateCalendarFeedErrorSchema,
+  bookingsCreateCalendarFeedHeaderXBarrelsOrganisationSchema,
+  bookingsCreateCalendarFeedHeadersSchema,
+  bookingsCreateCalendarFeedResponseSchema,
+  bookingsCreateCalendarFeedStatus201Schema,
+  bookingsCreateCalendarFeedStatus400Schema,
+  bookingsCreateCalendarFeedStatus401Schema,
+  bookingsCreateCalendarFeedStatus403Schema,
+  bookingsCreateCalendarFeedStatus404Schema,
+  bookingsCreateCalendarFeedStatus409Schema,
+  bookingsCreateCalendarFeedStatus422Schema,
+} from "./zod/bookingsCreateCalendarFeedSchema.js";
 export {
   bookingsCreateClosureBodySchema,
   bookingsCreateClosureErrorSchema,
@@ -17271,6 +17360,18 @@ export {
   bookingsGetAvailabilityStatus422Schema,
 } from "./zod/bookingsGetAvailabilitySchema.js";
 export {
+  bookingsGetCalendarFeedStatusErrorSchema,
+  bookingsGetCalendarFeedStatusHeaderXBarrelsOrganisationSchema,
+  bookingsGetCalendarFeedStatusHeadersSchema,
+  bookingsGetCalendarFeedStatusResponseSchema,
+  bookingsGetCalendarFeedStatusStatus200Schema,
+  bookingsGetCalendarFeedStatusStatus400Schema,
+  bookingsGetCalendarFeedStatusStatus401Schema,
+  bookingsGetCalendarFeedStatusStatus403Schema,
+  bookingsGetCalendarFeedStatusStatus404Schema,
+  bookingsGetCalendarFeedStatusStatus422Schema,
+} from "./zod/bookingsGetCalendarFeedStatusSchema.js";
+export {
   bookingsGetMyChoicesErrorSchema,
   bookingsGetMyChoicesPathSchema,
   bookingsGetMyChoicesPathSlugSchema,
@@ -17312,6 +17413,16 @@ export {
   bookingsGetPublicBookingStatus404Schema,
   bookingsGetPublicBookingStatus422Schema,
 } from "./zod/bookingsGetPublicBookingSchema.js";
+export {
+  bookingsGetPublicCalendarFeedErrorSchema,
+  bookingsGetPublicCalendarFeedPathSchema,
+  bookingsGetPublicCalendarFeedPathTokenSchema,
+  bookingsGetPublicCalendarFeedResponseSchema,
+  bookingsGetPublicCalendarFeedStatus200Schema,
+  bookingsGetPublicCalendarFeedStatus404Schema,
+  bookingsGetPublicCalendarFeedStatus422Schema,
+  bookingsGetPublicCalendarFeedStatus429Schema,
+} from "./zod/bookingsGetPublicCalendarFeedSchema.js";
 export {
   bookingsGetSettingsErrorSchema,
   bookingsGetSettingsHeaderXBarrelsOrganisationSchema,
@@ -17581,6 +17692,19 @@ export {
   bookingsRescheduleStudioBookingStatus409Schema,
   bookingsRescheduleStudioBookingStatus422Schema,
 } from "./zod/bookingsRescheduleStudioBookingSchema.js";
+export {
+  bookingsRotateCalendarFeedErrorSchema,
+  bookingsRotateCalendarFeedHeaderXBarrelsOrganisationSchema,
+  bookingsRotateCalendarFeedHeadersSchema,
+  bookingsRotateCalendarFeedResponseSchema,
+  bookingsRotateCalendarFeedStatus200Schema,
+  bookingsRotateCalendarFeedStatus400Schema,
+  bookingsRotateCalendarFeedStatus401Schema,
+  bookingsRotateCalendarFeedStatus403Schema,
+  bookingsRotateCalendarFeedStatus404Schema,
+  bookingsRotateCalendarFeedStatus409Schema,
+  bookingsRotateCalendarFeedStatus422Schema,
+} from "./zod/bookingsRotateCalendarFeedSchema.js";
 export {
   bookingsUpdateProviderBodySchema,
   bookingsUpdateProviderErrorSchema,

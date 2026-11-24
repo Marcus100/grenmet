@@ -1,11 +1,17 @@
-"""Hand-written RFC 5545 calendar text for one booking. Pure: no database, no clock.
+"""Hand-written RFC 5545 calendar text for bookings. Pure: no database, no clock.
 
 Rules implemented: CRLF line ends, TEXT escaping (backslash, semicolon, comma,
 newline), content lines folded at 75 octets (never inside a UTF-8 character; each
 continuation starts with one space), UTC date-times (``...Z``), and a stable
 ``UID`` so a calendar updates the same event when a booking moves.
+
+Two writers share the same event lines: ``build_booking_ics`` (one booking, a
+file download) and ``build_calendar_ics`` (every booking of a business, the
+subscribed calendar feed, with ``X-WR-CALNAME`` for the calendar's name).
 """
 
+from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Literal
 
@@ -56,6 +62,60 @@ def format_utc(moment: datetime) -> str:
     return moment.strftime("%Y%m%dT%H%M%SZ")
 
 
+@dataclass(frozen=True)
+class CalendarEvent:
+    """One booking as a VEVENT. ``stamp`` should be the booking's last change, so
+    the text is the same on every read until the booking really changes."""
+
+    uid: str
+    starts_at: datetime
+    ends_at: datetime
+    summary: str
+    stamp: datetime
+    description: str | None = None
+    location: str | None = None
+    status: IcsStatus = "CONFIRMED"
+    sequence: int = 0
+
+
+def _header(calendar_name: str | None = None) -> list[str]:
+    lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        f"PRODID:{PRODID}",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+    ]
+    if calendar_name:
+        lines.append(f"X-WR-CALNAME:{escape_text(calendar_name)}")
+    return lines
+
+
+def _event_lines(event: CalendarEvent) -> list[str]:
+    lines = [
+        "BEGIN:VEVENT",
+        f"UID:{escape_text(event.uid)}",
+        f"DTSTAMP:{format_utc(event.stamp)}",
+        f"DTSTART:{format_utc(event.starts_at)}",
+        f"DTEND:{format_utc(event.ends_at)}",
+        f"SUMMARY:{escape_text(event.summary)}",
+    ]
+    if event.description:
+        lines.append(f"DESCRIPTION:{escape_text(event.description)}")
+    if event.location:
+        lines.append(f"LOCATION:{escape_text(event.location)}")
+    lines += [
+        f"STATUS:{event.status}",
+        f"SEQUENCE:{max(event.sequence, 0)}",
+        "END:VEVENT",
+    ]
+    return lines
+
+
+def _render(lines: list[str]) -> str:
+    return CRLF.join(fold(line) for line in lines) + CRLF
+
+
 def build_booking_ics(
     *,
     uid: str,
@@ -69,27 +129,26 @@ def build_booking_ics(
     sequence: int = 0,
 ) -> str:
     """One VCALENDAR holding one VEVENT, ready to serve as ``text/calendar``."""
-    lines = [
-        "BEGIN:VCALENDAR",
-        "VERSION:2.0",
-        f"PRODID:{PRODID}",
-        "CALSCALE:GREGORIAN",
-        "METHOD:PUBLISH",
-        "BEGIN:VEVENT",
-        f"UID:{escape_text(uid)}",
-        f"DTSTAMP:{format_utc(stamp)}",
-        f"DTSTART:{format_utc(starts_at)}",
-        f"DTEND:{format_utc(ends_at)}",
-        f"SUMMARY:{escape_text(summary)}",
-    ]
-    if description:
-        lines.append(f"DESCRIPTION:{escape_text(description)}")
-    if location:
-        lines.append(f"LOCATION:{escape_text(location)}")
-    lines += [
-        f"STATUS:{status}",
-        f"SEQUENCE:{max(sequence, 0)}",
-        "END:VEVENT",
-        "END:VCALENDAR",
-    ]
-    return CRLF.join(fold(line) for line in lines) + CRLF
+    event = CalendarEvent(
+        uid=uid,
+        starts_at=starts_at,
+        ends_at=ends_at,
+        summary=summary,
+        stamp=stamp,
+        description=description,
+        location=location,
+        status=status,
+        sequence=sequence,
+    )
+    return _render([*_header(), *_event_lines(event), "END:VCALENDAR"])
+
+
+def build_calendar_ics(*, calendar_name: str, events: Sequence[CalendarEvent]) -> str:
+    """One VCALENDAR holding every event, named for subscribers' calendar apps.
+
+    An empty feed is still a valid calendar (no VEVENT lines)."""
+    lines = _header(calendar_name)
+    for event in events:
+        lines.extend(_event_lines(event))
+    lines.append("END:VCALENDAR")
+    return _render(lines)
