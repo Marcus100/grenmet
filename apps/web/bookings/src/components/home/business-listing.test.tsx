@@ -7,6 +7,7 @@ const NO_LISTING = /No businesses listed yet/u;
 const NO_MATCH = /No businesses match that search/u;
 const CANNOT_LOAD = /cannot be loaded/u;
 const NO_PAGE = /No businesses on this page/u;
+const TIDE_NAME = /^Tide Barbers/u;
 const NO_CATEGORIES = /No categories yet/u;
 
 const TIDE = {
@@ -34,23 +35,75 @@ function page(
 const NO_QUERY = { q: undefined, category: undefined, page: 1 };
 
 describe("BusinessListing", () => {
-  it("links each card to the business's own booking page", () => {
+  it("makes the whole card one link to the business's own booking page", () => {
     render(<BusinessListing listing={page()} query={NO_QUERY} />);
 
-    const card = screen.getByRole("article");
+    const link = screen.getByRole("link", { name: TIDE_NAME });
+    expect(link.getAttribute("href")).toBe("/tide-barbers");
     expect(
-      within(card).getByRole("heading", { name: "Tide Barbers" })
+      within(link).getByRole("heading", { name: "Tide Barbers" })
     ).toBeTruthy();
+    expect(within(link).getByText("Barbers · Gouyave")).toBeTruthy();
     expect(
-      within(card)
-        .getByRole("link", { name: "Tide Barbers" })
-        .getAttribute("href")
-    ).toBe("/tide-barbers");
-    expect(within(card).getByText("Barbers")).toBeTruthy();
-    expect(
-      within(card).getByText("Fades and beards, walk-ins welcome")
+      within(link).getByText("Fades and beards, walk-ins welcome")
     ).toBeTruthy();
-    expect(within(card).getByText("Gouyave")).toBeTruthy();
+    // "Book" is decoration inside the link, not a second control.
+    expect(screen.queryByRole("button", { name: "Book" })).toBeNull();
+    expect(link.querySelector("a, button")).toBeNull();
+  });
+
+  it("shows the first letter when a business has no logo, and a tint of its colour", () => {
+    render(
+      <BusinessListing
+        listing={page({ items: [{ ...TIDE, brand_color: "#8a1a45" }] })}
+        query={NO_QUERY}
+      />
+    );
+
+    const tile = screen.getByText("T");
+    expect(tile.getAttribute("aria-hidden")).toBe("true");
+    expect(tile.getAttribute("style")).toContain("color-mix");
+  });
+
+  it("shows the logo instead of the letter when there is one", () => {
+    const { container } = render(
+      <BusinessListing
+        listing={page({
+          items: [{ ...TIDE, logo_url: "https://cdn.example.test/logo.png" }],
+        })}
+        query={NO_QUERY}
+      />
+    );
+
+    expect(container.querySelector("img")?.getAttribute("src")).toBe(
+      "https://cdn.example.test/logo.png"
+    );
+    expect(screen.queryByText("T")).toBeNull();
+  });
+
+  it("leaves out the missing parts of category and town, and the description on small cards", () => {
+    render(
+      <BusinessListing
+        listing={page({
+          items: [
+            TIDE,
+            {
+              ...TIDE,
+              slug: "b",
+              name: "Bay Gym",
+              category: null,
+              city: "St George's",
+            },
+          ],
+        })}
+        query={NO_QUERY}
+      />
+    );
+
+    expect(screen.getByText("St George's")).toBeTruthy();
+    expect(
+      screen.getAllByText("Fades and beards, walk-ins welcome")
+    ).toHaveLength(1);
   });
 
   it("says so when no business is listed yet", () => {

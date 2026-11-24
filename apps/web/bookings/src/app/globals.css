@@ -9,3 +9,9 @@
    so the reused primitives' utilities are generated (docs/design-system.md). */
 @source "../../node_modules/@barrelsgd/ui/src";
 @source "../../node_modules/@barrelsgd/bookings-web/src";
+
+/* Home page ground (docs/design/bookings.md, "Home page"): the soft grey the
+   white cards sit on. New token: --color-ground. */
+@theme inline {
+  --color-ground: #f4f5f8;
+}
