@@ -9,6 +9,20 @@ const CANNOT_LOAD = /cannot be loaded/u;
 const NO_PAGE = /No businesses on this page/u;
 const TIDE_NAME = /^Tide Barbers/u;
 const NO_CATEGORIES = /No categories yet/u;
+const HIDDEN_CLASS = /(^|\s)hidden(\s|$)/u;
+const SPACES = /\s+/u;
+const BACKGROUND_CLASS = /^(md:)?bg-/u;
+
+/** The background classes of an element, grouped by breakpoint prefix. */
+function backgrounds(element: HTMLElement): { base: string[]; md: string[] } {
+  const classes = (element.getAttribute("class") ?? "")
+    .split(SPACES)
+    .filter((name) => BACKGROUND_CLASS.test(name));
+  return {
+    base: classes.filter((name) => !name.startsWith("md:")),
+    md: classes.filter((name) => name.startsWith("md:")),
+  };
+}
 
 const TIDE = {
   slug: "tide-barbers",
@@ -176,6 +190,46 @@ describe("BusinessListing", () => {
     expect(barbers.getAttribute("aria-current")).toBe("page");
   });
 
+  it("gives each chip one background, so the stylesheet order cannot pick", () => {
+    render(
+      <BusinessListing
+        listing={page()}
+        query={{ q: undefined, category: "barbers", page: 1 }}
+      />
+    );
+
+    const categories = screen.getByRole("navigation", { name: "Categories" });
+    const chips = within(categories).getAllByRole("link");
+    expect(chips).toHaveLength(3);
+    for (const chip of chips) {
+      const { base, md } = backgrounds(chip);
+      expect(base).toHaveLength(1);
+      expect(md.length).toBeLessThanOrEqual(1);
+    }
+    expect(
+      backgrounds(within(categories).getByRole("link", { name: "Barbers" }))
+    ).toEqual({ base: ["bg-primary"], md: [] });
+    expect(
+      backgrounds(within(categories).getByRole("link", { name: "Hair" }))
+    ).toEqual({ base: ["bg-background"], md: ["md:bg-ground"] });
+  });
+
+  it("puts the intro before the section's own heading", () => {
+    render(
+      <BusinessListing
+        intro={<h1>Book any appointment</h1>}
+        listing={page()}
+        query={NO_QUERY}
+      />
+    );
+
+    const levels = screen
+      .getAllByRole("heading")
+      .map((heading) => heading.tagName);
+    expect(levels).toEqual(["H1", "H2", "H3"]);
+    expect(screen.getByRole("region", { name: "Businesses" })).toBeTruthy();
+  });
+
   it("keeps the search box and the chosen category when searching", () => {
     render(
       <BusinessListing
@@ -261,9 +315,11 @@ describe("BusinessListing", () => {
     const pills = items.map((item) =>
       within(item).getByText("Book").getAttribute("class")
     );
-    expect(pills[0]).not.toContain("hidden");
-    expect(pills[1]).toContain("hidden md:inline-flex");
-    expect(pills.every(Boolean)).toBe(true);
+    expect(pills).toHaveLength(3);
+    expect(pills[0]).not.toMatch(HIDDEN_CLASS);
+    for (const pill of pills.slice(1)) {
+      expect(pill).toMatch(HIDDEN_CLASS);
+    }
     expect(
       items.every(
         (item) =>
