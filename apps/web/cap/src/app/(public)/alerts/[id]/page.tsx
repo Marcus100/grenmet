@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { AlertFacts, AlertTimes, LevelStrip } from "@/components/alert-card";
 import { FeedStatus, Unreachable } from "@/components/feed-status";
 import { PrintButton } from "@/components/print-button";
-import { formatWhen, toAlertView } from "@/lib/alerts";
+import { formatWhen, isInForce, toAlertView } from "@/lib/alerts";
 import { fetchAlert } from "@/lib/cap-api";
 
 export const dynamic = "force-dynamic";
@@ -60,23 +60,31 @@ export default async function AlertPage({
   }
 
   const alert = result.data;
-  const view = toAlertView(alert);
-  if (!view) {
+  const baseView = toAlertView(alert);
+  if (!baseView) {
     notFound();
   }
+  // A replaced warning ended when its replacement was sent.
+  const replacement = alert.replaced_by_identifier
+    ? await fetchAlert(alert.replaced_by_identifier)
+    : null;
+  const replacementSent =
+    replacement &&
+    (replacement.status === "ok" || replacement.status === "stale")
+      ? replacement.data.sent
+      : null;
+  const view = replacementSent
+    ? { ...baseView, endedAt: replacementSent }
+    : baseView;
 
-  const ended =
-    alert.lifecycle_state === "EXPIRED" ||
-    alert.lifecycle_state === "CANCELLED" ||
-    alert.msg_type === "Cancel" ||
-    (view.expires !== null && Date.parse(view.expires) <= now.getTime());
+  const ended = !isInForce(view, now);
   const xmlHref = `/feeds/alerts/${encodeURIComponent(view.identifier)}.xml`;
 
   return (
     <article className="space-y-5">
       <FeedStatus now={now} result={result} />
       <div className="rounded-gm-card border-gm-border overflow-hidden border">
-        <LevelStrip view={view} />
+        <LevelStrip ended={ended} view={view} />
         <div className="space-y-4 p-4">
           <h1 className="text-gm-heading text-heading-lg font-semibold">
             {view.headline}

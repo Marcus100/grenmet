@@ -19,7 +19,7 @@ const NO_GREEN: GreenStatus = {
 };
 const FLEX_CLASS = /(^|\s)flex(\s|$)/u;
 const HIDDEN_CLASS = /(^|\s)hidden(\s|$)/u;
-const ONE_ACTIVE = /Take action now · 1 active/u;
+const ONE_ACTIVE = /Be prepared · 1 active/u;
 const OUTAGE = /We cannot load alerts right now/u;
 
 const ACTIVE: AlertsResult = {
