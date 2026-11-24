@@ -7,7 +7,13 @@
 // new required input, removed or retyped output), not the full oasdiff rule set.
 // Request types may only widen; response types may only narrow.
 //
-// Usage: node scripts/api/check-api-breaking.mjs --base origin/dev [--allow-breaking]
+// The base is the merge base of --base and --head (default HEAD), which is what
+// the PR changes. Comparing with the tip of the base branch would report an
+// operation another PR added to dev after this branch was cut as "removed".
+//
+// Usage: node scripts/api/check-api-breaking.mjs --base origin/dev [--head <ref>] [--head-spec <file>] [--allow-breaking]
+// --head-spec reads the PR's spec from a file (CI extracts it from the PR head commit, because the
+// checkout is the PR merged onto dev, which would blame this PR for changes other PRs landed)
 // A PR labelled `breaking-change` passes with --allow-breaking (findings still print).
 
 import { spawnSync } from "node:child_process";
@@ -240,6 +246,20 @@ export function compareSpecs(base, head) {
   return { errors, warnings };
 }
 
+const defaultGit = (args) =>
+  spawnSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+
+/** The commit the PR branched from; falls back to the ref when history is unavailable. */
+export function resolveBase(ref, head = "HEAD", git = defaultGit) {
+  const result = git(["merge-base", ref, head]);
+  const sha = result.status === 0 ? result.stdout.trim() : "";
+  if (sha) return sha;
+  process.stderr.write(
+    `warning: no merge base for ${ref} and ${head}; comparing with ${ref} itself\n`
+  );
+  return ref;
+}
+
 function readBase(ref) {
   const result = spawnSync("git", ["show", `${ref}:${SPEC_PATH}`], {
     encoding: "utf8",
@@ -262,8 +282,13 @@ function main(argv) {
     return 2;
   }
   const allow = argv.includes("--allow-breaking");
-  const base = readBase(argv[baseIndex + 1]);
-  const head = JSON.parse(readFileSync(SPEC_PATH, "utf8"));
+  const headIndex = argv.indexOf("--head");
+  const headRef = headIndex === -1 ? "HEAD" : (argv[headIndex + 1] ?? "HEAD");
+  const base = readBase(resolveBase(argv[baseIndex + 1], headRef));
+  const specIndex = argv.indexOf("--head-spec");
+  const headSpec =
+    specIndex === -1 ? SPEC_PATH : (argv[specIndex + 1] ?? SPEC_PATH);
+  const head = JSON.parse(readFileSync(headSpec, "utf8"));
   const { errors, warnings } = compareSpecs(base, head);
   for (const message of warnings) process.stdout.write(`warning: ${message}\n`);
   for (const message of errors) process.stdout.write(`BREAKING: ${message}\n`);

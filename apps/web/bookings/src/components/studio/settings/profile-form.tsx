@@ -9,6 +9,7 @@ import { TIMEZONE_SUGGESTIONS } from "@/lib/settings-view";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
 import { useHydrated } from "@/lib/use-hydrated";
 import { BrandSection } from "./brand-section";
+import { ListingSection } from "./listing-section";
 import {
   INPUT,
   keepTyped,
@@ -38,6 +39,7 @@ export function ProfileForm({
   );
   // True while a logo is uploading: Save waits so it cannot keep the old logo.
   const [logoUploading, setLogoUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const [zone, setZone] = useState(profile?.timezone ?? "America/Grenada");
   const [currency, setCurrency] = useState(profile?.currency ?? "XCD");
   const zoneChanged =
@@ -285,6 +287,13 @@ export function ProfileForm({
           )}
         </SettingsField>
       </div>
+      <ListingSection
+        businessName={profile?.display_name ?? suggestedName}
+        businessType={profile?.business_type ?? null}
+        coverFileId={profile?.cover_file_id ?? null}
+        onUploadingChange={setCoverUploading}
+        orgSlug={orgSlug}
+      />
       <BrandSection
         brandColour={profile?.brand_color ?? null}
         businessName={profile?.display_name ?? suggestedName}
@@ -312,7 +321,7 @@ export function ProfileForm({
       <SettingsResult pending={pending} state={state} />
       <Button
         className="min-h-11 w-full sm:w-auto"
-        disabled={pending || !hydrated || logoUploading}
+        disabled={pending || !hydrated || logoUploading || coverUploading}
         size="touch"
         type="submit"
       >

@@ -29,6 +29,7 @@ const SERVICE_ID = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10";
 const QUESTIONS = /Questions\? Contact us/u;
 const INSTAGRAM = /Instagram @seasaltspa/u;
 const DEPOSIT = /deposit/iu;
+const DEEP_TISSUE = /Deep tissue massage/u;
 
 const storefront: BookingStorefront = {
   slug: "sea-salt-spa",
@@ -59,7 +60,13 @@ const storefront: BookingStorefront = {
   ],
 };
 
-const params = (slug: string) => ({ params: Promise.resolve({ slug }) });
+const params = (
+  slug: string,
+  query: Record<string, string | string[]> = {}
+) => ({
+  params: Promise.resolve({ slug }),
+  searchParams: Promise.resolve(query),
+});
 
 beforeEach(() => {
   vi.mocked(getStorefront).mockReset();
@@ -298,5 +305,29 @@ describe("brand on the booking page", () => {
     expect(
       screen.getByRole("form", { name: "Book an appointment" })
     ).toBeVisible();
+  });
+});
+
+describe("?service= link", () => {
+  const OTHER_ID = "11111111-2222-4333-8444-555555555555";
+
+  async function renderWith(query: Record<string, string | string[]>) {
+    vi.mocked(getStorefront).mockResolvedValue(storefront);
+    render(await BusinessBookingPage(params("sea-salt-spa", query)));
+  }
+
+  it("preselects a service the business offers", async () => {
+    await renderWith({ service: SERVICE_ID });
+    expect(screen.getByRole("radio", { name: DEEP_TISSUE })).toBeChecked();
+  });
+
+  it.each([
+    ["an unknown id", { service: OTHER_ID }],
+    ["a malformed id", { service: "not-an-id" }],
+    ["a repeated id", { service: [SERVICE_ID, SERVICE_ID] }],
+    ["another parameter only", { ref: "flyer" }],
+  ])("ignores %s", async (_label, query) => {
+    await renderWith(query);
+    expect(screen.getByRole("radio", { name: DEEP_TISSUE })).not.toBeChecked();
   });
 });

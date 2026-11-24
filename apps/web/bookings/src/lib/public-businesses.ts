@@ -38,6 +38,7 @@ export async function getPublicBusinesses(
       query: {
         q: query.q,
         category: query.category,
+        type: query.type,
         page: query.page,
       },
     })

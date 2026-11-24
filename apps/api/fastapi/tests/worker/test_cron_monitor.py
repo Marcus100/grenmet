@@ -132,16 +132,19 @@ class _Session:
 def test_booking_jobs_are_tracked_by_the_operational_metrics() -> None:
     from src import operational_metrics
 
-    assert {"enqueue_booking_reminders", "expire_unpaid_bookings"} <= (
-        operational_metrics.JOBS
-    )
+    assert {
+        "enqueue_booking_reminders",
+        "expire_unpaid_bookings",
+        "expire_pending_bookings",
+        "complete_finished_bookings",
+    } <= operational_metrics.JOBS
 
 
 async def test_booking_jobs_report_check_ins_with_their_cron_schedule(
     monkeypatch: pytest.MonkeyPatch, checkins: list[dict[str, Any]]
 ) -> None:
     from src import database
-    from src.bookings import deposits, reminders
+    from src.bookings import deposits, lifecycle, reminders
 
     async def no_reminders(_session: object) -> int:
         return 0
@@ -152,10 +155,14 @@ async def test_booking_jobs_report_check_ins_with_their_cron_schedule(
     monkeypatch.setattr(database, "async_session_factory", _Session)
     monkeypatch.setattr(reminders, "enqueue_due_reminders", no_reminders)
     monkeypatch.setattr(deposits, "expire_unpaid", no_expiries)
+    monkeypatch.setattr(lifecycle, "expire_stale_requests", no_expiries)
+    monkeypatch.setattr(lifecycle, "complete_finished_bookings", no_expiries)
     _enable(monkeypatch)
 
     assert await main.enqueue_booking_reminders({}) == 0
     assert await main.expire_unpaid_bookings({}) == 0
+    assert await main.expire_pending_bookings({}) == 0
+    assert await main.complete_finished_bookings({}) == 0
 
     by_slug = {c["monitor_slug"]: c for c in checkins if c["status"] == "ok"}
     reminder = by_slug["production-worker-enqueue-booking-reminders"]
@@ -167,6 +174,12 @@ async def test_booking_jobs_report_check_ins_with_their_cron_schedule(
     assert expiry["monitor_config"]["schedule"]["value"] == (
         "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
     )
+    pending = by_slug["production-worker-expire-pending-bookings"]
+    assert pending["monitor_config"]["schedule"]["value"] == (
+        "4,9,14,19,24,29,34,39,44,49,54,59 * * * *"
+    )
+    completion = by_slug["production-worker-complete-finished-bookings"]
+    assert completion["monitor_config"]["schedule"]["value"] == "27 * * * *"
 
 
 def test_booking_jobs_keep_their_names() -> None:

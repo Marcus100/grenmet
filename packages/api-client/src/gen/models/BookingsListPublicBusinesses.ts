@@ -4,6 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { BookingBusinessType } from "./BookingBusinessType.js";
 import type { BookingPublicBusinessPage } from "./BookingPublicBusinessPage.js";
 import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -11,6 +12,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 export type BookingsListPublicBusinessesQuery = {
   q?: string | null;
   category?: string | null;
+  /**
+   * @description Keep one business type.
+   */
+  type?: BookingBusinessType | null;
   /**
    * @minimum 1
    * @maximum 1000

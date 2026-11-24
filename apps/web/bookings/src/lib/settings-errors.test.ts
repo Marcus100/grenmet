@@ -159,6 +159,6 @@ describe("logo upload failures", () => {
           detail: "That logo is not a finished upload for this business",
         })
       ).message
-    ).toBe("That logo did not finish uploading for this business.");
+    ).toBe("That image did not finish uploading for this business.");
   });
 });

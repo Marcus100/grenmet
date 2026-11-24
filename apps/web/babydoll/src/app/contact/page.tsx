@@ -2,14 +2,7 @@ import type { Metadata } from "next";
 import { Address, Appointments } from "@/components/appointments";
 import { NewTabNote } from "@/components/new-tab-note";
 import { PageHead } from "@/components/sections";
-import {
-  EMAIL,
-  INSTAGRAM_DM_URL,
-  MAPS_URL,
-  PHONE,
-  SOCIALS,
-  WHATSAPP_URL,
-} from "@/data/site";
+import { CONTACT_CHANNELS, MAPS_URL, SOCIALS } from "@/data/site";
 import { type CtaLink, siteBookingLink } from "@/lib/book-link";
 
 /** One contact card. Web links open a new tab; phone and email do not. */
@@ -45,16 +38,13 @@ export default function ContactPage() {
       href: booking.href,
       newTab: true,
     },
-    external("Message on WhatsApp", PHONE.display, WHATSAPP_URL),
-    { title: "Call", detail: PHONE.display, href: PHONE.href, newTab: false },
-    // Neutral wording: Instagram is one of several ways to reach the studio.
-    external("Message on Instagram", "@babydoll.gnd", INSTAGRAM_DM_URL),
-    {
-      title: "Email us",
-      detail: EMAIL.address,
-      href: EMAIL.href,
-      newTab: false,
-    },
+    // The same four channels as the Training page, from one shared list.
+    ...CONTACT_CHANNELS.map(({ title, detail, href, newTab }) => ({
+      title,
+      detail,
+      href,
+      newTab,
+    })),
     ...SOCIALS.slice(1).map((social) =>
       external(social.name, social.handle, social.href)
     ),

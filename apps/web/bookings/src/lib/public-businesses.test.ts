@@ -37,6 +37,7 @@ describe("getPublicBusinesses", () => {
     const result = await getPublicBusinesses({
       q: "fade",
       category: "Hair",
+      type: "hair",
       page: 2,
     });
     vi.unstubAllGlobals();
@@ -47,6 +48,7 @@ describe("getPublicBusinesses", () => {
     expect(url.pathname).toBe("/api/v1/bookings/public/businesses");
     expect(url.searchParams.get("q")).toBe("fade");
     expect(url.searchParams.get("category")).toBe("Hair");
+    expect(url.searchParams.get("type")).toBe("hair");
     expect(url.searchParams.get("page")).toBe("2");
     expect(sent?.headers.get("x-visitor-ip")).toBe("203.0.113.7");
   });
@@ -60,6 +62,7 @@ describe("getPublicBusinesses", () => {
     const result = await getPublicBusinesses({
       q: undefined,
       category: undefined,
+      type: undefined,
       page: 1,
     });
     vi.unstubAllGlobals();

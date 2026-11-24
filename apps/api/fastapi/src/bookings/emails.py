@@ -254,6 +254,25 @@ def customer_cancelled(mail: BookingEmail) -> layout.EmailCard:
     )
 
 
+def customer_expired(mail: BookingEmail, book_again_url: str) -> layout.EmailCard:
+    """A booking request the business did not confirm in time: it did not go ahead.
+    No business email is needed; the link opens the business's booking page."""
+    return layout.with_subject(
+        f"Your booking request at {mail.business} was not confirmed",
+        _card(
+            mail,
+            chip=layout.Chip("Not confirmed", layout.ChipTone.MUTED),
+            title="Your booking request was not confirmed",
+            paragraphs=(
+                f"{mail.business} did not confirm your booking request in time, "
+                "so the time has been released.",
+                "You are welcome to book again.",
+            ),
+            primary=layout.Action("Book again", book_again_url),
+        ),
+    )
+
+
 def _reason_row(reason: str | None) -> tuple[layout.Row, ...]:
     return (layout.Row("Reason", reason),) if reason else ()
 

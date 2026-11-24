@@ -1253,6 +1253,8 @@ export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
 export type { BookingBusinessContact } from "./BookingBusinessContact.js";
+export type { BookingBusinessType } from "./BookingBusinessType.js";
+export { bookingBusinessType } from "./BookingBusinessType.js";
 export type { BookingCalendarFeedLink } from "./BookingCalendarFeedLink.js";
 export type { BookingCalendarFeedStatus } from "./BookingCalendarFeedStatus.js";
 export type { BookingClosureAffected } from "./BookingClosureAffected.js";
@@ -1269,6 +1271,7 @@ export type { BookingExceptionCreate } from "./BookingExceptionCreate.js";
 export type { BookingExceptionKind } from "./BookingExceptionKind.js";
 export { bookingExceptionKind } from "./BookingExceptionKind.js";
 export type { BookingExceptionPublic } from "./BookingExceptionPublic.js";
+export type { BookingFeaturedService } from "./BookingFeaturedService.js";
 export type { BookingManualDepositCreate } from "./BookingManualDepositCreate.js";
 export type { BookingMyBooking } from "./BookingMyBooking.js";
 export type { BookingMyBookingList } from "./BookingMyBookingList.js";
@@ -7008,6 +7011,18 @@ export type {
   MonitoringGetFreshnessStatus403,
   MonitoringGetFreshnessStatus422,
 } from "./MonitoringGetFreshness.js";
+export type {
+  MonitoringGetProbeHeaders,
+  MonitoringGetProbeOptions,
+  MonitoringGetProbeResponse,
+  MonitoringGetProbeResponses,
+  MonitoringGetProbeStatus200,
+  MonitoringGetProbeStatus401,
+  MonitoringGetProbeStatus404,
+  MonitoringGetProbeStatus422,
+  MonitoringGetProbeStatus429,
+  MonitoringGetProbeStatus503,
+} from "./MonitoringGetProbe.js";
 export type { MovementKind } from "./MovementKind.js";
 export { movementKind } from "./MovementKind.js";
 export type { MyDeductionPublic } from "./MyDeductionPublic.js";
@@ -8499,6 +8514,7 @@ export type {
   PrintixVoidTicketStatus409,
   PrintixVoidTicketStatus422,
 } from "./PrintixVoidTicket.js";
+export type { ProbeReport } from "./ProbeReport.js";
 export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";

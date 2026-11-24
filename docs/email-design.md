@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-21
+**Last updated:** 2026-11-24
 
 React Email is the single design source for every email. The shared layout is
 `EmailLayout` in `packages/email-templates/src/components/layout.tsx`; the generic
@@ -85,6 +85,19 @@ Python fallback renders it, and a send failure retries through the outbox as bef
 `EMAIL_RENDER_URL` is not set or the render call fails. It is correct and readable,
 not pixel-matched to React Email. Keep the two in step on structure and wording,
 not on pixels.
+
+### Known gap: the named account emails keep the old Jinja look
+
+Five account emails are named React Email templates on `EmailLayout`, not cards:
+`welcome`, `reset-password`, `organisation-invitation`, `superuser-invitation` and
+`subscription-confirm`. When the render service is off or fails, they fall back to
+the Jinja files in `apps/api/fastapi/email-templates/build/` (`email.py`, and
+`_OUTBOUND_JINJA` in `notifications/dispatch.py`). Those files carry the same facts
+(names, links, expiry) in the old layout, so a fallback mail is correct but does not
+match the card look. This is accepted for now: the fallback is a rare outage path.
+Closing the gap means moving each of the five to a Python card builder (then
+`render_fallback` covers it), not restyling the Jinja files. When you change the
+wording or facts of one of these emails, change its Jinja file too.
 
 ## Adding a card
 

@@ -1,10 +1,11 @@
 import type { BookingPublicBusinessPage } from "@barrelsgd/api-client";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getPublicBusinesses } from "@/lib/public-businesses";
 import HomePage from "./page";
 
 const NO_LISTING = /No businesses listed yet/u;
+const TIDE_NAME = /^Tide Barbers/u;
 const CANNOT_LOAD = /cannot be loaded/u;
 
 vi.mock("@/env", () => ({
@@ -17,6 +18,7 @@ const EMPTY: BookingPublicBusinessPage = {
   page: 1,
   has_more: false,
   categories: [],
+  types_available: [],
 };
 
 async function renderHome(params: Record<string, string> = {}) {
@@ -34,7 +36,12 @@ describe("bookings home page", () => {
 
     expect(screen.getByText(NO_LISTING)).toBeTruthy();
     expect(
-      screen.getByRole("link", { name: "For businesses" }).getAttribute("href")
+      screen
+        .getAllByRole("link", { name: "For businesses" })
+        .every((link) => link.getAttribute("href") === "/studio")
+    ).toBe(true);
+    expect(
+      screen.getByRole("link", { name: "Open the studio" }).getAttribute("href")
     ).toBe("/studio");
   });
 
@@ -50,6 +57,8 @@ describe("bookings home page", () => {
           city: "Gouyave",
           brand_color: null,
           logo_url: null,
+          cover_url: null,
+          business_type: null,
         },
       ],
       categories: ["Barbers"],
@@ -57,7 +66,7 @@ describe("bookings home page", () => {
     await renderHome();
 
     expect(
-      screen.getByRole("link", { name: "Tide Barbers" }).getAttribute("href")
+      screen.getByRole("link", { name: TIDE_NAME }).getAttribute("href")
     ).toBe("/tide-barbers");
     expect(screen.queryByText(NO_LISTING)).toBeNull();
   });
@@ -69,6 +78,7 @@ describe("bookings home page", () => {
     expect(getPublicBusinesses).toHaveBeenCalledWith({
       q: "fade",
       category: "Barbers",
+      type: undefined,
       page: 3,
     });
   });
@@ -80,8 +90,73 @@ describe("bookings home page", () => {
     expect(screen.getByRole("alert").textContent).toMatch(CANNOT_LOAD);
     expect(
       screen.getByRole("heading", {
-        name: "Online appointments for Grenada businesses",
+        level: 1,
+        name: "Book any appointment in Grenada",
       })
     ).toBeTruthy();
+  });
+
+  it("marks Home as the current page in the rail and the bottom bar, icons named by label", async () => {
+    vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
+    await renderHome();
+
+    const rail = screen.getByRole("navigation", { name: "Main" });
+    const bottom = screen.getByRole("navigation", { name: "Quick links" });
+    expect(rail.getAttribute("class")).toContain("hidden");
+    expect(rail.getAttribute("class")).toContain("md:flex");
+    expect(bottom.getAttribute("class")).toContain("md:hidden");
+    for (const nav of [rail, bottom]) {
+      const home = within(nav).getByRole("link", { name: "Home" });
+      expect(home.getAttribute("href")).toBe("/");
+      expect(home.getAttribute("aria-current")).toBe("page");
+      expect(
+        within(nav)
+          .getByRole("link", { name: "Types of business" })
+          .getAttribute("href")
+      ).toBe("/#types");
+      expect(
+        within(nav)
+          .getByRole("link", { name: "For businesses" })
+          .getAttribute("href")
+      ).toBe("/studio");
+    }
+    expect(bottom.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(3);
+    expect(
+      within(bottom).getByRole("link", { name: "Sign in" }).getAttribute("href")
+    ).toBe("/signin?returnTo=%2F");
+  });
+
+  it("has one h1, the hero's Find a business link and the line under the hero", async () => {
+    vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
+    const { container } = await renderHome();
+
+    expect(container.querySelectorAll("h1")).toHaveLength(1);
+    expect(
+      container
+        .querySelector("h1")
+        ?.compareDocumentPosition(container.querySelector("h2") as Node)
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      screen.getByRole("link", { name: "Find a business" }).getAttribute("href")
+    ).toBe("#businesses");
+    expect(
+      screen.getByText(
+        "Pick a business below, or open the booking page the business sent you."
+      )
+    ).toBeTruthy();
+  });
+
+  it("gives the hero its entrance and drifting shapes, hidden from assistive tech", async () => {
+    vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
+    const { container } = await renderHome();
+
+    expect(
+      container.querySelector("h1")?.closest("section")?.className
+    ).toContain("enter");
+    for (const shape of [".drift-a", ".drift-b"]) {
+      const node = container.querySelector(shape);
+      expect(node?.getAttribute("aria-hidden")).toBe("true");
+      expect(node?.getAttribute("class")).toContain("pointer-events-none");
+    }
   });
 });

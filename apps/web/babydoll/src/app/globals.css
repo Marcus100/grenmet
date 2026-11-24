@@ -211,8 +211,9 @@ button {
    room: the footer and legal links (about 26 px tall, 4 px apart) would take
    taps from their neighbours, so they keep their size (see the note in the
    PR). The header logo link is only 2 px short. The portfolio filter keeps
-   its zone inside its own row (rows have no gap, so any more would take taps
-   from the row above or below). */
+   its zone inside its own row: the rows are 11 px apart and the 44 px zone is
+   centred on the button, so it reaches into that gap but never into the
+   neighbouring row's buttons. */
 .chips button,
 .brand,
 .book-bar .btn {
@@ -234,8 +235,12 @@ button {
 }
 .type-filter button::before {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: 44px;
   content: "";
+  transform: translate(-50%, -50%);
 }
 /* The Book link sits at the foot of its item: its zone reaches down into the
    item's bottom padding only, never up over the service description. */
@@ -293,7 +298,7 @@ button {
 }
 .primary a {
   padding-block: 6px;
-  font-size: 0.78rem;
+  font-size: 0.79rem;
   color: var(--ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -350,7 +355,7 @@ button {
     display: block;
   }
   .brand span {
-    font-size: 0.72rem;
+    font-size: 0.79rem;
   }
   .primary {
     position: absolute;
@@ -488,7 +493,7 @@ section.block.flush-top {
   line-height: 1;
 }
 .rating small {
-  font-size: 0.75rem;
+  font-size: 0.79rem;
   letter-spacing: 0.06em;
 }
 .stars {
@@ -532,7 +537,7 @@ section.block.flush-top {
 .tag {
   display: inline-block;
   padding: 0.35em 0.9em;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--paper);
   text-transform: uppercase;
@@ -579,11 +584,6 @@ section.block.flush-top {
   font-variant-numeric: lining-nums;
   line-height: 1;
 }
-.pkg .amt sup {
-  margin-right: 2px;
-  font-size: 0.45em;
-  vertical-align: 0.9em;
-}
 .pkg p {
   font-size: 0.95rem;
   color: var(--ink-soft);
@@ -622,7 +622,7 @@ section.block.flush-top {
   }
 }
 .pkg .flag {
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   color: var(--blush);
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -714,11 +714,18 @@ section.block.flush-top {
   font-size: 0.92rem;
   color: var(--ink-soft);
 }
+.menu-intro {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--blush-ink);
+}
 .item .note {
   display: inline-block;
   margin-top: 8px;
   margin-right: 12px;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--blush-ink);
   text-transform: uppercase;
@@ -730,7 +737,7 @@ section.block.flush-top {
   align-items: center;
   padding-bottom: 2px;
   margin-top: 10px;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink);
   text-transform: uppercase;
@@ -824,7 +831,7 @@ section.block.flush-top {
 .type-filter {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 0.5em;
+  gap: 11px 0.5em;
   min-inline-size: 0;
   padding: 0;
   margin-bottom: 32px;
@@ -934,7 +941,7 @@ section.block.flush-top {
   stroke-width: 1.3;
 }
 .ph small {
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   color: var(--ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.16em;
@@ -947,7 +954,7 @@ section.block.flush-top {
   padding: 0.4em 0.9em;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink);
   text-transform: uppercase;
@@ -1052,7 +1059,7 @@ section.block.flush-top {
   display: block;
   margin-top: 8px;
   font-family: var(--sans);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
 }
@@ -1172,7 +1179,7 @@ section.block.flush-top {
 .tbc {
   justify-self: start;
   padding: 0.25em 0.8em;
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--blush-ink);
   text-transform: uppercase;
@@ -1197,7 +1204,7 @@ section.block.flush-top {
 }
 .contact-cards h2 {
   font-family: var(--sans);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink-soft);
   text-transform: uppercase;
@@ -1244,6 +1251,76 @@ section.block.flush-top {
   font-style: normal;
 }
 
+/* Training: the four channels as a compact grid, two by two on phones. */
+.quick-block {
+  display: grid;
+  gap: 4px;
+}
+.quick-channels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0;
+  container-type: inline-size;
+  list-style: none;
+}
+.quick-channel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 10px;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  transition: border-color 0.2s;
+}
+.quick-channel svg {
+  grid-row: 1 / span 2;
+}
+.quick-channel b {
+  font-weight: 500;
+  line-height: 1.2;
+}
+/* Wraps rather than cutting off a number someone may need to read. */
+.quick-channel span:not(.sr-only) {
+  grid-column: 2;
+  font-size: 0.79rem;
+  line-height: 1.2;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+.quick-more a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+@media (hover: hover) and (pointer: fine) {
+  .quick-channel:hover {
+    border-color: var(--ink);
+  }
+}
+@media (min-width: 768px) {
+  .quick-channels {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  /* Four across in a narrow column: the label alone, no second line. */
+  @container (max-width: 559px) {
+    /* Hidden from view only: screen readers still hear the number. */
+    .quick-channel span:not(.sr-only) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      white-space: nowrap;
+      clip-path: inset(50%);
+    }
+  }
+}
+
 /* Find us + hours */
 .visit {
   color: var(--paper);
@@ -1270,7 +1347,7 @@ section.block.flush-top {
   align-items: center;
   padding: 0.45em 1em;
   margin-top: 16px;
-  font-size: 0.75rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--blush-deep);
   text-transform: uppercase;
@@ -1345,7 +1422,7 @@ section.block.flush-top {
 .footer-heading {
   margin-bottom: 10px;
   font-family: var(--sans);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink-soft);
   text-transform: uppercase;
@@ -1414,7 +1491,7 @@ section.block.flush-top {
   font-weight: 400;
 }
 .book-bar-info small {
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   color: var(--ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.12em;

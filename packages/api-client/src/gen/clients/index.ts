@@ -558,6 +558,7 @@ export { modelsGetMeteogram } from "./modelsGetMeteogram.js";
 export { modelsListAccessRequests } from "./modelsListAccessRequests.js";
 export { modelsListOrganisations } from "./modelsListOrganisations.js";
 export { monitoringGetFreshness } from "./monitoringGetFreshness.js";
+export { monitoringGetProbe } from "./monitoringGetProbe.js";
 export { notificationsCreateNotificationSnooze } from "./notificationsCreateNotificationSnooze.js";
 export { notificationsDeleteNotificationSnooze } from "./notificationsDeleteNotificationSnooze.js";
 export { notificationsGetNotificationPreferences } from "./notificationsGetNotificationPreferences.js";

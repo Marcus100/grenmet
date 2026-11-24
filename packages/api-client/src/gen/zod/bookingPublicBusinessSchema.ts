@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
+import { bookingFeaturedServiceSchema } from "./bookingFeaturedServiceSchema.js";
 
 export const bookingPublicBusinessSchema = z
   .object({
@@ -19,6 +21,24 @@ export const bookingPublicBusinessSchema = z
       .union([z.string(), z.null()])
       .describe(
         "Public https address of the logo, or null when there is no finished logo upload or no public API address is configured. Load it as an image."
+      ),
+    cover_url: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "Public https address of the cover photo, or null when there is no finished booking-cover upload or no public API address is configured."
+      ),
+    business_type: z
+      .union([bookingBusinessTypeSchema, z.null()])
+      .optional()
+      .describe(
+        "The business's type (the `type` filter), or null when not chosen."
+      ),
+    featured_services: z
+      .array(bookingFeaturedServiceSchema)
+      .optional()
+      .describe(
+        "Up to three bookable services (active, not add-ons) in the order the business's booking page lists them; empty when it has none."
       ),
   })
   .describe(

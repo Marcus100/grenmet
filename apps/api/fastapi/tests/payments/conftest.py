@@ -55,6 +55,20 @@ class StripeStub:
     #: Status Stripe reports for the refunds it creates (``pending`` settles later).
     refund_status: str = "succeeded"
     checkout_id: str = "cs_test_1"
+    #: Refunds Stripe actually created, by Idempotency-Key. A repeated key gets the
+    #: stored answer back, as Stripe replays it, and creates no second refund.
+    refunds_by_key: dict[str, dict[str, Any]] = field(default_factory=dict)
+
+    @property
+    def refunds_created(self) -> int:
+        return len(self.refunds_by_key)
+
+    def refund_keys(self) -> list[str | None]:
+        return [
+            request.headers.get("Idempotency-Key")
+            for request in self.requests
+            if request.method == "POST" and request.url.path == "/v1/refunds"
+        ]
 
     def form(self, index: int = -1) -> dict[str, str]:
         parsed = parse_qs(self.requests[index].content.decode())
@@ -80,9 +94,17 @@ def stripe_env(monkeypatch: pytest.MonkeyPatch) -> StripeStub:
         if request.method == "POST" and request.url.path == "/v1/refunds":
             if stub.fail_refund:
                 return httpx.Response(402, json={"error": {"message": "nope"}})
-            return httpx.Response(
-                200, json={"id": "re_test_1", "status": stub.refund_status}
-            )
+            key = request.headers.get("Idempotency-Key")
+            if key is not None and key in stub.refunds_by_key:
+                # Stripe replays the stored answer for a key it has seen.
+                return httpx.Response(200, json=stub.refunds_by_key[key])
+            refund = {
+                "id": f"re_test_{stub.refunds_created + 1}",
+                "status": stub.refund_status,
+            }
+            if key is not None:
+                stub.refunds_by_key[key] = refund
+            return httpx.Response(200, json=refund)
         if request.method == "GET" and request.url.path.startswith(
             "/v1/checkout/sessions/"
         ):

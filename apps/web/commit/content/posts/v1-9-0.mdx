@@ -1,0 +1,58 @@
+---
+title: Deposits with clear terms, add-ons and a calendar feed for Bookings
+summary: Version 1.9.0 is a Bookings release. It adds non-refundable deposits, a plain booking policy, add-on services, service categories and a private calendar feed. It also shows issued warning colours on the public alert hub and loads the 2026 provisional election results.
+date: 2026-11-24
+release: 1.9.0
+---
+
+Version 1.9.0 carries the work merged after v1.8.0, most of it in Bookings. It
+has four database changes, and each one only adds: new columns with safe
+defaults and two new tables. The previous release still runs against the new
+schema, so a rollback stays simple.
+
+### Bookings
+
+- **Deposit terms a customer can read:** a business can mark its deposit as
+  non-refundable once it has confirmed a booking. It can also set the lowest
+  service price that takes its deposit rule. Each booking keeps the terms it was
+  made on, so changing the rule later never rewrites an existing booking.
+- **One plain rules line:** beside the Book button, the customer sees one
+  sentence such as "EC$40 deposit, not refundable. Change or cancel up to 24
+  hours before.", with the full policy one tap away. The manage page shows the
+  same line from the booking's own terms.
+- **Add-ons:** a business can offer extra services that are booked with a main
+  service. They are priced and timed together on the booking form, the
+  confirmation, the manage page, the emails and in Studio. Add-ons stay off until
+  a business switches them on.
+- **The right amount up front:** the amount due at booking now includes any
+  add-ons. When add-ons push a booking past the deposit threshold, the emailed
+  code step comes first.
+- **Services by category:** the public booking page groups services into
+  categories the customer can open one at a time.
+- **A private calendar feed:** a business can subscribe to its bookings from
+  Google or Apple Calendar, and can rotate or turn off the link in Studio.
+- **Names and privacy:** the manage-booking page now names the business the
+  customer should contact. The secret in a manage link no longer reaches our
+  rate-limit records. Calendar event titles also hide anything that looks like
+  a phone number or email address typed into the name field.
+
+### Weather alerts
+
+- **The issued colour, as issued:** the public alert hub now shows each warning
+  in the colour it was issued at. An orange warning reads "Be prepared", and
+  the full red band is kept for the most severe level only.
+- **Forms that wait for the page:** forms on the weather and Signal sites stay
+  disabled until the page is ready. This means form details can no longer end
+  up in the page address.
+
+### Elections and HR
+
+- **2026 provisional results** are loaded, and the results pages gain a new
+  "declared" phase.
+- **Read-only staff records:** an organisation's HR administrators can now open
+  a staff member's record without being able to change it.
+
+### Behind the scenes
+
+We also wrote design audits for each app, with reference screens to compare
+against.

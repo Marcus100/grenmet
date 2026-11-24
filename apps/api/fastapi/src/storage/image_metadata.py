@@ -5,8 +5,8 @@ again in the same format, with orientation applied first so it still shows uprig
 Only the pixels are written: the original's metadata blocks are cleared before saving.
 Transparency is kept: a palette or colour-key transparency (stored in ``info``) becomes
 an alpha channel before ``info`` is cleared. Animated PNG and WebP files are flattened
-to their first frame. This removes metadata from honest uploads at completion; it is
-not a defence against a hostile uploader, who can still overwrite the object.
+to their first frame. Completion serves only the bytes this module returns, from a key
+the server chose (see ``uploads.py``), so a presigned overwrite cannot reach them.
 """
 
 import io
@@ -21,10 +21,24 @@ _SAVE_MODES = {
     "PNG": ("1", "L", "LA", "P", "RGB", "RGBA", "I", "I;16"),
 }
 _QUALITY = 90
+_JPEG_START = b"\xff\xd8\xff"
+_PNG_START = b"\x89PNG\r\n\x1a\n"
 
 
 class ImageRejectedError(ValueError):
     """The bytes are not the image type that was declared (or not an image)."""
+
+
+def has_type_signature(raw: bytes, content_type: str) -> bool:
+    """Whether the leading bytes are the declared image type (for purposes that do not
+    re-encode). A cheap check on the file signature, not a full decode."""
+    if content_type == "image/webp":
+        return raw[:4] == b"RIFF" and raw[8:12] == b"WEBP"
+    if content_type == "image/jpeg":
+        return raw.startswith(_JPEG_START)
+    if content_type == "image/png":
+        return raw.startswith(_PNG_START)
+    return False
 
 
 def strip_metadata(raw: bytes, content_type: str, *, max_pixels: int) -> bytes:

@@ -6,7 +6,7 @@ changes. Business-controlled text (the name and the Reply-To) is cleaned in
 """
 
 import smtplib
-from email.utils import formataddr, getaddresses
+from email.utils import getaddresses
 from types import SimpleNamespace
 from typing import Any
 
@@ -16,7 +16,6 @@ import resend
 from src import email as email_module
 from src import email_layout as layout
 from src.email import (
-    SenderIdentity,
     business_sender_name,
     safe_reply_to,
     sender_header,
@@ -306,7 +305,7 @@ def _record_timeouts(monkeypatch: pytest.MonkeyPatch) -> list[float]:
     seen: list[float] = []
 
     class FakeClient:
-        async def __aenter__(self) -> "FakeClient":
+        async def __aenter__(self) -> FakeClient:
             return self
 
         async def __aexit__(self, *exc: object) -> None:
@@ -500,6 +499,30 @@ BYPASS_NAMES = [
     "Spa.com",
     "spa . com",
     "Visit www.spa.example",
+    # a word split across words, a capital I for l, a dotless i
+    "Bar rels Spa",
+    "BarreIs Spa",
+    "Adm\u0131n Spa",
+    "Supporters Desk",
+    # a short term with letters or digits attached (security review of #1807)
+    "GAAs Taxi",
+    "GAA2 Tours",
+    "GMS1 Weather",
+    "2GAA Shuttle",
+    "GAAOfficial",
+    "GMSjam Events",
+    "theGAA Desk",
+    "MyGMS Alerts",
+    "XGMS Weather",
+    "GAAGMS",
+    # official-sounding words after a short term (issue 1640)
+    "GAAnews",
+    "GAAjobs",
+    "GMSinfo",
+    "GAAonline",
+    "GMSltd",
+    "GMSalerts",
+    "GAAupdates",
 ]
 
 
@@ -510,7 +533,23 @@ def test_a_reserved_name_bypass_falls_back_to_the_default_sender(name: str) -> N
 
 @pytest.mark.parametrize(
     "name",
-    ["Sunset Bakery", "Caribbean Cafe", "Grenada Airbnb Rentals", "Island Hair Studio"],
+    [
+        "Sunset Bakery",
+        "Caribbean Cafe",
+        "Grenada Airbnb Rentals",
+        "Island Hair Studio",
+        # a reserved term only across two unrelated words, or a short term inside
+        # a longer word (issue 1640)
+        "Yoga Academy",
+        "Mega Antiques",
+        "Rad Minimart",
+        "Studio 54",
+        "Gaanesh Barber",
+        # tail words match whole words only: "News" beside a gaa-prefixed word
+        # that is not a short term is not caught
+        "Gaanesh News Stand",
+        "Pragmatic Gym",
+    ],
 )
 def test_ordinary_names_with_similar_letters_still_work(name: str) -> None:
     assert business_sender_name(name) == f"{name} via Barrels"

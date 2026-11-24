@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PeopleSection } from "@/components/studio/settings/settings-sections";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import {
+  CARD,
+  SECONDARY_ACTION,
+  StudioPageHeader,
+} from "@/components/studio/studio-ui";
 import { requireSession } from "@/lib/session";
 import { loadSettings } from "@/lib/settings-load";
 import { canManageBookings } from "@/lib/studio-view";
@@ -34,22 +39,25 @@ export default async function PeoplePage({ params }: PeoplePageProps) {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <p className="text-muted-foreground text-sm">{org.name}</p>
-        <h1 className="text-2xl font-semibold">People</h1>
-        <Link
-          className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
-          href={{ pathname: `/studio/${orgSlug}/settings` }}
-        >
-          Business settings
-        </Link>
-      </header>
-      <PeopleSection
-        editable={canManageBookings(org.role)}
-        orgSlug={orgSlug}
-        providers={data.providers}
-        services={data.services}
+      <StudioPageHeader
+        action={
+          <Link
+            className={SECONDARY_ACTION}
+            href={{ pathname: `/studio/${orgSlug}/settings` }}
+          >
+            Business settings
+          </Link>
+        }
+        title="People"
       />
+      <div className={CARD}>
+        <PeopleSection
+          editable={canManageBookings(org.role)}
+          orgSlug={orgSlug}
+          providers={data.providers}
+          services={data.services}
+        />
+      </div>
     </div>
   );
 }

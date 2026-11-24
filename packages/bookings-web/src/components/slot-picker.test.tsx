@@ -256,6 +256,26 @@ describe("SlotPicker", () => {
     ).toBeDisabled();
   });
 
+  it("keeps Earlier, the range and Later in one row, in reading order", async () => {
+    renderPicker();
+    await screen.findByRole("radio", { name: formatDay(TOMORROW) });
+    const earlier = screen.getByRole("button", { name: "Earlier dates" });
+    const later = screen.getByRole("button", { name: "Later dates" });
+    const nav = earlier.parentElement;
+    expect(nav).toHaveClass("slots-nav");
+    expect(later.parentElement).toBe(nav);
+    // The arrows are decoration: the names stay "Earlier dates" and "Later dates".
+    for (const button of [earlier, later]) {
+      for (const part of Array.from(button.children)) {
+        expect(part).toHaveAttribute("aria-hidden", "true");
+      }
+    }
+    const range = `${formatDay(TODAY)} to ${formatDay(addDays(TODAY, 13))}`;
+    expect(Array.from(nav?.children ?? []).map((el) => el.textContent)).toEqual(
+      [earlier.textContent, range, later.textContent]
+    );
+  });
+
   it("labels the window with its first and last day", async () => {
     renderPicker();
     await screen.findByRole("radio", { name: formatDay(TOMORROW) });

@@ -14185,7 +14185,7 @@
           "bookings"
         ],
         "summary": "List businesses on the Barrels Bookings home page",
-        "description": "Businesses that opted in to the home page and are open for booking, 24 to a page. `q` searches the name, category, description and city; `category` keeps one category. Each card has public fields only. `categories` lists the filter chips. Needs no sign-in.",
+        "description": "Businesses that opted in to the home page and are open for booking, 24 to a page. `q` searches the name, category, description and city; `category` keeps one category; `type` keeps one business type (a fixed list, 422 for anything else). Each card has public fields only. `categories` lists the filter chips and `types_available` the business types on offer. Needs no sign-in.",
         "operationId": "bookingsListPublicBusinesses",
         "parameters": [
           {
@@ -14221,6 +14221,24 @@
               ],
               "title": "Category"
             }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/BookingBusinessType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Keep one business type.",
+              "title": "Type"
+            },
+            "description": "Keep one business type."
           },
           {
             "name": "page",
@@ -73536,6 +73554,96 @@
           }
         ]
       }
+    },
+    "/api/v1/monitoring/admin/freshness/probe": {
+      "get": {
+        "tags": [
+          "monitoring"
+        ],
+        "summary": "Uptime probe: is ingest fresh and the email outbox clear",
+        "description": "For Better Stack and other plain HTTP monitors. Send the probe secret as `Authorization: Bearer <MONITORING_PROBE_TOKEN>` (a header, never the URL). 200 with `healthy: true` when every check passes; 503 with `healthy: false` and the names of the failing checks otherwise. Returns verdict, check names and a time only: no counts, recipients, payloads or error text. Not user authenticated; the secret is the one grant, equal to monitoring.freshness.read. Answers 404 when the secret is not configured and 429 when called too often.",
+        "operationId": "monitoringGetProbe",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Every check passes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbeReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or wrong probe secret",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Probe secret not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many probe calls",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "At least one check fails",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbeReport"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -78447,6 +78555,19 @@
             },
             "type": "array",
             "title": "Add On Names"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At",
+            "description": "For a request waiting for confirmation (`pending`): when it cancels itself if not confirmed, the earlier of `pending_expiry_hours` after it was made and its start. Null for any other status."
           }
         },
         "type": "object",
@@ -78567,6 +78688,24 @@
         ],
         "title": "BookingBusinessContact",
         "description": "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
+      },
+      "BookingBusinessType": {
+        "type": "string",
+        "enum": [
+          "beauty",
+          "hair",
+          "health",
+          "fitness",
+          "auto",
+          "home_services",
+          "lessons",
+          "professional",
+          "tours",
+          "events",
+          "other"
+        ],
+        "title": "BookingBusinessType",
+        "description": "The fixed business types a home page visitor filters by (owner request\n24 Nov 2026). Null on the profile means not chosen. Free-text ``category`` is\nseparate and unchanged."
       },
       "BookingCalendarFeedLink": {
         "properties": {
@@ -79028,6 +79167,43 @@
         ],
         "title": "BookingExceptionPublic"
       },
+      "BookingFeaturedService": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor",
+            "description": "The service price in minor units."
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "The business's currency, such as `XCD`."
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "price_minor",
+          "currency",
+          "duration_min"
+        ],
+        "title": "BookingFeaturedService",
+        "description": "A service shown on a home page card. Public fields only."
+      },
       "BookingManualDepositCreate": {
         "properties": {
           "method": {
@@ -79404,6 +79580,29 @@
             "title": "Requires Confirmation",
             "default": false
           },
+          "pending_expiry_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 168.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Expiry Hours",
+            "description": "Hours a booking request waits for the business to confirm it before it expires (the customer is told and the slot is released). Null means it expires only at its start time. A request whose start has passed always expires. Left out, the stored value is kept.",
+            "default": 24
+          },
+          "max_open_per_customer": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Open Per Customer",
+            "description": "How many future bookings (requested, awaiting payment or confirmed) one customer may hold with this business. A public booking beyond it is refused with 409. Staff entries are not refused. Left out, the stored value is kept.",
+            "default": 3
+          },
           "notify_email": {
             "anyOf": [
               {
@@ -79585,6 +79784,30 @@
             ],
             "title": "Logo File Id",
             "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+          },
+          "cover_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover File Id",
+            "description": "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept."
+          },
+          "business_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingBusinessType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, tours, events, other). Null clears it. Left out, the stored value is kept."
           },
           "listed": {
             "type": "boolean",
@@ -79725,6 +79948,29 @@
             "title": "Requires Confirmation",
             "default": false
           },
+          "pending_expiry_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 168.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Expiry Hours",
+            "description": "Hours a booking request waits for the business to confirm it before it expires (the customer is told and the slot is released). Null means it expires only at its start time. A request whose start has passed always expires. Left out, the stored value is kept.",
+            "default": 24
+          },
+          "max_open_per_customer": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Open Per Customer",
+            "description": "How many future bookings (requested, awaiting payment or confirmed) one customer may hold with this business. A public booking beyond it is refused with 409. Staff entries are not refused. Left out, the stored value is kept.",
+            "default": 3
+          },
           "notify_email": {
             "anyOf": [
               {
@@ -79906,6 +80152,30 @@
             ],
             "title": "Logo File Id",
             "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+          },
+          "cover_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover File Id",
+            "description": "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept."
+          },
+          "business_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingBusinessType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, tours, events, other). Null clears it. Left out, the stored value is kept."
           },
           "listed": {
             "type": "boolean",
@@ -80299,6 +80569,37 @@
             ],
             "title": "Logo Url",
             "description": "Public https address of the logo, or null when there is no finished logo upload or no public API address is configured. Load it as an image."
+          },
+          "cover_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Url",
+            "description": "Public https address of the cover photo, or null when there is no finished booking-cover upload or no public API address is configured."
+          },
+          "business_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingBusinessType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The business's type (the `type` filter), or null when not chosen."
+          },
+          "featured_services": {
+            "items": {
+              "$ref": "#/components/schemas/BookingFeaturedService"
+            },
+            "type": "array",
+            "title": "Featured Services",
+            "description": "Up to three bookable services (active, not add-ons) in the order the business's booking page lists them; empty when it has none."
           }
         },
         "type": "object",
@@ -80340,6 +80641,14 @@
             "type": "array",
             "title": "Categories",
             "description": "The distinct categories of every listed business, case folded, for the filter chips. Not narrowed by the search."
+          },
+          "types_available": {
+            "items": {
+              "$ref": "#/components/schemas/BookingBusinessType"
+            },
+            "type": "array",
+            "title": "Types Available",
+            "description": "The business types that at least one listed business has, in the fixed list's order. Counts the same businesses the list shows; not narrowed by the search, category or type."
           }
         },
         "type": "object",
@@ -81356,6 +81665,29 @@
             ],
             "title": "Logo Url",
             "description": "Public https address of the business logo, or null when there is no logo or no public API address is configured. Load it as an image."
+          },
+          "cover_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Url",
+            "description": "Public https address of the cover photo, or null when there is no complete booking-cover upload or no public API address is configured."
+          },
+          "business_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingBusinessType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The business's type for the home page filter, or null."
           },
           "services": {
             "items": {
@@ -107573,6 +107905,34 @@
           "void"
         ],
         "title": "PrintixTicketStatus"
+      },
+      "ProbeReport": {
+        "properties": {
+          "healthy": {
+            "type": "boolean",
+            "title": "Healthy"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          },
+          "failing_checks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Failing Checks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "healthy",
+          "checked_at",
+          "failing_checks"
+        ],
+        "title": "ProbeReport",
+        "description": "The uptime probe answer: a verdict and failing check names, nothing personal.\n\nFailing names look like ``feed:cap_feeds``, ``telemetry``,\n``email_outbox.stale_pending`` or ``email_outbox.dead_last_window``."
       },
       "ProductAccessCurrent": {
         "properties": {

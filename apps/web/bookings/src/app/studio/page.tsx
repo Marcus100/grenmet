@@ -1,14 +1,13 @@
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from "@barrelsgd/ui/components/ui/empty";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import { StudioPlainFrame } from "@/components/studio/studio-shell";
+import {
+  CARD,
+  CARD_LINK,
+  StudioPageHeader,
+} from "@/components/studio/studio-ui";
 import { requireSession } from "@/lib/session";
 import { listMyOrganisations } from "@/lib/studio-api";
 import { guarded } from "@/lib/studio-page";
@@ -35,7 +34,11 @@ export default async function StudioPage() {
   );
 
   if (!result.ok) {
-    return <StudioAlert failure={result.failure} />;
+    return (
+      <StudioPlainFrame userName={session.name}>
+        <StudioAlert failure={result.failure} />
+      </StudioPlainFrame>
+    );
   }
   const organisations = result.value;
 
@@ -45,45 +48,46 @@ export default async function StudioPage() {
 
   if (organisations.length === 0) {
     return (
-      <Empty className="border">
-        <EmptyHeader>
-          <EmptyTitle>You are not part of a business yet</EmptyTitle>
-          <EmptyDescription>
+      <StudioPlainFrame userName={session.name}>
+        <section className={`${CARD} space-y-3`}>
+          <h1 className="text-foreground text-2xl font-bold">
+            You are not part of a business yet
+          </h1>
+          <p className="text-foreground/80">
             {session.name} is signed in, but no business has added this account.
             Ask the business owner to invite <span>{session.email}</span> to
             their Barrels organisation, then refresh this page.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <Link
-            className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
-            href="/"
-          >
+          </p>
+          <Link className={CARD_LINK} href="/">
             See how Barrels Bookings works
           </Link>
-        </EmptyContent>
-      </Empty>
+        </section>
+      </StudioPlainFrame>
     );
   }
 
   return (
-    <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">Choose a business</h1>
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {organisations.map((organisation) => (
-          <li key={organisation.id}>
-            <Link
-              className="border-border hover:bg-muted flex min-h-11 flex-col gap-1 rounded-lg border p-4"
-              href={{ pathname: `/studio/${organisation.slug}/agenda` }}
-            >
-              <span className="font-semibold">{organisation.name}</span>
-              <span className="text-muted-foreground text-sm">
-                {ROLE_LABEL[organisation.role] ?? organisation.role}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <StudioPlainFrame userName={session.name}>
+      <div className="space-y-6">
+        <StudioPageHeader title="Choose a business" />
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {organisations.map((organisation) => (
+            <li key={organisation.id}>
+              <Link
+                className={`${CARD} hover:bg-muted active:bg-muted focus-visible:outline-ring flex min-h-14 flex-col gap-1 transition-colors duration-[120ms] focus-visible:outline-2 focus-visible:outline-offset-2`}
+                href={{ pathname: `/studio/${organisation.slug}/agenda` }}
+              >
+                <span className="text-foreground font-semibold">
+                  {organisation.name}
+                </span>
+                <span className="text-foreground/80 text-sm">
+                  {ROLE_LABEL[organisation.role] ?? organisation.role}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </StudioPlainFrame>
   );
 }

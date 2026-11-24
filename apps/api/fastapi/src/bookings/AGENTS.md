@@ -83,6 +83,7 @@ Logic is in `public.py` (service.py keeps studio config and availability); route
 
 ## Monitoring (booking jobs)
 - `enqueue_booking_reminders` (`7 * * * *`) and `expire_unpaid_bookings` (`2,7,12,...,57 * * * *`, every 5 minutes) are `@monitored` (Sentry Cron check-ins, slug `<env>-worker-<job name>`) and listed in `operational_metrics.JOBS`. The schedules must match the ARQ `cron(...)` minutes in `src/worker/main.py`; `tests/worker/test_cron_monitor.py` checks the check-in schedule.
+- Hygiene (#1808): `lifecycle.py` sweeps.
 
 ## B4: Babydoll tenant seed
 `seed.py::seed_babydoll(session)` creates (create-only, repeatable) the `babydoll` client organisation, `bookings` + `contacts` entitlements, the profile `babydoll-beauty-bar` (enabled, `America/Grenada`, 24 h lead, 60-day horizon, `requires_confirmation`, manage link `<BOOKINGS_APP_URL>/babydoll-beauty-bar/booking/{token}`, the bookings app's manage page; the Babydoll site redirects `/booking/*` away), the 14 bookable services from `apps/web/babydoll/src/data/site.ts` (prices x100 minor XCD; services, prices and durations confirmed by the studio on 14 Nov 2026; each service has `buffer_after_min=15`, so 15 minutes stay free after every appointment), provider "Jeriann" with the published hours (Mon-Fri 09:30-17:30, Sat 09:00-17:30) and public site `babydoll` (no contact, no subscriptions, Turnstile inherit). It never runs at startup. Run on demand from `apps/api/fastapi`: `python -m src.bookings.seed [--dry-run] [--notify-email <address>]` (`--dry-run` rolls back). `--notify-email <address>` sets the profile's `notify_email` only when this run creates the profile; it is validated before any write, has no default and is never read from the environment. An existing profile keeps the studio's address and the JSON result's `notes` says so. Also grants the Babydoll trial (ADR-0065). `BOOKINGS_BABYDOLL_SITE_URL` and `BOOKINGS_APP_URL` (`APP_URL`) live in `config.py`. Tests: `tests/bookings/test_seed_babydoll.py`.
@@ -100,6 +101,6 @@ Four optional profile columns (migration `bookingcontact20261115`): `contact_pho
 ## Tests
 `tests/bookings/`: `test_availability.py` (pure engine), `test_ics.py`, and the flow suites `test_bookings_api.py`, `test_public_bookings.py`, `test_studio.py`, `test_deposits.py`, `test_deposit_rule*.py`; `tests/worker/test_platform_jobs.py` for jobs and retention.
 
-- Brand (#1622): `brand_color`, `logo_file_id`.
+- Brand (#1622): `brand_color`, `logo_file_id`. Type and cover (`bookingtypecover20261124`): `business_type`, `cover_file_id`.
 - **Turnstile and replays:** Turnstile is verified *inside* the idempotent handler (`create_once`, `router.py`): tokens are single-use, so a retry with the same `Idempotency-Key` and body replays the stored receipt without a second token; a new key must pass, and a failed check is not stored and releases the key (tests in `test_public_bookings.py`).
 
