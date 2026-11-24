@@ -36,6 +36,10 @@ const HR_LIMIT = /^MAX_DOCUMENT_BYTES = (.+)$/mu;
 const UPLOAD_ROUTER = /^(grenmet-api|web-cms|adminer)/u;
 const STAGING_PROFILE = /^ {4}profiles: \["staging"\]$/mu;
 const ORIGIN_GATE = /^origin-gate/u;
+const UNUSED_ROUTER = /^unused-(planned|host)/u;
+const HOST_RULE = /Host\(`([^`]+)`\)/gu;
+const HOMEPAGE = "https://barrels.gd/";
+const TLS_DOMAIN_MAIN = /^tls\.domains\[\d+\]\.main$/u;
 const SWITCHED_FORWARDED_HEADERS =
   /\$\{TRAEFIK_FORWARDED_HEADERS:-insecure=false\}$/u;
 
@@ -409,7 +413,8 @@ test("secret-token paths reach the same services with no access-log line (#1787)
 test("production web routers carry no middlewares and no empty chain", () => {
   const { labels } = edge("production");
   for (const [name, router] of websecureRouters("production")) {
-    if (UPLOAD_ROUTER.test(name)) continue;
+    // Upload routers carry a body limit; the unused-host routers a redirect.
+    if (UPLOAD_ROUTER.test(name) || UNUSED_ROUTER.test(name)) continue;
     assert.equal(router.middlewares, undefined, `${name} middlewares label`);
   }
   for (const [key, value] of Object.entries(labels)) {
@@ -546,6 +551,103 @@ test("the origin gate outranks every router, refuses with 403 and is inert when 
       ],
       ""
     );
+  }
+});
+
+// Traefik v3: a router without an explicit priority ranks by its rule length.
+const effectivePriority = (router) =>
+  Number(router.priority ?? (router.rule ?? "").length);
+
+test("hosts with no app redirect home from the lowest-ranked routers and never order an arbitrary certificate (#1657)", () => {
+  for (const environment of Object.keys(ENVIRONMENTS)) {
+    const { labels, routers, variables } = edge(environment);
+    const suffix = environment === "staging" ? "-staging" : "";
+    const planned = routers.get(`unused-planned${suffix}`);
+    const fallback = routers.get(`unused-host${suffix}`);
+    const gate = routers.get(`origin-gate${suffix}`);
+    assert.ok(planned && fallback, `${environment} has both unused routers`);
+
+    // Lowest priority: the catch-all at 1, the planned list just above it,
+    // every app router above both and the origin gate above everything.
+    assert.equal(fallback.priority, "1");
+    assert.equal(planned.priority, "2");
+    for (const [name, router] of routers) {
+      if (UNUSED_ROUTER.test(name) || router.entrypoints !== "websecure")
+        continue;
+      assert.ok(
+        effectivePriority(router) > effectivePriority(planned),
+        `${name} must outrank the unused-host routers`
+      );
+      if (!ORIGIN_GATE.test(name))
+        assert.ok(
+          effectivePriority(router) < effectivePriority(gate),
+          `${name} must rank below the origin gate`
+        );
+    }
+    assert.ok(effectivePriority(fallback) < effectivePriority(gate));
+
+    // The catch-all matches every host on the default certificate only.
+    assert.equal(fallback.rule, "PathPrefix(`/`)");
+    assert.equal(fallback.tls, "true");
+    assert.equal(
+      Object.keys(fallback).some((key) => key.startsWith("tls.")),
+      false,
+      "no certresolver or domains on the catch-all"
+    );
+
+    // The planned list orders exactly one certificate per named host.
+    const hosts = [...planned.rule.matchAll(HOST_RULE)].map((m) => m[1]);
+    assert.ok(hosts.length > 0);
+    assert.equal(planned["tls.certresolver"], "letsencrypt");
+    const domains = Object.entries(planned)
+      .filter(([key]) => key.startsWith("tls.domains["))
+      .map(([key, value]) => {
+        assert.match(key, TLS_DOMAIN_MAIN, "no SANs");
+        return value;
+      });
+    assert.deepEqual(domains.sort(), [...hosts].sort());
+    for (const host of hosts) {
+      assert.ok(
+        host.endsWith(`.${variables.BASE_DOMAIN}`) && !host.includes("*"),
+        `${host} is a named host`
+      );
+      for (const [name, router] of routers)
+        if (!UNUSED_ROUTER.test(name))
+          assert.equal(
+            (router.rule ?? "").includes(`Host(\`${host}\`)`),
+            false,
+            `${host} has an app router (${name}); remove it from unused-planned`
+          );
+    }
+
+    // Nothing orders a certificate from a rule without a named host.
+    for (const [name, router] of routers)
+      if (router["tls.certresolver"])
+        assert.ok(
+          !router.rule.includes("HostRegexp") &&
+            [...router.rule.matchAll(HOST_RULE)].length > 0,
+          `${name} orders certificates only for named hosts`
+        );
+
+    // Both answer with a temporary redirect to the homepage from Traefik
+    // itself, behind staging's basic auth and noindex on staging.
+    for (const router of [planned, fallback]) {
+      assert.equal(router.service, "noop@internal");
+      assert.equal(router.entrypoints, "websecure");
+      const chain = routerMiddlewares(router, labels);
+      const redirect = chain.at(-1);
+      assert.equal(middlewareKind(redirect, labels), "redirectregex");
+      const prefix = `traefik.http.middlewares.${redirect}.redirectregex.`;
+      assert.equal(labels[`${prefix}regex`], "^.*");
+      assert.equal(labels[`${prefix}replacement`], HOMEPAGE);
+      assert.equal(labels[`${prefix}permanent`], "false");
+      assert.deepEqual(
+        chain.slice(0, -1),
+        environment === "staging"
+          ? ["staging-auth-staging", "staging-noindex-staging"]
+          : []
+      );
+    }
   }
 });
 
