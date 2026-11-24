@@ -1283,14 +1283,13 @@ section.block.flush-top {
   font-weight: 500;
   line-height: 1.2;
 }
+/* Wraps rather than cutting off a number someone may need to read. */
 .quick-channel span:not(.sr-only) {
   grid-column: 2;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-size: 0.79rem;
   line-height: 1.2;
   color: var(--ink-soft);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .quick-more a {
   display: inline-flex;
@@ -1310,8 +1309,14 @@ section.block.flush-top {
   }
   /* Four across in a narrow column: the label alone, no second line. */
   @container (max-width: 559px) {
+    /* Hidden from view only: screen readers still hear the number. */
     .quick-channel span:not(.sr-only) {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      white-space: nowrap;
+      clip-path: inset(50%);
     }
   }
 }

@@ -199,7 +199,7 @@ describe("training contact channels", () => {
       ["WhatsApp +1 473 420 7747 (opens in a new tab)", WHATSAPP_URL],
       ["Call +1 473 420 7747", PHONE.href],
       [`Instagram ${INSTAGRAM_HANDLE} (opens in a new tab)`, INSTAGRAM_DM_URL],
-      ["Email", EMAIL.href],
+      [`Email ${EMAIL.address}`, EMAIL.href],
     ] as const;
     for (const [name, href] of links)
       expect(screen.getByRole("link", { name })).toHaveAttribute("href", href);

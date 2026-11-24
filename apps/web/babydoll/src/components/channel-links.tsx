@@ -25,7 +25,7 @@ const ICONS: Record<(typeof CONTACT_CHANNELS)[number]["id"], ReactNode> = {
   ),
 };
 
-/** The email address is too long for a compact link, so it shows no second line. */
+/** The email address is too long to show on a compact link; screen readers still hear it. */
 const SHOWS_DETAIL: Record<(typeof CONTACT_CHANNELS)[number]["id"], boolean> = {
   whatsapp: true,
   call: true,
@@ -61,7 +61,12 @@ export function ChannelLinks() {
               {ICONS[channel.id]}
             </svg>
             <b>{channel.label}</b>{" "}
-            {SHOWS_DETAIL[channel.id] && <span>{channel.detail}</span>}
+            {SHOWS_DETAIL[channel.id] ? (
+              <span>{channel.detail}</span>
+            ) : (
+              // Too long to show, but part of the link's name.
+              <span className="sr-only">{channel.detail}</span>
+            )}
             {channel.newTab && <NewTabNote />}
           </a>
         </li>
