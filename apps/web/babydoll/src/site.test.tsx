@@ -19,6 +19,7 @@ import { bookingLink, siteBookingLink } from "@/lib/book-link";
 
 const APPOINTMENT = /appointment/iu;
 const BOOK_ONLINE = /Book online/u;
+const QUICKEST = /quickest/iu;
 const APPOINTMENT_NOTE =
   "Book online and choose a time that suits you. Walk-ins can't be seen.";
 // Clock times, day names and the words that used to head the hours table.
@@ -64,6 +65,41 @@ describe("pages", () => {
     expect(screen.getByText("By appointment only")).toBeInTheDocument();
     for (const link of screen.getAllByRole("link", { name: BOOK_ONLINE }))
       expect(link).toHaveAttribute("href", siteBookingLink().href);
+  });
+
+  it("contact links WhatsApp, phone and email with exact hrefs", () => {
+    render(<ContactPage />);
+    expect(
+      screen.getByRole("link", {
+        name: "Message on WhatsApp +1 473 420 7747 (opens in a new tab)",
+      })
+    ).toHaveAttribute("href", "https://wa.me/14734207747");
+    expect(
+      screen.getByRole("link", { name: "Call +1 473 420 7747" })
+    ).toHaveAttribute("href", "tel:+14734207747");
+    expect(
+      screen.getByRole("link", { name: "Email us hello@babydollbeautybar.com" })
+    ).toHaveAttribute("href", "mailto:hello@babydollbeautybar.com");
+    expect(
+      screen.getByRole("link", {
+        name: "Message on Instagram @babydoll.gnd (opens in a new tab)",
+      })
+    ).toHaveAttribute("href", "https://ig.me/m/babydoll.gnd");
+  });
+
+  it("contact lists WhatsApp, Call, Instagram, then email, and no 'quickest' claim", () => {
+    const { container } = render(<ContactPage />);
+    const titles = [...container.querySelectorAll(".channel > b")].map(
+      (node) => node.textContent
+    );
+    expect(titles.slice(0, 5)).toEqual([
+      "Book online",
+      "Message on WhatsApp",
+      "Call",
+      "Message on Instagram",
+      "Email us",
+    ]);
+    expect(container.textContent).not.toMatch(QUICKEST);
   });
 
   it.each(PAGES)("%s page shows no opening hours", (_, Page) => {
