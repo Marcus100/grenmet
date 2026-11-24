@@ -474,14 +474,21 @@ Cancelled rows, rows before `--since` (default: now) and rows it cannot read
 (unknown service, unknown staff, bad time, no email or phone, a name or phone
 too long for the database, an erased person) are skipped, each with its row
 number. Services match by exact name, then case-insensitively, then
-`--service-map`. A customer is matched by email. Without a matching email, a
-phone number is used only where it cannot belong to someone else: the row has no
-email, or the contact has no email or the same one. A shared phone with a
-different email makes a new contact (a family's landline). The same email always
-merges into one contact (ADR-0028). Imported bookings are `confirmed` with no
-deposit. No email is sent unless `--notify` is given (leave it off: customers
-already have Acuity confirmations), and no webhook is sent. An overlapping row
-is listed and left out; `--strict` stops the whole run instead.
+`--service-map`. A customer is matched by email. A row without an email matches
+a contact only when the phone and the full name both agree (case, accents and
+spacing are ignored); otherwise it gets a new contact, so a shared phone such as
+a family's landline never joins two people. A row with an email never writes
+that email onto an existing contact. The same email always merges into one
+contact (ADR-0028). Imported bookings are `confirmed` with no deposit. No email
+is sent unless `--notify` is given (leave it off: customers already have Acuity
+confirmations), and no webhook is sent. With `--notify`, the confirmation emails
+include the Acuity notes. An overlapping row is listed and left out; `--strict`
+stops the whole run instead.
+
+**Cancelled in Acuity after the first import.** The import is a one-off copy,
+not a sync. An appointment cancelled in Acuity after the first import stays
+`confirmed` in Barrels and keeps its reminders. Cancel it in Barrels as well
+(studio cancel, which emails the customer) before the reminders are due.
 
 **Unmatched values.** The report prints unmatched service and calendar names
 only when they are short and carry no `@` and no run of six digits. Anything

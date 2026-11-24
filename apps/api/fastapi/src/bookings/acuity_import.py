@@ -17,8 +17,10 @@ Rules, all in one place:
 - Services match by exact name, then case-insensitively, then ``--service-map``.
   Staff match the Calendar column the same way; a blank Calendar uses the only
   active staff member, if there is exactly one.
-- A customer is matched by normalised email, else by phone (E.164), else a new
-  contact is created (ADR-0028). An email-less contact is matched by phone only.
+- A customer is matched by normalised email. A row without an email matches
+  the one contact with the same phone (E.164) and full name (:func:`name_key`);
+  otherwise a new contact is created (ADR-0028). A phone-matched contact never
+  receives the row's email.
 - The database forbids two active bookings for one provider at once, so an
   overlapping row cannot be stored. It is listed and left out. ``--strict``
   stops the whole run instead, before anything is saved.
@@ -44,6 +46,7 @@ import json
 import logging
 import re
 import sys
+import unicodedata
 import uuid
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
@@ -61,7 +64,7 @@ from src.config import settings
 from src.contacts import service as contacts_service
 from src.contacts.models import Contact
 from src.utils.datetime import utc_now
-from src.utils.email_hash import hash_email, normalise_email
+from src.utils.email_hash import normalise_email
 
 from . import emails, public
 from . import service as booking_service
@@ -317,6 +320,19 @@ def _key(header: str) -> str:
 
 def _squash(text: str) -> str:
     return " ".join(text.split())
+
+
+def name_key(text: str | None) -> str:
+    """A full name compared without case, accents or spacing ("José  Núñez" == "jose nunez").
+
+    ``""`` when there is no name, so a blank name never agrees with anything.
+    """
+    squashed = _squash(text or "")
+    if not squashed:
+        return ""
+    decomposed = unicodedata.normalize("NFKD", squashed)
+    kept = "".join(char for char in decomposed if not unicodedata.combining(char))
+    return _squash(kept).casefold()
 
 
 def parse_local_time(text: str | None, zone: ZoneInfo) -> datetime | None:
@@ -701,14 +717,16 @@ class _Importer:
         )
         return hit is not None
 
-    async def _phone_matches(self, key: str, email: str | None) -> list[Contact]:
-        """Contacts with this phone that the row may use.
+    async def _phone_matches(self, key: str, name: str | None) -> list[Contact]:
+        """Contacts with this phone and this full name (compared with :func:`name_key`).
 
-        Shared phones are common (a family's landline), so a phone alone never
-        decides who a booking belongs to: a row with an email may only use a
-        contact that has no email or the same one. Otherwise a new contact is
-        made. A shared email merges by email instead (ADR-0028).
+        Shared phones are common (a family's landline), so a phone never decides
+        who a booking belongs to on its own. A row without a name, or whose name
+        differs, matches nothing and gets a new contact.
         """
+        wanted = name_key(name)
+        if not wanted:
+            return []
         digits = func.regexp_replace(Contact.phone, "[^0-9]", "", "g")
         candidates = await self.session.scalars(
             select(Contact).where(
@@ -722,7 +740,7 @@ class _Importer:
             c
             for c in candidates
             if phone_key(c.phone, self.options.local_area_code) == key
-            and (email is None or c.email is None or normalise_email(c.email) == email)
+            and name_key(c.name) == wanted
         ]
 
     async def _contact(
@@ -732,7 +750,12 @@ class _Importer:
         name: str | None,
         phone: str | None,
     ) -> tuple[Contact | None, str | None, bool]:
-        """``(contact, skip reason, created)``. Email first, then phone, then new."""
+        """``(contact, skip reason, created)``.
+
+        Email first (the address is the identity). A row without an email may
+        reuse the one contact that has its phone and full name. Anything else is
+        a new contact, and a phone-matched contact never receives an email.
+        """
         org = self.profile.organisation_id
         if email:
             existing = await contacts_service.find_by_email(self.session, org, email)
@@ -749,19 +772,12 @@ class _Importer:
                     source=CONTACT_SOURCE,
                 )
                 return contact, None, False
-        if key_phone:
-            matches = await self._phone_matches(key_phone, email)
+        elif key_phone:
+            matches = await self._phone_matches(key_phone, name)
             if len(matches) > 1:
                 return None, R_AMBIGUOUS_CONTACT, False
             if matches:
-                contact = matches[0]
-                if email and contact.email_hash is None:
-                    contact.email = email
-                    contact.email_hash = hash_email(email)
-                if name and not contact.name:
-                    contact.name = name
-                await self.session.flush()
-                return contact, None, False
+                return matches[0], None, False
         if email:
             contact = await contacts_service.upsert_contact(
                 self.session,

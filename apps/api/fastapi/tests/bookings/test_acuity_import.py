@@ -594,8 +594,9 @@ async def test_a_shared_phone_with_another_email_makes_a_new_contact(
     )
     report = await _run(db_async, salon, apply=True, csv_text=csv_text)
 
-    assert report.created == 2
-    assert report.skipped["ambiguous contact"] == [3]
+    # Row 3 has the shared phone but another name: it gets its own contact.
+    assert report.created == 3
+    assert report.skipped == {}
     mother = await _booking_by_appointment(db_async, salon.org_id, "2001")
     daughter = await _booking_by_appointment(db_async, salon.org_id, "2002")
     assert mother.customer_id != daughter.customer_id
@@ -621,6 +622,75 @@ async def test_the_same_phone_and_the_same_email_reuse_one_contact(
     assert report.created == 2
     assert report.contacts_created == 1
     assert report.contacts_reused == 1
+
+
+async def test_the_same_phone_and_the_same_name_reuse_one_contact(
+    db_async: AsyncSession,
+) -> None:
+    # No email on either row. Case, accents and spacing do not make a new person.
+    salon = await _salon(db_async)
+    csv_text = _rows(
+        '2021,"December 3, 2026 10:00 am",José,Núñez,473-555-0301,,Chin,Jeriann,,',
+        '2022,"December 4, 2026 10:00 am",jose,  NUNEZ,+1 473 555 0301,,Chin,Jeriann,,',
+    )
+    report = await _run(db_async, salon, apply=True, csv_text=csv_text)
+
+    assert report.created == 2
+    assert report.contacts_created == 1
+    assert report.contacts_reused == 1
+    first = await _booking_by_appointment(db_async, salon.org_id, "2021")
+    second = await _booking_by_appointment(db_async, salon.org_id, "2022")
+    assert first.customer_id == second.customer_id
+
+
+async def test_the_same_phone_with_another_name_makes_a_new_contact(
+    db_async: AsyncSession,
+) -> None:
+    # Same phone, different person: the second row must not be attached to the
+    # first contact, so the wrong person does not get the reminders.
+    salon = await _salon(db_async)
+    csv_text = _rows(
+        '2031,"December 3, 2026 10:00 am",Ana,Ruiz,473-555-0401,,Chin,Jeriann,,',
+        '2032,"December 4, 2026 10:00 am",Bea,Ruiz,473-555-0401,,Chin,Jeriann,,',
+        '2033,"December 5, 2026 10:00 am",,,473-555-0401,,Chin,Jeriann,,',
+    )
+    report = await _run(db_async, salon, apply=True, csv_text=csv_text)
+
+    assert report.created == 3
+    assert report.contacts_created == 3
+    assert report.contacts_reused == 0
+    ids = {
+        (await _booking_by_appointment(db_async, salon.org_id, number)).customer_id
+        for number in ("2031", "2032", "2033")
+    }
+    assert len(ids) == 3
+
+
+async def test_an_email_row_never_writes_its_email_onto_a_phone_matched_contact(
+    db_async: AsyncSession,
+) -> None:
+    salon = await _salon(db_async)
+    csv_text = _rows(
+        '2041,"December 3, 2026 10:00 am",Ana,Ruiz,473-555-0501,,Chin,Jeriann,,',
+        '2042,"December 4, 2026 10:00 am",Ana,Ruiz,+1 473 555 0501,ana@example.com,Chin,Jeriann,,',
+    )
+    report = await _run(db_async, salon, apply=True, csv_text=csv_text)
+
+    assert report.created == 2
+    phone_only = await _booking_by_appointment(db_async, salon.org_id, "2041")
+    with_email = await _booking_by_appointment(db_async, salon.org_id, "2042")
+    assert phone_only.customer_id != with_email.customer_id
+    contacts = await _contacts(db_async, salon.org_id)
+    assert [c.email for c in contacts if c.email is None] == [None]
+    assert [c.email for c in contacts if c.email is not None] == ["ana@example.com"]
+
+
+def test_name_key_ignores_case_accents_and_spacing() -> None:
+    assert acuity_import.name_key("  José   Núñez ") == "jose nunez"
+    assert acuity_import.name_key("JOSE NUNEZ") == acuity_import.name_key("José Núñez")
+    assert acuity_import.name_key("Ana Ruiz") != acuity_import.name_key("Bea Ruiz")
+    assert acuity_import.name_key("") == ""
+    assert acuity_import.name_key(None) == ""
 
 
 async def test_an_over_long_name_or_phone_is_skipped_with_a_reason(
