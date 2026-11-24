@@ -7,7 +7,7 @@ import { brokenImages, expect, host, test, watchPageErrors } from "./staging";
 
 const EVENTS_HOME = /find your people/iu;
 const WHATS_ON = /what.s on/iu;
-const BOOKINGS_HOME = /online appointments/iu;
+const BOOKINGS_HOME = /book any appointment/iu;
 const NOT_FOUND = /not found/iu;
 const NOINDEX = /noindex/iu;
 
