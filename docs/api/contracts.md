@@ -1283,6 +1283,14 @@ check is proposed in a GitHub issue.
   under `OUTBOX_ALERT_THRESHOLD`. `telemetry_available: false` means the success times could
   not be read, so `healthy` is false.
 
+`GET /api/v1/monitoring/admin/freshness/probe` is the token-free uptime check for
+Better Stack. It takes `Authorization: Bearer <MONITORING_PROBE_TOKEN>` (a header, never a
+query string) and answers 200 `{healthy: true, checked_at, failing_checks: []}` when
+`healthy` above is true, or 503 with the same shape and failing check names such as
+`feed:cap_feeds`, `telemetry`, `email_outbox.stale_pending` or
+`email_outbox.dead_last_window`. A missing or wrong secret gets 401, an unset secret 404,
+and more than 60 calls a minute from one address 429. It carries no counts or recipients.
+
 Success times are written to Redis (`telemetry:v1:<env>:feed-success`) only when
 `TELEMETRY_ENABLED=true`. Counts and times only: no recipients, payloads or error text.
 
