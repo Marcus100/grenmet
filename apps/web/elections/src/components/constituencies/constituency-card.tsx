@@ -69,7 +69,7 @@ export function ConstituencyCard({
           2022: {seat.winner2022.party} by {(seat.margin2022 * 100).toFixed(1)}{" "}
           pts
           {seat.lean != null && ` · leans ${leanLabel(seat.lean)}`}
-          {` · ${seat.candidates.length} named for 2026`}
+          {` · ${seat.candidates.length} candidates reported for 2026`}
         </span>
       </span>
     </Link>

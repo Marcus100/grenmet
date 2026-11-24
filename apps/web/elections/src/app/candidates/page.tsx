@@ -24,7 +24,7 @@ import { fmt, formatIsoDate } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Candidates",
   description:
-    "Who is standing in Grenada’s 2026 election, and everyone who has stood for the House since 1951, with each person’s record and sources.",
+    "Candidates in Grenada’s 2026 election, and everyone who has stood for the House since 1951, with each person’s record and sources.",
 };
 
 const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";

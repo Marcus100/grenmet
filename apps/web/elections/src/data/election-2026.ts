@@ -201,8 +201,10 @@ export function electionHeadline(
   calendar: ElectionCalendar,
   now: Date | null
 ): string | null {
-  if (calendar.resultsDeclared && calendar.pollingDay)
-    return `Grenada voted on ${formatIsoDate(calendar.pollingDay)}`;
+  if (calendar.resultsDeclared)
+    return calendar.pollingDay
+      ? `Grenada voted on ${formatIsoDate(calendar.pollingDay)}`
+      : "Grenada’s 2026 general election: provisional results";
   if (calendar.pollingDay)
     return `Grenada votes on ${formatIsoDate(calendar.pollingDay)}`;
   if (!now) return null;

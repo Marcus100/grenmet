@@ -14,7 +14,7 @@ import { campaign, geo, results } from "@/data/load";
 export const metadata: Metadata = {
   title: "Constituencies",
   description:
-    "Grenada’s 15 constituencies: who held each one at dissolution, how it voted in 2022, how it leans and who is standing in 2026.",
+    "Grenada’s 15 constituencies: who held each one at dissolution, how it voted in 2022, how it leans, and its 2026 candidates and result.",
 };
 
 export default function ConstituenciesPage() {

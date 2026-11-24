@@ -28,7 +28,7 @@ import { fmt, formatIsoDate, pct } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Election 2026",
   description:
-    "Grenada’s 2026 general election: key dates, who is standing in each seat, the latest news and the polls, with a source for everything.",
+    "Grenada’s 2026 general election: key dates, candidates, results, the latest news and the polls, with a source for everything.",
 };
 
 export default function Election2026Page() {

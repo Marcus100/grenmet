@@ -279,7 +279,7 @@ export default function HowClosePage() {
     eventDivisions(data, id).flatMap((d) => {
       const [w, r] = d.c;
       const valid = d.c.reduce((a, x) => a + x[2], 0);
-      if (!(w && r && d.registered && valid)) return [];
+      if (!(w && r && d.registered && valid && d.cast != null)) return [];
       return [
         {
           d,

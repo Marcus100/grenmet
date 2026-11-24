@@ -142,6 +142,16 @@ describe("declared phase", () => {
     );
   });
 
+  it("keeps the declared headline even when polling day is unset", () => {
+    const noDay = { ...declaredCalendar, pollingDay: null };
+    expect(electionHeadline(noDay, null)).toBe(
+      "Grenada’s 2026 general election: provisional results"
+    );
+    expect(
+      electionHeadline(noDay, new Date("2026-10-05T12:00:00Z"))
+    ).not.toContain("waits");
+  });
+
   it("summarises seats per party and each winner's margin", () => {
     const declared = declaredResult(results, campaign);
     expect(declared?.seats).toEqual([
@@ -214,7 +224,7 @@ describe("seatOutlook", () => {
     const g = seats.find((s) => s.code === "G");
     expect(g?.candidates).toEqual([
       { name: "Claudette Joseph", party: "NDC" },
-      { name: "Troy Noel", party: "NNP" },
+      { name: "Joel Troy Noel", party: "NNP" },
       { name: "Peter David", party: "DPM" },
     ]);
     // Named later in a commentary, so the NNP slot carries a ✱ note.

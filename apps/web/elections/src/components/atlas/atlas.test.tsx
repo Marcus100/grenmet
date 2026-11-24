@@ -347,3 +347,17 @@ it("opens a shared historical year without applying modern constituency selectio
     screen.queryByRole("complementary", { name: "Results" })
   ).not.toBeInTheDocument();
 });
+
+it("shows a 2026 polling division without ballots cast or turnout, never 0", async () => {
+  await renderAtlas("/results?e=2026&level=div");
+  await screen.findAllByRole("button", { name: N01 });
+  const row = screen
+    .getAllByRole("button", { name: N01 })
+    .find((button) => button.hasAttribute("aria-pressed"));
+  if (!row) throw new Error("Expected the N01 list row");
+  fireEvent.click(row);
+  const text = document.body.textContent ?? "";
+  expect(text).toContain("ballots · turnout –");
+  expect(text).not.toContain("0 ballots");
+  expect(text).not.toContain("turnout 0.0%");
+});

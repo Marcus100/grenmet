@@ -575,7 +575,7 @@ function DivisionList({
                     )
                     .join(" · ")}{" "}
                   · {fmt(d.cast)} {referendum ? "voters" : "ballots"} · turnout{" "}
-                  {d.reg ? pct(d.cast / d.reg) : "–"}
+                  {d.reg && d.cast != null ? pct(d.cast / d.reg) : "–"}
                 </p>
               )}
             </li>

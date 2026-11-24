@@ -131,13 +131,15 @@ export type TurnoutSource =
 
 export interface NationalEvent {
   bills?: [string, number, number, number][];
-  cast: number;
+  /** Null when the source publishes no ballots cast by constituency (2026 provisional). */
+  cast: number | null;
   /** Constituencies with no readable result (2018 referendum). */
   missing?: ConstituencyCode[];
   /** Number of constituencies (early elections had different boundaries). */
   races: number;
   registered: number | null;
-  rejected: number;
+  /** Null when the source publishes no rejected ballots by constituency. */
+  rejected: number | null;
   seats: Record<string, number>;
   total: number;
   turnout: number | null;
@@ -151,6 +153,9 @@ function tally(rows: (ContestResult | null)[]) {
   let registered = 0;
   let cast = 0;
   let rejected = 0;
+  let castSeen = false;
+  let rejectedSeen = false;
+  let provisional = false;
   let registeredKnown = true;
   let races = 0;
   for (const x of rows) {
@@ -163,7 +168,13 @@ function tally(rows: (ContestResult | null)[]) {
     else registeredKnown = false;
     cast += x.cast ?? 0;
     rejected += x.rej ?? 0;
+    castSeen ||= x.cast != null;
+    rejectedSeen ||= x.rej != null;
+    provisional ||= Boolean(x.provisional);
   }
+  // Provisional results publish these only nationally: never zero-fill them.
+  const castOut = castSeen || !provisional ? cast : null;
+  const rejectedOut = rejectedSeen || !provisional ? rejected : null;
   const total = Object.values(votes).reduce((a, b) => a + b, 0);
   return {
     seats,
@@ -171,8 +182,8 @@ function tally(rows: (ContestResult | null)[]) {
     total,
     registered,
     registeredKnown,
-    cast,
-    rejected,
+    cast: castOut,
+    rejected: rejectedOut,
     races,
   };
 }
@@ -214,7 +225,7 @@ function mappedTurnout(
   year: number,
   t: ReturnType<typeof tally>
 ): Pick<NationalEvent, "registered" | "turnout" | "turnoutSource"> {
-  const ratio = t.registered ? t.cast / t.registered : null;
+  const ratio = t.registered && t.cast ? t.cast / t.registered : null;
   if (year === 1972 || year === 1976)
     return {
       registered: t.registered,
@@ -398,12 +409,13 @@ export interface StationRow {
 export interface EventDivision {
   /** Rows most votes first: [name, party, votes]. */
   c: CandidateRow[];
-  cast: number;
+  /** Null when no station row has a value (2026 provisional). */
+  cast: number | null;
   code: ConstituencyCode;
   division: string;
   places: string[];
   registered: number;
-  rejected: number;
+  rejected: number | null;
   stations: StationRow[];
 }
 
@@ -425,8 +437,8 @@ function addStation(d: Accumulator, station: StationRow): void {
   if (station.place && !d.places.includes(station.place))
     d.places.push(station.place);
   d.registered += station.reg ?? 0;
-  d.cast += station.cast ?? 0;
-  d.rejected += station.rej ?? 0;
+  if (station.cast != null) d.cast = (d.cast ?? 0) + station.cast;
+  if (station.rej != null) d.rejected = (d.rejected ?? 0) + station.rej;
   for (const [p, v] of Object.entries(station.votes))
     d.votes[p] = (d.votes[p] ?? 0) + v;
   d.stations.push(station);
@@ -472,6 +484,7 @@ export function eventDivisions(
   const e = getEvent(id);
   if (!e?.divs) return [];
   const places = e.kind === "ref" ? placeByDivision(data) : {};
+  const empty = data.results.national[e.id]?.provisional ? null : 0;
   const out = new Map<string, Accumulator>();
   for (const c of code ? [code] : CODES) {
     const contest = e.kind === "general" ? eventResult(data, id, c) : null;
@@ -487,8 +500,8 @@ export function eventDivisions(
           code: c,
           places: [],
           registered: 0,
-          cast: 0,
-          rejected: 0,
+          cast: empty,
+          rejected: empty,
           stations: [],
           c: [],
           votes: {},
