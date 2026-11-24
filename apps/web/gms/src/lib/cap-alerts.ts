@@ -4,11 +4,16 @@ import type {
   PublicWarning,
   PublicWarningGroup,
 } from "@barrelsgd/api-client";
+import { severityLevel as issuedLevel } from "@barrelsgd/gms/warning-levels";
 import { WARNING_LEVEL_LABEL, type WarningLevel } from "@/lib/warning-level";
 
 // Pure helpers for the public warning feed, safe in Server and Client
 // Components. Fetching lives in cap.ts, which is server-only.
 export type { CapSeverity, CapStatus } from "@barrelsgd/api-client";
+/** The impact-based level one CAP severity maps to: the issued colour. */
+export function severityLevel(severity: CapSeverity): WarningLevel {
+  return issuedLevel(severity);
+}
 export type PublicAlert = PublicWarning;
 export type HazardGroup = PublicWarningGroup;
 
@@ -161,15 +166,4 @@ export function alertsDisplayLevel(
     return "unknown";
   }
   return "none";
-}
-
-/** The impact-based level one CAP severity maps to. */
-export function severityLevel(severity: CapSeverity): WarningLevel {
-  if (severity === "Extreme" || severity === "Severe") {
-    return "take-action";
-  }
-  if (severity === "Moderate") {
-    return "be-prepared";
-  }
-  return "be-aware";
 }

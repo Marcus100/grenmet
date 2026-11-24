@@ -52,7 +52,7 @@ describe("alertsSummary", () => {
         ],
         status: "ok",
       })
-    ).toBe("Be prepared · 2 active");
+    ).toBe("Be aware · 2 active");
     expect(
       alertsSummary({
         activeCount: 1,
@@ -160,12 +160,10 @@ describe("alertsLevel", () => {
   });
 
   it("maps each CAP severity onto its response level", () => {
-    expect(alertsLevel(ok([alert({ severity: "Minor" })]))).toBe("be-aware");
-    expect(alertsLevel(ok([alert({ severity: "Moderate" })]))).toBe(
-      "be-prepared"
-    );
+    expect(alertsLevel(ok([alert({ severity: "Minor" })]))).toBe("green");
+    expect(alertsLevel(ok([alert({ severity: "Moderate" })]))).toBe("be-aware");
     expect(alertsLevel(ok([alert({ severity: "Severe" })]))).toBe(
-      "take-action"
+      "be-prepared"
     );
     expect(alertsLevel(ok([alert({ severity: "Extreme" })]))).toBe(
       "take-action"
