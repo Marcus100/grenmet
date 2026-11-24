@@ -43,11 +43,13 @@ export const bookingStorefrontSchema = z
       ),
     cover_url: z
       .union([z.string(), z.null()])
+      .optional()
       .describe(
         "Public https address of the cover photo, or null when there is no complete booking-cover upload or no public API address is configured."
       ),
     business_type: z
       .union([bookingBusinessTypeSchema, z.null()])
+      .optional()
       .describe("The business's type for the home page filter, or null."),
     services: z.array(bookingPublicServiceSchema),
     providers: z.array(bookingPublicProviderSchema),

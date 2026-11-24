@@ -294,7 +294,8 @@ class BookingProfileUpdate(BaseModel):
         description=(
             "The business's type for the home page filter: one of a fixed list "
             "(beauty, hair, health, fitness, auto, home_services, lessons, "
-            "professional, other). Null clears it. Left out, the stored value is kept."
+            "professional, tours, events, other). Null clears it. Left out, the stored "
+            "value is kept."
         ),
     )
     listed: bool = Field(
@@ -866,13 +867,15 @@ class BookingStorefront(BaseModel):
         ),
     )
     cover_url: str | None = Field(
+        default=None,
         description=(
             "Public https address of the cover photo, or null when there is no "
             "complete booking-cover upload or no public API address is configured."
         ),
     )
     business_type: BookingBusinessType | None = Field(
-        description="The business's type for the home page filter, or null."
+        default=None,
+        description="The business's type for the home page filter, or null.",
     )
     services: list[BookingPublicService]
     providers: list[BookingPublicProvider]
@@ -901,13 +904,15 @@ class BookingPublicBusiness(BaseModel):
         ),
     )
     cover_url: str | None = Field(
+        default=None,
         description=(
             "Public https address of the cover photo, or null when there is no "
             "finished booking-cover upload or no public API address is configured."
         ),
     )
     business_type: BookingBusinessType | None = Field(
-        description="The business's type (the `type` filter), or null when not chosen."
+        default=None,
+        description="The business's type (the `type` filter), or null when not chosen.",
     )
 
 
@@ -922,6 +927,7 @@ class BookingPublicBusinessPage(BaseModel):
         ),
     )
     types_available: list[BookingBusinessType] = Field(
+        default_factory=list,
         description=(
             "The business types that at least one listed business has, in the fixed "
             "list's order. Counts the same businesses the list shows; not narrowed by "

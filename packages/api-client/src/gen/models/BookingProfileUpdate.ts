@@ -144,7 +144,7 @@ export type BookingProfileUpdate = {
    */
   cover_file_id?: string | null;
   /**
-   * @description The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, other). Null clears it. Left out, the stored value is kept.
+   * @description The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, tours, events, other). Null clears it. Left out, the stored value is kept.
    */
   business_type?: BookingBusinessType | null;
   /**

@@ -20,6 +20,7 @@ export const bookingPublicBusinessPageSchema = z.object({
     ),
   types_available: z
     .array(bookingBusinessTypeSchema)
+    .optional()
     .describe(
       "The business types that at least one listed business has, in the fixed list's order. Counts the same businesses the list shows; not narrowed by the search, category or type."
     ),

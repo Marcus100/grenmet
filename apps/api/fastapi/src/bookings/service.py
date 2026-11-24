@@ -1052,7 +1052,7 @@ async def list_public_businesses(
         .limit(PUBLIC_LISTING_CATEGORY_LIMIT)
     )
     # Every type a visible listed business has, in the fixed list's order. The set is
-    # at most nine values, so ordering it here costs nothing.
+    # at most eleven values, so ordering it here costs nothing.
     present = set(
         await session.scalars(
             select(BookingProfile.business_type)

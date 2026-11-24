@@ -12,6 +12,8 @@ export const bookingBusinessType = {
   home_services: "home_services",
   lessons: "lessons",
   professional: "professional",
+  tours: "tours",
+  events: "events",
   other: "other",
 } as const;
 

@@ -78597,6 +78597,8 @@
           "home_services",
           "lessons",
           "professional",
+          "tours",
+          "events",
           "other"
         ],
         "title": "BookingBusinessType",
@@ -79642,7 +79644,7 @@
                 "type": "null"
               }
             ],
-            "description": "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, other). Null clears it. Left out, the stored value is kept."
+            "description": "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, tours, events, other). Null clears it. Left out, the stored value is kept."
           },
           "listed": {
             "type": "boolean",
@@ -79987,7 +79989,7 @@
                 "type": "null"
               }
             ],
-            "description": "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, other). Null clears it. Left out, the stored value is kept."
+            "description": "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, tours, events, other). Null clears it. Left out, the stored value is kept."
           },
           "listed": {
             "type": "boolean",
@@ -80414,9 +80416,7 @@
           "short_description",
           "city",
           "brand_color",
-          "logo_url",
-          "cover_url",
-          "business_type"
+          "logo_url"
         ],
         "title": "BookingPublicBusiness",
         "description": "One card on the Barrels Bookings home page. Public fields only: no contact\ndetails, owner data or emails."
@@ -80462,8 +80462,7 @@
           "items",
           "page",
           "has_more",
-          "categories",
-          "types_available"
+          "categories"
         ],
         "title": "BookingPublicBusinessPage"
       },
@@ -81529,8 +81528,6 @@
           "contact",
           "brand_color",
           "logo_url",
-          "cover_url",
-          "business_type",
           "services",
           "providers"
         ],

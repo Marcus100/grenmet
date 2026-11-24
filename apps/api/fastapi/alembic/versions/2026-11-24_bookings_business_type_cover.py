@@ -32,6 +32,8 @@ BUSINESS_TYPES = (
     "home_services",
     "lessons",
     "professional",
+    "tours",
+    "events",
     "other",
 )
 #: Final names (``op.f``): the metadata convention would add the table prefix again.

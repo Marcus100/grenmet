@@ -26,6 +26,8 @@ FIXED_LIST = {
     "home_services",
     "lessons",
     "professional",
+    "tours",
+    "events",
     "other",
 }
 

@@ -128,7 +128,7 @@ export const bookingProfilePublicSchema = z.object({
     .union([bookingBusinessTypeSchema, z.null()])
     .optional()
     .describe(
-      "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, other). Null clears it. Left out, the stored value is kept."
+      "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, tours, events, other). Null clears it. Left out, the stored value is kept."
     ),
   listed: z
     .boolean()

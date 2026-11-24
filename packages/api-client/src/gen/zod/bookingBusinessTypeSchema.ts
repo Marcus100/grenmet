@@ -15,6 +15,8 @@ export const bookingBusinessTypeSchema = z
     "home_services",
     "lessons",
     "professional",
+    "tours",
+    "events",
     "other",
   ])
   .describe(

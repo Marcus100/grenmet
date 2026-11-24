@@ -46,11 +46,11 @@ export type BookingStorefront = {
   /**
    * @description Public https address of the cover photo, or null when there is no complete booking-cover upload or no public API address is configured.
    */
-  cover_url: string | null;
+  cover_url?: string | null;
   /**
    * @description The business's type for the home page filter, or null.
    */
-  business_type: BookingBusinessType | null;
+  business_type?: BookingBusinessType | null;
   services: BookingPublicService[];
   providers: BookingPublicProvider[];
   /**

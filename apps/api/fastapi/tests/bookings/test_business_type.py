@@ -34,6 +34,8 @@ FIXED_LIST = [
     "home_services",
     "lessons",
     "professional",
+    "tours",
+    "events",
     "other",
 ]
 
@@ -42,7 +44,7 @@ def _put(studio: Studio, **fields: object) -> dict[str, Any]:
     return {"public_slug": studio.slug, "display_name": "Babydoll Beauty Bar", **fields}
 
 
-def test_the_fixed_list_is_the_nine_agreed_types() -> None:
+def test_the_fixed_list_is_the_agreed_types() -> None:
     assert [member.value for member in BookingBusinessType] == FIXED_LIST
 
 

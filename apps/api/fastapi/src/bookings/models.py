@@ -80,6 +80,8 @@ class BookingBusinessType(str, Enum):
     HOME_SERVICES = "home_services"
     LESSONS = "lessons"
     PROFESSIONAL = "professional"
+    TOURS = "tours"
+    EVENTS = "events"
     OTHER = "other"
 
 

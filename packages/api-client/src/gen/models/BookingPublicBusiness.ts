@@ -31,9 +31,9 @@ export type BookingPublicBusiness = {
   /**
    * @description Public https address of the cover photo, or null when there is no finished booking-cover upload or no public API address is configured.
    */
-  cover_url: string | null;
+  cover_url?: string | null;
   /**
    * @description The business's type (the `type` filter), or null when not chosen.
    */
-  business_type: BookingBusinessType | null;
+  business_type?: BookingBusinessType | null;
 };

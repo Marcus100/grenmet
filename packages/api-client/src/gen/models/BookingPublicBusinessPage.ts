@@ -25,7 +25,7 @@ export type BookingPublicBusinessPage = {
   categories: string[];
   /**
    * @description The business types that at least one listed business has, in the fixed list's order. Counts the same businesses the list shows; not narrowed by the search, category or type.
-   * @type array
+   * @type array | undefined
    */
-  types_available: BookingBusinessType[];
+  types_available?: BookingBusinessType[];
 };
