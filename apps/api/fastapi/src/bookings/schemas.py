@@ -898,6 +898,21 @@ class BookingAvailability(BaseModel):
     timezone: str
     service_id: uuid.UUID
     slots: list[BookingSlot]
+    due_at_booking_minor: int = Field(
+        description=(
+            "What booking this service with the `add_on_ids` asked for charges at "
+            "booking, in minor units (0 = nothing). Priced on the combined price "
+            "with the add-ons, exactly as the booking itself is charged."
+        ),
+    )
+    email_code_required: bool = Field(
+        description=(
+            "True when an anonymous visitor must pass the emailed-code step "
+            "(`email-code` then `email-code/confirm`) before booking. A signed-in, "
+            "verified booker whose email matches may skip it, as creating the "
+            "booking does. Always false when `due_at_booking_minor` is 0."
+        ),
+    )
 
 
 # --- public bookings (B3) ---------------------------------------------------------------
@@ -949,6 +964,14 @@ class BookingEmailCodeRequest(BaseModel):
         description="The slot being booked; the proof is bound to it."
     )
     customer_email: EmailStr = Field(max_length=254)
+    add_on_ids: list[uuid.UUID] = Field(
+        default_factory=list,
+        max_length=5,
+        description=(
+            "The add-ons the booking will include, so the code is asked for when "
+            "the combined price is a deposit. Same ids as the booking's `add_on_ids`."
+        ),
+    )
     turnstile_token: str | None = Field(default=None, max_length=2048)
 
 
