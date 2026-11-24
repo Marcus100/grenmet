@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   AlertEmailSignup,
@@ -82,5 +83,26 @@ describe("AlertSignupResult", () => {
     search = "result=bogus";
     const { container } = render(<AlertSignupResult />);
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+const BUTTON_TAG = /<button\b[^>]*>/gu;
+const NEEDS_JS = /This form needs JavaScript/u;
+
+describe("AlertEmailSignup before the page script runs", () => {
+  it("keeps submit off and says it needs JavaScript in the server markup", () => {
+    const html = renderToString(<AlertEmailSignup />);
+    const submit = (html.match(BUTTON_TAG) ?? []).find((tag) =>
+      tag.includes('type="submit"')
+    );
+    expect(submit).toBeDefined();
+    expect(submit).toContain('disabled=""');
+    expect(html).toMatch(NEEDS_JS);
+  });
+
+  it("enables submit once the page has hydrated", async () => {
+    render(<AlertEmailSignup />);
+    const button = screen.getByRole("button", { name: "Email me alerts" });
+    await waitFor(() => expect(button).toBeEnabled());
   });
 });
