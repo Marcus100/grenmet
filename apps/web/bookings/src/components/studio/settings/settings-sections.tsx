@@ -22,6 +22,7 @@ import {
   EmptyTitle,
 } from "@barrelsgd/ui/components/ui/empty";
 import Link from "next/link";
+import { AddOnsForm } from "@/components/studio/settings/add-ons-form";
 import { BookingPolicyForm } from "@/components/studio/settings/booking-policy-form";
 import { ContactForm } from "@/components/studio/settings/contact-form";
 import { DepositRuleForm } from "@/components/studio/settings/deposit-rule-form";
@@ -161,20 +162,27 @@ export function ServicesSection({
   depositsAvailable,
   editable,
   orgSlug,
+  profile = null,
   services,
 }: {
   currency: string;
   depositsAvailable: boolean;
   editable: boolean;
   orgSlug: string;
+  profile?: BookingProfilePublic | null;
   services: BookingServicePublic[];
 }) {
+  const addOnsEnabled = profile?.add_ons_enabled ?? false;
+  const addOnCategories = mainCategories(services);
   return (
     <Section
       description="Each service has a price and, when you take one, a deposit. Customers see services on your booking page."
       id="services"
       title="Services"
     >
+      {profile !== null && editable ? (
+        <AddOnsForm orgSlug={orgSlug} profile={profile} />
+      ) : null}
       {services.length === 0 ? (
         <EmptyNote
           description={
@@ -198,6 +206,8 @@ export function ServicesSection({
                 <div className="pt-4">
                   {editable ? (
                     <ServiceForm
+                      addOnCategories={addOnCategories}
+                      addOnsEnabled={addOnsEnabled}
                       currency={currency}
                       depositsAvailable={depositsAvailable}
                       orgSlug={orgSlug}
@@ -218,6 +228,8 @@ export function ServicesSection({
         <div className="border-border space-y-3 border-t pt-4">
           <h3 className="font-medium">Add a service</h3>
           <ServiceForm
+            addOnCategories={addOnCategories}
+            addOnsEnabled={addOnsEnabled}
             currency={currency}
             depositsAvailable={depositsAvailable}
             orgSlug={orgSlug}
@@ -467,10 +479,25 @@ function serviceLine(item: BookingServicePublic, currency: string): string {
   if (item.deposit_minor > 0) {
     parts.push(`${formatMoney(item.deposit_minor, currency)} deposit`);
   }
+  if (item.is_add_on) {
+    parts.push("add-on");
+  }
   if (!item.active) {
     parts.push("not offered");
   }
   return parts.join(", ");
+}
+
+/** The categories of the main services (add-ons follow these), in list order. */
+function mainCategories(services: BookingServicePublic[]): string[] {
+  const seen = new Set<string>();
+  for (const item of services) {
+    const category = item.category?.trim();
+    if (!item.is_add_on && category) {
+      seen.add(category);
+    }
+  }
+  return [...seen];
 }
 
 /** A provider's time off: null when it could not be read (or was never asked for). */

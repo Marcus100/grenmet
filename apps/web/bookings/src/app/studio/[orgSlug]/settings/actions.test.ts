@@ -739,6 +739,68 @@ describe("services", () => {
       price_minor: 15_000,
       deposit_minor: 2550,
       active: true,
+      is_add_on: false,
+      add_on_categories: null,
+    });
+  });
+
+  it("saves an add-on with the categories it follows", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, isAddOn: "on", addOnCategory: ["Lashes", " Brows "] })
+    );
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        is_add_on: true,
+        add_on_categories: ["Lashes", "Brows"],
+      })
+    );
+  });
+
+  it("offers an add-on with every main service when no category is ticked", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(SLUG, IDLE, form({ ...SERVICE, isAddOn: "on" }));
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ is_add_on: true, add_on_categories: null })
+    );
+  });
+
+  it("ignores ticked categories on a main service", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, addOnCategory: ["Lashes"] })
+    );
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ is_add_on: false, add_on_categories: null })
+    );
+  });
+
+  it("says plainly that a service with upcoming bookings cannot become an add-on (409)", async () => {
+    vi.mocked(updateService).mockRejectedValue(
+      apiError(409, {
+        detail:
+          "This service has upcoming bookings, so it cannot become an add-on yet",
+      })
+    );
+    const result = await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, serviceId: SERVICE_ID, isAddOn: "on" })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      message:
+        "This service has upcoming bookings, so it cannot become an add-on yet.",
     });
   });
 
@@ -1221,6 +1283,34 @@ describe("deposit options and booking policy", () => {
     );
     expect(result).toMatchObject({ status: "error", kind: "invalid" });
     expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("switches add-ons on and off, keeping the rest of the profile", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const on = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "addons", addOnsEnabled: "on" })
+    );
+    expect(on).toMatchObject({
+      status: "success",
+      message: "Add-ons setting saved.",
+    });
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        add_ons_enabled: true,
+        payment_at_booking: "full_price",
+      })
+    );
+    await saveProfileAction(SLUG, IDLE, form({ section: "addons" }));
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ add_ons_enabled: false })
+    );
   });
 
   it("saves the booking policy as plain text with its line breaks", async () => {

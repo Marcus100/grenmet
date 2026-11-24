@@ -49,6 +49,7 @@ export default async function ServicesPage({ params }: ServicesPageProps) {
         depositsAvailable={data.deposits_available}
         editable={canManageBookings(org.role)}
         orgSlug={orgSlug}
+        profile={data.profile}
         services={data.services}
       />
     </div>
