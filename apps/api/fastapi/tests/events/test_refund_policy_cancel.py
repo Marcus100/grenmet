@@ -11,6 +11,7 @@ from datetime import timedelta
 from typing import Any
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.events import emails
@@ -18,8 +19,10 @@ from src.events import schemas as event_schemas
 from src.events.exceptions import EventsConflict, EventsInvalid
 from src.events.models import Listing, Order, TicketTier
 from src.events.service import organiser_admin
+from src.notifications import outbox_handlers
+from src.outbox import Outbox
 from src.utils.datetime import utc_now
-from tests.email_payload import card_html
+from tests.email_payload import card_html, payload_html
 from tests.events.support import BASE, SessionFactory, client_as
 from tests.events.test_org_orders import (
     ORG,
@@ -682,6 +685,89 @@ def test_a_receipt_names_the_fee_kept_on_a_partial_refund() -> None:
         )
     )
     assert "cancellation fee" not in full
+
+
+# --- the refund terms on the order receipt --------------------------------------------
+
+
+def test_refund_terms_without_a_fee_do_not_mention_one() -> None:
+    for fee_type, fee_value in (("none", 0), ("fixed", 0), ("percent", 0)):
+        line = emails.refund_policy_line(
+            "refundable", 48, fee_type=fee_type, fee_value=fee_value
+        )
+        assert line == (
+            "Refunds are available up to 48 hours before the start. "
+            "If the organiser cancels the event, you get a full refund."
+        )
+        assert "fee" not in line
+
+
+def test_refund_terms_state_a_fixed_fee_in_the_order_currency() -> None:
+    line = emails.refund_policy_line(
+        "refundable", 72, fee_type="fixed", fee_value=1_250, currency="USD"
+    )
+    assert line == (
+        "Refunds are available up to 72 hours before the start, less a cancellation "
+        "fee of USD 12.50 per paid ticket. If the organiser cancels the event, you get "
+        "a full refund."
+    )
+
+
+def test_refund_terms_state_a_percent_fee() -> None:
+    line = emails.refund_policy_line("refundable", 48, fee_type="percent", fee_value=10)
+    assert "less a cancellation fee of 10% of the refund." in line
+
+
+def test_no_refunds_terms_name_no_fee() -> None:
+    line = emails.refund_policy_line(
+        "no_refunds", 48, fee_type="fixed", fee_value=1_000
+    )
+    assert "fee" not in line
+    assert "cannot be refunded" in line
+
+
+def _receipt(**terms: Any) -> str:
+    return card_html(
+        emails.order_confirmation(
+            buyer_name="Ana",
+            title="Paid Fete",
+            starts_at=utc_now() + timedelta(days=3),
+            ticket_count=2,
+            total_minor=5_000,
+            currency="XCD",
+            refund_policy="refundable",
+            **terms,
+        )
+    )
+
+
+def test_the_receipt_names_the_fee_only_when_the_listing_sets_one() -> None:
+    with_fee = _receipt(cancellation_fee_type="fixed", cancellation_fee_value=1_000)
+    assert "less a cancellation fee of XCD 10.00 per paid ticket" in with_fee
+    without = _receipt()
+    assert "Refunds are available up to 48 hours before the start." in without
+    assert "cancellation fee" not in without
+
+
+@pytest.mark.asyncio
+async def test_the_queued_receipt_carries_the_listing_fee(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db, allocation=3)
+    await _set_terms(
+        events_db, shop, cancellation_fee_type="percent", cancellation_fee_value=15
+    )
+    order_id = await _paid(db_async, shop, 1)
+    receipt = await db_async.scalar(
+        select(Outbox).where(
+            Outbox.topic == outbox_handlers.EMAIL_SEND,
+            Outbox.dedupe_key == f"events-order-paid:{order_id}",
+        )
+    )
+    assert receipt is not None
+    assert "less a cancellation fee of 15% of the refund" in payload_html(
+        receipt.payload
+    )
 
 
 @pytest.mark.asyncio

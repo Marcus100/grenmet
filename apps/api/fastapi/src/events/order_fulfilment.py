@@ -163,6 +163,8 @@ async def _queue_receipt(
         currency=order.currency,
         refund_policy=listing.refund_policy,
         refund_cutoff_hours=effective_cutoff_hours(listing.refund_cutoff_hours),
+        cancellation_fee_type=listing.cancellation_fee_type,
+        cancellation_fee_value=listing.cancellation_fee_value,
         brand=_brand(organiser),
     )
     await enqueue_email(
