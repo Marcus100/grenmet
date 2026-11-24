@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingAddOnLineSchema } from "./bookingAddOnLineSchema.js";
 import { bookingPaymentKindSchema } from "./bookingPaymentKindSchema.js";
 import { bookingSourceSchema } from "./bookingSourceSchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
@@ -25,9 +26,21 @@ export const bookingStudioDetailSchema = z
     timezone: z.string(),
     price_minor: z.int(),
     deposit_minor: z.int(),
+    deposit_non_refundable: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "This booking's deposit terms: true when a confirmed booking keeps its deposit on cancellation. Set when the booking was made; later profile changes do not change it."
+      ),
     payment_kind: bookingPaymentKindSchema.describe(
       '`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.'
     ),
+    balance_at_salon_minor: z
+      .int()
+      .describe(
+        "The price less the deposit: what is still to pay at the business."
+      ),
     currency: z.string(),
     notes: z.union([z.string(), z.null()]),
     cancel_reason: z.union([z.string(), z.null()]),
@@ -41,6 +54,7 @@ export const bookingStudioDetailSchema = z
     deposit_captured_minor: z.int(),
     deposit_refunded_minor: z.int(),
     events: z.array(bookingStudioEventSchema),
+    add_ons: z.array(bookingAddOnLineSchema).optional(),
   })
   .describe(
     "A booking as the business sees it, with the customer's contact details."

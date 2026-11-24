@@ -7,11 +7,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@barrelsgd/ui/components/ui/sheet";
-import { PlaneTakeoff } from "lucide-react";
+import { Phone, PlaneTakeoff } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import type { RefObject } from "react";
 import { NAV_GROUPS } from "@/lib/nav";
+
+/** The airport switchboard, the same number the utility bar and footer show. */
+const GAA_PHONE_TEL = "+14734444555";
+const GAA_PHONE_DISPLAY = "+1 (473) 444-4555";
 
 /** Mobile navigation panel. Loaded on demand by `MobileNavToggle`. */
 export function MobileNavSheet({
@@ -39,6 +43,14 @@ export function MobileNavSheet({
           </SheetTitle>
         </SheetHeader>
         <nav aria-label="Site menu" className="flex flex-col gap-6 px-4 pb-10">
+          {/* The utility bar with the phone number is desktop-only, so the phone
+              menu keeps a visible Call button (the airport's switchboard). */}
+          <Button asChild className="min-h-11" variant="outline">
+            <a href={`tel:${GAA_PHONE_TEL}`} onClick={close}>
+              <Phone aria-hidden="true" className="size-4" />
+              Call {GAA_PHONE_DISPLAY}
+            </a>
+          </Button>
           <Button
             asChild
             className="bg-gaa-gold text-gaa-navy-ink hover:bg-gaa-gold-deep"
@@ -51,7 +63,7 @@ export function MobileNavSheet({
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
               <Link
-                className="font-display text-gaa-navy mb-2 block text-sm font-bold tracking-wide uppercase"
+                className="font-display text-gaa-navy mb-2 flex min-h-11 items-center text-sm font-bold tracking-wide uppercase"
                 data-analytics-event="navigation_category_selected"
                 href={group.href as Route}
                 onClick={close}
@@ -61,7 +73,7 @@ export function MobileNavSheet({
               <div className="border-gaa-rule flex flex-col border-l">
                 {group.links.map((link) => (
                   <Link
-                    className="text-gaa-muted hover:text-gaa-navy px-3 py-1.5 text-sm"
+                    className="text-gaa-muted hover:text-gaa-navy flex min-h-11 items-center px-3 py-1.5 text-sm"
                     data-analytics-event="navigation_category_selected"
                     href={link.href as Route}
                     key={link.href}
@@ -74,7 +86,7 @@ export function MobileNavSheet({
             </div>
           ))}
           <Link
-            className="text-gaa-navy text-sm font-semibold"
+            className="text-gaa-navy flex min-h-11 items-center text-sm font-semibold"
             data-analytics-event="navigation_category_selected"
             href="/contact"
             onClick={close}

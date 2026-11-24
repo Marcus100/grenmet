@@ -1,0 +1,197 @@
+[
+  [
+    "J01",
+    "a",
+    "Fontenoy Community Centre",
+    307,
+    null,
+    null,
+    {
+      "NNP": 125,
+      "NDC": 36,
+      "PNP": 6
+    }
+  ],
+  [
+    "J02",
+    "a",
+    "Pier 57, Grand Mal",
+    391,
+    null,
+    null,
+    {
+      "NNP": 174,
+      "NDC": 34,
+      "PNP": 1
+    }
+  ],
+  [
+    "J02",
+    "b",
+    "Pier 57, Grand Mal",
+    389,
+    null,
+    null,
+    {
+      "NNP": 178,
+      "NDC": 62,
+      "PNP": 4
+    }
+  ],
+  [
+    "J02",
+    "c",
+    "Pier 57, Grand Mal",
+    393,
+    null,
+    null,
+    {
+      "NNP": 158,
+      "NDC": 63,
+      "PNP": 1
+    }
+  ],
+  [
+    "J03",
+    "a",
+    "Mt. Moritz Anglican School",
+    277,
+    null,
+    null,
+    {
+      "NNP": 100,
+      "NDC": 45,
+      "PNP": 5
+    }
+  ],
+  [
+    "J03",
+    "b",
+    "Mt. Moritz Anglican School",
+    277,
+    null,
+    null,
+    {
+      "NNP": 107,
+      "NDC": 57,
+      "PNP": 8
+    }
+  ],
+  [
+    "J04",
+    "a",
+    "Happy Hill R.C. School (Police Included)",
+    410,
+    null,
+    null,
+    {
+      "NNP": 196,
+      "NDC": 54,
+      "PNP": 2
+    }
+  ],
+  [
+    "J04",
+    "b",
+    "Happy Hill R.C. School",
+    383,
+    null,
+    null,
+    {
+      "NNP": 184,
+      "NDC": 48,
+      "PNP": 5
+    }
+  ],
+  [
+    "J04",
+    "c",
+    "Happy Hill R.C. School",
+    365,
+    null,
+    null,
+    {
+      "NNP": 138,
+      "NDC": 37,
+      "PNP": 3
+    }
+  ],
+  [
+    "J05",
+    "a",
+    "Brizan Community Centre",
+    312,
+    null,
+    null,
+    {
+      "NNP": 138,
+      "NDC": 48,
+      "PNP": 8
+    }
+  ],
+  [
+    "J05",
+    "b",
+    "Brizan Community Centre",
+    331,
+    null,
+    null,
+    {
+      "NNP": 166,
+      "NDC": 38,
+      "PNP": 6
+    }
+  ],
+  [
+    "J06",
+    null,
+    "Anglican Church Building, Grenville Vale",
+    103,
+    null,
+    null,
+    {
+      "NNP": 36,
+      "NDC": 29,
+      "PNP": 3
+    }
+  ],
+  [
+    "J07",
+    null,
+    "Willis Community Centre",
+    421,
+    null,
+    null,
+    {
+      "NDC": 142,
+      "NNP": 125,
+      "PNP": 5
+    }
+  ],
+  [
+    "J01",
+    "b",
+    "Fontenoy Community Centre",
+    298,
+    null,
+    null,
+    {
+      "NNP": 106,
+      "NDC": 57,
+      "PNP": 6
+    }
+  ],
+  [
+    "J01",
+    "c",
+    "Fontenoy Community Centre",
+    310,
+    null,
+    null,
+    {
+      "NNP": 122,
+      "NDC": 60,
+      "PNP": 6
+    }
+  ]
+]

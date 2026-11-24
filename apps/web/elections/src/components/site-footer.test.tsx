@@ -17,4 +17,16 @@ describe("elections SiteFooter", () => {
       screen.getByRole("link", { name: "support@barrels.gd" })
     ).toHaveAttribute("href", "mailto:support@barrels.gd");
   });
+
+  it("gives the footer links and the evidence marks a 44 px tap box", () => {
+    render(<SiteFooter />);
+    for (const name of [
+      "Learning guides",
+      "Search the site",
+      "Sources and methods",
+    ]) {
+      expect(screen.getByRole("link", { name })).toHaveClass("min-h-11");
+    }
+    expect(screen.getByText("Evidence marks")).toHaveClass("min-h-11");
+  });
 });

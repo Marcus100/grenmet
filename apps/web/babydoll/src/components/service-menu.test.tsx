@@ -70,3 +70,12 @@ describe("ServiceMenu tabs", () => {
     }
   });
 });
+
+describe("ServiceMenu lash note", () => {
+  it("tells new clients to book a consultation first, in the lashes panel only", () => {
+    render(<ServiceMenu booking={booking} />);
+    const notes = screen.getAllByText("New clients: book a consultation first");
+    expect(notes).toHaveLength(1);
+    expect(notes[0]?.closest("#panel-lashes")).not.toBeNull();
+  });
+});

@@ -13,8 +13,8 @@ and apps move here in later PRs. Sign-in stays on `auth.barrels.gd`
   (`apps/api/fastapi/src/auth/apps.py`). The callback returns 503 while the
   secret is empty, so nobody can complete sign-in. That is the state on
   production (14 Nov 2026): the secret is not set there, so sign-in is off. On
-  staging sign-in works but stops at a "Join" prompt, which is wrong for an app
-  every person should have (#1335).
+  staging sign-in works; the account app asks no "Join" question, since its
+  default role is granted on first sign-in (#1335).
 - The session is a host-only `ACCOUNT_SESSION_COOKIE_NAME` cookie
   (`account_session`). `src/lib/session.ts` exchanges it for an app-scoped
   access token on the server; FastAPI checks the token on every call.
@@ -52,8 +52,8 @@ and apps move here in later PRs. Sign-in stays on `auth.barrels.gd`
 ```text
 src/app/
   page.tsx                     ← profile: name, email, photo upload/replace/remove (server read, client mutations)
-  bookings/page.tsx            ← My bookings: upcoming (soonest first) and past (paged), server read; links each business to BOOKINGS_APP_URL/<slug>
-  signin/page.tsx              ← hand-off to auth; `sign_in=expired` says so and offers a retry
+  bookings/page.tsx            ← My bookings: Upcoming, Past and Cancelled tabs (?view=), grouped by day, server read; each row links to its manage page
+  signin/page.tsx              ← hand-off to auth: renders "Taking you to sign in" (`SignInHandOff`, a client leaf that moves the browser on, with a link); `sign_in=expired` says so and offers a retry
   auth/start|callback|logout   ← single sign-on (ADR-0017)
   api/[...path]/route.ts       ← same-origin proxy to /api/v1/* (session → bearer)
   api/health/route.ts
@@ -62,18 +62,26 @@ src/app/
 
 ## My bookings (ADR-0058, slice 1)
 
-- `src/lib/my-bookings-api.ts` (server-only) reads `GET /api/v1/bookings/me/bookings`
-  with `authApiFetch` and the generated Zod schema. Two calls per load: upcoming
-  (`upcoming=true`, `size=20`, page in `?upcoming_page=`; the API lists it soonest
-  first, so nothing is re-sorted) and past (`size=10`, page in `?past_page=`,
-  newest first). Each pager keeps the other section's page. Each section fails
-  on its own.
-- The API sends no timezone, so `LocalBookingWhen` (client leaf) renders the
-  time in UTC, labelled, on the server and until hydration, then in the viewer's
-  zone. Nothing is assumed.
+- Three tabs, one list per load: Upcoming (`upcoming=true&cancelled=false`,
+  soonest first), Past (`upcoming=false&cancelled=false`, newest first) and
+  Cancelled (`cancelled=true`). The tab is `?view=upcoming|past|cancelled`
+  (`src/lib/booking-tabs.ts`; anything else is Upcoming) and the page is
+  `?page=` (`size=20`). A cancelled booking is listed under Cancelled only: the
+  API applies the filter in SQL, so paging stays correct.
+- Rows are grouped by the local day they start (`src/lib/booking-days.ts`,
+  `BookingDayList`, a client leaf). The API's order is kept inside each group.
+  Before hydration the days and times are UTC and the times say "UTC"; after
+  hydration they switch to the viewer's zone. The API sends no timezone, so
+  nothing is assumed.
+- Each row's main action is `manage_url` (the booking's manage page on the
+  bookings app: Reschedule, Cancel, Add to calendar), a signed link the API mints
+  per row and that works until a week after the booking ends. The business page
+  stays a second link. A row with no `manage_url` (the stored token was cleared
+  or the link lapsed) shows only the business link.
 - `BOOKINGS_APP_URL` (server env, `docs/env.md`; compose sets it on `web-account`)
-  builds each business link, `src/lib/bookings-site.ts`. No manage link: the API
-  does not return one.
+  builds each business link, `src/lib/bookings-site.ts`.
+- Empty states say what each tab holds and what to do (`BOOKING_TABS`). Each
+  tab's list fails on its own.
 - A first 401 redirects to sign-in once, with `reauth=1` in the return path. A
   401 that arrives with that marker shows the section's inline message and does
   not redirect again (no sign-in loop). Other 4xx show the inline message without
@@ -100,7 +108,7 @@ src/app/
   production before the host goes live there (done for staging on 14 Nov 2026;
   `docs/operations/cloudflare-proxy.md`, step 3). The Better Stack monitor and
   DNS are production-only steps too.
-- Sign-in should not stop at a "Join" prompt for this app (#1335).
+- No "Join" prompt for this app: `join_prompt=False` in the API registry (#1335).
 
 ## Tests
 

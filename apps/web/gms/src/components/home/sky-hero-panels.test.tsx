@@ -103,6 +103,7 @@ const LAST_OBSERVED = /^Last observed 1:00 p\.m\. · MBIA$/u;
 const LAST_TAB = /Last reading/u;
 const UNITS_SWITCH = /^Units:/u;
 const LAST_OBSERVED_OTHER_DAY = /^Last observed 29 Sept?, 1:00 p\.m\. · MBIA$/u;
+const TUE_29_SEP = /Tue 29 Sept?/u;
 const TODAY_LINK = /^Today's forecast/u;
 const TONIGHT_LINK = /^Tonight: /u;
 const terms = (region: HTMLElement) =>
@@ -220,7 +221,8 @@ describe("Now", () => {
       within(card()).getByText(LAST_OBSERVED_OTHER_DAY)
     ).toBeInTheDocument();
     expect(tabs()[0]).toHaveTextContent(LAST_TAB);
-    expect(tabs()[0]).toHaveTextContent("Tue");
+    // Weekday and full short date, not the weekday alone.
+    expect(tabs()[0]).toHaveTextContent(TUE_29_SEP);
   });
 
   it("falls back to the midday product temperature, labelled as such", () => {

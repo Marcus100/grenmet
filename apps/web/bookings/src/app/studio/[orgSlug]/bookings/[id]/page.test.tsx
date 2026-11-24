@@ -84,6 +84,7 @@ function detail(
     deposit_intent_id: null,
     deposit_captured_minor: 0,
     deposit_refunded_minor: 0,
+    balance_at_salon_minor: 0,
     events: [
       {
         from_status: null,

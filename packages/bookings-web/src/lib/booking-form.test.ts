@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { fingerprint, stillWrong, validateBooking } from "./booking-form";
+import {
+  fingerprint,
+  sameEmail,
+  stillWrong,
+  validateBooking,
+} from "./booking-form";
+
+describe("sameEmail", () => {
+  it("ignores case and surrounding spaces, nothing else", () => {
+    expect(sameEmail(" Ada@Example.com ", "ada@example.com")).toBe(true);
+    expect(sameEmail("ada@example.com", "ada2@example.com")).toBe(false);
+    expect(sameEmail("", "ada@example.com")).toBe(false);
+  });
+});
 
 const valid = {
   serviceId: "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10",

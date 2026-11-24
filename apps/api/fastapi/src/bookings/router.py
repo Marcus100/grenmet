@@ -38,13 +38,19 @@ from src.organisations.models import MembershipRole
 from src.pagination import PaginationDep
 from src.rate_limit import limiter
 from src.turnstile import require_turnstile
+from src.utils.datetime import utc_now
 
-from . import deposit_payments, public, service, studio
-from .models import BookingStatus
+from . import calendar_feed, deposit_payments, public, service, studio
+from .models import BookingBusinessType, BookingStatus
 from .schemas import (
     BookingAgenda,
     BookingAgendaItem,
     BookingAvailability,
+    BookingCalendarFeedLink,
+    BookingCalendarFeedStatus,
+    BookingClosureCreate,
+    BookingClosureCreated,
+    BookingClosurePublic,
     BookingEmailCodeConfirm,
     BookingEmailCodeRequest,
     BookingEmailCodeSent,
@@ -62,6 +68,7 @@ from .schemas import (
     BookingProviderCreate,
     BookingProviderPublic,
     BookingProviderUpdate,
+    BookingPublicBusinessPage,
     BookingPublicCancelBody,
     BookingPublicCreate,
     BookingPublicDetail,
@@ -187,10 +194,25 @@ async def list_my_bookings(
             )
         ),
     ] = None,
+    cancelled: Annotated[
+        bool | None,
+        Query(
+            description=(
+                "True: only cancelled bookings. False: every booking except the "
+                "cancelled ones. Omit: all statuses. Combine with `upcoming` for the "
+                "Upcoming list (upcoming=true, cancelled=false)."
+            )
+        ),
+    ] = None,
 ) -> Any:
     _ = request  # the rate limiter reads it
+    moment = utc_now()
     rows, total = await service.list_my_bookings(
-        session, current_user.id, upcoming=upcoming, pagination=pagination
+        session,
+        current_user.id,
+        upcoming=upcoming,
+        cancelled=cancelled,
+        pagination=pagination,
     )
     payments = await deposit_payments.payment_summaries(
         session, [booking for booking, *_ in rows]
@@ -206,6 +228,7 @@ async def list_my_bookings(
                 business_name=business_name,
                 business_slug=business_slug,
                 payment=payments[booking.id],
+                manage_url=public.my_manage_url(business_slug, booking, moment),
             )
             for booking, service_name, business_name, business_slug in rows
         ],
@@ -274,7 +297,8 @@ async def get_profile(*, session: SessionDep, org: BookingsOrgRead) -> Any:
     summary="Create or update my booking profile",
     description=(
         "Set the public booking address, timezone, currency and booking rules. "
-        "Online booking stays off until `enabled` is true."
+        "Online booking stays off until `enabled` is true. `brand_color` and "
+        "`logo_file_id` set the accent and logo used in the business's emails."
     ),
     operation_id="bookingsUpsertProfile",
     responses=WRITE_ERRORS,
@@ -537,6 +561,130 @@ async def list_bookings(
 # --- organisation: studio actions (B5) -------------------------------------------------
 
 BookingId = Annotated[uuid.UUID, Path(description="The booking's id.")]
+
+
+# --- organisation: business closures (BK-20) -------------------------------------------
+
+
+@router.get(
+    "/org/closures",
+    response_model=list[BookingClosurePublic],
+    summary="List whole-business closures",
+    description="Days the business is closed for every provider, earliest first.",
+    operation_id="bookingsListClosures",
+    responses=READ_ERRORS,
+)
+async def list_closures(
+    *, session: SessionDep, org: BookingsOrgRead, pagination: PaginationDep
+) -> Any:
+    return await service.list_closures(
+        session,
+        org.organisation_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
+
+
+@router.post(
+    "/org/closures",
+    response_model=BookingClosureCreated,
+    status_code=status.HTTP_201_CREATED,
+    summary="Close the business for whole days",
+    description=(
+        "Closes local days for every provider (both ends inclusive, at most a year). "
+        "The response lists the active bookings inside the closure, first name only, "
+        "for the studio to follow up. Existing bookings are not cancelled."
+    ),
+    operation_id="bookingsCreateClosure",
+    responses=WRITE_ERRORS,
+)
+async def create_closure(
+    *, session: SessionDep, org: BookingsOrgAdmin, payload: BookingClosureCreate
+) -> Any:
+    result = await service.create_closure(session, org.organisation_id, payload)
+    await session.commit()
+    return result
+
+
+@router.delete(
+    "/org/closures/{closure_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Reopen the business for a closure",
+    description=(
+        "Removes one closure. Deleting a closure already removed returns 204 again. "
+        "Another business's closure answers 404."
+    ),
+    operation_id="bookingsDeleteClosure",
+    responses=WRITE_ERRORS,
+)
+async def delete_closure(
+    *, session: SessionDep, org: BookingsOrgAdmin, closure_id: uuid.UUID
+) -> None:
+    await service.delete_closure(
+        session, closure_id, organisation_id=org.organisation_id
+    )
+    await session.commit()
+
+
+# --- organisation: calendar feed (subscribed calendar, owners and admins) ----------------------
+
+
+@router.get(
+    "/org/calendar-feed",
+    response_model=BookingCalendarFeedStatus,
+    summary="Show my calendar feed status",
+    description=(
+        "Whether the business has a calendar feed, and when it was made or last rotated. "
+        "The address is never shown again after it is created; rotate for a new one."
+    ),
+    operation_id="bookingsGetCalendarFeedStatus",
+    responses=READ_ERRORS,
+)
+async def get_calendar_feed_status(
+    *, session: SessionDep, org: BookingsOrgAdmin
+) -> Any:
+    row = await calendar_feed.get_feed(session, org.organisation_id)
+    if row is None:
+        return {"enabled": False}
+    return {"enabled": True, "created_at": row.created_at, "rotated_at": row.rotated_at}
+
+
+@router.post(
+    "/org/calendar-feed",
+    response_model=BookingCalendarFeedLink,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create my calendar feed",
+    description=(
+        "Creates the business's private calendar feed and returns its https address once. "
+        "Subscribing to it shows every booking (first names only) in Apple Calendar or "
+        "Google Calendar. One feed per business: 409 if it exists, rotate it instead."
+    ),
+    operation_id="bookingsCreateCalendarFeed",
+    responses=WRITE_ERRORS,
+)
+async def create_calendar_feed(*, session: SessionDep, org: BookingsOrgAdmin) -> Any:
+    token, row = await calendar_feed.create_feed(session, org.organisation_id)
+    payload = calendar_feed.link_payload(token, row)
+    await session.commit()
+    return payload
+
+
+@router.post(
+    "/org/calendar-feed/rotate",
+    response_model=BookingCalendarFeedLink,
+    summary="Rotate my calendar feed address",
+    description=(
+        "Replaces the feed's address and returns the new one once. The old address stops "
+        "working at once; subscribers must add the new one."
+    ),
+    operation_id="bookingsRotateCalendarFeed",
+    responses=WRITE_ERRORS,
+)
+async def rotate_calendar_feed(*, session: SessionDep, org: BookingsOrgAdmin) -> Any:
+    token, row = await calendar_feed.rotate_feed(session, org.organisation_id)
+    payload = calendar_feed.link_payload(token, row)
+    await session.commit()
+    return payload
 
 
 @router.get(
@@ -842,6 +990,44 @@ async def complete_studio_booking(
 
 
 @router.get(
+    "/public/businesses",
+    response_model=BookingPublicBusinessPage,
+    summary="List businesses on the Barrels Bookings home page",
+    description=(
+        "Businesses that opted in to the home page and are open for booking, 24 to a "
+        "page. `q` searches the name, category, description and city; `category` "
+        "keeps one category; `type` keeps one business type (a fixed list, 422 for "
+        "anything else). Each card has public fields only. `categories` lists the "
+        "filter chips and `types_available` the business types on offer. Needs no "
+        "sign-in."
+    ),
+    operation_id="bookingsListPublicBusinesses",
+    responses={429: {"model": RateLimitedBody, "description": "Too many requests"}},
+)
+@limiter.limit("60/minute")
+async def list_public_businesses(
+    *,
+    request: Request,
+    session: SessionDep,
+    q: Annotated[str | None, Query(max_length=80)] = None,
+    category: Annotated[str | None, Query(max_length=80)] = None,
+    business_type: Annotated[
+        BookingBusinessType | None,
+        Query(alias="type", description="Keep one business type."),
+    ] = None,
+    page: Annotated[int, Query(ge=1, le=1000)] = 1,
+) -> Any:
+    _ = request  # the rate limiter reads it
+    return await service.list_public_businesses(
+        session,
+        q=q,
+        category=category,
+        page=page,
+        business_type=business_type,
+    )
+
+
+@router.get(
     "/public/{slug}",
     response_model=BookingStorefront,
     summary="Get a business's booking page",
@@ -865,8 +1051,10 @@ async def get_storefront(*, request: Request, session: SessionDep, slug: str) ->
     summary="List open booking slots",
     description=(
         "Open start times for a service between two local dates (at most 14 "
-        "days), optionally for one provider. Times are UTC; `timezone` is the "
-        "business's local zone for display."
+        "days), optionally for one provider and with `add_on_ids`, which make "
+        "the slot longer. Times are UTC; `timezone` is the business's local zone "
+        "for display. `due_at_booking_minor` is what booking this service with "
+        "those add-ons charges now, so the storefront can show the real amount."
     ),
     operation_id="bookingsGetAvailability",
     responses={**BAD_REQUEST, **NOT_FOUND},
@@ -881,6 +1069,7 @@ async def get_availability(
     first_day: date,
     last_day: date,
     provider_id: Annotated[uuid.UUID | None, Query()] = None,
+    add_on_ids: Annotated[list[uuid.UUID] | None, Query(max_length=5)] = None,
 ) -> Any:
     _ = request
     profile = await service.get_public_profile(session, slug)
@@ -891,10 +1080,19 @@ async def get_availability(
         provider_id=provider_id,
         first_day=first_day,
         last_day=last_day,
+        add_on_ids=add_on_ids or [],
+    )
+    priced = await public.price_booking(
+        session,
+        profile,
+        service_id=service_id,
+        add_on_ids=add_on_ids or [],
     )
     return BookingAvailability(
         timezone=profile.timezone,
         service_id=service_id,
+        due_at_booking_minor=priced.due_minor,
+        email_code_required=priced.email_code_required,
         slots=[
             BookingSlot(
                 starts_at=slot.starts_at,
@@ -1070,6 +1268,16 @@ async def confirm_email_code(
     return await public.confirm_email_code(profile, payload)
 
 
+# The manage routes carry the booking's secret token in the path. slowapi keys a
+# limit by the request path unless it has a scope, which would put the token in
+# Redis and the in-memory fallback. Each route names a constant scope instead; a
+# shared scope means every token shares one bucket per client address per route.
+MANAGE_VIEW_SCOPE = "bookings-public-manage-view"
+MANAGE_CANCEL_SCOPE = "bookings-public-manage-cancel"
+MANAGE_RESCHEDULE_SCOPE = "bookings-public-manage-reschedule"
+MANAGE_ICS_SCOPE = "bookings-public-manage-ics"
+
+
 @router.get(
     "/public/bookings/{token}",
     response_model=BookingPublicDetail,
@@ -1081,7 +1289,7 @@ async def confirm_email_code(
     operation_id="bookingsGetPublicBooking",
     responses={**NOT_FOUND},
 )
-@limiter.limit("60/minute")
+@limiter.limit("60/minute", scope=MANAGE_VIEW_SCOPE)
 async def get_public_booking(
     *, request: Request, session: SessionDep, token: ManageToken
 ) -> Any:
@@ -1101,7 +1309,7 @@ async def get_public_booking(
     operation_id="bookingsCancelPublicBooking",
     responses={**NOT_FOUND, **CONFLICT},
 )
-@limiter.limit("20/minute")
+@limiter.limit("20/minute", scope=MANAGE_CANCEL_SCOPE)
 async def cancel_public_booking(
     *,
     request: Request,
@@ -1129,7 +1337,7 @@ async def cancel_public_booking(
     operation_id="bookingsReschedulePublicBooking",
     responses={**NOT_FOUND, **CONFLICT},
 )
-@limiter.limit("20/minute")
+@limiter.limit("20/minute", scope=MANAGE_RESCHEDULE_SCOPE)
 async def reschedule_public_booking(
     *,
     request: Request,
@@ -1157,7 +1365,7 @@ async def reschedule_public_booking(
         **NOT_FOUND,
     },
 )
-@limiter.limit("60/minute")
+@limiter.limit("60/minute", scope=MANAGE_ICS_SCOPE)
 async def get_public_booking_ics(
     *, request: Request, session: SessionDep, token: ManageToken
 ) -> Response:
@@ -1167,4 +1375,37 @@ async def get_public_booking_ics(
         content=text,
         media_type="text/calendar; charset=utf-8",
         headers={"Content-Disposition": 'inline; filename="booking.ics"'},
+    )
+
+
+@router.get(
+    "/public/calendar/{token}.ics",
+    response_class=Response,
+    summary="Subscribe to a business's bookings calendar",
+    description=(
+        "The business's private calendar feed (text/calendar): its bookings from a week "
+        "ago to the booking horizon, first names only. Unknown, rotated, disabled and "
+        "unentitled feeds answer one 404. Calendar apps poll it; the response may be "
+        "cached privately for five minutes."
+    ),
+    operation_id="bookingsGetPublicCalendarFeed",
+    responses={
+        200: {
+            "description": "iCalendar feed",
+            "content": {"text/calendar": {"schema": {"type": "string"}}},
+        },
+        **NOT_FOUND,
+        429: {"model": RateLimitedBody, "description": "Too many requests"},
+    },
+)
+@limiter.limit("60/minute", scope=calendar_feed.RATE_LIMIT_SCOPE)
+async def get_public_calendar_feed(
+    *, request: Request, session: SessionDep, token: str
+) -> Response:
+    _ = request  # the rate limiter reads it
+    text = await calendar_feed.feed_ics(session, token)
+    return Response(
+        content=text,
+        media_type="text/calendar; charset=utf-8",
+        headers={"Cache-Control": "private, max-age=300"},
     )

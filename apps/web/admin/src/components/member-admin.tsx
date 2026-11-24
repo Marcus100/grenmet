@@ -1,3 +1,6 @@
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
+import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import {
   addMemberAction,
   changeMemberRoleAction,
@@ -5,11 +8,6 @@ import {
 } from "@/app/(console)/organisations/member-actions";
 import { MEMBER_ROLES } from "@/lib/member-form";
 import { AddMemberForm } from "./add-member-form";
-
-const FIELD = "min-h-11 rounded-md border bg-background px-2.5 py-1.5";
-const BUTTON = "min-h-11 rounded-md border px-3 py-1.5 text-sm hover:bg-muted";
-const DANGER =
-  "min-h-11 rounded-md border border-destructive px-3 py-1.5 text-destructive text-sm hover:bg-muted";
 
 export interface ManagedMember {
   email: string;
@@ -63,23 +61,17 @@ export function MemberRowActions({
           />
           <label className="grid gap-1 text-sm">
             New role
-            <select
-              className={FIELD}
-              defaultValue={member.role}
-              name="role"
-              required
-            >
+            <NativeSelect defaultValue={member.role} name="role" required>
               {MEMBER_ROLES.map((role) => (
                 <option key={role} value={role}>
                   {role}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="grid gap-1 text-sm">
             Reason (10 to 500 characters)
-            <textarea
-              className={FIELD}
+            <Textarea
               maxLength={500}
               minLength={10}
               name="reason"
@@ -88,9 +80,9 @@ export function MemberRowActions({
             />
           </label>
           <div>
-            <button className={BUTTON} type="submit">
+            <Button type="submit" variant="outline">
               Change role
-            </button>
+            </Button>
           </div>
         </form>
       </details>
@@ -115,8 +107,7 @@ export function MemberRowActions({
           </p>
           <label className="grid gap-1 text-sm">
             Reason (10 to 500 characters)
-            <textarea
-              className={FIELD}
+            <Textarea
               maxLength={500}
               minLength={10}
               name="reason"
@@ -125,9 +116,9 @@ export function MemberRowActions({
             />
           </label>
           <div>
-            <button className={DANGER} type="submit">
+            <Button type="submit" variant="destructive">
               Remove member
-            </button>
+            </Button>
           </div>
         </form>
       </details>

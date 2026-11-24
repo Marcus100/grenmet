@@ -151,6 +151,12 @@ function AtAGlance({ data }: { data: HrDashboardPublic }) {
             ? "1 open request"
             : `${data.open_requests} open requests`}
         </p>
+        {hasBalance ? null : (
+          <p className="text-muted-foreground text-sm">
+            No leave balance is on the ledger yet. HR records it, so ask your HR
+            administrator to add it.
+          </p>
+        )}
       </GlanceCard>
       <GlanceCard title="Your next shift">
         <p className="text-xl font-semibold">
@@ -159,7 +165,11 @@ function AtAGlance({ data }: { data: HrDashboardPublic }) {
         <GlanceLink href="/roster">View roster</GlanceLink>
       </GlanceCard>
       <GlanceCard title="Timesheet">
-        <p className="text-xl font-semibold">Pay period hours</p>
+        <p className="text-sm font-medium">Your hours for this pay period</p>
+        <p className="text-muted-foreground text-sm">
+          The total is worked out on your timesheet. It is not shown on this
+          page yet.
+        </p>
         <GlanceLink href="/hr/timesheet">Review hours</GlanceLink>
       </GlanceCard>
     </section>

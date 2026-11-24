@@ -687,6 +687,10 @@ ordinary staff tokens without an `app` claim. `POST /auth/sessions` ignores an
 `app_name` that names any registered app. The cookie-authenticated routes read
 GAA Admin's host-only cookie, `admin_session` (`BROWSER_SESSION_COOKIE_NAME`).
 
+Barrels HR registers as the `hr` staff client. Its handoff and redeem endpoints
+return 503 while `HR_SSO_CLIENT_SECRET` is empty. An approved staff account gets an
+ordinary staff bearer token, with the same permission checks as other staff sessions.
+
 **Public accounts (ADR-0017 step 4).** Any active account can sign in at
 auth.barrels.gd (`POST /auth/sessions`, Google) and hold an *account session*:
 a session that belongs to no registered app. Its token has no `app` claim, but
@@ -1041,7 +1045,11 @@ event is 404) returns tickets by channel (`online`, `outlet_cash`: `issued`, `cl
 `admitted`, `waiting`, `cancelled`, `refunded`, `value_minor`, plus cash taken), per-tier
 stock, every till with expected, counted and difference, cash totals and `discrepancies`
 (`till_short`, `till_over`, `till_open`). `GET .../settlement.csv` downloads the same report
-as CSV. `GET /events/manage/settlement` returns one summary row per ticketed event.
+as CSV. `GET /events/manage/settlement` returns one summary row per ticketed event:
+`issued` (every ticket, refunded and cancelled ones included; unchanged), `claimed` (valid tickets
+only: `issued` minus `cancelled` minus `refunded`, the active count the organiser Overview
+headlines), `admitted`, `cancelled` and `refunded` (additive; `refunded` is a separate status from
+`cancelled`, so the three never overlap).
 
 ### Events cancel, postpone and refund (E5)
 
@@ -1207,7 +1215,7 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   hosted onboarding URL), `GET /payments/org/disputes` (disputes for the business; Barrels
   never answers them), and the Connect endpoint `POST /payments/public/webhooks/stripe-connect`
   (hidden; its own secret, events from connected accounts). Org routes need
-  `payments.connect.manage` (owners and admins hold it). `POST /payments/admin/connect/accounts/{organisation_id}/platform-fee`
+  `payments.connect.manage` (owners and admins hold it). While the `payments-stripe-connect` flag is off for a business (story 5.5), the three org Connect routes and the fee route answer 404 with no Stripe call, a card payment is the platform charge as before Connect, and the Connect webhook acknowledges (200) its account and dispute events without applying them; payments already on its account are still applied. `POST /payments/admin/connect/accounts/{organisation_id}/platform-fee`
   (superuser, `payments.connect.fees`) sets Barrels' fee in basis points, New Zealand only, at most the platform cap. Superuser reconciliation, ledger, balances and payouts under
   `/payments/admin/...` (each ledger entry also carries `source_type`, `source_id` and a `description` label, null for older payments), including `reconciliation.csv`. The ledger is append-only. A payout
   needs a client-generated `request_id`: repeating it returns the first entry (no double
@@ -1257,6 +1265,27 @@ Readiness returns the 503 as a response, not a raised exception, so expected not
 
 Deployment smoke checks currently use liveness. Operational diagnosis should use readiness when database access matters.
 
+### Ingest freshness and email backlog (monitoring, 22 Nov 2026)
+
+`GET /api/v1/monitoring/admin/freshness` (`monitoring.freshness.read`, superusers by
+default; no default role holds the key). It is for staff and a future staff screen. It
+is not an uptime monitor target: a signed-in token expires within an hour. A token-free
+check is proposed in a GitHub issue.
+
+- `feeds[]`: `cap_feeds`, `opensky_flights`, `copernicus_marine`, `copernicus_cams`,
+  `model_guidance`, `wis2box_publications`. Each has `status` (`fresh`, `stale`, `never`,
+  `unknown` when telemetry is off or Redis is unreachable, `disabled` when its flag is
+  off), `last_success_at` and `max_age_minutes`.
+- `email_outbox`: `pending`, `stale_pending` (due more than `OUTBOX_STALE_MINUTES` ago),
+  and `dead_last_window` (dead in `OUTBOX_DEAD_WINDOW_HOURS`) for `email.send` and
+  `email.deliver` rows.
+- `healthy` is true only when every enabled feed is `fresh` and the email backlog is at or
+  under `OUTBOX_ALERT_THRESHOLD`. `telemetry_available: false` means the success times could
+  not be read, so `healthy` is false.
+
+Success times are written to Redis (`telemetry:v1:<env>:feed-success`) only when
+`TELEMETRY_ENABLED=true`. Counts and times only: no recipients, payloads or error text.
+
 ## Rewards (Barrels ID)
 
 Stamp cards funded by organisations; non-monetary, non-transferable. Domain
@@ -1280,18 +1309,26 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 | Endpoint | Authentication | Contract |
 | --- | --- | --- |
 | `GET /api/v1/bookings/me/organisations` | Account token or the bookings app session (other apps 401); no organisation header | The caller's active memberships in active organisations entitled to `bookings`: `id`, `name`, `slug`, `role` (`owner`, `admin` or `member`) only, ordered by name; `[]` when none. Feeds the studio organisation picker |
-| `GET /api/v1/bookings/me/bookings?upcoming&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`, `payment` (`BookingPaymentSummary`, null when nothing was due at booking). No manage token, notes or other customers' details |
+| `GET /api/v1/bookings/me/bookings?upcoming&cancelled&page&size` | Full account token (awaiting approval allowed, no privileged MFA gate) or the account app's session with app access (`OwnAccountAnyUser`; other apps and deactivated accounts 401); no organisation header; 60 a minute (429) | The caller's bookings with every business whose contact is linked to the account, paged in SQL (`count`, `page`, `size`). `upcoming` true: starting now or later, soonest first; false: earlier, newest first; omitted: all, newest first. `cancelled` true: only cancelled bookings; false: every other status; omitted: all. Each row: `id`, `status`, `starts_at`, `ends_at`, `service_name`, `business_name`, `business_slug`, `payment` (`BookingPaymentSummary`, null when nothing was due at booking) and `manage_url` (a signed link to the booking's manage page on the bookings app, null once it lapses a week after the booking ends or the stored token was cleared; minted per read, not stored). No stored manage token, notes or other customers' details |
 | `GET /api/v1/bookings/me/businesses/{slug}/choices` | Account token or the bookings app session (other apps 401); no organisation header; 60 a minute (429); unknown or switched-off slug 404 | Prefill for the signed-in person's next booking with one business, from their own linked bookings only (the My bookings rule, ADR-0058): `phone` (the number the business holds for them, else the account's, else null) and `recent` (up to three distinct services, latest first, each with `service_id`, the `provider_id` used last and `last_booked_at`, which is that booking's start time; only pending, confirmed and completed bookings count, so cancelled (declined and expired included), no-show and unpaid-deposit ones are left out). Nothing about other customers |
-| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`), optional customer contact options `contact_phone` (stored E.164), `contact_whatsapp` (stored as digits), `contact_instagram` (stored as the handle; an instagram.com profile address is reduced to it), `contact_email` (blank clears; a malformed value is 422), and `payment_at_booking` (`deposit`, the default: each service's own deposit; or `full_price`: the service price by card, only while the platform has a Stripe test key and the organisation holds `payments`, otherwise it acts as `deposit`; left out, the stored value is kept); slug taken by another organisation 409, a platform reserved name 422 |
+| `GET/PUT /api/v1/bookings/org/profile` | `X-Barrels-Organisation`; read for members, write for admin/owner | Public slug, timezone, currency, step, lead time, horizon, cancellation cutoff, confirmation rule, notification email, `manage_url_template` (HTTPS, contains `{token}`), optional customer contact options `contact_phone` (stored E.164), `contact_whatsapp` (stored as digits), `contact_instagram` (stored as the handle; an instagram.com profile address is reduced to it), `contact_email` (blank clears; a malformed value is 422), `listed` (show on the home page; off by default; a card shows only while the business is enabled, entitled to `bookings`, in an active organisation and has an active service; left out keeps the stored value), `category` (short, the home page filter chip), `short_description` (one line, up to 160 characters) and `city` (blank clears these three text fields; left out keeps them), `brand_color` (`#rrggbb`, blank clears; the mail falls back to navy when too pale) and `logo_file_id` (a completed `booking-logo` upload of this business, else 409; null clears), `cover_file_id` (a completed `booking-cover` upload of this business, the wide photo of the home page card and storefront, else 409; null clears; left out keeps it), `business_type` (one of `beauty`, `hair`, `health`, `fitness`, `auto`, `home_services`, `lessons`, `professional`, `tours`, `events`, `other`; null clears it; anything else 422; left out keeps it), `payment_at_booking` (`deposit`, the default: each service's own deposit; or `full_price`: the service price by card, only while the platform has a Stripe test key and the organisation holds `payments`, otherwise it acts as `deposit`; left out, the stored value is kept), `deposit_mode` (`none`, the default: no business rule; `percent` with `deposit_percent` 1 to 100; or `fixed` with `deposit_fixed_minor` above 0; a service's own deposit still wins when above 0; 422 when the mode's amount is missing or cleared, left out keeps the stored rule; the deposit rounds up to whole currency units and never exceeds the price), `deposit_min_price_minor` (the lowest service price, in minor units, that takes the business rule; null, the default, is no minimum; a service's own deposit is not affected; left out keeps it), `deposit_non_refundable` (default false: a paid deposit on a booking the business has confirmed is kept on cancellation, by the customer or by the business without a refund choice; a request cancelled before confirmation is refunded; a move keeps it with the booking; a declined booking is still refunded; each booking keeps the terms it was made on, and `BookingPublicDetail` and `BookingStudioDetail` carry them as `deposit_non_refundable`; left out keeps the profile value), `booking_policy` (plain text up to 1000 characters, never HTML: line endings become `\n`, control characters are dropped, blank clears it, over 1000 characters is 422; left out keeps it), `pending_expiry_hours` (1 to 168; null means a request expires only at its start time; out of range 422; left out keeps it; default 24) and `max_open_per_customer` (1 to 20, default 3; out of range or null 422; left out keeps it); slug taken by another organisation 409, a platform reserved name 422, and `businesses` (the home page listing path word) 422 |
 | `GET/POST /api/v1/bookings/org/services`, `PATCH /services/{id}` | Same | Duration, buffers, price and deposit (minor units; deposit at most the price); deactivate with `active: false` |
 | `GET/POST /api/v1/bookings/org/providers`, `PATCH /providers/{id}` | Same | Providers and the services they perform; another organisation's service 404 |
 | `GET/PUT /api/v1/bookings/org/providers/{id}/hours` | Same | Replace the weekly plan; overlapping periods on one day 422 |
 | `GET /api/v1/bookings/org/settings` | Member or API key `bookings.read` | Settings screen in one call: profile (null before it exists, with the contact options), services, providers with `service_ids` and `working_hours`, `deposits_available` (false without the `payments` entitlement, where deposits are stored but not collected) and `card_payments_available` (Stripe test-mode card payments are on for the platform) |
 | `PUT /api/v1/bookings/org/services/order`, `PUT /providers/order` | Admin member or API key `bookings.write` | Body `{ids}`: each `sort_order` becomes its position; a foreign or unknown id 404, duplicates or an empty list 422 |
 | `GET/POST /api/v1/bookings/org/providers/{id}/exceptions`, `DELETE /studio/exceptions/{id}` | Same | Dated `time_off` and `extra_hours` |
+| `GET /api/v1/bookings/org/calendar-feed` | Admin member only (no API key) | Whether the business has its private calendar feed, with `created_at` and `rotated_at`. The address is never returned here (only the SHA-256 of its token is stored) |
+| `POST /api/v1/bookings/org/calendar-feed` | Admin member only (no API key) | Creates the feed, one per business (409 when it exists). 201 returns `url` (the https address to subscribe to; webcal:// on iPhone), `created_at` and `rotated_at`: the only time the address is shown |
+| `POST /api/v1/bookings/org/calendar-feed/rotate` | Admin member only (no API key) | Replaces the address and returns the new `url` once; the old address answers 404 at once (404 when no feed exists) |
+| `GET /api/v1/bookings/public/calendar/{token}.ics` | Public: the token in the path is the only credential; 60 a minute (429); unknown, malformed, rotated, disabled or unentitled feeds 404 | `text/calendar` of the business's bookings from 7 days ago to the booking horizon: pending (TENTATIVE), confirmed, completed and no-show as events; cancelled ones as CANCELLED for 14 days after cancellation. Each event: service name and the customer's first name only (no phone, e-mail, notes or manage link), provider in the description, profile city as location, stable UID `booking-<id>@barrels.gd`, `X-WR-CALNAME` the business name, `Cache-Control: private, max-age=300`. Rules in `apps/api/fastapi/src/bookings/calendar_feed.py` |
+| `GET /api/v1/bookings/org/closures?page&size` | Member or API key `bookings.read` | Whole-business closures (BK-20): local days closed for every provider, both ends inclusive, earliest first |
+| `POST /api/v1/bookings/org/closures` | Admin member only (no API key) | Close local days (at most 366, end not before start, reason up to 200 characters). Removes every provider's slots for those days; a customer's create into them answers the plain 409. The 201 body lists the active bookings inside the closure as `affected_bookings` (`id`, `starts_at`, `customer_first_name` only); none is cancelled |
+| `DELETE /api/v1/bookings/org/closures/{id}` | Admin member only (no API key) | Reopen by removing one closure; deleting one already gone answers 204 again; another business's closure 404 |
 | `GET /api/v1/bookings/org/bookings?starts_from&ends_before` | `X-Barrels-Organisation`, any member | Agenda of bookings overlapping the range |
-| `GET /api/v1/bookings/public/{slug}` | None (60/minute) | Storefront: active services (each with `due_at_booking_minor`: the deposit, the full price, or 0; above 0 the emailed-code step comes first) and providers, and `contact` (`BookingBusinessContact`: `phone`, `whatsapp`, `instagram`, `email`, each null when unset); unknown or disabled 404. The manage detail (`/bookings/public/bookings/{token}`) and the create receipt's `booking` carry the same `contact` for the booking's own business, plus `payment` (`BookingPaymentSummary`, null when nothing was due at booking: `status` `due`/`paid`/`refunded`/`unpaid`, `amount_minor`, `paid_minor`, `refunded_minor`, `currency`, and `checkout_url` only while an online payment is due). Stripe Checkout returns the customer to `<BOOKINGS_APP_URL>/checkout/return?booking=<id>&result=paid\|cancelled` |
-| `GET /api/v1/bookings/public/{slug}/availability?service_id&first_day&last_day[&provider_id]` | None (60/minute) | Open slots (UTC) with free provider ids; at most 14 local days |
+| `GET /api/v1/bookings/public/{slug}` | None (60/minute) | Storefront: active services (each with `due_at_booking_minor`: the deposit, the full price, or 0; above 0 the emailed-code step comes first) and providers, `add_ons` (`BookingPublicAddOn`: `id`, `name`, `description`, `duration_min`, `price_minor`, `service_ids`; empty unless the business switched add-ons on, `add_ons_enabled`), and `contact` (`BookingBusinessContact`: `phone`, `whatsapp`, `instagram`, `email`, each null when unset); `brand_color` (`#rrggbb` or null) and `logo_url` (the https public address of the business logo, null unless it is still a complete `booking-logo` upload of this business), `cover_url` (the same rule for the `booking-cover` photo) and `business_type` (or null); unknown or disabled 404. The manage detail (`/bookings/public/bookings/{token}`) and the create receipt's `booking` carry the same `contact` for the booking's own business, plus `payment` (`BookingPaymentSummary`, null when nothing was due at booking: `status` `due`/`paid`/`refunded`/`unpaid`, `amount_minor`, `paid_minor`, `refunded_minor`, `currency`, and `checkout_url` only while an online payment is due), and `hold_ends_at` (while `pending_payment`: when the unpaid hold is released), and `deposit_non_refundable` and `booking_policy` (plain text, or null). The storefront carries the same two fields. Stripe Checkout returns the customer to `<BOOKINGS_APP_URL>/checkout/return?booking=<id>&result=paid\|cancelled` |
+| `GET /api/v1/bookings/public/businesses?q&category&type&page` | None (60/minute, 429) | Barrels Bookings home page (ADR-0024; owner decision 22 Nov 2026). Only businesses that opted in (`listed`, off by default) and are open for booking: enabled, entitled to `bookings`, in an active organisation, with an active service. 24 to a page, `page` 1 to 1000 (other values 422); `q` (up to 80 characters) matches name, category, short description or city, case-insensitively with `%`, `_` and `\` literal; `category` is an exact match ignoring case; `type` keeps one business type (the fixed list above, 422 for anything else). Response: `items` (`BookingPublicBusiness`: `slug`, `name`, `category`, `short_description`, `city`, `brand_color`, `logo_url` (a complete booking-logo upload only, https), `cover_url` (a complete booking-cover upload only, https) and `business_type` (or null)), `page`, `has_more`, `categories` (distinct categories of every listed business, for the filter chips, not narrowed by `q`), and `types_available` (the distinct business types of the listed businesses, in the fixed list's order; the same visibility rules, not narrowed by `q`, `category` or `type`). Never returns contact details, notification or contact emails, owner data, the organisation id or the manage URL template. Enabled through the `listed` switch on `PUT /bookings/org/profile`; `businesses` is a reserved slug (422) because the listing takes that path word Each card also carries `featured_services` (`BookingFeaturedService`: `id`, `name`, `price_minor`, `currency`, `duration_min`): up to three active services that are not add-ons, in the booking page's order (sort order, then name), loaded in one query for the page; empty when none. |
+| `GET /api/v1/bookings/public/{slug}/availability?service_id&first_day&last_day[&provider_id&add_on_ids]` | None (60/minute) | Open slots (UTC) with free provider ids; at most 14 local days. `add_on_ids` (up to 5) lengthen the slot by the add-ons' minutes and are refused (422) while the business has add-ons off. `due_at_booking_minor` is what booking with those add-ons charges now (0 = nothing), priced by the same path as create; `email_code_required` is true when an anonymous visitor must pass the emailed-code step (a signed-in verified booker may skip it) |
 
 | `GET /api/v1/bookings/org/agenda?from_date&to_date[&provider_id&status&limit&offset]` | Member or API key `bookings.read` | Bookings grouped by local day; at most 62 days (422), paged with `limit` and `offset` |
 | `GET /api/v1/bookings/org/bookings/{id}` | Same | Studio view with customer contact details, history and deposit state (`payment_kind`: `deposit` or `payment`, the latter when the booking asked for the full price; the agenda items carry it too; history notes follow it: "Payment paid", "Payment refunded"); another organisation's id 404 |
@@ -1303,19 +1340,55 @@ settings. Domain rules: `apps/api/fastapi/src/bookings/AGENTS.md`.
 Overlapping active bookings for one provider are refused by the database
 (`booking_no_overlap`).
 
-Deposits: when a service has a deposit and the organisation holds the `payments`
+Add-ons (owner decision 23 Nov 2026; `profile.add_ons_enabled`, off by default): a
+service with `is_add_on: true` (and optional `add_on_categories`, which restrict it
+to main services in those categories) is never bookable alone. The public create
+body takes `add_on_ids` (up to 5; the server checks each is an active add-on of the
+business and offered with the main service, else 422, and reads its price and length
+itself). The booking's `price_minor`, `deposit_minor` and `starts_at`..`ends_at` cover
+the main service plus add-ons; the deposit rule applies to the combined price, and a
+main service's own deposit wins (add-on deposits are ignored). `BookingPublicDetail`
+and the studio detail carry `add_ons` (name, duration, price as booked); the agenda
+items carry `add_on_names`. Reschedules keep the add-ons. Mails and the ICS list them.
+`BookingPublicDetail.business_name` is the business's display name, the same one
+the storefront shows as `display_name`, so the manage page can name who to contact.
+
+Booking hygiene (issue #1808): the profile's `pending_expiry_hours` (1 to 168, default 24;
+null expires a request only at its start time) and `max_open_per_customer` (1 to 20,
+default 3) are optional with stored-value semantics, so a PUT that leaves them out keeps
+them. A booking request the business does not confirm in time is cancelled by the
+worker job `expire_pending_bookings` (every 5 minutes; a request whose start has passed
+always expires). The slot is released and the customer gets a short email with a link
+to book again (no business email needed); pending payments are not touched. The public
+create answers 409 with the generic text "We can't take another online booking for this
+email right now. Please contact the business to book." (the same whatever the count, so
+it does not reveal that bookings exist for an address) when the same customer (addresses
+compare case-insensitively) already holds `max_open_per_customer` future pending,
+pending-payment or confirmed bookings; staff and walk-in entries are not refused. The cap
+limits careless repeat bookings. It is not abuse protection: plus-addressing
+(`name+tag@...`) gives a fresh customer, and someone who uses another person's email can
+hold slots until those requests expire. The rate limit and Turnstile remain the abuse
+controls. Confirmed bookings that
+ended more than 48 hours ago become `completed` through the hourly job
+`complete_finished_bookings`, recorded as the system's own move: no reward, email or
+webhook (a completion the business marks by hand still earns rewards).
+
+Deposits: when a service has a deposit (its own, or the business `deposit_mode` rule
+when the service has none) and the organisation holds the `payments`
 entitlement, `POST /bookings/public/{slug}/bookings` answers a booking in
 `pending_payment` with `payment_required: true` and a `checkout_url` (Stripe test
 mode; null when the business records payment itself). Unpaid bookings are cancelled
 and their slot released after `BOOKINGS_DEPOSIT_HOLD_MINUTES` (30). Both receipt
-fields are additive.
+fields are additive. `BookingPaymentSummary` and the studio detail carry
+`balance_at_salon_minor` (the price less the deposit); the customer mails show
+"Deposit paid XCD x, remaining XCD y at the salon." once a deposit is paid.
 
 Email code before a deposit (#471, ADR-0018): a deposit booking needs `email_proof` in
 the create body unless the caller is a signed-in account (any session, including the
 bookings app's) whose verified or administrator-activated email equals
 `customer_email`. Without it the create answers 403 `email_verification_required` and
 stores nothing. `POST /bookings/public/{slug}/email-code` (`service_id`, `starts_at`,
-`customer_email`, Turnstile; 5/minute and 20/hour per visitor, 5 per email per hour)
+`customer_email`, optional `add_on_ids` so the combined price is checked, Turnstile; 5/minute and 20/hour per visitor, 5 per email per hour)
 emails a 6-digit code (10 minutes) and answers `{required, expires_in_seconds}`
 (`required: false` and no mail when no step applies). `POST
 /bookings/public/{slug}/email-code/confirm` (same fields plus `code`) answers `{proof,
@@ -1381,6 +1454,40 @@ Status machine: `draft -> issued -> partially_paid -> paid`, and `issued -> void
 Reminder emails (7 days before due, on the due date, 7 days overdue) are sent by
 the worker once per invoice and stage. The legal entity name, VAT rate and number
 format are provisional settings (`docs/env.md`).
+
+### Barrels app subscriptions (ADR-0065)
+
+Barrels sells its own app plans (first plan: `bookings-monthly`, XCD 30.00 a month)
+through Stripe Billing. Test mode only: a live Stripe key is refused with 503
+before any request is sent. Access is gated by the organisation role alone: an
+organisation admin or owner passes whether or not they are a superuser, and no
+global permission key applies. A member gets 403, and an organisation the caller
+does not belong to gets 404 (a superuser outside the organisation gets 404 too).
+Both routes accept an account token or the bookings studio session (`app` claim
+`bookings`, ADR-0065 amendment, 23 Nov 2026); any other app's token gets 401. They
+need no entitlement, because buying the app is how it becomes entitled. No
+entitlement changes: app access is still set by the organisation routes.
+Checkout returns the customer to `<BOOKINGS_APP_URL>/studio/<organisation slug>/plan`
+(`?checkout=success` or `?checkout=cancelled`); the client cannot set the URL. A
+free trial applies only where the organisation has a grant (Babydoll's first 30
+days), once per organisation and plan.
+
+| Endpoint | Operation id | Contract |
+| --- | --- | --- |
+| `GET /api/v1/billing/org/subscriptions` | `billingListAppSubscriptions` | `{"data": [...]}`, newest first. Each item: `id`, `app_key`, `plan_key`, `channel` (`stripe`), `status` (`incomplete`, `active`, `past_due`, `canceled`, `unpaid`), `currency`, `amount_minor`, `current_period_end`, `cancel_at_period_end`, `trial_end`, `created_at` |
+| `POST /api/v1/billing/org/subscriptions/checkout` | `billingCreateAppSubscriptionCheckout` | Body `{"plan_key": "bookings-monthly", "currency": "XCD"}`. 201 with `{"id": "<subscription id>", "url": "https://checkout.stripe.com/..."}`. A repeat call while the pending Checkout is still open returns the same `id` and `url` (201, no second Stripe session). Once that Checkout has expired, the pending row is canceled and a new one is created (new `id`). 404 unknown plan, 409 the app already has a live subscription, or the first Checkout is paid and Stripe has not reported it yet, 422 no price in that currency, 503 no Stripe price configured or a live key |
+
+The Checkout Session carries `client_reference_id` and metadata
+(`organisation_id`, `app_subscription_id`, `plan_key`, `app_key`) on the Session and
+the Subscription. The webhook `POST /api/v1/billing/webhooks/stripe` (hidden from
+OpenAPI) applies `checkout.session.completed`, `checkout.session.expired`,
+`customer.subscription.created|updated|deleted` and `invoice.payment_failed`
+once per event id. An event strictly older than the last applied event is ignored;
+a same-second event is applied in delivery order (the transition table refuses a
+backward move). A live-mode event is refused with 503 and not recorded, since the
+product is test-only. An event that names one of our rows that is not written yet
+is answered 503 and not recorded for up to two hours after Stripe created it, so Stripe
+sends it again. A canceled subscription stays canceled.
 
 ## Change history and notifications (platform core)
 
@@ -1966,8 +2073,29 @@ See the [GAA governance launch procedure](../operations/gaa-governance-launch.md
 ### HR organisation ownership
 
 `GET /api/v1/hr/organisations` lists the authenticated user's available organisation
-contexts. Employment, department, document and role-assignment responses include
-`organisation_id`; departments also expose their organisation-scoped `code`.
+contexts. `OrganisationPublic` includes the platform organisation's `slug` when
+a platform row shares its ID. Employment, department, document and role-assignment
+responses include `organisation_id`. Departments also expose their
+organisation-scoped `code`.
+
+`GET /api/v1/hr/me/organisations` lists the signed-in staff member's routable HR
+organisations. Each entry has `id`, `slug`, `name` and effective `scope` (`SELF`,
+`DEPARTMENT` or `ALL`). Live employment supplies `SELF`, and the broadest live
+assignment in that organisation takes precedence. The list is based on the
+caller's employment and assignments, including for superusers. It takes no
+organisation input and omits employers whose platform slug is missing. Individual
+HR operations continue to enforce their own permissions.
+
+`GET /api/v1/hr/me/employment?organisation_id=<id>` returns the caller's own live
+employment in that organisation: `status`, `position`, `department_name`,
+`employment_type`, `start_date`, `end_date` and `leave_balances` (`leave_type`,
+`balance_days`, for every type with a ledger entry). No permission key applies
+because only the caller's record is read; there is no user parameter, and
+superusers get no shortcut. Leave balances are held per person, not per
+organisation. Each person has at most one employment record, so the balances
+belong to this one. An unknown organisation, an organisation with no live
+employment (ended or inactive employment is not live) and no employment at all
+return the same 404.
 
 Department lists, employee-document lists and document employee choices accept
 `organisation_id`; document uploads accept it as a multipart field. Omitting it is
@@ -2037,20 +2165,23 @@ only severity see the same level.
 
 ### CAP escalation from a GMS alert (ADR-0051, proposed)
 
-GMS alerts are green only. `POST /api/v1/cap/escalations` with
-`{product_id, revision, awareness_level: yellow|orange|red}` creates a CAP draft
-pre-filled from that saved alert revision (event, severity from the colour,
-certainty from likelihood, onset and expiry in UTC, synopsis, impacts and
-response) with `GMS:product` Warning, `awareness_level` and the three
-`GMS:source-bulletin-*` parameters. It requires `cap.alert.create` and product
-access to the alert's kind, and only hazard alert kinds are accepted (422
-otherwise; 404 for an unknown revision). It is idempotent per product: when a
-draft, submitted or approved CAP alert already links the product, it returns 200
-with that alert and `created: false`; a new draft returns 201. The draft areas
-are left empty and the wording needs GMS sign-off. `GET /api/v1/cap/escalations?product_id=`
-(`cap.alert.read`) returns the open or published linked alert, or nulls. The
-green alert is never changed or withdrawn by either route; a forecaster withdraws
-it. Both databases are read or written separately, with no shared transaction.
+GMS alerts are green only. `POST /api/v1/cap/escalations` with `{product_id,
+revision, awareness_level: yellow|orange|red}` creates a CAP draft pre-filled
+from that saved alert revision (event, severity from the colour, certainty from
+likelihood, onset and expiry in UTC, synopsis, impacts and response) with
+`GMS:product` Warning, `awareness_level` and the three `GMS:source-bulletin-*`
+parameters. It requires `cap.alert.create` and product access to the alert's
+kind, and only hazard alert kinds are accepted (422 otherwise; 404 for an
+unknown revision). It is idempotent per product: when a draft, submitted,
+approved or published (in force) CAP alert already links the product, it returns
+200 with that alert and `created: false`; an expired or cancelled one does not
+block, and a new draft returns 201. A published warning blocks a new raise until
+it is expired or cancelled, even after its expires time, because expiry is
+manual today. The draft areas are left empty and the wording needs GMS sign-off.
+`GET /api/v1/cap/escalations?product_id=` (`cap.alert.read`) returns the open or
+published linked alert, or nulls. The green alert is never changed or withdrawn
+by either route; a forecaster withdraws it. Both databases are read or written
+separately, with no shared transaction.
 
 
 ### Employee training history
@@ -3176,6 +3307,8 @@ Events stores the resulting file ids: `ListingUpsert.image_file_id`,
 `PUT /events/manage/organiser/logo` (`{file_id}`, null clears), returned as
 `ListingCard.image_file_id` and `OrganiserPublic.logo_file_id`. A new id must be a
 completed upload of that organiser's organisation and purpose, else 409.
+
+Brand (#1622): `PATCH /events/manage/organiser` takes `brand_color` (`#rrggbb`, null or blank clears; returned as `OrganiserPublic.brand_color`). Booking profiles take `brand_color` and `logo_file_id` (a completed `booking-logo` upload of the business, else 409) on `PUT /bookings/org/profile`; left out keeps the stored value. Booking and event mail use both; see `docs/email-design.md`.
 
 ## Profile photos (#1303)
 

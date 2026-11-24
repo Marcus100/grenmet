@@ -80,9 +80,21 @@ export function stillWrong(
   return kept;
 }
 
+/**
+ * Two typed addresses name the same mailbox: surrounding spaces and letter case
+ * do not count. The API compares addresses the same way when it decides whether
+ * a signed-in account vouches for the booking email.
+ */
+export function sameEmail(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
 /** The identity of a submission: the same value means "the same booking request". */
 export function fingerprint(
-  fields: BookingFields & { marketing: boolean }
+  fields: BookingFields & {
+    addOnIds?: readonly string[];
+    marketing: boolean;
+  }
 ): string {
   return JSON.stringify([
     fields.serviceId,
@@ -92,5 +104,7 @@ export function fingerprint(
     fields.phone.trim(),
     fields.notes.trim(),
     fields.marketing,
+    // Add-ons change what is booked, so a retry with other add-ons is a new request.
+    [...(fields.addOnIds ?? [])].sort(),
   ]);
 }

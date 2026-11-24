@@ -8,7 +8,7 @@ describe("Election explainer", () => {
   it("assesses the evidence for votes, turnout and winners separately", () => {
     const { container } = render(<TrendsPage />);
     const voteChart = screen.getByRole("img", {
-      name: "Share of the popular vote by party, 1951 to 2022",
+      name: "Share of the popular vote by party, 1951 to 2026",
     });
     const votePoint = [...voteChart.querySelectorAll("circle")].find((point) =>
       point.querySelector("title")?.textContent?.startsWith("1990, NDC:")

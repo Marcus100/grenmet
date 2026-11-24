@@ -9,7 +9,8 @@ export const organiserProfileUpdateSchema = z
   .strictObject({
     name: z.union([z.string().min(2).max(80), z.null()]).optional(),
     bio: z.union([z.string().max(500), z.null()]).optional(),
+    brand_color: z.union([z.string().max(7), z.null()]).optional(),
   })
   .describe(
-    "Partial edit of an approved organiser's public profile: send only what changes.\n\nThe slug is not editable here, so an unknown field (such as ``slug``) is a 422.\nNull is refused for both fields; leave a field out to keep it."
+    "Partial edit of an approved organiser's public profile: send only what changes.\n\nThe slug is not editable here, so an unknown field (such as ``slug``) is a 422.\nNull is refused for name and bio; leave a field out to keep it. Null or blank\nclears ``brand_color``."
   );

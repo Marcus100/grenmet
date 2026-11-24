@@ -20,6 +20,7 @@ import type {
   AuthAppHandoffRedeemStatus404,
   AuthAppHandoffRedeemStatus422,
   AuthAppHandoffRedeemStatus429,
+  AuthAppHandoffRedeemStatus503,
 } from "../models/AuthAppHandoffRedeem.js";
 
 export const authAppHandoffRedeemMutationKey = () =>
@@ -40,6 +41,7 @@ export function authAppHandoffRedeemMutationOptions<TContext = unknown>(
       | AuthAppHandoffRedeemStatus404
       | AuthAppHandoffRedeemStatus422
       | AuthAppHandoffRedeemStatus429
+      | AuthAppHandoffRedeemStatus503
     >,
     AuthAppHandoffRedeemOptions,
     TContext
@@ -72,6 +74,7 @@ export function useAuthAppHandoffRedeem<TContext>(
         | AuthAppHandoffRedeemStatus404
         | AuthAppHandoffRedeemStatus422
         | AuthAppHandoffRedeemStatus429
+        | AuthAppHandoffRedeemStatus503
       >,
       AuthAppHandoffRedeemOptions,
       TContext
@@ -97,6 +100,7 @@ export function useAuthAppHandoffRedeem<TContext>(
       | AuthAppHandoffRedeemStatus404
       | AuthAppHandoffRedeemStatus422
       | AuthAppHandoffRedeemStatus429
+      | AuthAppHandoffRedeemStatus503
     >,
     AuthAppHandoffRedeemOptions,
     TContext
@@ -111,6 +115,7 @@ export function useAuthAppHandoffRedeem<TContext>(
       | AuthAppHandoffRedeemStatus404
       | AuthAppHandoffRedeemStatus422
       | AuthAppHandoffRedeemStatus429
+      | AuthAppHandoffRedeemStatus503
     >,
     AuthAppHandoffRedeemOptions,
     TContext
@@ -130,6 +135,7 @@ export function useAuthAppHandoffRedeem<TContext>(
       | AuthAppHandoffRedeemStatus404
       | AuthAppHandoffRedeemStatus422
       | AuthAppHandoffRedeemStatus429
+      | AuthAppHandoffRedeemStatus503
     >,
     AuthAppHandoffRedeemOptions,
     TContext

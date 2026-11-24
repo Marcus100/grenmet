@@ -44,6 +44,7 @@ describe("BookingList", () => {
       amount_minor: 1500,
       paid_minor: 1500,
       refunded_minor: 0,
+      balance_at_salon_minor: 0,
       currency: "XCD",
       checkout_url: null,
     };
@@ -67,7 +68,36 @@ describe("BookingList", () => {
     expect(screen.queryAllByText(PAYMENT_LINE)).toHaveLength(2);
   });
 
-  it("links each business to its page on the bookings site and nowhere else", () => {
+  it("links a row to its manage page first, then to the business page", () => {
+    render(
+      <BookingList
+        bookings={[
+          booking({
+            id: "a",
+            manage_url: "https://bookings.barrels.gd/babydoll/booking/tok",
+          }),
+        ]}
+        bookingsBaseUrl={BASE}
+        emptyBody="Appear here."
+        emptyTitle="None"
+      />
+    );
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute(
+      "href",
+      "https://bookings.barrels.gd/babydoll/booking/tok"
+    );
+    expect(links[0]).toHaveAccessibleName(
+      "Manage booking, Bridal makeup with Babydoll Beauty Bar"
+    );
+    expect(links[1]).toHaveAttribute(
+      "href",
+      "https://bookings.barrels.gd/babydoll"
+    );
+  });
+
+  it("links to the business page on the bookings site when there is no manage link", () => {
     render(
       <BookingList
         bookings={[booking({ id: "a", business_slug: "babydoll" })]}
@@ -82,6 +112,34 @@ describe("BookingList", () => {
       "href",
       "https://bookings.barrels.gd/babydoll"
     );
+  });
+
+  it("puts rows under the day they start, one heading per day", () => {
+    render(
+      <BookingList
+        bookings={[
+          booking({ id: "a" }),
+          booking({
+            id: "b",
+            starts_at: new Date(2030, 0, 10, 13, 0).toISOString(),
+            ends_at: new Date(2030, 0, 10, 14, 0).toISOString(),
+          }),
+          booking({
+            id: "c",
+            starts_at: new Date(2030, 0, 12, 10, 0).toISOString(),
+            ends_at: new Date(2030, 0, 12, 11, 0).toISOString(),
+          }),
+        ]}
+        bookingsBaseUrl={BASE}
+        emptyBody="Appear here."
+        emptyTitle="None"
+      />
+    );
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(headings).toHaveLength(2);
+    expect(headings[0]).toHaveTextContent("Thursday, 10 January 2030");
+    expect(headings[1]).toHaveTextContent("Saturday, 12 January 2030");
+    expect(screen.getAllByRole("listitem")).toHaveLength(3);
   });
 
   it("labels every known status in plain words", () => {

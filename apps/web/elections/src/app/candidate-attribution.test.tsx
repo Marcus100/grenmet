@@ -32,7 +32,9 @@ describe("candidate attribution across pages", () => {
   it("keeps candidate notes on /2026 without the removed source introduction", () => {
     render(<ElectionPage />);
     expect(screen.queryByText(REMOVED_INTRO)).not.toBeInTheDocument();
-    const standing = screen.getByRole("region", { name: "Who is standing" });
+    const standing = screen.getByRole("region", {
+      name: "Who stood (as reported before polling day)",
+    });
     expect(standing).not.toBeNull();
     if (!standing) return;
     expect(

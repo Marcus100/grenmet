@@ -36,6 +36,8 @@ export interface ContestResult {
   note?: string;
   official?: boolean;
   page?: number;
+  /** Published as provisional, before the official certification. */
+  provisional?: boolean;
   reg: number | null;
   rej: number | null;
   src: string;
@@ -53,6 +55,10 @@ export type StationRow = [
 ];
 
 export interface NationalFigure {
+  /** Figures on the source page that have no field of their own. */
+  note?: string;
+  /** Published as provisional, before the official certification. */
+  provisional?: boolean;
   registered: number;
   source: string;
   turnout: number | null;

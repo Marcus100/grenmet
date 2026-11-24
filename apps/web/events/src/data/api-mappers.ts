@@ -507,6 +507,7 @@ export function toSettlementSummary(
     claimed: row.claimed,
     admitted: row.admitted,
     cancelled: row.cancelled,
+    refunded: row.refunded,
     cashCollectedMinor: row.cash_collected_minor,
     cashExpectedMinor: row.cash_expected_minor,
     cashCountedMinor: row.cash_counted_minor,

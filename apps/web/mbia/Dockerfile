@@ -2,7 +2,7 @@
 FROM ghcr.io/marcus100/base/node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS base
 # Bump this date when Alpine publishes a fix: BuildKit would otherwise reuse the cached
 # `apk upgrade` layer and keep shipping the old packages (musl 1.2.6-r2, 2026-11-07).
-ARG ALPINE_PATCH_DATE=2026-11-13
+ARG ALPINE_PATCH_DATE=2026-11-23
 RUN echo "Alpine patch date ${ALPINE_PATCH_DATE}" && apk upgrade --no-cache
 
 # Applications and migrations run directly with Node; keep package managers in builders.
@@ -35,6 +35,7 @@ COPY apps/web/events/package.json apps/web/events/
 COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/gms/package.json apps/web/gms/
 COPY apps/web/gmsdash/package.json apps/web/gmsdash/
+COPY apps/web/hr/package.json apps/web/hr/
 COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
 COPY packages/api-client/package.json packages/api-client/

@@ -15,12 +15,17 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DepositBadge, StatusBadge } from "@/components/studio/badges";
+import { BookingAddress } from "@/components/studio/booking-address";
+import { SetupChecklist } from "@/components/studio/setup-checklist";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import { env } from "@/env";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
+import { type SetupStep, setupSteps } from "@/lib/setup-checklist";
 import {
   getAgenda,
-  getBusinessTimezone,
+  getBusinessProfile,
+  getSettings,
   listProviders,
 } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
@@ -68,6 +73,16 @@ function pill(active: boolean): string {
   );
 }
 
+/** The day and week controls share one row on a phone: narrower padding, still 44 px tall. */
+function compactPill(active: boolean): string {
+  return cn(
+    "border-border inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border px-3 text-sm font-medium",
+    active
+      ? "border-primary bg-primary text-primary-foreground"
+      : "bg-background text-foreground hover:bg-muted"
+  );
+}
+
 export default async function AgendaPage({
   params,
   searchParams,
@@ -90,20 +105,22 @@ export default async function AgendaPage({
   const organisationId = org.value.id;
 
   // "Today" is the day on the business's own calendar, so its zone comes first.
-  const zone = await guarded(
-    () => getBusinessTimezone(session.accessToken, organisationId),
+  // The same profile read gives the public booking address for the header.
+  const profile = await guarded(
+    () => getBusinessProfile(session.accessToken, organisationId),
     base
   );
-  if (!zone.ok) {
-    return <StudioAlert backHref="/studio" failure={zone.failure} />;
+  if (!profile.ok) {
+    return <StudioAlert backHref="/studio" failure={profile.failure} />;
   }
-  const today = todayIn(zone.value);
+  const publicSlug = profile.value.publicSlug;
+  const today = todayIn(profile.value.timezone);
   const range = parseRange(
     { view: first(query.view), date: first(query.date) },
     today
   );
 
-  const [agenda, providers] = await Promise.all([
+  const [agenda, providers, setupSteps] = await Promise.all([
     guarded(
       () =>
         getAgenda(session.accessToken, organisationId, {
@@ -119,7 +136,14 @@ export default async function AgendaPage({
       reportError(error, "studio");
       return [];
     }),
+    setupChecklistSteps(
+      session.accessToken,
+      organisationId,
+      canManageBookings(org.value.role),
+      base
+    ),
   ]);
+  const showSetup = setupSteps.some((step) => !step.done);
 
   const link = (overrides: {
     date?: string;
@@ -164,38 +188,61 @@ export default async function AgendaPage({
         </div>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <nav aria-label="Agenda view" className="flex gap-1">
+      {showSetup ? (
+        <SetupChecklist orgSlug={orgSlug} steps={setupSteps} />
+      ) : null}
+
+      {publicSlug ? (
+        <BookingAddress
+          orgSlug={orgSlug}
+          publicSlug={publicSlug}
+          siteOrigin={env.NEXT_PUBLIC_SITE_URL}
+        />
+      ) : (
+        <p className="border-border text-muted-foreground rounded-lg border border-dashed p-4 text-sm">
+          Your booking page has no address yet.{" "}
+          <Link
+            className="text-foreground inline-flex min-h-11 items-center font-medium underline underline-offset-4"
+            href={{ pathname: `/studio/${orgSlug}/settings` }}
+          >
+            Set it up in Settings
+          </Link>
+        </p>
+      )}
+
+      {/* One row on a phone: previous, today, next, then the day and week views. */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <nav aria-label="Change date" className="flex items-center gap-1">
+          <Link
+            className={compactPill(false)}
+            href={link({ date: stepDay(range, -1) })}
+          >
+            Prev
+          </Link>
+          <Link className={compactPill(false)} href={link({ date: today })}>
+            Today
+          </Link>
+          <Link
+            className={compactPill(false)}
+            href={link({ date: stepDay(range, 1) })}
+          >
+            Next
+          </Link>
+        </nav>
+        <nav aria-label="Agenda view" className="flex items-center gap-1">
           <Link
             aria-current={range.view === "day" ? "page" : undefined}
-            className={pill(range.view === "day")}
+            className={compactPill(range.view === "day")}
             href={link({ view: "day" })}
           >
             Day
           </Link>
           <Link
             aria-current={range.view === "week" ? "page" : undefined}
-            className={pill(range.view === "week")}
+            className={compactPill(range.view === "week")}
             href={link({ view: "week" })}
           >
             Week
-          </Link>
-        </nav>
-        <nav aria-label="Change date" className="flex gap-1">
-          <Link
-            className={pill(false)}
-            href={link({ date: stepDay(range, -1) })}
-          >
-            Previous
-          </Link>
-          <Link className={pill(false)} href={link({ date: today })}>
-            Today
-          </Link>
-          <Link
-            className={pill(false)}
-            href={link({ date: stepDay(range, 1) })}
-          >
-            Next
           </Link>
         </nav>
       </div>
@@ -239,6 +286,7 @@ export default async function AgendaPage({
               : null
           }
           providerNames={providerNames}
+          publicSlug={publicSlug}
           range={range}
           timezone={agenda.value.timezone || DEFAULT_TIMEZONE}
           today={today}
@@ -255,11 +303,32 @@ export default async function AgendaPage({
   );
 }
 
+/**
+ * The checklist's steps for an owner or admin. A member gets none, and a failed
+ * settings read gives none (the agenda still shows); `guarded` reports the fault.
+ */
+async function setupChecklistSteps(
+  accessToken: string,
+  organisationId: string,
+  manages: boolean,
+  base: string
+): Promise<SetupStep[]> {
+  if (!manages) {
+    return [];
+  }
+  const settings = await guarded(
+    () => getSettings(accessToken, organisationId),
+    base
+  );
+  return settings.ok ? setupSteps(settings.value) : [];
+}
+
 function AgendaDays({
   days,
   nextHref,
   orgSlug,
   previousHref,
+  publicSlug,
   total: allMatching,
   providerNames,
   range,
@@ -270,6 +339,7 @@ function AgendaDays({
   nextHref: Href | null;
   orgSlug: string;
   previousHref: Href | null;
+  publicSlug: string | null;
   total: number;
   providerNames: Map<string, string>;
   range: AgendaRange;
@@ -278,6 +348,15 @@ function AgendaDays({
 }) {
   const byDay = new Map(days.map((entry) => [entry.day, entry.bookings]));
   const total = days.reduce((sum, entry) => sum + entry.bookings.length, 0);
+
+  // The next step for an empty agenda is the business's own page (what
+  // customers see) or, until a profile exists, the Settings that create it.
+  const emptyLink = publicSlug
+    ? { href: { pathname: `/${publicSlug}` }, label: "Open your booking page" }
+    : {
+        href: { pathname: `/studio/${orgSlug}/settings` },
+        label: "Set up your booking page",
+      };
 
   const emptyNote =
     total === 0 ? (
@@ -297,9 +376,9 @@ function AgendaDays({
         <EmptyContent>
           <Link
             className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
-            href="/"
+            href={emptyLink.href}
           >
-            See how online booking works
+            {emptyLink.label}
           </Link>
         </EmptyContent>
       </Empty>

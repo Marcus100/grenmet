@@ -43,7 +43,10 @@
   }
 }
 html {
+  /* Keyboard focus and in-page jumps stop clear of the sticky header and the
+     fixed phone Book bar instead of ending up behind them. */
   scroll-padding-top: 80px;
+  scroll-padding-bottom: var(--bar-h);
 }
 body {
   padding-bottom: var(--bar-h);
@@ -188,18 +191,48 @@ p {
 .legal a:active {
   opacity: 0.7;
 }
+/* Touch: no double-tap delay on controls, and no grey tap flash where the
+   pressed state above already answers the tap. */
+a,
+button {
+  touch-action: manipulation;
+}
+.btn,
+.book-link,
+.chips button,
+.type-filter button,
+.footer-links a,
+.legal a {
+  -webkit-tap-highlight-color: transparent;
+}
 
 /* Small controls get a 44 px hit area: a pseudo-element that is centred on the
    control, so the look and the layout stay as they are. Only where there is
-   room: the footer and legal links (about 26 px tall, 4 px apart) and the
-   portfolio filter (no gap between rows) would take taps from their neighbours,
-   so they keep their size (see the note in the PR). */
+   room: the footer and legal links (about 26 px tall, 4 px apart) would take
+   taps from their neighbours, so they keep their size (see the note in the
+   PR). The header logo link is only 2 px short. The portfolio filter keeps
+   its zone inside its own row (rows have no gap, so any more would take taps
+   from the row above or below). */
 .chips button,
+.brand,
 .book-bar .btn {
   position: relative;
 }
 .chips button::before,
+.brand::before,
 .book-bar .btn::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: 44px;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+.type-filter button {
+  position: relative;
+}
+.type-filter button::before {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -264,7 +297,7 @@ p {
 }
 .primary a {
   padding-block: 6px;
-  font-size: 0.78rem;
+  font-size: 0.79rem;
   color: var(--ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -321,7 +354,7 @@ p {
     display: block;
   }
   .brand span {
-    font-size: 0.72rem;
+    font-size: 0.79rem;
   }
   .primary {
     position: absolute;
@@ -459,7 +492,7 @@ section.block.flush-top {
   line-height: 1;
 }
 .rating small {
-  font-size: 0.75rem;
+  font-size: 0.79rem;
   letter-spacing: 0.06em;
 }
 .stars {
@@ -503,7 +536,7 @@ section.block.flush-top {
 .tag {
   display: inline-block;
   padding: 0.35em 0.9em;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--paper);
   text-transform: uppercase;
@@ -593,7 +626,7 @@ section.block.flush-top {
   }
 }
 .pkg .flag {
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   color: var(--blush);
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -685,11 +718,18 @@ section.block.flush-top {
   font-size: 0.92rem;
   color: var(--ink-soft);
 }
+.menu-intro {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--blush-ink);
+}
 .item .note {
   display: inline-block;
   margin-top: 8px;
   margin-right: 12px;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--blush-ink);
   text-transform: uppercase;
@@ -701,7 +741,7 @@ section.block.flush-top {
   align-items: center;
   padding-bottom: 2px;
   margin-top: 10px;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink);
   text-transform: uppercase;
@@ -795,7 +835,7 @@ section.block.flush-top {
 .type-filter {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 0.5em;
+  gap: 11px 0.5em;
   min-inline-size: 0;
   padding: 0;
   margin-bottom: 32px;
@@ -905,7 +945,7 @@ section.block.flush-top {
   stroke-width: 1.3;
 }
 .ph small {
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   color: var(--ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.16em;
@@ -918,7 +958,7 @@ section.block.flush-top {
   padding: 0.4em 0.9em;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink);
   text-transform: uppercase;
@@ -1023,7 +1063,7 @@ section.block.flush-top {
   display: block;
   margin-top: 8px;
   font-family: var(--sans);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
 }
@@ -1143,7 +1183,7 @@ section.block.flush-top {
 .tbc {
   justify-self: start;
   padding: 0.25em 0.8em;
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--blush-ink);
   text-transform: uppercase;
@@ -1168,7 +1208,7 @@ section.block.flush-top {
 }
 .contact-cards h2 {
   font-family: var(--sans);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink-soft);
   text-transform: uppercase;
@@ -1241,7 +1281,7 @@ section.block.flush-top {
   align-items: center;
   padding: 0.45em 1em;
   margin-top: 16px;
-  font-size: 0.75rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--blush-deep);
   text-transform: uppercase;
@@ -1256,32 +1296,10 @@ section.block.flush-top {
   background: currentColor;
   border-radius: 50%;
 }
-.hours {
-  width: 100%;
-  margin-top: 14px;
-  font-variant-numeric: tabular-nums;
-  border-collapse: collapse;
-}
-.hours th {
-  font-weight: 400;
-  text-align: left;
-}
-.hours th,
-.hours td {
-  padding: 10px 0;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-}
-.hours td:last-child {
-  text-align: right;
-}
-.hours tr.closed th,
-.hours tr.closed td {
-  opacity: 0.6;
-}
-.hours-note {
-  margin-top: 12px;
-  font-size: 0.88rem;
-  opacity: 0.8;
+.appointment-note {
+  margin: 12px 0 20px;
+  font-size: 0.95rem;
+  opacity: 0.85;
 }
 .social {
   display: grid;
@@ -1338,7 +1356,7 @@ section.block.flush-top {
 .footer-heading {
   margin-bottom: 10px;
   font-family: var(--sans);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink-soft);
   text-transform: uppercase;
@@ -1407,7 +1425,7 @@ section.block.flush-top {
   font-weight: 400;
 }
 .book-bar-info small {
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   color: var(--ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -1420,7 +1438,7 @@ section.block.flush-top {
     display: flex;
   }
   :root {
-    --bar-h: 76px;
+    --bar-h: calc(76px + env(safe-area-inset-bottom, 0px));
   }
 }
 

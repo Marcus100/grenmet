@@ -301,6 +301,11 @@ test("staging and production pass integrations to the intended services", () => 
         api.SENTRY_DSN,
         env[`SENTRY_DSN_${deploymentEnvironment.toUpperCase()}`]
       );
+      // Admin reports to the same environment's shared Sentry project.
+      assert.equal(
+        model.services["web-admin"].environment.NEXT_PUBLIC_SENTRY_DSN,
+        env[`SENTRY_DSN_${deploymentEnvironment.toUpperCase()}`]
+      );
       assert.equal(api.REDIS_URL, "redis://redis:6379/0");
       assert.equal(api.EMAIL_RENDER_URL, "http://web-auth:3000");
       const baseDomain =

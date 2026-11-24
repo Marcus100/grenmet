@@ -1,5 +1,11 @@
 import type { FeatureFlagAdmin } from "@barrelsgd/api-client";
-import { render, screen } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
   FlagsError,
@@ -8,10 +14,14 @@ import {
   PropagationWarning,
 } from "@/components/flag-panels";
 
-vi.mock("@/app/(console)/flags/actions", () => {
-  const action = () => Promise.resolve(undefined as never);
-  return { deleteFlagAction: action, saveFlagAction: action };
-});
+const { deleteFlagAction } = vi.hoisted(() => ({
+  deleteFlagAction: vi.fn((_data: FormData) => Promise.resolve()),
+}));
+
+vi.mock("@/app/(console)/flags/actions", () => ({
+  deleteFlagAction,
+  saveFlagAction: () => Promise.resolve(undefined as never),
+}));
 
 const NO_FLAGS = /No feature flags yet/u;
 const THIRTY = /up to 30 seconds/u;
@@ -65,6 +75,24 @@ describe("FlagsPanel", () => {
     render(<FlagsPanel flags={[flag]} staleIds={[]} />);
     expect(screen.getByLabelText(METRIC_LABEL)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Delete flag" })).toBeTruthy();
+  });
+
+  it("submits the flag ID on confirmation and closes the dialog", async () => {
+    render(<FlagsPanel flags={[flag]} staleIds={[]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Delete flag" }));
+    const dialog = screen.getByRole("alertdialog", {
+      name: "Delete this feature flag?",
+    });
+    expect(deleteFlagAction).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Confirm delete" })
+    );
+
+    await waitFor(() => expect(deleteFlagAction).toHaveBeenCalledTimes(1));
+    const submitted = deleteFlagAction.mock.calls[0]?.[0];
+    expect(Object.fromEntries(submitted ?? [])).toEqual({ flag_id: "flag_1" });
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
   });
 
   it("says so when there are no flags", () => {

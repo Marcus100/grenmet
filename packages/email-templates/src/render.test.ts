@@ -342,6 +342,58 @@ describe("card template", () => {
   });
 });
 
+describe("card template with a business brand (issue #1622)", () => {
+  const brandedCard = {
+    subject: "Your booking at Sample Studio is confirmed",
+    eyebrow: "Sample Studio",
+    chip: { label: "Confirmed", tone: "accent" as const },
+    title: "Your booking is confirmed",
+    paragraphs: ["Thank you for booking with Sample Studio."],
+    rows: [{ label: "What", value: "Haircut with Alex" }],
+    primary: {
+      label: "Manage booking",
+      url: "https://booking.example.test/manage/x",
+    },
+    footer: "You are getting this email because you booked.",
+  };
+  const logo = {
+    url: "https://cdn.example.test/sample.png",
+    alt: "Sample Studio",
+  };
+
+  it("uses the accent on the chip and button, with the logo and its alt text", async () => {
+    const { html } = await renderTemplate("card", {
+      ...brandedCard,
+      accent: "#2563eb",
+      logo,
+    });
+    expect(html).toContain('bgcolor="#2563eb"');
+    expect(html).toContain('src="https://cdn.example.test/sample.png"');
+    expect(html).toContain('alt="Sample Studio"');
+  });
+
+  it("without a logo there is no image, and the name is still in the text", async () => {
+    const { html, text } = await renderTemplate("card", {
+      ...brandedCard,
+      accent: "#2563eb",
+    });
+    expect(html).not.toContain("<img");
+    expect(html).toContain('bgcolor="#2563eb"');
+    expect(text).toContain("Sample Studio");
+  });
+
+  it("a pale accent falls back to navy while the logo still shows", async () => {
+    const { html } = await renderTemplate("card", {
+      ...brandedCard,
+      accent: "#ffff00",
+      logo,
+    });
+    expect(html).not.toContain("#ffff00");
+    expect(html).toContain('bgcolor="#0b132b"');
+    expect(html).toContain('alt="Sample Studio"');
+  });
+});
+
 describe("notification template on the shared layout", () => {
   it("returns a plain-text part with the title and body", async () => {
     const { html, text } = await renderTemplate("notification", {

@@ -1,5 +1,5 @@
-// Everything the client may change lives here: booking link, address, hours,
-// services and prices, packages, reviews and social links. Prices mirror the
+// Everything the client may change lives here: booking link, address,
+// appointment wording, services and prices, packages, reviews and social links. Prices mirror the
 // client's Acuity booking page (babydollgnd.as.me); keep them in step.
 
 export const SITE_URL = "https://babydoll.barrels.gd";
@@ -14,8 +14,18 @@ export const BOOKING_URL = "https://babydollgnd.as.me";
 export const ONLINE_BOOKING_URL: string | null =
   "https://bookings.barrels.gd/babydoll-beauty-bar";
 export const INSTAGRAM_DM_URL = "https://ig.me/m/babydoll.gnd";
-/** The manual channel the booking flow points people to (Instagram DM). */
-export const BOOKING_CONTACT = { href: INSTAGRAM_DM_URL, label: "Instagram" };
+/** The studio's one business number: phone calls and WhatsApp both use it. */
+export const PHONE = {
+  display: "+1 473 420 7747",
+  href: "tel:+14734207747",
+} as const;
+export const WHATSAPP_URL = "https://wa.me/14734207747";
+export const EMAIL = {
+  address: "hello@babydollbeautybar.com",
+  href: "mailto:hello@babydollbeautybar.com",
+} as const;
+/** The manual channel the booking flow points people to: the Contact page, which lists them all. */
+export const BOOKING_CONTACT = { href: "/contact", label: "Contact us" };
 // The client's Google Business Profile: review form and public profile.
 export const GOOGLE_REVIEW_URL = "https://g.page/r/CXicqwbsBju0EAE/review";
 export const GOOGLE_PROFILE_URL = "https://share.google/lqfZTCWbyABRADcTp";
@@ -37,11 +47,12 @@ export const BUSINESS = {
 
 export const RATING = { score: "5.0", count: 41 } as const;
 
-export const HOURS = [
-  { days: "Monday – Friday", time: "9:30 am – 5:30 pm" },
-  { days: "Saturday", time: "9:00 am – 5:30 pm" },
-  { days: "Sunday", time: "Closed", closed: true },
-] as const;
+/** The studio works by appointment only: there are no opening hours to show. */
+export const APPOINTMENTS = {
+  heading: "Appointments",
+  note: "Book online and choose a time that suits you. Walk-ins can't be seen.",
+  action: "Book online",
+} as const;
 
 export const SOCIALS = [
   {
@@ -87,12 +98,15 @@ export interface ServiceGroup {
 export interface ServiceCategory {
   groups: [ServiceGroup, ServiceGroup];
   id: "lashes" | "brows" | "skin";
+  /** One line shown above the category's lists. */
+  intro?: string;
   label: string;
 }
 
 export const SERVICE_MENU: ServiceCategory[] = [
   {
     id: "lashes",
+    intro: "New clients: book a consultation first",
     label: "Lashes",
     groups: [
       {

@@ -3,7 +3,7 @@ import { makeRefundTerms } from "@/test/factories";
 import {
   cancelOutcomeMessage,
   defaultRefundFor,
-  formatOrderMoneyCode,
+  formatOrderMoney,
   friendlyOrgError,
   humanise,
   isOrderStatus,
@@ -129,8 +129,8 @@ describe("orderBadge", () => {
 
 describe("money display", () => {
   it("never guesses a symbol for an unknown currency", () => {
-    expect(formatOrderMoneyCode(2500, "EUR")).toBe("EUR 25.00");
-    expect(formatOrderMoneyCode(15_000, "XCD")).toBe("XCD 150.00");
+    expect(formatOrderMoney(2500, "EUR")).toBe("EUR 25.00");
+    expect(formatOrderMoney(15_000, "XCD")).toBe("EC$150.00");
   });
 
   it("humanises raw enums", () => {
@@ -157,7 +157,7 @@ describe("friendlyOrgError wording", () => {
         "XCD"
       )
     ).toBe(
-      "Only XCD 12.50 can still be refunded. Reload the page to see the current amount."
+      "Only EC$12.50 can still be refunded. Reload the page to see the current amount."
     );
   });
 });

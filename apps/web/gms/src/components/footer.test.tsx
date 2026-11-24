@@ -32,6 +32,18 @@ describe("Footer", () => {
     ).toHaveAttribute("href", "mailto:meteorology@gaa.gd");
   });
 
+  it("gives phone and social targets a 44 px minimum box (WCAG 2.5.5)", () => {
+    render(<Footer />);
+    const call = screen.getByRole("link", {
+      name: "Main line +1 473 444 4142",
+    });
+    expect(call.className).toContain("min-h-11");
+    const list = screen.getByRole("list", { name: "GMS on social media" });
+    for (const link of within(list).getAllByRole("link")) {
+      expect(link.className).toContain("size-11");
+    }
+  });
+
   it("names each social network", () => {
     render(<Footer />);
     const list = screen.getByRole("list", { name: "GMS on social media" });
@@ -62,7 +74,7 @@ describe("Footer", () => {
     expect(linkedin.querySelector("svg path")?.getAttribute("d")).toBeTruthy();
     // Every social button is the same round size, so they sit in one row.
     for (const link of within(list).getAllByRole("link")) {
-      expect(link).toHaveClass("size-9", "rounded-full");
+      expect(link).toHaveClass("size-11", "rounded-full");
     }
     const xLink = within(list).getByRole("link", { name: "GMS on X" });
     const svg = xLink.querySelector("svg");

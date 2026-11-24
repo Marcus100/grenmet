@@ -22,6 +22,7 @@ function payment(
     amount_minor: 5000,
     paid_minor: 0,
     refunded_minor: 0,
+    balance_at_salon_minor: 0,
     currency: "XCD",
     checkout_url: null,
     ...overrides,
@@ -159,6 +160,7 @@ describe("PaymentStatus", () => {
           status: "paid",
           paid_minor: 5000,
           refunded_minor: 2000,
+          balance_at_salon_minor: 0,
         })}
       />
     );

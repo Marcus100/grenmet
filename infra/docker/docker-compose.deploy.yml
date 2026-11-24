@@ -291,6 +291,15 @@ services:
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.entrypoints=websecure"
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.middlewares=edge-api${ROUTER_SUFFIX}"
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      # Paths that carry a secret token (calendar feeds, booking manage links):
+      # the same host, middlewares and service, but no access-log line, so the
+      # token never reaches the log (#1787). Its longer rule outranks the main router.
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.rule=(Host(`api.${BASE_DOMAIN}`)${API_EXTRA_HOSTS_RULE:-}) && (PathPrefix(`/api/v1/bookings/public/calendar/`) || PathPrefix(`/api/v1/bookings/public/bookings/`))"
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.middlewares=edge-api${ROUTER_SUFFIX}"
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.service=grenmet-api${ROUTER_SUFFIX}"
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.observability.accesslogs=false"
       - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.server.port=8000"
       # One slow probe takes the only server out of rotation (Traefik answers 503)
       # until the next probe. Defaults (5 s timeout, 30 s re-probe) turned a busy
@@ -614,6 +623,7 @@ services:
       NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
       NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_ADMIN:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       AUTH_API_URL: http://api:8000
@@ -995,6 +1005,14 @@ services:
       - "traefik.http.routers.web-bookings${ROUTER_SUFFIX}.entrypoints=websecure"
       - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-bookings${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-bookings${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      # The manage page (/<business>/booking/<token>) carries the booking's secret
+      # token: same host and service, no access-log line (#1787).
+      - "traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.rule=Host(`bookings.${BASE_DOMAIN}`) && PathRegexp(`^/[^/]+/booking/`)"
+      - "traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate-secret=off}"
+      - "traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.service=web-bookings${ROUTER_SUFFIX}"
+      - "traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.observability.accesslogs=false"
       - "traefik.http.services.web-bookings${ROUTER_SUFFIX}.loadbalancer.server.port=3015"
     networks:
       - grenmet

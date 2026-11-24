@@ -396,6 +396,7 @@ async def organiser_settlement(
                 claimed=report.totals.claimed,
                 admitted=report.totals.admitted,
                 cancelled=report.totals.cancelled,
+                refunded=report.totals.refunded,
                 cash_collected_minor=report.cash.collected_minor,
                 cash_expected_minor=report.cash.expected_minor,
                 cash_counted_minor=report.cash.counted_minor,

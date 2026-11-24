@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { env } from "@/env";
 import { SignInForm } from "./sign-in-form";
 
-export const metadata = { title: "Sign in · Barrels Events" };
+// The layout template adds " | Barrels Events".
+export const metadata = { title: "Sign in" };
 
 export default async function SignInPage({
   searchParams,

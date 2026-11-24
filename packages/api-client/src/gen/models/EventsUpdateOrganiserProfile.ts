@@ -53,7 +53,8 @@ export type EventsUpdateOrganiserProfileStatus429 = ApiError | ErrorMessage;
  * @description Partial edit of an approved organiser's public profile: send only what changes.
  *
  * The slug is not editable here, so an unknown field (such as ``slug``) is a 422.
- * Null is refused for both fields; leave a field out to keep it.
+ * Null is refused for name and bio; leave a field out to keep it. Null or blank
+ * clears ``brand_color``.
  * @type object
  */
 export type EventsUpdateOrganiserProfileBody = OrganiserProfileUpdate;

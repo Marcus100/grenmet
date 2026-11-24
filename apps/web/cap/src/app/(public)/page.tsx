@@ -79,7 +79,7 @@ export default async function HomePage() {
             <ul className="space-y-4">
               {actual.map((view) => (
                 <li key={view.identifier}>
-                  <AlertCard heading="h2" view={view} />
+                  <AlertCard heading="h2" now={now} view={view} />
                 </li>
               ))}
             </ul>
@@ -89,7 +89,7 @@ export default async function HomePage() {
             <ul className="space-y-4">
               {exercise.map((view) => (
                 <li key={view.identifier}>
-                  <AlertCard heading="h2" view={view} />
+                  <AlertCard heading="h2" now={now} view={view} />
                 </li>
               ))}
             </ul>
@@ -100,23 +100,32 @@ export default async function HomePage() {
       <nav aria-label="More ways to see alerts" className="text-body-sm">
         <ul className="flex flex-wrap gap-x-5 gap-y-1">
           <li>
-            <Link className="text-gm-blue-ink underline" href="/map">
+            <Link
+              className="text-gm-blue-ink inline-flex min-h-11 items-center underline"
+              href="/map"
+            >
               See alerts on a map
             </Link>
           </li>
           <li>
-            <Link className="text-gm-blue-ink underline" href="/history">
+            <Link
+              className="text-gm-blue-ink inline-flex min-h-11 items-center underline"
+              href="/history"
+            >
               Past alerts
             </Link>
           </li>
           <li>
-            <Link className="text-gm-blue-ink underline" href="/feeds">
+            <Link
+              className="text-gm-blue-ink inline-flex min-h-11 items-center underline"
+              href="/feeds"
+            >
               Feeds for apps and agencies
             </Link>
           </li>
           <li>
             <a
-              className="text-gm-blue-ink underline"
+              className="text-gm-blue-ink inline-flex min-h-11 items-center underline"
               href={`${env.GMS_SITE_URL}/alerts/get-alerts`}
             >
               How to get alerts

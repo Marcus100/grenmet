@@ -167,6 +167,18 @@ function periodData(period: ForecastPeriod, index: number): ForecastDayData {
   };
 }
 /** Presentation only: the API supplies selected periods and all time boundaries. */
+/** The most recent issue time among the periods and today's issues, or null. */
+function latestIssuedAt(forecast: PublicForecast): string | null {
+  const times = [
+    ...forecast.periods.map((period) => period.source?.issued_at),
+    ...(forecast.today_issues ?? []).map((issue) => issue.source?.issued_at),
+  ].filter((time): time is string => Boolean(time));
+  if (times.length === 0) return null;
+  return times.reduce((latest, time) =>
+    Date.parse(time) > Date.parse(latest) ? time : latest
+  );
+}
+
 export function weatherFromForecast(forecast: PublicForecast): WeatherSnapshot {
   const days = forecast.periods.map(periodData);
   const observed = forecast.observation;
@@ -187,6 +199,7 @@ export function weatherFromForecast(forecast: PublicForecast): WeatherSnapshot {
     baseDate: forecast.base_date,
     current: null,
     days,
+    lastIssuedAt: latestIssuedAt(forecast),
     todayIssues,
     observation: observed
       ? {

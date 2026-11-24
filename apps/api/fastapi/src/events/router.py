@@ -686,7 +686,8 @@ async def resubmit_organiser(
     status_code=status.HTTP_200_OK,
     summary="Edit my approved organiser's profile",
     description=(
-        "Owners and admins of an approved organiser change its public name and bio. "
+        "Owners and admins of an approved organiser change its public name, bio and "
+        "brand colour (`brand_color`, null clears it). "
         "Send only the fields to change; the slug is fixed and the approval stays. "
         "Each real change is logged. Pass ?organiser=<slug> when you manage several."
     ),

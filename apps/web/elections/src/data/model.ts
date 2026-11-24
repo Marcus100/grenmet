@@ -129,9 +129,10 @@ export function contestStats(
 }
 
 export interface NationalResult {
-  cast: number;
+  /** Null when the source publishes no ballots cast by constituency. */
+  cast: number | null;
   registered: number | null;
-  rejected: number;
+  rejected: number | null;
   seats: Record<string, number>;
   /** Valid votes across all parties. */
   total: number;
@@ -149,6 +150,8 @@ export function nationalResult(
   let registered = 0;
   let cast = 0;
   let rejected = 0;
+  let castSeen = false;
+  let rejectedSeen = false;
   let registeredKnown = true;
   for (const code of CODES) {
     const contest = generalResult(data, year, code);
@@ -161,16 +164,19 @@ export function nationalResult(
     else registeredKnown = false;
     cast += contest.cast ?? 0;
     rejected += contest.rej ?? 0;
+    castSeen ||= contest.cast != null;
+    rejectedSeen ||= contest.rej != null;
   }
   const total = Object.values(votes).reduce((a, b) => a + b, 0);
+  const provisional = Boolean(data.national[year]?.provisional);
   const reg = registeredKnown ? registered : null;
   return {
     seats,
     votes,
     total,
     registered: reg,
-    cast,
-    rejected,
+    cast: castSeen || !provisional ? cast : null,
+    rejected: rejectedSeen || !provisional ? rejected : null,
     turnout: reg && cast ? cast / reg : null,
   };
 }
@@ -302,7 +308,8 @@ export function seatHistory(
 export interface DivisionResult {
   /** Candidate rows, most votes first: [name, party, votes]. */
   c: CandidateRow[];
-  cast: number;
+  /** Null when no station row has a value (2026 provisional). */
+  cast: number | null;
   division: string;
   places: string[];
   registered: number;
@@ -316,10 +323,11 @@ export function divisionResults(
 ): DivisionResult[] {
   const contest = generalResult(data, year, code);
   const names = Object.fromEntries((contest?.c ?? []).map((r) => [r[1], r[0]]));
+  const provisional = Boolean(data.national[year]?.provisional);
   const out = new Map<
     string,
     {
-      cast: number;
+      cast: number | null;
       places: string[];
       registered: number;
       votes: Record<string, number>;
@@ -329,14 +337,14 @@ export function divisionResults(
     code
   ] ?? []) {
     const d = out.get(division) ?? {
-      cast: 0,
+      cast: provisional ? null : 0,
       places: [],
       registered: 0,
       votes: {},
     };
     if (place && !d.places.includes(place)) d.places.push(place);
     d.registered += reg ?? 0;
-    d.cast += cast ?? 0;
+    if (cast != null) d.cast = (d.cast ?? 0) + cast;
     for (const [party, v] of Object.entries(votes))
       d.votes[party] = (d.votes[party] ?? 0) + v;
     out.set(division, d);

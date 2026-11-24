@@ -25,6 +25,7 @@ from typing import Any
 
 import httpx
 
+from src import provider_health
 from src.payments import return_urls
 from src.payments.config import PaymentsConfig, payments_settings
 from src.payments.connect.config import connect_settings
@@ -329,21 +330,30 @@ class StripeProvider:
                         json=json_body,
                         headers=headers,
                     )
-        except httpx.HTTPError:
-            logger.warning("Stripe request failed", extra={"path": path})
+        except httpx.HTTPError as exc:
+            provider_health.record_failure("stripe", "request", exc)
             raise ProviderRequestError() from None
         if response.status_code >= 400:
-            logger.warning(
-                "Stripe rejected a request",
-                extra={"path": path, "status_code": response.status_code},
-            )
+            # 5xx and 429 are provider trouble; other 4xx are our request's fault.
+            if response.status_code >= 500 or response.status_code == 429:
+                provider_health.record_failure(
+                    "stripe", "request", f"HTTP_{response.status_code}"
+                )
+            else:
+                logger.warning(
+                    "Stripe rejected a request",
+                    extra={"path": path, "status_code": response.status_code},
+                )
             raise ProviderRequestError()
         try:
             body = response.json()
         except ValueError:
+            provider_health.record_failure("stripe", "request", "InvalidJSON")
             raise ProviderRequestError() from None
         if not isinstance(body, dict):
+            provider_health.record_failure("stripe", "request", "UnexpectedBody")
             raise ProviderRequestError()
+        provider_health.record_success("stripe", "request")
         return body
 
     def _new_client(self) -> httpx.AsyncClient:

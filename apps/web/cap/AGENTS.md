@@ -28,7 +28,7 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
   `/desk`, through `app/desk/api/[...path]/route.ts`: an allow-list
   (`lib/desk/proxy-rules.ts`), a same-origin check for changes, minimal
   headers, the token added server-side. Add a rule there before using a new
-  endpoint from the desk. Server reads: `lib/desk/api.ts`.
+  endpoint from the desk. Server reads live in `lib/desk/`.
 - **Desk scope.** Board, new warning, edit draft (PATCH), validate, submit,
   review, approve, publish, emergency publish, cancel, expire and Issue update
   (`POST /cap/alerts/{id}/updates`). Imported alerts are flagged and need the
@@ -61,8 +61,11 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
   `/alerts.geojson`, `/rss.xml`, `/{id}.xml`). No database access, no warning
   rules. GMS owns warning policy; this app displays it.
 - Do not import `apps/web/gms` code. Shared presentation comes from
-  `@barrelsgd/gms`. The severity-to-level mapping in `src/lib/alerts.ts`
-  mirrors `apps/web/gms/src/lib/cap-alerts.ts` and must stay in step with it.
+  `@barrelsgd/gms`. Both public apps read the one severity-to-level mapping in
+  `@barrelsgd/gms/warning-levels`: the public sees the issued colour (Minor
+  Green, Moderate Yellow "Be aware", Severe Orange "Be prepared", Extreme Red
+  "Take action now"). An ended or replaced alert is a grey "Ended · <time>" strip with
+  the colour as a small tag; no stated severity is grey "Severity not stated".
 - No sample data, ever. An empty feed and an unreachable feed are different
   states and must never look alike.
 
@@ -100,7 +103,10 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
 the whole past list, paged here, 20 per page), `/feeds`, `/about`,
 `/feeds/rss.xml`, `/feeds/alerts.geojson`, `/feeds/latest-active.json`,
 `/feeds/alerts/<identifier>.xml` (proxies of the API feeds), `/api/health`.
-Staff: `/desk`, `/desk/new`, `/desk/alerts/[id]`, `/desk/alerts/[id]/edit`, `/desk/profiles` (hazard profile versions, approval and warning drafts),
+Staff: `/desk`, `/desk/new`, `/desk/alerts/[id]` (reads by alert UUID),
+`/desk/alerts/by-identifier/[identifier]` (looks up the CAP identifier, then
+redirects to the UUID detail page), `/desk/alerts/[id]/edit`,
+`/desk/profiles` (hazard profile versions, approval and warning drafts),
 `/desk/statistics` (counts by hazard, colour, parish and month) and its CSV download `/desk/statistics/export` (a route handler: validates the filters and streams FastAPI's `/cap/statistics/export.csv` with the staff token),
 `/desk/signin`, `/desk/api/...` (proxy), `/auth/start|callback|logout`.
 E2E smoke: `pnpm --filter @barrelsgd/web-cap test:e2e` (needs the dev server).

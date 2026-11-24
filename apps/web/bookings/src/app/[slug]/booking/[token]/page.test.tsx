@@ -31,7 +31,8 @@ const NO_CONTACT = {
 const QUESTIONS = /Questions\? Contact us/u;
 const WHATSAPP = /WhatsApp/u;
 const CONTACT_COLON = /contact Sea Salt Spa:/u;
-const DIRECTLY = /contact the business directly\./u;
+const EXPIRED =
+  /This link may have expired\. Check the link in your email, or contact the business directly\./u;
 
 const booking: BookingPublicDetail = {
   id: "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c11",
@@ -60,6 +61,8 @@ const storefront: BookingStorefront = {
   cancel_cutoff_hours: 24,
   contact: { ...NO_CONTACT, whatsapp: "14734401234" },
   providers: [],
+  brand_color: null,
+  logo_url: null,
   services: [],
 };
 
@@ -106,6 +109,7 @@ describe("/[slug]/booking/[token]", () => {
     expect(
       screen.getByText("This link does not match a booking with Sea Salt Spa.")
     ).toBeVisible();
+    expect(screen.getByText(EXPIRED)).toBeVisible();
     expect(
       screen.getByRole("link", { name: "Book with Sea Salt Spa" })
     ).toHaveAttribute("href", "/sea-salt-spa");
@@ -128,7 +132,7 @@ describe("/[slug]/booking/[token]", () => {
     expect(
       screen.getByRole("link", { name: "Make a new booking" })
     ).toHaveAttribute("href", "/gone-spa");
-    expect(screen.getByText(DIRECTLY)).toBeVisible();
+    expect(screen.getByText(EXPIRED)).toBeVisible();
   });
 
   it("is not found for a malformed slug without calling the API", async () => {

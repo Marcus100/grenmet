@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
+import { bookingDepositModeSchema } from "./bookingDepositModeSchema.js";
 import { bookingPaymentModeSchema } from "./bookingPaymentModeSchema.js";
 
 export const bookingProfileUpdateSchema = z
@@ -27,6 +29,22 @@ export const bookingProfileUpdateSchema = z
     horizon_days: z.int().min(1).max(365).optional().default(60),
     cancel_cutoff_hours: z.int().min(0).max(720).optional().default(24),
     requires_confirmation: z.boolean().optional().default(false),
+    pending_expiry_hours: z
+      .union([z.int().min(1).max(168), z.null()])
+      .optional()
+      .default(24)
+      .describe(
+        "Hours a booking request waits for the business to confirm it before it expires (the customer is told and the slot is released). Null means it expires only at its start time. A request whose start has passed always expires. Left out, the stored value is kept."
+      ),
+    max_open_per_customer: z
+      .int()
+      .min(1)
+      .max(20)
+      .optional()
+      .default(3)
+      .describe(
+        "How many future bookings (requested, awaiting payment or confirmed) one customer may hold with this business. A public booking beyond it is refused with 409. Staff entries are not refused. Left out, the stored value is kept."
+      ),
     notify_email: z.union([z.email(), z.null()]).optional(),
     manage_url_template: z
       .union([
@@ -59,11 +77,100 @@ export const bookingProfileUpdateSchema = z
       .union([z.email().max(254), z.null()])
       .optional()
       .describe("Email address customers can write to; blank clears it."),
+    add_ons_enabled: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "Offer add-on services (for example a brow wax with a lash set) on the booking page. Off by default; while off, add-ons are neither shown nor accepted. Left out, the stored value is kept."
+      ),
     payment_at_booking: bookingPaymentModeSchema
       .optional()
       .default("deposit")
       .describe(
         "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept."
+      ),
+    deposit_mode: bookingDepositModeSchema
+      .optional()
+      .default("none")
+      .describe(
+        "Business-wide deposit rule, used for a service only when its own deposit is 0. `none`: no rule (the default). `percent`: `deposit_percent` of the price, rounded up to whole currency units. `fixed`: `deposit_fixed_minor` per booking. Never more than the price. Left out, the stored value is kept."
+      ),
+    deposit_percent: z
+      .union([z.int().min(1).max(100), z.null()])
+      .optional()
+      .describe("The percentage for `deposit_mode` `percent` (1 to 100)."),
+    deposit_fixed_minor: z
+      .union([z.int().min(1).max(100000000), z.null()])
+      .optional()
+      .describe("The amount in minor units for `deposit_mode` `fixed`."),
+    deposit_min_price_minor: z
+      .union([z.int().min(1).max(100000000), z.null()])
+      .optional()
+      .describe(
+        "The lowest service price (minor units) that takes the business-wide deposit rule. Cheaper services take no deposit from it. Null means no minimum. A service's own deposit is never affected. Left out, the stored value is kept."
+      ),
+    deposit_non_refundable: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "When true, a paid deposit is kept when the booking is cancelled, by the customer or by the business without a refund choice. A move keeps it with the booking. Declines still refund. Left out, the stored value is kept."
+      ),
+    booking_policy: z
+      .union([z.string().max(1000), z.null()])
+      .optional()
+      .describe(
+        "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+      ),
+    brand_color: z
+      .union([z.string().max(7), z.null()])
+      .optional()
+      .describe(
+        "The business's accent colour in its emails, as `#rrggbb`. Blank clears it. Mail uses the Barrels navy instead when the colour is too pale for white text. Left out, the stored value is kept."
+      ),
+    logo_file_id: z
+      .union([z.uuid(), z.null()])
+      .optional()
+      .describe(
+        "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+      ),
+    cover_file_id: z
+      .union([z.uuid(), z.null()])
+      .optional()
+      .describe(
+        "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept."
+      ),
+    business_type: z
+      .union([bookingBusinessTypeSchema, z.null()])
+      .optional()
+      .describe(
+        "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, tours, events, other). Null clears it. Left out, the stored value is kept."
+      ),
+    listed: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept."
+      ),
+    category: z
+      .union([z.string().max(80), z.null()])
+      .optional()
+      .describe(
+        "Short category for the home page, such as Hair or Nails; it is the filter chip a visitor taps. Blank clears it. Left out, the stored value is kept."
+      ),
+    short_description: z
+      .union([z.string().max(160), z.null()])
+      .optional()
+      .describe(
+        "One line for the home page card. Blank clears it. Left out, the stored value is kept."
+      ),
+    city: z
+      .union([z.string().max(80), z.null()])
+      .optional()
+      .describe(
+        "Town or city for the home page card. Blank clears it. Left out, the stored value is kept."
       ),
   })
   .describe("Create or replace the organisation's booking profile.");

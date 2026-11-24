@@ -304,6 +304,7 @@ async def app_phone_link_verify(
             "model": ApiError,
             "description": "Join required: retry with join=true after the user agrees",
         },
+        503: {"model": ApiError, "description": "Single sign-on is not configured"},
     },
 )
 @limiter.limit("60/minute")
@@ -328,6 +329,7 @@ async def app_handoff_start(
         },
         401: {"model": ApiError, "description": "Wrong app client secret"},
         403: {"model": ApiError, "description": "Account cannot use this app"},
+        503: {"model": ApiError, "description": "Single sign-on is not configured"},
     },
 )
 @limiter.limit("60/minute")

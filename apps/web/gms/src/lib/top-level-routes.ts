@@ -22,6 +22,7 @@ export const TOP_LEVEL_ROUTES: readonly string[] = [
   "planned",
   "preview",
   "privacy",
+  "search",
   "services",
   "sitemap",
   "weather",

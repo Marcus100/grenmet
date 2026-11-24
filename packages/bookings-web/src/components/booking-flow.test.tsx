@@ -36,7 +36,7 @@ const HONEYPOT_LABEL = /Leave this field empty/u;
 const SERVICE_ID = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10";
 const TUE = "2027-01-05T13:30:00Z";
 const SLOT_TAKEN = "That time has just been taken. Please choose another.";
-const ONE_HOUR_CUTOFF = /until 1 hour before your visit\./u;
+const ONE_HOUR_CUTOFF = /Change or cancel online up to 1 hour before/u;
 const CONTACT_DIRECTLY = /Please contact the business directly\./u;
 const CONTACT_COLON = /Please contact the business:/u;
 const CONTACT_LIST = /contact/iu;
@@ -48,6 +48,11 @@ const NEVER_NEEDS = /Booking never needs an account/u;
 const DATE_RANGE = /^\w{3} \d{1,2} \w{3} to \w{3} \d{1,2} \w{3}$/u;
 const EMAIL_ERROR = /Enter a valid email address/u;
 const HELD_WHILE_PAYING = /Your time is held while you pay/u;
+const NO_PAYMENT = /No payment online\. You pay when you visit\./u;
+const CANCEL_RULE =
+  /No deposit for this service\. Change or cancel online up to 24 hours before; after that, contact Test Studio\./u;
+const CONSULTATION = /Note for Hybrid: Consultation required/u;
+const NOTE_PREFIX = /^Note for /u;
 
 const storefront: BookingStorefront = {
   slug: "test-studio",
@@ -57,6 +62,8 @@ const storefront: BookingStorefront = {
   cancel_cutoff_hours: 24,
   contact: NO_CONTACT,
   providers: [],
+  brand_color: null,
+  logo_url: null,
   services: [
     {
       id: SERVICE_ID,
@@ -287,6 +294,46 @@ describe("BookingFlow form", () => {
     spy.mockRestore();
   });
 
+  it("records each funnel step with ids only, never the visitor's details", async () => {
+    const user = userEvent.setup();
+    const track = vi.fn();
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: true,
+      data: { booking, manageToken: "tok" },
+    });
+    render(
+      <BookingFlow
+        actions={actions}
+        managePath="/booking"
+        storefront={storefront}
+        studioName={STUDIO}
+        track={track}
+        turnstileSiteKey=""
+      />
+    );
+    await chooseSlot(user);
+    await fillDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Request my booking" })
+    );
+    await waitFor(() =>
+      expect(track).toHaveBeenCalledWith("booking_confirmed", expect.anything())
+    );
+
+    expect(track.mock.calls.map(([event]) => event)).toEqual([
+      "service_selected",
+      "slot_selected",
+      "booking_submitted",
+      "booking_confirmed",
+    ]);
+    for (const [, properties] of track.mock.calls) {
+      expect(Object.keys(properties)).toEqual(["service_id"]);
+    }
+    const sent = JSON.stringify(track.mock.calls);
+    expect(sent).not.toContain("Ada");
+    expect(sent).not.toContain("@");
+  });
+
   it("explains a taken slot, clears the choice and reloads the times", async () => {
     const user = userEvent.setup();
     vi.mocked(submitBooking).mockResolvedValue({
@@ -399,6 +446,7 @@ describe("BookingFlow form", () => {
             amount_minor: 22_500,
             paid_minor: 0,
             refunded_minor: 0,
+            balance_at_salon_minor: 0,
             currency: "XCD",
             checkout_url: "https://checkout.stripe.com/c/pay/cs_test_1",
           },
@@ -629,6 +677,8 @@ const twoServices: BookingStorefront = {
     { id: JERIANN, name: "Jeriann", service_ids: [SERVICE_ID] },
     { id: MAYA, name: "Maya", service_ids: [SERVICE_ID, SECOND_SERVICE] },
   ],
+  brand_color: null,
+  logo_url: null,
   services: [
     ...storefront.services,
     {
@@ -855,5 +905,132 @@ describe("BookingFlow error messages follow the person's changes", () => {
       "true"
     );
     expect(screen.getAllByText(EMAIL_ERROR).length).toBeGreaterThan(0);
+  });
+});
+
+describe("BookingFlow confirm step wording", () => {
+  it("says there is no payment online when the service takes no deposit", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    expect(screen.queryByText(NO_PAYMENT)).not.toBeInTheDocument();
+    await chooseSlot(user);
+    expect(screen.getByText(NO_PAYMENT)).toBeVisible();
+    expect(screen.getByText(CANCEL_RULE)).toBeVisible();
+  });
+
+  it("does not say there is no payment online when a deposit is due", async () => {
+    const user = userEvent.setup();
+    renderFlow("", {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        due_at_booking_minor: 1000,
+      })),
+    });
+    await chooseSlot(user);
+    expect(screen.queryByText(NO_PAYMENT)).not.toBeInTheDocument();
+    expect(screen.getByText(PAY_DEPOSIT)).toBeVisible();
+  });
+
+  it("shows the selected service's note when it has one", async () => {
+    const user = userEvent.setup();
+    renderFlow("", {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        description: "Consultation required",
+      })),
+    });
+    await chooseSlot(user);
+    expect(screen.getByText(CONSULTATION)).toBeVisible();
+  });
+
+  it("shows no service note when the service has none", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await chooseSlot(user);
+    expect(screen.queryByText(NOTE_PREFIX)).not.toBeInTheDocument();
+  });
+});
+
+describe("BookingFlow rules line and full policy", () => {
+  const RULES_LINE = (text: string) => screen.getByText(text);
+
+  it("says only the change rule until a service is chosen", () => {
+    renderFlow();
+    expect(
+      RULES_LINE(
+        "Change or cancel online up to 24 hours before; after that, contact Test Studio."
+      )
+    ).toBeVisible();
+  });
+
+  it("states a non-refundable deposit beside the Book button", async () => {
+    const user = userEvent.setup();
+    renderFlow("", {
+      ...storefront,
+      deposit_non_refundable: true,
+      services: storefront.services.map((service) => ({
+        ...service,
+        deposit_minor: 4000,
+        due_at_booking_minor: 4000,
+      })),
+    });
+    await chooseSlot(user);
+    expect(
+      RULES_LINE(
+        "EC$40 deposit, not refundable once your booking is confirmed. Change or cancel online up to 24 hours before; after that, contact Test Studio."
+      )
+    ).toBeVisible();
+  });
+
+  it("says a refundable deposit is refundable", async () => {
+    const user = userEvent.setup();
+    renderFlow("", {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        due_at_booking_minor: 3600,
+      })),
+    });
+    await chooseSlot(user);
+    expect(
+      RULES_LINE(
+        "EC$36 deposit, refunded if you cancel at least 24 hours before it starts. Change or cancel online up to 24 hours before; after that, contact Test Studio."
+      )
+    ).toBeVisible();
+  });
+
+  it("says a deposit with no payment route is paid at the salon", async () => {
+    const user = userEvent.setup();
+    renderFlow("", {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        deposit_minor: 3000,
+        due_at_booking_minor: 0,
+      })),
+    });
+    await chooseSlot(user);
+    expect(
+      RULES_LINE(
+        "EC$30 deposit, paid at the salon. Change or cancel online up to 24 hours before; after that, contact Test Studio."
+      )
+    ).toBeVisible();
+  });
+
+  it("opens the full policy on tap and hides it when there is none", async () => {
+    const user = userEvent.setup();
+    const { unmount } = renderFlow("", {
+      ...storefront,
+      booking_policy: "Late by 15 minutes and we may need to move you.",
+    });
+    const policy = "Late by 15 minutes and we may need to move you.";
+    expect(screen.getByText(policy)).not.toBeVisible();
+    await user.click(screen.getByText("Full policy"));
+    expect(screen.getByText(policy)).toBeVisible();
+    unmount();
+    renderFlow("", { ...storefront, booking_policy: null });
+    expect(screen.queryByText("Full policy")).toBeNull();
   });
 });

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingAddOnLineSchema } from "./bookingAddOnLineSchema.js";
 import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
 import { bookingPaymentSummarySchema } from "./bookingPaymentSummarySchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
@@ -12,6 +13,13 @@ export const bookingPublicDetailSchema = z
   .object({
     id: z.uuid(),
     status: bookingStatusSchema,
+    business_name: z
+      .string()
+      .optional()
+      .default("")
+      .describe(
+        "The business's display name, as its public booking page shows it."
+      ),
     service_id: z.uuid(),
     service_name: z.string(),
     provider_id: z.uuid(),
@@ -24,6 +32,19 @@ export const bookingPublicDetailSchema = z
     deposit_minor: z.int(),
     currency: z.string(),
     cancel_cutoff_hours: z.int(),
+    deposit_non_refundable: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "This booking's terms: true when a deposit paid on a confirmed booking is kept on cancellation. Set when the booking was made."
+      ),
+    booking_policy: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "The business's plain-text booking policy, or null when it has none."
+      ),
     can_cancel: z
       .boolean()
       .describe(
@@ -41,6 +62,18 @@ export const bookingPublicDetailSchema = z
       .optional()
       .describe(
         "Where a guest can create a free account or sign in, so this booking is listed under My bookings. Null once the booking's contact is linked to an account."
+      ),
+    hold_ends_at: z
+      .union([z.iso.datetime(), z.null()])
+      .optional()
+      .describe(
+        "While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise."
+      ),
+    add_ons: z
+      .array(bookingAddOnLineSchema)
+      .optional()
+      .describe(
+        "The add-ons booked with the service. `starts_at`..`ends_at` include them."
       ),
   })
   .describe("A booking as its customer sees it.");

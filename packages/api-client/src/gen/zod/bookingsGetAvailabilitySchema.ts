@@ -20,6 +20,10 @@ export const bookingsGetAvailabilityQueryProviderIdSchema = z
   .union([z.uuid(), z.null()])
   .optional();
 
+export const bookingsGetAvailabilityQueryAddOnIdsSchema = z
+  .union([z.array(z.uuid()).max(5), z.null()])
+  .optional();
+
 export const bookingsGetAvailabilityStatus200Schema = bookingAvailabilitySchema;
 
 export const bookingsGetAvailabilityStatus400Schema = apiErrorSchema.describe(
@@ -53,4 +57,5 @@ export const bookingsGetAvailabilityQuerySchema = z.object({
   first_day: z.iso.date(),
   last_day: z.iso.date(),
   provider_id: z.union([z.uuid(), z.null()]).optional(),
+  add_on_ids: z.union([z.array(z.uuid()).max(5), z.null()]).optional(),
 });

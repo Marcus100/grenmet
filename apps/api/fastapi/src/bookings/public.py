@@ -11,10 +11,11 @@ import hashlib
 import logging
 import secrets
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -44,10 +45,12 @@ from . import (
     service,
     transitions,
 )
+from .config import bookings_settings
 from .exceptions import BookingConflictError, BookingNotFoundError
 from .models import (
     ACTIVE_STATUSES,
     Booking,
+    BookingAddOn,
     BookingEvent,
     BookingProfile,
     BookingSource,
@@ -57,6 +60,7 @@ from .models import (
     Service,
 )
 from .schemas import (
+    BookingAddOnLine,
     BookingBusinessContact,
     BookingEmailCodeConfirm,
     BookingEmailCodeRequest,
@@ -84,6 +88,20 @@ class Managed:
     customer: Customer
     #: The customer's contact-book record: the only home of name, email and phone.
     contact: Contact
+    #: The booking's add-on lines (``add_on_lines``); empty when it has none.
+    add_ons: tuple[BookingAddOn, ...] = ()
+
+
+def total_minutes(managed: Managed) -> int:
+    """The booking's length as sold: the main service plus its add-ons."""
+    return managed.service.duration_min + sum(a.duration_min for a in managed.add_ons)
+
+
+async def add_on_lines(
+    session: AsyncSession, booking_id: uuid.UUID
+) -> tuple[BookingAddOn, ...]:
+    lines = await service.booking_add_on_lines(session, [booking_id])
+    return tuple(lines.get(booking_id, []))
 
 
 def new_manage_token() -> tuple[str, str]:
@@ -111,6 +129,31 @@ def signed_manage_url(managed: Managed) -> str | None:
     return manage_url(managed.profile, token)
 
 
+def my_manage_url(slug: str, booking: Booking, now: datetime) -> str | None:
+    """The Barrels manage page for one of the account's bookings, with a signed
+    link minted now (nothing is stored). None when the stored token was cleared
+    (retention) or the signed link has lapsed (a week after the booking ends)."""
+    if booking.manage_token_hash is None:
+        return None
+    token = manage_link.mint(booking.id, booking.ends_at)
+    if manage_link.verify(token, now=now) is None:
+        return None
+    base = bookings_settings.APP_URL.rstrip("/")
+    return f"{base}/{quote(slug, safe='')}/booking/{token}"
+
+
+def hold_ends_at(booking: Booking) -> datetime | None:
+    """When an unpaid hold is released: the same clock the expiry sweeper uses
+    (``created_at`` plus the deposit hold). None for a booking not waiting for payment."""
+    if booking.status != BookingStatus.PENDING_PAYMENT.value:
+        return None
+    if booking.created_at is None:
+        return None
+    return booking.created_at + timedelta(
+        minutes=bookings_settings.DEPOSIT_HOLD_MINUTES
+    )
+
+
 def _single_line(value: str) -> str:
     return " ".join(value.split())
 
@@ -126,8 +169,13 @@ async def transition(
     actor_user_id: uuid.UUID | None = None,
     note: str | None = None,
     now: datetime | None = None,
+    earns_reward: bool = True,
 ) -> None:
-    """Move a booking along ``transitions.TRANSITIONS`` and record a BookingEvent."""
+    """Move a booking along ``transitions.TRANSITIONS`` and record a BookingEvent.
+
+    Completing a booking earns the customer's reward (``bookings.completed``) unless
+    ``earns_reward`` is false: the system's own completion (``lifecycle``) passes
+    false, so only a completion the business marks by hand earns."""
     current = BookingStatus(booking.status)
     if not transitions.can_transition(current, target):
         raise BookingConflictError(
@@ -142,7 +190,7 @@ async def transition(
         session, booking, current, target, actor_user_id=actor_user_id, note=note
     )
     await session.flush()
-    if target is BookingStatus.COMPLETED:
+    if target is BookingStatus.COMPLETED and earns_reward:
         await _emit_completed_reward(session, booking)
 
 
@@ -278,6 +326,7 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
     return BookingPublicDetail(
         id=booking.id,
         status=BookingStatus(booking.status),
+        business_name=profile.display_name,
         service_id=booking.service_id,
         service_name=managed.service.name,
         provider_id=booking.provider_id,
@@ -290,9 +339,20 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         deposit_minor=booking.deposit_minor,
         currency=booking.currency,
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
+        deposit_non_refundable=booking.deposit_non_refundable,
+        booking_policy=profile.booking_policy,
         can_cancel=_can_cancel(booking, profile, now),
         contact=BookingBusinessContact(**service.business_contact(profile)),
         account_invite_url=account_invite_for(profile, managed.contact),
+        hold_ends_at=hold_ends_at(booking),
+        add_ons=[
+            BookingAddOnLine(
+                name=line.name,
+                duration_min=line.duration_min,
+                price_minor=line.price_minor,
+            )
+            for line in managed.add_ons
+        ],
     )
 
 
@@ -306,6 +366,7 @@ def decoy_receipt(
         booking=BookingPublicDetail(
             id=uuid.uuid4(),
             status=BookingStatus.PENDING,
+            business_name=profile.display_name,
             service_id=payload.service_id,
             service_name="Appointment",
             provider_id=payload.provider_id or uuid.uuid4(),
@@ -318,6 +379,8 @@ def decoy_receipt(
             deposit_minor=0,
             currency=profile.currency,
             cancel_cutoff_hours=profile.cancel_cutoff_hours,
+            deposit_non_refundable=profile.deposit_non_refundable,
+            booking_policy=profile.booking_policy,
             can_cancel=False,
             contact=BookingBusinessContact(**service.business_contact(profile)),
             account_invite_url=account_signup_url(profile.public_slug),
@@ -371,11 +434,18 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         customer_phone=managed.contact.phone,
         notes=managed.booking.notes,
         account_invite_url=account_invite_for(profile, managed.contact),
-        duration_min=managed.service.duration_min,
+        duration_min=total_minutes(managed),
+        add_ons=tuple(line.name for line in managed.add_ons),
         reference=str(managed.booking.id).replace("-", "")[:8].upper(),
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
+        booking_policy=profile.booking_policy,
+        deposit_non_refundable=managed.booking.deposit_non_refundable,
+        booking_confirmed=managed.booking.status == BookingStatus.CONFIRMED.value,
         business_email=profile.contact_email,
         business_phone=profile.contact_phone,
+        accent=profile.brand_color,
+        logo=emails.business_logo(profile.display_name, profile.logo_file_id),
+        payment_line=deposit_payments.payment_line(managed.booking),
     )
 
 
@@ -439,6 +509,8 @@ async def _candidate_providers(
     starts_at: datetime,
     now: datetime,
     exclude_booking_id: uuid.UUID | None = None,
+    add_on_ids: Sequence[uuid.UUID] = (),
+    extra_minutes: int = 0,
 ) -> list[uuid.UUID]:
     """Providers whose open slots include exactly ``starts_at``; availability is
     recomputed inside the booking transaction, never trusted from the client."""
@@ -452,6 +524,8 @@ async def _candidate_providers(
         last_day=day,
         now=now,
         exclude_booking_id=exclude_booking_id,
+        add_on_ids=add_on_ids,
+        extra_minutes=extra_minutes,
     )
     for slot in slots:
         if slot.starts_at == starts_at:
@@ -521,16 +595,44 @@ async def _upsert_customer(
     return customer, contact
 
 
-async def deposit_due(
-    session: AsyncSession, profile: BookingProfile, service_id: uuid.UUID
-) -> int:
-    """What a booking of this service would pay at booking now (0 = nothing)."""
+@dataclass(frozen=True)
+class PricedBooking:
+    """A bookable service priced with the add-ons a customer chose."""
+
+    service: Service
+    add_ons: list[Service]
+    price_minor: int
+    due_minor: int
+
+    @property
+    def email_code_required(self) -> bool:
+        """An anonymous booker must pass the emailed code whenever something is
+        due; a signed-in booker whose email is verified or admin-activated may skip
+        it (``email_code.is_exempt``), so this is the anonymous answer."""
+        return self.due_minor > 0
+
+
+async def price_booking(
+    session: AsyncSession,
+    profile: BookingProfile,
+    *,
+    service_id: uuid.UUID,
+    add_on_ids: Sequence[uuid.UUID],
+) -> PricedBooking:
+    """The one pricing path for a booking: the service and add-ons are checked on
+    the server, and ``due_minor`` is what the booking charges at booking (0 =
+    nothing). Create, the emailed-code request and availability all call it."""
     svc = await service.get_service(
         session, service_id, organisation_id=profile.organisation_id
     )
-    if not svc.active:
+    if not svc.active or svc.is_add_on:
         raise BookingNotFoundError("Service")
-    return await deposit_payments.amount_due(session, profile, svc)
+    chosen = await service.resolve_add_ons(session, profile, svc, add_on_ids)
+    price_minor = svc.price_minor + sum(a.price_minor for a in chosen)
+    due = await deposit_payments.amount_due(
+        session, profile, svc, price_minor=price_minor
+    )
+    return PricedBooking(svc, chosen, price_minor, due)
 
 
 def _binding(
@@ -551,7 +653,13 @@ async def request_email_code(
     """Email a code when a deposit is due and the caller is not exempt; else do
     nothing (bookings without a deposit have no step)."""
     email = str(payload.customer_email)
-    if await deposit_due(session, profile, payload.service_id) <= 0:
+    priced = await price_booking(
+        session,
+        profile,
+        service_id=payload.service_id,
+        add_on_ids=payload.add_on_ids,
+    )
+    if not priced.email_code_required:
         return BookingEmailCodeSent(required=False)
     if await email_code.is_exempt(session, payer, email):
         return BookingEmailCodeSent(required=False)
@@ -596,12 +704,13 @@ async def create_booking(
     # A signed-in payer must not be recorded as the actor of the business's contact
     # history: readers see the actor's name (ADR-0058, account UUID never shared).
     audit_service.set_actor(session, None)
-    svc = await service.get_service(
-        session, payload.service_id, organisation_id=profile.organisation_id
+    priced = await price_booking(
+        session,
+        profile,
+        service_id=payload.service_id,
+        add_on_ids=payload.add_on_ids,
     )
-    if not svc.active:
-        raise BookingNotFoundError("Service")
-    deposit = await deposit_payments.amount_due(session, profile, svc)
+    svc, chosen, deposit = priced.service, priced.add_ons, priced.due_minor
     use = email_code.ProofUse(None)
     if deposit > 0:
         email = str(payload.customer_email)
@@ -614,12 +723,56 @@ async def create_booking(
         )
     try:
         return await _create_booking(
-            session, profile, payload, svc, deposit, payer=payer, now=now
+            session, profile, payload, svc, deposit, chosen, payer=payer, now=now
         )
     except BaseException:
         # The proof is single use, but a booking that never happened must not burn it.
         await use.release()
         raise
+
+
+#: Statuses that count towards a customer's open-request cap (future bookings only).
+OPEN_CAP_STATUSES = tuple(
+    status.value
+    for status in (
+        BookingStatus.PENDING_PAYMENT,
+        BookingStatus.PENDING,
+        BookingStatus.CONFIRMED,
+    )
+)
+
+
+#: The same text whatever the count, so a refusal does not reveal that bookings exist
+#: for an address (security review, MEDIUM-2). The cap limits careless repeat bookings;
+#: it is not abuse protection (the rate limit and Turnstile are).
+OPEN_CAP_MESSAGE = (
+    "We can't take another online booking for this email right now. "
+    "Please contact the business to book."
+)
+
+
+async def _require_under_open_cap(
+    session: AsyncSession,
+    profile: BookingProfile,
+    customer: Customer,
+    now: datetime,
+) -> None:
+    """Refuse a public booking when the customer already holds the business's
+    ``max_open_per_customer`` future bookings. The customer row is locked first, so
+    two racing requests from one person are counted one after the other."""
+    await session.execute(
+        select(Customer.id).where(Customer.id == customer.id).with_for_update()
+    )
+    open_count = await session.scalar(
+        select(func.count(Booking.id)).where(
+            Booking.customer_id == customer.id,
+            Booking.organisation_id == profile.organisation_id,
+            Booking.status.in_(OPEN_CAP_STATUSES),
+            Booking.starts_at > now,
+        )
+    )
+    if (open_count or 0) >= profile.max_open_per_customer:
+        raise BookingConflictError(OPEN_CAP_MESSAGE)
 
 
 async def _create_booking(
@@ -628,6 +781,7 @@ async def _create_booking(
     payload: BookingPublicCreate,
     svc: Service,
     deposit: int,
+    chosen: list[Service],
     *,
     payer: User | None,
     now: datetime | None,
@@ -641,11 +795,13 @@ async def _create_booking(
         provider_id=payload.provider_id,
         starts_at=starts_at,
         now=moment,
+        add_on_ids=[a.id for a in chosen],
     )
     if not candidates:
         raise BookingConflictError(SLOT_TAKEN)
 
     customer, contact = await _upsert_customer(session, profile, payload, moment)
+    await _require_under_open_cap(session, profile, customer, moment)
     if payer is not None:
         # Ties the organisation's contact to the account that booked with it,
         # only on a verified email match (contacts owns the rule).
@@ -655,8 +811,16 @@ async def _create_booking(
             booking_email=str(payload.customer_email),
             user_id=payer.id,
         )
+        # The name typed on the booking is the name the booking, the confirmation
+        # and My bookings show. A stored name would otherwise win over it.
+        contacts_service.take_name_from_linked_account(
+            contact, name=_single_line(payload.customer_name), user_id=payer.id
+        )
     token, token_hash = new_manage_token()
-    ends_at = starts_at + timedelta(minutes=svc.duration_min)
+    ends_at = starts_at + timedelta(
+        minutes=svc.duration_min + sum(a.duration_min for a in chosen)
+    )
+    price_minor = svc.price_minor + sum(a.price_minor for a in chosen)
     if deposit > 0:
         # The exclusion constraint already holds the slot while the deposit is
         # paid; the expiry sweeper releases it if it is not.
@@ -666,6 +830,7 @@ async def _create_booking(
     else:
         initial = BookingStatus.CONFIRMED
     booking: Booking | None = None
+    lines: list[BookingAddOn] = []
     for provider_id in candidates:
         attempt = Booking(
             organisation_id=profile.organisation_id,
@@ -678,8 +843,9 @@ async def _create_booking(
             blocked_until=ends_at + timedelta(minutes=svc.buffer_after_min),
             status=initial.value,
             source=BookingSource.ONLINE.value,
-            price_minor=svc.price_minor,
+            price_minor=price_minor,
             deposit_minor=deposit,
+            deposit_non_refundable=profile.deposit_non_refundable,
             currency=profile.currency,
             notes=payload.notes.strip() if payload.notes else None,
             manage_token_hash=token_hash,
@@ -690,11 +856,26 @@ async def _create_booking(
             async with session.begin_nested():
                 session.add(attempt)
                 await session.flush()
+                # The lines need the booking's id, which the flush above assigned.
+                attempt_lines = [
+                    BookingAddOn(
+                        booking_id=attempt.id,
+                        organisation_id=profile.organisation_id,
+                        service_id=add_on_service.id,
+                        name=add_on_service.name,
+                        duration_min=add_on_service.duration_min,
+                        price_minor=add_on_service.price_minor,
+                    )
+                    for add_on_service in chosen
+                ]
+                session.add_all(attempt_lines)
+                await session.flush()
         except DBAPIError as error:
             if not service.is_overlap_violation(error):
                 raise
             continue
         booking = attempt
+        lines = attempt_lines
         break
     if booking is None:
         raise BookingConflictError(SLOT_TAKEN)
@@ -705,7 +886,7 @@ async def _create_booking(
     )
     provider = await session.get(Provider, booking.provider_id)
     assert provider is not None
-    managed = Managed(booking, profile, svc, provider, customer, contact)
+    managed = Managed(booking, profile, svc, provider, customer, contact, tuple(lines))
     checkout_url: str | None = None
     if initial is BookingStatus.PENDING_PAYMENT:
         # No emails yet: they are queued when the deposit is paid
@@ -775,7 +956,8 @@ async def load_by_token(
         raise BookingNotFoundError("Booking")
     booking, profile, svc, provider, customer, contact = row
     await service.require_bookings_entitlement(session, profile, what="Booking")
-    return Managed(booking, profile, svc, provider, customer, contact)
+    lines = await add_on_lines(session, booking.id)
+    return Managed(booking, profile, svc, provider, customer, contact, lines)
 
 
 async def load_by_id(
@@ -802,7 +984,8 @@ async def load_by_id(
     if row is None:
         raise BookingNotFoundError("Booking")
     booking, profile, svc, provider, customer, contact = row
-    return Managed(booking, profile, svc, provider, customer, contact)
+    lines = await add_on_lines(session, booking.id)
+    return Managed(booking, profile, svc, provider, customer, contact, lines)
 
 
 async def get_booking(session: AsyncSession, token: str) -> BookingPublicDetail:
@@ -894,7 +1077,10 @@ async def move_booking(
     The ``booking_no_overlap`` constraint is the last word: a clash (or the
     deadlock two racing moves can end in) is a 409 and leaves the booking as it
     was. The caller records the event and queues the mail."""
-    ends_at = starts_at + timedelta(minutes=svc.duration_min)
+    # The booking keeps its add-ons, so its length is the main service's plus
+    # the add-on lines it already has (stored at booking time).
+    extra = await service.booking_add_on_minutes(session, booking.id)
+    ends_at = starts_at + timedelta(minutes=svc.duration_min + extra)
     try:
         async with session.begin_nested():
             booking.starts_at = starts_at
@@ -932,6 +1118,7 @@ async def reschedule_booking(
         starts_at=starts_at,
         now=moment,
         exclude_booking_id=booking.id,
+        extra_minutes=sum(a.duration_min for a in managed.add_ons),
     )
     if booking.provider_id not in open_providers:
         raise BookingConflictError(SLOT_TAKEN)
@@ -975,6 +1162,14 @@ async def reschedule_booking(
     return await full_detail(session, managed, moment)
 
 
+def _ics_description(managed: Managed) -> str:
+    text = f"With {managed.provider.name}."
+    if managed.add_ons:
+        names = ", ".join(line.name for line in managed.add_ons)
+        text += f" Add-ons: {names}."
+    return text
+
+
 async def booking_ics(
     session: AsyncSession, token: str, *, now: datetime | None = None
 ) -> str:
@@ -996,7 +1191,7 @@ async def booking_ics(
         starts_at=booking.starts_at,
         ends_at=booking.ends_at,
         summary=f"{managed.service.name} at {managed.profile.display_name}",
-        description=f"With {managed.provider.name}.",
+        description=_ics_description(managed),
         stamp=now or utc_now(),
         status=ics_status,
         sequence=max((changes or 1) - 1, 0),

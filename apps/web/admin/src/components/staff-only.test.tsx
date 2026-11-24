@@ -5,7 +5,7 @@ import { StatusCard } from "@/components/status-card";
 
 const EMAIL_TEXT = /resident@example\.com/u;
 
-it("refuses non-staff clearly and offers only sign-out", () => {
+it("refuses non-staff, shows the signed-in account and offers the way out", () => {
   render(<StaffOnly email="resident@example.com" />);
   expect(
     screen.getByRole("heading", { name: "Barrels staff only" })
@@ -15,11 +15,26 @@ it("refuses non-staff clearly and offers only sign-out", () => {
     selector: "span",
   });
   expect(address.parentElement?.textContent).toBe(
-    "This console is for Barrels Grenada staff. Your account (resident@example.com) does not have access."
+    "You are signed in as resident@example.com, and that account does not have access."
   );
+  expect(screen.getByRole("heading", { name: "Who to ask" })).toBeTruthy();
   expect(screen.queryByRole("link", { name: "Organisations" })).toBeNull();
   expect(
-    screen.getByRole("button", { name: "Sign out of this console" })
+    screen
+      .getByRole("button", { name: "Sign out of this console" })
+      .getAttribute("type")
+  ).toBe("submit");
+  expect(
+    screen
+      .getByRole("link", { name: "Go to your account" })
+      .getAttribute("href")
+  ).toBeTruthy();
+});
+
+it("still explains the refusal when the email is not known", () => {
+  render(<StaffOnly />);
+  expect(
+    screen.getByText("The account you are signed in with does not have access.")
   ).toBeTruthy();
 });
 

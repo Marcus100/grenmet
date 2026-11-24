@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NeedsAccess } from "@/components/access/needs-access";
 import { JanitorHeader, SiteSwitcher } from "@/components/janitorial/portal";
 import { ShiftBoard } from "@/components/janitorial/shift-board";
 import {
@@ -42,7 +43,14 @@ export default async function JanitorShiftsPage({
   const days = weekDays(start);
   // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
   const access = await getJanitorialAccess();
-  if (!access.canView) notFound();
+  if (!access.canView) {
+    return (
+      <NeedsAccess
+        ask="Ask a Janitorial administrator for a janitorial role. Field staff use the janitor app."
+        module="Janitor"
+      />
+    );
+  }
   const [board, catalogue, people] = await Promise.all([
     getJanitorialShiftBoard(site, start, addDays(start, 6)),
     getJanitorialCatalogue(site),

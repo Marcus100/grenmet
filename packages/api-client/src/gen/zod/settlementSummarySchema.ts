@@ -15,6 +15,7 @@ export const settlementSummarySchema = z.object({
   claimed: z.int(),
   admitted: z.int(),
   cancelled: z.int(),
+  refunded: z.int(),
   cash_collected_minor: z.int(),
   cash_expected_minor: z.int(),
   cash_counted_minor: z.int(),

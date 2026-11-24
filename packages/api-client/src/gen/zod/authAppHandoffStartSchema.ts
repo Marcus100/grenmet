@@ -42,6 +42,10 @@ export const authAppHandoffStartStatus429Schema = z.union([
   errorMessageSchema,
 ]);
 
+export const authAppHandoffStartStatus503Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
+
 export const authAppHandoffStartResponseSchema =
   authAppHandoffStartStatus200Schema;
 
@@ -52,6 +56,7 @@ export const authAppHandoffStartErrorSchema = z.union([
   authAppHandoffStartStatus409Schema,
   authAppHandoffStartStatus422Schema,
   authAppHandoffStartStatus429Schema,
+  authAppHandoffStartStatus503Schema,
 ]);
 
 export const authAppHandoffStartBodySchema = appHandoffStartSchema;

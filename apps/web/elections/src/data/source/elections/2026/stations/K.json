@@ -1,0 +1,282 @@
+[
+  [
+    "K01",
+    null,
+    "Anglican High School",
+    204,
+    null,
+    null,
+    {
+      "NDC": 68,
+      "NNP": 43,
+      "DPM": 2,
+      "GULP": 0
+    }
+  ],
+  [
+    "K02",
+    "a",
+    "Springs Open Bible Church",
+    206,
+    null,
+    null,
+    {
+      "NDC": 81,
+      "NNP": 48,
+      "DPM": 2,
+      "GULP": 0
+    }
+  ],
+  [
+    "K02",
+    "b",
+    "Springs Open Bible Church",
+    203,
+    null,
+    null,
+    {
+      "NDC": 75,
+      "NNP": 53,
+      "DPM": 6,
+      "GULP": 0
+    }
+  ],
+  [
+    "K03",
+    "a",
+    "Calivigny Community Centre",
+    225,
+    null,
+    null,
+    {
+      "NDC": 108,
+      "NNP": 34,
+      "DPM": 1,
+      "GULP": 0
+    }
+  ],
+  [
+    "K04",
+    "a",
+    "St. Paul's Anglican Church",
+    324,
+    null,
+    null,
+    {
+      "NDC": 160,
+      "NNP": 48,
+      "DPM": 1,
+      "GULP": 0
+    }
+  ],
+  [
+    "K04",
+    "b",
+    "St. Paul's Anglican Church",
+    321,
+    null,
+    null,
+    {
+      "NDC": 140,
+      "NNP": 53,
+      "DPM": 7,
+      "GULP": 0
+    }
+  ],
+  [
+    "K04",
+    "c",
+    "St. Paul's Anglican Church",
+    305,
+    null,
+    null,
+    {
+      "NDC": 122,
+      "NNP": 69,
+      "DPM": 8,
+      "GULP": 2
+    }
+  ],
+  [
+    "K05",
+    null,
+    "Bethel Methodist Church Hall (Police Included)",
+    419,
+    null,
+    null,
+    {
+      "NDC": 189,
+      "NNP": 72,
+      "DPM": 3,
+      "GULP": 0
+    }
+  ],
+  [
+    "K06",
+    null,
+    "Mr. Stephen Gellineau's Shop, Hope Vale",
+    291,
+    null,
+    null,
+    {
+      "NDC": 148,
+      "NNP": 45,
+      "DPM": 3,
+      "GULP": 0
+    }
+  ],
+  [
+    "K07",
+    "a",
+    "La Borie Community Centre",
+    358,
+    null,
+    null,
+    {
+      "NDC": 135,
+      "NNP": 85,
+      "DPM": 3,
+      "GULP": 0
+    }
+  ],
+  [
+    "K07",
+    "b",
+    "La Borie Community Centre",
+    365,
+    null,
+    null,
+    {
+      "NDC": 138,
+      "NNP": 80,
+      "DPM": 4,
+      "GULP": 0
+    }
+  ],
+  [
+    "K07",
+    "c",
+    "La Borie Community Centre",
+    347,
+    null,
+    null,
+    {
+      "NDC": 148,
+      "NNP": 77,
+      "DPM": 6,
+      "GULP": 0
+    }
+  ],
+  [
+    "K08",
+    "a",
+    "Marian Multipurpose Centre",
+    296,
+    null,
+    null,
+    {
+      "NDC": 120,
+      "NNP": 74,
+      "DPM": 2,
+      "GULP": 1
+    }
+  ],
+  [
+    "K08",
+    "b",
+    "Marian Multipurpose Centre",
+    291,
+    null,
+    null,
+    {
+      "NDC": 115,
+      "NNP": 60,
+      "GULP": 0,
+      "DPM": 0
+    }
+  ],
+  [
+    "K08",
+    "c",
+    "Marian Multipurpose Centre",
+    290,
+    null,
+    null,
+    {
+      "NDC": 119,
+      "NNP": 57,
+      "DPM": 2,
+      "GULP": 0
+    }
+  ],
+  [
+    "K09",
+    null,
+    "Old NADMA Building, Morne Jaloux",
+    346,
+    null,
+    null,
+    {
+      "NDC": 139,
+      "NNP": 67,
+      "DPM": 4,
+      "GULP": 1
+    }
+  ],
+  [
+    "K10",
+    "a",
+    "Morne Jaloux R.C. School",
+    299,
+    null,
+    null,
+    {
+      "NDC": 110,
+      "NNP": 67,
+      "GULP": 2,
+      "DPM": 2
+    }
+  ],
+  [
+    "K10",
+    "b",
+    "Morne Jaloux R.C. School",
+    275,
+    null,
+    null,
+    {
+      "NDC": 122,
+      "NNP": 67,
+      "DPM": 3,
+      "GULP": 1
+    }
+  ],
+  [
+    "K10",
+    "c",
+    "Morne Jaloux R.C. School",
+    281,
+    null,
+    null,
+    {
+      "NDC": 120,
+      "NNP": 63,
+      "GULP": 3,
+      "DPM": 2
+    }
+  ],
+  [
+    "K03",
+    "b",
+    "Calivigny Community Centre",
+    217,
+    null,
+    null,
+    {
+      "NDC": 107,
+      "NNP": 26,
+      "DPM": 5,
+      "GULP": 1
+    }
+  ]
+]

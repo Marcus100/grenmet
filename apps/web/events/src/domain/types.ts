@@ -677,6 +677,8 @@ export interface SettlementSummary {
   readonly issued: number;
   readonly issues: number;
   readonly listingId: string;
+  /** Tickets refunded; already part of `issued`. */
+  readonly refunded: number;
   readonly startsAt: string;
   readonly status: ManagedListing["status"];
   readonly title: string;

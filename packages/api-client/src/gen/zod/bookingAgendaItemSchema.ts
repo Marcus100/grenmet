@@ -25,4 +25,5 @@ export const bookingAgendaItemSchema = z.object({
     '`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.'
   ),
   currency: z.string(),
+  add_on_names: z.array(z.string()).optional(),
 });

@@ -82,6 +82,19 @@ describe("forecast presentation", () => {
     expect(result.todayIssues[1]?.day.summary).toBe("LOCAL TEST — Fair");
     expect(weatherFromForecast(selection()).todayIssues).toEqual([]);
   });
+  it("keeps the latest issue time even when today has no issue yet", () => {
+    const data = selection();
+    const [today] = data.periods;
+    if (!today) {
+      throw new Error("expected a forecast period");
+    }
+    today.source = null;
+    expect(weatherFromForecast(data).lastIssuedAt).toBe("2026-09-14T22:00:00Z");
+    for (const period of data.periods) {
+      period.source = null;
+    }
+    expect(weatherFromForecast(data).lastIssuedAt).toBeNull();
+  });
   it("distinguishes missing publication from a service outage", () => {
     const data = selection();
     const [period] = data.periods;

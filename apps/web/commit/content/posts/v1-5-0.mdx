@@ -1,0 +1,40 @@
+---
+title: An organiser dashboard for Printix, and a tighter platform
+summary: Version 1.5.0 gives Printix organisers a live event dashboard and staff onboarding, hardens sign-in and the API, and moves personal and client material out of the public repository.
+date: 2026-11-18
+release: 1.5.0
+---
+
+Version 1.5.0 carries the work merged after v1.4.0. The headline is Printix, the
+ticket scanner, but most of the changes make the platform safer to run.
+
+### Printix
+
+- **Organiser dashboard:** each event now has a live view of arrivals,
+  figures per gate (with a warning when a gate's phone goes quiet), refusals,
+  offline syncs and the latest scans. After the event, organisers get a report
+  and a scan list to download. Barcodes are never shown.
+- **Staff onboarding:** organisers and gate leads are added from the admin
+  console. A person's sign-in ends as soon as their last Printix access ends.
+
+### Security and reliability
+
+- **A default API rate limit** of 1,000 requests a minute per address. For now
+  it only logs, so we can see real traffic before enforcing it.
+- **Lockout counts every wrong code:** wrong authenticator codes now count
+  toward the sign-in lockout on every route.
+- **Content Security Policy** in report-only mode on eight more apps.
+- **Change your sign-in email** from the security page.
+- **Weather routes** now refuse bad input instead of failing.
+
+### Bookings and admin
+
+- Clearer payment wording on the booking page, the manage page, Studio, My
+  bookings and the payments ledger.
+- A sidebar and overview tiles in the admin console.
+
+### Tests and housekeeping
+
+- Browser journeys now run on every pull request, along with a dead-code check.
+- We moved personal and client material out of the public repository. We also
+  removed staff names and phone numbers from a public emergency contacts page.

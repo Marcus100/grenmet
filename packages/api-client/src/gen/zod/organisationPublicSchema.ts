@@ -9,4 +9,5 @@ export const organisationPublicSchema = z.object({
   id: z.string(),
   code: z.string(),
   name: z.string(),
+  slug: z.union([z.string(), z.null()]).optional(),
 });

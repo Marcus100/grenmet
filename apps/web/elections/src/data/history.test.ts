@@ -22,6 +22,7 @@ function canonical(value: unknown): unknown {
 // Fingerprints captured before splitting the checked archive. Update only for an
 // intentional, independently reviewed correction—not to make a failed migration pass.
 // Register/validation updated for the dated October 2026 public PEO import.
+// Validation updated again for the 2026 provisional results (two new reconciliation checks).
 const ORIGINAL = {
   results: "503d022d781c539302a30e904ea52f92490eeb494870f60b67225dd84afb8f10",
   referendum:
@@ -30,9 +31,36 @@ const ORIGINAL = {
   register: "ba896207bed4ad5352aba77039a2d227925635a90de7fb1ac03451d8848e7329",
   features: "3fd034dc93d77157734e0b2fb167edb1d21759d9457220199cba4dbe960ff0e4",
   validation:
-    "ebcf3a9336893631cf57d98141fccef9796ab6e4b45cacd1918f01e93825bb8d",
+    "09d5bb837dee933e93ca0c28f4042212255f23b6147226f5023da84d715cd4de",
 };
-const archive = { results, referendum, geo, register, features, validation };
+/**
+ * The 2026 provisional results are added to the archive; the fingerprints of
+ * the results and features prove every earlier record is unchanged by
+ * leaving 2026 out of the comparison.
+ */
+function dropYear(value: unknown): unknown {
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter(
+      ([key]) => key !== "2026"
+    )
+  );
+}
+function without2026(value: typeof results): typeof results {
+  return {
+    ...value,
+    results: dropYear(value.results),
+    national: dropYear(value.national),
+    stations: dropYear(value.stations),
+  } as typeof results;
+}
+const archive = {
+  results: without2026(results),
+  referendum,
+  geo,
+  register,
+  features: dropYear(features),
+  validation,
+};
 
 describe("historical archive", () => {
   it.each(Object.keys(ORIGINAL) as (keyof typeof ORIGINAL)[])(

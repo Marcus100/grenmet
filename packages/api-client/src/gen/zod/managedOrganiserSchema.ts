@@ -15,6 +15,7 @@ export const managedOrganiserSchema = z.object({
   verified: z.boolean(),
   organisation_id: z.union([z.string(), z.null()]).optional(),
   logo_file_id: z.union([z.uuid(), z.null()]).optional(),
+  brand_color: z.union([z.string(), z.null()]).optional(),
   follower_count: z.int(),
   viewer_following: z.union([z.boolean(), z.null()]).optional(),
   organisers: z.array(organiserOptionSchema),

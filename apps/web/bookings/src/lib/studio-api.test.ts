@@ -20,6 +20,7 @@ import {
   findOrganisation,
   getAgenda,
   getBooking,
+  getBusinessProfile,
   getBusinessTimezone,
   listMyOrganisations,
   markCompleted,
@@ -123,6 +124,28 @@ describe("studio API reads", () => {
   it("falls back to the default zone when there is no profile yet", async () => {
     stubFetch(404, { detail: "No profile" });
     expect(await getBusinessTimezone("tok", ORG)).toBe("America/Grenada");
+  });
+
+  it("returns the public booking address with the profile, not the studio slug", async () => {
+    stubFetch(200, {
+      currency: "XCD",
+      public_slug: "babydoll-beauty-bar",
+      timezone: "America/Grenada",
+    });
+    expect(await getBusinessProfile("tok", ORG)).toEqual({
+      currency: "XCD",
+      publicSlug: "babydoll-beauty-bar",
+      timezone: "America/Grenada",
+    });
+  });
+
+  it("has no public address when there is no profile yet", async () => {
+    stubFetch(404, { detail: "No profile" });
+    expect(await getBusinessProfile("tok", ORG)).toEqual({
+      currency: "XCD",
+      publicSlug: null,
+      timezone: "America/Grenada",
+    });
   });
 
   it("rethrows other timezone read failures", async () => {

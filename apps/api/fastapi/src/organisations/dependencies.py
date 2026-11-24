@@ -236,6 +236,42 @@ async def get_events_org_context(
         yield context
 
 
+def require_org_role_session(
+    minimum: MembershipRole, *, session_app: str
+) -> Callable[..., AsyncGenerator[OrgContext]]:
+    """``require_org_role`` for a route that accepts an account token or the
+    ``session_app`` token (ADR-0065 studio), with NO entitlement check.
+
+    Use it only where the organisation may not yet be entitled to the app: buying
+    the app is how it becomes entitled, so ``require_org_app`` would lock out the
+    very route that starts the purchase. Membership and role are checked as usual;
+    any other app's token stays 401 (``resolve_org_caller``)."""
+
+    async def dependency(
+        session: SessionDep,
+        token: TokenDep,
+        organisation: Annotated[
+            str | None,
+            Header(
+                alias=ORGANISATION_HEADER,
+                description=(
+                    "Id of the organisation the request acts for. The caller must "
+                    "be an active member, signed in with an account or the "
+                    f"{session_app} app."
+                ),
+            ),
+        ] = None,
+    ) -> AsyncGenerator[OrgContext]:
+        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+        user, _ = await resolve_org_caller(session, credentials, session_app)
+        context = await resolve_org_context(session, user, organisation)
+        context.require_role(minimum)
+        with bound_organisation(context.organisation.id):
+            yield context
+
+    return dependency
+
+
 def require_org_role(
     minimum: MembershipRole,
 ) -> Callable[..., Awaitable[OrgContext]]:

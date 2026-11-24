@@ -9,7 +9,11 @@ import type {
   EmailCodeSent,
   EmailProof,
 } from "../lib/booking-types";
-import { BookingFlow } from "./booking-flow";
+import { BookingFlow, type SignedInVisitor } from "./booking-flow";
+
+const DEPOSIT_LASHES = /Deposit lashes/u;
+const HOLD_LINE =
+  /Your time is held until .* It is released if the payment has not arrived by then\./u;
 
 const loadSlots = vi.fn<BookingFlowActions["loadSlots"]>();
 const submitBooking = vi.fn<BookingFlowActions["submitBooking"]>();
@@ -53,6 +57,8 @@ const storefront: BookingStorefront = {
   cancel_cutoff_hours: 24,
   contact: NO_CONTACT,
   providers: [],
+  brand_color: null,
+  logo_url: null,
   services: [
     {
       id: DEPOSIT_ID,
@@ -515,5 +521,124 @@ describe("BookingFlow emailed code and Turnstile", () => {
 
     expect(await screen.findByText(STILL_LOADING)).toBeVisible();
     expect(requestEmailCode).not.toHaveBeenCalled();
+  });
+});
+
+function renderSignedInFlow(signedIn: SignedInVisitor) {
+  return render(
+    <BookingFlow
+      actions={actions}
+      managePath="/booking"
+      signedIn={signedIn}
+      storefront={storefront}
+      studioName="Test Studio"
+      turnstileSiteKey=""
+    />
+  );
+}
+
+const SIGNED_IN_ADA: SignedInVisitor = {
+  email: EMAIL,
+  name: "Ada Lovelace",
+  phone: "",
+  signOutAction: "/auth/logout",
+};
+
+async function chooseDepositTime(user: User) {
+  await user.click(screen.getByRole("radio", { name: DEPOSIT_LASHES }));
+  await user.click(await screen.findByRole("radio", { name: "9:30 am" }));
+}
+
+describe("BookingFlow signed-in visitor on a deposit service", () => {
+  it("asks for no code and submits at once when the typed email is the account's own", async () => {
+    const user = userEvent.setup();
+    renderSignedInFlow(SIGNED_IN_ADA);
+    await chooseDepositTime(user);
+
+    expect(
+      screen.queryByRole("button", { name: SEND })
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: BOOK }));
+
+    expect(requestEmailCode).not.toHaveBeenCalled();
+    expect(submitBooking).toHaveBeenCalledTimes(1);
+    expect(submitBooking.mock.calls[0]?.[0]).toMatchObject({
+      email: EMAIL,
+      name: "Ada Lovelace",
+    });
+    expect(submitBooking.mock.calls[0]?.[0]).not.toHaveProperty("emailProof");
+  });
+
+  it("treats the account's email as its own whatever the letter case or spaces", async () => {
+    const user = userEvent.setup();
+    renderSignedInFlow({ ...SIGNED_IN_ADA, email: "Ada@Example.com" });
+    await chooseDepositTime(user);
+    const email = screen.getByLabelText("Email");
+    await user.clear(email);
+    await user.type(email, "  ada@example.com ");
+    expect(screen.getByRole("button", { name: BOOK })).toBeVisible();
+  });
+
+  it("still asks for a code for any other email", async () => {
+    const user = userEvent.setup();
+    renderSignedInFlow(SIGNED_IN_ADA);
+    await chooseDepositTime(user);
+    const email = screen.getByLabelText("Email");
+    await user.clear(email);
+    await user.type(email, "someone.else@example.com");
+    await user.click(screen.getByRole("button", { name: SEND }));
+    expect(requestEmailCode).toHaveBeenCalledWith(
+      expect.objectContaining({ email: "someone.else@example.com" })
+    );
+  });
+
+  it("falls back to the code step when the API does not accept the account as proof", async () => {
+    const user = userEvent.setup();
+    submitBooking.mockResolvedValueOnce({
+      ok: false,
+      code: "email_unverified",
+      message: "We need to confirm your email again.",
+    });
+    renderSignedInFlow(SIGNED_IN_ADA);
+    await chooseDepositTime(user);
+    await user.click(screen.getByRole("button", { name: BOOK }));
+    expect(await screen.findByText(CONFIRM_AGAIN)).toBeVisible();
+    expect(await screen.findByRole("button", { name: SEND })).toBeVisible();
+  });
+});
+
+describe("BookingFlow confirmation rules", () => {
+  it("states the cancellation rule after booking", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+    await fill(user, "Free brows");
+    await user.click(screen.getByRole("button", { name: BOOK }));
+    expect(
+      await screen.findByText(
+        "You can cancel or change this booking online until 24 hours before it starts."
+      )
+    ).toBeVisible();
+  });
+
+  it("says when the unpaid hold is released", async () => {
+    const user = userEvent.setup();
+    if (!booked.ok) {
+      throw new Error("the booked fixture is a success");
+    }
+    submitBooking.mockResolvedValueOnce({
+      ok: true,
+      data: {
+        manageToken: "tok",
+        booking: {
+          ...booked.data.booking,
+          status: "pending_payment",
+          hold_ends_at: "2027-01-05T13:00:00Z",
+        },
+      },
+    });
+    renderFlow();
+    await fill(user, "Free brows");
+    await user.click(screen.getByRole("button", { name: BOOK }));
+    expect(await screen.findByText(HOLD_LINE)).toBeVisible();
   });
 });

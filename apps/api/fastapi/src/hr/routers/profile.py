@@ -5,8 +5,13 @@ from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr import organisations
-from src.hr.organisations import organisation_choices
-from src.hr.schemas import OrganisationCreate, OrganisationPublic, OrganisationUpdate
+from src.hr.schemas import (
+    HrMeEmploymentPublic,
+    HrMeOrganisationPublic,
+    OrganisationCreate,
+    OrganisationPublic,
+    OrganisationUpdate,
+)
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 
@@ -39,10 +44,51 @@ router = APIRouter(prefix="/hr", tags=["hr"])
 async def read_organisations(
     session: SessionDep, current_user: CurrentUser
 ) -> list[OrganisationPublic]:
-    return [
-        OrganisationPublic.model_validate(org, from_attributes=True)
-        for org in await organisation_choices(session, current_user)
-    ]
+    choices = await organisations.organisation_choices(session, current_user)
+    return await organisations.public_organisations(session, choices)
+
+
+@router.get(
+    "/me/organisations",
+    response_model=list[HrMeOrganisationPublic],
+    status_code=status.HTTP_200_OK,
+    summary="List my HR organisations",
+    description=(
+        "Returns the signed-in staff member's organisations and effective scope "
+        "from live employment and role assignments."
+    ),
+    responses={**AUTHENTICATED},
+)
+async def read_my_organisations(
+    *, session: SessionDep, current_user: CurrentUser
+) -> list[HrMeOrganisationPublic]:
+    return await organisations.my_organisations(session, current_user)
+
+
+@router.get(
+    "/me/employment",
+    response_model=HrMeEmploymentPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Get my employment in an organisation",
+    description=(
+        "Returns the signed-in staff member's own live employment in one "
+        "organisation, with their leave balances. No permission is needed: only "
+        "the caller's own record is read, and no user ID is accepted."
+    ),
+    responses={
+        **AUTHENTICATED,
+        404: {
+            "model": ApiError,
+            "description": "No live employment for the caller in this organisation",
+        },
+    },
+)
+async def read_my_employment(
+    *, session: SessionDep, current_user: CurrentUser, organisation_id: str
+) -> HrMeEmploymentPublic:
+    return await service.my_employment(
+        session=session, current_user=current_user, organisation_id=organisation_id
+    )
 
 
 @router.post(
@@ -62,7 +108,7 @@ async def create_organisation(
     organisation = await organisations.create_organisation(
         session, current_user, organisation_id=body.id, code=body.code, name=body.name
     )
-    return OrganisationPublic.model_validate(organisation, from_attributes=True)
+    return (await organisations.public_organisations(session, [organisation]))[0]
 
 
 @router.patch(
@@ -86,7 +132,7 @@ async def rename_organisation(
     organisation = await organisations.rename_organisation(
         session, current_user, organisation_id, body.name
     )
-    return OrganisationPublic.model_validate(organisation, from_attributes=True)
+    return (await organisations.public_organisations(session, [organisation]))[0]
 
 
 @router.get(

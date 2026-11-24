@@ -11,11 +11,14 @@ vi.mock("@/app/studio/[orgSlug]/settings/actions", () => ({
   saveProfileAction: vi.fn(),
   saveProviderAction: vi.fn(),
   saveServiceAction: vi.fn(),
+  startLogoUploadAction: vi.fn(),
+  finishLogoUploadAction: vi.fn(),
 }));
 
 import { CONTACT_MESSAGES } from "@/lib/business-contact";
 import { ContactOptions } from "./contact-options";
 import { HoursForm } from "./hours-form";
+import { PaymentsForm } from "./payments-form";
 import { ProfileForm } from "./profile-form";
 import { ProviderForm } from "./provider-form";
 import { ServiceForm } from "./service-form";
@@ -65,7 +68,9 @@ const provider: BookingProviderPublic = {
   service_ids: [S1],
 };
 
-const DEPOSIT_CHOICE = /Deposit set on each service/u;
+const DEPOSIT_CHOICE = /each service's own deposit, or the deposit rule/u;
+const PRECEDENCE =
+  /Full price applies only when online card payments can charge it/u;
 const FULL_CHOICE = /Full price, paid online by card/u;
 const NOT_SWITCHED_ON = /not switched on yet/u;
 const TEST_MODE = /test mode: no real money moves/u;
@@ -101,15 +106,39 @@ describe("profile form", () => {
     expect(screen.getByLabelText(OPEN)).toBeChecked();
   });
 
-  it("defaults the payment choice to the service deposit and explains the card rail", () => {
+  it("keeps the payment choice and the contact options in their own sections", () => {
     render(
       <ProfileForm orgSlug="sea-salt" profile={null} suggestedName="Sea Salt" />
+    );
+    expect(
+      screen.queryByRole("group", { name: "Payment when booking" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: CONTACT_GROUP })
+    ).not.toBeInTheDocument();
+    expect(
+      document.querySelector<HTMLInputElement>('input[name="section"]')?.value
+    ).toBe("profile");
+  });
+});
+
+describe("payments form", () => {
+  it("defaults the payment choice to the service deposit and explains the card rail", () => {
+    render(
+      <PaymentsForm
+        cardPaymentsAvailable={false}
+        orgSlug="sea-salt"
+        profile={{} as BookingProfilePublic}
+      />
     );
     const group = screen.getByRole("group", { name: "Payment when booking" });
     expect(
       within(group).getByRole("radio", { name: DEPOSIT_CHOICE })
     ).toBeChecked();
     expect(group).toHaveAccessibleDescription(NOT_SWITCHED_ON);
+    expect(
+      document.querySelector<HTMLInputElement>('input[name="section"]')?.value
+    ).toBe("payments");
   });
 
   it("shows a saved full-price choice and the test-mode note", () => {
@@ -123,11 +152,10 @@ describe("profile form", () => {
       payment_at_booking: "full_price",
     } as BookingProfilePublic;
     render(
-      <ProfileForm
+      <PaymentsForm
         cardPaymentsAvailable
         orgSlug="sea-salt"
         profile={profile}
-        suggestedName="x"
       />
     );
     expect(screen.getByRole("radio", { name: FULL_CHOICE })).toBeChecked();
@@ -136,10 +164,39 @@ describe("profile form", () => {
     ).toHaveAccessibleDescription(TEST_MODE);
   });
 
-  it("has four empty, optional contact options for a new profile", () => {
+  it("says which payment wins when full price and a deposit rule both apply", () => {
     render(
-      <ProfileForm orgSlug="sea-salt" profile={null} suggestedName="Sea Salt" />
+      <PaymentsForm
+        cardPaymentsAvailable
+        orgSlug="sea-salt"
+        profile={{ payment_at_booking: "full_price" } as BookingProfilePublic}
+      />
     );
+    const group = screen.getByRole("group", { name: "Payment when booking" });
+    expect(group).toHaveAccessibleDescription(PRECEDENCE);
+    expect(group).toHaveAccessibleDescription(TEST_MODE);
+  });
+
+  it("says a booking is paid at the salon while card payments are off", () => {
+    render(
+      <PaymentsForm
+        cardPaymentsAvailable={false}
+        orgSlug="sea-salt"
+        profile={{} as BookingProfilePublic}
+      />
+    );
+    expect(
+      screen.getByRole("group", { name: "Payment when booking" })
+    ).toHaveAccessibleDescription(NOT_SWITCHED_ON);
+    expect(screen.getByText(NOT_SWITCHED_ON)).toHaveTextContent(
+      "full price is not charged"
+    );
+  });
+});
+
+describe("contact options", () => {
+  it("has four empty, optional contact options for a new profile", () => {
+    render(<ContactOptions profile={null} />);
     const group = screen.getByRole("group", { name: CONTACT_GROUP });
     for (const label of [PHONE, WHATSAPP, INSTAGRAM, EMAIL]) {
       const input = within(group).getByLabelText(label);
@@ -162,9 +219,7 @@ describe("profile form", () => {
       contact_instagram: "seasaltspa",
       contact_email: "hello@seasalt.example",
     } as BookingProfilePublic;
-    render(
-      <ProfileForm orgSlug="sea-salt" profile={profile} suggestedName="x" />
-    );
+    render(<ContactOptions profile={profile} />);
     expect(screen.getByLabelText(PHONE)).toHaveValue("+14734401234");
     expect(screen.getByLabelText(WHATSAPP)).toHaveValue("+14734405678");
     expect(screen.getByLabelText(INSTAGRAM)).toHaveValue("@seasaltspa");

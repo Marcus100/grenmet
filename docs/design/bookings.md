@@ -115,11 +115,79 @@ checks each value against the shared globals.
 - Spacing follows the shared scale (`spacing.unit` 4 px). Section gaps are
   `section-y` (40 px) on public pages.
 
+## Booking page on phones (below `md`, 768 px)
+
+The booking form is one page from `md` up and exactly as before. Below `md`
+it shows one step at a time, because a business with many services made the
+service list three screens long.
+
+- **Steps:** 1 Service (and add-ons, when the chosen service has them), 2 Time
+  (the day and time picker), 3 Details (the form, emailed-code step, rules and
+  the Book button). Choosing a service moves to step 2, except when add-ons are
+  offered: then the person stays until they press Continue.
+- **Header:** "Step 2 of 3: Time" as a heading (focus moves to it on each step
+  change, and the page scrolls to it), three bars below it with
+  `aria-current="step"` on the current one (the finished ones and the current
+  one use the business accent), and a Back button of 44 px on steps 2 and 3.
+  Back keeps every choice and everything typed.
+- **Foot bar (steps 1 and 2):** sticks to the bottom of the screen with one
+  line of what is chosen so far (service, day and time, price, and "due now"
+  when the amount is known) and Continue. Continue stays `aria-disabled` with a
+  line saying what to choose first. Step 3 has no bar (the keyboard would
+  cover a field): the form's own Book button is the only Book button, and the
+  same one-line summary sits above the details.
+- **Errors:** a taken time or removed add-ons return the person to step 2 with
+  the message shown at the top as before.
+- **No script:** before JavaScript runs, every section shows (the steps apply
+  only once the script has run). Hidden steps are `display: none`.
+- **Deep link:** `/{business}?service=<service id>` preselects that service and
+  starts on step 2 (Back returns to step 1). An id that is malformed, or that
+  the business does not offer, is ignored.
+- **Motion** (CSS only; transform and opacity; curves `--ease-out` and
+  `--ease-in-out` in `booking.css`): the new step fades in and slides 24 px over
+  220 ms from the right going forward and from the left going Back (also after an
+  error return); the old step is simply removed. The bars fill with `scaleX`
+  over 250 ms. The foot bar's summary line cross-fades 150 ms. Presses scale to
+  0.97 over 140 ms (all widths). The confirmation draws a tick (400 ms) and the
+  heading rises in at 300 ms. Reduced motion: 150 ms fades only, no slide, bars
+  instant, no press scale.
+- Styles live in `apps/web/bookings/src/app/booking.css` (`.book-pane`,
+  `.book-bar`, `.book-dots`). No new colour token: the bars and button use the
+  business accent and the shared `--border` and `--background`.
+
+## Home page (`/`)
+
+A shop.app feel for every kind of business, not only beauty. The page sits on a
+soft grey ground (new token `--color-ground`, `#f4f5f8`, class `bg-ground`,
+declared in the app's `globals.css`); content is white cards on it with large
+radii (`rounded-3xl`, 20 px, for cards and the "Run a business?" panel;
+`rounded-2xl` for the logo tile; `rounded-full` for the search box, chips,
+buttons and navigation). No other new token: ink, `primary` and `background`
+are the shared ones.
+
+- Header: "Barrels Bookings" wordmark; on laptops (md and up) a pill navigation
+  (Home, For businesses). On phones a floating pill bar at the bottom (Home,
+  Search, For businesses), 48 px targets, padded for the safe area; the page
+  keeps bottom padding so it never covers the last line. Home carries
+  `aria-current="page"`. "My bookings" and "Account" are added once the account
+  app's address is a typed setting of this app.
+- Search is a pill GET form (`q`, hidden `category`) and works without script.
+- Categories come from the API, not a fixed list: white pill chips, the chosen
+  one navy; one scrolling row on phones, wrapped on laptops. Empty says "No
+  categories yet."
+- Businesses: the first as a large card with a "Book" pill (decoration inside
+  the one card link), the rest two across on phones and an auto-fill grid
+  (min 240 px) on laptops. The tile is a light tint of the brand colour with
+  ink text (so contrast holds for any colour), the logo when there is one, else
+  the first letter.
+
 ## Contrast (WCAG 2.1)
 
 ink/paper 17.74, secondary/paper 7.56, muted/paper 4.83, muted/surface 4.52,
 primary/paper 16.88, paper/primary 16.88, negative/paper 5.81, positive/paper
-4.81. Small text uses ink, secondary or muted only. `focus` (4.16 on paper) is
+4.81. On the home page ground (`#f4f5f8`): ink 16.4, primary 15.7; muted
+is 4.43 there, so muted text never sits directly on the ground (use ink, or a
+white card). Small text uses ink, secondary or muted only. `focus` (4.16 on paper) is
 for rings and text of 18 px or more. `sky` is decorative and never carries
 text on paper.
 

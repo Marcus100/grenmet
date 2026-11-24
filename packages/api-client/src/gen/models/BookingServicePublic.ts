@@ -20,4 +20,10 @@ export type BookingServicePublic = {
   deposit_minor: number;
   active: boolean;
   sort_order: number;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  is_add_on?: boolean;
+  add_on_categories?: string[] | null;
 };

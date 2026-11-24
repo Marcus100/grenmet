@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import AboutPage from "@/app/about/page";
@@ -11,13 +11,26 @@ import { BookBar } from "@/components/book-bar";
 import { SiteHeader } from "@/components/site-header";
 import {
   BOOKING_URL,
+  EMAIL,
   GOOGLE_REVIEW_URL,
+  PHONE,
   PORTFOLIO,
   SERVICE_MENU,
+  WHATSAPP_URL,
 } from "@/data/site";
 import { bookingLink, siteBookingLink } from "@/lib/book-link";
 
 const APPOINTMENT = /appointment/iu;
+const BOOK_ONLINE = /Book online/u;
+const WHATSAPP_LINK = /Message on WhatsApp/u;
+const CALL_LINK = /^Call/u;
+const EMAIL_LINK = /Email us/u;
+const QUICKEST = /quickest/iu;
+const APPOINTMENT_NOTE =
+  "Book online and choose a time that suits you. Walk-ins can't be seen.";
+// Clock times, day names and the words that used to head the hours table.
+const HOURS_TEXT =
+  /\d{1,2}(:\d{2})? ?[ap]m|\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Opening|hours|Closed)\b/iu;
 const OLD_LISTING = /True Blue|Fresha/u;
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/services" }));
@@ -49,13 +62,56 @@ describe("pages", () => {
     expect(screen.getByText("By appointment only")).toBeInTheDocument();
   });
 
-  it("contact lists hours under By appointment only", () => {
+  it("contact explains appointments and lists no opening hours", () => {
     render(<ContactPage />);
-    const table = screen.getByRole("table", { name: "Opening hours" });
     expect(
-      within(table).getByRole("rowheader", { name: "Sunday" })
+      screen.getByRole("heading", { level: 2, name: "Appointments" })
     ).toBeInTheDocument();
+    expect(screen.getByText(APPOINTMENT_NOTE)).toBeInTheDocument();
     expect(screen.getByText("By appointment only")).toBeInTheDocument();
+    for (const link of screen.getAllByRole("link", { name: BOOK_ONLINE }))
+      expect(link).toHaveAttribute("href", siteBookingLink().href);
+  });
+
+  it("contact links WhatsApp, phone and email with exact hrefs", () => {
+    render(<ContactPage />);
+    expect(
+      screen.getByRole("link", {
+        name: "Message on WhatsApp +1 473 420 7747 (opens in a new tab)",
+      })
+    ).toHaveAttribute("href", "https://wa.me/14734207747");
+    expect(
+      screen.getByRole("link", { name: "Call +1 473 420 7747" })
+    ).toHaveAttribute("href", "tel:+14734207747");
+    expect(
+      screen.getByRole("link", { name: "Email us hello@babydollbeautybar.com" })
+    ).toHaveAttribute("href", "mailto:hello@babydollbeautybar.com");
+    expect(
+      screen.getByRole("link", {
+        name: "Message on Instagram @babydoll.gnd (opens in a new tab)",
+      })
+    ).toHaveAttribute("href", "https://ig.me/m/babydoll.gnd");
+  });
+
+  it("contact lists WhatsApp, Call, Instagram, then email, and no 'quickest' claim", () => {
+    const { container } = render(<ContactPage />);
+    const titles = [...container.querySelectorAll(".channel > b")].map(
+      (node) => node.textContent
+    );
+    expect(titles.slice(0, 5)).toEqual([
+      "Book online",
+      "Message on WhatsApp",
+      "Call",
+      "Message on Instagram",
+      "Email us",
+    ]);
+    expect(container.textContent).not.toMatch(QUICKEST);
+  });
+
+  it.each(PAGES)("%s page shows no opening hours", (_, Page) => {
+    const { container } = render(<Page />);
+    expect(container.querySelector("table")).toBeNull();
+    expect(container.textContent).not.toMatch(HOURS_TEXT);
   });
 });
 
@@ -128,5 +184,23 @@ describe("chrome", () => {
     expect(
       screen.getByRole("link", { name: "Book me (opens in a new tab)" })
     ).toHaveAttribute("href", BOOKING_URL);
+  });
+});
+
+describe("training contact channels", () => {
+  it("offers the same WhatsApp, phone and email as the Contact page", () => {
+    render(<TrainingPage />);
+    expect(screen.getByRole("link", { name: WHATSAPP_LINK })).toHaveAttribute(
+      "href",
+      WHATSAPP_URL
+    );
+    expect(screen.getByRole("link", { name: CALL_LINK })).toHaveAttribute(
+      "href",
+      PHONE.href
+    );
+    expect(screen.getByRole("link", { name: EMAIL_LINK })).toHaveAttribute(
+      "href",
+      EMAIL.href
+    );
   });
 });

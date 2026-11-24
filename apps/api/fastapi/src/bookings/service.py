@@ -4,14 +4,17 @@ Service functions flush; routers commit. Every query is filtered by
 ``organisation_id`` so one business never sees another's data.
 """
 
+import logging
 import uuid
 from collections import defaultdict
+from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import ColumnElement, delete, func, select
+from sqlalchemy import ColumnElement, delete, func, null, or_, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from src.auth.models import User
 from src.contacts.models import Contact
@@ -25,10 +28,13 @@ from src.organisations.models import (
     PlatformOrganisation,
 )
 from src.pagination import PaginationParams
+from src.storage import uploads
+from src.storage.models import OrgUpload, UploadStatus
+from src.storage.public_url import public_file_url
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
-from . import availability, deposit_payments
+from . import add_ons, availability, deposit_payments
 from .exceptions import (
     BookingConflictError,
     BookingNotFoundError,
@@ -38,8 +44,12 @@ from .models import (
     ACTIVE_STATUSES,
     AvailabilityException,
     Booking,
+    BookingAddOn,
+    BookingBusinessType,
+    BookingDepositMode,
     BookingProfile,
     BookingStatus,
+    BusinessClosure,
     Customer,
     Provider,
     ProviderService,
@@ -47,6 +57,7 @@ from .models import (
     WorkingHours,
 )
 from .schemas import (
+    BookingClosureCreate,
     BookingExceptionCreate,
     BookingProfileUpdate,
     BookingProviderCreate,
@@ -82,9 +93,33 @@ async def get_profile(session: AsyncSession, organisation_id: str) -> BookingPro
 CONTACT_FIELDS = frozenset(
     {"contact_phone", "contact_whatsapp", "contact_instagram", "contact_email"}
 )
+logger = logging.getLogger(__name__)
+
+#: The logo's and the cover photo's upload purposes (``src/storage/uploads.py``).
+LOGO_PURPOSE = "booking-logo"
+COVER_PURPOSE = "booking-cover"
 #: Profile fields an older client (or the seed) may not send; a PUT that leaves
 #: one out keeps the stored value.
-KEPT_UNLESS_NAMED = CONTACT_FIELDS | {"payment_at_booking"}
+KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
+    "add_ons_enabled",
+    "payment_at_booking",
+    "pending_expiry_hours",
+    "max_open_per_customer",
+    "deposit_mode",
+    "deposit_percent",
+    "deposit_fixed_minor",
+    "deposit_min_price_minor",
+    "deposit_non_refundable",
+    "booking_policy",
+    "brand_color",
+    "logo_file_id",
+    "cover_file_id",
+    "business_type",
+    "listed",
+    "category",
+    "short_description",
+    "city",
+}
 
 
 async def upsert_profile(
@@ -101,9 +136,9 @@ async def upsert_profile(
     )
     if taken is not None:
         raise BookingConflictError("That booking address is already in use")
-    # Contact options and the payment setting are kept unless the request names
-    # them: a client (or a seed) that does not know them must not erase them. An
-    # explicit blank or null still clears a contact option.
+    # Contact options, the payment setting and the brand are kept unless the request
+    # names them: a client (or a seed) that does not know them must not erase them.
+    # An explicit blank or null still clears a contact option or the brand.
     values = payload.model_dump(
         mode="json",
         exclude={
@@ -112,7 +147,19 @@ async def upsert_profile(
             if name not in payload.model_fields_set and profile is not None
         },
     )
+    _require_deposit_rule(profile, values)
+    if "logo_file_id" in values:
+        # JSON gives a string; the column takes the UUID the request validated.
+        values["logo_file_id"] = payload.logo_file_id
+        await _require_logo(organisation_id, payload.logo_file_id, profile)
+    if "cover_file_id" in values:
+        values["cover_file_id"] = payload.cover_file_id
+        await _require_cover(organisation_id, payload.cover_file_id, profile)
     if profile is None:
+        if "pending_expiry_hours" in values and values["pending_expiry_hours"] is None:
+            # The ORM leaves a None out of an INSERT, so the column's server default
+            # (24) would win. A null window is written as SQL NULL here.
+            values["pending_expiry_hours"] = null()
         profile = BookingProfile(organisation_id=organisation_id, **values)
         session.add(profile)
     else:
@@ -120,6 +167,77 @@ async def upsert_profile(
             setattr(profile, key, value)
     await session.flush()
     return profile
+
+
+def _require_deposit_rule(
+    profile: BookingProfile | None, values: dict[str, Any]
+) -> None:
+    """A request that leaves one deposit field out keeps the stored one, so the mode
+    and its amount can disagree (a percentage mode with no percentage). Refuse that
+    as 422 rather than let the database check fail."""
+    mode = values.get("deposit_mode", profile.deposit_mode if profile else "none")
+    percent = values.get(
+        "deposit_percent", profile.deposit_percent if profile else None
+    )
+    fixed = values.get(
+        "deposit_fixed_minor", profile.deposit_fixed_minor if profile else None
+    )
+    if mode == BookingDepositMode.PERCENT.value and not (
+        percent is not None and 1 <= percent <= 100
+    ):
+        raise BookingValidationError(
+            "A percentage deposit needs deposit_percent (1 to 100)"
+        )
+    if mode == BookingDepositMode.FIXED.value and not (fixed is not None and fixed > 0):
+        raise BookingValidationError(
+            "A fixed deposit needs deposit_fixed_minor (above 0)"
+        )
+
+
+async def _require_logo(
+    organisation_id: str, file_id: uuid.UUID | None, profile: BookingProfile | None
+) -> None:
+    """A new logo must be a finished upload of this business."""
+    await _require_image(
+        organisation_id,
+        file_id,
+        current=profile.logo_file_id if profile is not None else None,
+        purpose=LOGO_PURPOSE,
+        noun="logo",
+    )
+
+
+async def _require_cover(
+    organisation_id: str, file_id: uuid.UUID | None, profile: BookingProfile | None
+) -> None:
+    """A new cover photo must be a finished upload of this business."""
+    await _require_image(
+        organisation_id,
+        file_id,
+        current=profile.cover_file_id if profile is not None else None,
+        purpose=COVER_PURPOSE,
+        noun="cover photo",
+    )
+
+
+async def _require_image(
+    organisation_id: str,
+    file_id: uuid.UUID | None,
+    *,
+    current: uuid.UUID | None,
+    purpose: str,
+    noun: str,
+) -> None:
+    """An unchanged image is not checked again, so one stored before a later rule
+    stays valid."""
+    if file_id is None or current == file_id:
+        return
+    if not await uploads.file_is_usable(
+        file_id, organisation_id=organisation_id, purpose=purpose
+    ):
+        raise BookingConflictError(
+            f"That {noun} is not a finished upload for this business"
+        )
 
 
 # --- services ----------------------------------------------------------------------
@@ -150,21 +268,117 @@ async def get_service(
 async def create_service(
     session: AsyncSession, *, organisation_id: str, payload: BookingServiceCreate
 ) -> Service:
-    service = Service(organisation_id=organisation_id, **payload.model_dump())
+    values = payload.model_dump()
+    values["add_on_categories"] = _add_on_restriction(
+        values["is_add_on"], values["add_on_categories"]
+    )
+    service = Service(organisation_id=organisation_id, **values)
     session.add(service)
     await session.flush()
     return service
 
 
+def _add_on_restriction(
+    is_add_on: bool, categories: Sequence[str] | None
+) -> list[str] | None:
+    """Categories restrict add-ons only: a main service keeps none."""
+    return add_ons.normalised_categories(categories) if is_add_on else None
+
+
 async def update_service(
     session: AsyncSession, service: Service, payload: BookingServiceUpdate
 ) -> Service:
+    if payload.is_add_on and not service.is_add_on:
+        # Customers reschedule through the main-service availability check, which
+        # refuses add-ons; a service with upcoming bookings must stay a main service.
+        upcoming = await session.scalar(
+            select(func.count())
+            .select_from(Booking)
+            .where(
+                Booking.service_id == service.id,
+                Booking.status.in_([s.value for s in ACTIVE_STATUSES]),
+                Booking.starts_at > as_naive_utc(utc_now()),
+            )
+        )
+        if upcoming:
+            raise BookingConflictError(
+                "This service has upcoming bookings, so it cannot become an add-on yet"
+            )
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(service, key, value)
     if service.deposit_minor > service.price_minor:
         raise BookingValidationError("The deposit cannot exceed the price")
+    service.add_on_categories = _add_on_restriction(
+        service.is_add_on, service.add_on_categories
+    )
     await session.flush()
     return service
+
+
+async def resolve_add_ons(
+    session: AsyncSession,
+    profile: BookingProfile,
+    main: Service,
+    add_on_ids: Sequence[uuid.UUID],
+) -> list[Service]:
+    """The add-ons a customer picked, checked on the server: switched on for the
+    business, each once, at most ``add_ons.MAX_PER_BOOKING``, active add-ons of
+    this organisation, offered with ``main``. Foreign, inactive and unknown ids
+    give the same answer, so nothing about another business leaks."""
+    if not add_on_ids:
+        return []
+    if not profile.add_ons_enabled:
+        raise BookingValidationError("This business does not offer add-ons")
+    if len(set(add_on_ids)) != len(add_on_ids):
+        raise BookingValidationError("Choose each add-on once")
+    if len(add_on_ids) > add_ons.MAX_PER_BOOKING:
+        raise BookingValidationError(
+            f"A booking takes at most {add_ons.MAX_PER_BOOKING} add-ons"
+        )
+    rows = await session.scalars(
+        select(Service).where(
+            Service.id.in_(add_on_ids),
+            Service.organisation_id == profile.organisation_id,
+            Service.is_add_on.is_(True),
+            Service.active.is_(True),
+        )
+    )
+    by_id = {row.id: row for row in rows}
+    if len(by_id) != len(add_on_ids):
+        raise BookingValidationError("One of the add-ons is not available")
+    chosen = [by_id[add_on_id] for add_on_id in add_on_ids]
+    for add_on_service in chosen:
+        if not add_ons.offered_with(add_on_service.add_on_categories, main.category):
+            raise BookingValidationError(
+                f"{add_on_service.name} is not offered with this service"
+            )
+    return chosen
+
+
+async def booking_add_on_minutes(session: AsyncSession, booking_id: uuid.UUID) -> int:
+    """Total length of a booking's stored add-on lines (SQL sum)."""
+    total = await session.scalar(
+        select(func.coalesce(func.sum(BookingAddOn.duration_min), 0)).where(
+            BookingAddOn.booking_id == booking_id
+        )
+    )
+    return int(total or 0)
+
+
+async def booking_add_on_lines(
+    session: AsyncSession, booking_ids: Sequence[uuid.UUID]
+) -> dict[uuid.UUID, list[BookingAddOn]]:
+    """The add-on lines of several bookings, one query, in name order."""
+    if not booking_ids:
+        return {}
+    lines: dict[uuid.UUID, list[BookingAddOn]] = defaultdict(list)
+    for line in await session.scalars(
+        select(BookingAddOn)
+        .where(BookingAddOn.booking_id.in_(booking_ids))
+        .order_by(BookingAddOn.name, BookingAddOn.id)
+    ):
+        lines[line.booking_id].append(line)
+    return lines
 
 
 # --- providers ---------------------------------------------------------------------
@@ -357,6 +571,114 @@ async def delete_exception(
     await session.flush()
 
 
+# --- business closures (BK-20) ----------------------------------------------------------
+
+
+def _first_name(name: str | None) -> str | None:
+    words = (name or "").split()
+    return words[0] if words else None
+
+
+async def _bookings_inside(
+    session: AsyncSession,
+    organisation_id: str,
+    *,
+    window_start: datetime,
+    window_end: datetime,
+) -> list[dict[str, Any]]:
+    """Active bookings overlapping ``[window_start, window_end)``: id, start and
+    the customer's first name only. Filtered and ordered in SQL."""
+    rows = await session.execute(
+        select(Booking.id, Booking.starts_at, Contact.name)
+        .join(Customer, Customer.id == Booking.customer_id)
+        .join(Contact, Contact.id == Customer.contact_id)
+        .where(
+            Booking.organisation_id == organisation_id,
+            Booking.status.in_([s.value for s in ACTIVE_STATUSES]),
+            Booking.starts_at < window_end,
+            Booking.ends_at > window_start,
+        )
+        .order_by(Booking.starts_at, Booking.id)
+    )
+    return [
+        {
+            "id": booking_id,
+            "starts_at": booking_start,
+            "customer_first_name": _first_name(name),
+        }
+        for booking_id, booking_start, name in rows.all()
+    ]
+
+
+async def create_closure(
+    session: AsyncSession, organisation_id: str, payload: BookingClosureCreate
+) -> dict[str, Any]:
+    """Close the business on whole local days. Existing bookings are reported,
+    never cancelled."""
+    profile = await get_profile(session, organisation_id)
+    row = BusinessClosure(
+        organisation_id=organisation_id,
+        starts_on=payload.starts_on,
+        ends_on=payload.ends_on,
+        reason=payload.reason,
+    )
+    session.add(row)
+    await session.flush()
+    window_start, window_end = availability.closure_interval(
+        row.starts_on, row.ends_on, zone(profile.timezone)
+    )
+    affected = await _bookings_inside(
+        session, organisation_id, window_start=window_start, window_end=window_end
+    )
+    logger.info(
+        "Business closure created",
+        extra={"organisation_id": organisation_id, "affected_count": len(affected)},
+    )
+    return {
+        "id": row.id,
+        "starts_on": row.starts_on,
+        "ends_on": row.ends_on,
+        "reason": row.reason,
+        "created_at": row.created_at,
+        "affected_bookings": affected,
+    }
+
+
+async def list_closures(
+    session: AsyncSession, organisation_id: str, *, skip: int, limit: int
+) -> list[BusinessClosure]:
+    query = (
+        select(BusinessClosure)
+        .where(BusinessClosure.organisation_id == organisation_id)
+        .order_by(BusinessClosure.starts_on, BusinessClosure.id)
+        .offset(skip)
+        .limit(limit)
+    )
+    return list(await session.scalars(query))
+
+
+async def delete_closure(
+    session: AsyncSession, closure_id: uuid.UUID, *, organisation_id: str
+) -> None:
+    """Remove a closure. Deleting one already gone is a no-op (idempotent). Another
+    business's closure answers 404 and is never touched."""
+    row = await session.scalar(
+        select(BusinessClosure).where(
+            BusinessClosure.id == closure_id,
+            BusinessClosure.organisation_id == organisation_id,
+        )
+    )
+    if row is None:
+        elsewhere = await session.scalar(
+            select(BusinessClosure.id).where(BusinessClosure.id == closure_id)
+        )
+        if elsewhere is not None:
+            raise BookingNotFoundError("Closure")
+        return
+    await session.delete(row)
+    await session.flush()
+
+
 # --- studio agenda -------------------------------------------------------------------
 
 
@@ -438,8 +760,91 @@ def business_contact(profile: BookingProfile) -> dict[str, str | None]:
     }
 
 
+async def _upload_is_complete(
+    session: AsyncSession,
+    profile: BookingProfile,
+    file_id: uuid.UUID | None,
+    purpose: str,
+) -> bool:
+    """The same rule as ``uploads.file_is_usable``, read on the request session: a
+    complete upload of ``purpose`` for this business."""
+    found = await session.scalar(
+        select(OrgUpload.id).where(
+            OrgUpload.id == file_id,
+            OrgUpload.organisation_id == profile.organisation_id,
+            OrgUpload.purpose == purpose,
+            OrgUpload.status == UploadStatus.COMPLETE.value,
+        )
+    )
+    return found is not None
+
+
+async def _logo_is_complete(session: AsyncSession, profile: BookingProfile) -> bool:
+    return await _upload_is_complete(
+        session, profile, profile.logo_file_id, LOGO_PURPOSE
+    )
+
+
+async def _cover_is_complete(session: AsyncSession, profile: BookingProfile) -> bool:
+    return await _upload_is_complete(
+        session, profile, profile.cover_file_id, COVER_PURPOSE
+    )
+
+
+async def _public_image_url(
+    session: AsyncSession,
+    profile: BookingProfile,
+    file_id: uuid.UUID | None,
+    is_complete: Callable[[AsyncSession, BookingProfile], Awaitable[bool]],
+) -> str | None:
+    """A public image's address, shown only while the file is still a complete upload
+    of this business and the API address is https. The mail builds its image from the
+    same address (``public_file_url``).
+
+    Fails closed: any error reading the file answers None, so the public page still
+    loads. A savepoint keeps a database error from aborting the storefront's own
+    transaction."""
+    if file_id is None:
+        return None
+    try:
+        async with session.begin_nested():
+            complete = await is_complete(session, profile)
+    except Exception as error:  # fail closed: a public page must still load
+        logger.warning(
+            "Storefront image check failed for %s; showing no image",
+            profile.public_slug,
+            extra={"error_type": type(error).__name__},
+        )
+        return None
+    if not complete:
+        return None
+    url = public_file_url(file_id)
+    return url if url is not None and url.startswith("https://") else None
+
+
+async def _public_logo_url(
+    session: AsyncSession, profile: BookingProfile
+) -> str | None:
+    return await _public_image_url(
+        session, profile, profile.logo_file_id, _logo_is_complete
+    )
+
+
+async def _public_cover_url(
+    session: AsyncSession, profile: BookingProfile
+) -> str | None:
+    return await _public_image_url(
+        session, profile, profile.cover_file_id, _cover_is_complete
+    )
+
+
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
-    services = await list_services(session, profile.organisation_id, active_only=True)
+    all_services = await list_services(
+        session, profile.organisation_id, active_only=True
+    )
+    # Add-ons are never bookable alone: they leave the main list, and reach the
+    # page only while the business has switched them on.
+    services = [s for s in all_services if not s.is_add_on]
     providers = await list_providers(session, profile.organisation_id, active_only=True)
     active_service_ids = {s.id for s in services}
     public_providers = [
@@ -457,7 +862,13 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         "timezone": profile.timezone,
         "currency": profile.currency,
         "cancel_cutoff_hours": profile.cancel_cutoff_hours,
+        "deposit_non_refundable": profile.deposit_non_refundable,
+        "booking_policy": profile.booking_policy,
         "contact": business_contact(profile),
+        "brand_color": profile.brand_color,
+        "logo_url": await _public_logo_url(session, profile),
+        "cover_url": await _public_cover_url(session, profile),
+        "business_type": profile.business_type,
         "services": [
             {
                 **BookingPublicService.model_validate(
@@ -468,6 +879,260 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
             for svc in services
         ],
         "providers": [p for p in public_providers if p["service_ids"]],
+        "add_ons": _public_add_ons(profile, all_services, services),
+    }
+
+
+def _public_add_ons(
+    profile: BookingProfile, all_services: list[Service], mains: list[Service]
+) -> list[dict[str, Any]]:
+    """The active add-ons offered on the page, each with the main services it
+    can follow. Empty while the business has the switch off."""
+    if not profile.add_ons_enabled:
+        return []
+    offered = []
+    for add_on_service in all_services:
+        if not add_on_service.is_add_on:
+            continue
+        service_ids = [
+            main.id
+            for main in mains
+            if add_ons.offered_with(add_on_service.add_on_categories, main.category)
+        ]
+        if not service_ids:
+            continue
+        offered.append(
+            {
+                "id": add_on_service.id,
+                "name": add_on_service.name,
+                "description": add_on_service.description,
+                "duration_min": add_on_service.duration_min,
+                "price_minor": add_on_service.price_minor,
+                "service_ids": service_ids,
+            }
+        )
+    return offered
+
+
+# --- public home-page listing ----------------------------------------------------------
+
+#: Businesses on one page of the home page listing.
+PUBLIC_LISTING_PAGE_SIZE = 24
+#: Services shown on each home page card, in the business's own order.
+PUBLIC_LISTING_FEATURED_SERVICES = 3
+#: Categories offered as filter chips; more stay reachable through search.
+PUBLIC_LISTING_CATEGORY_LIMIT = 50
+
+
+def _contains_pattern(text: str) -> str:
+    """An ILIKE pattern for ``text`` anywhere in a value, with ``%``, ``_`` and
+    ``\\`` matched literally."""
+    escaped = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
+def _open_for_listing() -> list[ColumnElement[bool]]:
+    """Filters for a business that may appear on the home page: it opted in, is
+    enabled, holds the bookings entitlement, sits in an active organisation and
+    has at least one active service. Evaluated in SQL."""
+    has_service = (
+        select(Service.id)
+        .where(
+            Service.organisation_id == BookingProfile.organisation_id,
+            Service.active.is_(True),
+        )
+        .exists()
+    )
+    entitled = (
+        select(OrganisationApp.app_key)
+        .where(
+            OrganisationApp.organisation_id == BookingProfile.organisation_id,
+            OrganisationApp.app_key == "bookings",
+            OrganisationApp.enabled.is_(True),
+        )
+        .exists()
+    )
+    active_organisation = (
+        select(PlatformOrganisation.id)
+        .where(
+            PlatformOrganisation.id == BookingProfile.organisation_id,
+            PlatformOrganisation.status == OrganisationStatus.ACTIVE.value,
+        )
+        .exists()
+    )
+    return [
+        BookingProfile.listed.is_(True),
+        BookingProfile.enabled.is_(True),
+        has_service,
+        entitled,
+        active_organisation,
+    ]
+
+
+def _https_or_none(file_id: uuid.UUID | None) -> str | None:
+    url = public_file_url(file_id) if file_id is not None else None
+    return url if url is not None and url.startswith("https://") else None
+
+
+async def _featured_services(
+    session: AsyncSession, profiles: list[BookingProfile]
+) -> dict[str, list[dict[str, Any]]]:
+    """The first few bookable services of each business on the page, in one query:
+    active, not add-ons, in the order the booking page lists them."""
+    if not profiles:
+        return {}
+    rank = (
+        func.row_number()
+        .over(
+            partition_by=Service.organisation_id,
+            order_by=(Service.sort_order, Service.name, Service.id),
+        )
+        .label("rank")
+    )
+    ranked = (
+        select(Service, rank)
+        .where(
+            Service.organisation_id.in_([p.organisation_id for p in profiles]),
+            Service.active.is_(True),
+            Service.is_add_on.is_(False),
+        )
+        .subquery()
+    )
+    featured = aliased(Service, ranked)
+    rows = await session.execute(
+        select(featured)
+        .where(ranked.c.rank <= PUBLIC_LISTING_FEATURED_SERVICES)
+        .order_by(featured.organisation_id, ranked.c.rank)
+    )
+    currency = {p.organisation_id: p.currency for p in profiles}
+    result: dict[str, list[dict[str, Any]]] = {}
+    for service in rows.scalars():
+        result.setdefault(service.organisation_id, []).append(
+            {
+                "id": service.id,
+                "name": service.name,
+                "price_minor": service.price_minor,
+                "currency": currency[service.organisation_id],
+                "duration_min": service.duration_min,
+            }
+        )
+    return result
+
+
+def _listing_card(
+    profile: BookingProfile,
+    logo_id: uuid.UUID | None,
+    cover_id: uuid.UUID | None,
+    featured: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """A home page card. ``logo_id`` and ``cover_id`` are set only for a finished
+    upload of that purpose for this business (joined in SQL); addresses must be https."""
+    return {
+        "slug": profile.public_slug,
+        "name": profile.display_name,
+        "category": profile.category,
+        "short_description": profile.short_description,
+        "city": profile.city,
+        "brand_color": profile.brand_color,
+        "logo_url": _https_or_none(logo_id),
+        "cover_url": _https_or_none(cover_id),
+        "business_type": profile.business_type,
+        "featured_services": featured or [],
+    }
+
+
+async def list_public_businesses(
+    session: AsyncSession,
+    *,
+    q: str | None,
+    category: str | None,
+    page: int,
+    business_type: BookingBusinessType | None = None,
+) -> dict[str, Any]:
+    """One page of the businesses that opted in to the home page, the search
+    (name, category, description or city), the category filter and the business type
+    filter, plus the categories and the business types on offer. Everything is
+    filtered, joined and paged in SQL; the page holds one row more than it shows, to
+    learn whether more follow."""
+    conditions: list[ColumnElement[bool]] = _open_for_listing()
+    needle = (q or "").strip()
+    if needle:
+        pattern = _contains_pattern(needle)
+        conditions.append(
+            or_(
+                BookingProfile.display_name.ilike(pattern, escape="\\"),
+                BookingProfile.category.ilike(pattern, escape="\\"),
+                BookingProfile.short_description.ilike(pattern, escape="\\"),
+                BookingProfile.city.ilike(pattern, escape="\\"),
+            )
+        )
+    chosen = (category or "").strip()
+    if chosen:
+        conditions.append(func.lower(BookingProfile.category) == chosen.lower())
+    if business_type is not None:
+        conditions.append(BookingProfile.business_type == business_type.value)
+
+    logo = aliased(OrgUpload)
+    cover = aliased(OrgUpload)
+    rows = await session.execute(
+        select(BookingProfile, logo.id, cover.id)
+        .outerjoin(
+            logo,
+            (logo.id == BookingProfile.logo_file_id)
+            & (logo.organisation_id == BookingProfile.organisation_id)
+            & (logo.purpose == LOGO_PURPOSE)
+            & (logo.status == UploadStatus.COMPLETE.value),
+        )
+        .outerjoin(
+            cover,
+            (cover.id == BookingProfile.cover_file_id)
+            & (cover.organisation_id == BookingProfile.organisation_id)
+            & (cover.purpose == COVER_PURPOSE)
+            & (cover.status == UploadStatus.COMPLETE.value),
+        )
+        .where(*conditions)
+        .order_by(func.lower(BookingProfile.display_name), BookingProfile.id)
+        .offset((page - 1) * PUBLIC_LISTING_PAGE_SIZE)
+        .limit(PUBLIC_LISTING_PAGE_SIZE + 1)
+    )
+    found = rows.all()
+    categories = await session.scalars(
+        select(func.min(BookingProfile.category))
+        .where(
+            *_open_for_listing(),
+            BookingProfile.category.is_not(None),
+        )
+        .group_by(func.lower(BookingProfile.category))
+        .order_by(func.min(BookingProfile.category))
+        .limit(PUBLIC_LISTING_CATEGORY_LIMIT)
+    )
+    # Every type a visible listed business has, in the fixed list's order. The set is
+    # at most eleven values, so ordering it here costs nothing.
+    present = set(
+        await session.scalars(
+            select(BookingProfile.business_type)
+            .where(
+                *_open_for_listing(),
+                BookingProfile.business_type.is_not(None),
+            )
+            .distinct()
+        )
+    )
+    shown = found[:PUBLIC_LISTING_PAGE_SIZE]
+    featured = await _featured_services(session, [row[0] for row in shown])
+    return {
+        "items": [
+            _listing_card(
+                profile, logo_id, cover_id, featured.get(profile.organisation_id)
+            )
+            for profile, logo_id, cover_id in shown
+        ],
+        "page": page,
+        "has_more": len(found) > PUBLIC_LISTING_PAGE_SIZE,
+        "categories": list(categories),
+        "types_available": [
+            member for member in BookingBusinessType if member.value in present
+        ],
     }
 
 
@@ -481,9 +1146,13 @@ async def available_slots(
     last_day: date,
     now: datetime | None = None,
     exclude_booking_id: uuid.UUID | None = None,
+    add_on_ids: Sequence[uuid.UUID] = (),
+    extra_minutes: int = 0,
 ) -> list[availability.Slot]:
     """Open slots. ``exclude_booking_id`` ignores one booking's own blocked range
-    (used when that booking is being rescheduled)."""
+    (used when that booking is being rescheduled). The slot length is the main
+    service's plus the chosen ``add_on_ids`` (checked here) plus ``extra_minutes``
+    (a booking's stored add-on lines, used when it is moved)."""
     if last_day < first_day:
         raise BookingValidationError("last_day must not be before first_day")
     if (last_day - first_day).days >= MAX_AVAILABILITY_DAYS:
@@ -493,8 +1162,14 @@ async def available_slots(
     service = await get_service(
         session, service_id, organisation_id=profile.organisation_id
     )
-    if not service.active:
+    if not service.active or service.is_add_on:
         raise BookingNotFoundError("Service")
+    chosen = await resolve_add_ons(session, profile, service, add_on_ids)
+    length_min = (
+        service.duration_min
+        + extra_minutes
+        + sum(add_on_service.duration_min for add_on_service in chosen)
+    )
 
     query = (
         select(Provider)
@@ -541,6 +1216,23 @@ async def available_slots(
                 change.starts_at, change.ends_at, change.kind
             )
         )
+    # A business closure (BK-20) is time off for every provider at once.
+    closures = await session.scalars(
+        select(BusinessClosure).where(
+            BusinessClosure.organisation_id == profile.organisation_id,
+            BusinessClosure.starts_on <= last_day,
+            BusinessClosure.ends_on >= first_day,
+        )
+    )
+    closed = [
+        availability.ScheduleException(
+            *availability.closure_interval(closure.starts_on, closure.ends_on, tz),
+            "time_off",
+        )
+        for closure in closures
+    ]
+    for provider in providers:
+        exceptions[provider.id].extend(closed)
 
     busy: dict[uuid.UUID, list[availability.Interval]] = defaultdict(list)
     busy_query = select(
@@ -557,7 +1249,7 @@ async def available_slots(
         busy[blocked.provider_id].append((blocked.blocked_from, blocked.blocked_until))
 
     rules = availability.SlotRules(
-        duration=timedelta(minutes=service.duration_min),
+        duration=timedelta(minutes=length_min),
         step=timedelta(minutes=profile.slot_step_min),
         buffer_before=timedelta(minutes=service.buffer_before_min),
         buffer_after=timedelta(minutes=service.buffer_after_min),
@@ -611,6 +1303,7 @@ async def list_my_bookings(
     *,
     upcoming: bool | None,
     pagination: PaginationParams,
+    cancelled: bool | None = None,
     now: datetime | None = None,
 ) -> tuple[list[tuple[Booking, str, str, str]], int]:
     """The account's bookings across organisations, one SQL page.
@@ -622,6 +1315,9 @@ async def list_my_bookings(
     to ``user_id`` (ADR-0058). Returns ``(booking, service name, business name,
     business slug)`` rows and the total before paging. ``upcoming`` True keeps
     bookings starting at or after now, False keeps the earlier ones, None keeps all.
+    ``cancelled`` True keeps only cancelled bookings, False leaves them out, None
+    keeps every status. The filters are independent, so "Upcoming" is
+    ``upcoming=True, cancelled=False``.
     """
     moment = now or utc_now()
     linked_customers = (
@@ -638,6 +1334,10 @@ async def list_my_bookings(
         filters.append(Booking.starts_at >= moment)
     elif upcoming is False:
         filters.append(Booking.starts_at < moment)
+    if cancelled is True:
+        filters.append(Booking.status == BookingStatus.CANCELLED.value)
+    elif cancelled is False:
+        filters.append(Booking.status != BookingStatus.CANCELLED.value)
     total = await session.scalar(
         select(func.count()).select_from(Booking).where(*filters)
     )
