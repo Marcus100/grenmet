@@ -138,6 +138,8 @@ services:
     environment:
       WXWATCH_LOCAL_ASSET_ROOTS: '{"nhc-local":"/app/nhc-archive"}'
       WXWATCH_INGEST_TOKEN: ${WXWATCH_INGEST_TOKEN:-}
+      # Better Stack freshness probe (#1718); unset or short, the probe answers 404.
+      MONITORING_PROBE_TOKEN: ${MONITORING_PROBE_TOKEN:-}
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
       WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
       EREGISTER_DATABASE_URL: ${EREGISTER_DATABASE_URL:?EREGISTER_DATABASE_URL required}
