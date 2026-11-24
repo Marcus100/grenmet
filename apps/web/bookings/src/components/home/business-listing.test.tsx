@@ -174,11 +174,67 @@ describe("BusinessListing", () => {
     expect(screen.getByText("Book")).toBeTruthy();
   });
 
-  it("shows no service tiles yet (the API sends none)", () => {
+  it("shows the first two featured services in the card, ahead of the cover and the description", () => {
+    const service = {
+      id: "s1",
+      name: "Gel manicure",
+      price_minor: 12_000,
+      currency: "XCD",
+      duration_min: 45,
+    };
     const { container } = render(
-      <BusinessListing listing={page()} query={NO_QUERY} />
+      <BusinessListing
+        listing={page({
+          items: [
+            {
+              ...TIDE,
+              cover_url: "https://cdn.example.test/cover.jpg",
+              featured_services: [
+                service,
+                { ...service, id: "s2", name: "Pedicure", price_minor: 8000 },
+                { ...service, id: "s3", name: "Third" },
+              ],
+            },
+          ],
+        })}
+        query={NO_QUERY}
+      />
     );
-    expect(container.textContent).not.toContain("EC$");
+
+    const link = screen.getByRole("link", { name: TIDE_NAME });
+    expect(within(link).getByText("EC$120")).toBeTruthy();
+    expect(within(link).getByText("EC$80")).toBeTruthy();
+    expect(within(link).queryByText("Third")).toBeNull();
+    // The tiles take the bottom area: no cover photo, no description, no Book pill.
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.queryByText("Book")).toBeNull();
+    expect(screen.queryByText("Fades and beards, walk-ins welcome")).toBeNull();
+    expect(link.querySelector("a, button")).toBeNull();
+  });
+
+  it("falls back to the cover, then the description, when there are no featured services", () => {
+    const { container, rerender } = render(
+      <BusinessListing
+        listing={page({
+          items: [
+            {
+              ...TIDE,
+              cover_url: "https://cdn.example.test/cover.jpg",
+              featured_services: [],
+            },
+          ],
+        })}
+        query={NO_QUERY}
+      />
+    );
+    expect(container.querySelector("img")?.getAttribute("src")).toBe(
+      "https://cdn.example.test/cover.jpg"
+    );
+
+    rerender(<BusinessListing listing={page()} query={NO_QUERY} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("Book")).toBeTruthy();
+    expect(screen.getByText("Fades and beards, walk-ins welcome")).toBeTruthy();
   });
 
   it("says so when no business is listed yet", () => {
@@ -229,7 +285,6 @@ describe("BusinessListing", () => {
 
     expect(screen.queryByRole("navigation", { name: "Categories" })).toBeNull();
     expect(screen.queryByText("No categories yet.")).toBeNull();
-    expect(screen.queryByRole("link", { name: "Hair" })).toBeNull();
     const search = document.querySelector("search");
     expect(
       search?.querySelector('input[name="category"]')?.getAttribute("value")

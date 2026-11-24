@@ -146,10 +146,12 @@ documented map (below).
   if there is one, the name (30 to 32 px, 800, white), "category or type, city"
   in plain white; at the bottom a 26 px photo panel (150 px) when `cover_url` is
   a safe https address (no username or password), else a white panel with the
-  short description and a "Book" pill (decoration). `ServiceTiles`
-  (`components/home/service-tiles.tsx`) is the single place for two featured
-  service tiles (dark price pill, name, minutes); the API sends none yet, so it
-  gets an empty list and renders nothing. Pagination links sit under the rail.
+  short description and a "Book" pill (decoration). The bottom area's priority is
+  the business's featured services (`featured_services`, up to three from the
+  API; the first two show as white 26 px tiles with a dark price pill, the name
+  in two lines at most, and "N min" in muted text; one service fills the width),
+  then the cover photo, then the description panel. The tiles are plain text
+  inside the card's one link. Pagination links sit under the rail.
   The storefront page header is unchanged.
 - "Types of business" (h2, nav "Browse by type"): solid tiles, a white label
   top-left (19 px bold) and the type's white stroke icon bottom-right, 2 columns

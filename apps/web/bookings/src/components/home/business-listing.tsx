@@ -13,7 +13,7 @@ import { businessTypeLabel } from "@/lib/business-types";
 import { safeCoverUrl, safeLogoUrl } from "@/lib/storefront-brand";
 import { businessTransitionStyle } from "@/lib/view-transition";
 import { BusinessTypeIcon } from "./business-type-icon";
-import { type FeaturedService, ServiceTiles } from "./service-tiles";
+import { ServiceTiles } from "./service-tiles";
 
 // Server rendered: the search is a plain GET form and the type tiles and pages
 // are links, so the list works before any script loads. Every link is 44 px tall.
@@ -82,13 +82,6 @@ export function listingHref(query: Partial<ListingQuery>): {
     : { pathname: "/" };
 }
 
-/**
- * Featured services for a card. The API does not send them yet, so this is
- * empty and `ServiceTiles` renders nothing; when `featured_services` arrives,
- * map it to `FeaturedService` here.
- */
-const NO_SERVICES: readonly FeaturedService[] = [];
-
 function BusinessCard({ card }: Readonly<{ card: BookingPublicBusiness }>) {
   const logo = safeLogoUrl(card.logo_url);
   const cover = safeCoverUrl(card.cover_url);
@@ -99,7 +92,7 @@ function BusinessCard({ card }: Readonly<{ card: BookingPublicBusiness }>) {
     card.category ??
     (card.business_type ? businessTypeLabel(card.business_type) : null);
   const where = [kind, card.city].filter(Boolean).join(" · ");
-  const services = NO_SERVICES;
+  const services = card.featured_services ?? [];
   const transition = businessTransitionStyle(card.slug);
   return (
     <Link
