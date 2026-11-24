@@ -1,5 +1,5 @@
 # API breaking-change gate
-# Compares the PR's apps/api/fastapi/openapi.json with the base branch and fails
+# Compares the PR's apps/api/fastapi/openapi.json with its merge base and fails
 # on changes that break existing clients. Label the PR `breaking-change` to
 # accept them (every consumer must then be updated in the same PR).
 # Two checks run: the hand-written check-api-breaking.mjs, then oasdiff's full
@@ -60,16 +60,23 @@ jobs:
       - name: Check openapi.json against the base branch
         env:
           BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           ALLOW_BREAKING: ${{ contains(github.event.pull_request.labels.*.name, 'breaking-change') }}
         run: |
           flags=()
           if [ "$ALLOW_BREAKING" = "true" ]; then flags+=(--allow-breaking); fi
-          node scripts/api/check-api-breaking.mjs --base "origin/${BASE_REF}" "${flags[@]}"
-      - name: Write the base branch openapi.json for oasdiff
+          # The script compares with the merge base of the base branch and the PR head.
+          node scripts/api/check-api-breaking.mjs --base "origin/${BASE_REF}" --head "$HEAD_SHA" "${flags[@]}"
+      # The merge base is what the PR changes; the branch tip would report
+      # operations other PRs added after this branch was cut as removed.
+      - name: Write the merge base openapi.json for oasdiff
         if: ${{ !cancelled() }}
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: git show "origin/${BASE_REF}:apps/api/fastapi/openapi.json" > .oasdiff-base-openapi.json
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          base="$(git merge-base "origin/${BASE_REF}" "$HEAD_SHA" || echo "origin/${BASE_REF}")"
+          git show "${base}:apps/api/fastapi/openapi.json" > .oasdiff-base-openapi.json
       # Docker action: paths are relative to the workspace. review/github-token
       # are off so no spec is uploaded to oasdiff.com and no PR comment is posted.
       - name: Check openapi.json with oasdiff
