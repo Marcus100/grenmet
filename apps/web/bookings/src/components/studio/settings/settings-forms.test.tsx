@@ -68,7 +68,9 @@ const provider: BookingProviderPublic = {
   service_ids: [S1],
 };
 
-const DEPOSIT_CHOICE = /Deposit set on each service/u;
+const DEPOSIT_CHOICE = /each service's own deposit, or the deposit rule/u;
+const PRECEDENCE =
+  /Full price applies only when online card payments can charge it/u;
 const FULL_CHOICE = /Full price, paid online by card/u;
 const NOT_SWITCHED_ON = /not switched on yet/u;
 const TEST_MODE = /test mode: no real money moves/u;
@@ -160,6 +162,35 @@ describe("payments form", () => {
     expect(
       screen.getByRole("group", { name: "Payment when booking" })
     ).toHaveAccessibleDescription(TEST_MODE);
+  });
+
+  it("says which payment wins when full price and a deposit rule both apply", () => {
+    render(
+      <PaymentsForm
+        cardPaymentsAvailable
+        orgSlug="sea-salt"
+        profile={{ payment_at_booking: "full_price" } as BookingProfilePublic}
+      />
+    );
+    const group = screen.getByRole("group", { name: "Payment when booking" });
+    expect(group).toHaveAccessibleDescription(PRECEDENCE);
+    expect(group).toHaveAccessibleDescription(TEST_MODE);
+  });
+
+  it("says a booking is paid at the salon while card payments are off", () => {
+    render(
+      <PaymentsForm
+        cardPaymentsAvailable={false}
+        orgSlug="sea-salt"
+        profile={{} as BookingProfilePublic}
+      />
+    );
+    expect(
+      screen.getByRole("group", { name: "Payment when booking" })
+    ).toHaveAccessibleDescription(NOT_SWITCHED_ON);
+    expect(screen.getByText(NOT_SWITCHED_ON)).toHaveTextContent(
+      "full price is not charged"
+    );
   });
 });
 

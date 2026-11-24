@@ -1,0 +1,184 @@
+{
+  "A": {
+    "reg": 6014,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Tevin Camilloh Andrews", "NDC", 2392, "official"],
+      ["Norland Sebastian Cox", "NNP", 1416, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "B": {
+    "reg": 5433,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["David Andrew", "NDC", 2012, "official"],
+      ["Emmalin Pierre", "NNP", 1848, "official"],
+      ["Shirley Mc Queen", "DPM", 19, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "C": {
+    "reg": 5962,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Lennox John Andrews", "NDC", 2428, "official"],
+      ["Amanda Sherine Mary Japal", "NNP", 1336, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "D": {
+    "reg": 6014,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Niecal Asheen Joseph", "NDC", 2170, "official"],
+      ["Kate Lewis-Peters", "NNP", 1851, "official"],
+      ["Pamela Catherine Williams", "DPM", 45, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "E": {
+    "reg": 5434,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Delma Thomas", "NDC", 2243, "official"],
+      ["Marcia Lisa Francis", "NNP", 1457, "official"],
+      ["Olvine Holas", "DPM", 39, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "F": {
+    "reg": 11316,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Dickon Amiss Mitchell", "NDC", 5267, "official"],
+      ["Noleen Roxanne James-Thompson", "NNP", 2138, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "G": {
+    "reg": 4243,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Claudette Joseph", "NDC", 1269, "official"],
+      ["Peter David", "DPM", 730, "official"],
+      ["Joel Troy Noel", "NNP", 536, "official"],
+      ["Carole Alexander-Jones", "CHGCP", 5, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "H": {
+    "reg": 8620,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Ron Livingston Redhead", "NDC", 3628, "official"],
+      ["Nimrod Oliver Ollivierre", "NNP", 1548, "official"],
+      ["Nicholas Neville Mc Millan", "GSDP", 19, "official"],
+      ["Dennyka Checkley", "GRP", 4, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "J": {
+    "reg": 4967,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Tawfiq Adrian Marlan Joseph", "NNP", 2053, "official"],
+      ["Nigel Algernon Theodore De Gale", "NDC", 810, "official"],
+      ["Gayton Jonathan La Crette", "PNP", 69, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "K": {
+    "reg": 5863,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Philip Alfred Telesford", "NDC", 2464, "official"],
+      ["David Dwight Horsford", "NNP", 1188, "official"],
+      ["Stanford Harold Simon", "DPM", 66, "official"],
+      ["Akim Patrick", "GULP", 11, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "L": {
+    "reg": 12106,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Andy Joseph Williams", "NDC", 4641, "official"],
+      ["Christopher Kahrim De Allie", "NNP", 1869, "official"],
+      ["Charmaine Jasmin Gibbs", "DPM", 82, "official"],
+      ["Perry Lynton John", "GSDP", 8, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "M": {
+    "reg": 7218,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Kerryne Zennelle James", "NDC", 2536, "official"],
+      ["Alvin Martin Da Breo", "NNP", 1973, "official"],
+      ["Arley Gill", "DPM", 84, "official"],
+      ["Geoffrey Urias Preudhomme", "GULP", 24, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "N": {
+    "reg": 4203,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Caris Annisha Degannes", "NDC", 1539, "official"],
+      ["Mayanna Natalie Charles", "NNP", 1278, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  },
+  "P": {
+    "reg": 4456,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Carl Michael Andall", "NDC", 1729, "official"],
+      ["Robert Selwyn Paul Whyte", "NNP", 1042, "official"],
+      ["Dishon Theo Antonio Edwards", "DPM", 68, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true,
+    "note": "The PEO results page marks division P06(b) “Police Included”."
+  },
+  "R": {
+    "reg": 5228,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Joseph Andall", "NDC", 2245, "official"],
+      ["Jelani Kamau Glean", "NNP", 1085, "official"],
+      ["Andy Calvin Best", "DPM", 53, "official"]
+    ],
+    "src": "peo-provisional",
+    "provisional": true
+  }
+}

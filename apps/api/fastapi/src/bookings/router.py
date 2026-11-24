@@ -40,12 +40,14 @@ from src.rate_limit import limiter
 from src.turnstile import require_turnstile
 from src.utils.datetime import utc_now
 
-from . import deposit_payments, public, service, studio
+from . import calendar_feed, deposit_payments, public, service, studio
 from .models import BookingStatus
 from .schemas import (
     BookingAgenda,
     BookingAgendaItem,
     BookingAvailability,
+    BookingCalendarFeedLink,
+    BookingCalendarFeedStatus,
     BookingClosureCreate,
     BookingClosureCreated,
     BookingClosurePublic,
@@ -624,6 +626,67 @@ async def delete_closure(
     await session.commit()
 
 
+# --- organisation: calendar feed (subscribed calendar, owners and admins) ----------------------
+
+
+@router.get(
+    "/org/calendar-feed",
+    response_model=BookingCalendarFeedStatus,
+    summary="Show my calendar feed status",
+    description=(
+        "Whether the business has a calendar feed, and when it was made or last rotated. "
+        "The address is never shown again after it is created; rotate for a new one."
+    ),
+    operation_id="bookingsGetCalendarFeedStatus",
+    responses=READ_ERRORS,
+)
+async def get_calendar_feed_status(
+    *, session: SessionDep, org: BookingsOrgAdmin
+) -> Any:
+    row = await calendar_feed.get_feed(session, org.organisation_id)
+    if row is None:
+        return {"enabled": False}
+    return {"enabled": True, "created_at": row.created_at, "rotated_at": row.rotated_at}
+
+
+@router.post(
+    "/org/calendar-feed",
+    response_model=BookingCalendarFeedLink,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create my calendar feed",
+    description=(
+        "Creates the business's private calendar feed and returns its https address once. "
+        "Subscribing to it shows every booking (first names only) in Apple Calendar or "
+        "Google Calendar. One feed per business: 409 if it exists, rotate it instead."
+    ),
+    operation_id="bookingsCreateCalendarFeed",
+    responses=WRITE_ERRORS,
+)
+async def create_calendar_feed(*, session: SessionDep, org: BookingsOrgAdmin) -> Any:
+    token, row = await calendar_feed.create_feed(session, org.organisation_id)
+    payload = calendar_feed.link_payload(token, row)
+    await session.commit()
+    return payload
+
+
+@router.post(
+    "/org/calendar-feed/rotate",
+    response_model=BookingCalendarFeedLink,
+    summary="Rotate my calendar feed address",
+    description=(
+        "Replaces the feed's address and returns the new one once. The old address stops "
+        "working at once; subscribers must add the new one."
+    ),
+    operation_id="bookingsRotateCalendarFeed",
+    responses=WRITE_ERRORS,
+)
+async def rotate_calendar_feed(*, session: SessionDep, org: BookingsOrgAdmin) -> Any:
+    token, row = await calendar_feed.rotate_feed(session, org.organisation_id)
+    payload = calendar_feed.link_payload(token, row)
+    await session.commit()
+    return payload
+
+
 @router.get(
     "/org/agenda",
     response_model=BookingAgenda,
@@ -978,8 +1041,10 @@ async def get_storefront(*, request: Request, session: SessionDep, slug: str) ->
     summary="List open booking slots",
     description=(
         "Open start times for a service between two local dates (at most 14 "
-        "days), optionally for one provider. Times are UTC; `timezone` is the "
-        "business's local zone for display."
+        "days), optionally for one provider and with `add_on_ids`, which make "
+        "the slot longer. Times are UTC; `timezone` is the business's local zone "
+        "for display. `due_at_booking_minor` is what booking this service with "
+        "those add-ons charges now, so the storefront can show the real amount."
     ),
     operation_id="bookingsGetAvailability",
     responses={**BAD_REQUEST, **NOT_FOUND},
@@ -994,6 +1059,7 @@ async def get_availability(
     first_day: date,
     last_day: date,
     provider_id: Annotated[uuid.UUID | None, Query()] = None,
+    add_on_ids: Annotated[list[uuid.UUID] | None, Query(max_length=5)] = None,
 ) -> Any:
     _ = request
     profile = await service.get_public_profile(session, slug)
@@ -1004,10 +1070,19 @@ async def get_availability(
         provider_id=provider_id,
         first_day=first_day,
         last_day=last_day,
+        add_on_ids=add_on_ids or [],
+    )
+    priced = await public.price_booking(
+        session,
+        profile,
+        service_id=service_id,
+        add_on_ids=add_on_ids or [],
     )
     return BookingAvailability(
         timezone=profile.timezone,
         service_id=service_id,
+        due_at_booking_minor=priced.due_minor,
+        email_code_required=priced.email_code_required,
         slots=[
             BookingSlot(
                 starts_at=slot.starts_at,
@@ -1183,6 +1258,16 @@ async def confirm_email_code(
     return await public.confirm_email_code(profile, payload)
 
 
+# The manage routes carry the booking's secret token in the path. slowapi keys a
+# limit by the request path unless it has a scope, which would put the token in
+# Redis and the in-memory fallback. Each route names a constant scope instead; a
+# shared scope means every token shares one bucket per client address per route.
+MANAGE_VIEW_SCOPE = "bookings-public-manage-view"
+MANAGE_CANCEL_SCOPE = "bookings-public-manage-cancel"
+MANAGE_RESCHEDULE_SCOPE = "bookings-public-manage-reschedule"
+MANAGE_ICS_SCOPE = "bookings-public-manage-ics"
+
+
 @router.get(
     "/public/bookings/{token}",
     response_model=BookingPublicDetail,
@@ -1194,7 +1279,7 @@ async def confirm_email_code(
     operation_id="bookingsGetPublicBooking",
     responses={**NOT_FOUND},
 )
-@limiter.limit("60/minute")
+@limiter.limit("60/minute", scope=MANAGE_VIEW_SCOPE)
 async def get_public_booking(
     *, request: Request, session: SessionDep, token: ManageToken
 ) -> Any:
@@ -1214,7 +1299,7 @@ async def get_public_booking(
     operation_id="bookingsCancelPublicBooking",
     responses={**NOT_FOUND, **CONFLICT},
 )
-@limiter.limit("20/minute")
+@limiter.limit("20/minute", scope=MANAGE_CANCEL_SCOPE)
 async def cancel_public_booking(
     *,
     request: Request,
@@ -1242,7 +1327,7 @@ async def cancel_public_booking(
     operation_id="bookingsReschedulePublicBooking",
     responses={**NOT_FOUND, **CONFLICT},
 )
-@limiter.limit("20/minute")
+@limiter.limit("20/minute", scope=MANAGE_RESCHEDULE_SCOPE)
 async def reschedule_public_booking(
     *,
     request: Request,
@@ -1270,7 +1355,7 @@ async def reschedule_public_booking(
         **NOT_FOUND,
     },
 )
-@limiter.limit("60/minute")
+@limiter.limit("60/minute", scope=MANAGE_ICS_SCOPE)
 async def get_public_booking_ics(
     *, request: Request, session: SessionDep, token: ManageToken
 ) -> Response:
@@ -1280,4 +1365,37 @@ async def get_public_booking_ics(
         content=text,
         media_type="text/calendar; charset=utf-8",
         headers={"Content-Disposition": 'inline; filename="booking.ics"'},
+    )
+
+
+@router.get(
+    "/public/calendar/{token}.ics",
+    response_class=Response,
+    summary="Subscribe to a business's bookings calendar",
+    description=(
+        "The business's private calendar feed (text/calendar): its bookings from a week "
+        "ago to the booking horizon, first names only. Unknown, rotated, disabled and "
+        "unentitled feeds answer one 404. Calendar apps poll it; the response may be "
+        "cached privately for five minutes."
+    ),
+    operation_id="bookingsGetPublicCalendarFeed",
+    responses={
+        200: {
+            "description": "iCalendar feed",
+            "content": {"text/calendar": {"schema": {"type": "string"}}},
+        },
+        **NOT_FOUND,
+        429: {"model": RateLimitedBody, "description": "Too many requests"},
+    },
+)
+@limiter.limit("60/minute", scope=calendar_feed.RATE_LIMIT_SCOPE)
+async def get_public_calendar_feed(
+    *, request: Request, session: SessionDep, token: str
+) -> Response:
+    _ = request  # the rate limiter reads it
+    text = await calendar_feed.feed_ics(session, token)
+    return Response(
+        content=text,
+        media_type="text/calendar; charset=utf-8",
+        headers={"Cache-Control": "private, max-age=300"},
     )

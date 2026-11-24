@@ -1210,11 +1210,14 @@ export { bodyHrImportTerminalPunchesSchema } from "./bodyHrImportTerminalPunches
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
 export { bodyPrintixImportOrgTicketsSchema } from "./bodyPrintixImportOrgTicketsSchema.js";
 export { bodyPrintixImportTicketsSchema } from "./bodyPrintixImportTicketsSchema.js";
+export { bookingAddOnLineSchema } from "./bookingAddOnLineSchema.js";
 export { bookingAgendaDaySchema } from "./bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
 export { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
+export { bookingCalendarFeedLinkSchema } from "./bookingCalendarFeedLinkSchema.js";
+export { bookingCalendarFeedStatusSchema } from "./bookingCalendarFeedStatusSchema.js";
 export { bookingClosureAffectedSchema } from "./bookingClosureAffectedSchema.js";
 export { bookingClosureCreatedSchema } from "./bookingClosureCreatedSchema.js";
 export { bookingClosureCreateSchema } from "./bookingClosureCreateSchema.js";
@@ -1244,6 +1247,7 @@ export { bookingProviderCreateSchema } from "./bookingProviderCreateSchema.js";
 export { bookingProviderPublicSchema } from "./bookingProviderPublicSchema.js";
 export { bookingProviderSettingsSchema } from "./bookingProviderSettingsSchema.js";
 export { bookingProviderUpdateSchema } from "./bookingProviderUpdateSchema.js";
+export { bookingPublicAddOnSchema } from "./bookingPublicAddOnSchema.js";
 export { bookingPublicBusinessPageSchema } from "./bookingPublicBusinessPageSchema.js";
 export { bookingPublicBusinessSchema } from "./bookingPublicBusinessSchema.js";
 export { bookingPublicCancelBodySchema } from "./bookingPublicCancelBodySchema.js";
@@ -1339,6 +1343,19 @@ export {
   bookingsConfirmStudioBookingStatus409Schema,
   bookingsConfirmStudioBookingStatus422Schema,
 } from "./bookingsConfirmStudioBookingSchema.js";
+export {
+  bookingsCreateCalendarFeedErrorSchema,
+  bookingsCreateCalendarFeedHeadersSchema,
+  bookingsCreateCalendarFeedHeaderXBarrelsOrganisationSchema,
+  bookingsCreateCalendarFeedResponseSchema,
+  bookingsCreateCalendarFeedStatus201Schema,
+  bookingsCreateCalendarFeedStatus400Schema,
+  bookingsCreateCalendarFeedStatus401Schema,
+  bookingsCreateCalendarFeedStatus403Schema,
+  bookingsCreateCalendarFeedStatus404Schema,
+  bookingsCreateCalendarFeedStatus409Schema,
+  bookingsCreateCalendarFeedStatus422Schema,
+} from "./bookingsCreateCalendarFeedSchema.js";
 export {
   bookingsCreateClosureBodySchema,
   bookingsCreateClosureErrorSchema,
@@ -1496,6 +1513,7 @@ export {
   bookingsGetAvailabilityErrorSchema,
   bookingsGetAvailabilityPathSchema,
   bookingsGetAvailabilityPathSlugSchema,
+  bookingsGetAvailabilityQueryAddOnIdsSchema,
   bookingsGetAvailabilityQueryFirstDaySchema,
   bookingsGetAvailabilityQueryLastDaySchema,
   bookingsGetAvailabilityQueryProviderIdSchema,
@@ -1507,6 +1525,18 @@ export {
   bookingsGetAvailabilityStatus404Schema,
   bookingsGetAvailabilityStatus422Schema,
 } from "./bookingsGetAvailabilitySchema.js";
+export {
+  bookingsGetCalendarFeedStatusErrorSchema,
+  bookingsGetCalendarFeedStatusHeadersSchema,
+  bookingsGetCalendarFeedStatusHeaderXBarrelsOrganisationSchema,
+  bookingsGetCalendarFeedStatusResponseSchema,
+  bookingsGetCalendarFeedStatusStatus200Schema,
+  bookingsGetCalendarFeedStatusStatus400Schema,
+  bookingsGetCalendarFeedStatusStatus401Schema,
+  bookingsGetCalendarFeedStatusStatus403Schema,
+  bookingsGetCalendarFeedStatusStatus404Schema,
+  bookingsGetCalendarFeedStatusStatus422Schema,
+} from "./bookingsGetCalendarFeedStatusSchema.js";
 export {
   bookingsGetMyChoicesErrorSchema,
   bookingsGetMyChoicesPathSchema,
@@ -1549,6 +1579,16 @@ export {
   bookingsGetPublicBookingStatus404Schema,
   bookingsGetPublicBookingStatus422Schema,
 } from "./bookingsGetPublicBookingSchema.js";
+export {
+  bookingsGetPublicCalendarFeedErrorSchema,
+  bookingsGetPublicCalendarFeedPathSchema,
+  bookingsGetPublicCalendarFeedPathTokenSchema,
+  bookingsGetPublicCalendarFeedResponseSchema,
+  bookingsGetPublicCalendarFeedStatus200Schema,
+  bookingsGetPublicCalendarFeedStatus404Schema,
+  bookingsGetPublicCalendarFeedStatus422Schema,
+  bookingsGetPublicCalendarFeedStatus429Schema,
+} from "./bookingsGetPublicCalendarFeedSchema.js";
 export {
   bookingsGetSettingsErrorSchema,
   bookingsGetSettingsHeadersSchema,
@@ -1818,6 +1858,19 @@ export {
   bookingsRescheduleStudioBookingStatus409Schema,
   bookingsRescheduleStudioBookingStatus422Schema,
 } from "./bookingsRescheduleStudioBookingSchema.js";
+export {
+  bookingsRotateCalendarFeedErrorSchema,
+  bookingsRotateCalendarFeedHeadersSchema,
+  bookingsRotateCalendarFeedHeaderXBarrelsOrganisationSchema,
+  bookingsRotateCalendarFeedResponseSchema,
+  bookingsRotateCalendarFeedStatus200Schema,
+  bookingsRotateCalendarFeedStatus400Schema,
+  bookingsRotateCalendarFeedStatus401Schema,
+  bookingsRotateCalendarFeedStatus403Schema,
+  bookingsRotateCalendarFeedStatus404Schema,
+  bookingsRotateCalendarFeedStatus409Schema,
+  bookingsRotateCalendarFeedStatus422Schema,
+} from "./bookingsRotateCalendarFeedSchema.js";
 export {
   bookingsUpdateProviderBodySchema,
   bookingsUpdateProviderErrorSchema,

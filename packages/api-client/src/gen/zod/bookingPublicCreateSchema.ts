@@ -19,6 +19,13 @@ export const bookingPublicCreateSchema = z
     customer_email: z.email().max(254),
     customer_phone: z.union([z.string().max(40), z.null()]).optional(),
     notes: z.union([z.string().max(1000), z.null()]).optional(),
+    add_on_ids: z
+      .array(z.uuid())
+      .max(5)
+      .optional()
+      .describe(
+        "Add-ons to book with the service, from the storefront's `add_ons`. Prices and lengths are read on the server."
+      ),
     marketing_consent: z.boolean().optional().default(false),
     email_proof: z
       .union([z.string().max(1024), z.null()])

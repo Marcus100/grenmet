@@ -90,7 +90,9 @@ def election_rows(R, REF, DATES):
                         else round(k[2] / f["valid"] * 100, 2),
                         "rank": i + 1,
                         "elected": "yes" if i == 0 else "no",
-                        "verification": k[3] if len(k) > 3 else "official",
+                        "verification": "provisional"
+                        if e.get("provisional")
+                        else (k[3] if len(k) > 3 else "official"),
                         "source": src,
                         "source_page": page or "",
                     }

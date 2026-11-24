@@ -12,7 +12,17 @@ import {
   useRef,
   useState,
 } from "react";
-import { type Failure, tellsToContact } from "../lib/booking-errors";
+import {
+  addOnTotals,
+  amountDueForSelection,
+  selectionKey,
+} from "../lib/add-ons";
+import {
+  ADD_ONS_GONE_MESSAGE,
+  ADD_ONS_TIMES_MESSAGE,
+  type Failure,
+  tellsToContact,
+} from "../lib/booking-errors";
 import {
   type BookingFields,
   type FieldErrors,
@@ -25,23 +35,46 @@ import {
 import {
   formatDateTime,
   formatDuration,
-  formatHours,
   formatMoney,
   timeZonePlace,
 } from "../lib/booking-format";
 import { payNowLine } from "../lib/booking-payment";
 import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
-import type { Booked, BookingFlowActions } from "../lib/booking-types";
+import type {
+  Booked,
+  BookingFlowActions,
+  BookingInput,
+} from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
+import { AddOnStep, BookedAddOns } from "./add-on-step";
+import { BookingRules } from "./booking-policy-text";
 import { ContactLinks } from "./business-contact";
 import { PaymentStatus } from "./payment-status";
+import { ServiceList } from "./service-list";
 import { SlotPicker } from "./slot-picker";
 import { Turnstile } from "./turnstile";
+import { useAddOns } from "./use-add-ons";
 import {
   CODE_LENGTH,
   TOKEN_LOADING_MESSAGE,
   useEmailCode,
 } from "./use-email-code";
+
+/** What the API said is due for one selection (service plus add-ons). */
+interface Quote {
+  dueMinor: number | undefined;
+  emailCodeRequired: boolean | undefined;
+  key: string;
+}
+
+const ADD_ON_FAILURES: ReadonlySet<string> = new Set([
+  "add_ons_unavailable",
+  "not_found",
+  "invalid",
+]);
+
+const TIMES_UPDATING =
+  "Your times are updating for the add-ons you chose. Please wait a moment, then try again.";
 
 /** A link component the host can supply (e.g. a router-aware link). */
 export interface BookingLinkProps {
@@ -147,15 +180,6 @@ const FIELD_IDS: Record<FieldKey, string> = {
 
 const CODE_ID = "book-code";
 
-function byCategory(services: BookingPublicService[]) {
-  const groups = new Map<string, BookingPublicService[]>();
-  for (const service of services) {
-    const key = service.category ?? "Services";
-    groups.set(key, [...(groups.get(key) ?? []), service]);
-  }
-  return [...groups];
-}
-
 function buttonLabel(
   submitting: boolean,
   codeBusy: "send" | "verify" | null,
@@ -178,21 +202,6 @@ function statusLine(status: string): string {
     return "Your time is held while you pay. It is released if the payment does not arrive in time.";
   }
   return "Your request is in. The studio will confirm it by email.";
-}
-
-/**
- * Money an online booking of the service pays when it is made (a deposit, or
- * the full price when the business takes it by card); more than 0 needs the
- * emailed code first. Older storefront data without the field falls back to
- * the deposit.
- */
-function dueAtBooking(
-  service: { deposit_minor: number; due_at_booking_minor?: number } | null
-): number {
-  if (!service) {
-    return 0;
-  }
-  return service.due_at_booking_minor ?? service.deposit_minor;
 }
 
 /** Moves focus to an element when it appears (error summary, confirmation). */
@@ -244,8 +253,9 @@ function BookingDone({
             <dt>When</dt>
             <dd>{formatDateTime(booking.starts_at, booking.timezone)}</dd>
           </div>
+          <BookedAddOns currency={currency} lines={booking.add_ons} />
           <div>
-            <dt>Price</dt>
+            <dt>{booking.add_ons?.length ? "Total" : "Price"}</dt>
             <dd>{formatMoney(booking.price_minor, currency)}</dd>
           </div>
         </dl>
@@ -541,6 +551,292 @@ function CodePanel({
   );
 }
 
+/**
+ * What a submit does next: stop on an invalid form, ask for the emailed code
+ * first, wait for the Turnstile token, or send the booking with its chosen
+ * service and time (narrowed here, so the request types them as strings).
+ */
+type SubmitGate =
+  | { kind: "stop" }
+  | { kind: "code" }
+  | { kind: "token" }
+  | { kind: "send"; serviceId: string; startsAt: string };
+
+function submitGate(input: {
+  found: FieldErrors;
+  serviceId: string | null;
+  startsAt: string | null;
+  needsCode: boolean;
+  isVerified: boolean;
+  tokenMissing: boolean;
+}): SubmitGate {
+  if (
+    Object.keys(input.found).length > 0 ||
+    !input.serviceId ||
+    !input.startsAt
+  ) {
+    return { kind: "stop" };
+  }
+  if (input.needsCode && !input.isVerified) {
+    return { kind: "code" };
+  }
+  if (input.tokenMissing) {
+    return { kind: "token" };
+  }
+  return { kind: "send", serviceId: input.serviceId, startsAt: input.startsAt };
+}
+
+/** The idempotency attempt for a submission: the same request keeps its key, a changed one gets a new key. */
+function attemptFor(
+  previous: { print: string; key: string } | null,
+  print: string
+): { print: string; key: string } {
+  return previous?.print === print
+    ? previous
+    : { print, key: crypto.randomUUID() };
+}
+
+/** The request body; the emailed-code proof is sent only when one was verified. */
+function requestInput(
+  base: Omit<BookingInput, "emailProof">,
+  proof: string | null
+): BookingInput {
+  return proof ? { ...base, emailProof: proof } : base;
+}
+
+/** The error summary above the form: links to the fields, the form message and contact links. */
+function ErrorSummary({
+  contact,
+  errorList,
+  errors,
+  formError,
+  summaryRef,
+}: {
+  contact: BookingStorefront["contact"];
+  errorList: FieldKey[];
+  errors: FieldErrors;
+  formError: string | null;
+  summaryRef: RefObject<HTMLDivElement | null>;
+}) {
+  return (
+    <div
+      aria-labelledby="book-errors-title"
+      className="notice notice-error"
+      ref={summaryRef}
+      role="alert"
+      tabIndex={-1}
+    >
+      <h2 id="book-errors-title">
+        {errorList.length > 0
+          ? "Please fix the following"
+          : "We couldn't book that"}
+      </h2>
+      {errorList.length > 0 && (
+        <ul>
+          {errorList.map((key) => (
+            <li key={key}>
+              <a href={`#${FIELD_IDS[key]}`}>{errors[key]}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {formError && <p>{formError}</p>}
+      {tellsToContact(formError) && <ContactLinks contact={contact} />}
+    </div>
+  );
+}
+
+/** Step 1: the service choice. */
+function ServicesStep({
+  bookAgain,
+  errors,
+  onPick,
+  selectedId,
+  storefront,
+}: {
+  bookAgain: BookAgainChoice[];
+  errors: FieldErrors;
+  onPick: (serviceId: string) => void;
+  selectedId: string | null;
+  storefront: BookingStorefront;
+}) {
+  return (
+    <fieldset
+      aria-describedby={groupErrorId("service", errors)}
+      className="step"
+      id={FIELD_IDS.service}
+    >
+      <legend>1. Choose a service</legend>
+      <GroupError errors={errors} field="service" />
+      <BookAgain
+        choices={bookAgain}
+        onChoose={onPick}
+        selected={selectedId}
+        storefront={storefront}
+      />
+      <ServiceList
+        bookAgainIds={bookAgain.map((choice) => choice.serviceId)}
+        currency={storefront.currency}
+        onPick={onPick}
+        selectedId={selectedId}
+        services={storefront.services}
+      />
+      {storefront.services.length === 0 && (
+        <div className="muted">
+          <p>
+            No services are open for online booking yet. Please contact the
+            business{contactEnding(storefront.contact)}
+          </p>
+          <ContactLinks contact={storefront.contact} />
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
+/** Step 2: the day and time, once a service is chosen. */
+function TimeStep({
+  actions,
+  addOnIds,
+  errors,
+  onAddOnsGone,
+  onBusyChange,
+  currentKey,
+  onChange,
+  onQuote,
+  onUnavailable,
+  reloadKey,
+  service,
+  startsAt,
+  storefront,
+  timeNote,
+}: {
+  actions: BookingFlowActions;
+  addOnIds: readonly string[];
+  errors: FieldErrors;
+  onAddOnsGone: (message: string) => void;
+  onBusyChange: (busy: boolean) => void;
+  /** The key of the selection on screen now, read when an answer arrives. */
+  currentKey: () => string;
+  onChange: (value: string | null) => void;
+  onQuote: (quote: Quote) => void;
+  onUnavailable: () => void;
+  reloadKey: number;
+  service: BookingPublicService | null;
+  startsAt: string | null;
+  storefront: BookingStorefront;
+  timeNote: string | null;
+}) {
+  return (
+    <fieldset
+      aria-describedby={groupErrorId("time", errors)}
+      className="step"
+      id={FIELD_IDS.time}
+    >
+      <legend>2. Pick a day and time</legend>
+      <p className="muted">
+        Times are in {timeZonePlace(storefront.timezone)} time.
+      </p>
+      <GroupError errors={errors} field="time" />
+      {service ? (
+        <SlotPicker
+          key={service.id}
+          load={async (firstDay) => {
+            const sentKey = selectionKey(service.id, addOnIds);
+            const outcome =
+              addOnIds.length > 0
+                ? await actions.loadSlots(service.id, firstDay, addOnIds)
+                : await actions.loadSlots(service.id, firstDay);
+            // A late answer for an older selection must not touch this one.
+            if (addOnIds.length > 0 && currentKey() === sentKey) {
+              if (outcome.ok) {
+                onQuote({
+                  key: selectionKey(service.id, addOnIds),
+                  dueMinor: outcome.data.dueAtBookingMinor,
+                  emailCodeRequired: outcome.data.emailCodeRequired,
+                });
+              } else if (ADD_ON_FAILURES.has(outcome.code)) {
+                // Switched off, not offered with this service, or the service
+                // itself cannot take add-ons: drop them, keep what was typed.
+                onAddOnsGone(
+                  outcome.code === "add_ons_unavailable"
+                    ? ADD_ONS_GONE_MESSAGE
+                    : ADD_ONS_TIMES_MESSAGE
+                );
+              }
+            }
+            return outcome;
+          }}
+          onBusyChange={onBusyChange}
+          onChange={onChange}
+          onUnavailable={onUnavailable}
+          reloadKey={reloadKey}
+          timeZone={storefront.timezone}
+          value={startsAt}
+        />
+      ) : (
+        <p className="muted">Choose a service to see open times.</p>
+      )}
+      <div aria-live="polite" data-testid="time-note-live" role="status">
+        {timeNote ? <p className="notice">{timeNote}</p> : null}
+      </div>
+      {service && startsAt && (
+        <p className="chosen" role="status">
+          {service.name}: {formatDateTime(startsAt, storefront.timezone)}
+        </p>
+      )}
+    </fieldset>
+  );
+}
+
+/** Shown once the code is verified, or when no code is needed. */
+function VerifiedNotice({ proof }: { proof: string | null }) {
+  return (
+    <p className="notice notice-ok" role="status">
+      {proof
+        ? "Your email is verified."
+        : "No email code is needed for this booking."}{" "}
+      Press Request my booking to finish.
+    </p>
+  );
+}
+
+/** The code can be resent only after the cooldown, with no request in flight and a token. */
+function codeResendBlocked(
+  cooldown: number,
+  busy: "send" | "verify" | null,
+  tokenMissing: boolean
+): boolean {
+  return cooldown > 0 || busy !== null || tokenMissing;
+}
+
+/** What is paid online for the chosen service, and its description. */
+function ServiceNotes({
+  noPayment,
+  payNow,
+  service,
+}: {
+  noPayment: boolean;
+  payNow: string | null;
+  service: BookingPublicService | null;
+}) {
+  return (
+    <>
+      <div aria-live="polite" role="status">
+        {service && payNow && <p className="notice payment-notice">{payNow}</p>}
+      </div>
+      {service && noPayment && (
+        <p className="muted">No payment online. You pay when you visit.</p>
+      )}
+      {service?.description && (
+        <p className="muted">
+          Note for {service.name}: {service.description}
+        </p>
+      )}
+    </>
+  );
+}
+
 export function BookingFlow({
   accountInvite,
   actions,
@@ -555,6 +851,11 @@ export function BookingFlow({
 }: BookingFlowProps) {
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [startsAt, setStartsAt] = useState<string | null>(null);
+  const addOns = useAddOns({
+    addOns: storefront.add_ons,
+    serviceId,
+    startsAt,
+  });
   const [name, setName] = useState(signedIn?.name ?? "");
   const [email, setEmail] = useState(signedIn?.email ?? "");
   const [phone, setPhone] = useState(signedIn?.phone ?? "");
@@ -570,6 +871,11 @@ export function BookingFlow({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // True while times are being asked for again after the add-ons changed: a
+  // time chosen before that may no longer fit, so it cannot be submitted yet.
+  const [timesBusy, setTimesBusy] = useState(false);
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const keyRef = useRef("");
   const [booked, setBooked] = useState<Booked | null>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   // One key per submission: a retry of the same request replays it.
@@ -592,6 +898,7 @@ export function BookingFlow({
     track?.("service_selected", { service_id: id });
     setServiceId(id);
     setStartsAt(null);
+    addOns.reset();
     reviseErrors({ serviceId: id, startsAt: null });
   };
   const pickStart = (value: string | null) => {
@@ -599,6 +906,9 @@ export function BookingFlow({
       track?.("slot_selected", { service_id: serviceId });
     }
     setStartsAt(value);
+    if (value) {
+      addOns.clearNote();
+    }
     reviseErrors({ startsAt: value });
   };
   const editName = (value: string) => {
@@ -619,6 +929,9 @@ export function BookingFlow({
   };
 
   const service = storefront.services.find((s) => s.id === serviceId) ?? null;
+  const totals = service
+    ? addOnTotals(service, addOns.offered, addOns.ids)
+    : null;
   const errorList = (Object.keys(errors) as FieldKey[]).filter(
     (key) => errors[key]
   );
@@ -631,19 +944,34 @@ export function BookingFlow({
   // API still forces the code step (`codeForced`).
   const ownAccountEmail =
     signedIn !== undefined && sameEmail(email, signedIn.email);
-  const needsCode =
-    (dueAtBooking(service) > 0 && !ownAccountEmail) ||
-    (serviceId !== null && codeForced === serviceId);
-  const payNow = service
-    ? payNowLine(
-        dueAtBooking(service),
-        service.price_minor,
-        storefront.currency,
-        storefront.cancel_cutoff_hours
-      )
+  // With add-ons ticked the API may charge on the combined price, which this
+  // form cannot work out: then no figure is shown, and a code the API demands
+  // anyway is asked for through `codeForced` with the typed details kept.
+  keyRef.current = selectionKey(serviceId, addOns.ids);
+  const quoted =
+    quote?.key === selectionKey(serviceId, addOns.ids) &&
+    quote.dueMinor !== undefined &&
+    quote.emailCodeRequired !== undefined
+      ? { dueMinor: quote.dueMinor, emailCodeRequired: quote.emailCodeRequired }
+      : null;
+  const selection = service
+    ? amountDueForSelection({
+        addOnCount: addOns.ids.length,
+        fromApi: quoted,
+        service,
+      })
     : null;
+  const knownDue = selection?.dueMinor ?? null;
+  const needsCode =
+    ((selection?.emailCodeRequired ?? false) && !ownAccountEmail) ||
+    (serviceId !== null && codeForced === serviceId);
+  const payNow =
+    service && knownDue !== null && totals
+      ? payNowLine(knownDue, totals.priceMinor, storefront.currency)
+      : null;
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
   const emailCode = useEmailCode({
+    addOnIds: addOns.ids,
     actions,
     email,
     onFormError: setFormError,
@@ -668,6 +996,10 @@ export function BookingFlow({
       emailCode.dropProof();
       setCodeForced(serviceId);
     }
+    if (outcome.code === "add_ons_unavailable") {
+      addOns.gone(outcome.message);
+      setStartsAt(null);
+    }
     if (outcome.code === "slot_taken") {
       setStartsAt(null);
       setReloadKey((n) => n + 1);
@@ -677,6 +1009,10 @@ export function BookingFlow({
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (submitting || emailCode.busy) {
+      return;
+    }
+    if (timesBusy && startsAt) {
+      setFormError(TIMES_UPDATING);
       return;
     }
     if (stepOpen) {
@@ -693,48 +1029,59 @@ export function BookingFlow({
     });
     setErrors(found);
     setFormError(null);
-    if (Object.keys(found).length > 0 || !serviceId || !startsAt) {
-      return;
-    }
-    if (needsCode && !isVerified) {
-      await emailCode.start();
-      return;
-    }
-    if (tokenMissing) {
-      setFormError(TOKEN_LOADING_MESSAGE);
-      return;
-    }
-    const print = fingerprint({
+    const gate = submitGate({
+      found,
       serviceId,
       startsAt,
+      needsCode,
+      isVerified,
+      tokenMissing,
+    });
+    if (gate.kind !== "send") {
+      if (gate.kind === "code") {
+        await emailCode.start();
+      } else if (gate.kind === "token") {
+        setFormError(TOKEN_LOADING_MESSAGE);
+      }
+      return;
+    }
+    const chosenId = gate.serviceId;
+    const chosenStart = gate.startsAt;
+    const print = fingerprint({
+      serviceId: chosenId,
+      startsAt: chosenStart,
       name,
       email,
       phone,
       notes,
       marketing,
+      addOnIds: addOns.ids,
     });
-    if (attempt.current?.print !== print) {
-      attempt.current = { print, key: crypto.randomUUID() };
-    }
+    attempt.current = attemptFor(attempt.current, print);
     setSubmitting(true);
-    track?.("booking_submitted", { service_id: serviceId });
+    track?.("booking_submitted", { service_id: chosenId });
     try {
-      const outcome = await actions.submitBooking({
-        idempotencyKey: attempt.current.key,
-        serviceId,
-        startsAt,
-        name,
-        email,
-        ...(emailCode.proof ? { emailProof: emailCode.proof } : {}),
-        phone,
-        notes,
-        marketingConsent: marketing,
-        website,
-        turnstileToken: token ?? "",
-      });
+      const outcome = await actions.submitBooking(
+        requestInput(
+          {
+            idempotencyKey: attempt.current.key,
+            serviceId: chosenId,
+            startsAt: chosenStart,
+            name,
+            email,
+            phone,
+            notes,
+            marketingConsent: marketing,
+            ...(addOns.ids.length > 0 ? { addOnIds: addOns.ids } : {}),
+            website,
+            turnstileToken: token ?? "",
+          },
+          emailCode.proof
+        )
+      );
       if (outcome.ok) {
         attempt.current = null;
-        track?.("booking_confirmed", { service_id: serviceId });
+        track?.("booking_confirmed", { service_id: chosenId });
         setBooked(outcome.data);
         return;
       }
@@ -772,119 +1119,55 @@ export function BookingFlow({
         onSubmit={submit}
       >
         {showSummary && (
-          <div
-            aria-labelledby="book-errors-title"
-            className="notice notice-error"
-            ref={summaryRef}
-            role="alert"
-            tabIndex={-1}
-          >
-            <h2 id="book-errors-title">
-              {errorList.length > 0
-                ? "Please fix the following"
-                : "We couldn't book that"}
-            </h2>
-            {errorList.length > 0 && (
-              <ul>
-                {errorList.map((key) => (
-                  <li key={key}>
-                    <a href={`#${FIELD_IDS[key]}`}>{errors[key]}</a>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {formError && <p>{formError}</p>}
-            {tellsToContact(formError) && (
-              <ContactLinks contact={storefront.contact} />
-            )}
-          </div>
+          <ErrorSummary
+            contact={storefront.contact}
+            errorList={errorList}
+            errors={errors}
+            formError={formError}
+            summaryRef={summaryRef}
+          />
         )}
 
-        <fieldset
-          aria-describedby={groupErrorId("service", errors)}
-          className="step"
-          id={FIELD_IDS.service}
-        >
-          <legend>1. Choose a service</legend>
-          <GroupError errors={errors} field="service" />
-          <BookAgain
-            choices={bookAgain}
-            onChoose={pickService}
-            selected={serviceId}
-            storefront={storefront}
-          />
-          {byCategory(storefront.services).map(([category, list]) => (
-            <div className="service-group" key={category}>
-              <h3>{category}</h3>
-              {list.map((item) => (
-                <label className="service-option" key={item.id}>
-                  <input
-                    checked={item.id === serviceId}
-                    name="service"
-                    onChange={() => pickService(item.id)}
-                    type="radio"
-                    value={item.id}
-                  />
-                  <span className="service-text">
-                    <span className="service-name">{item.name}</span>
-                    <span className="muted">
-                      {formatDuration(item.duration_min)}
-                      {item.description ? ` · ${item.description}` : ""}
-                    </span>
-                    {dueAtBooking(item) > 0 && (
-                      <span className="muted">
-                        {dueAtBooking(item) < item.price_minor
-                          ? `Deposit ${formatMoney(dueAtBooking(item), storefront.currency)} paid now`
-                          : "Paid now"}
-                      </span>
-                    )}
-                  </span>
-                  <span className="service-price">
-                    {formatMoney(item.price_minor, storefront.currency)}
-                  </span>
-                </label>
-              ))}
-            </div>
-          ))}
-          {storefront.services.length === 0 && (
-            <div className="muted">
-              <p>
-                No services are open for online booking yet. Please contact the
-                business{contactEnding(storefront.contact)}
-              </p>
-              <ContactLinks contact={storefront.contact} />
-            </div>
-          )}
-        </fieldset>
+        <ServicesStep
+          bookAgain={bookAgain}
+          errors={errors}
+          onPick={pickService}
+          selectedId={serviceId}
+          storefront={storefront}
+        />
 
-        <fieldset
-          aria-describedby={groupErrorId("time", errors)}
-          className="step"
-          id={FIELD_IDS.time}
-        >
-          <legend>2. Pick a day and time</legend>
-          <p className="muted">
-            Times are in {timeZonePlace(storefront.timezone)} time.
-          </p>
-          <GroupError errors={errors} field="time" />
-          {service ? (
-            <SlotPicker
-              key={service.id}
-              load={(firstDay) => actions.loadSlots(service.id, firstDay)}
-              onChange={pickStart}
-              reloadKey={reloadKey}
-              timeZone={storefront.timezone}
-              value={startsAt}
-            />
-          ) : (
-            <p className="muted">Choose a service to see open times.</p>
-          )}
-          {service && startsAt && (
-            <p className="chosen" role="status">
-              {service.name}: {formatDateTime(startsAt, storefront.timezone)}
-            </p>
-          )}
-        </fieldset>
+        {service && addOns.offered.length > 0 ? (
+          <AddOnStep
+            chosen={addOns.ids}
+            currency={storefront.currency}
+            offered={addOns.offered}
+            onToggle={(id) => {
+              setTimesBusy(true);
+              addOns.choose(id);
+            }}
+            service={service}
+          />
+        ) : null}
+
+        <TimeStep
+          actions={actions}
+          addOnIds={addOns.ids}
+          currentKey={() => keyRef.current}
+          errors={errors}
+          onAddOnsGone={(message) => {
+            addOns.gone(message);
+            setStartsAt(null);
+          }}
+          onBusyChange={setTimesBusy}
+          onChange={pickStart}
+          onQuote={setQuote}
+          onUnavailable={addOns.timeNoLongerFits}
+          reloadKey={reloadKey + addOns.reloads}
+          service={service}
+          startsAt={startsAt}
+          storefront={storefront}
+          timeNote={addOns.note}
+        />
 
         <fieldset className="step">
           <legend>3. Your details</legend>
@@ -980,42 +1263,43 @@ export function BookingFlow({
             onChangeEmail={changeEmail}
             onCode={emailCode.setCode}
             onResend={emailCode.resend}
-            resendBlocked={
-              emailCode.cooldown > 0 || emailCode.busy !== null || tokenMissing
-            }
+            resendBlocked={codeResendBlocked(
+              emailCode.cooldown,
+              emailCode.busy,
+              tokenMissing
+            )}
           />
         )}
-        {isVerified && needsCode && (
-          <p className="notice notice-ok" role="status">
-            {emailCode.proof
-              ? "Your email is verified."
-              : "No email code is needed for this booking."}{" "}
-            Press Request my booking to finish.
-          </p>
-        )}
+        {isVerified && needsCode && <VerifiedNotice proof={emailCode.proof} />}
 
-        {service && payNow && (
-          <p className="notice payment-notice" role="status">
-            {payNow}
-          </p>
-        )}
-        {service && dueAtBooking(service) === 0 && (
-          <p className="muted">No payment online. You pay when you visit.</p>
-        )}
-        {service?.description && (
-          <p className="muted">
-            Note for {service.name}: {service.description}
-          </p>
-        )}
-        <p className="muted">
-          By appointment only. You can change or cancel online until{" "}
-          {formatHours(storefront.cancel_cutoff_hours)} before your visit.
-        </p>
+        <ServiceNotes
+          noPayment={knownDue === 0}
+          payNow={payNow}
+          service={service}
+        />
+        <BookingRules
+          policy={storefront.booking_policy}
+          rules={{
+            businessName: storefront.display_name,
+            currency: storefront.currency,
+            cutoffHours: storefront.cancel_cutoff_hours,
+            amountLoading: service !== null && knownDue === null && timesBusy,
+            depositOnTotal: service !== null && knownDue === null && !timesBusy,
+            dueMinor: knownDue ?? undefined,
+            nonRefundable: storefront.deposit_non_refundable,
+            ownDepositMinor: service?.deposit_minor,
+            priceMinor: totals?.priceMinor,
+          }}
+        />
         {!stepOpen && (
           <button
-            aria-disabled={submitting || emailCode.busy !== null}
+            aria-disabled={
+              submitting || emailCode.busy !== null || (timesBusy && !!startsAt)
+            }
             className="btn btn-solid"
-            disabled={submitting || emailCode.busy !== null}
+            disabled={
+              submitting || emailCode.busy !== null || (timesBusy && !!startsAt)
+            }
             type="submit"
           >
             {buttonLabel(submitting, emailCode.busy, needsCode && !isVerified)}

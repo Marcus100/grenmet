@@ -9,11 +9,14 @@ vi.mock("@/lib/session", () => ({
 }));
 vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
+  getCalendarFeedStatus: vi.fn(),
   getSettings: vi.fn(),
   listExceptions: vi.fn(),
 }));
 vi.mock("./actions", () => ({
+  createCalendarFeedAction: vi.fn(),
   removeTimeOffAction: vi.fn(),
+  rotateCalendarFeedAction: vi.fn(),
   saveHoursAction: vi.fn(),
   saveProfileAction: vi.fn(),
   saveProviderAction: vi.fn(),
@@ -207,6 +210,7 @@ describe("settings sections", () => {
       "#people",
       "#payments",
       "#contact",
+      "#calendar",
     ]);
     for (const id of [
       "profile",
@@ -215,6 +219,7 @@ describe("settings sections", () => {
       "people",
       "payments",
       "contact",
+      "calendar",
     ]) {
       expect(document.getElementById(id)).toBeInTheDocument();
     }

@@ -64,6 +64,14 @@ function addPeople(add: Add, results: ResultsFile, campaign: CampaignFile) {
         note: `${sitting.party} member at dissolution for ${seat}`,
         href: constituencyHref(results, code),
       });
+    const won = results.results["2026"]?.[code]?.c[0];
+    if (won)
+      add({
+        kind: "person",
+        label: won[0],
+        note: `${won[1]} winner for ${seat} · provisional 2026 result`,
+        href: constituencyHref(results, code),
+      });
     for (const [party, slate] of Object.entries(campaign.candidates)) {
       const name = slate[code];
       if (name && name !== sitting?.name)

@@ -24,8 +24,9 @@ Static site at `babydoll.barrels.gd` (production only, no staging), on Cloudflar
   until the client confirms it.
 - Booking happens off this site, on the studio's page on the Barrels bookings
   site (`ONLINE_BOOKING_URL`, see "Booking"); the Acuity link (`BOOKING_URL`)
-  is only the fallback. Contact and training interest go to Instagram DM. The pages
-  make no API calls and use no analytics.
+  is only the fallback. The Contact page offers WhatsApp, phone, email and
+  Instagram DM (training interest is Instagram DM). The pages make no API calls
+  and use no analytics.
 - Every Book call-to-action uses `siteBookingLink()` (Server Components) or a
   `CtaLink` prop (client components) from `src/lib/book-link.ts`. Never link
   `BOOKING_URL` directly.

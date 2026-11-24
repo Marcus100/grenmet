@@ -6,6 +6,10 @@ import Link from "next/link";
 import { ClosestContests } from "@/components/constituencies/closest-contests";
 import { HouseMap } from "@/components/constituencies/house-map";
 import { ConstituencySearch } from "@/components/constituency-search";
+import {
+  DeclaredSummary,
+  DeclaredWatch,
+} from "@/components/election/declared-result";
 import { ElectionStatus } from "@/components/election/election-status";
 import { ElectionTimeline } from "@/components/election/election-timeline";
 import { FlagStripe } from "@/components/flag-stripe";
@@ -20,7 +24,13 @@ import { Photo } from "@/components/photo";
 import { Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
 import { COVERAGE } from "@/data/coverage";
-import { calendarFrom, seatOutlook, updateEvents } from "@/data/election-2026";
+import {
+  calendarFrom,
+  declaredHouse,
+  declaredResult,
+  seatOutlook,
+  updateEvents,
+} from "@/data/election-2026";
 import { GUIDES } from "@/data/learning";
 import { campaign, geo, results } from "@/data/load";
 import { nationalResult } from "@/data/model";
@@ -37,7 +47,7 @@ const HISTORY = [
   {
     href: "/elections",
     title: "Every election",
-    body: "All 17 general elections from 1951 and both referendums, with every candidate’s votes.",
+    body: "All 18 general elections from 1951 (2026 provisional) and both referendums, with every candidate’s votes.",
   },
   {
     href: "/trends",
@@ -72,9 +82,12 @@ const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 const HERO_PHOTO: PhotoId = "parliament";
 
 export default function FrontPage() {
-  const calendar = calendarFrom(campaign);
+  const calendar = calendarFrom(campaign, results);
   const seats = seatOutlook(results, campaign);
+  const declared = declaredResult(results, campaign);
   const result2022 = nationalResult(results, "2022");
+  const result2026 = declared ? nationalResult(results, "2026") : null;
+  const house = declared ? declaredHouse(seats, declared) : seats;
   const crossed = seats.filter((s) => s.sitting.was);
 
   // Three or four slots: once Parliament is dissolved, that date replaces nomination
@@ -153,22 +166,34 @@ export default function FrontPage() {
             {calendar.pollingDay && ` · ${weekdayDate(calendar.pollingDay)}`}
           </p>
           <h1 className="mt-2.5 text-[clamp(2rem,4.6vw,3.25rem)] leading-[1.05] font-bold tracking-[-0.022em]">
-            <ElectionStatus
-              calendar={calendar}
-              fallback="Grenada’s 2026 general election"
-            />
+            {declared ? (
+              "Provisional results: Grenada’s 2026 general election"
+            ) : (
+              <ElectionStatus
+                calendar={calendar}
+                fallback="Grenada’s 2026 general election"
+              />
+            )}
           </h1>
-          <p className="text-el-ink-2 mt-3 max-w-[56ch] font-serif text-lg leading-normal">
-            Fifteen constituencies choose the next House of Representatives.
-            Follow the campaign, explore your constituency, and compare the
-            election with Grenada’s history.
-          </p>
+          {declared ? (
+            <div className="mt-4 max-w-[56ch]">
+              <DeclaredSummary result={declared} />
+            </div>
+          ) : (
+            <p className="text-el-ink-2 mt-3 max-w-[56ch] font-serif text-lg leading-normal">
+              Fifteen constituencies choose the next House of Representatives.
+              Follow the campaign, explore your constituency, and compare the
+              election with Grenada’s history.
+            </p>
+          )}
           <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
             <Link
               className="bg-el-ink text-el-paper inline-flex h-11 items-center justify-center rounded-md px-5 font-semibold hover:opacity-90"
-              href="/make-your-map"
+              href={declared ? "/2026#results" : "/make-your-map"}
             >
-              Make your own map →
+              {declared
+                ? "Results in all 15 constituencies →"
+                : "Make your own map →"}
             </Link>
             <Link
               className="border-el-ink hover:bg-el-paper-2 inline-flex h-11 items-center justify-center rounded-md border px-5 font-semibold"
@@ -204,7 +229,10 @@ export default function FrontPage() {
           <div className="bg-el-flag-gold-tint mt-5">
             <FlagStripe />
             <div className="px-5 py-5">
-              <HouseStrip seats={seats} />
+              <HouseStrip
+                seats={house}
+                title={declared ? "The new House · provisional" : undefined}
+              />
             </div>
           </div>
         </div>
@@ -231,12 +259,16 @@ export default function FrontPage() {
 
       <Section
         id="race"
-        more={{ href: "/candidates", label: "Who is standing" }}
-        title="The race in brief"
+        more={{
+          href: "/candidates",
+          label: declared ? "Who stood" : "Who is standing",
+        }}
+        title={declared ? "The parties in brief" : "The race in brief"}
       >
         <RaceInBrief
           campaign={campaign}
           result2022={result2022}
+          result2026={result2026}
           seats={seats}
         />
       </Section>
@@ -266,18 +298,31 @@ export default function FrontPage() {
       <Section
         id="watch"
         more={{ href: "/constituencies", label: "All 15 constituencies" }}
-        title="Seats to watch"
+        title={declared ? "Who won each seat" : "Seats to watch"}
       >
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-          <HouseMap className="max-w-xl" geo={geo} seats={seats} />
+          <HouseMap
+            className="max-w-xl"
+            geo={geo}
+            label={
+              declared
+                ? "Party that won each seat in 2026 (provisional)"
+                : undefined
+            }
+            seats={house}
+          />
           <div className="space-y-6">
-            <div>
-              <h3 className={LABEL}>Closest in 2022 · winning margin</h3>
-              <div className="mt-2">
-                <ClosestContests count={4} seats={seats} />
+            {declared ? (
+              <DeclaredWatch result={declared} />
+            ) : (
+              <div>
+                <h3 className={LABEL}>Closest in 2022 · winning margin</h3>
+                <div className="mt-2">
+                  <ClosestContests count={4} seats={seats} />
+                </div>
               </div>
-            </div>
-            {crossed.length > 0 && (
+            )}
+            {!declared && crossed.length > 0 && (
               <div>
                 <h3 className={LABEL}>Changed hands since 2022</h3>
                 <ul className="divide-el-rule border-el-rule mt-2 divide-y border-y text-base">

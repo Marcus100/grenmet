@@ -9,7 +9,7 @@ import { SourceLink } from "@/components/source-link";
 import { COVERAGE, coveragePost } from "@/data/coverage";
 import { calendarFrom } from "@/data/election-2026";
 import { EVIDENCE_LABELS, sourceKind } from "@/data/evidence";
-import { campaign } from "@/data/load";
+import { campaign, results } from "@/data/load";
 import { formatIsoDate } from "@/lib/format";
 
 const DEFAULT_BYLINE = "Eugine Whint";
@@ -72,7 +72,7 @@ export default async function UpdatePage({ params }: Props) {
         {post.graphic === "election-timeline" && (
           <figure className="border-el-ink m-0 mb-8 max-w-2xl border-y-2 py-4">
             <div className="overflow-x-auto">
-              <ElectionTimeline calendar={calendarFrom(campaign)} />
+              <ElectionTimeline calendar={calendarFrom(campaign, results)} />
             </div>
             <figcaption className="text-el-muted mt-2 text-sm leading-relaxed">
               Dates from the Notice of Issuance of Writs, Government Gazette No.

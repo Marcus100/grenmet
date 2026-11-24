@@ -99,6 +99,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
       {canManageBookings(org.value.role) ? (
         <BookingActions
           bookingId={booking.id}
+          nonRefundable={booking.deposit_non_refundable === true}
           orgSlug={orgSlug}
           paymentKind={kind}
           refundable={

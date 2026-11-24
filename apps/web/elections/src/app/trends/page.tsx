@@ -42,8 +42,19 @@ export const metadata: Metadata = {
 
 const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 const GENERAL = EVENTS.filter((e) => e.kind === "general");
+/** The latest general election in the archive (2026 is provisional). */
+const LAST_YEAR = Math.max(...GENERAL.map((e) => e.year));
 /** Years labelled on phones, where every election year won't fit. */
-const PHONE_YEARS = new Set([1951, 1962, 1972, 1984, 1995, 2003, 2013, 2022]);
+const PHONE_YEARS = new Set([
+  1951,
+  1962,
+  1972,
+  1984,
+  1995,
+  2003,
+  2013,
+  LAST_YEAR,
+]);
 const MAIN = new Set(["GULP", "MMWU", "NNP", "NDC", "GNP", "PA", "TNP"]);
 
 const SERIES = [
@@ -83,12 +94,13 @@ function ShareChart() {
   const W = 1000;
   const H = 360;
   const m = { l: 70, r: 70, t: 12, b: 28 };
-  const x = (y: number) => m.l + ((y - 1951) / (2022 - 1951)) * (W - m.l - m.r);
+  const x = (y: number) =>
+    m.l + ((y - 1951) / (LAST_YEAR - 1951)) * (W - m.l - m.r);
   const yv = (v: number) => H - m.b - (v / 0.7) * (H - m.t - m.b);
   return (
     <ChartViewport>
       <svg
-        aria-label="Share of the popular vote by party, 1951 to 2022"
+        aria-label={`Share of the popular vote by party, 1951 to ${LAST_YEAR}`}
         className="h-auto w-full"
         role="img"
         style={{ minWidth: `${W / 16}rem` }}
@@ -206,7 +218,8 @@ function TurnoutChart() {
   const W = 1000;
   const H = 220;
   const m = { l: 70, r: 20, t: 12, b: 28 };
-  const x = (y: number) => m.l + ((y - 1951) / (2022 - 1951)) * (W - m.l - m.r);
+  const x = (y: number) =>
+    m.l + ((y - 1951) / (LAST_YEAR - 1951)) * (W - m.l - m.r);
   const yv = (v: number) => H - m.b - v * (H - m.t - m.b);
   const elections = GENERAL.map((e) => ({
     e,
@@ -451,7 +464,7 @@ export default function TrendsPage() {
     <>
       <PageHead
         deck="Winning more votes, winning more seats and getting more people to vote are different things. Follow seven questions through Grenada’s election history to see how they fit together."
-        eyebrow="The numbers, explained · 1951 to 2022"
+        eyebrow={`The numbers, explained · 1951 to ${LAST_YEAR}`}
         learning="statistics"
         title="How to read an election"
       >
@@ -482,8 +495,9 @@ export default function TrendsPage() {
           </ol>
         </nav>
         <p className="text-el-muted mt-4 max-w-prose text-base leading-relaxed">
-          The charts describe recorded results through 2022, not a forecast for
-          2026. Figures come from our{" "}
+          The charts describe recorded results through {LAST_YEAR}, including
+          the provisional 2026 result where it is marked, not a forecast.
+          Figures come from our{" "}
           <Link className="underline underline-offset-4" href="/sources">
             sourced election archive
           </Link>
@@ -982,7 +996,7 @@ export default function TrendsPage() {
                   {constituencyName(results, code)}
                 </Link>
                 <svg
-                  aria-label={`NDC two-party share in ${constituencyName(results, code)}, 1990 to 2022`}
+                  aria-label={`NDC two-party share in ${constituencyName(results, code)}, 1990 to ${LAST_YEAR}`}
                   className="mt-1 h-auto w-full"
                   role="img"
                   viewBox={`0 0 ${W} ${H}`}
@@ -1072,7 +1086,7 @@ export default function TrendsPage() {
             <h3 className={LABEL}>Bellwethers</h3>
             <p className="text-el-muted text-base leading-relaxed">
               How often each constituency backed the party that won most seats,
-              1984–2022 ({bellYears.length} elections)
+              1984–{LAST_YEAR} ({bellYears.length} elections)
             </p>
             <ol className="divide-el-rule mt-1 divide-y text-base">
               {bellwethers.map((b) => (

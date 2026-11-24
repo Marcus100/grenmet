@@ -57,6 +57,12 @@ describe("/desk (board)", () => {
     expect(report.reportError).toHaveBeenCalledWith(boom, "cap-desk-board");
   });
 
+  it("gives New warning a 44px target when the account may create", async () => {
+    render(await DeskBoard());
+    const link = screen.getByRole("link", { name: "New warning" });
+    expect(link.classList.contains("min-h-11")).toBe(true);
+  });
+
   it("shows every stage with its empty message and the loaded alerts", async () => {
     render(await DeskBoard());
     expect(screen.getByText("No drafts.")).toBeInTheDocument();

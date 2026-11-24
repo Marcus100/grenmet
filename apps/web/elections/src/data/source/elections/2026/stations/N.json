@@ -1,0 +1,158 @@
+[
+  [
+    "N06",
+    "b",
+    "Samaritan Presbyterian School",
+    228,
+    null,
+    null,
+    {
+      "NDC": 99,
+      "NNP": 55
+    }
+  ],
+  [
+    "N02",
+    "a",
+    "Victoria Pre-Primary School",
+    324,
+    null,
+    null,
+    {
+      "NDC": 107,
+      "NNP": 107
+    }
+  ],
+  [
+    "N02",
+    "b",
+    "Victoria Pre-Primary School",
+    332,
+    null,
+    null,
+    {
+      "NDC": 106,
+      "NNP": 103
+    }
+  ],
+  [
+    "N02",
+    "c",
+    "Victoria Pre-Primary School",
+    336,
+    null,
+    null,
+    {
+      "NDC": 123,
+      "NNP": 107
+    }
+  ],
+  [
+    "N03",
+    "a",
+    "Victoria Child Development Centre (Police Included)",
+    395,
+    null,
+    null,
+    {
+      "NDC": 147,
+      "NNP": 121
+    }
+  ],
+  [
+    "N03",
+    "b",
+    "Victoria Child Development Centre",
+    349,
+    null,
+    null,
+    {
+      "NDC": 140,
+      "NNP": 92
+    }
+  ],
+  [
+    "N04",
+    "a",
+    "St. Mark's Secondary School",
+    319,
+    null,
+    null,
+    {
+      "NDC": 112,
+      "NNP": 97
+    }
+  ],
+  [
+    "N04",
+    "b",
+    "St. Mark's Secondary School",
+    332,
+    null,
+    null,
+    {
+      "NNP": 131,
+      "NDC": 104
+    }
+  ],
+  [
+    "N04",
+    "c",
+    "St. Mark's Secondary School",
+    334,
+    null,
+    null,
+    {
+      "NNP": 107,
+      "NDC": 102
+    }
+  ],
+  [
+    "N05",
+    "a",
+    "Mrs. DeAllie's Residence, Duquense",
+    352,
+    null,
+    null,
+    {
+      "NDC": 152,
+      "NNP": 97
+    }
+  ],
+  [
+    "N05",
+    "b",
+    "Mrs. DeAllie's Residence, Duquense",
+    349,
+    null,
+    null,
+    {
+      "NNP": 118,
+      "NDC": 112
+    }
+  ],
+  [
+    "N06",
+    "a",
+    "Samaritan Presbyterian School",
+    221,
+    null,
+    null,
+    {
+      "NDC": 111,
+      "NNP": 42
+    }
+  ],
+  [
+    "N01",
+    null,
+    "Maran Community Centre",
+    332,
+    null,
+    null,
+    {
+      "NDC": 124,
+      "NNP": 101
+    }
+  ]
+]

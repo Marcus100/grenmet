@@ -1,6 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { ChartViewport } from "@/components/chart-viewport";
+import { PreElectionNote } from "@/components/election/pre-election-note";
 import { Flag } from "@/components/flag";
 import { Forecast, type ForecastSeat } from "@/components/forecast/forecast";
 import { Replay } from "@/components/forecast/replay";
@@ -200,6 +201,7 @@ export default function ForecastPage() {
 
   return (
     <>
+      <PreElectionNote />
       <PageHead
         deck={
           <>
@@ -214,7 +216,7 @@ export default function ForecastPage() {
             predictions.
           </>
         }
-        eyebrow="Forecast · General election 2026"
+        eyebrow="Forecast · Pre-election outlook · General election 2026"
         learning="forecast"
         title="Explore what could change the result"
       >

@@ -68,6 +68,8 @@ class DepositRule:
     mode: str = BookingDepositMode.NONE.value
     percent: int | None = None
     fixed_minor: int | None = None
+    #: Services priced below this take no deposit from the rule; None = no minimum.
+    min_price_minor: int | None = None
 
 
 def deposit_rule_of(profile: BookingProfile) -> DepositRule:
@@ -75,6 +77,7 @@ def deposit_rule_of(profile: BookingProfile) -> DepositRule:
         mode=profile.deposit_mode,
         percent=profile.deposit_percent,
         fixed_minor=profile.deposit_fixed_minor,
+        min_price_minor=profile.deposit_min_price_minor,
     )
 
 
@@ -83,8 +86,11 @@ def rule_deposit(price_minor: int, rule: DepositRule) -> int:
 
     A percentage is rounded up to whole currency units (``100`` minor each), so a
     priced service never rounds to nothing; a fixed amount is taken as given. The
-    result never exceeds the price."""
+    result never exceeds the price. A service priced below the rule's minimum
+    takes nothing from it."""
     if price_minor <= 0:
+        return 0
+    if rule.min_price_minor and price_minor < rule.min_price_minor:
         return 0
     if rule.mode == BookingDepositMode.PERCENT.value and rule.percent:
         whole_units = -(-price_minor * rule.percent // (100 * 100))
@@ -94,12 +100,15 @@ def rule_deposit(price_minor: int, rule: DepositRule) -> int:
     return 0
 
 
-def planned_deposit(svc: Service, rule: DepositRule) -> int:
+def planned_deposit(
+    svc: Service, rule: DepositRule, price_minor: int | None = None
+) -> int:
     """Pure: the deposit a booking of ``svc`` carries, before entitlement. The
-    service's own deposit wins when set; otherwise the business rule applies."""
+    service's own deposit wins when set; otherwise the business rule applies to
+    ``price_minor`` (the booking's combined price with add-ons, default the price)."""
     if svc.deposit_minor > 0:
         return svc.deposit_minor
-    return rule_deposit(svc.price_minor, rule)
+    return rule_deposit(svc.price_minor if price_minor is None else price_minor, rule)
 
 
 def balance_at_salon(price_minor: int, deposit_minor: int) -> int:
@@ -119,10 +128,11 @@ async def effective_deposit(
     session: AsyncSession,
     profile: BookingProfile,
     svc: Service,
+    price_minor: int | None = None,
 ) -> int:
     """The deposit to collect for ``svc``: zero unless the organisation is
     entitled to ``payments`` (logged once per booking, never an error)."""
-    amount = planned_deposit(svc, deposit_rule_of(profile))
+    amount = planned_deposit(svc, deposit_rule_of(profile), price_minor)
     if amount <= 0:
         return 0
     if await organisation_service.is_app_enabled(
@@ -151,26 +161,37 @@ def charges_full_price(profile: BookingProfile) -> bool:
 
 
 def due_for(
-    svc: Service, *, full_price: bool, entitled: bool, rule: DepositRule
+    svc: Service,
+    *,
+    full_price: bool,
+    entitled: bool,
+    rule: DepositRule,
+    price_minor: int | None = None,
 ) -> int:
     """Pure rule: what a booking of ``svc`` pays when it is made (0 = nothing).
     ``full_price`` charges the price; otherwise the planned deposit (service
-    override first, then the business rule). Nothing without the entitlement."""
+    override first, then the business rule). Nothing without the entitlement.
+    ``price_minor`` is the combined price when add-ons are booked."""
     if not entitled:
         return 0
-    if full_price and svc.price_minor > 0:
-        return svc.price_minor
-    return planned_deposit(svc, rule)
+    price = svc.price_minor if price_minor is None else price_minor
+    if full_price and price > 0:
+        return price
+    return planned_deposit(svc, rule, price)
 
 
 async def amount_due(
-    session: AsyncSession, profile: BookingProfile, svc: Service
+    session: AsyncSession,
+    profile: BookingProfile,
+    svc: Service,
+    price_minor: int | None = None,
 ) -> int:
     """What an online booking of ``svc`` pays when it is made (0 = nothing).
 
     ``full_price`` charges the price only while Stripe is available and the
     organisation holds ``payments``; otherwise the service deposit or the business
-    deposit rule applies."""
+    deposit rule applies. ``price_minor`` is the combined price with add-ons."""
+    price = svc.price_minor if price_minor is None else price_minor
     full_price = charges_full_price(profile)
     if (
         profile.payment_at_booking == BookingPaymentMode.FULL_PRICE.value
@@ -180,14 +201,18 @@ async def amount_due(
             "full price at booking needs card payments; using the service deposit",
             extra={"organisation_id": profile.organisation_id},
         )
-    if full_price and svc.price_minor > 0:
+    if full_price and price > 0:
         entitled = await organisation_service.is_app_enabled(
             session, organisation_id=profile.organisation_id, app_key="payments"
         )
         return due_for(
-            svc, full_price=True, entitled=entitled, rule=deposit_rule_of(profile)
+            svc,
+            full_price=True,
+            entitled=entitled,
+            rule=deposit_rule_of(profile),
+            price_minor=price,
         )
-    return await effective_deposit(session, profile, svc)
+    return await effective_deposit(session, profile, svc, price)
 
 
 async def due_by_service(
@@ -459,9 +484,21 @@ async def start_manual_deposit(session: AsyncSession, booking: Booking) -> None:
     )
 
 
-def refund_by_policy(booking: Booking, profile: BookingProfile, now: datetime) -> bool:
+def refund_by_policy(
+    booking: Booking,
+    profile: BookingProfile,
+    now: datetime,
+    *,
+    previous: BookingStatus,
+) -> bool:
     """Deposits come back when the booking is cancelled at least
-    ``cancel_cutoff_hours`` before it starts; inside the cutoff they are kept."""
+    ``cancel_cutoff_hours`` before it starts; inside the cutoff they are kept.
+
+    A booking made on non-refundable terms (its own snapshot, never the current
+    profile) keeps its deposit once it was confirmed. A request the business has not
+    accepted yet (``pending``) is refunded under the cutoff rule."""
+    if booking.deposit_non_refundable and previous is BookingStatus.CONFIRMED:
+        return False
     return booking.starts_at - now >= timedelta(hours=profile.cancel_cutoff_hours)
 
 
@@ -520,7 +557,7 @@ async def settle_cancellation(
             return f"Unpaid {noun.lower()} cancelled"
         refund = True
     if refund is None:
-        refund = refund_by_policy(booking, profile, now)
+        refund = refund_by_policy(booking, profile, now, previous=previous)
     if not refund:
         return f"{noun} kept"
     done = await refund_deposit(session, booking, reason="Booking cancelled")

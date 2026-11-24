@@ -1,0 +1,197 @@
+[
+  [
+    "D01",
+    "b",
+    "Ministry of Infrastructure Development Road Office , Pearls (SSU Camp)",
+    421,
+    null,
+    null,
+    {
+      "NNP": 175,
+      "NDC": 114,
+      "DPM": 4
+    }
+  ],
+  [
+    "D01",
+    "a",
+    "Ministry of Infrastructure Development Road Office , Pearls (SSU Camp)",
+    423,
+    null,
+    null,
+    {
+      "NDC": 144,
+      "NNP": 126,
+      "DPM": 3
+    }
+  ],
+  [
+    "D01",
+    "c",
+    "Camp Raymond, Pearls (SSU Camp)",
+    415,
+    null,
+    null,
+    {
+      "NNP": 141,
+      "NDC": 120,
+      "DPM": 1
+    }
+  ],
+  [
+    "D02",
+    "a",
+    "Belair Government School",
+    404,
+    null,
+    null,
+    {
+      "NDC": 143,
+      "NNP": 112,
+      "DPM": 2
+    }
+  ],
+  [
+    "D02",
+    "b",
+    "Belair Government School",
+    418,
+    null,
+    null,
+    {
+      "NDC": 159,
+      "NNP": 103,
+      "DPM": 1
+    }
+  ],
+  [
+    "D02",
+    "c",
+    "Belair Government School",
+    396,
+    null,
+    null,
+    {
+      "NDC": 158,
+      "NNP": 103,
+      "DPM": 4
+    }
+  ],
+  [
+    "D03",
+    "a",
+    "Grenada Christian Academy",
+    428,
+    null,
+    null,
+    {
+      "NDC": 168,
+      "NNP": 127,
+      "DPM": 1
+    }
+  ],
+  [
+    "D03",
+    "b",
+    "Grenada Christian Academy (Police Included)",
+    539,
+    null,
+    null,
+    {
+      "NNP": 195,
+      "NDC": 180,
+      "DPM": 1
+    }
+  ],
+  [
+    "D04",
+    "a",
+    "Tivoli R.C. School",
+    414,
+    null,
+    null,
+    {
+      "NDC": 154,
+      "NNP": 125,
+      "DPM": 1
+    }
+  ],
+  [
+    "D04",
+    "b",
+    "Tivoli R.C. School",
+    399,
+    null,
+    null,
+    {
+      "NDC": 175,
+      "NNP": 91,
+      "DPM": 2
+    }
+  ],
+  [
+    "D04",
+    "c",
+    "Tivoli R.C. School",
+    444,
+    null,
+    null,
+    {
+      "NDC": 161,
+      "NNP": 117,
+      "DPM": 3
+    }
+  ],
+  [
+    "D05",
+    "a",
+    "La Poterie Community Centre",
+    314,
+    null,
+    null,
+    {
+      "NNP": 139,
+      "NDC": 101,
+      "DPM": 7
+    }
+  ],
+  [
+    "D05",
+    "b",
+    "La Poterie Community Centre",
+    319,
+    null,
+    null,
+    {
+      "NNP": 107,
+      "NDC": 106,
+      "DPM": 12
+    }
+  ],
+  [
+    "D06",
+    null,
+    "Upper St. John Community Centre",
+    418,
+    null,
+    null,
+    {
+      "NDC": 174,
+      "NNP": 126,
+      "DPM": 3
+    }
+  ],
+  [
+    "D07",
+    null,
+    "Paraclete Medical Station",
+    262,
+    null,
+    null,
+    {
+      "NDC": 113,
+      "NNP": 64,
+      "DPM": 0
+    }
+  ]
+]

@@ -9,8 +9,7 @@ import { Label } from "@barrelsgd/ui/components/ui/label";
 const CHOICES: { label: string; value: BookingPaymentMode }[] = [
   {
     value: "deposit",
-    label:
-      "Deposit set on each service (no payment when a service has no deposit)",
+    label: "Deposit: each service's own deposit, or the deposit rule below",
   },
   { value: "full_price", label: "Full price, paid online by card" },
 ];
@@ -30,14 +29,14 @@ export function PaymentOption({
   const current = profile?.payment_at_booking ?? "deposit";
   return (
     <fieldset
-      aria-describedby="profile-payment-hint"
+      aria-describedby="profile-payment-hint profile-payment-precedence"
       className="border-border space-y-1 border-t pt-4"
     >
       <legend className="pt-4 font-medium">Payment when booking</legend>
       {CHOICES.map((choice) => (
         <Label className="min-h-11 items-center gap-3" key={choice.value}>
           <input
-            className="accent-primary size-5"
+            className="accent-primary size-5 shrink-0"
             defaultChecked={choice.value === current}
             name="paymentAtBooking"
             type="radio"
@@ -46,10 +45,20 @@ export function PaymentOption({
           {choice.label}
         </Label>
       ))}
-      <p className="text-muted-foreground text-sm" id="profile-payment-hint">
+      <p
+        className="text-muted-foreground pt-2 text-base"
+        id="profile-payment-precedence"
+      >
+        Full price applies only when online card payments can charge it. Then a
+        service&apos;s own deposit and the deposit rule below are not used.
+        Otherwise each service&apos;s own deposit applies, or the deposit rule
+        below when a service has none. A booking with no online payment is paid
+        at the salon.
+      </p>
+      <p className="text-muted-foreground text-base" id="profile-payment-hint">
         {cardPaymentsAvailable
           ? "Card payments are in test mode: no real money moves. The time is held while the customer pays and released if they do not pay in time."
-          : "Online card payments are not switched on yet, so bookings use the service deposit for now."}
+          : "Online card payments are not switched on yet, so full price is not charged and bookings use the deposit for now."}
       </p>
     </fieldset>
   );

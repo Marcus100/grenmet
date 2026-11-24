@@ -9,12 +9,14 @@ import { useState } from "react";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 import { parseSubscription } from "@/lib/subscribe";
+import { useHydrated } from "@/lib/use-hydrated";
 
 /**
  * Newsletter sign-up: email plus consent. FastAPI sends a confirmation email
  * (double opt-in) and answers the same for every address.
  */
 export function SubscribeForm() {
+  const hydrated = useHydrated();
   const [state, setState] = useState<FormState>({ status: "idle" });
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileReset, setTurnstileReset] = useState(0);
@@ -117,11 +119,17 @@ export function SubscribeForm() {
       />
       <Button
         className="h-11 px-5 text-base"
-        disabled={state.status === "submitting"}
+        disabled={!hydrated || state.status === "submitting"}
         type="submit"
       >
         {state.status === "submitting" ? "Sending…" : "Subscribe"}
       </Button>
+      <noscript>
+        <p className="text-base">
+          This form needs JavaScript. Turn it on in your browser, or contact us
+          another way.
+        </p>
+      </noscript>
       {state.status === "error" && (
         <p className="text-destructive text-base font-medium" role="alert">
           {state.message}

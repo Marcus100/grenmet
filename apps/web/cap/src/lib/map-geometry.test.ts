@@ -34,7 +34,7 @@ describe("map geometry", () => {
     const projection = projectionFor(boundsFor([feature]));
     const shape = toShape(feature, projection);
     expect(shape.d).toMatch(PATH);
-    expect(shape.level).toBe("take-action");
+    expect(shape.level).toBe("be-prepared");
     expect(shape.label).not.toBeNull();
   });
 

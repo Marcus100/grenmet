@@ -99,6 +99,9 @@ describe("organisation staff list (/<orgSlug>/staff)", () => {
     expect(items[0]).toHaveTextContent("Active");
     expect(items[0]).toHaveTextContent("Account:enabled");
     expect(items[0]).toHaveTextContent("Employee number:E-100");
+    expect(
+      within(items[0] as HTMLElement).getByRole("link", { name: "Ada Example" })
+    ).toHaveAttribute("href", `/gaa/staff/${ADA.user_id}`);
 
     expect(items[1]).toHaveTextContent("Ben Example");
     expect(items[1]).toHaveTextContent("Pending");

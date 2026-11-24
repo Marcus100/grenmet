@@ -57,7 +57,7 @@ describe("contestStats", () => {
 
 describe("events", () => {
   it("lists every general election and both referendums in order", () => {
-    expect(EVENTS.filter((e) => e.kind === "general")).toHaveLength(17);
+    expect(EVENTS.filter((e) => e.kind === "general")).toHaveLength(18);
     const ids = EVENTS.map((e) => e.id);
     expect(ids.indexOf("2016r")).toBeLessThan(ids.indexOf("2018"));
     expect(ids.indexOf("2018")).toBeLessThan(ids.indexOf("2018r"));
@@ -113,7 +113,9 @@ describe("pollScore", () => {
 describe("seatHistory and divisionResults", () => {
   it("lists every mapped election a seat was fought", () => {
     const history = seatHistory(results, "A");
-    expect(history.at(-1)).toMatchObject({
+    // 2026 is the latest entry (provisional); 2022 comes just before it.
+    expect(history.at(-1)?.year).toBe("2026");
+    expect(history.at(-2)).toMatchObject({
       year: "2022",
       winner: { name: "Tevin Camilloh Andrews", party: "NDC", votes: 1956 },
     });

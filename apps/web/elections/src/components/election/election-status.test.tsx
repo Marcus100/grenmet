@@ -13,8 +13,10 @@ const calendar: ElectionCalendar = {
   nominationDay: "2026-10-15",
   policePollingDay: "2026-11-02",
   pollingDay: "2026-11-05",
+  resultsDeclared: false,
   writs: "2026-10-02",
 };
+const declared: ElectionCalendar = { ...calendar, resultsDeclared: true };
 const undated: ElectionCalendar = { ...calendar, pollingDay: null };
 const NO_DATE_WORDS = /votes|days/u;
 const DAYS_TO_GO = /days to go/u;
@@ -61,6 +63,34 @@ describe("ElectionStatus in the browser", () => {
     expect(
       screen.getByText("General election 2026 · Grenada votes in 3 days")
     ).toBeInTheDocument();
+  });
+});
+
+describe("ElectionStatus once the result is declared", () => {
+  it("reads the same on any day, with no day count", () => {
+    for (const day of ["2026-10-02", "2026-11-05", "2027-03-01"]) {
+      setToday(`${day}T12:00:00Z`);
+      const { unmount } = render(<ElectionStatus calendar={declared} />);
+      expect(
+        screen.getByText("Provisional results declared")
+      ).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it("words the headline in the past tense, even on the server", () => {
+    expect(
+      renderToStaticMarkup(
+        <ElectionHeadline calendar={declared} fallback="fallback" />
+      )
+    ).toBe("Grenada voted on 5 November 2026");
+  });
+
+  it("draws no today marker on the timeline", () => {
+    setToday("2026-11-02T12:00:00Z");
+    const { container } = render(<ElectionTimeline calendar={declared} />);
+    expect(container.textContent).not.toMatch(DAYS_TO_GO);
+    expect(container.querySelector("line[stroke-dasharray]")).toBeNull();
   });
 });
 

@@ -87,6 +87,12 @@ export type BookingProfilePublic = {
    */
   contact_email?: string | null;
   /**
+   * @description Offer add-on services (for example a brow wax with a lash set) on the booking page. Off by default; while off, add-ons are neither shown nor accepted. Left out, the stored value is kept.
+   * @default false
+   * @type boolean | undefined
+   */
+  add_ons_enabled?: boolean;
+  /**
    * @description What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.
    * @default 'deposit'
    * @type string | undefined
@@ -106,6 +112,20 @@ export type BookingProfilePublic = {
    * @description The amount in minor units for `deposit_mode` `fixed`.
    */
   deposit_fixed_minor?: number | null;
+  /**
+   * @description The lowest service price (minor units) that takes the business-wide deposit rule. Cheaper services take no deposit from it. Null means no minimum. A service's own deposit is never affected. Left out, the stored value is kept.
+   */
+  deposit_min_price_minor?: number | null;
+  /**
+   * @description When true, a paid deposit is kept when the booking is cancelled, by the customer or by the business without a refund choice. A move keeps it with the booking. Declines still refund. Left out, the stored value is kept.
+   * @default false
+   * @type boolean | undefined
+   */
+  deposit_non_refundable?: boolean;
+  /**
+   * @description Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept.
+   */
+  booking_policy?: string | null;
   /**
    * @description The business's accent colour in its emails, as `#rrggbb`. Blank clears it. Mail uses the Barrels navy instead when the colour is too pale for white text. Left out, the stored value is kept.
    */

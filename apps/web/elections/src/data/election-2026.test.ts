@@ -6,7 +6,10 @@ import {
   candidateSource,
   currentHouse,
   daysUntil,
+  declaredHouse,
+  declaredResult,
   type ElectionCalendar,
+  electionHeadline,
   electionPhase,
   electionStatus,
   grenadaDate,
@@ -94,6 +97,89 @@ describe("electionPhase", () => {
   });
 });
 
+describe("declared phase", () => {
+  const declaredCalendar = calendarFrom(campaign, results);
+
+  it("is driven by results in the data, not by today's date", () => {
+    expect(declaredCalendar.resultsDeclared).toBe(true);
+    expect(calendar.resultsDeclared).toBe(false);
+    for (const day of ["2026-10-02", "2026-11-05", "2030-01-01"]) {
+      expect(
+        electionPhase(declaredCalendar, new Date(`${day}T12:00:00Z`))
+      ).toBe("declared");
+    }
+    expect(electionPhase(awaiting, new Date("2026-10-02T12:00:00Z"))).toBe(
+      "awaiting-date"
+    );
+  });
+
+  it("is not declared while any constituency is missing", () => {
+    const partial = {
+      ...results,
+      results: {
+        ...results.results,
+        "2026": Object.fromEntries(
+          Object.entries(results.results["2026"] ?? {}).filter(
+            ([code]) => code !== "A"
+          )
+        ),
+      },
+    } as ResultsFile;
+    expect(calendarFrom(campaign, partial).resultsDeclared).toBe(false);
+  });
+
+  it("words the status and headline without reference to today", () => {
+    const early = new Date("2026-10-02T12:00:00Z");
+    const late = new Date("2027-05-01T12:00:00Z");
+    expect(electionStatus(declaredCalendar, early)).toBe(
+      "Provisional results declared"
+    );
+    expect(electionStatus(declaredCalendar, late)).toBe(
+      "Provisional results declared"
+    );
+    expect(electionHeadline(declaredCalendar, null)).toBe(
+      "Grenada voted on 5 November 2026"
+    );
+  });
+
+  it("keeps the declared headline even when polling day is unset", () => {
+    const noDay = { ...declaredCalendar, pollingDay: null };
+    expect(electionHeadline(noDay, null)).toBe(
+      "Grenada’s 2026 general election: provisional results"
+    );
+    expect(
+      electionHeadline(noDay, new Date("2026-10-05T12:00:00Z"))
+    ).not.toContain("waits");
+  });
+
+  it("summarises seats per party and each winner's margin", () => {
+    const declared = declaredResult(results, campaign);
+    expect(declared?.seats).toEqual([
+      ["NDC", 14],
+      ["NNP", 1],
+    ]);
+    expect(declared?.winningParty).toBe("NDC");
+    expect(declared?.turnout).toBe(0.634);
+    expect(declared?.validVotes).toBe(61_317);
+    expect(declared?.seatRows).toHaveLength(15);
+    for (const row of declared?.seatRows ?? []) {
+      expect(row.majority).toBe(row.winner.votes - (row.runnerUp?.votes ?? 0));
+    }
+    expect(declaredResult(results, campaign)?.seatRows[0]?.was.party).toBe(
+      "NDC"
+    );
+  });
+
+  it("leaves the House with the 2026 winners", () => {
+    const declared = declaredResult(results, campaign);
+    if (!declared) throw new Error("expected a declared result");
+    const house = currentHouse(
+      declaredHouse(seatOutlook(results, campaign), declared)
+    );
+    expect(house).toEqual({ NDC: 14, NNP: 1 });
+  });
+});
+
 describe("electionStatus", () => {
   it("counts down to the announcement, then to polling day", () => {
     expect(daysUntil("2026-10-04", new Date("2026-10-02T12:00:00Z"))).toBe(2);
@@ -138,7 +224,7 @@ describe("seatOutlook", () => {
     const g = seats.find((s) => s.code === "G");
     expect(g?.candidates).toEqual([
       { name: "Claudette Joseph", party: "NDC" },
-      { name: "Troy Noel", party: "NNP" },
+      { name: "Joel Troy Noel", party: "NNP" },
       { name: "Peter David", party: "DPM" },
     ]);
     // Named later in a commentary, so the NNP slot carries a ✱ note.
