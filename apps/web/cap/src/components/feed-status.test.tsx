@@ -5,7 +5,7 @@ import { FeedStatus } from "@/components/feed-status";
 import type { AlertView } from "@/lib/alerts";
 
 const CLOCK_0959 = /09:59/u;
-const TAKE_ACTION = /Take action now/u;
+const TAKE_ACTION = /Orange · Be prepared/u;
 const NOT_LIVE = /not a live warning/u;
 const NOW = new Date("2026-10-18T14:00:00Z");
 
@@ -61,7 +61,9 @@ describe("AlertCard", () => {
     headline: "Heavy rain warning",
     identifier: "id-1",
     instruction: null,
-    level: "take-action",
+    endedAt: null,
+    level: "be-prepared",
+    lifecycle: "PUBLISHED",
     msgType: "Alert",
     onset: null,
     sent: "2026-10-18T12:00:00Z",
