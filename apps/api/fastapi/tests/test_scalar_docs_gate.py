@@ -34,7 +34,7 @@ def _scalar_registered_for(environment: str) -> bool:
         "AUTH_PRIVILEGED_MFA_MODE": "disabled",
         "BCRYPT_ROUNDS": "12",
     }
-    result = subprocess.run(  # noqa: S603 - fixed argv, no untrusted input
+    result = subprocess.run(
         [sys.executable, "-c", _PROBE],
         cwd=FASTAPI_ROOT,
         env=env,
