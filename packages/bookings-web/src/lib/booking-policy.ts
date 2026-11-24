@@ -60,7 +60,16 @@ export function holdEndsLine(holdEndsAt: string, timeZone: string): string {
   return `Your time is held until ${formatDateTime(holdEndsAt, timeZone)}. It is released if the payment has not arrived by then.`;
 }
 
+/** Said while the amount for the chosen add-ons is being fetched. */
+export const AMOUNT_LOADING = "Working out what is due…";
+
+/** Said instead of an amount while the API has not told the form what is due. */
+export const DEPOSIT_ON_TOTAL =
+  "Deposit worked out on the total; you will see the amount before you pay.";
+
 export interface BookingRulesInput {
+  /** The amount is being fetched: say so, neutrally, instead of guessing. */
+  amountLoading?: boolean;
   /**
    * The booking's status on the manage page. Leave it out on the booking form,
    * where nothing is booked yet and a non-refundable deposit only becomes
@@ -72,6 +81,11 @@ export interface BookingRulesInput {
   currency: string;
   /** Hours before the start that online changes and cancellations close; 0 = none. */
   cutoffHours: number;
+  /**
+   * Add-ons are ticked and the API works the deposit out on the combined price,
+   * so no amount is stated (see `amountDueForSelection`).
+   */
+  depositOnTotal?: boolean;
   /**
    * Money paid online when the booking is made (storefront
    * `due_at_booking_minor`, or the booking's stored deposit). It already folds
@@ -153,6 +167,12 @@ function moneyClause(input: BookingRulesInput): string {
  * cancel up to 24 hours before."
  */
 export function bookingRulesLine(input: BookingRulesInput): string {
+  if (input.amountLoading) {
+    return `${AMOUNT_LOADING} ${changeClause(input)}`;
+  }
+  if (input.depositOnTotal) {
+    return `${DEPOSIT_ON_TOTAL} ${changeClause(input)}`;
+  }
   if (input.dueMinor !== undefined && input.dueMinor > 0) {
     return paidOnlineLine(input, input.dueMinor);
   }

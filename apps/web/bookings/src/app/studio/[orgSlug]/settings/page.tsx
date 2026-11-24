@@ -106,6 +106,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         depositsAvailable={data.deposits_available}
         editable={editable}
         orgSlug={orgSlug}
+        profile={data.profile}
         services={data.services}
       />
       <PeopleSection

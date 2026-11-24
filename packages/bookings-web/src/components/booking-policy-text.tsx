@@ -30,9 +30,12 @@ export function BookingRules({
   const text = policy?.trim();
   return (
     <div className="booking-rules">
-      {showRules ? (
-        <p className="booking-rules-line">{bookingRulesLine(rules)}</p>
-      ) : null}
+      {/* Always mounted, so a changed amount is read out. */}
+      <div aria-live="polite">
+        {showRules ? (
+          <p className="booking-rules-line">{bookingRulesLine(rules)}</p>
+        ) : null}
+      </div>
       {text ? (
         <details className="full-policy">
           <summary className="full-policy-summary">Full policy</summary>

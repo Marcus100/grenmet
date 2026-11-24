@@ -91,7 +91,10 @@ export function sameEmail(a: string, b: string): boolean {
 
 /** The identity of a submission: the same value means "the same booking request". */
 export function fingerprint(
-  fields: BookingFields & { marketing: boolean }
+  fields: BookingFields & {
+    addOnIds?: readonly string[];
+    marketing: boolean;
+  }
 ): string {
   return JSON.stringify([
     fields.serviceId,
@@ -101,5 +104,7 @@ export function fingerprint(
     fields.phone.trim(),
     fields.notes.trim(),
     fields.marketing,
+    // Add-ons change what is booked, so a retry with other add-ons is a new request.
+    [...(fields.addOnIds ?? [])].sort(),
   ]);
 }

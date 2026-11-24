@@ -20,8 +20,12 @@ type Loaded =
 interface SlotPickerProps {
   /** Fetches the open slots for the 14 days from `firstDay`. */
   load: (firstDay: string) => Promise<Outcome<SlotList>>;
+  /** Called with true while times are loading, false once they have arrived. */
+  onBusyChange?: (busy: boolean) => void;
   /** Called with the chosen start (UTC ISO) or null when the choice is cleared. */
   onChange: (startsAt: string | null) => void;
+  /** Called when the chosen time is gone from a fresh list (taken, or no longer fits). */
+  onUnavailable?: () => void;
   /** Bump to reload the same window (after a slot was taken). */
   reloadKey?: number;
   /** The studio's IANA timezone, for the "today" that starts the window. */
@@ -35,7 +39,9 @@ const NETWORK_MESSAGE =
 /** Day then time picker over the availability endpoint, 14 days at a time. */
 export function SlotPicker({
   load,
+  onBusyChange,
   onChange,
+  onUnavailable,
   reloadKey = 0,
   timeZone,
   value,
@@ -50,6 +56,13 @@ export function SlotPicker({
   loadRef.current = load;
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const onUnavailableRef = useRef(onUnavailable);
+  onUnavailableRef.current = onUnavailable;
+  const onBusyRef = useRef(onBusyChange);
+  onBusyRef.current = onBusyChange;
+  useEffect(() => {
+    onBusyRef.current?.(loaded.state === "loading");
+  }, [loaded.state]);
 
   // "Today" is the studio's, and only known in the browser.
   useEffect(() => {
@@ -111,6 +124,7 @@ export function SlotPicker({
       value &&
       !loaded.list.slots.some((slot) => slot.starts_at === value)
     ) {
+      onUnavailableRef.current?.();
       onChangeRef.current(null);
     }
   }, [loaded, value]);
