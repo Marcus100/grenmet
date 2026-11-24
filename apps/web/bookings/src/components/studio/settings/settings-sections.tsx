@@ -41,6 +41,7 @@ export const SETTINGS_SECTIONS = [
   { id: "people", label: "People" },
   { id: "payments", label: "Payments" },
   { id: "contact", label: "Contact" },
+  { id: "calendar", label: "Calendar" },
 ] as const;
 
 const SECTION =

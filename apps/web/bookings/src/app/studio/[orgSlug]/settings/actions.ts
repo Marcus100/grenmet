@@ -19,6 +19,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isLogoFileId, LOGO_MAX_BYTES, LOGO_TYPES } from "@/lib/brand-logo";
 import { checkContacts, contactFieldErrors } from "@/lib/business-contact";
+import type { CalendarFeedState } from "@/lib/calendar-feed";
 import { depositRuleFields } from "@/lib/deposit-rule";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
@@ -26,6 +27,7 @@ import { parseHours, parseMoney } from "@/lib/settings-view";
 import type { ActionState, ProfileState } from "@/lib/studio-action-state";
 import {
   completeLogoUpload,
+  createCalendarFeed,
   createException,
   createLogoUpload,
   createProvider,
@@ -35,6 +37,7 @@ import {
   getBusinessTimezone,
   getProfile,
   replaceHours,
+  rotateCalendarFeed,
   saveProfile,
   updateProvider,
   updateService,
@@ -861,4 +864,58 @@ export async function removeTimeOffAction(
     return failed(orgSlug, error);
   }
   return saved(orgSlug, "Time off removed.");
+}
+
+// --- calendar feed (Settings > Calendar) ---------------------------------------------------
+// The address is returned by the API once. It is handed back in this action's
+// state for the owner to copy, and is not logged, stored or revalidated into
+// the page. Owners and admins only; FastAPI answers 403 to anyone else.
+
+const CALENDAR_ADDED =
+  "Calendar link made. Add it to your phone now: this is the only time the address is shown.";
+const CALENDAR_RESET =
+  "Calendar link reset. The old address no longer works. Add the new one to your phone now: it is shown only this once.";
+
+/** Makes the business's calendar feed and hands its address back once. */
+export async function createCalendarFeedAction(
+  orgSlug: string,
+  _previous: CalendarFeedState,
+  _formData: FormData
+): Promise<CalendarFeedState> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return auth.state;
+  }
+  try {
+    const link = await createCalendarFeed(
+      auth.accessToken,
+      auth.organisationId
+    );
+    revalidatePath(`/studio/${orgSlug}/settings`);
+    return { status: "success", message: CALENDAR_ADDED, url: link.url };
+  } catch (error) {
+    return failed(orgSlug, error);
+  }
+}
+
+/** Replaces the calendar feed's address; the old one stops working at once. */
+export async function rotateCalendarFeedAction(
+  orgSlug: string,
+  _previous: CalendarFeedState,
+  _formData: FormData
+): Promise<CalendarFeedState> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return auth.state;
+  }
+  try {
+    const link = await rotateCalendarFeed(
+      auth.accessToken,
+      auth.organisationId
+    );
+    revalidatePath(`/studio/${orgSlug}/settings`);
+    return { status: "success", message: CALENDAR_RESET, url: link.url };
+  } catch (error) {
+    return failed(orgSlug, error);
+  }
 }
