@@ -28,6 +28,16 @@ const OTHER = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f0002";
 const TUE = "2027-01-05T13:30:00Z";
 const LATER = "2027-01-05T14:00:00Z";
 
+const ON_TOTAL =
+  /Deposit worked out on the total; you will see the amount before you pay/u;
+const BROW_SHAPING = /Brow shaping/u;
+const RE_1 = /No deposit for this service/u;
+const RE_2 = /No payment online/u;
+const RE_3 = /EC\$30 deposit, refunded if you cancel/u;
+const RE_4 = /You pay a deposit of EC\$30 now/u;
+const RE_5 = /You pay the full price, EC\$50/u;
+const RE_6 = /You pay the full price/u;
+const RE_7 = /We need to confirm your email again/u;
 const STEP = /Add to your appointment/u;
 const ANY_EXTRA = /Extra/u;
 const YOUR_APPOINTMENT = /Your appointment:/u;
@@ -51,7 +61,10 @@ function addOn(n: number, serviceIds: string[] = [MAIN]): BookingPublicAddOn {
   };
 }
 
-function storefront(addOns?: BookingPublicAddOn[]): BookingStorefront {
+function storefront(
+  addOns?: BookingPublicAddOn[],
+  main: Partial<BookingStorefront["services"][number]> = {}
+): BookingStorefront {
   return {
     slug: "babydoll-test",
     display_name: "Babydoll Test",
@@ -70,6 +83,16 @@ function storefront(addOns?: BookingPublicAddOn[]): BookingStorefront {
         description: null,
         duration_min: 60,
         price_minor: 5000,
+        deposit_minor: 0,
+        ...main,
+      },
+      {
+        id: OTHER,
+        name: "Brow shaping",
+        category: "Brows",
+        description: null,
+        duration_min: 30,
+        price_minor: 3000,
         deposit_minor: 0,
       },
     ],
@@ -339,5 +362,139 @@ describe("add-ons on the booking form", () => {
     await waitFor(() =>
       expect(screen.getByRole("radio", { name: "9:30 am" })).toBeVisible()
     );
+  });
+});
+
+describe("money with add-ons ticked", () => {
+  it("states no amount when the API works the deposit out on the total", async () => {
+    const user = userEvent.setup();
+    renderFlow(storefront([addOn(1)]));
+    await pickService(user);
+    expect(screen.getByText(RE_1)).toBeVisible();
+    await tick(user, 1);
+    expect(screen.getByText(ON_TOTAL)).toBeVisible();
+    expect(screen.queryByText(RE_1)).toBeNull();
+    expect(screen.queryByText(RE_2)).toBeNull();
+    await tick(user, 1);
+    expect(screen.queryByText(ON_TOTAL)).toBeNull();
+  });
+
+  it("keeps the service's own deposit, which ignores add-ons", async () => {
+    const user = userEvent.setup();
+    renderFlow(
+      storefront([addOn(1)], {
+        deposit_minor: 3000,
+        due_at_booking_minor: 3000,
+      })
+    );
+    await pickService(user);
+    await tick(user, 1);
+    expect(screen.queryByText(ON_TOTAL)).toBeNull();
+    expect(screen.getByText(RE_3)).toBeVisible();
+    expect(screen.getByText(RE_4)).toBeVisible();
+  });
+
+  it("does not quote the main service's full price when add-ons would raise it", async () => {
+    const user = userEvent.setup();
+    renderFlow(storefront([addOn(1)], { due_at_booking_minor: 5000 }));
+    await pickService(user);
+    expect(screen.getByText(RE_5)).toBeVisible();
+    await tick(user, 1);
+    expect(screen.queryByText(RE_6)).toBeNull();
+    expect(screen.getByText(ON_TOTAL)).toBeVisible();
+  });
+
+  it("recovers when the API still wants an emailed code: details kept, code asked for next", async () => {
+    const user = userEvent.setup();
+    renderFlow(storefront([addOn(1)]));
+    vi.mocked(submitBooking).mockResolvedValueOnce({
+      ok: false,
+      code: "email_unverified",
+      message: "We need to confirm your email again before booking.",
+    });
+    vi.mocked(actions.requestEmailCode).mockResolvedValue({
+      ok: true,
+      data: { expiresInSeconds: 600, required: true },
+    });
+    await pickService(user);
+    await tick(user, 1);
+    await pickSlot(user);
+    await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    await user.click(screen.getByRole("button", { name: SUBMIT }));
+    expect((await screen.findAllByText(RE_7)).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Name")).toHaveValue("Ada Lovelace");
+    expect(box(1)).toBeChecked();
+    expect(screen.getByText(CHOSEN_LINE)).toBeVisible();
+    await user.click(
+      screen.getByRole("button", { name: "Email me a verification code" })
+    );
+    expect(actions.requestEmailCode).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("add-on announcements and state", () => {
+  it("mounts its live regions empty, then fills them", async () => {
+    const user = userEvent.setup();
+    renderFlow(storefront([addOn(1)]));
+    await pickService(user);
+    expect(screen.getByTestId("add-on-live")).toBeEmptyDOMElement();
+    expect(screen.getByTestId("time-note-live")).toBeEmptyDOMElement();
+    await pickSlot(user);
+    vi.mocked(loadSlots).mockResolvedValue(slotList(LATER));
+    await tick(user, 1);
+    expect(screen.getByTestId("add-on-live")).toHaveTextContent(
+      "Your appointment: 1 hr 15 min, EC$60 in total."
+    );
+    expect(await screen.findByText(NO_LONGER_FITS)).toBeVisible();
+    expect(screen.getByTestId("time-note-live")).toHaveTextContent(
+      NO_LONGER_FITS
+    );
+  });
+
+  it("offers add-ons again after a 422 once another service is chosen", async () => {
+    const user = userEvent.setup();
+    renderFlow(storefront([addOn(1), addOn(2, [OTHER])]));
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: false,
+      code: "add_ons_unavailable",
+      message:
+        "Add-ons are not available for this booking any more, so we removed them.",
+    });
+    await pickService(user);
+    await tick(user, 1);
+    await pickSlot(user);
+    await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    await user.click(screen.getByRole("button", { name: SUBMIT }));
+    await waitFor(() => expect(screen.queryByText(STEP)).toBeNull());
+    await user.click(screen.getByRole("radio", { name: BROW_SHAPING }));
+    expect(await screen.findByText(STEP)).toBeVisible();
+    expect(box(2)).toBeVisible();
+  });
+
+  it("cannot be submitted with a stale time while new times load", async () => {
+    const user = userEvent.setup();
+    renderFlow(storefront([addOn(1)]));
+    vi.mocked(submitBooking).mockResolvedValue({
+      ok: true,
+      data: { booking: { ...booked, add_ons: [] }, manageToken: "tok" },
+    });
+    await pickService(user);
+    await pickSlot(user);
+    await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    let release: (value: ReturnType<typeof slotList>) => void = () => undefined;
+    vi.mocked(loadSlots).mockReturnValue(
+      new Promise((resolve) => {
+        release = resolve;
+      })
+    );
+    await tick(user, 1);
+    const button = screen.getByRole("button", { name: SUBMIT });
+    expect(button).toBeDisabled();
+    release(slotList(TUE, LATER));
+    await waitFor(() => expect(button).toBeEnabled());
+    expect(submitBooking).not.toHaveBeenCalled();
   });
 });

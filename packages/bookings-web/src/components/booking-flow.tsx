@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { addOnTotals } from "../lib/add-ons";
+import { addOnTotals, amountDueForSelection } from "../lib/add-ons";
 import { type Failure, tellsToContact } from "../lib/booking-errors";
 import {
   type BookingFields,
@@ -29,7 +29,7 @@ import {
   formatMoney,
   timeZonePlace,
 } from "../lib/booking-format";
-import { dueAtBooking, payNowLine } from "../lib/booking-payment";
+import { payNowLine } from "../lib/booking-payment";
 import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
 import type {
   Booked,
@@ -50,6 +50,9 @@ import {
   TOKEN_LOADING_MESSAGE,
   useEmailCode,
 } from "./use-email-code";
+
+const TIMES_UPDATING =
+  "Your times are updating for the add-ons you chose. Please wait a moment, then try again.";
 
 /** A link component the host can supply (e.g. a router-aware link). */
 export interface BookingLinkProps {
@@ -675,6 +678,7 @@ function TimeStep({
   addOnIds,
   errors,
   onAddOnsGone,
+  onBusyChange,
   onChange,
   onUnavailable,
   reloadKey,
@@ -687,6 +691,7 @@ function TimeStep({
   addOnIds: readonly string[];
   errors: FieldErrors;
   onAddOnsGone: (message: string) => void;
+  onBusyChange: (busy: boolean) => void;
   onChange: (value: string | null) => void;
   onUnavailable: () => void;
   reloadKey: number;
@@ -719,6 +724,7 @@ function TimeStep({
             }
             return outcome;
           }}
+          onBusyChange={onBusyChange}
           onChange={onChange}
           onUnavailable={onUnavailable}
           reloadKey={reloadKey}
@@ -728,11 +734,9 @@ function TimeStep({
       ) : (
         <p className="muted">Choose a service to see open times.</p>
       )}
-      {timeNote ? (
-        <p className="notice" role="status">
-          {timeNote}
-        </p>
-      ) : null}
+      <div aria-live="polite" data-testid="time-note-live" role="status">
+        {timeNote ? <p className="notice">{timeNote}</p> : null}
+      </div>
       {service && startsAt && (
         <p className="chosen" role="status">
           {service.name}: {formatDateTime(startsAt, storefront.timezone)}
@@ -765,20 +769,20 @@ function codeResendBlocked(
 
 /** What is paid online for the chosen service, and its description. */
 function ServiceNotes({
+  noPayment,
   payNow,
   service,
 }: {
+  noPayment: boolean;
   payNow: string | null;
   service: BookingPublicService | null;
 }) {
   return (
     <>
-      {service && payNow && (
-        <p className="notice payment-notice" role="status">
-          {payNow}
-        </p>
-      )}
-      {service && dueAtBooking(service) === 0 && (
+      <div aria-live="polite" role="status">
+        {service && payNow && <p className="notice payment-notice">{payNow}</p>}
+      </div>
+      {service && noPayment && (
         <p className="muted">No payment online. You pay when you visit.</p>
       )}
       {service?.description && (
@@ -824,6 +828,9 @@ export function BookingFlow({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // True while times are being asked for again after the add-ons changed: a
+  // time chosen before that may no longer fit, so it cannot be submitted yet.
+  const [timesBusy, setTimesBusy] = useState(false);
   const [booked, setBooked] = useState<Booked | null>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   // One key per submission: a retry of the same request replays it.
@@ -892,16 +899,20 @@ export function BookingFlow({
   // API still forces the code step (`codeForced`).
   const ownAccountEmail =
     signedIn !== undefined && sameEmail(email, signedIn.email);
-  const needsCode =
-    (dueAtBooking(service) > 0 && !ownAccountEmail) ||
-    (serviceId !== null && codeForced === serviceId);
-  const payNow = service
-    ? payNowLine(
-        dueAtBooking(service),
-        service.price_minor,
-        storefront.currency
-      )
+  // With add-ons ticked the API may charge on the combined price, which this
+  // form cannot work out: then no figure is shown, and a code the API demands
+  // anyway is asked for through `codeForced` with the typed details kept.
+  const selection = service
+    ? amountDueForSelection({ addOnCount: addOns.ids.length, service })
     : null;
+  const knownDue = selection?.dueMinor ?? null;
+  const needsCode =
+    ((knownDue ?? 0) > 0 && !ownAccountEmail) ||
+    (serviceId !== null && codeForced === serviceId);
+  const payNow =
+    service && knownDue !== null && totals
+      ? payNowLine(knownDue, totals.priceMinor, storefront.currency)
+      : null;
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
   const emailCode = useEmailCode({
     actions,
@@ -941,6 +952,10 @@ export function BookingFlow({
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (submitting || emailCode.busy) {
+      return;
+    }
+    if (timesBusy && startsAt) {
+      setFormError(TIMES_UPDATING);
       return;
     }
     if (stepOpen) {
@@ -1069,7 +1084,12 @@ export function BookingFlow({
             chosen={addOns.ids}
             currency={storefront.currency}
             offered={addOns.offered}
-            onToggle={addOns.choose}
+            onToggle={(id) => {
+              if (startsAt) {
+                setTimesBusy(true);
+              }
+              addOns.choose(id);
+            }}
             service={service}
           />
         ) : null}
@@ -1082,6 +1102,7 @@ export function BookingFlow({
             addOns.gone(message);
             setStartsAt(null);
           }}
+          onBusyChange={setTimesBusy}
           onChange={pickStart}
           onUnavailable={addOns.timeNoLongerFits}
           reloadKey={reloadKey + addOns.reloads}
@@ -1194,14 +1215,19 @@ export function BookingFlow({
         )}
         {isVerified && needsCode && <VerifiedNotice proof={emailCode.proof} />}
 
-        <ServiceNotes payNow={payNow} service={service} />
+        <ServiceNotes
+          noPayment={knownDue === 0}
+          payNow={payNow}
+          service={service}
+        />
         <BookingRules
           policy={storefront.booking_policy}
           rules={{
             businessName: storefront.display_name,
             currency: storefront.currency,
             cutoffHours: storefront.cancel_cutoff_hours,
-            dueMinor: service ? dueAtBooking(service) : undefined,
+            depositOnTotal: service !== null && knownDue === null,
+            dueMinor: knownDue ?? undefined,
             nonRefundable: storefront.deposit_non_refundable,
             ownDepositMinor: service?.deposit_minor,
             priceMinor: totals?.priceMinor,
@@ -1209,9 +1235,13 @@ export function BookingFlow({
         />
         {!stepOpen && (
           <button
-            aria-disabled={submitting || emailCode.busy !== null}
+            aria-disabled={
+              submitting || emailCode.busy !== null || (timesBusy && !!startsAt)
+            }
             className="btn btn-solid"
-            disabled={submitting || emailCode.busy !== null}
+            disabled={
+              submitting || emailCode.busy !== null || (timesBusy && !!startsAt)
+            }
             type="submit"
           >
             {buttonLabel(submitting, emailCode.busy, needsCode && !isVerified)}

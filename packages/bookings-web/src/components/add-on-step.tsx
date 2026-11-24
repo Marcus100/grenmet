@@ -62,18 +62,21 @@ export function AddOnStep({
           </label>
         );
       })}
-      {full ? (
-        <p className="muted" role="status">
-          That is the most you can add ({MAX_ADD_ONS}). Untick one to choose
-          another.
-        </p>
-      ) : null}
-      {chosen.length > 0 ? (
-        <p className="notice add-on-total" role="status">
-          Your appointment: {formatDuration(totals.durationMin)},{" "}
-          {formatMoney(totals.priceMinor, currency)} in total.
-        </p>
-      ) : null}
+      {/* One live region that is always mounted, so the first change is read out. */}
+      <div aria-live="polite" data-testid="add-on-live" role="status">
+        {full ? (
+          <p className="muted">
+            That is the most you can add ({MAX_ADD_ONS}). Untick one to choose
+            another.
+          </p>
+        ) : null}
+        {chosen.length > 0 ? (
+          <p className="notice add-on-total">
+            Your appointment: {formatDuration(totals.durationMin)},{" "}
+            {formatMoney(totals.priceMinor, currency)} in total.
+          </p>
+        ) : null}
+      </div>
     </fieldset>
   );
 }

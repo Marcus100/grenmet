@@ -1,6 +1,12 @@
 import type { BookingPublicAddOn } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
-import { addOnsFor, addOnTotals, MAX_ADD_ONS, toggleAddOn } from "./add-ons";
+import {
+  addOnsFor,
+  addOnTotals,
+  amountDueForSelection,
+  MAX_ADD_ONS,
+  toggleAddOn,
+} from "./add-ons";
 
 function addOn(id: string, serviceIds: string[]): BookingPublicAddOn {
   return {
@@ -74,5 +80,63 @@ describe("addOnTotals", () => {
       durationMin: 75,
       priceMinor: 6000,
     });
+  });
+});
+
+describe("amountDueForSelection", () => {
+  const plain = { deposit_minor: 0, due_at_booking_minor: 0 };
+
+  it("is the storefront's figure with no add-ons", () => {
+    expect(amountDueForSelection({ addOnCount: 0, service: plain })).toEqual({
+      dueMinor: 0,
+      emailCodeRequired: false,
+    });
+    expect(
+      amountDueForSelection({
+        addOnCount: 0,
+        service: { deposit_minor: 0, due_at_booking_minor: 4500 },
+      })
+    ).toEqual({ dueMinor: 4500, emailCodeRequired: true });
+  });
+
+  it("keeps the service's own deposit, which ignores add-ons", () => {
+    expect(
+      amountDueForSelection({
+        addOnCount: 2,
+        service: { deposit_minor: 3000, due_at_booking_minor: 3000 },
+      })
+    ).toEqual({ dueMinor: 3000, emailCodeRequired: true });
+  });
+
+  it("does not guess when a rule or full price could apply to the total", () => {
+    // 30% of EC$100 plus a EC$50 add-on is not EC$30: say nothing.
+    expect(
+      amountDueForSelection({
+        addOnCount: 1,
+        service: { deposit_minor: 0, due_at_booking_minor: 3000 },
+      })
+    ).toEqual({ dueMinor: null, emailCodeRequired: null });
+    // Full-price mode: due equals the price, above the own deposit.
+    expect(
+      amountDueForSelection({
+        addOnCount: 1,
+        service: { deposit_minor: 1000, due_at_booking_minor: 10_000 },
+      })
+    ).toEqual({ dueMinor: null, emailCodeRequired: null });
+    // A free-looking service may cross the minimum price with an add-on.
+    expect(amountDueForSelection({ addOnCount: 1, service: plain })).toEqual({
+      dueMinor: null,
+      emailCodeRequired: null,
+    });
+  });
+
+  it("uses the API's figures when they are given", () => {
+    expect(
+      amountDueForSelection({
+        addOnCount: 1,
+        fromApi: { dueMinor: 4500, emailCodeRequired: true },
+        service: plain,
+      })
+    ).toEqual({ dueMinor: 4500, emailCodeRequired: true });
   });
 });

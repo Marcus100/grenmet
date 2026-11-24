@@ -54,6 +54,7 @@ export function useAddOns({
     },
     /** Another service was chosen: its add-ons start unticked. */
     reset() {
+      setOff(false);
       setIds([]);
       setNote(null);
       changedTime.current = false;
