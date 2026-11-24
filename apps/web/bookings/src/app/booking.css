@@ -87,6 +87,30 @@
   font-size: 1.125rem;
   font-weight: 600;
 }
+/* The one-line rules beside the Book button, and the full policy under it. */
+.booking-rules {
+  display: grid;
+  gap: 0.25rem;
+}
+.booking-rules-line {
+  margin: 0;
+  font-weight: 500;
+}
+.full-policy-summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.full-policy-summary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.full-policy[open] > .full-policy-summary {
+  margin-bottom: 0.25rem;
+}
 .service-group + .service-group {
   margin-top: 1rem;
 }

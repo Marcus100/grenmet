@@ -244,13 +244,55 @@ describe("ManageBooking", () => {
     ).toBeDisabled();
   });
 
-  it("states the cancellation rule while the booking can still change", () => {
+  it("states the rules line while the booking can still change", () => {
     renderManage();
     expect(
       screen.getByText(
-        "You can cancel or change this booking online until 24 hours before it starts."
+        "No deposit for this service. Change or cancel online up to 24 hours before; after that, contact the business."
       )
     ).toBeVisible();
+  });
+
+  it("uses the booking's own non-refundable snapshot", () => {
+    renderManage({
+      ...booking,
+      deposit_minor: 4000,
+      deposit_non_refundable: true,
+    });
+    expect(
+      screen.getByText(
+        "EC$40 deposit, not refundable. Change or cancel online up to 24 hours before; after that, contact the business."
+      )
+    ).toBeVisible();
+  });
+
+  it("says a pending booking's non-refundable deposit follows the cut-off rule", () => {
+    renderManage({
+      ...booking,
+      status: "pending",
+      deposit_minor: 4000,
+      deposit_non_refundable: true,
+    });
+    expect(
+      screen.getByText(
+        "EC$40 deposit, refunded if you cancel at least 24 hours before it starts. Change or cancel online up to 24 hours before; after that, contact the business."
+      )
+    ).toBeVisible();
+  });
+
+  it("shows the full policy only when the booking has policy text", async () => {
+    const user = userEvent.setup();
+    const { unmount } = renderManage({
+      ...booking,
+      booking_policy: "Deposits move with you, they never expire.",
+    });
+    await user.click(screen.getByText("Full policy"));
+    expect(
+      screen.getByText("Deposits move with you, they never expire.")
+    ).toBeVisible();
+    unmount();
+    renderManage({ ...booking, booking_policy: null });
+    expect(screen.queryByText("Full policy")).toBeNull();
   });
 
   it("says when an unpaid hold is released", () => {

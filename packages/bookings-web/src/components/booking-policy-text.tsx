@@ -1,7 +1,10 @@
 // The business's own booking policy (late fees and so on), as plain text. React
 // escapes it, and the line breaks the business typed are kept.
 
-import { depositRefundLine } from "../lib/booking-policy";
+import {
+  type BookingRulesInput,
+  bookingRulesLine,
+} from "../lib/booking-policy";
 
 export function BookingPolicyText({ text }: { text?: string | null }) {
   if (!text) {
@@ -11,31 +14,31 @@ export function BookingPolicyText({ text }: { text?: string | null }) {
 }
 
 /**
- * The refund promise for a deposit on a booking that can still change. Shown only
- * while the booking is editable and a deposit was due at booking.
+ * The one plain line about money and changes, with the business's full policy
+ * one tap away. The disclosure is left out when the business wrote no policy.
  */
-export function DepositRefundNote({
-  booking,
-  editable,
+export function BookingRules({
+  policy,
+  rules,
+  showRules = true,
 }: {
-  booking: {
-    cancel_cutoff_hours: number;
-    deposit_minor: number;
-    deposit_non_refundable?: boolean;
-    status: string;
-  };
-  editable: boolean;
+  policy?: string | null;
+  rules: BookingRulesInput;
+  /** False once a booking can no longer change: only the full policy stays. */
+  showRules?: boolean;
 }) {
-  if (!editable || booking.deposit_minor <= 0) {
-    return null;
-  }
+  const text = policy?.trim();
   return (
-    <p>
-      {depositRefundLine(
-        booking.cancel_cutoff_hours,
-        booking.deposit_non_refundable === true,
-        booking.status === "confirmed"
-      )}
-    </p>
+    <div className="booking-rules">
+      {showRules ? (
+        <p className="booking-rules-line">{bookingRulesLine(rules)}</p>
+      ) : null}
+      {text ? (
+        <details className="full-policy">
+          <summary className="full-policy-summary">Full policy</summary>
+          <BookingPolicyText text={text} />
+        </details>
+      ) : null}
+    </div>
   );
 }

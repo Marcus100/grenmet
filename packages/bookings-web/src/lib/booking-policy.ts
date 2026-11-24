@@ -1,7 +1,7 @@
 // Plain sentences about a booking's rules: the cancellation cutoff and an unpaid
 // hold. Shared by the confirmation and the manage page so both say the same.
 
-import { formatDateTime, formatHours } from "./booking-format";
+import { formatDateTime, formatHours, formatMoney } from "./booking-format";
 
 /**
  * The cancellation rule in one sentence, from the business's cutoff in hours.
@@ -58,4 +58,103 @@ export function nonRefundableDepositLine(
  */
 export function holdEndsLine(holdEndsAt: string, timeZone: string): string {
   return `Your time is held until ${formatDateTime(holdEndsAt, timeZone)}. It is released if the payment has not arrived by then.`;
+}
+
+export interface BookingRulesInput {
+  /**
+   * The booking's status on the manage page. Leave it out on the booking form,
+   * where nothing is booked yet and a non-refundable deposit only becomes
+   * non-refundable once the business confirms.
+   */
+  bookingStatus?: string;
+  /** The business's display name, for "contact ..." once online changes close. */
+  businessName?: string;
+  currency: string;
+  /** Hours before the start that online changes and cancellations close; 0 = none. */
+  cutoffHours: number;
+  /**
+   * Money paid online when the booking is made (storefront
+   * `due_at_booking_minor`, or the booking's stored deposit). It already folds
+   * in the business rule, the minimum price, the service's own deposit and
+   * whether a payment route exists. Leave it out before a service is chosen.
+   */
+  dueMinor?: number;
+  /** The booking's own `deposit_non_refundable` (the business's, as stored). */
+  nonRefundable?: boolean;
+  /**
+   * The service's own deposit, used only when nothing is paid online: with no
+   * payment route the deposit is settled at the salon.
+   */
+  ownDepositMinor?: number;
+  priceMinor?: number;
+}
+
+/**
+ * The change and cancel rule. Online changes and cancellations close at the
+ * cut-off (the API answers 409 after it), so later ones go to the business.
+ */
+function changeClause(input: BookingRulesInput): string {
+  if (input.cutoffHours <= 0) {
+    return "Change or cancel online any time before it starts.";
+  }
+  const who = input.businessName ?? "the business";
+  return `Change or cancel online up to ${formatHours(input.cutoffHours)} before; after that, contact ${who}.`;
+}
+
+/** What happens to a paid deposit, as the end of the sentence that names it. */
+function refundClause(input: BookingRulesInput): string {
+  const { bookingStatus, cutoffHours, nonRefundable = false } = input;
+  if (nonRefundable) {
+    if (bookingStatus === undefined) {
+      return "not refundable once your booking is confirmed.";
+    }
+    if (bookingStatus === "confirmed") {
+      return "not refundable.";
+    }
+  }
+  // Inside the cut-off the API keeps the deposit (a request not yet accepted
+  // follows the same rule), so the condition is part of the claim.
+  return cutoffHours <= 0
+    ? "refunded if you cancel before it starts."
+    : `refunded if you cancel at least ${formatHours(cutoffHours)} before it starts.`;
+}
+
+/** The whole rules line when a deposit or payment is taken online. */
+function paidOnlineLine(input: BookingRulesInput, dueMinor: number): string {
+  if (input.bookingStatus === "pending_payment") {
+    // Nothing has been captured yet, so no refund claim is made.
+    return `No deposit has been taken yet. ${changeClause(input)}`;
+  }
+  const amount = formatMoney(dueMinor, input.currency);
+  const paidInFull =
+    input.priceMinor !== undefined && dueMinor >= input.priceMinor;
+  const noun = paidInFull
+    ? `${amount} paid when you book`
+    : `${amount} deposit`;
+  return `${noun}, ${refundClause(input)} ${changeClause(input)}`;
+}
+
+/** The money part when nothing is paid online; empty before a service is chosen. */
+function moneyClause(input: BookingRulesInput): string {
+  const { currency, dueMinor } = input;
+  if (dueMinor === undefined) {
+    return "";
+  }
+  if ((input.ownDepositMinor ?? 0) > 0) {
+    return `${formatMoney(input.ownDepositMinor ?? 0, currency)} deposit, paid at the salon.`;
+  }
+  return "No deposit for this service.";
+}
+
+/**
+ * The one plain line beside the Book button and on the manage page: what is
+ * paid up front, whether it comes back, and until when a booking can change.
+ * "EC$40 deposit, not refundable once your booking is confirmed. Change or
+ * cancel up to 24 hours before."
+ */
+export function bookingRulesLine(input: BookingRulesInput): string {
+  if (input.dueMinor !== undefined && input.dueMinor > 0) {
+    return paidOnlineLine(input, input.dueMinor);
+  }
+  return [moneyClause(input), changeClause(input)].filter(Boolean).join(" ");
 }

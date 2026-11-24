@@ -36,9 +36,10 @@ export function BookingPolicyForm({
       <fieldset className="border-border space-y-3 border-t pt-4">
         <legend className="pt-4 font-medium">Booking policy</legend>
         <p className="text-muted-foreground text-base">
-          Shown on your booking page before the customer confirms, and in their
-          confirmation email. Write it as plain text, for example your late fee.
-          Line breaks are kept.
+          Customers open this by tapping &quot;Full policy&quot; next to the
+          Book button, and it is in their confirmation email. Plain text only,
+          for example your late fee. Line breaks are kept. Leave it empty to
+          show no &quot;Full policy&quot; link.
         </p>
         <div className="grid gap-1.5">
           <Label
