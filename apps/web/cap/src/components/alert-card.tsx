@@ -4,9 +4,8 @@ import {
   endedTime,
   formatWhen,
   isInForce,
-  WARNING_LEVEL_COLOUR_NAME,
-  WARNING_LEVEL_LABEL,
   WARNING_LEVEL_SURFACE,
+  warningLevelHeading,
 } from "@/lib/alerts";
 
 /** Severity, urgency and certainty as words: colour is never the only signal. */
@@ -62,7 +61,6 @@ export function LevelStrip({
   ended?: boolean;
   view: AlertView;
 }) {
-  const colour = WARNING_LEVEL_COLOUR_NAME[view.level];
   if (ended) {
     const when = endedTime(view);
     return (
@@ -72,10 +70,22 @@ export function LevelStrip({
         <p className="font-bold tracking-wide uppercase">
           Ended{when ? ` · ${formatWhen(when)}` : ""}
         </p>
+        {view.replacedBy ? (
+          <p className="text-body-sm">
+            Replaced by{" "}
+            <Link
+              className="underline"
+              href={`/alerts/${encodeURIComponent(view.replacedBy)}`}
+              prefetch={false}
+            >
+              the newer warning
+            </Link>
+          </p>
+        ) : null}
         <span
           className={`text-label rounded px-2 py-0.5 font-bold tracking-wide uppercase ${WARNING_LEVEL_SURFACE[view.level]}`}
         >
-          Was {colour} · {WARNING_LEVEL_LABEL[view.level]}
+          Was {warningLevelHeading(view.level)}
         </span>
       </div>
     );
@@ -85,7 +95,7 @@ export function LevelStrip({
       className={`text-body px-4 py-2 font-bold tracking-wide uppercase ${WARNING_LEVEL_SURFACE[view.level]}`}
     >
       <span aria-hidden="true">! </span>
-      {colour} · {WARNING_LEVEL_LABEL[view.level]} · {view.event}
+      {warningLevelHeading(view.level)} · {view.event}
     </p>
   );
 }
@@ -93,11 +103,11 @@ export function LevelStrip({
 export function AlertCard({
   view,
   heading: Heading = "h3",
-  now = new Date(),
+  now,
 }: {
   view: AlertView;
   heading?: "h2" | "h3";
-  now?: Date;
+  now: Date;
 }) {
   return (
     <article className="rounded-gm-card border-gm-border bg-gm-surface-page overflow-hidden border">

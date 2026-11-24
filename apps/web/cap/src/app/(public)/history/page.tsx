@@ -7,8 +7,7 @@ import {
   paginate,
   sortNewestFirst,
   toAlertView,
-  WARNING_LEVEL_COLOUR_NAME,
-  WARNING_LEVEL_LABEL,
+  warningLevelHeading,
 } from "@/lib/alerts";
 import { fetchPast } from "@/lib/cap-api";
 
@@ -66,8 +65,7 @@ export default async function HistoryPage({
                   {view.headline}
                 </Link>
                 <p className="text-body-sm text-gm-text-secondary">
-                  Was {WARNING_LEVEL_COLOUR_NAME[view.level]} ·{" "}
-                  {WARNING_LEVEL_LABEL[view.level]} ({view.severity}) · issued{" "}
+                  Was {warningLevelHeading(view.level)} · issued{" "}
                   {formatWhen(view.sent)}
                   {endedTime(view)
                     ? ` · ended ${formatWhen(endedTime(view))}`

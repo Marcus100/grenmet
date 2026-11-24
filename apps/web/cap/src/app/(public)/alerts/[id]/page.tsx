@@ -60,10 +60,22 @@ export default async function AlertPage({
   }
 
   const alert = result.data;
-  const view = toAlertView(alert);
-  if (!view) {
+  const baseView = toAlertView(alert);
+  if (!baseView) {
     notFound();
   }
+  // A replaced warning ended when its replacement was sent.
+  const replacement = alert.replaced_by_identifier
+    ? await fetchAlert(alert.replaced_by_identifier)
+    : null;
+  const replacementSent =
+    replacement &&
+    (replacement.status === "ok" || replacement.status === "stale")
+      ? replacement.data.sent
+      : null;
+  const view = replacementSent
+    ? { ...baseView, endedAt: replacementSent }
+    : baseView;
 
   const ended = !isInForce(view, now);
   const xmlHref = `/feeds/alerts/${encodeURIComponent(view.identifier)}.xml`;

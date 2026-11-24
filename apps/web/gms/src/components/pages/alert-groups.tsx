@@ -10,10 +10,9 @@ import {
 import { cn } from "@/lib/utils";
 import { formatWarningTime, warningHref } from "@/lib/warning-detail";
 import {
-  WARNING_LEVEL_COLOUR_NAME,
-  WARNING_LEVEL_LABEL,
   WARNING_LEVEL_SURFACE,
   WARNING_LEVEL_SWATCH,
+  warningLevelHeading,
 } from "@/lib/warning-level";
 
 /**
@@ -38,7 +37,7 @@ function AlertCard({ alert }: { alert: PublicAlert }) {
               WARNING_LEVEL_SURFACE[level]
             )}
           >
-            {WARNING_LEVEL_COLOUR_NAME[level]} · {WARNING_LEVEL_LABEL[level]}
+            {warningLevelHeading(level)}
           </span>
           <span className="text-gm-heading text-heading-sm leading-heading-sm font-bold group-hover:underline">
             {alert.event}

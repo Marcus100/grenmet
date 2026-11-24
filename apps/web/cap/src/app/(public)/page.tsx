@@ -79,7 +79,7 @@ export default async function HomePage() {
             <ul className="space-y-4">
               {actual.map((view) => (
                 <li key={view.identifier}>
-                  <AlertCard heading="h2" view={view} />
+                  <AlertCard heading="h2" now={now} view={view} />
                 </li>
               ))}
             </ul>
@@ -89,7 +89,7 @@ export default async function HomePage() {
             <ul className="space-y-4">
               {exercise.map((view) => (
                 <li key={view.identifier}>
-                  <AlertCard heading="h2" view={view} />
+                  <AlertCard heading="h2" now={now} view={view} />
                 </li>
               ))}
             </ul>

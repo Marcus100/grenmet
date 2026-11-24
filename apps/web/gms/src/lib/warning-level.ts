@@ -12,4 +12,5 @@ export {
   WARNING_LEVEL_SURFACE,
   WARNING_LEVEL_SWATCH,
   type WarningLevel,
+  warningLevelHeading,
 } from "@barrelsgd/gms/warning-levels";

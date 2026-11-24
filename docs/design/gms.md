@@ -300,7 +300,7 @@ matched pairs:
 | Red | `#cc0033` | `…-red-bg` / `…-red-fg` | white 5.81:1 |
 | Grey | `#dcdcdc` | `…-grey-bg` / `…-grey-fg` | expired |
 
-The public shows exactly the issued colour (`@barrelsgd/gms/warning-levels`, owner, 23 Nov 2026): Green (Minor) "Green alert", Yellow (Moderate) "Be aware", Orange (Severe, amber token) "Be prepared", Red (Extreme) "Take action now"; the colour name is always printed beside the words. An ended warning gets a grey "Ended" strip with its end time and the issued colour as a small tag.
+The public shows exactly the issued colour (`@barrelsgd/gms/warning-levels`, owner, 23 Nov 2026): Green (Minor) "Green alert", Yellow (Moderate) "Be aware", Orange (Severe, amber token) "Be prepared", Red (Extreme) "Take action now"; the colour name is always printed beside the words. An ended or replaced warning gets a grey "Ended" strip with its end time and the issued colour as a small tag. An alert with no stated severity is neutral grey with the words "Severity not stated", never a warning colour, and never the red takeover.
 
 Public-guidance aliases: `gm-weather-severity-{low,be-aware,be-prepared,take-action,expired}`.
 

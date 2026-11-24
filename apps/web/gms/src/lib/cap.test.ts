@@ -179,8 +179,18 @@ describe("alertsLevel", () => {
     expect(alertsLevel(mixed)).toBe("take-action");
   });
 
-  it("treats an unknown severity as worth being aware of, not as clear", () => {
-    expect(alertsLevel(ok([alert({ severity: "Unknown" })]))).toBe("be-aware");
+  it("shows an unstated severity in neutral grey, claiming no colour", () => {
+    const only = ok([alert({ severity: "Unknown" })]);
+    expect(alertsLevel(only)).toBe("not-stated");
+    expect(alertsSummary(only)).toBe("Severity not stated · 1 active");
+  });
+
+  it("lets a stated severity outrank an unstated one", () => {
+    const mixed = ok([
+      alert({ identifier: "a", severity: "Unknown" }),
+      alert({ identifier: "b", severity: "Minor" }),
+    ]);
+    expect(alertsLevel(mixed)).toBe("green");
   });
 
   it("never reports an outage as 'none'", () => {

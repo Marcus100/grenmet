@@ -2,6 +2,7 @@ import type { CapAlertPublicView } from "@barrelsgd/api-client";
 import {
   severityLevel,
   WARNING_LEVEL_LABEL,
+  WARNING_SEVERITY_RANK,
   type WarningLevel,
 } from "@barrelsgd/gms/warning-levels";
 
@@ -10,14 +11,6 @@ import {
 
 export type Severity = "Extreme" | "Severe" | "Moderate" | "Minor" | "Unknown";
 export type Urgency = "Immediate" | "Expected" | "Future" | "Past" | "Unknown";
-
-const SEVERITY_RANK: Record<Severity, number> = {
-  Extreme: 0,
-  Severe: 1,
-  Moderate: 2,
-  Minor: 3,
-  Unknown: 4,
-};
 
 const URGENCY_RANK: Record<Urgency, number> = {
   Immediate: 0,
@@ -37,6 +30,7 @@ export {
   WARNING_LEVEL_MAP_FILL,
   WARNING_LEVEL_SURFACE,
   type WarningLevel,
+  warningLevelHeading,
 } from "@barrelsgd/gms/warning-levels";
 
 /** What one alert looks like on a card, flattened from CAP's nested shape. */
@@ -56,6 +50,8 @@ export interface AlertView {
   lifecycle: string;
   msgType: string;
   onset: string | null;
+  /** Identifier of the warning that replaced this one, if any. */
+  replacedBy: string | null;
   sent: string;
   severity: Severity;
   status: string;
@@ -72,6 +68,10 @@ function endedAtOf(
   }
   if (alert.lifecycle_state === "EXPIRED") {
     return alert.expired_at ?? expires;
+  }
+  if (alert.replaced_by_identifier) {
+    // The page swaps in the replacement's sent time when it can read it.
+    return alert.updated_at ?? null;
   }
   return null;
 }
@@ -106,6 +106,7 @@ export function toAlertView(alert: CapAlertPublicView): AlertView | null {
     level: severityLevel(info.severity ?? "Unknown"),
     lifecycle: alert.lifecycle_state,
     msgType: alert.msg_type,
+    replacedBy: alert.replaced_by_identifier ?? null,
     onset: info.onset ?? null,
     sent: alert.sent,
     severity: info.severity ?? "Unknown",
@@ -117,7 +118,7 @@ export function toAlertView(alert: CapAlertPublicView): AlertView | null {
 /** Most severe first, then most urgent, then most recently sent. */
 export function compareAlerts(a: AlertView, b: AlertView): number {
   return (
-    SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
+    WARNING_SEVERITY_RANK[a.severity] - WARNING_SEVERITY_RANK[b.severity] ||
     URGENCY_RANK[a.urgency] - URGENCY_RANK[b.urgency] ||
     Date.parse(b.sent) - Date.parse(a.sent)
   );
@@ -138,7 +139,7 @@ export function sortNewestFirst(views: AlertView[]): AlertView[] {
  * lists it: last-known-good data must not resurrect an ended warning.
  */
 export function isInForce(view: AlertView, now: Date): boolean {
-  if (view.msgType === "Cancel") {
+  if (view.msgType === "Cancel" || view.replacedBy) {
     return false;
   }
   if (view.lifecycle === "EXPIRED" || view.lifecycle === "CANCELLED") {

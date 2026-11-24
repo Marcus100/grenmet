@@ -65,6 +65,7 @@ describe("AlertCard", () => {
     level: "be-prepared",
     lifecycle: "PUBLISHED",
     msgType: "Alert",
+    replacedBy: null,
     onset: null,
     sent: "2026-10-18T12:00:00Z",
     severity: "Severe",
@@ -73,7 +74,7 @@ describe("AlertCard", () => {
   };
 
   it("states severity, urgency and certainty in words", () => {
-    render(<AlertCard view={view} />);
+    render(<AlertCard now={new Date("2026-10-18T14:00:00Z")} view={view} />);
     expect(screen.getByText("Severe")).toBeInTheDocument();
     expect(screen.getByText("Immediate")).toBeInTheDocument();
     expect(screen.getByText("Likely")).toBeInTheDocument();
@@ -81,7 +82,12 @@ describe("AlertCard", () => {
   });
 
   it("labels exercise messages as not live", () => {
-    render(<AlertCard view={{ ...view, status: "Exercise" }} />);
+    render(
+      <AlertCard
+        now={new Date("2026-10-18T14:00:00Z")}
+        view={{ ...view, status: "Exercise" }}
+      />
+    );
     expect(screen.getByText(NOT_LIVE)).toBeInTheDocument();
   });
 });

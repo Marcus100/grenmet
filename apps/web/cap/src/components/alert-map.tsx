@@ -1,9 +1,5 @@
 import Link from "next/link";
-import {
-  WARNING_LEVEL_COLOUR_NAME,
-  WARNING_LEVEL_LABEL,
-  WARNING_LEVEL_MAP_FILL,
-} from "@/lib/alerts";
+import { WARNING_LEVEL_MAP_FILL, warningLevelHeading } from "@/lib/alerts";
 import type { AlertFeature } from "@/lib/cap-api";
 import {
   boundsFor,
@@ -116,8 +112,7 @@ export function AlertMap({ features }: { features: AlertFeature[] }) {
             >
               <span className="font-bold">{number}. </span>
               <span className="font-semibold">
-                {WARNING_LEVEL_COLOUR_NAME[shape.level]} ·{" "}
-                {WARNING_LEVEL_LABEL[shape.level]}
+                {warningLevelHeading(shape.level)}
                 {shape.severity === "Unknown" ? "" : ` (${shape.severity})`}
               </span>
               {": "}

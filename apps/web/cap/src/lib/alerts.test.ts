@@ -84,6 +84,20 @@ describe("severity ordering", () => {
     expect(statusLine(actual)).toBe("Be prepared · 2 active");
     expect(statusLine([])).toBe("No active alerts");
   });
+
+  it("says plainly when the only alert states no severity", () => {
+    const { actual } = splitActive([alert("u", { severity: "Unknown" })], NOW);
+    expect(overallLevel(actual)).toBe("not-stated");
+    expect(statusLine(actual)).toBe("Severity not stated · 1 active");
+  });
+
+  it("drops a replaced alert from the active list", () => {
+    const { actual } = splitActive(
+      [alert("old", {}, { replaced_by_identifier: "new" })],
+      NOW
+    );
+    expect(actual).toEqual([]);
+  });
 });
 
 describe("active filtering", () => {

@@ -64,8 +64,8 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
   `@barrelsgd/gms`. Both public apps read the one severity-to-level mapping in
   `@barrelsgd/gms/warning-levels`: the public sees the issued colour (Minor
   Green, Moderate Yellow "Be aware", Severe Orange "Be prepared", Extreme Red
-  "Take action now"). An ended alert is a grey "Ended · <time>" strip with
-  the colour as a small tag.
+  "Take action now"). An ended or replaced alert is a grey "Ended · <time>" strip with
+  the colour as a small tag; no stated severity is grey "Severity not stated".
 - No sample data, ever. An empty feed and an unreachable feed are different
   states and must never look alike.
 

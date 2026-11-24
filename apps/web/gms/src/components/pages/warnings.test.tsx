@@ -40,6 +40,15 @@ describe("AlertGroups", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", "/alerts/gale-1");
   });
 
+  it("shows an unstated severity as grey words, never a colour", () => {
+    const { container } = render(
+      <AlertGroups result={result([{ ...GALE, severity: "Unknown" }])} />
+    );
+    expect(screen.getByText("Severity not stated")).toBeInTheDocument();
+    expect(container.querySelector(".bg-gm-warning-red-bg")).toBeNull();
+    expect(container.querySelector(".bg-gm-warning-grey-bg")).not.toBeNull();
+  });
+
   it("says plainly when nothing is in effect", () => {
     render(<AlertGroups result={result([])} />);
     expect(screen.getByText(NONE_IN_EFFECT)).toBeInTheDocument();
@@ -81,13 +90,14 @@ describe("WarningStatusBand", () => {
 });
 
 describe("WarningLegend", () => {
-  it("names all five levels", () => {
+  it("names every level, with the colour beside each swatch", () => {
     render(<WarningLegend />);
     for (const label of [
       "No active alerts",
-      "Be aware",
-      "Be prepared",
-      "Take action now",
+      "Green alert",
+      "Yellow · Be aware",
+      "Orange · Be prepared",
+      "Red · Take action now",
       "Status unavailable",
     ]) {
       // "No active alerts" is both the label and its guidance line.

@@ -4,6 +4,7 @@ import {
   WARNING_LEVEL_COLOUR_NAME,
   WARNING_LEVEL_LABEL,
   WARNING_LEVEL_SURFACE,
+  warningLevelHeading,
 } from "@/lib/alerts";
 
 describe("the public sees the issued colour", () => {
@@ -26,7 +27,16 @@ describe("the public sees the issued colour", () => {
     expect(WARNING_LEVEL_SURFACE[orange]).not.toBe(WARNING_LEVEL_SURFACE[red]);
   });
 
-  it("treats an unknown severity as worth being aware of, never clear", () => {
-    expect(severityLevel("Unknown")).toBe("be-aware");
+  it("claims no colour for an unstated severity", () => {
+    const level = severityLevel("Unknown");
+    expect(level).toBe("not-stated");
+    expect(WARNING_LEVEL_LABEL[level]).toBe("Severity not stated");
+    expect(WARNING_LEVEL_SURFACE[level]).toContain("bg-gm-warning-grey-bg");
+    expect(warningLevelHeading(level)).toBe("Severity not stated");
+  });
+
+  it("prints the colour name with the action words", () => {
+    expect(warningLevelHeading("be-prepared")).toBe("Orange · Be prepared");
+    expect(warningLevelHeading("green")).toBe("Green alert");
   });
 });

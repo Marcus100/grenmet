@@ -7,6 +7,8 @@ import { toAlertView } from "@/lib/alerts";
 const NOW = new Date("2026-10-18T14:00:00Z");
 const ENDED = /Ended/u;
 const WAS_ORANGE = /Was Orange · Be prepared/u;
+const NEWER = /the newer warning/u;
+const NOT_STATED = /Severity not stated · High wind/u;
 const RED_STRIP = /Red · Take action now/u;
 const ORANGE_STRIP = /Orange · Be prepared · High wind/u;
 
@@ -86,5 +88,24 @@ describe("AlertCard", () => {
     );
     expect(screen.getByText(ENDED)).toBeInTheDocument();
     expect(screen.getByText(WAS_ORANGE)).toBeInTheDocument();
+  });
+
+  it("treats a replaced alert as ended with a link to its replacement", () => {
+    const { container } = render(
+      <AlertCard now={NOW} view={view({ replaced_by_identifier: "w2" })} />
+    );
+    expect(screen.getByText(ENDED)).toBeInTheDocument();
+    expect(screen.getByText(NEWER)).toHaveAttribute("href", "/alerts/w2");
+    expect(container.querySelector("p.bg-gm-warning-amber-bg")).toBeNull();
+  });
+
+  it("shows an unstated severity in grey, claiming no colour", () => {
+    const { container } = render(
+      <AlertCard now={NOW} view={view({}, { severity: "Unknown" })} />
+    );
+    expect(screen.getByText(NOT_STATED)).toBeInTheDocument();
+    expect(container.querySelector(".bg-gm-warning-grey-bg")).not.toBeNull();
+    expect(container.querySelector(".bg-gm-warning-amber-bg")).toBeNull();
+    expect(container.querySelector(".bg-gm-warning-yellow-bg")).toBeNull();
   });
 });
