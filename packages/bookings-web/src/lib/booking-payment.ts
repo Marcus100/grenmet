@@ -31,6 +31,21 @@ export function paymentLine(payment: BookingPaymentSummary): string {
 }
 
 /**
+ * Money an online booking of the service pays when it is made (a deposit, or
+ * the full price when the business takes it by card); more than 0 needs the
+ * emailed code first. Older storefront data without the field falls back to
+ * the deposit.
+ */
+export function dueAtBooking(
+  service: { deposit_minor: number; due_at_booking_minor?: number } | null
+): number {
+  if (!service) {
+    return 0;
+  }
+  return service.due_at_booking_minor ?? service.deposit_minor;
+}
+
+/**
  * Said before the customer submits: they pay now, and how much. A due amount
  * below the price is a deposit (the rest is paid at the business); otherwise it
  * is the full price. Empty when nothing is paid online at booking.

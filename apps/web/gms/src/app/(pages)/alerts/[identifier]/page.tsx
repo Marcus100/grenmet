@@ -8,8 +8,8 @@ import { fetchPublicAlert, severityLevel } from "@/lib/cap";
 import { cn } from "@/lib/utils";
 import { toWarningDetail, warningHref } from "@/lib/warning-detail";
 import {
-  WARNING_LEVEL_LABEL,
   WARNING_LEVEL_SURFACE,
+  warningLevelHeading,
 } from "@/lib/warning-level";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +30,47 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return detail
     ? { description: detail.headline, title: detail.event }
     : { title: "Warning" };
+}
+
+/** The level strip: the issued colour while in force; grey "Ended" after. */
+function WarningStrip({
+  detail,
+}: {
+  detail: NonNullable<ReturnType<typeof toWarningDetail>>;
+}) {
+  const issuedLevel = severityLevel(detail.severity);
+  const level = detail.ended ? "unknown" : issuedLevel;
+  return (
+    <div
+      className={cn(
+        "mb-8 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg px-4 py-3 lg:px-5",
+        WARNING_LEVEL_SURFACE[level]
+      )}
+    >
+      <span className="text-body-base leading-body-base flex items-center gap-2.5 font-bold">
+        <TriangleAlertIcon aria-hidden="true" className="size-5 shrink-0" />
+        {detail.ended
+          ? `${detail.ended === "cancelled" ? "Cancelled" : "Ended"}${detail.endedAt ? ` · ${detail.endedAt}` : ""}`
+          : warningLevelHeading(level)}
+      </span>
+      {detail.ended ? (
+        <span
+          className={cn(
+            "text-label leading-label rounded px-2 py-0.5 font-bold tracking-wider uppercase",
+            WARNING_LEVEL_SURFACE[issuedLevel]
+          )}
+        >
+          Was {warningLevelHeading(issuedLevel)}
+        </span>
+      ) : (
+        <span className="text-body-sm leading-body-sm">
+          {detail.severity === "Unknown"
+            ? detail.certainty
+            : `${detail.severity} severity · ${detail.certainty}`}
+        </span>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -72,7 +113,6 @@ export default async function WarningPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const level = detail.ended ? "unknown" : severityLevel(detail.severity);
   const { updatedFrom } = await searchParams;
   const previous = updatedFrom ? await fetchPublicAlert(updatedFrom) : null;
   const previousDetail =
@@ -102,24 +142,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
         </p>
       )}
 
-      <div
-        className={cn(
-          "mb-8 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg px-4 py-3 lg:px-5",
-          WARNING_LEVEL_SURFACE[level]
-        )}
-      >
-        <span className="text-body-base leading-body-base flex items-center gap-2.5 font-bold">
-          <TriangleAlertIcon aria-hidden="true" className="size-5 shrink-0" />
-          {detail.ended
-            ? `${detail.ended === "cancelled" ? "Cancelled" : "Ended"} — no longer in effect`
-            : WARNING_LEVEL_LABEL[level]}
-        </span>
-        {!detail.ended && (
-          <span className="text-body-sm leading-body-sm">
-            {detail.severity} severity · {detail.certainty}
-          </span>
-        )}
-      </div>
+      <WarningStrip detail={detail} />
 
       {detail.cancellationReason && (
         <p className="border-gm-border bg-gm-surface text-body-base text-gm-text-primary leading-body-base mb-6 rounded border p-4 lg:p-5">

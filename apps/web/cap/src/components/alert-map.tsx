@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { WARNING_LEVEL_LABEL, type WarningLevel } from "@/lib/alerts";
+import { WARNING_LEVEL_MAP_FILL, warningLevelHeading } from "@/lib/alerts";
 import type { AlertFeature } from "@/lib/cap-api";
 import {
   boundsFor,
@@ -13,14 +13,6 @@ import {
 
 /** Room a place label needs to the right of its marker, in map units. */
 const LABEL_ROOM = 130;
-
-const FILL: Record<WarningLevel, string> = {
-  none: "fill-gm-warning-green-bg stroke-gm-warning-green-border",
-  "be-aware": "fill-gm-warning-yellow-bg stroke-gm-warning-yellow-border",
-  "be-prepared": "fill-gm-warning-amber-bg stroke-gm-warning-amber-border",
-  "take-action": "fill-gm-warning-red-bg stroke-gm-warning-red-border",
-  unknown: "fill-gm-warning-grey-bg stroke-gm-warning-grey-border",
-};
 
 /**
  * Active alert areas as a server-rendered SVG. Each area carries a number that
@@ -77,7 +69,7 @@ export function AlertMap({ features }: { features: AlertFeature[] }) {
           <g key={`${feature.properties.identifier}-${number}`}>
             {shape.d ? (
               <path
-                className={FILL[shape.level]}
+                className={WARNING_LEVEL_MAP_FILL[shape.level]}
                 d={shape.d}
                 fillOpacity={0.55}
                 strokeWidth={2}
@@ -85,7 +77,7 @@ export function AlertMap({ features }: { features: AlertFeature[] }) {
             ) : null}
             {shape.point ? (
               <circle
-                className={FILL[shape.level]}
+                className={WARNING_LEVEL_MAP_FILL[shape.level]}
                 cx={shape.point[0]}
                 cy={shape.point[1]}
                 fillOpacity={0.55}
@@ -120,7 +112,7 @@ export function AlertMap({ features }: { features: AlertFeature[] }) {
             >
               <span className="font-bold">{number}. </span>
               <span className="font-semibold">
-                {WARNING_LEVEL_LABEL[shape.level]}
+                {warningLevelHeading(shape.level)}
                 {shape.severity === "Unknown" ? "" : ` (${shape.severity})`}
               </span>
               {": "}

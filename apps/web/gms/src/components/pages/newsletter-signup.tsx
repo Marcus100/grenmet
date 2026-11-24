@@ -13,6 +13,7 @@ import {
   parseNewsletterSignup,
 } from "@/lib/newsletter-signup";
 import { reportError } from "@/lib/report-error";
+import { useHydrated } from "@/lib/use-hydrated";
 
 /**
  * Sign-up for the daily climate newsletter. FastAPI sends a confirmation email
@@ -20,6 +21,7 @@ import { reportError } from "@/lib/report-error";
  * never says whether an address is already known.
  */
 export function NewsletterSignup() {
+  const hydrated = useHydrated();
   const [state, setState] = useState<FormState>({ status: "idle" });
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileReset, setTurnstileReset] = useState(0);
@@ -113,9 +115,18 @@ export function NewsletterSignup() {
         resetKey={turnstileReset}
         siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
       />
-      <Button disabled={state.status === "submitting"} type="submit">
+      <Button
+        disabled={!hydrated || state.status === "submitting"}
+        type="submit"
+      >
         {state.status === "submitting" ? "Sending…" : "Email me the newsletter"}
       </Button>
+      <noscript>
+        <p className="text-body-sm text-gm-text-secondary">
+          This form needs JavaScript. Turn it on in your browser, or contact us
+          another way.
+        </p>
+      </noscript>
       {state.status === "error" && (
         <p className="text-body-base text-destructive font-medium" role="alert">
           {state.message}

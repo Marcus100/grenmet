@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FeedStatus } from "@/components/feed-status";
 import {
+  endedTime,
   formatWhen,
   paginate,
   sortNewestFirst,
   toAlertView,
-  WARNING_LEVEL_LABEL,
+  warningLevelHeading,
 } from "@/lib/alerts";
 import { fetchPast } from "@/lib/cap-api";
 
@@ -64,9 +65,11 @@ export default async function HistoryPage({
                   {view.headline}
                 </Link>
                 <p className="text-body-sm text-gm-text-secondary">
-                  {WARNING_LEVEL_LABEL[view.level]} ({view.severity}) · issued{" "}
+                  Was {warningLevelHeading(view.level)} · issued{" "}
                   {formatWhen(view.sent)}
-                  {view.expires ? ` · ended ${formatWhen(view.expires)}` : ""}
+                  {endedTime(view)
+                    ? ` · ended ${formatWhen(endedTime(view))}`
+                    : ""}
                 </p>
                 <p className="text-body-sm text-gm-text-secondary">
                   {view.areas.join("; ")}

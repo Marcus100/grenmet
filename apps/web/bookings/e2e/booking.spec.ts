@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { chooseService } from "./service-choice";
 
 // Requires the API with the Babydoll seed (scripts/verification/e2e-api.sh
 // prepare, then serve) and this app on :3015.
@@ -10,6 +11,7 @@ import { expect, test } from "@playwright/test";
 
 const SLUG = "babydoll-beauty-bar";
 const BUSINESS = "Babydoll Beauty Bar";
+const CATEGORY = "Brows";
 const SERVICE = "Signature brow sculpt & wax";
 const CUSTOMER = "Journey Tester";
 const PENDING = "Waiting for the studio to confirm";
@@ -30,13 +32,13 @@ test("a guest books a seeded service and opens the manage link", async ({
 
   const form = page.getByRole("form", { name: "Book an appointment" });
 
-  // 1. Service. The radio is controlled by React, so `toPass` retries the
-  // click until the page has hydrated and the choice sticks.
-  const service = form.getByRole("radio", { name: SERVICE });
+  // 1. Service. Its category is closed until the customer opens it. The radio
+  // is controlled by React, so `toPass` retries the click until the page has
+  // hydrated and the choice sticks.
   // Exact: "2. Pick a day and time" is a group too.
   const times = form.getByRole("group", { exact: true, name: "Time" });
   await expect(async () => {
-    await service.check({ timeout: 2000 });
+    await chooseService(form, CATEGORY, SERVICE);
     await expect(times).toBeVisible({ timeout: 5000 });
   }).toPass();
 
