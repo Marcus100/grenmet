@@ -321,6 +321,7 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
     return BookingPublicDetail(
         id=booking.id,
         status=BookingStatus(booking.status),
+        business_name=profile.display_name,
         service_id=booking.service_id,
         service_name=managed.service.name,
         provider_id=booking.provider_id,
@@ -360,6 +361,7 @@ def decoy_receipt(
         booking=BookingPublicDetail(
             id=uuid.uuid4(),
             status=BookingStatus.PENDING,
+            business_name=profile.display_name,
             service_id=payload.service_id,
             service_name="Appointment",
             provider_id=payload.provider_id or uuid.uuid4(),

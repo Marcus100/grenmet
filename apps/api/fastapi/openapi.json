@@ -80516,6 +80516,12 @@
           "status": {
             "$ref": "#/components/schemas/BookingStatus"
           },
+          "business_name": {
+            "type": "string",
+            "title": "Business Name",
+            "description": "The business's display name, as its public booking page shows it.",
+            "default": ""
+          },
           "service_id": {
             "type": "string",
             "format": "uuid",

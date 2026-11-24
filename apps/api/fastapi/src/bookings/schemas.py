@@ -1075,6 +1075,10 @@ class BookingPublicDetail(BaseModel):
 
     id: uuid.UUID
     status: BookingStatus
+    business_name: str = Field(
+        default="",
+        description="The business's display name, as its public booking page shows it.",
+    )
     service_id: uuid.UUID
     service_name: str
     provider_id: uuid.UUID
