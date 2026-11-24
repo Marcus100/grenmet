@@ -24,8 +24,8 @@ export const EMAIL = {
   address: "hello@babydollbeautybar.com",
   href: "mailto:hello@babydollbeautybar.com",
 } as const;
-/** The manual channel the booking flow points people to (Instagram DM). */
-export const BOOKING_CONTACT = { href: INSTAGRAM_DM_URL, label: "Instagram" };
+/** The manual channel the booking flow points people to: the Contact page, which lists them all. */
+export const BOOKING_CONTACT = { href: "/contact", label: "Contact us" };
 // The client's Google Business Profile: review form and public profile.
 export const GOOGLE_REVIEW_URL = "https://g.page/r/CXicqwbsBju0EAE/review";
 export const GOOGLE_PROFILE_URL = "https://share.google/lqfZTCWbyABRADcTp";
@@ -98,12 +98,15 @@ export interface ServiceGroup {
 export interface ServiceCategory {
   groups: [ServiceGroup, ServiceGroup];
   id: "lashes" | "brows" | "skin";
+  /** One line shown above the category's lists. */
+  intro?: string;
   label: string;
 }
 
 export const SERVICE_MENU: ServiceCategory[] = [
   {
     id: "lashes",
+    intro: "New clients: book a consultation first",
     label: "Lashes",
     groups: [
       {

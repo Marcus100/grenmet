@@ -11,7 +11,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import ColumnElement, delete, func, or_, select
+from sqlalchemy import ColumnElement, delete, func, null, or_, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
@@ -103,6 +103,8 @@ COVER_PURPOSE = "booking-cover"
 KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
     "add_ons_enabled",
     "payment_at_booking",
+    "pending_expiry_hours",
+    "max_open_per_customer",
     "deposit_mode",
     "deposit_percent",
     "deposit_fixed_minor",
@@ -154,6 +156,10 @@ async def upsert_profile(
         values["cover_file_id"] = payload.cover_file_id
         await _require_cover(organisation_id, payload.cover_file_id, profile)
     if profile is None:
+        if "pending_expiry_hours" in values and values["pending_expiry_hours"] is None:
+            # The ORM leaves a None out of an INSERT, so the column's server default
+            # (24) would win. A null window is written as SQL NULL here.
+            values["pending_expiry_hours"] = null()
         profile = BookingProfile(organisation_id=organisation_id, **values)
         session.add(profile)
     else:
