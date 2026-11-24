@@ -1,7 +1,8 @@
 import type { ReactElement } from "react";
 import { render, toPlainText } from "react-email";
 import { CapAlertEmail, type CapAlertEmailProps } from "./cap-alert";
-import { CardEmail, type CardEmailProps } from "./card";
+import { CardEmail } from "./card";
+import { cardProps } from "./card-props";
 import { NewsletterEmail, type NewsletterEmailProps } from "./newsletter";
 import { NotificationEmail, type NotificationEmailProps } from "./notification";
 import {
@@ -54,16 +55,6 @@ function requireFields(
   if (missing.length > 0) {
     throw new Error(`${template} requires ${fields.join(", ")}`);
   }
-}
-
-function cardProps(props: Record<string, unknown>): CardEmailProps {
-  requireFields("card", props, ["subject", "title", "footer"]);
-  for (const field of ["paragraphs", "rows", "money", "secondary", "policy"]) {
-    if (props[field] !== undefined && !Array.isArray(props[field])) {
-      throw new Error(`card ${field} must be a list`);
-    }
-  }
-  return props as unknown as CardEmailProps;
 }
 
 function build(template: TemplateName, props: Record<string, unknown>): Built {
