@@ -19,6 +19,16 @@ export type BookingStorefront = {
   currency: string;
   cancel_cutoff_hours: number;
   /**
+   * @description True when a paid deposit is never refunded on cancellation.
+   * @default false
+   * @type boolean | undefined
+   */
+  deposit_non_refundable?: boolean;
+  /**
+   * @description The business's plain-text booking policy, or null when it has none.
+   */
+  booking_policy?: string | null;
+  /**
    * @description How a customer reaches the business by hand. Each is null when the
    * business has not set it; show only the ones that are set.
    * @type object

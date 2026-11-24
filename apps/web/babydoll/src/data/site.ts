@@ -14,6 +14,16 @@ export const BOOKING_URL = "https://babydollgnd.as.me";
 export const ONLINE_BOOKING_URL: string | null =
   "https://bookings.barrels.gd/babydoll-beauty-bar";
 export const INSTAGRAM_DM_URL = "https://ig.me/m/babydoll.gnd";
+/** The studio's one business number: phone calls and WhatsApp both use it. */
+export const PHONE = {
+  display: "+1 473 420 7747",
+  href: "tel:+14734207747",
+} as const;
+export const WHATSAPP_URL = "https://wa.me/14734207747";
+export const EMAIL = {
+  address: "hello@babydollbeautybar.com",
+  href: "mailto:hello@babydollbeautybar.com",
+} as const;
 /** The manual channel the booking flow points people to (Instagram DM). */
 export const BOOKING_CONTACT = { href: INSTAGRAM_DM_URL, label: "Instagram" };
 // The client's Google Business Profile: review form and public profile.

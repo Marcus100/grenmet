@@ -237,7 +237,7 @@ function EventHeader({ event }: { event: AtlasEvent }) {
           aria-label={totals
             .map(
               ([party, count]) =>
-                `${sideLabel(party)} ${referendum ? pct(count / (total || 1)) : `${count} seats`}`
+                `${sideLabel(party)} ${referendum ? pct(count / (total || 1)) : `${count} ${count === 1 ? "seat" : "seats"}`}`
             )
             .join(", ")}
           className="flex h-4 gap-px"
@@ -575,7 +575,7 @@ function DivisionList({
                     )
                     .join(" · ")}{" "}
                   · {fmt(d.cast)} {referendum ? "voters" : "ballots"} · turnout{" "}
-                  {d.reg ? pct(d.cast / d.reg) : "–"}
+                  {d.reg && d.cast != null ? pct(d.cast / d.reg) : "–"}
                 </p>
               )}
             </li>
@@ -986,7 +986,7 @@ export function Atlas() {
   const [failed, setFailed] = useState(false);
   const [palette, setPalette] = useState<Palette | null>(null);
   const [state, setState] = useState<UrlState>({
-    eventId: "2022",
+    eventId: "2026",
     level: "cons",
     mode: "winner",
     view: "flat",

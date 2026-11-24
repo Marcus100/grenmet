@@ -55,6 +55,8 @@ const TARGET = "min-h-11";
 
 export interface BookingActionsProps {
   bookingId: string;
+  /** The booking was made on non-refundable terms (its own, not the profile's). */
+  nonRefundable?: boolean;
   orgSlug: string;
   /** Whether the booking asked for a deposit or the full payment (wording). */
   paymentKind?: PaymentKind;
@@ -76,6 +78,7 @@ export function BookingActions({
   bookingId,
   orgSlug,
   refundable,
+  nonRefundable = false,
   paymentKind,
   started,
   startsAt,
@@ -157,7 +160,9 @@ export function BookingActions({
             <ReasonDialog
               action={cancelBookingAction.bind(null, orgSlug, bookingId)}
               description="The customer is emailed your reason and the time is released."
+              nonRefundable={nonRefundable}
               onResult={setNotice}
+              refundByDefault={nonRefundable && status === "confirmed"}
               refundChoice={refundable}
               submitLabel="Cancel booking"
               title="Cancel this booking?"
@@ -355,7 +360,9 @@ function refundChoices(word: string) {
 function ReasonDialog({
   action,
   description,
+  nonRefundable = false,
   onResult,
+  refundByDefault = false,
   refundChoice = false,
   submitLabel,
   title,
@@ -364,7 +371,9 @@ function ReasonDialog({
 }: {
   action: (previous: ActionState, formData: FormData) => Promise<ActionState>;
   description: string;
+  nonRefundable?: boolean;
   onResult: (state: ActionState) => void;
+  refundByDefault?: boolean;
   refundChoice?: boolean;
   submitLabel: string;
   title: string;
@@ -416,7 +425,9 @@ function ReasonDialog({
                 >
                   <input
                     className="accent-primary size-5"
-                    defaultChecked={choice.value === "policy"}
+                    defaultChecked={
+                      choice.value === (refundByDefault ? "refund" : "policy")
+                    }
                     name="refundChoice"
                     type="radio"
                     value={choice.value}
@@ -425,8 +436,9 @@ function ReasonDialog({
                 </Label>
               ))}
               <p className="text-muted-foreground text-sm" id={policyHintId}>
-                The business policy refunds if the booking is more than the
-                cancellation cutoff away.
+                {nonRefundable
+                  ? "This deposit is non-refundable once the booking is confirmed. Refund is selected because you are cancelling; untick it to keep the deposit."
+                  : "The business policy refunds if the booking is more than the cancellation cutoff away."}
               </p>
             </fieldset>
           ) : null}

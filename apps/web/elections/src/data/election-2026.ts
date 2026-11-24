@@ -4,6 +4,7 @@ import {
   constituencyName,
   contestStats,
   generalResult,
+  nationalResult,
   seatLean,
 } from "@/data/model";
 import type { CampaignFile, ConstituencyCode, ResultsFile } from "@/data/types";
@@ -26,12 +27,27 @@ export interface ElectionCalendar {
   policePollingDay: string | null;
   /** Polling day, once announced. */
   pollingDay: string | null;
+  /** True once every constituency result is in the data; decides the phase, never the date. */
+  resultsDeclared: boolean;
   /** When the writs were issued, which proclaims both dates. */
   writs: string | null;
 }
 
-export function calendarFrom(campaign: CampaignFile): ElectionCalendar {
+/** The election these results belong to. */
+export const ELECTION_ID = "2026";
+
+/** Provisional results are in the data for every constituency. */
+export function hasResults(results: ResultsFile | undefined): boolean {
+  const contests = results?.results[ELECTION_ID];
+  return CODES.every((code) => (contests?.[code]?.c.length ?? 0) > 0);
+}
+
+export function calendarFrom(
+  campaign: CampaignFile,
+  results?: ResultsFile
+): ElectionCalendar {
   return {
+    resultsDeclared: hasResults(results),
     announcement: campaign.announce,
     deadline: campaign.deadline,
     dissolved: campaign.dissolved ?? null,
@@ -47,7 +63,8 @@ export type ElectionPhase =
   | "awaiting-date"
   | "campaign"
   | "polling-day"
-  | "counting";
+  | "counting"
+  | "declared";
 
 /** Today's date in Grenada (UTC−4, no daylight saving) as YYYY-MM-DD. */
 export function grenadaDate(now: Date): string {
@@ -58,6 +75,8 @@ export function electionPhase(
   calendar: ElectionCalendar,
   now: Date
 ): ElectionPhase {
+  // Results in the data decide this, not today's date.
+  if (calendar.resultsDeclared) return "declared";
   if (!calendar.pollingDay) return "awaiting-date";
   const today = grenadaDate(now);
   if (today < calendar.pollingDay) return "campaign";
@@ -169,6 +188,7 @@ export function electionStatus(calendar: ElectionCalendar, now: Date): string {
       : `Grenada votes in ${days} days`;
   }
   if (phase === "polling-day") return "Grenada votes today";
+  if (phase === "declared") return "Provisional results declared";
   return "Counting and results";
 }
 
@@ -181,6 +201,10 @@ export function electionHeadline(
   calendar: ElectionCalendar,
   now: Date | null
 ): string | null {
+  if (calendar.resultsDeclared)
+    return calendar.pollingDay
+      ? `Grenada voted on ${formatIsoDate(calendar.pollingDay)}`
+      : "Grenada’s 2026 general election: provisional results";
   if (calendar.pollingDay)
     return `Grenada votes on ${formatIsoDate(calendar.pollingDay)}`;
   if (!now) return null;
@@ -189,7 +213,102 @@ export function electionHeadline(
   return "Grenada waits for its election date";
 }
 
+export const PEO_RESULTS_URL = "https://elections.gd/2026/";
+export const PEO_RESULTS_LABEL =
+  "Provisional results from the Parliamentary Elections Office, 23 November 2026";
+
+export interface DeclaredSeat {
+  code: ConstituencyCode;
+  href: string;
+  /** Winner's lead over the runner-up, in votes. */
+  majority: number;
+  name: string;
+  runnerUp: { name: string; party: string; votes: number } | null;
+  /** Winner's share of valid votes. */
+  share: number;
+  validVotes: number;
+  /** Who held the seat at dissolution. */
+  was: { name: string; party: string };
+  winner: { name: string; party: string; votes: number };
+}
+
+export interface DeclaredResult {
+  registered: number | null;
+  /** Every constituency, in letter order. */
+  seatRows: DeclaredSeat[];
+  /** Seats won by each party, most first. */
+  seats: [string, number][];
+  /** From the national figure on the source page; null if it has none. */
+  turnout: number | null;
+  validVotes: number;
+  /** The party with the most seats, or null on a tie. */
+  winningParty: string | null;
+}
+
+/** The declared 2026 result, or null until every constituency is in the data. */
+export function declaredResult(
+  results: ResultsFile,
+  campaign: CampaignFile
+): DeclaredResult | null {
+  if (!hasResults(results)) return null;
+  const outlook = seatOutlook(results, campaign);
+  const seatRows = outlook.flatMap((seat): DeclaredSeat[] => {
+    const contest = generalResult(results, ELECTION_ID, seat.code);
+    if (!contest) return [];
+    const stats = contestStats(contest);
+    const [name, party, votes] = stats.winner;
+    return [
+      {
+        code: seat.code,
+        name: seat.name,
+        href: seat.href,
+        winner: { name, party, votes },
+        runnerUp: stats.runnerUp
+          ? {
+              name: stats.runnerUp[0],
+              party: stats.runnerUp[1],
+              votes: stats.runnerUp[2],
+            }
+          : null,
+        majority: stats.majority,
+        share: votes / stats.valid,
+        validVotes: stats.valid,
+        was: seat.sitting,
+      },
+    ];
+  });
+  const national = nationalResult(results, ELECTION_ID);
+  const seats = Object.entries(national.seats).sort((a, b) => b[1] - a[1]);
+  const [first, second] = seats;
+  return {
+    seats,
+    seatRows,
+    winningParty: first && first[1] !== second?.[1] ? first[0] : null,
+    turnout: results.national[ELECTION_ID]?.turnout ?? null,
+    registered: national.registered,
+    validVotes: national.total,
+  };
+}
+
+/** The seats as the declared result leaves them: each constituency's member is its 2026 winner. */
+export function declaredHouse(
+  seats: SeatOutlook[],
+  result: DeclaredResult
+): SeatOutlook[] {
+  return seats.map((seat) => {
+    const won = result.seatRows.find((row) => row.code === seat.code);
+    return won
+      ? {
+          ...seat,
+          sitting: { name: won.winner.name, party: won.winner.party },
+        }
+      : seat;
+  });
+}
+
 export interface PartyNote {
+  /** Replaces `text` once the result is declared, where `text` would now be wrong. */
+  declaredText?: string;
   /** Campaign source id for `text`, or "PEO" for official results. */
   source: string;
   text: string;
@@ -214,6 +333,8 @@ export const PARTY_NOTES: Record<"NDC" | "NNP" | "DPM", PartyNote> = {
   },
   DPM: {
     text: "A new party, launched by Peter David in November 2025. It has not yet contested an election.",
+    declaredText:
+      "A new party, launched by Peter David in November 2025. It contested its first general election on 5 November 2026.",
     source: "dpmlaunch",
   },
 };

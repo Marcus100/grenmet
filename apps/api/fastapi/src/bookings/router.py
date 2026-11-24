@@ -40,12 +40,14 @@ from src.rate_limit import limiter
 from src.turnstile import require_turnstile
 from src.utils.datetime import utc_now
 
-from . import deposit_payments, public, service, studio
+from . import calendar_feed, deposit_payments, public, service, studio
 from .models import BookingStatus
 from .schemas import (
     BookingAgenda,
     BookingAgendaItem,
     BookingAvailability,
+    BookingCalendarFeedLink,
+    BookingCalendarFeedStatus,
     BookingClosureCreate,
     BookingClosureCreated,
     BookingClosurePublic,
@@ -622,6 +624,67 @@ async def delete_closure(
         session, closure_id, organisation_id=org.organisation_id
     )
     await session.commit()
+
+
+# --- organisation: calendar feed (subscribed calendar, owners and admins) ----------------------
+
+
+@router.get(
+    "/org/calendar-feed",
+    response_model=BookingCalendarFeedStatus,
+    summary="Show my calendar feed status",
+    description=(
+        "Whether the business has a calendar feed, and when it was made or last rotated. "
+        "The address is never shown again after it is created; rotate for a new one."
+    ),
+    operation_id="bookingsGetCalendarFeedStatus",
+    responses=READ_ERRORS,
+)
+async def get_calendar_feed_status(
+    *, session: SessionDep, org: BookingsOrgAdmin
+) -> Any:
+    row = await calendar_feed.get_feed(session, org.organisation_id)
+    if row is None:
+        return {"enabled": False}
+    return {"enabled": True, "created_at": row.created_at, "rotated_at": row.rotated_at}
+
+
+@router.post(
+    "/org/calendar-feed",
+    response_model=BookingCalendarFeedLink,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create my calendar feed",
+    description=(
+        "Creates the business's private calendar feed and returns its https address once. "
+        "Subscribing to it shows every booking (first names only) in Apple Calendar or "
+        "Google Calendar. One feed per business: 409 if it exists, rotate it instead."
+    ),
+    operation_id="bookingsCreateCalendarFeed",
+    responses=WRITE_ERRORS,
+)
+async def create_calendar_feed(*, session: SessionDep, org: BookingsOrgAdmin) -> Any:
+    token, row = await calendar_feed.create_feed(session, org.organisation_id)
+    payload = calendar_feed.link_payload(token, row)
+    await session.commit()
+    return payload
+
+
+@router.post(
+    "/org/calendar-feed/rotate",
+    response_model=BookingCalendarFeedLink,
+    summary="Rotate my calendar feed address",
+    description=(
+        "Replaces the feed's address and returns the new one once. The old address stops "
+        "working at once; subscribers must add the new one."
+    ),
+    operation_id="bookingsRotateCalendarFeed",
+    responses=WRITE_ERRORS,
+)
+async def rotate_calendar_feed(*, session: SessionDep, org: BookingsOrgAdmin) -> Any:
+    token, row = await calendar_feed.rotate_feed(session, org.organisation_id)
+    payload = calendar_feed.link_payload(token, row)
+    await session.commit()
+    return payload
 
 
 @router.get(
@@ -1283,4 +1346,37 @@ async def get_public_booking_ics(
         content=text,
         media_type="text/calendar; charset=utf-8",
         headers={"Content-Disposition": 'inline; filename="booking.ics"'},
+    )
+
+
+@router.get(
+    "/public/calendar/{token}.ics",
+    response_class=Response,
+    summary="Subscribe to a business's bookings calendar",
+    description=(
+        "The business's private calendar feed (text/calendar): its bookings from a week "
+        "ago to the booking horizon, first names only. Unknown, rotated, disabled and "
+        "unentitled feeds answer one 404. Calendar apps poll it; the response may be "
+        "cached privately for five minutes."
+    ),
+    operation_id="bookingsGetPublicCalendarFeed",
+    responses={
+        200: {
+            "description": "iCalendar feed",
+            "content": {"text/calendar": {"schema": {"type": "string"}}},
+        },
+        **NOT_FOUND,
+        429: {"model": RateLimitedBody, "description": "Too many requests"},
+    },
+)
+@limiter.limit("60/minute", scope=calendar_feed.RATE_LIMIT_SCOPE)
+async def get_public_calendar_feed(
+    *, request: Request, session: SessionDep, token: str
+) -> Response:
+    _ = request  # the rate limiter reads it
+    text = await calendar_feed.feed_ics(session, token)
+    return Response(
+        content=text,
+        media_type="text/calendar; charset=utf-8",
+        headers={"Cache-Control": "private, max-age=300"},
     )

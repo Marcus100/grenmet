@@ -12,9 +12,11 @@ import { useActionState, useState } from "react";
 import { saveProfileAction } from "@/app/studio/[orgSlug]/settings/actions";
 import {
   type DepositRuleFields,
+  type DepositRuleResult,
   depositPreviewMinor,
   depositRuleFields,
   type ExampleService,
+  minimumPriceFields,
 } from "@/lib/deposit-rule";
 import { moneyInput } from "@/lib/settings-view";
 import { IDLE, type ProfileState } from "@/lib/studio-action-state";
@@ -30,12 +32,14 @@ function Preview({
   currency,
   depositsAvailable,
   example,
+  nonRefundable,
   rule,
 }: {
   cutoffHours: number | undefined;
   currency: string;
   depositsAvailable: boolean;
   example: ExampleService | null;
+  nonRefundable: boolean;
   rule: DepositRuleFields;
 }) {
   if (example === null) {
@@ -56,7 +60,8 @@ function Preview({
           rule,
           currency,
           cutoffHours,
-          depositsAvailable
+          depositsAvailable,
+          nonRefundable
         )}
       </p>
     </div>
@@ -73,14 +78,17 @@ export function previewSentence(
   rule: DepositRuleFields,
   currency: string,
   cutoffHours: number | undefined,
-  depositsAvailable = true
+  depositsAvailable = true,
+  nonRefundable = false
 ): string {
   const price = formatMoney(example.priceMinor, currency);
   if (!depositsAvailable) {
     return `${example.name} (${price}) is paid at the salon: online deposits need this business to have online payments switched on.`;
   }
   const refund =
-    cutoffHours === undefined ? "" : ` ${depositRefundLine(cutoffHours)}`;
+    cutoffHours === undefined
+      ? ""
+      : ` ${depositRefundLine(cutoffHours, nonRefundable)}`;
   if (example.ownDepositMinor > 0) {
     // A service's own deposit wins over the business rule, so the rule is not shown.
     const own = formatMoney(example.ownDepositMinor, currency);
@@ -88,7 +96,12 @@ export function previewSentence(
   }
   const deposit = depositPreviewMinor(rule, example.priceMinor);
   if (deposit <= 0) {
-    return `${example.name} (${price}) is booked without a deposit.`;
+    const belowMinimum =
+      rule.deposit_min_price_minor != null &&
+      example.priceMinor < rule.deposit_min_price_minor;
+    return belowMinimum
+      ? `${example.name} (${price}) is booked without a deposit: it is below the lowest price for a deposit.`
+      : `${example.name} (${price}) is booked without a deposit.`;
   }
   if (deposit >= example.priceMinor) {
     return `${example.name} (${price}): the full price is paid online to hold the booking.`;
@@ -151,6 +164,21 @@ function AmountField({
   );
 }
 
+/** The first thing wrong with the rule as typed, or null when it can be saved. */
+function ruleProblem(
+  parsed: DepositRuleResult,
+  minimum: { ok: true; value: number | null } | { ok: false; message: string },
+  on: boolean
+): string | null {
+  if (!parsed.ok) {
+    return parsed.message;
+  }
+  if (on && !minimum.ok) {
+    return minimum.message;
+  }
+  return null;
+}
+
 /**
  * The business-wide deposit rule: a switch that is off by default, the
  * percentage or fixed amount, and a live preview for one service. Its own form
@@ -190,16 +218,28 @@ export function DepositRuleForm({
       ? ""
       : moneyInput(profile.deposit_fixed_minor)
   );
+  const [minText, setMinText] = useState(
+    profile.deposit_min_price_minor == null
+      ? ""
+      : moneyInput(profile.deposit_min_price_minor)
+  );
+  const [nonRefundable, setNonRefundable] = useState(
+    profile.deposit_non_refundable === true
+  );
 
   const parsed = depositRuleFields({ on, mode, percentText, fixedText });
+  const minimum = minimumPriceFields(minText);
   const errorId = "deposit-rule-error";
-  const rule: DepositRuleFields = parsed.ok
-    ? parsed.value
-    : {
-        deposit_mode: "none",
-        deposit_percent: null,
-        deposit_fixed_minor: null,
-      };
+  const problem = ruleProblem(parsed, minimum, on);
+  const rule: DepositRuleFields =
+    parsed.ok && minimum.ok
+      ? { ...parsed.value, deposit_min_price_minor: minimum.value }
+      : {
+          deposit_mode: "none",
+          deposit_percent: null,
+          deposit_fixed_minor: null,
+          deposit_min_price_minor: null,
+        };
 
   return (
     <form className="space-y-5" onSubmit={keepTyped(formAction)}>
@@ -279,12 +319,25 @@ export function DepositRuleForm({
                 value={fixedText}
               />
             )}
-            {parsed.ok ? (
+            <AmountField
+              errorId={errorId}
+              hint="Services priced below this take no deposit from this rule. Leave blank for no minimum. A service's own deposit still applies."
+              id="deposit-min-price"
+              inputMode="decimal"
+              invalid={!minimum.ok}
+              label={`Lowest service price that takes a deposit (${currencyPrefix(currency)})`}
+              name="depositMinPrice"
+              onChange={setMinText}
+              placeholder="Optional"
+              value={minText}
+            />
+            {problem === null ? (
               <Preview
                 currency={currency}
                 cutoffHours={cutoffHours}
                 depositsAvailable={depositsAvailable}
                 example={example}
+                nonRefundable={nonRefundable}
                 rule={rule}
               />
             ) : null}
@@ -295,13 +348,13 @@ export function DepositRuleForm({
                 the customer pays at the salon.
               </p>
             )}
-            {parsed.ok ? null : (
+            {problem === null ? null : (
               <p
                 className="text-destructive text-base font-medium"
                 id={errorId}
                 role="alert"
               >
-                {parsed.message}
+                {problem}
               </p>
             )}
           </div>
@@ -310,6 +363,25 @@ export function DepositRuleForm({
             Off: bookings take a deposit only where a service sets one.
           </p>
         )}
+        <Label className="min-h-11 items-center gap-3">
+          <input
+            aria-checked={nonRefundable}
+            checked={nonRefundable}
+            className="accent-primary size-5 shrink-0"
+            name="depositNonRefundable"
+            onChange={(event) => setNonRefundable(event.target.checked)}
+            role="switch"
+            type="checkbox"
+          />
+          Non-refundable deposit
+        </Label>
+        <p className="text-muted-foreground text-base">
+          When this is on, a paid deposit is kept if the booking is cancelled,
+          unless you choose to refund it on that booking. A customer can still
+          move the booking up to the cutoff, and the deposit moves with it.
+          Moves inside the cutoff are not allowed online. A booking you decline
+          is always refunded.
+        </p>
       </fieldset>
       <SettingsResult pending={pending} state={state} />
       <Button

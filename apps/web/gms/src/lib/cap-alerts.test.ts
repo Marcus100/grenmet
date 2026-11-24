@@ -77,7 +77,7 @@ describe("alertsSummary with the GMS outlook", () => {
         },
       ],
     };
-    expect(alertsSummary(warning, green(2))).toBe("Be prepared · 1 active");
+    expect(alertsSummary(warning, green(2))).toBe("Be aware · 1 active");
   });
 });
 

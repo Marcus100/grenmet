@@ -12,6 +12,7 @@ import { paymentReceivedHeld } from "../lib/booking-payment";
 import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
 import type { ManageBookingActions, SlotList } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
+import { BookingPolicyText, DepositRefundNote } from "./booking-policy-text";
 import { ContactLinks } from "./business-contact";
 import { PaymentStatus } from "./payment-status";
 import { SlotPicker } from "./slot-picker";
@@ -138,6 +139,8 @@ export function ManageBooking({
       {editable ? (
         <p>{cancellationPolicyLine(booking.cancel_cutoff_hours)}</p>
       ) : null}
+      <DepositRefundNote booking={booking} editable={editable} />
+      <BookingPolicyText text={booking.booking_policy} />
 
       {notice && (
         <p className="notice notice-ok" role="status">

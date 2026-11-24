@@ -47,7 +47,7 @@ describe("toAlertView", () => {
   it("flattens the English info block and de-duplicates areas", () => {
     const view = toAlertView(alert("a"));
     expect(view?.areas).toEqual(["Grenada"]);
-    expect(view?.level).toBe("be-prepared");
+    expect(view?.level).toBe("be-aware");
   });
 
   it("returns null when there is no info block", () => {
@@ -80,9 +80,23 @@ describe("severity ordering", () => {
       [alert("a", { severity: "Minor" }), alert("b", { severity: "Severe" })],
       NOW
     );
-    expect(overallLevel(actual)).toBe("take-action");
-    expect(statusLine(actual)).toBe("Take action now · 2 active");
+    expect(overallLevel(actual)).toBe("be-prepared");
+    expect(statusLine(actual)).toBe("Be prepared · 2 active");
     expect(statusLine([])).toBe("No active alerts");
+  });
+
+  it("says plainly when the only alert states no severity", () => {
+    const { actual } = splitActive([alert("u", { severity: "Unknown" })], NOW);
+    expect(overallLevel(actual)).toBe("not-stated");
+    expect(statusLine(actual)).toBe("Severity not stated · 1 active");
+  });
+
+  it("drops a replaced alert from the active list", () => {
+    const { actual } = splitActive(
+      [alert("old", {}, { replaced_by_identifier: "new" })],
+      NOW
+    );
+    expect(actual).toEqual([]);
   });
 });
 

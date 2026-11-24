@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import referendumJson from "@/data/derived/referendum";
 import resultsJson from "@/data/derived/results";
 import type { Data, ReferendumFile } from "@/data/events";
-import { metricEvidence, sourceKind } from "@/data/evidence";
+import { EVIDENCE, metricEvidence, sourceKind } from "@/data/evidence";
 import type { ResultsFile } from "@/data/types";
 
 const data: Data = {
@@ -20,6 +20,17 @@ describe("calculation evidence", () => {
     expect(metricEvidence(data, "1984", "turnout").formula).toContain("proxy");
     expect(metricEvidence(data, "1976", "turnout").official).toBe(false);
     expect(metricEvidence(data, "1951", "votes").official).toBe(false);
+  });
+  it("does not treat provisional 2026 results as certified official figures", () => {
+    const votes = metricEvidence(data, "2026", "votes");
+    expect(votes.official).toBe(false);
+    expect(votes.label).toBe("Calculated from provisional official records");
+    expect(votes.source).toContain("elections.gd/2026");
+    expect(EVIDENCE.peoResults2026.published).toBe("2026-11-23");
+    expect(EVIDENCE.peoResults2026.url).toBe("https://elections.gd/2026/");
+    expect(sourceKind(["PEO results", "https://elections.gd/2026/"])).toBe(
+      "official"
+    );
   });
   it("does not recalculate a complete national statistic from incomplete contests", () => {
     const incomplete = structuredClone(data);

@@ -97,5 +97,14 @@
     "medianMargin": 8.62,
     "meanENP": 1.965,
     "verified": 15
+  },
+  "2026": {
+    "flips": 5,
+    "marginal": 1,
+    "competitive": 3,
+    "safe": 11,
+    "medianMargin": 25.63,
+    "meanENP": 1.936,
+    "verified": 0
   }
 }

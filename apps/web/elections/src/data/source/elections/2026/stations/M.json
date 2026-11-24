@@ -1,0 +1,296 @@
+[
+  [
+    "M01",
+    "a",
+    "St. John's Anglican School (Police Included)",
+    376,
+    null,
+    null,
+    {
+      "NDC": 140,
+      "NNP": 110,
+      "DPM": 3,
+      "GULP": 1
+    }
+  ],
+  [
+    "M01",
+    "b",
+    "St. John's Anglican School",
+    307,
+    null,
+    null,
+    {
+      "NDC": 137,
+      "NNP": 63,
+      "GULP": 5,
+      "DPM": 4
+    }
+  ],
+  [
+    "M02",
+    "a",
+    "St. John's R.C. School - Pre-School Department",
+    332,
+    null,
+    null,
+    {
+      "NDC": 122,
+      "NNP": 84,
+      "DPM": 4,
+      "GULP": 1
+    }
+  ],
+  [
+    "M02",
+    "b",
+    "St. John's R.C. School - Pre-School Department",
+    346,
+    null,
+    null,
+    {
+      "NDC": 118,
+      "NNP": 81,
+      "DPM": 5,
+      "GULP": 1
+    }
+  ],
+  [
+    "M02",
+    "c",
+    "St. John's R.C. School - Pre-School Department",
+    336,
+    null,
+    null,
+    {
+      "NDC": 129,
+      "NNP": 82,
+      "GULP": 3,
+      "DPM": 2
+    }
+  ],
+  [
+    "M03",
+    "a",
+    "Gouyave Methodist Church",
+    380,
+    null,
+    null,
+    {
+      "NDC": 142,
+      "NNP": 104,
+      "DPM": 2,
+      "GULP": 0
+    }
+  ],
+  [
+    "M03",
+    "b",
+    "Gouyave Methodist Church",
+    356,
+    null,
+    null,
+    {
+      "NDC": 119,
+      "NNP": 83,
+      "DPM": 1,
+      "GULP": 0
+    }
+  ],
+  [
+    "M04",
+    "a",
+    "Grand Roy Government School",
+    331,
+    null,
+    null,
+    {
+      "NDC": 130,
+      "NNP": 64,
+      "DPM": 8,
+      "GULP": 0
+    }
+  ],
+  [
+    "M04",
+    "b",
+    "Grand Roy Government School",
+    318,
+    null,
+    null,
+    {
+      "NDC": 116,
+      "NNP": 92,
+      "DPM": 9,
+      "GULP": 0
+    }
+  ],
+  [
+    "M04",
+    "c",
+    "Grand Roy Government School",
+    337,
+    null,
+    null,
+    {
+      "NDC": 123,
+      "NNP": 83,
+      "DPM": 7,
+      "GULP": 2
+    }
+  ],
+  [
+    "M05",
+    "a",
+    "Concord Government School",
+    363,
+    null,
+    null,
+    {
+      "NNP": 117,
+      "NDC": 106,
+      "DPM": 9,
+      "GULP": 1
+    }
+  ],
+  [
+    "M05",
+    "b",
+    "Concord Government School",
+    366,
+    null,
+    null,
+    {
+      "NDC": 119,
+      "NNP": 107,
+      "DPM": 4,
+      "GULP": 1
+    }
+  ],
+  [
+    "M05",
+    "c",
+    "Concord Government School",
+    368,
+    null,
+    null,
+    {
+      "NNP": 117,
+      "NDC": 81,
+      "DPM": 6,
+      "GULP": 0
+    }
+  ],
+  [
+    "M06",
+    null,
+    "Florida Medical Station",
+    271,
+    null,
+    null,
+    {
+      "NNP": 107,
+      "NDC": 75,
+      "DPM": 0,
+      "GULP": 0
+    }
+  ],
+  [
+    "M07",
+    "a",
+    "Florida Government School",
+    361,
+    null,
+    null,
+    {
+      "NDC": 129,
+      "NNP": 117,
+      "DPM": 1,
+      "GULP": 1
+    }
+  ],
+  [
+    "M07",
+    "b",
+    "Florida Government School",
+    344,
+    null,
+    null,
+    {
+      "NDC": 115,
+      "NNP": 89,
+      "DPM": 5,
+      "GULP": 0
+    }
+  ],
+  [
+    "M07",
+    "c",
+    "Florida Government School",
+    361,
+    null,
+    null,
+    {
+      "NDC": 137,
+      "NNP": 92,
+      "GULP": 2,
+      "DPM": 1
+    }
+  ],
+  [
+    "M08",
+    "a",
+    "Mt. Granby Community Centre",
+    385,
+    null,
+    null,
+    {
+      "NDC": 165,
+      "NNP": 92,
+      "DPM": 3,
+      "GULP": 3
+    }
+  ],
+  [
+    "M08",
+    "b",
+    "Mt. Granby Community Centre",
+    366,
+    null,
+    null,
+    {
+      "NDC": 148,
+      "NNP": 76,
+      "DPM": 3,
+      "GULP": 2
+    }
+  ],
+  [
+    "M09",
+    null,
+    "Clozier Community Centre",
+    307,
+    null,
+    null,
+    {
+      "NNP": 126,
+      "NDC": 81,
+      "DPM": 5,
+      "GULP": 1
+    }
+  ],
+  [
+    "M04",
+    "d",
+    "Grand Roy Government School",
+    307,
+    null,
+    null,
+    {
+      "NDC": 104,
+      "NNP": 87,
+      "DPM": 2,
+      "GULP": 0
+    }
+  ]
+]

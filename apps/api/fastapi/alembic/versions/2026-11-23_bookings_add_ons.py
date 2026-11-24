@@ -7,7 +7,7 @@ length and price copied at booking time. Existing rows keep today's behaviour.
 The downgrade drops only what this revision adds.
 
 Revision ID: bookingaddons20261123
-Revises: bookingdeposit20261123
+Revises: bookingcalendar20261123
 """
 
 import sqlalchemy as sa
@@ -16,7 +16,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 revision = "bookingaddons20261123"
-down_revision = "bookingdeposit20261123"
+down_revision = "bookingcalendar20261123"
 branch_labels = None
 depends_on = None
 

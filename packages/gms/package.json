@@ -17,7 +17,8 @@
     "./linkable-pages": "./src/linkable-pages.ts",
     "./link-recognition": "./src/link-recognition.ts",
     "./sectors": "./src/sectors.ts",
-    "./weather-types": "./src/weather-types.ts"
+    "./weather-types": "./src/weather-types.ts",
+    "./warning-levels": "./src/warning-levels.ts"
   },
   "scripts": {
     "type-check": "tsc --noEmit",

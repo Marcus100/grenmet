@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DataRequestForm } from "@/components/pages/data-request-form";
 
@@ -97,5 +98,26 @@ describe("DataRequestForm", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Too many requests."
     );
+  });
+});
+
+const BUTTON_TAG = /<button\b[^>]*>/gu;
+const NEEDS_JS = /This form needs JavaScript/u;
+
+describe("DataRequestForm before the page script runs", () => {
+  it("keeps submit off and says it needs JavaScript in the server markup", () => {
+    const html = renderToString(<DataRequestForm />);
+    const submit = (html.match(BUTTON_TAG) ?? []).find((tag) =>
+      tag.includes('type="submit"')
+    );
+    expect(submit).toBeDefined();
+    expect(submit).toContain('disabled=""');
+    expect(html).toMatch(NEEDS_JS);
+  });
+
+  it("enables submit once the page has hydrated", async () => {
+    render(<DataRequestForm />);
+    const button = screen.getByRole("button", { name: "Send request" });
+    await waitFor(() => expect(button).toBeEnabled());
   });
 });

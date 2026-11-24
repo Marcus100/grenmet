@@ -44,6 +44,15 @@ describe("constituency search", () => {
   });
 });
 
+it("finds the provisional 2026 winner of a constituency", () => {
+  expect(searchConstituencies(index, "Tawfiq")[0]).toMatchObject({
+    href: "/constituencies/st-george-north-west",
+  });
+  expect(searchConstituencies(index, "Tawfiq")[0]?.note).toContain(
+    "provisional 2026 result"
+  );
+});
+
 it("finds Niecal Joseph in St. Andrew North East", () => {
   expect(searchConstituencies(index, "niecal joseph")[0]).toMatchObject({
     label: "Niecal Joseph",

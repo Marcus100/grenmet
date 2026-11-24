@@ -56,7 +56,8 @@ describe("trends fact sheet", () => {
         r.changes,
       ])
     );
-    // St. Mark: GULP in 1972 and 1976, then NNP at every election since 1984.
-    expect(changes["St. Mark"]).toBe(1);
+    // St. Mark: GULP in 1972 and 1976, NNP from 1984 to 2022, then NDC in the
+    // provisional 2026 result.
+    expect(changes["St. Mark"]).toBe(2);
   });
 });

@@ -10,9 +10,7 @@ from alembic.migration import MigrationContext
 from alembic.operations import Operations
 from alembic.script import ScriptDirectory
 from sqlalchemy import text
-from sqlalchemy.orm import Session
 
-from src.bookings.models import Booking, Provider
 from src.config import settings
 from src.database import engine
 from tests.database_target import require_owned_database
@@ -98,55 +96,63 @@ def test_upgrade_deletes_unlinked_customers_and_their_bookings(before_migration)
     connection, migration = before_migration
     org = "org_partyrole00001"
     customer_id = uuid.uuid4()
-    with Session(bind=connection) as session:
-        # Raw SQL: the table is at its old shape here (later revisions add columns).
-        connection.execute(
-            text(
-                "INSERT INTO org.organisation (id, slug, name, kind, status, "
-                "created_at, updated_at) VALUES (:id, :id, 'Party Role', 'business', "
-                "'active', now(), now())"
-            ),
-            {"id": org},
-        )
-        # Raw SQL for the service too: later revisions add service columns
-        # (add-ons), which this downgraded shape does not have.
-        service_id = uuid.uuid4()
-        connection.execute(
-            text(
-                "INSERT INTO bookings.service (id, organisation_id, name, duration_min, "
-                "buffer_before_min, buffer_after_min, price_minor, deposit_minor, "
-                "active, sort_order, created_at, updated_at) VALUES (:id, :o, 'S', 60, "
-                "0, 0, 0, 0, true, 0, now(), now())"
-            ),
-            {"id": service_id, "o": org},
-        )
-        provider = Provider(organisation_id=org, name="P")
-        session.add(provider)
-        session.flush()
-        # The old shape: the customer still holds its own name (no contact).
-        connection.execute(
-            text(
-                "INSERT INTO bookings.customer (id, organisation_id, name, created_at) "
-                "VALUES (:id, :o, 'Unlinked', now())"
-            ),
-            {"id": customer_id, "o": org},
-        )
-        start = datetime(2027, 1, 4, 14, 0)
-        session.add(
-            Booking(
-                organisation_id=org,
-                provider_id=provider.id,
-                service_id=service_id,
-                customer_id=customer_id,
-                starts_at=start,
-                ends_at=start + timedelta(hours=1),
-                blocked_from=start,
-                blocked_until=start + timedelta(hours=1),
-                status="completed",
-                currency="XCD",
-            )
-        )
-        session.flush()
+    service_id = uuid.uuid4()
+    provider_id = uuid.uuid4()
+    # Raw SQL throughout: the tables are at their old shape here, and the ORM
+    # models would also send columns that later revisions add.
+    connection.execute(
+        text(
+            "INSERT INTO org.organisation (id, slug, name, kind, status, "
+            "created_at, updated_at) VALUES (:id, :id, 'Party Role', 'business', "
+            "'active', now(), now())"
+        ),
+        {"id": org},
+    )
+    connection.execute(
+        text(
+            "INSERT INTO bookings.service (id, organisation_id, name, duration_min, "
+            "buffer_before_min, buffer_after_min, price_minor, deposit_minor, "
+            "active, sort_order, created_at, updated_at) "
+            "VALUES (:id, :o, 'S', 60, 0, 0, 0, 0, true, 0, now(), now())"
+        ),
+        {"id": service_id, "o": org},
+    )
+    connection.execute(
+        text(
+            "INSERT INTO bookings.provider (id, organisation_id, name, active, "
+            "sort_order, created_at, updated_at) "
+            "VALUES (:id, :o, 'P', true, 0, now(), now())"
+        ),
+        {"id": provider_id, "o": org},
+    )
+    # The old shape: the customer still holds its own name (no contact).
+    connection.execute(
+        text(
+            "INSERT INTO bookings.customer (id, organisation_id, name, created_at) "
+            "VALUES (:id, :o, 'Unlinked', now())"
+        ),
+        {"id": customer_id, "o": org},
+    )
+    start = datetime(2027, 1, 4, 14, 0)
+    end = start + timedelta(hours=1)
+    connection.execute(
+        text(
+            "INSERT INTO bookings.booking (id, organisation_id, provider_id, "
+            "service_id, customer_id, starts_at, ends_at, blocked_from, "
+            "blocked_until, status, source, price_minor, deposit_minor, currency, "
+            "created_at, updated_at) VALUES (:id, :o, :p, :s, :c, :start, :end, "
+            ":start, :end, 'completed', 'online', 0, 0, 'XCD', now(), now())"
+        ),
+        {
+            "id": uuid.uuid4(),
+            "o": org,
+            "p": provider_id,
+            "s": service_id,
+            "c": customer_id,
+            "start": start,
+            "end": end,
+        },
+    )
 
     migration.upgrade()
     customers = connection.execute(

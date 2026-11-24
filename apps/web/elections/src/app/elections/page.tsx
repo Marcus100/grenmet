@@ -16,7 +16,7 @@ import { pct } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Every election",
   description:
-    "Grenada’s recorded general elections from 1951 to 2022 and the 2016 and 2018 referendums, with constituency results, sources and archival gaps.",
+    "Grenada’s recorded general elections from 1951 to 2026 (2026 provisional) and the 2016 and 2018 referendums, with constituency results, sources and archival gaps.",
 };
 
 export default function ElectionsPage() {
@@ -24,8 +24,8 @@ export default function ElectionsPage() {
   return (
     <>
       <PageHead
-        deck="Seventeen general elections from 1951 to 2022 and two referendums. Explore constituency results, with polling-division and station records from 2013 and for the referendums where readable. Missing pages and mixed sources are marked alongside the figures."
-        eyebrow="Archive · 1951 to 2022"
+        deck="Eighteen general elections from 1951 to 2026 (the 2026 results are provisional) and two referendums. Explore constituency results, with polling-division and station records from 2013 and for the referendums where readable. Missing pages and mixed sources are marked alongside the figures."
+        eyebrow="Archive · 1951 to 2026"
         learning="results"
         title="Every general election and referendum"
       >
@@ -33,7 +33,7 @@ export default function ElectionsPage() {
           className="mt-4 inline-block underline underline-offset-4"
           href="/2026"
         >
-          Follow the 2026 election →
+          The 2026 election →
         </Link>
       </PageHead>
       <Section id="list" title="All votes, newest first">
@@ -68,6 +68,11 @@ export default function ElectionsPage() {
                       {e.date}
                     </span>
                     <b className="font-semibold">{headline}</b>
+                    {data.results.national[e.id]?.provisional && (
+                      <span className="border-el-rule-2 text-el-ink-2 ml-2 inline-block rounded-[2px] border px-1 text-sm font-semibold tracking-[0.06em] uppercase">
+                        Provisional
+                      </span>
+                    )}
                     {!isOfficial(e.id) && (
                       <span className="border-el-rule-2 text-el-ink-2 ml-2 inline-block rounded-[2px] border px-1 text-sm font-semibold tracking-[0.06em] uppercase">
                         Secondary source

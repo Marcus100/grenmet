@@ -1,13 +1,14 @@
 {
   "summary": {
-    "pass": 90,
+    "pass": 92,
     "fail": 0,
     "known": 6,
     "candidateVerification": {
       "unverified": 109,
       "check": 5,
       "official": 497,
-      "corroborated": 92
+      "corroborated": 92,
+      "provisional": 46
     }
   },
   "checks": [
@@ -166,6 +167,12 @@
       "check": "Registered voters by constituency sum to the national total (71,751)",
       "status": "pass",
       "detail": "got 71,751"
+    },
+    {
+      "area": "2026 election",
+      "check": "Registered voters by constituency sum to the national total (97,077)",
+      "status": "pass",
+      "detail": "got 97,077"
     },
     {
       "area": "1990 election",
@@ -358,6 +365,12 @@
       "check": "Seat totals match the recorded outcome (NDC 9, NNP 6)",
       "status": "pass",
       "detail": "{'NDC': 9, 'NNP': 6}"
+    },
+    {
+      "area": "2026 election",
+      "check": "Seat totals match the recorded outcome (NDC 14, NNP 1)",
+      "status": "pass",
+      "detail": "{'NDC': 14, 'NNP': 1}"
     },
     {
       "area": "2016 referendum",

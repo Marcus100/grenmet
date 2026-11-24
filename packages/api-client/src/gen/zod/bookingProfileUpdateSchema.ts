@@ -87,6 +87,25 @@ export const bookingProfileUpdateSchema = z
       .union([z.int().min(1).max(100000000), z.null()])
       .optional()
       .describe("The amount in minor units for `deposit_mode` `fixed`."),
+    deposit_min_price_minor: z
+      .union([z.int().min(1).max(100000000), z.null()])
+      .optional()
+      .describe(
+        "The lowest service price (minor units) that takes the business-wide deposit rule. Cheaper services take no deposit from it. Null means no minimum. A service's own deposit is never affected. Left out, the stored value is kept."
+      ),
+    deposit_non_refundable: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "When true, a paid deposit is kept when the booking is cancelled, by the customer or by the business without a refund choice. A move keeps it with the booking. Declines still refund. Left out, the stored value is kept."
+      ),
+    booking_policy: z
+      .union([z.string().max(1000), z.null()])
+      .optional()
+      .describe(
+        "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
+      ),
     brand_color: z
       .union([z.string().max(7), z.null()])
       .optional()
