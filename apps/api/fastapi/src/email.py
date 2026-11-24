@@ -110,6 +110,7 @@ _WORD_BREAK = re.compile(r"[^\w]+|_+")
 # digits, a plural, another short term, or an official-sounding word.
 _SHORT_TERM_TAIL = re.compile(
     r"[0-9]+|s|gaa|gms|official|gov|govt|grenada|gd|weather|met|jam|team|staff|hq"
+    r"|news|jobs|info|online|ltd|alerts|updates"
 )
 # Digits that stand in for letters. "1" reads as l or i, so both are tried.
 _DIGIT_LETTERS = {"0": "o", "3": "e", "5": "s"}

@@ -515,6 +515,14 @@ BYPASS_NAMES = [
     "MyGMS Alerts",
     "XGMS Weather",
     "GAAGMS",
+    # official-sounding words after a short term (issue 1640)
+    "GAAnews",
+    "GAAjobs",
+    "GMSinfo",
+    "GAAonline",
+    "GMSltd",
+    "GMSalerts",
+    "GAAupdates",
 ]
 
 
@@ -537,6 +545,9 @@ def test_a_reserved_name_bypass_falls_back_to_the_default_sender(name: str) -> N
         "Rad Minimart",
         "Studio 54",
         "Gaanesh Barber",
+        # tail words match whole words only: "News" beside a gaa-prefixed word
+        # that is not a short term is not caught
+        "Gaanesh News Stand",
         "Pragmatic Gym",
     ],
 )
