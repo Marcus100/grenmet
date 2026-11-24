@@ -102,4 +102,24 @@ describe("expiryText", () => {
   it("says nothing when a window is set but the request time is unknown", () => {
     expect(expiryText({ hours: 24, now, startsAt: farStart })).toBeNull();
   });
+
+  it("uses the API's expires_at when it is present", () => {
+    const now = new Date("2026-11-28T10:00:00Z");
+    expect(
+      expiryText({
+        expiresAt: "2026-11-28T15:30:00Z",
+        hours: 24,
+        now,
+        startsAt: "2026-11-30T10:00:00Z",
+      })
+    ).toBe("Expires in 5 h");
+    expect(
+      expiryText({
+        expiresAt: "2026-11-28T10:20:00Z",
+        hours: null,
+        now,
+        startsAt: "2026-11-30T10:00:00Z",
+      })
+    ).toBe("Expires in 20 min");
+  });
 });

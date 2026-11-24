@@ -67,10 +67,17 @@ export function NeedsConfirming({
       ) : (
         <ul className="divide-border divide-y">
           {items.map((booking) => {
-            // The agenda item carries no request time, so a set window cannot
-            // be counted from it: only "at the start time" shows a countdown.
-            const expires =
-              expiryHours === undefined
+            // The API sends when the request cancels itself (`expires_at`,
+            // the same rule the expiry job uses). Without it, only the "at the
+            // start time" setting can be counted here.
+            const expires = booking.expires_at
+              ? expiryText({
+                  expiresAt: booking.expires_at,
+                  hours: expiryHours ?? null,
+                  now,
+                  startsAt: booking.starts_at,
+                })
+              : expiryHours === undefined
                 ? null
                 : expiryText({
                     hours: expiryHours,

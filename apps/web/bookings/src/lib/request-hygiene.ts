@@ -74,11 +74,16 @@ export function expiryInstant(input: {
 /** "Expires in 5 h", "Expires in 20 min" or "Expiring now"; null when unknown. */
 export function expiryText(input: {
   createdAt?: string | null | undefined;
+  /** The API's own moment (`expires_at`), used first when present. */
+  expiresAt?: string | null | undefined;
   hours: number | null;
   now: Date;
   startsAt: string;
 }): string | null {
-  const at = expiryInstant(input);
+  const given = input.expiresAt
+    ? new Date(input.expiresAt).getTime()
+    : Number.NaN;
+  const at = Number.isNaN(given) ? expiryInstant(input) : given;
   if (at === null) {
     return null;
   }
