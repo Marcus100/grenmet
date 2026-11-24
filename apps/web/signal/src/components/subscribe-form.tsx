@@ -85,12 +85,7 @@ export function SubscribeForm() {
   }
 
   return (
-    <form
-      className="max-w-xl space-y-4"
-      method="post"
-      noValidate
-      onSubmit={handleSubmit}
-    >
+    <form className="max-w-xl space-y-4" noValidate onSubmit={handleSubmit}>
       <div className="space-y-2">
         <Label className="text-base" htmlFor="subscribe-email">
           Email address
@@ -129,6 +124,12 @@ export function SubscribeForm() {
       >
         {state.status === "submitting" ? "Sending…" : "Subscribe"}
       </Button>
+      <noscript>
+        <p className="text-base">
+          This form needs JavaScript. Turn it on in your browser, or contact us
+          another way.
+        </p>
+      </noscript>
       {state.status === "error" && (
         <p className="text-destructive text-base font-medium" role="alert">
           {state.message}
