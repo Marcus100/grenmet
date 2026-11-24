@@ -357,9 +357,52 @@ test("upload routers limit request bodies, web routers stay unbuffered, every re
     const upload = routers.filter(([name]) => UPLOAD_ROUTER.test(name));
     assert.equal(
       upload.length,
-      environment === "staging" ? 3 : 2,
-      `${environment} api, cms (and staging adminer) routers`
+      environment === "staging" ? 4 : 3,
+      `${environment} api, api-secret, cms (and staging adminer) routers`
     );
+  }
+});
+
+test("secret-token paths reach the same services with no access-log line (#1787)", () => {
+  for (const environment of Object.keys(ENVIRONMENTS)) {
+    const { routers } = edge(environment);
+    const suffix = environment === "staging" ? "-staging" : "";
+    const pairs = [
+      [
+        `grenmet-api-secret${suffix}`,
+        `grenmet-api${suffix}`,
+        [
+          "/api/v1/bookings/public/calendar/",
+          "/api/v1/bookings/public/bookings/",
+        ],
+      ],
+      [
+        `web-bookings-secret${suffix}`,
+        `web-bookings${suffix}`,
+        ["/[^/]+/booking/"],
+      ],
+    ];
+    for (const [secretName, mainName, paths] of pairs) {
+      const secret = routers.get(secretName);
+      const main = routers.get(mainName);
+      assert.ok(secret, `${environment} has ${secretName}`);
+      assert.equal(secret["observability.accesslogs"], "false", secretName);
+      assert.equal(secret.service, mainName, `${secretName} service`);
+      assert.equal(
+        secret.middlewares,
+        main.middlewares,
+        `${secretName} middlewares`
+      );
+      assert.equal(secret.entrypoints, main.entrypoints);
+      assert.equal(secret["tls.certresolver"], main["tls.certresolver"]);
+      // The secret rule keeps the main host match and is longer, so it wins.
+      assert.ok(
+        secret.rule.includes(main.rule),
+        `${secretName} keeps the host`
+      );
+      assert.ok(secret.rule.length > main.rule.length);
+      for (const path of paths) assert.ok(secret.rule.includes(path), path);
+    }
   }
 });
 
