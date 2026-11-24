@@ -293,7 +293,7 @@ button {
 }
 .primary a {
   padding-block: 6px;
-  font-size: 0.78rem;
+  font-size: 0.79rem;
   color: var(--ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -350,7 +350,7 @@ button {
     display: block;
   }
   .brand span {
-    font-size: 0.72rem;
+    font-size: 0.79rem;
   }
   .primary {
     position: absolute;
@@ -488,7 +488,7 @@ section.block.flush-top {
   line-height: 1;
 }
 .rating small {
-  font-size: 0.75rem;
+  font-size: 0.79rem;
   letter-spacing: 0.06em;
 }
 .stars {
@@ -532,7 +532,7 @@ section.block.flush-top {
 .tag {
   display: inline-block;
   padding: 0.35em 0.9em;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--paper);
   text-transform: uppercase;
@@ -622,7 +622,7 @@ section.block.flush-top {
   }
 }
 .pkg .flag {
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   color: var(--blush);
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -714,11 +714,18 @@ section.block.flush-top {
   font-size: 0.92rem;
   color: var(--ink-soft);
 }
+.menu-intro {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--blush-ink);
+}
 .item .note {
   display: inline-block;
   margin-top: 8px;
   margin-right: 12px;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--blush-ink);
   text-transform: uppercase;
@@ -730,7 +737,7 @@ section.block.flush-top {
   align-items: center;
   padding-bottom: 2px;
   margin-top: 10px;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink);
   text-transform: uppercase;
@@ -934,7 +941,7 @@ section.block.flush-top {
   stroke-width: 1.3;
 }
 .ph small {
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   color: var(--ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.16em;
@@ -947,7 +954,7 @@ section.block.flush-top {
   padding: 0.4em 0.9em;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink);
   text-transform: uppercase;
@@ -1052,7 +1059,7 @@ section.block.flush-top {
   display: block;
   margin-top: 8px;
   font-family: var(--sans);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
 }
@@ -1172,7 +1179,7 @@ section.block.flush-top {
 .tbc {
   justify-self: start;
   padding: 0.25em 0.8em;
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--blush-ink);
   text-transform: uppercase;
@@ -1197,7 +1204,7 @@ section.block.flush-top {
 }
 .contact-cards h2 {
   font-family: var(--sans);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink-soft);
   text-transform: uppercase;
@@ -1270,7 +1277,7 @@ section.block.flush-top {
   align-items: center;
   padding: 0.45em 1em;
   margin-top: 16px;
-  font-size: 0.75rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--blush-deep);
   text-transform: uppercase;
@@ -1345,7 +1352,7 @@ section.block.flush-top {
 .footer-heading {
   margin-bottom: 10px;
   font-family: var(--sans);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
   font-weight: 600;
   color: var(--ink-soft);
   text-transform: uppercase;
@@ -1414,7 +1421,7 @@ section.block.flush-top {
   font-weight: 400;
 }
 .book-bar-info small {
-  font-size: 0.7rem;
+  font-size: 0.79rem;
   color: var(--ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.12em;
