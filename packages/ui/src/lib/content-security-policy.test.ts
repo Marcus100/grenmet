@@ -349,7 +349,7 @@ const NEW_APP_EXTRAS: Record<
     img: `${GA_IMG} ${UPLOADED_IMAGES}`,
     frame: "",
   },
-  "gaa-admin": { ...NO_EXTRAS, frame: "'self' blob:" },
+  "gaa-admin": { ...NO_EXTRAS, img: OBJECT_STORE, frame: "'self' blob:" },
   gms: {
     script: `${GA_SCRIPT} ${TURNSTILE}`,
     connect: `${GA_CONNECT} ${TURNSTILE}`,

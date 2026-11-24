@@ -201,7 +201,8 @@ export const APP_SOURCES: Record<CspApp, AppSources> = {
   "gaa-admin": {
     script: [],
     connect: [],
-    img: [],
+    // Staff profile photos: same-origin proxy that redirects to the object store.
+    img: [OBJECT_STORE],
     frame: ["'self'", "blob:"],
   },
   // GA4 in production (service-catalogue `gms`). Turnstile guards the
