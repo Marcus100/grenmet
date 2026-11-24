@@ -6953,6 +6953,18 @@ export {
   monitoringGetFreshnessStatus403Schema,
   monitoringGetFreshnessStatus422Schema,
 } from "./monitoringGetFreshnessSchema.js";
+export {
+  monitoringGetProbeErrorSchema,
+  monitoringGetProbeHeaderAuthorizationSchema,
+  monitoringGetProbeHeadersSchema,
+  monitoringGetProbeResponseSchema,
+  monitoringGetProbeStatus200Schema,
+  monitoringGetProbeStatus401Schema,
+  monitoringGetProbeStatus404Schema,
+  monitoringGetProbeStatus422Schema,
+  monitoringGetProbeStatus429Schema,
+  monitoringGetProbeStatus503Schema,
+} from "./monitoringGetProbeSchema.js";
 export { movementKindSchema } from "./movementKindSchema.js";
 export { myDeductionPublicSchema } from "./myDeductionPublicSchema.js";
 export { myDeductionsPublicSchema } from "./myDeductionsPublicSchema.js";
@@ -8473,6 +8485,7 @@ export {
   printixVoidTicketStatus409Schema,
   printixVoidTicketStatus422Schema,
 } from "./printixVoidTicketSchema.js";
+export { probeReportSchema } from "./probeReportSchema.js";
 export { productAccessCurrentSchema } from "./productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./productAccessPublicSchema.js";

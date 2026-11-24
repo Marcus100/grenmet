@@ -115,31 +115,118 @@ checks each value against the shared globals.
 - Spacing follows the shared scale (`spacing.unit` 4 px). Section gaps are
   `section-y` (40 px) on public pages.
 
-## Home page (`/`)
+## Booking page on phones (below `md`, 768 px)
 
-A shop.app feel for every kind of business, not only beauty. The page sits on a
-soft grey ground (new token `--color-ground`, `#f4f5f8`, class `bg-ground`,
-declared in the app's `globals.css`); content is white cards on it with large
-radii (`rounded-3xl`, 20 px, for cards and the "Run a business?" panel;
-`rounded-2xl` for the logo tile; `rounded-full` for the search box, chips,
-buttons and navigation). No other new token: ink, `primary` and `background`
-are the shared ones.
+The booking form is one page from `md` up and exactly as before. Below `md`
+it shows one step at a time, because a business with many services made the
+service list three screens long.
 
-- Header: "Barrels Bookings" wordmark; on laptops (md and up) a pill navigation
-  (Home, For businesses). On phones a floating pill bar at the bottom (Home,
-  Search, For businesses), 48 px targets, padded for the safe area; the page
-  keeps bottom padding so it never covers the last line. Home carries
-  `aria-current="page"`. "My bookings" and "Account" are added once the account
-  app's address is a typed setting of this app.
-- Search is a pill GET form (`q`, hidden `category`) and works without script.
-- Categories come from the API, not a fixed list: white pill chips, the chosen
-  one navy; one scrolling row on phones, wrapped on laptops. Empty says "No
-  categories yet."
-- Businesses: the first as a large card with a "Book" pill (decoration inside
-  the one card link), the rest two across on phones and an auto-fill grid
-  (min 240 px) on laptops. The tile is a light tint of the brand colour with
-  ink text (so contrast holds for any colour), the logo when there is one, else
-  the first letter.
+- **Steps:** 1 Service (and add-ons, when the chosen service has them), 2 Time
+  (the day and time picker), 3 Details (the form, emailed-code step, rules and
+  the Book button). Choosing a service moves to step 2, except when add-ons are
+  offered: then the person stays until they press Continue.
+- **Header:** "Step 2 of 3: Time" as a heading (focus moves to it on each step
+  change, and the page scrolls to it), three bars below it with
+  `aria-current="step"` on the current one (the finished ones and the current
+  one use the business accent), and a Back button of 44 px on steps 2 and 3.
+  Back keeps every choice and everything typed.
+- **Foot bar (steps 1 and 2):** sticks to the bottom of the screen with one
+  line of what is chosen so far (service, day and time, price, and "due now"
+  when the amount is known) and Continue. Continue stays `aria-disabled` with a
+  line saying what to choose first. Step 3 has no bar (the keyboard would
+  cover a field): the form's own Book button is the only Book button, and the
+  same one-line summary sits above the details.
+- **Errors:** a taken time or removed add-ons return the person to step 2 with
+  the message shown at the top as before.
+- **No script:** before JavaScript runs, every section shows (the steps apply
+  only once the script has run). Hidden steps are `display: none`.
+- **Deep link:** `/{business}?service=<service id>` preselects that service and
+  starts on step 2 (Back returns to step 1). An id that is malformed, or that
+  the business does not offer, is ignored.
+- **Motion** (CSS only; transform and opacity; curves `--ease-out` and
+  `--ease-in-out` in `booking.css`): the new step fades in and slides 24 px over
+  220 ms from the right going forward and from the left going Back (also after an
+  error return); the old step is simply removed. The bars fill with `scaleX`
+  over 250 ms. The foot bar's summary line cross-fades 150 ms. Presses scale to
+  0.97 over 140 ms (all widths). The confirmation draws a tick (400 ms) and the
+  heading rises in at 300 ms. Reduced motion: 150 ms fades only, no slide, bars
+  instant, no press scale.
+- Styles live in `apps/web/bookings/src/app/booking.css` (`.book-pane`,
+  `.book-bar`, `.book-dots`). No new colour token: the bars and button use the
+  business accent and the shared `--border` and `--background`.
+
+## Home page (`/`), version 2 (shop.app feel)
+
+Calm, large and rounded, in the manner of shop.app (structure and feel only,
+never its name, marks, purple or images). The page sits on a near-white ground
+(token `--color-ground`, `#fbfbfc`, class `bg-ground`, declared in the app's
+`globals.css`). Content is big rounded cards: radius 36 px on phones and 44 px
+(hero) or 40 px (rail cards) from md up; 26 to 28 px for tiles and inner
+panels; pills for search, buttons and navigation. Ink is `foreground`
+(`#111827`). Only new token: `--color-ground`; the per-type fills are a
+documented map (below).
+
+- Search: one floating pill (60 px phones, 64 px md up, `shadow-lg`), sticky at
+  the top (`top-4`; `scroll-padding-top` keeps focused content clear), full
+  width on phones, about 512 px centred from md up. A plain GET form (`q`,
+  hidden `category` and `type`) with a real submit button (arrow, named
+  "Search"). Placeholder "What do you want to book today?".
+- Compact type row (md up only, nav "Business types"): a 30 px colour dot and a
+  word per type, "All" first; the chosen one is bold and underlined.
+- Hero: one navy (`bg-primary`) card, content bottom-left: h1 "Book any
+  appointment in Grenada" (38 px phones, 64 px md up, weight 800), a line, and
+  a white "Find a business" pill to `#businesses`. Two soft blurred shapes drift
+  inside it (aria-hidden). The sentence "Pick a business below, or open the
+  booking page the business sent you." sits under the card. Exactly one h1,
+  first.
+- "Businesses to book" (h2): a horizontal scroll-snap rail of tall cards
+  (316 x 470 px phones, 330 x 500 md up), one link each. The fill is the
+  business's brand colour when `pageAccent` accepts it (4.5:1 against white, so
+  white text is safe), else neutral ink. Inside: logo in a small white circle
+  if there is one, the name (30 to 32 px, 800, white), "category or type, city"
+  in plain white; at the bottom a 26 px photo panel (150 px) when `cover_url` is
+  a safe https address (no username or password), else a white panel with the
+  short description and a "Book" pill (decoration). The bottom area's priority is
+  the business's featured services (`featured_services`, up to three from the
+  API; the first two show as white 26 px tiles with a dark price pill, the name
+  in two lines at most, and "N min" in muted text; one service fills the width),
+  then the cover photo, then the description panel. The tiles are plain text
+  inside the card's one link. Pagination links sit under the rail.
+  The storefront page header is unchanged.
+- "Types of business" (h2, nav "Browse by type"): solid tiles, a white label
+  top-left (19 px bold) and the type's white stroke icon bottom-right, 2 columns
+  phones (118 px, radius 26) and 6 columns md up (140 px, radius 28). Only
+  types from the API's `types_available`, "All" first (ink). The chosen tile has
+  a white inner ring and `aria-current="page"`. A tile keeps `q` and clears
+  category and page. No types says "No business types yet." The free-text
+  category chips are gone from the page; `category` still works in the address,
+  the search form and the page links.
+- Type fills (white text; contrast against white): beauty `#c2185b` 5.87, hair
+  `#5e35b1` 8.02, health `#0d4a8f` 8.77, fitness `#b23c00` 5.93, auto `#37474f`
+  9.65, home services `#00695c` 6.61, lessons `#1b5e20` 7.87, professional
+  `#283593` 10.39, tours `#006064` 7.35, events `#8d6e00` 4.81, other `#4e342e`
+  11.32, All / ink `#111827` 17.74. One source: `lib/business-type-colours.ts`,
+  checked by its test.
+- "Run a business?": ink card, radius 36, white "Open the studio" pill.
+- Navigation: phones get a floating bottom pill with icons only (Home, Types of
+  business, For businesses; 48 px targets, the current one on a grey pill, each
+  with an `aria-label`) and a text "Sign in" at its end. From md up a fixed
+  left rail (vertically centred pill of the same icons) with a navy "B" home
+  mark above and a small "Sign in" pill below; the page keeps left padding for
+  it. "Sign in" links to `/signin?returnTo=/` (the page does not read the
+  session, so it always shows Sign in). "My bookings" and "Account" are added
+  once the account app's address is a typed setting here.
+- Motion (CSS only, transform and opacity only, all inside
+  `prefers-reduced-motion: no-preference`): the hero fades and rises 12 px over
+  400 ms, then rail cards and type tiles follow 50 ms apart (first six); two
+  blurred shapes drift 26 to 30 s inside the hero; the rail scrolls smooth;
+  press feedback scales to 0.97 over 120 ms on cards, tiles and pills; a 2 px
+  hover lift only under `(hover: hover)`; pages cross-fade with
+  `@view-transition { navigation: auto }` (no named elements). Focus rings use a
+  2 px offset so they show on white and on saturated fills.
+- Studio, Settings > Profile > Home page: "Type of business" (a select with
+  Not set) and "Cover photo" (upload, preview, remove; JPEG, PNG or WebP, up
+  to 5 MB), saved with the profile.
 
 ## Studio (`/studio`)
 
@@ -193,8 +280,8 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
 
 ink/paper 17.74, secondary/paper 7.56, muted/paper 4.83, muted/surface 4.52,
 primary/paper 16.88, paper/primary 16.88, negative/paper 5.81, positive/paper
-4.81. On the home page ground (`#f4f5f8`): ink 16.4, primary 15.7; muted
-is 4.43 there, so muted text never sits directly on the ground (use ink, or a
+4.81. On the home page ground (`#fbfbfc`): ink 17.2, primary 17.9; muted
+is 4.7 there, so muted text never sits directly on the ground (use ink, or a
 white card). Small text uses ink, secondary or muted only. `focus` (4.16 on paper) is
 for rings and text of 18 px or more. `sky` is decorative and never carries
 text on paper.

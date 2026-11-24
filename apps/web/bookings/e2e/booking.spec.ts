@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { chooseService } from "./service-choice";
 
+// Runs at laptop width (1280 px), where the form is one page; the phone steps are
+// walked by the 375 px journey in accessibility.spec.ts.
 // Requires the API with the Babydoll seed (scripts/verification/e2e-api.sh
 // prepare, then serve) and this app on :3015.
 //

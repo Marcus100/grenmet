@@ -28,18 +28,27 @@ export function brandStyle(
 }
 
 /**
- * The logo address to show, or null. Only an https URL is shown; a missing,
- * malformed or other-scheme value (including older cached payloads without the
- * field) shows no logo.
+ * The image address to show (a logo or a cover photo), or null. Only an https
+ * URL is shown; a missing, malformed or other-scheme value (including older
+ * cached payloads without the field) shows no image.
  */
-export function safeLogoUrl(value: string | null | undefined): string | null {
+export function safeImageUrl(value: string | null | undefined): string | null {
   if (!value) {
     return null;
   }
   try {
     const url = new URL(value);
-    return url.protocol === "https:" ? url.href : null;
+    // An address with a username or password is never shown.
+    return url.protocol === "https:" && !url.username && !url.password
+      ? url.href
+      : null;
   } catch {
     return null;
   }
 }
+
+/** The logo address to show, or null (see `safeImageUrl`). */
+export const safeLogoUrl = safeImageUrl;
+
+/** The cover photo address to show, or null (see `safeImageUrl`). */
+export const safeCoverUrl = safeImageUrl;

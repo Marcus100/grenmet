@@ -5,13 +5,37 @@ describe("listingQuery", () => {
   it("reads the search, category and page from the address", () => {
     expect(
       listingQuery({ q: " barber ", category: "Hair", page: "2" })
-    ).toEqual({ q: "barber", category: "Hair", page: 2 });
+    ).toEqual({
+      q: "barber",
+      category: "Hair",
+      type: undefined,
+      page: 2,
+    });
+  });
+
+  it("reads a business type the API knows", () => {
+    expect(listingQuery({ type: "home_services" }).type).toBe("home_services");
+    expect(listingQuery({ type: [" hair ", "auto"] }).type).toBe("hair");
+  });
+
+  it("ignores a business type the API does not know", () => {
+    for (const type of [
+      "",
+      "Hair",
+      "spa",
+      "HOME",
+      "constructor",
+      "__proto__",
+    ]) {
+      expect(listingQuery({ type }).type).toBeUndefined();
+    }
   });
 
   it("leaves a missing or blank value out", () => {
     expect(listingQuery({ q: "   ", category: undefined })).toEqual({
       q: undefined,
       category: undefined,
+      type: undefined,
       page: 1,
     });
   });

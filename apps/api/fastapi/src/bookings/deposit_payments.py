@@ -502,6 +502,19 @@ def refund_by_policy(
     return booking.starts_at - now >= timedelta(hours=profile.cancel_cutoff_hours)
 
 
+def refund_id_for(
+    booking_id: uuid.UUID, intent_id: uuid.UUID, amount_minor: int, occasion: str
+) -> uuid.UUID:
+    """The refund id of one deposit refund, derived from the booking, the intent,
+    the amount and the occasion (the reason). A retry after a lost commit derives the
+    same id, so the provider sees the same idempotency key and refunds once. A partial
+    refund (another amount) gets its own id."""
+    return uuid.uuid5(
+        uuid.NAMESPACE_URL,
+        f"bookings.deposit-refund:{booking_id}:{intent_id}:{amount_minor}:{occasion}",
+    )
+
+
 async def refund_deposit(
     session: AsyncSession, booking: Booking, *, reason: str
 ) -> bool:
@@ -510,6 +523,7 @@ async def refund_deposit(
     intent = await find_deposit(session, booking)
     if intent is None or intent.captured_minor - intent.refunded_minor <= 0:
         return True
+    remaining = intent.captured_minor - intent.refunded_minor
     try:
         async with session.begin_nested():
             await payments_service.refund_intent(
@@ -518,6 +532,7 @@ async def refund_deposit(
                 intent_id=intent.id,
                 actor=None,
                 payload=payment_schemas.PaymentRefundCreate(reason=reason),
+                refund_id=refund_id_for(booking.id, intent.id, remaining, reason),
             )
     except AppException as error:
         # Error level so Sentry alerts: the money is still held and needs a refund by
