@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CampaignTimeline } from "@/components/campaign/timeline";
 import { BallotGrid } from "@/components/election/ballot-grid";
+import {
+  DeclaredSummary,
+  DeclaredTable,
+} from "@/components/election/declared-result";
 import { ElectionHeadline } from "@/components/election/election-headline";
 import { ElectionStatus } from "@/components/election/election-status";
 import { ElectionTimeline } from "@/components/election/election-timeline";
@@ -11,7 +15,12 @@ import { ElectionUpdates } from "@/components/home/election-updates";
 import { PageHead, Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
 import { COVERAGE } from "@/data/coverage";
-import { calendarFrom, seatOutlook, updateEvents } from "@/data/election-2026";
+import {
+  calendarFrom,
+  declaredResult,
+  seatOutlook,
+  updateEvents,
+} from "@/data/election-2026";
 import { campaign, latestRegister, results } from "@/data/load";
 import { nationalResult } from "@/data/model";
 import { fmt, formatIsoDate, pct } from "@/lib/format";
@@ -19,12 +28,13 @@ import { fmt, formatIsoDate, pct } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Election 2026",
   description:
-    "Grenada’s 2026 general election: key dates, who is standing in each seat, the latest news and the polls, with a source for everything.",
+    "Grenada’s 2026 general election: key dates, candidates, results, the latest news and the polls, with a source for everything.",
 };
 
 export default function Election2026Page() {
-  const calendar = calendarFrom(campaign);
+  const calendar = calendarFrom(campaign, results);
   const seats = seatOutlook(results, campaign);
+  const declared = declaredResult(results, campaign);
   const last = nationalResult(results, "2022");
   const roll = latestRegister();
   const recent = updateEvents(campaign)
@@ -36,7 +46,11 @@ export default function Election2026Page() {
     <>
       <div className="mx-auto grid max-w-[1240px] items-end gap-x-14 gap-y-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <PageHead
-          deck="Key dates, voter information and campaign coverage for the 5 November general election."
+          deck={
+            declared
+              ? "Provisional results, key dates and campaign coverage for the 5 November 2026 general election."
+              : "Key dates, voter information and campaign coverage for the 5 November general election."
+          }
           eyebrow={
             <ElectionStatus
               calendar={calendar}
@@ -47,7 +61,11 @@ export default function Election2026Page() {
           title={
             <ElectionHeadline
               calendar={calendar}
-              fallback="Grenada’s 2026 election: key dates"
+              fallback={
+                declared
+                  ? "Grenada’s 2026 election: provisional results"
+                  : "Grenada’s 2026 election: key dates"
+              }
             />
           }
         />
@@ -67,6 +85,14 @@ export default function Election2026Page() {
                 value: fmt(roll.electors),
                 note: `Consolidated list, ${formatIsoDate(roll.date)}`,
               },
+              ...(declared
+                ? [
+                    {
+                      label: "2026 turnout (provisional)",
+                      value: pct(declared.turnout),
+                    },
+                  ]
+                : []),
               { label: "2022 turnout", value: pct(last.turnout) },
               {
                 label: "2022 NDC vote",
@@ -90,13 +116,30 @@ export default function Election2026Page() {
         </div>
       </div>
 
+      {declared && (
+        <Section
+          id="results"
+          intro="Provisional results from the Parliamentary Elections Office. Margins are the winner’s lead over the runner-up, in votes."
+          title="Result in each constituency"
+        >
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+            <DeclaredSummary result={declared} />
+            <DeclaredTable seats={declared.seatRows} />
+          </div>
+        </Section>
+      )}
+
       <Section id="dates" title="Key dates">
         <KeyDates calendar={calendar} />
       </Section>
 
       <Section
         id="latest"
-        intro="Updates as the election is called and the campaign runs, each with its sources."
+        intro={
+          declared
+            ? "Updates from the call of the election to the count, each with its sources."
+            : "Updates as the election is called and the campaign runs, each with its sources."
+        }
         title="Latest"
       >
         {COVERAGE.length === 0 ? (
@@ -119,7 +162,11 @@ export default function Election2026Page() {
       <Section
         id="standing"
         more={{ href: "/candidates", label: "All candidates" }}
-        title="Who is standing"
+        title={
+          declared
+            ? "Who stood (as reported before polling day)"
+            : "Who is standing"
+        }
       >
         <BallotGrid seats={seats} />
       </Section>
@@ -127,15 +174,16 @@ export default function Election2026Page() {
       <section className="mx-auto max-w-[1240px] px-4 pt-12 sm:px-6">
         <Link
           className="border-el-rule bg-el-paper-2 hover:border-el-ink flex flex-wrap items-center justify-between gap-3 border p-5"
-          href="/make-your-map"
+          href={declared ? "/forecast" : "/make-your-map"}
         >
           <span>
             <b className="block font-serif text-xl font-bold">
-              Make your map →
+              {declared ? "The pre-election outlook →" : "Make your map →"}
             </b>
             <span className="text-el-ink-2 text-base">
-              Rate all 15 constituencies, from Solid NDC to Solid NNP (and DPM
-              where it stands), and share your prediction.
+              {declared
+                ? "The model and polls published before polling day, kept as history beside the provisional result."
+                : "Rate all 15 constituencies, from Solid NDC to Solid NNP (and DPM where it stands), and share your prediction."}
             </span>
           </span>
         </Link>
@@ -151,9 +199,13 @@ export default function Election2026Page() {
 
       <Section
         id="polls"
-        intro="Grenada has few published polls, and the ones before past elections missed by a wide margin."
+        intro={
+          declared
+            ? `Published before polling day. The provisional result: ${declared.seats.map(([party, count]) => `${party} ${count}`).join(", ")} seats.`
+            : "Grenada has few published polls, and the ones before past elections missed by a wide margin."
+        }
         more={{ href: "/forecast", label: "The forecast and every poll" }}
-        title="Polls"
+        title={declared ? "Polls before the vote" : "Polls"}
       >
         <ul className="divide-el-rule border-el-rule divide-y border-y">
           {polls.map((poll) => (
@@ -166,7 +218,9 @@ export default function Election2026Page() {
                 Fieldwork {poll.field}
                 {poll.n ? ` · ${fmt(poll.n)} people` : ""}
                 {poll.seats
-                  ? ` · projects ${Object.entries(poll.seats)
+                  ? ` · ${declared ? "projected" : "projects"} ${Object.entries(
+                      poll.seats
+                    )
                       .map(([p, n]) => `${p} ${n}`)
                       .join(", ")}`
                   : ""}

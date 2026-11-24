@@ -1,8 +1,8 @@
 {
   "sources": {
     "SUMMARY": "PEO Final Summary tables, 2013, 2018 and 2022",
-    "REGTOT": "PEO Old Elections Results, national registration figures",
-    "SEATS": "Recorded seat outcomes used by the original archive validation suite"
+    "REGTOT": "PEO Old Elections Results, national registration figures; 2026: PEO provisional results page (elections.gd/2026), captured 23 November 2026",
+    "SEATS": "Recorded seat outcomes used by the original archive validation suite; 2026: PEO provisional results page, captured 23 November 2026"
   },
   "SUMMARY": {
     "2013": {
@@ -32,7 +32,8 @@
     "1995": 71413,
     "1999": 73673,
     "2003": 82278,
-    "2008": 71751
+    "2008": 71751,
+    "2026": 97077
   },
   "SEATS": {
     "1972": {
@@ -78,6 +79,10 @@
     "2022": {
       "NDC": 9,
       "NNP": 6
+    },
+    "2026": {
+      "NDC": 14,
+      "NNP": 1
     }
   }
 }

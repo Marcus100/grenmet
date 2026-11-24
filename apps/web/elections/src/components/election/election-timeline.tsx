@@ -93,8 +93,12 @@ export function ElectionTimeline({
   ];
   const current = now ?? liveNow;
   const today = current ? grenadaDate(current) : null;
+  // Once the result is declared the calendar is history: no "today" marker.
   const showToday =
-    today !== null && today >= start && today <= calendar.pollingDay;
+    !calendar.resultsDeclared &&
+    today !== null &&
+    today >= start &&
+    today <= calendar.pollingDay;
   const daysToPoll = today
     ? Math.round((Date.parse(calendar.pollingDay) - Date.parse(today)) / DAY)
     : 0;
@@ -115,7 +119,9 @@ export function ElectionTimeline({
         x={LEFT}
         y={24}
       >
-        Road to polling day
+        {calendar.resultsDeclared
+          ? "The road to polling day"
+          : "Road to polling day"}
       </text>
       {/* The campaign: nomination to polling day, in the flag's three colours. */}
       {calendar.nominationDay && (

@@ -15,14 +15,42 @@ import { pct } from "@/lib/format";
 
 const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 
+/** One party's provisional 2026 seats and share of votes. */
+function Provisional2026({
+  party,
+  result,
+}: {
+  party: string;
+  result: NationalResult;
+}) {
+  const votes = result.votes[party];
+  return (
+    <div>
+      <dt className={LABEL}>2026 provisional</dt>
+      <dd
+        className="text-xl font-semibold tabular-nums"
+        style={{ color: partyColor(party, "ink") }}
+      >
+        {result.seats[party] ?? 0}
+      </dd>
+      <dd className="text-el-muted text-base">
+        {votes ? `${pct(votes / result.total)} of votes` : "did not stand"}
+      </dd>
+    </div>
+  );
+}
+
 /** Three parties tracked here: House at dissolution, 2022 result, recorded names. */
 export function RaceInBrief({
   seats,
   result2022,
+  result2026 = null,
   campaign,
 }: {
   seats: SeatOutlook[];
   result2022: NationalResult;
+  /** Provisional 2026 seats and votes, once declared. */
+  result2026?: NationalResult | null;
   campaign: CampaignFile;
 }) {
   const house = currentHouse(seats);
@@ -50,7 +78,9 @@ export function RaceInBrief({
                 {partyInfo(party).name}
               </h3>
               <p className="text-el-ink-2 mt-1 text-base leading-relaxed">
-                {note.text}
+                {result2026 && note.declaredText
+                  ? note.declaredText
+                  : note.text}
                 {note.unverified && (
                   <Flag note={note.unverified} status="unverified" />
                 )}
@@ -58,7 +88,16 @@ export function RaceInBrief({
               <p className="text-el-muted mt-1 text-base leading-relaxed">
                 <SourceLink id={note.source} sources={campaign.sources} />
               </p>
-              <dl className="mt-3 grid grid-cols-3 gap-2">
+              <dl
+                className={
+                  result2026
+                    ? "mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4"
+                    : "mt-3 grid grid-cols-3 gap-2"
+                }
+              >
+                {result2026 && (
+                  <Provisional2026 party={party} result={result2026} />
+                )}
                 <div>
                   <dt className={LABEL}>At dissolution</dt>
                   <dd
@@ -80,7 +119,9 @@ export function RaceInBrief({
                   </dd>
                 </div>
                 <div>
-                  <dt className={LABEL}>Earlier names</dt>
+                  <dt className={LABEL}>
+                    {result2026 ? "Names before polling day" : "Earlier names"}
+                  </dt>
                   <dd className="text-xl font-semibold tabular-nums">
                     {named ? `${named}` : "–"}
                     {uncertain > 0 && (
@@ -102,7 +143,9 @@ export function RaceInBrief({
         })}
       </ul>
       <p className="text-el-muted mt-3 text-base">
-        Names recorded through{" "}
+        {result2026
+          ? "Names before polling day were recorded through "
+          : "Names recorded through "}
         {campaign.candidate_names_as_of ?? campaign.updated}. See{" "}
         <Link className="underline" href="/candidates">
           latest nomination coverage

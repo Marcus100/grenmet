@@ -76,6 +76,23 @@ import record74 from "@/data/source/elections/2022/stations/M.json";
 import record75 from "@/data/source/elections/2022/stations/N.json";
 import record76 from "@/data/source/elections/2022/stations/P.json";
 import record77 from "@/data/source/elections/2022/stations/R.json";
+import record79 from "@/data/source/elections/2026/national.json";
+import record78 from "@/data/source/elections/2026/results.json";
+import record80 from "@/data/source/elections/2026/stations/A.json";
+import record81 from "@/data/source/elections/2026/stations/B.json";
+import record82 from "@/data/source/elections/2026/stations/C.json";
+import record83 from "@/data/source/elections/2026/stations/D.json";
+import record84 from "@/data/source/elections/2026/stations/E.json";
+import record85 from "@/data/source/elections/2026/stations/F.json";
+import record86 from "@/data/source/elections/2026/stations/G.json";
+import record87 from "@/data/source/elections/2026/stations/H.json";
+import record88 from "@/data/source/elections/2026/stations/J.json";
+import record89 from "@/data/source/elections/2026/stations/K.json";
+import record90 from "@/data/source/elections/2026/stations/L.json";
+import record91 from "@/data/source/elections/2026/stations/M.json";
+import record92 from "@/data/source/elections/2026/stations/N.json";
+import record93 from "@/data/source/elections/2026/stations/P.json";
+import record94 from "@/data/source/elections/2026/stations/R.json";
 import record0 from "@/data/source/reference/constituencies.json";
 import record1 from "@/data/source/verification/corrections.json";
 
@@ -102,6 +119,7 @@ const data = {
     "2013": record30,
     "2018": record46,
     "2022": record62,
+    "2026": record78,
   },
   national: {
     "1951": record3,
@@ -118,6 +136,7 @@ const data = {
     "1999": record25,
     "2003": record27,
     "2008": record29,
+    "2026": record79,
   },
   stations: {
     "2013": {
@@ -170,6 +189,23 @@ const data = {
       N: record75,
       P: record76,
       R: record77,
+    },
+    "2026": {
+      A: record80,
+      B: record81,
+      C: record82,
+      D: record83,
+      E: record84,
+      F: record85,
+      G: record86,
+      H: record87,
+      J: record88,
+      K: record89,
+      L: record90,
+      M: record91,
+      N: record92,
+      P: record93,
+      R: record94,
     },
   },
 };
