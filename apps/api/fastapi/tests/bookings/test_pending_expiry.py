@@ -5,7 +5,7 @@ Pending requests only: a deposit hold (``pending_payment``) is the sweeper's job
 (``deposits.expire_unpaid``) and must not be touched here."""
 
 import uuid
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import httpx
 from sqlalchemy import func, select
@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bookings import lifecycle
 from src.bookings.config import bookings_settings
-from src.bookings.models import Booking, BookingEvent, BookingStatus
+from src.bookings.models import Booking, BookingEvent, BookingProfile, BookingStatus
 from src.notifications import outbox_handlers
 from src.outbox import Outbox
 from src.payments.models import Refund
@@ -377,7 +377,9 @@ async def test_the_agenda_shows_when_each_request_expires(
     assert agenda.status_code == 200, agenda.text
     [item] = [b for d in agenda.json()["days"] for b in d["bookings"]]
     expected = min(booking.created_at + timedelta(hours=3), booking.starts_at)
-    assert item["expires_at"].startswith(expected.isoformat()[:19])
+    shown = datetime.fromisoformat(item["expires_at"]).astimezone(UTC)
+    # The API sends times to the whole second (UtcDateTime).
+    assert shown.replace(tzinfo=None) == expected.replace(microsecond=0)
 
     confirmed = await async_client.post(
         f"{API}/org/bookings/{booking_id}/confirm", headers=studio.headers
@@ -388,3 +390,26 @@ async def test_the_agenda_shows_when_each_request_expires(
     )
     [item] = [b for d in again.json()["days"] for b in d["bookings"]]
     assert item["expires_at"] is None
+
+
+def test_expiry_is_the_start_when_there_is_no_window_or_it_ends_later() -> None:
+    start = datetime(2027, 1, 4, 14, 0)
+    made = datetime(2027, 1, 4, 9, 0)
+    booking = Booking(
+        status=BookingStatus.PENDING.value, starts_at=start, created_at=made
+    )
+    no_window = BookingProfile(pending_expiry_hours=None)
+    assert lifecycle.pending_expires_at(booking, no_window) == start
+    # A 24-hour window ends after the start: the start wins.
+    assert (
+        lifecycle.pending_expires_at(booking, BookingProfile(pending_expiry_hours=24))
+        == start
+    )
+    # A 2-hour window ends first.
+    assert lifecycle.pending_expires_at(
+        booking, BookingProfile(pending_expiry_hours=2)
+    ) == made + timedelta(hours=2)
+    confirmed = Booking(
+        status=BookingStatus.CONFIRMED.value, starts_at=start, created_at=made
+    )
+    assert lifecycle.pending_expires_at(confirmed, no_window) is None
