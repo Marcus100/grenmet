@@ -10,6 +10,8 @@ import {
   type AppSubscriptionCheckoutPublic,
   type AppSubscriptionPublic,
   type BookingAgenda,
+  type BookingCalendarFeedLink,
+  type BookingCalendarFeedStatus,
   type BookingExceptionCreate,
   type BookingExceptionPublic,
   type BookingMyOrganisation,
@@ -32,6 +34,7 @@ import {
   bookingsCancelStudioBooking,
   bookingsCompleteStudioBooking,
   bookingsConfirmStudioBooking,
+  bookingsCreateCalendarFeed,
   bookingsCreateException,
   bookingsCreateProvider,
   bookingsCreateService,
@@ -39,6 +42,7 @@ import {
   bookingsDeclineStudioBooking,
   bookingsDeleteException,
   bookingsGetAgenda,
+  bookingsGetCalendarFeedStatus,
   bookingsGetProfile,
   bookingsGetSettings,
   bookingsGetStudioBooking,
@@ -50,6 +54,7 @@ import {
   bookingsRecordManualDeposit,
   bookingsReplaceWorkingHours,
   bookingsRescheduleStudioBooking,
+  bookingsRotateCalendarFeed,
   bookingsUpdateProvider,
   bookingsUpdateService,
   bookingsUpsertProfile,
@@ -449,6 +454,42 @@ export function saveProfile(
   return bookingsUpsertProfile({
     client: studioClient(accessToken, organisationId),
     body,
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Whether the business has a calendar feed (owners and admins only; no address). */
+export function getCalendarFeedStatus(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingCalendarFeedStatus> {
+  return bookingsGetCalendarFeedStatus({
+    client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Makes the calendar feed. The address comes back here and nowhere else. */
+export function createCalendarFeed(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingCalendarFeedLink> {
+  return bookingsCreateCalendarFeed({
+    client: studioClient(accessToken, organisationId),
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/** Replaces the feed's address; the old one stops working at once. */
+export function rotateCalendarFeed(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingCalendarFeedLink> {
+  return bookingsRotateCalendarFeed({
+    client: studioClient(accessToken, organisationId),
   })
     .unwrap()
     .catch(redactRequest);

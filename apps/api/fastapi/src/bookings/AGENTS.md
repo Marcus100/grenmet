@@ -29,6 +29,7 @@ Logic is in `public.py` (service.py keeps studio config and availability); route
 - **Status machine:** `transitions.py` table; `public.transition` is the only place that changes status and it writes a `BookingEvent`. Studio actions (B5) must use it.
 - **Emails:** `emails.py` (pure) builds an `EmailCard` (`src/email_layout.py`, house style in `docs/email-design.md`); `public.py` queues `to_props(card)` as template `card` with `notifications.outbox_handlers.enqueue_email` (topic `email.send`, dedupe keys `booking-<kind>:<id>`), rendered at delivery. `reminders.enqueue_due_reminders` (job `enqueue_booking_reminders`, hourly at :07) queues `booking-reminder:<id>` once per booking for confirmed and `pending` bookings starting within 24 hours; a pending booking's mail says the business has not confirmed it yet. Every mail goes through `public.build_mail`. **Manage links:** create (legacy token), confirmed, deposit paid, reminder and both reschedules carry one; cancellation mails (customer, studio, decline) carry none, though a cancelled booking still opens read-only.
 - **ICS:** `ics.py` is a pure RFC 5545 writer (CRLF, 75-octet folding, escaping, UTC, `STATUS`, `SEQUENCE` = history length - 1).
+- **Calendar feed:** `calendar_feed.py`; token hash only, first names only; rotate ends the old URL.
 - Deposits (`pending_payment`) are wired: see B6 below.
 
 ## Wiring (PF3, PF5, PF8)

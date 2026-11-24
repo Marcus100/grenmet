@@ -191,11 +191,28 @@ class AsyncSafeLimiter(Limiter):
     ``src/auth/lockout.py``.
     """
 
-    def limit(self, *args: Any, **kwargs: Any) -> Callable[..., Any]:
+    def limit(
+        self, *args: Any, scope: str | None = None, **kwargs: Any
+    ) -> Callable[..., Any]:
+        """``@limiter.limit(...)`` plus an optional fixed ``scope``.
+
+        slowapi keys a route's limit by its request path unless a scope is set. A
+        path that carries a secret (a feed token) would then be stored in Redis, so
+        such a route names a scope that holds no path."""
         decorate = super().limit(*args, **kwargs)
 
         def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             decorated: Callable[..., Any] = decorate(func)
+            if scope is not None:
+                registered = self._route_limits.get(
+                    f"{func.__module__}.{func.__name__}", []
+                )
+                # slowapi exposes ``scope`` read-only and keeps it name-mangled, so
+                # it is set in the instance dictionary. The key test
+                # (tests/bookings/test_calendar_feed.py) fails if this stops taking
+                # effect after a slowapi upgrade.
+                for item in registered[-1:]:
+                    vars(item)["_Limit__scope"] = scope
             if not inspect.iscoroutinefunction(func):
                 return decorated
             positional = list(inspect.signature(func).parameters).index("request")

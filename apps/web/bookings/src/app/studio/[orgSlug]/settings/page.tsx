@@ -1,4 +1,6 @@
+import type { BookingCalendarFeedStatus } from "@barrelsgd/api-client";
 import type { Metadata } from "next";
+import { CalendarFeedSection } from "@/components/studio/settings/calendar-feed-section";
 import {
   ContactSection,
   HoursSection,
@@ -10,8 +12,10 @@ import {
 } from "@/components/studio/settings/settings-sections";
 import { StudioAlert } from "@/components/studio/studio-alert";
 import { exampleServiceFor } from "@/lib/deposit-rule";
+import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
 import { loadSettings, loadTimeOffByProvider } from "@/lib/settings-load";
+import { getCalendarFeedStatus } from "@/lib/studio-api";
 import { canManageBookings, DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
 export const metadata: Metadata = {
@@ -20,6 +24,19 @@ export const metadata: Metadata = {
 
 interface SettingsPageProps {
   params: Promise<{ orgSlug: string }>;
+}
+
+/** Null when the status cannot be read; the section then says to reload. */
+async function loadCalendarStatus(
+  accessToken: string,
+  organisationId: string
+): Promise<BookingCalendarFeedStatus | null> {
+  try {
+    return await getCalendarFeedStatus(accessToken, organisationId);
+  } catch (error) {
+    reportError(error, "studio");
+    return null;
+  }
 }
 
 /**
@@ -51,6 +68,10 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
     data.providers,
     here
   );
+  // Only owners and admins may read the feed status; members never call it.
+  const calendarStatus = editable
+    ? await loadCalendarStatus(session.accessToken, org.id)
+    : null;
 
   return (
     <div className="space-y-8">
@@ -106,6 +127,11 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         editable={editable}
         orgSlug={orgSlug}
         profile={data.profile}
+      />
+      <CalendarFeedSection
+        editable={editable}
+        orgSlug={orgSlug}
+        status={calendarStatus}
       />
     </div>
   );
