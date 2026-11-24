@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  bookingRulesLine,
   cancellationPolicyLine,
   depositRefundLine,
   holdEndsLine,
@@ -98,5 +99,85 @@ describe("nonRefundableDepositLine once the booking is confirmed", () => {
     expect(depositRefundLine(6, true, false)).toContain(
       "once your booking is confirmed"
     );
+  });
+});
+
+describe("bookingRulesLine", () => {
+  const base = { currency: "XCD", cutoffHours: 24, priceMinor: 12_000 };
+
+  it("says only the change rule before a service is chosen", () => {
+    expect(bookingRulesLine({ currency: "XCD", cutoffHours: 24 })).toBe(
+      "Change or cancel up to 24 hours before."
+    );
+  });
+
+  it("says no deposit when nothing is due (no rule, or minimum price not met)", () => {
+    expect(bookingRulesLine({ ...base, dueMinor: 0 })).toBe(
+      "No deposit for this service. Change or cancel up to 24 hours before."
+    );
+  });
+
+  it("names a non-refundable deposit", () => {
+    expect(
+      bookingRulesLine({ ...base, dueMinor: 4000, nonRefundable: true })
+    ).toBe(
+      "EC$40 deposit, not refundable. Change or cancel up to 24 hours before."
+    );
+  });
+
+  it("names a refundable percent or fixed deposit", () => {
+    expect(bookingRulesLine({ ...base, dueMinor: 3600 })).toBe(
+      "EC$36 deposit, refundable. Change or cancel up to 24 hours before."
+    );
+    expect(bookingRulesLine({ ...base, dueMinor: 5050 })).toBe(
+      "EC$50.50 deposit, refundable. Change or cancel up to 24 hours before."
+    );
+  });
+
+  it("states the service's own deposit like any other", () => {
+    expect(
+      bookingRulesLine({ ...base, dueMinor: 2500, nonRefundable: true })
+    ).toBe(
+      "EC$25 deposit, not refundable. Change or cancel up to 24 hours before."
+    );
+  });
+
+  it("says a full prepayment is paid when booking", () => {
+    expect(bookingRulesLine({ ...base, dueMinor: 12_000 })).toBe(
+      "EC$120 paid when you book, refundable. Change or cancel up to 24 hours before."
+    );
+    expect(
+      bookingRulesLine({ ...base, dueMinor: 12_000, nonRefundable: true })
+    ).toBe(
+      "EC$120 paid when you book, not refundable. Change or cancel up to 24 hours before."
+    );
+  });
+
+  it("says a deposit with no payment route is paid at the salon", () => {
+    expect(
+      bookingRulesLine({
+        ...base,
+        dueMinor: 0,
+        nonRefundable: true,
+        ownDepositMinor: 3000,
+      })
+    ).toBe(
+      "EC$30 deposit, paid at the salon. Change or cancel up to 24 hours before."
+    );
+  });
+
+  it("says any time before it starts when no cut-off is set", () => {
+    expect(bookingRulesLine({ ...base, cutoffHours: 0, dueMinor: 4000 })).toBe(
+      "EC$40 deposit, refundable. Change or cancel any time before it starts."
+    );
+    expect(bookingRulesLine({ ...base, cutoffHours: 0, dueMinor: 0 })).toBe(
+      "No deposit for this service. Change or cancel any time before it starts."
+    );
+  });
+
+  it("uses the singular for one hour and a known currency prefix", () => {
+    expect(
+      bookingRulesLine({ currency: "USD", cutoffHours: 1, dueMinor: 1000 })
+    ).toBe("US$10 deposit, refundable. Change or cancel up to 1 hour before.");
   });
 });

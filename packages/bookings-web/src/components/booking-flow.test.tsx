@@ -36,7 +36,7 @@ const HONEYPOT_LABEL = /Leave this field empty/u;
 const SERVICE_ID = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10";
 const TUE = "2027-01-05T13:30:00Z";
 const SLOT_TAKEN = "That time has just been taken. Please choose another.";
-const ONE_HOUR_CUTOFF = /until 1 hour before your visit\./u;
+const ONE_HOUR_CUTOFF = /Change or cancel up to 1 hour before\./u;
 const CONTACT_DIRECTLY = /Please contact the business directly\./u;
 const CONTACT_COLON = /Please contact the business:/u;
 const CONTACT_LIST = /contact/iu;
@@ -49,7 +49,8 @@ const DATE_RANGE = /^\w{3} \d{1,2} \w{3} to \w{3} \d{1,2} \w{3}$/u;
 const EMAIL_ERROR = /Enter a valid email address/u;
 const HELD_WHILE_PAYING = /Your time is held while you pay/u;
 const NO_PAYMENT = /No payment online\. You pay when you visit\./u;
-const CANCEL_RULE = /until 24 hours before your visit\./u;
+const CANCEL_RULE =
+  /No deposit for this service\. Change or cancel up to 24 hours before\./u;
 const CONSULTATION = /Note for Hybrid: Consultation required/u;
 const NOTE_PREFIX = /^Note for /u;
 
@@ -949,5 +950,83 @@ describe("BookingFlow confirm step wording", () => {
     renderFlow();
     await chooseSlot(user);
     expect(screen.queryByText(NOTE_PREFIX)).not.toBeInTheDocument();
+  });
+});
+
+describe("BookingFlow rules line and full policy", () => {
+  const RULES_LINE = (text: string) => screen.getByText(text);
+
+  it("says only the change rule until a service is chosen", () => {
+    renderFlow();
+    expect(RULES_LINE("Change or cancel up to 24 hours before.")).toBeVisible();
+  });
+
+  it("states a non-refundable deposit beside the Book button", async () => {
+    const user = userEvent.setup();
+    renderFlow("", {
+      ...storefront,
+      deposit_non_refundable: true,
+      services: storefront.services.map((service) => ({
+        ...service,
+        deposit_minor: 4000,
+        due_at_booking_minor: 4000,
+      })),
+    });
+    await chooseSlot(user);
+    expect(
+      RULES_LINE(
+        "EC$40 deposit, not refundable. Change or cancel up to 24 hours before."
+      )
+    ).toBeVisible();
+  });
+
+  it("says a refundable deposit is refundable", async () => {
+    const user = userEvent.setup();
+    renderFlow("", {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        due_at_booking_minor: 3600,
+      })),
+    });
+    await chooseSlot(user);
+    expect(
+      RULES_LINE(
+        "EC$36 deposit, refundable. Change or cancel up to 24 hours before."
+      )
+    ).toBeVisible();
+  });
+
+  it("says a deposit with no payment route is paid at the salon", async () => {
+    const user = userEvent.setup();
+    renderFlow("", {
+      ...storefront,
+      services: storefront.services.map((service) => ({
+        ...service,
+        deposit_minor: 3000,
+        due_at_booking_minor: 0,
+      })),
+    });
+    await chooseSlot(user);
+    expect(
+      RULES_LINE(
+        "EC$30 deposit, paid at the salon. Change or cancel up to 24 hours before."
+      )
+    ).toBeVisible();
+  });
+
+  it("opens the full policy on tap and hides it when there is none", async () => {
+    const user = userEvent.setup();
+    const { unmount } = renderFlow("", {
+      ...storefront,
+      booking_policy: "Late by 15 minutes and we may need to move you.",
+    });
+    const policy = "Late by 15 minutes and we may need to move you.";
+    expect(screen.getByText(policy)).not.toBeVisible();
+    await user.click(screen.getByText("Full policy"));
+    expect(screen.getByText(policy)).toBeVisible();
+    unmount();
+    renderFlow("", { ...storefront, booking_policy: null });
+    expect(screen.queryByText("Full policy")).toBeNull();
   });
 });

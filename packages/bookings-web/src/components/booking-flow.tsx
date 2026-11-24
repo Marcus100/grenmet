@@ -25,7 +25,6 @@ import {
 import {
   formatDateTime,
   formatDuration,
-  formatHours,
   formatMoney,
   timeZonePlace,
 } from "../lib/booking-format";
@@ -37,7 +36,7 @@ import type {
   BookingInput,
 } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
-import { BookingPolicyText } from "./booking-policy-text";
+import { BookingRules } from "./booking-policy-text";
 import { ContactLinks } from "./business-contact";
 import { PaymentStatus } from "./payment-status";
 import { ServiceList } from "./service-list";
@@ -861,9 +860,7 @@ export function BookingFlow({
     ? payNowLine(
         dueAtBooking(service),
         service.price_minor,
-        storefront.currency,
-        storefront.cancel_cutoff_hours,
-        storefront.deposit_non_refundable
+        storefront.currency
       )
     : null;
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
@@ -1136,11 +1133,17 @@ export function BookingFlow({
         {isVerified && needsCode && <VerifiedNotice proof={emailCode.proof} />}
 
         <ServiceNotes payNow={payNow} service={service} />
-        <p className="muted">
-          By appointment only. You can change or cancel online until{" "}
-          {formatHours(storefront.cancel_cutoff_hours)} before your visit.
-        </p>
-        <BookingPolicyText text={storefront.booking_policy} />
+        <BookingRules
+          policy={storefront.booking_policy}
+          rules={{
+            currency: storefront.currency,
+            cutoffHours: storefront.cancel_cutoff_hours,
+            dueMinor: service ? dueAtBooking(service) : undefined,
+            nonRefundable: storefront.deposit_non_refundable,
+            ownDepositMinor: service?.deposit_minor,
+            priceMinor: service?.price_minor,
+          }}
+        />
         {!stepOpen && (
           <button
             aria-disabled={submitting || emailCode.busy !== null}
