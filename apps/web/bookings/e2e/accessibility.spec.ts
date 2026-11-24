@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { chooseService, openCategory } from "./service-choice";
 
 // Automated WCAG 2.1 A/AA scan (axe-core) of the two public booking pages at the
 // phone reference width (375 px, docs/design/bookings.md). Requires the same API
@@ -8,6 +9,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 const SLUG = "babydoll-beauty-bar";
 const BUSINESS = "Babydoll Beauty Bar";
+const CATEGORY = "Brows";
 const SERVICE = "Signature brow sculpt & wax";
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
@@ -28,6 +30,12 @@ test("the storefront has no WCAG 2.1 A/AA violations axe can find at 375 px", as
   await expect(
     page.getByRole("heading", { level: 1, name: BUSINESS })
   ).toBeVisible();
+  // Scan the expanded state: a closed category's services are not on the page
+  // to a customer, so open the one with the seeded service.
+  await openCategory(
+    page.getByRole("form", { name: "Book an appointment" }),
+    CATEGORY
+  );
   await page.waitForLoadState("networkidle");
 
   expect(await wcagViolations(page)).toEqual([]);
@@ -44,7 +52,7 @@ test("the manage-booking page has no WCAG 2.1 A/AA violations axe can find at 37
   const times = form.getByRole("group", { exact: true, name: "Time" });
   // The radio is controlled by React, so `toPass` retries until hydration sticks.
   await expect(async () => {
-    await form.getByRole("radio", { name: SERVICE }).check({ timeout: 2000 });
+    await chooseService(form, CATEGORY, SERVICE);
     await expect(times).toBeVisible({ timeout: 5000 });
   }).toPass();
   await times.getByRole("radio").first().check();
