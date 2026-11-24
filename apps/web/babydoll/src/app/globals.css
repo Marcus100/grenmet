@@ -211,8 +211,9 @@ button {
    room: the footer and legal links (about 26 px tall, 4 px apart) would take
    taps from their neighbours, so they keep their size (see the note in the
    PR). The header logo link is only 2 px short. The portfolio filter keeps
-   its zone inside its own row (rows have no gap, so any more would take taps
-   from the row above or below). */
+   its zone inside its own row: the rows are 11 px apart and the 44 px zone is
+   centred on the button, so it reaches into that gap but never into the
+   neighbouring row's buttons. */
 .chips button,
 .brand,
 .book-bar .btn {
@@ -582,11 +583,6 @@ section.block.flush-top {
   font-size: 2.75rem;
   font-variant-numeric: lining-nums;
   line-height: 1;
-}
-.pkg .amt sup {
-  margin-right: 2px;
-  font-size: 0.45em;
-  vertical-align: 0.9em;
 }
 .pkg p {
   font-size: 0.95rem;
@@ -1253,6 +1249,71 @@ section.block.flush-top {
   grid-column: 2;
   font-size: 1.4rem;
   font-style: normal;
+}
+
+/* Training: the four channels as a compact grid, two by two on phones. */
+.quick-block {
+  display: grid;
+  gap: 4px;
+}
+.quick-channels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0;
+  container-type: inline-size;
+  list-style: none;
+}
+.quick-channel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 10px;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  transition: border-color 0.2s;
+}
+.quick-channel svg {
+  grid-row: 1 / span 2;
+}
+.quick-channel b {
+  font-weight: 500;
+  line-height: 1.2;
+}
+.quick-channel span:not(.sr-only) {
+  grid-column: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.79rem;
+  line-height: 1.2;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.quick-more a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+@media (hover: hover) and (pointer: fine) {
+  .quick-channel:hover {
+    border-color: var(--ink);
+  }
+}
+@media (min-width: 768px) {
+  .quick-channels {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  /* Four across in a narrow column: the label alone, no second line. */
+  @container (max-width: 559px) {
+    .quick-channel span:not(.sr-only) {
+      display: none;
+    }
+  }
 }
 
 /* Find us + hours */
