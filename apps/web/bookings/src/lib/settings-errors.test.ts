@@ -91,6 +91,25 @@ describe("settings failures", () => {
   });
 });
 
+describe("add-on failures", () => {
+  it("explains the 409 for a service with upcoming bookings", () => {
+    expect(
+      settingsFailure(
+        apiError(409, {
+          detail:
+            "This service has upcoming bookings, so it cannot become an add-on yet",
+        })
+      )
+    ).toEqual({
+      kind: "conflict",
+      message:
+        "This service has upcoming bookings, so it cannot become an add-on yet.",
+      nextStep:
+        "Move or cancel those bookings, or keep it as a main service, then save again.",
+    });
+  });
+});
+
 describe("logo upload failures", () => {
   it("shows the API's own plain sentence for a refused image", () => {
     expect(

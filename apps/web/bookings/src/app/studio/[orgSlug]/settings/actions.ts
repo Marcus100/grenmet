@@ -266,14 +266,21 @@ function moneyField(text: string): number | null {
  * replaces the whole profile on every write, so a section sends the stored
  * values for everything it does not own (see `keptFields`).
  */
-type ProfileSection = "profile" | "contact" | "payments" | "deposit" | "policy";
+type ProfileSection =
+  | "profile"
+  | "contact"
+  | "payments"
+  | "deposit"
+  | "policy"
+  | "addons";
 
 function profileSection(formData: FormData): ProfileSection {
   const value = field(formData, "section");
   return value === "contact" ||
     value === "payments" ||
     value === "deposit" ||
-    value === "policy"
+    value === "policy" ||
+    value === "addons"
     ? value
     : "profile";
 }
@@ -329,6 +336,7 @@ const SECTION_SAVED: Record<ProfileSection, string> = {
   payments: "Payment choice saved.",
   deposit: "Deposit rule saved.",
   policy: "Booking policy saved.",
+  addons: "Add-ons setting saved.",
 };
 
 /**
@@ -356,6 +364,9 @@ export async function saveProfileAction(
   }
   if (section === "policy") {
     return savePolicySection(orgSlug, auth, formData);
+  }
+  if (section === "addons") {
+    return saveAddOnsSection(orgSlug, auth, formData);
   }
   if (section === "contact") {
     return saveContactSection(orgSlug, auth, formData);
@@ -540,6 +551,29 @@ async function saveDepositSection(
   return saved(orgSlug, SECTION_SAVED.deposit);
 }
 
+/** The one switch that offers add-ons on the booking page; off by default. */
+async function saveAddOnsSection(
+  orgSlug: string,
+  auth: Granted,
+  formData: FormData
+): Promise<ProfileState> {
+  try {
+    const current = await currentProfile(auth);
+    if (!current) {
+      return invalid(
+        "Save the business profile first, then switch add-ons on or off."
+      );
+    }
+    await saveProfile(auth.accessToken, auth.organisationId, {
+      ...storedFields(current),
+      add_ons_enabled: formData.get("addOnsEnabled") === "on",
+    });
+  } catch (error) {
+    return failed(orgSlug, error);
+  }
+  return saved(orgSlug, SECTION_SAVED.addons);
+}
+
 /**
  * The booking policy: plain text, at most 1000 characters, shown before the
  * customer confirms and in the confirmation. Blank clears it.
@@ -665,6 +699,26 @@ function logoFailed(orgSlug: string, error: unknown): string {
   return `${failure.message} ${failure.nextStep}`;
 }
 
+/**
+ * "This is an add-on" and the categories it is offered with. Categories are
+ * sent only for an add-on; none ticked means every main service.
+ */
+function addOnFields(formData: FormData): {
+  add_on_categories: string[] | null;
+  is_add_on: boolean;
+} {
+  const isAddOn = formData.get("isAddOn") === "on";
+  const categories = formData
+    .getAll("addOnCategory")
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return {
+    is_add_on: isAddOn,
+    add_on_categories: isAddOn && categories.length > 0 ? categories : null,
+  };
+}
+
 export async function saveServiceAction(
   orgSlug: string,
   _previous: ActionState,
@@ -713,6 +767,7 @@ export async function saveServiceAction(
     price_minor: price,
     deposit_minor: deposit,
     active: formData.get("active") === "on",
+    ...addOnFields(formData),
   };
   try {
     if (input.serviceId === "") {

@@ -151,6 +151,16 @@ export function detailText(data: unknown): string {
 
 const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
   {
+    match: /cannot become an add-on/iu,
+    failure: {
+      kind: "conflict",
+      message:
+        "This service has upcoming bookings, so it cannot become an add-on yet.",
+      nextStep:
+        "Move or cancel those bookings, or keep it as a main service, then save again.",
+    },
+  },
+  {
     match: /already in use/iu,
     failure: {
       kind: "conflict",
