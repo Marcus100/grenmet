@@ -18,7 +18,8 @@ from src.utils.datetime import utc_now
 
 ENDPOINT = "/api/v1/monitoring/admin/freshness/probe"
 pytestmark = pytest.mark.usefixtures("probe_configured")
-SECRET = "probe-secret-for-tests-0123456789abcdef"
+# Built at run time so no key-shaped literal sits in the source (secret scanning).
+SECRET = "x" * 40
 
 
 @pytest.fixture
