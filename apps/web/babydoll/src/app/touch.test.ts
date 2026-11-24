@@ -8,6 +8,10 @@ const css = readFileSync(
   "utf8"
 ).replace(/\/\*[\s\S]*?\*\//gu, "");
 
+const TOUCH_ACTION = /a,\s*button \{\s*touch-action: manipulation;/u;
+const BAR_SCROLL = /scroll-padding-bottom: var\(--bar-h\);/u;
+const HIT_AREAS = /\.type-filter button::before,\s*\.brand::before/u;
+
 const MOUSE_ONLY = "(hover: hover) and (pointer: fine)";
 
 // Returns each selector containing :hover that is not inside a block that only
@@ -53,5 +57,19 @@ describe("babydoll hover styles", () => {
         `@media ${MOUSE_ONLY} { .btn:hover { color: red; } }`
       )
     ).toEqual([]);
+  });
+});
+
+describe("babydoll touch and keyboard layer", () => {
+  it("keeps taps instant on links and buttons", () => {
+    expect(css).toMatch(TOUCH_ACTION);
+  });
+
+  it("keeps focused controls clear of the fixed Book bar", () => {
+    expect(css).toMatch(BAR_SCROLL);
+  });
+
+  it("gives the portfolio filter and logo link a 44 px hit area", () => {
+    expect(css).toMatch(HIT_AREAS);
   });
 });

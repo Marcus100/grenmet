@@ -43,7 +43,10 @@
   }
 }
 html {
+  /* Keyboard focus and in-page jumps stop clear of the sticky header and the
+     fixed phone Book bar instead of ending up behind them. */
   scroll-padding-top: 80px;
+  scroll-padding-bottom: var(--bar-h);
 }
 body {
   padding-bottom: var(--bar-h);
@@ -188,17 +191,36 @@ p {
 .legal a:active {
   opacity: 0.7;
 }
+/* Touch: no double-tap delay on controls, and no grey tap flash where the
+   pressed state above already answers the tap. */
+a,
+button {
+  touch-action: manipulation;
+}
+.btn,
+.book-link,
+.chips button,
+.type-filter button,
+.footer-links a,
+.legal a {
+  -webkit-tap-highlight-color: transparent;
+}
 
 /* Small controls get a 44 px hit area: a pseudo-element that is centred on the
    control, so the look and the layout stay as they are. Only where there is
-   room: the footer and legal links (about 26 px tall, 4 px apart) and the
-   portfolio filter (no gap between rows) would take taps from their neighbours,
-   so they keep their size (see the note in the PR). */
+   room: the footer and legal links (about 26 px tall, 4 px apart) would take
+   taps from their neighbours, so they keep their size (see the note in the
+   PR). The portfolio filter and the header logo link are only a few pixels
+   short, so their zones stay within the row they sit in. */
 .chips button,
+.type-filter button,
+.brand,
 .book-bar .btn {
   position: relative;
 }
 .chips button::before,
+.type-filter button::before,
+.brand::before,
 .book-bar .btn::before {
   position: absolute;
   top: 50%;
