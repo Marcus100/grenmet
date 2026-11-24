@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-18
+**Last updated:** 2026-11-24
 
 This guide documents the operational infrastructure implemented in this repo today. For first-time server setup see [deployment.md](deployment.md). For local development failures see [troubleshooting.md](troubleshooting.md).
 
@@ -20,7 +20,7 @@ since 2026-11-12, each running Ubuntu 24.04 and Docker Engine 29.
 
 State on 2026-11-14:
 
-- **Release:** production runs v1.5.0 (released 2026-11-18; the latest release), published from `main` and
+- **Release:** production runs v1.9.0 (released and deployed 2026-11-24; the latest release), published from `main` and
   deployed by the Production Pipeline. The other points below were recorded on
   2026-11-14.
 - **Database schema:** `alembic check` was run on production after v1.0.8 and
