@@ -39,13 +39,14 @@ _NAME_BANNED = '<>"\\@'
 #: Business names containing any of these (case-insensitive, after the folding
 #: below) are not used as the sender name: they would let a business pass as
 #: Barrels, a government body, a bank or a support desk, or carry a web address.
-#: The sender then keeps the default name. Moderation of names is a follow-up on
-#: issue 1640. Words are matched with spaces, punctuation and digit substitutions
-#: removed (so "G A A" and "Barre1s" are caught); a dotted term ("spa.com") is
-#: matched with spaces removed.
-#: Tradeoff: plain substring matching also catches a word inside a longer one
-#: ("Gaanesh" and "Riverbank Cafe" keep the default name). That is accepted: the
-#: fallback is safe, and whole-word matching would let "BarrelsSpa" through.
+#: The sender then keeps the default name. Names are folded (lookalikes, digit
+#: substitutions) and split into words. A short term (3 letters, "gaa") must be
+#: whole words: "GAA Spa" and "G A A" are caught, "Gaanesh" and "Yoga Academy"
+#: are not. A longer term is caught inside one word ("BarrelsSpa", "Barre1s") or
+#: from the start of a word across the next ones ("Bar rels", "Met Office"), but
+#: not when it only straddles two unrelated words ("Rad Minimart"). A dotted term
+#: ("spa.com") is matched with spaces removed. Accepted: a long term inside a
+#: word still matches ("Riverbank Cafe" keeps the default name); the fallback is safe.
 RESERVED_SENDER_TERMS = (
     "barrels",
     "gaa",
@@ -97,8 +98,13 @@ _CONFUSABLES = str.maketrans(
         "τ": "t",
         "υ": "u",
         "χ": "x",
+        # Latin dotless i and Cyrillic palochka.
+        "ı": "i",
+        "ӏ": "l",
     }
 )
+_SHORT_TERM = 3
+_WORD_BREAK = re.compile(r"[^\w]+|_+")
 # Digits that stand in for letters. "1" reads as l or i, so both are tried.
 _DIGIT_LETTERS = {"0": "o", "3": "e", "5": "s"}
 
@@ -125,16 +131,43 @@ def _squashed(folded: str, one: str) -> str:
     return "".join(chars)
 
 
-def _is_reserved(name: str) -> bool:
-    folded = _fold(name)
-    spaced_out = re.sub(r"\s", "", folded)
-    squashed = {_squashed(folded, "l"), _squashed(folded, "i")}
-    for term in RESERVED_SENDER_TERMS:
-        if "." in term:
-            if term in spaced_out:
-                return True
-        elif any(_squashed(term, "l") in form for form in squashed):
+def _words(folded: str, one: str) -> list[str]:
+    """The folded name split into squashed words, empty words dropped."""
+    return [
+        word for part in _WORD_BREAK.split(folded) if (word := _squashed(part, one))
+    ]
+
+
+def _term_in_words(term: str, words: list[str]) -> bool:
+    """Whether a squashed ``term`` appears in ``words`` under the word rules above."""
+    joined = "".join(words)
+    starts, ends, offset = [], set(), 0
+    for word in words:
+        starts.append(offset)
+        offset += len(word)
+        ends.add(offset)
+    for start in starts:
+        if not joined.startswith(term, start):
+            continue
+        if len(term) > _SHORT_TERM or start + len(term) in ends:
             return True
+    return len(term) > _SHORT_TERM and any(term in word for word in words)
+
+
+def _is_reserved(name: str) -> bool:
+    # A capital I is also read as l ("BarreIs"); casefolding alone would make it i.
+    variants = {_fold(name), _fold(name.replace("I", "l"))}
+    for folded in variants:
+        spaced_out = re.sub(r"\s", "", folded)
+        word_forms = [_words(folded, "l"), _words(folded, "i")]
+        for term in RESERVED_SENDER_TERMS:
+            if "." in term:
+                if term in spaced_out:
+                    return True
+            elif any(
+                _term_in_words(_squashed(term, "l"), words) for words in word_forms
+            ):
+                return True
     return False
 
 
