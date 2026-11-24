@@ -299,6 +299,58 @@ async def expire_unpaid_bookings(ctx: dict[str, Any]) -> int:
 
 
 @monitored(
+    schedule="4,9,14,19,24,29,34,39,44,49,54,59 * * * *",
+    checkin_margin=5,
+    max_runtime=5,
+)
+async def expire_pending_bookings(ctx: dict[str, Any]) -> int:
+    """Expire booking requests the business did not confirm in time (idempotent)."""
+    from src.bookings import lifecycle
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await lifecycle.expire_stale_requests(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "expire_pending_bookings",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "expire_pending_bookings", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+@monitored(schedule="27 * * * *", checkin_margin=10, max_runtime=10)
+async def complete_finished_bookings(ctx: dict[str, Any]) -> int:
+    """Close bookings that ended more than 48 hours ago (idempotent; no rewards)."""
+    from src.bookings import lifecycle
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await lifecycle.complete_finished_bookings(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "complete_finished_bookings",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "complete_finished_bookings", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+@monitored(
     schedule="3,8,13,18,23,28,33,38,43,48,53,58 * * * *",
     checkin_margin=5,
     max_runtime=5,
@@ -873,6 +925,8 @@ class WorkerSettings:
         enqueue_booking_reminders,
         enqueue_event_reminders,
         expire_unpaid_bookings,
+        expire_pending_bookings,
+        complete_finished_bookings,
         expire_unpaid_event_orders,
         reconcile_provider_refunds,
         send_wis2_publications,
@@ -935,6 +989,15 @@ class WorkerSettings:
             minute=set(range(2, 60, 5)),
             run_at_startup=False,
         ),
+        # Booking requests the business did not confirm in time expire (the
+        # profile's pending_expiry_hours, or at the start), every 5 minutes.
+        cron(
+            expire_pending_bookings,
+            minute=set(range(4, 60, 5)),
+            run_at_startup=False,
+        ),
+        # Confirmed bookings that ended 48 hours ago are closed as completed, hourly.
+        cron(complete_finished_bookings, minute={27}, run_at_startup=False),
         # Unpaid paid-tier orders (EVENTS_ORDER_HOLD_MINUTES, default 30) are
         # cancelled and their stock released, every 5 minutes.
         cron(
