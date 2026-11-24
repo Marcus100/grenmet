@@ -254,6 +254,16 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
   rows with a 56 px tap area inside a card. Muted text never sits on the
   ground: use ink or put it on white. Press feedback is a 120 ms colour change
   and nothing else; no animation.
+- **Booking requests** (Settings > Profile area, its own Save): "Unconfirmed
+  requests expire after" (1 to 168 hours, or "Only at the start time", saved as
+  null; default 24) and "Most upcoming bookings one customer can hold online"
+  (1 to 20; default 3), with two plain help lines (the request cancels itself
+  and the customer is emailed; customers at the limit are asked to contact the
+  business). Needs confirming adds one plain line under its heading when the
+  list has rows, and each row shows "Expires in N h" or "Expires in N min"
+  ("Expiring now" once past) only when it is certain: agenda items carry no
+  request time, so a set window shows nothing and only "Only at the start
+  time" counts down to the start.
 - **Agenda** opens with "Needs confirming (n)": bookings with status `pending`
   (the business has to answer) from two weeks back to 47 days ahead, each row
   customer, service, day and time, linking to the booking where Confirm,

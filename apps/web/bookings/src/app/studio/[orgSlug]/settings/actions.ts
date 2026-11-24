@@ -29,6 +29,7 @@ import { parseBusinessType } from "@/lib/business-types";
 import type { CalendarFeedState } from "@/lib/calendar-feed";
 import { depositRuleFields, minimumPriceFields } from "@/lib/deposit-rule";
 import { reportError } from "@/lib/report-error";
+import { checkExpiry, checkMaxOpen } from "@/lib/request-hygiene";
 import { getSession } from "@/lib/session";
 import { parseHours, parseMoney } from "@/lib/settings-view";
 import type { ActionState, ProfileState } from "@/lib/studio-action-state";
@@ -289,7 +290,8 @@ type ProfileSection =
   | "payments"
   | "deposit"
   | "policy"
-  | "addons";
+  | "addons"
+  | "requests";
 
 function profileSection(formData: FormData): ProfileSection {
   const value = field(formData, "section");
@@ -297,7 +299,8 @@ function profileSection(formData: FormData): ProfileSection {
     value === "payments" ||
     value === "deposit" ||
     value === "policy" ||
-    value === "addons"
+    value === "addons" ||
+    value === "requests"
     ? value
     : "profile";
 }
@@ -354,6 +357,7 @@ const SECTION_SAVED: Record<ProfileSection, string> = {
   deposit: "Deposit rule saved.",
   policy: "Booking policy saved.",
   addons: "Add-ons setting saved.",
+  requests: "Booking request settings saved.",
 };
 
 /**
@@ -384,6 +388,9 @@ export async function saveProfileAction(
   }
   if (section === "addons") {
     return saveAddOnsSection(orgSlug, auth, formData);
+  }
+  if (section === "requests") {
+    return saveRequestsSection(orgSlug, auth, formData);
   }
   if (section === "contact") {
     return saveContactSection(orgSlug, auth, formData);
@@ -599,6 +606,45 @@ async function saveAddOnsSection(
     return failed(orgSlug, error);
   }
   return saved(orgSlug, SECTION_SAVED.addons);
+}
+
+/**
+ * Booking requests: how long an unconfirmed request waits (1 to 168 hours, or
+ * null for only at the start time) and how many upcoming bookings one customer
+ * can hold online (1 to 20). The API enforces both; this checks first.
+ */
+async function saveRequestsSection(
+  orgSlug: string,
+  auth: Granted,
+  formData: FormData
+): Promise<ProfileState> {
+  const expiry = checkExpiry(
+    field(formData, "expiryMode"),
+    field(formData, "pendingExpiryHours")
+  );
+  if (!expiry.ok) {
+    return invalid(expiry.message);
+  }
+  const maxOpen = checkMaxOpen(field(formData, "maxOpenPerCustomer"));
+  if (!maxOpen.ok) {
+    return invalid(maxOpen.message);
+  }
+  try {
+    const current = await currentProfile(auth);
+    if (!current) {
+      return invalid(
+        "Save the business profile first, then set how requests are handled."
+      );
+    }
+    await saveProfile(auth.accessToken, auth.organisationId, {
+      ...storedFields(current),
+      pending_expiry_hours: expiry.value,
+      max_open_per_customer: maxOpen.value,
+    });
+  } catch (error) {
+    return failed(orgSlug, error);
+  }
+  return saved(orgSlug, SECTION_SAVED.requests);
 }
 
 /**
