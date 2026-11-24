@@ -115,6 +115,7 @@ describe("booking.css Turnstile on phones", () => {
     const block = blockFor(
       '.book-form[data-steps="on"] .book-turnstile[data-hidden="true"]'
     );
+    expect(block).toContain("width: min(300px, 100%)");
     expect(block).toContain("visibility: hidden");
     expect(block).toContain("position: absolute");
     expect(block).toContain("pointer-events: none");
@@ -132,5 +133,14 @@ describe("booking.css chips", () => {
     expect(blockFor(".chip:active")).toContain("scale(var(--press-scale))");
     expect(blockFor(".chip span")).not.toContain("transform");
     expect(blockFor(".chip:active span")).not.toContain("transform");
+  });
+});
+
+describe("booking.css Turnstile margin", () => {
+  it("pulls the widget up only while it is empty", () => {
+    expect(blockFor(".book-turnstile:has(> div:empty)")).toContain(
+      "margin-top: -1.5rem"
+    );
+    expect(css).not.toContain(".book-turnstile {\n  margin-top");
   });
 });

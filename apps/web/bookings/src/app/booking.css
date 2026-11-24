@@ -609,8 +609,8 @@ fieldset.notice {
 .book-phone-only {
   display: none;
 }
-/* Cancels the form's grid gap while the widget is empty (it was inside the fieldset before). */
-.book-turnstile {
+/* Cancels the form's grid gap while the widget is empty (it was inside the fieldset before); not once a challenge shows. */
+.book-turnstile:has(> div:empty) {
   margin-top: -1.5rem;
 }
 .book-sr-only {
@@ -702,7 +702,7 @@ fieldset.notice {
   .book-form[data-steps="on"] .book-turnstile[data-hidden="true"] {
     position: absolute;
     visibility: hidden;
-    width: 300px;
+    width: min(300px, 100%);
     height: 65px;
     pointer-events: none;
   }

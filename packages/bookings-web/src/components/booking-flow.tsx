@@ -1139,6 +1139,7 @@ export function BookingFlow({
       if (outcome.ok) {
         attempt.current = null;
         track?.("booking_confirmed", { service_id: chosenId });
+        steps.finish();
         setBooked(outcome.data);
         return;
       }

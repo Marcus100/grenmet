@@ -382,6 +382,25 @@ describe("step direction", () => {
   });
 });
 
+const confirmedBooking = {
+  id: "b1",
+  status: "pending" as const,
+  service_id: LASHES,
+  service_name: "Classic lashes",
+  provider_id: "p1",
+  provider_name: "Jeriann",
+  starts_at: TUE,
+  ends_at: "2027-01-05T14:30:00Z",
+  timezone: "America/Grenada",
+  customer_name: "Ada Lovelace",
+  price_minor: 7000,
+  deposit_minor: 0,
+  currency: "XCD",
+  cancel_cutoff_hours: 24,
+  can_cancel: true,
+  contact: NO_CONTACT,
+};
+
 const PAYLOAD_KEYS = [
   "email",
   "idempotencyKey",
@@ -598,6 +617,40 @@ describe("browser Back on a phone", () => {
       await user.click(screen.getByRole("button", CONTINUE));
       await user.click(screen.getByRole("button", CONTINUE));
       expect(screen.getByLabelText("Name")).toHaveValue("Ada");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("clears a stale step entry left by a reload", () => {
+    onAPhone();
+    try {
+      window.history.replaceState({ bookingStep: 3 }, "");
+      renderFlow();
+      expect(window.history.state).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("returns history to where the flow began after a booking", async () => {
+    const user = userEvent.setup();
+    onAPhone();
+    submitBooking.mockResolvedValue({
+      ok: true,
+      data: { booking: confirmedBooking, manageToken: "tok" },
+    });
+    try {
+      renderFlow();
+      await reachDetails(user);
+      expect(window.history.state).toEqual({ bookingStep: 3 });
+      await user.click(screen.getByRole("button", BOOK));
+      await screen.findByRole("heading", { name: "Thank you, Ada" });
+      await waitFor(() => expect(window.history.state).toBeNull());
+      expect(submitBooking).toHaveBeenCalledTimes(1);
+      expect(
+        screen.getByRole("heading", { name: "Thank you, Ada" })
+      ).toBeInTheDocument();
     } finally {
       vi.unstubAllGlobals();
     }

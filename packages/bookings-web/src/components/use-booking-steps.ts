@@ -77,6 +77,11 @@ export function useBookingSteps({
 
   useEffect(() => {
     setEnhanced(true);
+    // A reload mid-flow keeps the old entry's state but none of the choices:
+    // drop it so Back is not stuck on an entry this page can no longer honour.
+    if (stepOfEntry(window.history.state) !== null) {
+      window.history.replaceState(null, "");
+    }
   }, []);
 
   // The time was cleared (taken, or add-ons removed): go back to pick another.
@@ -137,6 +142,17 @@ export function useBookingSteps({
     move(from === 3 ? 2 : 1);
   }, [move]);
 
+  // After a booking: step entries would make Back do nothing twice before it
+  // leaves, so go back to the entry the flow started on (same document, no
+  // reload) and stop listening. Nothing can be submitted from there.
+  const finish = useCallback(() => {
+    const top = stepOfEntry(window.history.state);
+    pushed.current = false;
+    if (onPhone() && top !== null && top > baseStep.current) {
+      window.history.go(-(top - baseStep.current));
+    }
+  }, []);
+
   // The browser's or phone's own Back and Forward.
   useEffect(() => {
     const onPop = (event: PopStateEvent) => {
@@ -157,5 +173,5 @@ export function useBookingSteps({
     return () => window.removeEventListener("popstate", onPop);
   }, [move]);
 
-  return { direction, enhanced, goBack, goTo, headingRef, step };
+  return { direction, enhanced, finish, goBack, goTo, headingRef, step };
 }
