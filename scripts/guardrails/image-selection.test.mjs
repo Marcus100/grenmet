@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 import {
   changedPaths,
   dependentsOf,
+  dockerfilePackages,
   selectCoverage,
   selectImages,
   selectJobs,
@@ -466,5 +467,66 @@ test("a promotion PR that cannot be matched to a passing dev commit runs everyth
     );
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("Dockerfile COPY lines name the packages an image builds, even undeclared ones", () => {
+  const root = mkdtempSync(join(tmpdir(), "dockerfile-"));
+  try {
+    mkdirSync(join(root, "apps/web/x"), { recursive: true });
+    writeFileSync(
+      join(root, "apps/web/x/Dockerfile"),
+      [
+        "COPY packages/ui/package.json packages/ui/",
+        "COPY packages/ui/ packages/ui/",
+        "COPY --chown=1:1 packages/hidden/ packages/hidden/",
+        "COPY apps/web/x/ apps/web/x/",
+      ].join("\n")
+    );
+    assert.deepEqual(
+      [...dockerfilePackages({ path: "apps/web/x" }, root)].sort(),
+      ["packages/hidden", "packages/ui"]
+    );
+    writeFileSync(
+      join(root, "apps/web/x/Dockerfile"),
+      "COPY --from=source /app/packages/gms/src ./node_modules/gms/src\n"
+    );
+    assert.deepEqual([...dockerfilePackages({ path: "apps/web/x" }, root)], [
+      "packages/gms",
+    ]);
+    // Manifest-only copies do not make a package a source input.
+    writeFileSync(
+      join(root, "apps/web/x/Dockerfile"),
+      "COPY packages/ui/package.json packages/ui/\n"
+    );
+    assert.deepEqual([...dockerfilePackages({ path: "apps/web/x" }, root)], []);
+    // Instructions the parser cannot read make the image unknown.
+    for (const line of [
+      "COPY packages/ ./packages/",
+      "COPY packages/ui/src ./src packages/ ./",
+      "ADD packages/ui/ packages/ui/",
+    ]) {
+      writeFileSync(join(root, "apps/web/x/Dockerfile"), `${line}\n`);
+      assert.equal(dockerfilePackages({ path: "apps/web/x" }, root), null, line);
+    }
+    // No Dockerfile: unknown inputs.
+    assert.equal(dockerfilePackages({ path: "apps/web/none" }, root), null);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("every web image Dockerfile's packages references are parsed", () => {
+  for (const image of webImages) {
+    const copied = dockerfilePackages(image);
+    assert.notEqual(copied, null, `${image.path}/Dockerfile is unreadable`);
+    const text = readFileSync(`${image.path}/Dockerfile`, "utf8");
+    const mentioned = new Set(
+      [...text.matchAll(/^COPY\s+(?:--\S+\s+)*(packages\/[^/\s]+)\//gmu)].map(
+        (m) => m[1]
+      )
+    );
+    for (const dir of copied) assert.ok(mentioned.has(dir));
+    assert.ok(copied.size > 0, image.path);
   }
 });

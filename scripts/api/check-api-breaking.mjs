@@ -11,7 +11,9 @@
 // the PR changes. Comparing with the tip of the base branch would report an
 // operation another PR added to dev after this branch was cut as "removed".
 //
-// Usage: node scripts/api/check-api-breaking.mjs --base origin/dev [--head <ref>] [--allow-breaking]
+// Usage: node scripts/api/check-api-breaking.mjs --base origin/dev [--head <ref>] [--head-spec <file>] [--allow-breaking]
+// --head-spec reads the PR's spec from a file (CI extracts it from the PR head commit, because the
+// checkout is the PR merged onto dev, which would blame this PR for changes other PRs landed)
 // A PR labelled `breaking-change` passes with --allow-breaking (findings still print).
 
 import { spawnSync } from "node:child_process";
@@ -283,7 +285,10 @@ function main(argv) {
   const headIndex = argv.indexOf("--head");
   const headRef = headIndex === -1 ? "HEAD" : (argv[headIndex + 1] ?? "HEAD");
   const base = readBase(resolveBase(argv[baseIndex + 1], headRef));
-  const head = JSON.parse(readFileSync(SPEC_PATH, "utf8"));
+  const specIndex = argv.indexOf("--head-spec");
+  const headSpec =
+    specIndex === -1 ? SPEC_PATH : (argv[specIndex + 1] ?? SPEC_PATH);
+  const head = JSON.parse(readFileSync(headSpec, "utf8"));
   const { errors, warnings } = compareSpecs(base, head);
   for (const message of warnings) process.stdout.write(`warning: ${message}\n`);
   for (const message of errors) process.stdout.write(`BREAKING: ${message}\n`);

@@ -23,7 +23,10 @@ fi
 base_file="$(mktemp)"
 trap 'rm -f "$base_file"' EXIT
 # Compare with the merge base, like CI: the tip of the base branch may hold newer operations.
-merge_base="$(git merge-base "$base_ref" HEAD 2>/dev/null || echo "$base_ref")"
+if ! merge_base="$(git merge-base "$base_ref" HEAD 2>/dev/null)"; then
+  echo "warning: no merge base; comparing with the tip of $base_ref" >&2
+  merge_base="$base_ref"
+fi
 git show "${merge_base}:${spec}" > "$base_file"
 
 OASDIFF_CONFIG="scripts/api/oasdiff.yaml" "$oasdiff_bin" breaking "$base_file" "$spec" --fail-on ERR

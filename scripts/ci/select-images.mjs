@@ -91,9 +91,28 @@ export function dockerfilePackages(image, root = repoRoot) {
   const file = join(root, image.path, "Dockerfile");
   if (!existsSync(file)) return null;
   const copied = new Set();
-  for (const line of readFileSync(file, "utf8").split("\n")) {
-    const match = /^COPY\s+(?:--\S+\s+)*(packages\/[^/\s]+)\/\s/u.exec(line);
-    if (match) copied.add(match[1]);
+  // Joined continuation lines, so a multi-line COPY is read as one instruction.
+  const lines = readFileSync(file, "utf8")
+    .replace(/\\\r?\n/gu, " ")
+    .split("\n");
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/u);
+    if (!/^(COPY|ADD)$/iu.test(parts[0] ?? "") || !line.includes("packages"))
+      continue;
+    const flags = parts.slice(1).filter((part) => part.startsWith("--"));
+    const sources = parts
+      .slice(1)
+      .filter((part) => !part.startsWith("--"))
+      .slice(0, -1);
+    const fromStage = flags.some((flag) => flag.startsWith("--from="));
+    for (const source of sources) {
+      if (!source.includes("packages")) continue;
+      const match = /^(?:\/app\/)?(packages\/[^/\s]+)(?:\/|$)/u.exec(source);
+      if (!match || /^ADD$/iu.test(parts[0])) return null;
+      // A bare manifest from the build context only feeds the install layer.
+      if (!fromStage && source === `${match[1]}/package.json`) continue;
+      copied.add(match[1]);
+    }
   }
   return copied;
 }

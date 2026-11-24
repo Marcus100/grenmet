@@ -65,8 +65,10 @@ jobs:
         run: |
           flags=()
           if [ "$ALLOW_BREAKING" = "true" ]; then flags+=(--allow-breaking); fi
-          # The script compares with the merge base of the base branch and the PR head.
-          node scripts/api/check-api-breaking.mjs --base "origin/${BASE_REF}" --head "$HEAD_SHA" "${flags[@]}"
+          # Both sides come from commits that belong to the PR: the checkout is the PR merged
+          # onto dev, so its openapi.json would include changes other PRs landed.
+          git show "${HEAD_SHA}:apps/api/fastapi/openapi.json" > "$RUNNER_TEMP/head-openapi.json"
+          node scripts/api/check-api-breaking.mjs --base "origin/${BASE_REF}" --head "$HEAD_SHA" --head-spec "$RUNNER_TEMP/head-openapi.json" "${flags[@]}"
       # The merge base is what the PR changes; the branch tip would report
       # operations other PRs added after this branch was cut as removed.
       - name: Write the merge base openapi.json for oasdiff
@@ -75,8 +77,12 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          base="$(git merge-base "origin/${BASE_REF}" "$HEAD_SHA" || echo "origin/${BASE_REF}")"
+          if ! base="$(git merge-base "origin/${BASE_REF}" "$HEAD_SHA")"; then
+            echo "::warning::no merge base; comparing with the tip of ${BASE_REF}" >&2
+            base="origin/${BASE_REF}"
+          fi
           git show "${base}:apps/api/fastapi/openapi.json" > .oasdiff-base-openapi.json
+          git show "${HEAD_SHA}:apps/api/fastapi/openapi.json" > .oasdiff-head-openapi.json
       # Docker action: paths are relative to the workspace. review/github-token
       # are off so no spec is uploaded to oasdiff.com and no PR comment is posted.
       - name: Check openapi.json with oasdiff
@@ -87,7 +93,7 @@ jobs:
           OASDIFF_CONFIG: scripts/api/oasdiff.yaml
         with:
           base: .oasdiff-base-openapi.json
-          revision: apps/api/fastapi/openapi.json
+          revision: .oasdiff-head-openapi.json
           fail-on: ERR
           review: "false"
           github-token: ""
