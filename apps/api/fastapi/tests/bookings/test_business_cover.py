@@ -143,9 +143,12 @@ async def test_completing_a_cover_strips_its_metadata(
     )
 
     assert response.status_code == 200, response.text
-    assert byte_store.blobs[key] != raw
-    assert _metadata_of(byte_store.blobs[key])[2] == 0
-    assert b"Phone Maker" not in byte_store.blobs[key]
+    row = await db_async.get(OrgUpload, uuid.UUID(upload_id))
+    assert row is not None
+    stored = byte_store.blobs[row.object_key]  # the served copy (#1679)
+    assert stored != raw
+    assert _metadata_of(stored)[2] == 0
+    assert b"Phone Maker" not in stored
 
 
 async def test_a_cover_over_eight_megapixels_is_422_and_deleted(
