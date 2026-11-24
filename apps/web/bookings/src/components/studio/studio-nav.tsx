@@ -3,7 +3,7 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { type IconName, StudioIcon } from "@/components/studio/studio-icons";
 import { FOCUS } from "@/components/studio/studio-ui";
 
@@ -139,7 +139,9 @@ export function StudioTabBar({
   ...props
 }: Readonly<StudioNavProps & { footer: React.ReactNode }>) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const open = openAt === pathname;
+  const moreRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const items = studioNavItems(pathname, props);
   const main = items.filter((item) =>
@@ -148,18 +150,19 @@ export function StudioTabBar({
   const rest = items.filter((item) => !main.includes(item));
   const restActive = rest.some((item) => item.active);
 
-  // A new page closes the panel; Escape closes it too.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: the path is the trigger.
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+  // Open only on the page it was opened on, so a route change closes it.
+  const closeMenu = () => {
+    setOpenAt(null);
+    moreRef.current?.focus();
+  };
   useEffect(() => {
     if (!open) {
       return;
     }
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setOpen(false);
+        setOpenAt(null);
+        moreRef.current?.focus();
       }
     };
     document.addEventListener("keydown", onKey);
@@ -169,81 +172,93 @@ export function StudioTabBar({
   const tab =
     "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-xs font-medium transition-colors duration-[120ms]";
   return (
-    <div className="border-border bg-background fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] md:hidden">
+    <>
       {open ? (
-        <div
-          className="border-border bg-background space-y-1 border-b px-3 py-2"
-          id={panelId}
-        >
-          <nav aria-label="More">
-            <ul className="space-y-1">
-              {rest.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    aria-current={item.active ? "page" : undefined}
-                    className={cn(
-                      FOCUS,
-                      "flex min-h-11 items-center gap-3 rounded-xl px-3 font-medium",
-                      item.active
-                        ? "bg-primary text-primary-foreground"
-                        : "text-foreground active:bg-muted"
-                    )}
-                    href={{ pathname: item.href }}
-                  >
-                    <StudioIcon name={item.icon} />
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          {footer}
-        </div>
+        <button
+          aria-label="Close menu"
+          className="fixed inset-0 z-20 cursor-default md:hidden"
+          onClick={closeMenu}
+          tabIndex={-1}
+          type="button"
+        />
       ) : null}
-      <nav aria-label="Studio tabs" className="flex gap-1 px-2 py-1">
-        {main.map((item) => (
-          <Link
-            aria-current={item.active ? "page" : undefined}
+      <div className="border-border bg-background fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] md:hidden">
+        <nav aria-label="Studio tabs" className="flex gap-1 px-2 py-1">
+          {main.map((item) => (
+            <Link
+              aria-current={item.active ? "page" : undefined}
+              className={cn(
+                FOCUS,
+                tab,
+                item.active ? "text-primary bg-muted" : "text-foreground"
+              )}
+              href={{ pathname: item.href }}
+              key={item.href}
+            >
+              <span className="relative">
+                <StudioIcon name={item.icon} />
+                {item.badge ? (
+                  <span
+                    aria-hidden="true"
+                    className="bg-primary text-primary-foreground absolute -top-1.5 -right-3 inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-4 font-semibold"
+                  >
+                    {item.badge}
+                  </span>
+                ) : null}
+              </span>
+              {item.label}
+              {item.badge ? (
+                <span className="sr-only">{`(${item.badge} waiting to be confirmed)`}</span>
+              ) : null}
+            </Link>
+          ))}
+          <button
+            aria-controls={open ? panelId : undefined}
+            aria-expanded={open}
             className={cn(
               FOCUS,
               tab,
-              item.active ? "text-primary bg-muted" : "text-foreground"
+              restActive || open ? "text-primary bg-muted" : "text-foreground"
             )}
-            href={{ pathname: item.href }}
-            key={item.href}
+            onClick={() => setOpenAt(open ? null : pathname)}
+            ref={moreRef}
+            type="button"
           >
-            <span className="relative">
-              <StudioIcon name={item.icon} />
-              {item.badge ? (
-                <span
-                  aria-hidden="true"
-                  className="bg-primary text-primary-foreground absolute -top-1.5 -right-3 inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-4 font-semibold"
-                >
-                  {item.badge}
-                </span>
-              ) : null}
-            </span>
-            {item.label}
-            {item.badge ? (
-              <span className="sr-only">{`(${item.badge} waiting to be confirmed)`}</span>
-            ) : null}
-          </Link>
-        ))}
-        <button
-          aria-controls={open ? panelId : undefined}
-          aria-expanded={open}
-          className={cn(
-            FOCUS,
-            tab,
-            restActive || open ? "text-primary bg-muted" : "text-foreground"
-          )}
-          onClick={() => setOpen((value) => !value)}
-          type="button"
-        >
-          <StudioIcon name="more" />
-          More
-        </button>
-      </nav>
-    </div>
+            <StudioIcon name="more" />
+            More
+          </button>
+        </nav>
+        {open ? (
+          <div
+            className="border-border bg-background absolute inset-x-0 bottom-full space-y-1 border-t border-b px-3 py-2"
+            id={panelId}
+          >
+            <nav aria-label="More">
+              <ul className="space-y-1">
+                {rest.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      aria-current={item.active ? "page" : undefined}
+                      className={cn(
+                        FOCUS,
+                        "flex min-h-11 items-center gap-3 rounded-xl px-3 font-medium",
+                        item.active
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground active:bg-muted"
+                      )}
+                      href={{ pathname: item.href }}
+                    >
+                      <StudioIcon name={item.icon} />
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            {footer}
+          </div>
+        ) : null}
+      </div>
+    </>
   );
 }

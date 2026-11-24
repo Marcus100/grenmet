@@ -59,6 +59,13 @@ describe("NeedsConfirming", () => {
     expect(rows[0]).toHaveTextContent("Monday, 30 November 2026, 10:00 am");
   });
 
+  it("says what the list covers", () => {
+    render(<NeedsConfirming orgSlug="sea-salt" pending={agenda([])} />);
+    expect(
+      screen.getByText("Covers the last 11 weeks and the next 6 weeks.")
+    ).toBeInTheDocument();
+  });
+
   it("still shows the heading, saying nothing is waiting", () => {
     render(<NeedsConfirming orgSlug="sea-salt" pending={agenda([])} />);
     expect(

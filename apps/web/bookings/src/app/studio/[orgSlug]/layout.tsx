@@ -4,8 +4,8 @@ import {
 } from "@/components/studio/studio-shell";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
-import { findOrganisation, getBusinessProfile } from "@/lib/studio-api";
-import { loadPendingRequests } from "@/lib/studio-pending";
+import { findOrganisation } from "@/lib/studio-api";
+import { loadBusinessProfile, loadPendingRequests } from "@/lib/studio-pending";
 import { canManageBookings, DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
 interface ShellData {
@@ -38,7 +38,7 @@ async function loadShellData(
     }
     data.name = org.name;
     data.canManage = canManageBookings(org.role);
-    const profile = await getBusinessProfile(accessToken, org.id);
+    const profile = await loadBusinessProfile(accessToken, org.id);
     data.publicSlug = profile.publicSlug ?? null;
     const pending = await loadPendingRequests(
       accessToken,

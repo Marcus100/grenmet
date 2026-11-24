@@ -4,7 +4,7 @@
 /** Spaces and the punctuation people type inside numbers. */
 const SEPARATORS = /[\s().-]/gu;
 
-const INTERNATIONAL = /^\+(\d{8,15})$/u;
+const INTERNATIONAL = /^\+([1-9]\d{7,14})$/u;
 const GRENADA_LOCAL = /^\d{7}$/u;
 const GRENADA_WITH_AREA = /^473\d{7}$/u;
 
@@ -41,15 +41,19 @@ export function whatsappHref(raw: string | null | undefined): string | null {
   return digits ? `https://wa.me/${digits}` : null;
 }
 
-/** A `tel:` address from what was typed (digits and a leading +), or null when nothing dialable is left. */
+/** The number at the start of the text: digits, an optional leading +, and the usual separators. */
+const LEADING_NUMBER = /^\s*(\+?[\d\s().-]*\d)/u;
+
+/**
+ * A `tel:` address from the number at the start of what was typed (digits and
+ * a leading +), or null when there is none. Text after the number, such as an
+ * extension, is dropped rather than joined onto it.
+ */
 export function telHref(raw: string | null | undefined): string | null {
-  if (!raw) {
+  const lead = raw ? LEADING_NUMBER.exec(raw)?.[1] : undefined;
+  if (!lead) {
     return null;
   }
-  const trimmed = raw.trim();
-  const digits = trimmed.replace(/\D/gu, "");
-  if (digits.length === 0) {
-    return null;
-  }
-  return `tel:${trimmed.startsWith("+") ? "+" : ""}${digits}`;
+  const digits = lead.replace(/\D/gu, "");
+  return `tel:${lead.startsWith("+") ? "+" : ""}${digits}`;
 }

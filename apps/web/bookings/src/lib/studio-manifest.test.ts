@@ -15,6 +15,7 @@ describe("studio manifest", () => {
     expect(manifest.start_url).toBe("/studio");
     expect(manifest.scope).toBe("/studio");
     expect(manifest.display).toBe("standalone");
+    expect(manifest.orientation).toBeUndefined();
   });
 
   it("uses the lane colours", () => {

@@ -15,6 +15,7 @@ import {
   CARD_LINK,
   StudioPageHeader,
 } from "@/components/studio/studio-ui";
+import { telHref } from "@/lib/phone";
 import { requireSession } from "@/lib/session";
 import { getBooking } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
@@ -161,7 +162,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
                 booking.customer.phone ? (
                   <a
                     className="text-primary underline underline-offset-4"
-                    href={`tel:${booking.customer.phone}`}
+                    href={telHref(booking.customer.phone) ?? undefined}
                   >
                     {booking.customer.phone}
                   </a>

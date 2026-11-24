@@ -170,8 +170,14 @@ not: the Studio uses the Bookings tokens only, never `--gm-*`.
 - **Agenda** opens with "Needs confirming (n)": bookings with status `pending`
   (the business has to answer) from two weeks back to 47 days ahead, each row
   customer, service, day and time, linking to the booking where Confirm,
-  Change time and Decline are. With none it reads "Nothing waiting." The same
-  count sits on the Agenda navigation item. "Awaiting deposit" is not listed:
+  Change time and Decline are. With none it reads "Nothing waiting." The block
+  says what it covers ("Covers the last 11 weeks and the next 6 weeks"): two
+  agenda reads of 62 days each (the API's limit), so a request older than 11
+  weeks, or later than 6 weeks ahead, is not listed or counted. When more than
+  100 per window exist it says "Showing n of m". The same
+  count sits on the Agenda navigation item. The count is read on a full page
+  load and again after Confirm, Decline or Change time; it does not update
+  while browsing between pages, and there is no polling for now. "Awaiting deposit" is not listed:
   that waits for the customer.
 - **Booking detail** has Call (`tel:`) and WhatsApp (`https://wa.me/<digits>`,
   new tab). WhatsApp appears only when the number normalises

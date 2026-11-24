@@ -31,6 +31,8 @@ describe("whatsappDigits", () => {
       "444 1234 ext 5",
       "call me",
       "++14734441234",
+      "+0 473 444 1234",
+      "+01473444123",
       "00 1 473 444 1234",
     ]) {
       expect(whatsappDigits(junk), junk).toBeNull();
@@ -53,8 +55,14 @@ describe("telHref", () => {
     expect(telHref("444 1234")).toBe("tel:4441234");
   });
 
+  it("uses only the leading number, never joining digits across words", () => {
+    expect(telHref("444 1234 ext 5")).toBe("tel:4441234");
+    expect(telHref("  +1 473 444 1234 (work) 99")).toBe("tel:+14734441234");
+  });
+
   it("gives nothing when no digit is left", () => {
     expect(telHref("n/a")).toBeNull();
+    expect(telHref("call 444 1234")).toBeNull();
     expect(telHref("")).toBeNull();
     expect(telHref(null)).toBeNull();
   });

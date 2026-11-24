@@ -115,4 +115,56 @@ describe("studio tab bar", () => {
     ).toHaveAttribute("aria-current", "page");
     expect(screen.getByText("Footer link")).toBeInTheDocument();
   });
+
+  it("puts the More panel after the tabs, so keyboard order follows", () => {
+    pathname.value = "/studio/sea-salt/agenda";
+    render(<StudioTabBar {...ALL} footer={null} />);
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    const tabs = screen.getByRole("navigation", { name: "Studio tabs" });
+    const panel = screen.getByRole("navigation", { name: "More" });
+    // The panel follows the tabs in the DOM (CSS places it above them).
+    const order = [tabs, panel].sort((x, y) =>
+      x.compareDocumentPosition(y) === Node.DOCUMENT_POSITION_FOLLOWING ||
+      x.compareDocumentPosition(y) ===
+        Node.DOCUMENT_POSITION_FOLLOWING + Node.DOCUMENT_POSITION_CONTAINED_BY
+        ? -1
+        : 1
+    );
+    expect(order[0]).toBe(tabs);
+  });
+
+  it("closes on Escape and returns focus to More", () => {
+    pathname.value = "/studio/sea-salt/agenda";
+    render(<StudioTabBar {...ALL} footer={null} />);
+    const more = screen.getByRole("button", { name: "More" });
+    fireEvent.click(more);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(more).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("navigation", { name: "More" })).toBeNull();
+    expect(more).toHaveFocus();
+  });
+
+  it("closes on an outside tap", () => {
+    pathname.value = "/studio/sea-salt/agenda";
+    render(<StudioTabBar {...ALL} footer={null} />);
+    const more = screen.getByRole("button", { name: "More" });
+    fireEvent.click(more);
+    fireEvent.click(screen.getByRole("button", { name: "Close menu" }));
+    expect(more).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: "Close menu" })).toBeNull();
+  });
+
+  it("closes when the page changes", () => {
+    pathname.value = "/studio/sea-salt/agenda";
+    const { rerender } = render(<StudioTabBar {...ALL} footer={null} />);
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    expect(screen.getByRole("navigation", { name: "More" })).toBeVisible();
+    pathname.value = "/studio/sea-salt/settings";
+    rerender(<StudioTabBar {...ALL} footer={null} />);
+    expect(screen.queryByRole("navigation", { name: "More" })).toBeNull();
+    expect(screen.getByRole("button", { name: "More" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
+  });
 });

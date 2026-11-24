@@ -6,6 +6,9 @@ import { CARD, FOCUS } from "@/components/studio/studio-ui";
 import type { StudioFailure } from "@/lib/studio-errors";
 import { DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
+/** What the list covers (`lib/studio-pending.ts` reads exactly this window). */
+const WINDOW_NOTE = "Covers the last 11 weeks and the next 6 weeks.";
+
 type Pending =
   | { ok: true; value: BookingAgenda }
   | { failure: StudioFailure; ok: false };
@@ -43,6 +46,7 @@ export function NeedsConfirming({
       >
         {count > 0 ? `Needs confirming (${count})` : "Needs confirming"}
       </h2>
+      <p className="text-foreground/80 text-sm">{WINDOW_NOTE}</p>
       {items.length === 0 ? (
         <p className="text-foreground/80">Nothing waiting.</p>
       ) : (

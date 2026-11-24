@@ -4,7 +4,7 @@ import { StudioPlainFrame } from "@/components/studio/studio-shell";
 export default function Loading() {
   return (
     <StudioPlainFrame>
-      <StudioLoading>Loading your businesses...</StudioLoading>
+      <StudioLoading>Loading...</StudioLoading>
     </StudioPlainFrame>
   );
 }

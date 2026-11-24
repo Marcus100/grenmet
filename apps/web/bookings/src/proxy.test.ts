@@ -209,4 +209,18 @@ describe("proxy: manage links that lead nowhere", () => {
     expect(post.status).toBe(200);
     expect(linkExists).not.toHaveBeenCalled();
   });
+
+  it("leaves the install manifest and icons alone: no sign-in, no business lookup", async () => {
+    for (const path of [
+      "/studio-manifest.webmanifest",
+      "/studio-icons/icon-192.png",
+    ]) {
+      const response = await proxy(request(path));
+      expect(response.status, path).toBe(200);
+      expect(response.headers.get("location"), path).toBeNull();
+      expect(rewrittenTo(response), path).toBeNull();
+    }
+    expect(exists).not.toHaveBeenCalled();
+    expect(linkExists).not.toHaveBeenCalled();
+  });
 });

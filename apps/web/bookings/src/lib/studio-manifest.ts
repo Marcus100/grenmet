@@ -18,7 +18,6 @@ export function studioManifest(): MetadataRoute.Manifest {
     start_url: "/studio",
     scope: "/studio",
     display: "standalone",
-    orientation: "portrait",
     theme_color: STUDIO_THEME_COLOR,
     background_color: STUDIO_BACKGROUND_COLOR,
     icons: [

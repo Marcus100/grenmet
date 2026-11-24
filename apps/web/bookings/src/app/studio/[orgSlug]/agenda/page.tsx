@@ -23,14 +23,9 @@ import { env } from "@/env";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
 import { type SetupStep, setupSteps } from "@/lib/setup-checklist";
-import {
-  getAgenda,
-  getBusinessProfile,
-  getSettings,
-  listProviders,
-} from "@/lib/studio-api";
+import { getAgenda, getSettings, listProviders } from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
-import { loadPendingRequests } from "@/lib/studio-pending";
+import { loadBusinessProfile, loadPendingRequests } from "@/lib/studio-pending";
 import {
   type AgendaRange,
   agendaDepositView,
@@ -111,7 +106,7 @@ export default async function AgendaPage({
   // "Today" is the day on the business's own calendar, so its zone comes first.
   // The same profile read gives the public booking address for the header.
   const profile = await guarded(
-    () => getBusinessProfile(session.accessToken, organisationId),
+    () => loadBusinessProfile(session.accessToken, organisationId),
     base
   );
   if (!profile.ok) {

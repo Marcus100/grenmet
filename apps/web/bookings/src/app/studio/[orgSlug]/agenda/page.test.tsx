@@ -20,7 +20,11 @@ vi.mock("@/lib/studio-api", () => ({
   getSettings: vi.fn(),
   listProviders: vi.fn(),
 }));
-vi.mock("@/lib/studio-pending", () => ({ loadPendingRequests: vi.fn() }));
+vi.mock("@/lib/studio-pending", () => ({
+  loadBusinessProfile: (token: string, organisationId: string) =>
+    getBusinessProfile(token, organisationId),
+  loadPendingRequests: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");

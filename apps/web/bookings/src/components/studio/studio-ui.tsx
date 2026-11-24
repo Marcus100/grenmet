@@ -55,22 +55,3 @@ export function StudioPageHeader({
     </header>
   );
 }
-
-export function StudioCard({
-  as: Tag = "section",
-  children,
-  className,
-  ...rest
-}: Readonly<
-  {
-    as?: "article" | "div" | "section";
-    children: React.ReactNode;
-    className?: string;
-  } & React.HTMLAttributes<HTMLElement>
->) {
-  return (
-    <Tag className={cn(CARD, className)} {...rest}>
-      {children}
-    </Tag>
-  );
-}

@@ -12,7 +12,11 @@ vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
   getBusinessProfile: vi.fn(),
 }));
-vi.mock("@/lib/studio-pending", () => ({ loadPendingRequests: vi.fn() }));
+vi.mock("@/lib/studio-pending", () => ({
+  loadBusinessProfile: (token: string, organisationId: string) =>
+    getBusinessProfile(token, organisationId),
+  loadPendingRequests: vi.fn(),
+}));
 
 import { getSession } from "@/lib/session";
 import { findOrganisation, getBusinessProfile } from "@/lib/studio-api";
