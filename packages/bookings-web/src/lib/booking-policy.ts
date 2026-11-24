@@ -111,7 +111,8 @@ function changeClause(input: BookingRulesInput): string {
   if (input.cutoffHours <= 0) {
     return "Change or cancel online any time before it starts.";
   }
-  const who = input.businessName ?? "the business";
+  // The manage payload sends "" for a business with no name set.
+  const who = input.businessName?.trim() || "the business";
   return `Change or cancel online up to ${formatHours(input.cutoffHours)} before; after that, contact ${who}.`;
 }
 

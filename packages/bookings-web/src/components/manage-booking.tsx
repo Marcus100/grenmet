@@ -142,6 +142,7 @@ export function ManageBooking({
         policy={booking.booking_policy}
         rules={{
           bookingStatus: booking.status,
+          businessName: booking.business_name,
           currency: booking.currency,
           cutoffHours: booking.cancel_cutoff_hours,
           // The booking's own snapshot: what was set when it was made.
@@ -168,7 +169,8 @@ export function ManageBooking({
         <div className="notice">
           <p>
             Changes close {formatHours(booking.cancel_cutoff_hours)} before your
-            appointment. To change or cancel now, please contact the business
+            appointment. To change or cancel now, please contact{" "}
+            {booking.business_name?.trim() || "the business"}
             {contactEnding(booking.contact)}
           </p>
           <ContactLinks contact={booking.contact} />
