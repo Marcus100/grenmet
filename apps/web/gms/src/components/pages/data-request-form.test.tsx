@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DataRequestForm } from "@/components/pages/data-request-form";
 
@@ -97,5 +98,20 @@ describe("DataRequestForm", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Too many requests."
     );
+  });
+});
+
+const FORM_POST_TAG = /<form[^>]*method="post"/u;
+const BUTTON_TAG = /<button\b[^>]*>/gu;
+
+describe("DataRequestForm before the page script runs", () => {
+  it("posts as a form and keeps submit off until hydration", () => {
+    const html = renderToString(<DataRequestForm />);
+    expect(html).toMatch(FORM_POST_TAG);
+    const submit = (html.match(BUTTON_TAG) ?? []).find((tag) =>
+      tag.includes('type="submit"')
+    );
+    expect(submit).toBeDefined();
+    expect(submit).toContain('disabled=""');
   });
 });
