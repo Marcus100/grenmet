@@ -111,6 +111,24 @@
 .full-policy[open] > .full-policy-summary {
   margin-bottom: 0.25rem;
 }
+/* Add-ons: one 44 px row per add-on; the price sits in the text, not in colour. */
+.add-on {
+  align-items: flex-start;
+  min-height: 44px;
+  font-size: 1rem;
+}
+.add-on-description {
+  display: block;
+  font-size: 0.875rem;
+}
+.add-on-total {
+  font-weight: 600;
+}
+.add-on-lines {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
 .service-group + .service-group {
   margin-top: 1rem;
 }
