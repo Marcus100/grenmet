@@ -1,13 +1,14 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Response, status
 
 from src.auth.policy import require_permission
 from src.dependencies import CurrentUser, SessionDep
 from src.models import ApiError
 
 from . import service
-from .schemas import FreshnessReport
+from .probe_auth import authenticate_probe
+from .schemas import FreshnessReport, ProbeReport
 
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])
 
@@ -35,3 +36,32 @@ async def get_freshness(*, session: SessionDep, current_user: CurrentUser) -> An
         current_user=current_user, permission_key=service.FRESHNESS_PERMISSION
     )
     return await service.freshness_report(session)
+
+
+@router.get(
+    "/admin/freshness/probe",
+    response_model=ProbeReport,
+    dependencies=[Depends(authenticate_probe)],
+    summary="Uptime probe: is ingest fresh and the email outbox clear",
+    description=(
+        "For Better Stack and other plain HTTP monitors. Send the probe secret as "
+        "`Authorization: Bearer <MONITORING_PROBE_TOKEN>` (a header, never the URL). "
+        "200 with `healthy: true` when every check passes; 503 with `healthy: false` "
+        "and the names of the failing checks otherwise. Returns verdict, check names "
+        "and a time only: no counts, recipients, payloads or error text. Not user "
+        "authenticated; the secret is the one grant, equal to monitoring.freshness.read. "
+        "Answers 404 when the secret is not configured and 429 when called too often."
+    ),
+    responses={
+        200: {"model": ProbeReport, "description": "Every check passes"},
+        401: {"model": ApiError, "description": "Missing or wrong probe secret"},
+        404: {"model": ApiError, "description": "Probe secret not configured"},
+        429: {"model": ApiError, "description": "Too many probe calls"},
+        503: {"model": ProbeReport, "description": "At least one check fails"},
+    },
+)
+async def get_probe(*, session: SessionDep, response: Response) -> ProbeReport:
+    report = service.probe_report(await service.freshness_report(session))
+    if not report.healthy:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    return report

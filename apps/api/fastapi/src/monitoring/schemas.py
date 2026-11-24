@@ -41,3 +41,15 @@ class FreshnessReport(BaseModel):
     telemetry_available: bool
     feeds: list[FeedFreshness]
     email_outbox: EmailOutboxBacklog
+
+
+class ProbeReport(BaseModel):
+    """The uptime probe answer: a verdict and failing check names, nothing personal.
+
+    Failing names look like ``feed:cap_feeds``, ``telemetry``,
+    ``email_outbox.stale_pending`` or ``email_outbox.dead_last_window``.
+    """
+
+    healthy: bool
+    checked_at: UtcDateTime
+    failing_checks: list[str]
