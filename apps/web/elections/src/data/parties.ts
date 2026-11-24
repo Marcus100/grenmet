@@ -23,6 +23,12 @@ const PARTIES: Record<string, PartyInfo> = {
   GNP: { name: "Grenada National Party", hue: "hist" },
   PA: { name: "People’s Alliance", hue: "hist" },
   TNP: { name: "The National Party", hue: "hist" },
+  GSDP: { name: "Grenada Social Democratic Party", hue: "other" },
+  PNP: { name: "The People’s National Party", hue: "other" },
+  CHGCP: {
+    name: "Change of Hope for Grenada Carriacou & Petite Martinique",
+    hue: "other",
+  },
   GRP: { name: "Grenada Renaissance Party", hue: "other" },
   IFP: { name: "Independent Freedom Party", hue: "other" },
   IND: { name: "Independent", hue: "other" },

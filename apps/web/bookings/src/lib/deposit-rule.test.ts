@@ -4,6 +4,7 @@ import {
   depositPreviewMinor,
   depositRuleFields,
   exampleServiceFor,
+  minimumPriceFields,
 } from "./deposit-rule";
 
 const percentOn = (percentText: string) =>
@@ -183,5 +184,43 @@ describe("exampleServiceFor", () => {
       ])
     ).toBeNull();
     expect(exampleServiceFor([])).toBeNull();
+  });
+});
+
+describe("minimumPriceFields", () => {
+  it("is no minimum when blank", () => {
+    expect(minimumPriceFields("")).toEqual({ ok: true, value: null });
+    expect(minimumPriceFields("  ")).toEqual({ ok: true, value: null });
+  });
+
+  it("reads a money figure in minor units", () => {
+    expect(minimumPriceFields("50")).toEqual({ ok: true, value: 5000 });
+    expect(minimumPriceFields("50.50")).toEqual({ ok: true, value: 5050 });
+  });
+
+  it("refuses zero, negative, too many decimals and words", () => {
+    for (const text of ["0", "-5", "10.555", "fifty"]) {
+      expect(minimumPriceFields(text)).toMatchObject({ ok: false });
+    }
+  });
+});
+
+describe("depositPreviewMinor with a minimum price", () => {
+  const fixed = (minor: number, min: number | null) => ({
+    deposit_mode: "fixed" as const,
+    deposit_percent: null,
+    deposit_fixed_minor: minor,
+    deposit_min_price_minor: min,
+  });
+
+  it("takes no deposit below the minimum and the deposit at the minimum", () => {
+    expect(depositPreviewMinor(fixed(4000, 5000), 1500)).toBe(0);
+    expect(depositPreviewMinor(fixed(4000, 5000), 4999)).toBe(0);
+    expect(depositPreviewMinor(fixed(4000, 5000), 5000)).toBe(4000);
+  });
+
+  it("has no minimum when none is set", () => {
+    // The fixed amount is capped at the price: min(4000, 1500).
+    expect(depositPreviewMinor(fixed(4000, null), 1500)).toBe(1500);
   });
 });

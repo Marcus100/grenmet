@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingAddOnLine } from "./BookingAddOnLine.js";
 import type { BookingPaymentKind } from "./BookingPaymentKind.js";
 import type { BookingSource } from "./BookingSource.js";
 import type { BookingStatus } from "./BookingStatus.js";
@@ -53,6 +54,12 @@ export type BookingStudioDetail = {
   price_minor: number;
   deposit_minor: number;
   /**
+   * @description This booking's deposit terms: true when a confirmed booking keeps its deposit on cancellation. Set when the booking was made; later profile changes do not change it.
+   * @default false
+   * @type boolean | undefined
+   */
+  deposit_non_refundable?: boolean;
+  /**
    * @description `deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.
    * @type string
    */
@@ -79,4 +86,5 @@ export type BookingStudioDetail = {
   deposit_captured_minor: number;
   deposit_refunded_minor: number;
   events: BookingStudioEvent[];
+  add_ons?: BookingAddOnLine[];
 };

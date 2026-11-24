@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
+import { bookingPublicAddOnSchema } from "./bookingPublicAddOnSchema.js";
 import { bookingPublicProviderSchema } from "./bookingPublicProviderSchema.js";
 import { bookingPublicServiceSchema } from "./bookingPublicServiceSchema.js";
 
@@ -15,6 +16,17 @@ export const bookingStorefrontSchema = z
     timezone: z.string(),
     currency: z.string(),
     cancel_cutoff_hours: z.int(),
+    deposit_non_refundable: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe("True when a paid deposit is never refunded on cancellation."),
+    booking_policy: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "The business's plain-text booking policy, or null when it has none."
+      ),
     contact: bookingBusinessContactSchema.describe(
       "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
     ),
@@ -30,5 +42,9 @@ export const bookingStorefrontSchema = z
       ),
     services: z.array(bookingPublicServiceSchema),
     providers: z.array(bookingPublicProviderSchema),
+    add_ons: z
+      .array(bookingPublicAddOnSchema)
+      .optional()
+      .describe("Empty unless the business offers add-ons."),
   })
   .describe("What a client site needs to render its booking page.");

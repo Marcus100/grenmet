@@ -34,7 +34,7 @@ export interface AtlasContest {
 export interface AtlasDivision {
   /** Rows most votes first: [name, party, votes]. */
   c: CandidateRow[];
-  cast: number;
+  cast: number | null;
   code: ConstituencyCode;
   division: string;
   place: string;
@@ -61,7 +61,7 @@ export interface AtlasEvent {
     turnoutNote: string;
     votes: Record<string, number>;
     registered: number | null;
-    cast: number;
+    cast: number | null;
   };
   official: boolean;
   prev: string | null;

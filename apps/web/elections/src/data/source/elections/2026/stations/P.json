@@ -1,0 +1,184 @@
+[
+  [
+    "P01",
+    "a",
+    "Hermitage Government School",
+    228,
+    null,
+    null,
+    {
+      "NDC": 100,
+      "NNP": 51,
+      "DPM": 1
+    }
+  ],
+  [
+    "P01",
+    "b",
+    "Hermitage Government School",
+    228,
+    null,
+    null,
+    {
+      "NDC": 117,
+      "NNP": 49,
+      "DPM": 3
+    }
+  ],
+  [
+    "P02",
+    "a",
+    "Mt. Rose SDA School",
+    242,
+    null,
+    null,
+    {
+      "NDC": 114,
+      "NNP": 34,
+      "DPM": 4
+    }
+  ],
+  [
+    "P02",
+    "b",
+    "Mt. Rose SDA School",
+    260,
+    null,
+    null,
+    {
+      "NDC": 106,
+      "NNP": 45,
+      "DPM": 5
+    }
+  ],
+  [
+    "P03",
+    "a",
+    "River Sallee Government School",
+    322,
+    null,
+    null,
+    {
+      "NNP": 103,
+      "NDC": 96,
+      "DPM": 2
+    }
+  ],
+  [
+    "P03",
+    "b",
+    "River Sallee Government School",
+    307,
+    null,
+    null,
+    {
+      "NDC": 102,
+      "NNP": 95,
+      "DPM": 2
+    }
+  ],
+  [
+    "P03",
+    "c",
+    "River Sallee Government School",
+    331,
+    null,
+    null,
+    {
+      "NDC": 117,
+      "NNP": 101,
+      "DPM": 2
+    }
+  ],
+  [
+    "P04",
+    null,
+    "New Testament Church, Morne Fendue",
+    397,
+    null,
+    null,
+    {
+      "NDC": 145,
+      "NNP": 74,
+      "DPM": 9
+    }
+  ],
+  [
+    "P05",
+    "a",
+    "St. Ann's Pre-Primary School",
+    308,
+    null,
+    null,
+    {
+      "NDC": 120,
+      "NNP": 73,
+      "DPM": 4
+    }
+  ],
+  [
+    "P05",
+    "b",
+    "St. Ann's Pre-Primary School",
+    318,
+    null,
+    null,
+    {
+      "NNP": 113,
+      "NDC": 110,
+      "DPM": 8
+    }
+  ],
+  [
+    "P05",
+    "c",
+    "St. Ann's Pre-Primary School",
+    326,
+    null,
+    null,
+    {
+      "NDC": 104,
+      "NNP": 69,
+      "DPM": 12
+    }
+  ],
+  [
+    "P06",
+    "a",
+    "St. Patrick's Anglican School",
+    409,
+    null,
+    null,
+    {
+      "NDC": 172,
+      "NNP": 71,
+      "DPM": 6
+    }
+  ],
+  [
+    "P06",
+    "b",
+    "St. Patrick's Anglican School",
+    468,
+    null,
+    null,
+    {
+      "NDC": 203,
+      "NNP": 86,
+      "DPM": 5
+    }
+  ],
+  [
+    "P03",
+    "d",
+    "River Sallee Government School",
+    312,
+    null,
+    null,
+    {
+      "NDC": 123,
+      "NNP": 78,
+      "DPM": 5
+    }
+  ]
+]

@@ -56,4 +56,5 @@ export type BookingAgendaItem = {
    */
   payment_kind: BookingPaymentKind;
   currency: string;
+  add_on_names?: string[];
 };

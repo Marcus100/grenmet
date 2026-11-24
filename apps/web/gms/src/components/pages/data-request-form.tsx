@@ -19,6 +19,7 @@ import {
 } from "@/lib/data-request";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
+import { useHydrated } from "@/lib/use-hydrated";
 
 function readForm(form: HTMLFormElement) {
   const data = new FormData(form);
@@ -40,6 +41,7 @@ function readForm(form: HTMLFormElement) {
 }
 
 export function DataRequestForm() {
+  const hydrated = useHydrated();
   const [state, setState] = useState<FormState>({ status: "idle" });
   const errorRef = useRef<HTMLParagraphElement>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
@@ -257,9 +259,18 @@ export function DataRequestForm() {
         resetKey={turnstileReset}
         siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
       />
-      <Button disabled={state.status === "submitting"} type="submit">
+      <Button
+        disabled={!hydrated || state.status === "submitting"}
+        type="submit"
+      >
         {state.status === "submitting" ? "Sending…" : "Send request"}
       </Button>
+      <noscript>
+        <p className="text-body-sm text-gm-text-secondary">
+          This form needs JavaScript. Turn it on in your browser, or contact us
+          another way.
+        </p>
+      </noscript>
       {state.status === "error" && (
         <p
           className="text-body-base text-destructive font-medium"

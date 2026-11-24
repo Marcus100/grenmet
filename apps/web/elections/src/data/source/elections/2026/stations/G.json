@@ -1,0 +1,170 @@
+[
+  [
+    "G01",
+    null,
+    "Magistrate’s Court No. 3, St. John Street",
+    172,
+    null,
+    null,
+    {
+      "NDC": 52,
+      "DPM": 21,
+      "NNP": 12,
+      "CHGCP": 0
+    }
+  ],
+  [
+    "G02",
+    "a",
+    "St. George's Anglican Senior School",
+    272,
+    null,
+    null,
+    {
+      "NDC": 82,
+      "NNP": 46,
+      "DPM": 23,
+      "CHGCP": 0
+    }
+  ],
+  [
+    "G02",
+    "b",
+    "St. George's Anglican Senior School",
+    278,
+    null,
+    null,
+    {
+      "NDC": 94,
+      "NNP": 32,
+      "DPM": 25,
+      "CHGCP": 1
+    }
+  ],
+  [
+    "G03",
+    "a",
+    "National Stadium, River Road End",
+    403,
+    null,
+    null,
+    {
+      "NDC": 123,
+      "DPM": 80,
+      "NNP": 60,
+      "CHGCP": 1
+    }
+  ],
+  [
+    "G03",
+    "b",
+    "National Stadium, River Road End",
+    458,
+    null,
+    null,
+    {
+      "NDC": 115,
+      "DPM": 108,
+      "NNP": 64,
+      "CHGCP": 0
+    }
+  ],
+  [
+    "G03",
+    "c",
+    "National Stadium, River Road End",
+    447,
+    null,
+    null,
+    {
+      "NDC": 119,
+      "DPM": 88,
+      "NNP": 79,
+      "CHGCP": 0
+    }
+  ],
+  [
+    "G03",
+    "d",
+    "National Stadium, River Road End",
+    432,
+    null,
+    null,
+    {
+      "NDC": 129,
+      "DPM": 90,
+      "NNP": 63,
+      "CHGCP": 0
+    }
+  ],
+  [
+    "G03",
+    "e",
+    "National Stadium, River Road End",
+    438,
+    null,
+    null,
+    {
+      "NDC": 123,
+      "DPM": 88,
+      "NNP": 59,
+      "CHGCP": 0
+    }
+  ],
+  [
+    "G04",
+    null,
+    "Marryshow House (Police Included)",
+    227,
+    null,
+    null,
+    {
+      "NDC": 69,
+      "DPM": 41,
+      "NNP": 26,
+      "CHGCP": 1
+    }
+  ],
+  [
+    "G05",
+    null,
+    "Norton's Hall, Church Street",
+    270,
+    null,
+    null,
+    {
+      "NDC": 92,
+      "DPM": 48,
+      "NNP": 14,
+      "CHGCP": 2
+    }
+  ],
+  [
+    "G06",
+    null,
+    "Berean Christian Academy, Lucas Street",
+    426,
+    null,
+    null,
+    {
+      "NDC": 148,
+      "DPM": 49,
+      "NNP": 31,
+      "CHGCP": 0
+    }
+  ],
+  [
+    "G07",
+    null,
+    "St. George's SDA School, Archibald Avenue",
+    420,
+    null,
+    null,
+    {
+      "NDC": 123,
+      "DPM": 69,
+      "NNP": 50,
+      "CHGCP": 0
+    }
+  ]
+]

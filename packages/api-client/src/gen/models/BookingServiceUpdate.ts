@@ -14,4 +14,6 @@ export type BookingServiceUpdate = {
   deposit_minor?: number | null;
   active?: boolean | null;
   sort_order?: number | null;
+  is_add_on?: boolean | null;
+  add_on_categories?: string[] | null;
 };

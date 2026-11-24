@@ -69,7 +69,15 @@ async def enqueue_due_reminders(
     ).all():
         if not contact.email:
             continue
-        managed = public.Managed(booking, profile, service, provider, customer, contact)
+        managed = public.Managed(
+            booking,
+            profile,
+            service,
+            provider,
+            customer,
+            contact,
+            await public.add_on_lines(session, booking.id),
+        )
         message = emails.customer_reminder(
             public.build_mail(managed),
             confirmed=booking.status == BookingStatus.CONFIRMED.value,

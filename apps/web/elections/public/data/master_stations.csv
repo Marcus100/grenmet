@@ -2248,6 +2248,879 @@ event,constituency_code,division,station,place,registered,ballots_cast,rejected,
 2022,R,R09,,"Presbyterian Church Hall, Samaritan",268,188,0,GULP,0,PEO report 2022,current
 2022,R,R09,,"Presbyterian Church Hall, Samaritan",268,188,0,IND,16,PEO report 2022,current
 2022,R,R09,,"Presbyterian Church Hall, Samaritan",268,188,0,NNP,67,PEO report 2022,current
+2026,A,A01,,Windward Medical Station,432,,,NDC,136,PEO provisional results 2026,current
+2026,A,A01,,Windward Medical Station,432,,,NNP,123,PEO provisional results 2026,current
+2026,A,A02,,Bogles Community Centre,455,,,NDC,200,PEO provisional results 2026,current
+2026,A,A02,,Bogles Community Centre,455,,,NNP,81,PEO provisional results 2026,current
+2026,A,A03,a,Dover Government School,232,,,NNP,74,PEO provisional results 2026,current
+2026,A,A03,a,Dover Government School,232,,,NDC,69,PEO provisional results 2026,current
+2026,A,A03,b,Dover Government School,243,,,NDC,105,PEO provisional results 2026,current
+2026,A,A03,b,Dover Government School,243,,,NNP,46,PEO provisional results 2026,current
+2026,A,A04,,Mt. Pleasant Government Community Centre,326,,,NDC,138,PEO provisional results 2026,current
+2026,A,A04,,Mt. Pleasant Government Community Centre,326,,,NNP,45,PEO provisional results 2026,current
+2026,A,A05,,Top Hill Senior Citizens Home,365,,,NDC,144,PEO provisional results 2026,current
+2026,A,A05,,Top Hill Senior Citizens Home,365,,,NNP,95,PEO provisional results 2026,current
+2026,A,A06,a,Hillsborough Government School,303,,,NDC,144,PEO provisional results 2026,current
+2026,A,A06,a,Hillsborough Government School,303,,,NNP,51,PEO provisional results 2026,current
+2026,A,A06,b,Hillsborough Government School,300,,,NDC,174,PEO provisional results 2026,current
+2026,A,A06,b,Hillsborough Government School,300,,,NNP,30,PEO provisional results 2026,current
+2026,A,A07,,Hillsborough Police (Police Included),337,,,NDC,122,PEO provisional results 2026,current
+2026,A,A07,,Hillsborough Police (Police Included),337,,,NNP,78,PEO provisional results 2026,current
+2026,A,A08,a,"TAMCC Campus, Brunswick",298,,,NDC,122,PEO provisional results 2026,current
+2026,A,A08,a,"TAMCC Campus, Brunswick",298,,,NNP,67,PEO provisional results 2026,current
+2026,A,A08,b,"TAMCC Campus, Brunswick",249,,,NDC,88,PEO provisional results 2026,current
+2026,A,A08,b,"TAMCC Campus, Brunswick",249,,,NNP,64,PEO provisional results 2026,current
+2026,A,A09,a,L'Esterre R.C. School,317,,,NDC,124,PEO provisional results 2026,current
+2026,A,A09,a,L'Esterre R.C. School,317,,,NNP,81,PEO provisional results 2026,current
+2026,A,A09,b,L'Esterre R.C. School,325,,,NDC,132,PEO provisional results 2026,current
+2026,A,A09,b,L'Esterre R.C. School,325,,,NNP,94,PEO provisional results 2026,current
+2026,A,A10,a,Harvey Vale Government School,443,,,NDC,168,PEO provisional results 2026,current
+2026,A,A10,a,Harvey Vale Government School,443,,,NNP,101,PEO provisional results 2026,current
+2026,A,A10,b,Harvey Vale Government School,434,,,NDC,141,PEO provisional results 2026,current
+2026,A,A10,b,Harvey Vale Government School,434,,,NNP,112,PEO provisional results 2026,current
+2026,A,A11,a,Petite Martinique R.C. School,336,,,NDC,126,PEO provisional results 2026,current
+2026,A,A11,a,Petite Martinique R.C. School,336,,,NNP,108,PEO provisional results 2026,current
+2026,A,A11,b,Petite Martinique R.C. School,300,,,NDC,146,PEO provisional results 2026,current
+2026,A,A11,b,Petite Martinique R.C. School,300,,,NNP,61,PEO provisional results 2026,current
+2026,A,A09,c,L'Esterre R.C. School,319,,,NDC,113,PEO provisional results 2026,current
+2026,A,A09,c,L'Esterre R.C. School,319,,,NNP,105,PEO provisional results 2026,current
+2026,B,B01,a,Telescope Primary School,463,,,NNP,163,PEO provisional results 2026,current
+2026,B,B01,a,Telescope Primary School,463,,,NDC,160,PEO provisional results 2026,current
+2026,B,B01,a,Telescope Primary School,463,,,DPM,1,PEO provisional results 2026,current
+2026,B,B01,b,Telescope Primary School,465,,,NNP,190,PEO provisional results 2026,current
+2026,B,B01,b,Telescope Primary School,465,,,NDC,151,PEO provisional results 2026,current
+2026,B,B01,b,Telescope Primary School,465,,,DPM,2,PEO provisional results 2026,current
+2026,B,B01,c,Telescope Primary School,460,,,NDC,164,PEO provisional results 2026,current
+2026,B,B01,c,Telescope Primary School,460,,,NNP,148,PEO provisional results 2026,current
+2026,B,B01,c,Telescope Primary School,460,,,DPM,1,PEO provisional results 2026,current
+2026,B,B02,a,St. Andrew's Methodist School (Police Included),387,,,NDC,161,PEO provisional results 2026,current
+2026,B,B02,a,St. Andrew's Methodist School (Police Included),387,,,NNP,110,PEO provisional results 2026,current
+2026,B,B02,a,St. Andrew's Methodist School (Police Included),387,,,DPM,0,PEO provisional results 2026,current
+2026,B,B02,b,St. Andrew's Methodist School,317,,,NDC,124,PEO provisional results 2026,current
+2026,B,B02,b,St. Andrew's Methodist School,317,,,NNP,77,PEO provisional results 2026,current
+2026,B,B02,b,St. Andrew's Methodist School,317,,,DPM,0,PEO provisional results 2026,current
+2026,B,B03,,"Dark Knight's Shop, (Blast), Soubise",346,,,NDC,124,PEO provisional results 2026,current
+2026,B,B03,,"Dark Knight's Shop, (Blast), Soubise",346,,,NNP,102,PEO provisional results 2026,current
+2026,B,B03,,"Dark Knight's Shop, (Blast), Soubise",346,,,DPM,3,PEO provisional results 2026,current
+2026,B,B04,,"Mr. Owen Neckles Shop, Post Royal",282,,,NDC,103,PEO provisional results 2026,current
+2026,B,B04,,"Mr. Owen Neckles Shop, Post Royal",282,,,NNP,94,PEO provisional results 2026,current
+2026,B,B04,,"Mr. Owen Neckles Shop, Post Royal",282,,,DPM,1,PEO provisional results 2026,current
+2026,B,B05,,Marquis Pre-School,455,,,NNP,171,PEO provisional results 2026,current
+2026,B,B05,,Marquis Pre-School,455,,,NDC,163,PEO provisional results 2026,current
+2026,B,B05,,Marquis Pre-School,455,,,DPM,0,PEO provisional results 2026,current
+2026,B,B06,a,"Fort View, Mt. Carmel",353,,,NDC,162,PEO provisional results 2026,current
+2026,B,B06,a,"Fort View, Mt. Carmel",353,,,NNP,102,PEO provisional results 2026,current
+2026,B,B06,a,"Fort View, Mt. Carmel",353,,,DPM,1,PEO provisional results 2026,current
+2026,B,B06,b,"Fort View, Mt. Carmel",351,,,NDC,145,PEO provisional results 2026,current
+2026,B,B06,b,"Fort View, Mt. Carmel",351,,,NNP,99,PEO provisional results 2026,current
+2026,B,B06,b,"Fort View, Mt. Carmel",351,,,DPM,1,PEO provisional results 2026,current
+2026,B,B07,a,"Grenada Baptist Church, Grand Bacolet",244,,,NNP,94,PEO provisional results 2026,current
+2026,B,B07,a,"Grenada Baptist Church, Grand Bacolet",244,,,NDC,78,PEO provisional results 2026,current
+2026,B,B07,a,"Grenada Baptist Church, Grand Bacolet",244,,,DPM,1,PEO provisional results 2026,current
+2026,B,B07,b,"Grenada Baptist Church, Grand Bacolet",239,,,NNP,123,PEO provisional results 2026,current
+2026,B,B07,b,"Grenada Baptist Church, Grand Bacolet",239,,,NDC,62,PEO provisional results 2026,current
+2026,B,B07,b,"Grenada Baptist Church, Grand Bacolet",239,,,DPM,0,PEO provisional results 2026,current
+2026,B,B08,,Crochu R.C. School,258,,,NNP,103,PEO provisional results 2026,current
+2026,B,B08,,Crochu R.C. School,258,,,NDC,90,PEO provisional results 2026,current
+2026,B,B08,,Crochu R.C. School,258,,,DPM,2,PEO provisional results 2026,current
+2026,B,B09,a,Crochu R.C. School,269,,,NDC,99,PEO provisional results 2026,current
+2026,B,B09,a,Crochu R.C. School,269,,,NNP,85,PEO provisional results 2026,current
+2026,B,B09,a,Crochu R.C. School,269,,,DPM,3,PEO provisional results 2026,current
+2026,B,B09,b,Crochu R.C. School,264,,,NDC,124,PEO provisional results 2026,current
+2026,B,B09,b,Crochu R.C. School,264,,,NNP,67,PEO provisional results 2026,current
+2026,B,B09,b,Crochu R.C. School,264,,,DPM,2,PEO provisional results 2026,current
+2026,B,B10,,Mamma Cannes Community Centre,280,,,NNP,120,PEO provisional results 2026,current
+2026,B,B10,,Mamma Cannes Community Centre,280,,,NDC,102,PEO provisional results 2026,current
+2026,B,B10,,Mamma Cannes Community Centre,280,,,DPM,1,PEO provisional results 2026,current
+2026,C,C01,,Munich R.C. School,236,,,NDC,89,PEO provisional results 2026,current
+2026,C,C01,,Munich R.C. School,236,,,NNP,41,PEO provisional results 2026,current
+2026,C,C02,,Munich R.C. School,128,,,NDC,54,PEO provisional results 2026,current
+2026,C,C02,,Munich R.C. School,128,,,NNP,33,PEO provisional results 2026,current
+2026,C,C03,,Mt. Carmel Medical Station,250,,,NDC,131,PEO provisional results 2026,current
+2026,C,C03,,Mt. Carmel Medical Station,250,,,NNP,45,PEO provisional results 2026,current
+2026,C,C04,,Walker Church of God,198,,,NNP,73,PEO provisional results 2026,current
+2026,C,C04,,Walker Church of God,198,,,NDC,64,PEO provisional results 2026,current
+2026,C,C05,,Crissy's Sewing Shop ,297,,,NDC,122,PEO provisional results 2026,current
+2026,C,C05,,Crissy's Sewing Shop ,297,,,NNP,75,PEO provisional results 2026,current
+2026,C,C06,,Union Community Centre,300,,,NDC,106,PEO provisional results 2026,current
+2026,C,C06,,Union Community Centre,300,,,NNP,88,PEO provisional results 2026,current
+2026,C,C07,a,"Grenville Pre-Primary School, Cook Hill Road (Police Included)",434,,,NDC,172,PEO provisional results 2026,current
+2026,C,C07,a,"Grenville Pre-Primary School, Cook Hill Road (Police Included)",434,,,NNP,93,PEO provisional results 2026,current
+2026,C,C07,b,"Grenville Pre-Primary School, Cook Hill Road",532,,,NDC,195,PEO provisional results 2026,current
+2026,C,C07,b,"Grenville Pre-Primary School, Cook Hill Road",532,,,NNP,165,PEO provisional results 2026,current
+2026,C,C08,a,Harford Village Community Centre,255,,,NDC,120,PEO provisional results 2026,current
+2026,C,C08,a,Harford Village Community Centre,255,,,NNP,41,PEO provisional results 2026,current
+2026,C,C08,b,Harford Village Community Centre,244,,,NDC,109,PEO provisional results 2026,current
+2026,C,C08,b,Harford Village Community Centre,244,,,NNP,51,PEO provisional results 2026,current
+2026,C,C09,a,Grand Bras Community Centre ,315,,,NDC,150,PEO provisional results 2026,current
+2026,C,C09,a,Grand Bras Community Centre ,315,,,NNP,62,PEO provisional results 2026,current
+2026,C,C09,b,Grand Bras Community Centre ,317,,,NDC,141,PEO provisional results 2026,current
+2026,C,C09,b,Grand Bras Community Centre ,317,,,NNP,41,PEO provisional results 2026,current
+2026,C,C10,a,Forde Pre-Primary School,298,,,NDC,118,PEO provisional results 2026,current
+2026,C,C10,a,Forde Pre-Primary School,298,,,NNP,61,PEO provisional results 2026,current
+2026,C,C10,b,Forde Pre-Primary School,293,,,NDC,120,PEO provisional results 2026,current
+2026,C,C10,b,Forde Pre-Primary School,293,,,NNP,58,PEO provisional results 2026,current
+2026,C,C11,a,Grenville Secondary School,256,,,NDC,101,PEO provisional results 2026,current
+2026,C,C11,a,Grenville Secondary School,256,,,NNP,54,PEO provisional results 2026,current
+2026,C,C11,b,Grenville Secondary School,259,,,NDC,97,PEO provisional results 2026,current
+2026,C,C11,b,Grenville Secondary School,259,,,NNP,51,PEO provisional results 2026,current
+2026,C,C12,,Holy Innocents Anglican School,402,,,NDC,151,PEO provisional results 2026,current
+2026,C,C12,,Holy Innocents Anglican School,402,,,NNP,87,PEO provisional results 2026,current
+2026,C,C13,,St. James Community Centre,440,,,NDC,203,PEO provisional results 2026,current
+2026,C,C13,,St. James Community Centre,440,,,NNP,102,PEO provisional results 2026,current
+2026,C,C14,a,Birchgrove Community Centre,257,,,NDC,91,PEO provisional results 2026,current
+2026,C,C14,a,Birchgrove Community Centre,257,,,NNP,57,PEO provisional results 2026,current
+2026,C,C14,b,Birchgrove Community Centre,251,,,NDC,94,PEO provisional results 2026,current
+2026,C,C14,b,Birchgrove Community Centre,251,,,NNP,58,PEO provisional results 2026,current
+2026,D,D01,b,"Ministry of Infrastructure Development Road Office , Pearls (SSU Camp)",421,,,NNP,175,PEO provisional results 2026,current
+2026,D,D01,b,"Ministry of Infrastructure Development Road Office , Pearls (SSU Camp)",421,,,NDC,114,PEO provisional results 2026,current
+2026,D,D01,b,"Ministry of Infrastructure Development Road Office , Pearls (SSU Camp)",421,,,DPM,4,PEO provisional results 2026,current
+2026,D,D01,a,"Ministry of Infrastructure Development Road Office , Pearls (SSU Camp)",423,,,NDC,144,PEO provisional results 2026,current
+2026,D,D01,a,"Ministry of Infrastructure Development Road Office , Pearls (SSU Camp)",423,,,NNP,126,PEO provisional results 2026,current
+2026,D,D01,a,"Ministry of Infrastructure Development Road Office , Pearls (SSU Camp)",423,,,DPM,3,PEO provisional results 2026,current
+2026,D,D01,c,"Camp Raymond, Pearls (SSU Camp)",415,,,NNP,141,PEO provisional results 2026,current
+2026,D,D01,c,"Camp Raymond, Pearls (SSU Camp)",415,,,NDC,120,PEO provisional results 2026,current
+2026,D,D01,c,"Camp Raymond, Pearls (SSU Camp)",415,,,DPM,1,PEO provisional results 2026,current
+2026,D,D02,a,Belair Government School,404,,,NDC,143,PEO provisional results 2026,current
+2026,D,D02,a,Belair Government School,404,,,NNP,112,PEO provisional results 2026,current
+2026,D,D02,a,Belair Government School,404,,,DPM,2,PEO provisional results 2026,current
+2026,D,D02,b,Belair Government School,418,,,NDC,159,PEO provisional results 2026,current
+2026,D,D02,b,Belair Government School,418,,,NNP,103,PEO provisional results 2026,current
+2026,D,D02,b,Belair Government School,418,,,DPM,1,PEO provisional results 2026,current
+2026,D,D02,c,Belair Government School,396,,,NDC,158,PEO provisional results 2026,current
+2026,D,D02,c,Belair Government School,396,,,NNP,103,PEO provisional results 2026,current
+2026,D,D02,c,Belair Government School,396,,,DPM,4,PEO provisional results 2026,current
+2026,D,D03,a,Grenada Christian Academy,428,,,NDC,168,PEO provisional results 2026,current
+2026,D,D03,a,Grenada Christian Academy,428,,,NNP,127,PEO provisional results 2026,current
+2026,D,D03,a,Grenada Christian Academy,428,,,DPM,1,PEO provisional results 2026,current
+2026,D,D03,b,Grenada Christian Academy (Police Included),539,,,NNP,195,PEO provisional results 2026,current
+2026,D,D03,b,Grenada Christian Academy (Police Included),539,,,NDC,180,PEO provisional results 2026,current
+2026,D,D03,b,Grenada Christian Academy (Police Included),539,,,DPM,1,PEO provisional results 2026,current
+2026,D,D04,a,Tivoli R.C. School,414,,,NDC,154,PEO provisional results 2026,current
+2026,D,D04,a,Tivoli R.C. School,414,,,NNP,125,PEO provisional results 2026,current
+2026,D,D04,a,Tivoli R.C. School,414,,,DPM,1,PEO provisional results 2026,current
+2026,D,D04,b,Tivoli R.C. School,399,,,NDC,175,PEO provisional results 2026,current
+2026,D,D04,b,Tivoli R.C. School,399,,,NNP,91,PEO provisional results 2026,current
+2026,D,D04,b,Tivoli R.C. School,399,,,DPM,2,PEO provisional results 2026,current
+2026,D,D04,c,Tivoli R.C. School,444,,,NDC,161,PEO provisional results 2026,current
+2026,D,D04,c,Tivoli R.C. School,444,,,NNP,117,PEO provisional results 2026,current
+2026,D,D04,c,Tivoli R.C. School,444,,,DPM,3,PEO provisional results 2026,current
+2026,D,D05,a,La Poterie Community Centre,314,,,NNP,139,PEO provisional results 2026,current
+2026,D,D05,a,La Poterie Community Centre,314,,,NDC,101,PEO provisional results 2026,current
+2026,D,D05,a,La Poterie Community Centre,314,,,DPM,7,PEO provisional results 2026,current
+2026,D,D05,b,La Poterie Community Centre,319,,,NNP,107,PEO provisional results 2026,current
+2026,D,D05,b,La Poterie Community Centre,319,,,NDC,106,PEO provisional results 2026,current
+2026,D,D05,b,La Poterie Community Centre,319,,,DPM,12,PEO provisional results 2026,current
+2026,D,D06,,Upper St. John Community Centre,418,,,NDC,174,PEO provisional results 2026,current
+2026,D,D06,,Upper St. John Community Centre,418,,,NNP,126,PEO provisional results 2026,current
+2026,D,D06,,Upper St. John Community Centre,418,,,DPM,3,PEO provisional results 2026,current
+2026,D,D07,,Paraclete Medical Station,262,,,NDC,113,PEO provisional results 2026,current
+2026,D,D07,,Paraclete Medical Station,262,,,NNP,64,PEO provisional results 2026,current
+2026,D,D07,,Paraclete Medical Station,262,,,DPM,0,PEO provisional results 2026,current
+2026,E,E01,,Paraclete Government School,260,,,NNP,99,PEO provisional results 2026,current
+2026,E,E01,,Paraclete Government School,260,,,NDC,80,PEO provisional results 2026,current
+2026,E,E01,,Paraclete Government School,260,,,DPM,0,PEO provisional results 2026,current
+2026,E,E02,a,La Fillette R.C. School,395,,,NDC,183,PEO provisional results 2026,current
+2026,E,E02,a,La Fillette R.C. School,395,,,NNP,107,PEO provisional results 2026,current
+2026,E,E02,a,La Fillette R.C. School,395,,,DPM,1,PEO provisional results 2026,current
+2026,E,E02,b,La Fillette R.C. School,388,,,NDC,146,PEO provisional results 2026,current
+2026,E,E02,b,La Fillette R.C. School,388,,,NNP,133,PEO provisional results 2026,current
+2026,E,E02,b,La Fillette R.C. School,388,,,DPM,1,PEO provisional results 2026,current
+2026,E,E02,c,La Fillette R.C. School,396,,,NDC,170,PEO provisional results 2026,current
+2026,E,E02,c,La Fillette R.C. School,396,,,NNP,116,PEO provisional results 2026,current
+2026,E,E02,c,La Fillette R.C. School,396,,,DPM,0,PEO provisional results 2026,current
+2026,E,E02,d,La Fillette R.C. School,390,,,NDC,159,PEO provisional results 2026,current
+2026,E,E02,d,La Fillette R.C. School,390,,,NNP,114,PEO provisional results 2026,current
+2026,E,E02,d,La Fillette R.C. School,390,,,DPM,0,PEO provisional results 2026,current
+2026,E,E03,a,Byelands R.C. School,310,,,NDC,131,PEO provisional results 2026,current
+2026,E,E03,a,Byelands R.C. School,310,,,NNP,91,PEO provisional results 2026,current
+2026,E,E03,a,Byelands R.C. School,310,,,DPM,0,PEO provisional results 2026,current
+2026,E,E03,b,Byelands R.C. School,316,,,NDC,131,PEO provisional results 2026,current
+2026,E,E03,b,Byelands R.C. School,316,,,NNP,72,PEO provisional results 2026,current
+2026,E,E03,b,Byelands R.C. School,316,,,DPM,1,PEO provisional results 2026,current
+2026,E,E04,a,Paradise Medical Station,417,,,NDC,189,PEO provisional results 2026,current
+2026,E,E04,a,Paradise Medical Station,417,,,NNP,83,PEO provisional results 2026,current
+2026,E,E04,a,Paradise Medical Station,417,,,DPM,5,PEO provisional results 2026,current
+2026,E,E04,b,Paradise Medical Station,401,,,NDC,179,PEO provisional results 2026,current
+2026,E,E04,b,Paradise Medical Station,401,,,NNP,78,PEO provisional results 2026,current
+2026,E,E04,b,Paradise Medical Station,401,,,DPM,2,PEO provisional results 2026,current
+2026,E,E05,a,Mirabeau Agricultural Station,385,,,NDC,140,PEO provisional results 2026,current
+2026,E,E05,a,Mirabeau Agricultural Station,385,,,NNP,101,PEO provisional results 2026,current
+2026,E,E05,a,Mirabeau Agricultural Station,385,,,DPM,0,PEO provisional results 2026,current
+2026,E,E05,b,Mirabeau Agricultural Station,487,,,NDC,193,PEO provisional results 2026,current
+2026,E,E05,b,Mirabeau Agricultural Station,487,,,NNP,151,PEO provisional results 2026,current
+2026,E,E05,b,Mirabeau Agricultural Station,487,,,DPM,1,PEO provisional results 2026,current
+2026,E,E05,c,Mirabeau Agricultural Station (Police Included),375,,,NDC,159,PEO provisional results 2026,current
+2026,E,E05,c,Mirabeau Agricultural Station (Police Included),375,,,NNP,85,PEO provisional results 2026,current
+2026,E,E05,c,Mirabeau Agricultural Station (Police Included),375,,,DPM,0,PEO provisional results 2026,current
+2026,E,E06,a,"Sio's Bar, Birchgrove",216,,,NDC,74,PEO provisional results 2026,current
+2026,E,E06,a,"Sio's Bar, Birchgrove",216,,,NNP,55,PEO provisional results 2026,current
+2026,E,E06,a,"Sio's Bar, Birchgrove",216,,,DPM,12,PEO provisional results 2026,current
+2026,E,E06,b,"Sio's Bar, Birchgrove",238,,,NDC,94,PEO provisional results 2026,current
+2026,E,E06,b,"Sio's Bar, Birchgrove",238,,,NNP,64,PEO provisional results 2026,current
+2026,E,E06,b,"Sio's Bar, Birchgrove",238,,,DPM,14,PEO provisional results 2026,current
+2026,E,E07,a,"Paul's Bakery, Birchgrove Bamboo Bar, Birchgrove",240,,,NDC,114,PEO provisional results 2026,current
+2026,E,E07,a,"Paul's Bakery, Birchgrove Bamboo Bar, Birchgrove",240,,,NNP,46,PEO provisional results 2026,current
+2026,E,E07,a,"Paul's Bakery, Birchgrove Bamboo Bar, Birchgrove",240,,,DPM,2,PEO provisional results 2026,current
+2026,E,E07,b,"Paul's Bakery, Birchgrove Bamboo Bar, Birchgrove",220,,,NDC,101,PEO provisional results 2026,current
+2026,E,E07,b,"Paul's Bakery, Birchgrove Bamboo Bar, Birchgrove",220,,,NNP,62,PEO provisional results 2026,current
+2026,E,E07,b,"Paul's Bakery, Birchgrove Bamboo Bar, Birchgrove",220,,,DPM,0,PEO provisional results 2026,current
+2026,F,F01,a,"Gospel Hall, Perdmontemps",248,,,NDC,112,PEO provisional results 2026,current
+2026,F,F01,a,"Gospel Hall, Perdmontemps",248,,,NNP,45,PEO provisional results 2026,current
+2026,F,F02,a,St. Dominic's R.C. Church Centre,395,,,NDC,186,PEO provisional results 2026,current
+2026,F,F02,a,St. Dominic's R.C. Church Centre,395,,,NNP,70,PEO provisional results 2026,current
+2026,F,F02,b,St. Dominic's R.C. Church Centre,401,,,NDC,209,PEO provisional results 2026,current
+2026,F,F02,b,St. Dominic's R.C. Church Centre,401,,,NNP,60,PEO provisional results 2026,current
+2026,F,F03,a,St. Dominic's R.C. School,297,,,NDC,132,PEO provisional results 2026,current
+2026,F,F03,a,St. Dominic's R.C. School,297,,,NNP,74,PEO provisional results 2026,current
+2026,F,F03,b,St. Dominic's R.C. School,292,,,NDC,140,PEO provisional results 2026,current
+2026,F,F03,b,St. Dominic's R.C. School,292,,,NNP,49,PEO provisional results 2026,current
+2026,F,F04,a,"Minorca Pre School, Windsor Forest",359,,,NDC,184,PEO provisional results 2026,current
+2026,F,F04,a,"Minorca Pre School, Windsor Forest",359,,,NNP,69,PEO provisional results 2026,current
+2026,F,F04,b,"Minorca Pre School, Windsor Forest",365,,,NDC,172,PEO provisional results 2026,current
+2026,F,F04,b,"Minorca Pre School, Windsor Forest",365,,,NNP,71,PEO provisional results 2026,current
+2026,F,F04,c,"Minorca Pre School, Windsor Forest",353,,,NDC,173,PEO provisional results 2026,current
+2026,F,F04,c,"Minorca Pre School, Windsor Forest",353,,,NNP,72,PEO provisional results 2026,current
+2026,F,F05,a,"St. Theresa's R.C. School, Vincennes",427,,,NDC,229,PEO provisional results 2026,current
+2026,F,F05,a,"St. Theresa's R.C. School, Vincennes",427,,,NNP,55,PEO provisional results 2026,current
+2026,F,F05,b,"St. Theresa's R.C. School, Vincennes",412,,,NDC,216,PEO provisional results 2026,current
+2026,F,F05,b,"St. Theresa's R.C. School, Vincennes",412,,,NNP,71,PEO provisional results 2026,current
+2026,F,F06,a,Corinth Government School,409,,,NDC,198,PEO provisional results 2026,current
+2026,F,F06,a,Corinth Government School,409,,,NNP,77,PEO provisional results 2026,current
+2026,F,F06,b,Corinth Government School,421,,,NDC,178,PEO provisional results 2026,current
+2026,F,F06,b,Corinth Government School,421,,,NNP,90,PEO provisional results 2026,current
+2026,F,F06,c,Corinth Government School,416,,,NDC,214,PEO provisional results 2026,current
+2026,F,F06,c,Corinth Government School,416,,,NNP,49,PEO provisional results 2026,current
+2026,F,F06,d,Corinth Government School,396,,,NDC,169,PEO provisional results 2026,current
+2026,F,F06,d,Corinth Government School,396,,,NNP,99,PEO provisional results 2026,current
+2026,F,F07,a,St. David's R.C. School,240,,,NDC,138,PEO provisional results 2026,current
+2026,F,F07,a,St. David's R.C. School,240,,,NNP,21,PEO provisional results 2026,current
+2026,F,F08,a,"Magistrate's Court, St. David's ",458,,,NDC,216,PEO provisional results 2026,current
+2026,F,F08,a,"Magistrate's Court, St. David's ",458,,,NNP,89,PEO provisional results 2026,current
+2026,F,F08,b,"Magistrate's Court, St. David's (Police Included)",571,,,NDC,276,PEO provisional results 2026,current
+2026,F,F08,b,"Magistrate's Court, St. David's (Police Included)",571,,,NNP,126,PEO provisional results 2026,current
+2026,F,F09,a,"Berean Pre-School, Marlmount",326,,,NDC,123,PEO provisional results 2026,current
+2026,F,F09,a,"Berean Pre-School, Marlmount",326,,,NNP,86,PEO provisional results 2026,current
+2026,F,F09,b,"Berean Pre-School, Marlmount",322,,,NDC,120,PEO provisional results 2026,current
+2026,F,F09,b,"Berean Pre-School, Marlmount",322,,,NNP,70,PEO provisional results 2026,current
+2026,F,F10,a,Pomme Rose R.C. School,417,,,NDC,180,PEO provisional results 2026,current
+2026,F,F10,a,Pomme Rose R.C. School,417,,,NNP,106,PEO provisional results 2026,current
+2026,F,F10,b,Pomme Rose R.C. School,419,,,NDC,195,PEO provisional results 2026,current
+2026,F,F10,b,Pomme Rose R.C. School,419,,,NNP,100,PEO provisional results 2026,current
+2026,F,F11,a,"Candida Patrice Place, La Tante Junction ",420,,,NDC,191,PEO provisional results 2026,current
+2026,F,F11,a,"Candida Patrice Place, La Tante Junction ",420,,,NNP,72,PEO provisional results 2026,current
+2026,F,F11,b,"Candida Patrice Place, La Tante Junction ",413,,,NDC,167,PEO provisional results 2026,current
+2026,F,F11,b,"Candida Patrice Place, La Tante Junction ",413,,,NNP,89,PEO provisional results 2026,current
+2026,F,F12,a,Westerhall Secondary School,420,,,NDC,188,PEO provisional results 2026,current
+2026,F,F12,a,Westerhall Secondary School,420,,,NNP,73,PEO provisional results 2026,current
+2026,F,F12,b,Westerhall Secondary School,403,,,NDC,188,PEO provisional results 2026,current
+2026,F,F12,b,Westerhall Secondary School,403,,,NNP,67,PEO provisional results 2026,current
+2026,F,F12,c,Westerhall Secondary School,448,,,NDC,198,PEO provisional results 2026,current
+2026,F,F12,c,Westerhall Secondary School,448,,,NNP,69,PEO provisional results 2026,current
+2026,F,F12,d,Westerhall Secondary School,409,,,NDC,166,PEO provisional results 2026,current
+2026,F,F12,d,Westerhall Secondary School,409,,,NNP,68,PEO provisional results 2026,current
+2026,F,F01,b,"Gospel Hall, Perdmontemps",247,,,NDC,110,PEO provisional results 2026,current
+2026,F,F01,b,"Gospel Hall, Perdmontemps",247,,,NNP,58,PEO provisional results 2026,current
+2026,F,F02,c,St. Dominic’s Church Centre,379,,,NDC,176,PEO provisional results 2026,current
+2026,F,F02,c,St. Dominic’s Church Centre,379,,,NNP,64,PEO provisional results 2026,current
+2026,F,F07,b,St. David's R.C. School,233,,,NDC,123,PEO provisional results 2026,current
+2026,F,F07,b,St. David's R.C. School,233,,,NNP,29,PEO provisional results 2026,current
+2026,G,G01,,"Magistrate’s Court No. 3, St. John Street",172,,,NDC,52,PEO provisional results 2026,current
+2026,G,G01,,"Magistrate’s Court No. 3, St. John Street",172,,,DPM,21,PEO provisional results 2026,current
+2026,G,G01,,"Magistrate’s Court No. 3, St. John Street",172,,,NNP,12,PEO provisional results 2026,current
+2026,G,G01,,"Magistrate’s Court No. 3, St. John Street",172,,,CHGCP,0,PEO provisional results 2026,current
+2026,G,G02,a,St. George's Anglican Senior School,272,,,NDC,82,PEO provisional results 2026,current
+2026,G,G02,a,St. George's Anglican Senior School,272,,,NNP,46,PEO provisional results 2026,current
+2026,G,G02,a,St. George's Anglican Senior School,272,,,DPM,23,PEO provisional results 2026,current
+2026,G,G02,a,St. George's Anglican Senior School,272,,,CHGCP,0,PEO provisional results 2026,current
+2026,G,G02,b,St. George's Anglican Senior School,278,,,NDC,94,PEO provisional results 2026,current
+2026,G,G02,b,St. George's Anglican Senior School,278,,,NNP,32,PEO provisional results 2026,current
+2026,G,G02,b,St. George's Anglican Senior School,278,,,DPM,25,PEO provisional results 2026,current
+2026,G,G02,b,St. George's Anglican Senior School,278,,,CHGCP,1,PEO provisional results 2026,current
+2026,G,G03,a,"National Stadium, River Road End",403,,,NDC,123,PEO provisional results 2026,current
+2026,G,G03,a,"National Stadium, River Road End",403,,,DPM,80,PEO provisional results 2026,current
+2026,G,G03,a,"National Stadium, River Road End",403,,,NNP,60,PEO provisional results 2026,current
+2026,G,G03,a,"National Stadium, River Road End",403,,,CHGCP,1,PEO provisional results 2026,current
+2026,G,G03,b,"National Stadium, River Road End",458,,,NDC,115,PEO provisional results 2026,current
+2026,G,G03,b,"National Stadium, River Road End",458,,,DPM,108,PEO provisional results 2026,current
+2026,G,G03,b,"National Stadium, River Road End",458,,,NNP,64,PEO provisional results 2026,current
+2026,G,G03,b,"National Stadium, River Road End",458,,,CHGCP,0,PEO provisional results 2026,current
+2026,G,G03,c,"National Stadium, River Road End",447,,,NDC,119,PEO provisional results 2026,current
+2026,G,G03,c,"National Stadium, River Road End",447,,,DPM,88,PEO provisional results 2026,current
+2026,G,G03,c,"National Stadium, River Road End",447,,,NNP,79,PEO provisional results 2026,current
+2026,G,G03,c,"National Stadium, River Road End",447,,,CHGCP,0,PEO provisional results 2026,current
+2026,G,G03,d,"National Stadium, River Road End",432,,,NDC,129,PEO provisional results 2026,current
+2026,G,G03,d,"National Stadium, River Road End",432,,,DPM,90,PEO provisional results 2026,current
+2026,G,G03,d,"National Stadium, River Road End",432,,,NNP,63,PEO provisional results 2026,current
+2026,G,G03,d,"National Stadium, River Road End",432,,,CHGCP,0,PEO provisional results 2026,current
+2026,G,G03,e,"National Stadium, River Road End",438,,,NDC,123,PEO provisional results 2026,current
+2026,G,G03,e,"National Stadium, River Road End",438,,,DPM,88,PEO provisional results 2026,current
+2026,G,G03,e,"National Stadium, River Road End",438,,,NNP,59,PEO provisional results 2026,current
+2026,G,G03,e,"National Stadium, River Road End",438,,,CHGCP,0,PEO provisional results 2026,current
+2026,G,G04,,Marryshow House (Police Included),227,,,NDC,69,PEO provisional results 2026,current
+2026,G,G04,,Marryshow House (Police Included),227,,,DPM,41,PEO provisional results 2026,current
+2026,G,G04,,Marryshow House (Police Included),227,,,NNP,26,PEO provisional results 2026,current
+2026,G,G04,,Marryshow House (Police Included),227,,,CHGCP,1,PEO provisional results 2026,current
+2026,G,G05,,"Norton's Hall, Church Street",270,,,NDC,92,PEO provisional results 2026,current
+2026,G,G05,,"Norton's Hall, Church Street",270,,,DPM,48,PEO provisional results 2026,current
+2026,G,G05,,"Norton's Hall, Church Street",270,,,NNP,14,PEO provisional results 2026,current
+2026,G,G05,,"Norton's Hall, Church Street",270,,,CHGCP,2,PEO provisional results 2026,current
+2026,G,G06,,"Berean Christian Academy, Lucas Street",426,,,NDC,148,PEO provisional results 2026,current
+2026,G,G06,,"Berean Christian Academy, Lucas Street",426,,,DPM,49,PEO provisional results 2026,current
+2026,G,G06,,"Berean Christian Academy, Lucas Street",426,,,NNP,31,PEO provisional results 2026,current
+2026,G,G06,,"Berean Christian Academy, Lucas Street",426,,,CHGCP,0,PEO provisional results 2026,current
+2026,G,G07,,"St. George's SDA School, Archibald Avenue",420,,,NDC,123,PEO provisional results 2026,current
+2026,G,G07,,"St. George's SDA School, Archibald Avenue",420,,,DPM,69,PEO provisional results 2026,current
+2026,G,G07,,"St. George's SDA School, Archibald Avenue",420,,,NNP,50,PEO provisional results 2026,current
+2026,G,G07,,"St. George's SDA School, Archibald Avenue",420,,,CHGCP,0,PEO provisional results 2026,current
+2026,H,H01,a,Vendomme R.C. School,229,,,NDC,74,PEO provisional results 2026,current
+2026,H,H01,a,Vendomme R.C. School,229,,,NNP,64,PEO provisional results 2026,current
+2026,H,H01,a,Vendomme R.C. School,229,,,GRP,3,PEO provisional results 2026,current
+2026,H,H01,a,Vendomme R.C. School,229,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H01,b,Vendomme R.C. School,248,,,NDC,99,PEO provisional results 2026,current
+2026,H,H01,b,Vendomme R.C. School,248,,,NNP,53,PEO provisional results 2026,current
+2026,H,H01,b,Vendomme R.C. School,248,,,GRP,0,PEO provisional results 2026,current
+2026,H,H01,b,Vendomme R.C. School,248,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H02,a,New Hampshire Methodist Church,455,,,NDC,189,PEO provisional results 2026,current
+2026,H,H02,a,New Hampshire Methodist Church,455,,,NNP,88,PEO provisional results 2026,current
+2026,H,H02,a,New Hampshire Methodist Church,455,,,GRP,0,PEO provisional results 2026,current
+2026,H,H02,a,New Hampshire Methodist Church,455,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H02,b,New Hampshire Methodist Church,446,,,NDC,181,PEO provisional results 2026,current
+2026,H,H02,b,New Hampshire Methodist Church,446,,,NNP,84,PEO provisional results 2026,current
+2026,H,H02,b,New Hampshire Methodist Church,446,,,GSDP,2,PEO provisional results 2026,current
+2026,H,H02,b,New Hampshire Methodist Church,446,,,GRP,0,PEO provisional results 2026,current
+2026,H,H03,,Constantine Methodist School,180,,,NDC,61,PEO provisional results 2026,current
+2026,H,H03,,Constantine Methodist School,180,,,NNP,49,PEO provisional results 2026,current
+2026,H,H03,,Constantine Methodist School,180,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H04,a,Boca Secondary School,407,,,NDC,209,PEO provisional results 2026,current
+2026,H,H04,a,Boca Secondary School,407,,,NNP,57,PEO provisional results 2026,current
+2026,H,H04,a,Boca Secondary School,407,,,GSDP,1,PEO provisional results 2026,current
+2026,H,H04,a,Boca Secondary School,407,,,GRP,0,PEO provisional results 2026,current
+2026,H,H04,b,Boca Secondary School,370,,,NDC,173,PEO provisional results 2026,current
+2026,H,H04,b,Boca Secondary School,370,,,NNP,57,PEO provisional results 2026,current
+2026,H,H04,b,Boca Secondary School,370,,,GSDP,1,PEO provisional results 2026,current
+2026,H,H04,b,Boca Secondary School,370,,,GRP,1,PEO provisional results 2026,current
+2026,H,H05,a,Beaulieu R.C. School,423,,,NDC,170,PEO provisional results 2026,current
+2026,H,H05,a,Beaulieu R.C. School,423,,,NNP,58,PEO provisional results 2026,current
+2026,H,H05,a,Beaulieu R.C. School,423,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H05,a,Beaulieu R.C. School,423,,,GRP,0,PEO provisional results 2026,current
+2026,H,H05,b,"Beaulieu R.C. School, Pre-School Department",402,,,NDC,178,PEO provisional results 2026,current
+2026,H,H05,b,"Beaulieu R.C. School, Pre-School Department",402,,,NNP,85,PEO provisional results 2026,current
+2026,H,H05,b,"Beaulieu R.C. School, Pre-School Department",402,,,GRP,0,PEO provisional results 2026,current
+2026,H,H05,b,"Beaulieu R.C. School, Pre-School Department",402,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H05,c,"Beaulieu R.C. School, Pre-School Department",439,,,NDC,172,PEO provisional results 2026,current
+2026,H,H05,c,"Beaulieu R.C. School, Pre-School Department",439,,,NNP,81,PEO provisional results 2026,current
+2026,H,H05,c,"Beaulieu R.C. School, Pre-School Department",439,,,GRP,0,PEO provisional results 2026,current
+2026,H,H05,c,"Beaulieu R.C. School, Pre-School Department",439,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H06,a,"L.A. Purcell's Building, La Mode",400,,,NDC,155,PEO provisional results 2026,current
+2026,H,H06,a,"L.A. Purcell's Building, La Mode",400,,,NNP,86,PEO provisional results 2026,current
+2026,H,H06,a,"L.A. Purcell's Building, La Mode",400,,,GSDP,1,PEO provisional results 2026,current
+2026,H,H06,a,"L.A. Purcell's Building, La Mode",400,,,GRP,0,PEO provisional results 2026,current
+2026,H,H06,b,"L.A. Purcell's Building, La Mode",378,,,NDC,172,PEO provisional results 2026,current
+2026,H,H06,b,"L.A. Purcell's Building, La Mode",378,,,NNP,32,PEO provisional results 2026,current
+2026,H,H06,b,"L.A. Purcell's Building, La Mode",378,,,GSDP,6,PEO provisional results 2026,current
+2026,H,H06,b,"L.A. Purcell's Building, La Mode",378,,,GRP,0,PEO provisional results 2026,current
+2026,H,H07,a,"St. Mary's R.C. School, Tempe",374,,,NDC,154,PEO provisional results 2026,current
+2026,H,H07,a,"St. Mary's R.C. School, Tempe",374,,,NNP,65,PEO provisional results 2026,current
+2026,H,H07,a,"St. Mary's R.C. School, Tempe",374,,,GSDP,1,PEO provisional results 2026,current
+2026,H,H07,a,"St. Mary's R.C. School, Tempe",374,,,GRP,0,PEO provisional results 2026,current
+2026,H,H07,b,"St. Mary's R.C. School, Tempe",417,,,NDC,163,PEO provisional results 2026,current
+2026,H,H07,b,"St. Mary's R.C. School, Tempe",417,,,NNP,74,PEO provisional results 2026,current
+2026,H,H07,b,"St. Mary's R.C. School, Tempe",417,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H07,b,"St. Mary's R.C. School, Tempe",417,,,GRP,0,PEO provisional results 2026,current
+2026,H,H07,c,"St. Mary's R.C. School, Tempe",418,,,NDC,157,PEO provisional results 2026,current
+2026,H,H07,c,"St. Mary's R.C. School, Tempe",418,,,NNP,72,PEO provisional results 2026,current
+2026,H,H07,c,"St. Mary's R.C. School, Tempe",418,,,GRP,0,PEO provisional results 2026,current
+2026,H,H07,c,"St. Mary's R.C. School, Tempe",418,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H07,d,"St. Mary's R.C. School, Tempe (Police Included)",474,,,NDC,181,PEO provisional results 2026,current
+2026,H,H07,d,"St. Mary's R.C. School, Tempe (Police Included)",474,,,NNP,95,PEO provisional results 2026,current
+2026,H,H07,d,"St. Mary's R.C. School, Tempe (Police Included)",474,,,GSDP,1,PEO provisional results 2026,current
+2026,H,H07,d,"St. Mary's R.C. School, Tempe (Police Included)",474,,,GRP,0,PEO provisional results 2026,current
+2026,H,H07,e,"St. Mary's R.C. School, Tempe ",398,,,NDC,177,PEO provisional results 2026,current
+2026,H,H07,e,"St. Mary's R.C. School, Tempe ",398,,,NNP,68,PEO provisional results 2026,current
+2026,H,H07,e,"St. Mary's R.C. School, Tempe ",398,,,GRP,0,PEO provisional results 2026,current
+2026,H,H07,e,"St. Mary's R.C. School, Tempe ",398,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H08,a,"Alpha Junior School, Mt. Parnassus",378,,,NDC,165,PEO provisional results 2026,current
+2026,H,H08,a,"Alpha Junior School, Mt. Parnassus",378,,,NNP,66,PEO provisional results 2026,current
+2026,H,H08,a,"Alpha Junior School, Mt. Parnassus",378,,,GRP,0,PEO provisional results 2026,current
+2026,H,H08,a,"Alpha Junior School, Mt. Parnassus",378,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H08,b,"Alpha Junior School, Mt. Parnassus",376,,,NDC,166,PEO provisional results 2026,current
+2026,H,H08,b,"Alpha Junior School, Mt. Parnassus",376,,,NNP,57,PEO provisional results 2026,current
+2026,H,H08,b,"Alpha Junior School, Mt. Parnassus",376,,,GSDP,1,PEO provisional results 2026,current
+2026,H,H08,b,"Alpha Junior School, Mt. Parnassus",376,,,GRP,0,PEO provisional results 2026,current
+2026,H,H08,c,"Alpha Junior School, Mt. Parnassus",380,,,NDC,154,PEO provisional results 2026,current
+2026,H,H08,c,"Alpha Junior School, Mt. Parnassus",380,,,NNP,81,PEO provisional results 2026,current
+2026,H,H08,c,"Alpha Junior School, Mt. Parnassus",380,,,GRP,0,PEO provisional results 2026,current
+2026,H,H08,c,"Alpha Junior School, Mt. Parnassus",380,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H09,a,St. Paul's Government School,338,,,NDC,166,PEO provisional results 2026,current
+2026,H,H09,a,St. Paul's Government School,338,,,NNP,51,PEO provisional results 2026,current
+2026,H,H09,a,St. Paul's Government School,338,,,GSDP,3,PEO provisional results 2026,current
+2026,H,H09,a,St. Paul's Government School,338,,,GRP,0,PEO provisional results 2026,current
+2026,H,H09,b,St. Paul's Government School,351,,,NDC,160,PEO provisional results 2026,current
+2026,H,H09,b,St. Paul's Government School,351,,,NNP,71,PEO provisional results 2026,current
+2026,H,H09,b,St. Paul's Government School,351,,,GRP,0,PEO provisional results 2026,current
+2026,H,H09,b,St. Paul's Government School,351,,,GSDP,0,PEO provisional results 2026,current
+2026,H,H09,c,St. Paul's Government School,339,,,NDC,152,PEO provisional results 2026,current
+2026,H,H09,c,St. Paul's Government School,339,,,NNP,54,PEO provisional results 2026,current
+2026,H,H09,c,St. Paul's Government School,339,,,GSDP,2,PEO provisional results 2026,current
+2026,H,H09,c,St. Paul's Government School,339,,,GRP,0,PEO provisional results 2026,current
+2026,J,J01,a,Fontenoy Community Centre,307,,,NNP,125,PEO provisional results 2026,current
+2026,J,J01,a,Fontenoy Community Centre,307,,,NDC,36,PEO provisional results 2026,current
+2026,J,J01,a,Fontenoy Community Centre,307,,,PNP,6,PEO provisional results 2026,current
+2026,J,J02,a,"Pier 57, Grand Mal",391,,,NNP,174,PEO provisional results 2026,current
+2026,J,J02,a,"Pier 57, Grand Mal",391,,,NDC,34,PEO provisional results 2026,current
+2026,J,J02,a,"Pier 57, Grand Mal",391,,,PNP,1,PEO provisional results 2026,current
+2026,J,J02,b,"Pier 57, Grand Mal",389,,,NNP,178,PEO provisional results 2026,current
+2026,J,J02,b,"Pier 57, Grand Mal",389,,,NDC,62,PEO provisional results 2026,current
+2026,J,J02,b,"Pier 57, Grand Mal",389,,,PNP,4,PEO provisional results 2026,current
+2026,J,J02,c,"Pier 57, Grand Mal",393,,,NNP,158,PEO provisional results 2026,current
+2026,J,J02,c,"Pier 57, Grand Mal",393,,,NDC,63,PEO provisional results 2026,current
+2026,J,J02,c,"Pier 57, Grand Mal",393,,,PNP,1,PEO provisional results 2026,current
+2026,J,J03,a,Mt. Moritz Anglican School,277,,,NNP,100,PEO provisional results 2026,current
+2026,J,J03,a,Mt. Moritz Anglican School,277,,,NDC,45,PEO provisional results 2026,current
+2026,J,J03,a,Mt. Moritz Anglican School,277,,,PNP,5,PEO provisional results 2026,current
+2026,J,J03,b,Mt. Moritz Anglican School,277,,,NNP,107,PEO provisional results 2026,current
+2026,J,J03,b,Mt. Moritz Anglican School,277,,,NDC,57,PEO provisional results 2026,current
+2026,J,J03,b,Mt. Moritz Anglican School,277,,,PNP,8,PEO provisional results 2026,current
+2026,J,J04,a,Happy Hill R.C. School (Police Included),410,,,NNP,196,PEO provisional results 2026,current
+2026,J,J04,a,Happy Hill R.C. School (Police Included),410,,,NDC,54,PEO provisional results 2026,current
+2026,J,J04,a,Happy Hill R.C. School (Police Included),410,,,PNP,2,PEO provisional results 2026,current
+2026,J,J04,b,Happy Hill R.C. School,383,,,NNP,184,PEO provisional results 2026,current
+2026,J,J04,b,Happy Hill R.C. School,383,,,NDC,48,PEO provisional results 2026,current
+2026,J,J04,b,Happy Hill R.C. School,383,,,PNP,5,PEO provisional results 2026,current
+2026,J,J04,c,Happy Hill R.C. School,365,,,NNP,138,PEO provisional results 2026,current
+2026,J,J04,c,Happy Hill R.C. School,365,,,NDC,37,PEO provisional results 2026,current
+2026,J,J04,c,Happy Hill R.C. School,365,,,PNP,3,PEO provisional results 2026,current
+2026,J,J05,a,Brizan Community Centre,312,,,NNP,138,PEO provisional results 2026,current
+2026,J,J05,a,Brizan Community Centre,312,,,NDC,48,PEO provisional results 2026,current
+2026,J,J05,a,Brizan Community Centre,312,,,PNP,8,PEO provisional results 2026,current
+2026,J,J05,b,Brizan Community Centre,331,,,NNP,166,PEO provisional results 2026,current
+2026,J,J05,b,Brizan Community Centre,331,,,NDC,38,PEO provisional results 2026,current
+2026,J,J05,b,Brizan Community Centre,331,,,PNP,6,PEO provisional results 2026,current
+2026,J,J06,,"Anglican Church Building, Grenville Vale",103,,,NNP,36,PEO provisional results 2026,current
+2026,J,J06,,"Anglican Church Building, Grenville Vale",103,,,NDC,29,PEO provisional results 2026,current
+2026,J,J06,,"Anglican Church Building, Grenville Vale",103,,,PNP,3,PEO provisional results 2026,current
+2026,J,J07,,Willis Community Centre,421,,,NDC,142,PEO provisional results 2026,current
+2026,J,J07,,Willis Community Centre,421,,,NNP,125,PEO provisional results 2026,current
+2026,J,J07,,Willis Community Centre,421,,,PNP,5,PEO provisional results 2026,current
+2026,J,J01,b,Fontenoy Community Centre,298,,,NNP,106,PEO provisional results 2026,current
+2026,J,J01,b,Fontenoy Community Centre,298,,,NDC,57,PEO provisional results 2026,current
+2026,J,J01,b,Fontenoy Community Centre,298,,,PNP,6,PEO provisional results 2026,current
+2026,J,J01,c,Fontenoy Community Centre,310,,,NNP,122,PEO provisional results 2026,current
+2026,J,J01,c,Fontenoy Community Centre,310,,,NDC,60,PEO provisional results 2026,current
+2026,J,J01,c,Fontenoy Community Centre,310,,,PNP,6,PEO provisional results 2026,current
+2026,K,K01,,Anglican High School,204,,,NDC,68,PEO provisional results 2026,current
+2026,K,K01,,Anglican High School,204,,,NNP,43,PEO provisional results 2026,current
+2026,K,K01,,Anglican High School,204,,,DPM,2,PEO provisional results 2026,current
+2026,K,K01,,Anglican High School,204,,,GULP,0,PEO provisional results 2026,current
+2026,K,K02,a,Springs Open Bible Church,206,,,NDC,81,PEO provisional results 2026,current
+2026,K,K02,a,Springs Open Bible Church,206,,,NNP,48,PEO provisional results 2026,current
+2026,K,K02,a,Springs Open Bible Church,206,,,DPM,2,PEO provisional results 2026,current
+2026,K,K02,a,Springs Open Bible Church,206,,,GULP,0,PEO provisional results 2026,current
+2026,K,K02,b,Springs Open Bible Church,203,,,NDC,75,PEO provisional results 2026,current
+2026,K,K02,b,Springs Open Bible Church,203,,,NNP,53,PEO provisional results 2026,current
+2026,K,K02,b,Springs Open Bible Church,203,,,DPM,6,PEO provisional results 2026,current
+2026,K,K02,b,Springs Open Bible Church,203,,,GULP,0,PEO provisional results 2026,current
+2026,K,K03,a,Calivigny Community Centre,225,,,NDC,108,PEO provisional results 2026,current
+2026,K,K03,a,Calivigny Community Centre,225,,,NNP,34,PEO provisional results 2026,current
+2026,K,K03,a,Calivigny Community Centre,225,,,DPM,1,PEO provisional results 2026,current
+2026,K,K03,a,Calivigny Community Centre,225,,,GULP,0,PEO provisional results 2026,current
+2026,K,K04,a,St. Paul's Anglican Church,324,,,NDC,160,PEO provisional results 2026,current
+2026,K,K04,a,St. Paul's Anglican Church,324,,,NNP,48,PEO provisional results 2026,current
+2026,K,K04,a,St. Paul's Anglican Church,324,,,DPM,1,PEO provisional results 2026,current
+2026,K,K04,a,St. Paul's Anglican Church,324,,,GULP,0,PEO provisional results 2026,current
+2026,K,K04,b,St. Paul's Anglican Church,321,,,NDC,140,PEO provisional results 2026,current
+2026,K,K04,b,St. Paul's Anglican Church,321,,,NNP,53,PEO provisional results 2026,current
+2026,K,K04,b,St. Paul's Anglican Church,321,,,DPM,7,PEO provisional results 2026,current
+2026,K,K04,b,St. Paul's Anglican Church,321,,,GULP,0,PEO provisional results 2026,current
+2026,K,K04,c,St. Paul's Anglican Church,305,,,NDC,122,PEO provisional results 2026,current
+2026,K,K04,c,St. Paul's Anglican Church,305,,,NNP,69,PEO provisional results 2026,current
+2026,K,K04,c,St. Paul's Anglican Church,305,,,DPM,8,PEO provisional results 2026,current
+2026,K,K04,c,St. Paul's Anglican Church,305,,,GULP,2,PEO provisional results 2026,current
+2026,K,K05,,Bethel Methodist Church Hall (Police Included),419,,,NDC,189,PEO provisional results 2026,current
+2026,K,K05,,Bethel Methodist Church Hall (Police Included),419,,,NNP,72,PEO provisional results 2026,current
+2026,K,K05,,Bethel Methodist Church Hall (Police Included),419,,,DPM,3,PEO provisional results 2026,current
+2026,K,K05,,Bethel Methodist Church Hall (Police Included),419,,,GULP,0,PEO provisional results 2026,current
+2026,K,K06,,"Mr. Stephen Gellineau's Shop, Hope Vale",291,,,NDC,148,PEO provisional results 2026,current
+2026,K,K06,,"Mr. Stephen Gellineau's Shop, Hope Vale",291,,,NNP,45,PEO provisional results 2026,current
+2026,K,K06,,"Mr. Stephen Gellineau's Shop, Hope Vale",291,,,DPM,3,PEO provisional results 2026,current
+2026,K,K06,,"Mr. Stephen Gellineau's Shop, Hope Vale",291,,,GULP,0,PEO provisional results 2026,current
+2026,K,K07,a,La Borie Community Centre,358,,,NDC,135,PEO provisional results 2026,current
+2026,K,K07,a,La Borie Community Centre,358,,,NNP,85,PEO provisional results 2026,current
+2026,K,K07,a,La Borie Community Centre,358,,,DPM,3,PEO provisional results 2026,current
+2026,K,K07,a,La Borie Community Centre,358,,,GULP,0,PEO provisional results 2026,current
+2026,K,K07,b,La Borie Community Centre,365,,,NDC,138,PEO provisional results 2026,current
+2026,K,K07,b,La Borie Community Centre,365,,,NNP,80,PEO provisional results 2026,current
+2026,K,K07,b,La Borie Community Centre,365,,,DPM,4,PEO provisional results 2026,current
+2026,K,K07,b,La Borie Community Centre,365,,,GULP,0,PEO provisional results 2026,current
+2026,K,K07,c,La Borie Community Centre,347,,,NDC,148,PEO provisional results 2026,current
+2026,K,K07,c,La Borie Community Centre,347,,,NNP,77,PEO provisional results 2026,current
+2026,K,K07,c,La Borie Community Centre,347,,,DPM,6,PEO provisional results 2026,current
+2026,K,K07,c,La Borie Community Centre,347,,,GULP,0,PEO provisional results 2026,current
+2026,K,K08,a,Marian Multipurpose Centre,296,,,NDC,120,PEO provisional results 2026,current
+2026,K,K08,a,Marian Multipurpose Centre,296,,,NNP,74,PEO provisional results 2026,current
+2026,K,K08,a,Marian Multipurpose Centre,296,,,DPM,2,PEO provisional results 2026,current
+2026,K,K08,a,Marian Multipurpose Centre,296,,,GULP,1,PEO provisional results 2026,current
+2026,K,K08,b,Marian Multipurpose Centre,291,,,NDC,115,PEO provisional results 2026,current
+2026,K,K08,b,Marian Multipurpose Centre,291,,,NNP,60,PEO provisional results 2026,current
+2026,K,K08,b,Marian Multipurpose Centre,291,,,GULP,0,PEO provisional results 2026,current
+2026,K,K08,b,Marian Multipurpose Centre,291,,,DPM,0,PEO provisional results 2026,current
+2026,K,K08,c,Marian Multipurpose Centre,290,,,NDC,119,PEO provisional results 2026,current
+2026,K,K08,c,Marian Multipurpose Centre,290,,,NNP,57,PEO provisional results 2026,current
+2026,K,K08,c,Marian Multipurpose Centre,290,,,DPM,2,PEO provisional results 2026,current
+2026,K,K08,c,Marian Multipurpose Centre,290,,,GULP,0,PEO provisional results 2026,current
+2026,K,K09,,"Old NADMA Building, Morne Jaloux",346,,,NDC,139,PEO provisional results 2026,current
+2026,K,K09,,"Old NADMA Building, Morne Jaloux",346,,,NNP,67,PEO provisional results 2026,current
+2026,K,K09,,"Old NADMA Building, Morne Jaloux",346,,,DPM,4,PEO provisional results 2026,current
+2026,K,K09,,"Old NADMA Building, Morne Jaloux",346,,,GULP,1,PEO provisional results 2026,current
+2026,K,K10,a,Morne Jaloux R.C. School,299,,,NDC,110,PEO provisional results 2026,current
+2026,K,K10,a,Morne Jaloux R.C. School,299,,,NNP,67,PEO provisional results 2026,current
+2026,K,K10,a,Morne Jaloux R.C. School,299,,,GULP,2,PEO provisional results 2026,current
+2026,K,K10,a,Morne Jaloux R.C. School,299,,,DPM,2,PEO provisional results 2026,current
+2026,K,K10,b,Morne Jaloux R.C. School,275,,,NDC,122,PEO provisional results 2026,current
+2026,K,K10,b,Morne Jaloux R.C. School,275,,,NNP,67,PEO provisional results 2026,current
+2026,K,K10,b,Morne Jaloux R.C. School,275,,,DPM,3,PEO provisional results 2026,current
+2026,K,K10,b,Morne Jaloux R.C. School,275,,,GULP,1,PEO provisional results 2026,current
+2026,K,K10,c,Morne Jaloux R.C. School,281,,,NDC,120,PEO provisional results 2026,current
+2026,K,K10,c,Morne Jaloux R.C. School,281,,,NNP,63,PEO provisional results 2026,current
+2026,K,K10,c,Morne Jaloux R.C. School,281,,,GULP,3,PEO provisional results 2026,current
+2026,K,K10,c,Morne Jaloux R.C. School,281,,,DPM,2,PEO provisional results 2026,current
+2026,K,K03,b,Calivigny Community Centre,217,,,NDC,107,PEO provisional results 2026,current
+2026,K,K03,b,Calivigny Community Centre,217,,,NNP,26,PEO provisional results 2026,current
+2026,K,K03,b,Calivigny Community Centre,217,,,DPM,5,PEO provisional results 2026,current
+2026,K,K03,b,Calivigny Community Centre,217,,,GULP,1,PEO provisional results 2026,current
+2026,L,L01,a,South St. George Government School,338,,,NDC,119,PEO provisional results 2026,current
+2026,L,L01,a,South St. George Government School,338,,,NNP,51,PEO provisional results 2026,current
+2026,L,L01,a,South St. George Government School,338,,,DPM,2,PEO provisional results 2026,current
+2026,L,L01,a,South St. George Government School,338,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L01,b,South St. George Government School,340,,,NDC,132,PEO provisional results 2026,current
+2026,L,L01,b,South St. George Government School,340,,,NNP,48,PEO provisional results 2026,current
+2026,L,L01,b,South St. George Government School,340,,,DPM,8,PEO provisional results 2026,current
+2026,L,L01,b,South St. George Government School,340,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L01,c,South St. George Government School,325,,,NDC,110,PEO provisional results 2026,current
+2026,L,L01,c,South St. George Government School,325,,,NNP,55,PEO provisional results 2026,current
+2026,L,L01,c,South St. George Government School,325,,,DPM,3,PEO provisional results 2026,current
+2026,L,L01,c,South St. George Government School,325,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L01,d,South St. George Government School,336,,,NDC,135,PEO provisional results 2026,current
+2026,L,L01,d,South St. George Government School,336,,,NNP,37,PEO provisional results 2026,current
+2026,L,L01,d,South St. George Government School,336,,,DPM,6,PEO provisional results 2026,current
+2026,L,L01,d,South St. George Government School,336,,,GSDP,1,PEO provisional results 2026,current
+2026,L,L02,,Springs Child Development Centre,462,,,NDC,156,PEO provisional results 2026,current
+2026,L,L02,,Springs Child Development Centre,462,,,NNP,73,PEO provisional results 2026,current
+2026,L,L02,,Springs Child Development Centre,462,,,GSDP,1,PEO provisional results 2026,current
+2026,L,L02,,Springs Child Development Centre,462,,,DPM,1,PEO provisional results 2026,current
+2026,L,L03,a,Woburn Community Centre,376,,,NDC,167,PEO provisional results 2026,current
+2026,L,L03,a,Woburn Community Centre,376,,,NNP,52,PEO provisional results 2026,current
+2026,L,L03,a,Woburn Community Centre,376,,,DPM,3,PEO provisional results 2026,current
+2026,L,L03,a,Woburn Community Centre,376,,,GSDP,1,PEO provisional results 2026,current
+2026,L,L03,b,Woburn Community Centre,373,,,NDC,163,PEO provisional results 2026,current
+2026,L,L03,b,Woburn Community Centre,373,,,NNP,53,PEO provisional results 2026,current
+2026,L,L03,b,Woburn Community Centre,373,,,DPM,4,PEO provisional results 2026,current
+2026,L,L03,b,Woburn Community Centre,373,,,GSDP,1,PEO provisional results 2026,current
+2026,L,L04,a,Woburn Methodist Church and Church Hall,309,,,NDC,123,PEO provisional results 2026,current
+2026,L,L04,a,Woburn Methodist Church and Church Hall,309,,,NNP,49,PEO provisional results 2026,current
+2026,L,L04,a,Woburn Methodist Church and Church Hall,309,,,DPM,1,PEO provisional results 2026,current
+2026,L,L04,a,Woburn Methodist Church and Church Hall,309,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L04,b,Woburn Methodist Church and Church Hall,351,,,NDC,141,PEO provisional results 2026,current
+2026,L,L04,b,Woburn Methodist Church and Church Hall,351,,,NNP,62,PEO provisional results 2026,current
+2026,L,L04,b,Woburn Methodist Church and Church Hall,351,,,DPM,1,PEO provisional results 2026,current
+2026,L,L04,b,Woburn Methodist Church and Church Hall,351,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L04,c,Woburn Methodist Church and Church Hall,331,,,NDC,131,PEO provisional results 2026,current
+2026,L,L04,c,Woburn Methodist Church and Church Hall,331,,,NNP,60,PEO provisional results 2026,current
+2026,L,L04,c,Woburn Methodist Church and Church Hall,331,,,DPM,4,PEO provisional results 2026,current
+2026,L,L04,c,Woburn Methodist Church and Church Hall,331,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L05,a,The Church of Jesus Christ of Latter Day Saints,380,,,NDC,157,PEO provisional results 2026,current
+2026,L,L05,a,The Church of Jesus Christ of Latter Day Saints,380,,,NNP,44,PEO provisional results 2026,current
+2026,L,L05,a,The Church of Jesus Christ of Latter Day Saints,380,,,DPM,1,PEO provisional results 2026,current
+2026,L,L05,a,The Church of Jesus Christ of Latter Day Saints,380,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L05,b,The Church of Jesus Christ of Latter Day Saints,364,,,NDC,162,PEO provisional results 2026,current
+2026,L,L05,b,The Church of Jesus Christ of Latter Day Saints,364,,,NNP,42,PEO provisional results 2026,current
+2026,L,L05,b,The Church of Jesus Christ of Latter Day Saints,364,,,DPM,0,PEO provisional results 2026,current
+2026,L,L05,b,The Church of Jesus Christ of Latter Day Saints,364,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L06,a,"School for Special Education, The Limes",400,,,NDC,170,PEO provisional results 2026,current
+2026,L,L06,a,"School for Special Education, The Limes",400,,,NNP,62,PEO provisional results 2026,current
+2026,L,L06,a,"School for Special Education, The Limes",400,,,DPM,1,PEO provisional results 2026,current
+2026,L,L06,a,"School for Special Education, The Limes",400,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L06,b,"School for Special Education, The Limes",373,,,NDC,132,PEO provisional results 2026,current
+2026,L,L06,b,"School for Special Education, The Limes",373,,,NNP,64,PEO provisional results 2026,current
+2026,L,L06,b,"School for Special Education, The Limes",373,,,DPM,3,PEO provisional results 2026,current
+2026,L,L06,b,"School for Special Education, The Limes",373,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L06,c,"School for Special Education, The Limes",389,,,NDC,144,PEO provisional results 2026,current
+2026,L,L06,c,"School for Special Education, The Limes",389,,,NNP,56,PEO provisional results 2026,current
+2026,L,L06,c,"School for Special Education, The Limes",389,,,DPM,1,PEO provisional results 2026,current
+2026,L,L06,c,"School for Special Education, The Limes",389,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L06,d,"School for Special Education, The Limes",398,,,NDC,148,PEO provisional results 2026,current
+2026,L,L06,d,"School for Special Education, The Limes",398,,,NNP,40,PEO provisional results 2026,current
+2026,L,L06,d,"School for Special Education, The Limes",398,,,DPM,0,PEO provisional results 2026,current
+2026,L,L06,d,"School for Special Education, The Limes",398,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L07,a,Blessed Sacrament R.C. School,344,,,NDC,142,PEO provisional results 2026,current
+2026,L,L07,a,Blessed Sacrament R.C. School,344,,,NNP,47,PEO provisional results 2026,current
+2026,L,L07,a,Blessed Sacrament R.C. School,344,,,DPM,4,PEO provisional results 2026,current
+2026,L,L07,a,Blessed Sacrament R.C. School,344,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L07,b,Blessed Sacrament R.C. School,356,,,NDC,114,PEO provisional results 2026,current
+2026,L,L07,b,Blessed Sacrament R.C. School,356,,,NNP,59,PEO provisional results 2026,current
+2026,L,L07,b,Blessed Sacrament R.C. School,356,,,DPM,3,PEO provisional results 2026,current
+2026,L,L07,b,Blessed Sacrament R.C. School,356,,,GSDP,1,PEO provisional results 2026,current
+2026,L,L07,c,Blessed Sacrament R.C. School,351,,,NDC,138,PEO provisional results 2026,current
+2026,L,L07,c,Blessed Sacrament R.C. School,351,,,NNP,51,PEO provisional results 2026,current
+2026,L,L07,c,Blessed Sacrament R.C. School,351,,,DPM,1,PEO provisional results 2026,current
+2026,L,L07,c,Blessed Sacrament R.C. School,351,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L07,d,Blessed Sacrament R.C. School,366,,,NDC,119,PEO provisional results 2026,current
+2026,L,L07,d,Blessed Sacrament R.C. School,366,,,NNP,97,PEO provisional results 2026,current
+2026,L,L07,d,Blessed Sacrament R.C. School,366,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L07,d,Blessed Sacrament R.C. School,366,,,DPM,0,PEO provisional results 2026,current
+2026,L,L07,e,Blessed Sacrament R.C. School,345,,,NDC,113,PEO provisional results 2026,current
+2026,L,L07,e,Blessed Sacrament R.C. School,345,,,NNP,63,PEO provisional results 2026,current
+2026,L,L07,e,Blessed Sacrament R.C. School,345,,,DPM,5,PEO provisional results 2026,current
+2026,L,L07,e,Blessed Sacrament R.C. School,345,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L07,f,Blessed Sacrament R.C. School,350,,,NDC,132,PEO provisional results 2026,current
+2026,L,L07,f,Blessed Sacrament R.C. School,350,,,NNP,54,PEO provisional results 2026,current
+2026,L,L07,f,Blessed Sacrament R.C. School,350,,,DPM,0,PEO provisional results 2026,current
+2026,L,L07,f,Blessed Sacrament R.C. School,350,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L07,g,Blessed Sacrament R.C. School,348,,,NDC,124,PEO provisional results 2026,current
+2026,L,L07,g,Blessed Sacrament R.C. School,348,,,NNP,56,PEO provisional results 2026,current
+2026,L,L07,g,Blessed Sacrament R.C. School,348,,,DPM,9,PEO provisional results 2026,current
+2026,L,L07,g,Blessed Sacrament R.C. School,348,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L08,a,Calliste Government School,386,,,NDC,136,PEO provisional results 2026,current
+2026,L,L08,a,Calliste Government School,386,,,NNP,65,PEO provisional results 2026,current
+2026,L,L08,a,Calliste Government School,386,,,DPM,3,PEO provisional results 2026,current
+2026,L,L08,a,Calliste Government School,386,,,GSDP,1,PEO provisional results 2026,current
+2026,L,L08,b,Calliste Government School,382,,,NDC,142,PEO provisional results 2026,current
+2026,L,L08,b,Calliste Government School,382,,,NNP,57,PEO provisional results 2026,current
+2026,L,L08,b,Calliste Government School,382,,,DPM,3,PEO provisional results 2026,current
+2026,L,L08,b,Calliste Government School,382,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L08,c,Calliste Government School,382,,,NDC,166,PEO provisional results 2026,current
+2026,L,L08,c,Calliste Government School,382,,,NNP,44,PEO provisional results 2026,current
+2026,L,L08,c,Calliste Government School,382,,,DPM,1,PEO provisional results 2026,current
+2026,L,L08,c,Calliste Government School,382,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L08,d,Calliste Government School,388,,,NDC,168,PEO provisional results 2026,current
+2026,L,L08,d,Calliste Government School,388,,,NNP,57,PEO provisional results 2026,current
+2026,L,L08,d,Calliste Government School,388,,,DPM,1,PEO provisional results 2026,current
+2026,L,L08,d,Calliste Government School,388,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L08,e,Calliste Government School,375,,,NDC,145,PEO provisional results 2026,current
+2026,L,L08,e,Calliste Government School,375,,,NNP,51,PEO provisional results 2026,current
+2026,L,L08,e,Calliste Government School,375,,,DPM,2,PEO provisional results 2026,current
+2026,L,L08,e,Calliste Government School,375,,,GSDP,1,PEO provisional results 2026,current
+2026,L,L08,f,Calliste Government School (Police Included),374,,,NDC,140,PEO provisional results 2026,current
+2026,L,L08,f,Calliste Government School (Police Included),374,,,NNP,62,PEO provisional results 2026,current
+2026,L,L08,f,Calliste Government School (Police Included),374,,,DPM,1,PEO provisional results 2026,current
+2026,L,L08,f,Calliste Government School (Police Included),374,,,GSDP,1,PEO provisional results 2026,current
+2026,L,L08,g,Calliste Government School,462,,,NDC,166,PEO provisional results 2026,current
+2026,L,L08,g,Calliste Government School,462,,,NNP,83,PEO provisional results 2026,current
+2026,L,L08,g,Calliste Government School,462,,,DPM,3,PEO provisional results 2026,current
+2026,L,L08,g,Calliste Government School,462,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L06,e,"School for Special Education, The Limes",379,,,NDC,137,PEO provisional results 2026,current
+2026,L,L06,e,"School for Special Education, The Limes",379,,,NNP,56,PEO provisional results 2026,current
+2026,L,L06,e,"School for Special Education, The Limes",379,,,DPM,3,PEO provisional results 2026,current
+2026,L,L06,e,"School for Special Education, The Limes",379,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L07,h,Blessed Sacrament R.C School,352,,,NDC,135,PEO provisional results 2026,current
+2026,L,L07,h,Blessed Sacrament R.C School,352,,,NNP,64,PEO provisional results 2026,current
+2026,L,L07,h,Blessed Sacrament R.C School,352,,,DPM,3,PEO provisional results 2026,current
+2026,L,L07,h,Blessed Sacrament R.C School,352,,,GSDP,0,PEO provisional results 2026,current
+2026,L,L04,d,Woburn Methodist Church and Church Hall,321,,,NDC,134,PEO provisional results 2026,current
+2026,L,L04,d,Woburn Methodist Church and Church Hall,321,,,NNP,55,PEO provisional results 2026,current
+2026,L,L04,d,Woburn Methodist Church and Church Hall,321,,,DPM,1,PEO provisional results 2026,current
+2026,L,L04,d,Woburn Methodist Church and Church Hall,321,,,GSDP,0,PEO provisional results 2026,current
+2026,M,M01,a,St. John's Anglican School (Police Included),376,,,NDC,140,PEO provisional results 2026,current
+2026,M,M01,a,St. John's Anglican School (Police Included),376,,,NNP,110,PEO provisional results 2026,current
+2026,M,M01,a,St. John's Anglican School (Police Included),376,,,DPM,3,PEO provisional results 2026,current
+2026,M,M01,a,St. John's Anglican School (Police Included),376,,,GULP,1,PEO provisional results 2026,current
+2026,M,M01,b,St. John's Anglican School,307,,,NDC,137,PEO provisional results 2026,current
+2026,M,M01,b,St. John's Anglican School,307,,,NNP,63,PEO provisional results 2026,current
+2026,M,M01,b,St. John's Anglican School,307,,,GULP,5,PEO provisional results 2026,current
+2026,M,M01,b,St. John's Anglican School,307,,,DPM,4,PEO provisional results 2026,current
+2026,M,M02,a,St. John's R.C. School - Pre-School Department,332,,,NDC,122,PEO provisional results 2026,current
+2026,M,M02,a,St. John's R.C. School - Pre-School Department,332,,,NNP,84,PEO provisional results 2026,current
+2026,M,M02,a,St. John's R.C. School - Pre-School Department,332,,,DPM,4,PEO provisional results 2026,current
+2026,M,M02,a,St. John's R.C. School - Pre-School Department,332,,,GULP,1,PEO provisional results 2026,current
+2026,M,M02,b,St. John's R.C. School - Pre-School Department,346,,,NDC,118,PEO provisional results 2026,current
+2026,M,M02,b,St. John's R.C. School - Pre-School Department,346,,,NNP,81,PEO provisional results 2026,current
+2026,M,M02,b,St. John's R.C. School - Pre-School Department,346,,,DPM,5,PEO provisional results 2026,current
+2026,M,M02,b,St. John's R.C. School - Pre-School Department,346,,,GULP,1,PEO provisional results 2026,current
+2026,M,M02,c,St. John's R.C. School - Pre-School Department,336,,,NDC,129,PEO provisional results 2026,current
+2026,M,M02,c,St. John's R.C. School - Pre-School Department,336,,,NNP,82,PEO provisional results 2026,current
+2026,M,M02,c,St. John's R.C. School - Pre-School Department,336,,,GULP,3,PEO provisional results 2026,current
+2026,M,M02,c,St. John's R.C. School - Pre-School Department,336,,,DPM,2,PEO provisional results 2026,current
+2026,M,M03,a,Gouyave Methodist Church,380,,,NDC,142,PEO provisional results 2026,current
+2026,M,M03,a,Gouyave Methodist Church,380,,,NNP,104,PEO provisional results 2026,current
+2026,M,M03,a,Gouyave Methodist Church,380,,,DPM,2,PEO provisional results 2026,current
+2026,M,M03,a,Gouyave Methodist Church,380,,,GULP,0,PEO provisional results 2026,current
+2026,M,M03,b,Gouyave Methodist Church,356,,,NDC,119,PEO provisional results 2026,current
+2026,M,M03,b,Gouyave Methodist Church,356,,,NNP,83,PEO provisional results 2026,current
+2026,M,M03,b,Gouyave Methodist Church,356,,,DPM,1,PEO provisional results 2026,current
+2026,M,M03,b,Gouyave Methodist Church,356,,,GULP,0,PEO provisional results 2026,current
+2026,M,M04,a,Grand Roy Government School,331,,,NDC,130,PEO provisional results 2026,current
+2026,M,M04,a,Grand Roy Government School,331,,,NNP,64,PEO provisional results 2026,current
+2026,M,M04,a,Grand Roy Government School,331,,,DPM,8,PEO provisional results 2026,current
+2026,M,M04,a,Grand Roy Government School,331,,,GULP,0,PEO provisional results 2026,current
+2026,M,M04,b,Grand Roy Government School,318,,,NDC,116,PEO provisional results 2026,current
+2026,M,M04,b,Grand Roy Government School,318,,,NNP,92,PEO provisional results 2026,current
+2026,M,M04,b,Grand Roy Government School,318,,,DPM,9,PEO provisional results 2026,current
+2026,M,M04,b,Grand Roy Government School,318,,,GULP,0,PEO provisional results 2026,current
+2026,M,M04,c,Grand Roy Government School,337,,,NDC,123,PEO provisional results 2026,current
+2026,M,M04,c,Grand Roy Government School,337,,,NNP,83,PEO provisional results 2026,current
+2026,M,M04,c,Grand Roy Government School,337,,,DPM,7,PEO provisional results 2026,current
+2026,M,M04,c,Grand Roy Government School,337,,,GULP,2,PEO provisional results 2026,current
+2026,M,M05,a,Concord Government School,363,,,NNP,117,PEO provisional results 2026,current
+2026,M,M05,a,Concord Government School,363,,,NDC,106,PEO provisional results 2026,current
+2026,M,M05,a,Concord Government School,363,,,DPM,9,PEO provisional results 2026,current
+2026,M,M05,a,Concord Government School,363,,,GULP,1,PEO provisional results 2026,current
+2026,M,M05,b,Concord Government School,366,,,NDC,119,PEO provisional results 2026,current
+2026,M,M05,b,Concord Government School,366,,,NNP,107,PEO provisional results 2026,current
+2026,M,M05,b,Concord Government School,366,,,DPM,4,PEO provisional results 2026,current
+2026,M,M05,b,Concord Government School,366,,,GULP,1,PEO provisional results 2026,current
+2026,M,M05,c,Concord Government School,368,,,NNP,117,PEO provisional results 2026,current
+2026,M,M05,c,Concord Government School,368,,,NDC,81,PEO provisional results 2026,current
+2026,M,M05,c,Concord Government School,368,,,DPM,6,PEO provisional results 2026,current
+2026,M,M05,c,Concord Government School,368,,,GULP,0,PEO provisional results 2026,current
+2026,M,M06,,Florida Medical Station,271,,,NNP,107,PEO provisional results 2026,current
+2026,M,M06,,Florida Medical Station,271,,,NDC,75,PEO provisional results 2026,current
+2026,M,M06,,Florida Medical Station,271,,,DPM,0,PEO provisional results 2026,current
+2026,M,M06,,Florida Medical Station,271,,,GULP,0,PEO provisional results 2026,current
+2026,M,M07,a,Florida Government School,361,,,NDC,129,PEO provisional results 2026,current
+2026,M,M07,a,Florida Government School,361,,,NNP,117,PEO provisional results 2026,current
+2026,M,M07,a,Florida Government School,361,,,DPM,1,PEO provisional results 2026,current
+2026,M,M07,a,Florida Government School,361,,,GULP,1,PEO provisional results 2026,current
+2026,M,M07,b,Florida Government School,344,,,NDC,115,PEO provisional results 2026,current
+2026,M,M07,b,Florida Government School,344,,,NNP,89,PEO provisional results 2026,current
+2026,M,M07,b,Florida Government School,344,,,DPM,5,PEO provisional results 2026,current
+2026,M,M07,b,Florida Government School,344,,,GULP,0,PEO provisional results 2026,current
+2026,M,M07,c,Florida Government School,361,,,NDC,137,PEO provisional results 2026,current
+2026,M,M07,c,Florida Government School,361,,,NNP,92,PEO provisional results 2026,current
+2026,M,M07,c,Florida Government School,361,,,GULP,2,PEO provisional results 2026,current
+2026,M,M07,c,Florida Government School,361,,,DPM,1,PEO provisional results 2026,current
+2026,M,M08,a,Mt. Granby Community Centre,385,,,NDC,165,PEO provisional results 2026,current
+2026,M,M08,a,Mt. Granby Community Centre,385,,,NNP,92,PEO provisional results 2026,current
+2026,M,M08,a,Mt. Granby Community Centre,385,,,DPM,3,PEO provisional results 2026,current
+2026,M,M08,a,Mt. Granby Community Centre,385,,,GULP,3,PEO provisional results 2026,current
+2026,M,M08,b,Mt. Granby Community Centre,366,,,NDC,148,PEO provisional results 2026,current
+2026,M,M08,b,Mt. Granby Community Centre,366,,,NNP,76,PEO provisional results 2026,current
+2026,M,M08,b,Mt. Granby Community Centre,366,,,DPM,3,PEO provisional results 2026,current
+2026,M,M08,b,Mt. Granby Community Centre,366,,,GULP,2,PEO provisional results 2026,current
+2026,M,M09,,Clozier Community Centre,307,,,NNP,126,PEO provisional results 2026,current
+2026,M,M09,,Clozier Community Centre,307,,,NDC,81,PEO provisional results 2026,current
+2026,M,M09,,Clozier Community Centre,307,,,DPM,5,PEO provisional results 2026,current
+2026,M,M09,,Clozier Community Centre,307,,,GULP,1,PEO provisional results 2026,current
+2026,M,M04,d,Grand Roy Government School,307,,,NDC,104,PEO provisional results 2026,current
+2026,M,M04,d,Grand Roy Government School,307,,,NNP,87,PEO provisional results 2026,current
+2026,M,M04,d,Grand Roy Government School,307,,,DPM,2,PEO provisional results 2026,current
+2026,M,M04,d,Grand Roy Government School,307,,,GULP,0,PEO provisional results 2026,current
+2026,N,N06,b,Samaritan Presbyterian School,228,,,NDC,99,PEO provisional results 2026,current
+2026,N,N06,b,Samaritan Presbyterian School,228,,,NNP,55,PEO provisional results 2026,current
+2026,N,N02,a,Victoria Pre-Primary School,324,,,NDC,107,PEO provisional results 2026,current
+2026,N,N02,a,Victoria Pre-Primary School,324,,,NNP,107,PEO provisional results 2026,current
+2026,N,N02,b,Victoria Pre-Primary School,332,,,NDC,106,PEO provisional results 2026,current
+2026,N,N02,b,Victoria Pre-Primary School,332,,,NNP,103,PEO provisional results 2026,current
+2026,N,N02,c,Victoria Pre-Primary School,336,,,NDC,123,PEO provisional results 2026,current
+2026,N,N02,c,Victoria Pre-Primary School,336,,,NNP,107,PEO provisional results 2026,current
+2026,N,N03,a,Victoria Child Development Centre (Police Included),395,,,NDC,147,PEO provisional results 2026,current
+2026,N,N03,a,Victoria Child Development Centre (Police Included),395,,,NNP,121,PEO provisional results 2026,current
+2026,N,N03,b,Victoria Child Development Centre,349,,,NDC,140,PEO provisional results 2026,current
+2026,N,N03,b,Victoria Child Development Centre,349,,,NNP,92,PEO provisional results 2026,current
+2026,N,N04,a,St. Mark's Secondary School,319,,,NDC,112,PEO provisional results 2026,current
+2026,N,N04,a,St. Mark's Secondary School,319,,,NNP,97,PEO provisional results 2026,current
+2026,N,N04,b,St. Mark's Secondary School,332,,,NNP,131,PEO provisional results 2026,current
+2026,N,N04,b,St. Mark's Secondary School,332,,,NDC,104,PEO provisional results 2026,current
+2026,N,N04,c,St. Mark's Secondary School,334,,,NNP,107,PEO provisional results 2026,current
+2026,N,N04,c,St. Mark's Secondary School,334,,,NDC,102,PEO provisional results 2026,current
+2026,N,N05,a,"Mrs. DeAllie's Residence, Duquense",352,,,NDC,152,PEO provisional results 2026,current
+2026,N,N05,a,"Mrs. DeAllie's Residence, Duquense",352,,,NNP,97,PEO provisional results 2026,current
+2026,N,N05,b,"Mrs. DeAllie's Residence, Duquense",349,,,NNP,118,PEO provisional results 2026,current
+2026,N,N05,b,"Mrs. DeAllie's Residence, Duquense",349,,,NDC,112,PEO provisional results 2026,current
+2026,N,N06,a,Samaritan Presbyterian School,221,,,NDC,111,PEO provisional results 2026,current
+2026,N,N06,a,Samaritan Presbyterian School,221,,,NNP,42,PEO provisional results 2026,current
+2026,N,N01,,Maran Community Centre,332,,,NDC,124,PEO provisional results 2026,current
+2026,N,N01,,Maran Community Centre,332,,,NNP,101,PEO provisional results 2026,current
+2026,P,P01,a,Hermitage Government School,228,,,NDC,100,PEO provisional results 2026,current
+2026,P,P01,a,Hermitage Government School,228,,,NNP,51,PEO provisional results 2026,current
+2026,P,P01,a,Hermitage Government School,228,,,DPM,1,PEO provisional results 2026,current
+2026,P,P01,b,Hermitage Government School,228,,,NDC,117,PEO provisional results 2026,current
+2026,P,P01,b,Hermitage Government School,228,,,NNP,49,PEO provisional results 2026,current
+2026,P,P01,b,Hermitage Government School,228,,,DPM,3,PEO provisional results 2026,current
+2026,P,P02,a,Mt. Rose SDA School,242,,,NDC,114,PEO provisional results 2026,current
+2026,P,P02,a,Mt. Rose SDA School,242,,,NNP,34,PEO provisional results 2026,current
+2026,P,P02,a,Mt. Rose SDA School,242,,,DPM,4,PEO provisional results 2026,current
+2026,P,P02,b,Mt. Rose SDA School,260,,,NDC,106,PEO provisional results 2026,current
+2026,P,P02,b,Mt. Rose SDA School,260,,,NNP,45,PEO provisional results 2026,current
+2026,P,P02,b,Mt. Rose SDA School,260,,,DPM,5,PEO provisional results 2026,current
+2026,P,P03,a,River Sallee Government School,322,,,NNP,103,PEO provisional results 2026,current
+2026,P,P03,a,River Sallee Government School,322,,,NDC,96,PEO provisional results 2026,current
+2026,P,P03,a,River Sallee Government School,322,,,DPM,2,PEO provisional results 2026,current
+2026,P,P03,b,River Sallee Government School,307,,,NDC,102,PEO provisional results 2026,current
+2026,P,P03,b,River Sallee Government School,307,,,NNP,95,PEO provisional results 2026,current
+2026,P,P03,b,River Sallee Government School,307,,,DPM,2,PEO provisional results 2026,current
+2026,P,P03,c,River Sallee Government School,331,,,NDC,117,PEO provisional results 2026,current
+2026,P,P03,c,River Sallee Government School,331,,,NNP,101,PEO provisional results 2026,current
+2026,P,P03,c,River Sallee Government School,331,,,DPM,2,PEO provisional results 2026,current
+2026,P,P04,,"New Testament Church, Morne Fendue",397,,,NDC,145,PEO provisional results 2026,current
+2026,P,P04,,"New Testament Church, Morne Fendue",397,,,NNP,74,PEO provisional results 2026,current
+2026,P,P04,,"New Testament Church, Morne Fendue",397,,,DPM,9,PEO provisional results 2026,current
+2026,P,P05,a,St. Ann's Pre-Primary School,308,,,NDC,120,PEO provisional results 2026,current
+2026,P,P05,a,St. Ann's Pre-Primary School,308,,,NNP,73,PEO provisional results 2026,current
+2026,P,P05,a,St. Ann's Pre-Primary School,308,,,DPM,4,PEO provisional results 2026,current
+2026,P,P05,b,St. Ann's Pre-Primary School,318,,,NNP,113,PEO provisional results 2026,current
+2026,P,P05,b,St. Ann's Pre-Primary School,318,,,NDC,110,PEO provisional results 2026,current
+2026,P,P05,b,St. Ann's Pre-Primary School,318,,,DPM,8,PEO provisional results 2026,current
+2026,P,P05,c,St. Ann's Pre-Primary School,326,,,NDC,104,PEO provisional results 2026,current
+2026,P,P05,c,St. Ann's Pre-Primary School,326,,,NNP,69,PEO provisional results 2026,current
+2026,P,P05,c,St. Ann's Pre-Primary School,326,,,DPM,12,PEO provisional results 2026,current
+2026,P,P06,a,St. Patrick's Anglican School,409,,,NDC,172,PEO provisional results 2026,current
+2026,P,P06,a,St. Patrick's Anglican School,409,,,NNP,71,PEO provisional results 2026,current
+2026,P,P06,a,St. Patrick's Anglican School,409,,,DPM,6,PEO provisional results 2026,current
+2026,P,P06,b,St. Patrick's Anglican School,468,,,NDC,203,PEO provisional results 2026,current
+2026,P,P06,b,St. Patrick's Anglican School,468,,,NNP,86,PEO provisional results 2026,current
+2026,P,P06,b,St. Patrick's Anglican School,468,,,DPM,5,PEO provisional results 2026,current
+2026,P,P03,d,River Sallee Government School,312,,,NDC,123,PEO provisional results 2026,current
+2026,P,P03,d,River Sallee Government School,312,,,NNP,78,PEO provisional results 2026,current
+2026,P,P03,d,River Sallee Government School,312,,,DPM,5,PEO provisional results 2026,current
+2026,R,R01,a,"Hermitage S.D.A. Church, Downstairs (Police Included)",313,,,NDC,122,PEO provisional results 2026,current
+2026,R,R01,a,"Hermitage S.D.A. Church, Downstairs (Police Included)",313,,,NNP,99,PEO provisional results 2026,current
+2026,R,R01,a,"Hermitage S.D.A. Church, Downstairs (Police Included)",313,,,DPM,1,PEO provisional results 2026,current
+2026,R,R01,b,"Hermitage S.D.A. Church, Downstairs",236,,,NDC,108,PEO provisional results 2026,current
+2026,R,R01,b,"Hermitage S.D.A. Church, Downstairs",236,,,NNP,54,PEO provisional results 2026,current
+2026,R,R01,b,"Hermitage S.D.A. Church, Downstairs",236,,,DPM,2,PEO provisional results 2026,current
+2026,R,R02,a,Mt. Rich Pre Primary School,305,,,NDC,138,PEO provisional results 2026,current
+2026,R,R02,a,Mt. Rich Pre Primary School,305,,,NNP,72,PEO provisional results 2026,current
+2026,R,R02,a,Mt. Rich Pre Primary School,305,,,DPM,1,PEO provisional results 2026,current
+2026,R,R02,b,Mt. Rich Pre Primary School,311,,,NDC,136,PEO provisional results 2026,current
+2026,R,R02,b,Mt. Rich Pre Primary School,311,,,NNP,86,PEO provisional results 2026,current
+2026,R,R02,b,Mt. Rich Pre Primary School,311,,,DPM,4,PEO provisional results 2026,current
+2026,R,R03,a,"TAMCC , St. Patrick's Campus",301,,,NDC,118,PEO provisional results 2026,current
+2026,R,R03,a,"TAMCC , St. Patrick's Campus",301,,,NNP,53,PEO provisional results 2026,current
+2026,R,R03,a,"TAMCC , St. Patrick's Campus",301,,,DPM,11,PEO provisional results 2026,current
+2026,R,R03,b,"TAMCC , St. Patrick's Campus",323,,,NDC,135,PEO provisional results 2026,current
+2026,R,R03,b,"TAMCC , St. Patrick's Campus",323,,,NNP,46,PEO provisional results 2026,current
+2026,R,R03,b,"TAMCC , St. Patrick's Campus",323,,,DPM,1,PEO provisional results 2026,current
+2026,R,R04,,St. Patrick's R.C. School,341,,,NDC,152,PEO provisional results 2026,current
+2026,R,R04,,St. Patrick's R.C. School,341,,,NNP,36,PEO provisional results 2026,current
+2026,R,R04,,St. Patrick's R.C. School,341,,,DPM,4,PEO provisional results 2026,current
+2026,R,R05,a,Mac Donald College,327,,,NDC,125,PEO provisional results 2026,current
+2026,R,R05,a,Mac Donald College,327,,,NNP,64,PEO provisional results 2026,current
+2026,R,R05,a,Mac Donald College,327,,,DPM,0,PEO provisional results 2026,current
+2026,R,R05,b,Mac Donald College,308,,,NDC,140,PEO provisional results 2026,current
+2026,R,R05,b,Mac Donald College,308,,,NNP,54,PEO provisional results 2026,current
+2026,R,R05,b,Mac Donald College,308,,,DPM,3,PEO provisional results 2026,current
+2026,R,R06,a,Fond Community Centre,365,,,NDC,139,PEO provisional results 2026,current
+2026,R,R06,a,Fond Community Centre,365,,,NNP,70,PEO provisional results 2026,current
+2026,R,R06,a,Fond Community Centre,365,,,DPM,8,PEO provisional results 2026,current
+2026,R,R06,b,Fond Community Centre,373,,,NDC,146,PEO provisional results 2026,current
+2026,R,R06,b,Fond Community Centre,373,,,NNP,74,PEO provisional results 2026,current
+2026,R,R06,b,Fond Community Centre,373,,,DPM,4,PEO provisional results 2026,current
+2026,R,R07,,"Mt. Alexander Pentecostal Church, Prospect",350,,,NDC,168,PEO provisional results 2026,current
+2026,R,R07,,"Mt. Alexander Pentecostal Church, Prospect",350,,,NNP,73,PEO provisional results 2026,current
+2026,R,R07,,"Mt. Alexander Pentecostal Church, Prospect",350,,,DPM,4,PEO provisional results 2026,current
+2026,R,R08,a,Chantimelle R.C. School,389,,,NDC,163,PEO provisional results 2026,current
+2026,R,R08,a,Chantimelle R.C. School,389,,,NNP,106,PEO provisional results 2026,current
+2026,R,R08,a,Chantimelle R.C. School,389,,,DPM,2,PEO provisional results 2026,current
+2026,R,R08,b,Chantimelle R.C. School,396,,,NDC,144,PEO provisional results 2026,current
+2026,R,R08,b,Chantimelle R.C. School,396,,,NNP,110,PEO provisional results 2026,current
+2026,R,R08,b,Chantimelle R.C. School,396,,,DPM,5,PEO provisional results 2026,current
+2026,R,R09,,"Presbyterian Church Hall, Samaritan",289,,,NDC,163,PEO provisional results 2026,current
+2026,R,R09,,"Presbyterian Church Hall, Samaritan",289,,,NNP,46,PEO provisional results 2026,current
+2026,R,R09,,"Presbyterian Church Hall, Samaritan",289,,,DPM,1,PEO provisional results 2026,current
+2026,R,R03,c,"TAMCC, St. Patrick Campus",301,,,NDC,148,PEO provisional results 2026,current
+2026,R,R03,c,"TAMCC, St. Patrick Campus",301,,,NNP,42,PEO provisional results 2026,current
+2026,R,R03,c,"TAMCC, St. Patrick Campus",301,,,DPM,2,PEO provisional results 2026,current
 1972,G,1,,York House,260,,,H. R. Scipio,115,"Government Gazette No. 20 of 1972, p. 132",1972
 1972,G,1,,York House,260,,,J. N. Morris,89,"Government Gazette No. 20 of 1972, p. 132",1972
 1972,G,2,,"Julie Aird's Residence, Lucas Street",275,,,H. R. Scipio,108,"Government Gazette No. 20 of 1972, p. 132",1972

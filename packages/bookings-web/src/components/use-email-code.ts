@@ -33,6 +33,8 @@ interface Verified {
 
 interface UseEmailCodeArgs {
   actions: Pick<BookingFlowActions, "confirmEmailCode" | "requestEmailCode">;
+  /** Ticked add-ons: sent with the code request, but not part of the proof's binding. */
+  addOnIds?: readonly string[];
   email: string;
   /** Shows a message in the form-level error summary. */
   onFormError: (message: string) => void;
@@ -51,6 +53,7 @@ interface UseEmailCodeArgs {
  * stale at once, because validity is derived from the binding key.
  */
 export function useEmailCode({
+  addOnIds = [],
   actions,
   email,
   onFormError,
@@ -100,6 +103,7 @@ export function useEmailCode({
     setBusy("send");
     try {
       const outcome = await actions.requestEmailCode({
+        ...(addOnIds.length > 0 ? { addOnIds } : {}),
         serviceId,
         startsAt,
         email: email.trim(),

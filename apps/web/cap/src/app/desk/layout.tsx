@@ -53,7 +53,10 @@ export default async function DeskLayout({
               <span className="text-muted-foreground">
                 {gate.status === "staff" ? gate.name : gate.email}
               </span>
-              <button className="text-info underline" type="submit">
+              <button
+                className="text-info inline-flex min-h-11 items-center underline"
+                type="submit"
+              >
                 Log out
               </button>
             </form>

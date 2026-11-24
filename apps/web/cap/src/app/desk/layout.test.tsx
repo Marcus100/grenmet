@@ -34,6 +34,14 @@ describe("desk navigation touch targets", () => {
     expect(nav.classList.contains("min-w-0")).toBe(true);
   });
 
+  it("gives the Log out button a 44px target", async () => {
+    gate.getDeskGate.mockResolvedValue(staffGate());
+    render(await DeskLayout({ children: null }));
+    const logout = screen.getByRole("button", { name: "Log out" });
+    expect(logout.classList.contains("min-h-11")).toBe(true);
+    expect(logout.classList.contains("inline-flex")).toBe(true);
+  });
+
   it("renders no nav when the account is not staff", async () => {
     gate.getDeskGate.mockResolvedValue({ status: "signed-out" });
     render(await DeskLayout({ children: null }));

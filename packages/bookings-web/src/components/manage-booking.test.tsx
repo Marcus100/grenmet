@@ -33,6 +33,7 @@ const KEEP_IN_ONE_PLACE = "Keep your bookings in one place";
 const LISTED_UNDER_MY_BOOKINGS = /listed under My bookings/u;
 const PAYMENT_DUE = /Payment of EC\$225 not received yet/u;
 const DIRECTLY = /please contact the business directly\./u;
+const NAMED = /please contact Babydoll Beauty Bar/u;
 const CUTOFF =
   "Bookings can be cancelled online up to 24 hours before they start. Please contact the studio.";
 
@@ -244,13 +245,83 @@ describe("ManageBooking", () => {
     ).toBeDisabled();
   });
 
-  it("states the cancellation rule while the booking can still change", () => {
+  it("states the rules line while the booking can still change", () => {
     renderManage();
     expect(
       screen.getByText(
-        "You can cancel or change this booking online until 24 hours before it starts."
+        "No deposit for this service. Change or cancel online up to 24 hours before; after that, contact the business."
       )
     ).toBeVisible();
+  });
+
+  it("names the business in the rules line and the closed-changes notice", () => {
+    const { unmount } = renderManage({
+      ...booking,
+      business_name: "Babydoll Beauty Bar",
+    });
+    expect(
+      screen.getByText(
+        "No deposit for this service. Change or cancel online up to 24 hours before; after that, contact Babydoll Beauty Bar."
+      )
+    ).toBeVisible();
+    unmount();
+    renderManage({
+      ...booking,
+      business_name: "Babydoll Beauty Bar",
+      can_cancel: false,
+    });
+    expect(screen.getByText(NAMED)).toBeVisible();
+  });
+
+  it("falls back to the business when the name is empty", () => {
+    renderManage({ ...booking, business_name: "  " });
+    expect(
+      screen.getByText(
+        "No deposit for this service. Change or cancel online up to 24 hours before; after that, contact the business."
+      )
+    ).toBeVisible();
+  });
+
+  it("uses the booking's own non-refundable snapshot", () => {
+    renderManage({
+      ...booking,
+      deposit_minor: 4000,
+      deposit_non_refundable: true,
+    });
+    expect(
+      screen.getByText(
+        "EC$40 deposit, not refundable. Change or cancel online up to 24 hours before; after that, contact the business."
+      )
+    ).toBeVisible();
+  });
+
+  it("says a pending booking's non-refundable deposit follows the cut-off rule", () => {
+    renderManage({
+      ...booking,
+      status: "pending",
+      deposit_minor: 4000,
+      deposit_non_refundable: true,
+    });
+    expect(
+      screen.getByText(
+        "EC$40 deposit, refunded if you cancel at least 24 hours before it starts. Change or cancel online up to 24 hours before; after that, contact the business."
+      )
+    ).toBeVisible();
+  });
+
+  it("shows the full policy only when the booking has policy text", async () => {
+    const user = userEvent.setup();
+    const { unmount } = renderManage({
+      ...booking,
+      booking_policy: "Deposits move with you, they never expire.",
+    });
+    await user.click(screen.getByText("Full policy"));
+    expect(
+      screen.getByText("Deposits move with you, they never expire.")
+    ).toBeVisible();
+    unmount();
+    renderManage({ ...booking, booking_policy: null });
+    expect(screen.queryByText("Full policy")).toBeNull();
   });
 
   it("says when an unpaid hold is released", () => {
@@ -393,5 +464,26 @@ describe("ManageBooking", () => {
       name: "Create an account or sign in",
     });
     expect(link.getAttribute("href")).not.toContain(TOKEN);
+  });
+
+  it("lists the add-ons with their prices and the total", () => {
+    renderManage({
+      ...booking,
+      price_minor: 7000,
+      add_ons: [
+        { name: "Lash tint", duration_min: 15, price_minor: 1000 },
+        { name: "Brow wax", duration_min: 30, price_minor: 2000 },
+      ],
+    });
+    expect(screen.getByText("Lash tint: +15 min, +EC$10")).toBeVisible();
+    expect(screen.getByText("Brow wax: +30 min, +EC$20")).toBeVisible();
+    expect(screen.getByText("Total")).toBeVisible();
+    expect(screen.getByText("EC$70")).toBeVisible();
+  });
+
+  it("keeps the plain Price row when there are no add-ons", () => {
+    renderManage({ ...booking, add_ons: [] });
+    expect(screen.getByText("Price")).toBeVisible();
+    expect(screen.queryByText("Add-ons")).toBeNull();
   });
 });

@@ -63,6 +63,8 @@ export interface WarningDetail {
   cancellationReason: string | null;
   certainty: string;
   ended: "cancelled" | "expired" | null;
+  /** Grenada-time text for when it ended, if the record says. */
+  endedAt: string | null;
   event: string;
   expires: string | null;
   headline: string;
@@ -122,6 +124,13 @@ export function toWarningDetail(
       ended === "cancelled" ? (alert.cancellation_reason ?? null) : null,
     certainty: CERTAINTY_LABEL[info.certainty ?? "Unknown"],
     ended,
+    endedAt: ended
+      ? formatWarningTime(
+          alert.expired_at ??
+            naturalEndAt(alert, now) ??
+            (alert.lifecycle_state === "PUBLISHED" ? null : alert.updated_at)
+        )
+      : null,
     event: info.event,
     expires: formatWarningTime(info.expires),
     headline: info.headline,

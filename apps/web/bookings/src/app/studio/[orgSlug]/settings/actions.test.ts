@@ -739,6 +739,68 @@ describe("services", () => {
       price_minor: 15_000,
       deposit_minor: 2550,
       active: true,
+      is_add_on: false,
+      add_on_categories: null,
+    });
+  });
+
+  it("saves an add-on with the categories it follows", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, isAddOn: "on", addOnCategory: ["Lashes", " Brows "] })
+    );
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        is_add_on: true,
+        add_on_categories: ["Lashes", "Brows"],
+      })
+    );
+  });
+
+  it("offers an add-on with every main service when no category is ticked", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(SLUG, IDLE, form({ ...SERVICE, isAddOn: "on" }));
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ is_add_on: true, add_on_categories: null })
+    );
+  });
+
+  it("ignores ticked categories on a main service", async () => {
+    vi.mocked(createService).mockResolvedValue({} as never);
+    await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, addOnCategory: ["Lashes"] })
+    );
+    expect(createService).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ is_add_on: false, add_on_categories: null })
+    );
+  });
+
+  it("says plainly that a service with upcoming bookings cannot become an add-on (409)", async () => {
+    vi.mocked(updateService).mockRejectedValue(
+      apiError(409, {
+        detail:
+          "This service has upcoming bookings, so it cannot become an add-on yet",
+      })
+    );
+    const result = await saveServiceAction(
+      SLUG,
+      IDLE,
+      form({ ...SERVICE, serviceId: SERVICE_ID, isAddOn: "on" })
+    );
+    expect(result).toMatchObject({
+      status: "error",
+      message:
+        "This service has upcoming bookings, so it cannot become an add-on yet.",
     });
   });
 
@@ -1021,6 +1083,8 @@ describe("deposit rule", () => {
       deposit_mode: "percent",
       deposit_percent: 50,
       deposit_fixed_minor: null,
+      deposit_min_price_minor: null,
+      deposit_non_refundable: false,
     });
   });
 
@@ -1132,6 +1196,198 @@ describe("deposit rule", () => {
       })
     );
     expect(result).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+});
+
+describe("deposit options and booking policy", () => {
+  const RULE = {
+    section: "deposit",
+    depositRequired: "on",
+    depositMode: "fixed",
+    depositFixed: "40",
+  };
+
+  it("saves the non-refundable switch and the lowest price that takes a deposit", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        ...RULE,
+        depositNonRefundable: "on",
+        depositMinPrice: "50",
+      })
+    );
+    expect(result).toMatchObject({ status: "success" });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_fixed_minor: 4000,
+        deposit_non_refundable: true,
+        deposit_min_price_minor: 5000,
+      })
+    );
+  });
+
+  it("turns the non-refundable switch off when it is left unticked (the default)", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_non_refundable: true,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(SLUG, IDLE, form(RULE));
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_non_refundable: false })
+    );
+  });
+
+  it("clears the minimum when the field is blank and keeps it when the rule is off", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      deposit_min_price_minor: 5000,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(SLUG, IDLE, form({ ...RULE, depositMinPrice: "" }));
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ deposit_min_price_minor: null })
+    );
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "deposit", depositNonRefundable: "on" })
+    );
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        deposit_mode: "none",
+        deposit_min_price_minor: 5000,
+        deposit_non_refundable: true,
+      })
+    );
+  });
+
+  it("refuses a bad minimum price without calling the API", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...RULE, depositMinPrice: "0" })
+    );
+    expect(result).toMatchObject({ status: "error", kind: "invalid" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("switches add-ons on and off, keeping the rest of the profile", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const on = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "addons", addOnsEnabled: "on" })
+    );
+    expect(on).toMatchObject({
+      status: "success",
+      message: "Add-ons setting saved.",
+    });
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        add_ons_enabled: true,
+        payment_at_booking: "full_price",
+      })
+    );
+    await saveProfileAction(SLUG, IDLE, form({ section: "addons" }));
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ add_ons_enabled: false })
+    );
+  });
+
+  it("saves the booking policy as plain text with its line breaks", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({
+        section: "policy",
+        bookingPolicy: "  Late fee: EC$20.\r\n\r\nNo-shows pay in full.  ",
+      })
+    );
+    expect(result).toMatchObject({
+      status: "success",
+      message: "Booking policy saved.",
+    });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        booking_policy: "Late fee: EC$20.\n\nNo-shows pay in full.",
+        payment_at_booking: "full_price",
+      })
+    );
+  });
+
+  it("clears the policy when it is blank, and keeps the deposit rule as stored", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      booking_policy: "Old text",
+      deposit_mode: "percent",
+      deposit_percent: 20,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "policy", bookingPolicy: " " })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        booking_policy: null,
+        deposit_mode: "percent",
+        deposit_percent: 20,
+      })
+    );
+  });
+
+  it("refuses a policy over 1000 characters and accepts exactly 1000", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const over = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "policy", bookingPolicy: "a".repeat(1001) })
+    );
+    expect(over).toMatchObject({ status: "error", kind: "invalid" });
+    expect(saveProfile).not.toHaveBeenCalled();
+    const exact = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "policy", bookingPolicy: "a".repeat(1000) })
+    );
+    expect(exact).toMatchObject({ status: "success" });
+  });
+
+  it("asks for the profile before a policy is saved", async () => {
+    vi.mocked(getProfile).mockResolvedValue(null);
+    const result = await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "policy", bookingPolicy: "Text" })
+    );
+    expect(result).toMatchObject({ status: "error", kind: "invalid" });
     expect(saveProfile).not.toHaveBeenCalled();
   });
 });

@@ -51,7 +51,7 @@ export default async function DeskBoard() {
         <h1 className="text-2xl font-semibold">Warning board</h1>
         {gate.permissions.create ? (
           <Link
-            className="bg-primary text-body-sm text-primary-foreground rounded-md px-3 py-2 font-medium"
+            className="bg-primary text-body-sm text-primary-foreground inline-flex min-h-11 items-center rounded-md px-3 py-2 font-medium"
             href="/desk/new"
           >
             New warning

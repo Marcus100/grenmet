@@ -12668,6 +12668,315 @@
         }
       }
     },
+    "/api/v1/bookings/org/calendar-feed": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Show my calendar feed status",
+        "description": "Whether the business has a calendar feed, and when it was made or last rotated. The address is never shown again after it is created; rotate for a new one.",
+        "operationId": "bookingsGetCalendarFeedStatus",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingCalendarFeedStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Create my calendar feed",
+        "description": "Creates the business's private calendar feed and returns its https address once. Subscribing to it shows every booking (first names only) in Apple Calendar or Google Calendar. One feed per business: 409 if it exists, rotate it instead.",
+        "operationId": "bookingsCreateCalendarFeed",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingCalendarFeedLink"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/calendar-feed/rotate": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Rotate my calendar feed address",
+        "description": "Replaces the feed's address and returns the new one once. The old address stops working at once; subscribers must add the new one.",
+        "operationId": "bookingsRotateCalendarFeed",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the bookings app."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingCalendarFeedLink"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/bookings/org/agenda": {
       "get": {
         "tags": [
@@ -14027,7 +14336,7 @@
           "bookings"
         ],
         "summary": "List open booking slots",
-        "description": "Open start times for a service between two local dates (at most 14 days), optionally for one provider. Times are UTC; `timezone` is the business's local zone for display.",
+        "description": "Open start times for a service between two local dates (at most 14 days), optionally for one provider and with `add_on_ids`, which make the slot longer. Times are UTC; `timezone` is the business's local zone for display. `due_at_booking_minor` is what booking this service with those add-ons charges now, so the storefront can show the real amount.",
         "operationId": "bookingsGetAvailability",
         "parameters": [
           {
@@ -14084,6 +14393,27 @@
                 }
               ],
               "title": "Provider Id"
+            }
+          },
+          {
+            "name": "add_on_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "maxItems": 5
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Add On Ids"
             }
           }
         ],
@@ -14694,6 +15024,77 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/public/calendar/{token}.ics": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Subscribe to a business's bookings calendar",
+        "description": "The business's private calendar feed (text/calendar): its bookings from a week ago to the booking horizon, first names only. Unknown, rotated, disabled and unentitled feeds answer one 404. Calendar apps poll it; the response may be cached privately for five minutes.",
+        "operationId": "bookingsGetPublicCalendarFeed",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "iCalendar feed",
+            "content": {
+              "text/calendar": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Bookingsgetpubliccalendarfeed"
                 }
               }
             }
@@ -77882,6 +78283,30 @@
         ],
         "title": "Body_printixImportTickets"
       },
+      "BookingAddOnLine": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "duration_min",
+          "price_minor"
+        ],
+        "title": "BookingAddOnLine",
+        "description": "An add-on on a booking, as it was priced and timed when booked."
+      },
       "BookingAgenda": {
         "properties": {
           "timezone": {
@@ -78015,6 +78440,13 @@
           "currency": {
             "type": "string",
             "title": "Currency"
+          },
+          "add_on_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Add On Names"
           }
         },
         "type": "object",
@@ -78053,13 +78485,25 @@
             },
             "type": "array",
             "title": "Slots"
+          },
+          "due_at_booking_minor": {
+            "type": "integer",
+            "title": "Due At Booking Minor",
+            "description": "What booking this service with the `add_on_ids` asked for charges at booking, in minor units (0 = nothing). Priced on the combined price with the add-ons, exactly as the booking itself is charged."
+          },
+          "email_code_required": {
+            "type": "boolean",
+            "title": "Email Code Required",
+            "description": "True when an anonymous visitor must pass the emailed-code step (`email-code` then `email-code/confirm`) before booking. A signed-in, verified booker whose email matches may skip it, as creating the booking does. Always false when `due_at_booking_minor` is 0."
           }
         },
         "type": "object",
         "required": [
           "timezone",
           "service_id",
-          "slots"
+          "slots",
+          "due_at_booking_minor",
+          "email_code_required"
         ],
         "title": "BookingAvailability"
       },
@@ -78123,6 +78567,76 @@
         ],
         "title": "BookingBusinessContact",
         "description": "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
+      },
+      "BookingCalendarFeedLink": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "The private https address to subscribe to (webcal:// opens it in Apple Calendar). Returned once: keep it, rotating ends it."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "rotated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rotated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "created_at"
+        ],
+        "title": "BookingCalendarFeedLink"
+      },
+      "BookingCalendarFeedStatus": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "rotated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rotated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "BookingCalendarFeedStatus",
+        "description": "Whether the business has a calendar feed. The URL is never shown again."
       },
       "BookingClosureAffected": {
         "properties": {
@@ -78350,6 +78864,16 @@
             "maxLength": 254,
             "format": "email",
             "title": "Customer Email"
+          },
+          "add_on_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Add On Ids",
+            "description": "The add-ons the booking will include, so the code is asked for when the combined price is a deposit. Same ids as the booking's `add_on_ids`."
           },
           "turnstile_token": {
             "anyOf": [
@@ -78959,6 +79483,12 @@
             "title": "Contact Email",
             "description": "Email address customers can write to; blank clears it."
           },
+          "add_ons_enabled": {
+            "type": "boolean",
+            "title": "Add Ons Enabled",
+            "description": "Offer add-on services (for example a brow wax with a lash set) on the booking page. Off by default; while off, add-ons are neither shown nor accepted. Left out, the stored value is kept.",
+            "default": false
+          },
           "payment_at_booking": {
             "$ref": "#/components/schemas/BookingPaymentMode",
             "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
@@ -78996,6 +79526,39 @@
             ],
             "title": "Deposit Fixed Minor",
             "description": "The amount in minor units for `deposit_mode` `fixed`."
+          },
+          "deposit_min_price_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Min Price Minor",
+            "description": "The lowest service price (minor units) that takes the business-wide deposit rule. Cheaper services take no deposit from it. Null means no minimum. A service's own deposit is never affected. Left out, the stored value is kept."
+          },
+          "deposit_non_refundable": {
+            "type": "boolean",
+            "title": "Deposit Non Refundable",
+            "description": "When true, a paid deposit is kept when the booking is cancelled, by the customer or by the business without a refund choice. A move keeps it with the booking. Declines still refund. Left out, the stored value is kept.",
+            "default": false
+          },
+          "booking_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Policy",
+            "description": "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
           },
           "brand_color": {
             "anyOf": [
@@ -79241,6 +79804,12 @@
             "title": "Contact Email",
             "description": "Email address customers can write to; blank clears it."
           },
+          "add_ons_enabled": {
+            "type": "boolean",
+            "title": "Add Ons Enabled",
+            "description": "Offer add-on services (for example a brow wax with a lash set) on the booking page. Off by default; while off, add-ons are neither shown nor accepted. Left out, the stored value is kept.",
+            "default": false
+          },
           "payment_at_booking": {
             "$ref": "#/components/schemas/BookingPaymentMode",
             "description": "What an online booking pays when it is made. `deposit`: each service's own deposit (none when it is 0). `full_price`: the service price by card, only while online card payments are available on the platform; otherwise it acts as `deposit`. Left out, the stored value is kept.",
@@ -79278,6 +79847,39 @@
             ],
             "title": "Deposit Fixed Minor",
             "description": "The amount in minor units for `deposit_mode` `fixed`."
+          },
+          "deposit_min_price_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit Min Price Minor",
+            "description": "The lowest service price (minor units) that takes the business-wide deposit rule. Cheaper services take no deposit from it. Null means no minimum. A service's own deposit is never affected. Left out, the stored value is kept."
+          },
+          "deposit_non_refundable": {
+            "type": "boolean",
+            "title": "Deposit Non Refundable",
+            "description": "When true, a paid deposit is kept when the booking is cancelled, by the customer or by the business without a refund choice. A move keeps it with the booking. Declines still refund. Left out, the stored value is kept.",
+            "default": false
+          },
+          "booking_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Policy",
+            "description": "Plain-text booking policy, such as a late fee, up to 1000 characters. Shown on the booking page before the customer confirms and in the confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, the stored value is kept."
           },
           "brand_color": {
             "anyOf": [
@@ -79576,6 +80178,60 @@
         "type": "object",
         "title": "BookingProviderUpdate"
       },
+      "BookingPublicAddOn": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min",
+            "description": "Minutes added to the main service."
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor",
+            "description": "Added to the main service's price."
+          },
+          "service_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Service Ids",
+            "description": "The main services this add-on can be booked with."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "duration_min",
+          "price_minor",
+          "service_ids"
+        ],
+        "title": "BookingPublicAddOn",
+        "description": "An add-on a customer can add to one of the main services it follows."
+      },
       "BookingPublicBusiness": {
         "properties": {
           "slug": {
@@ -79787,6 +80443,16 @@
             ],
             "title": "Notes"
           },
+          "add_on_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Add On Ids",
+            "description": "Add-ons to book with the service, from the storefront's `add_ons`. Prices and lengths are read on the server."
+          },
           "marketing_consent": {
             "type": "boolean",
             "title": "Marketing Consent",
@@ -79850,6 +80516,12 @@
           "status": {
             "$ref": "#/components/schemas/BookingStatus"
           },
+          "business_name": {
+            "type": "string",
+            "title": "Business Name",
+            "description": "The business's display name, as its public booking page shows it.",
+            "default": ""
+          },
           "service_id": {
             "type": "string",
             "format": "uuid",
@@ -79902,6 +80574,24 @@
             "type": "integer",
             "title": "Cancel Cutoff Hours"
           },
+          "deposit_non_refundable": {
+            "type": "boolean",
+            "title": "Deposit Non Refundable",
+            "description": "This booking's terms: true when a deposit paid on a confirmed booking is kept on cancellation. Set when the booking was made.",
+            "default": false
+          },
+          "booking_policy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Policy",
+            "description": "The business's plain-text booking policy, or null when it has none."
+          },
           "can_cancel": {
             "type": "boolean",
             "title": "Can Cancel",
@@ -79946,6 +80636,14 @@
             ],
             "title": "Hold Ends At",
             "description": "While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise."
+          },
+          "add_ons": {
+            "items": {
+              "$ref": "#/components/schemas/BookingAddOnLine"
+            },
+            "type": "array",
+            "title": "Add Ons",
+            "description": "The add-ons booked with the service. `starts_at`..`ends_at` include them."
           }
         },
         "type": "object",
@@ -80204,6 +80902,30 @@
             "minimum": 0.0,
             "title": "Sort Order",
             "default": 0
+          },
+          "is_add_on": {
+            "type": "boolean",
+            "title": "Is Add On",
+            "description": "An add-on is booked with a main service, never alone.",
+            "default": false
+          },
+          "add_on_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Add On Categories",
+            "description": "For an add-on: offer it only with main services in these categories. Null or empty means any main service. Ignored for a main service."
           }
         },
         "type": "object",
@@ -80273,6 +80995,25 @@
           "sort_order": {
             "type": "integer",
             "title": "Sort Order"
+          },
+          "is_add_on": {
+            "type": "boolean",
+            "title": "Is Add On",
+            "default": false
+          },
+          "add_on_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Add On Categories"
           }
         },
         "type": "object",
@@ -80418,6 +81159,34 @@
               }
             ],
             "title": "Sort Order"
+          },
+          "is_add_on": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Add On"
+          },
+          "add_on_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Add On Categories"
           }
         },
         "type": "object",
@@ -80543,6 +81312,24 @@
             "type": "integer",
             "title": "Cancel Cutoff Hours"
           },
+          "deposit_non_refundable": {
+            "type": "boolean",
+            "title": "Deposit Non Refundable",
+            "description": "True when a paid deposit is never refunded on cancellation.",
+            "default": false
+          },
+          "booking_policy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Policy",
+            "description": "The business's plain-text booking policy, or null when it has none."
+          },
           "contact": {
             "$ref": "#/components/schemas/BookingBusinessContact"
           },
@@ -80583,6 +81370,14 @@
             },
             "type": "array",
             "title": "Providers"
+          },
+          "add_ons": {
+            "items": {
+              "$ref": "#/components/schemas/BookingPublicAddOn"
+            },
+            "type": "array",
+            "title": "Add Ons",
+            "description": "Empty unless the business offers add-ons."
           }
         },
         "type": "object",
@@ -80821,6 +81616,12 @@
             "type": "integer",
             "title": "Deposit Minor"
           },
+          "deposit_non_refundable": {
+            "type": "boolean",
+            "title": "Deposit Non Refundable",
+            "description": "This booking's deposit terms: true when a confirmed booking keeps its deposit on cancellation. Set when the booking was made; later profile changes do not change it.",
+            "default": false
+          },
           "payment_kind": {
             "$ref": "#/components/schemas/BookingPaymentKind",
             "description": "`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say \"Deposit\" or \"Payment\" by it."
@@ -80900,6 +81701,13 @@
             },
             "type": "array",
             "title": "Events"
+          },
+          "add_ons": {
+            "items": {
+              "$ref": "#/components/schemas/BookingAddOnLine"
+            },
+            "type": "array",
+            "title": "Add Ons"
           }
         },
         "type": "object",

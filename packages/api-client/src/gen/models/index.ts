@@ -1247,11 +1247,14 @@ export type { BodyHrImportTerminalPunches } from "./BodyHrImportTerminalPunches.
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
 export type { BodyPrintixImportOrgTickets } from "./BodyPrintixImportOrgTickets.js";
 export type { BodyPrintixImportTickets } from "./BodyPrintixImportTickets.js";
+export type { BookingAddOnLine } from "./BookingAddOnLine.js";
 export type { BookingAgenda } from "./BookingAgenda.js";
 export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
 export type { BookingAvailability } from "./BookingAvailability.js";
 export type { BookingBusinessContact } from "./BookingBusinessContact.js";
+export type { BookingCalendarFeedLink } from "./BookingCalendarFeedLink.js";
+export type { BookingCalendarFeedStatus } from "./BookingCalendarFeedStatus.js";
 export type { BookingClosureAffected } from "./BookingClosureAffected.js";
 export type { BookingClosureCreate } from "./BookingClosureCreate.js";
 export type { BookingClosureCreated } from "./BookingClosureCreated.js";
@@ -1286,6 +1289,7 @@ export type { BookingProviderCreate } from "./BookingProviderCreate.js";
 export type { BookingProviderPublic } from "./BookingProviderPublic.js";
 export type { BookingProviderSettings } from "./BookingProviderSettings.js";
 export type { BookingProviderUpdate } from "./BookingProviderUpdate.js";
+export type { BookingPublicAddOn } from "./BookingPublicAddOn.js";
 export type { BookingPublicBusiness } from "./BookingPublicBusiness.js";
 export type { BookingPublicBusinessPage } from "./BookingPublicBusinessPage.js";
 export type { BookingPublicCancel } from "./BookingPublicCancel.js";
@@ -1380,6 +1384,19 @@ export type {
   BookingsConfirmStudioBookingStatus409,
   BookingsConfirmStudioBookingStatus422,
 } from "./BookingsConfirmStudioBooking.js";
+export type {
+  BookingsCreateCalendarFeedHeaders,
+  BookingsCreateCalendarFeedOptions,
+  BookingsCreateCalendarFeedResponse,
+  BookingsCreateCalendarFeedResponses,
+  BookingsCreateCalendarFeedStatus201,
+  BookingsCreateCalendarFeedStatus400,
+  BookingsCreateCalendarFeedStatus401,
+  BookingsCreateCalendarFeedStatus403,
+  BookingsCreateCalendarFeedStatus404,
+  BookingsCreateCalendarFeedStatus409,
+  BookingsCreateCalendarFeedStatus422,
+} from "./BookingsCreateCalendarFeed.js";
 export type {
   BookingsCreateClosureBody,
   BookingsCreateClosureHeaders,
@@ -1533,6 +1550,18 @@ export type {
   BookingsGetAvailabilityStatus422,
 } from "./BookingsGetAvailability.js";
 export type {
+  BookingsGetCalendarFeedStatusHeaders,
+  BookingsGetCalendarFeedStatusOptions,
+  BookingsGetCalendarFeedStatusResponse,
+  BookingsGetCalendarFeedStatusResponses,
+  BookingsGetCalendarFeedStatusStatus200,
+  BookingsGetCalendarFeedStatusStatus400,
+  BookingsGetCalendarFeedStatusStatus401,
+  BookingsGetCalendarFeedStatusStatus403,
+  BookingsGetCalendarFeedStatusStatus404,
+  BookingsGetCalendarFeedStatusStatus422,
+} from "./BookingsGetCalendarFeedStatus.js";
+export type {
   BookingsGetMyChoicesOptions,
   BookingsGetMyChoicesPath,
   BookingsGetMyChoicesResponse,
@@ -1574,6 +1603,16 @@ export type {
   BookingsGetPublicBookingIcsStatus404,
   BookingsGetPublicBookingIcsStatus422,
 } from "./BookingsGetPublicBookingIcs.js";
+export type {
+  BookingsGetPublicCalendarFeedOptions,
+  BookingsGetPublicCalendarFeedPath,
+  BookingsGetPublicCalendarFeedResponse,
+  BookingsGetPublicCalendarFeedResponses,
+  BookingsGetPublicCalendarFeedStatus200,
+  BookingsGetPublicCalendarFeedStatus404,
+  BookingsGetPublicCalendarFeedStatus422,
+  BookingsGetPublicCalendarFeedStatus429,
+} from "./BookingsGetPublicCalendarFeed.js";
 export type {
   BookingsGetSettingsHeaders,
   BookingsGetSettingsOptions,
@@ -1825,6 +1864,19 @@ export type {
   BookingsRescheduleStudioBookingStatus409,
   BookingsRescheduleStudioBookingStatus422,
 } from "./BookingsRescheduleStudioBooking.js";
+export type {
+  BookingsRotateCalendarFeedHeaders,
+  BookingsRotateCalendarFeedOptions,
+  BookingsRotateCalendarFeedResponse,
+  BookingsRotateCalendarFeedResponses,
+  BookingsRotateCalendarFeedStatus200,
+  BookingsRotateCalendarFeedStatus400,
+  BookingsRotateCalendarFeedStatus401,
+  BookingsRotateCalendarFeedStatus403,
+  BookingsRotateCalendarFeedStatus404,
+  BookingsRotateCalendarFeedStatus409,
+  BookingsRotateCalendarFeedStatus422,
+} from "./BookingsRotateCalendarFeed.js";
 export type {
   BookingsUpdateProviderBody,
   BookingsUpdateProviderHeaders,

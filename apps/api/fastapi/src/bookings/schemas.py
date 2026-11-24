@@ -27,6 +27,10 @@ Slug = Annotated[str, Field(pattern=r"^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$")]
 Minutes = Annotated[int, Field(ge=0, le=1440)]
 Minor = Annotated[int, Field(ge=0, le=100_000_000)]
 Currency = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
+AddOnCategories = Annotated[
+    list[Annotated[str, Field(min_length=1, max_length=80)]] | None,
+    Field(max_length=20),
+]
 #: Path words of this domain's public routes that a business may not take as its
 #: slug: ``/bookings/public/businesses`` is the home page listing, not a storefront.
 LISTING_PATH_WORDS = frozenset({"businesses"})
@@ -123,6 +127,17 @@ class BookingMyBookingList(BaseModel):
 # --- profile ---------------------------------------------------------------------
 
 
+def normalise_policy(value: object) -> object:
+    """A booking policy as plain text: line endings become ``\\n``, control
+    characters go (tabs and line breaks stay), and the ends are trimmed. Blank is
+    None. Nothing is interpreted as HTML; every surface renders it as text."""
+    if not isinstance(value, str):
+        return value
+    text = value.replace("\r\n", "\n").replace("\r", "\n")
+    kept = "".join(ch for ch in text if ch in "\n\t" or ch.isprintable())
+    return kept.strip() or None
+
+
 class BookingProfileUpdate(BaseModel):
     """Create or replace the organisation's booking profile."""
 
@@ -186,6 +201,14 @@ class BookingProfileUpdate(BaseModel):
         max_length=254,
         description="Email address customers can write to; blank clears it.",
     )
+    add_ons_enabled: bool = Field(
+        default=False,
+        description=(
+            "Offer add-on services (for example a brow wax with a lash set) on the "
+            "booking page. Off by default; while off, add-ons are neither shown nor "
+            "accepted. Left out, the stored value is kept."
+        ),
+    )
     payment_at_booking: BookingPaymentMode = Field(
         default=BookingPaymentMode.DEPOSIT,
         description=(
@@ -213,6 +236,32 @@ class BookingProfileUpdate(BaseModel):
     deposit_fixed_minor: Annotated[int, Field(ge=1, le=100_000_000)] | None = Field(
         default=None,
         description="The amount in minor units for `deposit_mode` `fixed`.",
+    )
+    deposit_min_price_minor: Annotated[int, Field(ge=1, le=100_000_000)] | None = Field(
+        default=None,
+        description=(
+            "The lowest service price (minor units) that takes the business-wide "
+            "deposit rule. Cheaper services take no deposit from it. Null means no "
+            "minimum. A service's own deposit is never affected. Left out, the stored "
+            "value is kept."
+        ),
+    )
+    deposit_non_refundable: bool = Field(
+        default=False,
+        description=(
+            "When true, a paid deposit is kept when the booking is cancelled, by the "
+            "customer or by the business without a refund choice. A move keeps it "
+            "with the booking. Declines still refund. Left out, the stored value is kept."
+        ),
+    )
+    booking_policy: Annotated[str, Field(max_length=1000)] | None = Field(
+        default=None,
+        description=(
+            "Plain-text booking policy, such as a late fee, up to 1000 characters. "
+            "Shown on the booking page before the customer confirms and in the "
+            "confirmation. Never HTML; line breaks are kept. Blank clears it. Left out, "
+            "the stored value is kept."
+        ),
     )
     brand_color: str | None = Field(
         default=None,
@@ -276,6 +325,11 @@ class BookingProfileUpdate(BaseModel):
         if isinstance(value, str):
             return value.strip() or None
         return value
+
+    @field_validator("booking_policy", mode="before")
+    @classmethod
+    def _policy_text(cls, value: object) -> object:
+        return normalise_policy(value)
 
     @field_validator("contact_phone", mode="before")
     @classmethod
@@ -349,6 +403,17 @@ class BookingServiceCreate(BaseModel):
     deposit_minor: Minor = 0
     active: bool = True
     sort_order: Annotated[int, Field(ge=0, le=10_000)] = 0
+    is_add_on: bool = Field(
+        default=False,
+        description="An add-on is booked with a main service, never alone.",
+    )
+    add_on_categories: AddOnCategories = Field(
+        default=None,
+        description=(
+            "For an add-on: offer it only with main services in these categories. "
+            "Null or empty means any main service. Ignored for a main service."
+        ),
+    )
 
     @model_validator(mode="after")
     def _deposit_within_price(self) -> Self:
@@ -368,6 +433,8 @@ class BookingServiceUpdate(BaseModel):
     deposit_minor: Minor | None = None
     active: bool | None = None
     sort_order: Annotated[int, Field(ge=0, le=10_000)] | None = None
+    is_add_on: bool | None = None
+    add_on_categories: AddOnCategories = None
 
 
 class BookingServicePublic(BaseModel):
@@ -382,6 +449,8 @@ class BookingServicePublic(BaseModel):
     deposit_minor: int
     active: bool
     sort_order: int
+    is_add_on: bool = False
+    add_on_categories: list[str] | None = None
 
 
 # --- providers and hours ---------------------------------------------------------
@@ -488,6 +557,25 @@ class BookingClosureCreate(BaseModel):
         return self
 
 
+class BookingCalendarFeedStatus(BaseModel):
+    """Whether the business has a calendar feed. The URL is never shown again."""
+
+    enabled: bool
+    created_at: UtcDateTime | None = None
+    rotated_at: UtcDateTime | None = None
+
+
+class BookingCalendarFeedLink(BaseModel):
+    url: str = Field(
+        description=(
+            "The private https address to subscribe to (webcal:// opens it in "
+            "Apple Calendar). Returned once: keep it, rotating ends it."
+        ),
+    )
+    created_at: UtcDateTime
+    rotated_at: UtcDateTime | None = None
+
+
 class BookingClosurePublic(BaseModel):
     id: uuid.UUID
     starts_on: date
@@ -546,6 +634,7 @@ class BookingAgendaItem(BaseModel):
     deposit_minor: int
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
+    add_on_names: list[str] = Field(default_factory=list)
 
 
 class BookingAgendaDay(BaseModel):
@@ -642,6 +731,14 @@ class BookingStudioDetail(BaseModel):
     timezone: str
     price_minor: int
     deposit_minor: int
+    deposit_non_refundable: bool = Field(
+        default=False,
+        description=(
+            "This booking's deposit terms: true when a confirmed booking keeps its "
+            "deposit on cancellation. Set when the booking was made; later profile "
+            "changes do not change it."
+        ),
+    )
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     balance_at_salon_minor: int = Field(
         description="The price less the deposit: what is still to pay at the business."
@@ -657,6 +754,7 @@ class BookingStudioDetail(BaseModel):
     deposit_captured_minor: int
     deposit_refunded_minor: int
     events: list[BookingStudioEvent]
+    add_ons: list[BookingAddOnLine] = Field(default_factory=list)
 
 
 # --- public ------------------------------------------------------------------------
@@ -678,6 +776,27 @@ class BookingPublicService(BaseModel):
             "More than 0 means the emailed-code step comes first."
         ),
     )
+
+
+class BookingPublicAddOn(BaseModel):
+    """An add-on a customer can add to one of the main services it follows."""
+
+    id: uuid.UUID
+    name: str
+    description: str | None
+    duration_min: int = Field(description="Minutes added to the main service.")
+    price_minor: int = Field(description="Added to the main service's price.")
+    service_ids: list[uuid.UUID] = Field(
+        description="The main services this add-on can be booked with."
+    )
+
+
+class BookingAddOnLine(BaseModel):
+    """An add-on on a booking, as it was priced and timed when booked."""
+
+    name: str
+    duration_min: int
+    price_minor: int
 
 
 class BookingPublicProvider(BaseModel):
@@ -708,6 +827,14 @@ class BookingStorefront(BaseModel):
     timezone: str
     currency: str
     cancel_cutoff_hours: int
+    deposit_non_refundable: bool = Field(
+        default=False,
+        description="True when a paid deposit is never refunded on cancellation.",
+    )
+    booking_policy: str | None = Field(
+        default=None,
+        description="The business's plain-text booking policy, or null when it has none.",
+    )
     contact: BookingBusinessContact
     brand_color: str | None = Field(
         description=(
@@ -723,6 +850,10 @@ class BookingStorefront(BaseModel):
     )
     services: list[BookingPublicService]
     providers: list[BookingPublicProvider]
+    add_ons: list[BookingPublicAddOn] = Field(
+        default_factory=list,
+        description="Empty unless the business offers add-ons.",
+    )
 
 
 class BookingPublicBusiness(BaseModel):
@@ -767,6 +898,21 @@ class BookingAvailability(BaseModel):
     timezone: str
     service_id: uuid.UUID
     slots: list[BookingSlot]
+    due_at_booking_minor: int = Field(
+        description=(
+            "What booking this service with the `add_on_ids` asked for charges at "
+            "booking, in minor units (0 = nothing). Priced on the combined price "
+            "with the add-ons, exactly as the booking itself is charged."
+        ),
+    )
+    email_code_required: bool = Field(
+        description=(
+            "True when an anonymous visitor must pass the emailed-code step "
+            "(`email-code` then `email-code/confirm`) before booking. A signed-in, "
+            "verified booker whose email matches may skip it, as creating the "
+            "booking does. Always false when `due_at_booking_minor` is 0."
+        ),
+    )
 
 
 # --- public bookings (B3) ---------------------------------------------------------------
@@ -786,6 +932,14 @@ class BookingPublicCreate(BaseModel):
     customer_email: EmailStr = Field(max_length=254)
     customer_phone: str | None = Field(default=None, max_length=40)
     notes: str | None = Field(default=None, max_length=1000)
+    add_on_ids: list[uuid.UUID] = Field(
+        default_factory=list,
+        max_length=5,
+        description=(
+            "Add-ons to book with the service, from the storefront's `add_ons`. "
+            "Prices and lengths are read on the server."
+        ),
+    )
     marketing_consent: bool = False
     email_proof: str | None = Field(
         default=None,
@@ -810,6 +964,14 @@ class BookingEmailCodeRequest(BaseModel):
         description="The slot being booked; the proof is bound to it."
     )
     customer_email: EmailStr = Field(max_length=254)
+    add_on_ids: list[uuid.UUID] = Field(
+        default_factory=list,
+        max_length=5,
+        description=(
+            "The add-ons the booking will include, so the code is asked for when "
+            "the combined price is a deposit. Same ids as the booking's `add_on_ids`."
+        ),
+    )
     turnstile_token: str | None = Field(default=None, max_length=2048)
 
 
@@ -913,6 +1075,10 @@ class BookingPublicDetail(BaseModel):
 
     id: uuid.UUID
     status: BookingStatus
+    business_name: str = Field(
+        default="",
+        description="The business's display name, as its public booking page shows it.",
+    )
     service_id: uuid.UUID
     service_name: str
     provider_id: uuid.UUID
@@ -925,6 +1091,17 @@ class BookingPublicDetail(BaseModel):
     deposit_minor: int
     currency: str
     cancel_cutoff_hours: int
+    deposit_non_refundable: bool = Field(
+        default=False,
+        description=(
+            "This booking's terms: true when a deposit paid on a confirmed booking is "
+            "kept on cancellation. Set when the booking was made."
+        ),
+    )
+    booking_policy: str | None = Field(
+        default=None,
+        description="The business's plain-text booking policy, or null when it has none.",
+    )
     can_cancel: bool = Field(
         description="True while the booking is active and before the cancellation cutoff."
     )
@@ -949,6 +1126,10 @@ class BookingPublicDetail(BaseModel):
             "While `status` is `pending_payment`: when the unpaid hold is released "
             "if the payment has not arrived. Null otherwise."
         ),
+    )
+    add_ons: list[BookingAddOnLine] = Field(
+        default_factory=list,
+        description="The add-ons booked with the service. `starts_at`..`ends_at` include them.",
     )
 
 

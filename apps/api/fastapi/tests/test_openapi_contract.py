@@ -289,6 +289,8 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "export_org_scans_endpoint",
         # A booking's iCalendar file (text/calendar).
         "get_public_booking_ics",
+        # A business's subscribed calendar feed (text/calendar, private cache).
+        "get_public_calendar_feed",
     }
     offenders = [
         route.name
