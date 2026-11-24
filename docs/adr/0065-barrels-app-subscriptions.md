@@ -19,6 +19,11 @@ organisation routes also accept the bookings studio session; the return URLs are
 organisation (the studio plan page); the trial is per organisation, not per plan. The
 amendments are in the Decision section below.
 
+Amended 24 November 2026 by ADR-0066: the entitlement link is decided there (an
+access `source`, a separate paused state behind an off-by-default switch), and a
+self-created business's trial starts at sign-up and ends at `trial_ends_at`, so
+Checkout passes only the days left.
+
 ## Context
 
 Barrels sells per-app subscriptions, Bookings first (owner direction, 22 November
