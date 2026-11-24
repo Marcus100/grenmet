@@ -73554,6 +73554,96 @@
           }
         ]
       }
+    },
+    "/api/v1/monitoring/admin/freshness/probe": {
+      "get": {
+        "tags": [
+          "monitoring"
+        ],
+        "summary": "Uptime probe: is ingest fresh and the email outbox clear",
+        "description": "For Better Stack and other plain HTTP monitors. Send the probe secret as `Authorization: Bearer <MONITORING_PROBE_TOKEN>` (a header, never the URL). 200 with `healthy: true` when every check passes; 503 with `healthy: false` and the names of the failing checks otherwise. Returns verdict, check names and a time only: no counts, recipients, payloads or error text. Not user authenticated; the secret is the one grant, equal to monitoring.freshness.read. Answers 404 when the secret is not configured and 429 when called too often.",
+        "operationId": "monitoringGetProbe",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Every check passes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbeReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or wrong probe secret",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Probe secret not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many probe calls",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "At least one check fails",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbeReport"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -107756,6 +107846,34 @@
           "void"
         ],
         "title": "PrintixTicketStatus"
+      },
+      "ProbeReport": {
+        "properties": {
+          "healthy": {
+            "type": "boolean",
+            "title": "Healthy"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          },
+          "failing_checks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Failing Checks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "healthy",
+          "checked_at",
+          "failing_checks"
+        ],
+        "title": "ProbeReport",
+        "description": "The uptime probe answer: a verdict and failing check names, nothing personal.\n\nFailing names look like ``feed:cap_feeds``, ``telemetry``,\n``email_outbox.stale_pending`` or ``email_outbox.dead_last_window``."
       },
       "ProductAccessCurrent": {
         "properties": {
