@@ -9,6 +9,8 @@ import { parseMoney } from "./settings-view";
 /** The three profile fields a deposit rule saves. */
 export interface DepositRuleFields {
   deposit_fixed_minor: number | null;
+  /** Services priced below this take nothing from the rule; null is no minimum. */
+  deposit_min_price_minor?: number | null;
   deposit_mode: BookingDepositMode;
   deposit_percent: number | null;
 }
@@ -113,15 +115,44 @@ export function depositRuleFields(input: {
 }
 
 /**
+ * The lowest service price that takes the rule, as the form states it. Blank is
+ * no minimum (null). Otherwise a money figure above zero, in minor units.
+ */
+export function minimumPriceFields(
+  text: string
+): { ok: true; value: number | null } | { ok: false; message: string } {
+  const trimmed = text.trim();
+  if (trimmed === "") {
+    return { ok: true, value: null };
+  }
+  const minor = parseMoney(trimmed);
+  if (minor === null || minor <= 0 || minor > MAX_MINOR) {
+    return {
+      ok: false,
+      message:
+        "The lowest price for a deposit is more than zero, with at most two decimal places. Leave it blank for no minimum.",
+    };
+  }
+  return { ok: true, value: minor };
+}
+
+/**
  * The deposit a booking of a service priced `priceMinor` would ask for under the
  * rule: a percentage rounds up to whole currency units and never exceeds the
- * price; a fixed amount is capped at the price. Zero when the rule is off.
+ * price; a fixed amount is capped at the price. Zero when the rule is off, or
+ * when the service is priced below the rule's minimum.
  */
 export function depositPreviewMinor(
   rule: DepositRuleFields,
   priceMinor: number
 ): number {
   if (priceMinor <= 0) {
+    return 0;
+  }
+  if (
+    rule.deposit_min_price_minor &&
+    priceMinor < rule.deposit_min_price_minor
+  ) {
     return 0;
   }
   if (rule.deposit_mode === "percent" && rule.deposit_percent) {

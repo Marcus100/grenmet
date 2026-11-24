@@ -145,3 +145,13 @@ describe("payNowLine refund sentence", () => {
     );
   });
 });
+
+describe("payNowLine when the deposit is non-refundable", () => {
+  it("states the move rule instead of the refund", () => {
+    const line = payNowLine(6000, 21_000, "XCD", 6, true);
+    expect(line).toContain(
+      "Your deposit is non-refundable. You can move your booking up to 6 hours before; it stays with your booking."
+    );
+    expect(line).not.toContain("get your deposit back");
+  });
+});

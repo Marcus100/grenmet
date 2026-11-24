@@ -33,6 +33,7 @@ import { payNowLine } from "../lib/booking-payment";
 import { cancellationPolicyLine, holdEndsLine } from "../lib/booking-policy";
 import type { Booked, BookingFlowActions } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
+import { BookingPolicyText } from "./booking-policy-text";
 import { ContactLinks } from "./business-contact";
 import { PaymentStatus } from "./payment-status";
 import { SlotPicker } from "./slot-picker";
@@ -639,7 +640,8 @@ export function BookingFlow({
         dueAtBooking(service),
         service.price_minor,
         storefront.currency,
-        storefront.cancel_cutoff_hours
+        storefront.cancel_cutoff_hours,
+        storefront.deposit_non_refundable
       )
     : null;
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
@@ -1011,6 +1013,7 @@ export function BookingFlow({
           By appointment only. You can change or cancel online until{" "}
           {formatHours(storefront.cancel_cutoff_hours)} before your visit.
         </p>
+        <BookingPolicyText text={storefront.booking_policy} />
         {!stepOpen && (
           <button
             aria-disabled={submitting || emailCode.busy !== null}

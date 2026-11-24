@@ -3,8 +3,10 @@ import {
   cancellationPolicyLine,
   depositRefundLine,
   holdEndsLine,
+  nonRefundableDepositLine,
 } from "./booking-policy";
 
+const GET_DEPOSIT_BACK = /get your deposit back/u;
 const HOLD_SENTENCE =
   /^Your time is held until .*\. It is released if the payment has not arrived by then\.$/u;
 
@@ -51,6 +53,33 @@ describe("depositRefundLine", () => {
   it("says before the start when there is no cutoff", () => {
     expect(depositRefundLine(0)).toBe(
       "Cancel before your appointment starts to get your deposit back."
+    );
+  });
+});
+
+describe("depositRefundLine when the deposit is non-refundable", () => {
+  it("replaces the refund promise with the move rule, from the cutoff", () => {
+    expect(depositRefundLine(24, true)).toBe(
+      "Your deposit is non-refundable. You can move your booking up to 24 hours before; it stays with your booking."
+    );
+    expect(depositRefundLine(1, true)).toBe(
+      "Your deposit is non-refundable. You can move your booking up to 1 hour before; it stays with your booking."
+    );
+  });
+
+  it("does not promise a refund anywhere in the sentence", () => {
+    expect(nonRefundableDepositLine(24)).not.toMatch(GET_DEPOSIT_BACK);
+  });
+
+  it("says a move is possible at any time when there is no cutoff", () => {
+    expect(depositRefundLine(0, true)).toBe(
+      "Your deposit is non-refundable. You can move your booking at any time before it starts; it stays with your booking."
+    );
+  });
+
+  it("keeps the refundable wording when the switch is off", () => {
+    expect(depositRefundLine(24, false)).toBe(
+      "Cancel at least 24 hours before to get your deposit back."
     );
   });
 });
