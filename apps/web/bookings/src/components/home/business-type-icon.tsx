@@ -53,18 +53,24 @@ const PATHS: Record<BookingBusinessType, ReactNode> = {
 
 /** The icon for a type, or the four-squares icon for "All". */
 export function BusinessTypeIcon({
+  className = "size-6",
+  strokeWidth = 2,
   type,
-}: Readonly<{ type: BookingBusinessType | "all" }>) {
+}: Readonly<{
+  className?: string;
+  strokeWidth?: number;
+  type: BookingBusinessType | "all";
+}>) {
   return (
     <svg
       aria-hidden="true"
-      className="size-[26px] shrink-0 md:size-5"
+      className={`${className} shrink-0`}
       fill="none"
       focusable="false"
       stroke="currentColor"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth="2"
+      strokeWidth={strokeWidth}
       viewBox="0 0 24 24"
     >
       {PATHS[type === "all" ? "other" : type]}

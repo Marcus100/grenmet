@@ -51,6 +51,8 @@ describe("safeCoverUrl", () => {
     for (const value of [
       "http://cdn.example.test/c.jpg",
       "javascript:alert(1)",
+      "https://user:pass@cdn.example.test/c.jpg",
+      "https://user@cdn.example.test/c.jpg",
       "not a url",
       "",
       null,

@@ -10,15 +10,42 @@
 @source "../../node_modules/@barrelsgd/ui/src";
 @source "../../node_modules/@barrelsgd/bookings-web/src";
 
-/* Home page ground (docs/design/bookings.md, "Home page"): the soft grey the
-   white cards sit on. New token: --color-ground. */
+/* Home page ground (docs/design/bookings.md, "Home page"): the near-white the
+   cards sit on. Token: --color-ground. */
 @theme inline {
-  --color-ground: #f4f5f8;
+  --color-ground: #fbfbfc;
 }
 
-/* The floating bottom bar on the home page must not hide a focused control. */
+/* The sticky search pill and the floating bottom bar on the home page must not
+   hide a focused control. */
+html {
+  scroll-padding-top: 6rem;
+}
 @media (max-width: 47.99rem) {
   html {
     scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Calm press feedback (150 ms) on home page cards, tiles and pills, and a small
+   hover lift where a real pointer exists. Nothing moves when the person asks
+   for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .press {
+    transition:
+      transform 150ms ease-out,
+      filter 150ms ease-out;
+  }
+  .press:active {
+    filter: brightness(0.92);
+    transform: scale(0.98);
+  }
+  @media (hover: hover) {
+    .lift:hover {
+      transform: translateY(-2px);
+    }
+    .lift:active {
+      transform: scale(0.98);
+    }
   }
 }

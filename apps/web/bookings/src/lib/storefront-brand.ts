@@ -38,7 +38,10 @@ export function safeImageUrl(value: string | null | undefined): string | null {
   }
   try {
     const url = new URL(value);
-    return url.protocol === "https:" ? url.href : null;
+    // An address with a username or password is never shown.
+    return url.protocol === "https:" && !url.username && !url.password
+      ? url.href
+      : null;
   } catch {
     return null;
   }

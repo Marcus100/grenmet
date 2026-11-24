@@ -8,26 +8,23 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { pageAccent } from "@/lib/brand-colour";
 import type { ListingQuery } from "@/lib/business-listing-query";
+import { INK, TYPE_FILL } from "@/lib/business-type-colours";
 import { businessTypeLabel } from "@/lib/business-types";
 import { safeCoverUrl, safeLogoUrl } from "@/lib/storefront-brand";
 import { BusinessTypeIcon } from "./business-type-icon";
+import { type FeaturedService, ServiceTiles } from "./service-tiles";
 
-// Server rendered: the search is a plain GET form and the chips and pages are
-// links, so the list works before any script loads. Every link is 44 px tall.
+// Server rendered: the search is a plain GET form and the type tiles and pages
+// are links, so the list works before any script loads. Every link is 44 px tall.
 const LINK =
-  "inline-flex min-h-11 items-center rounded-full px-2 font-medium underline underline-offset-4 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
-const CHIP =
-  "inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
-const CHIP_IDLE = "bg-background md:bg-ground";
-const CHIP_CHOSEN = "bg-primary text-primary-foreground";
-// Type tiles: a 4-column grid of white tiles on phones (icon above label), a
-// centred row of pills with the icon beside the label from md up.
-const TILE =
-  "flex min-h-11 h-[84px] flex-col items-center justify-center gap-1.5 rounded-[20px] text-[12.5px] font-semibold shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none md:h-11 md:flex-row md:gap-2 md:rounded-full md:px-4 md:text-sm md:shadow-none";
-const TILE_IDLE = "bg-background text-foreground md:bg-ground";
-const TILE_CHOSEN = "bg-primary text-primary-foreground";
-const CARD =
-  "bg-background text-foreground rounded-[1.75rem] shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
+  "press inline-flex min-h-11 items-center rounded-full px-3 font-medium underline underline-offset-4 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none";
+// A ring offset keeps the focus ring visible on white and on saturated fills.
+const FOCUS =
+  "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none";
+const H2 = "text-[19px] font-bold tracking-tight md:text-xl";
+const TILE = `press lift flex h-[118px] flex-col justify-between rounded-[26px] p-[14px_16px] text-[19px] font-bold text-white md:h-[140px] md:rounded-[28px] ${FOCUS}`;
+// The chosen tile gets a white inner ring.
+const TILE_CHOSEN = "shadow-[inset_0_0_0_3px_white]";
 
 /**
  * The home page address for a query, as a typed route object (the page number is
@@ -55,164 +52,94 @@ export function listingHref(query: Partial<ListingQuery>): {
     : { pathname: "/" };
 }
 
-/** Initial shown when a business has no logo. */
-function firstLetter(name: string): string {
-  return Array.from(name.trim())[0]?.toUpperCase() ?? "?";
-}
+/**
+ * Featured services for a card. The API does not send them yet, so this is
+ * empty and `ServiceTiles` renders nothing; when `featured_services` arrives,
+ * map it to `FeaturedService` here.
+ */
+const NO_SERVICES: readonly FeaturedService[] = [];
 
-function BusinessCard({
-  card,
-  first = false,
-}: Readonly<{ card: BookingPublicBusiness; first?: boolean }>) {
+function BusinessCard({ card }: Readonly<{ card: BookingPublicBusiness }>) {
   const logo = safeLogoUrl(card.logo_url);
   const cover = safeCoverUrl(card.cover_url);
-  const accent = pageAccent(card.brand_color);
-  const where = [card.category, card.city].filter(Boolean).join(" · ");
-  // The tile is a light tint of the brand colour with ink text, so the letter
-  // reads at 4.5:1 whatever colour the business picked. Without a usable colour
-  // it is the ground grey with a hairline, so it still reads as a tile.
-  const tileStyle = accent
-    ? { backgroundColor: `color-mix(in srgb, ${accent} 18%, white)` }
-    : undefined;
+  // A brand colour that clears 4.5:1 against white fills the card, so white
+  // text is safe on it; any other business gets neutral ink and stays distinct.
+  const fill = pageAccent(card.brand_color) ?? INK;
+  const kind =
+    card.category ??
+    (card.business_type ? businessTypeLabel(card.business_type) : null);
+  const where = [kind, card.city].filter(Boolean).join(" · ");
+  const services = NO_SERVICES;
   return (
     <Link
-      className={`${CARD} flex h-full flex-col gap-2 p-2.5 md:gap-3 md:p-3`}
+      className={`press lift flex h-full flex-col rounded-[36px] p-3 text-white md:rounded-[40px] ${FOCUS}`}
       href={{ pathname: `/${card.slug}` }}
+      style={{ backgroundColor: fill }}
     >
-      <span
-        aria-hidden="true"
-        className={`${first ? "h-[170px] text-6xl" : "h-[104px] text-4xl"} bg-ground ring-border text-foreground relative flex w-full items-center justify-center overflow-hidden rounded-2xl font-bold ring-1 md:h-40 md:rounded-[1.25rem] md:text-[56px]`}
-        style={tileStyle}
-      >
-        {cover ? (
-          <Image
-            alt=""
-            className="absolute inset-0 size-full object-cover"
-            height={320}
-            referrerPolicy="no-referrer"
-            src={cover}
-            unoptimized
-            width={640}
-          />
-        ) : null}
+      <span className="flex flex-1 flex-col items-center justify-center gap-2 px-3 text-center">
         {logo ? (
-          <Image
-            alt=""
-            className={
-              cover
-                ? "bg-background absolute bottom-2 left-2 h-10 w-auto max-w-[40%] rounded-lg object-contain p-1"
-                : "max-h-[60%] w-auto max-w-[80%] object-contain"
-            }
-            height={96}
-            referrerPolicy="no-referrer"
-            src={logo}
-            unoptimized
-            width={160}
-          />
-        ) : null}
-        {cover || logo ? null : firstLetter(card.name)}
-      </span>
-      <span className="flex flex-1 flex-col gap-2 px-1 pb-1 md:px-1.5 md:pb-1.5">
-        <span
-          className={
-            first
-              ? "flex items-center gap-3 md:flex-col md:items-stretch"
-              : "flex flex-col items-stretch gap-3"
-          }
-        >
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <h3
-              className={`${first ? "text-lg font-bold" : "text-[15px] font-semibold"} md:text-[17px] md:font-bold`}
-            >
-              {card.name}
-            </h3>
-            {where && (
-              <span className="text-muted-foreground text-[13px] md:text-sm">
-                {where}
-              </span>
-            )}
-          </span>
           <span
             aria-hidden="true"
-            className={`${first ? "inline-flex" : "hidden md:inline-flex"} bg-primary text-primary-foreground min-h-11 shrink-0 items-center justify-center rounded-full px-5 text-[15px] font-semibold md:w-full`}
+            className="bg-background flex size-[52px] items-center justify-center overflow-hidden rounded-full"
           >
-            Book
+            <Image
+              alt=""
+              className="size-9 object-contain"
+              height={36}
+              referrerPolicy="no-referrer"
+              src={logo}
+              unoptimized
+              width={36}
+            />
           </span>
-        </span>
-        {first && card.short_description && (
-          <span className="text-sm md:hidden">{card.short_description}</span>
-        )}
+        ) : null}
+        <h3 className="text-[30px] leading-[1.05] font-extrabold tracking-tight md:text-[32px]">
+          {card.name}
+        </h3>
+        {where && <span className="text-sm font-medium">{where}</span>}
       </span>
+      {services.length > 0 ? (
+        <ServiceTiles services={services} />
+      ) : (
+        <BottomPanel cover={cover} description={card.short_description} />
+      )}
     </Link>
   );
 }
 
-function TypeTile({
-  chosen,
-  href,
-  label,
-  type,
-}: Readonly<{
-  chosen: boolean;
-  href: ReturnType<typeof listingHref>;
-  label: string;
-  type: BookingBusinessType | "all";
-}>) {
-  return (
-    <Link
-      aria-current={chosen ? "page" : undefined}
-      className={`${TILE} ${chosen ? TILE_CHOSEN : TILE_IDLE}`}
-      href={href}
-    >
-      <span className={chosen ? undefined : "text-primary"}>
-        <BusinessTypeIcon type={type} />
-      </span>
-      {label}
-    </Link>
-  );
-}
-
-/**
- * One tile per type the API says has a listed business, in its order, after an
- * "All" tile. A tile keeps the search words and clears the category and page.
- */
-function TypeTiles({
-  available,
-  chosen,
-  q,
-}: Readonly<{
-  available: BookingBusinessType[];
-  chosen: BookingBusinessType | undefined;
-  q: string | undefined;
-}>) {
-  if (available.length === 0) {
+/** The photo panel when there is a safe cover, else a white panel with the blurb and a Book pill. */
+function BottomPanel({
+  cover,
+  description,
+}: Readonly<{ cover: string | null; description: string | null | undefined }>) {
+  if (cover) {
     return (
-      <nav aria-label="Business types">
-        <p className="text-foreground text-sm">No business types yet.</p>
-      </nav>
+      <span
+        aria-hidden="true"
+        className="bg-ground relative block h-[150px] overflow-hidden rounded-[26px]"
+      >
+        <Image
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+          height={300}
+          referrerPolicy="no-referrer"
+          src={cover}
+          unoptimized
+          width={600}
+        />
+      </span>
     );
   }
   return (
-    <nav
-      aria-label="Business types"
-      className="grid w-full grid-cols-4 gap-2 md:flex md:flex-wrap md:justify-center"
-    >
-      <TypeTile
-        chosen={!chosen}
-        href={listingHref({ q })}
-        label="All"
-        type="all"
-      />
-      {available.map((type) => (
-        <TypeTile
-          chosen={type === chosen}
-          href={listingHref({ q, type })}
-          key={type}
-          label={businessTypeLabel(type)}
-          type={type}
-        />
-      ))}
-    </nav>
+    <span className="bg-background text-foreground flex h-[150px] flex-col justify-between rounded-[26px] p-4">
+      <span className="line-clamp-3 text-sm">{description}</span>
+      <span
+        aria-hidden="true"
+        className="bg-primary text-primary-foreground inline-flex min-h-11 items-center justify-center self-start rounded-full px-6 text-[15px] font-semibold"
+      >
+        Book
+      </span>
+    </span>
   );
 }
 
@@ -227,55 +154,204 @@ function emptyMessage(filtered: boolean, page: number): string {
   return "No businesses listed yet. Businesses appear here once they choose to be listed.";
 }
 
+function SearchPill({ query }: Readonly<{ query: ListingQuery }>) {
+  return (
+    <search className="sticky top-4 z-20 w-full md:mx-auto md:max-w-lg">
+      <form
+        action="/"
+        className="bg-background focus-within:ring-ring flex h-[60px] w-full items-center gap-3 rounded-full pr-2 pl-5 shadow-lg focus-within:ring-2 md:h-16 md:pl-6"
+        method="get"
+      >
+        <svg
+          aria-hidden="true"
+          className="text-muted-foreground size-[22px] shrink-0"
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="2.2"
+          viewBox="0 0 24 24"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20l-3.5-3.5" />
+        </svg>
+        <label className="sr-only" htmlFor="home-search">
+          Search businesses
+        </label>
+        <input
+          className="placeholder:text-muted-foreground min-h-11 min-w-0 flex-1 bg-transparent text-base outline-none md:text-[17px]"
+          defaultValue={query.q ?? ""}
+          id="home-search"
+          maxLength={80}
+          name="q"
+          placeholder="What do you want to book today?"
+          type="search"
+        />
+        {query.category && (
+          <input name="category" type="hidden" value={query.category} />
+        )}
+        {query.type && <input name="type" type="hidden" value={query.type} />}
+        <button
+          aria-label="Search"
+          className={`press bg-primary text-primary-foreground inline-flex size-11 shrink-0 items-center justify-center rounded-full ${FOCUS}`}
+          type="submit"
+        >
+          <svg
+            aria-hidden="true"
+            className="size-5"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="2.4"
+            viewBox="0 0 24 24"
+          >
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </button>
+      </form>
+    </search>
+  );
+}
+
+/** Laptops only: the compact row under the search, a colour dot and a word per type. */
+function TypeRow({
+  available,
+  chosen,
+  q,
+}: Readonly<{
+  available: BookingBusinessType[];
+  chosen: BookingBusinessType | undefined;
+  q: string | undefined;
+}>) {
+  if (available.length === 0) {
+    return null;
+  }
+  const items: {
+    fill: string;
+    label: string;
+    type: BookingBusinessType | undefined;
+  }[] = [
+    { type: undefined, label: "All", fill: INK },
+    ...available.map((type) => ({
+      type,
+      label: businessTypeLabel(type),
+      fill: TYPE_FILL[type],
+    })),
+  ];
+  return (
+    <nav
+      aria-label="Business types"
+      className="hidden flex-wrap justify-center gap-x-6 md:flex"
+    >
+      {items.map((item) => {
+        const selected = item.type === chosen;
+        return (
+          <Link
+            aria-current={selected ? "page" : undefined}
+            className={`press flex min-h-11 items-center gap-2 rounded-full px-1 text-[15px] ${selected ? "font-extrabold underline underline-offset-4" : "font-semibold"} ${FOCUS}`}
+            href={listingHref({ q, type: item.type })}
+            key={item.label}
+          >
+            <span
+              aria-hidden="true"
+              className="size-[30px] rounded-full"
+              style={{ backgroundColor: item.fill }}
+            />
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+/**
+ * One saturated tile per type the API says has a listed business, in its
+ * order, after an "All" tile. A tile keeps the search words and clears the
+ * category and page.
+ */
+function TypeTiles({
+  available,
+  chosen,
+  q,
+}: Readonly<{
+  available: BookingBusinessType[];
+  chosen: BookingBusinessType | undefined;
+  q: string | undefined;
+}>) {
+  if (available.length === 0) {
+    return <p className="text-foreground text-sm">No business types yet.</p>;
+  }
+  const items: {
+    fill: string;
+    label: string;
+    type: BookingBusinessType | undefined;
+  }[] = [
+    { type: undefined, label: "All", fill: INK },
+    ...available.map((type) => ({
+      type,
+      label: businessTypeLabel(type),
+      fill: TYPE_FILL[type],
+    })),
+  ];
+  return (
+    <nav
+      aria-label="Browse by type"
+      className="grid grid-cols-2 gap-2 md:grid-cols-6"
+    >
+      {items.map((item) => {
+        const selected = item.type === chosen;
+        return (
+          <Link
+            aria-current={selected ? "page" : undefined}
+            className={`${TILE} ${selected ? TILE_CHOSEN : ""}`}
+            href={listingHref({ q, type: item.type })}
+            key={item.label}
+            style={{ backgroundColor: item.fill }}
+          >
+            {item.label}
+            <span className="flex justify-end">
+              <BusinessTypeIcon
+                className="size-12"
+                strokeWidth={1.6}
+                type={item.type ?? "all"}
+              />
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function BusinessListing({
   listing,
   query,
   intro,
 }: Readonly<{
-  /** The h1 and intro line; from md up they share the white search card. */
+  /** The hero (it holds the one h1) and the line under it. */
   intro?: ReactNode;
   /** One page from the API; null when it could not be loaded. */
   listing: BookingPublicBusinessPage | null;
   query: ListingQuery;
 }>) {
-  const chosen = query.category?.toLowerCase();
   const filtered = Boolean(query.q || query.category || query.type);
+  const available = listing?.types_available ?? [];
   return (
-    <section aria-label="Businesses" className="flex flex-col gap-4">
-      <div className="md:bg-background flex flex-col gap-6 md:items-center md:gap-5 md:rounded-[2rem] md:px-8 md:py-12 md:text-center md:shadow-xs">
-        {intro}
-        <search className="w-full md:flex md:justify-center">
-          <form
-            action="/"
-            className="bg-background md:bg-ground focus-within:ring-ring flex min-h-13 w-full items-center gap-2 rounded-full pr-1.5 pl-5 shadow-xs focus-within:ring-2 md:min-h-15 md:max-w-[560px] md:shadow-none"
-            method="get"
-          >
-            <label className="sr-only" htmlFor="home-search">
-              Search businesses
-            </label>
-            <input
-              className="placeholder:text-muted-foreground min-h-11 min-w-0 flex-1 bg-transparent text-base outline-none"
-              defaultValue={query.q ?? ""}
-              id="home-search"
-              maxLength={80}
-              name="q"
-              placeholder="Doctor, barber, mechanic, tutor"
-              type="search"
-            />
-            {query.category && (
-              <input name="category" type="hidden" value={query.category} />
-            )}
-            {query.type && (
-              <input name="type" type="hidden" value={query.type} />
-            )}
-            <button
-              className="bg-primary text-primary-foreground min-h-11 rounded-full px-5 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-              type="submit"
-            >
-              Search
-            </button>
-          </form>
-        </search>
+    <>
+      <SearchPill query={query} />
+      {listing && (
+        <TypeRow available={available} chosen={query.type} q={query.q} />
+      )}
+      {intro}
+
+      <section
+        aria-labelledby="businesses-heading"
+        className="flex scroll-mt-24 flex-col gap-3"
+        id="businesses"
+      >
+        <h2 className={H2} id="businesses-heading">
+          Businesses to book
+        </h2>
 
         {listing === null && (
           <p className="text-foreground" role="alert">
@@ -283,102 +359,73 @@ export function BusinessListing({
           </p>
         )}
 
-        {listing && (
-          <TypeTiles
-            available={listing.types_available ?? []}
-            chosen={query.type}
-            q={query.q}
-          />
+        {listing && listing.items.length === 0 && (
+          <p className="text-foreground">
+            {emptyMessage(filtered, listing.page)}
+          </p>
         )}
 
-        {listing && listing.categories.length === 0 && (
-          <nav aria-label="Categories">
-            <p className="text-foreground text-sm">No categories yet.</p>
+        {listing && listing.items.length > 0 && (
+          <ul className="-mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pt-1 pb-4 md:mx-0 md:px-0">
+            {listing.items.map((card) => (
+              <li
+                className="h-[470px] w-[316px] shrink-0 snap-start md:h-[500px] md:w-[330px]"
+                key={card.slug}
+              >
+                <BusinessCard card={card} />
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {listing && (listing.page > 1 || listing.has_more) && (
+          <nav aria-label="Pages" className="flex justify-between gap-2">
+            {listing.page > 1 ? (
+              <Link
+                className={LINK}
+                href={listingHref({
+                  q: query.q,
+                  category: query.category,
+                  type: query.type,
+                  page: listing.page - 1,
+                })}
+                rel="prev"
+              >
+                Previous page
+              </Link>
+            ) : (
+              <span />
+            )}
+            {listing.has_more && (
+              <Link
+                className={LINK}
+                href={listingHref({
+                  q: query.q,
+                  category: query.category,
+                  type: query.type,
+                  page: listing.page + 1,
+                })}
+                rel="next"
+              >
+                Next page
+              </Link>
+            )}
           </nav>
         )}
+      </section>
 
-        {listing && listing.categories.length > 0 && (
-          <nav
-            aria-label="Categories"
-            className="-mx-4 -my-1 flex gap-2 overflow-x-auto px-4 py-1 md:mx-0 md:my-0 md:flex-wrap md:justify-center md:overflow-visible md:px-0 md:py-0"
-          >
-            <Link
-              aria-current={query.category ? undefined : "page"}
-              className={`${CHIP} ${query.category ? CHIP_IDLE : CHIP_CHOSEN}`}
-              href={listingHref({ q: query.q, type: query.type })}
-            >
-              All
-            </Link>
-            {listing.categories.map((category) => {
-              const selected = category.toLowerCase() === chosen;
-              return (
-                <Link
-                  aria-current={selected ? "page" : undefined}
-                  className={`${CHIP} ${selected ? CHIP_CHOSEN : CHIP_IDLE}`}
-                  href={listingHref({ q: query.q, category, type: query.type })}
-                  key={category}
-                >
-                  {category}
-                </Link>
-              );
-            })}
-          </nav>
-        )}
-      </div>
-
-      {listing && listing.items.length === 0 && (
-        <p className="text-foreground">
-          {emptyMessage(filtered, listing.page)}
-        </p>
+      {listing && (
+        <section
+          aria-labelledby="types-heading"
+          className="flex scroll-mt-24 flex-col gap-3"
+          id="types"
+        >
+          <h2 className={H2} id="types-heading">
+            Types of business
+          </h2>
+          <TypeTiles available={available} chosen={query.type} q={query.q} />
+        </section>
       )}
-
-      {listing && listing.items.length > 0 && (
-        <ul className="grid grid-cols-2 gap-3 md:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
-          {listing.items.map((card, index) => (
-            <li
-              className={index === 0 ? "col-span-2 md:col-span-1" : undefined}
-              key={card.slug}
-            >
-              <BusinessCard card={card} first={index === 0} />
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {listing && (listing.page > 1 || listing.has_more) && (
-        <nav aria-label="Pages" className="flex justify-between gap-2">
-          {listing.page > 1 ? (
-            <Link
-              className={LINK}
-              href={listingHref({
-                q: query.q,
-                category: query.category,
-                type: query.type,
-                page: listing.page - 1,
-              })}
-              rel="prev"
-            >
-              Previous page
-            </Link>
-          ) : (
-            <span />
-          )}
-          {listing.has_more && (
-            <Link
-              className={LINK}
-              href={listingHref({
-                q: query.q,
-                category: query.category,
-                type: query.type,
-                page: listing.page + 1,
-              })}
-              rel="next"
-            >
-              Next page
-            </Link>
-          )}
-        </nav>
-      )}
-    </section>
+    </>
   );
 }
