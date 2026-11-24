@@ -24,6 +24,19 @@ export const bookingPublicDetailSchema = z
     deposit_minor: z.int(),
     currency: z.string(),
     cancel_cutoff_hours: z.int(),
+    deposit_non_refundable: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "True when a paid deposit is kept on cancellation, not refunded."
+      ),
+    booking_policy: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "The business's plain-text booking policy, or null when it has none."
+      ),
     can_cancel: z
       .boolean()
       .describe(

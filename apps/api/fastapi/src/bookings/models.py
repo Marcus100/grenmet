@@ -108,6 +108,14 @@ class BookingProfile(Base):
             name="deposit_rule",
         ),
         sa.CheckConstraint(
+            "deposit_min_price_minor IS NULL OR deposit_min_price_minor > 0",
+            name="deposit_min_price",
+        ),
+        sa.CheckConstraint(
+            "booking_policy IS NULL OR char_length(booking_policy) BETWEEN 1 AND 1000",
+            name="booking_policy",
+        ),
+        sa.CheckConstraint(
             "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
             name="brand_color",
         ),
@@ -169,6 +177,17 @@ class BookingProfile(Base):
     deposit_percent: Mapped[int | None] = mapped_column(default=None)
     #: Minor units per booking, used when ``deposit_mode`` is ``fixed``.
     deposit_fixed_minor: Mapped[int | None] = mapped_column(default=None)
+    #: The business-wide rule skips services priced below this (minor units); null
+    #: means no minimum. A service's own deposit is never affected.
+    deposit_min_price_minor: Mapped[int | None] = mapped_column(default=None)
+    #: When true a paid deposit is kept on cancellation (owner request 23 Nov 2026).
+    #: Off by default, so every business keeps today's refund policy.
+    deposit_non_refundable: Mapped[bool] = mapped_column(
+        default=False, server_default=sa.false()
+    )
+    #: Plain-text booking policy (late fees and so on), shown before booking and in
+    #: the confirmation. Never HTML: every surface renders it as text.
+    booking_policy: Mapped[str | None] = mapped_column(String(1000), default=None)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

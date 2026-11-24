@@ -52,6 +52,16 @@ export type BookingPublicDetail = {
   currency: string;
   cancel_cutoff_hours: number;
   /**
+   * @description True when a paid deposit is kept on cancellation, not refunded.
+   * @default false
+   * @type boolean | undefined
+   */
+  deposit_non_refundable?: boolean;
+  /**
+   * @description The business's plain-text booking policy, or null when it has none.
+   */
+  booking_policy?: string | null;
+  /**
    * @description True while the booking is active and before the cancellation cutoff.
    * @type boolean
    */
