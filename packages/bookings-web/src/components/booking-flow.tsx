@@ -12,8 +12,16 @@ import {
   useRef,
   useState,
 } from "react";
-import { addOnTotals, amountDueForSelection } from "../lib/add-ons";
-import { type Failure, tellsToContact } from "../lib/booking-errors";
+import {
+  addOnTotals,
+  amountDueForSelection,
+  selectionKey,
+} from "../lib/add-ons";
+import {
+  ADD_ONS_GONE_MESSAGE,
+  type Failure,
+  tellsToContact,
+} from "../lib/booking-errors";
 import {
   type BookingFields,
   type FieldErrors,
@@ -50,6 +58,19 @@ import {
   TOKEN_LOADING_MESSAGE,
   useEmailCode,
 } from "./use-email-code";
+
+/** What the API said is due for one selection (service plus add-ons). */
+interface Quote {
+  dueMinor: number | undefined;
+  emailCodeRequired: boolean | undefined;
+  key: string;
+}
+
+const ADD_ON_FAILURES: ReadonlySet<string> = new Set([
+  "add_ons_unavailable",
+  "not_found",
+  "invalid",
+]);
 
 const TIMES_UPDATING =
   "Your times are updating for the add-ons you chose. Please wait a moment, then try again.";
@@ -680,6 +701,7 @@ function TimeStep({
   onAddOnsGone,
   onBusyChange,
   onChange,
+  onQuote,
   onUnavailable,
   reloadKey,
   service,
@@ -693,6 +715,7 @@ function TimeStep({
   onAddOnsGone: (message: string) => void;
   onBusyChange: (busy: boolean) => void;
   onChange: (value: string | null) => void;
+  onQuote: (quote: Quote) => void;
   onUnavailable: () => void;
   reloadKey: number;
   service: BookingPublicService | null;
@@ -719,8 +742,22 @@ function TimeStep({
               addOnIds.length > 0
                 ? await actions.loadSlots(service.id, firstDay, addOnIds)
                 : await actions.loadSlots(service.id, firstDay);
-            if (!outcome.ok && outcome.code === "add_ons_unavailable") {
-              onAddOnsGone(outcome.message);
+            if (addOnIds.length > 0) {
+              if (outcome.ok) {
+                onQuote({
+                  key: selectionKey(service.id, addOnIds),
+                  dueMinor: outcome.data.dueAtBookingMinor,
+                  emailCodeRequired: outcome.data.emailCodeRequired,
+                });
+              } else if (ADD_ON_FAILURES.has(outcome.code)) {
+                // Switched off, not offered with this service, or the service
+                // itself cannot take add-ons: drop them, keep what was typed.
+                onAddOnsGone(
+                  outcome.code === "add_ons_unavailable"
+                    ? outcome.message
+                    : ADD_ONS_GONE_MESSAGE
+                );
+              }
             }
             return outcome;
           }}
@@ -831,6 +868,7 @@ export function BookingFlow({
   // True while times are being asked for again after the add-ons changed: a
   // time chosen before that may no longer fit, so it cannot be submitted yet.
   const [timesBusy, setTimesBusy] = useState(false);
+  const [quote, setQuote] = useState<Quote | null>(null);
   const [booked, setBooked] = useState<Booked | null>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   // One key per submission: a retry of the same request replays it.
@@ -902,12 +940,22 @@ export function BookingFlow({
   // With add-ons ticked the API may charge on the combined price, which this
   // form cannot work out: then no figure is shown, and a code the API demands
   // anyway is asked for through `codeForced` with the typed details kept.
+  const quoted =
+    quote?.key === selectionKey(serviceId, addOns.ids) &&
+    quote.dueMinor !== undefined &&
+    quote.emailCodeRequired !== undefined
+      ? { dueMinor: quote.dueMinor, emailCodeRequired: quote.emailCodeRequired }
+      : null;
   const selection = service
-    ? amountDueForSelection({ addOnCount: addOns.ids.length, service })
+    ? amountDueForSelection({
+        addOnCount: addOns.ids.length,
+        fromApi: quoted,
+        service,
+      })
     : null;
   const knownDue = selection?.dueMinor ?? null;
   const needsCode =
-    ((knownDue ?? 0) > 0 && !ownAccountEmail) ||
+    ((selection?.emailCodeRequired ?? false) && !ownAccountEmail) ||
     (serviceId !== null && codeForced === serviceId);
   const payNow =
     service && knownDue !== null && totals
@@ -915,6 +963,7 @@ export function BookingFlow({
       : null;
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
   const emailCode = useEmailCode({
+    addOnIds: addOns.ids,
     actions,
     email,
     onFormError: setFormError,
@@ -1104,6 +1153,7 @@ export function BookingFlow({
           }}
           onBusyChange={setTimesBusy}
           onChange={pickStart}
+          onQuote={setQuote}
           onUnavailable={addOns.timeNoLongerFits}
           reloadKey={reloadKey + addOns.reloads}
           service={service}

@@ -115,6 +115,8 @@ export async function loadSlots(
       ok: true,
       data: {
         timezone: result.timezone,
+        dueAtBookingMinor: result.due_at_booking_minor,
+        emailCodeRequired: result.email_code_required,
         slots: result.slots.map(({ starts_at, ends_at }) => ({
           starts_at,
           ends_at,
@@ -208,7 +210,12 @@ export async function requestEmailCode(
     return invalid;
   }
   const turnstile = trimmed(input.turnstileToken);
+  const addOns = addOnList(input.addOnIds);
+  if (addOns === null) {
+    return invalid;
+  }
   const body = bookingEmailCodeRequestSchema.safeParse({
+    ...(addOns.length > 0 ? { add_on_ids: addOns } : {}),
     service_id: input.serviceId,
     starts_at: input.startsAt,
     customer_email: trimmed(input.email),
@@ -224,6 +231,9 @@ export async function requestEmailCode(
         service_id: body.data.service_id,
         starts_at: body.data.starts_at,
         customer_email: body.data.customer_email,
+        ...(body.data.add_on_ids?.length
+          ? { add_on_ids: body.data.add_on_ids }
+          : {}),
         ...(body.data.turnstile_token
           ? { turnstile_token: body.data.turnstile_token }
           : {}),

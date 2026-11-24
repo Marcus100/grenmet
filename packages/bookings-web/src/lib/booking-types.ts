@@ -12,6 +12,13 @@ export interface SlotChoice {
 
 /** Open slots for a window of days, in the studio's timezone (IANA name). */
 export interface SlotList {
+  /**
+   * What booking this service with the asked-for add-ons charges when it is
+   * made, in minor units (0 = nothing). Absent from older hosts.
+   */
+  dueAtBookingMinor?: number;
+  /** An anonymous visitor must pass the emailed-code step first. */
+  emailCodeRequired?: boolean;
   slots: SlotChoice[];
   timezone: string;
 }
@@ -42,6 +49,8 @@ export interface Booked {
 
 /** Ask for an emailed code. The proof it leads to is bound to all three fields. */
 export interface EmailCodeRequestInput {
+  /** The add-ons the booking will include (the code is asked for on the combined price). */
+  addOnIds?: readonly string[];
   email: string;
   serviceId: string;
   startsAt: string;

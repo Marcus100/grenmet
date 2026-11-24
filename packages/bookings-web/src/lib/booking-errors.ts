@@ -156,6 +156,10 @@ function emailUnverified(
   return null;
 }
 
+/** Said when add-ons were refused or cannot be used with the chosen service. */
+export const ADD_ONS_GONE_MESSAGE =
+  "Add-ons are not available for this booking any more, so we removed them. Check the total, pick a time again, then book.";
+
 /** The API's 422 sentences about add-ons (switched off, gone, not offered here). */
 const ADD_ON_REFUSAL =
   /does not offer add-ons|add-ons is not available|is not offered with this service/iu;
@@ -167,10 +171,7 @@ function addOnRefusal(
   if (status !== 422 || detail === undefined || !ADD_ON_REFUSAL.test(detail)) {
     return null;
   }
-  return failure(
-    "add_ons_unavailable",
-    "Add-ons are not available for this booking any more, so we removed them. Check the total, pick a time again, then book."
-  );
+  return failure("add_ons_unavailable", ADD_ONS_GONE_MESSAGE);
 }
 
 /**

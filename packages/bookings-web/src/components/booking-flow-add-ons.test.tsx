@@ -38,6 +38,13 @@ const RE_4 = /You pay a deposit of EC\$30 now/u;
 const RE_5 = /You pay the full price, EC\$50/u;
 const RE_6 = /You pay the full price/u;
 const RE_7 = /We need to confirm your email again/u;
+const PERCENT_LINE = /EC\$45 deposit, refunded if you cancel/u;
+const PAY_45 = /You pay a deposit of EC\$45 now/u;
+const PAY_FULL_150 = /You pay the full price, EC\$150/u;
+const SEND_CODE = "Email me a verification code";
+const PAY_30 = /You pay a deposit of EC\$30 now/u;
+const PAY_18 = /You pay a deposit of EC\$18 now/u;
+const NO_DEPOSIT = /No deposit for this service/u;
 const STEP = /Add to your appointment/u;
 const ANY_EXTRA = /Extra/u;
 const YOUR_APPOINTMENT = /Your appointment:/u;
@@ -108,6 +115,15 @@ const slotList = (...starts: string[]) => ({
       starts_at,
       ends_at: "2027-01-05T16:00:00Z",
     })),
+  },
+});
+
+const quoteSlots = (dueAtBookingMinor: number, emailCodeRequired: boolean) => ({
+  ok: true as const,
+  data: {
+    ...slotList(TUE, LATER).data,
+    dueAtBookingMinor,
+    emailCodeRequired,
   },
 });
 
@@ -497,4 +513,107 @@ describe("add-on announcements and state", () => {
     await waitFor(() => expect(button).toBeEnabled());
     expect(submitBooking).not.toHaveBeenCalled();
   });
+});
+
+describe("the amount due comes from the availability response", () => {
+  const MAIN_100 = { price_minor: 10_000 };
+  const FIFTY = { ...addOn(1), price_minor: 5000 };
+
+  it("percent deposit: shows the API's figure for the service plus add-on, after a fallback while loading", async () => {
+    const user = userEvent.setup();
+    renderFlow(
+      storefront([FIFTY], { ...MAIN_100, due_at_booking_minor: 3000 })
+    );
+    await pickService(user);
+    expect(screen.getByText(PAY_30)).toBeVisible();
+    let release: (value: ReturnType<typeof quoteSlots>) => void = () =>
+      undefined;
+    vi.mocked(loadSlots).mockReturnValue(
+      new Promise((resolve) => {
+        release = resolve;
+      })
+    );
+    await tick(user, 1);
+    expect(screen.getByText(ON_TOTAL)).toBeVisible();
+    release(quoteSlots(4500, true));
+    expect(await screen.findByText(PAY_45)).toBeVisible();
+    expect(screen.getByText(PERCENT_LINE)).toBeVisible();
+    expect(screen.queryByText(ON_TOTAL)).toBeNull();
+    // Unticking returns to the storefront's own figure for the service alone.
+    await tick(user, 1);
+    expect(screen.getByText(PAY_30)).toBeVisible();
+  });
+
+  it("full-price mode: the full combined price, not the main service's", async () => {
+    const user = userEvent.setup();
+    renderFlow(
+      storefront([FIFTY], { ...MAIN_100, due_at_booking_minor: 10_000 })
+    );
+    vi.mocked(loadSlots).mockResolvedValue(quoteSlots(15_000, true));
+    await pickService(user);
+    await tick(user, 1);
+    expect(await screen.findByText(PAY_FULL_150)).toBeVisible();
+  });
+
+  it("a service under the minimum that crosses it with an add-on: asks for the code", async () => {
+    const user = userEvent.setup();
+    renderFlow(storefront([FIFTY], { price_minor: 3000 }));
+    vi.mocked(loadSlots).mockResolvedValue(quoteSlots(1800, true));
+    vi.mocked(actions.requestEmailCode).mockResolvedValue({
+      ok: true,
+      data: { expiresInSeconds: 600, required: true },
+    });
+    await pickService(user);
+    expect(screen.getByRole("button", { name: SUBMIT })).toBeVisible();
+    await tick(user, 1);
+    expect(await screen.findByText(PAY_18)).toBeVisible();
+    expect(screen.getByRole("button", { name: SEND_CODE })).toBeVisible();
+    await pickSlot(user);
+    await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    await user.click(screen.getByRole("button", { name: SEND_CODE }));
+    await waitFor(() =>
+      expect(actions.requestEmailCode).toHaveBeenCalledTimes(1)
+    );
+    expect(
+      vi.mocked(actions.requestEmailCode).mock.calls[0]?.[0]
+    ).toMatchObject({
+      addOnIds: [FIFTY.id],
+      serviceId: MAIN,
+    });
+    expect(submitBooking).not.toHaveBeenCalled();
+  });
+
+  it("no code step when the API says none is required", async () => {
+    const user = userEvent.setup();
+    renderFlow(storefront([FIFTY], { ...MAIN_100 }));
+    vi.mocked(loadSlots).mockResolvedValue(quoteSlots(0, false));
+    await pickService(user);
+    await tick(user, 1);
+    await waitFor(() => expect(screen.queryByText(ON_TOTAL)).toBeNull());
+    expect(screen.getByText(NO_DEPOSIT)).toBeVisible();
+    expect(screen.getByRole("button", { name: SUBMIT })).toBeVisible();
+  });
+
+  it.each(["not_found", "invalid"] as const)(
+    "drops the add-ons with a plain message when the times call answers %s",
+    async (code) => {
+      const user = userEvent.setup();
+      renderFlow(storefront([FIFTY], { ...MAIN_100 }));
+      await pickService(user);
+      await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+      vi.mocked(loadSlots).mockResolvedValueOnce({
+        ok: false,
+        code,
+        message: "We couldn't find that.",
+      });
+      await tick(user, 1);
+      expect(
+        (await screen.findAllByText(NOT_AVAILABLE)).length
+      ).toBeGreaterThan(0);
+      await waitFor(() => expect(screen.queryByText(STEP)).toBeNull());
+      expect(screen.queryByText(ON_TOTAL)).toBeNull();
+      expect(screen.getByLabelText("Name")).toHaveValue("Ada Lovelace");
+    }
+  );
 });

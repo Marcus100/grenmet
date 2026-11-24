@@ -209,6 +209,45 @@ describe("add-ons", () => {
     expect(getAvailability).not.toHaveBeenCalled();
   });
 
+  it("passes the API's amount due and code requirement on with the times", async () => {
+    vi.mocked(getAvailability).mockResolvedValue({
+      timezone: "America/Grenada",
+      slots: [],
+      due_at_booking_minor: 4500,
+      email_code_required: true,
+    } as never);
+    expect(
+      await loadSlots(SLUG, input.serviceId, "2027-01-05", [ADD_ON])
+    ).toEqual({
+      ok: true,
+      data: {
+        timezone: "America/Grenada",
+        dueAtBookingMinor: 4500,
+        emailCodeRequired: true,
+        slots: [],
+      },
+    });
+  });
+
+  it("sends the add-ons with the emailed-code request", async () => {
+    vi.mocked(requestCode).mockResolvedValue({
+      required: true,
+      expires_in_seconds: 600,
+    } as never);
+    await requestEmailCode(SLUG, {
+      addOnIds: [ADD_ON],
+      email: "ada@example.com",
+      serviceId: input.serviceId,
+      startsAt: input.startsAt,
+      turnstileToken: "",
+    });
+    expect(requestCode).toHaveBeenCalledWith(
+      SLUG,
+      expect.objectContaining({ add_on_ids: [ADD_ON] }),
+      undefined
+    );
+  });
+
   it("sends add_on_ids when booking, and none when none were chosen", async () => {
     vi.mocked(createBooking).mockResolvedValue({
       booking: {} as never,

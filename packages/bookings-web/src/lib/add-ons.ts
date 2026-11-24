@@ -74,9 +74,9 @@ export interface AmountDueSelection {
  * the form can only state a figure when it is certain: no add-ons, the service's
  * own deposit (which always wins and ignores add-ons), or `fromApi`.
  *
- * TODO: when the availability response carries `due_at_booking_minor` and
- * `email_code_required` (back-end branch feat/booking-due-with-add-ons), pass
- * them in as `fromApi` from the loaded times; nothing else here changes.
+ * `fromApi` is the availability response's `due_at_booking_minor` and
+ * `email_code_required` for exactly this service and these add-ons; while it
+ * is loading, or failed, the answer stays "not known".
  */
 export function amountDueForSelection(input: {
   addOnCount: number;
@@ -104,4 +104,12 @@ export function amountDueForSelection(input: {
     return { dueMinor: service.deposit_minor, emailCodeRequired: true };
   }
   return { dueMinor: null, emailCodeRequired: null };
+}
+
+/** Names one selection, so a figure from the API is used only for the selection it priced. */
+export function selectionKey(
+  serviceId: string | null,
+  addOnIds: readonly string[]
+): string {
+  return `${serviceId ?? ""}|${[...addOnIds].sort().join(",")}`;
 }
