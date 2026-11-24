@@ -91,7 +91,10 @@ test("web-bookings is a rolling, routed service: no host ports or container name
 
 test("the bookings host is claimed only by web-bookings", () => {
   const hosts = compose.match(BOOKINGS_HOST) ?? [];
-  assert.equal(hosts.length, 1);
+  const own = block.match(BOOKINGS_HOST) ?? [];
+  // Its main router and the no-access-log router for manage links (#1787).
+  assert.equal(own.length, 2);
+  assert.equal(hosts.length, own.length, "no other service claims the host");
 });
 
 test("sign-in secret is optional and Sentry uses the catalogue secret name", () => {
