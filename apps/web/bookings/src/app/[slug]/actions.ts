@@ -38,6 +38,7 @@ import { isBusinessSlug } from "@/lib/slug";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/u;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const MAX_ADD_ONS = 5;
 const KEY = /^[A-Za-z0-9-]{16,100}$/u;
 
 const invalid: Failure = {
@@ -70,10 +71,26 @@ function trimmed(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+/** The add-on ids a browser sent: none, or up to five uuids; else null. */
+function addOnList(value: unknown): string[] | null {
+  if (value === undefined) {
+    return [];
+  }
+  if (
+    !Array.isArray(value) ||
+    value.length > MAX_ADD_ONS ||
+    !value.every((id) => typeof id === "string" && UUID.test(id))
+  ) {
+    return null;
+  }
+  return value;
+}
+
 export async function loadSlots(
   slug: string,
   serviceId: string,
-  firstDay: string
+  firstDay: string,
+  addOnIds?: readonly string[]
 ): Promise<Outcome<SlotList>> {
   if (!isBusinessSlug(slug)) {
     return unknownBusiness;
@@ -81,8 +98,19 @@ export async function loadSlots(
   if (!(UUID.test(serviceId) && DAY.test(firstDay))) {
     return invalid;
   }
+  // Arguments come from the browser: anything but a short list of ids is refused.
+  const addOns = addOnList(addOnIds);
+  if (addOns === null) {
+    return invalid;
+  }
   try {
-    const result = await getAvailability(slug, serviceId, firstDay);
+    const result = await getAvailability(
+      slug,
+      serviceId,
+      firstDay,
+      undefined,
+      addOns
+    );
     return {
       ok: true,
       data: {
@@ -112,8 +140,13 @@ export async function submitBooking(
   const notes = trimmed(input.notes);
   const website = trimmed(input.website);
   const turnstile = trimmed(input.turnstileToken);
+  const addOns = addOnList(input.addOnIds);
+  if (addOns === null) {
+    return invalid;
+  }
   const body = bookingPublicCreateSchema.safeParse({
     service_id: input.serviceId,
+    ...(addOns.length > 0 ? { add_on_ids: addOns } : {}),
     starts_at: input.startsAt,
     customer_name: trimmed(input.name),
     customer_email: trimmed(input.email),
@@ -137,6 +170,9 @@ export async function submitBooking(
         customer_name: body.data.customer_name,
         customer_email: body.data.customer_email,
         marketing_consent: body.data.marketing_consent,
+        ...(body.data.add_on_ids?.length
+          ? { add_on_ids: body.data.add_on_ids }
+          : {}),
         ...(body.data.customer_phone
           ? { customer_phone: body.data.customer_phone }
           : {}),
