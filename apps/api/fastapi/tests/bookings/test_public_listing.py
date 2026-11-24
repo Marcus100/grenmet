@@ -31,8 +31,10 @@ CARD_KEYS = {
     "city",
     "brand_color",
     "logo_url",
+    "cover_url",
+    "business_type",
 }
-PAGE_KEYS = {"items", "page", "has_more", "categories"}
+PAGE_KEYS = {"items", "page", "has_more", "categories", "types_available"}
 
 
 async def _business(
@@ -103,6 +105,8 @@ async def test_a_listed_card_carries_only_the_public_fields(
         "city": "Gouyave",
         "brand_color": "#0b63ee",
         "logo_url": None,
+        "cover_url": None,
+        "business_type": None,
     }
     raw = str(body)
     for private in (

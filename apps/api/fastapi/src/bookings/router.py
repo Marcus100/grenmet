@@ -41,7 +41,7 @@ from src.turnstile import require_turnstile
 from src.utils.datetime import utc_now
 
 from . import calendar_feed, deposit_payments, public, service, studio
-from .models import BookingStatus
+from .models import BookingBusinessType, BookingStatus
 from .schemas import (
     BookingAgenda,
     BookingAgendaItem,
@@ -996,8 +996,10 @@ async def complete_studio_booking(
     description=(
         "Businesses that opted in to the home page and are open for booking, 24 to a "
         "page. `q` searches the name, category, description and city; `category` "
-        "keeps one category. Each card has public fields only. `categories` lists "
-        "the filter chips. Needs no sign-in."
+        "keeps one category; `type` keeps one business type (a fixed list, 422 for "
+        "anything else). Each card has public fields only. `categories` lists the "
+        "filter chips and `types_available` the business types on offer. Needs no "
+        "sign-in."
     ),
     operation_id="bookingsListPublicBusinesses",
     responses={429: {"model": RateLimitedBody, "description": "Too many requests"}},
@@ -1009,11 +1011,19 @@ async def list_public_businesses(
     session: SessionDep,
     q: Annotated[str | None, Query(max_length=80)] = None,
     category: Annotated[str | None, Query(max_length=80)] = None,
+    business_type: Annotated[
+        BookingBusinessType | None,
+        Query(alias="type", description="Keep one business type."),
+    ] = None,
     page: Annotated[int, Query(ge=1, le=1000)] = 1,
 ) -> Any:
     _ = request  # the rate limiter reads it
     return await service.list_public_businesses(
-        session, q=q, category=category, page=page
+        session,
+        q=q,
+        category=category,
+        page=page,
+        business_type=business_type,
     )
 
 

@@ -15,6 +15,7 @@ from src.utils.timezones import is_valid_timezone
 from . import contact
 from .availability import MAX_CLOSURE_DAYS
 from .models import (
+    BookingBusinessType,
     BookingDepositMode,
     BookingExceptionKind,
     BookingPaymentMode,
@@ -278,6 +279,22 @@ class BookingProfileUpdate(BaseModel):
             "A completed `booking-logo` upload of this business (see "
             "`POST /storage/uploads`), shown at the top of its emails. Null clears "
             "it. Left out, the stored logo is kept."
+        ),
+    )
+    cover_file_id: uuid.UUID | None = Field(
+        default=None,
+        description=(
+            "A completed `booking-cover` upload of this business (see "
+            "`POST /storage/uploads`): the wide photo on its home page card and "
+            "storefront. Null clears it. Left out, the stored photo is kept."
+        ),
+    )
+    business_type: BookingBusinessType | None = Field(
+        default=None,
+        description=(
+            "The business's type for the home page filter: one of a fixed list "
+            "(beauty, hair, health, fitness, auto, home_services, lessons, "
+            "professional, other). Null clears it. Left out, the stored value is kept."
         ),
     )
     listed: bool = Field(
@@ -848,6 +865,15 @@ class BookingStorefront(BaseModel):
             "logo or no public API address is configured. Load it as an image."
         ),
     )
+    cover_url: str | None = Field(
+        description=(
+            "Public https address of the cover photo, or null when there is no "
+            "complete booking-cover upload or no public API address is configured."
+        ),
+    )
+    business_type: BookingBusinessType | None = Field(
+        description="The business's type for the home page filter, or null."
+    )
     services: list[BookingPublicService]
     providers: list[BookingPublicProvider]
     add_ons: list[BookingPublicAddOn] = Field(
@@ -874,6 +900,15 @@ class BookingPublicBusiness(BaseModel):
             "upload or no public API address is configured. Load it as an image."
         ),
     )
+    cover_url: str | None = Field(
+        description=(
+            "Public https address of the cover photo, or null when there is no "
+            "finished booking-cover upload or no public API address is configured."
+        ),
+    )
+    business_type: BookingBusinessType | None = Field(
+        description="The business's type (the `type` filter), or null when not chosen."
+    )
 
 
 class BookingPublicBusinessPage(BaseModel):
@@ -884,6 +919,13 @@ class BookingPublicBusinessPage(BaseModel):
         description=(
             "The distinct categories of every listed business, case folded, for the "
             "filter chips. Not narrowed by the search."
+        ),
+    )
+    types_available: list[BookingBusinessType] = Field(
+        description=(
+            "The business types that at least one listed business has, in the fixed "
+            "list's order. Counts the same businesses the list shows; not narrowed by "
+            "the search, category or type."
         ),
     )
 

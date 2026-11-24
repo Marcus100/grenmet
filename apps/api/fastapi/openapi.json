@@ -14185,7 +14185,7 @@
           "bookings"
         ],
         "summary": "List businesses on the Barrels Bookings home page",
-        "description": "Businesses that opted in to the home page and are open for booking, 24 to a page. `q` searches the name, category, description and city; `category` keeps one category. Each card has public fields only. `categories` lists the filter chips. Needs no sign-in.",
+        "description": "Businesses that opted in to the home page and are open for booking, 24 to a page. `q` searches the name, category, description and city; `category` keeps one category; `type` keeps one business type (a fixed list, 422 for anything else). Each card has public fields only. `categories` lists the filter chips and `types_available` the business types on offer. Needs no sign-in.",
         "operationId": "bookingsListPublicBusinesses",
         "parameters": [
           {
@@ -14221,6 +14221,24 @@
               ],
               "title": "Category"
             }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/BookingBusinessType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Keep one business type.",
+              "title": "Type"
+            },
+            "description": "Keep one business type."
           },
           {
             "name": "page",
@@ -78568,6 +78586,22 @@
         "title": "BookingBusinessContact",
         "description": "How a customer reaches the business by hand. Each is null when the\nbusiness has not set it; show only the ones that are set."
       },
+      "BookingBusinessType": {
+        "type": "string",
+        "enum": [
+          "beauty",
+          "hair",
+          "health",
+          "fitness",
+          "auto",
+          "home_services",
+          "lessons",
+          "professional",
+          "other"
+        ],
+        "title": "BookingBusinessType",
+        "description": "The fixed business types a home page visitor filters by (owner request\n24 Nov 2026). Null on the profile means not chosen. Free-text ``category`` is\nseparate and unchanged."
+      },
       "BookingCalendarFeedLink": {
         "properties": {
           "url": {
@@ -79586,6 +79620,30 @@
             "title": "Logo File Id",
             "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
           },
+          "cover_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover File Id",
+            "description": "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept."
+          },
+          "business_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingBusinessType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, other). Null clears it. Left out, the stored value is kept."
+          },
           "listed": {
             "type": "boolean",
             "title": "Listed",
@@ -79906,6 +79964,30 @@
             ],
             "title": "Logo File Id",
             "description": "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+          },
+          "cover_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover File Id",
+            "description": "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept."
+          },
+          "business_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingBusinessType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, other). Null clears it. Left out, the stored value is kept."
           },
           "listed": {
             "type": "boolean",
@@ -80299,6 +80381,29 @@
             ],
             "title": "Logo Url",
             "description": "Public https address of the logo, or null when there is no finished logo upload or no public API address is configured. Load it as an image."
+          },
+          "cover_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Url",
+            "description": "Public https address of the cover photo, or null when there is no finished booking-cover upload or no public API address is configured."
+          },
+          "business_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingBusinessType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The business's type (the `type` filter), or null when not chosen."
           }
         },
         "type": "object",
@@ -80309,7 +80414,9 @@
           "short_description",
           "city",
           "brand_color",
-          "logo_url"
+          "logo_url",
+          "cover_url",
+          "business_type"
         ],
         "title": "BookingPublicBusiness",
         "description": "One card on the Barrels Bookings home page. Public fields only: no contact\ndetails, owner data or emails."
@@ -80340,6 +80447,14 @@
             "type": "array",
             "title": "Categories",
             "description": "The distinct categories of every listed business, case folded, for the filter chips. Not narrowed by the search."
+          },
+          "types_available": {
+            "items": {
+              "$ref": "#/components/schemas/BookingBusinessType"
+            },
+            "type": "array",
+            "title": "Types Available",
+            "description": "The business types that at least one listed business has, in the fixed list's order. Counts the same businesses the list shows; not narrowed by the search, category or type."
           }
         },
         "type": "object",
@@ -80347,7 +80462,8 @@
           "items",
           "page",
           "has_more",
-          "categories"
+          "categories",
+          "types_available"
         ],
         "title": "BookingPublicBusinessPage"
       },
@@ -81357,6 +81473,29 @@
             "title": "Logo Url",
             "description": "Public https address of the business logo, or null when there is no logo or no public API address is configured. Load it as an image."
           },
+          "cover_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Url",
+            "description": "Public https address of the cover photo, or null when there is no complete booking-cover upload or no public API address is configured."
+          },
+          "business_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingBusinessType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The business's type for the home page filter, or null."
+          },
           "services": {
             "items": {
               "$ref": "#/components/schemas/BookingPublicService"
@@ -81390,6 +81529,8 @@
           "contact",
           "brand_color",
           "logo_url",
+          "cover_url",
+          "business_type",
           "services",
           "providers"
         ],

@@ -1216,6 +1216,7 @@ export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
 export { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
+export { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
 export { bookingCalendarFeedLinkSchema } from "./bookingCalendarFeedLinkSchema.js";
 export { bookingCalendarFeedStatusSchema } from "./bookingCalendarFeedStatusSchema.js";
 export { bookingClosureAffectedSchema } from "./bookingClosureAffectedSchema.js";
@@ -1710,6 +1711,7 @@ export {
   bookingsListPublicBusinessesQueryPageSchema,
   bookingsListPublicBusinessesQueryQSchema,
   bookingsListPublicBusinessesQuerySchema,
+  bookingsListPublicBusinessesQueryTypeSchema,
   bookingsListPublicBusinessesResponseSchema,
   bookingsListPublicBusinessesStatus200Schema,
   bookingsListPublicBusinessesStatus422Schema,

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingBusinessType } from "./BookingBusinessType.js";
 import type { BookingPublicBusiness } from "./BookingPublicBusiness.js";
 
 export type BookingPublicBusinessPage = {
@@ -22,4 +23,9 @@ export type BookingPublicBusinessPage = {
    * @type array
    */
   categories: string[];
+  /**
+   * @description The business types that at least one listed business has, in the fixed list's order. Counts the same businesses the list shows; not narrowed by the search, category or type.
+   * @type array
+   */
+  types_available: BookingBusinessType[];
 };

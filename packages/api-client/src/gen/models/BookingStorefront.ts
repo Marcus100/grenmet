@@ -4,6 +4,7 @@
  */
 
 import type { BookingBusinessContact } from "./BookingBusinessContact.js";
+import type { BookingBusinessType } from "./BookingBusinessType.js";
 import type { BookingPublicAddOn } from "./BookingPublicAddOn.js";
 import type { BookingPublicProvider } from "./BookingPublicProvider.js";
 import type { BookingPublicService } from "./BookingPublicService.js";
@@ -42,6 +43,14 @@ export type BookingStorefront = {
    * @description Public https address of the business logo, or null when there is no logo or no public API address is configured. Load it as an image.
    */
   logo_url: string | null;
+  /**
+   * @description Public https address of the cover photo, or null when there is no complete booking-cover upload or no public API address is configured.
+   */
+  cover_url: string | null;
+  /**
+   * @description The business's type for the home page filter, or null.
+   */
+  business_type: BookingBusinessType | null;
   services: BookingPublicService[];
   providers: BookingPublicProvider[];
   /**

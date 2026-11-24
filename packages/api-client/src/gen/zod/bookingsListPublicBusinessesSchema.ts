@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
+import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
 import { bookingPublicBusinessPageSchema } from "./bookingPublicBusinessPageSchema.js";
 import { errorMessageSchema } from "./errorMessageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -16,6 +17,11 @@ export const bookingsListPublicBusinessesQueryQSchema = z
 export const bookingsListPublicBusinessesQueryCategorySchema = z
   .union([z.string().max(80), z.null()])
   .optional();
+
+export const bookingsListPublicBusinessesQueryTypeSchema = z
+  .union([bookingBusinessTypeSchema, z.null()])
+  .optional()
+  .describe("Keep one business type.");
 
 export const bookingsListPublicBusinessesQueryPageSchema = z
   .int()
@@ -48,5 +54,9 @@ export const bookingsListPublicBusinessesErrorSchema = z.union([
 export const bookingsListPublicBusinessesQuerySchema = z.object({
   q: z.union([z.string().max(80), z.null()]).optional(),
   category: z.union([z.string().max(80), z.null()]).optional(),
+  type: z
+    .union([bookingBusinessTypeSchema, z.null()])
+    .optional()
+    .describe("Keep one business type."),
   page: z.int().min(1).max(1000).optional().default(1),
 });

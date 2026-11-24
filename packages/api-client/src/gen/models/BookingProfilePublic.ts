@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingBusinessType } from "./BookingBusinessType.js";
 import type { BookingDepositMode } from "./BookingDepositMode.js";
 import type { BookingPaymentMode } from "./BookingPaymentMode.js";
 
@@ -134,6 +135,14 @@ export type BookingProfilePublic = {
    * @description A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept.
    */
   logo_file_id?: string | null;
+  /**
+   * @description A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept.
+   */
+  cover_file_id?: string | null;
+  /**
+   * @description The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, other). Null clears it. Left out, the stored value is kept.
+   */
+  business_type?: BookingBusinessType | null;
   /**
    * @description Show this business on the Barrels Bookings home page. Off by default. Only an enabled business that is open for booking is listed. Left out, the stored value is kept.
    * @default false

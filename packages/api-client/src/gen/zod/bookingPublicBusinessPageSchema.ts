@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
 import { bookingPublicBusinessSchema } from "./bookingPublicBusinessSchema.js";
 
 export const bookingPublicBusinessPageSchema = z.object({
@@ -16,5 +17,10 @@ export const bookingPublicBusinessPageSchema = z.object({
     .array(z.string())
     .describe(
       "The distinct categories of every listed business, case folded, for the filter chips. Not narrowed by the search."
+    ),
+  types_available: z
+    .array(bookingBusinessTypeSchema)
+    .describe(
+      "The business types that at least one listed business has, in the fixed list's order. Counts the same businesses the list shows; not narrowed by the search, category or type."
     ),
 });
