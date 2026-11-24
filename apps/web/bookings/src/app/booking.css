@@ -759,7 +759,6 @@ fieldset.notice {
   /* One row: Earlier, the date range, Later. The short labels keep it inside 375 px. */
   .slots-nav {
     display: grid;
-    flex-wrap: nowrap;
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 0.375rem;
   }
