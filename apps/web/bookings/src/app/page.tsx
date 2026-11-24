@@ -50,6 +50,10 @@ export default async function HomePage({
           Book any appointment in Grenada
         </h1>
 
+        <p className="text-foreground -mt-2">
+          Pick a business below, or open the booking page the business sent you.
+        </p>
+
         <BusinessListing listing={listing} query={query} />
 
         <section

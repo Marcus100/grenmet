@@ -145,7 +145,9 @@ are the shared ones.
 
 ink/paper 17.74, secondary/paper 7.56, muted/paper 4.83, muted/surface 4.52,
 primary/paper 16.88, paper/primary 16.88, negative/paper 5.81, positive/paper
-4.81. Small text uses ink, secondary or muted only. `focus` (4.16 on paper) is
+4.81. On the home page ground (`#f4f5f8`): ink 16.4, primary 15.7; muted
+is 4.43 there, so muted text never sits directly on the ground (use ink, or a
+white card). Small text uses ink, secondary or muted only. `focus` (4.16 on paper) is
 for rings and text of 18 px or more. `sky` is decorative and never carries
 text on paper.
 

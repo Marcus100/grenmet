@@ -226,4 +226,53 @@ describe("BusinessListing", () => {
 
     expect(screen.getByRole("alert").textContent).toMatch(CANNOT_LOAD);
   });
+
+  it("draws no style for a brand colour that is not a safe hex", () => {
+    render(
+      <BusinessListing
+        listing={page({
+          items: [{ ...TIDE, brand_color: "red; background:url(x)" }],
+        })}
+        query={NO_QUERY}
+      />
+    );
+
+    expect(screen.getByText("T").hasAttribute("style")).toBe(false);
+  });
+
+  it("makes the first business the large card in one flat list", () => {
+    render(
+      <BusinessListing
+        listing={page({
+          items: [
+            TIDE,
+            { ...TIDE, slug: "b", name: "Bay Gym" },
+            { ...TIDE, slug: "c", name: "Cove Clinic" },
+          ],
+        })}
+        query={NO_QUERY}
+      />
+    );
+
+    const items = screen.getAllByRole("listitem");
+    expect(items).toHaveLength(3);
+    expect(items[0]?.textContent).toContain("Book");
+    expect(items[0]?.textContent).toContain("Fades and beards");
+    expect(items[1]?.textContent).not.toContain("Book");
+  });
+
+  it("keeps the chosen category in a hidden field of the search form", () => {
+    render(
+      <BusinessListing
+        listing={page()}
+        query={{ q: undefined, category: "Hair", page: 1 }}
+      />
+    );
+
+    expect(
+      document
+        .querySelector('search input[name="category"]')
+        ?.getAttribute("value")
+    ).toBe("Hair");
+  });
 });

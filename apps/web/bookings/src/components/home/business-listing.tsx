@@ -11,9 +11,9 @@ import { safeLogoUrl } from "@/lib/storefront-brand";
 // Server rendered: the search is a plain GET form and the chips and pages are
 // links, so the list works before any script loads. Every link is 44 px tall.
 const LINK =
-  "inline-flex min-h-11 items-center font-medium underline underline-offset-4";
+  "inline-flex min-h-11 items-center rounded-full px-2 font-medium underline underline-offset-4 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
 const CHIP =
-  "inline-flex min-h-11 shrink-0 items-center rounded-full bg-background px-4 text-sm font-medium shadow-xs";
+  "inline-flex min-h-11 shrink-0 items-center rounded-full bg-background px-4 text-sm font-medium shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
 const CHIP_CHOSEN = "bg-primary text-primary-foreground";
 const CARD =
   "bg-background text-foreground rounded-3xl shadow-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
@@ -164,21 +164,21 @@ export function BusinessListing({
       </search>
 
       {listing === null && (
-        <p className="text-muted-foreground" role="alert">
+        <p className="text-foreground" role="alert">
           Businesses cannot be loaded right now. Try again in a few minutes.
         </p>
       )}
 
       {listing && listing.categories.length === 0 && (
         <nav aria-label="Categories">
-          <p className="text-muted-foreground text-sm">No categories yet.</p>
+          <p className="text-foreground text-sm">No categories yet.</p>
         </nav>
       )}
 
       {listing && listing.categories.length > 0 && (
         <nav
           aria-label="Categories"
-          className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+          className="-mx-4 -my-1 flex gap-2 overflow-x-auto px-4 py-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
         >
           <Link
             aria-current={query.category ? undefined : "page"}
@@ -204,31 +204,23 @@ export function BusinessListing({
       )}
 
       {listing && listing.items.length === 0 && (
-        <p className="text-muted-foreground">
+        <p className="text-foreground">
           {emptyMessage(filtered, listing.page)}
         </p>
       )}
 
       {listing && listing.items.length > 0 && (
-        <ul className="flex flex-col gap-3">
-          {listing.items.map((card, index) =>
-            index === 0 ? (
-              <li key={card.slug}>
-                <BusinessCard card={card} large />
-              </li>
-            ) : null
-          )}
-          {listing.items.length > 1 && (
-            <li>
-              <ul className="grid grid-cols-2 gap-3 md:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
-                {listing.items.slice(1).map((card) => (
-                  <li key={card.slug}>
-                    <BusinessCard card={card} />
-                  </li>
-                ))}
-              </ul>
+        <ul className="grid grid-cols-2 gap-3 md:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
+          {listing.items.map((card, index) => (
+            <li
+              className={
+                index === 0 ? "col-span-2 md:col-span-full" : undefined
+              }
+              key={card.slug}
+            >
+              <BusinessCard card={card} large={index === 0} />
             </li>
-          )}
+          ))}
         </ul>
       )}
 

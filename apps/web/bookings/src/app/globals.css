@@ -15,3 +15,10 @@
 @theme inline {
   --color-ground: #f4f5f8;
 }
+
+/* The floating bottom bar on the home page must not hide a focused control. */
+@media (max-width: 47.99rem) {
+  html {
+    scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+  }
+}
