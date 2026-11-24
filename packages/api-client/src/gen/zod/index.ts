@@ -1231,6 +1231,7 @@ export { bookingEmailProofSchema } from "./bookingEmailProofSchema.js";
 export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
+export { bookingFeaturedServiceSchema } from "./bookingFeaturedServiceSchema.js";
 export { bookingManualDepositCreateSchema } from "./bookingManualDepositCreateSchema.js";
 export { bookingMyBookingListSchema } from "./bookingMyBookingListSchema.js";
 export { bookingMyBookingSchema } from "./bookingMyBookingSchema.js";

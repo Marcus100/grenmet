@@ -885,6 +885,16 @@ class BookingStorefront(BaseModel):
     )
 
 
+class BookingFeaturedService(BaseModel):
+    """A service shown on a home page card. Public fields only."""
+
+    id: uuid.UUID
+    name: str
+    price_minor: int = Field(description="The service price in minor units.")
+    currency: str = Field(description="The business's currency, such as `XCD`.")
+    duration_min: int
+
+
 class BookingPublicBusiness(BaseModel):
     """One card on the Barrels Bookings home page. Public fields only: no contact
     details, owner data or emails."""
@@ -913,6 +923,13 @@ class BookingPublicBusiness(BaseModel):
     business_type: BookingBusinessType | None = Field(
         default=None,
         description="The business's type (the `type` filter), or null when not chosen.",
+    )
+    featured_services: list[BookingFeaturedService] = Field(
+        default_factory=list,
+        description=(
+            "Up to three bookable services (active, not add-ons) in the order the "
+            "business's booking page lists them; empty when it has none."
+        ),
     )
 
 
