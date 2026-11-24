@@ -1,7 +1,32 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NewTabNote } from "@/components/new-tab-note";
 import { PageHead } from "@/components/sections";
-import { COURSES, INSTAGRAM_DM_URL } from "@/data/site";
+import {
+  COURSES,
+  EMAIL,
+  INSTAGRAM_DM_URL,
+  PHONE,
+  WHATSAPP_URL,
+} from "@/data/site";
+
+/** The studio's contact details, the same ones the Contact page lists. */
+const CHANNELS = [
+  {
+    title: "Message on WhatsApp",
+    detail: PHONE.display,
+    href: WHATSAPP_URL,
+    newTab: true,
+  },
+  { title: "Call", detail: PHONE.display, href: PHONE.href, newTab: false },
+  {
+    title: "Message on Instagram",
+    detail: "@babydoll.gnd",
+    href: INSTAGRAM_DM_URL,
+    newTab: true,
+  },
+  { title: "Email us", detail: EMAIL.address, href: EMAIL.href, newTab: false },
+];
 
 export const metadata: Metadata = {
   title: "Training",
@@ -41,23 +66,25 @@ export default function TrainingPage() {
             <p className="eyebrow">Register interest</p>
             <h2>Save your seat</h2>
             <p className="muted">
-              Send us a message with the course you want and your experience.
-              Class sizes are kept small.
+              Message us the course you want and your experience, whichever way
+              suits you. Class sizes are kept small.
             </p>
           </div>
           <div className="channels">
-            <a
-              className="channel"
-              href={INSTAGRAM_DM_URL}
-              rel="noopener"
-              target="_blank"
-            >
-              <b>Message on Instagram</b>
-              <span>
-                @babydoll.gnd · tell us the course and your experience
-              </span>
-              <i aria-hidden="true">→</i>
-            </a>
+            {CHANNELS.map((channel) => (
+              <a
+                className="channel"
+                href={channel.href}
+                key={channel.title}
+                {...(channel.newTab
+                  ? { rel: "noopener", target: "_blank" }
+                  : {})}
+              >
+                <b>{channel.title}</b> <span>{channel.detail}</span>
+                {channel.newTab && <NewTabNote />}
+                <i aria-hidden="true">→</i>
+              </a>
+            ))}
             <Link className="channel" href="/contact">
               <b>Other ways to reach us</b>
               <span>TikTok, Facebook and studio details</span>
