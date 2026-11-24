@@ -141,6 +141,14 @@ class BookingProfile(Base):
             f"business_type IS NULL OR business_type IN ({_values(BookingBusinessType)})",
             name="business_type",
         ),
+        sa.CheckConstraint(
+            "pending_expiry_hours IS NULL OR pending_expiry_hours BETWEEN 1 AND 168",
+            name="pending_expiry_hours",
+        ),
+        sa.CheckConstraint(
+            "max_open_per_customer BETWEEN 1 AND 20",
+            name="max_open_per_customer",
+        ),
         SCHEMA,
     )
 
@@ -220,6 +228,15 @@ class BookingProfile(Base):
     #: Plain-text booking policy (late fees and so on), shown before booking and in
     #: the confirmation. Never HTML: every surface renders it as text.
     booking_policy: Mapped[str | None] = mapped_column(String(1000), default=None)
+    #: Hours a booking request waits for the business to confirm it before it
+    #: expires (1 to 168). Null: it expires only at its start time. A request whose
+    #: start has passed always expires (``lifecycle.expire_stale_requests``).
+    #: No Python-side default (``service.upsert_profile`` writes a null window as SQL
+    #: NULL); the server default covers writers that leave the column out.
+    pending_expiry_hours: Mapped[int | None] = mapped_column(server_default="24")
+    #: How many future bookings (pending, pending payment or confirmed) one customer
+    #: may hold with the business before a public booking is refused (1 to 20).
+    max_open_per_customer: Mapped[int] = mapped_column(default=3, server_default="3")
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

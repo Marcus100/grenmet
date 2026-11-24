@@ -77,6 +77,8 @@ JOBS = frozenset(
         "purge_scan_log",
         "enqueue_booking_reminders",
         "expire_unpaid_bookings",
+        "expire_pending_bookings",
+        "complete_finished_bookings",
     }
 )
 
