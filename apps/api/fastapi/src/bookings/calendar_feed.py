@@ -67,7 +67,9 @@ _TOKEN_SHAPE = re.compile(r"[A-Za-z0-9_-]{16,100}")
 #: domain such as ".com", "name(at)host"), a URL or "tel:" style scheme, or a
 #: run of seven or more digits (a phone number).
 _CONTACT_IN_NAME = re.compile(
-    r"@|\(at\)|\[at\]|\{at\}|[:/]|\.[a-z]{2,}|[0-9]{7,}", re.IGNORECASE
+    r"@|\(at\)|\[at\]|\{at\}|://|\b(?:tel|mailto)\s*:|\bwww\."
+    r"|\.(?:com|net|org|edu|gov|io|co|me|info|biz)\b|\d{7,}",
+    re.IGNORECASE,
 )
 _LIVE_STATUSES = (
     BookingStatus.PENDING.value,
@@ -105,11 +107,13 @@ def first_name(name: str | None) -> str | None:
     their ASCII forms."""
     if not name:
         return None
-    words = unicodedata.normalize("NFKC", name).split()
+    words = name.split()
     if not words:
         return None
+    # Checked in NFKC form; the original spelling is what is shown.
     word = words[0]
-    if _CONTACT_IN_NAME.search(word) or not any(char.isalpha() for char in word):
+    checked = unicodedata.normalize("NFKC", word)
+    if _CONTACT_IN_NAME.search(checked) or not any(c.isalpha() for c in checked):
         return None
     return word[:NAME_MAX_CHARS]
 

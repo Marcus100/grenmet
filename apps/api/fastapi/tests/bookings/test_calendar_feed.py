@@ -647,8 +647,18 @@ def test_obfuscated_contact_details_in_the_name_field_show_no_name() -> None:
     assert calendar_feed.first_name("Ada123456") == "Ada123456"
 
 
-def test_full_width_letters_are_normalised_before_the_name_is_shown() -> None:
-    assert calendar_feed.first_name("Ａｄａ Lovelace") == "Ada"
+def test_full_width_letters_are_shown_as_typed() -> None:
+    """The check uses NFKC, the shown name keeps the customer's own spelling."""
+    assert calendar_feed.first_name("Ａｄａ Lovelace") == "Ａｄａ"
+
+
+def test_legitimate_names_with_dots_slashes_and_colons_are_kept() -> None:
+    assert calendar_feed.first_name("J.Smith") == "J.Smith"
+    assert calendar_feed.first_name("Mary.Ann") == "Mary.Ann"
+    assert calendar_feed.first_name("St.John") == "St.John"
+    assert calendar_feed.first_name("Ada/Bob") == "Ada/Bob"
+    assert calendar_feed.first_name("Ada-Lee") == "Ada-Lee"
+    assert calendar_feed.first_name("O'Brien") == "O'Brien"
 
 
 async def test_a_name_that_is_an_e_mail_never_reaches_the_feed(
