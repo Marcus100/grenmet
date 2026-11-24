@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.organisations.models import MembershipRole
 from src.storage import service as storage
+from src.storage import uploads
 from src.storage.image_metadata import ImageRejectedError, strip_metadata
 from src.storage.models import OrgUpload
 from src.storage.uploads import (
@@ -262,12 +263,13 @@ async def test_completing_a_booking_logo_strips_its_metadata(
     )
 
     assert response.status_code == 200, response.text
-    stored = byte_store.blobs[key]
+    row = await db_async.get(OrgUpload, uuid.UUID(upload_id))
+    assert row is not None
+    stored = byte_store.blobs[row.object_key]
+    assert row.object_key != key  # served from a server-written key (#1679)
     assert stored != raw
     assert _metadata_of(stored)[2] == 0
     assert b"Phone Maker" not in stored
-    row = await db_async.get(OrgUpload, uuid.UUID(upload_id))
-    assert row is not None
     assert (row.status, row.size_bytes) == ("complete", len(stored))
 
 
@@ -287,8 +289,10 @@ async def test_completing_an_organiser_logo_strips_its_metadata(
     )
 
     assert response.status_code == 200, response.text
-    assert _metadata_of(byte_store.blobs[key])[2] == 0
-    assert b"Phone Maker" not in byte_store.blobs[key]
+    row = await db_async.get(OrgUpload, uuid.UUID(upload_id))
+    assert row is not None
+    assert _metadata_of(byte_store.blobs[row.object_key])[2] == 0
+    assert b"Phone Maker" not in byte_store.blobs[row.object_key]
 
 
 def _flat_png(width: int, height: int) -> bytes:
@@ -352,7 +356,9 @@ async def test_an_organiser_logo_of_five_megapixels_is_accepted(
     )
 
     assert response.status_code == 200, response.text
-    assert key in byte_store.blobs
+    row = await db_async.get(OrgUpload, uuid.UUID(upload_id))
+    assert row is not None
+    assert row.object_key in byte_store.blobs
 
 
 async def test_a_re_encode_failure_is_422_and_the_object_is_deleted(
@@ -427,3 +433,123 @@ async def test_a_logo_that_is_not_really_an_image_is_deleted(
     assert response.status_code == 422, response.text
     assert key not in byte_store.blobs
     assert key in byte_store.deleted
+
+
+def _plain_jpeg(colour: tuple[int, int, int]) -> bytes:
+    buffer = io.BytesIO()
+    Image.new("RGB", (40, 30), colour).save(buffer, "JPEG")
+    return buffer.getvalue()
+
+
+async def _served_path(client: httpx.AsyncClient, upload_id: str) -> str:
+    """The path the public redirect sends a browser to (the bucket key, presigned)."""
+    response = await client.get(
+        f"/api/v1/storage/public/{upload_id}", follow_redirects=False
+    )
+    assert response.status_code == 307, response.text
+    return urlparse(response.headers["location"]).path
+
+
+async def test_a_put_to_the_presigned_key_after_completion_changes_nothing(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, byte_store: ByteStore
+) -> None:
+    """#1679: the presigned PUT can still reach the original key for 15 minutes. The
+    served object is a server-written copy, so the swap is never served and the row
+    still counts as a usable booking logo."""
+    owner = await make_user(db_async)
+    org = await make_org(
+        db_async,
+        "Swap Co",
+        members=((owner, MembershipRole.OWNER),),
+        apps=("bookings",),
+    )
+    headers = headers_for(owner, org.id)
+    upload_id, original_key = await _upload(
+        async_client, byte_store, headers, _jpeg_with_location()
+    )
+    done = await async_client.post(f"{UPLOADS}/{upload_id}/complete", headers=headers)
+    assert done.status_code == 200, done.text
+    row = await db_async.get(OrgUpload, uuid.UUID(upload_id))
+    assert row is not None
+    served_key = row.object_key
+    served_before = byte_store.blobs[served_key]
+    assert served_key != original_key
+
+    swapped = _plain_jpeg((10, 200, 10))
+    byte_store.blobs[original_key] = swapped
+    byte_store.objects[original_key] = {
+        "ContentLength": len(swapped),
+        "ContentType": "image/jpeg",
+    }
+
+    assert await _served_path(async_client, upload_id) == f"/test-space/{served_key}"
+    assert byte_store.blobs[original_key] == swapped
+    assert byte_store.blobs[served_key] == served_before
+    assert await uploads.file_is_usable(
+        uuid.UUID(upload_id), organisation_id=org.id, purpose="booking-logo"
+    )
+
+
+async def test_a_listing_image_is_served_from_a_server_key_too(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, byte_store: ByteStore
+) -> None:
+    """Purposes that do not strip are copied to a server key as well (#1679)."""
+    owner = await make_user(db_async)
+    org = await make_org(
+        db_async, "Listing Co", members=((owner, MembershipRole.OWNER),)
+    )
+    headers = headers_for(owner, org.id)
+    raw = _flat_png(64, 48)
+    upload_id, original_key = await _upload(
+        async_client,
+        byte_store,
+        headers,
+        raw,
+        app="events",
+        purpose="listing-image",
+        content_type="image/png",
+    )
+    done = await async_client.post(f"{UPLOADS}/{upload_id}/complete", headers=headers)
+    assert done.status_code == 200, done.text
+    row = await db_async.get(OrgUpload, uuid.UUID(upload_id))
+    assert row is not None
+    assert row.object_key != original_key
+    assert byte_store.blobs[row.object_key] == raw
+    assert (
+        await _served_path(async_client, upload_id) == f"/test-space/{row.object_key}"
+    )
+
+    swapped = _flat_png(64, 48)[:-1] + b"\x00"  # same size, different bytes
+    byte_store.blobs[original_key] = swapped
+    assert byte_store.blobs[row.object_key] == raw
+    assert (
+        await _served_path(async_client, upload_id) == f"/test-space/{row.object_key}"
+    )
+
+
+async def test_a_listing_image_that_is_another_type_is_422_and_deleted(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, byte_store: ByteStore
+) -> None:
+    owner = await make_user(db_async)
+    org = await make_org(db_async, "Wrong Co", members=((owner, MembershipRole.OWNER),))
+    headers = headers_for(owner, org.id)
+    upload_id, key = await _upload(
+        async_client,
+        byte_store,
+        headers,
+        _plain_jpeg((1, 2, 3)),
+        app="events",
+        purpose="listing-image",
+        content_type="image/png",
+    )
+
+    response = await async_client.post(
+        f"{UPLOADS}/{upload_id}/complete", headers=headers
+    )
+
+    assert response.status_code == 422, response.text
+    assert "not the image type" in response.text
+    assert key not in byte_store.blobs
+    row = await db_async.get(OrgUpload, uuid.UUID(upload_id))
+    assert row is not None
+    assert row.status == "pending"
