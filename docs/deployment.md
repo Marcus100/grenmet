@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-22
+**Last updated:** 2026-11-24
 
 > Current releases use `docker-compose.deploy.yml` and the canonical domain table
 > at the end of this guide. The per-environment `docker-compose.prod.yml` and
@@ -361,7 +361,7 @@ Verify login, return URLs, and any data-backed pages you changed.
 
 1. Open a PR from `staging` to `main`; wait for checks and merge on GitHub.
 2. Go to **Releases → Draft a new release**.
-3. Choose a new, increasing `vX.Y.Z` tag (the latest is `v1.5.0`, published on 2026-11-18) targeting `main` and publish the release.
+3. Choose a new, increasing `vX.Y.Z` tag (the latest is `v1.9.0`, published on 2026-11-24) targeting `main` and publish the release.
 4. Watch **Production Pipeline** promote the images staging built and tested for that tree and deploy them.
 5. Verify the production domains and API readiness as above.
 

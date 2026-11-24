@@ -41,13 +41,13 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0033](0033-data-ownership.md) | Data ownership: Barrels Grenada owns the software; since the 21 Nov 2026 amendment GAA and GMS own their data and Barrels processes it, and Barrels products keep Barrels as platform owner with each business controlling its records | Accepted 2026-10-20, amended 2026-11-21 (GAA and GMS own their data); health records excepted by 0062; Commerce business records by 0063 |
 | [0034](0034-go-live-checklist.md) | A simple go-live checklist: backups with a verified restore, and monitoring | Accepted |
 | [0035](0035-secrets-management.md) | Secrets: one source per environment, restricted payment keys, yearly rotation, named owners | Accepted |
-| [0036](0036-hosting-split.md) | Static sites on Cloudflare Pages; everything with sign-in or data on the droplets | Accepted |
+| [0036](0036-hosting-split.md) | Static sites on Cloudflare Pages; everything with sign-in or data on the droplets | Accepted; amended by 0061 (browser-only apps that sign in may be served from Cloudflare Pages) |
 | [0037](0037-monitoring-vendors.md) | Monitoring vendors receive technical data and internal IDs, never personal data | Accepted |
 | [0038](0038-background-jobs.md) | ARQ on Redis is the only background-job runner | Accepted |
 | [0039](0039-gaa-staff-platform.md) | GAA staff platform (replaces 0009) | Accepted |
 | [0040](0040-staff-attendance.md) | Staff attendance: terminal punches and supervisor-approved phone punches | Accepted; partly built |
-| [0041](0041-agent-autonomy.md) | What unattended AI agents may and may not do | Accepted, amended by 0042 |
-| [0042](0042-agents-merge-into-dev.md) | Agents merge their own green, reviewed PRs into dev; the owner keeps staging, main and the files that limit agents | Accepted |
+| [0041](0041-agent-autonomy.md) | What unattended AI agents may and may not do | Accepted, amended by 0042; decision 4 amended 21 Nov 2026 (agents merge agent-rule changes with two review lines) |
+| [0042](0042-agents-merge-into-dev.md) | Agents merge their own green, reviewed PRs into dev; the owner keeps staging, main and the files that limit agents | Accepted; decisions 3 and 6 amended 21 Nov 2026 (the owner merges enforcement files; agents merge agent-rule files with two review lines) |
 | [0043](0043-hostnames-tenancy-and-port-allocation.md) | Hostnames, tenancy and port allocation: one brand domain, single-level hosts, tenants as organisation-slug paths, port ranges by category | Accepted; amended by 0062 (`health` host, port 3042) and 0063 (`shopkeeper` host, port 3043; brings back the retired `salesbus` host) |
 | [0044](0044-organisation-scoped-permissions-via-membership-grants.md) | Organisation-scoped permissions via membership grants: `binding` on permission keys, product role bundles, grants on the membership | Accepted 2026-11-15 |
 | [0045](0045-analytics-external-free-tools-first-party-deferred.md) | Analytics stays on free external tools (GA4 behind consent, PostHog wired but off); first-party analytics design deferred | Accepted |

@@ -284,6 +284,7 @@ use these actions, so it is recorded here.
    an authenticator on the Barrels account site (`account.barrels.gd`, ADR-0057),
    then sign in at `scan.barrels.gd`. Someone who signs in without an authenticator
    is told to add one there first.
+   (Note, 24 Nov 2026 (fact check; the decision is not changed): Today both are on the sign-in site: the Security page `auth.barrels.gd/security` (`apps/web/auth/src/app/security`) and the invitation link `auth.barrels.gd/organisations/accept`; ADR-0057 step 2 has not moved them to `account.barrels.gd`. The scanner app's text points to `auth.barrels.gd/security`.)
 7. **Sessions:** organisers sign in again when the tab closes; a session lasts at
    most 12 hours (ADR-0061).
 8. **Promoters** (the people running events who buy Printix tickets) get their own
