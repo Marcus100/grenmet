@@ -78555,6 +78555,19 @@
             },
             "type": "array",
             "title": "Add On Names"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At",
+            "description": "For a request waiting for confirmation (`pending`): when it cancels itself if not confirmed, the earlier of `pending_expiry_hours` after it was made and its start. Null for any other status."
           }
         },
         "type": "object",

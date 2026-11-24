@@ -357,3 +357,34 @@ def test_the_expiry_job_is_registered_and_tracked() -> None:
     assert worker.expire_pending_bookings in scheduled
     assert "expire_pending_bookings" in operational_metrics.JOBS
     assert hasattr(worker.expire_pending_bookings, "__wrapped__")
+
+
+async def test_the_agenda_shows_when_each_request_expires(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """Studio's Needs confirming list reads `expires_at`: the earlier of the window
+    and the start, the same rule the sweep uses; null once confirmed."""
+    studio, booking_id, slot = await _pending(
+        db_async, async_client, pending_expiry_hours=3
+    )
+    booking = await _booking_for(db_async, booking_id)
+    day = slot[:10]
+    params = {"from_date": day, "to_date": day}
+
+    agenda = await async_client.get(
+        f"{API}/org/agenda", headers=studio.headers, params=params
+    )
+    assert agenda.status_code == 200, agenda.text
+    [item] = [b for d in agenda.json()["days"] for b in d["bookings"]]
+    expected = min(booking.created_at + timedelta(hours=3), booking.starts_at)
+    assert item["expires_at"].startswith(expected.isoformat()[:19])
+
+    confirmed = await async_client.post(
+        f"{API}/org/bookings/{booking_id}/confirm", headers=studio.headers
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    again = await async_client.get(
+        f"{API}/org/agenda", headers=studio.headers, params=params
+    )
+    [item] = [b for d in again.json()["days"] for b in d["bookings"]]
+    assert item["expires_at"] is None

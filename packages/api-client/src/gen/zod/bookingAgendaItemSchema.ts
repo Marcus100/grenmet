@@ -26,4 +26,10 @@ export const bookingAgendaItemSchema = z.object({
   ),
   currency: z.string(),
   add_on_names: z.array(z.string()).optional(),
+  expires_at: z
+    .union([z.iso.datetime(), z.null()])
+    .optional()
+    .describe(
+      "For a request waiting for confirmation (`pending`): when it cancels itself if not confirmed, the earlier of `pending_expiry_hours` after it was made and its start. Null for any other status."
+    ),
 });

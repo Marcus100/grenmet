@@ -25,7 +25,7 @@ from src.payments.models import IntentStatus, ProviderKey
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, utc_to_local, zone
 
-from . import deposit_payments, emails, public, service
+from . import deposit_payments, emails, lifecycle, public, service
 from .exceptions import BookingConflictError, BookingValidationError
 from .models import (
     Booking,
@@ -198,6 +198,7 @@ async def agenda(
                 payment_kind=deposit_payments.payment_kind(booking),
                 currency=booking.currency,
                 add_on_names=[line.name for line in add_on_lines.get(booking.id, [])],
+                expires_at=lifecycle.pending_expires_at(booking, profile),
             )
         )
     return BookingAgenda(
