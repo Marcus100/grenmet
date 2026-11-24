@@ -29,7 +29,7 @@ export const bookingPublicDetailSchema = z
       .optional()
       .default(false)
       .describe(
-        "True when a paid deposit is kept on cancellation, not refunded."
+        "This booking's terms: true when a deposit paid on a confirmed booking is kept on cancellation. Set when the booking was made."
       ),
     booking_policy: z
       .union([z.string(), z.null()])

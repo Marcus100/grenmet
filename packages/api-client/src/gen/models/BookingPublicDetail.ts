@@ -52,7 +52,7 @@ export type BookingPublicDetail = {
   currency: string;
   cancel_cutoff_hours: number;
   /**
-   * @description True when a paid deposit is kept on cancellation, not refunded.
+   * @description This booking's terms: true when a deposit paid on a confirmed booking is kept on cancellation. Set when the booking was made.
    * @default false
    * @type boolean | undefined
    */

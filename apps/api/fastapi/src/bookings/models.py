@@ -389,6 +389,11 @@ class Booking(Base):
     source: Mapped[str] = mapped_column(String(20), default=BookingSource.ONLINE.value)
     price_minor: Mapped[int] = mapped_column(default=0)
     deposit_minor: Mapped[int] = mapped_column(default=0)
+    #: The deposit terms this booking was made on, copied from the profile at
+    #: creation. A later profile change never changes a booking already made.
+    deposit_non_refundable: Mapped[bool] = mapped_column(
+        default=False, server_default=sa.false()
+    )
     currency: Mapped[str] = mapped_column(String(3))
     notes: Mapped[str | None] = mapped_column(sa.Text)
     manage_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)

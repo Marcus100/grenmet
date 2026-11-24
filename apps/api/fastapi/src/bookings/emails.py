@@ -56,8 +56,11 @@ class BookingEmail:
     payment_line: str | None = None
     #: The business's plain-text policy; each line is shown as its own line.
     booking_policy: str | None = None
-    #: A paid deposit is kept on cancellation (the mail says so beside the payment).
+    #: The booking's own deposit terms: a paid deposit is kept on cancellation once
+    #: the booking is confirmed (the mail says so beside the payment).
     deposit_non_refundable: bool = False
+    #: The business has confirmed the booking; otherwise the promise waits for it.
+    booking_confirmed: bool = False
 
     @property
     def when(self) -> str:
@@ -122,24 +125,27 @@ def _policy(mail: BookingEmail) -> tuple[str, ...]:
             f"with {mail.business}."
         )
     if mail.deposit_non_refundable and mail.payment_line:
-        lines.append(_non_refundable_line(hours))
+        lines.append(_non_refundable_line(hours, mail.booking_confirmed))
     lines.extend(
         line.strip() for line in (mail.booking_policy or "").split("\n") if line.strip()
     )
     return tuple(lines)
 
 
-def _non_refundable_line(hours: int | None) -> str:
-    """The same promise the booking page and manage page make."""
+def _non_refundable_line(hours: int | None, confirmed: bool) -> str:
+    """The same promise the booking page and manage page make. Before the business
+    confirms, the deposit is still refundable, so the sentence says it waits."""
+    lead = (
+        "Your deposit is non-refundable"
+        if confirmed
+        else "Your deposit is non-refundable once your booking is confirmed"
+    )
     if not hours or hours <= 0:
-        return (
-            "Your deposit is non-refundable. You can move your booking at any time "
-            "before it starts; it stays with your booking."
-        )
+        return f"{lead}. You can move your booking at any time before it starts; it stays with your booking."
     noun = "hour" if hours == 1 else "hours"
     return (
-        "Your deposit is non-refundable. You can move your booking up to "
-        f"{hours} {noun} before; it stays with your booking."
+        f"{lead}. You can move your booking up to {hours} {noun} before; it stays "
+        "with your booking."
     )
 
 
@@ -226,6 +232,7 @@ def customer_received(mail: BookingEmail, *, confirmed: bool) -> layout.EmailCar
             title="We received your booking request",
             paragraphs=(f"We will email you once {mail.business} confirms it.",),
             primary=_manage(mail),
+            policy=_policy(mail),
             **_invite(mail),
         ),
     )

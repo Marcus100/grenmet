@@ -25,6 +25,13 @@ export const bookingStudioDetailSchema = z
     timezone: z.string(),
     price_minor: z.int(),
     deposit_minor: z.int(),
+    deposit_non_refundable: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "This booking's deposit terms: true when a confirmed booking keeps its deposit on cancellation. Set when the booking was made; later profile changes do not change it."
+      ),
     payment_kind: bookingPaymentKindSchema.describe(
       '`deposit` when the booking asks for part of the price at booking, `payment` when it asks for all of it (full-price mode). Studio screens say "Deposit" or "Payment" by it.'
     ),

@@ -17,6 +17,7 @@ from tests.bookings.booking_day import utc_iso
 from tests.bookings.test_deposits import (
     DEPOSIT,
     _book_deposit,
+    _cancel,
     _deposit_studio,
     _drain,
     _intent,
@@ -457,3 +458,124 @@ async def _profile_body(client: httpx.AsyncClient, studio: Studio) -> dict:
         for key, value in profile.items()
         if key not in {"id", "organisation_id", "created_at", "updated_at"}
     }
+
+
+# --- the terms a booking was made on (owner review 23 Nov 2026) ----------------------------
+
+
+async def _set_flag(client: httpx.AsyncClient, studio: Studio, value: bool) -> None:
+    body = {**await _profile_body(client, studio), "deposit_non_refundable": value}
+    response = await client.put(f"{API}/org/profile", headers=studio.headers, json=body)
+    assert response.status_code == 200, response.text
+
+
+async def test_a_booking_keeps_the_terms_it_was_made_on_when_the_switch_goes_off(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, receipt = await _paid(db_async, async_client, deposit_non_refundable=True)
+    booking_id = receipt["booking"]["id"]
+    await _set_flag(async_client, studio, False)
+    cancelled = await async_client.post(
+        f"{API}/public/bookings/{receipt['manage_token']}/cancel"
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    assert cancelled.json()["payment"]["refunded_minor"] == 0
+    assert await _refunded(db_async, booking_id) == 0
+
+
+async def test_a_booking_made_before_the_switch_is_refunded_after_it_is_turned_on(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, receipt = await _paid(db_async, async_client)
+    booking_id = receipt["booking"]["id"]
+    await _set_flag(async_client, studio, True)
+    cancelled = await async_client.post(
+        f"{API}/public/bookings/{receipt['manage_token']}/cancel"
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    assert cancelled.json()["payment"]["refunded_minor"] == DEPOSIT
+    assert await _refunded(db_async, booking_id) == -DEPOSIT
+
+
+async def test_a_customer_cancel_of_an_unaccepted_request_refunds_the_deposit(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, receipt = await _paid(
+        db_async,
+        async_client,
+        requires_confirmation=True,
+        deposit_non_refundable=True,
+    )
+    booking_id = receipt["booking"]["id"]
+    pending = await async_client.get(f"{API}/public/bookings/{receipt['manage_token']}")
+    assert pending.json()["status"] == "pending"
+    cancelled = await async_client.post(
+        f"{API}/public/bookings/{receipt['manage_token']}/cancel"
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    assert cancelled.json()["payment"]["refunded_minor"] == DEPOSIT
+    assert await _refunded(db_async, booking_id) == -DEPOSIT
+
+
+async def test_a_studio_cancel_of_an_unaccepted_request_follows_the_cutoff(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, receipt = await _paid(
+        db_async,
+        async_client,
+        requires_confirmation=True,
+        deposit_non_refundable=True,
+    )
+    booking_id = receipt["booking"]["id"]
+    cancelled = await _cancel(async_client, studio, booking_id)
+    assert cancelled.status_code == 200, cancelled.text
+    assert cancelled.json()["deposit_refunded_minor"] == DEPOSIT
+
+
+async def test_a_confirmed_booking_keeps_its_deposit_on_a_customer_cancel(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, receipt = await _paid(
+        db_async,
+        async_client,
+        requires_confirmation=True,
+        deposit_non_refundable=True,
+    )
+    booking_id = receipt["booking"]["id"]
+    confirmed = await async_client.post(
+        f"{API}/org/bookings/{booking_id}/confirm", headers=studio.headers
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    cancelled = await async_client.post(
+        f"{API}/public/bookings/{receipt['manage_token']}/cancel"
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    assert cancelled.json()["payment"]["refunded_minor"] == 0
+    assert await _refunded(db_async, booking_id) == 0
+
+
+async def test_the_studio_detail_shows_the_booking_terms(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, receipt = await _paid(db_async, async_client, deposit_non_refundable=True)
+    await _set_flag(async_client, studio, False)
+    detail = await async_client.get(
+        f"{API}/org/bookings/{receipt['booking']['id']}", headers=studio.headers
+    )
+    assert detail.status_code == 200, detail.text
+    assert detail.json()["deposit_non_refundable"] is True
+
+
+async def test_an_unaccepted_request_mail_says_the_promise_waits_for_confirmation(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio, receipt = await _paid(
+        db_async,
+        async_client,
+        requires_confirmation=True,
+        deposit_non_refundable=True,
+    )
+    rows = await _emails(db_async, studio.org_id)
+    mail = next(r for r in rows if r.dedupe_key.startswith("booking-confirmation:"))
+    text = payload_text(mail.payload)
+    assert "Your deposit is non-refundable once your booking is confirmed." in text

@@ -684,6 +684,14 @@ class BookingStudioDetail(BaseModel):
     timezone: str
     price_minor: int
     deposit_minor: int
+    deposit_non_refundable: bool = Field(
+        default=False,
+        description=(
+            "This booking's deposit terms: true when a confirmed booking keeps its "
+            "deposit on cancellation. Set when the booking was made; later profile "
+            "changes do not change it."
+        ),
+    )
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     balance_at_salon_minor: int = Field(
         description="The price less the deposit: what is still to pay at the business."
@@ -977,7 +985,10 @@ class BookingPublicDetail(BaseModel):
     cancel_cutoff_hours: int
     deposit_non_refundable: bool = Field(
         default=False,
-        description="True when a paid deposit is kept on cancellation, not refunded.",
+        description=(
+            "This booking's terms: true when a deposit paid on a confirmed booking is "
+            "kept on cancellation. Set when the booking was made."
+        ),
     )
     booking_policy: str | None = Field(
         default=None,
