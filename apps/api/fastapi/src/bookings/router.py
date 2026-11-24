@@ -1043,7 +1043,8 @@ async def get_storefront(*, request: Request, session: SessionDep, slug: str) ->
         "Open start times for a service between two local dates (at most 14 "
         "days), optionally for one provider and with `add_on_ids`, which make "
         "the slot longer. Times are UTC; `timezone` is the business's local zone "
-        "for display."
+        "for display. `due_at_booking_minor` is what booking this service with "
+        "those add-ons charges now, so the storefront can show the real amount."
     ),
     operation_id="bookingsGetAvailability",
     responses={**BAD_REQUEST, **NOT_FOUND},
@@ -1071,9 +1072,17 @@ async def get_availability(
         last_day=last_day,
         add_on_ids=add_on_ids or [],
     )
+    priced = await public.price_booking(
+        session,
+        profile,
+        service_id=service_id,
+        add_on_ids=add_on_ids or [],
+    )
     return BookingAvailability(
         timezone=profile.timezone,
         service_id=service_id,
+        due_at_booking_minor=priced.due_minor,
+        email_code_required=priced.email_code_required,
         slots=[
             BookingSlot(
                 starts_at=slot.starts_at,

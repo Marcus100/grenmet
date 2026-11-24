@@ -28,5 +28,10 @@ export type BookingEmailCodeRequest = {
    * @type string
    */
   customer_email: string;
+  /**
+   * @description The add-ons the booking will include, so the code is asked for when the combined price is a deposit. Same ids as the booking's `add_on_ids`.
+   * @type array | undefined
+   */
+  add_on_ids?: string[];
   turnstile_token?: string | null;
 };

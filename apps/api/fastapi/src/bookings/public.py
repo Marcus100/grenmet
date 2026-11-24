@@ -588,16 +588,44 @@ async def _upsert_customer(
     return customer, contact
 
 
-async def deposit_due(
-    session: AsyncSession, profile: BookingProfile, service_id: uuid.UUID
-) -> int:
-    """What a booking of this service would pay at booking now (0 = nothing)."""
+@dataclass(frozen=True)
+class PricedBooking:
+    """A bookable service priced with the add-ons a customer chose."""
+
+    service: Service
+    add_ons: list[Service]
+    price_minor: int
+    due_minor: int
+
+    @property
+    def email_code_required(self) -> bool:
+        """An anonymous booker must pass the emailed code whenever something is
+        due; a signed-in booker whose email is verified or admin-activated may skip
+        it (``email_code.is_exempt``), so this is the anonymous answer."""
+        return self.due_minor > 0
+
+
+async def price_booking(
+    session: AsyncSession,
+    profile: BookingProfile,
+    *,
+    service_id: uuid.UUID,
+    add_on_ids: Sequence[uuid.UUID],
+) -> PricedBooking:
+    """The one pricing path for a booking: the service and add-ons are checked on
+    the server, and ``due_minor`` is what the booking charges at booking (0 =
+    nothing). Create, the emailed-code request and availability all call it."""
     svc = await service.get_service(
         session, service_id, organisation_id=profile.organisation_id
     )
-    if not svc.active:
+    if not svc.active or svc.is_add_on:
         raise BookingNotFoundError("Service")
-    return await deposit_payments.amount_due(session, profile, svc)
+    chosen = await service.resolve_add_ons(session, profile, svc, add_on_ids)
+    price_minor = svc.price_minor + sum(a.price_minor for a in chosen)
+    due = await deposit_payments.amount_due(
+        session, profile, svc, price_minor=price_minor
+    )
+    return PricedBooking(svc, chosen, price_minor, due)
 
 
 def _binding(
@@ -618,7 +646,13 @@ async def request_email_code(
     """Email a code when a deposit is due and the caller is not exempt; else do
     nothing (bookings without a deposit have no step)."""
     email = str(payload.customer_email)
-    if await deposit_due(session, profile, payload.service_id) <= 0:
+    priced = await price_booking(
+        session,
+        profile,
+        service_id=payload.service_id,
+        add_on_ids=payload.add_on_ids,
+    )
+    if not priced.email_code_required:
         return BookingEmailCodeSent(required=False)
     if await email_code.is_exempt(session, payer, email):
         return BookingEmailCodeSent(required=False)
@@ -663,16 +697,13 @@ async def create_booking(
     # A signed-in payer must not be recorded as the actor of the business's contact
     # history: readers see the actor's name (ADR-0058, account UUID never shared).
     audit_service.set_actor(session, None)
-    svc = await service.get_service(
-        session, payload.service_id, organisation_id=profile.organisation_id
+    priced = await price_booking(
+        session,
+        profile,
+        service_id=payload.service_id,
+        add_on_ids=payload.add_on_ids,
     )
-    if not svc.active or svc.is_add_on:
-        raise BookingNotFoundError("Service")
-    chosen = await service.resolve_add_ons(session, profile, svc, payload.add_on_ids)
-    price_minor = svc.price_minor + sum(a.price_minor for a in chosen)
-    deposit = await deposit_payments.amount_due(
-        session, profile, svc, price_minor=price_minor
-    )
+    svc, chosen, deposit = priced.service, priced.add_ons, priced.due_minor
     use = email_code.ProofUse(None)
     if deposit > 0:
         email = str(payload.customer_email)
