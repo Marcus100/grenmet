@@ -3,8 +3,9 @@
 ## Status
 
 Accepted 24 November 2026 by the owner (Bookings review, decisions 1 and 5;
-issue #1808). Not built. Amends ADR-0059 for Bookings businesses only and builds
-the entitlement link that ADR-0065 left unbuilt.
+issue #1808). Not built. Amends ADR-0059 for Bookings businesses only, builds
+the entitlement link that ADR-0065 left unbuilt, and amends ADR-0065's trial for
+self-created businesses.
 
 ## Context
 
@@ -86,7 +87,8 @@ Option C.
    - the bookings profile, with online booking **closed**, `listed` off,
      `requires_confirmation` on and the time zone and currency of its country
      (Grenada: `America/Grenada`, `XCD`);
-   - one provider named after the owner, with default weekday hours;
+   - one provider named after the owner, with default weekday hours (its id is
+     stored as the owner's provider);
    - the starter services, if a template was chosen;
    - the trial, which starts now (see 5).
 2. **Limits.**
@@ -118,8 +120,9 @@ Option C.
    Businesses created by Barrels before this record are treated as approved.
 5. **Trial and subscription.**
    - **Trial.** A self-created business's trial starts at sign-up and ends at a
-     stored `trial_ends_at`, 30 days later. A Checkout started during the trial
-     passes only the days left to Stripe, never a fresh 30. This amends ADR-0065's
+     stored `trial_ends_at` on the trial grant (`billing.app_subscription_trial`),
+     30 days later. A Checkout started during the trial passes only the whole days
+     left to Stripe, never a fresh 30, and no trial when less than a day is left. This amends ADR-0065's
      trial, which counts from Checkout, for self-created businesses only. Babydoll's
      seeded grant is unchanged.
    - **Where access came from.** `org.organisation_app` gains a `source` column:
@@ -136,8 +139,10 @@ Option C.
    - **The switch:** `BOOKINGS_ACCESS_FOLLOWS_SUBSCRIPTION`, off by default.
    - **When it is set:** while the switch is on, `paused_at` is set when a `trial`
      or `subscription` grant has no trial left, no subscription that is active or
-     past due, and the 7-day grace (the owner's rule) has run out.
-   - **When it clears:** on payment.
+     past due, and the 7-day grace (the owner's rule) has run out. The
+     subscription webhook and a daily worker job both check this.
+   - **When it clears:** on payment, when staff set the grant to `manual`, or
+     when the switch is turned off.
    - **Exempt:** `manual` grants never pause.
 
    | While paused | Behaviour |
@@ -154,7 +159,8 @@ Option C.
    account:
    - online booking closes;
    - the business is unlisted;
-   - the provider named after that owner is renamed "Staff";
+   - the owner's provider (stored at sign-up) is renamed "Staff";
+   - pending bookings nobody can now confirm are declined, with the usual mail;
    - the business is flagged for staff in the admin console.
 
    Existing bookings stay manageable by their customers. Nothing is deleted.
