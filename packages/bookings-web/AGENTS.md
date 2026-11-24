@@ -49,6 +49,8 @@ Backed by Barrels Bookings (`apps/api/fastapi/src/bookings`, ADR-0024).
   (`recallManagePath`, same-site paths only). The emailed-code step follows
   `service.due_at_booking_minor` (falls back to `deposit_minor`).
 
+- **Phone steps:** below `md` the flow shows Service, Time and Details one at a time (`use-booking-steps.ts` holds the step state, `booking-steps.tsx` the header, panes and foot bar). All state stays in `BookingFlow`; the three parts are `StepPane` wrappers that are `display: contents` unless the host CSS applies the phone layout (`.book-form[data-steps="on"]`, set only after the script runs, so a page without JavaScript shows everything). The only Book button is the form's own; the foot bar has Continue on steps 1 and 2 only. Time cleared on step 3 (slot taken, add-ons removed) returns to step 2. `initialServiceId` (the host's validated `?service=`) preselects a service the business offers and starts at step 2. Spec: `docs/design/bookings.md`.
+
 ## Styling
 
 - Class names only (`slots`, `btn`, `btn-solid`, `notice`, `summary`, `field`,

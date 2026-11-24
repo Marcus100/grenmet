@@ -9,6 +9,8 @@ const ACCENT_BACKGROUND =
   /background:\s*var\(--booking-accent,\s*var\(--primary\)\)/u;
 const OPACITY_CUE = /opacity:\s*0\.9/u;
 const NAVY_BACKGROUND = /background:\s*var\(--primary\)/u;
+const DISPLAY_CONTENTS = /display:\s*contents/u;
+const DISPLAY_NONE = /display:\s*none/u;
 const RULE_BODY = /\{([^}]*)\}/u;
 
 /** The declaration block of the first rule whose selector is `selector`. */
@@ -36,5 +38,72 @@ describe("booking.css brand accent", () => {
 
   it("keeps the hover cue as an opacity change, not a colour flip", () => {
     expect(blockFor(".btn-solid:hover:not(:disabled)")).toMatch(OPACITY_CUE);
+  });
+});
+
+describe("booking.css phone steps", () => {
+  it("shows every pane (display: contents) outside the phone layout", () => {
+    expect(blockFor(".book-pane")).toMatch(DISPLAY_CONTENTS);
+  });
+
+  it("hides inactive panes with display: none, only below md and only once enhanced", () => {
+    const rule =
+      '@media (max-width: 767px) {\n  .book-form[data-steps="on"] .book-pane {';
+    expect(css).toContain(rule);
+    expect(
+      blockFor('.book-form[data-steps="on"] .book-pane[data-active="false"]')
+    ).toMatch(DISPLAY_NONE);
+  });
+
+  it("keeps the phone-only controls off laptops", () => {
+    expect(blockFor(".book-phone-only")).toMatch(DISPLAY_NONE);
+  });
+});
+
+const count = (text: string, part: string) => text.split(part).length - 1;
+
+describe("booking.css motion", () => {
+  it("defines the two curves once, as tokens, and bans the usual mistakes", () => {
+    expect(count(css, "--ease-out:")).toBe(1);
+    expect(count(css, "--ease-in-out:")).toBe(1);
+    expect(css).not.toContain("transition: all");
+    expect(css).not.toContain("scale(0)");
+    expect(css.replaceAll("ease-in-out", "")).not.toContain("ease-in");
+  });
+
+  it("slides the new step in from the side it is moving toward, 24 px over 220 ms", () => {
+    expect(css).toContain(
+      '.book-form[data-direction="forward"] .book-pane[data-active="true"]'
+    );
+    expect(css).toContain(
+      '.book-form[data-direction="back"] .book-pane[data-active="true"]'
+    );
+    expect(css).toContain("book-step-in-forward 220ms var(--ease-out) both");
+    expect(css).toContain("book-step-in-back 220ms var(--ease-out) both");
+    expect(css).toContain("translateX(24px)");
+    expect(css).toContain("translateX(-24px)");
+  });
+
+  it("fills the progress bars with scaleX, not width", () => {
+    expect(css).toContain("transform-origin: left");
+    expect(css).toContain("transform 250ms var(--ease-in-out)");
+  });
+
+  it("gives press feedback and draws the confirmation tick", () => {
+    expect(css).toContain("--press-scale: 0.97");
+    expect(css).toContain("scale(var(--press-scale))");
+    expect(css).toContain("transform 140ms var(--ease-out)");
+    expect(css).toContain("book-draw 400ms var(--ease-out) both");
+    expect(css).toContain("book-rise-in 350ms var(--ease-out) 300ms both");
+  });
+
+  it("falls back to a plain fade under reduced motion", () => {
+    const start = css.indexOf("@media (prefers-reduced-motion: reduce)");
+    expect(start).toBeGreaterThan(-1);
+    const reduced = css.slice(start);
+    expect(reduced).toContain("book-fade-in 150ms linear both");
+    expect(reduced).toContain(".book-dot::after {\n    transition: none;");
+    expect(reduced).toContain("--press-scale: 1");
+    expect(reduced).not.toContain("translateX");
   });
 });

@@ -13,6 +13,7 @@ import {
   useState,
 } from "react";
 import {
+  addOnsFor,
   addOnTotals,
   amountDueForSelection,
   selectionKey,
@@ -48,12 +49,14 @@ import type {
 import { contactEnding } from "../lib/business-contact";
 import { AddOnStep, BookedAddOns } from "./add-on-step";
 import { BookingRules } from "./booking-policy-text";
+import { recapLine, StepBar, StepHeader, StepPane } from "./booking-steps";
 import { ContactLinks } from "./business-contact";
 import { PaymentStatus } from "./payment-status";
 import { ServiceList } from "./service-list";
 import { SlotPicker } from "./slot-picker";
 import { Turnstile } from "./turnstile";
 import { useAddOns } from "./use-add-ons";
+import { useBookingSteps } from "./use-booking-steps";
 import {
   CODE_LENGTH,
   TOKEN_LOADING_MESSAGE,
@@ -140,6 +143,11 @@ export interface BookingFlowProps {
    * signed-in visitor; entries the business no longer offers are skipped.
    */
   bookAgain?: BookAgainChoice[];
+  /**
+   * A service to start with (the page's `?service=` link). Ignored unless the
+   * business offers it; on phones the flow then starts at the time step.
+   */
+  initialServiceId?: string;
   /** Link used for the manage link on the confirmation. Defaults to an anchor. */
   ManageLink?: BookingLink;
   /** Path the manage link goes to; the token is appended as `/<token>`. */
@@ -236,6 +244,22 @@ function BookingDone({
   return (
     <div className="book-done">
       <section aria-labelledby="book-done" className="notice notice-ok">
+        <svg
+          aria-hidden="true"
+          className="book-tick"
+          focusable="false"
+          height="40"
+          viewBox="0 0 40 40"
+          width="40"
+        >
+          <circle cx="20" cy="20" fill="none" r="18" strokeWidth="2.5" />
+          <path
+            d="M11 21l6 6 12-13"
+            fill="none"
+            pathLength={1}
+            strokeWidth="3"
+          />
+        </svg>
         <h2 id="book-done" ref={headingRef} tabIndex={-1}>
           Thank you, {booking.customer_name.split(" ")[0]}
         </h2>
@@ -841,6 +865,7 @@ export function BookingFlow({
   accountInvite,
   actions,
   bookAgain = [],
+  initialServiceId,
   managePath,
   ManageLink = PlainLink,
   signedIn,
@@ -849,8 +874,18 @@ export function BookingFlow({
   track,
   turnstileSiteKey,
 }: BookingFlowProps) {
-  const [serviceId, setServiceId] = useState<string | null>(null);
+  const [serviceId, setServiceId] = useState<string | null>(() =>
+    initialServiceId &&
+    storefront.services.some((s) => s.id === initialServiceId)
+      ? initialServiceId
+      : null
+  );
   const [startsAt, setStartsAt] = useState<string | null>(null);
+  const steps = useBookingSteps({
+    hasService: serviceId !== null,
+    hasTime: startsAt !== null,
+    initialStep: serviceId === null ? 1 : 2,
+  });
   const addOns = useAddOns({
     addOns: storefront.add_ons,
     serviceId,
@@ -900,6 +935,10 @@ export function BookingFlow({
     setStartsAt(null);
     addOns.reset();
     reviseErrors({ serviceId: id, startsAt: null });
+    // With add-ons to tick the person stays on this step until they press Continue.
+    if (addOnsFor(storefront.add_ons, id).length === 0) {
+      steps.goTo(2);
+    }
   };
   const pickStart = (value: string | null) => {
     if (value && serviceId) {
@@ -1109,15 +1148,34 @@ export function BookingFlow({
     );
   }
 
+  const { step } = steps;
+  const recap = recapLine({
+    currency: storefront.currency,
+    dueMinor: knownDue,
+    priceMinor: totals?.priceMinor,
+    serviceName: service?.name,
+    startsAt,
+    timeZone: storefront.timezone,
+  });
+
   return (
     <>
       {signedIn && <SignedInLine signedIn={signedIn} />}
       <form
         aria-label="Book an appointment"
         className="book-form"
+        data-direction={steps.direction}
+        data-steps={steps.enhanced ? "on" : undefined}
         noValidate
         onSubmit={submit}
       >
+        {steps.enhanced && (
+          <StepHeader
+            headingRef={steps.headingRef}
+            onBack={() => steps.goTo(step === 3 ? 2 : 1)}
+            step={step}
+          />
+        )}
         {showSummary && (
           <ErrorSummary
             contact={storefront.contact}
@@ -1128,182 +1186,211 @@ export function BookingFlow({
           />
         )}
 
-        <ServicesStep
-          bookAgain={bookAgain}
-          errors={errors}
-          onPick={pickService}
-          selectedId={serviceId}
-          storefront={storefront}
-        />
+        <StepPane active={step === 1} step={1}>
+          <ServicesStep
+            bookAgain={bookAgain}
+            errors={errors}
+            onPick={pickService}
+            selectedId={serviceId}
+            storefront={storefront}
+          />
 
-        {service && addOns.offered.length > 0 ? (
-          <AddOnStep
-            chosen={addOns.ids}
-            currency={storefront.currency}
-            offered={addOns.offered}
-            onToggle={(id) => {
-              setTimesBusy(true);
-              addOns.choose(id);
+          {service && addOns.offered.length > 0 ? (
+            <AddOnStep
+              chosen={addOns.ids}
+              currency={storefront.currency}
+              offered={addOns.offered}
+              onToggle={(id) => {
+                setTimesBusy(true);
+                addOns.choose(id);
+              }}
+              service={service}
+            />
+          ) : null}
+        </StepPane>
+
+        <StepPane active={step === 2} step={2}>
+          <TimeStep
+            actions={actions}
+            addOnIds={addOns.ids}
+            currentKey={() => keyRef.current}
+            errors={errors}
+            onAddOnsGone={(message) => {
+              addOns.gone(message);
+              setStartsAt(null);
             }}
+            onBusyChange={setTimesBusy}
+            onChange={pickStart}
+            onQuote={setQuote}
+            onUnavailable={addOns.timeNoLongerFits}
+            reloadKey={reloadKey + addOns.reloads}
+            service={service}
+            startsAt={startsAt}
+            storefront={storefront}
+            timeNote={addOns.note}
+          />
+        </StepPane>
+
+        <StepPane active={step === 3} step={3}>
+          {steps.enhanced && step === 3 && (
+            <p className="book-recap book-phone-only">{recap}</p>
+          )}
+          <fieldset className="step">
+            <legend>3. Your details</legend>
+            <TextField
+              autoComplete="name"
+              error={errors.name}
+              id={FIELD_IDS.name}
+              label="Name"
+              maxLength={120}
+              name="name"
+              onChange={editName}
+              required
+              value={name}
+            />
+            <TextField
+              autoComplete="email"
+              error={errors.email}
+              id={FIELD_IDS.email}
+              inputMode="email"
+              label="Email"
+              maxLength={254}
+              name="email"
+              onChange={editEmail}
+              required
+              type="email"
+              value={email}
+            />
+            <TextField
+              autoComplete="tel"
+              error={errors.phone}
+              id={FIELD_IDS.phone}
+              inputMode="tel"
+              label="Phone (optional)"
+              maxLength={40}
+              name="phone"
+              onChange={editPhone}
+              type="tel"
+              value={phone}
+            />
+            <TextField
+              error={errors.notes}
+              id={FIELD_IDS.notes}
+              label="Anything we should know? (optional)"
+              maxLength={1000}
+              multiline
+              name="notes"
+              onChange={editNotes}
+              value={notes}
+            />
+            <label className="check">
+              <input
+                checked={marketing}
+                name="marketing"
+                onChange={(e) => setMarketing(e.target.checked)}
+                type="checkbox"
+              />
+              <span>
+                Send me news and offers from {studioName}. (Optional. We will
+                always email you about this booking.)
+              </span>
+            </label>
+
+            {/* Honeypot: people never see or fill it; a bot that does is dropped. */}
+            <div aria-hidden="true" className="hp">
+              <label>
+                Leave this field empty
+                <input
+                  autoComplete="off"
+                  name="website"
+                  onChange={(e) => setWebsite(e.target.value)}
+                  tabIndex={-1}
+                  type="text"
+                  value={website}
+                />
+              </label>
+            </div>
+
+            <Turnstile
+              onToken={setToken}
+              resetKey={resetKey}
+              siteKey={turnstileSiteKey}
+            />
+          </fieldset>
+
+          {stepOpen && (
+            <CodePanel
+              busy={emailCode.busy}
+              code={emailCode.code}
+              cooldown={emailCode.cooldown}
+              email={email}
+              error={emailCode.error}
+              notice={emailCode.notice}
+              onChangeEmail={changeEmail}
+              onCode={emailCode.setCode}
+              onResend={emailCode.resend}
+              resendBlocked={codeResendBlocked(
+                emailCode.cooldown,
+                emailCode.busy,
+                tokenMissing
+              )}
+            />
+          )}
+          {isVerified && needsCode && (
+            <VerifiedNotice proof={emailCode.proof} />
+          )}
+
+          <ServiceNotes
+            noPayment={knownDue === 0}
+            payNow={payNow}
             service={service}
           />
-        ) : null}
-
-        <TimeStep
-          actions={actions}
-          addOnIds={addOns.ids}
-          currentKey={() => keyRef.current}
-          errors={errors}
-          onAddOnsGone={(message) => {
-            addOns.gone(message);
-            setStartsAt(null);
-          }}
-          onBusyChange={setTimesBusy}
-          onChange={pickStart}
-          onQuote={setQuote}
-          onUnavailable={addOns.timeNoLongerFits}
-          reloadKey={reloadKey + addOns.reloads}
-          service={service}
-          startsAt={startsAt}
-          storefront={storefront}
-          timeNote={addOns.note}
-        />
-
-        <fieldset className="step">
-          <legend>3. Your details</legend>
-          <TextField
-            autoComplete="name"
-            error={errors.name}
-            id={FIELD_IDS.name}
-            label="Name"
-            maxLength={120}
-            name="name"
-            onChange={editName}
-            required
-            value={name}
+          <BookingRules
+            policy={storefront.booking_policy}
+            rules={{
+              businessName: storefront.display_name,
+              currency: storefront.currency,
+              cutoffHours: storefront.cancel_cutoff_hours,
+              amountLoading: service !== null && knownDue === null && timesBusy,
+              depositOnTotal:
+                service !== null && knownDue === null && !timesBusy,
+              dueMinor: knownDue ?? undefined,
+              nonRefundable: storefront.deposit_non_refundable,
+              ownDepositMinor: service?.deposit_minor,
+              priceMinor: totals?.priceMinor,
+            }}
           />
-          <TextField
-            autoComplete="email"
-            error={errors.email}
-            id={FIELD_IDS.email}
-            inputMode="email"
-            label="Email"
-            maxLength={254}
-            name="email"
-            onChange={editEmail}
-            required
-            type="email"
-            value={email}
-          />
-          <TextField
-            autoComplete="tel"
-            error={errors.phone}
-            id={FIELD_IDS.phone}
-            inputMode="tel"
-            label="Phone (optional)"
-            maxLength={40}
-            name="phone"
-            onChange={editPhone}
-            type="tel"
-            value={phone}
-          />
-          <TextField
-            error={errors.notes}
-            id={FIELD_IDS.notes}
-            label="Anything we should know? (optional)"
-            maxLength={1000}
-            multiline
-            name="notes"
-            onChange={editNotes}
-            value={notes}
-          />
-          <label className="check">
-            <input
-              checked={marketing}
-              name="marketing"
-              onChange={(e) => setMarketing(e.target.checked)}
-              type="checkbox"
-            />
-            <span>
-              Send me news and offers from {studioName}. (Optional. We will
-              always email you about this booking.)
-            </span>
-          </label>
+          {!stepOpen && (
+            <button
+              aria-disabled={
+                submitting ||
+                emailCode.busy !== null ||
+                (timesBusy && !!startsAt)
+              }
+              className="btn btn-solid"
+              disabled={
+                submitting ||
+                emailCode.busy !== null ||
+                (timesBusy && !!startsAt)
+              }
+              type="submit"
+            >
+              {buttonLabel(
+                submitting,
+                emailCode.busy,
+                needsCode && !isVerified
+              )}
+            </button>
+          )}
+        </StepPane>
 
-          {/* Honeypot: people never see or fill it; a bot that does is dropped. */}
-          <div aria-hidden="true" className="hp">
-            <label>
-              Leave this field empty
-              <input
-                autoComplete="off"
-                name="website"
-                onChange={(e) => setWebsite(e.target.value)}
-                tabIndex={-1}
-                type="text"
-                value={website}
-              />
-            </label>
-          </div>
-
-          <Turnstile
-            onToken={setToken}
-            resetKey={resetKey}
-            siteKey={turnstileSiteKey}
+        {steps.enhanced && step !== 3 && (
+          <StepBar
+            canContinue={step === 1 ? service !== null : startsAt !== null}
+            onContinue={() => steps.goTo(step === 1 ? 2 : 3)}
+            recap={recap}
+            step={step}
           />
-        </fieldset>
-
-        {stepOpen && (
-          <CodePanel
-            busy={emailCode.busy}
-            code={emailCode.code}
-            cooldown={emailCode.cooldown}
-            email={email}
-            error={emailCode.error}
-            notice={emailCode.notice}
-            onChangeEmail={changeEmail}
-            onCode={emailCode.setCode}
-            onResend={emailCode.resend}
-            resendBlocked={codeResendBlocked(
-              emailCode.cooldown,
-              emailCode.busy,
-              tokenMissing
-            )}
-          />
-        )}
-        {isVerified && needsCode && <VerifiedNotice proof={emailCode.proof} />}
-
-        <ServiceNotes
-          noPayment={knownDue === 0}
-          payNow={payNow}
-          service={service}
-        />
-        <BookingRules
-          policy={storefront.booking_policy}
-          rules={{
-            businessName: storefront.display_name,
-            currency: storefront.currency,
-            cutoffHours: storefront.cancel_cutoff_hours,
-            amountLoading: service !== null && knownDue === null && timesBusy,
-            depositOnTotal: service !== null && knownDue === null && !timesBusy,
-            dueMinor: knownDue ?? undefined,
-            nonRefundable: storefront.deposit_non_refundable,
-            ownDepositMinor: service?.deposit_minor,
-            priceMinor: totals?.priceMinor,
-          }}
-        />
-        {!stepOpen && (
-          <button
-            aria-disabled={
-              submitting || emailCode.busy !== null || (timesBusy && !!startsAt)
-            }
-            className="btn btn-solid"
-            disabled={
-              submitting || emailCode.busy !== null || (timesBusy && !!startsAt)
-            }
-            type="submit"
-          >
-            {buttonLabel(submitting, emailCode.busy, needsCode && !isVerified)}
-          </button>
         )}
       </form>
     </>
