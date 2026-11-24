@@ -671,6 +671,14 @@ class BookingAgendaItem(BaseModel):
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
     add_on_names: list[str] = Field(default_factory=list)
+    expires_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "For a request waiting for confirmation (`pending`): when it cancels "
+            "itself if not confirmed, the earlier of `pending_expiry_hours` after "
+            "it was made and its start. Null for any other status."
+        ),
+    )
 
 
 class BookingAgendaDay(BaseModel):
