@@ -12,6 +12,7 @@ import { paymentReceivedHeld } from "../lib/booking-payment";
 import { holdEndsLine } from "../lib/booking-policy";
 import type { ManageBookingActions, SlotList } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
+import { BookedAddOns } from "./add-on-step";
 import { BookingRules } from "./booking-policy-text";
 import { ContactLinks } from "./business-contact";
 import { PaymentStatus } from "./payment-status";
@@ -125,8 +126,9 @@ export function ManageBooking({
           <dt>Name</dt>
           <dd>{booking.customer_name}</dd>
         </div>
+        <BookedAddOns currency={booking.currency} lines={booking.add_ons} />
         <div>
-          <dt>Price</dt>
+          <dt>{booking.add_ons?.length ? "Total" : "Price"}</dt>
           <dd>{formatMoney(booking.price_minor, booking.currency)}</dd>
         </div>
       </dl>

@@ -18,6 +18,8 @@ export interface SlotList {
 
 /** What the booking form sends when the visitor submits a request. */
 export interface BookingInput {
+  /** Chosen add-ons (storefront `add_ons` ids), at most five. */
+  addOnIds?: readonly string[];
   email: string;
   /** Proof from a confirmed emailed code; required when a deposit is due. */
   emailProof?: string;
@@ -71,9 +73,11 @@ export interface BookingFlowActions {
   confirmEmailCode: (
     input: EmailCodeConfirmInput
   ) => Promise<Outcome<EmailProof>>;
+  /** `addOnIds` make each slot longer; leave them out for the service alone. */
   loadSlots: (
     serviceId: string,
-    firstDay: string
+    firstDay: string,
+    addOnIds?: readonly string[]
   ) => Promise<Outcome<SlotList>>;
   requestEmailCode: (
     input: EmailCodeRequestInput
