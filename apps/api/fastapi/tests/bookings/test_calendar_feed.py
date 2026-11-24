@@ -531,6 +531,64 @@ async def test_limiter_identifiers_for_a_feed_request_hold_no_token(
         assert all(token not in str(part) for part in identifiers)
 
 
+_MANAGE_ROUTES = {
+    "src.bookings.router.get_public_booking": bookings_router.MANAGE_VIEW_SCOPE,
+    "src.bookings.router.cancel_public_booking": bookings_router.MANAGE_CANCEL_SCOPE,
+    "src.bookings.router.reschedule_public_booking": (
+        bookings_router.MANAGE_RESCHEDULE_SCOPE
+    ),
+    "src.bookings.router.get_public_booking_ics": bookings_router.MANAGE_ICS_SCOPE,
+}
+
+
+def test_manage_routes_each_carry_a_scope_and_a_limit() -> None:
+    """Without a scope slowapi keys each manage route by its path, which holds the
+    booking token. Every manage route names its own constant scope."""
+    assert len(set(_MANAGE_ROUTES.values())) == len(_MANAGE_ROUTES)
+    for name, scope in _MANAGE_ROUTES.items():
+        limits = limiter._route_limits[name]
+        assert limits, f"{name} has no rate limit"
+        assert all(item.scope == scope for item in limits), name
+
+
+@pytest.mark.usefixtures("db_async")
+async def test_limiter_identifiers_for_manage_requests_hold_no_token(
+    async_client: httpx.AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Each manage route (view, cancel, reschedule, ics) consults the limiter with
+    its own scope and never with a key that holds the token in the path."""
+    seen: list[tuple[object, ...]] = []
+    real_hit = limiter.limiter.hit
+
+    def spy(item: object, *identifiers: object, **kwargs: object) -> bool:
+        seen.append(identifiers)
+        return bool(real_hit(item, *identifiers, **kwargs))
+
+    monkeypatch.setattr(limiter.limiter, "hit", spy)
+    token = calendar_feed.new_token()
+    base = f"/api/v1/bookings/public/bookings/{token}"
+    limiter.enabled = True
+    try:
+        await async_client.get(base)
+        await async_client.post(f"{base}/cancel", json={})
+        await async_client.post(
+            f"{base}/reschedule", json={"starts_at": "2030-01-01T10:00:00Z"}
+        )
+        await async_client.get(f"{base}/ics")
+    finally:
+        limiter.enabled = False
+    for scope in (
+        bookings_router.MANAGE_VIEW_SCOPE,
+        bookings_router.MANAGE_CANCEL_SCOPE,
+        bookings_router.MANAGE_RESCHEDULE_SCOPE,
+        bookings_router.MANAGE_ICS_SCOPE,
+    ):
+        assert any(scope in ids for ids in seen), f"{scope} was never consulted"
+    for identifiers in seen:
+        assert all(token not in str(part) for part in identifiers)
+
+
 # --- pure helpers -------------------------------------------------------------------------
 
 
@@ -576,6 +634,21 @@ def test_an_e_mail_or_number_in_the_name_field_shows_no_name() -> None:
     assert calendar_feed.first_name("+1 (473) 555-0199") is None
     assert calendar_feed.first_name("4735550199") is None
     assert calendar_feed.first_name("Ada2") == "Ada2"
+
+
+def test_obfuscated_contact_details_in_the_name_field_show_no_name() -> None:
+    """Full-width signs, "(at)" spellings, domains, schemes and long digit runs."""
+    assert calendar_feed.first_name("ada＠example.com") is None
+    assert calendar_feed.first_name("name(at)example.com") is None
+    assert calendar_feed.first_name("name[at]example") is None
+    assert calendar_feed.first_name("tel:4735550199") is None
+    assert calendar_feed.first_name("ｔｅｌ：4735550199") is None
+    assert calendar_feed.first_name("Ada 4735550199") == "Ada"
+    assert calendar_feed.first_name("Ada123456") == "Ada123456"
+
+
+def test_full_width_letters_are_normalised_before_the_name_is_shown() -> None:
+    assert calendar_feed.first_name("Ａｄａ Lovelace") == "Ada"
 
 
 async def test_a_name_that_is_an_e_mail_never_reaches_the_feed(
