@@ -1,0 +1,62 @@
+---
+title: A new Bookings home page, step-by-step booking and a tidier Studio
+summary: Version 1.10.0 redesigns the Bookings home page around business types, makes booking step by step on phones, restyles Studio with a Needs confirming list, and lets booking requests expire on their own. It also hardens uploads, refunds and logs, and adds a health check for uptime monitoring.
+date: 2026-11-25
+release: 1.10.0
+---
+
+Version 1.10.0 carries the work merged after v1.9.0. Most of it is in Bookings.
+It has two database changes. Each one only adds columns with safe defaults, so
+the previous release still runs against the new schema.
+
+### Finding a business
+
+- **A new home page:** each business has a card in its own colour, with its
+  logo or cover photo and up to three of its services with prices.
+- **Browse by type:** tiles for beauty, hair, health, fitness, lessons, tours,
+  events and more, so people can find a kind of business, not only a name.
+- **Cover photos:** a business can upload one in Studio. Like logos, the image
+  is cleaned of camera and location data when it is uploaded.
+
+### Booking on a phone
+
+- **Step by step:** choose a service, then a time, then enter your details,
+  with a short summary always in view.
+- **Straight to a service:** a business's own website can link to one service,
+  so customers land on the right step.
+- **A tidier time step:** dates page in one compact row.
+- **Clear limits:** a customer can hold a few upcoming bookings with one
+  business online. Past that, the form explains how to reach the business.
+
+### Running the day in Studio
+
+- **A new layout:** Studio looks like the staff portal we use elsewhere, and it
+  can be installed on a phone's home screen.
+- **Needs confirming:** requests waiting for the business sit at the top, each
+  showing when it expires, with Call and WhatsApp buttons.
+- **Requests expire on their own:** a request the business does not confirm in
+  time cancels itself, frees the slot and tells the customer. Each business
+  chooses the window, from an hour to a week, and the per-customer limit.
+- **Past bookings close themselves:** a booking that ended two days ago is
+  marked completed, so the agenda stays clean.
+
+### Safety and reliability
+
+- **Uploads:** a finished upload is copied to a location only the server
+  writes to, so the original upload link can no longer replace it.
+- **Refunds:** a deposit refund that is retried reuses the same key at the
+  payment provider, so a customer is never refunded twice.
+- **Logs:** links that carry a booking's private code no longer appear in the
+  server's access log.
+- **Sender names:** emails sent for a business use its name unless the name
+  imitates Barrels, a government body or a bank. The check now works word by
+  word, so ordinary names are no longer caught by mistake.
+- **A health check:** a new endpoint lets an uptime monitor check that data
+  feeds are fresh and emails are going out, without signing in.
+- **Unused addresses:** addresses we have reserved but not yet used now send
+  visitors to the main site instead of showing an error.
+
+### Tests
+
+A browser test now books, opens the manage link and cancels, both at phone and
+laptop width, on every change to the booking pages.
