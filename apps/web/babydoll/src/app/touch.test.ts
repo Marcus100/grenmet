@@ -83,3 +83,13 @@ describe("babydoll touch and keyboard layer", () => {
     expect(css).toMatch(BAR_HEIGHT);
   });
 });
+
+describe("babydoll type size", () => {
+  it("has no font-size below 0.78rem in the stylesheet", () => {
+    const sizes = [...css.matchAll(/font-size:\s*([\d.]+)rem/gu)].map((match) =>
+      Number(match[1])
+    );
+    expect(sizes.length).toBeGreaterThan(0);
+    expect(sizes.filter((size) => size < 0.78)).toEqual([]);
+  });
+});

@@ -11,8 +11,14 @@ import { BookBar } from "@/components/book-bar";
 import { SiteHeader } from "@/components/site-header";
 import {
   BOOKING_URL,
+  CONSULTATION_PRICE,
+  CONTACT_CHANNELS,
   EMAIL,
+  formatPrice,
   GOOGLE_REVIEW_URL,
+  INSTAGRAM_DM_URL,
+  INSTAGRAM_HANDLE,
+  PACKAGES,
   PHONE,
   PORTFOLIO,
   SERVICE_MENU,
@@ -22,15 +28,14 @@ import { bookingLink, siteBookingLink } from "@/lib/book-link";
 
 const APPOINTMENT = /appointment/iu;
 const BOOK_ONLINE = /Book online/u;
-const WHATSAPP_LINK = /Message on WhatsApp/u;
-const CALL_LINK = /^Call/u;
-const EMAIL_LINK = /Email us/u;
 const QUICKEST = /quickest/iu;
 const APPOINTMENT_NOTE =
   "Book online and choose a time that suits you. Walk-ins can't be seen.";
 // Clock times, day names and the words that used to head the hours table.
 const HOURS_TEXT =
   /\d{1,2}(:\d{2})? ?[ap]m|\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Opening|hours|Closed)\b/iu;
+// A dollar sign not preceded by "EC".
+const BARE_DOLLAR = /(?<!EC)\$/u;
 const OLD_LISTING = /True Blue|Fresha/u;
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/services" }));
@@ -188,19 +193,55 @@ describe("chrome", () => {
 });
 
 describe("training contact channels", () => {
-  it("offers the same WhatsApp, phone and email as the Contact page", () => {
+  it("offers the four channels as compact links with exact hrefs", () => {
     render(<TrainingPage />);
-    expect(screen.getByRole("link", { name: WHATSAPP_LINK })).toHaveAttribute(
-      "href",
-      WHATSAPP_URL
-    );
-    expect(screen.getByRole("link", { name: CALL_LINK })).toHaveAttribute(
-      "href",
-      PHONE.href
-    );
-    expect(screen.getByRole("link", { name: EMAIL_LINK })).toHaveAttribute(
-      "href",
-      EMAIL.href
-    );
+    const links = [
+      ["WhatsApp +1 473 420 7747 (opens in a new tab)", WHATSAPP_URL],
+      ["Call +1 473 420 7747", PHONE.href],
+      [`Instagram ${INSTAGRAM_HANDLE} (opens in a new tab)`, INSTAGRAM_DM_URL],
+      [`Email ${EMAIL.address}`, EMAIL.href],
+    ] as const;
+    for (const [name, href] of links)
+      expect(screen.getByRole("link", { name })).toHaveAttribute("href", href);
+  });
+
+  it("opens only WhatsApp and Instagram in a new tab, with noopener", () => {
+    render(<TrainingPage />);
+    for (const channel of CONTACT_CHANNELS) {
+      const link = document.querySelector(`a[href="${channel.href}"]`);
+      if (channel.newTab) {
+        expect(link).toHaveAttribute("target", "_blank");
+        expect(link).toHaveAttribute("rel", "noopener");
+        expect(link?.textContent).toContain("(opens in a new tab)");
+      } else {
+        expect(link).not.toHaveAttribute("target");
+      }
+    }
+  });
+
+  it("uses the same channel list as the Contact page", () => {
+    const { container } = render(<ContactPage />);
+    for (const channel of CONTACT_CHANNELS)
+      expect(
+        container.querySelector(`a[href="${channel.href}"]`)?.textContent
+      ).toContain(channel.title);
+  });
+});
+
+describe("prices", () => {
+  it("formats every price with the EC$ prefix", () => {
+    expect(formatPrice(120)).toBe("EC$120");
+  });
+
+  it("shows EC$ prices on home, services and no bare dollar sign", () => {
+    for (const Page of [HomePage, ServicesPage]) {
+      const { container, unmount } = render(<Page />);
+      expect(container.textContent).toContain(formatPrice(CONSULTATION_PRICE));
+      expect(container.textContent).not.toMatch(BARE_DOLLAR);
+      unmount();
+    }
+    const home = render(<HomePage />);
+    for (const pkg of PACKAGES)
+      expect(home.container.textContent).toContain(formatPrice(pkg.price));
   });
 });
