@@ -6,8 +6,10 @@ import type { Locator } from "@playwright/test";
 
 /** The disclosure of a category on the booking form, if the page shows one. */
 function categorySection(form: Locator, category: string): Locator {
+  // The inner locator starts from the page: a `form.locator(...)` here would
+  // look for a form inside each category and match nothing.
   return form.locator("details.service-category", {
-    has: form.locator("summary h3", {
+    has: form.page().locator("summary h3", {
       hasText: new RegExp(`^${category}$`, "u"),
     }),
   });
