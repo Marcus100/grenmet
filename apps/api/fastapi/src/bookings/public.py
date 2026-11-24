@@ -11,6 +11,7 @@ import hashlib
 import logging
 import secrets
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
@@ -49,6 +50,7 @@ from .exceptions import BookingConflictError, BookingNotFoundError
 from .models import (
     ACTIVE_STATUSES,
     Booking,
+    BookingAddOn,
     BookingEvent,
     BookingProfile,
     BookingSource,
@@ -58,6 +60,7 @@ from .models import (
     Service,
 )
 from .schemas import (
+    BookingAddOnLine,
     BookingBusinessContact,
     BookingEmailCodeConfirm,
     BookingEmailCodeRequest,
@@ -85,6 +88,20 @@ class Managed:
     customer: Customer
     #: The customer's contact-book record: the only home of name, email and phone.
     contact: Contact
+    #: The booking's add-on lines (``add_on_lines``); empty when it has none.
+    add_ons: tuple[BookingAddOn, ...] = ()
+
+
+def total_minutes(managed: Managed) -> int:
+    """The booking's length as sold: the main service plus its add-ons."""
+    return managed.service.duration_min + sum(a.duration_min for a in managed.add_ons)
+
+
+async def add_on_lines(
+    session: AsyncSession, booking_id: uuid.UUID
+) -> tuple[BookingAddOn, ...]:
+    lines = await service.booking_add_on_lines(session, [booking_id])
+    return tuple(lines.get(booking_id, []))
 
 
 def new_manage_token() -> tuple[str, str]:
@@ -320,6 +337,14 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         contact=BookingBusinessContact(**service.business_contact(profile)),
         account_invite_url=account_invite_for(profile, managed.contact),
         hold_ends_at=hold_ends_at(booking),
+        add_ons=[
+            BookingAddOnLine(
+                name=line.name,
+                duration_min=line.duration_min,
+                price_minor=line.price_minor,
+            )
+            for line in managed.add_ons
+        ],
     )
 
 
@@ -398,7 +423,8 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         customer_phone=managed.contact.phone,
         notes=managed.booking.notes,
         account_invite_url=account_invite_for(profile, managed.contact),
-        duration_min=managed.service.duration_min,
+        duration_min=total_minutes(managed),
+        add_ons=tuple(line.name for line in managed.add_ons),
         reference=str(managed.booking.id).replace("-", "")[:8].upper(),
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
         business_email=profile.contact_email,
@@ -469,6 +495,8 @@ async def _candidate_providers(
     starts_at: datetime,
     now: datetime,
     exclude_booking_id: uuid.UUID | None = None,
+    add_on_ids: Sequence[uuid.UUID] = (),
+    extra_minutes: int = 0,
 ) -> list[uuid.UUID]:
     """Providers whose open slots include exactly ``starts_at``; availability is
     recomputed inside the booking transaction, never trusted from the client."""
@@ -482,6 +510,8 @@ async def _candidate_providers(
         last_day=day,
         now=now,
         exclude_booking_id=exclude_booking_id,
+        add_on_ids=add_on_ids,
+        extra_minutes=extra_minutes,
     )
     for slot in slots:
         if slot.starts_at == starts_at:
@@ -629,9 +659,13 @@ async def create_booking(
     svc = await service.get_service(
         session, payload.service_id, organisation_id=profile.organisation_id
     )
-    if not svc.active:
+    if not svc.active or svc.is_add_on:
         raise BookingNotFoundError("Service")
-    deposit = await deposit_payments.amount_due(session, profile, svc)
+    chosen = await service.resolve_add_ons(session, profile, svc, payload.add_on_ids)
+    price_minor = svc.price_minor + sum(a.price_minor for a in chosen)
+    deposit = await deposit_payments.amount_due(
+        session, profile, svc, price_minor=price_minor
+    )
     use = email_code.ProofUse(None)
     if deposit > 0:
         email = str(payload.customer_email)
@@ -644,7 +678,7 @@ async def create_booking(
         )
     try:
         return await _create_booking(
-            session, profile, payload, svc, deposit, payer=payer, now=now
+            session, profile, payload, svc, deposit, chosen, payer=payer, now=now
         )
     except BaseException:
         # The proof is single use, but a booking that never happened must not burn it.
@@ -658,6 +692,7 @@ async def _create_booking(
     payload: BookingPublicCreate,
     svc: Service,
     deposit: int,
+    chosen: list[Service],
     *,
     payer: User | None,
     now: datetime | None,
@@ -671,6 +706,7 @@ async def _create_booking(
         provider_id=payload.provider_id,
         starts_at=starts_at,
         now=moment,
+        add_on_ids=[a.id for a in chosen],
     )
     if not candidates:
         raise BookingConflictError(SLOT_TAKEN)
@@ -691,7 +727,10 @@ async def _create_booking(
             contact, name=_single_line(payload.customer_name), user_id=payer.id
         )
     token, token_hash = new_manage_token()
-    ends_at = starts_at + timedelta(minutes=svc.duration_min)
+    ends_at = starts_at + timedelta(
+        minutes=svc.duration_min + sum(a.duration_min for a in chosen)
+    )
+    price_minor = svc.price_minor + sum(a.price_minor for a in chosen)
     if deposit > 0:
         # The exclusion constraint already holds the slot while the deposit is
         # paid; the expiry sweeper releases it if it is not.
@@ -701,6 +740,7 @@ async def _create_booking(
     else:
         initial = BookingStatus.CONFIRMED
     booking: Booking | None = None
+    lines: list[BookingAddOn] = []
     for provider_id in candidates:
         attempt = Booking(
             organisation_id=profile.organisation_id,
@@ -713,7 +753,7 @@ async def _create_booking(
             blocked_until=ends_at + timedelta(minutes=svc.buffer_after_min),
             status=initial.value,
             source=BookingSource.ONLINE.value,
-            price_minor=svc.price_minor,
+            price_minor=price_minor,
             deposit_minor=deposit,
             currency=profile.currency,
             notes=payload.notes.strip() if payload.notes else None,
@@ -725,11 +765,26 @@ async def _create_booking(
             async with session.begin_nested():
                 session.add(attempt)
                 await session.flush()
+                # The lines need the booking's id, which the flush above assigned.
+                attempt_lines = [
+                    BookingAddOn(
+                        booking_id=attempt.id,
+                        organisation_id=profile.organisation_id,
+                        service_id=add_on_service.id,
+                        name=add_on_service.name,
+                        duration_min=add_on_service.duration_min,
+                        price_minor=add_on_service.price_minor,
+                    )
+                    for add_on_service in chosen
+                ]
+                session.add_all(attempt_lines)
+                await session.flush()
         except DBAPIError as error:
             if not service.is_overlap_violation(error):
                 raise
             continue
         booking = attempt
+        lines = attempt_lines
         break
     if booking is None:
         raise BookingConflictError(SLOT_TAKEN)
@@ -740,7 +795,7 @@ async def _create_booking(
     )
     provider = await session.get(Provider, booking.provider_id)
     assert provider is not None
-    managed = Managed(booking, profile, svc, provider, customer, contact)
+    managed = Managed(booking, profile, svc, provider, customer, contact, tuple(lines))
     checkout_url: str | None = None
     if initial is BookingStatus.PENDING_PAYMENT:
         # No emails yet: they are queued when the deposit is paid
@@ -810,7 +865,8 @@ async def load_by_token(
         raise BookingNotFoundError("Booking")
     booking, profile, svc, provider, customer, contact = row
     await service.require_bookings_entitlement(session, profile, what="Booking")
-    return Managed(booking, profile, svc, provider, customer, contact)
+    lines = await add_on_lines(session, booking.id)
+    return Managed(booking, profile, svc, provider, customer, contact, lines)
 
 
 async def load_by_id(
@@ -837,7 +893,8 @@ async def load_by_id(
     if row is None:
         raise BookingNotFoundError("Booking")
     booking, profile, svc, provider, customer, contact = row
-    return Managed(booking, profile, svc, provider, customer, contact)
+    lines = await add_on_lines(session, booking.id)
+    return Managed(booking, profile, svc, provider, customer, contact, lines)
 
 
 async def get_booking(session: AsyncSession, token: str) -> BookingPublicDetail:
@@ -929,7 +986,10 @@ async def move_booking(
     The ``booking_no_overlap`` constraint is the last word: a clash (or the
     deadlock two racing moves can end in) is a 409 and leaves the booking as it
     was. The caller records the event and queues the mail."""
-    ends_at = starts_at + timedelta(minutes=svc.duration_min)
+    # The booking keeps its add-ons, so its length is the main service's plus
+    # the add-on lines it already has (stored at booking time).
+    extra = await service.booking_add_on_minutes(session, booking.id)
+    ends_at = starts_at + timedelta(minutes=svc.duration_min + extra)
     try:
         async with session.begin_nested():
             booking.starts_at = starts_at
@@ -967,6 +1027,7 @@ async def reschedule_booking(
         starts_at=starts_at,
         now=moment,
         exclude_booking_id=booking.id,
+        extra_minutes=sum(a.duration_min for a in managed.add_ons),
     )
     if booking.provider_id not in open_providers:
         raise BookingConflictError(SLOT_TAKEN)
@@ -1010,6 +1071,14 @@ async def reschedule_booking(
     return await full_detail(session, managed, moment)
 
 
+def _ics_description(managed: Managed) -> str:
+    text = f"With {managed.provider.name}."
+    if managed.add_ons:
+        names = ", ".join(line.name for line in managed.add_ons)
+        text += f" Add-ons: {names}."
+    return text
+
+
 async def booking_ics(
     session: AsyncSession, token: str, *, now: datetime | None = None
 ) -> str:
@@ -1031,7 +1100,7 @@ async def booking_ics(
         starts_at=booking.starts_at,
         ends_at=booking.ends_at,
         summary=f"{managed.service.name} at {managed.profile.display_name}",
-        description=f"With {managed.provider.name}.",
+        description=_ics_description(managed),
         stamp=now or utc_now(),
         status=ics_status,
         sequence=max((changes or 1) - 1, 0),

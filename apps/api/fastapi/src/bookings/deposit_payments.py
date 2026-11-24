@@ -94,12 +94,15 @@ def rule_deposit(price_minor: int, rule: DepositRule) -> int:
     return 0
 
 
-def planned_deposit(svc: Service, rule: DepositRule) -> int:
+def planned_deposit(
+    svc: Service, rule: DepositRule, price_minor: int | None = None
+) -> int:
     """Pure: the deposit a booking of ``svc`` carries, before entitlement. The
-    service's own deposit wins when set; otherwise the business rule applies."""
+    service's own deposit wins when set; otherwise the business rule applies to
+    ``price_minor`` (the booking's combined price with add-ons, default the price)."""
     if svc.deposit_minor > 0:
         return svc.deposit_minor
-    return rule_deposit(svc.price_minor, rule)
+    return rule_deposit(svc.price_minor if price_minor is None else price_minor, rule)
 
 
 def balance_at_salon(price_minor: int, deposit_minor: int) -> int:
@@ -119,10 +122,11 @@ async def effective_deposit(
     session: AsyncSession,
     profile: BookingProfile,
     svc: Service,
+    price_minor: int | None = None,
 ) -> int:
     """The deposit to collect for ``svc``: zero unless the organisation is
     entitled to ``payments`` (logged once per booking, never an error)."""
-    amount = planned_deposit(svc, deposit_rule_of(profile))
+    amount = planned_deposit(svc, deposit_rule_of(profile), price_minor)
     if amount <= 0:
         return 0
     if await organisation_service.is_app_enabled(
@@ -151,26 +155,37 @@ def charges_full_price(profile: BookingProfile) -> bool:
 
 
 def due_for(
-    svc: Service, *, full_price: bool, entitled: bool, rule: DepositRule
+    svc: Service,
+    *,
+    full_price: bool,
+    entitled: bool,
+    rule: DepositRule,
+    price_minor: int | None = None,
 ) -> int:
     """Pure rule: what a booking of ``svc`` pays when it is made (0 = nothing).
     ``full_price`` charges the price; otherwise the planned deposit (service
-    override first, then the business rule). Nothing without the entitlement."""
+    override first, then the business rule). Nothing without the entitlement.
+    ``price_minor`` is the combined price when add-ons are booked."""
     if not entitled:
         return 0
-    if full_price and svc.price_minor > 0:
-        return svc.price_minor
-    return planned_deposit(svc, rule)
+    price = svc.price_minor if price_minor is None else price_minor
+    if full_price and price > 0:
+        return price
+    return planned_deposit(svc, rule, price)
 
 
 async def amount_due(
-    session: AsyncSession, profile: BookingProfile, svc: Service
+    session: AsyncSession,
+    profile: BookingProfile,
+    svc: Service,
+    price_minor: int | None = None,
 ) -> int:
     """What an online booking of ``svc`` pays when it is made (0 = nothing).
 
     ``full_price`` charges the price only while Stripe is available and the
     organisation holds ``payments``; otherwise the service deposit or the business
-    deposit rule applies."""
+    deposit rule applies. ``price_minor`` is the combined price with add-ons."""
+    price = svc.price_minor if price_minor is None else price_minor
     full_price = charges_full_price(profile)
     if (
         profile.payment_at_booking == BookingPaymentMode.FULL_PRICE.value
@@ -180,14 +195,18 @@ async def amount_due(
             "full price at booking needs card payments; using the service deposit",
             extra={"organisation_id": profile.organisation_id},
         )
-    if full_price and svc.price_minor > 0:
+    if full_price and price > 0:
         entitled = await organisation_service.is_app_enabled(
             session, organisation_id=profile.organisation_id, app_key="payments"
         )
         return due_for(
-            svc, full_price=True, entitled=entitled, rule=deposit_rule_of(profile)
+            svc,
+            full_price=True,
+            entitled=entitled,
+            rule=deposit_rule_of(profile),
+            price_minor=price,
         )
-    return await effective_deposit(session, profile, svc)
+    return await effective_deposit(session, profile, svc, price)
 
 
 async def due_by_service(

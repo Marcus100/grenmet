@@ -12,7 +12,7 @@ from alembic.script import ScriptDirectory
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from src.bookings.models import Booking, Provider, Service
+from src.bookings.models import Booking, Provider
 from src.config import settings
 from src.database import engine
 from tests.database_target import require_owned_database
@@ -108,9 +108,20 @@ def test_upgrade_deletes_unlinked_customers_and_their_bookings(before_migration)
             ),
             {"id": org},
         )
-        service = Service(organisation_id=org, name="S", duration_min=60)
+        # Raw SQL for the service too: later revisions add service columns
+        # (add-ons), which this downgraded shape does not have.
+        service_id = uuid.uuid4()
+        connection.execute(
+            text(
+                "INSERT INTO bookings.service (id, organisation_id, name, duration_min, "
+                "buffer_before_min, buffer_after_min, price_minor, deposit_minor, "
+                "active, sort_order, created_at, updated_at) VALUES (:id, :o, 'S', 60, "
+                "0, 0, 0, 0, true, 0, now(), now())"
+            ),
+            {"id": service_id, "o": org},
+        )
         provider = Provider(organisation_id=org, name="P")
-        session.add_all([service, provider])
+        session.add(provider)
         session.flush()
         # The old shape: the customer still holds its own name (no contact).
         connection.execute(
@@ -125,7 +136,7 @@ def test_upgrade_deletes_unlinked_customers_and_their_bookings(before_migration)
             Booking(
                 organisation_id=org,
                 provider_id=provider.id,
-                service_id=service.id,
+                service_id=service_id,
                 customer_id=customer_id,
                 starts_at=start,
                 ends_at=start + timedelta(hours=1),

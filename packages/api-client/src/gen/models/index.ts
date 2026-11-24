@@ -1247,6 +1247,7 @@ export type { BodyHrImportTerminalPunches } from "./BodyHrImportTerminalPunches.
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
 export type { BodyPrintixImportOrgTickets } from "./BodyPrintixImportOrgTickets.js";
 export type { BodyPrintixImportTickets } from "./BodyPrintixImportTickets.js";
+export type { BookingAddOnLine } from "./BookingAddOnLine.js";
 export type { BookingAgenda } from "./BookingAgenda.js";
 export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
@@ -1286,6 +1287,7 @@ export type { BookingProviderCreate } from "./BookingProviderCreate.js";
 export type { BookingProviderPublic } from "./BookingProviderPublic.js";
 export type { BookingProviderSettings } from "./BookingProviderSettings.js";
 export type { BookingProviderUpdate } from "./BookingProviderUpdate.js";
+export type { BookingPublicAddOn } from "./BookingPublicAddOn.js";
 export type { BookingPublicBusiness } from "./BookingPublicBusiness.js";
 export type { BookingPublicBusinessPage } from "./BookingPublicBusinessPage.js";
 export type { BookingPublicCancel } from "./BookingPublicCancel.js";

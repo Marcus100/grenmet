@@ -7,6 +7,7 @@ Service functions flush; routers commit. Every query is filtered by
 import logging
 import uuid
 from collections import defaultdict
+from collections.abc import Sequence
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
@@ -32,7 +33,7 @@ from src.storage.public_url import public_file_url
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
-from . import availability, deposit_payments
+from . import add_ons, availability, deposit_payments
 from .exceptions import (
     BookingConflictError,
     BookingNotFoundError,
@@ -42,6 +43,7 @@ from .models import (
     ACTIVE_STATUSES,
     AvailabilityException,
     Booking,
+    BookingAddOn,
     BookingDepositMode,
     BookingProfile,
     BookingStatus,
@@ -96,6 +98,7 @@ LOGO_PURPOSE = "booking-logo"
 #: Profile fields an older client (or the seed) may not send; a PUT that leaves
 #: one out keeps the stored value.
 KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
+    "add_ons_enabled",
     "payment_at_booking",
     "deposit_mode",
     "deposit_percent",
@@ -217,10 +220,21 @@ async def get_service(
 async def create_service(
     session: AsyncSession, *, organisation_id: str, payload: BookingServiceCreate
 ) -> Service:
-    service = Service(organisation_id=organisation_id, **payload.model_dump())
+    values = payload.model_dump()
+    values["add_on_categories"] = _add_on_restriction(
+        values["is_add_on"], values["add_on_categories"]
+    )
+    service = Service(organisation_id=organisation_id, **values)
     session.add(service)
     await session.flush()
     return service
+
+
+def _add_on_restriction(
+    is_add_on: bool, categories: Sequence[str] | None
+) -> list[str] | None:
+    """Categories restrict add-ons only: a main service keeps none."""
+    return add_ons.normalised_categories(categories) if is_add_on else None
 
 
 async def update_service(
@@ -230,8 +244,77 @@ async def update_service(
         setattr(service, key, value)
     if service.deposit_minor > service.price_minor:
         raise BookingValidationError("The deposit cannot exceed the price")
+    service.add_on_categories = _add_on_restriction(
+        service.is_add_on, service.add_on_categories
+    )
     await session.flush()
     return service
+
+
+async def resolve_add_ons(
+    session: AsyncSession,
+    profile: BookingProfile,
+    main: Service,
+    add_on_ids: Sequence[uuid.UUID],
+) -> list[Service]:
+    """The add-ons a customer picked, checked on the server: switched on for the
+    business, each once, at most ``add_ons.MAX_PER_BOOKING``, active add-ons of
+    this organisation, offered with ``main``. Foreign, inactive and unknown ids
+    give the same answer, so nothing about another business leaks."""
+    if not add_on_ids:
+        return []
+    if not profile.add_ons_enabled:
+        raise BookingValidationError("This business does not offer add-ons")
+    if len(set(add_on_ids)) != len(add_on_ids):
+        raise BookingValidationError("Choose each add-on once")
+    if len(add_on_ids) > add_ons.MAX_PER_BOOKING:
+        raise BookingValidationError(
+            f"A booking takes at most {add_ons.MAX_PER_BOOKING} add-ons"
+        )
+    rows = await session.scalars(
+        select(Service).where(
+            Service.id.in_(add_on_ids),
+            Service.organisation_id == profile.organisation_id,
+            Service.is_add_on.is_(True),
+            Service.active.is_(True),
+        )
+    )
+    by_id = {row.id: row for row in rows}
+    if len(by_id) != len(add_on_ids):
+        raise BookingValidationError("One of the add-ons is not available")
+    chosen = [by_id[add_on_id] for add_on_id in add_on_ids]
+    for add_on_service in chosen:
+        if not add_ons.offered_with(add_on_service.add_on_categories, main.category):
+            raise BookingValidationError(
+                f"{add_on_service.name} is not offered with this service"
+            )
+    return chosen
+
+
+async def booking_add_on_minutes(session: AsyncSession, booking_id: uuid.UUID) -> int:
+    """Total length of a booking's stored add-on lines (SQL sum)."""
+    total = await session.scalar(
+        select(func.coalesce(func.sum(BookingAddOn.duration_min), 0)).where(
+            BookingAddOn.booking_id == booking_id
+        )
+    )
+    return int(total or 0)
+
+
+async def booking_add_on_lines(
+    session: AsyncSession, booking_ids: Sequence[uuid.UUID]
+) -> dict[uuid.UUID, list[BookingAddOn]]:
+    """The add-on lines of several bookings, one query, in name order."""
+    if not booking_ids:
+        return {}
+    lines: dict[uuid.UUID, list[BookingAddOn]] = defaultdict(list)
+    for line in await session.scalars(
+        select(BookingAddOn)
+        .where(BookingAddOn.booking_id.in_(booking_ids))
+        .order_by(BookingAddOn.name, BookingAddOn.id)
+    ):
+        lines[line.booking_id].append(line)
+    return lines
 
 
 # --- providers ---------------------------------------------------------------------
@@ -656,7 +739,12 @@ async def _public_logo_url(
 
 
 async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str, Any]:
-    services = await list_services(session, profile.organisation_id, active_only=True)
+    all_services = await list_services(
+        session, profile.organisation_id, active_only=True
+    )
+    # Add-ons are never bookable alone: they leave the main list, and reach the
+    # page only while the business has switched them on.
+    services = [s for s in all_services if not s.is_add_on]
     providers = await list_providers(session, profile.organisation_id, active_only=True)
     active_service_ids = {s.id for s in services}
     public_providers = [
@@ -687,7 +775,39 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
             for svc in services
         ],
         "providers": [p for p in public_providers if p["service_ids"]],
+        "add_ons": _public_add_ons(profile, all_services, services),
     }
+
+
+def _public_add_ons(
+    profile: BookingProfile, all_services: list[Service], mains: list[Service]
+) -> list[dict[str, Any]]:
+    """The active add-ons offered on the page, each with the main services it
+    can follow. Empty while the business has the switch off."""
+    if not profile.add_ons_enabled:
+        return []
+    offered = []
+    for add_on_service in all_services:
+        if not add_on_service.is_add_on:
+            continue
+        service_ids = [
+            main.id
+            for main in mains
+            if add_ons.offered_with(add_on_service.add_on_categories, main.category)
+        ]
+        if not service_ids:
+            continue
+        offered.append(
+            {
+                "id": add_on_service.id,
+                "name": add_on_service.name,
+                "description": add_on_service.description,
+                "duration_min": add_on_service.duration_min,
+                "price_minor": add_on_service.price_minor,
+                "service_ids": service_ids,
+            }
+        )
+    return offered
 
 
 # --- public home-page listing ----------------------------------------------------------
@@ -831,9 +951,13 @@ async def available_slots(
     last_day: date,
     now: datetime | None = None,
     exclude_booking_id: uuid.UUID | None = None,
+    add_on_ids: Sequence[uuid.UUID] = (),
+    extra_minutes: int = 0,
 ) -> list[availability.Slot]:
     """Open slots. ``exclude_booking_id`` ignores one booking's own blocked range
-    (used when that booking is being rescheduled)."""
+    (used when that booking is being rescheduled). The slot length is the main
+    service's plus the chosen ``add_on_ids`` (checked here) plus ``extra_minutes``
+    (a booking's stored add-on lines, used when it is moved)."""
     if last_day < first_day:
         raise BookingValidationError("last_day must not be before first_day")
     if (last_day - first_day).days >= MAX_AVAILABILITY_DAYS:
@@ -843,8 +967,14 @@ async def available_slots(
     service = await get_service(
         session, service_id, organisation_id=profile.organisation_id
     )
-    if not service.active:
+    if not service.active or service.is_add_on:
         raise BookingNotFoundError("Service")
+    chosen = await resolve_add_ons(session, profile, service, add_on_ids)
+    length_min = (
+        service.duration_min
+        + extra_minutes
+        + sum(add_on_service.duration_min for add_on_service in chosen)
+    )
 
     query = (
         select(Provider)
@@ -924,7 +1054,7 @@ async def available_slots(
         busy[blocked.provider_id].append((blocked.blocked_from, blocked.blocked_until))
 
     rules = availability.SlotRules(
-        duration=timedelta(minutes=service.duration_min),
+        duration=timedelta(minutes=length_min),
         step=timedelta(minutes=profile.slot_step_min),
         buffer_before=timedelta(minutes=service.buffer_before_min),
         buffer_after=timedelta(minutes=service.buffer_after_min),

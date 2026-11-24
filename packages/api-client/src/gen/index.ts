@@ -1236,6 +1236,7 @@ export type { BodyHrImportTerminalPunches } from "./models/BodyHrImportTerminalP
 export type { BodyHrUploadDocument } from "./models/BodyHrUploadDocument.js";
 export type { BodyPrintixImportOrgTickets } from "./models/BodyPrintixImportOrgTickets.js";
 export type { BodyPrintixImportTickets } from "./models/BodyPrintixImportTickets.js";
+export type { BookingAddOnLine } from "./models/BookingAddOnLine.js";
 export type { BookingAgenda } from "./models/BookingAgenda.js";
 export type { BookingAgendaDay } from "./models/BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./models/BookingAgendaItem.js";
@@ -1270,6 +1271,7 @@ export type { BookingProviderCreate } from "./models/BookingProviderCreate.js";
 export type { BookingProviderPublic } from "./models/BookingProviderPublic.js";
 export type { BookingProviderSettings } from "./models/BookingProviderSettings.js";
 export type { BookingProviderUpdate } from "./models/BookingProviderUpdate.js";
+export type { BookingPublicAddOn } from "./models/BookingPublicAddOn.js";
 export type { BookingPublicBusiness } from "./models/BookingPublicBusiness.js";
 export type { BookingPublicBusinessPage } from "./models/BookingPublicBusinessPage.js";
 export type { BookingPublicCancel } from "./models/BookingPublicCancel.js";
@@ -16970,6 +16972,7 @@ export { bodyHrImportTerminalPunchesSchema } from "./zod/bodyHrImportTerminalPun
 export { bodyHrUploadDocumentSchema } from "./zod/bodyHrUploadDocumentSchema.js";
 export { bodyPrintixImportOrgTicketsSchema } from "./zod/bodyPrintixImportOrgTicketsSchema.js";
 export { bodyPrintixImportTicketsSchema } from "./zod/bodyPrintixImportTicketsSchema.js";
+export { bookingAddOnLineSchema } from "./zod/bookingAddOnLineSchema.js";
 export { bookingAgendaDaySchema } from "./zod/bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./zod/bookingAgendaSchema.js";
@@ -17004,6 +17007,7 @@ export { bookingProviderCreateSchema } from "./zod/bookingProviderCreateSchema.j
 export { bookingProviderPublicSchema } from "./zod/bookingProviderPublicSchema.js";
 export { bookingProviderSettingsSchema } from "./zod/bookingProviderSettingsSchema.js";
 export { bookingProviderUpdateSchema } from "./zod/bookingProviderUpdateSchema.js";
+export { bookingPublicAddOnSchema } from "./zod/bookingPublicAddOnSchema.js";
 export { bookingPublicBusinessPageSchema } from "./zod/bookingPublicBusinessPageSchema.js";
 export { bookingPublicBusinessSchema } from "./zod/bookingPublicBusinessSchema.js";
 export { bookingPublicCancelBodySchema } from "./zod/bookingPublicCancelBodySchema.js";
@@ -17259,6 +17263,7 @@ export {
   bookingsGetAvailabilityErrorSchema,
   bookingsGetAvailabilityPathSchema,
   bookingsGetAvailabilityPathSlugSchema,
+  bookingsGetAvailabilityQueryAddOnIdsSchema,
   bookingsGetAvailabilityQueryFirstDaySchema,
   bookingsGetAvailabilityQueryLastDaySchema,
   bookingsGetAvailabilityQueryProviderIdSchema,

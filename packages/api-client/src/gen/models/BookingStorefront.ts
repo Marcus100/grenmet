@@ -4,6 +4,7 @@
  */
 
 import type { BookingBusinessContact } from "./BookingBusinessContact.js";
+import type { BookingPublicAddOn } from "./BookingPublicAddOn.js";
 import type { BookingPublicProvider } from "./BookingPublicProvider.js";
 import type { BookingPublicService } from "./BookingPublicService.js";
 
@@ -33,4 +34,9 @@ export type BookingStorefront = {
   logo_url: string | null;
   services: BookingPublicService[];
   providers: BookingPublicProvider[];
+  /**
+   * @description Empty unless the business offers add-ons.
+   * @type array | undefined
+   */
+  add_ons?: BookingPublicAddOn[];
 };

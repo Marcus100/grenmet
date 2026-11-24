@@ -54,6 +54,8 @@ class BookingEmail:
     logo: layout.Logo | None = None
     #: "Deposit paid XCD x, remaining XCD y at the salon." once a deposit is paid.
     payment_line: str | None = None
+    #: Names of the add-ons booked with the service, in name order.
+    add_ons: tuple[str, ...] = ()
 
     @property
     def when(self) -> str:
@@ -80,6 +82,8 @@ def _rows(mail: BookingEmail, *extra: layout.Row) -> tuple[layout.Row, ...]:
         layout.Row("What", f"{mail.service_name} with {mail.provider_name}"),
         layout.Row("When", _when_line(mail)),
     ]
+    if mail.add_ons:
+        rows.append(layout.Row("Add-ons", ", ".join(mail.add_ons)))
     if mail.reference:
         rows.append(layout.Row("Reference", mail.reference))
     if mail.payment_line:

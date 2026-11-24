@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingAddOnLineSchema } from "./bookingAddOnLineSchema.js";
 import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
 import { bookingPaymentSummarySchema } from "./bookingPaymentSummarySchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
@@ -47,6 +48,12 @@ export const bookingPublicDetailSchema = z
       .optional()
       .describe(
         "While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise."
+      ),
+    add_ons: z
+      .array(bookingAddOnLineSchema)
+      .optional()
+      .describe(
+        "The add-ons booked with the service. `starts_at`..`ends_at` include them."
       ),
   })
   .describe("A booking as its customer sees it.");

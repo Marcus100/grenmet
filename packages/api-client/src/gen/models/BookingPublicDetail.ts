@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { BookingAddOnLine } from "./BookingAddOnLine.js";
 import type { BookingBusinessContact } from "./BookingBusinessContact.js";
 import type { BookingPaymentSummary } from "./BookingPaymentSummary.js";
 import type { BookingStatus } from "./BookingStatus.js";
@@ -73,4 +74,9 @@ export type BookingPublicDetail = {
    * @description While `status` is `pending_payment`: when the unpaid hold is released if the payment has not arrived. Null otherwise.
    */
   hold_ends_at?: string | null;
+  /**
+   * @description The add-ons booked with the service. `starts_at`..`ends_at` include them.
+   * @type array | undefined
+   */
+  add_ons?: BookingAddOnLine[];
 };

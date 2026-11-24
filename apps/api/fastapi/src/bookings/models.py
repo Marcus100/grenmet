@@ -12,7 +12,7 @@ from enum import Enum
 from typing import cast
 
 import sqlalchemy as sa
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ARRAY, ForeignKey, String
 from sqlalchemy.dialects.postgresql import ExcludeConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -144,6 +144,11 @@ class BookingProfile(Base):
     brand_color: Mapped[str | None] = mapped_column(String(7))
     #: A completed ``booking-logo`` upload (``src/storage``); no cross-database FK.
     logo_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
+    #: Add-ons (owner request 23 Nov 2026): off by default. While off, add-on
+    #: services are never offered or accepted, so nothing changes for the business.
+    add_ons_enabled: Mapped[bool] = mapped_column(
+        default=False, server_default=sa.false()
+    )
     #: Opt-in to the Barrels Bookings home page listing (off by default). The
     #: listing shows only enabled, entitled, active businesses with a service.
     listed: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
@@ -201,8 +206,41 @@ class Service(Base):
     deposit_minor: Mapped[int] = mapped_column(default=0)
     active: Mapped[bool] = mapped_column(default=True)
     sort_order: Mapped[int] = mapped_column(default=0)
+    #: An add-on is booked with a main service, never alone (``add_ons.py``).
+    is_add_on: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
+    #: For an add-on: the main-service categories it is offered with. Null or
+    #: empty means any main service.
+    add_on_categories: Mapped[list[str] | None] = mapped_column(
+        ARRAY(String(80)), default=None
+    )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
+
+
+class BookingAddOn(Base):
+    """An add-on line of a booking, with its name, length and price copied at
+    booking time, so later edits to the service never change the booking."""
+
+    __tablename__ = "booking_add_on"
+    __table_args__ = (
+        sa.UniqueConstraint("booking_id", "service_id", name="booking_add_on_key"),
+        sa.CheckConstraint("duration_min > 0", name="duration"),
+        sa.CheckConstraint("price_minor >= 0", name="price"),
+        SCHEMA,
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    booking_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("bookings.booking.id", ondelete="CASCADE"), index=True
+    )
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("org.organisation.id")
+    )
+    service_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("bookings.service.id"))
+    name: Mapped[str] = mapped_column(String(120))
+    duration_min: Mapped[int]
+    price_minor: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
 class Provider(Base):

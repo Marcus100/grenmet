@@ -1210,6 +1210,7 @@ export { bodyHrImportTerminalPunchesSchema } from "./bodyHrImportTerminalPunches
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
 export { bodyPrintixImportOrgTicketsSchema } from "./bodyPrintixImportOrgTicketsSchema.js";
 export { bodyPrintixImportTicketsSchema } from "./bodyPrintixImportTicketsSchema.js";
+export { bookingAddOnLineSchema } from "./bookingAddOnLineSchema.js";
 export { bookingAgendaDaySchema } from "./bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./bookingAgendaSchema.js";
@@ -1244,6 +1245,7 @@ export { bookingProviderCreateSchema } from "./bookingProviderCreateSchema.js";
 export { bookingProviderPublicSchema } from "./bookingProviderPublicSchema.js";
 export { bookingProviderSettingsSchema } from "./bookingProviderSettingsSchema.js";
 export { bookingProviderUpdateSchema } from "./bookingProviderUpdateSchema.js";
+export { bookingPublicAddOnSchema } from "./bookingPublicAddOnSchema.js";
 export { bookingPublicBusinessPageSchema } from "./bookingPublicBusinessPageSchema.js";
 export { bookingPublicBusinessSchema } from "./bookingPublicBusinessSchema.js";
 export { bookingPublicCancelBodySchema } from "./bookingPublicCancelBodySchema.js";
@@ -1496,6 +1498,7 @@ export {
   bookingsGetAvailabilityErrorSchema,
   bookingsGetAvailabilityPathSchema,
   bookingsGetAvailabilityPathSlugSchema,
+  bookingsGetAvailabilityQueryAddOnIdsSchema,
   bookingsGetAvailabilityQueryFirstDaySchema,
   bookingsGetAvailabilityQueryLastDaySchema,
   bookingsGetAvailabilityQueryProviderIdSchema,
