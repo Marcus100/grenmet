@@ -23,7 +23,12 @@ import { env } from "@/env";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
 import { type SetupStep, setupSteps } from "@/lib/setup-checklist";
-import { getAgenda, getSettings, listProviders } from "@/lib/studio-api";
+import {
+  getAgenda,
+  getProfile,
+  getSettings,
+  listProviders,
+} from "@/lib/studio-api";
 import { guarded, loadOrganisation } from "@/lib/studio-page";
 import { loadBusinessProfile, loadPendingRequests } from "@/lib/studio-pending";
 import {
@@ -119,7 +124,7 @@ export default async function AgendaPage({
     today
   );
 
-  const [agenda, providers, setupSteps, pending] = await Promise.all([
+  const [agenda, providers, setupSteps, pending, stored] = await Promise.all([
     guarded(
       () =>
         getAgenda(session.accessToken, organisationId, {
@@ -150,7 +155,12 @@ export default async function AgendaPage({
         ),
       base
     ),
+    // Only the expiry wording needs the stored profile; without it no line shows.
+    guarded(() => getProfile(session.accessToken, organisationId), base),
   ]);
+  const expiryHours = stored.ok
+    ? stored.value?.pending_expiry_hours
+    : undefined;
   const showSetup = setupSteps.some((step) => !step.done);
 
   const link = (overrides: {
@@ -195,7 +205,11 @@ export default async function AgendaPage({
         title="Agenda"
       />
 
-      <NeedsConfirming orgSlug={orgSlug} pending={pending} />
+      <NeedsConfirming
+        expiryHours={expiryHours}
+        orgSlug={orgSlug}
+        pending={pending}
+      />
 
       {showSetup ? (
         <SetupChecklist orgSlug={orgSlug} steps={setupSteps} />

@@ -37,6 +37,8 @@ function agenda(bookings: BookingAgendaItem[], total = bookings.length) {
   };
 }
 
+const EXPIRY_LINE = /Expire|Expiring/u;
+
 describe("NeedsConfirming", () => {
   it("lists each waiting booking with customer, service, day and time, and the count", () => {
     render(
@@ -105,5 +107,71 @@ describe("NeedsConfirming", () => {
       screen.getByRole("heading", { name: "Needs confirming" })
     ).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("Try again.");
+  });
+
+  const NOW = new Date("2026-11-29T14:00:00Z");
+  const HELP =
+    "Requests you don't confirm in time cancel themselves, and the customer is told.";
+
+  it("shows the plain line under the heading only when something is waiting", () => {
+    const { rerender } = render(
+      <NeedsConfirming orgSlug="sea-salt" pending={agenda([])} />
+    );
+    expect(screen.queryByText(HELP)).not.toBeInTheDocument();
+    rerender(
+      <NeedsConfirming
+        orgSlug="sea-salt"
+        pending={agenda([item("a1", "Ada Lovelace")])}
+      />
+    );
+    expect(screen.getByText(HELP)).toBeInTheDocument();
+  });
+
+  it("counts down to the start time when requests expire only then", () => {
+    render(
+      <NeedsConfirming
+        expiryHours={null}
+        now={NOW}
+        orgSlug="sea-salt"
+        pending={agenda([item("a1", "Ada Lovelace")])}
+      />
+    );
+    // The booking starts 2026-11-30 14:00 UTC, 24 hours after NOW.
+    expect(screen.getByText("Expires in 24 h")).toBeInTheDocument();
+  });
+
+  it("says Expiring now once the start time has passed", () => {
+    render(
+      <NeedsConfirming
+        expiryHours={null}
+        now={new Date("2026-12-01T00:00:00Z")}
+        orgSlug="sea-salt"
+        pending={agenda([item("a1", "Ada Lovelace")])}
+      />
+    );
+    expect(screen.getByText("Expiring now")).toBeInTheDocument();
+  });
+
+  it("shows nothing when the window is set, because agenda items carry no request time", () => {
+    render(
+      <NeedsConfirming
+        expiryHours={24}
+        now={NOW}
+        orgSlug="sea-salt"
+        pending={agenda([item("a1", "Ada Lovelace")])}
+      />
+    );
+    expect(screen.queryByText(EXPIRY_LINE)).not.toBeInTheDocument();
+  });
+
+  it("shows nothing when the window is unknown", () => {
+    render(
+      <NeedsConfirming
+        now={NOW}
+        orgSlug="sea-salt"
+        pending={agenda([item("a1", "Ada Lovelace")])}
+      />
+    );
+    expect(screen.queryByText(EXPIRY_LINE)).not.toBeInTheDocument();
   });
 });

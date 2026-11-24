@@ -17,6 +17,7 @@ vi.mock("@/lib/studio-api", () => ({
   findOrganisation: vi.fn(),
   getAgenda: vi.fn(),
   getBusinessProfile: vi.fn(),
+  getProfile: vi.fn(),
   getSettings: vi.fn(),
   listProviders: vi.fn(),
 }));

@@ -1578,3 +1578,109 @@ describe("business type and cover photo", () => {
     );
   });
 });
+
+describe("booking request hygiene", () => {
+  const REQUESTS = {
+    section: "requests",
+    expiryMode: "hours",
+    pendingExpiryHours: "48",
+    maxOpenPerCustomer: "4",
+  };
+
+  it("saves the window and the limit and keeps every other stored field", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(SLUG, IDLE, form(REQUESTS));
+    expect(result).toMatchObject({
+      status: "success",
+      message: "Booking request settings saved.",
+    });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        pending_expiry_hours: 48,
+        max_open_per_customer: 4,
+        display_name: "Sea Salt Spa",
+      })
+    );
+  });
+
+  it("sends null for Only at the start time", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...REQUESTS, expiryMode: "start", pendingExpiryHours: "" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ pending_expiry_hours: null })
+    );
+  });
+
+  it("accepts the bounds and refuses values outside them before any save", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    for (const values of [
+      { pendingExpiryHours: "1", maxOpenPerCustomer: "1" },
+      { pendingExpiryHours: "168", maxOpenPerCustomer: "20" },
+    ]) {
+      const ok = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ ...REQUESTS, ...values })
+      );
+      expect(ok).toMatchObject({ status: "success" });
+    }
+    vi.mocked(saveProfile).mockClear();
+    for (const values of [
+      { pendingExpiryHours: "0" },
+      { pendingExpiryHours: "169" },
+      { pendingExpiryHours: "2.5" },
+      { pendingExpiryHours: "" },
+      { maxOpenPerCustomer: "0" },
+      { maxOpenPerCustomer: "21" },
+      { maxOpenPerCustomer: "" },
+    ]) {
+      const bad = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ ...REQUESTS, ...values })
+      );
+      expect(bad).toMatchObject({ status: "error", kind: "invalid" });
+    }
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("keeps both stored values when another section saves", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      pending_expiry_hours: null,
+      max_open_per_customer: 7,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "policy", bookingPolicy: "No late arrivals." })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        pending_expiry_hours: null,
+        max_open_per_customer: 7,
+      })
+    );
+  });
+
+  it("refuses a member before any save", async () => {
+    org("member");
+    const result = await saveProfileAction(SLUG, IDLE, form(REQUESTS));
+    expect(result).toMatchObject({ status: "error", kind: "forbidden" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+});
