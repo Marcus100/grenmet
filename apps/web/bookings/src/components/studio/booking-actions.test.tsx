@@ -17,11 +17,16 @@ import { BookingActions } from "./booking-actions";
 
 function show(
   status: BookingStatus,
-  extra: { started?: boolean; refundable?: boolean } = {}
+  extra: {
+    started?: boolean;
+    refundable?: boolean;
+    nonRefundable?: boolean;
+  } = {}
 ) {
   return render(
     <BookingActions
       bookingId={BOOKING_ID}
+      nonRefundable={extra.nonRefundable ?? false}
       orgSlug="sea-salt"
       refundable={extra.refundable ?? false}
       started={extra.started ?? false}
@@ -33,6 +38,7 @@ function show(
 }
 
 const NOTHING_MORE = /nothing more to do/u;
+const UNTICK = /untick it to keep the deposit/u;
 const REASON = /Reason/u;
 const BY_HAND = /refund it by hand/u;
 const POLICY_HINT = /more than the\s+cancellation cutoff away/u;
@@ -150,6 +156,36 @@ describe("dialogs", () => {
     const formData = actions.cancelBookingAction.mock.calls[0]?.[3] as FormData;
     expect(formData.get("refundChoice")).toBe(value);
     expect(formData.get("reason")).toBe("Ill");
+  });
+
+  it("defaults the deposit choice to refund on a confirmed non-refundable booking", async () => {
+    const { unmount } = show("confirmed", {
+      nonRefundable: true,
+      refundable: true,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Cancel booking" }));
+    expect(
+      (await screen.findByLabelText("Refund the deposit")) as HTMLInputElement
+    ).toBeChecked();
+    expect(
+      screen.getByLabelText("Follow the business policy")
+    ).not.toBeChecked();
+    expect(screen.getByText(UNTICK)).toBeInTheDocument();
+    unmount();
+  });
+
+  it("keeps the business policy as the default for a request not yet confirmed", async () => {
+    const { unmount } = show("pending", {
+      nonRefundable: true,
+      refundable: true,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Cancel booking" }));
+    expect(
+      (await screen.findByLabelText(
+        "Follow the business policy"
+      )) as HTMLInputElement
+    ).toBeChecked();
+    unmount();
   });
 
   it("says a decline refunds any deposit in full, only when one is held", async () => {

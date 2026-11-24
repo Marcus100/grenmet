@@ -60,10 +60,10 @@ describe("depositRefundLine", () => {
 describe("depositRefundLine when the deposit is non-refundable", () => {
   it("replaces the refund promise with the move rule, from the cutoff", () => {
     expect(depositRefundLine(24, true)).toBe(
-      "Your deposit is non-refundable. You can move your booking up to 24 hours before; it stays with your booking."
+      "Your deposit is non-refundable once your booking is confirmed. You can move your booking up to 24 hours before; it stays with your booking."
     );
     expect(depositRefundLine(1, true)).toBe(
-      "Your deposit is non-refundable. You can move your booking up to 1 hour before; it stays with your booking."
+      "Your deposit is non-refundable once your booking is confirmed. You can move your booking up to 1 hour before; it stays with your booking."
     );
   });
 
@@ -73,13 +73,30 @@ describe("depositRefundLine when the deposit is non-refundable", () => {
 
   it("says a move is possible at any time when there is no cutoff", () => {
     expect(depositRefundLine(0, true)).toBe(
-      "Your deposit is non-refundable. You can move your booking at any time before it starts; it stays with your booking."
+      "Your deposit is non-refundable once your booking is confirmed. You can move your booking at any time before it starts; it stays with your booking."
     );
   });
 
   it("keeps the refundable wording when the switch is off", () => {
     expect(depositRefundLine(24, false)).toBe(
       "Cancel at least 24 hours before to get your deposit back."
+    );
+  });
+});
+
+describe("nonRefundableDepositLine once the booking is confirmed", () => {
+  it("states the promise without the waiting clause", () => {
+    expect(nonRefundableDepositLine(24, true)).toBe(
+      "Your deposit is non-refundable. You can move your booking up to 24 hours before; it stays with your booking."
+    );
+  });
+
+  it("is used for the manage page of a confirmed booking only", () => {
+    expect(depositRefundLine(6, true, true)).toBe(
+      "Your deposit is non-refundable. You can move your booking up to 6 hours before; it stays with your booking."
+    );
+    expect(depositRefundLine(6, true, false)).toContain(
+      "once your booking is confirmed"
     );
   });
 });

@@ -22,6 +22,7 @@ export function DepositRefundNote({
     cancel_cutoff_hours: number;
     deposit_minor: number;
     deposit_non_refundable?: boolean;
+    status: string;
   };
   editable: boolean;
 }) {
@@ -32,7 +33,8 @@ export function DepositRefundNote({
     <p>
       {depositRefundLine(
         booking.cancel_cutoff_hours,
-        booking.deposit_non_refundable === true
+        booking.deposit_non_refundable === true,
+        booking.status === "confirmed"
       )}
     </p>
   );

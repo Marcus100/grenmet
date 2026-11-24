@@ -21,10 +21,11 @@ export function cancellationPolicyLine(cutoffHours: number): string {
  */
 export function depositRefundLine(
   cutoffHours: number,
-  nonRefundable = false
+  nonRefundable = false,
+  confirmed = false
 ): string {
   if (nonRefundable) {
-    return nonRefundableDepositLine(cutoffHours);
+    return nonRefundableDepositLine(cutoffHours, confirmed);
   }
   if (cutoffHours <= 0) {
     return "Cancel before your appointment starts to get your deposit back.";
@@ -33,14 +34,22 @@ export function depositRefundLine(
 }
 
 /**
- * A non-refundable deposit, in one sentence. The customer can still move the
- * booking up to the cutoff, and the deposit moves with it.
+ * A non-refundable deposit, in one sentence. Until the business confirms the
+ * booking the promise waits for it: a request cancelled before then is refunded.
+ * The customer can still move the booking up to the cutoff, and the deposit moves
+ * with it.
  */
-export function nonRefundableDepositLine(cutoffHours: number): string {
+export function nonRefundableDepositLine(
+  cutoffHours: number,
+  confirmed = false
+): string {
+  const lead = confirmed
+    ? "Your deposit is non-refundable"
+    : "Your deposit is non-refundable once your booking is confirmed";
   if (cutoffHours <= 0) {
-    return "Your deposit is non-refundable. You can move your booking at any time before it starts; it stays with your booking.";
+    return `${lead}. You can move your booking at any time before it starts; it stays with your booking.`;
   }
-  return `Your deposit is non-refundable. You can move your booking up to ${formatHours(cutoffHours)} before; it stays with your booking.`;
+  return `${lead}. You can move your booking up to ${formatHours(cutoffHours)} before; it stays with your booking.`;
 }
 
 /**

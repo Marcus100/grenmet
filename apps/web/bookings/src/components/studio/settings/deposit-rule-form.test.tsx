@@ -293,7 +293,7 @@ const DECLINE_REFUNDED = /A booking you decline/u;
 const MIN_PRICE = /Lowest service price that takes a deposit \(EC\$\)/u;
 const MIN_OVER_PRICE = /below the lowest price for a deposit/u;
 const NON_REFUNDABLE_SENTENCE =
-  /Your deposit is non-refundable\. You can move your booking up to 6 hours before; it stays with your booking\./u;
+  /Your deposit is non-refundable once your booking is confirmed\. You can move your booking up to 6 hours before; it stays with your booking\./u;
 
 describe("DepositRuleForm deposit options", () => {
   it("shows the non-refundable switch off by default, with a plain explanation", () => {
