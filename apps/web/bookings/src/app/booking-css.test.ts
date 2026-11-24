@@ -11,6 +11,9 @@ const OPACITY_CUE = /opacity:\s*0\.9/u;
 const NAVY_BACKGROUND = /background:\s*var\(--primary\)/u;
 const DISPLAY_CONTENTS = /display:\s*contents/u;
 const DISPLAY_NONE = /display:\s*none/u;
+const ONE_ROW_COLUMNS = /grid-template-columns:\s*auto minmax\(0, 1fr\) auto/u;
+const SPAN_ORDER = /\.slots-nav > span \{[^}]*order:/u;
+const ZERO_MIN_HEIGHT = /min-height:\s*0/u;
 const RULE_BODY = /\{([^}]*)\}/u;
 
 /** The declaration block of the first rule whose selector is `selector`. */
@@ -142,5 +145,19 @@ describe("booking.css Turnstile margin", () => {
       "margin-top: -1.5rem"
     );
     expect(css).not.toContain(".book-turnstile {\n  margin-top");
+  });
+});
+
+describe("booking.css date paging row", () => {
+  it("puts Earlier, the range and Later on one grid row at phone width", () => {
+    const start = css.indexOf("  .slots-nav {");
+    expect(start).toBeGreaterThan(-1);
+    const block = RULE_BODY.exec(css.slice(start))?.[1] ?? "";
+    expect(block).toMatch(ONE_ROW_COLUMNS);
+    expect(css).not.toMatch(SPAN_ORDER);
+  });
+
+  it("drops the empty status row instead of leaving a gap above Day", () => {
+    expect(blockFor(".slots-status:empty")).toMatch(ZERO_MIN_HEIGHT);
   });
 });
