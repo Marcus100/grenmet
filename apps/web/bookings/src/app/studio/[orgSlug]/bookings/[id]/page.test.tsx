@@ -278,4 +278,50 @@ describe("studio booking detail", () => {
       );
     });
   });
+
+  describe("Call and WhatsApp", () => {
+    const withPhone = (phone: string | null) =>
+      detail({
+        customer: { ...detail().customer, phone },
+      });
+
+    it("offers Call and WhatsApp for a Grenada local number", async () => {
+      vi.mocked(getBooking).mockResolvedValue(withPhone("444 1234"));
+      render(await StudioBookingPage(props()));
+      expect(screen.getByRole("link", { name: "Call" })).toHaveAttribute(
+        "href",
+        "tel:4441234"
+      );
+      const chat = screen.getByRole("link", { name: "WhatsApp" });
+      expect(chat).toHaveAttribute("href", "https://wa.me/14734441234");
+      expect(chat).toHaveAttribute("target", "_blank");
+      expect(chat.getAttribute("rel")).toContain("noopener");
+    });
+
+    it("keeps the number out of any query string", async () => {
+      vi.mocked(getBooking).mockResolvedValue(withPhone("+1 473 444 1234"));
+      render(await StudioBookingPage(props()));
+      const links = [
+        screen.getByRole("link", { name: "Call" }),
+        screen.getByRole("link", { name: "WhatsApp" }),
+      ];
+      for (const link of links) {
+        expect(link.getAttribute("href")).not.toContain("?");
+      }
+    });
+
+    it("offers only Call when the number cannot be made international", async () => {
+      vi.mocked(getBooking).mockResolvedValue(withPhone("4441234567"));
+      render(await StudioBookingPage(props()));
+      expect(screen.getByRole("link", { name: "Call" })).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "WhatsApp" })).toBeNull();
+    });
+
+    it("offers neither without a phone number", async () => {
+      vi.mocked(getBooking).mockResolvedValue(withPhone(null));
+      render(await StudioBookingPage(props()));
+      expect(screen.queryByRole("link", { name: "Call" })).toBeNull();
+      expect(screen.queryByRole("link", { name: "WhatsApp" })).toBeNull();
+    });
+  });
 });

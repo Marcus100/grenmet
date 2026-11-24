@@ -1,47 +1,36 @@
-import { Button } from "@barrelsgd/ui/components/ui/button";
-import type { Metadata } from "next";
-import { getSession } from "@/lib/session";
+import type { Metadata, Viewport } from "next";
 
 // Per-person pages: never prerendered or cached.
 export const dynamic = "force-dynamic";
 
-// Staff area for business owners and staff: never indexed.
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+// Staff area for business owners and staff: never indexed. The manifest makes
+// the studio installable on a phone (`/studio-manifest.webmanifest`).
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+  manifest: "/studio-manifest.webmanifest",
+  applicationName: "Barrels Bookings Studio",
+  appleWebApp: { capable: true, title: "Studio", statusBarStyle: "default" },
+  icons: {
+    apple: [
+      {
+        url: "/studio-icons/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
+};
+
+export const viewport: Viewport = { themeColor: "#15006b" };
 
 /**
- * The signed-in name and Sign out sit in the header on every studio screen.
- * Pages own the sign-in redirect (they know the full path), so without a
- * session the header is left out and a deep link survives an expired session.
+ * The frame (navigation, header, `main`) belongs to each area: the business
+ * screens use the shell in `[orgSlug]/layout.tsx`, the picker its plain frame.
+ * Pages own the sign-in redirect (they know the full path), so a deep link
+ * survives an expired session.
  */
-export default async function StudioLayout({
+export default function StudioLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await getSession();
-  return (
-    <div className="flex min-h-screen flex-col">
-      {session ? (
-        <header className="border-border border-b">
-          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6">
-            <span className="font-semibold">Barrels Bookings studio</span>
-            <div className="flex items-center gap-3">
-              <span className="text-muted-foreground text-sm">
-                {session.name}
-              </span>
-              <form action="/auth/logout" method="post">
-                <Button className="min-h-11" type="submit" variant="outline">
-                  Sign out
-                </Button>
-              </form>
-            </div>
-          </div>
-        </header>
-      ) : null}
-      <main
-        className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6"
-        id="main-content"
-      >
-        {children}
-      </main>
-    </div>
-  );
+  return children;
 }

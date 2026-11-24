@@ -8,6 +8,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { NewBookingForm } from "@/components/studio/new-booking-form";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import {
+  CARD,
+  CARD_LINK,
+  StudioPageHeader,
+} from "@/components/studio/studio-ui";
 import { requireSession } from "@/lib/session";
 import {
   getBusinessProfile,
@@ -74,21 +79,15 @@ export default async function NewBookingPage({ params }: NewBookingPageProps) {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <Link
-          className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
-          href={{ pathname: agendaHref }}
-        >
-          Back to the agenda
-        </Link>
-        <p className="text-muted-foreground text-sm">{org.value.name}</p>
-        <h1 className="text-2xl font-semibold">New booking</h1>
-        <p className="text-muted-foreground">
-          For a phone call or a walk-in. The booking is confirmed straight away.
-        </p>
-      </header>
+      <Link className={CARD_LINK} href={{ pathname: agendaHref }}>
+        Back to the agenda
+      </Link>
+      <StudioPageHeader
+        description="For a phone call or a walk-in. The booking is confirmed straight away."
+        title="New booking"
+      />
       {bookable.length === 0 ? (
-        <Empty className="border-border border">
+        <Empty className={CARD}>
           <EmptyHeader>
             <EmptyTitle>Nothing to book yet</EmptyTitle>
             <EmptyDescription>
@@ -98,14 +97,16 @@ export default async function NewBookingPage({ params }: NewBookingPageProps) {
           </EmptyHeader>
         </Empty>
       ) : (
-        <NewBookingForm
-          currency={profile.currency}
-          orgSlug={orgSlug}
-          providers={providers}
-          services={bookable}
-          today={todayIn(profile.timezone)}
-          zone={profile.timezone}
-        />
+        <div className={CARD}>
+          <NewBookingForm
+            currency={profile.currency}
+            orgSlug={orgSlug}
+            providers={providers}
+            services={bookable}
+            today={todayIn(profile.timezone)}
+            zone={profile.timezone}
+          />
+        </div>
       )}
     </div>
   );

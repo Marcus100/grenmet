@@ -20,6 +20,11 @@ vi.mock("@/lib/studio-api", () => ({
   getSettings: vi.fn(),
   listProviders: vi.fn(),
 }));
+vi.mock("@/lib/studio-pending", () => ({
+  loadBusinessProfile: (token: string, organisationId: string) =>
+    getBusinessProfile(token, organisationId),
+  loadPendingRequests: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
@@ -36,6 +41,7 @@ import {
   getSettings,
   listProviders,
 } from "@/lib/studio-api";
+import { loadPendingRequests } from "@/lib/studio-pending";
 import AgendaPage from "./page";
 
 /** A business with nothing set up yet: every checklist step is open. */
@@ -112,6 +118,11 @@ beforeEach(() => {
     role: "member",
   });
   vi.mocked(getAgenda).mockReset();
+  vi.mocked(loadPendingRequests).mockReset();
+  vi.mocked(loadPendingRequests).mockResolvedValue({
+    ...agenda([]),
+    total: 0,
+  });
   vi.mocked(getSettings).mockReset();
   vi.mocked(getSettings).mockResolvedValue({
     ...NOTHING_SET_UP,
@@ -510,5 +521,70 @@ describe("studio agenda", () => {
     render(await AgendaPage({ params, searchParams: search() }));
     expect(screen.getByRole("alert")).toHaveTextContent("Choose another day");
     expect(reportError).not.toHaveBeenCalled();
+  });
+});
+
+describe("needs confirming", () => {
+  const pendingItem = item({
+    id: "99999999-9999-4999-8999-999999999999",
+    customer_name: "Grace Hopper",
+    status: "pending",
+  });
+
+  it("says nothing is waiting, keeping the heading, when there are none", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(
+      screen.getByRole("heading", { name: "Needs confirming" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Nothing waiting.")).toBeInTheDocument();
+  });
+
+  it("lists waiting bookings above everything else, with the count and a link to each", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    vi.mocked(loadPendingRequests).mockResolvedValue({
+      ...agenda([{ day: "2026-10-21", bookings: [pendingItem] }]),
+      total: 1,
+    });
+    render(await AgendaPage({ params, searchParams: search() }));
+    const block = screen.getByRole("region", {
+      name: "Needs confirming (1)",
+    });
+    const row = within(block).getByRole("link", { name: GRACE });
+    expect(row).toHaveAttribute(
+      "href",
+      "/studio/sea-salt/bookings/99999999-9999-4999-8999-999999999999"
+    );
+    expect(row).toHaveTextContent("Deep tissue massage");
+    const headings = screen
+      .getAllByRole("heading")
+      .map((heading) => heading.textContent);
+    expect(headings.indexOf("Needs confirming (1)")).toBeLessThan(
+      headings.indexOf("Your booking page")
+    );
+  });
+
+  it("reads the waiting list on the business's own calendar", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    await AgendaPage({ params, searchParams: search() });
+    expect(loadPendingRequests).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      "America/Grenada"
+    );
+  });
+
+  it("keeps the agenda and explains when the waiting list cannot be read", async () => {
+    vi.mocked(getAgenda).mockResolvedValue(agenda([]));
+    vi.mocked(loadPendingRequests).mockRejectedValue(apiError(500));
+    render(await AgendaPage({ params, searchParams: search() }));
+    expect(
+      screen.getByRole("heading", { name: "Needs confirming" })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(reportError).toHaveBeenCalledWith(expect.anything(), "studio");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Agenda"
+    );
   });
 });

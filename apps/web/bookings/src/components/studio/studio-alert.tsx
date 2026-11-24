@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CARD, CARD_LINK } from "@/components/studio/studio-ui";
 import type { StudioFailure } from "@/lib/studio-errors";
 
 /** A failed read: what happened and the next step, announced as an alert. */
@@ -13,16 +14,13 @@ export function StudioAlert({
 }) {
   return (
     <div
-      className="border-destructive/40 bg-destructive/10 space-y-2 rounded-lg border p-4"
+      className={`${CARD} border-destructive/40 space-y-2 border`}
       role="alert"
     >
       <p className="font-semibold">{failure.message}</p>
-      <p className="text-muted-foreground">{failure.nextStep}</p>
+      <p className="text-foreground/80">{failure.nextStep}</p>
       {backHref ? (
-        <Link
-          className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
-          href={{ pathname: backHref }}
-        >
+        <Link className={CARD_LINK} href={{ pathname: backHref }}>
           {backLabel ?? "Go back"}
         </Link>
       ) : null}
@@ -33,7 +31,7 @@ export function StudioAlert({
 /** Shown by `loading.tsx`: a polite status line, never a spinner alone. */
 export function StudioLoading({ children }: { children: string }) {
   return (
-    <p className="text-muted-foreground" role="status">
+    <p className={`${CARD} text-foreground`} role="status">
       {children}
     </p>
   );

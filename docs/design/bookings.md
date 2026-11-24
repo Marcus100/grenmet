@@ -101,17 +101,17 @@ checks each value against the shared globals.
   4.16, below AA for small text). `positive` and `negative` only with a word
   next to them ("Confirmed", "Cancelled"), never colour alone.
 - **Phone first on public pages.** 375 px is the reference width. Targets are
-  44 px or more. `/studio` is desktop-first with a usable phone layout for the
-  day's agenda.
+  44 px or more. `/studio` is built for the phone first (a salon owner runs her
+  day from it) with a persistent navigation on laptops.
 
 ## Layout
 
 - Public pages: one column up to `max-w-2xl`, the business header on top, the
   step content, then the footer with the credit and a link to the business's
   own contact details.
-- Studio: a left navigation (Agenda, New booking, Settings) on desktop; a top
-  tab row on phones. Services and weekly hours live inside Settings, not in
-  the navigation. The signed-in name sits in the header with Sign out.
+- Studio: laid out like the staff portal (`apps/web/gaa-admin`) but in the
+  Bookings lane colours (navy primary, white cards, the grey `bg-ground`).
+  See "Studio" below.
 - Spacing follows the shared scale (`spacing.unit` 4 px). Section gaps are
   `section-y` (40 px) on public pages.
 
@@ -227,6 +227,54 @@ documented map (below).
 - Studio, Settings > Profile > Home page: "Type of business" (a select with
   Not set) and "Cover photo" (upload, preview, remove; JPEG, PNG or WebP, up
   to 5 MB), saved with the profile.
+
+## Studio (`/studio`)
+
+The business side, run from a phone as much as a laptop. The layout pattern
+follows the Met Service admin portal: persistent navigation, a page header
+with the title and the page's primary action, content in cards. The colours do
+not: the Studio uses the Bookings tokens only, never `--gm-*`.
+
+- **Shell** (`components/studio/studio-shell.tsx`, drawn by
+  `studio/[orgSlug]/layout.tsx`). Laptops (md and up): a fixed 240 px left
+  navigation on white with the business name and its public page link at the
+  top, items with icons (Agenda, New booking, Services, People, Plan & billing,
+  Settings), then the signed-in name, "View my page" and "Sign out" at the
+  bottom. Phones: a sticky top bar (business name, "New booking") and a bottom
+  tab bar of four items: Agenda, Services, People and More. More lists New
+  booking, Plan & billing and Settings, then "View my page" and "Sign out".
+  Targets are 44 px or more, the current item carries `aria-current="page"`,
+  the bar pads for the safe area and the page keeps bottom padding so nothing
+  hides under it. New booking and Plan & billing are for owners and admins
+  only. The organisation picker (`/studio`) uses a plain frame (name, Sign
+  out).
+- **Page pattern** (`studio-ui.tsx`). Each page: one h1, a one-line
+  description where there is one, the primary action on the right (a full-width
+  button on phones), then white cards (radius 20 px) on the ground. Lists are
+  rows with a 56 px tap area inside a card. Muted text never sits on the
+  ground: use ink or put it on white. Press feedback is a 120 ms colour change
+  and nothing else; no animation.
+- **Agenda** opens with "Needs confirming (n)": bookings with status `pending`
+  (the business has to answer) from two weeks back to 47 days ahead, each row
+  customer, service, day and time, linking to the booking where Confirm,
+  Change time and Decline are. With none it reads "Nothing waiting." The block
+  says what it covers ("Covers the last 11 weeks and the next 6 weeks"): two
+  agenda reads of 62 days each (the API's limit), so a request older than 11
+  weeks, or later than 6 weeks ahead, is not listed or counted. When more than
+  100 per window exist it says "Showing n of m". The same
+  count sits on the Agenda navigation item. The count is read on a full page
+  load and again after Confirm, Decline or Change time; it does not update
+  while browsing between pages, and there is no polling for now. "Awaiting deposit" is not listed:
+  that waits for the customer.
+- **Booking detail** has Call (`tel:`) and WhatsApp (`https://wa.me/<digits>`,
+  new tab). WhatsApp appears only when the number normalises
+  (`lib/phone.ts`): a leading `+` is kept, a 7-digit number is taken as Grenada
+  (`1473`), a 10-digit number starting 473 gets `1`; anything else gets no
+  WhatsApp button.
+- **Install.** A web app manifest (`/studio-manifest.webmanifest`, linked from
+  the studio layout) names the app "Barrels Bookings Studio" ("Studio"), opens
+  `/studio` standalone, theme `#15006b`, background `#f4f5f8`, with navy
+  rounded-square "B" icons in `public/studio-icons/`. No service worker.
 
 ## Contrast (WCAG 2.1)
 

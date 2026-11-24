@@ -6,6 +6,7 @@ import {
 import type { Metadata } from "next";
 import { StartSubscriptionButton } from "@/components/studio/plan/start-subscription-button";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import { CARD, StudioPageHeader } from "@/components/studio/studio-ui";
 import {
   billingFailure,
   billingFailureNeedsReport,
@@ -98,39 +99,33 @@ export default async function PlanPage({
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <p className="text-muted-foreground text-sm">{org.value.name}</p>
-        <h1 className="text-2xl font-semibold">Plan & billing</h1>
-      </header>
+      <StudioPageHeader title="Plan & billing" />
 
       {returned ? (
-        <p
-          className="border-border bg-muted rounded-lg border p-4"
-          role="status"
-        >
+        <p className={`${CARD} text-foreground`} role="status">
           {checkoutReturnCopy(returned)}
         </p>
       ) : null}
 
-      <section aria-labelledby="plan-price" className="space-y-2">
-        <h2 className="text-lg font-semibold" id="plan-price">
+      <section aria-labelledby="plan-price" className={`${CARD} space-y-2`}>
+        <h2 className="text-foreground text-lg font-semibold" id="plan-price">
           Bookings plan
         </h2>
         <p className="text-xl font-semibold">{planPriceLabel()}</p>
-        <p className="text-muted-foreground text-sm">{planUsdNote()}</p>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-foreground/80 text-sm">{planUsdNote()}</p>
+        <p className="text-foreground/80 text-sm">
           You pay on a secure Stripe checkout page.
         </p>
       </section>
 
-      <section aria-labelledby="plan-status" className="space-y-3">
-        <h2 className="text-lg font-semibold" id="plan-status">
+      <section aria-labelledby="plan-status" className={`${CARD} space-y-3`}>
+        <h2 className="text-foreground text-lg font-semibold" id="plan-status">
           Status
         </h2>
         {read.ok ? (
           <div className="space-y-1">
             <p className="font-semibold">{copy.heading}</p>
-            <p className="text-muted-foreground">{copy.detail}</p>
+            <p className="text-foreground/80">{copy.detail}</p>
             {copy.supportLink ? (
               <p>
                 <a
@@ -144,11 +139,11 @@ export default async function PlanPage({
           </div>
         ) : (
           <div
-            className="border-destructive/40 bg-destructive/10 space-y-1 rounded-lg border p-4"
+            className="border-destructive/40 bg-destructive/10 space-y-1 rounded-2xl border p-4"
             role="alert"
           >
             <p className="font-semibold">{read.failure.message}</p>
-            <p className="text-muted-foreground">{read.failure.nextStep}</p>
+            <p className="text-foreground/80">{read.failure.nextStep}</p>
           </div>
         )}
         {action ? (

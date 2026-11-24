@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { CopyLinkButton } from "@/components/studio/copy-link-button";
-
-const LINK =
-  "inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-background px-4 font-medium text-foreground hover:bg-muted";
+import { CARD, SECONDARY_ACTION } from "@/components/studio/studio-ui";
 
 interface BookingAddressProps {
   /** The studio slug: the address staff use, /studio/<slug>. */
@@ -28,7 +26,7 @@ export function BookingAddress({
   return (
     <section
       aria-labelledby="booking-address-heading"
-      className="border-border space-y-3 rounded-lg border p-4"
+      className={`${CARD} space-y-3`}
     >
       <div className="space-y-1">
         <h2 className="text-base font-semibold" id="booking-address-heading">
@@ -44,7 +42,7 @@ export function BookingAddress({
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Link className={LINK} href={{ pathname: path }}>
+        <Link className={SECONDARY_ACTION} href={{ pathname: path }}>
           View my page
         </Link>
         <CopyLinkButton origin={siteOrigin} path={path} />
