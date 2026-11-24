@@ -5,12 +5,13 @@ import type {
 } from "@barrelsgd/api-client";
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { pageAccent } from "@/lib/brand-colour";
 import type { ListingQuery } from "@/lib/business-listing-query";
 import { INK, TYPE_FILL } from "@/lib/business-type-colours";
 import { businessTypeLabel } from "@/lib/business-types";
 import { safeCoverUrl, safeLogoUrl } from "@/lib/storefront-brand";
+import { businessTransitionStyle } from "@/lib/view-transition";
 import { BusinessTypeIcon } from "./business-type-icon";
 import { type FeaturedService, ServiceTiles } from "./service-tiles";
 
@@ -21,10 +22,39 @@ const LINK =
 // A ring offset keeps the focus ring visible on white and on saturated fills.
 const FOCUS =
   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none";
+/**
+ * Entrance timing for rail card `index`: arrival gaps shrink (90, 150, 200,
+ * then 240 ms for every later card together) and the distance shrinks with
+ * them (24 px from the right, then 16, 12 and 8 px rises). Set on the card's
+ * own element; its inside never staggers.
+ */
+export function cardEntrance(index: number): CSSProperties {
+  const steps = [
+    { d: 90, x: 24, y: 0 },
+    { d: 150, x: 0, y: 16 },
+    { d: 200, x: 0, y: 12 },
+    { d: 240, x: 0, y: 8 },
+  ];
+  const step = steps[Math.min(index, steps.length - 1)] ?? steps[0];
+  return {
+    "--d": `${step?.d}ms`,
+    "--x": `${step?.x}px`,
+    "--y": `${step?.y}px`,
+  } as CSSProperties;
+}
+
+/** Scroll-reveal range offsets for the first six tiles (gaps shrink); the rest share the last. */
+const TILE_OFFSETS = [0, 4, 7, 9, 11, 13];
+
+export function tileOffset(index: number): CSSProperties {
+  const offset = TILE_OFFSETS[Math.min(index, TILE_OFFSETS.length - 1)];
+  return { "--o": offset } as CSSProperties;
+}
+
 const H2 = "text-[19px] font-bold tracking-tight md:text-xl";
-const TILE = `press lift flex h-[118px] flex-col justify-between rounded-[26px] p-[14px_16px] text-[19px] font-bold text-white md:h-[140px] md:rounded-[28px] ${FOCUS}`;
+const TILE = `press lift relative flex h-full flex-col justify-between rounded-[26px] p-[14px_16px] text-[19px] font-bold text-white md:rounded-[28px] ${FOCUS}`;
 // The chosen tile gets a white inner ring.
-const TILE_CHOSEN = "shadow-[inset_0_0_0_3px_white]";
+const TILE_CHOSEN = "chosen-ring";
 
 /**
  * The home page address for a query, as a typed route object (the page number is
@@ -70,6 +100,7 @@ function BusinessCard({ card }: Readonly<{ card: BookingPublicBusiness }>) {
     (card.business_type ? businessTypeLabel(card.business_type) : null);
   const where = [kind, card.city].filter(Boolean).join(" · ");
   const services = NO_SERVICES;
+  const transition = businessTransitionStyle(card.slug);
   return (
     <Link
       className={`press lift flex h-full flex-col rounded-[36px] p-3 text-white md:rounded-[40px] ${FOCUS}`}
@@ -93,7 +124,10 @@ function BusinessCard({ card }: Readonly<{ card: BookingPublicBusiness }>) {
             />
           </span>
         ) : null}
-        <h3 className="text-[30px] leading-[1.05] font-extrabold tracking-tight md:text-[32px]">
+        <h3
+          className={`${transition ? "vt-biz" : ""}text-[30px] leading-[1.05] font-extrabold tracking-tight md:text-[32px]`}
+          style={transition}
+        >
           {card.name}
         </h3>
         {where && <span className="text-sm font-medium">{where}</span>}
@@ -156,10 +190,10 @@ function emptyMessage(filtered: boolean, page: number): string {
 
 function SearchPill({ query }: Readonly<{ query: ListingQuery }>) {
   return (
-    <search className="sticky top-4 z-20 w-full md:mx-auto md:max-w-lg">
+    <search className="vt-search sticky top-4 z-20 w-full md:mx-auto md:max-w-lg">
       <form
         action="/"
-        className="bg-background focus-within:ring-ring flex h-[60px] w-full items-center gap-3 rounded-full pr-2 pl-5 shadow-lg focus-within:ring-2 md:h-16 md:pl-6"
+        className="search-pill bg-background focus-within:ring-ring relative flex h-[60px] w-full items-center gap-3 rounded-full pr-2 pl-5 shadow-md focus-within:ring-2 md:h-16 md:pl-6"
         method="get"
       >
         <svg
@@ -298,25 +332,30 @@ function TypeTiles({
       aria-label="Browse by type"
       className="grid grid-cols-2 gap-2 md:grid-cols-6"
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         const selected = item.type === chosen;
         return (
-          <Link
-            aria-current={selected ? "page" : undefined}
-            className={`${TILE} ${selected ? TILE_CHOSEN : ""}`}
-            href={listingHref({ q, type: item.type })}
+          <div
+            className="reveal h-[118px] md:h-[140px]"
             key={item.label}
-            style={{ backgroundColor: item.fill }}
+            style={tileOffset(index)}
           >
-            {item.label}
-            <span className="flex justify-end">
-              <BusinessTypeIcon
-                className="size-12"
-                strokeWidth={1.6}
-                type={item.type ?? "all"}
-              />
-            </span>
-          </Link>
+            <Link
+              aria-current={selected ? "page" : undefined}
+              className={`${TILE} ${selected ? TILE_CHOSEN : ""}`}
+              href={listingHref({ q, type: item.type })}
+              style={{ backgroundColor: item.fill }}
+            >
+              {item.label}
+              <span className="flex justify-end">
+                <BusinessTypeIcon
+                  className="size-12"
+                  strokeWidth={1.6}
+                  type={item.type ?? "all"}
+                />
+              </span>
+            </Link>
+          </div>
         );
       })}
     </nav>
@@ -349,7 +388,11 @@ export function BusinessListing({
         className="flex scroll-mt-24 flex-col gap-3"
         id="businesses"
       >
-        <h2 className={H2} id="businesses-heading">
+        <h2
+          className={`${H2} enter-fade`}
+          id="businesses-heading"
+          style={{ "--d": "80ms" } as CSSProperties}
+        >
           Businesses to book
         </h2>
 
@@ -366,11 +409,12 @@ export function BusinessListing({
         )}
 
         {listing && listing.items.length > 0 && (
-          <ul className="-mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pt-1 pb-4 md:mx-0 md:px-0">
-            {listing.items.map((card) => (
+          <ul className="rail -mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pt-1 pb-4 md:mx-0 md:px-0">
+            {listing.items.map((card, index) => (
               <li
-                className="h-[470px] w-[316px] shrink-0 snap-start md:h-[500px] md:w-[330px]"
+                className="enter h-[470px] w-[316px] shrink-0 snap-start md:h-[500px] md:w-[330px]"
                 key={card.slug}
+                style={cardEntrance(index)}
               >
                 <BusinessCard card={card} />
               </li>

@@ -2,7 +2,7 @@ import type { BookingPublicBusinessPage } from "@barrelsgd/api-client";
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { INK, TYPE_FILL } from "@/lib/business-type-colours";
-import { BusinessListing } from "./business-listing";
+import { BusinessListing, cardEntrance, tileOffset } from "./business-listing";
 
 const NO_LISTING = /No businesses listed yet/u;
 const NO_MATCH = /No businesses match that search/u;
@@ -104,6 +104,14 @@ describe("BusinessListing", () => {
     const rail = items[0]?.parentElement;
     expect(rail?.getAttribute("class")).toContain("snap-x");
     expect(rail?.getAttribute("class")).toContain("overflow-x-auto");
+    expect(rail?.getAttribute("class")).toContain("rail");
+    for (const item of items) {
+      expect(item.getAttribute("class")).toContain("enter");
+    }
+    expect(items.map((item) => item.style.getPropertyValue("--d"))).toEqual([
+      "90ms",
+      "150ms",
+    ]);
     expect(
       screen.getByRole("link", { name: TIDE_NAME }).getAttribute("class")
     ).toContain("press");
@@ -360,10 +368,10 @@ describe("BusinessListing", () => {
       const links = within(tiles()).getAllByRole("link");
       const hair = links.find((link) => link.textContent === "Hair");
       expect(hair?.getAttribute("aria-current")).toBe("page");
-      expect(hair?.getAttribute("class")).toContain("inset_0_0_0_3px");
+      expect(hair?.getAttribute("class")).toContain("chosen-ring");
       expect(hair?.getAttribute("href")).toBe("/?q=fade&type=hair");
       expect(links[0]?.getAttribute("aria-current")).toBeNull();
-      expect(links[0]?.getAttribute("class")).not.toContain("inset_0_0_0_3px");
+      expect(links[0]?.getAttribute("class")).not.toContain("chosen-ring");
       expect(links[0]?.getAttribute("href")).toBe("/?q=fade");
     });
 
@@ -497,5 +505,60 @@ describe("BusinessListing", () => {
         unmount();
       }
     });
+  });
+});
+
+describe("entrance timing", () => {
+  it("shrinks the delay gaps and the distance, and groups the later cards", () => {
+    const steps = [0, 1, 2, 3, 4, 9].map((index) => {
+      const style = cardEntrance(index) as Record<string, string>;
+      return [style["--d"], style["--x"], style["--y"]];
+    });
+    expect(steps).toEqual([
+      ["90ms", "24px", "0px"],
+      ["150ms", "0px", "16px"],
+      ["200ms", "0px", "12px"],
+      ["240ms", "0px", "8px"],
+      ["240ms", "0px", "8px"],
+      ["240ms", "0px", "8px"],
+    ]);
+    const delays = [0, 1, 2, 3].map((index) =>
+      Number.parseInt(
+        (cardEntrance(index) as Record<string, string>)["--d"] ?? "",
+        10
+      )
+    );
+    const gaps = delays.slice(1).map((delay, at) => delay - (delays[at] ?? 0));
+    expect(gaps).toEqual([60, 50, 40]);
+  });
+
+  it("offsets the first six tile reveals by shrinking gaps, the rest together", () => {
+    const offsets = [0, 1, 2, 3, 4, 5, 6, 20].map(
+      (index) => (tileOffset(index) as Record<string, number>)["--o"]
+    );
+    expect(offsets).toEqual([0, 4, 7, 9, 11, 13, 13, 13]);
+  });
+
+  it("gives tiles a reveal wrapper and the card name a safe transition name", () => {
+    const { container } = render(
+      <BusinessListing listing={page()} query={NO_QUERY} />
+    );
+    expect(container.querySelectorAll(".reveal")).toHaveLength(4);
+    const name = screen.getByRole("heading", { name: "Tide Barbers" });
+    expect(name.style.getPropertyValue("--vt")).toBe("biz-tide-barbers");
+    expect(name.getAttribute("class")).toContain("vt-biz");
+    expect(container.querySelector(".vt-search")).not.toBeNull();
+  });
+
+  it("emits no transition name for an unsafe slug", () => {
+    render(
+      <BusinessListing
+        listing={page({ items: [{ ...TIDE, slug: "bad slug;x" }] })}
+        query={NO_QUERY}
+      />
+    );
+    const name = screen.getByRole("heading", { name: "Tide Barbers" });
+    expect(name.getAttribute("style")).toBeNull();
+    expect(name.getAttribute("class")).not.toContain("vt-biz");
   });
 });

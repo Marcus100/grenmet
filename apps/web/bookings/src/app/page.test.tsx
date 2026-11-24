@@ -145,4 +145,18 @@ describe("bookings home page", () => {
       )
     ).toBeTruthy();
   });
+
+  it("gives the hero its entrance and drifting shapes, hidden from assistive tech", async () => {
+    vi.mocked(getPublicBusinesses).mockResolvedValue(EMPTY);
+    const { container } = await renderHome();
+
+    expect(
+      container.querySelector("h1")?.closest("section")?.className
+    ).toContain("enter");
+    for (const shape of [".drift-a", ".drift-b"]) {
+      const node = container.querySelector(shape);
+      expect(node?.getAttribute("aria-hidden")).toBe("true");
+      expect(node?.getAttribute("class")).toContain("pointer-events-none");
+    }
+  });
 });

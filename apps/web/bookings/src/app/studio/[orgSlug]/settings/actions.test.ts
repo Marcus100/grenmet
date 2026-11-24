@@ -1532,4 +1532,49 @@ describe("business type and cover photo", () => {
       message: "That image did not finish uploading for this business.",
     });
   });
+
+  it("posts the stored cover and type unchanged when another section is saved", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      cover_file_id: COVER,
+      business_type: "tours",
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "contact", contactPhone: "+14734401234" })
+    );
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", paymentAtBooking: "deposit" })
+    );
+    for (const call of vi.mocked(saveProfile).mock.calls) {
+      expect(call[2]).toMatchObject({
+        cover_file_id: COVER,
+        business_type: "tours",
+      });
+    }
+    expect(saveProfile).toHaveBeenCalledTimes(2);
+  });
+
+  it("posts null for both when the profile form clears them over a stored value", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      cover_file_id: COVER,
+      business_type: "tours",
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, businessType: "", coverFileId: "" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ cover_file_id: null, business_type: null })
+    );
+  });
 });
