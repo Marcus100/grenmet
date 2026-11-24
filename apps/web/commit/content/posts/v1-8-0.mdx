@@ -14,8 +14,8 @@ new schema.
 
 - **Plan and billing:** Studio has a Plan and billing page. It shows the
   current subscription in plain words, the monthly price, and a button to
-  start or continue checkout. Billing runs in test mode only, and the page says
-  so until billing is switched on.
+  start or continue checkout. Billing runs in test mode only; until it is
+  switched on, the page says "Billing is not switched on yet".
 - **App subscriptions:** subscriptions follow clear states, with a signed
   webhook, replay protection and a safe retry window. Free trials are set per
   business.
@@ -43,13 +43,14 @@ new schema.
 
 - **A new app:** it starts with sign-in, an organisation picker, a staff list
   for organisation administrators, and My record, where each person sees their
-  own employment details and leave balance. It is not deployed yet.
+  own employment details and leave balance. It was not yet deployed in this
+  release.
 
 ### Platform
 
 - **Cookieless funnel analytics** for Bookings, Events and Account: no cookies,
-  no storage, only allow-listed ids, and only on production hosts. It stays off
-  until a key is set.
+  no storage, only allow-listed ids, and only on production hosts. In this release
+  it was off until a key was set.
 - **Events** shows active tickets next to issued tickets, and the admin console
   asks before revoking a key or deleting a feature flag.
 - **Patched images:** container images were moved to newer patch releases
