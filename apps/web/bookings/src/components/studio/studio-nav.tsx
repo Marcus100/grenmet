@@ -247,6 +247,9 @@ export function StudioTabBar({
                           : "text-foreground active:bg-muted"
                       )}
                       href={{ pathname: item.href }}
+                      // Forget where it was opened, so coming back to that page
+                      // later does not reopen the panel by itself.
+                      onClick={() => setOpenAt(null)}
                     >
                       <StudioIcon name={item.icon} />
                       {item.label}

@@ -167,4 +167,19 @@ describe("studio tab bar", () => {
       "false"
     );
   });
+
+  it("stays closed when the person comes back to the page it was opened on", () => {
+    pathname.value = "/studio/sea-salt/agenda";
+    const { rerender } = render(<StudioTabBar {...ALL} footer={null} />);
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    const more = screen.getByRole("navigation", { name: "More" });
+    const firstLink = more.querySelector("a");
+    expect(firstLink).not.toBeNull();
+    fireEvent.click(firstLink as HTMLAnchorElement);
+    pathname.value = "/studio/sea-salt/settings";
+    rerender(<StudioTabBar {...ALL} footer={null} />);
+    pathname.value = "/studio/sea-salt/agenda";
+    rerender(<StudioTabBar {...ALL} footer={null} />);
+    expect(screen.queryByRole("navigation", { name: "More" })).toBeNull();
+  });
 });
