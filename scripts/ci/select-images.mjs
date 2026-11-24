@@ -5,7 +5,8 @@ const nonImagePath =
   /^(docs\/|\.devcontainer\/|\.vscode\/|\.agents\/|\.claude\/|\.codex\/)/u;
 
 import { execFileSync } from "node:child_process";
-import { appendFileSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { changedPaths } from "./changed-paths.mjs";
@@ -20,10 +21,98 @@ import { releaseScope, weatherImages, webImages } from "./release-scope.mjs";
 export { changedPaths } from "./changed-paths.mjs";
 export { weatherImages, webImages } from "./release-scope.mjs";
 
-// Unknown inputs invalidate every image. Shared packages conservatively
-// invalidate all Node consumers, including indirect dependencies.
+// Unknown inputs invalidate every image. A shared package invalidates the web
+// images whose app depends on it, directly or through another workspace
+// package (the pnpm workspace graph below). Dockerfiles copy exactly that
+// dependency closure, so nothing outside it enters an image.
 const allImages = releaseScope;
 const noImages = { web: [], weather: [], api: false };
+
+const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
+const dependencyFields = [
+  "dependencies",
+  "devDependencies",
+  "peerDependencies",
+  "optionalDependencies",
+];
+
+// Workspace packages keyed by directory, with the workspace packages each one
+// declares. Read from the package.json files in the checkout.
+export function workspaceGraph(root = repoRoot) {
+  const packages = new Map();
+  for (const parent of ["packages", "apps/web", "apps/pwa"]) {
+    const base = join(root, parent);
+    if (!existsSync(base)) continue;
+    for (const entry of readdirSync(base, { withFileTypes: true })) {
+      const manifest = join(base, entry.name, "package.json");
+      if (!(entry.isDirectory() && existsSync(manifest))) continue;
+      packages.set(`${parent}/${entry.name}`, {
+        ...JSON.parse(readFileSync(manifest, "utf8")),
+      });
+    }
+  }
+  const names = new Map(
+    [...packages].map(([dir, manifest]) => [manifest.name, dir])
+  );
+  const dependencies = new Map();
+  for (const [dir, manifest] of packages)
+    dependencies.set(
+      dir,
+      new Set(
+        dependencyFields
+          .flatMap((field) => Object.keys(manifest[field] ?? {}))
+          .map((name) => names.get(name))
+          .filter(Boolean)
+      )
+    );
+  return { dependencies, dirs: [...packages.keys()] };
+}
+
+// Every workspace directory that depends on `dir`, directly or indirectly.
+export function dependentsOf(dir, graph) {
+  const found = new Set();
+  const queue = [dir];
+  while (queue.length) {
+    const current = queue.pop();
+    for (const [candidate, deps] of graph.dependencies)
+      if (deps.has(current) && !found.has(candidate)) {
+        found.add(candidate);
+        queue.push(candidate);
+      }
+  }
+  return found;
+}
+
+// Packages whose sources an image's Dockerfile copies (`COPY packages/x/ ...`).
+// Some enter only through the Dockerfile (cms builds cms-migrations without
+// declaring it), so the Dockerfile is read as well as package.json. A missing
+// Dockerfile means unknown inputs: null selects the image for every package.
+export function dockerfilePackages(image, root = repoRoot) {
+  const file = join(root, image.path, "Dockerfile");
+  if (!existsSync(file)) return null;
+  const copied = new Set();
+  for (const line of readFileSync(file, "utf8").split("\n")) {
+    const match = /^COPY\s+(?:--\S+\s+)*(packages\/[^/\s]+)\/\s/u.exec(line);
+    if (match) copied.add(match[1]);
+  }
+  return copied;
+}
+
+let cachedGraph;
+function packageImages(path) {
+  const match = /^(packages\/[^/]+)\//u.exec(path);
+  if (!match) return null;
+  cachedGraph ??= workspaceGraph();
+  // A manifest change alters the install layer every image shares.
+  if (path === `${match[1]}/package.json`) return webImages;
+  if (!cachedGraph.dirs.includes(match[1])) return webImages;
+  const dependents = dependentsOf(match[1], cachedGraph);
+  return webImages.filter((image) => {
+    if (dependents.has(image.path)) return true;
+    const copied = dockerfilePackages(image);
+    return !copied || copied.has(match[1]);
+  });
+}
 function imagesForPath(path) {
   // Python workspace metadata is copied by both API and collector builds.
   // Check it before narrowing a path to its owning application.
@@ -31,8 +120,9 @@ function imagesForPath(path) {
     return allImages;
   if (nonImagePath.test(path) || rootMarkdown.test(path)) return noImages;
   if (deferredPath.test(path)) return noImages;
-  if (path.startsWith("packages/") || workspaceManifest.test(path))
-    return { ...noImages, web: webImages };
+  if (workspaceManifest.test(path)) return { ...noImages, web: webImages };
+  const shared = packageImages(path);
+  if (shared) return { ...noImages, web: shared };
   // Elections, Babydoll (Vercel), Commit (Cloudflare Pages) and the phone
   // apps under apps/pwa deploy independently. Their manifests still affect
   // Docker installation layers above, but their source does not enter them.

@@ -15,6 +15,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
   changedPaths,
+  dependentsOf,
   selectCoverage,
   selectImages,
   selectJobs,
@@ -40,13 +41,62 @@ test("app changes include its runtime and migration targets", () => {
     ["auth"]
   );
 });
-test("shared packages and copied manifests invalidate every Node consumer", () => {
+test("copied manifests and package manifests invalidate every Node consumer", () => {
   for (const path of [
-    "packages/auth/src/index.ts",
     "apps/web/cms/package.json",
     "apps/web/elections/package.json",
+    "packages/bookings-web/package.json",
+    "packages/auth/package.json",
   ])
     assert.deepEqual(selectImages([path]).web, webImages);
+});
+
+test("shared package source selects only the images that depend on it", () => {
+  const apps = (path) =>
+    selectImages([path])
+      .web.map((image) => image.app)
+      .sort();
+  // Only the Bookings app depends on bookings-web.
+  assert.deepEqual(apps("packages/bookings-web/src/components/x.tsx"), [
+    "bookings",
+  ]);
+  assert.deepEqual(
+    selectCoverage(["packages/bookings-web/src/x.ts"]).map(
+      (image) => image.app
+    ),
+    ["bookings"]
+  );
+  // The CMS migration image and its package move together.
+  assert.deepEqual(apps("packages/cms-migrations/src/index.ts"), [
+    "cms",
+    "cms-migrate",
+  ]);
+  // A package every app uses still selects all of them.
+  assert.deepEqual(
+    selectImages(["packages/ui/src/button.tsx"]).web,
+    webImages
+  );
+  // Unknown package directories stay conservative.
+  assert.deepEqual(
+    selectImages(["packages/new-thing/src/a.ts"]).web,
+    webImages
+  );
+});
+
+test("workspace graph follows indirect dependents", () => {
+  const graph = {
+    dependencies: new Map([
+      ["packages/a", new Set(["packages/b"])],
+      ["packages/b", new Set()],
+      ["apps/web/x", new Set(["packages/a"])],
+      ["apps/web/y", new Set()],
+    ]),
+    dirs: [],
+  };
+  assert.deepEqual(
+    [...dependentsOf("packages/b", graph)].sort(),
+    ["apps/web/x", "packages/a"]
+  );
 });
 test("Elections source deploys independently while mixed changes retain core checks", () => {
   for (const path of [
