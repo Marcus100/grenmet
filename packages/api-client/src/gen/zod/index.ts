@@ -1216,6 +1216,7 @@ export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./bookingAgendaSchema.js";
 export { bookingAvailabilitySchema } from "./bookingAvailabilitySchema.js";
 export { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
+export { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
 export { bookingCalendarFeedLinkSchema } from "./bookingCalendarFeedLinkSchema.js";
 export { bookingCalendarFeedStatusSchema } from "./bookingCalendarFeedStatusSchema.js";
 export { bookingClosureAffectedSchema } from "./bookingClosureAffectedSchema.js";
@@ -1230,6 +1231,7 @@ export { bookingEmailProofSchema } from "./bookingEmailProofSchema.js";
 export { bookingExceptionCreateSchema } from "./bookingExceptionCreateSchema.js";
 export { bookingExceptionKindSchema } from "./bookingExceptionKindSchema.js";
 export { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
+export { bookingFeaturedServiceSchema } from "./bookingFeaturedServiceSchema.js";
 export { bookingManualDepositCreateSchema } from "./bookingManualDepositCreateSchema.js";
 export { bookingMyBookingListSchema } from "./bookingMyBookingListSchema.js";
 export { bookingMyBookingSchema } from "./bookingMyBookingSchema.js";
@@ -1710,6 +1712,7 @@ export {
   bookingsListPublicBusinessesQueryPageSchema,
   bookingsListPublicBusinessesQueryQSchema,
   bookingsListPublicBusinessesQuerySchema,
+  bookingsListPublicBusinessesQueryTypeSchema,
   bookingsListPublicBusinessesResponseSchema,
   bookingsListPublicBusinessesStatus200Schema,
   bookingsListPublicBusinessesStatus422Schema,
@@ -6950,6 +6953,18 @@ export {
   monitoringGetFreshnessStatus403Schema,
   monitoringGetFreshnessStatus422Schema,
 } from "./monitoringGetFreshnessSchema.js";
+export {
+  monitoringGetProbeErrorSchema,
+  monitoringGetProbeHeaderAuthorizationSchema,
+  monitoringGetProbeHeadersSchema,
+  monitoringGetProbeResponseSchema,
+  monitoringGetProbeStatus200Schema,
+  monitoringGetProbeStatus401Schema,
+  monitoringGetProbeStatus404Schema,
+  monitoringGetProbeStatus422Schema,
+  monitoringGetProbeStatus429Schema,
+  monitoringGetProbeStatus503Schema,
+} from "./monitoringGetProbeSchema.js";
 export { movementKindSchema } from "./movementKindSchema.js";
 export { myDeductionPublicSchema } from "./myDeductionPublicSchema.js";
 export { myDeductionsPublicSchema } from "./myDeductionsPublicSchema.js";
@@ -8470,6 +8485,7 @@ export {
   printixVoidTicketStatus409Schema,
   printixVoidTicketStatus422Schema,
 } from "./printixVoidTicketSchema.js";
+export { probeReportSchema } from "./probeReportSchema.js";
 export { productAccessCurrentSchema } from "./productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./productAccessPublicSchema.js";

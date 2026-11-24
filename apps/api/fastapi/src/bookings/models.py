@@ -67,6 +67,24 @@ class BookingSource(str, Enum):
     STUDIO = "studio"
 
 
+class BookingBusinessType(str, Enum):
+    """The fixed business types a home page visitor filters by (owner request
+    24 Nov 2026). Null on the profile means not chosen. Free-text ``category`` is
+    separate and unchanged."""
+
+    BEAUTY = "beauty"
+    HAIR = "hair"
+    HEALTH = "health"
+    FITNESS = "fitness"
+    AUTO = "auto"
+    HOME_SERVICES = "home_services"
+    LESSONS = "lessons"
+    PROFESSIONAL = "professional"
+    TOURS = "tours"
+    EVENTS = "events"
+    OTHER = "other"
+
+
 #: Statuses that hold a provider's time.
 ACTIVE_STATUSES = (
     BookingStatus.PENDING_PAYMENT,
@@ -119,6 +137,18 @@ class BookingProfile(Base):
             "brand_color IS NULL OR brand_color ~ '^#[0-9a-f]{6}$'",
             name="brand_color",
         ),
+        sa.CheckConstraint(
+            f"business_type IS NULL OR business_type IN ({_values(BookingBusinessType)})",
+            name="business_type",
+        ),
+        sa.CheckConstraint(
+            "pending_expiry_hours IS NULL OR pending_expiry_hours BETWEEN 1 AND 168",
+            name="pending_expiry_hours",
+        ),
+        sa.CheckConstraint(
+            "max_open_per_customer BETWEEN 1 AND 20",
+            name="max_open_per_customer",
+        ),
         SCHEMA,
     )
 
@@ -152,6 +182,11 @@ class BookingProfile(Base):
     brand_color: Mapped[str | None] = mapped_column(String(7))
     #: A completed ``booking-logo`` upload (``src/storage``); no cross-database FK.
     logo_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
+    #: A completed ``booking-cover`` upload: the wide photo of the home page card and
+    #: storefront. No cross-database FK, same as the logo.
+    cover_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
+    #: ``BookingBusinessType``, the home page filter; null until chosen.
+    business_type: Mapped[str | None] = mapped_column(String(20), default=None)
     #: Add-ons (owner request 23 Nov 2026): off by default. While off, add-on
     #: services are never offered or accepted, so nothing changes for the business.
     add_ons_enabled: Mapped[bool] = mapped_column(
@@ -193,6 +228,15 @@ class BookingProfile(Base):
     #: Plain-text booking policy (late fees and so on), shown before booking and in
     #: the confirmation. Never HTML: every surface renders it as text.
     booking_policy: Mapped[str | None] = mapped_column(String(1000), default=None)
+    #: Hours a booking request waits for the business to confirm it before it
+    #: expires (1 to 168). Null: it expires only at its start time. A request whose
+    #: start has passed always expires (``lifecycle.expire_stale_requests``).
+    #: No Python-side default (``service.upsert_profile`` writes a null window as SQL
+    #: NULL); the server default covers writers that leave the column out.
+    pending_expiry_hours: Mapped[int | None] = mapped_column(server_default="24")
+    #: How many future bookings (pending, pending payment or confirmed) one customer
+    #: may hold with the business before a public booking is refused (1 to 20).
+    max_open_per_customer: Mapped[int] = mapped_column(default=3, server_default="3")
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

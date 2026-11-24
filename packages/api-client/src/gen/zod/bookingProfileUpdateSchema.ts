@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
 import { bookingDepositModeSchema } from "./bookingDepositModeSchema.js";
 import { bookingPaymentModeSchema } from "./bookingPaymentModeSchema.js";
 
@@ -28,6 +29,22 @@ export const bookingProfileUpdateSchema = z
     horizon_days: z.int().min(1).max(365).optional().default(60),
     cancel_cutoff_hours: z.int().min(0).max(720).optional().default(24),
     requires_confirmation: z.boolean().optional().default(false),
+    pending_expiry_hours: z
+      .union([z.int().min(1).max(168), z.null()])
+      .optional()
+      .default(24)
+      .describe(
+        "Hours a booking request waits for the business to confirm it before it expires (the customer is told and the slot is released). Null means it expires only at its start time. A request whose start has passed always expires. Left out, the stored value is kept."
+      ),
+    max_open_per_customer: z
+      .int()
+      .min(1)
+      .max(20)
+      .optional()
+      .default(3)
+      .describe(
+        "How many future bookings (requested, awaiting payment or confirmed) one customer may hold with this business. A public booking beyond it is refused with 409. Staff entries are not refused. Left out, the stored value is kept."
+      ),
     notify_email: z.union([z.email(), z.null()]).optional(),
     manage_url_template: z
       .union([
@@ -117,6 +134,18 @@ export const bookingProfileUpdateSchema = z
       .optional()
       .describe(
         "A completed `booking-logo` upload of this business (see `POST /storage/uploads`), shown at the top of its emails. Null clears it. Left out, the stored logo is kept."
+      ),
+    cover_file_id: z
+      .union([z.uuid(), z.null()])
+      .optional()
+      .describe(
+        "A completed `booking-cover` upload of this business (see `POST /storage/uploads`): the wide photo on its home page card and storefront. Null clears it. Left out, the stored photo is kept."
+      ),
+    business_type: z
+      .union([bookingBusinessTypeSchema, z.null()])
+      .optional()
+      .describe(
+        "The business's type for the home page filter: one of a fixed list (beauty, hair, health, fitness, auto, home_services, lessons, professional, tours, events, other). Null clears it. Left out, the stored value is kept."
       ),
     listed: z
       .boolean()

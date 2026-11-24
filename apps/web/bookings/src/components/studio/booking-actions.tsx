@@ -97,7 +97,10 @@ export function BookingActions({
   }, [notice]);
 
   return (
-    <section aria-labelledby="actions-title" className="space-y-3">
+    <section
+      aria-labelledby="actions-title"
+      className="bg-background space-y-3 rounded-[20px] p-4 sm:p-6"
+    >
       <h2 className="text-lg font-semibold" id="actions-title">
         Actions
       </h2>

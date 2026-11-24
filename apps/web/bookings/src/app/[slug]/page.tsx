@@ -2,6 +2,7 @@ import { ContactStrip } from "@barrelsgd/bookings-web/components/business-contac
 import { timeZonePlace } from "@barrelsgd/bookings-web/lib/booking-format";
 import { FunnelEvent } from "@barrelsgd/ui/components/funnel-event";
 import { JsonLd } from "@barrelsgd/ui/components/json-ld";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -11,11 +12,13 @@ import { StorefrontLogo } from "@/components/storefront-logo";
 import { TrackedBookingFlow } from "@/components/tracked-booking-flow";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
+import { serviceIdFromQuery } from "@/lib/service-link";
 import { signInPath, signUpHref } from "@/lib/sign-in-links";
 import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
 import { brandStyle, safeLogoUrl } from "@/lib/storefront-brand";
 import { storefrontJsonLd } from "@/lib/storefront-jsonld";
+import { businessTransitionStyle } from "@/lib/view-transition";
 import {
   confirmEmailCode,
   loadSlots,
@@ -28,6 +31,7 @@ export const dynamic = "force-dynamic";
 
 interface BusinessPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 // Metadata and the page share one API call per request.
@@ -37,7 +41,7 @@ const loadStorefront = cache(async (slug: string) =>
 
 export async function generateMetadata({
   params,
-}: BusinessPageProps): Promise<Metadata> {
+}: Pick<BusinessPageProps, "params">): Promise<Metadata> {
   const { slug } = await params;
   const storefront = await loadStorefront(slug);
   if (!storefront) {
@@ -56,8 +60,12 @@ export async function generateMetadata({
 
 export default async function BusinessBookingPage({
   params,
+  searchParams,
 }: BusinessPageProps) {
   const { slug } = await params;
+  // `?service=<id>` preselects a service; anything malformed is ignored, and
+  // the flow ignores an id the business does not offer.
+  const initialServiceId = serviceIdFromQuery((await searchParams).service);
   const storefront = await loadStorefront(slug);
   if (!storefront) {
     notFound();
@@ -66,6 +74,7 @@ export default async function BusinessBookingPage({
   // Older cached payloads may lack these fields: both fall back to the shared
   // tokens and no logo. The accent is checked for contrast before it is used.
   const logo = safeLogoUrl(storefront.logo_url);
+  const transition = businessTransitionStyle(slug);
   // A signed-in person gets their own details prefilled and shortcuts from
   // their own earlier bookings here; a guest gets a blank form, the invitation
   // to create an account or sign in, and a quiet sign-in link.
@@ -94,7 +103,13 @@ export default async function BusinessBookingPage({
       />
       <header className="space-y-2">
         {logo && <StorefrontLogo name={storefront.display_name} src={logo} />}
-        <h1 className="text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] font-bold tracking-tight">
+        <h1
+          className={cn(
+            transition ? "vt-biz" : undefined,
+            "text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] font-bold tracking-tight"
+          )}
+          style={transition}
+        >
           {storefront.display_name}
         </h1>
         <p className="text-muted-foreground">
@@ -166,6 +181,7 @@ export default async function BusinessBookingPage({
               submitBooking: submitBooking.bind(null, slug),
             }}
             bookAgain={visitor?.bookAgain}
+            initialServiceId={initialServiceId}
             ManageLink={BookingLink}
             managePath={`/${slug}/booking`}
             signedIn={visitor?.signedIn}

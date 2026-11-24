@@ -91,10 +91,7 @@ export default function HomePage() {
                 >
                   {featured && <span className="flag">{featured}</span>}
                   <h3>{pkg.name}</h3>
-                  <div className="amt">
-                    <sup>$</sup>
-                    {pkg.price}
-                  </div>
+                  <div className="amt">{formatPrice(pkg.price)}</div>
                   <ul className="incl">
                     {pkg.includes.map((item) => (
                       <li key={item}>{item}</li>

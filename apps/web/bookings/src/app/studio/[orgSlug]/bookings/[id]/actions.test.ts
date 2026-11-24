@@ -88,6 +88,12 @@ describe("booking actions", () => {
     );
   });
 
+  it("also refreshes the business layout so the waiting count follows", async () => {
+    vi.mocked(confirmBooking).mockResolvedValue(OK);
+    await confirmBookingAction(SLUG, BOOKING_ID);
+    expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}`, "layout");
+  });
+
   it("lets an owner act too", async () => {
     org("owner");
     vi.mocked(markCompleted).mockResolvedValue(OK);

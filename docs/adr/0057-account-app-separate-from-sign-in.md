@@ -16,6 +16,12 @@ at a "Join" prompt, which is wrong for an app every person should have; that and
 the production wiring are issue #1335. On `dev` the app also has a My bookings
 page (#1385, ADR-0058 slice 1).
 
+Note, 24 Nov 2026 (fact check; the decision is not changed): step 2 is still
+not built, so the Security page (two-step sign-in, authenticator setup and
+recovery codes) is in the sign-in app at `auth.barrels.gd/security`
+(`apps/web/auth/src/app/security`), not in the account app. Text that sends
+people to add an authenticator, such as the Printix scanner's, points there.
+
 ## Context
 
 `apps/web/auth` was set up as "the sole sign-in/sign-up hub … only auth flows"

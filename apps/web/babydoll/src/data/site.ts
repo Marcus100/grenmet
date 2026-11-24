@@ -14,6 +14,7 @@ export const BOOKING_URL = "https://babydollgnd.as.me";
 export const ONLINE_BOOKING_URL: string | null =
   "https://bookings.barrels.gd/babydoll-beauty-bar";
 export const INSTAGRAM_DM_URL = "https://ig.me/m/babydoll.gnd";
+export const INSTAGRAM_HANDLE = "@babydoll.gnd";
 /** The studio's one business number: phone calls and WhatsApp both use it. */
 export const PHONE = {
   display: "+1 473 420 7747",
@@ -24,8 +25,47 @@ export const EMAIL = {
   address: "hello@babydollbeautybar.com",
   href: "mailto:hello@babydollbeautybar.com",
 } as const;
-/** The manual channel the booking flow points people to (Instagram DM). */
-export const BOOKING_CONTACT = { href: INSTAGRAM_DM_URL, label: "Instagram" };
+
+/**
+ * The four ways to message the studio, in the order both the Contact and the
+ * Training pages show them. `title` is the Contact page's card heading and
+ * `label` the Training page's compact link. WhatsApp and Instagram open a new
+ * tab; phone and email do not.
+ */
+export const CONTACT_CHANNELS = [
+  {
+    id: "whatsapp",
+    title: "Message on WhatsApp",
+    label: "WhatsApp",
+    detail: PHONE.display,
+    href: WHATSAPP_URL,
+    newTab: true,
+  },
+  {
+    id: "call",
+    title: "Call",
+    label: "Call",
+    detail: PHONE.display,
+    href: PHONE.href,
+    newTab: false,
+  },
+  {
+    id: "instagram",
+    title: "Message on Instagram",
+    label: "Instagram",
+    detail: INSTAGRAM_HANDLE,
+    href: INSTAGRAM_DM_URL,
+    newTab: true,
+  },
+  {
+    id: "email",
+    title: "Email us",
+    label: "Email",
+    detail: EMAIL.address,
+    href: EMAIL.href,
+    newTab: false,
+  },
+] as const;
 // The client's Google Business Profile: review form and public profile.
 export const GOOGLE_REVIEW_URL = "https://g.page/r/CXicqwbsBju0EAE/review";
 export const GOOGLE_PROFILE_URL = "https://share.google/lqfZTCWbyABRADcTp";
@@ -57,7 +97,7 @@ export const APPOINTMENTS = {
 export const SOCIALS = [
   {
     name: "Instagram",
-    handle: "@babydoll.gnd",
+    handle: INSTAGRAM_HANDLE,
     href: "https://instagram.com/babydoll.gnd",
   },
   {
@@ -98,12 +138,15 @@ export interface ServiceGroup {
 export interface ServiceCategory {
   groups: [ServiceGroup, ServiceGroup];
   id: "lashes" | "brows" | "skin";
+  /** One line shown above the category's lists. */
+  intro?: string;
   label: string;
 }
 
 export const SERVICE_MENU: ServiceCategory[] = [
   {
     id: "lashes",
+    intro: "New clients: book a consultation first",
     label: "Lashes",
     groups: [
       {
@@ -324,4 +367,6 @@ export const COURSES = [
   },
 ] as const;
 
-export const formatPrice = (amount: number) => `$${amount}`;
+/** Every price on the site is in Eastern Caribbean dollars, shown as "EC$120". */
+export const CURRENCY_PREFIX = "EC$";
+export const formatPrice = (amount: number) => `${CURRENCY_PREFIX}${amount}`;

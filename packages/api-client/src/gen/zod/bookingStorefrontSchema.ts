@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
+import { bookingBusinessTypeSchema } from "./bookingBusinessTypeSchema.js";
 import { bookingPublicAddOnSchema } from "./bookingPublicAddOnSchema.js";
 import { bookingPublicProviderSchema } from "./bookingPublicProviderSchema.js";
 import { bookingPublicServiceSchema } from "./bookingPublicServiceSchema.js";
@@ -40,6 +41,16 @@ export const bookingStorefrontSchema = z
       .describe(
         "Public https address of the business logo, or null when there is no logo or no public API address is configured. Load it as an image."
       ),
+    cover_url: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "Public https address of the cover photo, or null when there is no complete booking-cover upload or no public API address is configured."
+      ),
+    business_type: z
+      .union([bookingBusinessTypeSchema, z.null()])
+      .optional()
+      .describe("The business's type for the home page filter, or null."),
     services: z.array(bookingPublicServiceSchema),
     providers: z.array(bookingPublicProviderSchema),
     add_ons: z

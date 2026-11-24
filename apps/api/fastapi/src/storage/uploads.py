@@ -6,6 +6,15 @@ different type or size. ``complete_upload`` HEADs the object and only then marks
 it complete. Reads never expose bucket URLs: members get a short presigned GET,
 and purposes flagged public are served through a cached redirect by file id.
 
+Completion copies the bytes to a new key that the server picks. No presigned URL is
+ever issued for that key, so a presigned PUT (valid for 15 minutes) can still overwrite
+the original key but never the served object (#1679). The row is pointed at the copy,
+and the router deletes the original on a best-effort basis after the commit, so a failed
+commit leaves the row pointing at an object that still exists. Completion holds a row
+lock until the commit, so concurrent calls write one copy. Only the bytes read and
+validated at completion are copied, so a swap between the HEAD and the GET is never
+served.
+
 Service functions flush and never commit; the router owns the transaction.
 Pixel limits apply only where a purpose sets ``strip_metadata``: those images are
 decoded by Pillow at completion (``image_metadata.py``) and refused above the purpose's
@@ -15,10 +24,12 @@ answers 422.
 """
 
 import functools
+import logging
 import uuid
 from dataclasses import dataclass
 from datetime import timedelta
 
+from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import status
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import select
@@ -40,6 +51,7 @@ IMAGE_TYPES: dict[str, str] = {
     "image/png": "png",
     "image/webp": "webp",
 }
+logger = logging.getLogger(__name__)
 UPLOAD_TTL = timedelta(minutes=15)
 PRIVATE_READ_SECONDS = 300
 PUBLIC_REDIRECT_SECONDS = 300
@@ -52,6 +64,8 @@ PUBLIC_CACHE_SECONDS = 120
 #: the 16 megapixels they had before the metadata step (phone photos of 3000 by 2000
 #: pixels and more are accepted). Pillow's decompression-bomb guard stays on in both.
 BOOKING_LOGO_MAX_PIXELS = 4_000_000
+#: A home page cover is a wide photo shown across a card; 8 megapixels is generous.
+BOOKING_COVER_MAX_PIXELS = 8_000_000
 ORGANISER_LOGO_MAX_PIXELS = 16_000_000
 
 
@@ -61,9 +75,8 @@ class Purpose:
     max_bytes: int
     #: Public purposes are served unauthenticated by file id (marketing images).
     public: bool
-    #: Re-encode the stored image without its metadata (EXIF location, camera serial)
-    #: when the upload completes. Removes metadata from honest uploads; a presigned PUT
-    #: stays valid for 15 minutes, so the object can still be overwritten afterwards.
+    #: Re-encode the image without its metadata (EXIF location, camera serial) when the
+    #: upload completes. The served copy is the re-encoded one (see the module docstring).
     strip_metadata: bool = False
     #: Decoded-size cap for the metadata step (width times height, in pixels).
     max_pixels: int = ORGANISER_LOGO_MAX_PIXELS
@@ -84,6 +97,13 @@ PURPOSES: dict[str, Purpose] = {
         public=True,
         strip_metadata=True,
         max_pixels=BOOKING_LOGO_MAX_PIXELS,
+    ),
+    "booking-cover": Purpose(
+        app="bookings",
+        max_bytes=5 * 1024 * 1024,
+        public=True,
+        strip_metadata=True,
+        max_pixels=BOOKING_COVER_MAX_PIXELS,
     ),
 }
 
@@ -179,55 +199,68 @@ async def create_upload(
 
 
 async def _own_upload(
-    session: AsyncSession, organisation_id: str, upload_id: uuid.UUID
+    session: AsyncSession,
+    organisation_id: str,
+    upload_id: uuid.UUID,
+    *,
+    lock: bool = False,
 ) -> OrgUpload:
-    row = await session.scalar(
-        select(OrgUpload).where(
-            OrgUpload.id == upload_id, OrgUpload.organisation_id == organisation_id
-        )
+    statement = select(OrgUpload).where(
+        OrgUpload.id == upload_id, OrgUpload.organisation_id == organisation_id
     )
+    if lock:
+        # Held until the router commits: a concurrent completion waits here, then
+        # reads the row as complete and writes nothing.
+        statement = statement.with_for_update()
+    row = await session.scalar(statement)
     if row is None:
         raise NotFoundError("File not found")
     return row
 
 
-async def _strip_metadata(row: OrgUpload, max_pixels: int) -> int:
-    """Re-encode the stored image without its metadata; return the new size.
+def _served_bytes(row: OrgUpload, raw: bytes, purpose: Purpose | None) -> bytes:
+    """The bytes to serve: stripped and re-encoded, or checked as the declared type.
 
-    A file that is not the image type it declared is deleted, as a size mismatch is.
+    Raises ``ImageRejectedError`` when the bytes are not that image type.
     """
-    raw = await run_in_threadpool(storage.storage_service.get_object, row.object_key)
+    if purpose is not None and purpose.strip_metadata:
+        return image_metadata.strip_metadata(
+            raw, row.content_type, max_pixels=purpose.max_pixels
+        )
+    if not image_metadata.has_type_signature(raw, row.content_type):
+        raise image_metadata.ImageRejectedError(
+            "The file is not the image type that was requested"
+        )
+    return raw
+
+
+async def discard_superseded_object(key: str) -> None:
+    """Delete the original object after the row has moved to its served copy.
+
+    Called by the router after the commit, so a failed commit leaves the row pointing
+    at a key that still exists. Best effort: a leftover object is never served. Logs
+    the area only, never the key or the content.
+    """
     try:
-        clean = await run_in_threadpool(
-            functools.partial(
-                image_metadata.strip_metadata,
-                raw,
-                row.content_type,
-                max_pixels=max_pixels,
-            )
+        await run_in_threadpool(storage.storage_service.delete_object, key)
+    except BotoCoreError, ClientError:
+        logger.warning(
+            "Could not delete a completed upload's original object",
+            extra={"area": "storage"},
         )
-    except image_metadata.ImageRejectedError as error:
-        await run_in_threadpool(storage.storage_service.delete_object, row.object_key)
-        raise UploadRejectedError(str(error)) from error
-    if clean != raw:
-        await run_in_threadpool(
-            storage.storage_service.put_object,
-            row.object_key,
-            clean,
-            content_type=row.content_type,
-        )
-    return len(clean)
 
 
 async def complete_upload(
     session: AsyncSession, context: UploadContext, upload_id: uuid.UUID
-) -> OrgUpload:
+) -> tuple[OrgUpload, str | None]:
+    """Complete an upload. Returns the row and the original key to discard once the
+    router has committed (``None`` when there is nothing to discard)."""
     _require_configured()
-    row = await _own_upload(session, context.org.organisation_id, upload_id)
+    row = await _own_upload(session, context.org.organisation_id, upload_id, lock=True)
     if context.token_app is not None and context.token_app != row.app:
         raise UploadAppError()
     if row.status == UploadStatus.COMPLETE.value:
-        return row
+        return row, None
     if row.expires_at < utc_now():
         raise UploadStateError("The upload link expired; start the upload again")
     head = await run_in_threadpool(storage.storage_service.head_object, row.object_key)
@@ -240,13 +273,36 @@ async def complete_upload(
     ):
         await run_in_threadpool(storage.storage_service.delete_object, row.object_key)
         raise UploadRejectedError("The uploaded file does not match what was requested")
+    # The bytes validated here are the bytes copied below. The original key stays
+    # writable through the presigned PUT until it expires, so a body read earlier
+    # could differ from one read now; only this read is ever served.
+    raw = await run_in_threadpool(storage.storage_service.get_object, row.object_key)
     purpose = PURPOSES.get(row.purpose)
-    if purpose is not None and purpose.strip_metadata:
-        row.size_bytes = await _strip_metadata(row, purpose.max_pixels)
+    try:
+        clean = await run_in_threadpool(
+            functools.partial(_served_bytes, row, raw, purpose)
+        )
+    except image_metadata.ImageRejectedError as error:
+        await run_in_threadpool(storage.storage_service.delete_object, row.object_key)
+        raise UploadRejectedError(str(error)) from error
+    _, served_key = object_key(
+        row.organisation_id, row.app, row.purpose, IMAGE_TYPES[row.content_type]
+    )
+    await run_in_threadpool(
+        functools.partial(
+            storage.storage_service.put_object,
+            served_key,
+            clean,
+            content_type=row.content_type,
+        )
+    )
+    superseded_key = row.object_key
+    row.object_key = served_key
+    row.size_bytes = len(clean)
     transitions.move_upload(row, "complete")
     row.completed_at = utc_now()
     await session.flush()
-    return row
+    return row, superseded_key
 
 
 def public_path(row: OrgUpload) -> str | None:

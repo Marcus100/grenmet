@@ -138,6 +138,8 @@ services:
     environment:
       WXWATCH_LOCAL_ASSET_ROOTS: '{"nhc-local":"/app/nhc-archive"}'
       WXWATCH_INGEST_TOKEN: ${WXWATCH_INGEST_TOKEN:-}
+      # Better Stack freshness probe (#1718); unset or short, the probe answers 404.
+      MONITORING_PROBE_TOKEN: ${MONITORING_PROBE_TOKEN:-}
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
       WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
       EREGISTER_DATABASE_URL: ${EREGISTER_DATABASE_URL:?EREGISTER_DATABASE_URL required}
@@ -291,6 +293,15 @@ services:
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.entrypoints=websecure"
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.middlewares=edge-api${ROUTER_SUFFIX}"
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      # Paths that carry a secret token (calendar feeds, booking manage links):
+      # the same host, middlewares and service, but no access-log line, so the
+      # token never reaches the log (#1787). Its longer rule outranks the main router.
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.rule=(Host(`api.${BASE_DOMAIN}`)${API_EXTRA_HOSTS_RULE:-}) && (PathPrefix(`/api/v1/bookings/public/calendar/`) || PathPrefix(`/api/v1/bookings/public/bookings/`))"
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.middlewares=edge-api${ROUTER_SUFFIX}"
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.service=grenmet-api${ROUTER_SUFFIX}"
+      - "traefik.http.routers.grenmet-api-secret${ROUTER_SUFFIX}.observability.accesslogs=false"
       - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.server.port=8000"
       # One slow probe takes the only server out of rotation (Traefik answers 503)
       # until the next probe. Defaults (5 s timeout, 30 s re-probe) turned a busy
@@ -996,6 +1007,14 @@ services:
       - "traefik.http.routers.web-bookings${ROUTER_SUFFIX}.entrypoints=websecure"
       - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-bookings${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-bookings${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      # The manage page (/<business>/booking/<token>) carries the booking's secret
+      # token: same host and service, no access-log line (#1787).
+      - "traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.rule=Host(`bookings.${BASE_DOMAIN}`) && PathRegexp(`^/[^/]+/booking/`)"
+      - "traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate-secret=off}"
+      - "traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.service=web-bookings${ROUTER_SUFFIX}"
+      - "traefik.http.routers.web-bookings-secret${ROUTER_SUFFIX}.observability.accesslogs=false"
       - "traefik.http.services.web-bookings${ROUTER_SUFFIX}.loadbalancer.server.port=3015"
     networks:
       - grenmet
@@ -1208,6 +1227,47 @@ services:
       - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.service=noop@internal"
       - "traefik.http.middlewares.origin-deny${ROUTER_SUFFIX}.ipallowlist.sourcerange=127.0.0.1/32"
       - "traefik.http.middlewares.strip-origin-secret${ROUTER_SUFFIX}.headers.customrequestheaders.X-Barrels-Origin="
+      # Hosts with no app (#1657). Both routers rank below every app router
+      # (explicit priority 2 and 1; an app router's default priority is the
+      # length of its rule) and far below the origin gate, and send a temporary
+      # redirect to the Barrels homepage from Traefik itself (noop@internal
+      # behind a redirect, no container). Temporary, so browsers forget it when
+      # the app arrives. When an app is built for a planned host, its own
+      # Host() router wins on priority; remove the host here in the same change.
+      # 1. Planned hosts: a fixed list, so Let's Encrypt is asked for one
+      #    certificate per named host and never for an arbitrary hostname. Each
+      #    must also be in PRIVATE_HOSTS (scripts/production/cloudflare_rulesets.py)
+      #    and the docs/ports.md domain table, and the origin-header rule must be
+      #    re-applied, or the origin gate answers 403. salesbus (a retired label
+      #    until ADR-0063's app) and janitor (not a reserved name yet) are left
+      #    out: scripts/ci/check-ports.mjs refuses to route them.
+      - "traefik.http.routers.unused-planned${ROUTER_SUFFIX}.rule=Host(`shop.${BASE_DOMAIN}`) || Host(`bus.${BASE_DOMAIN}`) || Host(`mail.${BASE_DOMAIN}`) || Host(`status.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.unused-planned${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.unused-planned${ROUTER_SUFFIX}.priority=2"
+      - "traefik.http.routers.unused-planned${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      # One certificate per host: a later DNS change for one of them (status
+      # moving to a hosted status page, say) cannot break the others' renewals.
+      - "traefik.http.routers.unused-planned${ROUTER_SUFFIX}.tls.domains[0].main=shop.${BASE_DOMAIN}"
+      - "traefik.http.routers.unused-planned${ROUTER_SUFFIX}.tls.domains[1].main=bus.${BASE_DOMAIN}"
+      - "traefik.http.routers.unused-planned${ROUTER_SUFFIX}.tls.domains[2].main=mail.${BASE_DOMAIN}"
+      - "traefik.http.routers.unused-planned${ROUTER_SUFFIX}.tls.domains[3].main=status.${BASE_DOMAIN}"
+      - "traefik.http.routers.unused-planned${ROUTER_SUFFIX}.middlewares=edge-unused${ROUTER_SUFFIX}"
+      - "traefik.http.routers.unused-planned${ROUTER_SUFFIX}.service=noop@internal"
+      # 2. Any other host: lowest priority and NO certificate resolver (Traefik's
+      #    default certificate), so an unknown name never triggers an ACME order.
+      #    Behind Cloudflare Full (strict) the default certificate still ends in
+      #    526 for such hosts; that needs an owner decision (#1657 PR).
+      - "traefik.http.routers.unused-host${ROUTER_SUFFIX}.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.unused-host${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.unused-host${ROUTER_SUFFIX}.priority=1"
+      - "traefik.http.routers.unused-host${ROUTER_SUFFIX}.tls=true"
+      - "traefik.http.routers.unused-host${ROUTER_SUFFIX}.middlewares=edge-unused${ROUTER_SUFFIX}"
+      - "traefik.http.routers.unused-host${ROUTER_SUFFIX}.service=noop@internal"
+      - "traefik.http.middlewares.unused-redirect${ROUTER_SUFFIX}.redirectregex.regex=^.*"
+      - "traefik.http.middlewares.unused-redirect${ROUTER_SUFFIX}.redirectregex.replacement=https://barrels.gd/"
+      - "traefik.http.middlewares.unused-redirect${ROUTER_SUFFIX}.redirectregex.permanent=false"
+      # Staging keeps its basic auth and noindex in front, like every web host.
+      - "traefik.http.middlewares.edge-unused${ROUTER_SUFFIX}.chain.middlewares=${STAGING_WEB_MIDDLEWARES:-}${STAGING_WEB_MIDDLEWARES:+,}unused-redirect${ROUTER_SUFFIX}"
       # Request body limit for the routers that accept uploads (API, CMS, Adminer;
       # 413 above it). Largest API upload: an HR document (25 MiB,
       # src/hr/documents/service.py); event images go straight to object storage

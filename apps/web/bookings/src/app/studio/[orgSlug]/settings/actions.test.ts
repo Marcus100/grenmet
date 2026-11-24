@@ -10,6 +10,7 @@ vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
 vi.mock("@/lib/studio-api", () => ({
   completeLogoUpload: vi.fn(),
+  createCoverUpload: vi.fn(),
   createLogoUpload: vi.fn(),
   createException: vi.fn(),
   createProvider: vi.fn(),
@@ -29,6 +30,7 @@ import { CONTACT_MESSAGES } from "@/lib/business-contact";
 import { getSession } from "@/lib/session";
 import {
   completeLogoUpload,
+  createCoverUpload,
   createException,
   createLogoUpload,
   createProvider,
@@ -43,6 +45,7 @@ import {
   updateService,
 } from "@/lib/studio-api";
 import {
+  finishCoverUploadAction,
   finishLogoUploadAction,
   removeTimeOffAction,
   saveHoursAction,
@@ -50,6 +53,7 @@ import {
   saveProviderAction,
   saveServiceAction,
   saveTimeOffAction,
+  startCoverUploadAction,
   startLogoUploadAction,
 } from "./actions";
 
@@ -209,6 +213,8 @@ describe("profile", () => {
       contact_email: null,
       brand_color: null,
       logo_file_id: null,
+      cover_file_id: null,
+      business_type: null,
       listed: false,
       category: null,
       short_description: null,
@@ -623,7 +629,7 @@ describe("brand", () => {
     expect(result).toMatchObject({
       status: "error",
       kind: "conflict",
-      message: "That logo did not finish uploading for this business.",
+      message: "That image did not finish uploading for this business.",
     });
   });
 
@@ -1388,6 +1394,293 @@ describe("deposit options and booking policy", () => {
       form({ section: "policy", bookingPolicy: "Text" })
     );
     expect(result).toMatchObject({ status: "error", kind: "invalid" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+});
+
+describe("business type and cover photo", () => {
+  const COVER = "7a1c2a3e-1b2c-4d5e-8f90-a1b2c3d4e5f7";
+
+  it("saves the type and the cover photo with the profile", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, businessType: "home_services", coverFileId: COVER })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        business_type: "home_services",
+        cover_file_id: COVER,
+      })
+    );
+  });
+
+  it("clears both when they are blank", async () => {
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, businessType: "", coverFileId: "" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ business_type: null, cover_file_id: null })
+    );
+  });
+
+  it("refuses an unknown type or a malformed cover id before the API", async () => {
+    expect(
+      await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ ...PROFILE, businessType: "spa" })
+      )
+    ).toMatchObject({ status: "error" });
+    expect(
+      await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ ...PROFILE, coverFileId: "nope" })
+      )
+    ).toMatchObject({ status: "error" });
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("starts a booking-cover upload with the 5 MB limit", async () => {
+    vi.mocked(createCoverUpload).mockResolvedValue({
+      id: COVER,
+      url: "https://storage.test/put",
+      headers: {},
+    } as never);
+    expect(
+      await startCoverUploadAction(SLUG, {
+        contentType: "image/jpeg",
+        sizeBytes: 4 * 1024 * 1024,
+      })
+    ).toMatchObject({ ok: true, target: { id: COVER } });
+    expect(createCoverUpload).toHaveBeenCalledWith("tok", ORG_ID, {
+      content_type: "image/jpeg",
+      size_bytes: 4 * 1024 * 1024,
+    });
+    expect(
+      await startCoverUploadAction(SLUG, {
+        contentType: "image/jpeg",
+        sizeBytes: 6 * 1024 * 1024,
+      })
+    ).toMatchObject({ ok: false });
+    expect(
+      await startCoverUploadAction(SLUG, {
+        contentType: "image/svg+xml",
+        sizeBytes: 10,
+      })
+    ).toMatchObject({ ok: false });
+    expect(createCoverUpload).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses a member before any cover upload starts", async () => {
+    org("member");
+    expect(
+      await startCoverUploadAction(SLUG, {
+        contentType: "image/png",
+        sizeBytes: 10,
+      })
+    ).toEqual({ ok: false, message: expect.stringMatching(ADMIN_ACCESS) });
+    expect(createCoverUpload).not.toHaveBeenCalled();
+  });
+
+  it("words a refused cover photo plainly, naming the cover photo", async () => {
+    vi.mocked(createCoverUpload).mockRejectedValue(apiError(503, {}));
+    expect(
+      await startCoverUploadAction(SLUG, {
+        contentType: "image/png",
+        sizeBytes: 10,
+      })
+    ).toEqual({
+      ok: false,
+      message:
+        "Cover photo uploads are not available right now. Save the profile without a new cover photo, or try again later.",
+    });
+  });
+
+  it("confirms a finished cover upload and refuses a malformed id", async () => {
+    vi.mocked(completeLogoUpload).mockResolvedValue({ id: COVER } as never);
+    expect(await finishCoverUploadAction(SLUG, COVER)).toEqual({
+      ok: true,
+      fileId: COVER,
+    });
+    expect(await finishCoverUploadAction(SLUG, "x")).toMatchObject({
+      ok: false,
+    });
+  });
+
+  it("explains a 409 on save as an upload that did not finish", async () => {
+    vi.mocked(saveProfile).mockRejectedValue(
+      apiError(409, { detail: "Cover photo must be a finished upload" })
+    );
+    expect(
+      await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ ...PROFILE, coverFileId: COVER })
+      )
+    ).toMatchObject({
+      kind: "conflict",
+      message: "That image did not finish uploading for this business.",
+    });
+  });
+
+  it("posts the stored cover and type unchanged when another section is saved", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      cover_file_id: COVER,
+      business_type: "tours",
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "contact", contactPhone: "+14734401234" })
+    );
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "payments", paymentAtBooking: "deposit" })
+    );
+    for (const call of vi.mocked(saveProfile).mock.calls) {
+      expect(call[2]).toMatchObject({
+        cover_file_id: COVER,
+        business_type: "tours",
+      });
+    }
+    expect(saveProfile).toHaveBeenCalledTimes(2);
+  });
+
+  it("posts null for both when the profile form clears them over a stored value", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      cover_file_id: COVER,
+      business_type: "tours",
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...PROFILE, businessType: "", coverFileId: "" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ cover_file_id: null, business_type: null })
+    );
+  });
+});
+
+describe("booking request hygiene", () => {
+  const REQUESTS = {
+    section: "requests",
+    expiryMode: "hours",
+    pendingExpiryHours: "48",
+    maxOpenPerCustomer: "4",
+  };
+
+  it("saves the window and the limit and keeps every other stored field", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    const result = await saveProfileAction(SLUG, IDLE, form(REQUESTS));
+    expect(result).toMatchObject({
+      status: "success",
+      message: "Booking request settings saved.",
+    });
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        pending_expiry_hours: 48,
+        max_open_per_customer: 4,
+        display_name: "Sea Salt Spa",
+      })
+    );
+  });
+
+  it("sends null for Only at the start time", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ ...REQUESTS, expiryMode: "start", pendingExpiryHours: "" })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({ pending_expiry_hours: null })
+    );
+  });
+
+  it("accepts the bounds and refuses values outside them before any save", async () => {
+    vi.mocked(getProfile).mockResolvedValue(STORED);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    for (const values of [
+      { pendingExpiryHours: "1", maxOpenPerCustomer: "1" },
+      { pendingExpiryHours: "168", maxOpenPerCustomer: "20" },
+    ]) {
+      const ok = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ ...REQUESTS, ...values })
+      );
+      expect(ok).toMatchObject({ status: "success" });
+    }
+    vi.mocked(saveProfile).mockClear();
+    for (const values of [
+      { pendingExpiryHours: "0" },
+      { pendingExpiryHours: "169" },
+      { pendingExpiryHours: "2.5" },
+      { pendingExpiryHours: "" },
+      { maxOpenPerCustomer: "0" },
+      { maxOpenPerCustomer: "21" },
+      { maxOpenPerCustomer: "" },
+    ]) {
+      const bad = await saveProfileAction(
+        SLUG,
+        IDLE,
+        form({ ...REQUESTS, ...values })
+      );
+      expect(bad).toMatchObject({ status: "error", kind: "invalid" });
+    }
+    expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it("keeps both stored values when another section saves", async () => {
+    vi.mocked(getProfile).mockResolvedValue({
+      ...(STORED as object),
+      pending_expiry_hours: null,
+      max_open_per_customer: 7,
+    } as never);
+    vi.mocked(saveProfile).mockResolvedValue({} as never);
+    await saveProfileAction(
+      SLUG,
+      IDLE,
+      form({ section: "policy", bookingPolicy: "No late arrivals." })
+    );
+    expect(saveProfile).toHaveBeenCalledWith(
+      "tok",
+      ORG_ID,
+      expect.objectContaining({
+        pending_expiry_hours: null,
+        max_open_per_customer: 7,
+      })
+    );
+  });
+
+  it("refuses a member before any save", async () => {
+    org("member");
+    const result = await saveProfileAction(SLUG, IDLE, form(REQUESTS));
+    expect(result).toMatchObject({ status: "error", kind: "forbidden" });
     expect(saveProfile).not.toHaveBeenCalled();
   });
 });

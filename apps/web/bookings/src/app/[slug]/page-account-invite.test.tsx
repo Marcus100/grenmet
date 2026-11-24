@@ -69,7 +69,10 @@ const storefront: BookingStorefront = {
 };
 
 const NOT_NEEDED = /You do not need one to book/u;
-const params = { params: Promise.resolve({ slug: "sea-salt-spa" }) };
+const params = {
+  params: Promise.resolve({ slug: "sea-salt-spa" }),
+  searchParams: Promise.resolve({}),
+};
 
 beforeEach(() => {
   vi.mocked(getStorefront).mockReset().mockResolvedValue(storefront);

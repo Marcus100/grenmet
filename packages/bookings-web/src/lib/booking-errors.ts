@@ -209,6 +209,12 @@ export function classifyFailure(
     if (detail?.includes(CUTOFF_MARK)) {
       return failure("cutoff", detail);
     }
+    // The API's own refusal that sends people to the business (for example
+    // the limit on open bookings per email) is shown as written, so the
+    // business's contact links appear under it.
+    if (action === "create" && detail && tellsToContact(detail)) {
+      return failure("conflict", detail);
+    }
     if (action === "create") {
       return failure(
         "conflict",

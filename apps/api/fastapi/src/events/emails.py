@@ -68,17 +68,38 @@ def _calendar(
     return (layout.Action("Add to Google Calendar", url),)
 
 
-def refund_policy_line(policy: str, cutoff_hours: int) -> str:
+def _fee_clause(fee_type: str, fee_value: int, currency: str) -> str:
+    """The cancellation fee as the buyer reads it, or "" when there is none
+    (``fixed`` is minor units per paid ticket, ``percent`` a whole percent)."""
+    if fee_value <= 0:
+        return ""
+    if fee_type == "fixed":
+        return f", less a cancellation fee of {_money(fee_value, currency)} per paid ticket"
+    if fee_type == "percent":
+        return f", less a cancellation fee of {fee_value}% of the refund"
+    return ""
+
+
+def refund_policy_line(
+    policy: str,
+    cutoff_hours: int,
+    *,
+    fee_type: str = "none",
+    fee_value: int = 0,
+    currency: str = "XCD",
+) -> str:
     """The refund terms the buyer sees on a paid order (``refund_policy`` is
-    ``refundable`` or ``no_refunds``)."""
+    ``refundable`` or ``no_refunds``). The cancellation fee is named, in the order's
+    currency, only when the listing sets one."""
     if policy == "no_refunds":
         return (
             "Tickets for this event cannot be refunded, except when the organiser "
             "cancels the event."
         )
     return (
-        f"Refunds are available up to {cutoff_hours} hours before the start, less any "
-        "cancellation fee. If the organiser cancels the event, you get a full refund."
+        f"Refunds are available up to {cutoff_hours} hours before the start"
+        f"{_fee_clause(fee_type, fee_value, currency)}. "
+        "If the organiser cancels the event, you get a full refund."
     )
 
 
@@ -96,12 +117,22 @@ def order_confirmation(
     organiser: str | None = None,
     refund_policy: str | None = None,
     refund_cutoff_hours: int = 48,
+    cancellation_fee_type: str = "none",
+    cancellation_fee_value: int = 0,
     brand: Brand | None = None,
 ) -> layout.EmailCard:
     """Receipt sent once the payment is captured and the tickets are issued."""
     noun = "ticket" if ticket_count == 1 else "tickets"
     policy = (
-        (refund_policy_line(refund_policy, refund_cutoff_hours),)
+        (
+            refund_policy_line(
+                refund_policy,
+                refund_cutoff_hours,
+                fee_type=cancellation_fee_type,
+                fee_value=cancellation_fee_value,
+                currency=currency,
+            ),
+        )
         if refund_policy
         else ()
     )

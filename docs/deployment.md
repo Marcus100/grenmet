@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-22
+**Last updated:** 2026-11-24
 
 > Current releases use `docker-compose.deploy.yml` and the canonical domain table
 > at the end of this guide. The per-environment `docker-compose.prod.yml` and
@@ -361,7 +361,7 @@ Verify login, return URLs, and any data-backed pages you changed.
 
 1. Open a PR from `staging` to `main`; wait for checks and merge on GitHub.
 2. Go to **Releases → Draft a new release**.
-3. Choose a new, increasing `vX.Y.Z` tag (the latest is `v1.5.0`, published on 2026-11-18) targeting `main` and publish the release.
+3. Choose a new, increasing `vX.Y.Z` tag (the latest is `v1.9.0`, published on 2026-11-24) targeting `main` and publish the release.
 4. Watch **Production Pipeline** promote the images staging built and tested for that tree and deploy them.
 5. Verify the production domains and API readiness as above.
 
@@ -651,10 +651,10 @@ hurricane/spice hosts; no legacy redirects are installed.
 | CMS (Payload) | 3006 | https://cms.barrels.gd | https://cms.staging.barrels.gd |
 | Commit (engineering blog) | 3019 | https://commit.barrels.gd (Cloudflare Pages) | Cloudflare Pages branch previews |
 | Printix scanner (PWA) | 3064 | https://scan.barrels.gd | https://scan.staging.barrels.gd |
-| HR (Barrels Human Resource) | 3016 | https://hr.barrels.gd (answers 403 on 22 Nov 2026: gated, not a public product yet) | https://hr.staging.barrels.gd |
+| HR (Barrels Human Resource) | 3016 | https://hr.barrels.gd (not deployed; answers 403 from Traefik's origin gate because `hr` has no router and is not in the Cloudflare origin-header host list, issue #1657) | https://hr.staging.barrels.gd |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
-Planned hosts with no route or certificate yet (they resolve through the wildcard and answer Cloudflare error 526 until built): `salesbus`, `janitor`, `bus`, `shop`, `status` and `mail`. Planned moves (owner decisions, 22 Nov 2026, issue #1656): the whole CAP module moves to `cap.barrels.gd`, salesbus to `salesbus.barrels.gd`, janitor to `janitor.barrels.gd` (a PWA) and bus to its own app or PWA. Domains held by others, not controlled by Barrels yet: `weather.gd`, `gaa.gd` and the Babydoll salon's own domain. Live check on 22 Nov 2026: `www.barrels.gd` answers 200 where this document says it redirects to the apex (issue #1657).
+Planned hosts with no app yet: `shop`, `bus`, `status` and `mail` have Traefik's `unused-planned` router and their own certificates and send a temporary redirect to `https://barrels.gd/` (issue #1657; behind the Cloudflare origin gate they answer 403 until the origin-header rule is re-applied with them, `docs/operations/cloudflare-proxy.md` step 3). `salesbus` and `janitor` (and any other unrouted name under the wildcard) still answer Cloudflare error 526: the lowest-priority `unused-host` router redirects them too, but only on Traefik's default certificate, which Cloudflare Full (strict) rejects until the owner chooses a certificate option (issue #1657). Planned moves (owner decisions, 22 Nov 2026, issue #1656): the whole CAP module moves to `cap.barrels.gd`, salesbus to `salesbus.barrels.gd`, janitor to `janitor.barrels.gd` (a PWA) and bus to its own app or PWA. Domains held by others, not controlled by Barrels yet: `weather.gd`, `gaa.gd` and the Babydoll salon's own domain. Live check on 22 Nov 2026: `www.barrels.gd` answers 200 where this document says it redirects to the apex (issue #1657).
 
 Cloudflare wildcard A records point `*.barrels.gd` to the production droplet and
 `*.staging.barrels.gd` to the staging droplet (IPs: see the DigitalOcean dashboard). Staging has been behind the Cloudflare proxy since 1 Nov 2026 and production since 17 Nov 2026

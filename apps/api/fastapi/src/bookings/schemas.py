@@ -15,6 +15,7 @@ from src.utils.timezones import is_valid_timezone
 from . import contact
 from .availability import MAX_CLOSURE_DAYS
 from .models import (
+    BookingBusinessType,
     BookingDepositMode,
     BookingExceptionKind,
     BookingPaymentMode,
@@ -157,6 +158,24 @@ class BookingProfileUpdate(BaseModel):
     horizon_days: Annotated[int, Field(ge=1, le=365)] = 60
     cancel_cutoff_hours: Annotated[int, Field(ge=0, le=720)] = 24
     requires_confirmation: bool = False
+    pending_expiry_hours: Annotated[int, Field(ge=1, le=168)] | None = Field(
+        default=24,
+        description=(
+            "Hours a booking request waits for the business to confirm it before it "
+            "expires (the customer is told and the slot is released). Null means it "
+            "expires only at its start time. A request whose start has passed always "
+            "expires. Left out, the stored value is kept."
+        ),
+    )
+    max_open_per_customer: Annotated[int, Field(ge=1, le=20)] = Field(
+        default=3,
+        description=(
+            "How many future bookings (requested, awaiting payment or confirmed) one "
+            "customer may hold with this business. A public booking beyond it is "
+            "refused with 409. Staff entries are not refused. Left out, the stored "
+            "value is kept."
+        ),
+    )
     notify_email: EmailStr | None = None
     manage_url_template: (
         Annotated[
@@ -278,6 +297,23 @@ class BookingProfileUpdate(BaseModel):
             "A completed `booking-logo` upload of this business (see "
             "`POST /storage/uploads`), shown at the top of its emails. Null clears "
             "it. Left out, the stored logo is kept."
+        ),
+    )
+    cover_file_id: uuid.UUID | None = Field(
+        default=None,
+        description=(
+            "A completed `booking-cover` upload of this business (see "
+            "`POST /storage/uploads`): the wide photo on its home page card and "
+            "storefront. Null clears it. Left out, the stored photo is kept."
+        ),
+    )
+    business_type: BookingBusinessType | None = Field(
+        default=None,
+        description=(
+            "The business's type for the home page filter: one of a fixed list "
+            "(beauty, hair, health, fitness, auto, home_services, lessons, "
+            "professional, tours, events, other). Null clears it. Left out, the stored "
+            "value is kept."
         ),
     )
     listed: bool = Field(
@@ -635,6 +671,14 @@ class BookingAgendaItem(BaseModel):
     payment_kind: BookingPaymentKind = Field(description=_PAYMENT_KIND_DESCRIPTION)
     currency: str
     add_on_names: list[str] = Field(default_factory=list)
+    expires_at: UtcDateTime | None = Field(
+        default=None,
+        description=(
+            "For a request waiting for confirmation (`pending`): when it cancels "
+            "itself if not confirmed, the earlier of `pending_expiry_hours` after "
+            "it was made and its start. Null for any other status."
+        ),
+    )
 
 
 class BookingAgendaDay(BaseModel):
@@ -848,12 +892,33 @@ class BookingStorefront(BaseModel):
             "logo or no public API address is configured. Load it as an image."
         ),
     )
+    cover_url: str | None = Field(
+        default=None,
+        description=(
+            "Public https address of the cover photo, or null when there is no "
+            "complete booking-cover upload or no public API address is configured."
+        ),
+    )
+    business_type: BookingBusinessType | None = Field(
+        default=None,
+        description="The business's type for the home page filter, or null.",
+    )
     services: list[BookingPublicService]
     providers: list[BookingPublicProvider]
     add_ons: list[BookingPublicAddOn] = Field(
         default_factory=list,
         description="Empty unless the business offers add-ons.",
     )
+
+
+class BookingFeaturedService(BaseModel):
+    """A service shown on a home page card. Public fields only."""
+
+    id: uuid.UUID
+    name: str
+    price_minor: int = Field(description="The service price in minor units.")
+    currency: str = Field(description="The business's currency, such as `XCD`.")
+    duration_min: int
 
 
 class BookingPublicBusiness(BaseModel):
@@ -874,6 +939,24 @@ class BookingPublicBusiness(BaseModel):
             "upload or no public API address is configured. Load it as an image."
         ),
     )
+    cover_url: str | None = Field(
+        default=None,
+        description=(
+            "Public https address of the cover photo, or null when there is no "
+            "finished booking-cover upload or no public API address is configured."
+        ),
+    )
+    business_type: BookingBusinessType | None = Field(
+        default=None,
+        description="The business's type (the `type` filter), or null when not chosen.",
+    )
+    featured_services: list[BookingFeaturedService] = Field(
+        default_factory=list,
+        description=(
+            "Up to three bookable services (active, not add-ons) in the order the "
+            "business's booking page lists them; empty when it has none."
+        ),
+    )
 
 
 class BookingPublicBusinessPage(BaseModel):
@@ -884,6 +967,14 @@ class BookingPublicBusinessPage(BaseModel):
         description=(
             "The distinct categories of every listed business, case folded, for the "
             "filter chips. Not narrowed by the search."
+        ),
+    )
+    types_available: list[BookingBusinessType] = Field(
+        default_factory=list,
+        description=(
+            "The business types that at least one listed business has, in the fixed "
+            "list's order. Counts the same businesses the list shows; not narrowed by "
+            "the search, category or type."
         ),
     )
 

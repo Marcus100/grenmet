@@ -74,6 +74,7 @@ import { DEFAULT_TIMEZONE } from "@/lib/studio-view";
 /** Used only when the business has no profile yet; matches the Settings page. */
 const DEFAULT_CURRENCY = "XCD";
 const LOGO_PURPOSE = "booking-logo";
+const COVER_PURPOSE = "booking-cover";
 const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 const TIMEOUT_MS = 10_000;
 
@@ -509,7 +510,24 @@ export function createLogoUpload(
     .catch(redactRequest);
 }
 
-/** Step 3 of a logo upload: the API confirms the bytes arrived; returns the file. */
+/** Step 1 of a cover photo upload: a presigned PUT for a `booking-cover` of this business. */
+export function createCoverUpload(
+  accessToken: string,
+  organisationId: string,
+  body: { content_type: string; size_bytes: number }
+): Promise<UploadTicket> {
+  return storageCreateUpload({
+    client: studioClient(accessToken, organisationId),
+    body: { app: "bookings", purpose: COVER_PURPOSE, ...body },
+  })
+    .unwrap()
+    .catch(redactRequest);
+}
+
+/**
+ * Step 3 of a logo or cover photo upload: the API confirms the bytes arrived;
+ * returns the file. (The confirm call is the same for every purpose.)
+ */
 export function completeLogoUpload(
   accessToken: string,
   organisationId: string,

@@ -22,17 +22,21 @@ import {
   cleanPolicy,
   policyLength,
 } from "@/lib/booking-policy-text";
+import { COVER_MAX_BYTES } from "@/lib/brand-cover";
 import { isLogoFileId, LOGO_MAX_BYTES, LOGO_TYPES } from "@/lib/brand-logo";
 import { checkContacts, contactFieldErrors } from "@/lib/business-contact";
+import { parseBusinessType } from "@/lib/business-types";
 import type { CalendarFeedState } from "@/lib/calendar-feed";
 import { depositRuleFields, minimumPriceFields } from "@/lib/deposit-rule";
 import { reportError } from "@/lib/report-error";
+import { checkExpiry, checkMaxOpen } from "@/lib/request-hygiene";
 import { getSession } from "@/lib/session";
 import { parseHours, parseMoney } from "@/lib/settings-view";
 import type { ActionState, ProfileState } from "@/lib/studio-action-state";
 import {
   completeLogoUpload,
   createCalendarFeed,
+  createCoverUpload,
   createException,
   createLogoUpload,
   createProvider,
@@ -72,6 +76,9 @@ const WHOLE = /^\d+$/u;
 const CONTACT_INVALID = "Check the highlighted contact options.";
 const BRAND_INVALID = "Use a colour like #0b63ee: a # and six hex digits.";
 const LOGO_INVALID = "That logo is not a valid upload. Upload it again.";
+const COVER_INVALID =
+  "That cover photo is not a valid upload. Upload it again.";
+const TYPE_INVALID = "That type of business is not one we offer. Choose again.";
 const HEX_COLOUR = /^#[0-9a-fA-F]{6}$/u;
 
 const NOT_FOUND: StudioFailure = {
@@ -256,6 +263,17 @@ function logoFileField(text: string): string | null | undefined {
   return isLogoFileId(value) ? value : undefined;
 }
 
+/** The business type: empty clears it, else it must be one the API knows. */
+function businessTypeField(
+  text: string
+): BookingProfileUpdate["business_type"] | undefined {
+  const value = text.trim();
+  if (value === "") {
+    return null;
+  }
+  return parseBusinessType(value);
+}
+
 /** The minor-unit amount in a money field; empty means 0. */
 function moneyField(text: string): number | null {
   return text.trim() === "" ? 0 : parseMoney(text);
@@ -272,7 +290,8 @@ type ProfileSection =
   | "payments"
   | "deposit"
   | "policy"
-  | "addons";
+  | "addons"
+  | "requests";
 
 function profileSection(formData: FormData): ProfileSection {
   const value = field(formData, "section");
@@ -280,7 +299,8 @@ function profileSection(formData: FormData): ProfileSection {
     value === "payments" ||
     value === "deposit" ||
     value === "policy" ||
-    value === "addons"
+    value === "addons" ||
+    value === "requests"
     ? value
     : "profile";
 }
@@ -337,6 +357,7 @@ const SECTION_SAVED: Record<ProfileSection, string> = {
   deposit: "Deposit rule saved.",
   policy: "Booking policy saved.",
   addons: "Add-ons setting saved.",
+  requests: "Booking request settings saved.",
 };
 
 /**
@@ -367,6 +388,9 @@ export async function saveProfileAction(
   }
   if (section === "addons") {
     return saveAddOnsSection(orgSlug, auth, formData);
+  }
+  if (section === "requests") {
+    return saveRequestsSection(orgSlug, auth, formData);
   }
   if (section === "contact") {
     return saveContactSection(orgSlug, auth, formData);
@@ -412,6 +436,14 @@ async function saveProfileSection(
   if (logoFileId === undefined) {
     return invalid(LOGO_INVALID);
   }
+  const coverFileId = logoFileField(field(formData, "coverFileId"));
+  if (coverFileId === undefined) {
+    return invalid(COVER_INVALID);
+  }
+  const businessType = businessTypeField(field(formData, "businessType"));
+  if (businessType === undefined) {
+    return invalid(TYPE_INVALID);
+  }
   try {
     const current = await currentProfile(auth);
     await saveProfile(auth.accessToken, auth.organisationId, {
@@ -430,6 +462,8 @@ async function saveProfileSection(
       manage_url_template: input.manageUrlTemplate || null,
       brand_color: brandColor,
       logo_file_id: logoFileId,
+      cover_file_id: coverFileId,
+      business_type: businessType,
       listed: formData.get("listed") === "on",
       category: field(formData, "category").trim() || null,
       short_description: field(formData, "shortDescription").trim() || null,
@@ -575,6 +609,45 @@ async function saveAddOnsSection(
 }
 
 /**
+ * Booking requests: how long an unconfirmed request waits (1 to 168 hours, or
+ * null for only at the start time) and how many upcoming bookings one customer
+ * can hold online (1 to 20). The API enforces both; this checks first.
+ */
+async function saveRequestsSection(
+  orgSlug: string,
+  auth: Granted,
+  formData: FormData
+): Promise<ProfileState> {
+  const expiry = checkExpiry(
+    field(formData, "expiryMode"),
+    field(formData, "pendingExpiryHours")
+  );
+  if (!expiry.ok) {
+    return invalid(expiry.message);
+  }
+  const maxOpen = checkMaxOpen(field(formData, "maxOpenPerCustomer"));
+  if (!maxOpen.ok) {
+    return invalid(maxOpen.message);
+  }
+  try {
+    const current = await currentProfile(auth);
+    if (!current) {
+      return invalid(
+        "Save the business profile first, then set how requests are handled."
+      );
+    }
+    await saveProfile(auth.accessToken, auth.organisationId, {
+      ...storedFields(current),
+      pending_expiry_hours: expiry.value,
+      max_open_per_customer: maxOpen.value,
+    });
+  } catch (error) {
+    return failed(orgSlug, error);
+  }
+  return saved(orgSlug, SECTION_SAVED.requests);
+}
+
+/**
  * The booking policy: plain text, at most 1000 characters, shown before the
  * customer confirms and in the confirmation. Blank clears it.
  */
@@ -685,17 +758,84 @@ export async function finishLogoUploadAction(
   }
 }
 
+const COVER_UPLOAD = z.object({
+  contentType: LOGO_UPLOAD.shape.contentType,
+  sizeBytes: z.number().int().positive().max(COVER_MAX_BYTES),
+});
+
+/** Step 1 of a cover photo upload: the presigned PUT (purpose `booking-cover`). */
+export async function startCoverUploadAction(
+  orgSlug: string,
+  upload: { contentType: string; sizeBytes: number }
+): Promise<LogoStart> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  const parsed = COVER_UPLOAD.safeParse(upload);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: "Choose a JPEG, PNG or WebP image up to 5 MB.",
+    };
+  }
+  try {
+    const ticket = await createCoverUpload(
+      auth.accessToken,
+      auth.organisationId,
+      {
+        content_type: parsed.data.contentType,
+        size_bytes: parsed.data.sizeBytes,
+      }
+    );
+    return {
+      ok: true,
+      target: { id: ticket.id, url: ticket.url, headers: ticket.headers },
+    };
+  } catch (error) {
+    return { ok: false, message: logoFailed(orgSlug, error, "cover photo") };
+  }
+}
+
+/** Step 3 of a cover photo upload: the API confirms the file and returns its id. */
+export async function finishCoverUploadAction(
+  orgSlug: string,
+  uploadId: string
+): Promise<LogoFinish> {
+  const auth = await authorise(orgSlug);
+  if (!auth.ok) {
+    return { ok: false, message: refusalMessage(auth.state) };
+  }
+  if (!isUuid(uploadId)) {
+    return { ok: false, message: "That upload is not valid. Upload it again." };
+  }
+  try {
+    const stored = await completeLogoUpload(
+      auth.accessToken,
+      auth.organisationId,
+      uploadId
+    );
+    return { ok: true, fileId: stored.id };
+  } catch (error) {
+    return { ok: false, message: logoFailed(orgSlug, error, "cover photo") };
+  }
+}
+
 /** The refusal a logo step shows when the session or role check fails first. */
 function refusalMessage(state: ActionState): string {
   return state.status === "error" ? state.message : "Try again in a moment.";
 }
 
 /** A logo step's failure as one line for the form; sign-in and faults as usual. */
-function logoFailed(orgSlug: string, error: unknown): string {
+function logoFailed(
+  orgSlug: string,
+  error: unknown,
+  what: "logo" | "cover photo" = "logo"
+): string {
   // `failed` ends a lapsed session (redirect) and reports faults; it is called
   // for those effects, and the upload's own wording is shown.
   failed(orgSlug, error);
-  const failure = logoUploadFailure(error);
+  const failure = logoUploadFailure(error, what);
   return `${failure.message} ${failure.nextStep}`;
 }
 

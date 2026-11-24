@@ -3,6 +3,9 @@
  * Do not edit manually.
  */
 
+import type { BookingBusinessType } from "./BookingBusinessType.js";
+import type { BookingFeaturedService } from "./BookingFeaturedService.js";
+
 /**
  * @description One card on the Barrels Bookings home page. Public fields only: no contact
  * details, owner data or emails.
@@ -26,4 +29,17 @@ export type BookingPublicBusiness = {
    * @description Public https address of the logo, or null when there is no finished logo upload or no public API address is configured. Load it as an image.
    */
   logo_url: string | null;
+  /**
+   * @description Public https address of the cover photo, or null when there is no finished booking-cover upload or no public API address is configured.
+   */
+  cover_url?: string | null;
+  /**
+   * @description The business's type (the `type` filter), or null when not chosen.
+   */
+  business_type?: BookingBusinessType | null;
+  /**
+   * @description Up to three bookable services (active, not add-ons) in the order the business's booking page lists them; empty when it has none.
+   * @type array | undefined
+   */
+  featured_services?: BookingFeaturedService[];
 };

@@ -290,7 +290,7 @@ async def test_refuses_a_person_without_an_authenticator_and_creates_no_session(
 
     assert response.status_code == 403
     detail = response.json()["detail"]
-    assert "account.barrels.gd" in detail
+    assert "auth.barrels.gd" in detail
     assert "(" not in detail  # the code lives in the body, not in the sentence
     assert response.json()["code"] == SIGN_IN_REFUSAL
     rows = (
@@ -651,7 +651,7 @@ async def test_handoff_into_a_requiring_app_needs_an_authenticator_checked_at_si
 
     assert refused.status_code == 403
     assert refused.json()["code"] == SIGN_IN_REFUSAL
-    assert "Sign in to account.barrels.gd" in refused.json()["detail"]
+    assert "Sign in on auth.barrels.gd" in refused.json()["detail"]
     assert (
         await db_async.scalars(
             select(LoginSession).where(
@@ -680,7 +680,7 @@ async def test_a_new_address_is_refused_before_an_account_exists_and_the_code_is
     assert first.status_code == 403
     assert first.json()["code"] == SIGN_IN_REFUSAL
     assert first.json()["detail"] == (
-        "Add an authenticator on account.barrels.gd to sign in to Barrels Events."
+        "Add an authenticator at auth.barrels.gd/security to sign in to Barrels Events."
     )
     assert await db_async.scalar(select(User.id).where(User.email == email)) is None
     # The code was not spent, so a second try gets the same refusal, not "wrong code".
@@ -741,7 +741,7 @@ async def test_a_printix_member_without_an_authenticator_cannot_sign_in(
     assert refused.status_code == 403
     assert refused.json()["code"] == SIGN_IN_REFUSAL
     assert refused.json()["detail"] == (
-        "Add an authenticator on account.barrels.gd to sign in to Printix."
+        "Add an authenticator at auth.barrels.gd/security to sign in to Printix."
     )
     assert (
         await db_async.scalars(

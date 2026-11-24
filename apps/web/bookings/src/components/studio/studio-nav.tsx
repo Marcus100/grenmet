@@ -3,90 +3,265 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useId, useRef, useState } from "react";
+import { type IconName, StudioIcon } from "@/components/studio/studio-icons";
+import { FOCUS } from "@/components/studio/studio-ui";
 
-interface StudioNavProps {
+export interface StudioNavProps {
   /** Owners and admins only; the page and API enforce it too. */
   canCreate?: boolean;
   /** Plan & billing is for owners and admins only; the page and API enforce it too. */
   canPlan?: boolean;
   orgSlug: string;
+  /** Bookings waiting for the business to confirm; null when it could not be read. */
+  pendingCount?: number | null;
+}
+
+export interface StudioNavItem {
+  active: boolean;
+  /** Bookings waiting to be confirmed (Agenda only). */
+  badge?: number;
+  href: string;
+  icon: IconName;
+  label: string;
 }
 
 /**
- * Left navigation on desktop, a top tab row on phones. Agenda, New booking,
- * Services, People, Settings and Plan & billing. Every member sees the management
- * screens (read-only for non-admins); New booking and Plan & billing are for
- * owners and admins only.
+ * Every studio route that has a screen: Agenda (and a booking's detail),
+ * New booking, Services, People, Plan & billing, Settings. Which one is
+ * current follows the address. New booking and Plan & billing are for owners
+ * and admins only.
  */
-export function StudioNav({
-  canCreate = false,
-  canPlan = false,
-  orgSlug,
-}: StudioNavProps) {
-  const pathname = usePathname();
-  const items = [
+export function studioNavItems(
+  pathname: string,
+  { canCreate = false, canPlan = false, orgSlug, pendingCount }: StudioNavProps
+): StudioNavItem[] {
+  const base = `/studio/${orgSlug}`;
+  const onNew = pathname === `${base}/bookings/new`;
+  const items: StudioNavItem[] = [
     {
       label: "Agenda",
-      href: `/studio/${orgSlug}/agenda`,
+      href: `${base}/agenda`,
+      icon: "agenda",
       active:
-        pathname.startsWith(`/studio/${orgSlug}/agenda`) ||
-        (pathname.startsWith(`/studio/${orgSlug}/bookings`) &&
-          !pathname.endsWith("/bookings/new")),
+        pathname.startsWith(`${base}/agenda`) ||
+        (pathname.startsWith(`${base}/bookings`) && !onNew),
+      ...(pendingCount ? { badge: pendingCount } : {}),
     },
-    ...(canCreate
-      ? [
-          {
-            label: "New booking",
-            href: `/studio/${orgSlug}/bookings/new`,
-            active: pathname.endsWith("/bookings/new"),
-          },
-        ]
-      : []),
+  ];
+  if (canCreate) {
+    items.push({
+      label: "New booking",
+      href: `${base}/bookings/new`,
+      icon: "plus",
+      active: onNew,
+    });
+  }
+  items.push(
     {
       label: "Services",
-      href: `/studio/${orgSlug}/services`,
-      active: pathname.startsWith(`/studio/${orgSlug}/services`),
+      href: `${base}/services`,
+      icon: "services",
+      active: pathname.startsWith(`${base}/services`),
     },
     {
       label: "People",
-      href: `/studio/${orgSlug}/people`,
-      active: pathname.startsWith(`/studio/${orgSlug}/people`),
-    },
-    {
-      label: "Settings",
-      href: `/studio/${orgSlug}/settings`,
-      active: pathname.startsWith(`/studio/${orgSlug}/settings`),
-    },
-    ...(canPlan
-      ? [
-          {
-            label: "Plan & billing",
-            href: `/studio/${orgSlug}/plan`,
-            active: pathname.startsWith(`/studio/${orgSlug}/plan`),
-          },
-        ]
-      : []),
-  ];
+      href: `${base}/people`,
+      icon: "people",
+      active: pathname.startsWith(`${base}/people`),
+    }
+  );
+  if (canPlan) {
+    items.push({
+      label: "Plan & billing",
+      href: `${base}/plan`,
+      icon: "plan",
+      active: pathname.startsWith(`${base}/plan`),
+    });
+  }
+  items.push({
+    label: "Settings",
+    href: `${base}/settings`,
+    icon: "settings",
+    active: pathname.startsWith(`${base}/settings`),
+  });
+  return items;
+}
+
+function Count({ n }: Readonly<{ n: number }>) {
   return (
-    <nav aria-label="Studio" className="border-border border-b md:border-b-0">
-      <ul className="flex gap-1 overflow-x-auto md:flex-col">
+    <>
+      <span
+        aria-hidden="true"
+        className="bg-primary text-primary-foreground ml-auto inline-flex min-w-6 items-center justify-center rounded-full px-1.5 text-xs font-semibold"
+      >
+        {n}
+      </span>
+      <span className="sr-only">{`(${n} waiting to be confirmed)`}</span>
+    </>
+  );
+}
+
+/** Persistent left navigation for laptops (md and up). */
+export function StudioSidebarNav(props: Readonly<StudioNavProps>) {
+  const pathname = usePathname();
+  const items = studioNavItems(pathname, props);
+  return (
+    <nav aria-label="Studio" className="flex-1 overflow-y-auto px-3 py-2">
+      <ul className="space-y-1">
         {items.map((item) => (
           <li key={item.href}>
             <Link
               aria-current={item.active ? "page" : undefined}
               className={cn(
-                "flex min-h-11 items-center rounded-md px-4 font-medium whitespace-nowrap",
+                FOCUS,
+                "flex min-h-11 items-center gap-3 rounded-xl px-3 font-medium transition-colors duration-[120ms]",
                 item.active
                   ? "bg-primary text-primary-foreground"
-                  : "text-foreground hover:bg-muted"
+                  : "text-foreground hover:bg-muted active:bg-muted"
               )}
               href={{ pathname: item.href }}
             >
+              <StudioIcon name={item.icon} />
               {item.label}
+              {item.badge ? <Count n={item.badge} /> : null}
             </Link>
           </li>
         ))}
       </ul>
     </nav>
+  );
+}
+
+/** Bottom tab bar for phones: Agenda, Services, People and More (the rest). */
+export function StudioTabBar({
+  footer,
+  ...props
+}: Readonly<StudioNavProps & { footer: React.ReactNode }>) {
+  const pathname = usePathname();
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const open = openAt === pathname;
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
+  const items = studioNavItems(pathname, props);
+  const main = items.filter((item) =>
+    ["Agenda", "Services", "People"].includes(item.label)
+  );
+  const rest = items.filter((item) => !main.includes(item));
+  const restActive = rest.some((item) => item.active);
+
+  // Open only on the page it was opened on, so a route change closes it.
+  const closeMenu = () => {
+    setOpenAt(null);
+    moreRef.current?.focus();
+  };
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenAt(null);
+        moreRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const tab =
+    "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-xs font-medium transition-colors duration-[120ms]";
+  return (
+    <>
+      {open ? (
+        <button
+          aria-label="Close menu"
+          className="fixed inset-0 z-20 cursor-default md:hidden"
+          onClick={closeMenu}
+          tabIndex={-1}
+          type="button"
+        />
+      ) : null}
+      <div className="border-border bg-background fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] md:hidden">
+        <nav aria-label="Studio tabs" className="flex gap-1 px-2 py-1">
+          {main.map((item) => (
+            <Link
+              aria-current={item.active ? "page" : undefined}
+              className={cn(
+                FOCUS,
+                tab,
+                item.active ? "text-primary bg-muted" : "text-foreground"
+              )}
+              href={{ pathname: item.href }}
+              key={item.href}
+            >
+              <span className="relative">
+                <StudioIcon name={item.icon} />
+                {item.badge ? (
+                  <span
+                    aria-hidden="true"
+                    className="bg-primary text-primary-foreground absolute -top-1.5 -right-3 inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-4 font-semibold"
+                  >
+                    {item.badge}
+                  </span>
+                ) : null}
+              </span>
+              {item.label}
+              {item.badge ? (
+                <span className="sr-only">{`(${item.badge} waiting to be confirmed)`}</span>
+              ) : null}
+            </Link>
+          ))}
+          <button
+            aria-controls={open ? panelId : undefined}
+            aria-expanded={open}
+            className={cn(
+              FOCUS,
+              tab,
+              restActive || open ? "text-primary bg-muted" : "text-foreground"
+            )}
+            onClick={() => setOpenAt(open ? null : pathname)}
+            ref={moreRef}
+            type="button"
+          >
+            <StudioIcon name="more" />
+            More
+          </button>
+        </nav>
+        {open ? (
+          <div
+            className="border-border bg-background absolute inset-x-0 bottom-full space-y-1 border-t border-b px-3 py-2"
+            id={panelId}
+          >
+            <nav aria-label="More">
+              <ul className="space-y-1">
+                {rest.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      aria-current={item.active ? "page" : undefined}
+                      className={cn(
+                        FOCUS,
+                        "flex min-h-11 items-center gap-3 rounded-xl px-3 font-medium",
+                        item.active
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground active:bg-muted"
+                      )}
+                      href={{ pathname: item.href }}
+                      // Forget where it was opened, so coming back to that page
+                      // later does not reopen the panel by itself.
+                      onClick={() => setOpenAt(null)}
+                    >
+                      <StudioIcon name={item.icon} />
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            {footer}
+          </div>
+        ) : null}
+      </div>
+    </>
   );
 }

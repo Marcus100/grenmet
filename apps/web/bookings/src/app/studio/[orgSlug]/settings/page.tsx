@@ -11,6 +11,7 @@ import {
   SettingsJumpMenu,
 } from "@/components/studio/settings/settings-sections";
 import { StudioAlert } from "@/components/studio/studio-alert";
+import { CARD, StudioPageHeader } from "@/components/studio/studio-ui";
 import { exampleServiceFor } from "@/lib/deposit-rule";
 import { reportError } from "@/lib/report-error";
 import { requireSession } from "@/lib/session";
@@ -74,66 +75,67 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
     : null;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-1">
-        <p className="text-muted-foreground text-sm">{org.name}</p>
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-muted-foreground">
-          {editable
+    <div className="space-y-6">
+      <StudioPageHeader
+        description={
+          editable
             ? "How customers book: your page, services, people and hours. Each section has its own Save button."
-            : "You can see these settings. Ask an owner or admin to change them."}
-        </p>
-      </header>
+            : "You can see these settings. Ask an owner or admin to change them."
+        }
+        title="Settings"
+      />
 
-      <SettingsJumpMenu />
+      <div className={`${CARD} space-y-8`}>
+        <SettingsJumpMenu />
 
-      <ProfileSection
-        editable={editable}
-        orgSlug={orgSlug}
-        profile={data.profile}
-        suggestedName={org.name}
-        zone={zone}
-      />
-      <HoursSection
-        editable={editable}
-        orgSlug={orgSlug}
-        providers={data.providers}
-        timeOff={timeOff}
-        zone={zone}
-      />
-      <ServicesSection
-        currency={data.profile?.currency ?? "XCD"}
-        depositsAvailable={data.deposits_available}
-        editable={editable}
-        orgSlug={orgSlug}
-        profile={data.profile}
-        services={data.services}
-      />
-      <PeopleSection
-        editable={editable}
-        orgSlug={orgSlug}
-        providers={data.providers}
-        services={data.services}
-      />
-      <PaymentsSection
-        cardPaymentsAvailable={data.card_payments_available ?? false}
-        currency={data.profile?.currency ?? "XCD"}
-        depositsAvailable={data.deposits_available}
-        editable={editable}
-        example={exampleServiceFor(data.services)}
-        orgSlug={orgSlug}
-        profile={data.profile}
-      />
-      <ContactSection
-        editable={editable}
-        orgSlug={orgSlug}
-        profile={data.profile}
-      />
-      <CalendarFeedSection
-        editable={editable}
-        orgSlug={orgSlug}
-        status={calendarStatus}
-      />
+        <ProfileSection
+          editable={editable}
+          orgSlug={orgSlug}
+          profile={data.profile}
+          suggestedName={org.name}
+          zone={zone}
+        />
+        <HoursSection
+          editable={editable}
+          orgSlug={orgSlug}
+          providers={data.providers}
+          timeOff={timeOff}
+          zone={zone}
+        />
+        <ServicesSection
+          currency={data.profile?.currency ?? "XCD"}
+          depositsAvailable={data.deposits_available}
+          editable={editable}
+          orgSlug={orgSlug}
+          profile={data.profile}
+          services={data.services}
+        />
+        <PeopleSection
+          editable={editable}
+          orgSlug={orgSlug}
+          providers={data.providers}
+          services={data.services}
+        />
+        <PaymentsSection
+          cardPaymentsAvailable={data.card_payments_available ?? false}
+          currency={data.profile?.currency ?? "XCD"}
+          depositsAvailable={data.deposits_available}
+          editable={editable}
+          example={exampleServiceFor(data.services)}
+          orgSlug={orgSlug}
+          profile={data.profile}
+        />
+        <ContactSection
+          editable={editable}
+          orgSlug={orgSlug}
+          profile={data.profile}
+        />
+        <CalendarFeedSection
+          editable={editable}
+          orgSlug={orgSlug}
+          status={calendarStatus}
+        />
+      </div>
     </div>
   );
 }

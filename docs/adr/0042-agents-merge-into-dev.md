@@ -4,6 +4,8 @@
 
 Accepted (owner decision, 2026-10-20). Amends [ADR-0041](0041-agent-autonomy.md). Implemented by PR #461.
 
+Amended by owner decision, 21 Nov 2026 (noted 24 Nov 2026): decisions 3 and 6 are narrower now. The owner still merges any PR that changes an enforcement file: hooks, settings, `.codex/`, `.github/`, `infra/github/`, `.husky/`, the root `package.json`, the lockfile, the guardrail scripts and the CI, production and operations scripts. Agent-rule files (skills and role briefs under `.claude/` and `.agents/`, `docs/agents/`, the root `AGENTS.md` and the guardrail tests) may be merged into `dev` by an agent when the PR body carries `Security review: no open findings (<reviewer>, <sha>)` and `Codex review: no blocking findings (<sha>)` for the exact head. Per-area `AGENTS.md` files and the auth permissions module are ordinary code. The lists live in `OWNER_ONLY_PATHS` and `SAFETY_PATHS` in `.claude/hooks/block-dangerous-git.mjs`.
+
 ## Context
 
 The software factory is only useful if every agent starts from the latest `origin/dev`. Until now each agent opened a PR into `dev` and waited for the owner to merge it ([ADR-0041](0041-agent-autonomy.md), decisions 1 and 2). That made the owner a bottleneck for every small change and left the factory working from stale code overnight.
