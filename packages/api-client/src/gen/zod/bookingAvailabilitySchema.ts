@@ -10,4 +10,14 @@ export const bookingAvailabilitySchema = z.object({
   timezone: z.string(),
   service_id: z.uuid(),
   slots: z.array(bookingSlotSchema),
+  due_at_booking_minor: z
+    .int()
+    .describe(
+      "What booking this service with the `add_on_ids` asked for charges at booking, in minor units (0 = nothing). Priced on the combined price with the add-ons, exactly as the booking itself is charged."
+    ),
+  email_code_required: z
+    .boolean()
+    .describe(
+      "True when an anonymous visitor must pass the emailed-code step (`email-code` then `email-code/confirm`) before booking. A signed-in, verified booker whose email matches may skip it, as creating the booking does. Always false when `due_at_booking_minor` is 0."
+    ),
 });
