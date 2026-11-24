@@ -11,7 +11,7 @@ import type {
 } from "../models/BillingCreateSubscriptionCheckout.js";
 
 /**
- * @description Create a Stripe-hosted Checkout Session for the current user.
+ * @description Create a Stripe-hosted Checkout Session for the current user. Test mode only: refused with 503 while live mode is on (ADR-0065). Not an app subscription; use POST /billing/org/subscriptions/checkout.
  * @summary Create subscription Checkout Session
  * {@link /api/v1/billing/checkout-sessions}
  */
