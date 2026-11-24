@@ -418,3 +418,21 @@ async def test_a_card_shows_up_to_three_bookable_services_in_page_order(
     assert [item["id"] for item in featured] == [first, studio.service_id, third]
     other_featured = _card(body, other.slug)["featured_services"]
     assert [item["id"] for item in other_featured] == [other.service_id]
+
+
+async def test_a_business_with_only_add_ons_shows_no_featured_services(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _business(
+        db_async, async_client, display_name="Add-on Only", add_ons_enabled=True
+    )
+    response = await async_client.patch(
+        f"{API}/org/services/{studio.service_id}",
+        headers=studio.headers,
+        json={"is_add_on": True},
+    )
+    assert response.status_code == 200, response.text
+
+    # Still listed (it has an active service), but nothing to feature on its card.
+    body = await _page(async_client)
+    assert _card(body, studio.slug)["featured_services"] == []
