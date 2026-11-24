@@ -189,6 +189,7 @@ test("staging and production pass integrations to the intended services", () => 
             : "sk_live_fixture",
         BILLING_STRIPE_WEBHOOK_SECRET: "whsec_fixture",
         BILLING_STRIPE_PRICE_ID: "price_fixture",
+        BILLING_STRIPE_PRICES: '{"bookings-monthly:XCD": "price_fixture"}',
         BILLING_CHECKOUT_SUCCESS_URL:
           "https://auth.example.test/?checkout=success",
         BILLING_CHECKOUT_CANCEL_URL:
@@ -296,6 +297,10 @@ test("staging and production pass integrations to the intended services", () => 
       assert.equal(
         api.BILLING_STRIPE_SECRET_KEY,
         env.BILLING_STRIPE_SECRET_KEY
+      );
+      assert.equal(
+        api.BILLING_STRIPE_PRICES,
+        '{"bookings-monthly:XCD":"price_fixture"}'
       );
       assert.equal(
         api.SENTRY_DSN,
@@ -791,6 +796,43 @@ test("the payments Stripe settings are set together and return over https", () =
     assert.notEqual(insecure.result.status, 0, name);
     assert.ok(insecure.result.stderr.includes("https"));
   }
+});
+
+test("app subscription Stripe settings need the key, webhook secret and price map together", () => {
+  const full = {
+    BILLING_STRIPE_SECRET_KEY: "sk_test_fixture",
+    BILLING_STRIPE_WEBHOOK_SECRET: "whsec_fixture",
+    BILLING_STRIPE_PRICES: '{ "bookings-monthly:XCD": "price_fixture" }',
+  };
+  const ok = render(full);
+  assert.equal(ok.result.status, 0, ok.result.stderr);
+  assert.equal(
+    GENERATED_LINE(ok.output, "BILLING_STRIPE_PRICES"),
+    'BILLING_STRIPE_PRICES="{\\"bookings-monthly:XCD\\":\\"price_fixture\\"}"'
+  );
+  for (const name of Object.keys(full)) {
+    const { [name]: _omitted, ...partial } = full;
+    const half = render(partial);
+    assert.notEqual(half.result.status, 0, `${name} missing`);
+    assert.equal(half.result.stderr.includes("sk_test_fixture"), false);
+  }
+  for (const prices of [
+    "not json",
+    "[]",
+    "{}",
+    '{"bookings-monthly:XCD": "sk_test_DO-NOT-ECHO"}',
+    '{"Bookings Monthly": "price_fixture"}',
+  ]) {
+    const bad = render({ ...full, BILLING_STRIPE_PRICES: prices });
+    assert.notEqual(bad.result.status, 0, prices);
+    assert.equal(bad.result.stderr.includes("DO-NOT-ECHO"), false);
+  }
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "BILLING_STRIPE_PRICES"),
+    'BILLING_STRIPE_PRICES=""'
+  );
 });
 
 test("the deploy workflow and compose file pass the new variables to the API and worker", () => {

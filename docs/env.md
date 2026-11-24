@@ -839,9 +839,11 @@ Add credentials independently to **Settings → Environments → staging / produ
 credentials into staging.
 
 - PostHog: `NEXT_PUBLIC_POSTHOG_KEY`, optionally `NEXT_PUBLIC_POSTHOG_HOST`. **Not wired today:** `deploy.yml` does not pass either name and `build-web-images.yml` sends no PostHog build argument, so a value stored in GitHub has no effect and deployed web images run with analytics off. Wiring it means adding the build argument (the key is build-time).
-- Stripe: `BILLING_STRIPE_SECRET_KEY`, `BILLING_STRIPE_WEBHOOK_SECRET`,
-  `BILLING_STRIPE_PRICE_ID`, `BILLING_CHECKOUT_SUCCESS_URL`,
-  `BILLING_CHECKOUT_CANCEL_URL`. Supply the complete bundle together.
+- Stripe app subscriptions (ADR-0065): `BILLING_STRIPE_SECRET_KEY`,
+  `BILLING_STRIPE_WEBHOOK_SECRET` and `BILLING_STRIPE_PRICES` together (the deploy
+  refuses a partial set or a malformed price map). `BILLING_STRIPE_PRICE_ID` and
+  the fallback `BILLING_CHECKOUT_SUCCESS_URL` / `_CANCEL_URL` are optional; set
+  URLs must be HTTPS.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - Single sign-on (ADR-0017): `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`,
   `BARRELS_ADMIN_SSO_CLIENT_SECRET` (required); `EVENTS_SSO_CLIENT_SECRET`,
@@ -932,7 +934,7 @@ but they are not all deployment prerequisites:
 - Google OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - PostHog: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`.
 - Google Analytics: `NEXT_PUBLIC_GA_MEASUREMENT_ID` (read by the gms app, which has a build argument for it, but no workflow passes a value, so it is not wired).
-- Stripe billing: the complete `BILLING_STRIPE_*` and checkout URL bundle.
+- Stripe billing: `BILLING_STRIPE_SECRET_KEY`, `BILLING_STRIPE_WEBHOOK_SECRET` and `BILLING_STRIPE_PRICES` together; the price id and checkout URLs are optional.
 - Resend webhooks and email rendering: `RESEND_WEBHOOK_SECRET`,
   `EMAIL_RENDER_SECRET`, `EMAIL_RENDER_URL`.
 - CAP XML signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY`,
@@ -1194,7 +1196,7 @@ when the value is empty.
 | `PAYMENTS_STRIPE_SECRET_KEY`, `PAYMENTS_STRIPE_WEBHOOK_SECRET` | secrets | API and worker |
 | `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | variables | API and worker |
 | `BILLING_STRIPE_SECRET_KEY`, `BILLING_STRIPE_WEBHOOK_SECRET` | secrets | API |
-| `BILLING_STRIPE_PRICE_ID`, `BILLING_CHECKOUT_SUCCESS_URL`, `BILLING_CHECKOUT_CANCEL_URL` | secret first, then variable | API |
+| `BILLING_STRIPE_PRICES`, `BILLING_STRIPE_PRICE_ID`, `BILLING_CHECKOUT_SUCCESS_URL`, `BILLING_CHECKOUT_CANCEL_URL` | secret first, then variable | API |
 | `META_PAGE_ID`, `META_INSTAGRAM_ACCOUNT_ID` | variables | worker only |
 | `META_PAGE_ACCESS_TOKEN` | secret | worker only |
 | `SOCIAL_LINK_HOSTS`, `SOCIAL_IMAGE_HOSTS` | variables | API only |
