@@ -319,6 +319,8 @@ describe("BusinessListing", () => {
     expect(pills[0]).not.toMatch(HIDDEN_CLASS);
     for (const pill of pills.slice(1)) {
       expect(pill).toMatch(HIDDEN_CLASS);
+      // Hidden on phones only: from md up every card shows it.
+      expect(pill).toContain("md:inline-flex");
     }
     expect(
       items.every(
