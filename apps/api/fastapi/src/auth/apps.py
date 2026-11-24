@@ -310,12 +310,13 @@ def authenticator_required_error(
     """
     if verify_again:
         message = (
-            f"Sign in to account.barrels.gd with your authenticator, then open "
+            f"Sign in on auth.barrels.gd with your authenticator, then open "
             f"{app.label} again."
         )
     else:
         message = (
-            f"Add an authenticator on account.barrels.gd to sign in to {app.label}."
+            f"Add an authenticator at auth.barrels.gd/security to sign in to "
+            f"{app.label}."
         )
     error = AppException(message, 403)
     error.extra = {"code": AUTHENTICATOR_REQUIRED_CODE}

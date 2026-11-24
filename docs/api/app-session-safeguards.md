@@ -25,10 +25,10 @@ and `tests/auth/test_app_handoff.py`.
     minted from a refused session afterwards.
 - **`require_authenticator`**. A person with `totp_enabled` false is refused, with
   `apps.authenticator_required_error`:
-  - HTTP 403, with the sentence "Add an authenticator on account.barrels.gd to sign in
-    to <app label>." in `detail` and the stable code `authenticator_required` in the
-    body's `code` field. The code is not in the OpenAPI schema, which still documents
-    only `detail`; the change is additive.
+  - HTTP 403, with the sentence "Add an authenticator at auth.barrels.gd/security to
+    sign in to <app label>." in `detail` and the stable code `authenticator_required`
+    in the body's `code` field. The code is not in the OpenAPI schema, which still
+    documents only `detail`; the change is additive.
   - Sign-in (`app_service`): email code, password, Google and phone check it after the
     proof of identity and before any role grant, and `_session_response` checks it again
     (the backstop that covers handoff). A refused sign-in creates no session.
@@ -36,8 +36,10 @@ and `tests/auth/test_app_handoff.py`.
     and the code is not spent. An unknown address and a known one get the same refusal,
     because the code proves the mailbox.
   - Handoff redeem refuses when the account session has `mfa_verified_at` null, with
-    the sentence "Sign in to account.barrels.gd with your authenticator, then open <app
-    label> again." and the same code.
+    the sentence "Sign in on auth.barrels.gd with your authenticator, then open <app
+    label> again." and the same code. Sign-in and authenticator setup live on the auth
+    app (account only does single sign-on); when ADR-0057 moves security into the
+    account app, change these sentences, their pinned tests and this page together.
   - Per request, `app_dependencies.user_for_app` refuses a token whose person has lost
     the authenticator (403, same code). Refresh revokes the session and refuses (401).
 - **`privileged_members`**. Holders of the app's `app.<key>.access` follow the privileged

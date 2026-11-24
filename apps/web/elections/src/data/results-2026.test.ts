@@ -126,6 +126,22 @@ describe("2026 provisional results", () => {
       "DPM A Christopher Cudjoe",
       "DPM C Aaron Lewis",
     ]);
-    expect(notJoined).toEqual(["DPM B: Rolanda McQueen / Shirley Mc Queen"]);
+    expect(notJoined).toEqual([]);
+  });
+
+  it("has exactly one 2026 DPM candidate in St. Andrew South East, under the official name", () => {
+    const campaign = campaignJson as unknown as CampaignFile;
+    const dpm = contests.B?.c.filter((row) => row[1] === "DPM") ?? [];
+    expect(dpm.map((row) => row[0])).toEqual(["Shirley Mc Queen"]);
+    expect(campaign.candidates.DPM?.B).toBe("Shirley Mc Queen");
+    const people = buildPeople(results).filter((person) =>
+      person.races.some(
+        (race) =>
+          race.year === 2026 && race.code === "B" && race.party === "DPM"
+      )
+    );
+    expect(people).toHaveLength(1);
+    expect(people[0]?.name).toBe("Shirley Mc Queen");
+    expect(findPerson(buildPeople(results), "Rolanda McQueen")).toBeUndefined();
   });
 });

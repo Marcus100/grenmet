@@ -38,6 +38,18 @@ EXPIRED_REASON = "Not confirmed in time"
 _ONE_HOUR: ColumnElement[timedelta] = literal_column("interval '1 hour'")
 
 
+def pending_expires_at(booking: Booking, profile: BookingProfile) -> datetime | None:
+    """When ``expire_stale_requests`` will cancel this request: its window
+    (``created_at`` plus ``pending_expiry_hours``) or its start, whichever is first.
+    None when the booking is not a pending request. The same rule as the sweep."""
+    if booking.status != BookingStatus.PENDING.value:
+        return None
+    if profile.pending_expiry_hours is None:
+        return booking.starts_at
+    window = booking.created_at + timedelta(hours=profile.pending_expiry_hours)
+    return min(window, booking.starts_at)
+
+
 def book_again_url(profile: BookingProfile) -> str:
     """The business's booking page on the bookings app (the storefront)."""
     return f"{bookings_settings.APP_URL.rstrip('/')}/{profile.public_slug}"

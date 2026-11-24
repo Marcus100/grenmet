@@ -1,6 +1,7 @@
 import { readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
+import { emailRenderSecretSchema } from "@/lib/email-render-secret";
 
 export const env = createEnv({
   server: {
@@ -18,7 +19,8 @@ export const env = createEnv({
     // Trusted proxies in front of this host (1 on Vercel, 2 behind Cloudflare and Vercel).
     AUTH_VISITOR_PROXY_HOPS: z.coerce.number().int().min(1).max(5).default(1),
     // Shared secret that FastAPI must present when calling the /api/email/render endpoint.
-    EMAIL_RENDER_SECRET: z.string().optional(),
+    // 32+ characters; shorter or unset means the route refuses every call (503).
+    EMAIL_RENDER_SECRET: emailRenderSecretSchema,
     // App directory links on the account pages. Unset in production hides the
     // link; development falls back to the local ports in docs/ports.md.
     ADMIN_APP_URL: z.string().url().optional(),
