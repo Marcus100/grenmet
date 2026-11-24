@@ -11,6 +11,7 @@ import { StorefrontLogo } from "@/components/storefront-logo";
 import { TrackedBookingFlow } from "@/components/tracked-booking-flow";
 import { env } from "@/env";
 import { getStorefront } from "@/lib/booking-api";
+import { serviceIdFromQuery } from "@/lib/service-link";
 import { signInPath, signUpHref } from "@/lib/sign-in-links";
 import { loadVisitor } from "@/lib/signed-in-visitor";
 import { isBusinessSlug } from "@/lib/slug";
@@ -28,6 +29,7 @@ export const dynamic = "force-dynamic";
 
 interface BusinessPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 // Metadata and the page share one API call per request.
@@ -37,7 +39,7 @@ const loadStorefront = cache(async (slug: string) =>
 
 export async function generateMetadata({
   params,
-}: BusinessPageProps): Promise<Metadata> {
+}: Pick<BusinessPageProps, "params">): Promise<Metadata> {
   const { slug } = await params;
   const storefront = await loadStorefront(slug);
   if (!storefront) {
@@ -56,8 +58,12 @@ export async function generateMetadata({
 
 export default async function BusinessBookingPage({
   params,
+  searchParams,
 }: BusinessPageProps) {
   const { slug } = await params;
+  // `?service=<id>` preselects a service; anything malformed is ignored, and
+  // the flow ignores an id the business does not offer.
+  const initialServiceId = serviceIdFromQuery((await searchParams).service);
   const storefront = await loadStorefront(slug);
   if (!storefront) {
     notFound();
@@ -166,6 +172,7 @@ export default async function BusinessBookingPage({
               submitBooking: submitBooking.bind(null, slug),
             }}
             bookAgain={visitor?.bookAgain}
+            initialServiceId={initialServiceId}
             ManageLink={BookingLink}
             managePath={`/${slug}/booking`}
             signedIn={visitor?.signedIn}
