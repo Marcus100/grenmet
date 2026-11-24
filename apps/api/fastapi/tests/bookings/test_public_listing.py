@@ -33,6 +33,7 @@ CARD_KEYS = {
     "logo_url",
     "cover_url",
     "business_type",
+    "featured_services",
 }
 PAGE_KEYS = {"items", "page", "has_more", "categories", "types_available"}
 
@@ -107,6 +108,15 @@ async def test_a_listed_card_carries_only_the_public_fields(
         "logo_url": None,
         "cover_url": None,
         "business_type": None,
+        "featured_services": [
+            {
+                "id": studio.service_id,
+                "name": "Classic full set",
+                "price_minor": 21000,
+                "currency": "XCD",
+                "duration_min": 120,
+            }
+        ],
     }
     raw = str(body)
     for private in (
@@ -366,3 +376,63 @@ async def test_a_logo_shows_only_while_it_is_a_finished_upload(
     await db_async.commit()
     body = await _page(async_client)
     assert _card(body, studio.slug)["logo_url"] is None
+
+
+async def _add_service(
+    client: httpx.AsyncClient, studio: Studio, name: str, **fields: Any
+) -> str:
+    created = await client.post(
+        f"{API}/org/services",
+        headers=studio.headers,
+        json={"name": name, "duration_min": 30, "price_minor": 5000} | fields,
+    )
+    assert created.status_code == 201, created.text
+    service_id: str = created.json()["id"]
+    return service_id
+
+
+async def test_a_card_shows_up_to_three_bookable_services_in_page_order(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    """Featured services follow the booking page's order, skip add-ons and
+    switched-off services, stop at three, and never mix businesses."""
+    studio = await _business(
+        db_async, async_client, display_name="Lash Lab", add_ons_enabled=True
+    )
+    # The studio's own service is "Classic full set" at sort order 0.
+    first = await _add_service(async_client, studio, "Brow tint", sort_order=0)
+    third = await _add_service(async_client, studio, "Lash lift", sort_order=1)
+    add_on = await _add_service(async_client, studio, "Aa glitter", sort_order=0)
+    hidden = await _add_service(async_client, studio, "Ab retired", sort_order=0)
+    await _add_service(async_client, studio, "Lash removal", sort_order=2)
+    changes = ((add_on, {"is_add_on": True}), (hidden, {"active": False}))
+    for service_id, change in changes:
+        response = await async_client.patch(
+            f"{API}/org/services/{service_id}", headers=studio.headers, json=change
+        )
+        assert response.status_code == 200, response.text
+    other = await _business(db_async, async_client, display_name="Tide Barbers")
+
+    body = await _page(async_client)
+    featured = _card(body, studio.slug)["featured_services"]
+    assert [item["id"] for item in featured] == [first, studio.service_id, third]
+    other_featured = _card(body, other.slug)["featured_services"]
+    assert [item["id"] for item in other_featured] == [other.service_id]
+
+
+async def test_a_business_with_only_add_ons_shows_no_featured_services(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _business(
+        db_async, async_client, display_name="Add-on Only", add_ons_enabled=True
+    )
+    response = await async_client.patch(
+        f"{API}/org/services/{studio.service_id}",
+        headers=studio.headers,
+        json={"is_add_on": True},
+    )
+    assert response.status_code == 200, response.text
+
+    # Still listed (it has an active service), but nothing to feature on its card.
+    body = await _page(async_client)
+    assert _card(body, studio.slug)["featured_services"] == []

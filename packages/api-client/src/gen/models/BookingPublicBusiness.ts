@@ -4,6 +4,7 @@
  */
 
 import type { BookingBusinessType } from "./BookingBusinessType.js";
+import type { BookingFeaturedService } from "./BookingFeaturedService.js";
 
 /**
  * @description One card on the Barrels Bookings home page. Public fields only: no contact
@@ -36,4 +37,9 @@ export type BookingPublicBusiness = {
    * @description The business's type (the `type` filter), or null when not chosen.
    */
   business_type?: BookingBusinessType | null;
+  /**
+   * @description Up to three bookable services (active, not add-ons) in the order the business's booking page lists them; empty when it has none.
+   * @type array | undefined
+   */
+  featured_services?: BookingFeaturedService[];
 };
