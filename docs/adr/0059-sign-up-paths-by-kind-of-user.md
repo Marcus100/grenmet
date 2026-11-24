@@ -19,6 +19,9 @@ that merge reaches it.
 Operations detail: `docs/operations/privileged-mfa.md`, "Mailbox proof during
 set-up".
 
+Amended 24 November 2026 by ADR-0066: Bookings businesses may also create
+themselves; rule 6 stays for every other app and for businesses Barrels sets up.
+
 ## Context
 
 One sign-up serves everyone today, and the strict parts are bolted on afterwards.
