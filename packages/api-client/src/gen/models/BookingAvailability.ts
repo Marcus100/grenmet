@@ -14,4 +14,14 @@ export type BookingAvailability = {
    */
   service_id: string;
   slots: BookingSlot[];
+  /**
+   * @description What booking this service with the `add_on_ids` asked for charges at booking, in minor units (0 = nothing). Priced on the combined price with the add-ons, exactly as the booking itself is charged.
+   * @type integer
+   */
+  due_at_booking_minor: number;
+  /**
+   * @description True when an anonymous visitor must pass the emailed-code step (`email-code` then `email-code/confirm`) before booking. A signed-in, verified booker whose email matches may skip it, as creating the booking does. Always false when `due_at_booking_minor` is 0.
+   * @type boolean
+   */
+  email_code_required: boolean;
 };

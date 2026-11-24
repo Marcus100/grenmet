@@ -14336,7 +14336,7 @@
           "bookings"
         ],
         "summary": "List open booking slots",
-        "description": "Open start times for a service between two local dates (at most 14 days), optionally for one provider and with `add_on_ids`, which make the slot longer. Times are UTC; `timezone` is the business's local zone for display.",
+        "description": "Open start times for a service between two local dates (at most 14 days), optionally for one provider and with `add_on_ids`, which make the slot longer. Times are UTC; `timezone` is the business's local zone for display. `due_at_booking_minor` is what booking this service with those add-ons charges now, so the storefront can show the real amount.",
         "operationId": "bookingsGetAvailability",
         "parameters": [
           {
@@ -78485,13 +78485,25 @@
             },
             "type": "array",
             "title": "Slots"
+          },
+          "due_at_booking_minor": {
+            "type": "integer",
+            "title": "Due At Booking Minor",
+            "description": "What booking this service with the `add_on_ids` asked for charges at booking, in minor units (0 = nothing). Priced on the combined price with the add-ons, exactly as the booking itself is charged."
+          },
+          "email_code_required": {
+            "type": "boolean",
+            "title": "Email Code Required",
+            "description": "True when an anonymous visitor must pass the emailed-code step (`email-code` then `email-code/confirm`) before booking. A signed-in, verified booker whose email matches may skip it, as creating the booking does. Always false when `due_at_booking_minor` is 0."
           }
         },
         "type": "object",
         "required": [
           "timezone",
           "service_id",
-          "slots"
+          "slots",
+          "due_at_booking_minor",
+          "email_code_required"
         ],
         "title": "BookingAvailability"
       },
@@ -78852,6 +78864,16 @@
             "maxLength": 254,
             "format": "email",
             "title": "Customer Email"
+          },
+          "add_on_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Add On Ids",
+            "description": "The add-ons the booking will include, so the code is asked for when the combined price is a deposit. Same ids as the booking's `add_on_ids`."
           },
           "turnstile_token": {
             "anyOf": [
