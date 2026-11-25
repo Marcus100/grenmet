@@ -345,6 +345,8 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         deposit_instructions=(
             profile.deposit_instructions
             if booking.deposit_to_business_minor > 0
+            and booking.status
+            in (BookingStatus.PENDING.value, BookingStatus.CONFIRMED.value)
             else None
         ),
         late_fee=service.late_fee_of(profile),

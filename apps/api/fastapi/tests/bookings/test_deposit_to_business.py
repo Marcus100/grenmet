@@ -107,11 +107,14 @@ async def test_the_request_email_shows_the_deposit_due_and_the_instructions(
     rows = await _emails(db_async, studio.org_id)
     mail = next(r for r in rows if r.dedupe_key.startswith("booking-confirmation:"))
     text = payload_text(mail.payload)
-    assert "Deposit due" in text
+    assert "Deposit to pay" in text
     assert "XCD 53.00" in text
     assert "Send it by PayPal to pay@babydoll.example" in text
     assert "Use your name as the note." in text
     assert "Your deposit is non-refundable" in text
+    # The instructions are labelled as the business's own, not a Barrels request.
+    assert "paid directly to" in text
+    assert "not through Barrels" in text
 
 
 async def test_the_confirmed_email_shows_the_deposit_due(
@@ -122,7 +125,7 @@ async def test_the_confirmed_email_shows_the_deposit_due(
     rows = await _emails(db_async, studio.org_id)
     mail = next(r for r in rows if r.dedupe_key.startswith("booking-confirmation:"))
     text = payload_text(mail.payload)
-    assert "Deposit due" in text
+    assert "Deposit to pay" in text
     assert "XCD 53.00" in text
     assert "Use your name as the note." in text
 
@@ -136,7 +139,7 @@ async def test_a_service_at_or_below_the_minimum_price_gets_no_deposit(
     assert booking["deposit_instructions"] is None
     rows = await _emails(db_async, studio.org_id)
     mail = next(r for r in rows if r.dedupe_key.startswith("booking-confirmation:"))
-    assert "Deposit due" not in payload_text(mail.payload)
+    assert "Deposit to pay" not in payload_text(mail.payload)
 
 
 async def test_the_service_deposit_overrides_the_business_rule(
@@ -224,6 +227,8 @@ async def test_online_storefront_has_no_business_deposit(
     data = (await async_client.get(f"{API}/public/{studio.slug}")).json()
     assert data["deposit_collection"] == "online"
     assert data["services"][0]["deposit_to_business_minor"] == 0
+    # Stored instructions stay private once the business collects online again.
+    assert data["deposit_instructions"] is None
 
 
 async def test_the_manage_page_and_the_studio_detail_carry_the_amount(
@@ -342,3 +347,18 @@ async def test_fields_left_out_of_the_put_are_kept(
     assert profile["deposit_collection"] == "online"
     assert profile["deposit_instructions"] is None
     assert profile["late_fee_minor"] is None
+
+
+async def test_a_cancelled_booking_no_longer_shows_the_instructions(
+    db_async: AsyncSession, async_client: httpx.AsyncClient
+) -> None:
+    studio = await _business(db_async, async_client, cancel_cutoff_hours=0)
+    receipt = await _booked(async_client, studio)
+    token = receipt["manage_token"]
+    cancelled = await async_client.post(f"{API}/public/bookings/{token}/cancel")
+    assert cancelled.status_code == 200, cancelled.text
+
+    managed = await async_client.get(f"{API}/public/bookings/{token}")
+
+    assert managed.status_code == 200, managed.text
+    assert managed.json()["deposit_instructions"] is None

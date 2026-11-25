@@ -46,6 +46,7 @@ from .models import (
     Booking,
     BookingAddOn,
     BookingBusinessType,
+    BookingDepositCollection,
     BookingDepositMode,
     BookingProfile,
     BookingStatus,
@@ -886,7 +887,13 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         "deposit_non_refundable": profile.deposit_non_refundable,
         "booking_policy": profile.booking_policy,
         "deposit_collection": profile.deposit_collection,
-        "deposit_instructions": profile.deposit_instructions,
+        # Only while the business takes deposits itself: old bank details must not
+        # stay public after it switches back to online collection.
+        "deposit_instructions": (
+            profile.deposit_instructions
+            if profile.deposit_collection == BookingDepositCollection.BUSINESS.value
+            else None
+        ),
         "late_fee": late_fee_of(profile),
         "contact": business_contact(profile),
         "brand_color": profile.brand_color,

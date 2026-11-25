@@ -109,19 +109,26 @@ def _rows(mail: BookingEmail, *extra: layout.Row) -> tuple[layout.Row, ...]:
 
 
 def _deposit_due(mail: BookingEmail) -> tuple[tuple[layout.Row, ...], tuple[str, ...]]:
-    """The "Deposit due" row and the business's payment instructions, one line each,
+    """The "Deposit to pay" row and the business's payment instructions, one line each,
     when the customer pays the deposit to the business by hand."""
     if mail.deposit_to_business_minor <= 0:
         return (), ()
     row = layout.Row(
-        "Deposit due", money_text(mail.deposit_to_business_minor, mail.currency)
+        "Deposit to pay", money_text(mail.deposit_to_business_minor, mail.currency)
     )
     lines = tuple(
         line.strip()
         for line in (mail.deposit_instructions or "").split("\n")
         if line.strip()
     )
-    return (row,), lines
+    if not lines:
+        return (row,), ()
+    # The business wrote these lines: say so, so they never read as a Barrels request.
+    lead = (
+        f"How to pay your deposit to {mail.business} (paid directly to "
+        f"{mail.business}, not through Barrels):"
+    )
+    return (row,), (lead, *lines)
 
 
 def _manage(mail: BookingEmail) -> layout.Action | None:
