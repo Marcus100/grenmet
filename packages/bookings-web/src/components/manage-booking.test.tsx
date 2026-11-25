@@ -487,3 +487,76 @@ describe("ManageBooking", () => {
     expect(screen.queryByText("Add-ons")).toBeNull();
   });
 });
+const RX_1 = /not through Barrels/u;
+const RX_2 = /Send EC\$53 to account 12345\./u;
+const RX_3 = /How to pay your deposit/u;
+const RX_4 = /Deposit to pay/u;
+const RX_5 = /late fee/u;
+const RX_6 = /first-time/u;
+const RX_7 = /for first-time clients/iu;
+const RX_8 = /Please book at least/u;
+
+describe("business deposit, late fee and new clients on the manage page", () => {
+  const WITH_DEPOSIT: BookingPublicDetail = {
+    ...booking,
+    status: "pending",
+    business_name: "Babydoll Beauty Bar",
+    deposit_to_business_minor: 5300,
+    deposit_instructions: "Send EC$53 to account 12345.\nUse your name.",
+    late_fee: { amount_minor: 2500, grace_min: 15 },
+  };
+  const DEPOSIT_AMOUNT = "Deposit to pay: EC$53";
+  const LATE = "Arriving more than 15 minutes late adds a late fee of EC$25.";
+
+  it("shows the deposit, the instructions and the late fee while pending", () => {
+    renderManage(WITH_DEPOSIT);
+    expect(screen.getByText(DEPOSIT_AMOUNT)).toBeVisible();
+    expect(
+      screen.getByRole("heading", {
+        name: "How to pay your deposit to Babydoll Beauty Bar",
+      })
+    ).toBeVisible();
+    expect(screen.getByText(RX_1)).toBeVisible();
+    expect(screen.getByText(RX_2).textContent).toBe(
+      "Send EC$53 to account 12345.\nUse your name."
+    );
+    expect(screen.getByText(LATE)).toBeVisible();
+  });
+
+  it("keeps showing them once confirmed", () => {
+    renderManage({ ...WITH_DEPOSIT, status: "confirmed" });
+    expect(screen.getByText(DEPOSIT_AMOUNT)).toBeVisible();
+    expect(screen.getByText(LATE)).toBeVisible();
+  });
+
+  it("shows no instructions or fee once cancelled", () => {
+    renderManage({
+      ...WITH_DEPOSIT,
+      status: "cancelled",
+      can_cancel: false,
+      deposit_instructions: null,
+    });
+    expect(screen.queryByText(DEPOSIT_AMOUNT)).toBeNull();
+    expect(screen.queryByText(RX_3)).toBeNull();
+    expect(screen.queryByText(LATE)).toBeNull();
+  });
+
+  it("changes nothing for an online booking with no such fields", () => {
+    renderManage(booking);
+    expect(screen.queryByText(RX_4)).toBeNull();
+    expect(screen.queryByText(RX_5)).toBeNull();
+    expect(screen.queryByText(RX_6)).toBeNull();
+  });
+
+  it("notes a new-clients booking as a request, without lead days", () => {
+    renderManage({
+      ...booking,
+      status: "pending",
+      new_clients_only: true,
+      first_visit_lead_days: 7,
+      first_visit_categories: ["lash"],
+    });
+    expect(screen.getByText(RX_7)).toBeVisible();
+    expect(screen.queryByText(RX_8)).toBeNull();
+  });
+});

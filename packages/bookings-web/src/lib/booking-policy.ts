@@ -76,6 +76,11 @@ export interface BookingRulesInput {
    * non-refundable once the business confirms.
    */
   bookingStatus?: string;
+  /**
+   * The deposit the customer pays the business by hand (business-collected
+   * mode). Nothing is paid online, so the line says who it is paid to.
+   */
+  businessDepositMinor?: number;
   /** The business's display name, for "contact ..." once online changes close. */
   businessName?: string;
   currency: string;
@@ -152,6 +157,9 @@ function paidOnlineLine(input: BookingRulesInput, dueMinor: number): string {
 /** The money part when nothing is paid online; empty before a service is chosen. */
 function moneyClause(input: BookingRulesInput): string {
   const { currency, dueMinor } = input;
+  if ((input.businessDepositMinor ?? 0) > 0) {
+    return `${formatMoney(input.businessDepositMinor ?? 0, currency)} deposit, paid to the business.`;
+  }
   if (dueMinor === undefined) {
     return "";
   }

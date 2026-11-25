@@ -19,7 +19,9 @@ export type FailureCode =
   | "code_locked"
   | "code_limited"
   | "code_unavailable"
-  | "code_send_failed";
+  | "code_send_failed"
+  // The business is paused (409 BUSINESS_PAUSED): no new online bookings.
+  | "paused";
 
 export interface Failure {
   code: FailureCode;
@@ -49,6 +51,13 @@ const CUTOFF_MARK = "hours before they start";
 /** The stable code the API puts first in the 403 for a deposit with no proof. */
 const EMAIL_UNVERIFIED_MARK = "email_verification_required";
 
+/** The stable `code` the API puts on the 409 while a business is paused. */
+export const BUSINESS_PAUSED_CODE = "BUSINESS_PAUSED";
+
+/** Said when a business is not taking online bookings (the API's own sentence, plus where to go). */
+export const PAUSED_MESSAGE =
+  "This business is not taking online bookings right now. Please contact the business.";
+
 /** How a message sends people to the business; the links follow it on screen. */
 const CONTACT_PHRASE = "contact the business";
 /** Our own wording and the API's cutoff text ("Please contact the studio."). */
@@ -74,6 +83,14 @@ export function detailOf(data: unknown): string | undefined {
   }
 }
 
+/** The API's `{ "code": "..." }` marker, when it sent one. */
+export function codeOf(data: unknown): string | undefined {
+  if (typeof data === "object" && data !== null && "code" in data) {
+    const { code } = data;
+    return typeof code === "string" ? code : undefined;
+  }
+}
+
 /**
  * The emailed-code calls. Wrong and expired codes share one answer (400) so
  * the wording covers both; 429 on confirm is the 15-minute lock, on request it
@@ -81,8 +98,13 @@ export function detailOf(data: unknown): string | undefined {
  */
 function classifyEmailCode(
   status: number,
-  action: "email-code" | "email-confirm"
+  action: "email-code" | "email-confirm",
+  code: string | undefined
 ): Failure {
+  const paused = pausedRefusal(status, code);
+  if (paused) {
+    return paused;
+  }
   if (status === 404) {
     return failure(
       "not_found",
@@ -179,6 +201,33 @@ function addOnRefusal(
 }
 
 /**
+ * A paused business refuses availability, email-code and create alike. The
+ * stable code wins over any wording, so the page can swap the form for a notice.
+ */
+function pausedRefusal(
+  status: number,
+  code: string | undefined
+): Failure | null {
+  return status === 409 && code === BUSINESS_PAUSED_CODE
+    ? failure("paused", PAUSED_MESSAGE)
+    : null;
+}
+
+/** The refusals that need no further reading of the status: paused, no proof, add-ons gone. */
+function earlyRefusal(
+  status: number,
+  detail: string | undefined,
+  action: BookingAction,
+  code: string | undefined
+): Failure | null {
+  return (
+    pausedRefusal(status, code) ??
+    emailUnverified(status, detail, action) ??
+    addOnRefusal(status, detail)
+  );
+}
+
+/**
  * Maps an API status to a message a customer can act on. A message that sends
  * people to the business says so in words (`tellsToContact`); the component
  * then shows the business's own contact links under it.
@@ -186,18 +235,15 @@ function addOnRefusal(
 export function classifyFailure(
   status: number,
   detail: string | undefined,
-  action: BookingAction
+  action: BookingAction,
+  code?: string
 ): Failure {
   if (action === "email-code" || action === "email-confirm") {
-    return classifyEmailCode(status, action);
+    return classifyEmailCode(status, action, code);
   }
-  const unverified = emailUnverified(status, detail, action);
-  if (unverified) {
-    return unverified;
-  }
-  const addOns = addOnRefusal(status, detail);
-  if (addOns) {
-    return addOns;
+  const early = earlyRefusal(status, detail, action, code);
+  if (early) {
+    return early;
   }
   if (status === 409) {
     if (detail?.includes(SLOT_TAKEN_MARK)) {

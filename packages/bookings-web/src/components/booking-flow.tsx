@@ -9,6 +9,7 @@ import {
   type ReactNode,
   type RefObject,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -22,8 +23,10 @@ import {
   ADD_ONS_GONE_MESSAGE,
   ADD_ONS_TIMES_MESSAGE,
   type Failure,
+  type Outcome,
   tellsToContact,
 } from "../lib/booking-errors";
+import { businessDepositOf, lateFeeLine } from "../lib/booking-extras";
 import {
   type BookingFields,
   type FieldErrors,
@@ -48,9 +51,13 @@ import type {
 } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { AddOnStep, BookedAddOns } from "./add-on-step";
+import { BookedExtras } from "./booking-extras";
 import { BookingRules } from "./booking-policy-text";
 import { recapLine, StepBar, StepHeader, StepPane } from "./booking-steps";
 import { ContactLinks } from "./business-contact";
+import { DepositToBusiness } from "./business-deposit";
+import { NewClientsNote } from "./new-clients-note";
+import { PausedNotice } from "./paused-notice";
 import { PaymentStatus } from "./payment-status";
 import { ServiceList } from "./service-list";
 import { SlotPicker } from "./slot-picker";
@@ -239,6 +246,7 @@ function BookingDone({
   studioName: string;
 }) {
   const { booking, manageToken } = booked;
+  const lateFee = lateFeeLine(booking.late_fee, currency);
   const headingRef = useRef<HTMLHeadingElement>(null);
   useFocusWhen(headingRef, true);
   return (
@@ -263,6 +271,7 @@ function BookingDone({
           <p>{holdEndsLine(booking.hold_ends_at, booking.timezone)}</p>
         ) : null}
         <p>{cancellationPolicyLine(booking.cancel_cutoff_hours)}</p>
+        {lateFee ? <p className="book-late-fee">{lateFee}</p> : null}
         <dl className="summary">
           <div>
             <dt>Service</dt>
@@ -285,6 +294,7 @@ function BookingDone({
             payment={booking.payment}
           />
         )}
+        <BookedExtras booking={booking} currency={currency} withNewClients />
         <p>
           <strong>Keep this link.</strong> It lets you see, change or cancel
           your booking, and it is shown only once. We also send it to your
@@ -696,10 +706,18 @@ function ServicesStep({
       <ServiceList
         bookAgainIds={bookAgain.map((choice) => choice.serviceId)}
         currency={storefront.currency}
+        depositCollection={storefront.deposit_collection}
         onPick={onPick}
         selectedId={selectedId}
         services={storefront.services}
       />
+      <div aria-live="polite" role="status">
+        <NewClientsNote
+          service={
+            storefront.services.find((item) => item.id === selectedId) ?? null
+          }
+        />
+      </div>
       {storefront.services.length === 0 && (
         <div className="muted">
           <p>
@@ -829,22 +847,83 @@ function codeResendBlocked(
   return cooldown > 0 || busy !== null || tokenMissing;
 }
 
+/**
+ * The deposit a business collects by hand, for the chosen service. The service's
+ * own deposit ignores add-ons; a business rule works on the combined price, so
+ * with add-ons ticked the figure is not known yet and the note says so.
+ */
+function businessDepositFor(
+  storefront: BookingStorefront,
+  service: BookingPublicService | null,
+  addOnCount: number
+): { amountNote?: string; minor: number } | null {
+  if (storefront.deposit_collection !== "business" || !service) {
+    return null;
+  }
+  const minor = businessDepositOf(service);
+  if (minor <= 0) {
+    return null;
+  }
+  if (addOnCount > 0 && service.deposit_minor <= 0) {
+    return {
+      minor,
+      amountNote:
+        "Deposit worked out on the total; you will see the amount when you book.",
+    };
+  }
+  return { minor };
+}
+
+/**
+ * The money fields of the rules line. While the business deposit waits for the
+ * add-on total, no figure is stated: the line then says nothing about money.
+ */
+function depositRuleFields(
+  businessDeposit: { amountNote?: string; minor: number } | null,
+  knownDue: number | null
+): { businessDepositMinor?: number; dueMinor?: number } {
+  if (businessDeposit?.amountNote) {
+    return {};
+  }
+  return {
+    businessDepositMinor: businessDeposit?.minor,
+    dueMinor: knownDue ?? undefined,
+  };
+}
+
 /** What is paid online for the chosen service, and its description. */
 function ServiceNotes({
+  businessDeposit,
   noPayment,
   payNow,
   service,
+  storefront,
 }: {
+  /** The deposit paid to the business by hand, or null (online mode, or none). */
+  businessDeposit: { amountNote?: string; minor: number } | null;
   noPayment: boolean;
   payNow: string | null;
   service: BookingPublicService | null;
+  storefront: BookingStorefront;
 }) {
   return (
     <>
       <div aria-live="polite" role="status">
         {service && payNow && <p className="notice payment-notice">{payNow}</p>}
       </div>
-      {service && noPayment && (
+      {service && businessDeposit && (
+        <DepositToBusiness
+          amountNote={businessDeposit.amountNote}
+          businessName={storefront.display_name}
+          contact={storefront.contact}
+          currency={storefront.currency}
+          instructions={storefront.deposit_instructions}
+          minor={businessDeposit.minor}
+        />
+      )}
+      {/* On one page the note already sits under the service list. */}
+      <NewClientsNote className="book-phone-only" service={service} />
+      {service && noPayment && !businessDeposit && (
         <p className="muted">No payment online. You pay when you visit.</p>
       )}
       {service?.description && (
@@ -856,7 +935,33 @@ function ServiceNotes({
   );
 }
 
-export function BookingFlow({
+/**
+ * The host's actions, watched: when any answer says the business is paused
+ * (409 BUSINESS_PAUSED), the flow swaps itself for the paused notice. The
+ * answer itself is passed on unchanged.
+ */
+function watchPaused(
+  actions: BookingFlowActions,
+  onPaused: () => void
+): BookingFlowActions {
+  const watch =
+    <Args extends unknown[], T>(call: (...args: Args) => Promise<Outcome<T>>) =>
+    async (...args: Args) => {
+      const outcome = await call(...args);
+      if (!outcome.ok && outcome.code === "paused") {
+        onPaused();
+      }
+      return outcome;
+    };
+  return {
+    confirmEmailCode: watch(actions.confirmEmailCode),
+    loadSlots: watch(actions.loadSlots),
+    requestEmailCode: watch(actions.requestEmailCode),
+    submitBooking: watch(actions.submitBooking),
+  };
+}
+
+function BookingFlowBody({
   accountInvite,
   actions,
   bookAgain = [],
@@ -1008,6 +1113,12 @@ export function BookingFlow({
     service && knownDue !== null && totals
       ? payNowLine(knownDue, totals.priceMinor, storefront.currency)
       : null;
+  const businessDeposit = businessDepositFor(
+    storefront,
+    service,
+    addOns.ids.length
+  );
+  const ruleMoney = depositRuleFields(businessDeposit, knownDue);
   const tokenMissing = Boolean(turnstileSiteKey) && !token;
   const emailCode = useEmailCode({
     addOnIds: addOns.ids,
@@ -1371,20 +1482,27 @@ export function BookingFlow({
           )}
 
           <ServiceNotes
+            businessDeposit={businessDeposit}
             noPayment={knownDue === 0}
             payNow={payNow}
             service={service}
+            storefront={storefront}
           />
           <BookingRules
+            lateFee={storefront.late_fee}
             policy={storefront.booking_policy}
             rules={{
+              businessDepositMinor: ruleMoney.businessDepositMinor,
               businessName: storefront.display_name,
               currency: storefront.currency,
               cutoffHours: storefront.cancel_cutoff_hours,
               amountLoading: service !== null && knownDue === null && timesBusy,
               depositOnTotal:
-                service !== null && knownDue === null && !timesBusy,
-              dueMinor: knownDue ?? undefined,
+                service !== null &&
+                knownDue === null &&
+                !timesBusy &&
+                !businessDeposit,
+              dueMinor: ruleMoney.dueMinor,
               nonRefundable: storefront.deposit_non_refundable,
               ownDepositMinor: service?.deposit_minor,
               priceMinor: totals?.priceMinor,
@@ -1425,4 +1543,29 @@ export function BookingFlow({
       </form>
     </>
   );
+}
+
+/**
+ * The booking flow. If the API says the business is paused (409
+ * BUSINESS_PAUSED) from any step, the form is replaced by a calm notice with the
+ * business's contact links.
+ */
+export function BookingFlow(props: BookingFlowProps) {
+  const { actions: hostActions, storefront } = props;
+  const [paused, setPaused] = useState(false);
+  const actions = useMemo(
+    () => watchPaused(hostActions, () => setPaused(true)),
+    [hostActions]
+  );
+  if (paused) {
+    return (
+      <PausedNotice
+        businessName={storefront.display_name}
+        contact={storefront.contact}
+        Heading="h3"
+        swapped
+      />
+    );
+  }
+  return <BookingFlowBody {...props} actions={actions} />;
 }

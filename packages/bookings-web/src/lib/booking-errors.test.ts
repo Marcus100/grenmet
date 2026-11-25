@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { classifyFailure, detailOf, tellsToContact } from "./booking-errors";
+import {
+  classifyFailure,
+  codeOf,
+  detailOf,
+  PAUSED_MESSAGE,
+  tellsToContact,
+} from "./booking-errors";
 
 const SLOT = "That time is no longer available. Please choose another.";
 const CUTOFF =
@@ -121,5 +127,44 @@ describe("add-on refusals (422)", () => {
     expect(classifyFailure(422, "Something else", "create").code).toBe(
       "invalid"
     );
+  });
+
+  it("reads the API's code marker", () => {
+    expect(codeOf({ code: "BUSINESS_PAUSED", detail: "x" })).toBe(
+      "BUSINESS_PAUSED"
+    );
+    expect(codeOf({ detail: "x" })).toBeUndefined();
+    expect(codeOf(null)).toBeUndefined();
+    expect(codeOf({ code: 4 })).toBeUndefined();
+  });
+
+  it("classifies BUSINESS_PAUSED from every action, whatever the wording", () => {
+    const actions = [
+      "read",
+      "create",
+      "email-code",
+      "email-confirm",
+      "reschedule",
+    ] as const;
+    for (const action of actions) {
+      const failed = classifyFailure(
+        409,
+        "This business is not taking online bookings right now",
+        action,
+        "BUSINESS_PAUSED"
+      );
+      expect(failed.code).toBe("paused");
+      expect(failed.message).toBe(PAUSED_MESSAGE);
+      expect(tellsToContact(failed.message)).toBe(true);
+    }
+  });
+
+  it("does not treat another 409, or another status, as paused", () => {
+    expect(classifyFailure(409, SLOT, "create", "OTHER").code).toBe(
+      "slot_taken"
+    );
+    expect(
+      classifyFailure(500, undefined, "create", "BUSINESS_PAUSED").code
+    ).toBe("unavailable");
   });
 });
