@@ -6,6 +6,7 @@
 import * as z from "zod";
 import { bookingAddOnLineSchema } from "./bookingAddOnLineSchema.js";
 import { bookingBusinessContactSchema } from "./bookingBusinessContactSchema.js";
+import { bookingLateFeeSchema } from "./bookingLateFeeSchema.js";
 import { bookingPaymentSummarySchema } from "./bookingPaymentSummarySchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
 
@@ -45,6 +46,23 @@ export const bookingPublicDetailSchema = z
       .describe(
         "The business's plain-text booking policy, or null when it has none."
       ),
+    deposit_to_business_minor: z
+      .int()
+      .optional()
+      .default(0)
+      .describe(
+        "The deposit the customer pays the business by hand, outside Barrels (0 = none). Set when the booking was made."
+      ),
+    deposit_instructions: z
+      .union([z.string(), z.null()])
+      .optional()
+      .describe(
+        "How to pay that deposit (plain text); only set while `deposit_to_business_minor` is above 0."
+      ),
+    late_fee: z
+      .union([bookingLateFeeSchema, z.null()])
+      .optional()
+      .describe("The late-arrival fee rule, or null when none."),
     can_cancel: z
       .boolean()
       .describe(

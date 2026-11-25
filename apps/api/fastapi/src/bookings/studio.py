@@ -91,6 +91,7 @@ async def _detail(
         timezone=managed.profile.timezone,
         price_minor=booking.price_minor,
         deposit_minor=booking.deposit_minor,
+        deposit_to_business_minor=booking.deposit_to_business_minor,
         deposit_non_refundable=booking.deposit_non_refundable,
         payment_kind=deposit_payments.payment_kind(booking),
         balance_at_salon_minor=deposit_payments.balance_at_salon(

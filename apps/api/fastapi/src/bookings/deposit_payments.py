@@ -44,6 +44,7 @@ from src.payments.models import Intent, IntentStatus, ProviderKey
 from .config import bookings_settings
 from .models import (
     Booking,
+    BookingDepositCollection,
     BookingDepositMode,
     BookingPaymentMode,
     BookingProfile,
@@ -116,6 +117,22 @@ def planned_deposit(
     return rule_deposit(svc.price_minor if price_minor is None else price_minor, rule)
 
 
+def collected_by_business(profile: BookingProfile) -> bool:
+    """True when the customer pays the deposit to the business by hand (display
+    only): nothing is charged online and no payments entitlement is needed."""
+    return profile.deposit_collection == BookingDepositCollection.BUSINESS.value
+
+
+def deposit_to_business(
+    profile: BookingProfile, svc: Service, price_minor: int | None = None
+) -> int:
+    """The deposit shown to the customer in ``business`` collection: the service's
+    own deposit, else the business rule (with its minimum price). 0 in ``online``."""
+    if not collected_by_business(profile):
+        return 0
+    return planned_deposit(svc, deposit_rule_of(profile), price_minor)
+
+
 def balance_at_salon(price_minor: int, deposit_minor: int) -> int:
     """What is still to pay at the business once the deposit is paid. Clients show
     it only when the deposit state is ``paid``; while due or unpaid it is not owed yet."""
@@ -137,6 +154,8 @@ async def effective_deposit(
 ) -> int:
     """The deposit to collect for ``svc``: zero unless the organisation is
     entitled to ``payments`` (logged once per booking, never an error)."""
+    if collected_by_business(profile):
+        return 0
     amount = planned_deposit(svc, deposit_rule_of(profile), price_minor)
     if amount <= 0:
         return 0
@@ -162,6 +181,7 @@ def charges_full_price(profile: BookingProfile) -> bool:
     return (
         profile.payment_at_booking == BookingPaymentMode.FULL_PRICE.value
         and stripe_available()
+        and not collected_by_business(profile)
     )
 
 
@@ -196,6 +216,8 @@ async def amount_due(
     ``full_price`` charges the price only while Stripe is available and the
     organisation holds ``payments``; otherwise the service deposit or the business
     deposit rule applies. ``price_minor`` is the combined price with add-ons."""
+    if collected_by_business(profile):
+        return 0
     price = svc.price_minor if price_minor is None else price_minor
     full_price = charges_full_price(profile)
     if (
@@ -224,6 +246,8 @@ async def due_by_service(
     session: AsyncSession, profile: BookingProfile, services: list[Service]
 ) -> dict[object, int]:
     """``amount_due`` for a whole storefront, with one entitlement query."""
+    if collected_by_business(profile):
+        return {svc.id: 0 for svc in services}
     entitled = await organisation_service.is_app_enabled(
         session, organisation_id=profile.organisation_id, app_key="payments"
     )

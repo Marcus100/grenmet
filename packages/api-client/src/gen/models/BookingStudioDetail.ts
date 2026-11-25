@@ -54,6 +54,12 @@ export type BookingStudioDetail = {
   price_minor: number;
   deposit_minor: number;
   /**
+   * @description The deposit the customer was told to pay the business by hand, outside Barrels (0 = none).
+   * @default 0
+   * @type integer | undefined
+   */
+  deposit_to_business_minor?: number;
+  /**
    * @description This booking's deposit terms: true when a confirmed booking keeps its deposit on cancellation. Set when the booking was made; later profile changes do not change it.
    * @default false
    * @type boolean | undefined

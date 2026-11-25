@@ -13,6 +13,13 @@ export const bookingPublicServiceSchema = z.object({
   duration_min: z.int(),
   price_minor: z.int(),
   deposit_minor: z.int(),
+  deposit_to_business_minor: z
+    .int()
+    .optional()
+    .default(0)
+    .describe(
+      "With `deposit_collection` `business`: the deposit the customer pays the business by hand for this service (0 = none). Always 0 otherwise."
+    ),
   due_at_booking_minor: z
     .int()
     .optional()

@@ -5,6 +5,7 @@
 
 import type { BookingAddOnLine } from "./BookingAddOnLine.js";
 import type { BookingBusinessContact } from "./BookingBusinessContact.js";
+import type { BookingLateFee } from "./BookingLateFee.js";
 import type { BookingPaymentSummary } from "./BookingPaymentSummary.js";
 import type { BookingStatus } from "./BookingStatus.js";
 
@@ -68,6 +69,20 @@ export type BookingPublicDetail = {
    * @description The business's plain-text booking policy, or null when it has none.
    */
   booking_policy?: string | null;
+  /**
+   * @description The deposit the customer pays the business by hand, outside Barrels (0 = none). Set when the booking was made.
+   * @default 0
+   * @type integer | undefined
+   */
+  deposit_to_business_minor?: number;
+  /**
+   * @description How to pay that deposit (plain text); only set while `deposit_to_business_minor` is above 0.
+   */
+  deposit_instructions?: string | null;
+  /**
+   * @description The late-arrival fee rule, or null when none.
+   */
+  late_fee?: BookingLateFee | null;
   /**
    * @description True while the booking is active and before the cancellation cutoff.
    * @type boolean

@@ -59,6 +59,7 @@ from .models import (
 from .schemas import (
     BookingClosureCreate,
     BookingExceptionCreate,
+    BookingLateFee,
     BookingProfileUpdate,
     BookingProviderCreate,
     BookingProviderUpdate,
@@ -111,6 +112,10 @@ KEPT_UNLESS_NAMED = CONTACT_FIELDS | {
     "deposit_min_price_minor",
     "deposit_non_refundable",
     "booking_policy",
+    "deposit_collection",
+    "deposit_instructions",
+    "late_fee_minor",
+    "late_grace_min",
     "brand_color",
     "logo_file_id",
     "cover_file_id",
@@ -757,6 +762,15 @@ async def require_bookings_entitlement(
         raise BookingNotFoundError(what) from error
 
 
+def late_fee_of(profile: BookingProfile) -> BookingLateFee | None:
+    """The profile's late-arrival rule; grace is 0 when only the fee is set."""
+    if not profile.late_fee_minor:
+        return None
+    return BookingLateFee(
+        amount_minor=profile.late_fee_minor, grace_min=profile.late_grace_min or 0
+    )
+
+
 def business_contact(profile: BookingProfile) -> dict[str, str | None]:
     """The profile's contact options as the public pages show them."""
     return {
@@ -871,6 +885,9 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
         "cancel_cutoff_hours": profile.cancel_cutoff_hours,
         "deposit_non_refundable": profile.deposit_non_refundable,
         "booking_policy": profile.booking_policy,
+        "deposit_collection": profile.deposit_collection,
+        "deposit_instructions": profile.deposit_instructions,
+        "late_fee": late_fee_of(profile),
         "contact": business_contact(profile),
         "brand_color": profile.brand_color,
         "logo_url": await _public_logo_url(session, profile),
@@ -882,6 +899,9 @@ async def storefront(session: AsyncSession, profile: BookingProfile) -> dict[str
                     svc, from_attributes=True
                 ).model_dump(),
                 "due_at_booking_minor": due[svc.id],
+                "deposit_to_business_minor": deposit_payments.deposit_to_business(
+                    profile, svc
+                ),
             }
             for svc in services
         ],

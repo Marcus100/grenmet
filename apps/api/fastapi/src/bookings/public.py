@@ -341,6 +341,13 @@ def detail(managed: Managed, now: datetime) -> BookingPublicDetail:
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
         deposit_non_refundable=booking.deposit_non_refundable,
         booking_policy=profile.booking_policy,
+        deposit_to_business_minor=booking.deposit_to_business_minor,
+        deposit_instructions=(
+            profile.deposit_instructions
+            if booking.deposit_to_business_minor > 0
+            else None
+        ),
+        late_fee=service.late_fee_of(profile),
         can_cancel=_can_cancel(booking, profile, now),
         contact=BookingBusinessContact(**service.business_contact(profile)),
         account_invite_url=account_invite_for(profile, managed.contact),
@@ -381,6 +388,9 @@ def decoy_receipt(
             cancel_cutoff_hours=profile.cancel_cutoff_hours,
             deposit_non_refundable=profile.deposit_non_refundable,
             booking_policy=profile.booking_policy,
+            deposit_to_business_minor=0,
+            deposit_instructions=None,
+            late_fee=service.late_fee_of(profile),
             can_cancel=False,
             contact=BookingBusinessContact(**service.business_contact(profile)),
             account_invite_url=account_signup_url(profile.public_slug),
@@ -440,6 +450,11 @@ def build_mail(managed: Managed, token: str | None = None) -> emails.BookingEmai
         cancel_cutoff_hours=profile.cancel_cutoff_hours,
         booking_policy=profile.booking_policy,
         deposit_non_refundable=managed.booking.deposit_non_refundable,
+        deposit_to_business_minor=managed.booking.deposit_to_business_minor,
+        deposit_instructions=profile.deposit_instructions,
+        late_fee_minor=profile.late_fee_minor,
+        late_grace_min=profile.late_grace_min or 0,
+        currency=managed.booking.currency,
         booking_confirmed=managed.booking.status == BookingStatus.CONFIRMED.value,
         business_email=profile.contact_email,
         business_phone=profile.contact_phone,
@@ -603,6 +618,8 @@ class PricedBooking:
     add_ons: list[Service]
     price_minor: int
     due_minor: int
+    #: Display only: the deposit paid to the business by hand (``business`` mode).
+    to_business_minor: int = 0
 
     @property
     def email_code_required(self) -> bool:
@@ -632,7 +649,13 @@ async def price_booking(
     due = await deposit_payments.amount_due(
         session, profile, svc, price_minor=price_minor
     )
-    return PricedBooking(svc, chosen, price_minor, due)
+    return PricedBooking(
+        svc,
+        chosen,
+        price_minor,
+        due,
+        deposit_payments.deposit_to_business(profile, svc, price_minor),
+    )
 
 
 def _binding(
@@ -711,6 +734,7 @@ async def create_booking(
         add_on_ids=payload.add_on_ids,
     )
     svc, chosen, deposit = priced.service, priced.add_ons, priced.due_minor
+    to_business = priced.to_business_minor
     use = email_code.ProofUse(None)
     if deposit > 0:
         email = str(payload.customer_email)
@@ -723,7 +747,15 @@ async def create_booking(
         )
     try:
         return await _create_booking(
-            session, profile, payload, svc, deposit, chosen, payer=payer, now=now
+            session,
+            profile,
+            payload,
+            svc,
+            deposit,
+            chosen,
+            payer=payer,
+            now=now,
+            to_business=to_business,
         )
     except BaseException:
         # The proof is single use, but a booking that never happened must not burn it.
@@ -785,6 +817,7 @@ async def _create_booking(
     *,
     payer: User | None,
     now: datetime | None,
+    to_business: int = 0,
 ) -> tuple[int, dict[str, Any]]:
     moment = now or utc_now()
     starts_at = service.as_naive_utc(payload.starts_at)
@@ -845,6 +878,7 @@ async def _create_booking(
             source=BookingSource.ONLINE.value,
             price_minor=price_minor,
             deposit_minor=deposit,
+            deposit_to_business_minor=to_business,
             deposit_non_refundable=profile.deposit_non_refundable,
             currency=profile.currency,
             notes=payload.notes.strip() if payload.notes else None,

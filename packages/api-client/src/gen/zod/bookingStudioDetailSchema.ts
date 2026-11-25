@@ -26,6 +26,13 @@ export const bookingStudioDetailSchema = z
     timezone: z.string(),
     price_minor: z.int(),
     deposit_minor: z.int(),
+    deposit_to_business_minor: z
+      .int()
+      .optional()
+      .default(0)
+      .describe(
+        "The deposit the customer was told to pay the business by hand, outside Barrels (0 = none)."
+      ),
     deposit_non_refundable: z
       .boolean()
       .optional()
