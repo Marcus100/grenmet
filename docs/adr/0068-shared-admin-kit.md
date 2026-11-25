@@ -111,7 +111,7 @@ Option 3.
       change (run `gaa-admin-change` first).
 
    Each move is its own pull request.
-5. **The standard is `docs/design/admin-kit.md`.** A lane spec for an admin app
+5. **The standard is `docs/web/admin-kit.md`.** A lane spec for an admin app
    names its preset, navigation and any extra blocks, and does not redefine the
    shell.
 

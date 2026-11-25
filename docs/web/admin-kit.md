@@ -1,10 +1,7 @@
----
-version: alpha
-name: Barrels admin kit
-description: The one shell and page blocks every admin dashboard uses (ADR-0068). Layout from the GMS staff portal; colours come from each app.
----
-
 # Admin kit (`@barrelsgd/admin-kit`)
+
+The one shell and page blocks every admin dashboard uses. Layout from the GMS
+staff portal; colours come from each app's own lane spec in `docs/design/`.
 
 Every admin dashboard is built from this kit:
 
