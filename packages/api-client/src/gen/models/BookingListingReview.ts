@@ -16,4 +16,5 @@ export type BookingListingReview = {
   listing_approved_by_user_id: string | null;
   self_created: boolean;
   owner_left_at: string | null;
+  sender_name_flagged_at?: string | null;
 };
