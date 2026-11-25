@@ -152,10 +152,12 @@ pushes and deployment runs always run every suite. The gate jobs (`CI Success`,
 `Run Tests`, `Build Web Apps`) accept a skip only when the selection says the
 suite was not needed.
 
-- **API (`ci-api.yml`).** `test-shard` is a matrix of four jobs, each with its own
-  Postgres service: `shard 1/3`, `2/3`, `3/3` and `fuzz`. Shards use
+- **API (`ci-api.yml`).** `test-shard` is a matrix of five jobs, each with its own
+  Postgres service: `shard 1/4` to `4/4` and `fuzz`. Shards use
   `pytest --shard i/n` (`tests/conftest.py`, `tests/sharding.py`), which keeps
-  whole files together and balances by test count (577 / 577 / 576 tests). The
+  whole files together and balances by measured seconds per file
+  (`tests/shard_durations.json`; refresh it from a green dev run's JUnit reports
+  with `python -m tests.sharding <pytest.xml>...`). The
   Schemathesis suite (`tests/test_api_fuzz.py`, marked `fuzz`) is deselected by
   `addopts = "-m 'not fuzz'"` in `pyproject.toml`; the fuzz job passes `-m fuzz`
   and the shards pass `-m 'not fuzz'`. The migration smoke steps (database
@@ -166,13 +168,13 @@ suite was not needed.
   package (`--filter='!@barrelsgd/web-gaa-admin'`).
 - **Required checks.** The names `Run Tests` (an aggregate job with id `test`),
   `TypeScript Tests`, `Build Web Apps` and `CI Success` are unchanged. `Run Tests`
-  now only passes when all four `test-shard` jobs and `coverage` pass, so
+  now only passes when all five `test-shard` jobs and `coverage` pass, so
   `ci-success` and any branch-protection rule that names `Run Tests` keep
-  resolving. The new per-shard names (`API Tests (shard 1/3)` ..., `API Tests (fuzz)`,
+  resolving. The new per-shard names (`API Tests (shard 1/4)` ..., `API Tests (fuzz)`,
   `API Coverage Floor`, `gaa-admin Tests (shard i/3)`) are aggregated by those jobs and
   need not be added to branch protection; `build` lists `gaa-admin-tests` in its
   `needs`.
-- **Locally.** `pytest --shard 2/3` reproduces a CI slice. The fuzz suite is skipped
+- **Locally.** `pytest --shard 2/4` reproduces a CI slice. The fuzz suite is skipped
   by default: run it with `pytest -m fuzz`, or run everything with
   `pnpm verify:changed --full`. `pnpm verify:backend -m fuzz` runs only fuzz.
 
