@@ -76,6 +76,20 @@ describe("studioNavigation", () => {
     expect(agenda(null)).not.toHaveProperty("badge");
   });
 
+  it("keeps Agenda current on a booking's detail page", () => {
+    const nav = studioNavigation(OWNER);
+    expect([
+      ...getActiveIds(nav, "/studio/sea-salt/bookings/22222222-2222"),
+    ]).toEqual(["agenda"]);
+  });
+
+  it("keeps Agenda current on a booking page for a member too", () => {
+    const nav = studioNavigation({ ...OWNER, canManage: false });
+    expect([...getActiveIds(nav, "/studio/sea-salt/bookings/abc")]).toEqual([
+      "agenda",
+    ]);
+  });
+
   it.each([
     ["/studio/sea-salt/agenda", "agenda"],
     ["/studio/sea-salt/bookings/new", "new-booking"],

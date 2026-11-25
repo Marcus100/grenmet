@@ -48,6 +48,9 @@ export function studioNavigation({
           title: "Agenda",
           url: `${base}/agenda`,
           icon: <CalendarDays />,
+          // A booking's detail page belongs to Agenda; New booking's own URL
+          // outranks this prefix, so it stays current on /bookings/new.
+          activePrefixes: [`${base}/bookings/`],
           tab: true,
           ...(pendingCount
             ? {
