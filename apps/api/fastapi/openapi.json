@@ -10816,7 +10816,7 @@
           "bookings"
         ],
         "summary": "Create or update my booking profile",
-        "description": "Set the public booking address, timezone, currency and booking rules. Online booking stays off until `enabled` is true. `brand_color` and `logo_file_id` set the accent and logo used in the business's emails.",
+        "description": "Set the public booking address, timezone, currency and booking rules. Online booking stays off until `enabled` is true; a business that signed itself up gets 409 `SETUP_INCOMPLETE` until its setup checklist is done. `brand_color` and `logo_file_id` set the accent and logo used in the business's emails.",
         "operationId": "bookingsUpsertProfile",
         "security": [
           {
@@ -10916,6 +10916,106 @@
           },
           "409": {
             "description": "Request conflicts with current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookings/org/setup-checklist": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Get my setup checklist",
+        "description": "What the business still needs before it can open online booking (ADR-0066): `services` (an active service), `hours` (an active provider with working hours who offers an active service) and `contact` (a phone, WhatsApp, Instagram or email) are required; `branding` (a logo or colour) is optional. A business that signed itself up cannot set `enabled` until `missing` is empty: `PUT /org/profile` answers 409 `SETUP_INCOMPLETE` with `missing`.",
+        "operationId": "bookingsGetSetupChecklist",
+        "security": [
+          {
+            "OrganisationApiKey": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Barrels-Organisation",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key.",
+              "title": "X-Barrels-Organisation"
+            },
+            "description": "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingSetupChecklist"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -82248,6 +82348,74 @@
         ],
         "title": "BookingSettings",
         "description": "Everything the settings screen renders, in one call."
+      },
+      "BookingSetupChecklist": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BookingSetupItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "missing": {
+            "items": {
+              "$ref": "#/components/schemas/BookingSetupItemKey"
+            },
+            "type": "array",
+            "title": "Missing"
+          },
+          "ready": {
+            "type": "boolean",
+            "title": "Ready"
+          },
+          "live": {
+            "type": "boolean",
+            "title": "Live"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "missing",
+          "ready",
+          "live"
+        ],
+        "title": "BookingSetupChecklist",
+        "description": "What a business still needs before it can open online booking."
+      },
+      "BookingSetupItem": {
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/BookingSetupItemKey"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "done",
+          "required"
+        ],
+        "title": "BookingSetupItem",
+        "description": "One checklist item. ``services``: at least one active service. ``hours``: an\nactive provider with working hours who offers an active service. ``contact``: a\nphone, WhatsApp, Instagram or email. ``branding``: a logo or colour (optional)."
+      },
+      "BookingSetupItemKey": {
+        "type": "string",
+        "enum": [
+          "services",
+          "hours",
+          "contact",
+          "branding"
+        ],
+        "title": "BookingSetupItemKey"
       },
       "BookingSignupCreate": {
         "properties": {

@@ -1311,6 +1311,10 @@ export type { BookingServiceCreate } from "./BookingServiceCreate.js";
 export type { BookingServicePublic } from "./BookingServicePublic.js";
 export type { BookingServiceUpdate } from "./BookingServiceUpdate.js";
 export type { BookingSettings } from "./BookingSettings.js";
+export type { BookingSetupChecklist } from "./BookingSetupChecklist.js";
+export type { BookingSetupItem } from "./BookingSetupItem.js";
+export type { BookingSetupItemKey } from "./BookingSetupItemKey.js";
+export { bookingSetupItemKey } from "./BookingSetupItemKey.js";
 export type { BookingSignupCreate } from "./BookingSignupCreate.js";
 export type { BookingSignupCreatePropertiesTemplateAnyOfEnum } from "./BookingSignupCreatePropertiesTemplateAnyOfEnum.js";
 export { bookingSignupCreatePropertiesTemplateAnyOfEnum } from "./BookingSignupCreatePropertiesTemplateAnyOfEnum.js";
@@ -1677,6 +1681,18 @@ export type {
   BookingsGetSettingsStatus404,
   BookingsGetSettingsStatus422,
 } from "./BookingsGetSettings.js";
+export type {
+  BookingsGetSetupChecklistHeaders,
+  BookingsGetSetupChecklistOptions,
+  BookingsGetSetupChecklistResponse,
+  BookingsGetSetupChecklistResponses,
+  BookingsGetSetupChecklistStatus200,
+  BookingsGetSetupChecklistStatus400,
+  BookingsGetSetupChecklistStatus401,
+  BookingsGetSetupChecklistStatus403,
+  BookingsGetSetupChecklistStatus404,
+  BookingsGetSetupChecklistStatus422,
+} from "./BookingsGetSetupChecklist.js";
 export type {
   BookingsGetStorefrontOptions,
   BookingsGetStorefrontPath,

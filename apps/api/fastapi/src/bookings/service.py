@@ -34,7 +34,7 @@ from src.storage.public_url import public_file_url
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_to_utc, zone
 
-from . import add_ons, availability, deposit_payments
+from . import add_ons, availability, deposit_payments, go_live
 from .exceptions import (
     BookingConflictError,
     BookingNotFoundError,
@@ -148,6 +148,7 @@ async def upsert_profile(
         },
     )
     _require_deposit_rule(profile, values)
+    was_enabled = profile is not None and profile.enabled
     if "logo_file_id" in values:
         # JSON gives a string; the column takes the UUID the request validated.
         values["logo_file_id"] = payload.logo_file_id
@@ -165,6 +166,12 @@ async def upsert_profile(
     else:
         for key, value in values.items():
             setattr(profile, key, value)
+    await go_live.require_ready_to_open(
+        session,
+        organisation_id=organisation_id,
+        profile=profile,
+        was_enabled=was_enabled,
+    )
     await session.flush()
     return profile
 

@@ -46,6 +46,7 @@ from src.utils.datetime import utc_now
 from . import (
     calendar_feed,
     deposit_payments,
+    go_live,
     listing_review,
     public,
     service,
@@ -91,6 +92,7 @@ from .schemas import (
     BookingServiceCreate,
     BookingServicePublic,
     BookingServiceUpdate,
+    BookingSetupChecklist,
     BookingSignupCreate,
     BookingSignupReceipt,
     BookingSlot,
@@ -401,13 +403,34 @@ async def get_profile(*, session: SessionDep, org: BookingsOrgRead) -> Any:
     return await service.get_profile(session, org.organisation_id)
 
 
+@router.get(
+    "/org/setup-checklist",
+    response_model=BookingSetupChecklist,
+    summary="Get my setup checklist",
+    description=(
+        "What the business still needs before it can open online booking (ADR-0066): "
+        "`services` (an active service), `hours` (an active provider with working "
+        "hours who offers an active service) and `contact` (a phone, WhatsApp, "
+        "Instagram or email) are required; `branding` (a logo or colour) is optional. "
+        "A business that signed itself up cannot set `enabled` until `missing` is "
+        "empty: `PUT /org/profile` answers 409 `SETUP_INCOMPLETE` with `missing`."
+    ),
+    operation_id="bookingsGetSetupChecklist",
+    responses=READ_ERRORS,
+)
+async def get_setup_checklist(*, session: SessionDep, org: BookingsOrgRead) -> Any:
+    return await go_live.checklist(session, org.organisation_id)
+
+
 @router.put(
     "/org/profile",
     response_model=BookingProfilePublic,
     summary="Create or update my booking profile",
     description=(
         "Set the public booking address, timezone, currency and booking rules. "
-        "Online booking stays off until `enabled` is true. `brand_color` and "
+        "Online booking stays off until `enabled` is true; a business that signed "
+        "itself up gets 409 `SETUP_INCOMPLETE` until its setup checklist is done. "
+        "`brand_color` and "
         "`logo_file_id` set the accent and logo used in the business's emails."
     ),
     operation_id="bookingsUpsertProfile",
