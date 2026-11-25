@@ -247,6 +247,55 @@
 .service-price {
   font-weight: 600;
 }
+/* "New clients" tag: words and an outline, never colour alone. */
+.service-badge {
+  display: inline-block;
+  padding: 0 0.5rem;
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  vertical-align: 0.1em;
+  white-space: nowrap;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+}
+/* A deposit paid to the business by hand: the business's own text, line breaks kept. */
+.deposit-business {
+  display: grid;
+  gap: 0.5rem;
+}
+.deposit-business > * + * {
+  margin-top: 0;
+}
+.deposit-amount {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+.deposit-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.deposit-instructions {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.deposit-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.deposit-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.paused-notice h2,
+.paused-notice h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
 .slots {
   display: grid;
   gap: 0.875rem;
@@ -866,4 +915,8 @@ fieldset.notice {
   .book-done .notice-ok h2 {
     animation: book-fade-in 150ms linear both;
   }
+}
+/* The summary list keeps its gap under a rule line (late fee) inside a notice. */
+.notice > .summary {
+  margin-top: 0.75rem;
 }

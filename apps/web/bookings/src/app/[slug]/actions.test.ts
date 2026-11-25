@@ -479,3 +479,41 @@ describe("untyped browser input", () => {
     });
   });
 });
+
+describe("a paused business", () => {
+  function paused() {
+    return new ResponseError({
+      data: {
+        detail: "This business is not taking online bookings right now",
+        code: "BUSINESS_PAUSED",
+      },
+      status: 409,
+      statusText: "",
+      request: new Request("http://api.test/x"),
+      response: new Response(null, { status: 409 }),
+    });
+  }
+  const DAY = "2027-01-05";
+
+  it("is told apart from other conflicts on availability, email-code and create", async () => {
+    vi.mocked(getAvailability).mockRejectedValue(paused());
+    vi.mocked(requestCode).mockRejectedValue(paused());
+    vi.mocked(createBooking).mockRejectedValue(paused());
+    expect(await loadSlots(SLUG, input.serviceId, DAY)).toMatchObject({
+      ok: false,
+      code: "paused",
+    });
+    expect(
+      await requestEmailCode(SLUG, {
+        email: input.email,
+        serviceId: input.serviceId,
+        startsAt: input.startsAt,
+        turnstileToken: "",
+      })
+    ).toMatchObject({ ok: false, code: "paused" });
+    expect(await submitBooking(SLUG, input)).toMatchObject({
+      ok: false,
+      code: "paused",
+    });
+  });
+});

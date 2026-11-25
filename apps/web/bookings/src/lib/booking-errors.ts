@@ -5,6 +5,7 @@ import { ResponseError } from "@barrelsgd/api-client";
 import {
   type BookingAction,
   classifyFailure,
+  codeOf,
   detailOf,
   type Failure,
 } from "@barrelsgd/bookings-web/lib/booking-errors";
@@ -16,7 +17,12 @@ import {
  */
 export function failureFrom(error: unknown, action: BookingAction): Failure {
   if (error instanceof ResponseError) {
-    return classifyFailure(error.status, detailOf(error.data), action);
+    return classifyFailure(
+      error.status,
+      detailOf(error.data),
+      action,
+      codeOf(error.data)
+    );
   }
   throw error;
 }

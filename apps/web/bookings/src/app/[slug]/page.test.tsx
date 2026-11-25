@@ -29,6 +29,7 @@ const SERVICE_ID = "5d6c0a52-7c12-4c53-9e0f-9d8f2b2f6c10";
 const QUESTIONS = /Questions\? Contact us/u;
 const INSTAGRAM = /Instagram @seasaltspa/u;
 const DEPOSIT = /deposit/iu;
+const NOT_OPEN = /Online booking is not open/u;
 const DEEP_TISSUE = /Deep tissue massage/u;
 
 const storefront: BookingStorefront = {
@@ -329,5 +330,47 @@ describe("?service= link", () => {
   ])("ignores %s", async (_label, query) => {
     await renderWith(query);
     expect(screen.getByRole("radio", { name: DEEP_TISSUE })).not.toBeChecked();
+  });
+});
+
+describe("/[slug] while the business is paused", () => {
+  const pausedStorefront: BookingStorefront = {
+    ...storefront,
+    accepting_bookings: false,
+    services: [],
+    providers: [],
+    contact: {
+      phone: "+14735551234",
+      whatsapp: null,
+      instagram: "seasaltspa",
+      email: null,
+    },
+  };
+
+  it("shows a calm notice with the contact links and no booking form", async () => {
+    vi.mocked(getStorefront).mockResolvedValue(pausedStorefront);
+    render(await BusinessBookingPage(params("sea-salt-spa")));
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Sea Salt Spa"
+    );
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "Sea Salt Spa is not taking online bookings right now",
+      })
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: INSTAGRAM })).toBeVisible();
+    expect(screen.queryByRole("form")).toBeNull();
+    expect(screen.queryByRole("link", { name: "Book now" })).toBeNull();
+    expect(screen.queryByText(NOT_OPEN)).toBeNull();
+    // The contact options appear once, in the notice.
+    expect(screen.queryByText(QUESTIONS)).toBeNull();
+    expect(screen.getAllByRole("link", { name: INSTAGRAM })).toHaveLength(1);
+  });
+
+  it("still opens for a business that does not send the field", async () => {
+    vi.mocked(getStorefront).mockResolvedValue(storefront);
+    render(await BusinessBookingPage(params("sea-salt-spa")));
+    expect(screen.getByRole("form")).toBeVisible();
   });
 });

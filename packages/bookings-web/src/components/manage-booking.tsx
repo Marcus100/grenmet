@@ -4,17 +4,23 @@ import type { BookingPublicDetail } from "@barrelsgd/api-client";
 import { useState } from "react";
 import { type Outcome, tellsToContact } from "../lib/booking-errors";
 import {
+  businessDepositWhileOpen,
+  lateFeeWhileActive,
+} from "../lib/booking-extras";
+import {
   formatDateTime,
   formatHours,
   formatMoney,
 } from "../lib/booking-format";
 import { paymentReceivedHeld } from "../lib/booking-payment";
-import { holdEndsLine } from "../lib/booking-policy";
+import { type BookingRulesInput, holdEndsLine } from "../lib/booking-policy";
 import type { ManageBookingActions, SlotList } from "../lib/booking-types";
 import { contactEnding } from "../lib/business-contact";
 import { BookedAddOns } from "./add-on-step";
+import { BookedExtras } from "./booking-extras";
 import { BookingRules } from "./booking-policy-text";
 import { ContactLinks } from "./business-contact";
+
 import { PaymentStatus } from "./payment-status";
 import { SlotPicker } from "./slot-picker";
 
@@ -46,6 +52,20 @@ const REASON_MAX = 300;
 
 const CANCELLED_NOTICE =
   "Your booking is cancelled. We have emailed you a confirmation and told the business.";
+
+/** The rules line's inputs: the booking's own snapshot of what was set when it was made. */
+function manageRules(booking: BookingPublicDetail): BookingRulesInput {
+  return {
+    bookingStatus: booking.status,
+    businessDepositMinor: businessDepositWhileOpen(booking),
+    businessName: booking.business_name,
+    currency: booking.currency,
+    cutoffHours: booking.cancel_cutoff_hours,
+    dueMinor: booking.deposit_minor,
+    nonRefundable: booking.deposit_non_refundable === true,
+    priceMinor: booking.price_minor,
+  };
+}
 
 type Mode = "view" | "reschedule" | "confirm-cancel";
 
@@ -138,18 +158,15 @@ export function ManageBooking({
       {booking.status === "pending_payment" && booking.hold_ends_at ? (
         <p>{holdEndsLine(booking.hold_ends_at, booking.timezone)}</p>
       ) : null}
+      <BookedExtras
+        booking={booking}
+        currency={booking.currency}
+        withNewClients={active}
+      />
       <BookingRules
+        lateFee={lateFeeWhileActive(booking)}
         policy={booking.booking_policy}
-        rules={{
-          bookingStatus: booking.status,
-          businessName: booking.business_name,
-          currency: booking.currency,
-          cutoffHours: booking.cancel_cutoff_hours,
-          // The booking's own snapshot: what was set when it was made.
-          dueMinor: booking.deposit_minor,
-          nonRefundable: booking.deposit_non_refundable === true,
-          priceMinor: booking.price_minor,
-        }}
+        rules={manageRules(booking)}
         showRules={editable}
       />
 
