@@ -24,8 +24,9 @@ Barrels products or kept for the airport authority, and the price of each.
   - The platform already has organisation tenancy with per-app entitlements and
     organisation-bound permission keys (`src/organisations/dependencies.py`
     `require_org_permission`, `entitlements.py` `PRODUCTS`,
-    `role_bundles.py`; ADR-0022, ADR-0044). Bookings, Events and Printix use it.
-    High confidence.
+    `role_bundles.py`; ADR-0022, ADR-0044). Events and Payments routes use
+    `require_org_permission` with Events role bundles; Bookings, Contacts and
+    Payments are entitlement keys in `PRODUCTS`. High confidence.
   - The platform outbox delivers messages between domains, at least once, in
     the sender's transaction (`src/outbox.py`, ADR-0026; handlers in
     `src/bookings/outbox_handlers.py`). High.

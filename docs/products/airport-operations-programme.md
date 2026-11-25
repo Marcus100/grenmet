@@ -38,7 +38,7 @@ airport authority is simply the first organisation switched on.
 - **Plain names.** "Corrective actions", never "CAP" (CAP here is the public
   weather-alert format). "Environmental management", not "environmental"
   (that domain holds forecast data).
-- **Local rules.** Build to ICAO and Eastern Caribbean requirements, not to any
+- **Local rules.** Build to International Civil Aviation Organization (ICAO) and Eastern Caribbean requirements, not to any
   one country's reporting feeds.
 
 ## Coverage map
@@ -55,7 +55,7 @@ airport authority is simply the first organisation switched on.
 | Contact groups | `contacts` (no groups) | extend `contacts`, phase 3 | — |
 | Alerts and notifications with replies and text messages | `notifications` (bell, email), `push` | extend, phase 3 | GAA-14 |
 | Bulk email to contact groups | `subscriptions`, newsletter | extend, phase 3 | — |
-| Operations status board | `gmsdash` (weather only) | `statusboard`, phase 3 | GAA-13 |
+| Operations status board | `gmsdash` web app (weather only) | `statusboard`, phase 3 | GAA-13 |
 | Security passes, visitor passes, airside vehicle and driver permits | nothing | `passes`, phase 4 | GAA-15 |
 | Parking permits for non-staff | `hr/parking` (staff) | extend, phase 4 | GAA-04 |
 | Training matrix by position, read-and-sign | `hr/training` | extend, phase 4 | GAA-11 |
@@ -64,7 +64,7 @@ airport authority is simply the first organisation switched on.
 | Lost and found, passenger feedback, noise complaints, assistance requests, camera footage requests, prior-permission requests, surveys | `feedback` (page votes only) | `requests`, phase 5 | GAA-16, GAA-18 |
 | Purchase orders | `stores` requisitions | extend, phase 5 | GAA-07, GAA-08 |
 | Tenant leases, insurance expiry | nothing | `tenancies`, phase 6 | GAA-16 |
-| NOTAM requests | nothing | phase 6 | — |
+| NOTAM requests (notices to airmen) | nothing | phase 6 | — |
 | Wildlife observations and strikes | nothing | phase 6 | GAA-12 |
 | Runway condition reports (ICAO Global Reporting Format) | nothing | phase 6 | — |
 | Flight information display | `flights` (experimental) | continue under MBIA | — |
@@ -107,7 +107,7 @@ One record per significant occurrence, from first report to manager review.
   at the time (from Met Service observations, a Grenmet advantage).
 - Start a work order or a safety case from the incident; link several
   incidents to one case.
-- Public report form (no sign-in, Turnstile) and QR codes. Exercises use the
+- Public report form (no sign-in, protected by the Cloudflare Turnstile bot check) and QR codes. Exercises use the
   same forms.
 - **Acceptance:** every action in an emergency response is in one timeline
   with its time and author; nothing can change after closing without a reopen
