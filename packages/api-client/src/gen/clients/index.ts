@@ -112,6 +112,7 @@ export { bookingsConfirmStudioBooking } from "./bookingsConfirmStudioBooking.js"
 export { bookingsCreateCalendarFeed } from "./bookingsCreateCalendarFeed.js";
 export { bookingsCreateClosure } from "./bookingsCreateClosure.js";
 export { bookingsCreateException } from "./bookingsCreateException.js";
+export { bookingsCreateMyOrganisation } from "./bookingsCreateMyOrganisation.js";
 export { bookingsCreateProvider } from "./bookingsCreateProvider.js";
 export { bookingsCreatePublicBooking } from "./bookingsCreatePublicBooking.js";
 export { bookingsCreateService } from "./bookingsCreateService.js";
@@ -132,6 +133,7 @@ export { bookingsGetSettings } from "./bookingsGetSettings.js";
 export { bookingsGetStorefront } from "./bookingsGetStorefront.js";
 export { bookingsGetStudioBooking } from "./bookingsGetStudioBooking.js";
 export { bookingsGetWorkingHours } from "./bookingsGetWorkingHours.js";
+export { bookingsListBusinessTemplates } from "./bookingsListBusinessTemplates.js";
 export { bookingsListClosures } from "./bookingsListClosures.js";
 export { bookingsListExceptions } from "./bookingsListExceptions.js";
 export { bookingsListMyBookings } from "./bookingsListMyBookings.js";

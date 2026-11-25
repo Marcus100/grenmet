@@ -1308,9 +1308,15 @@ export type { BookingServiceCreate } from "./BookingServiceCreate.js";
 export type { BookingServicePublic } from "./BookingServicePublic.js";
 export type { BookingServiceUpdate } from "./BookingServiceUpdate.js";
 export type { BookingSettings } from "./BookingSettings.js";
+export type { BookingSignupCreate } from "./BookingSignupCreate.js";
+export type { BookingSignupCreatePropertiesTemplateAnyOfEnum } from "./BookingSignupCreatePropertiesTemplateAnyOfEnum.js";
+export { bookingSignupCreatePropertiesTemplateAnyOfEnum } from "./BookingSignupCreatePropertiesTemplateAnyOfEnum.js";
+export type { BookingSignupReceipt } from "./BookingSignupReceipt.js";
 export type { BookingSlot } from "./BookingSlot.js";
 export type { BookingSource } from "./BookingSource.js";
 export { bookingSource } from "./BookingSource.js";
+export type { BookingStarterTemplate } from "./BookingStarterTemplate.js";
+export type { BookingStarterTemplateService } from "./BookingStarterTemplateService.js";
 export type { BookingStatus } from "./BookingStatus.js";
 export { bookingStatus } from "./BookingStatus.js";
 export type { BookingStorefront } from "./BookingStorefront.js";
@@ -1442,6 +1448,21 @@ export type {
   BookingsCreateExceptionStatus409,
   BookingsCreateExceptionStatus422,
 } from "./BookingsCreateException.js";
+export type {
+  BookingsCreateMyOrganisationBody,
+  BookingsCreateMyOrganisationHeaders,
+  BookingsCreateMyOrganisationOptions,
+  BookingsCreateMyOrganisationResponse,
+  BookingsCreateMyOrganisationResponses,
+  BookingsCreateMyOrganisationStatus201,
+  BookingsCreateMyOrganisationStatus400,
+  BookingsCreateMyOrganisationStatus401,
+  BookingsCreateMyOrganisationStatus403,
+  BookingsCreateMyOrganisationStatus404,
+  BookingsCreateMyOrganisationStatus409,
+  BookingsCreateMyOrganisationStatus422,
+  BookingsCreateMyOrganisationStatus429,
+} from "./BookingsCreateMyOrganisation.js";
 export type {
   BookingsCreateProviderBody,
   BookingsCreateProviderHeaders,
@@ -1688,6 +1709,15 @@ export type {
   BookingsGetWorkingHoursStatus404,
   BookingsGetWorkingHoursStatus422,
 } from "./BookingsGetWorkingHours.js";
+export type {
+  BookingsListBusinessTemplatesOptions,
+  BookingsListBusinessTemplatesResponse,
+  BookingsListBusinessTemplatesResponses,
+  BookingsListBusinessTemplatesStatus200,
+  BookingsListBusinessTemplatesStatus401,
+  BookingsListBusinessTemplatesStatus403,
+  BookingsListBusinessTemplatesStatus422,
+} from "./BookingsListBusinessTemplates.js";
 export type {
   BookingsListClosuresHeaders,
   BookingsListClosuresOptions,

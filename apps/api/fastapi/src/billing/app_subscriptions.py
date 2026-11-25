@@ -221,10 +221,16 @@ def checkout_return_urls(organisation_slug: str | None) -> tuple[str, str]:
 
 
 async def grant_trial(
-    session: AsyncSession, *, organisation_id: str, plan_key: str, trial_days: int
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    plan_key: str,
+    trial_days: int,
+    trial_ends_at: datetime | None = None,
 ) -> bool:
     """Give an organisation a free trial on one plan. Create-only: an existing grant is
     kept, so a repeat seed never changes it. Returns True when this call created it.
+    ``trial_ends_at`` (naive UTC) fixes the end instead of the day count (ADR-0066).
     Flushes; the caller commits."""
     created = await session.scalar(
         pg_insert(AppSubscriptionTrial)
@@ -232,6 +238,7 @@ async def grant_trial(
             organisation_id=organisation_id,
             plan_key=plan_key,
             trial_days=trial_days,
+            trial_ends_at=trial_ends_at,
             created_at=datetime.now(UTC).replace(tzinfo=None),
         )
         .on_conflict_do_nothing(index_elements=["organisation_id", "plan_key"])
@@ -250,14 +257,19 @@ async def _trial_days(
     ever started for this plan, so a cancelled subscription does not earn a second free
     month. An abandoned Checkout never reached Stripe as a subscription, so it keeps
     its trial."""
-    trial_days = await session.scalar(
-        select(AppSubscriptionTrial.trial_days).where(
-            AppSubscriptionTrial.organisation_id == organisation_id,
-            AppSubscriptionTrial.plan_key == plan_key,
+    grant = (
+        await session.execute(
+            select(
+                AppSubscriptionTrial.trial_days, AppSubscriptionTrial.trial_ends_at
+            ).where(
+                AppSubscriptionTrial.organisation_id == organisation_id,
+                AppSubscriptionTrial.plan_key == plan_key,
+            )
         )
-    )
-    if trial_days is None:
+    ).one_or_none()
+    if grant is None:
         return None
+    trial_days, trial_ends_at = grant
     started = await session.scalar(
         select(AppSubscription.id)
         .where(
@@ -267,7 +279,14 @@ async def _trial_days(
         )
         .limit(1)
     )
-    return None if started is not None else int(trial_days)
+    if started is not None:
+        return None
+    if trial_ends_at is None:
+        return int(trial_days)
+    # A self-created business's trial ends at a stored time (ADR-0066): pass only the
+    # whole days left, and no trial at all when less than a day is left.
+    whole_days = (trial_ends_at - datetime.now(UTC).replace(tzinfo=None)).days
+    return whole_days if whole_days >= 1 else None
 
 
 async def start_checkout(

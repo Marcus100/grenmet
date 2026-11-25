@@ -109,4 +109,6 @@ def test_upgrade_approves_every_existing_business_and_marks_entitlements_manual(
 
 def test_the_head_is_the_listing_revision() -> None:
     scripts = ScriptDirectory.from_config(Config("alembic.ini"))
-    assert scripts.get_heads() == [LISTING]
+    # Later slices stack on this one; the head moves with each new revision.
+    assert scripts.get_heads() == ["bookingsignup20261124"]
+    assert LISTING == "bookinglisting20261124"

@@ -147,4 +147,6 @@ async def _decline_pending(
             actor_user_id=None,
             reason=DECLINE_REASON,
             now=now,
+            # The account deletion must not call the payment provider (slice 2 follow-up a).
+            defer_refund=True,
         )

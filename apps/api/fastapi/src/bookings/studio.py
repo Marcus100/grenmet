@@ -253,9 +253,11 @@ async def decline(
     actor_user_id: uuid.UUID | None,
     reason: str,
     now: datetime | None = None,
+    defer_refund: bool = False,
 ) -> BookingStudioDetail:
     """A ``pending`` request is refused: cancelled, slot released, any captured
-    deposit refunded in full, the customer emailed once."""
+    deposit refunded in full, the customer emailed once. ``defer_refund`` queues the
+    refund for the worker (no provider call in the caller's transaction)."""
     managed = await public.load_by_id(session, booking_id, organisation_id, lock=True)
     if BookingStatus(managed.booking.status) is not BookingStatus.PENDING:
         raise BookingConflictError("Only a booking request can be declined")
@@ -269,6 +271,7 @@ async def decline(
         email=emails.customer_declined,
         dedupe_key=f"booking-declined:{managed.booking.id}",
         now=now or utc_now(),
+        defer_refund=defer_refund,
     )
 
 
@@ -309,6 +312,7 @@ async def _cancel(
     email: Callable[[emails.BookingEmail, str | None], layout.EmailCard],
     dedupe_key: str,
     now: datetime,
+    defer_refund: bool = False,
 ) -> BookingStudioDetail:
     booking = managed.booking
     previous = BookingStatus(booking.status)
@@ -322,7 +326,13 @@ async def _cancel(
         now=now,
     )
     money = await deposit_payments.settle_cancellation(
-        session, booking, managed.profile, previous=previous, refund=refund, now=now
+        session,
+        booking,
+        managed.profile,
+        previous=previous,
+        refund=refund,
+        now=now,
+        defer_refund=defer_refund,
     )
     if money:
         public.record_event(

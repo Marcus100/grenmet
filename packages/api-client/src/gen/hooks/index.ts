@@ -569,6 +569,11 @@ export {
   useBookingsCreateException,
 } from "./useBookingsCreateException.js";
 export {
+  bookingsCreateMyOrganisationMutationKey,
+  bookingsCreateMyOrganisationMutationOptions,
+  useBookingsCreateMyOrganisation,
+} from "./useBookingsCreateMyOrganisation.js";
+export {
   bookingsCreateProviderMutationKey,
   bookingsCreateProviderMutationOptions,
   useBookingsCreateProvider,
@@ -668,6 +673,11 @@ export {
   bookingsGetWorkingHoursQueryOptions,
   useBookingsGetWorkingHours,
 } from "./useBookingsGetWorkingHours.js";
+export {
+  bookingsListBusinessTemplatesQueryKey,
+  bookingsListBusinessTemplatesQueryOptions,
+  useBookingsListBusinessTemplates,
+} from "./useBookingsListBusinessTemplates.js";
 export {
   bookingsListClosuresQueryKey,
   bookingsListClosuresQueryOptions,

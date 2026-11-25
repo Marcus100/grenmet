@@ -13,7 +13,9 @@ from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
 
 from src import idempotency
+from src.auth.email_verification import require_verified_email
 from src.auth.models import User
+from src.auth.policy import require_permission
 from src.dependencies import (
     CurrentUser,
     OwnAccountAnyUser,
@@ -41,7 +43,15 @@ from src.rate_limit import limiter
 from src.turnstile import require_turnstile
 from src.utils.datetime import utc_now
 
-from . import calendar_feed, deposit_payments, listing_review, public, service, studio
+from . import (
+    calendar_feed,
+    deposit_payments,
+    listing_review,
+    public,
+    service,
+    signup,
+    studio,
+)
 from .models import BookingBusinessType, BookingStatus
 from .schemas import (
     BookingAgenda,
@@ -79,7 +89,10 @@ from .schemas import (
     BookingServiceCreate,
     BookingServicePublic,
     BookingServiceUpdate,
+    BookingSignupCreate,
+    BookingSignupReceipt,
     BookingSlot,
+    BookingStarterTemplate,
     BookingStorefront,
     BookingStudioCancel,
     BookingStudioCreate,
@@ -89,6 +102,7 @@ from .schemas import (
     BookingWorkingHoursUpdate,
     BookingWorkingPeriodPublic,
 )
+from .templates import STARTER_TEMPLATES
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -123,6 +137,98 @@ async def list_my_organisations(*, session: SessionDep, user: StudioCaller) -> A
         )
         for o, role in rows
     ]
+
+
+#: Answers 404 while business self sign-up is off (ADR-0066). It runs first, before the
+#: caller is read, the body is checked or the rate limit counts.
+SelfSignupOpen = Annotated[None, Depends(signup.require_self_signup_enabled)]
+
+
+@router.post(
+    "/me/organisations",
+    response_model=BookingSignupReceipt,
+    status_code=status.HTTP_201_CREATED,
+    summary="Sign a business up to Barrels Bookings",
+    description=(
+        "A signed-in account with a verified email creates its own business: closed "
+        "for online booking and unlisted until it is set up, on a 30-day trial, with "
+        "the owner, a provider named after the owner with weekday hours and the "
+        "chosen starter services. One self-created business per account. Requires an "
+        "`Idempotency-Key` (the same key and body replays the first answer with "
+        "`Idempotency-Replayed: true`). Turnstile is required outside local "
+        "development whatever the global switch says. Answers 404 while self sign-up "
+        "is switched off."
+    ),
+    operation_id="bookingsCreateMyOrganisation",
+    responses={
+        **BAD_REQUEST,
+        **AUTHENTICATED,
+        **NOT_FOUND,
+        **CONFLICT,
+        429: {
+            "model": RateLimitedBody,
+            "description": "Three sign-ups an hour per address",
+        },
+    },
+)
+@limiter.limit("3/hour")
+async def create_my_organisation(
+    *,
+    _enabled: SelfSignupOpen,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    user: StudioCaller,
+    payload: BookingSignupCreate,
+    idempotency_key: idempotency.RequiredIdempotencyKey,
+) -> Any:
+    require_permission(current_user=user, permission_key=signup.BOOKINGS_ACCESS_KEY)
+    require_verified_email(user, "create a business")
+    organisation = await signup.prepare_organisation(
+        session, user=user, key=idempotency_key, name=payload.name
+    )
+
+    async def create_once() -> tuple[int, dict[str, Any]]:
+        # Turnstile tokens are single-use: the check runs only for a key the server has
+        # not seen. A failed check is not stored and releases the key.
+        await require_turnstile(
+            request, payload.turnstile_token, signup.signup_turnstile_policy()
+        )
+        body = await signup.create_business(
+            session, user=user, organisation=organisation, payload=payload
+        )
+        return status.HTTP_201_CREATED, body
+
+    result = await idempotency.run_idempotent(
+        session,
+        scope=signup.SIGNUP_SCOPE,
+        organisation_id=organisation.id,
+        key=idempotency_key,
+        request_body=payload.model_dump(mode="json", exclude={"turnstile_token"}),
+        handler=create_once,
+    )
+    await session.commit()
+    response.status_code = result.status_code
+    if result.replayed:
+        response.headers["Idempotency-Replayed"] = "true"
+    return result.body
+
+
+@router.get(
+    "/me/business-templates",
+    response_model=list[BookingStarterTemplate],
+    summary="Starter templates for a new business",
+    description=(
+        "The fixed starter templates a sign-up can name: a short list of services with "
+        "a suggested price in XCD minor units for each business type. Never a deposit "
+        "or a policy. Needs a signed-in account."
+    ),
+    operation_id="bookingsListBusinessTemplates",
+    responses=AUTHENTICATED,
+)
+async def list_business_templates(*, user: StudioCaller) -> Any:
+    require_permission(current_user=user, permission_key=signup.BOOKINGS_ACCESS_KEY)
+    return [signup.template_view(t) for t in STARTER_TEMPLATES.values()]
 
 
 @router.get(

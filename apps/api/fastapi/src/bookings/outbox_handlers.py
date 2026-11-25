@@ -45,3 +45,23 @@ async def deposit_paid(session: AsyncSession, message: outbox.OutboxMessage) -> 
     await deposits.confirm_paid(
         session, organisation_id=message.organisation_id, booking_id=booking_id
     )
+
+
+@outbox.handler(deposit_payments.REFUND_TOPIC)
+async def deposit_refund(session: AsyncSession, message: outbox.OutboxMessage) -> None:
+    """Refund a declined booking's deposit after the cancel committed (slice 2 follow-up
+    a). ``refund_deposit`` is idempotent per booking and intent and never raises for a
+    provider problem, so a repeat run does nothing new."""
+    if message.organisation_id is None:
+        logger.warning("deposit_refund message without an organisation; dropped")
+        return
+    try:
+        booking_id = uuid.UUID(str(message.payload.get("booking_id")))
+    except ValueError:
+        logger.warning("deposit_refund message with a bad booking id; dropped")
+        return
+    booking = await session.get(Booking, booking_id)
+    if booking is None or booking.organisation_id != message.organisation_id:
+        logger.warning("deposit_refund for an unknown booking; dropped")
+        return
+    await deposit_payments.refund_deposit(session, booking, reason="Booking cancelled")
